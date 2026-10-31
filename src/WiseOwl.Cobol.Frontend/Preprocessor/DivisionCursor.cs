@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// prints <c>[ IDENTIFICATION DIVISION. ]</c>) — the first paragraph of an identification division
 /// (<see cref="IdentificationParagraphNames"/>) enters it. A word merely ENDING in <c>-ID</c> (<c>CUSTOMER-ID</c>) is a
 /// user's name, never a paragraph header.</para>
-/// <para>Two readers feed the one rule through <see cref="Feed"/>: the fixed-form converter line by line
+/// <para>Two readers feed the one rule through <see cref="Feed"/>: the fixed-form and free-form converters line by line
 /// (<see cref="Read"/>) over source and library text alike, and the COPY driver over the text-words of a block of logical
 /// text (<see cref="InIdentificationDivisionAt"/>), so the library text of a COPY starts in the division the COPY statement
 /// stands in. The cursor is per TEXT, not per block: the merged driver hands the COPY engine one block per directive

@@ -468,6 +468,10 @@ public sealed class Frontend
         // entry kind (kb/Work PB569). Reported through the syntax-error listener so it is located exactly like a
         // parse error; the parse itself still runs, so every other diagnostic of the unit is reported too.
         var sr7 = new CobolErrorListener(diagnostics, sourcePath, LineMap);
+        // ISO §6.3.5 1) / §6.4.2 — a literal its line ends inside (kb/Work PB3245), FIRST: it is why whatever else its line
+        // and the next draw is drawn, and a parse it breaks never reaches the bind-time literal walk.
+        LiteralScreen.ReportUnterminated(tokens.GetTokens(), (t, descriptor, message) =>
+            sr7.SyntaxError(TextWriter.Null, null!, t, t.Line, t.Column, $"[{descriptor.Code}] {message}", null!));
         foreach (var pic in PictureSeparatorPeriodRule.Violations(text, tokens.GetTokens()))
             sr7.SyntaxError(TextWriter.Null, null!, pic, pic.Line, pic.Column,
                 $"[{Diagnostics.DiagnosticDescriptors.COBOL2419.Code}] {PictureSeparatorPeriodRule.Message(pic)}", null!);

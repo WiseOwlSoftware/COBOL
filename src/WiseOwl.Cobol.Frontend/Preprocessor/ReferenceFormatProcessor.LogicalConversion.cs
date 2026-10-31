@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Runtime;
 
@@ -191,35 +192,87 @@ public static partial class ReferenceFormatProcessor
             _division.Read(area);
             return CommentEntryText.None;
         }
-
-        /// <summary>The logical-conversion text of a comment-entry paragraph's header line: the paragraph word at its own
-        /// position, its period, and the explicit terminating period that stands for the discarded comment-entry.</summary>
-        private static string CommentEntryHeader(string area)
-        {
-            int start = FirstNonSpace(area);
-            int end = start;
-            while (end < area.Length && area[end] is not (' ' or '.')) end++;
-            return area[..end] + ". .";
-        }
     }
 
-    /// <summary>The free-form CLASSIFIER of the ISO §6.5 logical conversion — a whole text or one SOURCE FORMAT segment
-    /// of it. A free-form line is "copied to the resultant compilation group" (§6.5 7)) once its comment is removed
-    /// (§6.5 2) and 3)); the only line that is not copied as a new logical line is the continuation line of a literal
-    /// continued with a floating literal continuation indicator (§6.5 8), kb/Work PB1359), which the
-    /// <see cref="LogicalLineBuilder"/> joins to its latest logical line. A discarded or joined line keeps its slot as
-    /// an empty line only when discarded; each resultant line's origin is the physical line and column it was read from.</summary>
-    private static (List<string> Lines, List<LineOrigin> Origins) ConvertFreeLines(ReadOnlySpan<PhysicalLine> physicalLines,
-        ReferenceFormatDiagnostics? gates, string file)
+    /// <summary>Convert one text, or one SOURCE FORMAT segment of it, in its reference format: the fixed-form or the
+    /// free-form classifier, each feeding the one <see cref="LogicalLineBuilder"/>. <paramref name="inIdentificationDivision"/>
+    /// is the division the segment starts in, and on return the one it ends in: the next segment starts there, whatever its
+    /// format.</summary>
+    private static (List<string> Lines, List<LineOrigin> Origins) ConvertSegment(ReadOnlySpan<PhysicalLine> lines, bool isFixed,
+        ReferenceFormatDiagnostics? gates, string file, bool ccvsIndicators, ref bool inIdentificationDivision)
     {
-        var builder = new LogicalLineBuilder(file, gates, fixedForm: false);
-        foreach (var line in physicalLines)
+        if (isFixed)
         {
-            int positions = CharacterPositions.Count(line.Text);
-            if (positions > FreeFormMaxPositions) gates?.OnFreeFormLineTooLong(file, line.Number, positions);
-            builder.Add(line.Text, new TextSite(line.Number, Index: 0, line.Columns), fixedContinuation: false);
+            var fixedForm = new FixedFormConverter(gates, file, ccvsIndicators, inIdentificationDivision);
+            var converted = fixedForm.Convert(lines);
+            inIdentificationDivision = fixedForm.InIdentificationDivision;
+            return converted;
         }
-        return builder.Result;
+        var freeForm = new FreeFormConverter(gates, file, inIdentificationDivision);
+        var result = freeForm.Convert(lines);
+        inIdentificationDivision = freeForm.InIdentificationDivision;
+        return result;
+    }
+
+    /// <summary>The free-form CLASSIFIER of the ISO §6.5 logical conversion — a whole text, one SOURCE FORMAT segment of
+    /// it, or a copybook. A free-form line is "copied to the resultant compilation group" (§6.5 7)) once its comment is
+    /// removed (§6.5 2) and 3)); the only line that is not copied as a new logical line is the continuation line of a
+    /// literal continued with a floating literal continuation indicator (§6.5 8), kb/Work PB1359), which the
+    /// <see cref="LogicalLineBuilder"/> joins to its latest logical line. A discarded or joined line keeps its slot as an
+    /// empty line only when discarded; each resultant line's origin is the physical line and column it was read from.
+    /// <para>⛔ A COMMENT-ENTRY IS COMMENTARY IN FREE FORM TOO (docs/CONFORMANCE.md D-CE1; kb/Work PB3245, review finding
+    /// R1-1). A comment-entry is arbitrary text (an apostrophe in a name, an unclosed quotation mark, a comma with no space
+    /// after it), so in neither format does it reach the lexer as program text: inside an IDENTIFICATION DIVISION, a line
+    /// whose first word is a comment-entry paragraph's word is written as the paragraph's header (<c>AUTHOR. .</c>, exactly
+    /// as the fixed-form converter writes it), and the rest of the line, the entry, is discarded. No edition of the
+    /// standard has both a comment-entry and free form (COBOL-2002 introduced free form and removed the comment-entry), so
+    /// where a free-form entry ends is the implementor's to say, and CLAUDE.md rule 1 takes GnuCOBOL 3.2's <c>-free</c>
+    /// reading: the paragraph word first on its line, the entry the rest of that line, the next line program text.</para>
+    /// </summary>
+    private sealed class FreeFormConverter(ReferenceFormatDiagnostics? gates, string file, bool startsInIdentificationDivision)
+    {
+        private readonly LogicalLineBuilder _builder = new(file, gates, fixedForm: false);
+
+        /// <summary>Which division the text read so far is in: the ONE rule (<see cref="DivisionCursor"/>), as in the
+        /// fixed-form converter, because a comment-entry paragraph exists only in an IDENTIFICATION DIVISION.</summary>
+        private readonly DivisionCursor _division = new(startsInIdentificationDivision);
+
+        /// <summary>Whether the text read so far ends in an IDENTIFICATION DIVISION — the state the next SOURCE FORMAT
+        /// segment of the same text starts in.</summary>
+        public bool InIdentificationDivision => _division.InIdentificationDivision;
+
+        /// <summary>Convert the lines of one text, returning the resultant lines and, per resultant line, the physical
+        /// lines and columns it came from (kb/Work PB82, PB1801).</summary>
+        public (List<string> Lines, List<LineOrigin> Origins) Convert(ReadOnlySpan<PhysicalLine> physicalLines)
+        {
+            foreach (var line in physicalLines)
+            {
+                int positions = CharacterPositions.Count(line.Text);
+                if (positions > FreeFormMaxPositions) gates?.OnFreeFormLineTooLong(file, line.Number, positions);
+                var site = new TextSite(line.Number, Index: 0, line.Columns);
+                // A comment line (§6.5 2)) is neither a header nor words of a division, as in fixed form.
+                int first = FirstNonSpace(line.Text);
+                if (first >= 0 && !CobolSourceText.CommentIndicatorAt(line.Text, first))
+                {
+                    if (BeginsCommentEntry(line.Text, first))
+                    {
+                        _builder.Emit(CommentEntryHeader(line.Text), site);
+                        continue;
+                    }
+                    _division.Read(line.Text);
+                }
+                _builder.Add(line.Text, site, fixedContinuation: false);
+            }
+            return _builder.Result;
+        }
+
+        /// <summary>Whether the line whose first character-string begins at <paramref name="first"/> opens a comment-entry
+        /// paragraph: the text stands in an IDENTIFICATION DIVISION, the line's first word is one of
+        /// <see cref="CommentEntryParagraphs"/>, and the line is not the continuation line a floating literal continuation
+        /// indicator asks for (§6.5 8)), whose text is the literal's whatever it spells.</summary>
+        private bool BeginsCommentEntry(string text, int first) =>
+            _division.InIdentificationDivision && !_builder.AwaitsFloatingContinuation
+            && CommentEntryParagraphs.Contains(text[first..WordEnd(text, first)]);
     }
 
     /// <summary>The most character positions a free-form line may have (§6.1 3) a): "ranging from a minimum of 0 to a
@@ -237,8 +290,21 @@ public static partial class ReferenceFormatProcessor
     {
         if (!line.BeginsInAreaA) return null;   // blank line, or text begins in area B (not a header)
         int start = line.ProgramTextStart;
+        return programText[start..WordEnd(programText, start)];
+    }
+
+    /// <summary>The logical-conversion text of a comment-entry paragraph's header line, in either reference format: the
+    /// paragraph word at its own position, its period, and the explicit terminating period that stands for the discarded
+    /// comment-entry. <paramref name="programText"/> begins with the word, after any spaces.</summary>
+    private static string CommentEntryHeader(string programText)
+        => programText[..WordEnd(programText, FirstNonSpace(programText))] + ". .";
+
+    /// <summary>The end (exclusive) of the word that begins at <paramref name="start"/>: the run of characters up to a
+    /// space or a period. How a comment-entry paragraph's header word is read, in both reference formats.</summary>
+    private static int WordEnd(string text, int start)
+    {
         int end = start;
-        while (end < programText.Length && programText[end] is not (' ' or '.')) end++;
-        return programText[start..end];
+        while (end < text.Length && text[end] is not (' ' or '.')) end++;
+        return end;
     }
 }
