@@ -743,8 +743,11 @@ public sealed partial class DataBinder
 
             // SR30 — data-name-3 is implicitly defined at the OCCURS entry, so it must not also be an explicit
             // data-name (a duplicate definition) nor the CAPACITY register of another dynamic table.
-            // (This pass runs inside Bind, before a contained program inherits its containers' globals, so the
-            // map holds only this element's own registers here — the "elsewhere in the source element" SR30 means.)
+            // ⛔ "ELSEWHERE IN THE SOURCE ELEMENT" IS THIS ELEMENT'S OWN NAMES (kb/Work PB3766 review R2-1): a contained
+            // program inherits its containers' GLOBAL data-names and CAPACITY registers before this pass runs
+            // (InheritContainerGlobalData), and those are defined in ANOTHER source element — this element's own
+            // declaration of the spelling hides them (§8.4.6.2.1 3) — so only the depth-0 names and registers are the
+            // duplicates SR30 forbids (DeclaresOwnDataName; DeclaringDepth).
             // ⛔ "DEFINED ELSEWHERE" COMPARES DEFINITIONS, NOT EXPANSIONS (kb/Work PB2988): data-name-3 written once in a
             // type declaration (or under a SAME AS operand) is reproduced by every TYPE / SAME AS copy of its entry,
             // exactly as the table's own data-name is, and SR30's second sentence — "If qualifiers are required for
@@ -758,9 +761,10 @@ public sealed partial class DataBinder
             // word is declared in both, and never against a sibling method's. The name lands in the same scope.
             var methodScope = ScopeOf(item.Root).Method;
             var registers = methodScope?.CapacityRegisters ?? _capacityRegisters;
-            if ((methodScope is null ? ByName : methodScope.ByName).ContainsKey(capName)
+            if ((methodScope is null ? DeclaresOwnDataName(capName) : methodScope.ByName.ContainsKey(capName))
                 || (registers.TryGetValue(capName, out var sameName)
-                    && !sameName.TrueForAll(t => ReferenceEquals(t.WrittenDefinition, item.WrittenDefinition))))
+                    && !sameName.TrueForAll(t => DeclaringDepth(t) != 0
+                                                 || ReferenceEquals(t.WrittenDefinition, item.WrittenDefinition))))
             {
                 Edition.Error("COBOL1523", $"CAPACITY IN '{capName}' on '{subject}': data-name-3 is implicitly "
                     + "defined by the OCCURS DYNAMIC entry and shall not duplicate another data-name or "
@@ -781,13 +785,18 @@ public sealed partial class DataBinder
     }
 
     /// <summary>The ONE insert into <see cref="CapacityRegisters"/>: this element's own register (from
-    /// <see cref="DynamicResolve"/>, first) and each container's GLOBAL one (from <see cref="InheritGlobalSubtree"/>,
-    /// nearest container first) — appended, so each name's list stays in nearest-declaring-element order (kb/Work
-    /// PB1674).</summary>
-    private static void AddCapacityRegister(Dictionary<string, List<DataItem>> registers, string name, DataItem table)
+    /// <see cref="DynamicResolve"/>) and each container's GLOBAL one (from <see cref="InheritGlobalSubtree"/>, nearest
+    /// container first). ⛔ THE LIST IS KEPT IN NEAREST-DECLARING-ELEMENT ORDER BY THE INSERT, NOT BY THE ORDER OF THE
+    /// CALLS (kb/Work PB1674; PB3766 review R2-1): the containers' names are inherited before this element's registers
+    /// are minted, so a register goes after the last one at its own depth or nearer — the order
+    /// <c>ReferenceResolver.CapacityRegisterFor</c> reads (<c>tables[0]</c> is the nearest).</summary>
+    private void AddCapacityRegister(Dictionary<string, List<DataItem>> registers, string name, DataItem table)
     {
         if (!registers.TryGetValue(name, out var tables)) registers[name] = tables = [];
-        tables.Add(table);
+        int depth = DeclaringDepth(table);
+        int at = tables.Count;
+        while (at > 0 && DeclaringDepth(tables[at - 1]) > depth) at--;
+        tables.Insert(at, table);
     }
 }
 
