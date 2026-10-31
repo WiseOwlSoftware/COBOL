@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.61.2",
+ "section": "15.61.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "MEDIAN function",
+ "rule-digest": "303774aee951",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#TableAllPlace; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#AllArgs; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#ArgArray",
+ "test-ref": "conformance:cases/8.4.2.3-Subscripts/pb62_all_subscript_runtime_ranges",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB62 — the ALL subscript as ONE enumerating operand with the standard's three ranges; admissibility from the definition; the summing family on the SDIDI carrier under a standard mode). `FUNCTION MEDIAN ( { argument-1 } … )` over an ODO ALL: §15.3 'If the ALL subscript is associated with a data item described with an OCCURS DEPENDING ON clause, the range of values is determined by the object of the OCCURS DEPENDING ON clause' — the range is now data-name-1's CURRENT value read at run time (AllCount.Odo → CobolTable.OdoExtent with a unit element, EC-BOUND-ODO outside integer-1..integer-2); the bind-time expansion staged this loud at run time. Golden MEDIAN = 5.0000 (the middle of the sorted three).",
+ "state": "OK"
+}

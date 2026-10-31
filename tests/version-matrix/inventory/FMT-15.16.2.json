@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.16.2",
+ "section": "15.16.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "CHAR-NATIONAL function",
+ "rule-digest": "ede9a823bd66",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionName; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog",
+ "test-ref": "conformance:cases/15.16.4-Returned-value-rules/char_national",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "UPHELD — re-verified independently rather than inherited. The transcription at §15.16.2 carries '<u>FUNCTION</u> <u>CHAR-NATIONAL</u> ( argument-1 )': both words underlined (required, §5.2.2), exactly one argument, no brackets, braces or choice indicators — nothing optional, nothing dropped. Grammar: 'functionCall : FUNCTION functionName (LPAREN functionArgList? RPAREN)?' with 'functionName : IDENTIFIER | DISPLAY | LENGTH | MERGE | NATIONAL | BIT | RANDOM | SIGN | SORT | SUM' — CHAR-NATIONAL has no lexer token, so it arrives as IDENTIFIER; the per-function shape is enforced from the catalog row (Fixed 1,1). RAN: 'FUNCTION CHAR-NATIONAL (65 66)' -> COBOL1504 '1 argument(s); 2 given'; 'FUNCTION CHAR-NATIONAL' with no parens -> COBOL1504 '0 given'; 'FUNCTION CHAR-NATIONAL (66)' compiles and runs at 2002/2014/2023 and is refused at --std 85 with COBOL1502. Also RAN the three legal argument shapes the format admits through §15.3 type 6, none falsely rejected: a subscripted operand 'FUNCTION CHAR-NATIONAL (ENTRYX (1))', an arithmetic expression 'FUNCTION CHAR-NATIONAL (64 + 2)', and a nested function 'FUNCTION CHAR-NATIONAL (FUNCTION ORD (\"A\"))' — all three printed A. The cited golden exists on disk (tests/conformance/2002/char_national.cob), writes this exact format, and was re-run green against its .out.",
+ "state": "OK"
+}

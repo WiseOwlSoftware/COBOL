@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-12.4.4.2",
+ "section": "12.4.4.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "FILE-CONTROL paragraph",
+ "rule-digest": "07586e6ff559",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileControlParagraph; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inputOutputSection; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FILE_CONTROL",
+ "test-ref": "conformance:cases/12.4.4-FILE-CONTROL/l1c10_file_control_no_entries; conformance:cases/12.4.4-FILE-CONTROL/l1c10_file_control_two_entries; conformance:cases/12.4.4-FILE-CONTROL/l1c10-file-control-no-period",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: '<u>FILE-CONTROL</u>. [ file-control-entry ] ...' (cite.py --check 12.4.4.2 \"file-control-entry\" -> OK §12.4.4.2 General format). Grammar fileControlParagraph = FILE_CONTROL DOT fileControlClauseGroup* : required keyword, required separator period, zero-or-more file-control-entries -- exactly the format; it is optional inside inputOutputSection (FILE-CONTROL? then I-O-CONTROL?), matching §12.4.2. Probes with the pinned cobol.exe at --std 85/2002/2014/2023: (a) FILE-CONTROL. with zero entries compiles and runs (DISPLAY OK1); (b) two SELECT entries compile, write and read back both files (AAAABBBB); (c) FILE-CONTROL without its period is rejected COBOL0307 at every edition. The contents of each file-control-entry belong to §12.4.5 rows, not this one. No spec-derived golden targets the empty-paragraph form or the missing-period rejection, so test-ref is empty (test-needed). [registrar 14a — editions as adjudicated: 1985, 2002, 2014, 2023 (no Annex E change entry for the FILE-CONTROL paragraph format)]",
+ "state": "OK"
+}

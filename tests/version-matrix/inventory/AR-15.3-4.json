@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.3-4",
+ "section": "15.3",
+ "kind": "AR",
+ "ordinal": 4,
+ "subject": "Intrinsic functions",
+ "rule-digest": "48f91fc0a626",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindExceptionFileArg",
+ "test-ref": "conformance:cases/15.3-Arguments/pb63_exception_file_select_names; conformance:cases/15.3-Arguments/pb123_exception_file_global_fd; conformance:cases/15.3-Arguments/pb63-exception-file-sd; conformance:cases/15.3-Arguments/pb63-exception-file-no-fd; conformance:cases/15.3-Arguments/pb63-exception-file-n-sd",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB123): BindExceptionFileArg now resolves through ctx.Data.FilesByName - the ONE file-name resolution every other site uses, into which BinderDriver merges containers' GLOBAL FDs (13.18.30 / 13.18.27 GR1-2) - instead of scanning the program's OWN FD list, so a contained program naming its container's GLOBAL FD binds (golden pb123_exception_file_global_fd: the never-touched connector answers 15.28.4 r2a's two spaces). SelectName always equals CobolName at construction, so the keyed lookup is equivalent for local files. Both 15.28.3 r1 halves (FD-described, not SD) still enforced on the resolved model. SWEEP (the two-arm-dispatch family's eighth arm): the UNQUALIFIED LINAGE-COUNTER scan in ExpressionBinder.LinageFileOf had the same own-files blind spot - it now scans the VISIBLE set (FilesByName.Values), so a contained program whose only LINAGE file is the container's GLOBAL one resolves the register (same golden), and own-plus-inherited still requires qualification (8.4.3.14 SR3). No other by-name resolution against Data.Files remains (grep: the BinderDriver uses are enumerations).",
+ "state": "OK"
+}

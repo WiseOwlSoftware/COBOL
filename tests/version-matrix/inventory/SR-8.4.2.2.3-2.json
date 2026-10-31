@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.2.2.3-2",
+ "section": "8.4.2.2.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Qualification",
+ "rule-digest": "007b37ad4caf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#SumCounterFor; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifierWalk",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/pb567_condition_name_qualification; conformance:cases/8.4.2.2-Qualification/qualified_unique_match; conformance:cases/8.4.2.2-Qualification/pb1454_sum_counter_group_qualifier",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1454 landed (w1005e): the one divergence (a report-section sum counter accepted only a report-name qualifier) is closed. A SUM entry is subordinate to its report group entries, which are qualifiers (SR4) with the report-name outermost, so any combination naming levels above the counter resolves whether or not it is needed: TOT1 OF CF1, TOT1 OF CF1 OF R1, TOT2 IN R1 in the golden.",
+ "state": "OK"
+}

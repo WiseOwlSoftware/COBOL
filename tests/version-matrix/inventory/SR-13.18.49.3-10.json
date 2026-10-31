@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.49.3-10",
+ "section": "13.18.49.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "SAME AS clause",
+ "rule-digest": "ecf281fbc187",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAs",
+ "test-ref": "conformance-test:SameAsTests.SameAsOfConstantRecord_Rejected1556",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR10 \"The description of data-name-1 shall not contain a CONSTANT RECORD clause.\" (--check 13.18.49.3 -> OK 10)). `target.IsConstantRecord` -> COBOL1556 (SameAsOfConstantRecord_Rejected1556, spec-derived). CONSTANT RECORD is level-1 only (§13.18.15.3 SR1), so testing the target's own entry is complete. || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): every edition that has both SAME AS and the CONSTANT RECORD clause (§13.18.15), per ED: 2002, 2014, 2023 for SAME AS",
+ "state": "OK"
+}

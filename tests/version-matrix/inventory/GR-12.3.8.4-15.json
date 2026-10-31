@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.8.4-15",
+ "section": "12.3.8.4",
+ "kind": "GR",
+ "ordinal": 15,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "465db9f29a47",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#InheritConfiguration; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.ObjectProperty.cs#ResolveObjectProperty",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb974_repository_as_phrase",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (cite.py --check 12.3.8.4 'Property-name-1 is the name of an object property that may be used throughout the scope of the containing environment division' -> OK §12.3.8.4 15)). Code: BindDeclarations records OoRepositoryProperties[property-name-1] = literal-4 or the name; InheritConfiguration (DataBinder.Switches.cs:474) TryAdds the container's entries into every contained unit; ReferenceResolver.OoTryBindPropertyReference resolves 'name OF receiver' through that table (COBOL0843 when no specifier is in scope, §8.4.3.9.3 SR1). Evidence: conformance:cases/8.3.2.2-User-defined-words/pb974_repository_as_phrase (PROPERTY AMOUNT AS \"BAL\" used in the declaring program: 100 / 555); probe out/probe/repo/gr15.cob (--std 2002): the specifier in an outermost program, the reference 'MOVE 321 TO AMOUNT OF B' / 'DISPLAY AMOUNT OF B' in a CONTAINED program -> INNER-AMOUNT=321 (the 'throughout the scope' half). Residue noted, not a GR15 defect: an interface-typed receiver has no property path yet (ReferenceResolver comment 'property prototypes are a later refinement'). retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#OoTryBindPropertyReference (the one-word property binder ReferenceResolver.OoTryBindPropertyReference is deleted by kb/Work PB1425 (w1021a): a property reference is resolved by ReferenceResolver.ResolveObjectProperty, which splits the chain and resolves identifier-3 through the ordinary resolver)",
+ "state": "OK"
+}

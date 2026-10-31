@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-163",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 163,
+ "subject": "REPOSITORY paragraph (when the AS phrase is required)",
+ "rule-digest": "5e730d90b4fa",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-163; src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Lookup; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#UserFunctionsOf",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb974_repository_as_phrase; conformance:cases/12.3.8-REPOSITORY/pb974-repository-class-as-zero-length",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "A.1 item 163 - REPOSITORY paragraph (when the AS phrase is required), 12.3.8 GR2, required + documented. docs/CONFORMANCE.md s7's determination: the AS phrase is NEVER required; with it the declared word names the definition whose externalized name is the literal, without it a program specifier's externalized name is the word (GR10 NOTE 1) and a class / interface / function specifier names the group's definition declared with that word (GR6/GR9 implementor latitude). kb/Work PB974.",
+ "state": "OK"
+}

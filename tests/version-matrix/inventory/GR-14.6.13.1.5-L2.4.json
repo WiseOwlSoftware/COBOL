@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.13.1.5-L2.4",
+ "section": "14.6.13.1.5",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Exception conditions",
+ "rule-digest": "3eaa9534c424",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitPropagationPickup; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ConvertObjectPropagationToNamed",
+ "test-ref": "conformance:cases/14.6.13.1.5-Exception-objects/pb1121_object_propagation_boundary; conformance-test:OoSpineTests.GobackRaisingObject_NoF4_ActivatorUnchecked_RaisesNothing; conformance-test:OoSpineTests.GobackRaisingObject_NoF4_ActivatorChecked_F3CatchesEcOoException; conformance-test:FatalRaiseSelectionTests.ObjectPropagation_ActivatorChecked_NoHandler_TerminatesAbnormally",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1121 LANDED. The activator-side item-4 conversion of an object no declarative took re-stages it as the NAMED EC-OO-EXCEPTION for the current activation (ExceptionState.ConvertObjectPropagationToNamed) and the pickup's one named arm takes it through TakeRaisedPropagation(site.ActivatorChecking), the PB408 gate: checking OFF raises nothing and the CALL/INVOKE completes; checking ON raises, runs the F3 selection and applies Table 13's fatal default. CALL and INVOKE (including the universal path) share the one pickup. The NOT ON EXCEPTION reading is pinned in docs/CONFORMANCE.md section 3.",
+ "state": "OK"
+}

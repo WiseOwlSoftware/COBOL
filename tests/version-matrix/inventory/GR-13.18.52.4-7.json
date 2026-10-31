@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.52.4-7",
+ "section": "13.18.52.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "SIGN clause",
+ "rule-digest": "b7026897a775",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs",
+ "test-ref": "conformance:cases/13.18.52-SIGN/l1_sign_signed_item_conversion",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Two SEPARATE layouts (13.18.52.4 GR6 a/b) holding -12 compare equal and sum into a third, per 8.8.4.2.4's algebraic-value comparison; the NEG leg pins GR7's signed-item sentence.",
+ "state": "OK"
+}

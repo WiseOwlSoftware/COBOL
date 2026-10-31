@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.60.3-20",
+ "section": "13.18.60.3",
+ "kind": "SR",
+ "ordinal": 20,
+ "subject": "USAGE clause",
+ "rule-digest": "bbb66ed4f128",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UsageInheritancePass; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UsageInheritanceElementary; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ApplyEffectiveUsage; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ScreenUsageAgainstPicture; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#IsPictureless",
+ "test-ref": "conformance:cases/13.18.60-USAGE/pic-n-usage-display; conformance-test:NationalBooleanDataTests.IllegalUsagePictureShape_Rejects0881; conformance-test:UsageInheritanceDriftTests.InheritedUsage_IsTheSameItemAsAWrittenOne; unit:PicturelessUsageSetDriftTests.EverySr8NamedUsage_WithAMember_IsPictureless; unit:PicturelessUsageSetDriftTests.EveryPicturelessMember_IsSr8Named_OrACoveredDetermination",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB495 landed the ONE derivation of an elementary item's EFFECTIVE usage -- its own USAGE clause, else the nearest enclosing group's (13.18.60.4 GR1) -- feeding the group-header shed, the leaf's representation and EVERY 13.18.60.3 screen through the SAME code the written-clause path runs (PictureAnalyzer.ScreenUsageAgainstPicture, extracted for the purpose). The invariant is stated and locked as an EQUIVALENCE rather than as cases: `01 G USAGE u. 05 A <pic>.` and `01 G. 05 A <pic> USAGE u.` are the same item, so they must produce the same verdict, the same diagnostic code and the same width, for EVERY member of the Usage enum. UsageInheritanceDriftTests enumerates the enum and asserts exactly that (24 members x 6 pictures x 2 arms). MEASURED on the pre-fix tree 39479e19: 108 of those 138 cells DIFFERED between the two arms; after the fix, 0 differ. \"ASSOCIATED WITH\" IS GR1'S OWN WORD, and that is what the row was missing. SR20 governs \"a USAGE clause associated with an elementary data item whose explicit or implicit picture character-string contains the symbol 'N'\", and 13.18.60.4 GR1 is precisely what associates a group's clause with the item -- so the inherited spelling is in scope and was not screened. Measured before: `01 G USAGE DISPLAY. 05 A PIC N(2).` and `01 G USAGE COMP. 05 A PIC N(4).` compiled clean at 2002+. Both are now the same COBOL0881 the written-clause spelling gives, from the one extracted screen; `01 G USAGE NATIONAL. 05 A PIC N(2).` and the clause-less `05 A PIC N(2).` still compile to a 4-byte national item. The drift theory runs PIC N(2) against EVERY usage on both arms, so the rule's whole surface is covered rather than sampled.",
+ "state": "OK"
+}

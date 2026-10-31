@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.8.2",
+ "section": "13.8.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Report section",
+ "rule-digest": "dc7b76b90b03",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#constantEntry",
+ "test-ref": "conformance:cases/13.2-Data-division-structure/pb1226_report_section_constant; conformance:cases/13.2-Data-division-structure/pb1226-rd-without-report-group; conformance:cases/13.2-Data-division-structure/pb1226-rd-constant-entry-only; conformance:cases/13.8-Report-section/pb1226-report-section-constant-below-2002",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1287 (duplicate of PB1226): constant-entry arm and the one-or-more rule, see FMT-13.2.1. The constant entry is a COBOL-2002 introduction, so below 2002 it draws COBOL0900 through the same constantEntryBody gate as a data-division constant.",
+ "state": "OK"
+}

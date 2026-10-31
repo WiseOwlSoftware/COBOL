@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.9.3-7",
+ "section": "8.4.3.9.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "Object property",
+ "rule-digest": "dfc66c64dd59",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ValidatePropertyAccessorPairs; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs",
+ "test-ref": "conformance:cases/8.4.3.9-Object-property/pb1450-property-accessor-descriptions-differ; conformance:cases/8.4.3.9-Object-property/pb1450-property-accessors-split-across-inheritance; conformance:cases/8.4.3.9-Object-property/oo_property_explicit_ref",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1450 landed (w1005e): each (GET, SET) pair the class sees (the roster lookup walks INHERITS) is compared with the ONE identical-description check, OoConformance.DescriptionMismatch in pair mode, once every class's formals have bound; a mismatch is COBOL2727 at the accessor the class wrote. The identical explicit pair in oo_property_explicit_ref still compiles and runs.",
+ "state": "OK"
+}

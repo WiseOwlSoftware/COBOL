@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.33.4-3",
+ "section": "13.18.33.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Level-number",
+ "rule-digest": "af84cd76cf76",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#SetRedefinition; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ClassifyRedefinesClasses; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#LinkImplicitRecordArea; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#IsOutOfLineRecord; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRecordAreaStore",
+ "test-ref": "conformance:cases/13.18.33-Level-number/pb836_implicit_record_redefinition; unit:ImplicitRecordRedefinitionTests.TheKind_NamesTheConstruct; conformance:cases/13.18.33-Level-number/pb981_fd_variable_length_records; conformance:cases/13.18.33-Level-number/pb981_fd_pointer_record; unit:ImplicitRecordRedefinitionTests.OutOfLineRecord_InAMultiRecordFd_IsNotLinked_AndSharesTheAreaAtTheTransfer; unit:ImplicitRecordRedefinitionTests.OutOfLineRecord_InASameRecordArea_IsReachedThroughThePeerFile",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB836 LANDED; kb/Work PB981 LANDED (determination D-FRA, docs/CONFORMANCE.md section 3). Sentence 1 - 'Multiple level 1 entries subordinate to a FD or SD entry represent implicit redefinitions of the same area': DataBinder.LinkImplicitRecordArea, the ONE linker for the FD and SD arms, joins every later CHARACTER-WINDOW level-1 record to the first through DataItem.SetRedefinition(first, RedefinitionKind.ImplicitFileRecord); the storage layout reads the one class for both constructs, while the 13.18.44.3 REDEFINES-clause screens read RedefinesKind == Clause only. Since PB981 a dynamic-length record, a variable-length group or a pointer-class record - legal source that used to be staged loud as COBOL0899 - is an OUT-OF-LINE record (FileModel.IsOutOfLineRecord): 8.5.1.10.3 lets its storage be located elsewhere, so it is never linked into the class and shares the area at the transfer boundary instead - a READ/RETURN makes the current record available in it (SequentialIoEmitter.EmitRecordAreaStore; a variable-length group through the one split rule CobolVarGroup.FromContiguous), and a WRITE/REWRITE/RELEASE sends its contiguous image (8.5.1.11.2). The 2014 golden writes and reads back a variable-length group, a dynamic-length record and a character record of one FD, a SAME RECORD AREA peer and an SD; the 2002 golden a pointer record beside a character record. Residue stated in D-FRA: an EXTERNAL file whose area has an out-of-line record, and a SORT/MERGE key that follows a variable-length member, are refused by name. Sentence 2 - report description level-1 entries are not implicit redefinitions: the report binder never calls SetRedefinition. EDITIONS 2002/2014/2023 as before; the FD rule is COBOL-85 base language and the same binder arm serves 85.",
+ "state": "OK"
+}

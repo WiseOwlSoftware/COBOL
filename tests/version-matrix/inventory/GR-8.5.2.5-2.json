@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.2.5-2",
+ "section": "8.5.2.5",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Class and category of data items and literals",
+ "rule-digest": "c21fa0eb0d33",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ImpliedPicture.cs#SynthesizeImpliedPictures; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ImpliedPicture.cs#Sr9ImpliedFor",
+ "test-ref": "unit:ImpliedPictureTests.Sr9b_BooleanLiteral_ImpliesPicture1OfTheLiteralLength",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: '2) An elementary data item described with a VALUE clause containing a boolean literal, and without a PICTURE clause.' (cite.py OK). §13.16.3 SR9 b) 'PICTURE 1(length)'; ImpliedPicture.Text maps LiteralClass.Boolean -> 1(n). Probe p2.cob: '01 B1 VALUE B\"101\".' -> [101] LENGTH 3, MOVE B\"1\" -> [100] (category boolean behaviour). Figurative ZERO in a USAGE BIT context also implies 1(1) per Sr9ImpliedFor (§8.3.3.6.4 GR4).",
+ "state": "OK"
+}

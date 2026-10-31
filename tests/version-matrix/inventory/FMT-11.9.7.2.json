@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-11.9.7.2",
+ "section": "11.9.7.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "ENTRY-CONVENTION clause",
+ "rule-digest": "58d91e8c57a0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#entryConventionClause; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#entryConventionName; src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#ScreenEntryConvention",
+ "test-ref": "conformance:cases/11.9.7-ENTRY-CONVENTION/pb232_entry_convention_cobol",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Rule: ENTRY-CONVENTION IS { COBOL | entry-convention-name-1 } (cite.py --check 11.9.7.2 \"ENTRY-CONVENTION\" -> OK General format); ENTRY-CONVENTION and COBOL required, IS optional. Grammar: ENTRY_CONVENTION IS? entryConventionName, entryConventionName = {wordAhead(COBOL)}? formatWord | cobolWord (system-name slot, PB764/PB774). Probes (pinned cobol.exe, out/probe/ec/): p1 `entry-convention cobol.` (no IS, lower case) compiles and runs 'P1 OK'; n3 `ENTRY-CONVENTION IS.` -> COBOL0001 unexpected '.' (operand required); the entry-convention-name-1 arm parses and is then refused by GR3 semantics (COBOL2385, conformance:cases/11.9.7-ENTRY-CONVENTION/pb232-entry-convention-name) -- the documented A.1 item 64 'Not provided' choice (CONFORMANCE.md DOC-A.1-64), legal since GR3 leaves the meaning implementor-defined. At --std 2002/85 COBOL0900 (edition gate, see editions). Side observation outside this clause: optionsParagraph is `optionsClause+`, so two ENTRY-CONVENTION IS COBOL clauses (probe n2) compile silently; §11.9.2 lists each clause once -- a §11.9.2 question, recorded as a dossier gap, not charged here. || Editions (adjudicator, verbatim): 2014, 2023 (the 2023 Annex E lists no introduction or change of the clause, so it predates 2023; whether ISO 1989:2002 carried it is not derivable from specs/ISO_COBOL.md -- the code gates it 2014 as a recorded conservative choice, constructs.json options-entry-convention-2014) retired-witness: src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#EntryConventionOf (kb/Work PB298: the ENTRY-CONVENTION screen returns nothing now that the clause has no model field, so EntryConventionOf became ScreenEntryConvention (the same SR1 + GR3 checks, COBOL2385))",
+ "state": "OK"
+}

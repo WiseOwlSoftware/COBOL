@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.55.4-5",
+ "section": "13.18.55.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "SYNCHRONIZED clause",
+ "rule-digest": "6089952086fc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/SynchronizedPhrase.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/Model/StrongTypeModel.cs#SameEssentialCharacteristics; docs/CONFORMANCE.md#DOC-A.1-197",
+ "test-ref": "conformance:cases/8.5.1.6.4-Item-alignment-for-increased-object-code/l1_byte_length_implicit_filler; conformance:cases/13.18.55-SYNCHRONIZED/pb538-sync-left-right-differ",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB538 (landed, wave 20261032). The twin of GR-13.18.55.4-4: under DOC-A.1-197's one-byte natural boundary an item always terminates on the right byte of the boundary it occupies, so SYNC RIGHT needs no adjustment; the RIGHT phrase is recorded (SynchronizedPhrase.Right) and compared by the 8.5.3.1 equivalence (golden pb538-sync-left-right-differ).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.43.3-8",
+ "section": "13.18.43.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "RECORD clause",
+ "rule-digest": "bffc3b77d912",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#recordClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#integerLiteral",
+ "test-ref": "conformance:cases/13.18.43-RECORD/pb721-record-contains-negative-minimum; conformance:cases/8.5.4-Zero-length-items/pb721_zero_length_record",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR7's twin over the Format 3 clause, same mechanism and same two halves: a negative integer-4 is unwritable because 5.5 rule 1 makes integer-n unsigned (the negative golden), and a ZERO integer-4 shall be accepted (the positive golden's F3 arm, RECORD CONTAINS 0 TO 20). What SR8 buys for Format 3 is the ACCEPTANCE of the zero rather than a zero-length record: the format has no DEPENDING register, so 13.18.43.4 GR13 b) fixes the written length at the record's own size and GR18 makes it 'completely defined in the record description entry'. The pair exists because a screen written for Format 2 alone is the two-arm-dispatch shape this repository reproduces most often.",
+ "state": "OK"
+}

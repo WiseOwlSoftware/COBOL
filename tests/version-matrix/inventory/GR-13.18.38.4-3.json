@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.38.4-3",
+ "section": "13.18.38.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "OCCURS clause",
+ "rule-digest": "eb3a6c90ddfa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/SearchAllFormat2Rules.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/Model/OdoModel.cs; src/WiseOwl.Cobol.Compiler/Binding/Passes/BindPipeline.cs",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb846_sort_table_occurs_keys",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py OK §13.18.38.4 3)): KEY gives the order used by SEARCH ALL and by SORT of a table; several data-name-2 'are specified in descending order of significance'; 'The associated collating sequence for the order is determined by the rules for comparison of operands that apply to the condition specified in the WHEN phrase'. SORT half: conformance:cases/13.18.38-OCCURS/pb846_sort_table_occurs_keys (spec-derived: S=12345, M=B1B2B3A1A2A3 for DESCENDING KA then ASCENDING KB, X= for the statement's own KEY override). SEARCH ALL half: probe out13/probe/occurs-p2/gr3.cob — PROGRAM COLLATING SEQUENCE IS REV (ALPHABET REV IS \"9\" THRU \"0\"), table '9876321' ASCENDING KEY K (ascending in REV) -> SEARCH ALL finds 3, 8 and 1 (the WHEN comparison's collating sequence governs); two-key table ASCENDING A1 DESCENDING A2 ('131211232221') -> finds 22 and 11. Also covered by conformance:cases/14.9.37-SEARCH/l1_search_all_duplicate_keys and conformance:cases/14.9.37-SEARCH/l1_search_all_gr5_preconditions. kb/Work PB846 and PB1018 (qualified KEY) are landed. || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): 1985, 2002, 2014, 2023 (the SEARCH ALL half all editions; the SORT-a-table half from the edition that has the table format of SORT, 2002+)",
+ "state": "OK"
+}

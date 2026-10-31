@@ -44,7 +44,6 @@ from standard_streams import ensure_utf8  # noqa: E402
 REPO = pathlib.Path(__file__).resolve().parents[2]
 SCHEMA_PATH = REPO / "tests" / "version-matrix" / "inventory-schema.json"
 CATALOG_PATH = REPO / "docs" / "rearchitecture" / "spec-rule-catalog.json"
-INVENTORY_PATH = REPO / "tests" / "version-matrix" / "traceability-inventory.json"
 #: The IMPLEMENTOR-DEFINED ELEMENT REGISTER — docs/CONFORMANCE.md §7, whose rows are keyed by the inventory
 #: rule-id `DOC-A.1-<n>` because `kinds.DOC.anchor-template` computes that key as the row's own anchor. An item's FURTHER
 #: determinations are keyed by that id plus a letter (`DOC-A.1-92b`, kb/Work PB3840); no inventory row anchors on those.
@@ -1152,27 +1151,6 @@ def load_catalog() -> list[dict[str, Any]]:
         raise SystemExit(
             f"catalog not found: {CATALOG_PATH}\nRun: python scripts/spec/extract_rule_catalog.py")
     return json.loads(CATALOG_PATH.read_text(encoding="utf-8"))["rules"]
-
-
-def load_inventory() -> list[dict[str, Any]]:
-    if not INVENTORY_PATH.exists():
-        raise SystemExit(
-            f"inventory not found: {INVENTORY_PATH}\nRun: python scripts/spec/build_inventory.py")
-    return json.loads(INVENTORY_PATH.read_text(encoding="utf-8"))
-
-
-def write_inventory(rows: list[dict[str, Any]]) -> None:
-    """Write the inventory ATOMICALLY — a temp file in the same directory, then an os-level replace.
-
-    The inventory is a 1 MB file that accumulates many sessions of adjudicated work. A torn write (an interrupt, a
-    full disk, two writers racing) would not merely lose the batch in flight, it would corrupt every verdict
-    recorded before it, and the JSON would not necessarily fail to parse — a truncated array can still be a
-    perfectly valid, silently shorter one.
-    """
-    INVENTORY_PATH.parent.mkdir(parents=True, exist_ok=True)
-    tmp = INVENTORY_PATH.with_suffix(".json.tmp")
-    tmp.write_text(json.dumps(rows, indent=1, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
-    tmp.replace(INVENTORY_PATH)
 
 
 def self_test() -> int:

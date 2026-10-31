@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.2-1",
+ "section": "9.1.13.2",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "I-O status",
+ "rule-digest": "17fa4ee70e7d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#Success; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/l1_table20_seq_relative",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: '00' = successful and no further information (cite.py --check 9.1.13.2 \"I-O status = 00. The input-output statement is successfully executed and no further information is available\" -> OK §9.1.13.2 1)). FileStatusCode.Success is the terminal value every connector returns on a plain success; the non-00 success values ('02','04','05','06','07','09') are each chosen ONLY by their own arm (IndexedConnector duplicateAlt, SequentialConnector ReadSucceeded arbitration, open-presence arms, FileRegistry NoRewind/CloseByFormat). Probes (pinned cobol.exe, out/probe/iostat-ix, iostat-rel, iostat-seq): plain WRITE/READ/REWRITE/START/OPEN/CLOSE all '00'; a REWRITE that leaves a permitted-duplicate alternate unchanged is '00' not '02' (RW-UNCHANGED=00). The golden l1_table20_seq_relative pins '00' across every legal Table 20 cell (spec-derived).",
+ "state": "OK"
+}

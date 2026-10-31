@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.5.3-2",
+ "section": "8.4.3.5.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Object-view",
+ "rule-digest": "7c8a46d9d1de",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#nonReceivableIdentifier; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ReceivingOperandForms.cs#Rules; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveReceiving; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#callByReference; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#invokeArgument",
+ "test-ref": "conformance:cases/8.4.3.5-Object-view/pb1425-object-view-receiving; conformance:cases/8.4.3.5-Object-view/pb1551-object-view-initialize; unit:ReceivingOperandFormDriftTests.EveryNonReceivableAlternative_IsReadByFormOf; conformance:cases/8.4.3.5-Object-view/pb1551-invoke-by-reference-view",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1425 (w1019a; w1021a), PB1551 (w1097d; review round 1 finding R1-1). \"An object-view shall not be specified as a receiving operand\" (cite.py --check 8.4.3.5.3 -> OK 2)). Every receiving position parses the view of a data reference, of SELF, SUPER or NULL as a nonReceivableIdentifier, and the receiving chokepoint refuses it by this rule (COBOL2871) from the ReceivingOperandForms table, as it does the view of a qualified item written as one chain (`MOVE X TO A OF G AS C`, ReceivingFormBar). That includes the BY REFERENCE argument of CALL and INVOKE (14.9.4.3 SR5, 14.9.23.3 SR20) and the implied BY REFERENCE of a keyword-less view (CALL Format 1, a universal INVOKE) — before review R1-1 those drew COBOL0901 on the word AS. The per-statement refusals of SET Format 5 and INVOKE RETURNING (an object-view receiver rule each) are deleted; both now reach the same row. [editions: the OO facility, 2002+]",
+ "state": "OK"
+}

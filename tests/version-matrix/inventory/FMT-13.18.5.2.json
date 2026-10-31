@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.5.2",
+ "section": "13.18.5.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "BASED clause",
+ "rule-digest": "e5ba10f9d7f3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#basedClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitBasedClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#isBased",
+ "test-ref": "conformance:cases/13.18.5-BASED/based_pointer",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "General format is the single required keyword BASED. Grammar rule basedClause : BASED; binder sets isBased (DataBinder.cs ~3925). Introduction gate: probe E:/Temp/claude/E--COBOL/a700c052-f9e4-4942-84ff-a13c7505d6ec/scratchpad/adj-d1/out13/probe/based/sr1e.cob --std 85 -> COBOL0900 'BASED clause requires COBOL-2002'; at 2002/2014/2023 the clause is accepted and runs (sr1e, based_pointer). cite.py --check 13.18.5.4 \"The BASED clause specifies that the subject of the entry is a based entry defining a template\" OK. || Editions (adjudicator): 2002, 2014, 2023 (introduced 2002; absent from COBOL-85)",
+ "state": "OK"
+}

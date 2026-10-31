@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.24.4-3",
+ "section": "14.9.24.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "MERGE statement",
+ "rule-digest": "04585200f7ce",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindMerge; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#mergeKeyPhrase; src/WiseOwl.Cobol.Runtime/IO/SortKeyColumns.cs#Compare",
+ "test-ref": "conformance:cases/14.9.24-MERGE/l1c18_merge_key_order_ties",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: data-names after KEY in decreasing significance regardless of KEY-phrase division; a) ASCENDING low->high, b) DESCENDING high->low, per relation-condition comparison; 'The words ASCENDING and DESCENDING are transitive across all occurrences of data-name-1 until another occurrence of the word ASCENDING or DESCENDING is encountered.' (cite.py --check 14.9.24.4 -> OK §14.9.24.4 3) and 3) b)). Code: grammar mergeKeyPhrase = ON? (ASCENDING|DESCENDING) KEY? dataReferenceList, so the direction word governs every data-name of its list (transitivity); BindMerge appends keys phrase by phrase in statement order (significance); KeyColumns.Compare walks keys most-significant first and negates for Descending; comparison per class (numeric algebraic, alphanumeric/national under the GR5 sequence) = relation-condition rules (GR5 itself is part 1 / PB678 landed). Probe probe/merge-p2/m1.cob `ON ASCENDING KEY M-A DESCENDING KEY M-B M-C` (M-B PIC 9, M-C PIC X): output A9Z*, A9Y, A5Q, A1Z, B5A* - M-A ascending, M-B descending, M-C descending by transitivity - identical at --std 85 and 2023. No spec-derived golden exercises a multi-key/DESCENDING MERGE (SortMergeDifferentialTests.Merge_EqualKeys_KeepUsingFileOrder is a legacy differential and does not qualify). retired-witness: src/Cobol.Net.Runtime/IO/CobolSort.cs#Compare (kb/Work PB3339 moved the one key comparison, unchanged, out of CobolSort into SortKeyColumns (the bounded sort store's slot-based columns))",
+ "state": "OK"
+}

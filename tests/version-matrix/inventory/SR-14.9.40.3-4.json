@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.40.3-4",
+ "section": "14.9.40.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "SORT statement",
+ "rule-digest": "a216fbc0b549",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindSort; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindFile; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindTable",
+ "test-ref": "conformance:cases/14.9.40-SORT/l1c29-sort-file-not-sd",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 14.9.40.3 \"File-name-1 shall be described in a sort-merge file description entry in the data division\" OK (SR4). BindSort splits on ctx.Data.FilesByName: a declared file that is not IsSortMerge -> COBOL1757 'is not described in a sort-merge description entry (ISO §14.9.40.3 SR4 ...)' at bind time (SortBindFile lines 53-58); a name that is neither a file nor an OCCURS table -> COBOL1757 naming SR4/SR13 (SortBindTable lines 147-153). PROBE s4fd --std 2023: `SORT IN1 ASCENDING I1 USING OU1 GIVING OU1` with IN1 an FD -> rc 70 COBOL1757 SR4; control s8ok (SD operand) rc 0. No spec-derived negative golden pins SR4. [editions as adjudicated: 85, 2002, 2014, 2023 (Format 1).]",
+ "state": "OK"
+}

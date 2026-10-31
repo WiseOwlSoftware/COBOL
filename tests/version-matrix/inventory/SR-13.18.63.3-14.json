@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-14",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 14,
+ "subject": "VALUE clause",
+ "rule-digest": "4c07c3dde162",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.GroupValue.cs; tests/WiseOwl.Cobol.Tests.Unit/UsageWordDriftTests.cs",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb184-group-value-justified; conformance:cases/13.18.63-VALUE/pb184-group-value-non-display",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "ONE SENTENCE, TWO INDEPENDENT CONJUNCTS, BOTH IMPLEMENTED WITH THE RIGHT SCOPES -- the two-arm shape this repo gets wrong most often, checked deliberately here. CONJUNCT 1 is NOT scoped to alphanumeric groups (\"subordinate items within that group\", full stop) and the code leaves it unscoped: MEASURED, `01 G VALUE \"ABCD\". 05 A PIC X(2) JUSTIFIED RIGHT.` and the SYNCHRONIZED twin both draw COBOL1702 (probes sr14_just, sr14_sync), and so does a JUSTIFIED subordinate of a GROUP-USAGE NATIONAL group (sr14_natgroup_just) -- the case a wrongly shared scope would have missed. CONJUNCT 2 IS scoped to alphanumeric group items per 13.18.29.4 GR3 (\"that group item is an alphanumeric group item\" -- cite.py --check OK) and the code states all three GR3 conjuncts: MEASURED, a COMP leaf draws COBOL1702 (sr14_comp), a COMP leaf TWO levels down draws it (sr14_deep_comp -- \"subordinate to\", not \"immediately subordinate to\"), an INHERITED group-level USAGE COMP draws it on the leaf (b_sr14_implicit_usage -- the \"implicitly described\" half), and the OVER-REJECTION CONTROL passes: a conforming national group `01 G GROUP-USAGE NATIONAL VALUE N\"ABCD\". 05 A PIC N(2). 05 B PIC N(2).` compiles and DISPLAYs [ABCD] (sr14_natgroup_ok), because a national group's subordinates take usage NATIONAL by 13.18.29.3's own rules and SR14's usage arm does not reach them. SR16 carries SR14 to the Format-2 carrier (IsGroupValueSubject reads TableValues). Edition-invariant: both negatives are pinned reject-at 85 2002 2014 2023, and Annex E records no change. || code sites, verbatim from the adjudication: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.GroupValue.cs:133-141 (conjunct 1 -- `sub.Justified || sub.Synchronized`, UNSCOPED) and :153-167 (conjunct 2 -- `if (!alphanumericGroup) continue;` then `SubordinateUsageOf(sub) is not { } usage || usage is Usage.Display`), both -> DiagnosticCatalog.GroupValueSubordinate (COBOL1702); the scope predicate is #IsAlphanumericGroup (:203-206, all three 13.18.29.4 GR3 conjuncts); the diagnostic's usage word comes from #UsageWord (:229-240), drift-tested by tests/WiseOwl.Cobol.Tests.Unit/UsageWordDriftTests.cs; the pass runs AFTER UsageInheritancePass so \"implicitly\" is honoured (BindPipeline.cs:43)",
+ "state": "OK"
+}

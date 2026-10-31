@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.83.4-1",
+ "section": "15.83.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "SMALLEST-ALGEBRAIC function",
+ "rule-digest": "a1fcf032a2ed",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindAlgebraicFold",
+ "test-ref": "conformance:cases/15.43.3-Argument-rules/pb122_smallest_algebraic_float; conformance-test:IntrinsicFunctionDifferentialTests.Algebraic_SmallestFloat_FoldsToCarrierSubnormal",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED (kb/Work PB122): float argument-1 is now ADMITTED (subject to the r2/r3 usage bars), so r1's IN-ARITHMETIC-RANGE screen has real content - implemented beside the bars as the float-ITEM twin of the float-EDITED screen (carrier extremes vs the mode intermediate's range, 8.8.4.4.4 GR3 l). Every carrier declarable today passes under both reachable modes (binary32 +38/-45, binary64 +308/-324, decimal +28/-28 vs native +308/-324 and standard-decimal +6145/-6176) - the failure branch fires automatically if a wider carrier (a true binary128) ever lands. The r2 fold: the carrier's smallest positive subnormal at full decimal128 precision (binary32 2^-149 = 1.401298464324817070923729583289916E-45; binary64 2^-1074 = 4.940656458412465441765687928682214E-324; decimal 1E-28) - a FORMAT property like 10^(-scale), which the old refusal's 'exponent-dependent' rationale wrongly denied.",
+ "state": "OK"
+}

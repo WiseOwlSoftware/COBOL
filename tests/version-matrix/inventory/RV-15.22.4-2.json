@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.22.4-2",
+ "section": "15.22.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "DATE-OF-INTEGER function",
+ "rule-digest": "490073a7d50f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#DateOfInteger; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#IntArg",
+ "test-ref": "conformance:cases/15.22.4-Returned-value-rules/l1_date_of_integer_standard_form; conformance-test:IntrinsicFunctionDifferentialTests.IntegerDateForm_Epoch_PinnedToSpec",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The eight-digit form is pinned by every PIC 9(8) receiver; r2's three COMPONENTS are read back out of 19950215 by INVERTING §15.46.3 r1's composition of this same form, '(YYYY * 10,000) + (MM * 100) + DD' over the fields §15.5.3 names — YYYY = INTEGER(D8/10000) = 1995, MM = INTEGER(MOD(D8,10000)/100) = 2, DD = MOD(D8,100) = 15. The anchor is NOT §15.23.4 r1: that clause's argument-1 is DATE-TO-YYYYMMDD's six-digit YYmmdd (§15.23.1, capped below 1000000 by §15.23.3 r1), where INTEGER(argument-1/10000) yields a two-digit YY — a real clause answering a different question, corrected in the fixer pass. The 29 February lines additionally pin that MM/DD are a real month and day rather than a positional accident.",
+ "state": "OK"
+}

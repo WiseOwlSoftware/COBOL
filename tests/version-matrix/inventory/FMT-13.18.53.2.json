@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.53.2",
+ "section": "13.18.53.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "SOURCE clause",
+ "rule-digest": "2b504f432524",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindSourceOperand; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#IdentifierOperandOf; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportSourceClause",
+ "test-ref": "conformance:cases/13.18.53-SOURCE/pb506_report_value_operand_list; conformance:cases/13.18.53-SOURCE/pb1292_source_forms_85; conformance:cases/8.4.2.2-Qualification/pb1292_source_operand_forms; conformance:cases/13.18.53-SOURCE/pb1316-source-alphanumeric-constant; unit:ReportClauseKeywordPrefixTests.SourcePrefix_ParsesExactlyWhenPrinted; conformance:cases/13.18.14-COLUMN/pb1221_report_keyword_prefixes",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1292 + PB1316 landed. The format {identifier-1 | arithmetic-expression-1} ... [rounded-phrase] is realised whole: identifier-1 with its subscripts and reference modification is the GR1 sender, arithmetic-expression-1 the GR2 COMPUTE operand, and a bare numeric constant-name is arithmetic-expression-1 with one operand (cite.py --check 13.10.3 'constant-name-1 may be used anywhere that a format specifies a literal' OK, SR2) - an alphanumeric constant is refused (COBOL2141, negative pb1316-source-alphanumeric-constant). The keyword prefix is the printed brace {SOURCE IS | SOURCES ARE} (kb/Work PB1221's sibling sweep): reportSourceClause opens (SOURCE IS? | SOURCES ARE?), so SOURCE ARE and SOURCES IS are COBOL0001 (ReportClauseKeywordPrefixTests). retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#BindSourceReference (BindSourceReference is deleted; BindSourceOperand classifies the form and FieldReferenceSource carries the identifier)",
+ "state": "OK"
+}

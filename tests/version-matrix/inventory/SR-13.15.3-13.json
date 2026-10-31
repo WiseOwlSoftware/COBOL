@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.15.3-13",
+ "section": "13.15.3",
+ "kind": "SR",
+ "ordinal": 13,
+ "subject": "Report group description entry",
+ "rule-digest": "a9debe95846a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportEntryClausePresence",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb853-report-value-without-column",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB853 sibling sweep. An elementary entry with a VALUE clause and no COLUMN clause draws COBOL2247; it used to print nothing, in silence.",
+ "state": "OK"
+}

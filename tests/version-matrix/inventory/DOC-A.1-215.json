@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-215",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 215,
+ "subject": "USAGE PACKED-DECIMAL clause (computer storage allocation, alignment and representation of data)",
+ "rule-digest": "0d303e098d01",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-215; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ByteWidth",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1_usage_packed_decimal_storage",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR11's nibble representation measured, not assumed: BCD two digits per byte most significant first, sign nibble D/C/F, WITH NO SIGN reserving none, and the d/2+1 vs ceil(d/2) widths with the 3-digit tie as control. || editions 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a facility that exists at every edition (the COBOL-85 nucleus, I-O, inter-program and SPECIAL-NAMES implementor-names; its arithmetic, the only arithmetic of COBOL-85, is what later editions name native). retired-witness: src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#ByteWidth (ByteWidth is a member of DataItem (Binding/Model/DataItem.cs); PicInfo.cs names it only in comments)",
+ "state": "OK"
+}

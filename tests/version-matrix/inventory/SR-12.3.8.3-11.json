@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.8.3-11",
+ "section": "12.3.8.3",
+ "kind": "SR",
+ "ordinal": 11,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "cf26fa78eb27",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#UserFunctionsOf; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#ProgramPrototypesOf; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#ContainingDefinitions",
+ "test-ref": "conformance:cases/12.3.8-REPOSITORY/pb1084_repository_self_function_specifier",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1084 (w68z), PB3121 (w1071e). cite.py --check 12.3.8.3 'this function-specifier is ignored' -> OK §12.3.8.3 11). UserFunctionsOf skips a function-specifier naming the function definition it is written in (the function member of BinderDriver.ContainingDefinitions) and registers that definition's own signature LAST, so a FUNCTION-ID FACT whose REPOSITORY writes FUNCTION FACT AS \"OTHERF\" resolves its recursive FACT(n-1) to itself instead of OTHERF's two-formal signature (COBOL1506); the golden prints FACT5=0120 and, as a control, a non-self FUNCTION ALIAS AS \"OTHERF\" still reaches OTHERF (ALIAS=1000). The program twin (SR15) is ProgramPrototypesOf's overwrite over the same set. retired-witness: src/Cobol.Net.Compiler/Binding/BinderDriver.cs#SpecifiesItself (kb/Work PB3121 deleted SpecifiesItself: the self-naming specifier is now skipped in UserFunctionsOf against the function member of BinderDriver.ContainingDefinitions, the one containing-definition set the program registry and the DATA-phase scope screen read too)",
+ "state": "OK"
+}

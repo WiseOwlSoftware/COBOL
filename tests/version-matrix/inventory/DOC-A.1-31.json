@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-31",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 31,
+ "subject": "Computer's coded character set (characters in and encoding of computer's alphanumeric coded character set and computer's",
+ "rule-digest": "5449fbae0c7d",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-31; src/WiseOwl.Cobol.Runtime/IO/FileCharacterSet.cs#HasCharacterWithoutByteImage; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#RecordHasCharacterWithoutByteImage; src/WiseOwl.Cobol.Runtime/IO/LineSequentialCharacterSet.cs#Contains; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#RecordAreaOutsideLineCharacterSet; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsStorageImage; src/WiseOwl.Cobol.Runtime/Values/Text/StorageByte.cs#StorageByte.ImageByte; src/WiseOwl.Cobol.Frontend/Pipeline/CompilationInputs.cs#ReadSourceText; src/WiseOwl.Cobol.Frontend/Pipeline/SourceTextDecoder.cs#Decode",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/pb690_file_character_set_85; conformance:cases/A.1-Implementor-defined-language-element-list/pb690_line_sequential_byte_image_2023; unit:FileBoundaryTests.FileCharacterSet_IsLatin1_AndRefusesRatherThanReplaces",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB690 (w61d), owner decision kb/Work R47. The file arm of the §7 determination now holds: a record holding a character above U+00FF written to a file with no converting CODE-SET is refused — '91' on record sequential, relative, indexed and report files, '71' on line sequential — nothing reaches the medium and the record area is unchanged; U+0000-U+00FF are written as the byte of the same value, print lines included (the print-only '?' map is gone). MEASURED on the w61d build: 'A€BC' -> '91' / '71' / relative '91' / indexed '91' / print '91'; 'AéBC' -> '00' and reads back byte 0xE9 (ORD 234) on every organization. Every record write encodes through FileCharacterSet.Medium, a strict ISO/IEC 8859-1 encoding with exception fallbacks. retired-witness: src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#ByteSub (the symbol is deleted: CONVERT RawBytes and every REDEFINES view now share StorageByte.ImageByte (kb/Work PB547)) retired-witness: src/WiseOwl.Cobol.Frontend/Pipeline/CompilationInputs.cs#ReadAllText (CompilationInputs.ReadAllText no longer exists: the bytes of a source or library text become characters in SourceTextDecoder.Decode, read through CompilationInputs.ReadSourceText (kb/Work PB1397))",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.49.3-8",
+ "section": "14.9.49.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "USE statement",
+ "rule-digest": "84f74c522eb3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/Binding/ConstructOperandRegister.cs",
+ "test-ref": "conformance:cases/14.9.49-USE/l1_use_sr8_file_named_twice; conformance:cases/14.9.49-USE/l1-use-sr8-file-in-two-statements; conformance-test:ExceptionConditionConformanceTests.UseF1_SameFileInTwoStatements_Diagnosed; conformance-test:ExceptionConditionConformanceTests.UseF1_SameFileTwiceInOneStatement_IsAccepted; conformance-test:ExceptionConditionConformanceTests.UseF1_SameFileRepeatedInTheSecondStatement_DiagnosedOnce",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB364, LANDED. The rule's own prohibition was always right and the earlier PARTIAL was for the OTHER half: `_declScopedFiles.Add(fname)` sat inside the per-OPERAND loop of a single USE statement, so a Format-1 USE naming the same file twice in ONE statement (`USE AFTER STANDARD ERROR PROCEDURE ON F1 F1.`) drew COBOL0897 at all four editions. SR8 forbids the name appearing 'in more than one USE AFTER EXCEPTION statement'; one statement is not more than one. The Format-1 figure was RENDERED from the printed page (PDF p774) and writes the operand list as `{ file-name-1 } ...` -- an ellipsis over one brace group, nothing restricting the repetition -- and 14.9.49.4 GR6 a) associates the one procedure with the file however often the name is written. FIX: SR7, SR8, SR9 and SR14 are four instances of one sentence ('the same X shall not be ... in more than one USE statement within the same procedure division'), so all four now run through ONE ConstructOperandRegister<TKey> (src/WiseOwl.Cobol.Compiler/Binding/ConstructOperandRegister.cs, shared since kb/Work PB703 with 12.4.5.7.3 SR8's COLLATING SEQUENCE screen) that keys each operand to the ORDINAL of the USE statement that most recently registered it and bumps the counter at DeclEndUseStatement, called from the single site that binds a USE statement (DeclCollectSection). A repeat inside the statement binds ONCE and is silent -- it must bind once, since the emitted F1 `switch (__f)` would otherwise carry two identical case labels -- and a repeat across statements is the diagnostic. SCOPE: unchanged and still correct, per procedure division (a ProcedureTableBuilder is per bound unit and DECLARATIVES inside a method are rejected loud). Probes on the built compiler: RU8SAME (`ON F1 F1.`) and RU8SAME3 (`ON F1 F1 F2.`) rejected before, compile and RUN after -- RU8SAME3's handler fires for BOTH files, so the repetition no longer truncates the operand list; RU8TWO (two statements naming F1) still draws COBOL0897 at 85, 2002, 2014 and 2023.",
+ "state": "OK"
+}

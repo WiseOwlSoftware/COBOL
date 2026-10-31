@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-177",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 177,
+ "subject": "SIGN clause (representation when PICTURE contains character 'S' with no optional SIGN clause)",
+ "rule-digest": "6f46a56e211c",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-177; src/WiseOwl.Cobol.Runtime/Values/Numeric/ZonedSign.cs#Punch; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#ProfileInitializer",
+ "test-ref": "conformance:cases/13.18.52-SIGN/pb803_sign_default_representation; conformance:wiseowl/cases/13.18.52-SIGN/pb803_sign_encoding_ascii; conformance:cases/13.18.52-SIGN/pb803_sign_default_representation_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "DOCUMENTED (kb/Work PB803, owner decision 2026-09-09: \"Keep both behind an option with the default being IBM and Micro Focus compatibility\"). This row did not exist -- docs/CONFORMANCE.md section 7's A.1 table jumped 171 to 179 -- and the golden lane had correctly REFUSED to write a witness for it, because a golden pinning `12L` while no determination was filed would have pinned an undocumented choice as though it were documented. The row now states the position (TRAILING for a no-SIGN-clause item), both conventions with their tables and their surveyed provenance, the option that selects them, the default, the implementing sites, and the INTERCHANGE CONSEQUENCE that the option's existence creates: the convention is a property of the COMPILED PROGRAM, so two programs of one run unit may differ, nothing records the convention of a data file, and a mismatch is silent (a record holding `123t` read by an `ibm` program yields +1230). The escape for data that must cross a convention boundary is SIGN IS SEPARATE, whose characters 13.18.52.4 GR6 b) pins with no latitude.",
+ "state": "OK"
+}

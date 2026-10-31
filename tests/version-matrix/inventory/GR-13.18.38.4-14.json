@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.38.4-14",
+ "section": "13.18.38.4",
+ "kind": "GR",
+ "ordinal": 14,
+ "subject": "OCCURS clause",
+ "rule-digest": "d6a8e69ee863",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#RefSending; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#RefReceiving; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#NonfatalIfEnabled",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/w70c_pb1268_dynamic_table_bound_subscript; conformance:cases/8.5.1.9.6-Exceeding-capacity/pb1269_dyn_overflow_resume_next; conformance:cases/13.18.38-OCCURS/pb1267_dyn_initialized_seed",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "w70c (kb/Work PB1268 landed - the last open owner of this GR14 umbrella; PB1267 and PB1269 landed their arms in 9a1170d4f). cite.py --check 8.5.1.9.2 'When a data item in a dynamic-capacity table is referenced as a sending operand, the result of the operation is the same as for a fixed-capacity table whose' -> OK 8.5.1.9.2; cite.py --check 8.4.2.3.4 'If the value of the subscript is not a positive integer or is less than one or is greater than the highest permissible occurrence number, the EC-BOUND-SUBSCRIPT exception condition is set to exist' -> OK 8.4.2.3.4 2). Finding F4 closed: CobolDynTable.RefSending raises EC-BOUND-SUBSCRIPT (ExceptionState.SubscriptError) for an occurrence outside 1..current capacity, and RefReceiving for an occurrence < 1, before the benign scratch fallback - the sibling arm of CobolTable.At. Measured on the w70c build, probe gr14.cob under >>TURN EC-BOUND CHECKING ON: FR(5) fixed, R(5) at capacity 2, MOVE 'Q' TO R(0) -> three EC-BOUND-SUBSCRIPT raises (pre-fix one); a receiving R(3) past capacity still grows the table with no condition (golden leg 4). F3 (EC-BOUND-OVERFLOW RESUME) landed with PB1269, F1 (INITIALIZED seed) with PB1267. || editions: 2014, 2023",
+ "state": "OK"
+}

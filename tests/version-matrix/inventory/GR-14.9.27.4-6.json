@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.27.4-6",
+ "section": "14.9.27.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "OPEN statement",
+ "rule-digest": "b7ae208757f4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#Unlock; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#DeleteFile",
+ "test-ref": "conformance:cases/14.9.27-OPEN/l1_open_not_open_statements",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "A never-opened connector answers CLOSE '42', READ '47', WRITE '48', REWRITE '49' (9.1.13.7 items 2/7/8/9) and touches nothing; the exempt OPEN succeeds and the file then holds only the record written after it. || editions corrected from '85,2002,2014' to 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a facility that exists at every edition (the COBOL-85 nucleus, I-O, inter-program and SPECIAL-NAMES implementor-names; its arithmetic, the only arithmetic of COBOL-85, is what later editions name native).",
+ "state": "OK"
+}

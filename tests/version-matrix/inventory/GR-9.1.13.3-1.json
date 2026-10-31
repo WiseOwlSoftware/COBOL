@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.3-1",
+ "section": "9.1.13.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "I-O status",
+ "rule-digest": "419b631e5e06",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#FileStatusCode",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-9.1.13.3-1",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 9.1.13.3 \"This condition shall not duplicate any condition specified by another I-O status value\" -> OK §9.1.13.3 1)); the value is Annex A.1 item 106, OPTIONAL (cite.py --check A.1 \"I-O status 0x (value of x). This item is optional\" -> OK §A.1 106)). WiseOwl COBOL provides NO '0x' letter status: FileStatusCode defines none and a search of src/WiseOwl.Cobol.Runtime for a \"0[A-Ma-m]\" status literal finds nothing, so the non-duplication constraint is met vacuously and the optional documentation obligation does not arise (docs/CONFORMANCE.md line ~294 records the E.2 item 17 note that only digit '0x' values are reported). Case-equivalence (the NOTE) is moot with no letter value produced. No test: nothing to observe beyond absence. || Editions (adjudicator, verbatim): 85,2002,2014,2023 (E.2 item 17: from 2023 upper/lower-case equivalence is implementor dependent)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.11.4-3",
+ "section": "7.3.11.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "DEFINE directive",
+ "rule-digest": "d13474cc8532",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#AssignDefine",
+ "test-ref": "conformance:cases/7.3.11-DEFINE/l1c06_define_override_rebinds",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 7.3.11.4 \"is unconditionally set to reference the value of the specified operand\" -> OK GR3. AssignDefine skips the SR2 comparison when OVERRIDE and always stores the new value: q12 (1 -> 2 OVERRIDE -> 1 OVERRIDE, >>IF X = 1 selects), n5/q5 (2 OVERRIDE binds 2), r2 (PARAMETER OVERRIDE binds the env value 9). unit:ConditionalCompilationDefineTests.Redefine_WithOverride_Accepted asserts only the absence of COBOL1618, not the bound value - so it does not close the row. || editions (adjudicator): 2002, 2014, 2023 - §7.3 compiler-directive facility; ISO/IEC 1989:2023 Annex E lists no change to §7.3.11 against 2014 (the 2002 introduction is not stated in the 2023 text itself; below 2002 the directive is COBOL0900)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.75.3-5",
+ "section": "15.75.3",
+ "kind": "AR",
+ "ordinal": 5,
+ "subject": "RANDOM function",
+ "rule-digest": "5029887bb43b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Random; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat",
+ "test-ref": "conformance:cases/15.75.3-Argument-rules/pb1_intrinsic_formats",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "15.75.3 r5 - a reference WITHOUT argument-1 returns the next number in the current sequence. Asserted STRUCTURALLY (the two unseeded references differ; a re-seed reproduces the first), never as this implementation's own numbers, because the numbers themselves are implementor-defined and pinning them would be pinning the implementation rather than the rule.",
+ "state": "OK"
+}

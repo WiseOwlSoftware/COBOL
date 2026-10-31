@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.12.2",
+ "section": "14.9.12.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "DIVIDE statement",
+ "rule-digest": "f2fdc70ccee7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindDivide",
+ "test-ref": "conformance:cases/14.9.26-MULTIPLY/pb134_giving_sending_operands; conformance:cases/14.9.12-DIVIDE/pb134-divide-into-literal; conformance:cases/14.9.12-DIVIDE/pb134-divide-extra-into; conformance:cases/14.9.12-DIVIDE/pb134-divide-into-rounded; conformance:cases/14.9.12-DIVIDE/pb134-divide-by-no-giving; conformance:cases/14.9.12-DIVIDE/pb134-divide-remainder-no-giving; conformance:cases/14.9.12-DIVIDE/pb134-divide-two-quotients; conformance:cases/14.9.2-ADD/optional_on_size_error; conformance:cases/14.9.2-ADD/phrase_order_arithmetic",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB134): the admit half was already pinned (all five formats bind; the 5.2.6.4 both-phrases and 5.2.3 optional-ON figure-note claims are spec-derived goldens); the REJECT half now exists - all five measured non-format shapes draw COBOL1689 at bind: `DIVIDE A BY B.` (every BY format prints GIVING), REMAINDER without GIVING, a multi-quotient REMAINDER (SR6's exactly-one), `DIVIDE A INTO B C GIVING D` (the silent drop of C), and `DIVIDE 2 INTO 10.` - the shape that CRASHED the compiler (ArithmeticEmitter's targets.Max on an empty receiver list, unhandled through the CLI). The INTO operand also gains the 8.4.3.1.2 functionCall arm.",
+ "state": "OK"
+}

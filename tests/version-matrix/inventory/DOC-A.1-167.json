@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-167",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 167,
+ "subject": "Run unit (relationship and interaction with non-COBOL components)",
+ "rule-digest": "c70a61408693",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-167; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallFromHost; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#EndForHost; src/WiseOwl.Cobol.Runtime/Control/RunUnitEndedException.cs",
+ "test-ref": "conformance-test:HostRunUnitEndingTests.StopRunAndFatalCondition_EndTheRunUnitOnly_AndReachTheHostAsOneDocumentedException; conformance-test:RunUnitHostExitCodeTests.ARunUnitEndedUnderAHost_LeavesTheHostProcessExitCodeAlone",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB2099 lands owner decision R48's run-unit-ended result (DIVERGES -> CONFORMS). A.1 item 167 conditionally required (condition met: a .NET host is a supported non-COBOL activator) + documented. cite.py --check 14.6.1 \"A run unit is an independent entity that may be executed without communicating with, or being coordinated with, any other run unit\" -> OK §14.6.1; cite.py --check 14.6.12 \"The operating system shall indicate an abnormal termination of the run unit if such a capability exists within the operating system\" -> OK §14.6.12. The divergence the row recorded (a StopRun or fatal signal escaping into the host, a fatal EC setting the process exit code) is gone: the host's activation reaches ProgramTable.CallFromHost, the outermost boundary, where a STOP RUN or a run-unit fatal performs the §14.6.11 actions (RunUnit.EndForHost: files closed, a new ambient run unit) and leaves as the one documented RunUnitEndedException(ExitStatus, Abnormal); the process exit code is written only by the standalone executable's entry (ProgramTable.RunModule, kb/Work PB3163). Witnesses: HostRunUnitEndingTests (STOP RUN WITH ERROR STATUS 7, a fatal EC-DATA-PTR-NULL, RunUnit.Run, the implicit CLOSE) and RunUnitHostExitCodeTests (the host's own exit code survives every ending). retired-witness: src/Cobol.Net.Runtime/Control/ProgramRegistry.cs#CallProgram (kb/Work PB2099: the host's activation is the generated host entry, whose outermost boundary is ProgramTable.CallFromHost; ProgramRegistry.CallProgram is the generated code's ABI, not the host's route)",
+ "state": "OK"
+}

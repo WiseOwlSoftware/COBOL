@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.14.4-3",
+ "section": "15.14.4",
+ "kind": "RV",
+ "ordinal": 3,
+ "subject": "BYTE-LENGTH function",
+ "rule-digest": "f875187936ab",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#ExtentBits; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ByteWidth",
+ "test-ref": "conformance:cases/8.5.1.6.4-Item-alignment-for-increased-object-code/l1_byte_length_implicit_filler",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "8.5.1.6.3 source (a) interior filler is the discriminated one - RUN2 4 vs 3, TRAIL 3 vs 2, NEST 3/4 vs 2/3 - and ADJ3 pins the same-level byte sharing the count is taken over. Source (c) is measured at ZERO by the SBIT leg (two same-level 3-bit USAGE BIT siblings, only the second SYNCHRONIZED: 1, where an implementation generating source-(c) filler answers 2). Source (b) is unobservable through BYTE-LENGTH (r4) AND through FUNCTION LENGTH (15.50.4 r9) because it only ever completes a partial trailing byte that both ceilings produce anyway - stated, not claimed. SYNC=3 is a DIFFERENT law and is labelled as one: 13.18.55.4 GR9 b) under GR9's implementor latitude, A.1 item 195. L77 carries r4 on the level-77 shape 8.5.1.6.3's NOTE excludes from filler.",
+ "state": "OK"
+}

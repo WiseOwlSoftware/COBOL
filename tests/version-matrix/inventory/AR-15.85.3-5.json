@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.85.3-5",
+ "section": "15.85.3",
+ "kind": "AR",
+ "ordinal": 5,
+ "subject": "STANDARD-COMPARE function",
+ "rule-digest": "f40c89d42447",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindStandardCompare; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#OrderTableBind; src/WiseOwl.Cobol.Runtime/Collation/CollationEngine.cs#TryGetOrderingTable",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb101_standard_compare; conformance:cases/15.3-Arguments/standard-compare-unknown-ordering-name; unit:StandardCompareTests.TheDefaultTable_IsNamedInEverySpelling; unit:StandardCompareTests.BadOrderingNameOrLevel_IsCobol1663",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB101 T7: a bare word that is not an ORDER TABLE ordering-name is COBOL1663; an omitted ordering-name is the default table 'ISO 14651_2020_TABLE1' — realized as the derived CLDR/UCA root table under the ISO/IEC 14651 four-level shifted ordering (CollationEngine.Standard); the name is matched in either spelling the standard uses (§15.85.3 r5 space, §12.3.7.4 NOTE 5 underscore). retired-witness: unit:StandardCompareTests.BadOrderingNameOrLevel_IsCobolnet1663 (the same witness, re-spelled when the product's name retired the compiler's first name (kb/Work PB3837: a test name carrying a code spells it COBOL####, kb/Work PB3575); the new spelling is recorded in its place)",
+ "state": "OK"
+}

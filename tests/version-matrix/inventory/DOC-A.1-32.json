@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-32",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 32,
+ "subject": "Computer's coded character set (coded character values for certain COBOL items)",
+ "rule-digest": "b17ab886640e",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-32; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#FillChar",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1c05_coded_character_values; conformance:cases/A.1-Implementor-defined-language-element-list/l1c05_coded_character_values_national",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "FigurativeConstants.FillChar: 'Z' -> '0', 'S' -> ' ', 'Q' -> '\"' for both classes (the national pin only affects HIGH/LOW). Probe /tmp/adj/doc/doc-w1-s1/probe/i32.cob (--std 2023): CONVERT(.. ANY ANUM HEX) of PIC X(3) after MOVE ZERO/SPACE/QUOTE = 303030/202020/222222; PIC N(3) = 003000300030/002000200020/002200220022; space fill 41202020; edited E1 $,$$9.99CR -> ' $234.50CR' with bytes 20 24 32 33 34 2E 35 30 43 52; E2 ***9B0/9DB -> '***1 0/2DB'; E3 +9.9E+99 -> '+1.5E+00'; E4 -99 -> '-05'; national-edited NE1/NE2 display the same characters and NNBNN stores 0041 0042 0020 0043 0044 (i32b.cob). cite.py --check 8.1.2 'The implementor shall specify one and only one alphanumeric coded character value ...' OK (3) and the national twin OK. No spec-derived pin (—). kb/Work PB1397 (open) claims DOC-A.1-32; this row discharges that part. Side finding, not this item: CONVERT(... ANY ...) of a numeric-edited USAGE NATIONAL item returns one byte per position although BYTE-LENGTH is 2 per position (i32b.cob: BYTE-LENGTH 20, storage image 10 bytes) — proposed as a separate defect.",
+ "state": "OK"
+}

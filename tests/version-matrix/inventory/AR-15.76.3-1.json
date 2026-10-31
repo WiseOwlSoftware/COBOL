@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.76.3-1",
+ "section": "15.76.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "RANGE function",
+ "rule-digest": "5e4a69b9f544",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+ "test-ref": "conformance:cases/15.3-Arguments/pb1-numeric-arg-family",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PB1; 15.76.3 r1 covered, and the screen walks the whole variadic list.",
+ "state": "OK"
+}

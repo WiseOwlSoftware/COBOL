@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-10.7.3-3",
+ "section": "10.7.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "End markers",
+ "rule-digest": "8693f3b54f8e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#ScreenProgram",
+ "test-ref": "conformance:cases/10.7-End-markers/pb988-end-program-order-reversed; conformance:cases/10.7-End-markers/pb988_end_markers",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB988 LANDED (wave 1015 Z2). cite.py --check 10.7.3 'then an END PROGRAM marker referencing program-name shall precede the END PROGRAM marker referencing program-name-1' OK 3). The grammar pairs each marker with the innermost open unit, so reversed markers parse; a marker whose name is another unit of the same nesting chain (an open container, or a program this one contains) is COBOL2793 (SR3): END PROGRAM PB988B. END PROGRAM PB988BN. is refused at every edition. pb988_end_markers' contained PB988N's marker precedes PB988M's.",
+ "state": "OK"
+}

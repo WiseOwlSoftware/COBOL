@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.40.3-13",
+ "section": "14.9.40.3",
+ "kind": "SR",
+ "ordinal": 13,
+ "subject": "SORT statement",
+ "rule-digest": "11ee78605001",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindTable; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ReadTableSubjectSubscripts",
+ "test-ref": "conformance:cases/8.4.2.3-Subscripts/pb1055_table_sort_nested_subject; conformance:cases/8.4.2.3-Subscripts/pb1055-table-sort-subject-subscripts; conformance:cases/8.4.3.3-Reference-modification/pb2511-sort-table-subject-refmod",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1055 landed: SR13's OCCURS requirement was already screened (COBOL1757); its second sentence is now the one subscript screen for a table subject (ReferenceResolver.ScreenTableSubjectArity, COBOL2097): one subscript per ENCLOSING table, none for the sorted level, a rightmost ALL standing for the omission (8.4.2.3.3 SR3, SR5 e), SR6). An omitted outer subscript, a surplus subscript and a subscript on a one-level table are refused by name. kb/Work PB2511 (w1045a): SR13 admits subscripting and nothing more; SortBindTable refuses a reference-modified subject (TE(1:2), NE(2)(1:1), TE(2:), BLK(1:3)) through DataBinder.ScreenReferenceModifier (COBOL2024, 8.4.3.3.3 NOTE) before the subscripts are read; it used to sort the whole table in silence.",
+ "state": "OK"
+}

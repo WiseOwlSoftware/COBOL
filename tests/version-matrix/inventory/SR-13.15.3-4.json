@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.15.3-4",
+ "section": "13.15.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "Report group description entry",
+ "rule-digest": "b7c750fd3f13",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindReportEntry",
+ "test-ref": "conformance:cases/13.15-Report-group-description/l1m8-report-first-entry-not-level-1",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The RD is followed by a level-03 LINE entry, so SR4 is the only rule broken. The .err pins the message head; the 0899 code is misfiled (PB1559).",
+ "state": "OK"
+}

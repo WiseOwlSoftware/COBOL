@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-11.9.6.2",
+ "section": "11.9.6.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "DEFAULT ROUNDED clause",
+ "rule-digest": "57cb8516bec9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#defaultRoundedClause; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#roundingModeName; src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#Apply; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDefaultRoundedClause",
+ "test-ref": "conformance:cases/11.9.6-DEFAULT-ROUNDED/options_default_rounded",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Format: DEFAULT ROUNDED MODE IS {8 modes}; DEFAULT, ROUNDED and the mode words underlined, MODE and IS not (optional words). cite.py --check 11.9.6.2 \"DEFAULT\" -> OK (diagram line '<u>DEFAULT</u> <u>ROUNDED</u> MODE IS'). Grammar `DEFAULT ROUNDED MODE? IS? roundingModeName` with the shared 8-mode roundingModeName matches exactly. Probed with pinned cobol.exe: 'DEFAULT ROUNDED NEAREST-EVEN' (both optional words omitted), 'DEFAULT ROUNDED IS PROHIBITED', 'DEFAULT ROUNDED MODE TOWARD-LESSER', 'DEFAULT ROUNDED TOWARD-GREATER' all accepted and applied; 'DEFAULT ROUNDED MODE IS .' (no mode) -> COBOL0001; 'DEFAULT MODE IS NEAREST-EVEN' (ROUNDED missing) -> COBOL0001; two modes -> COBOL0307. Edition gate: --std 2002 -> COBOL0900 'requires COBOL-2014'; 2014/2023 accepted (negative golden options-default-rounded-at-2002 also covers the gate). Clause uniqueness/order inside OPTIONS is §11.9.2's concern, not this row. Covering golden exercises the full MODE IS spelling; the optional-word omissions are verified by probe only (untested). || Editions (adjudicator, verbatim): 2014, 2023 (clause of the 2002 OPTIONS paragraph; 2023 Annex E lists no change to it, D.17.2/D.17.3 describe it as the enhancement over earlier standards; absent from 1985/2002)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.42.3-4",
+ "section": "14.9.42.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "STOP statement",
+ "rule-digest": "d1c3e31668fc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#ScreenStatusOperand",
+ "test-ref": "conformance-test:StopGobackExitCodeTests.TheStatusPositionsOwnRules_AreEnforcedAndCited; conformance:cases/14.9.42-STOP/pb169-status-zero-length-literal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB411.md - LANDED, the twin of SR-14.9.18.3-8 at the shared screen: 'case BoundStringLiteral { Value.Length: 0 }' -> COBOL1704 citing SR4, over the alphanumeric, national and boolean zero-length forms alike. The rule bars only the ZERO-LENGTH literal, never the non-numeric one - 8.3.3.6.3 SR1 still admits a figurative constant here and GR3 NOTE 2 names the STOP statement by name when giving it a length of one character, which is why SPACE, ALL \"5\" and B\"01\" are conforming status operands and are rendered rather than rejected.",
+ "state": "OK"
+}

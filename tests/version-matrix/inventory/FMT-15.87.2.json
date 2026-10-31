@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.87.2",
+ "section": "15.87.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "SUBSTITUTE function",
+ "rule-digest": "8f62c3fb4b43",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindSubstitute; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderSubstitute; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#SubstituteFlat",
+ "test-ref": "conformance:cases/15.87.3-Argument-rules/substitute; conformance:cases/15.87.4-Returned-value-rules/pb81_substitute_table_all; conformance:cases/15.39.3-Argument-rules/pb15_result_type_follows_argument",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB81 (2026-08-18): FUNCTION SUBSTITUTE ( argument-1 { [ANYCASE] [FIRST | LAST] argument-2 argument-3 } … ) — the pair repeats, so §15.3's table(ALL) is admissible among the pairs and its elements form the pairs by position at run time (the FLAT form: CobolIntrinsics.SubstituteFlat pairs the enumerated elements; a keyword before an enumeration attaches to the pair its first element opens). Written pairs pair at bind as before (SubstituteModes per pair). The ALL argument was the staged COBOL0899 (`substitute-all-subscript-argument`, retired).",
+ "state": "OK"
+}

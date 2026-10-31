@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-45",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 45,
+ "subject": "Cursor (the cursor movement if keys are defined that change the cursor position)",
+ "rule-digest": "d9f177364cbc",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ScreenFacility.cs#ScreenFacility; docs/CONFORMANCE.md#A.4.2",
+ "test-ref": "conformance:wiseowl/cases/12.3.7-SPECIAL-NAMES/a42-special-names-cursor",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Owner decision R42 (2026-09-24, given to the orchestrator; kb/Work R42 lands on main separately): 'every A.1 item that belongs to a DECLINED module (screen handling A.4.2, commit/rollback A.4.3 - docs/CONFORMANCE.md section 5 Not claimed) closes as DOCUMENTED-NON-SUPPORT, the same withdrawal ground as DOC-A.1-84/85/86/173 (A.1 preamble: the item is not required if the optional feature is not implemented)'. A.1 preamble (cite.py --check A.1 \"the item is not required if the optional or processor-dependent feature is not implemented\" -> OK §A.1). Item 45 belongs to the declined module A.4.2 (docs/CONFORMANCE.md §5 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed'); the SPECIAL-NAMES CURSOR clause (§12.3.7, A.4.2 item 25) is refused COBOL1560 and no terminal cursor exists (§9.2.4). The witness negative golden diagnoses that declined construct. §7 carries no DOC-A.1-45 row, correctly for a withdrawn item, so no anchor is owed (Schema.anchor_obliged: DNS is register-decided). Recorded by registrar-1 (kb/Work PB1522). || adjudicator (NEEDS-OWNER-DECISION before R42): Rule: A.1 item 45 'Cursor (the cursor movement if keys are defined that change the cursor position). This item is optional. This item, if provided by the implementor, shall be documented'. §9.2.4 'The implementor shall specify any keys that change the position of the cursor and the associated cursor movement' (cite.py --check 9.2.4 -> OK §9.2.4). The cursor is part of the optional screen module (§A.4.2 25) CURSOR clause, cite.py OK). CONFORMANCE.md §5 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed'. Code: probe crt.cob 'CURSOR IS CPOS' -> COBOL1560 'the SPECIAL-NAMES CURSOR clause ... the cursor position it names is set only by an ACCEPT screen statement ... refused by name'; there is no terminal-screen cursor and no key handling anywhere in the runtime. No '| DOC-A.1-45 |' row; screen-handling-only excludes A.1 rows and a1-optional-not-provided has no 'Not provided.' cell to select (mechanically checked). §5 Not claimed + no selector -> NEEDS-OWNER-DECISION (a PB280 Q1 'Not provided.' row). Owning note: PB260 (A.4.2 witness debt); PB285's 'item 45' is A.4.10, unrelated. || adjudicator code-location: src/WiseOwl.Cobol.Compiler (COBOL1560 screen-module refusal of the SPECIAL-NAMES CURSOR clause); the section 7 anchor DOC-A.1-45 (absent from docs/CONFORMANCE.md); docs/CONFORMANCE.md §5 row A.4.2 || editions note: (screen handling exists from COBOL-2002)",
+ "state": "OK"
+}

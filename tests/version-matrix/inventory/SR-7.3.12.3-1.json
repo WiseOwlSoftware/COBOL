@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.12.3-1",
+ "section": "7.3.12.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "DISPLAY directive",
+ "rule-digest": "72e55ce43834",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#DropDirectiveContinuation; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ScanProgramText",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb1360-display-directive-continued-fixed; conformance:cases/7.3-Compiler-directives/pb1690-directive-after-program-text-fixed",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1360 landed (w1004b). Both halves are named diagnostics: a DISPLAY directive after program text on its line is COBOL2691 (7.3.3 SR2, PB1690) and a continuation line after a >>DISPLAY line is COBOL2696 (7.3.3 SR1) and does not extend the operand.",
+ "state": "OK"
+}

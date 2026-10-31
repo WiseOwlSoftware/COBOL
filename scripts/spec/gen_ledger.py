@@ -39,7 +39,7 @@ account in the coordination directory, and this script prints it after a render 
 
 ⭐ INPUTS, each one an artifact something else already gates:
 
-    tests/version-matrix/traceability-inventory.json   rows, states, verdicts, kinds, clause buckets
+    tests/version-matrix/inventory/<rule-id>.json      rows, states, verdicts, kinds, clause buckets
     kb/Work/*.md frontmatter                           via work.py's own load()/actionable() — IMPORTED, never
                                                        re-implemented, so the ledger's "actionable" is the same
                                                        predicate `work.py next` and session-probe print
@@ -109,11 +109,10 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "orchestrat
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 import coord  # noqa: E402  (names the coordination directory)
 import git_batch  # noqa: E402  (scripts/: one git process for many objects)
+import inventory_store  # noqa: E402  (the one reader of the inventory: the tree and a commit's own)
 import ledger_plan  # noqa: E402  (the plan's lanes: measured there, rendered here)
 from standard_streams import ensure_utf8  # noqa: E402
 
-INVENTORY_REL = "tests/version-matrix/traceability-inventory.json"
-INVENTORY = REPO / INVENTORY_REL
 CONSTRUCTS = REPO / "tests" / "version-matrix" / "constructs.json"
 CONFORMANCE = REPO / "docs" / "CONFORMANCE.md"
 PLAN = REPO / "docs" / "REARCHITECTURE_PLAN.md"
@@ -184,7 +183,7 @@ def git(*args: str, stdin: str | None = None) -> str:
 #: from. Deliberately absent from this set: the rendered page and the trend series — including either would make
 #: regenerating move the stamp, so `--check` would never converge.
 STAMP_PATHS = (
-    "tests/version-matrix/traceability-inventory.json",
+    inventory_store.INVENTORY_DIR_REL,
     "tests/version-matrix/inventory-schema.json",
     "tests/version-matrix/constructs.json",
     "conformance-suite",
@@ -206,7 +205,7 @@ def measure_head() -> dict:
 
 
 def measure_inventory() -> dict:
-    rows = json.loads(INVENTORY.read_text(encoding="utf-8"))
+    rows = inventory_store.load_inventory()
     verdict = collections.Counter(r["verdict"] for r in rows)
     kind = collections.Counter(r["kind"] for r in rows)
 
@@ -429,43 +428,51 @@ def measure_commits(shas: typing.Sequence[str], register: bool = True) -> dict[s
     series' last recorded point (`missed_points`); a process start costs tens of milliseconds on Windows and much more
     under load, so a read per commit would grow with the commit count and with the contention. The trees of every
     commit are read in one process (`git_batch.tree_entries`) and the distinct blobs they name in a second
-    (`git_batch.blobs`): a note or an inventory that two commits share is read and parsed ONCE, so a commit that moved
-    one note costs one blob. Each blob is reduced to its summary (the inventory's counts and open rule ids, a note's
-    frontmatter) as it arrives and then dropped, so the peak memory is one inventory (7.5 MB), not one per distinct
-    version. `--self-test` holds the process count constant in the number of commits (a structural bound, never a
+    (`git_batch.blobs`): a note or an inventory row that two commits share is read and parsed ONCE, so a commit that moved
+    one note, or closed one row, costs one blob. Each blob is reduced to its summary (a row's id, state and verdict, a
+    note's frontmatter) as it arrives and then dropped. A commit's inventory is its `tests/version-matrix/inventory/`
+    directory, or for a commit before kb/Work PB4148 the one legacy file. `--self-test` holds the process count constant in the number of commits (a structural bound, never a
     wall-clock one)."""
     uniq = list(dict.fromkeys(shas))
     if not uniq:
         return {}
-    inventory_dir, inventory_name = INVENTORY_REL.rsplit("/", 1)
-    asked = ("kb/Work", inventory_dir) if register else (inventory_dir,)
+    legacy_dir, legacy_name = inventory_store.LEGACY_FILE_REL.rsplit("/", 1)
+    asked = ("kb/Work", inventory_store.INVENTORY_DIR_REL, legacy_dir) if register \
+        else (inventory_store.INVENTORY_DIR_REL, legacy_dir)
     trees = git_batch.tree_entries(REPO, [f"{sha}:{directory}" for sha in uniq for directory in asked])
-    work_trees, inventory_trees = (trees[0::2], trees[1::2]) if register else ([None] * len(uniq), trees)
-    inventory_ids = [(t or {}).get(inventory_name) for t in inventory_trees]
+    width = len(asked)
+    work_trees = trees[0::width] if register else [None] * len(uniq)
+    row_trees, legacy_trees = trees[width - 2::width], trees[width - 1::width]
+    # A commit's inventory is its per-row directory or, before kb/Work PB4148, the one legacy file.
+    row_ids = [[oid for name, oid in (t or {}).items() if name.endswith(".json")] for t in row_trees]
+    legacy_ids = [None if rows else (t or {}).get(legacy_name) for t, rows in zip(legacy_trees, row_ids)]
     note_ids = [[oid for name, oid in (t or {}).items() if name.endswith(".md")] for t in work_trees]
     import work  # noqa: PLC0415
 
-    inventory_oids = set(o for o in inventory_ids if o)
-    summaries: dict[str, tuple[dict, frozenset[str]] | None] = {}
+    inventory_oids = {o for ids in row_ids for o in ids} | {o for o in legacy_ids if o}
+    facts: dict[str, list[tuple[str, str, str]] | None] = {}   # blob -> its rows' (rule-id, state, verdict); None: unreadable
     notes: dict[str, dict | None] = {}   # a file without frontmatter counts as no note: these are HISTORICAL trees, which may hold one a later `work.py check` refuses (PB3654)
-    for oid, data in git_batch.blobs(REPO, [*(o for o in inventory_ids if o), *(o for ids in note_ids for o in ids)]):
+    for oid, data in git_batch.blobs(REPO, [*inventory_oids, *(o for ids in note_ids for o in ids)]):
         text = data.decode("utf-8", errors="replace")
         if oid not in inventory_oids:
             notes[oid] = work.parse_frontmatter(text)
             continue
         try:
-            rows = json.loads(text)
-        except ValueError:
-            summaries[oid] = None
-            continue
-        summaries[oid] = ({"gap": sum(1 for x in rows if x["state"] == "GAP"),
-                           "closed": sum(1 for x in rows if x["state"] == "OK"),
-                           "dns": sum(1 for x in rows if x["verdict"] == "DOCUMENTED-NON-SUPPORT")},
-                          frozenset(r["rule-id"] for r in rows if r.get("state") == "GAP"))
+            parsed = json.loads(text)
+            facts[oid] = [(r["rule-id"], r["state"], r["verdict"]) for r in (parsed if isinstance(parsed, list) else [parsed])]
+        except (ValueError, KeyError):
+            facts[oid] = None
     out: dict[str, Committed] = {}
-    for sha, inventory_id, ids in zip(uniq, inventory_ids, note_ids):
-        summary = summaries.get(inventory_id) if inventory_id else None
-        items = [d for d in (notes[oid] for oid in ids) if d is not None]
+    for sha, ids, legacy_id, note_oids in zip(uniq, row_ids, legacy_ids, note_ids):
+        blobs = [*ids] if ids else [legacy_id] if legacy_id else []
+        found = [facts[o] for o in blobs]
+        rows = None if not blobs or None in found else [r for part in found for r in part]
+        summary = None if rows is None else (
+            {"gap": sum(1 for _, state, _ in rows if state == "GAP"),
+             "closed": sum(1 for _, state, _ in rows if state == "OK"),
+             "dns": sum(1 for *_, verdict in rows if verdict == "DOCUMENTED-NON-SUPPORT")},
+            frozenset(rid for rid, state, _ in rows if state == "GAP"))
+        items = [d for d in (notes[oid] for oid in note_oids) if d is not None]
         out[sha] = Committed(summary[0] if summary else None,
                              ledger_plan.register_counts(items, summary[1] if summary else frozenset()))
     return out
@@ -492,7 +499,7 @@ def missed_points(pts: list[dict]) -> list[dict]:
     # was taken), and those were walked when an earlier point was recorded (kb/Work PB3161, review finding R1-2: nine
     # shas appeared twice in the frozen series).
     revs = ["HEAD", *(f"^{sha}" for sha in recorded)]
-    log = git("log", "--reverse", "--format=%h|%cI|%s", "--abbrev=8", "--stdin", "--", INVENTORY_REL, "kb/Work",
+    log = git("log", "--reverse", "--format=%h|%cI|%s", "--abbrev=8", "--stdin", "--", *inventory_store.HISTORY_PATHSPECS, "kb/Work",
               stdin="\n".join(revs) + "\n")
     walked = [line.split("|", 2) for line in log.splitlines() if line]
     measured = measure_commits([sha for sha, _, _ in walked])   # two processes however many commits (PB3315)
@@ -1244,7 +1251,7 @@ TEMPLATE = """<title>{title}</title>
 
 
 <footer>
-  <p><strong>Every number on this page is computed — none is remembered, none is hand-written.</strong> Inventory from <span class="mono">tests/version-matrix/traceability-inventory.json</span>, work standing from <span class="mono">kb/Work</span> through <span class="mono">work.py</span>'s own predicates, what remains and its lanes through <span class="mono">ledger_plan.py</span> (the fix lane's population from <span class="mono">.agent-fleet.json</span>, the campaign and held clusters from the owner's decision PB2911), the estimate from <span class="mono">fix_clusters.py</span>, <span class="mono">model_rules.json</span>, <span class="mono">landing_measure.py</span> and the orchestrator's meter readings, gates from plan §0's battery reference, documentation posture from <span class="mono">docs/CONFORMANCE.md</span> §2/§4/§5 and <span class="mono">audit_annex_a1.py --json</span>, the suite and anchor counts from the trees themselves, the trend series from <span class="mono">ledger-trend.json</span> in the coordination directory. Rendered by <span class="mono">scripts/spec/gen_ledger.py</span>. The work register remains <span class="mono">kb/Work/</span> — this ledger is a derived view, never a tracker.</p>
+  <p><strong>Every number on this page is computed — none is remembered, none is hand-written.</strong> Inventory from <span class="mono">tests/version-matrix/inventory/</span>, work standing from <span class="mono">kb/Work</span> through <span class="mono">work.py</span>'s own predicates, what remains and its lanes through <span class="mono">ledger_plan.py</span> (the fix lane's population from <span class="mono">.agent-fleet.json</span>, the campaign and held clusters from the owner's decision PB2911), the estimate from <span class="mono">fix_clusters.py</span>, <span class="mono">model_rules.json</span>, <span class="mono">landing_measure.py</span> and the orchestrator's meter readings, gates from plan §0's battery reference, documentation posture from <span class="mono">docs/CONFORMANCE.md</span> §2/§4/§5 and <span class="mono">audit_annex_a1.py --json</span>, the suite and anchor counts from the trees themselves, the trend series from <span class="mono">ledger-trend.json</span> in the coordination directory. Rendered by <span class="mono">scripts/spec/gen_ledger.py</span>. The work register remains <span class="mono">kb/Work/</span> — this ledger is a derived view, never a tracker.</p>
   <p class="mono">Snapshot: {head_date} · measured tree {head_sha} — the last commit that touched an input this page reports, so an unrelated commit cannot make a correct page look stale · {rows} rows · {closed} closed · {gap} GAP · {adjudicated} adjudicated · battery #{bat_n} on {bat_sha} · A.1 {a1_discharged}/{a1_scope} · register {work_items} notes, {work_open} open, {work_actionable} actionable · {comp_n} known compiler notes.</p>
 </footer>
 
@@ -1260,7 +1267,7 @@ def build() -> tuple[str, dict]:
     inv = measure_inventory()
     head = measure_head()
     bat = measure_battery(head["sha"])
-    items, rows = work.load(), ledger_plan.load_inventory()
+    items, rows = work.load(), inventory_store.load_inventory()
     rem = ledger_plan.remaining(items, rows, inv["gap"], ledger_plan.fleet_population())
     pts, is_new = trend_series(inv, head, bat, rem["counts"])
     plan = ledger_plan.measure(items, inv["gap"])
@@ -1392,8 +1399,9 @@ def self_test() -> int:
 
         REPO = tmp / "repo"
         (REPO / "kb" / "Work").mkdir(parents=True)
-        (REPO / INVENTORY_REL).parent.mkdir(parents=True)
-        (REPO / INVENTORY_REL).write_text(json.dumps(rows), encoding="utf-8", newline="\n")
+        legacy = REPO / inventory_store.LEGACY_FILE_REL   # a commit before kb/Work PB4148 holds the inventory as ONE file
+        legacy.parent.mkdir(parents=True)
+        legacy.write_text(json.dumps(rows), encoding="utf-8", newline="\n")
         fm = ("---\ntitle: \"{i} — x\"\nid: {i}\nkind: defect\nstatus: {s}\nwrong_answer: true\ncrashes: false\n"
               "process_only: false\ncluster: []\nblocked_by: []\ninventory_rows: [\"R-1\"]\n---\n\nbody\n")
         (REPO / "kb" / "Work" / "PB1.md").write_text(fm.format(i="PB1", s="open"), encoding="utf-8", newline="\n")
@@ -1411,11 +1419,20 @@ def self_test() -> int:
               and measure_commits(["HEAD"], register=False)["HEAD"] == Committed(got.inventory, None),
               f"{got} gap_at {gap_at('HEAD')}")
 
+        # kb/Work PB4148: the same rows as one file per row give the same counts, from the commit's own directory.
+        legacy.unlink()
+        inventory_store.write_inventory(rows, REPO / inventory_store.INVENTORY_DIR_REL)
+        scratch.commit("per-row layout")
+        after = measure_commits(["HEAD", "HEAD~1"], register=False)
+        check("a commit's inventory is read from its per-row directory, and from the legacy file before it",
+              after["HEAD"].inventory == got.inventory == after["HEAD~1"].inventory and gap_at("HEAD") == 2,
+              f"{after}")
+
         # missed_points in a merge DAG (review finding R1-2): a branch merged AFTER the last point was recorded is
         # not an ancestor of it, but its commits were recorded earlier; `last..HEAD` listed them again.
         def commit(gap_rows: int, msg: str) -> str:
-            (REPO / INVENTORY_REL).write_text(json.dumps([{"rule-id": f"R-{i}", "state": "GAP", "verdict": "PARTIAL"}
-                                                          for i in range(gap_rows)]), encoding="utf-8", newline="\n")
+            inventory_store.write_inventory([{"rule-id": f"R-{i}", "state": "GAP", "verdict": "PARTIAL"}
+                                             for i in range(gap_rows)], REPO / inventory_store.INVENTORY_DIR_REL)
             scratch.commit(msg)
             return scratch.git("rev-parse", "--short=8", "HEAD")
 

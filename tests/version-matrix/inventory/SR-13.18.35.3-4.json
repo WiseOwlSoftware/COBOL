@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.35.3-4",
+ "section": "13.18.35.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "LINE clause",
+ "rule-digest": "b0ca031ba53d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportLineNesting",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb565-report-line-in-line",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB565 (vertical axis). 'Within a given report group description entry, an entry that contains a LINE clause shall not have a subordinate entry that also contains a LINE clause' is screened over the FLAT report-group entry array once per RD, before the walk, so a subtree REPLAY (13.18.38.4 GR10) cannot report one violation once per repetition. Diagnostic COBOL2199, the LINE clause syntax-rule family. The rule is what makes GR10's vertical pair exhaustive rather than overlapping - GR10c is 'the entry also contains a relative LINE clause', GR10d 'the entry is a group entry having subordinate entries with relative LINE clauses' - so the axis decision has exactly one answer per entry. A single-operand LINE clause is COBOL-85 syntax, so the rule and its rejection apply at all four editions.",
+ "state": "OK"
+}

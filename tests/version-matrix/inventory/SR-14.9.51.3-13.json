@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.51.3-13",
+ "section": "14.9.51.3",
+ "kind": "SR",
+ "ordinal": 13,
+ "subject": "WRITE statement",
+ "rule-digest": "1d5e869e6020",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckWriteAdvancingMnemonic",
+ "test-ref": "conformance-test:LinageConformanceTests.Sr13_MnemonicAdvancingOnLinageFile_IsRejected",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR13: 'If the file description entry associated with the write file contains the LINAGE clause, mnemonic-name-1 shall not be specified.' (--check OK). CheckWriteAdvancingMnemonic errors (COBOL0862) when file.Linage is set and the ADVANCING dataReference resolves in the unit's mnemonic registry. Probe ws1mnlin (LINAGE + AFTER ADVANCING TOP-OF-FORM, C01) -> 0862; ws1mnok (same, no LINAGE) compiles. Keyed files never reach it but Format 2 has no ADVANCING at all (SR3, COBOL1720). Both BEFORE and AFTER share the one adv context, so both words are covered. [editions as adjudicated: 1985, 2002, 2014, 2023 (base WRITE statement; the 2023 text records no change to this rule in Annex E)]",
+ "state": "OK"
+}

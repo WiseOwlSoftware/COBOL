@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.24.3-5",
+ "section": "7.3.24.3",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "SOURCE FORMAT directive",
+ "rule-digest": "b5e889e88577",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#NormalizeCopybookMapped; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs#NormalizeToFreeFormMapped",
+ "test-ref": "conformance:cases/6.5-Logical-conversion/pb1067_library_text_source_format",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1067 (w67m): a SOURCE FORMAT directive in library text is in effect to the next directive or the end of that library text (legs [CPY-FREE], [LIB-FIXED]); the COPY statement's text is logically converted independently, so after the library text the format in effect for the COPY statement is back in force (legs [MAIN-FIXED], [MAIN-FREE]).",
+ "state": "OK"
+}

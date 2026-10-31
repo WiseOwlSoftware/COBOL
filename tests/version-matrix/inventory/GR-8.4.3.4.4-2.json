@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.4.4-2",
+ "section": "8.4.3.4.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Inline method invocation",
+ "rule-digest": "c31972258b46",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.InlineInvocation.cs#OoBindInlineInvocation; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
+ "test-ref": "conformance:cases/8.4.3.4-Inline-method-invocation/pb892_inline_invocation_resume",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 8.4.3.4.4 'the resumption point is the next executable statement' OK. The activation is registered as a statement-scoped pre-op (ctx.Data.PendingPreOps) so an exception raised inside the method resumes after the containing statement; pb892 golden (spec-derived, 14.9.33.4 GR2 a)2.) shows hoisted COMPUTE (X1=05 unchanged, DECL-U), per-evaluation PERFORM UNTIL (AFTER-2), both arms resuming at the next statement. || editions as written by the adjudicator: 2002, 2014, 2023 (OO facility; §8.4.3.4 absent from 85)",
+ "state": "OK"
+}

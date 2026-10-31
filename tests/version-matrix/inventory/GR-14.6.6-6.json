@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.6-6",
+ "section": "14.6.6",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "Execution",
+ "rule-digest": "a32394e03913",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolLocaleEdit.cs; src/WiseOwl.Cobol.Runtime/Globalization/MonetaryFacts.cs",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb64t6_picture_locale_smoke",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'For a data item described with a LOCALE phrase, if a locale-name is specified, locale category LC_MONETARY in that locale is used for editing and de-editing of the data item. If a locale-name is not specified, category LC_MONETARY in the locale current at the time of editing or de-editing is used.' (cite.py --check 14.6.6 -> OK, rule 6). CobolLocaleEdit resolves the named-else-current LC_MONETARY locale AT EACH edit and de-edit (MonetaryFacts). Golden conformance:cases/13.18.40-PICTURE/pb64t6_picture_locale_smoke (hand-derived) pins both halves: P (LOCALE IS US) edits/de-edits under en-US, Q (bare LOCALE) under the current locale. The 'at the time of' half across a SET LOCALE switch was probed: E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d1\\out\\probe\\term\\loc.cob - after SET LOCALE LC_MONETARY TO US, Q=P='$1,234.50'; after SET LOCALE LC_MONETARY TO GERM (de-DE), a fresh MOVE gives Q='1.234,50 €' while the named P stays '$1,234.50', and de-editing Q under de-DE recovers 1234.50. Conforms on both halves. || editions as adjudicated: 2002, 2014, 2023 (locale facility, Annex A.4.9 - CONFORMANCE.md §5: Claimed)",
+ "state": "OK"
+}

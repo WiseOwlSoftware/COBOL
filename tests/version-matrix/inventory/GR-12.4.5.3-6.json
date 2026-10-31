@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.3-6",
+ "section": "12.4.5.3",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "File control entry",
+ "rule-digest": "a728ff4e6f3c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveFileCollating; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs",
+ "test-ref": "conformance:cases/12.4.5-File-control/l1c11_key_native_collating_default; conformance:cases/12.4.5-File-control/l1c11_key_native_national_default",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'If no COLLATING SEQUENCE clause is specified: a) the collating sequence for alphanumeric record keys, both primary and alternate, is the native alphanumeric collating sequence; b) the collating sequence for national record keys, both primary and alternate, is the native national collating sequence.' (cite.py --check 12.4.5.3 -> OK 6) a)). Code: ResolveFileCollating falls through to native (null weights = ordinal) when no Format-1/Format-2 clause names the key (GR4/GR5 of §12.4.5.7.4 per its doc). Probes (--std 2023): probe/fce/gr6nat_x (alphanumeric prime key, no clause) walks 11, AA, BB, ZZ, aa = native ordinal; probe/fce/gr6pcs_x (same + OBJECT-COMPUTER PROGRAM COLLATING SEQUENCE IS REV) walks the SAME native order - the program collating sequence does not leak into key order; probe/fce/gr6nat_n (PIC N(2) prime key) walks native national order; alternate keys: probe/fce/gr6alt_x2 (alphanumeric alternate, PROGRAM COLLATING SEQUENCE REV, START >= spaces) walks 11, AA, BB, ZZ, aa, and probe/fce/gr6alt_n (national alternate) likewise. All four quadrants (primary/alternate x alphanumeric/national) verified. No spec-derived golden pins the no-clause default by name; test-needed. [registrar 14a — editions as adjudicated: 85, 2002, 2014, 2023 per the clause text; b) (national record keys) applies where national data exists (2002+)]",
+ "state": "OK"
+}

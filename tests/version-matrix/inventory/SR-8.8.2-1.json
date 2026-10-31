@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.2-1",
+ "section": "8.8.2",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Expressions",
+ "rule-digest": "3a65d05eb856",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#PreviousTokenCouldBeDataName",
+ "test-ref": "conformance:cases/8.8.2-Boolean-expressions/pb1465_boolean_paren_after_operator",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule 1 (cite.py --check 8.8.2 \"the unary operator B-NOT\" OK 1)). kb/Work PB1162 re-verdicted (wave 73 group A): the refuter's PARTIAL was that a NESTED boolean expression beginning with '(' (after B-NOT or a binary operator) was COBOL0001; PB1465 fixed that and its golden pins it after B-NOT (C2, K2, K4) and after B-AND/B-OR/B-XOR (C1, C3, C4, K1, K3). The enforcement half (a numeric start -> COBOL1511, a leading B-AND refused) was already sound.",
+ "state": "OK"
+}

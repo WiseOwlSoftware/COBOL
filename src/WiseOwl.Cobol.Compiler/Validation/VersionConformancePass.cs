@@ -2236,6 +2236,13 @@ internal sealed class VersionConformancePass
         public override object? VisitMcsSendStatement(CobolParserCore.McsSendStatementContext ctx)
         { _p.Check(Constructs.AsyncMessaging2023, "the SEND statement (asynchronous messaging)"); return base.VisitChildren(ctx); }
 
+        /// <summary>The VALIDATE statement (ISO §14.9.50) — a COBOL-2002 introduction, gated on RECOGNITION (kb/Work
+        /// PB3148). The arm is the union grammar like RECEIVE and SEND, so <c>VALIDATE WS-A.</c> at --std 85 reaches here
+        /// and names the edition instead of failing as a bare parse error at its operand. From 2002 the statement is
+        /// accepted inert by the binder (COBOL1580, Annex A.4.14).</summary>
+        public override object? VisitValidateFacilityStatement(CobolParserCore.ValidateFacilityStatementContext ctx)
+        { _p.Check(Constructs.ValidateStatement2002, "the VALIDATE statement"); return base.VisitChildren(ctx); }
+
         /// <summary>The INLINE METHOD INVOCATION (ISO §8.4.3.4 — the §8.4.3.1.2 Format 4 identifier), gated
         /// with the rest of the object-orientation facility at 2002 (kb/Work PB428).
         /// <para>⛔ IT IS GATED ON RECOGNITION AND IT NOW CAN BE, which is the whole reason the row changed.

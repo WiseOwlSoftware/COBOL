@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.7.4-17",
+ "section": "12.3.7.4",
+ "kind": "GR",
+ "ordinal": 17,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "0fa95d45fbad",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#OrderTableBind; src/WiseOwl.Cobol.Runtime/Collation/CollationEngine.cs#TryGetOrderingTable",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb101_standard_compare; conformance:cases/12.3.7-SPECIAL-NAMES/pb101_ec_order_not_supported; unit:StandardCompareTests.AnUnresolvableLiteral9_IsAWarning_NotAnError; unit:StandardCompareTests.TheDefaultTable_IsNamedInEverySpelling",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB101 T7 — the implementor's allowable content of literal-9 (documented in CONFORMANCE.md §4 item 5): 'ISO 14651_2020_TABLE1' in either spelling (the derived CLDR/UCA root table, four levels, shifted) or a CLDR locale tag (that locale's tailoring over the root table); anything else is a legal clause that warns COBOL1662 and sets EC-ORDER-NOT-SUPPORTED at every reference (§15.85.4 r2). Every table is a Unicode-licensed derivation; no ISO/IEC 14651 file is vendored.",
+ "state": "OK"
+}

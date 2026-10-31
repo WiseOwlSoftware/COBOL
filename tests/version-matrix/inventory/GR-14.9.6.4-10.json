@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.6.4-10",
+ "section": "14.9.6.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "CLOSE statement",
+ "rule-digest": "8def0b9b7e19",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitClose",
+ "test-ref": "conformance:cases/14.9.6-CLOSE/l1_close_multi_file; conformance:cases/14.9.6-CLOSE/pb893_close_report_completes",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "CLOSE F1 F2 F3 with F2 unopened gives per-file 00/42/00 (GR1) with F1 and F3 provably closed by re-OPEN; CLOSE F1 F1 gives 00 then 42; a USE declarative's RESUME AT NEXT STATEMENT on the F2 leg resumes at the F3 leg. RE-MEASURED under kb/Work PB893: each implicit CLOSE raises its GR5 condition at its END (after the close completed), so a RESUME NEXT STATEMENT out of EC-REPORT-NOT-TERMINATED resumes at the next implicit CLOSE and nothing of the current one remains to run (pb893_close_report_completes: CLOSE RPT OTH, declarative RESUME NEXT -> OTH closed, END ST=00 OS=00). PB893's premise that the report file must stay open was contradicted by GR5 ('the CLOSE statement for that file is completed'); the defect it pointed at was the raise ORDER, fixed under GR-14.9.6.4-5.",
+ "state": "OK"
+}

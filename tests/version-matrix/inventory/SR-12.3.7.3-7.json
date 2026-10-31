@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.7.3-7",
+ "section": "12.3.7.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "fc8b1dca4ad5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/MnemonicRegistry.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#MnemonicDevice; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#FeatureAdvancing; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#SwitchBindSet",
+ "test-ref": "unit:ImplementorNamesDriftTests.MnemonicUse_IsKeyedOnTheNamesKind; conformance:cases/12.3.7-SPECIAL-NAMES/pb862-write-advancing-device-mnemonic; conformance:cases/12.3.7-SPECIAL-NAMES/l1-display-upon-input-only-device",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR7 - mnemonic-name-3 (a device's) only in ACCEPT and DISPLAY, plus the implementor's additional restrictions (input-only / output-only devices, DOC-A.1-189): SET refuses a device mnemonic (COBOL1757), WRITE ADVANCING refuses it (COBOL2243). kb/Work PB862.",
+ "state": "OK"
+}

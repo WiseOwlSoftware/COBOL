@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.7.3-27",
+ "section": "12.3.7.3",
+ "kind": "SR",
+ "ordinal": 27,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "82d4d382861d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#ValidateCurrencyChar",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb60_currency_sign_set",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-17 (with PB60 / AR-15.68.3-3). Literal-8's forbidden set (digits; A B C D E N P R S V X Z / space; + - , . * / ; ( ) \" =) → COBOL0891 through the shared ValidateCurrencyChar (the same set as r22); the golden's 'U'/'G' are legal symbols.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.4.3-1",
+ "section": "14.9.4.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "CALL statement",
+ "rule-digest": "e4e12b509e37",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall",
+ "test-ref": "conformance:cases/13.18.60-USAGE/program_pointer; conformance:cases/14.9.4-CALL/pb132_dynamic_call_target; conformance:cases/14.9.4-CALL/pb132-call-target-category",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB132): the identifier-target arm now REJECTS any class outside the rule (COBOL1681) where it previously read the category only to set the pointer flag and let a numeric or boolean target fall through to a garbage name-string read at RUN time. Admit side pinned both ways: the program-pointer target (2002/program_pointer) and the dynamic alphanumeric target activating by VALUE at execution time per 14.9.4.4 GR3b (pb132_dynamic_call_target); reject side by the numeric-target negative. Editions: national and program-pointer targets are 2002+ constructs but cannot be DECLARED below 2002, so one screen serves all four.",
+ "state": "OK"
+}

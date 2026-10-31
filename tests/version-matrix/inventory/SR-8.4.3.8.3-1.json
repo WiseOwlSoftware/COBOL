@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.8.3-1",
+ "section": "8.4.3.8.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "SELF and SUPER",
+ "rule-digest": "137be14d97b3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindByReceiver; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindSetObjectRef; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#BindRaise; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#InMethod",
+ "test-ref": "conformance:cases/8.4.3.8-SELF-and-SUPER/pb388-set-object-ref-self-outside-method",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (--check 8.4.3.8.3 'This identifier format may be specified only in a method definition' -> OK §8.4.3.8.3 1)). Every surface SELF/SUPER can appear on is guarded: INVOKE SELF|SUPER and the inline form (OoBindByReceiver: !host.InMethod || OoCurrentClass null -> COBOL0827), SET ... TO SELF (OoCurrentClass null -> 0867), RAISE SELF (EcBinder 0848). Probe probe/self-and-super/PSR1.cob in a PROGRAM: INVOKE SELF, INVOKE SUPER, MOVE SELF :: \"M\" TO X, RAISE SELF -> four targeted rejections citing SR1. Note: if F2 widens SELF to general identifier positions, those new positions need this same guard. [editions as adjudicated: 2002, 2014, 2023 (OO predefined object references; absent from COBOL-85)]",
+ "state": "OK"
+}

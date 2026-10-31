@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.3.4-2",
+ "section": "11.3.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "CLASS-ID paragraph",
+ "rule-digest": "e9ad0eb3bd5b",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build; src/WiseOwl.Cobol.Compiler/Oo/OoClassSymbol.cs#Bases; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#OoEmitter",
+ "test-ref": "conformance:cases/9.3.6-Method-invocation/oo_inherit",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1086: Rule: 'The INHERITS clause specifies the names of classes that are inherited by object-class-name-1 according to 9.3.9, Class inheritance.' (cite.py --check 11.3.4 -> OK §11.3.4 2)). §9.3.9 (checked OK): the subclass has all methods and all data definitions; 'Each factory object has its own copy of inherited data, distinct from the copy belonging to a factory object of an inherited class'; 'Names and attributes of inherited data items are not visible in the inheriting class'. VERIFIED by probe out/probe/class-id-paragraph/fact.cob at --std 2002/2014/2023: FDB factory INC once, FDD (INHERITS FDB) INC twice -> 'FACTORY CNT=101' / 'FACTORY CNT=102' (distinct inherited factory copies, spec-expected 101/102); instance V 5->6 and 5->6->7 per object; the subclass may redeclare V PIC X(4) ('OWN V=MINE'); vis.cob: a subclass method naming the base's SECRET is COBOL1639 (not visible, correct). Method inheritance + virtual dispatch: conformance:cases/9.3.6-Method-invocation/oo_inherit; linear 3-level method inheritance: chain.cob prints A-M1-FINAL. NON-CONFORMING HALVES: (a) 'names of classes' plural - a multi-base INHERITS is refused COBOL0849 (Annex A.4.10 item 1; docs/CONFORMANCE.md §5 row A.4.10 Partial, item 1 NOT claimed; owned by PB285 / derived-verdicts.oo-optional-items-only, PB745 for the 0849 descriptor); (b) a superclass that exists only in the external repository (compiled in another compilation group) cannot be inherited: extbase.cob compiled to EXB.dll, then extderived.cob `CLASS-ID. EXD INHERITS FROM EXB` with REPOSITORY CLASS EXB -> COBOL0821 'no such a class is defined in this compilation group' (finding external-repository-class). File-definition inheritance not probed. Factory-data-per-subclass behaviour has no spec-derived golden (oo_inherit covers methods and dispatch only). || Editions (adjudicator, verbatim): 2002, 2014, 2023 (CLASS-ID is a COBOL-2002 introduction; --std 85 refuses the unit COBOL0900)",
+ "state": "GAP"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.7.4-4",
+ "section": "14.9.7.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "COMMIT statement",
+ "rule-digest": "e957a3dab039",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/WiseOwl.Cobol.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CommitSequential; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RollbackSequential; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
+ "test-ref": "unit:CommitRollbackRuntimeTests.A_file_closed_under_commit_control_keeps_its_file_lock_until_the_commit; conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.The_close_keeps_the_file_lock_until_the_commit",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB3340 (wave 1157): A sequential file closed under commit control keeps its handle and file lock until the COMMIT, which releases it (SequentialConnector.KeepHeld / ReleaseKept), as a keyed file's does. Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5).",
+ "state": "OK"
+}

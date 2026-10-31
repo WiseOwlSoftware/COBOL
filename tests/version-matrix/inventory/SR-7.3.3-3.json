@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.3-3",
+ "section": "7.3.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Compiler directives",
+ "rule-digest": "71c715ed933c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/TurnDirectiveProcessor.cs#ParseTurn; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#FixedFormConverter; src/WiseOwl.Cobol.Editions/CobolSourceText.cs#InlineCommentAt",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb1365_turn_directive_in_program_text_area; conformance:cases/7.3-Compiler-directives/pb1365_turn_directive_inline_comment_is_legal; conformance:cases/7.3-Compiler-directives/pb1365-turn-directive-trailing-word; conformance:cases/7.3-Compiler-directives/pb806-else-trailing-word; conformance:cases/7.3-Compiler-directives/pb806-end-if-trailing-word; conformance:cases/7.3-Compiler-directives/pb806-end-evaluate-trailing-word; conformance:cases/7.3-Compiler-directives/pb794-source-format-unknown; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_DiagnosesAMalformedOperand; unit:CompilerDirectiveCatalogDriftTests.EveryNoOperandWord_RejectsAnOperandAndAcceptsTheBareWord; unit:CompilerDirectiveCatalogDriftTests.InlineComment_IsNotPartOfTheOperand; unit:StageOwnedDirectiveOperandDriftTests.EveryStageDirectiveWord_RejectsAWordAfterItsOperand_AndAcceptsItsOperandAndAComment; unit:ReferenceFormatLogicalConversionTests.FixedFormDirective_IsRecognizedInTheProgramTextArea",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1365 (wave 1019 B). Both halves hold on a fresh build. (a) program-text area: a directive at column 8 with sequence-area content (cols 1-6) is read, a directive at column 7 is COBOL2616 (conformance:cases/7.3-Compiler-directives/pb1365_turn_directive_in_program_text_area; unit:ReferenceFormatLogicalConversionTests.FixedFormDirective_IsRecognizedInTheProgramTextArea; SR-7.3.3-2). (b) 'followed only by space characters and an optional inline comment': the one parse strips the inline comment quote-aware, the closed-word directives reject a trailing word through CheckOperand (COBOL1911: LISTING, PROPAGATE, REF-MOD-ZERO-LENGTH, LEAP-SECOND, CALL-CONVENTION, PUSH, POP, SOURCE FORMAT), ELSE / END-IF / END-EVALUATE reject any operand (PB806), and EVERY directive word of EVERY stage-owned row (TURN COBOL0718, FLAG-02/-14 COBOL1622, COBOL-WORDS COBOL1623, DEFINE/IF/EVALUATE/WHEN/DISPLAY COBOL1619) rejects a word after its conforming operand in fixed and free form and accepts its operand with an inline comment: StageOwnedDirectiveOperandDriftTests derives the word set from the Stage rows, so a new stage-owned directive without a witness line is a red test. The PB1365 hole was TURN's loop breaking at CHECKING. retired-witness: src/Cobol.Net.Editions/CompilerDirectiveLine.cs#StripInlineComment (kb/Work PB2621: the directive line's inline comment is found by the one literal reader, CobolSourceText.InlineCommentAt, which CompilerDirectiveLine.TryParse asks)",
+ "state": "OK"
+}

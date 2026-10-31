@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.16.4-5",
+ "section": "14.9.16.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "GENERATE statement",
+ "rule-digest": "569d9fda51ee",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#DetectBreakLevel",
+ "test-ref": "conformance-test:ReportWriterConformanceTests.ControlBreak_Gr4a_CfSeesPriorValue_ChSeesNew",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR5: on a later GENERATE, a) when a control break is detected, each CF and CH is printed, if defined, up to the level of the break; b) then the detail unless summary (cite.py --check 14.9.16.4 OK, 5) a)). The else-if branch restores the priors. It presents CFs from the minor level down to breakLevel, restores the current values, then presents CHs from breakLevel down to the minor level. FINAL never breaks in mid-report. In probe out/probe/generate/g1.cob (pinned cobol.exe, --std 2023), a K2 break printed CF2 then CH2 only. A K1 break printed CF2, CF1, CH1, CH2, and neither CFF nor CHF. The CFs carried the prior values (CF1 12) and the CHs the new ones (CH1 21), all as the spec requires. The covering test checks a single-level break; the multi-level 'up to the level' ordering was verified by the probe. || editions as adjudicated: 85, 2002, 2014, 2023 (Report Writer is present in every edition; the 2023 Annex E lists no change to GENERATE)",
+ "state": "OK"
+}

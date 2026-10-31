@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-12.4.5.9.2",
+ "section": "12.4.5.9.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "LOCK MODE clause",
+ "rule-digest": "add7e65d9745",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#lockModeClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#lockOnPhrase; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#MapLockMode; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolWords.g4#multipleKeyword",
+ "test-ref": "conformance:cases/12.4.5.9-LOCK-MODE/pb755-lock-on-omitted; conformance:cases/12.4.5.9-LOCK-MODE/pb755_lock_on_multiple_records; conformance:cases/12.4.5.9-LOCK-MODE/pb695_lock_mode_optional_words; conformance:cases/12.4.5.9-LOCK-MODE/pb3794_multiple_data_item_lock_on_multiple",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB755 (landed, wave 1019 F). cite.py --check 12.4.5.9.2 \"LOCK ON\" -> OK §12.4.5.9.2 (figure notes: LOCK (both occurrences), MANUAL, AUTOMATIC, ON, MULTIPLE, RECORD and RECORDS underlined; MODE, IS and WITH not). cite.py --check 5.2.2 \"They are shown in uppercase and underlined in general formats\" -> OK §5.2.2. ON measured underlined on printed page 355 / folio 325 (box 311.09-325.35, rule 312.52-324.43, 83.5% cover). `lockOnPhrase` read `WITH? LOCK ON? MULTIPLE? (RECORD | RECORDS)` and compiled `LOCK MODE IS AUTOMATIC WITH LOCK MULTIPLE RECORDS` at exit 0; it now reads `WITH? LOCK ON MULTIPLE? (RECORD | RECORDS)` and that source is COBOL0001 at 2002/2014/2023 (negative/pb755-lock-on-omitted; at 85 the clause draws its COBOL0900 introduction gate first). The fully written phrase (conformance:cases/12.4.5.9-LOCK-MODE/pb755_lock_on_multiple_records) and the WITH-and-MODE-omitted spellings (conformance:cases/12.4.5.9-LOCK-MODE/pb695_lock_mode_optional_words) compile and run. GnuCOBOL 3.2 refuses the ON-omitted form: 'unexpected MULTIPLE, expecting ON'. The other format facets were verified by registrar 14a's probes and are unchanged. [editions: the clause is a 2002 introduction (constructs.json lock-mode-clause-2002)]",
+ "state": "OK"
+}

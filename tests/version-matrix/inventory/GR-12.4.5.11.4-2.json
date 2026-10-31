@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.11.4-2",
+ "section": "12.4.5.11.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "RECORD DELIMITER clause",
+ "rule-digest": "e751d8f8ec15",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported; src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Declined; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl",
+ "test-ref": "conformance:cases/12.4.5.11-RECORD-DELIMITER/pb292_record_delimiter_witness; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterStandard1_NamedNonSupportWarning_PinnedToSpec; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterOptionalWordOmitted_NamedNonSupportWarning_PinnedToSpec",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"If STANDARD-1 is specified, the external medium shall be a tape drive\" is unsatisfiable here and the non-support is documented: docs/CONFORMANCE.md §2 row 26, whose ground is Annex A.3 item 26 — \"The STANDARD-1 phrase of the RECORD DELIMITER clause is dependent upon a reel type of device\" — and §4.2.6, which makes the decision to claim a processor-dependent element the implementor's, requires the absence to be specified in user documentation (this row), and adds that \"Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented\" (all cite.py --check OK). WiseOwl COBOL provides no reel device at all — the same determination §2 rows 28-30 and 33-34 already record for CLOSE REEL/UNIT and OPEN WITH NO REWIND. The row closes on a DIAGNOSIS, not on silence: COBOL1778 is raised at bind for every occurrence at 85/2002/2014/2023, in both the IS and the optional-word-omitted spelling.",
+ "state": "OK"
+}

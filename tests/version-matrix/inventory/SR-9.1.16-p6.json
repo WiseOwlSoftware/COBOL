@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-9.1.16-p6",
+ "section": "9.1.16",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "Files",
+ "rule-digest": "42b78fa4b271",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#ScreenApplyCommitSubject; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterCommitControl",
+ "test-ref": "conformance:cases/12.4.5.9-LOCK-MODE/apply-commit-lock-mode; conformance:cases/14.9.47-UNLOCK/apply-commit-unlock; conformance-test:ApplyCommitSubjectRuleTests.ForbiddenShape_IsRefusedByItsOwnRule; unit:CommitRollbackRuntimeTests.Commit_makes_the_changes_permanent_and_a_later_rollback_restores_to_it",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB284: PROSE-PARAGRAPH row; kb/Work PB3338 (wave 1154): with the APPLY COMMIT clause accepted for RELATIVE and INDEXED files, both halves are live. The LOCK MODE clause and the UNLOCK statement for a file in the clause are refused by name, COBOL2974 (DataBinder.ScreenApplyCommitSubject; the fixtures name a RELATIVE file); the implicit LOCK MODE IS AUTOMATIC WITH LOCK ON MULTIPLE RECORDS is applied when the clause is activated (FileRegistry.RegisterCommitControl), and a READ under it locks its record until the next COMMIT or ROLLBACK. retired-witness: src/Cobol.Net.Compiler/Validation/DeclinedFacilityPass.cs#VisitApplyCommitClause (COBOL1709 no longer refuses the clause for a keyed file (kb/Work PB3338): the rule is witnessed by its own refusal, COBOL2974, and the renamed both-lanes test) retired-witness: src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#ApplyCommitClauseUnsupported (COBOL1709 no longer refuses the clause for a keyed file (kb/Work PB3338): the rule is witnessed by its own refusal, COBOL2974, and the renamed both-lanes test)",
+ "state": "OK"
+}

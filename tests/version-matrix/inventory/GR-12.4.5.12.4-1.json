@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.12.4-1",
+ "section": "12.4.5.12.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "RECORD KEY clause",
+ "rule-digest": "ac0fa43f5979",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveKeyCollating; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#OrderOf; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#KeyOrder; src/WiseOwl.Cobol.Runtime/IO/Store/KeyOrders.cs#WeightedKeyOrder",
+ "test-ref": "conformance:cases/12.4.5.7-COLLATING-SEQUENCE/pb1074_file_collating_key_class; conformance:cases/12.4.5.7-COLLATING-SEQUENCE/file_collating_seq",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1074 landed (w61c). cite.py --check 12.4.5.12.4 'The equality or inequality is based on the collating sequence used for the file according to the rules for a relation condition' -> OK GR1. The prime key's uniqueness is judged under the sequence of the KEY'S CLASS: a national prime key under an alphanumeric EQV alphabet no longer takes it (golden file G: N\"A\", N\"B\" both 00); the alphanumeric half stays witnessed by file_collating_seq (EQV: second WRITE 22). At --std 85 the COLLATING SEQUENCE clause does not exist, so the native sequence governs. retired-witness: src/Cobol.Net.Runtime/IO/IndexedConnector.cs#KeyCompare (the INDEXED organization moved to the keyed store engine (kb/Work PB3334; DESIGN-runtime-library 2.2.1.4): key comparison is the key order's over the key's channel bytes (IndexedConnector.OrderOf, KeyOrders.WeightedKeyOrder for a declared sequence))",
+ "state": "OK"
+}

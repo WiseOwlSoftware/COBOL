@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.5-3",
+ "section": "9.1.13.5",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "I-O status",
+ "rule-digest": "c3ad7e9c7625",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#RandomReadAbsentOptionalGuard; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/StartKeyLength.cs; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#StartFirstLast; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#RecordNotFound",
+ "test-ref": "conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/l1_start_indexed_invalid_key; conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb352_start_sequential_first_last; conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb357_start_length_not_integer; conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb344_use_mode_invalid_key_2023",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 9.1.13.5 \"a START statement is attempted with an invalid key length specification\" -> OK 3) c); --check 9.1.13.5 \"a START statement is attempted on a sequential file that has no records\" -> OK 3) d)). a) random READ/REWRITE/DELETE/START of a missing record: probes iostat-ix RR-MISSING/ST-MISSING/RW-MISSING/DL-MISSING=23, iostat-rel RDY-MISS=23. b) absent OPTIONAL file: RandomReadAbsentOptionalGuard answers '23' to EVERY random READ (no 'first time' qualifier in 3 b), START likewise; probes O-START=23, O-RREAD=23. c) StartKeyLength (§14.9.41.4 GR14 - a length <=0 or past the key) -> '23'; probe IX-START-LEN0=23 (LENGTH 0). d) SequentialConnector.StartFirstLast: empty file or non-seekable stream -> StartFail '23' (kb/Work PB352 landed); probe SQ-START-EMPTY=23. All four arms verified. || Editions (adjudicator, verbatim): 85,2002,2014,2023 (arm c START LENGTH and arm d START on a sequential file are 2002+ constructs) || Registrar 15d witness fix: test-ref 'conformance:2023/pb357_start_length_not_integer' corrected to 'conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb357_start_length_not_integer' (the case lives there)",
+ "state": "OK"
+}

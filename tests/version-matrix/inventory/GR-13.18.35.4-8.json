@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.35.4-8",
+ "section": "13.18.35.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "LINE clause",
+ "rule-digest": "b6de16b68307",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup",
+ "test-ref": "conformance:cases/13.18.35-LINE/pb484_report_line_placement",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 13.18.35.4 \"The final line number for the report group is given by the value contained in the report's LINE-COUNTER when the last line of the report group has been printed.\" OK (13.18.35.4 8)). LineCounter is left at the last line's target, and ApplyNextGroup (the one NEXT GROUP site, 13.18.37.4) runs after the last line in PresentBody / PresentPageFooting / PresentHeadingFooting - the second sentence's alteration. pb484 reads LINE-COUNTER = 7 after DET-C (its GR8 derivation); the NEXT GROUP alteration is covered by conformance:cases/8.4.3.15-Report-counters/pb957_next_group_forms. || Editions (adjudicator): 85, 2002, 2014, 2023 (Report Writer is an optional module in 85 and an optional language element in 2023, A.4.11; the 2023 text and its Annex E record no per-edition change to this rule - docs/VERSION_CHANGE_REFERENCE.md row 130d) || Code sites (adjudicator detail): src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#CobolReport.PresentLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#CobolReport.ApplyNextGroup",
+ "state": "OK"
+}

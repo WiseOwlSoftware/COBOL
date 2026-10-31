@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.36.4-4",
+ "section": "14.9.36.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "ROLLBACK statement",
+ "rule-digest": "38ef3c072b43",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/TransactionControl.cs#Retire; src/WiseOwl.Cobol.Runtime/IO/TransactionControl.cs#RestoreData; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/TransactionEmitter.cs#EmitRetire",
+ "test-ref": "unit:TransactionControlTests.A_retired_clause_is_not_restored_and_the_next_statement_deactivates_it",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB3338 (wave 1154): Annex A.4.3 is now PARTIAL (docs/CONFORMANCE.md §5, §4 item 2): the APPLY COMMIT clause, COMMIT and ROLLBACK are provided for RELATIVE and INDEXED files, whose keyed store engine keeps the transaction (kb/Work PB3337); a SEQUENTIAL or LINE SEQUENTIAL file named in the clause is under commit control too, its transaction journal being kb/Work PB3340 (COBOL1709, which refused it, is retired). The derived verdict commit-and-rollback-only that stamped the module DOCUMENTED-NON-SUPPORT is retired. 14.9.36.4-4: a canceled element's clause is RETIRED (TransactionEmitter.EmitRetire, TransactionControl.Retire) and its items are not restored; an EXTERNAL item another active clause still names is restored through that clause, whose image covers the same storage. retired-witness: conformance-test:DeclinedFacilityTests.CommitAndRollback_DrawTheNamedNonSupportWarning_OncePerSite (COBOL1579 is retired: COMMIT and ROLLBACK are no longer accept-inert (kb/Work PB3338), and the pb259/pb261 goldens declare no APPLY COMMIT clause, so they witness GR1, not this rule)",
+ "state": "OK"
+}

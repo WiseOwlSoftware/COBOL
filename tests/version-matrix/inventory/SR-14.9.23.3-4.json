@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.23.3-4",
+ "section": "14.9.23.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "INVOKE statement",
+ "rule-digest": "fddb43f88ef6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInstanceInvoke; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindByReceiver",
+ "test-ref": "conformance-test:OoSpineTests.InvokeUnknownMethod_0825; conformance:cases/14.9.23-INVOKE/pb1136-invoke-active-class-method; conformance:cases/14.9.23-INVOKE/pb1136-invoke-self-method",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1136 LANDED (w1014u). cite.py --check 14.9.23.3 on SR4 a)-i) OK 4). The printed rule is DERIVED from the same two facts the roster lookup uses: a typed receiver's (object-class-name | ACTIVE-CLASS) x (FACTORY | not) picks a)/b)/c)/d) (an ACTIVE-CLASS receiver printed b) before); SELF|SUPER x factory|instance method picks f)/g)/h)/i) (printed the range 'SR4f-SR4i' before); the interface arm prints e). Negatives pin d) (INVOKE R \"NOPE\", R ACTIVE-CLASS) and g) (INVOKE SELF \"NOPE\"). Every arm's refusal is compile-time COBOL0825 / COBOL2448 for New.",
+ "state": "OK"
+}

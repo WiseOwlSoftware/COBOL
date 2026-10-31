@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-16",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 16,
+ "subject": "CALL statement (calling a non-COBOL program)",
+ "rule-digest": "c67da7a83ea5",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-16; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ProbeSiblingModule",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1_call_foreign_module_not_located; conformance:cases/A.1-Implementor-defined-language-element-list/l1_call_foreign_module_not_located_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "CALL of the non-COBOL WiseOwl.Cobol.Runtime assembly (by literal and by identifier) is not located: GR3b EC-PROGRAM-NOT-FOUND, then ON EXCEPTION runs",
+ "state": "OK"
+}

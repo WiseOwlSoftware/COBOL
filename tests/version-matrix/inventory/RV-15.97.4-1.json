@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.97.4-1",
+ "section": "15.97.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "UPPER-CASE function",
+ "rule-digest": "e50f080a4679",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#UpperCase; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#UpperCase; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue",
+ "test-ref": "conformance:cases/8.8.4.4-Simple-class-condition/pb64t5_character_classification; conformance:cases/12.3.6-OBJECT-COMPUTER/pb64t5_case_locale_phrase; unit:CobolLocaleTests.CaseMapping_FollowsTheLocalesLcCtype",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB64 T5 (2026-08-19): a string with argument-1's content, lowercase letters replaced by their uppercase correspondents — under a locale (i → İ, a → A in the goldens, abc → ABC in the unit test) and under the implementor's map alike; non-letters and letters without a correspondent pass through (r6). The three arms of the renderer (LOCALE phrase / classification / plain) all return this shape.",
+ "state": "OK"
+}

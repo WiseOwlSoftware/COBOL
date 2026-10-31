@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.38.3-24",
+ "section": "13.18.38.3",
+ "kind": "SR",
+ "ordinal": 24,
+ "subject": "OCCURS clause",
+ "rule-digest": "7fe6674d9fa1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportOccursOf",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb565_report_repeating_entry",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB565 (2026-09-13). 'The TO and DEPENDING phrases shall either be both absent or both present' - ReportOccursOf compares oc.TO() against the DEPENDING dataReference and raises COBOL2021 when exactly one is written, before any repetition is bound. Format 3 is a COBOL-2002 introduction (construct report-occurs-2002; the COBOL-85 report group description entry has no OCCURS clause), so the rule's editions are 2002 onward. The positive golden writes the legal both-present shape (OCCURS 1 TO 4 TIMES DEPENDING ON WS-N STEP 4).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.21.4-3",
+ "section": "7.3.21.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "PROPAGATE directive",
+ "rule-digest": "4ce698b13d4b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/PropagateDirectiveProcessor.cs#Process; src/WiseOwl.Cobol.Compiler/Binding/PropagateState.cs#IsOnAt",
+ "test-ref": "conformance:cases/7.3.21-PROPAGATE/w73d2_pb1119_propagate_on; unit:DirectiveStateStackTests.EachCarriedDirective_IsSavedByPushAndRestoredByPop",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1119 LANDED (wave 73 D2). cite.py --check 7.3.21.4 'When the OFF phrase is specified, automatic propagation of exception conditions becomes disabled' -> OK 7.3.21.4 3). Both halves now hold: after OFF the elements that follow fold to OFF (the golden's W73D2PE follows '>>PROPAGATE OFF' and handles its own condition), and a later ON re-enables it (the fold takes the most recent live toggle before the element; the PUSH/POP case restores ON after a pushed OFF).",
+ "state": "OK"
+}

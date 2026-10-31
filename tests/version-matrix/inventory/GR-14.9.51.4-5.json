@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-5",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "WRITE statement",
+ "rule-digest": "c530e019a3e1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite",
+ "test-ref": "conformance:cases/14.9.32-RELEASE/pb348_from_into_move_rules_2023",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 14.9.51.4 'The same WRITE statement without the FROM phrase' -> OK 5) b)): WRITE ... FROM is equivalent to MOVE identifier-1/literal-1 TO record-name-1 followed by the WRITE. Code: both emitters start with `if (wr.FromMove is { } fromMove) move.Emit(fromMove);`, which emits the BOUND implicit MOVE built by the binder under the MOVE screens (kb/Work PB348), and then emit the plain WRITE. Probe dir: out/probe/write-statement-p3/ (pinned adj-d1 cobol.exe). from1.cob: FROM WS-SRC 'HELLO' into X(8) gives 'HELLO   '; FROM \"LIT\" gives 'LIT     '; FROM S9(3) -42 gives '042     ' (the MOVE rule for a numeric integer sent to an alphanumeric item: the unsigned magnitude, left-justified); FROM group WS-GRP gives 'GG07    '; FROM ALL \"Z\" gives 'ZZZZZZZZ'; an indexed WRITE K-REC FROM WS-KSRC is stored as 'K01DATA1'. pb348_from_into_move_rules (85/2002/2014/2023 legs) is spec-derived and pins the identifier arm against an explicit MOVE+WRITE pair; the literal arm is witnessed only by the probe.",
+ "state": "OK"
+}

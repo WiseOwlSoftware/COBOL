@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.6.3-2",
+ "section": "11.6.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "INTERFACE-ID paragraph",
+ "rule-digest": "96959660dd15",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build; src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Resolve",
+ "test-ref": "conformance:cases/11.6-INTERFACE-ID/l1c15-interface-inherits-not-in-repository",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (cite.py --check 11.6.3 OK, SR 2): 'Interface-name-2 shall be the name of an interface specified in the REPOSITORY paragraph of this source element.' Code: each INHERITS name goes through OoNameResolution.Resolve(Want.Interface) whose scope is the REPOSITORY of the referring source element (ancestor walk, §8.4.6.4). Probes (--std 2002): probe/interface-id-paragraph/sr2_norepo.cob (N2B INHERITS FROM N2A, N2A defined but not in N2B's REPOSITORY) -> COBOL0840 '...not declared in the REPOSITORY paragraph of this source element... (ISO §11.6.3 SR2; ISO §8.4.6.4)'; sr2_undefined.cob (NOSUCH in REPOSITORY, never defined) -> COBOL0840; sr2_classname.cob (a CLASS name in REPOSITORY named in INHERITS) -> COBOL0840 (Want.Interface excludes classes). The §8.4.6.4 containing-definition exception lets an interface name itself, which SR3 then rejects (sr3_self). Positive: pos.cob compiles. Minor wording nit only ('no such an interface'). No existing spec-derived golden for the INHERITS arm -> test-needed. || Editions (adjudicator, verbatim): 2002, 2014, 2023 (the OO facility, introduced by ISO/IEC 1989:2002; interface definitions are rejected COBOL0900 at 85)",
+ "state": "OK"
+}

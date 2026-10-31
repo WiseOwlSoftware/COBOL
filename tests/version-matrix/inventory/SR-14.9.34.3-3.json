@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.34.3-3",
+ "section": "14.9.34.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "RETURN statement",
+ "rule-digest": "aa7be7353bd8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckIntoReceiver; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#IntoPhraseRules; src/WiseOwl.Cobol.Compiler/Binding/Model/StrongTypeModel.cs#IsStrongGroup; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindReturn; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#StrongGroupRefusal; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#MoveCategoryLegality",
+ "test-ref": "conformance:cases/14.9.34-RETURN/pb337-return-into-strong-record-areas; conformance:cases/14.9.34-RETURN/pb348-return-into-strong-group; conformance:cases/14.9.30-READ/pb337_into_receiver_admissible_2002; conformance:cases/14.9.30-READ/pb337_into_receiver_admissible_2014; conformance:cases/14.9.30-READ/pb337_into_receiver_admissible_2023; unit:ImplicitMoveConstructionDriftTests.TheIntoReceiverScreen_IsCalledOnlyFromThePhraseBinder",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB337, LANDED. The RETURN twin of SR-14.9.30.3-2, split the same way: the COUNT -- 'there shall be exactly one record area subordinate to the SD for file-name-1' -- is CheckIntoReceiver's (COBOL1995), and the second sentence, 'This record area shall be a strongly-typed group item of the same type as identifier-1', is CheckStrongMove's over the implicit move's sender (COBOL1533, kb/Work PB348). The count difference from READ's rule 2 is the rules row's AdmitsRecordLessEntry and nothing else: 'exactly one' here, 'at most one ... if specified' there, because an SD shall carry a record description and an FD need not. PRE-FIX MEASUREMENT: the note's probe shape is now caught by PB348's COBOL1533 -- a different rule -- while the count obligation had no check; an SD with two record areas and a strongly-typed identifier-1 now draws COBOL1995 at 2002, 2014 and 2023. EDITIONS: 2002 and up -- the TYPEDEF/TYPE facility is absent from ANSI X3.23-1985, so the rule is unreachable at 85 by construction and no gate is written for it. retired-witness: src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs#CheckStrongMove (kb/Work PB878 deleted StatementValidation.CheckStrongMove; the RETURN INTO implicit move's same-type check is MoveTable16.StrongGroupRefusal, framed by MoveBinder.MoveCategoryLegality)",
+ "state": "OK"
+}

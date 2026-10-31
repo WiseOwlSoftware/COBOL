@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.9.4-2",
+ "section": "14.9.9.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "CONTINUE statement",
+ "rule-digest": "bc11ce26a88b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitParagraphBody",
+ "test-ref": "conformance:cases/14.9.9-CONTINUE/l1_implicit_continue_zero",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "AFTER ZERO is not less than zero, so no implicit CONTINUE may set EC-CONTINUE-LESS-THAN-ZERO and control reaches the next executable statement at each site — measured with the facility armed by an explicit negative interval first.",
+ "state": "OK"
+}

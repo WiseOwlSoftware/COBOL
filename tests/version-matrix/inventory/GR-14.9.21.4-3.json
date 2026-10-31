@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.21.4-3",
+ "section": "14.9.21.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "INITIATE statement",
+ "rule-digest": "a43bbf5551f2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenModeIfOpen; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#OpenModeIfOpen; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ReportFileModeError",
+ "test-ref": "conformance:cases/14.9.21-INITIATE/pb326_ec_report_file_mode",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB326, landed. The detection rule itself, and the DETECTION half of GR-14.9.27.4-7: 'the INITIATE statement may be executed only if the corresponding file connector is open in the extend mode or the output mode. If the file connector is not open in the output or extend mode, the EC-REPORT-FILE-MODE exception condition is set to exist and no action is taken on the report.' Both permitted modes are pinned (output and extend), and so is the arm an is-open-only test would pass: a connector open in the INPUT mode. 'No action is taken' is witnessed indirectly but decisively — the report is never placed in the active state (GR4), so the TERMINATE that follows the refused INITIATE is itself unsuccessful with EC-REPORT-INACTIVE. kb/Work PB688 (2026-09-05): the golden moved from tests/conformance/2002 to tests/conformance/2023 - it observes the report by re-reading the report file through ORGANIZATION IS LINE SEQUENTIAL, which is a COBOL-2023 introduction (12.4.5.10.3 GR2; the Foreword's main-changes list over ISO/IEC 1989:2014), so the program is not expressible at 2002. The RULE's editions are unchanged.",
+ "state": "OK"
+}

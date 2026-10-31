@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.1.11.3-7",
+ "section": "8.5.1.11.3",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "Variable-length data items",
+ "rule-digest": "560e1b5ee751",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/CobolDynString.cs#Store; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#FromCurrentImage",
+ "test-ref": "conformance:cases/8.5.1.11.3-Availability-and-persistence-of-variable-length/dynamic_length_item; conformance:cases/8.5.1.11.3-Availability-and-persistence-of-variable-length/l1_vldi_reduce_regrow",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "§8.5.1.10.4 + §15.50.4 GR6: a dynamic-length item overwritten by a shorter value or an empty value keeps no residue (3[ABCDEFGHIJ] 3LEN=10, 4[] 4LEN=00); §14.6.9.2: a dynamic table overwritten by a group MOVE gives G=01 888 and never resurrects the freed 666 (H=03 888000999).",
+ "state": "OK"
+}

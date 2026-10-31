@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.7.3-12",
+ "section": "12.3.7.3",
+ "kind": "SR",
+ "ordinal": 12,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "da4b1e0548c8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolSpecialNames.g4#alphabetEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolSpecialNames.g4#classValueItem; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#AlphabetLiteralPhrase; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#SwitchBindClass",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/l1c30_thru_through_equivalent",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'The words THROUGH and THRU are equivalent.' cite.py --check 12.3.7.3 -> OK §12.3.7.3 12). Both grammar sites accept (THRU | THROUGH) as one alternative; AlphabetLiteralPhrase tests entry.THRU() is not null || entry.THROUGH() is not null, and SwitchBindClass keys on the operand count (lits.Length), never the token. Probes sr12_through / sr12_thru (--std 2023): `ALPHABET AL IS \"D\" THROUGH \"B\"` + `CLASS CL IS \"0\" THROUGH \"3\"` and the THRU spelling print identical output (A=69 B=3 C=2 D=1 Z=91, V-IN, W-OUT: the descending GR7 k5 run D,C,B at positions 1-3); sr12_through_85 at --std 85 V-IN. Existing goldens use THROUGH in CLASS (conformance:cases/8.8.4.4-Simple-class-condition/pb571_class_condition_one_table) and THRU in ALPHABET (conformance:cases/8.3.3.6-Figurative-constant-values/da1_alphabet_hex_thru) but none pins the EQUIVALENCE (both spellings, same result) on the ALPHABET arm, so test-ref is left empty. [registrar 14a — editions as adjudicated: 85, 2002, 2014, 2023 (the ALPHABET literal-phrase and CLASS THROUGH ranges exist at every edition; Annex E lists no 2014->2023 change)]",
+ "state": "OK"
+}

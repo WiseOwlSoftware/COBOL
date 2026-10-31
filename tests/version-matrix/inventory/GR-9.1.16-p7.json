@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.16-p7",
+ "section": "9.1.16",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "Files",
+ "rule-digest": "f2eb7f77be24",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/WiseOwl.Cobol.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CommitSequential; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RollbackSequential; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
+ "test-ref": "unit:CommitRollbackRuntimeTests.Commit_makes_the_changes_permanent_and_a_later_rollback_restores_to_it; conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.The_close_keeps_the_file_lock_until_the_commit",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB3340 (wave 1157): COMMIT releases the record locks of every file under commit control, keyed and sequential alike (the sequential connectors' READ locks and kept handles with them, FileRegistry.ReleaseAllKept). Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5).",
+ "state": "OK"
+}

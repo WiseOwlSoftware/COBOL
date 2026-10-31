@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.69.3-2",
+ "section": "15.69.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "NUMVAL-F function",
+ "rule-digest": "d33cf34f6ea6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NvfScan; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalFDec",
+ "test-ref": "conformance:cases/15.68.3-Argument-rules/l1_numval_family_cap_discriminators; conformance:cases/15.67.3-Argument-rules/pb33_numval_family_digit_cap",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "The word the rule turns on - SIGNIFICAND, not argument - is now discriminated: a 31-significand-digit argument inside a 32-digit string is REQUIRED to be accepted and returns its value, while its 34-significand-digit partner returns the 15.3 default 0. A whole-string cap would default on both. pb33's F34 could not separate the readings (34 significand digits inside a 36-digit string is over either cap) and holds no NUMVAL-F call that returns a value. || editions 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the NUMVAL-F function exists from 2002 (IntrinsicCatalog.cs, the COBOL1502 edition window). retired-witness: src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalF (kb/Work PB3839 deleted CobolIntrinsics.NumvalF, the scaled-Int128 NUMVAL-F projection: the function returns the exact NumvalFDec SDIDI value in every arithmetic mode, channel and receiver; kb/Work PB3839 deleted CobolIntrinsics.Rescaled with the last Int128 NUMVAL-F body: NUMVAL, NUMVAL-C and NUMVAL-F are all SDIDI functions now (IntrinsicCarrierRules.ReturnsExactParse), and the Int128 landing helper had no other caller) retired-witness: src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#Rescaled (kb/Work PB3839 deleted CobolIntrinsics.NumvalF, the scaled-Int128 NUMVAL-F projection: the function returns the exact NumvalFDec SDIDI value in every arithmetic mode, channel and receiver; kb/Work PB3839 deleted CobolIntrinsics.Rescaled with the last Int128 NUMVAL-F body: NUMVAL, NUMVAL-C and NUMVAL-F are all SDIDI functions now (IntrinsicCarrierRules.ReturnsExactParse), and the Int128 landing helper had no other caller)",
+ "state": "OK"
+}

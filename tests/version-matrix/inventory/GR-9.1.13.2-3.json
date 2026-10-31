@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.2-3",
+ "section": "9.1.13.2",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "I-O status",
+ "rule-digest": "2f93339ac9a7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReadRecord; docs/CONFORMANCE.md#DOC-A.1-146",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/io_status_04",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1514 landed (w67p). cite.py --check 9.1.13.2 'A READ statement is successfully executed but the physical record from the file is shorter than or longer than the minimum or maximum length' -> OK §9.1.13.2 3). The VARYING leg was verified. The FIXED-length leg is now a documented determination (docs/CONFORMANCE.md DOC-A.1-146 (a)): §9.1.7.2 ('the length of each record is determined by any information the implementor may add to the record on the physical storage medium', cite.py OK §9.1.7.2) - this format adds none, so a fixed file's physical record is the next integer-1 bytes of the READING description (GnuCOBOL's fixed-length format, CLAUDE.md rule 1). A physical record is then never longer than the maximum, and shorter only at the end of the file, which is the '04'. The golden io_status_04 is re-derived from that rule (it pinned the undefined §14.9.30.4 GR14 fill; it now shows only the bytes read, and adds a 15-byte record read as a 10-byte '00' record and a 5-byte '04' record).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-12.4.5.10.2",
+ "section": "12.4.5.10.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "ORGANIZATION clause",
+ "rule-digest": "03687bb856b0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#organizationClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#organizationType; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#MapOrganization; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOrganizationClause",
+ "test-ref": "conformance:cases/12.4.5.10-ORGANIZATION/pb706_organization_record_sequential; conformance:cases/12.4.5.10-ORGANIZATION/pb706-record-sequential-below-2023; conformance:cases/9.1.13.2-Successful-completion/pb329_line_sequential_charset_2023; conformance:cases/12.4.5.10-ORGANIZATION/pb688-line-sequential-below-2023",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB706 (2026-09-22). The general format `[ORGANIZATION IS] { {LINE|RECORD} SEQUENTIAL | RELATIVE | INDEXED }` RENDERED from the printed page (PDF p357): ORGANIZATION, LINE, SEQUENTIAL, RELATIVE, INDEXED underlined; IS and RECORD NOT (optional words, --check 5.2.3). Grammar: `organizationType : LINE SEQUENTIAL | RECORD? SEQUENTIAL | RELATIVE | INDEXED` - RECORD SEQUENTIAL used to be a raw COBOL0001/0312 parse error at every edition. The written-out RECORD word is the 2023 inner choice (constructs.json file-organization-record-sequential-2023, COBOL0900 below 2023); bare SEQUENTIAL is ungated. The pb706 golden writes and reads back all three spellings (RECORD SEQUENTIAL, bare SEQUENTIAL with ORGANIZATION IS omitted, no clause).",
+ "state": "OK"
+}

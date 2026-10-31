@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.43.3-2",
+ "section": "14.9.43.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "STRING statement",
+ "rule-digest": "50c410b34d5a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BeginsWithAllWord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#FigurativeOperand",
+ "test-ref": "conformance:cases/14.9.43-STRING/pb1180-string-all-figurative-sender; conformance-test:StringUnstringOperandScreenTests.String_FigurativeBeginningWithAll_IsSR2",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1180 (landed with PB1181, wave 1011 A). SR2 'Literal-1 or literal-2 shall not be a figurative constant that begins with the word ALL.' ALL SPACES / ALL ZEROS bind to a plain BoundFigurative that lost the word, so BeginsWithAllWord asks the written operand's first token as well as BoundAllLiteral.BeginsWithAll, at the STRING sender, the STRING delimiter and the UNSTRING delimiter (COBOL1757 / COBOL1651).",
+ "state": "OK"
+}

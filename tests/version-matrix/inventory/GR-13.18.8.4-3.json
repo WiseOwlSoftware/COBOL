@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.8.4-3",
+ "section": "13.18.8.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "BLANK WHEN ZERO clause",
+ "rule-digest": "59dc0f22832a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs",
+ "test-ref": "conformance:cases/8.5.2.13-Numeric-edited-category/pb509_blank_when_zero_relation; unit:CobolLocaleEditTests.DeEdit_AllSpaces_IsZeroOnlyWhereEditingCouldHaveWrittenIt",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB509 LANDED 2026-09-20. BOTH ARMS NOW. The MOVE / de-editing arm was already right (14.9.25.4 GR6 d) 1: every digit position of an all-spaces image contributes zero, which IS GR3's zero). The relation arm was not: ConditionRenderer took the first arm whose operand IsString, and a numeric-edited operand is a string operand, so the whole relation became a character comparison and nothing asked whether the sender was blanked. THE DERIVATION for the reading implemented: GR1 says 'receiving operand' one rule earlier where GR3 says 'the object of an OPERATION', and 8.8.4.2.1 13) calls a relation's two operands its subject and its object; the MOVE receiver case is already legislated by 14.9.25.4 GR6 d) 1, and 8.8.1.1 admits only 'an identifier referencing a numeric data item' into an arithmetic expression - so the relation condition is the operation GR3 adds. GR3 naming a numeric-EDITED object is what settles that the comparison there is BY VALUE (8.8.4.2.4): giving the blanked item 'the value zero' changes nothing in a character comparison. Implemented at the ONE BoundRelational rendering site, so EVALUATE subject/object, SEARCH WHEN, PERFORM UNTIL and the abbreviated relations get it too (they all build BoundRelational through ConditionBinder.CheckedRelational). The test is on the CONTENT and therefore a run-time one: a BLANK WHEN ZERO item holding digits still compares by 8.8.4.2.5/.7, which the golden pins alongside the blanked cases. BOUNDARY, derived not assumed: GR3 requires the object to be a 'data item', so a numeric LITERAL object (IF BWZ-ITEM = 0) and a figurative constant keep the ordinary 8.8.4.2.5 character comparison - pinned as NE-LITERAL in the golden. INTERACTION REGISTERED, NOT FIXED: with EC-DATA-INCOMPATIBLE checking armed, the value arm de-edits the OTHER operand too, so impossible content in a non-BLANK-WHEN-ZERO numeric-edited partner now raises where a character comparison did not; the arming mechanism is kb/Work PB395's (open).",
+ "state": "OK"
+}

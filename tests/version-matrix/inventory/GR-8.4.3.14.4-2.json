@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.14.4-2",
+ "section": "8.4.3.14.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "LINAGE-COUNTER",
+ "rule-digest": "a11f4d09b2d3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#LinageCounter; src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs#LinageCounter; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Visit",
+ "test-ref": "conformance-test:LinageConformanceTests.Gr7c1_AdvancingPageResetsCounterToOne; conformance-test:LinageConformanceTests.Gr7c2_AdvancingNAddsN; conformance-test:LinageConformanceTests.Gr7c3_PlainWriteAddsOne; conformance-test:LinageConformanceTests.Gr7c4_OverflowCrossing_ResetsToOneNotModulo; conformance-test:LinageConformanceTests.QualifiedCounter_TwoLinageFiles; conformance:cases/8.4.3.14-LINAGE-COUNTER/pb578_advancing_page_overflow_85; conformance:cases/8.4.3.14-LINAGE-COUNTER/pb578_advancing_page_eop_overflow",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB578 LANDED. GR2 is a pointer: \"The semantics of the LINAGE-COUNTER identifier is described in 13.18.34, LINAGE clause, General rule 7.\" (cite.py --check 8.4.3.14.4 -> OK 2)). Every part of the rule it points to is now CONFORMS on GR-13.18.34.4-7: GR7 a) a separate counter per LINAGE file, b) read-only and qualification, c) 1 the ADVANCING PAGE reset AND its implicit increment (PB578: ADVANCING PAGE is a page overflow, EC-I-O-EOP-OVERFLOW), c) 2 ADVANCING n, c) 3 plain WRITE + 1, c) 4 reset to one on the next logical page, d) one at OPEN OUTPUT. The witnesses below are GR7's, which is what a cross-reference rule's semantics are witnessed by. The character-context crash of reading the register is recorded on GR-8.4.3.14.4-1. || editions as written by the adjudicator: 85 2002 2014 2023",
+ "state": "OK"
+}

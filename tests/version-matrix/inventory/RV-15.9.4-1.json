@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.9.4-1",
+ "section": "15.9.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "ANNUITY function",
+ "rule-digest": "cbdcf21facf2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Annuity; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#ExpMinusOne; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#SignDec",
+ "test-ref": "conformance:cases/15.4.1-Numeric-and-integer-functions/pb56_dec_carrier_intrinsics; conformance:cases/15.8.4-Returned-value-rule/pb1041_trig_log_arc_exact_argument; unit:WholeRangeBodiesDriftTests.Annuity_KeepsATinyRate",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB1310 LANDED (wave 59, w59d with PB1041): the binary64 body's denominator 1 - (1 + rate)**(-n) is evaluated as -expm1(-n * log1p(rate)) (Kahan's log1p / expm1 formulations), never forming 1 + rate in binary64 - ANNUITY(1E-17 12) = 0.08333333333333 (was 0), ANNUITY(1E-20 12) = 0.08333333 (was 0, the registrar-14f repro). 15.9.4 1) b) requires the value of that expression; under native arithmetic 15.4.1 makes it the implementor-defined approximation of it, and 0 for 1/12 is none. The standard modes keep AnnuityDec's SDIDI evaluation of the EAE (15.4.1 r1), which PB56 pinned (ANNUITY(0,4) = 0.25).",
+ "state": "OK"
+}

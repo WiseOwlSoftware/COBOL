@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.4.3-2",
+ "section": "8.4.4.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Condition-name",
+ "rule-digest": "501fc72a6a0a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#AnalyzeBareOperand; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ConditionName.cs",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/pb567_condition_name_qualification",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 8.4.4.3 'Qualified-condition-name-with-subscripts-1 is defined by 8.4.2.2, Qualification.' OK, SR2) is a definitional pointer: the substance is §8.4.2.2.3 SR5 ('The qualification of a condition-name may include the conditional variable…', --find -> 8.4.2.2.3 5) OK) and the subscript part §8.4.2.3.2 Format 2 ('qualified-condition-name-1 [ ( subscript … ) ]', --find OK) — those rules carry their own inventory rows. Here verified that a Format-2 reference goes through the one qualifier/subscript resolver: AnalyzeBareOperand -> ConditionOf + ctx.Refs.ResolveForItem(dref, cond.Parent), and a misqualified one is reported by ReportMisqualifiedCondition (PB567 negative conformance:cases/8.4.2.2-Qualification/pb567-condition-name-misqualified). Probe p1: V-ONE OF T OF G (2) TRUE / V-ONE (1) FALSE at 85 and 2023. Goldens: 85/pb567_condition_name_qualification (qualification incl. file-name qualifier), 85/pb1030_reference_answers (subscripted condition-name).",
+ "state": "OK"
+}

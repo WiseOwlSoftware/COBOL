@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.32.4-1",
+ "section": "14.9.32.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "RELEASE statement",
+ "rule-digest": "857e8aecf30e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#ReleaseStatement; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#EnterProcedure; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelease; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#FatalAmbientGates; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcWrap",
+ "test-ref": "conformance:cases/14.9.32-RELEASE/pb349_sort_merge_flow_ec; conformance:cases/14.9.32-RELEASE/pb349-sort-flow-turn-at-85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB349 (landed, wave 56). RULE (cite.py --check 14.9.32.4 'the EC-FLOW-RELEASE exception condition is set to exist' -> OK 14.9.32.4 1)). The sort store now carries the executing statement's procedure PHASE (CobolSort.Store.Phase, set by the emitted EnterProcedure before the INPUT PROCEDURE range and cleared by the sequence phase); the RELEASE STATEMENT renders CobolSort.ReleaseStatement, which raises EC-FLOW-RELEASE through ExceptionState.FlowReleaseError before releasing whenever no store exists for the SD or its phase is not Input. FatalAmbientGates row (EC-FLOW-RELEASE, FlowReleaseChecking) + QueryFor(BoundRelease) give the statement its >>TURN guard, so the condition reaches a USE declarative (14.6.13.1.3 item 5) or terminates (item 7). The implicit USING release keeps the unchecked Release primitive (it is not a RELEASE statement). Checking OFF: nothing is raised (14.6.13.1.1) and the release proceeds, except that a RELEASE with no SORT executing has no store to release to - the 14.6.13.1.3 item 8 implementor choice. Golden pb349_sort_merge_flow_ec: MAIN's RELEASE outside any SORT -> HANDLED=EC-FLOW-RELEASE, the record is not released, and the two RELEASEs inside IN-P raise nothing (negative control).",
+ "state": "OK"
+}

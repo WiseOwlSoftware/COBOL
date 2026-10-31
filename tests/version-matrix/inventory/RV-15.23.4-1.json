@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.23.4-1",
+ "section": "15.23.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "DATE-TO-YYYYMMDD function",
+ "rule-digest": "ee54bb9caf06",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#DateToYyyymmdd; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#YearToYyyy",
+ "test-ref": "conformance:cases/15.23.4-Returned-value-rule/intrinsics_date_window",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SUSTAINED, and verified the way 15.4.1 NOTE 2 says to verify it. The body IS the equivalent arithmetic expression: `return YearToYyyy(date / 10000, off, baseYear) * 10000 + date % 10000;`. YY = FUNCTION INTEGER(argument-1/10000) matches because 15.44.4 r1 makes INTEGER the floor and, for the r1-legal range 1..999999, C# truncating `/` IS the floor; mmdd = FUNCTION MOD(argument-1, 10000) matches for the same nonnegative range. I did not take that on argument: I wrote the equivalent arithmetic expression out in COBOL and compared it to the function through the compiler - `COMPUTE R2 = FUNCTION YEAR-TO-YYYY(FUNCTION INTEGER(851003 / 10000), 10, 2002) * 10000 + FUNCTION MOD(851003, 10000)` gives 19851003, equal to `FUNCTION DATE-TO-YYYYMMDD(851003, 10, 2002)`, and the YY=1 case (10101, 50, 2026) gives 20010101 both ways. Both 15.23.4 NOTE-1 examples reproduce end to end: (851003, 10, 2002) -> 19851003 and (981002, (-10), 1994) -> 18981002; so do the window edges (490101, 50, 1999) -> 20490101 / (500101, 50, 1999) -> 19500101 and the argument-1 endpoints (1, 50, 2026) / (999999, 50, 2026). RECEIVER VARIED, not just the arguments: PIC 9(8), PIC 9(18), PIC 9(12)V99 (-> 19851003.00), PIC 9(10)V9(9) (-> 19999999.000000000), an IF relation condition, a bare DISPLAY of the function-identifier, MOVE to PIC X(8) (-> '19851003') and MOVE to PIC Z(7)9 all give the equivalent-expression value; the only differing case, PIC 9(6)V99 -> 851003.00, is ordinary high-order MOVE truncation, not a rendering defect. The nested reference the 15.23.3 r1 NOTE suggests, FUNCTION TEST-DATE-YYYYMMDD(FUNCTION DATE-TO-YYYYMMDD(851003, 10, 2002)), returns 0. OBSERVATION (conforming - 15.3 says 'the implementor defines the result of the function reference' when checking is off, though it is inconsistent with DateOfInteger/IntegerOfDate, which return a clean 0): when the delegated YearToYyyy fails an argument rule it returns 0 and the composite yields 0*10000 + mmdd, e.g. (851003, 10, 1600) -> 1003. The argument-screening defects that reach this body are recorded on AR-15.23.3-1/-4/-6, not here.",
+ "state": "OK"
+}

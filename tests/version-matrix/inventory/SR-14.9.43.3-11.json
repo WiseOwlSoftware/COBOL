@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.43.3-11",
+ "section": "14.9.43.3",
+ "kind": "SR",
+ "ordinal": 11,
+ "subject": "STRING statement",
+ "rule-digest": "deaef8ebda7a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
+ "test-ref": "conformance:cases/14.9.43-STRING/pb88-string-into-variable-length-group",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB88 (2026-08-18): a bind-time rejection (COBOL1651) through the ONE Reject helper. Identifier-1/2/3 shall not specify a variable-length group — ReferenceResolver.HasVariableLengthSubordinate, the ONE 8.5.1.12 predicate (shared with the ref-mod SR1 screen); the negative declares a group with a DYNAMIC LENGTH leaf as the INTO receiver.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.60.4-3",
+ "section": "13.18.60.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "USAGE clause",
+ "rule-digest": "18c13b0a5efc",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
+ "test-ref": "conformance-test:DeclinedFacilityTests.ValidateStatement_DrawsTheNamedNonSupportWarning_AndStillCompiles",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "docs/CONFORMANCE.md §5 row A.4.14 (VALIDATE — Not claimed) + §4 item 3. Licence: Annex A.4.1, \"An implementation shall accept the syntax and provide the functionality for an optional element only when support for that language element is claimed by the implementor\", and its second sentence carrying the licence to the module's unlisted rules. Obsolescence (F.2 item 5) is corroboration, never the licence (kb/Work PB198). These four live inside clauses this compiler SUPPORTS (PICTURE ×2, REDEFINES, USAGE) but describe only what those clauses do DURING THE FORMAT VALIDATION STAGE of a VALIDATE statement — A.4.1's \"even if not explicitly listed\" is what carries the licence to them. They have NO syntax of their own, so their witness is the statement's, not a new construct: with the statement inert the format-validation stage never runs. GR-13.18.40.4-19 already carried this verdict by hand and its identical sibling GR-13.18.40.4-15 was left blank — the one-answer-per-question drift this batch closes. ⚠ GR-13.18.40.4-14, the PICTURE symbol table, is DELIBERATELY NOT HERE: it CONFORMS with code and a golden, and its only VALIDATE text is an exception (\"the symbol A is equivalent to the symbol X except within the execution of a VALIDATE statement\").",
+ "state": "OK"
+}

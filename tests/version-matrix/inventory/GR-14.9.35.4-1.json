@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.35.4-1",
+ "section": "14.9.35.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "REWRITE statement",
+ "rule-digest": "7c937b2be791",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RewriteShared; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/l1_table20_seq_relative",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"The execution of the REWRITE statement causes the I-O status value in the rewrite file connector to be updated as indicated in 9.1.13, I-O status.\" Every connector Rewrite path ends in `return Status = ...` (00/02/21/22/23/43/44/49/71, 30 for a non-seekable stream), RewriteShared adds 51/52 and the pre-flight lock status, and both emitters store the connector status into the FILE STATUS item (EmitStoreFileStatus) after every REWRITE. Probes pa/pb/pd show 00/43/44/23 reaching FILE STATUS. The umbrella mechanism conforms; the VALUE is wrong in two sub-cases that belong to their own rows (GR-14.9.35.4-16 fixed-length record sequential, GR-14.9.35.4-17 line sequential) and are reported there, not double-counted here. l1_table20_seq_relative derives the REWRITE '49'/'00' cells from Table 20 + 9.1.13.7 item 9. cite.py --check 14.9.35.4 GR1 -> OK. [editions as adjudicated: 2023; ISO 1989:2023 Annex E lists no 2014->2023 change to this rule (E.3.3 item 41 touches GR10 only), so 2014 identically; the 1985/2002 wording is not derivable from the 2023 text]",
+ "state": "OK"
+}

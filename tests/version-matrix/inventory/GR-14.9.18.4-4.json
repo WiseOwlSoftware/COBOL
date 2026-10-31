@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.18.4-4",
+ "section": "14.9.18.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "GOBACK statement",
+ "rule-digest": "95cc048f37ad",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindMethodGoback; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs; src/WiseOwl.Cobol.Runtime/Control/Signals/MethodReturn.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs",
+ "test-ref": "conformance-test:OoSpineTests.MethodGoback_ReturnsFromMethodOnly_UnwindingNestedPerformFrames; conformance:cases/14.2-Procedure-division-structure/oo_ec_goback_raising",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Both sentences are covered by existing spec-derived tests. Terminate the METHOD only, control back to the INVOKE site: BindGoback dispatches to OoBindMethodGoback under host.InMethod and emits MethodReturn, caught at the method entry - OoSpineTests pins that it unwinds a NESTED bounded __Dispatch (the GOBACK inside an out-of-line PERFORM) and that the paragraphs after both the PERFORM and the GOBACK are skipped, and the sibling StopRun_InsideMethod_TerminatesRunUnit pins the anti-conflation with 14.9.43. The method definition's PD-header RETURNING item as the invocation result: conformance:cases/14.2-Procedure-division-structure/oo_ec_goback_raising's golden reads 'AFTER-INVOKE R=0077' from a method whose body MOVEs 77 to its RETURNING item and then GOBACKs. CARRIED SEPARATELY, not against this rule: OoBindMethodGoback inspects only dataReference() and raisingPhrase() and SILENTLY DROPS g.statusPhrase(), so 14.9.18.3 SR6-SR8 are unenforced on the method arm (probes methstatus/zerolen and methstatus/nonint compile clean) - inert IS the right RUNTIME semantics here (GR7-GR10 apply 'in a main program'), so GR4 itself is unaffected, but the doc comment's claim that the status phrase 'stages loud' in a method is false.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindMethodGoback; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs (throw new MethodReturn()); src/WiseOwl.Cobol.Runtime/Control/Signals/MethodReturn.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs (the method entry's catch)",
+ "state": "OK"
+}

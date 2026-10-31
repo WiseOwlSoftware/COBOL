@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.2.4-6",
+ "section": "14.9.2.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "ADD statement",
+ "rule-digest": "2633277b8039",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcWrap",
+ "test-ref": "conformance:cases/14.6.13.2-Incompatible-data/pb230_incompatible_sending_sweep; conformance:cases/14.9.2-ADD/pb230_incompatible_corresponding; conformance:cases/14.9.2-ADD/phrase_order_arithmetic; conformance:cases/14.9.2-ADD/optional_on_size_error; conformance-test:CorrespondingDifferentialTests.AddCorresponding_SizeError_AggregatedAcrossPairs",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR6 is a pointer at five clauses, adjudicated as 'is each referenced mechanism actually wired to ADD'. THE FIFTH LEG IS NOW WIRED (kb/Work PB230), so all five are. 14.6.13.2 rule 2 - the content of a fixed-point numeric SENDING item that would evaluate false in a numeric class condition - had NO raise site at all: EcBinder.EcWrap gated the whole EC-DATA-INCOMPATIBLE family on `node is BoundMove` (rule 4's de-editing MOVE), so ADD's identifier-1, its Format-2 identifier-2 and its Format-1 identifier-2 read-side (NOTE 2 - a receiving operand that is also a sending one) were not even CHECKABLE. The gate is now AMBIENT like its own sibling rule 3 (EC-DATA-NOT-FINITE), and the raise rides the sending READ at the two chokepoints that already carried rule 3's: CobolNum.ParseImageSending at NumericRenderer.FieldNumCore's windowed arm and CobolNum.SendingImage at OperandText.SendingVerbatim. The 14.7.6 CORRESPONDING aggregation is wired too - 'if any of the implied statements would set the EC-DATA-INCOMPATIBLE exception condition to exist, [it] is set to exist after all of the implied statements are completed' - as a runtime latch region CorrespondingEmitter.Deferred opens around the pairs, so an offending pair no longer abandons the pairs to its right. pb230_incompatible_sending_sweep pins ADD specifically (L1) beside SUBTRACT/MULTIPLY/DIVIDE/COMPUTE, the relation and sign conditions, DISPLAY and MOVE, and both exemption halves; pb230_incompatible_corresponding pins the ADD CORRESPONDING deferral (A2=00001 B2=00002 C2=00003 - every pair still added, one condition after). The other four legs are unchanged: 14.7.4 ROUNDED via ExpressionBinder.RoundingOf per receiving operand and per CORR statement (conformance:cases/14.9.2-ADD/corresponding_rounded_mode); 14.7.5 SIZE ERROR's two-phase shape in ArithmeticEmitter.EmitArith; 14.7.6 CORRESPONDING per GR-14.9.2.4-5; 14.7.7 rule 2 as StatementValidation.CheckComposite and rule 4 + NOTE 3 as the Snapshot one-initial-evaluation discipline.",
+ "state": "OK"
+}

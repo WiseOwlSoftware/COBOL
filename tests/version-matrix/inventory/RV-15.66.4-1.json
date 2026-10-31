@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.66.4-1",
+ "section": "15.66.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "NATIONAL-OF function",
+ "rule-digest": "a210acd92b14",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Repertoire",
+ "test-ref": "conformance:cases/15.26.4-Returned-value-rules/pb59_repertoire_identity; conformance:cases/15.2-Types-of-functions/national_intrinsics",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-09 (PB59): one declared correspondence (Annex A.1 item 33, total UTF-16 identity), one implementation (Repertoire - the identity; the toNational short-circuit and the 0xFF cut are both gone, so the two-different-assumptions-in-one-translator charge is closed structurally: there is nothing left to disagree). NATIONAL-OF(wide) round-trips through DISPLAY-OF exactly (golden NOF-RT=SAME leg).",
+ "state": "OK"
+}

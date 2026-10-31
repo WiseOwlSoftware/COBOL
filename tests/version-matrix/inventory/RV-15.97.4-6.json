@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.97.4-6",
+ "section": "15.97.4",
+ "kind": "RV",
+ "ordinal": 6,
+ "subject": "UPPER-CASE function",
+ "rule-digest": "22fd6dc13b36",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#UpperCase; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#UpperCase",
+ "test-ref": "unit:CobolLocaleTests.CaseMapping_FollowsTheLocalesLcCtype; conformance:cases/8.8.4.4-Simple-class-condition/pb64t5_character_classification",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB64 T5 (2026-08-19): both halves — a lowercase letter with no uppercase correspondent is unchanged under the implementor's map (ß under the invariant tables), and under a locale a letter the locale's LC_CTYPE gives no correspondence for is unchanged too ('straße' LOCALE de-DE → 'STRAßE'): TextInfo.ToUpper is a TOTAL map that is the identity on every code point without a simple uppercase mapping — no substitution, no dropping, no expansion. Rule --check verified at 15.97.4 6).",
+ "state": "OK"
+}

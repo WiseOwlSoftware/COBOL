@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.13.4-10",
+ "section": "7.3.13.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "EVALUATE directive",
+ "rule-digest": "38673dedab94",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/l1c07_evaldir_fmt2_truth",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR10 (FORMAT 2 twin of GR6; E.2 item 8): END-EVALUATE with no TRUE WHEN and no OTHER omits all text-1. Probe: >>EVALUATE TRUE / WHEN 1 = 2 / END-EVALUATE -> nothing emitted, the following line emitted. Same mechanism as GR6. No spec-derived golden. Probe dir out/probe/evaldir2 (pinned cobol.exe, --std 2023; p1 re-run at --std 2002 and 2014 with identical output; --std 85 rejects >>EVALUATE with COBOL0900). || editions (adjudicator): 2002, 2014, 2023 (the 7.3 directive facility is absent from 1985; Annex E.2 item 8 records the 2023 rewording of GR6/GR10 only)",
+ "state": "OK"
+}

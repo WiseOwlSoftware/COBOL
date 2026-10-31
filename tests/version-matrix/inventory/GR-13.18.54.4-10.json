@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.54.4-10",
+ "section": "13.18.54.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "SUM clause",
+ "rule-digest": "c66b199ee1a9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#EndOfGroupSumReset; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#PlanOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindReportEntry",
+ "test-ref": "conformance-test:ReportWriterConformanceTests.PresentWhen_Gr3g_AbsentSumNeitherPrintsNorResets; conformance:cases/13.8.6.2.3-Report-Items/pb1271_report_sum_counter_occurrences",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Landed by kb/Work PB1271 (w1007a). GR10 (cite.py --check 13.18.54.4 'the corresponding sum counter is not printed and is not reset to zero for the current instance of the report group' OK 10)). OCCURS DEPENDING half now implemented: each occurrence has its own counter and its presence slot ANDs the PRESENT WHEN chain with the occurrence's ReportSumModel.RepetitionGuards, so the engine's end-of-group reset skips an absent occurrence. Golden: DL OCCURS 1 TO 2 DEPENDING ON WS-N, SUM WS-K = 5, N = 2, 1, 2 prints 05 05 / 05 / 05 10 (the absent occurrence keeps its 05). PRESENT WHEN half unchanged (ReportWriterConformanceTests.PresentWhen_Gr3g_AbsentSumNeitherPrintsNorResets). retired-witness: src/Cobol.Net.Runtime/IO/ReportWriter.cs#Present (ReportWriter declares no Present; the report engine was rebuilt by kb/Work PB1272+PB1296+PB1297+PB1188 (1bb25a078))",
+ "state": "OK"
+}

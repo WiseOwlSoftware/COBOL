@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.2.2.3-7",
+ "section": "8.4.2.2.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "Qualification",
+ "rule-digest": "47e4010603ff",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureWord; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#RejectAmbiguousProcedureName",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/pb466-paragraph-name-duplicated-in-section; conformance:cases/8.4.2.2-Qualification/pb466_procedure_name_uniqueness; unit:ProcedureNameUniquenessDriftTests.NoProcedureNameScopeSwallowsARedeclaration",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB466.md - both sentences. Sentence 1, 'If explicitly referenced, a paragraph-name shall not be duplicated within a section', is COBOL2122, reported from the reference and not from the declaration because the rule is conditioned on the explicit reference - an unreferenced duplicate is conforming and compiles, which the positive witness measures with UNREF-DUP declared twice in one section and once more in another. The message says RENAME rather than QUALIFY because 8.4.2.2.2 format 4 offers a paragraph-name only its section-name and both declarations carry the same one. Sentence 2, 'A paragraph-name need not be qualified when referred to from within the same section', is the rule-6 arm (SR-8.4.2.2.1-6) and is witnessed by the same positive golden. The multiplicity the rule asks about is kept by ProcedureNameMap, which replaced five Dictionary.TryAdd registrations that discarded it; ProcedureNameUniquenessDriftTests pins that no scope may reintroduce one and fails its scanner on the pre-fix lines.",
+ "state": "OK"
+}

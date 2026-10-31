@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.3-2",
+ "section": "7.3.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Compiler directives",
+ "rule-digest": "407508469427",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveLine.cs#TryParse; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs#FormatSegments; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs#DirectiveText; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ScanProgramText; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#DirectiveAfterText",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb1361-directive-after-program-text; unit:ReferenceFormatLogicalConversionTests.FixedFormDirective_IsRecognizedInTheProgramTextArea; conformance:cases/7.3-Compiler-directives/pb1690-directive-after-program-text-fixed; unit:ReferenceFormatLogicalConversionTests.FreeFormLine_WithTextBeforeTheIndicator_IsNotADirective_AndIsDiagnosed; unit:ReferenceFormatLogicalConversionTests.DirectiveAfterProgramText_IsDiagnosedByName",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1361 (w70b): '2) A compiler directive shall be preceded only by zero, one, or more space characters.' (cite.py --check 7.3.3 -> OK §7.3.3 2)). CompilerDirectiveLine.TryParse has ONE reading (only spaces/tab before >>); the allowSequenceArea 'digits or spaces' mode is deleted. The reference-format stage hands it the program-text area of the format in effect (DirectiveText: positions 8 to margin R of a source line in fixed form, §7.3.3 SR3 'When the reference format is fixed-form, a compiler directive shall be written in the program-text area' -> OK §7.3.3 3); the whole line in free form), so '       12 >>SOURCE FORMAT FREE' (fixed) and '000100 >>SOURCE FORMAT FIXED' (free) are program text, not switches, and are rejected (COBOL0001); the post-normalization stages already held the same reading. retired-witness: unit:ReferenceFormatLogicalConversionTests.FreeFormLine_WithTextBeforeTheIndicator_IsNotADirective (kb/Work PB1690: the test now also pins the named diagnostic COBOL2691 and is renamed FreeFormLine_WithTextBeforeTheIndicator_IsNotADirective_AndIsDiagnosed)",
+ "state": "OK"
+}

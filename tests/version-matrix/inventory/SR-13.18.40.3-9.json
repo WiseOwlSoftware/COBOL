@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-9",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "PICTURE clause",
+ "rule-digest": "728f3f1184c4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ValidateEditing; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#DecodeEditLiteral; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#editingLiteral",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb492-national-edited-literal-class; conformance:cases/13.18.40-PICTURE/pb492-picture-editing-literal-over-50; conformance:cases/13.18.40-PICTURE/pb492_national_edited_editing; conformance:cases/13.18.40-PICTURE/pb778-editing-literal-not-alphanumeric; conformance:cases/13.18.40-PICTURE/pb778_editing_literal_positions",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB533 finding F4 DISCHARGED by kb/Work PB492, 2026-09-12 -- the fix is PB492's because the erased literal CLASS is exactly what made GR10's character-1 leg unverifiable. BOTH of SR9's sentences are now enforced and each has a spec-derived negative golden. CLASS: the class is no longer discarded -- DataBinder.DecodeEditLiteral returns an `EditLiteral(Text, National)` record and EditingPhraseSpec carries it, so ValidateEditing can ask the question at all; it screens BOTH directions against the subject, which is national when 'USAGE IS NATIONAL is specified for the subject of the entry or if character-string-1 contains the symbol N'. Measured before -> after at --std 2023: `01 W-1 PIC NNTNN EDITING \"T\" IS \":\".` compiled silently -> COBOL1955; `01 W-2 PIC XXTXX EDITING \"T\" IS N\":\".` compiled silently -> COBOL1955; the adjudicator's own probe `01 W1 PIC 99T99 EDITING \"T\" IS N\":\".` rendered [12:30] and is now COBOL1955 too. The legal pairings still compile: PIC NNTNN EDITING \"T\" IS N\":\" renders [AB:CD] and PIC XXTXX EDITING \"T\" IS \":\" renders [AB:CD]. LENGTH: unchanged and correct at the boundary (51 characters -> COBOL1594, pinned by conformance:cases/13.18.40-PICTURE/pb492-picture-editing-literal-over-50; 50 passes SR9 and meets the separate P14 render GAP). NOTE FOR THE REGISTRAR: PB533's OTHER rule, SR-13.18.40.3-8 (char.IsLetter admits the Annex B extended letters where SR8 says basic letter), is UNTOUCHED and still open -- that note stays open on its SR8 half.",
+ "state": "OK"
+}

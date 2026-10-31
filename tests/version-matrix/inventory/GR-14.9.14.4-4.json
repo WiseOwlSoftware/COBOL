@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.14.4-4",
+ "section": "14.9.14.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "EXIT statement",
+ "rule-digest": "4ff201d092fd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitExceptionPerform; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#F3Region",
+ "test-ref": "conformance-test:PerformFormat3BehaviorTests.ExitPerform_InHandler_JumpsToFinally_SkipsCommon",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "The exception-checking PERFORM is a COBOL-2023 addition (Annex E.3.3 item 36, 'PERFORM Statement. An exception checking variant of this statement has been added'; ConstructRegistry row perform-exception-checking-2023), so GR4 exists only at 2023. All FOUR sites an EXIT PERFORM can occupy in a Format-3 PERFORM were exercised and each lands where GR4 (with §14.9.28.4 GR16 for imp-5) requires. EmitExceptionPerform writes the label __f3fin{n} AFTER the frame-popping try/finally and BEFORE the FINALLY body, which is literally 'the implicit CONTINUE immediately preceding the FINALLY phrase'; with no FINALLY the next emitted line is __f3end{n}, i.e. immediately preceding END-PERFORM. (a) imp-1 with FINALLY - F3Region.Imp1 emits `goto __f3fin`; PROBE out-b2/probe/gr4-exit-perform-imp1/p.cob expected FIN/DONE, observed FIN/DONE. (b) a WHEN handler with FINALLY - F3Region.Handler throws ExitPerformSignal caught by the nested `catch (ExitPerformSignal) when (Id == n)` inside the frame-popping try; covered by the named conformance test (WHEN/FINALLY/DONE, skipping WHEN COMMON and the imp-1 remainder). (c) a WHEN handler with NO FINALLY - PROBE out-b2/probe/gr4-exit-perform-no-finally/p.cob expected WHEN/DONE, observed WHEN/DONE. (d) imp-5 (FINALLY itself) - GR4's literal 'immediately preceding the FINALLY phrase' would re-enter FINALLY forever, and §14.9.28.4 GR16 governs instead ('Any EXIT PERFORM statement within imperative-statement-5 transfers control to an implicit CONTINUE statement following the END-PERFORM'); F3Region.Finally emits `goto __f3end` and PROBE out-b2/probe/gr4-exit-perform-in-finally/p.cob expected F1/DONE with no loop, observed F1/DONE.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitExceptionPerform; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#F3Region",
+ "state": "OK"
+}

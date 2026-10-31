@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.22.3-1",
+ "section": "7.3.22.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "PUSH directive",
+ "rule-digest": "5abf02a3366f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#OperandDirectiveNames",
+ "test-ref": "conformance:cases/7.3.20-POP/pb1377-push-removed-directive-name",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1377. cite.py --check 7.3.22.3 'Directive-name shall be the name of a compiler directive other than an EVALUATE, IF, PAGE, POP, or PUSH directive.' OK 1); the edition-filtered name set rejects FLAG-85 at 2023.",
+ "state": "OK"
+}

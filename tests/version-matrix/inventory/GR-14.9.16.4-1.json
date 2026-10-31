@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.16.4-1",
+ "section": "14.9.16.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "GENERATE statement",
+ "rule-digest": "f7b3b662deac",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitGenerate",
+ "test-ref": "conformance-test:ReportWriterConformanceTests.FirstGenerate_Gr4_RhOncePhPerPage",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR1: \"Execution of a GENERATE data-name statement causes one instance of the specified detail to be printed, following any necessary control break and page fit processing\" (cite.py --check 14.9.16.4 OK, 1)). EmitGenerate passes the detail's name to Generate(name). GenerateCore does the first-GENERATE or control-break processing first, then accumulates SUM, then calls PresentBody(detail). PresentBody applies the §13.18.35.4 GR4 page-fit test and, when it fails, the GR6 page advance before printing the lines. In probe out/probe/generate/g1.cob (pinned cobol.exe, --std 2023) each GENERATE DE-1 printed exactly one DE line, after its CF/CH groups. The FirstGenerate_Gr4_RhOncePhPerPage and PageFit_Gr4c_TrialSumOverflow_AdvancesAndResets expectations are hand-derived from the spec. || editions as adjudicated: 85, 2002, 2014, 2023 (Report Writer is present in every edition; the 2023 Annex E lists no change to GENERATE)",
+ "state": "OK"
+}

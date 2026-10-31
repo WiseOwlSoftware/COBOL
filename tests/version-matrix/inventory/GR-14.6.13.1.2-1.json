@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.13.1.2-1",
+ "section": "14.6.13.1.2",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Exception conditions",
+ "rule-digest": "ff3972cb6134",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#EnterDeclarative; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#MarkDeclarativesNotNormal; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitResume; src/WiseOwl.Cobol.Runtime/Exceptions/DispatchResult.cs#NotNormal",
+ "test-ref": "conformance:cases/14.6.13.1.2-Normal-completion-of-a-declarative-procedure/pb367b_sort_use_not_normal; conformance:cases/14.6.13.1.2-Normal-completion-of-a-declarative-procedure/pb1122_declarative_fatal_in_scope_merge; unit:DeclarativeActivationRecordTests.FatalRaiseWithinTheScope_MarksTheOpenDeclarative; unit:DeclarativeActivationRecordTests.ResumeContinue_MarksOnlyItsOwnPrograms",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1122 LANDED (Task A DispatchResult, Task B the declarative activation record). __RunUse of a DECLARATIVE id opens a record on the run-unit ExceptionEngine and answers DispatchResult.NotNormal on falling off its end when it was marked: by a fatal raise (ExceptionEngine.Set fatal, every open record: the scope is dynamic) or by a RESUME that GR1 made a CONTINUE (its own program's records). Only the SORT/MERGE implicit transfers key on normal completion (TerminatesSortMerge, 14.9.40.4 GR17, 14.9.24.4 GR7/GR12); every other consumer treats NotNormal as Normal (14.9.49.4 GR13). Readings pinned in docs/CONFORMANCE.md section 3: occurs = is raised (checking enabled); Format 4 selector treats it as normal.",
+ "state": "OK"
+}

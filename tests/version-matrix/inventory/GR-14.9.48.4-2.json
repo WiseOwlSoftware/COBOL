@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.48.4-2",
+ "section": "14.9.48.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "UNSTRING statement",
+ "rule-digest": "0b1823d26e0c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/pb1184_unstring_zero_length_sender_terminates",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1184: a zero-length identifier-1 terminates the statement before any other rule - no overflow, no ON / NOT ON OVERFLOW imperative, pointer and tally untouched.",
+ "state": "OK"
+}

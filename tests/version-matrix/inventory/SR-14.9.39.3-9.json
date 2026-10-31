@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-9",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "SET statement",
+ "rule-digest": "e4a440c61ffa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetFormatSelection.cs#Select; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindSetObjectRef",
+ "test-ref": "conformance:cases/14.9.39-SET/pb456-set-object-ref-literal-sender; conformance-test:OoSpineTests.SetObjectRef_Violations_0867",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB456. 'Identifier-4 shall be an object reference; the predefined object reference SUPER shall not be specified.' The SUPER half and the non-object-reference-identifier half always fired where the re-route reached; the new arm is the sender that is not a reference at all - OoBindSetObjectRef's senderRef-null branch reported BoundUnsupported (unreachable, because the caller declined for exactly that shape) and now reports SR9 naming the operand as written. MEASURED at --std 2023: SET U TO 5 and SET U TO N + 1 over 01 U USAGE OBJECT REFERENCE both draw COBOL0867 citing SR9; both used to compile clean and abort at run time.",
+ "state": "OK"
+}

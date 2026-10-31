@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.24.3-13",
+ "section": "14.9.24.3",
+ "kind": "SR",
+ "ordinal": 13,
+ "subject": "MERGE statement",
+ "rule-digest": "499198515439",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortMapIoFiles",
+ "test-ref": "conformance:cases/14.9.24-MERGE/pb994_sort_merge_keyed_using_giving; conformance:cases/12.4.5-File-control/pb994-merge-using-random-access",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB994 landed: MERGE shares SortMapIoFiles with SORT, so file-name-2 / file-name-3 of a MERGE may be a sequential- or dynamic-access relative or indexed file (the golden's MERGE reads an indexed USING pair) and ACCESS RANDOM is refused by name (negative/pb994-merge-using-random-access).",
+ "state": "OK"
+}

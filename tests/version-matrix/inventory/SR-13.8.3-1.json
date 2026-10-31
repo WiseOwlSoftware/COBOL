@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.8.3-1",
+ "section": "13.8.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Report section",
+ "rule-digest": "77f2790105b1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#interfaceDefinition; src/WiseOwl.Cobol.Compiler/Binding/PrototypeUnitRules.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindReportSection",
+ "test-ref": "conformance:cases/13.8-Report-section/l1m8_report_section_placements; conformance:cases/13.8-Report-section/l1m8-report-section-in-method; conformance:cases/13.8-Report-section/l1m8-report-section-in-interface",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "A REPORT SECTION is accepted in a program and a function (driven: LC 2/3) and in a factory and an instance (acceptance only; their methods reference no object-local report-name or counter, per §8.4.6.2.2/§8.4.6.2.5). It is refused in a method (1519) and in an interface's method prototype (§10.6.2 4) e), 2272).",
+ "state": "OK"
+}

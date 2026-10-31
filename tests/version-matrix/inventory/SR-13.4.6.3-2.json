@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.4.6.3-2",
+ "section": "13.4.6.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Sort-merge file description entry",
+ "rule-digest": "138822ef79d7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#RecordLessSd",
+ "test-ref": "conformance:cases/13.4.6-Sort-merge-file-description/pb345-sd-no-record",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB345 (landed). RULE: 'One or more record description entries shall be associated with the sort-merge file description entry.' - cite.py --check 13.4.6.3 'One or more record description entries shall be associated with the sort-merge file description entry.' -> OK 13.4.6.3 2). Enforced as COBOL1837 at the SD entry. Before PB345 a record-less SD compiled and the only diagnostic it drew was the COMPILER'S OWN deferral warning - COBOL1756, \"SORT 'S1' without an SD record - not implemented\" - followed by a run-unit abort, i.e. the compiler announcing its own gap for the source's error. SortBinder.RecordLessSd now binds SORT, MERGE and RETURN on such a file to a no-op so the entry's error is the only diagnosis.",
+ "state": "OK"
+}

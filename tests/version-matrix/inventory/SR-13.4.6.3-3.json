@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.4.6.3-3",
+ "section": "13.4.6.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Sort-merge file description entry",
+ "rule-digest": "a7e3f467a863",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenSortMergeFile; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#UnsupportedOrg; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/FileLockBinder.cs",
+ "test-ref": "conformance:cases/13.4.6-Sort-merge-file-description/pb140-close-sd",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: \"File-name-1 shall not be specified in an input-output statement.\" (--check 13.4.6.3 -> OK 3)). Probed every input-output statement naming an SD file-name at --std 2023 (E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d1\\out13\\probe\\sd\\v1..v9, v12, v23, v24): OPEN INPUT/EXTEND (sole and second operand), CLOSE (sole and second), READ, DELETE, START, DELETE FILE -> COBOL1692; UNLOCK -> COBOL1512 (§14.9.47.3 SR1) -- rejected, via a second mechanism that open note PB700 already owns (duplicate implementation, not a conformance gap). WRITE FILE/REWRITE FILE SRT -> COBOL1706 (A.4.13 declined, refused at every edition anyway). CLOSE at --std 85 also COBOL1692. Test conformance:cases/13.4.6-Sort-merge-file-description/pb140-close-sd cites §13.4.6.3 SR3 and expects COBOL1692; siblings pb140-delete-file-sd, pb140-delete-record-sd, pb352-start-sort-merge-file. || Code-location detail (moved from the field by registrar 14e): src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs (DELETE / DELETE FILE / START) | src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/FileLockBinder.cs (UNLOCK)",
+ "state": "OK"
+}

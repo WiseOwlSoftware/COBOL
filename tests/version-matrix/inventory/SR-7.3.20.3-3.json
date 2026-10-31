@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.20.3-3",
+ "section": "7.3.20.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "POP directive",
+ "rule-digest": "412770b8d262",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveSiteProcessor.cs#Process; src/WiseOwl.Cobol.Compiler/Validation/DirectivePlacementPass.cs#Run",
+ "test-ref": "unit:PushPopAllPlacementTests.BeforeTheFirstUnit_IsOutsideEveryCompilationUnit; unit:PushPopAllPlacementTests.AfterEndProgram_IsOutside_ButAfterTheLastStatementOfAnOpenProgram_IsInside; unit:PushPopAllPlacementTests.InsideAStatement_Warns_BetweenNestedStatements_DoesNot; unit:PushPopAllPlacementTests.InsideAClause_Warns_BetweenClauses_DoesNot; unit:PushPopAllPlacementTests.NamedForm_HasNoPositionRule; conformance:cases/7.3-Compiler-directives/pb941_push_pop_directive_state",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work/PB1005 (2026-09-22): >>POP ALL outside a compilation unit (before the first, or after an END marker) or inside a clause or statement (not at a boundary of a nested one) draws the 4.2.2 warning COBOL2344; the directive is still processed (the D20 disposition of the sibling SR4 bans). The position is the gap between the tokens around the directive's line in the final line frame (DirectiveSite.AllForm). Gaps at an entry name, a paragraph header or a division header are not diagnosed - they are not inside a clause, the reading that cannot reject a position the rule admits. pb941's golden is the legal-position control (compiles with no COBOL2344). retired-witness: src/Cobol.Net.Compiler/Validation/PushPopAllPlacementPass.cs#Run (kb/Work PB1065: PushPopAllPlacementPass was renamed DirectivePlacementPass when it gained the FLAG-02/FLAG-14 and named-directive rules)",
+ "state": "OK"
+}

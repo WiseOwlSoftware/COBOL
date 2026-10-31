@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.27.3-3",
+ "section": "13.18.27.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "GLOBAL clause",
+ "rule-digest": "ae60e962448d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveRecordName; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs",
+ "test-ref": "conformance:cases/13.18.27-GLOBAL/pb1193-write-global-record-local-fd; conformance:cases/13.18.27-GLOBAL/pb1193-rewrite-global-record-local-fd; conformance:cases/13.18.27-GLOBAL/pb1193_global_record_under_local_fd",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1193 LANDED (wave 68 Y). SR3 'If the GLOBAL clause is not specified in the file description entry of a containing program, the file shall not be referenced directly or indirectly by any input-output statements in any contained program' (cite.py OK 13.18.27.3 3)). DIRECT references: a non-GLOBAL FD's file-name is merged into no contained unit's FilesByName (BinderDriver: only f.IsGlobal files are), so every contained I/O statement naming it is an undefined name. INDIRECT references are the record-name operands — WRITE / REWRITE (their SR21 / SR3) and RELEASE (this SR3, passed as its containedRule) — refused by ResolveRecordName when the record is a GLOBAL record of a container's non-global FD (DataBinder.ContainerLocalFiles). The EXTERNAL exception needs no arm: a contained program that describes the file EXTERNAL has its own FD, so the record-name is not 'defined in a containing program'.",
+ "state": "OK"
+}

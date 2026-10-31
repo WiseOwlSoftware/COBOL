@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.44.3-2",
+ "section": "13.18.44.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "REDEFINES clause",
+ "rule-digest": "aa1b252e8f6d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveRedefines; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.RedefinesEntry.cs#ScreenRedefinesEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#TemplateItems",
+ "test-ref": "conformance:cases/13.18.44-REDEFINES/pb1280-redefines-level-77-target; conformance:cases/8.4.2.2-Qualification/pb1280_redefines_entry_rules_legal; conformance:cases/13.18.44-REDEFINES/pb2071-template-redefines-outside-group",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1280 (wave 1011 B2). cite.py --check 13.18.44.3 'The level-numbers of data-name-2 and the subject of the entry shall be identical' OK SR2. The resolved pair's WRITTEN levels are compared (a 77 and an 01 are both roots, which is why name resolution alone accepted them); COBOL2739.",
+ "state": "OK"
+}

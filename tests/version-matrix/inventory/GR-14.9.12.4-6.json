@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.12.4-6",
+ "section": "14.9.12.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "DIVIDE statement",
+ "rule-digest": "3053112dac80",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitDivideRemainder; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#CarriedSubsidiaryQuotient; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#FixedPointSubsidiary; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#NativeSubsidiaryQuotient",
+ "test-ref": "conformance:cases/8.8.1.2-Native-standard-binary-and-standard-decimal/pb129_store_discipline; conformance:cases/8.8.1.2-Native-standard-binary-and-standard-decimal/pb129_remainder_no_phrase; conformance:cases/14.9.12-DIVIDE/pb84_sdidi_intermediate_consumers; conformance:wiseowl/cases/14.9.12-DIVIDE/pb3829_remainder_float_sender; conformance:cases/14.9.12-DIVIDE/pb3975_remainder_after_quotient_size_error; conformance:cases/14.9.12-DIVIDE/pb3975_remainder_after_quotient_size_error_standard_decimal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB129, PB3975): identifier-4 stores only if the size error condition is not raised - gated on the statement flag under a SIZE ERROR phrase (ON or NOT, PB3989) or EC-SIZE checking, so the quotient's size error leaves the remainder unchanged. With checking off and no phrase the condition is 14.6.13.1.3 item 8's and DOC-A.1-70 follows GnuCOBOL 3.2: the remainder is stored, formed from the quotient truncated at identifier-3's scale with every integer digit (no digit cap: the PB129 cap, CobolNum.CapDigits, is deleted - 6 c)'s digit count governs only a quotient that raised no size error, which fits identifier-3). The back-multiply rides Combine (MulChecked under checking, the Dec lane under a standard mode) instead of a raw Int128 splice that wrapped silently.",
+ "state": "OK"
+}

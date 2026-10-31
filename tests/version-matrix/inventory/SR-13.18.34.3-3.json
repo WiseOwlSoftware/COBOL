@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.34.3-3",
+ "section": "13.18.34.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "LINAGE clause",
+ "rule-digest": "31edcc600bdb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveLinage",
+ "test-ref": "conformance:cases/13.18.34-LINAGE/pb524-linage-footing-beyond-page; conformance:cases/13.18.34-LINAGE/pb524_linage_operand_shapes",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB524 (landed): with integer-1 and integer-2 both literals, FOOTING greater than the page size is refused at compile time under COBOL2025 (it used to reach run time and throw a CLR InvalidOperationException); the equality boundary (FOOTING AT 4 on a page of 4) compiles and runs in the positive golden. A data-name on either side makes the relation a run-time value governed by 13.18.34.4 GR3, outside this syntax rule.",
+ "state": "OK"
+}

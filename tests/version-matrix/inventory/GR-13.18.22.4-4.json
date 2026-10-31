@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.22.4-4",
+ "section": "13.18.22.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "EXTERNAL clause",
+ "rule-digest": "f2a8797e5a8c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#CallBindExternalAndGlobal; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#ForceStringCanonical; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#DynSlotWindow; src/WiseOwl.Cobol.Runtime/Control/StorageCell.cs#DynAt",
+ "test-ref": "conformance:cases/13.18.22-EXTERNAL/pb1026_external_out_of_line_records; conformance:cases/9.1.5-Sharing-file-connectors/oo_external_file_shared; conformance:cases/8.3.2.2-User-defined-words/pb511_external_as_name; conformance:cases/13.18.22-EXTERNAL/pb1026-external-dynamic-record-at-2002",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1026. cite.py --check 13.18.22.4 \"the data contained in all record description entries subordinate to that file description entry is external\" -> OK GR4 b). a) the external file connector: one run-unit connector per externalized file name (oo_external_file_shared, pb511_external_as_name). b) ALL the record data is run-unit storage: the character half is one cell keyed FD::<name>; each OUT-OF-LINE record (D-FRA: a dynamic-length record, a variable-length group, a pointer record) is its own cell keyed FD::<name>#<k> by its ordinal among the file's out-of-line records (GR5 externalizes the file name, never a record name), its dynamic-length content riding the cell's dynamic slots (StorageCell.DynAt; Place.DynSlotWindow / VarGroupWindow). The 2014 golden has three separately compiled programs describing the file under different record names: each sees the others' dynamic-length, variable-length-group and pointer record values, and a READ in one program lands in all of them (D-FRA take step). Staged loud (COBOL0899) before PB1026.",
+ "state": "OK"
+}

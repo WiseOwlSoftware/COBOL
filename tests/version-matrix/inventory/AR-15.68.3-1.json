@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.68.3-1",
+ "section": "15.68.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "NUMVAL-C function",
+ "rule-digest": "e2740f06a95f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindNumvalCFamily; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#PredicateViolation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
+ "test-ref": "conformance:cases/15.67.3-Argument-rules/pb658-numval-numeric-edited-argument; unit:IntrinsicArgumentClassDriftTests.CategoryWordedStringArguments_CarryTheCategoryPredicate_AndClassWordedOnesDoNot; conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-09 (PB60): r1 names CATEGORY alphanumeric or national, and the finer screen now sits beside the walk - the 15.3 class row (which admits the edited categories under class alphanumeric, Table 2) stays as the class machinery, and a numeric-edited or alphanumeric-edited argument-1 rejects COBOL1627 citing r1 (negative pb60-numvalc-edited-argument; measured accepted before). A ref-mod view is plain category alphanumeric (8.4.3.3.4 GR6, the PB72/7b classifier) and stays admissible; TEST-NUMVAL-C mirrors via 15.94.3 r1. || RE-ANCHORED 2026-10-03 (kb/Work PB658, wave 1009 C): the bespoke IntrinsicBinder arm named above is DELETED; the category rule is now the CharacterCategory predicate on the NUMVAL-C row (and TEST-NUMVAL-C via 15.94.3 r1), screened by CheckArgumentClasses through PredicateViolation. Verdict unchanged; behaviour unchanged for NUMVAL-C (one diagnostic, the right rule) and now shared with NUMVAL, NUMVAL-F and ORD. retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

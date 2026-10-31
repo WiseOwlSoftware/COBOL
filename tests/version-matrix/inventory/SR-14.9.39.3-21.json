@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-21",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 21,
+ "subject": "SET statement",
+ "rule-digest": "b1412fbeec54",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetFormatSelection.cs#Select; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetProgramPointer",
+ "test-ref": "conformance:cases/14.9.39-SET/pb449-set-mixed-program-pointer-receivers; conformance:cases/13.18.60-USAGE/program_pointer",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB449. Both sentences - 'Identifier-7 shall reference a data item of category program-pointer. Identifier-8 shall be of category program-pointer.' - are now asked on EVERY statement whose receiving list contains a program-pointer, because Format 9 is selected from that list instead of from receivers[0]-or-the-sender. Before: SET WS-N PP1 TO WS-M has two identifier operands, so Format 9 matched syntactically and is the only format whose receiving operand may be a program-pointer, yet neither t0 nor s0 was a program-pointer, the re-route never fired, and the statement compiled clean and aborted at run time. The identifier-8 half additionally now covers a sender that is not a reference at all (a literal or an arithmetic expression), which previously returned BoundUnsupported from an unreachable arm.",
+ "state": "OK"
+}
