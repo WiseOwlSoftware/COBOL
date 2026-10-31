@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.51.3-12",
+ "section": "14.9.51.3",
+ "kind": "SR",
+ "ordinal": 12,
+ "subject": "WRITE statement",
+ "rule-digest": "562c8eeb5c94",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenReportFileReference; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#UnsupportedOrg",
+ "test-ref": "conformance:cases/13.4.5-File-description/pb1171-report-fd-record-entry",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1171 LANDED (wave 68 Y). SR12 'The file description entry associated with the write file shall not contain the REPORT clause and shall not be a sort-merge file description entry.' (cite.py OK 14.9.51.3 12)). Both halves now: the REPORT half is ScreenReportFileReference asked of the file ResolveRecordName returned (COBOL2577), the sort-merge half UnsupportedOrg / ScreenSortMergeFile (COBOL1692). The record such a WRITE names is itself refused at its entry (§13.4.5.3 SR8, COBOL2578); probe ws4rpt (WRITE PR between GENERATEs, which injected INJECTED into the report output) now reports both. WRITE FILE is declined (Annex A.4.13), so the record is the only write-file operand.",
+ "state": "OK"
+}

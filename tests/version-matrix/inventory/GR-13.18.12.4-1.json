@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.12.4-1",
+ "section": "13.18.12.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "CODE clause",
+ "rule-digest": "4094117271a0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLine; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+ "test-ref": "conformance:cases/13.18.12-CODE/pb1129_rd_code_literal; conformance:cases/13.18.12-CODE/pb1129_rd_code_identifier; conformance:cases/13.18.12-CODE/pb1050_reports_share_file",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "(kb/Work PB1129, wave 1005 A). The code is the first characters of each logical record: CobolReport.PresentLine writes _code + the composed line. Witness: CODE IS \"A1\" + detail HELLO writes the record A1HELLO 1 (pb1129_rd_code_literal); an identifier CODE prefixes the page heading, the details and the page footing (pb1129_rd_code_identifier); two reports on one file are told apart by their codes (pb1050_reports_share_file). cite.py --check 13.18.12.4 OK 1). retired-witness: src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#ReportCodeClause (the descriptor was deleted: the CODE clause is implemented and its syntax rules are COBOL2713 (ReportCodeClauseRule))",
+ "state": "OK"
+}

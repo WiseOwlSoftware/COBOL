@@ -13,7 +13,7 @@ reader trusts and no gate can enforce. The back-fill is therefore part of the me
 
 ⛔ AND IT IS DERIVED FROM THE APPLIED BATCHES, NOT FROM RECALL. Verdicts are only ever written by
 `record_verdicts.py`, and every application of one is a commit that changed
-`tests/version-matrix/traceability-inventory.json`. Walking that file's history recovers exactly what each
+`tests/version-matrix/inventory/` (before kb/Work PB4148, the one file `traceability-inventory.json`). Walking that history recovers exactly what each
 landing changed: a row that moved from a NON-resolving verdict (or from no verdict at all) to a resolving one is
 a row some landing closed, and the commit that did it is the landing. Nothing here reads a summary of the work;
 it reads the work.
@@ -53,12 +53,12 @@ import subprocess
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import inventory_store  # noqa: E402  (the inventory's one reader, in the tree and at a commit)
 import work  # noqa: E402  (same directory; this is the register's ONE reader)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-INVENTORY_REL = "tests/version-matrix/traceability-inventory.json"
 SCHEMA = REPO / "tests" / "version-matrix" / "inventory-schema.json"
 PB = re.compile(r"\b(PB\d+[a-z]?)\b")
 #: The one sentence a back-filled empty answer carries. It names its own provenance on purpose: a reader can
@@ -96,17 +96,13 @@ def attribute(commit_message: str, row_notes: str) -> set[str]:
 
 
 def verdicts_at(sha: str) -> dict[str, tuple[str, str]]:
-    """`rule-id -> (verdict, notes)` as of one commit, or `{}` when the file is not in that tree."""
-    try:
-        raw = git("show", f"{sha}:{INVENTORY_REL}")
-    except subprocess.CalledProcessError:
-        return {}
-    return {r["rule-id"]: (r.get("verdict") or "", r.get("notes") or "") for r in json.loads(raw)}
+    """`rule-id -> (verdict, notes)` as of one commit, or `{}` when the commit has no inventory."""
+    return {r["rule-id"]: (r.get("verdict") or "", r.get("notes") or "") for r in inventory_store.inventory_at(sha) or ()}
 
 
 def closures_from_history(resolving: set[str], progress=None) -> tuple[dict[str, set[str]], dict]:
     """`note id -> rule-ids it closed`, walked over every commit that touched the inventory."""
-    log = git("log", "--reverse", "--format=%H%x1f%B%x1e", "--", INVENTORY_REL)
+    log = git("log", "--reverse", "--format=%H%x1f%B%x1e", "--", *inventory_store.HISTORY_PATHSPECS)
     commits = [c.strip() for c in log.split("\x1e") if c.strip()]
     closed: dict[str, set[str]] = collections.defaultdict(set)
     stats = {"commits": len(commits), "transitions": 0, "unattributed": 0, "by-arm": collections.Counter()}
@@ -339,7 +335,7 @@ def main() -> int:
         return self_test()
 
     resolving = resolving_verdicts()
-    rows = json.loads((REPO / INVENTORY_REL).read_text(encoding="utf-8"))
+    rows = inventory_store.load_inventory()
     state_now = {r["rule-id"]: r.get("state") or "" for r in rows}
     items = work.load()
 
@@ -350,7 +346,7 @@ def main() -> int:
             print(f"   {f}")
         return 0
 
-    print(f"walking {INVENTORY_REL} through its history …")
+    print(f"walking {inventory_store.INVENTORY_DIR_REL} (and, before kb/Work PB4148, the one legacy file) through its history …")
     closed, stats = closures_from_history(
         resolving, progress=lambda i, n: print(f"   {i}/{n} commits", flush=True))
     want = derive(items, state_now, closed)

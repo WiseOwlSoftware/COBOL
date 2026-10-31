@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.43.3-9",
+ "section": "14.9.43.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "STRING statement",
+ "rule-digest": "55ea28d9af36",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStringStatement",
+ "test-ref": "conformance:cases/14.9.43-STRING/l1_string_delimited_omitted_size; conformance:cases/14.9.43-STRING/pb1567_string_delimited_omitted; conformance:cases/14.9.43-STRING/pb1567-string-delimited-omitted-below-2002",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "The trailing phraseless sender group, whose senders contain the previous group's delimiter, moves whole under the implied SIZE; T4 shows a phraseless run before a DELIMITED phrase belongs to that phrase (§14.9.43.3 SR9, §14.9.43.4 GR3 b/c, GR6, GR7). EDITION (kb/Work PB1567, w1031h): the omission is a post-1985 form - COBOL-85's STRING closes every sending group with DELIMITED, as all 34 NIST CCVS-85 STRING statements write it - gated below 2002 by VersionConformancePass.VisitStringStatement on the last sending phrase (string-delimited-omitted-2002, COBOL0900; the 2002 edge is provisional, VCR row 7.31).",
+ "state": "OK"
+}

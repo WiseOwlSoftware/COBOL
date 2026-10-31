@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.19.4-2",
+ "section": "7.3.19.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "PAGE directive",
+ "rule-digest": "8473ceb9d473",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-7.3.19.4-2",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'If a source listing is being produced, a PAGE directive shall cause page ejection followed by listing of the PAGE directive.' (cite.py --check 7.3.19.4 -> OK §7.3.19.4 2)). WiseOwl COBOL produces no source listing at all: cobol --help offers no listing option and no listing writer exists in src/WiseOwl.Cobol.* (grep 'listing' finds only directive-state/catalog mentions); docs/CONFORMANCE.md (recognized-and-ignored directives, ~line 525) records '>>LISTING / >>PAGE (§7.3.18 / §7.3.19) — no source listing is produced, so listing on/off and page ejects are inert'. The rule's condition is never true, so it imposes no obligation — vacuously conforming. Reopens if a listing facility is ever added (page eject, then the directive line listed). The conditional arm is untestable today. || editions (adjudicator): 2002, 2014, 2023 (the §7.3 directive facility is post-85; Annex E lists no 2014->2023 change to §7.3.19; COBOL-85 has no >> lines — derived edge, VCR Table 7 row 7.21)",
+ "state": "OK"
+}

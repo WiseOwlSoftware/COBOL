@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-18",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 18,
+ "subject": "PICTURE clause",
+ "rule-digest": "27a02dd170d2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb528-picture-composition; conformance:cases/13.18.40-PICTURE/pb528_picture_composition_legal_85; unit:PictureCompositionTests.ACompositionViolation_IsCOBOL1934",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-09-09 (kb/Work PB528). 'The symbol S, if present, shall be the first symbol in character-string-1' - both misplacements are measured, interior (PIC 9S9, golden entry PB04) and last (PIC 999S, entry PB05), each COBOL1934 at all four editions; PIC S999 and PIC S9(5)V99 stay legal. Table 10's S row is entirely blank, which says the same thing from the other side, and the drift test asserts that blankness explicitly so a table edit cannot quietly loosen it. Previously PIC 9S9 compiled and MOVE -12 rendered '1K'. retired-witness: unit:PictureCompositionTests.ACompositionViolation_IsCOBOLNET1934 (the same witness, re-spelled when the diagnostic code prefix became COBOL#### (kb/Work PB3575); the new spelling is recorded in its place)",
+ "state": "OK"
+}

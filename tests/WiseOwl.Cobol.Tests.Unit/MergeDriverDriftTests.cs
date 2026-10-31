@@ -8,8 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ THE FILES TWO LANDINGS BOTH EDIT ARE MERGED BY DRIVER, AND ONE FUNCTION MERGES MAIN IN (kb/Work PB3610;
 /// docs/rearchitecture/DESIGN-test-build-ci.md §3.17.2 step 2). <c>scripts/merge_drivers.py</c> keeps a registry
-/// (<c>DRIVERS</c>) of the catalogues a landing appends to — the
-/// traceability inventory, <c>constructs.json</c>, the work notes — of the runtime ABI pin, which
+/// (<c>DRIVERS</c>) of the catalogues a landing appends to — <c>constructs.json</c>, the work notes — of the runtime ABI pin, which
 /// <c>scripts/abi_pin.py</c> measures, and of the public-API baselines, merged as SETS of symbol lines (kb/Work PB3727;
 /// docs/rearchitecture/DESIGN-orchestrator-loop.md section 16.9); <c>.gitattributes</c> repeats its patterns, and <c>--check</c> holds the two
 /// together. <c>enqueue.py land</c> merges main in through <c>merge_drivers.merge</c>, so two branches that each added an
@@ -228,6 +227,28 @@ public sealed class MergeDriverDriftTests
         foreach (string line in File.ReadLines(TestRepo.At(".gitattributes")).Where(l => l.Contains("merge=cobol-", StringComparison.Ordinal)))
             Assert.False(line.TrimStart().StartsWith("conformance-suite/", StringComparison.Ordinal),
                 $".gitattributes gives a conformance-suite path a merge driver ({line.Trim()}): a registry of the suite is one file per entry, never a shared file a driver merges (kb/Work PB4147)");
+    }
+
+    /// <summary>
+    /// ⛔ THE TRACEABILITY INVENTORY IS ONE FILE PER ROW, AND NO DRIVER GOVERNS IT (kb/Work PB4148): the 4,214-row
+    /// <c>traceability-inventory.json</c> was the second-largest cause of landing holds after the suite's refusal registry,
+    /// because the merge queue runs no driver and so admitted one row-closing pull request at a time. The rows are
+    /// <c>tests/version-matrix/inventory/&lt;rule-id&gt;.json</c> now (<c>SpecTraceabilityInventoryDriftTests</c> holds the
+    /// directory's shape); this keeps a driver, or an attribute line, from naming the inventory again.
+    /// </summary>
+    [Fact]
+    public void TheInventory_HasNoMergeDriver()
+    {
+        foreach (string line in File.ReadLines(TestRepo.At(".gitattributes")).Where(l => !l.TrimStart().StartsWith('#')))
+        {
+            Assert.False(line.Contains("tests/version-matrix/inventory", StringComparison.Ordinal)
+                || line.Contains("traceability-inventory", StringComparison.Ordinal)
+                || line.Contains("cobol-keyed-inventory", StringComparison.Ordinal),
+                $".gitattributes names the traceability inventory ({line.Trim()}): its rows are one file each, never a shared file a driver merges (kb/Work PB4148)");
+        }
+
+        string drivers = File.ReadAllText(TestRepo.At(Drivers));
+        Assert.DoesNotContain("cobol-keyed-inventory", drivers, StringComparison.Ordinal);
     }
 
     /// <summary>The pin is a measured file nobody hand-edits: it holds exactly the four lines the test reads and never

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.1.2-5",
+ "section": "8.8.1.2",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Arithmetic expressions",
+ "rule-digest": "459a64abc301",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#SegmentsOf",
+ "test-ref": "conformance:cases/8.4.2.3-Subscripts/pb136_subscript_expressions",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB136): both defects of the D10 transitional subscript evaluator closed. (1) The splitter's new-segment logic now handles a depth-0 '(' - after ')' or a literal it always opens a NEW subscript; after an IDENTIFIER the split is DECLARATION-INFORMED (a name with no OCCURS cannot be subscripted, so its '(' begins the parenthesized-expression subscript the spec's own NOTE 2 prints, while `DOG (BAKER (I) 3)` keeps BAKER's paren as its own subscript) - the rule-5 restructuring the batch-8 note asked for, threaded as an optional predicate so the intrinsic-argument caller keeps its exact behavior. (2) A quotient-bearing segment routes to the D18 exact evaluator UNCONDITIONALLY: the old token splice was C# integer division over long reads, so an all-integer quotient truncated silently where GR1b evaluates the exact result - (3+4)/2 = 3.5 now raises the EC-BOUND-SUBSCRIPT fatal when checking is on (probed verbatim) and takes the documented lenient truncation otherwise. PB41's scaled-operand routing caught only segments with scaled OPERANDS; the all-integer quotient was exactly the case it could not see. retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#SplitSubscriptTokens (kb/Work PB2113 replaced the hand-rolled token splitter with SegmentsOf over the parsed subscript items)",
+ "state": "OK"
+}

@@ -45,7 +45,8 @@ import pathlib
 import sys
 from collections import Counter
 
-from inventory_schema import DerivedSelector, load_catalog, load_inventory, load_schema
+from inventory_schema import DerivedSelector, load_catalog, load_schema
+from inventory_store import load_inventory
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.2.3.2-3",
+ "section": "14.6.2.3.2",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Initial and last-used states of data",
+ "rule-digest": "3b39619d4886",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Cancel; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/RecordStructEmitter.cs#EmitStaticReset; src/WiseOwl.Cobol.Compiler/Binding/Model/BoundUnit.cs#AnchorOf",
+ "test-ref": "conformance:cases/11.10-PROGRAM-ID/pb154_cancel_cascade; conformance:cases/11.10-PROGRAM-ID/pb1133_recursive_container_static_ws; conformance:cases/14.6.2.3.2-Initial-state/pb1133_recursive_container_file_section",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1133 (wave 1012 J). cite.py --check 14.6.2.3.2 'after the execution of a CANCEL statement referencing the program' OK case 3. The refusal that kept a RECURSIVE program with static WORKING-STORAGE or a FILE SECTION AND containees from compiling (COBOL0899 RecursiveContainedWs) is gone: a containee's GLOBAL bridge reaches a static container member through the container's class name (BoundUnit.AnchorOf over DataBinder.IsStaticMember). pb1133_recursive_container_static_ws pins CANCEL of the RECURSIVE container (CTR, GCTR, a table and its index, a REDEFINES class all back to initial) and the cascade into the contained program (ICTR back to 01, 14.9.5 GR4); pb154_cancel_cascade is reshaped to legal source (11.10.3 SR5-6).",
+ "state": "OK"
+}

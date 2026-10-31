@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.43.3-10",
+ "section": "14.9.43.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "STRING statement",
+ "rule-digest": "46d58e2f54c5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString",
+ "test-ref": "conformance:cases/14.9.43-STRING/l1c31_string_operand_roles",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR10 is definitional: literal-1/identifier-1 is the sending operand, identifier-3 the receiving operand. The binder binds each stringSendingPhrase operand through the SENDING resolver (StrUnstrOperand -> FieldOperand / LiteralOperand / FigurativeOperand / function-identifier) and identifier-3 and identifier-4 through ExpressionBinder.ResolveReceiving (the receiving chokepoint - a constant-name or function-identifier INTO is refused there). Consistent with the grammar (stringIntoPhrase : INTO dataReference). No behavior of its own to test. [editions as adjudicated: 2023 text (ISO/IEC 1989:2023 §14.9.43); Annex E lists no STRING change 2014->2023; the earlier-edition edge is not derivable in-repo (no 2002/2014 text)]",
+ "state": "OK"
+}

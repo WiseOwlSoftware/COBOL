@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.25.4-2",
+ "section": "7.3.25.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "TURN directive",
+ "rule-digest": "f309cb083308",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionCatalog.cs#DirectiveCovers; src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs#Fold",
+ "test-ref": "conformance-test:ExceptionConditionConformanceTests.Turn_EcAll_CoversEveryName; unit:TurnStateTests.EcAll_DoesNotEnableIoWarning",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 7.3.25.4 \"if exception-name-1 EC-ALL is specified\" OK. DirectiveCovers: exact name match first, then level3==EC-I-O-WARNING -> false, then EC-ALL -> true; used for ON and OFF alike. Probes: TRNF7 '>>TURN EC-ALL CHECKING ON' -> READ AT END on F1 sets EC-I-O-AT-END; TRNO1 '>>TURN EC-ALL CHECKING ON' + OPEN INPUT OPTIONAL missing file (status 05) -> EXCEPTION-STATUS spaces (WARNING not enabled by EC-ALL, as GR2 requires); TRNO4 WARNING explicit ON then EC-ALL OFF -> WARNING still raised (EC-ALL OFF does not cover it). Both halves verified. || editions (adjudicator): 2002, 2014, 2023 (the TURN directive is a COBOL-2002 introduction; §7.3 compiler directives); the EC-I-O-WARNING carve-out is observable only at 2023 (EC-I-O-WARNING is a 2023 addition, Annex E)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.6-4",
+ "section": "14.6.6",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Execution",
+ "rule-digest": "a6129c5ba871",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/LocaleCollation.cs#Resolve; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/CollationEmit.cs#Locale",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb101_alphabet_locale_pcs; conformance:cases/12.3.6-OBJECT-COMPUTER/pb64t1_locale_declare; conformance:cases/14.6.6-Locale-identification/pb64t1_ec_locale_missing",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB101 T3 (the current-locale form) + PB64 T1 (the named form): a PROGRAM COLLATING SEQUENCE alphabet associated with a locale collates by that locale's LC_COLLATE (the named locale's; for the bare phrase, the locale current at each use, §12.3.7.4 GR7e) through the ONE LocaleCollation carrier.",
+ "state": "OK"
+}

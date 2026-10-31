@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.3.3.2.4-1",
+ "section": "8.3.3.2.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Alphanumeric literals",
+ "rule-digest": "2a97e0ea7309",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#Decode; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#DecodeHex",
+ "test-ref": "conformance:cases/8.3.3.2-Alphanumeric-literals/r03_hexadecimal_national_and_boolean_literals",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"The separators that delimit the alphanumeric literal are not included in the value\" (cite.py --check 8.3.3.2.4 OK). Decode returns Body[1..^1] (delimiters stripped) for Format 1 and DecodeHex strips X\" and the closer for Format 2. Probe p1: FUNCTION LENGTH(\"AB\")=2, LENGTH('it''s')=4, LENGTH(X\"414243\")=3, LENGTH(x'61')=1. r03 golden row 15/18: LENGTH(X\"4142\")=LENGTH(X'4142')=2. || editions as written by the adjudicator: 2014, 2023 (Annex E itemizes the 2014->2023 delta and lists no change to 8.3.3.2, so the rule stands in both; the 1985/2002 edge is NOT derivable in-repo -- no 2002 or 1985 text is held)",
+ "state": "OK"
+}

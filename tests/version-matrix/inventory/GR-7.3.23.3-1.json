@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.23.3-1",
+ "section": "7.3.23.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "REF-MOD-ZERO-LENGTH directive",
+ "rule-digest": "95a19f5f5f77",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RefModZeroLengthState.cs#IsOnAt; src/WiseOwl.Cobol.Frontend/Preprocessor/RefModZeroLengthDirectiveProcessor.cs#RefModZeroLengthDirectiveProcessor; src/WiseOwl.Cobol.Compiler/Binding/Bound/MoveClassifier.cs; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#PlaceForRenames; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveImplCore",
+ "test-ref": "conformance:cases/7.3.23-REF-MOD-ZERO-LENGTH/pb1004_gr14_implicit_push_pop_all; conformance:cases/7.3.23-REF-MOD-ZERO-LENGTH/pb1380_renames_ref_mod_zero_length; conformance:cases/7.3.23-REF-MOD-ZERO-LENGTH/ref_mod_zero_length; unit:RenamesPlaceBuilderDriftTests.TheResolver_ReadsTheRenamesDescriptor_OnlyInThePlaceBuilderDispatch",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1380 (wave 66) - RE-VERDICTED PARTIAL -> CONFORMS. Rule (cite.py --check 7.3.23.3 -> OK 7.3.23.3 1)): 'When this directive is omitted or is specified as off, then when reference-modification results in a zero-length data item, the exception condition EC-BOUND-REF-MOD is raised'; companion 8.4.3.3.4 5)c) 'However, when the REF-MOD-ZERO-LENGTH directive is in effect, a zero-length result is allowed' (--check OK). The directive fold (RefModZeroLengthState.IsOnAt, default OFF, POP-aware) was already right for every ordinary operand; the residue was an OPERAND SHAPE that bypassed the ref-mod tail: ReferenceResolver composed a level-66 RENAMES entry in an arm of its own that returned BEFORE the RefModPlace wrap, so RN(2:3) bound the whole alias and RN(2:N) with N = 0 overwrote the span without raising. The alias place is now built by PlaceForItem (its PlaceForRenames arm), the ONE item->place builder, and meets the same SR1 screen (8.4.3.3.3 SR1 - a THROUGH alias is 'an alphanumeric group item', 13.18.45.4 GR2; a no-THROUGH alias is described by data-name-2, GR1) and the same RefModView as every identifier. The adjudication's '8.4.3.3.2 SR1' was a mis-numbered citation: the admission list is 8.4.3.3.3 SR1 (cite.py --check 8.4.3.3.2 'an alphanumeric group item' -> FAIL; 8.4.3.3.3 -> OK). Golden pb1380_renames_ref_mod_zero_length pins all three states on the alias (omitted: THROUGH sender, THROUGH receiver unchanged, no-THROUGH sender all raise; ON: no raise, receiver unchanged, sender space-fills; explicit OFF: raises again for an ordinary item AND the alias) - closing the 'explicit-OFF half is probe-verified, untested' residue as well.",
+ "state": "OK"
+}

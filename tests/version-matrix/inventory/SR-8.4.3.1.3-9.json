@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.1.3-9",
+ "section": "8.4.3.1.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "Identifier",
+ "rule-digest": "e12e9ae857ba",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#predefinedNull; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundPredefinedNull; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NullAdmittingOperand",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb399_format3_relation_legal_shapes; conformance:cases/8.4.3.1-Identifier/pb1427_null_operand_model; conformance:cases/8.4.3.1-Identifier/pb1630_null_argument_crossing; unit:PredefinedNullContextDriftTests.NullToken_IsSpelledOnlyByThePredefinedNullRule",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1427 LANDED (wave 68 Y). SR9 'Predefined-address NULL is defined in 8.4.3.10' (cite.py OK 8.4.3.1.3 9)). NULL is now identifier Format 8 as 8.4.3.1.2 writes it ('Format 8 (predefined-address)', cite.py OK): its own grammar rule predefinedNull (no longer a figurativeConstant arm) and ONE bound node BoundPredefinedNull produced only by ExpressionBinder.NullAdmittingOperand in an 8.4.3.10.3 SR1 context. The refuter's PARTIAL (NULL accepted opposite an alphanumeric item and run as LOW-VALUE) no longer reproduces: IF X = NULL is COBOL0869 (PB1468 relation half) and every non-SR1 slot is COBOL2576.",
+ "state": "OK"
+}

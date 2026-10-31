@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.12.4-4",
+ "section": "14.9.12.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "DIVIDE statement",
+ "rule-digest": "b3d055587ed1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#GuardedStore",
+ "test-ref": "conformance:cases/8.8.1.2-Native-standard-binary-and-standard-decimal/pb129_store_discipline",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB129): the Format-1 twin - the same per-receiver guard covers DIVIDE INTO's in-place receivers (each quotient renders inside its own try).",
+ "state": "OK"
+}

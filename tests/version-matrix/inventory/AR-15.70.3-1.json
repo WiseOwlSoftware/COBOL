@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.70.3-1",
+ "section": "15.70.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "ORD function",
+ "rule-digest": "9dce60f98ace",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#PredicateViolation",
+ "test-ref": "conformance:cases/15.3-Arguments/pb58_argument_predicates_legal; conformance:cases/15.70.3-Argument-rule/pb658-ord-numeric-edited-argument; unit:IntrinsicArgumentClassDriftTests.CategoryWordedStringArguments_CarryTheCategoryPredicate_AndClassWordedOnesDoNot; conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). ORD's row carries §15.70.3 r1's 'ONE character position in length' as an ExactWidth(1) predicate: a 3-character item (pb58-ord-width) and a 2-character ref-mod view (pb58-ord-refmod) are rejected; a one-character item and a one-character view bind (golden ORD/ORDRM = 67). || kb/Work PB658 sibling sweep (2026-10-03): r1 also says \"of CATEGORY alphabetic, alphanumeric, or national\", so a one-position numeric-edited item (PIC Z) - class alphanumeric, category numeric-edited - is COBOL1627 (CharacterCategory predicate on the ORD row; negative pb658-ord-numeric-edited-argument). retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

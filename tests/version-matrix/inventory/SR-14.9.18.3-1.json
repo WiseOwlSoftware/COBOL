@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.18.3-1",
+ "section": "14.9.18.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "GOBACK statement",
+ "rule-digest": "f6877b4c7666",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindGoback; src/WiseOwl.Cobol.Compiler/Binding/Procedure/EnclosingContext.cs#RefusedInGlobalDeclarative",
+ "test-ref": "conformance:cases/14.9.18-GOBACK/pb409-goback-in-global-declarative; conformance-test:ExitPlacementContextDriftTests.ReturnStatementInADeclarative_FollowsTheGlobalPhrase",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB409.md landed w39. BindGoback asks the screen BEFORE the 14.9.18.4 GR2/GR4 program/method fork, because SR1 carries no such qualifier. SPECIFIED IN, never EXECUTED WITHIN THE RANGE OF: GR-14.9.18.4-6 is the run-time relation over legal source and is a separate, emitter-side implementation.",
+ "state": "OK"
+}

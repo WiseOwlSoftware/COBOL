@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-32",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 32,
+ "subject": "SET statement",
+ "rule-digest": "4bd22674eef4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#setContentStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetContent; src/WiseOwl.Cobol.Compiler/Binding/AlgebraicRange.cs#Of; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSetContent",
+ "test-ref": "conformance:cases/14.9.39-SET/pb452_set_content_numeric; conformance:cases/14.9.39-SET/pb452-set-content-sign-required; conformance:cases/14.9.39-SET/pb452-set-content-numeric-edited",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work/PB452.md LANDED 2026-09-09. SET format 15 now exists end to end (grammar setContentStatement, SetBinder.BindSetContent, BoundSetContent, SetEmitter.EmitSetContent, constructs.json set-numeric-content-2014 with a ParseArm recognition gate). GR32 a): the content is set to the value farthest from zero the receiver's own description permits - computed by AlgebraicRanges.Of, the ONE evaluator also behind FUNCTION HIGHEST-/LOWEST-/SMALLEST-ALGEBRAIC, which Annex D.32 states is the same quantity. GR32 b): the IN-ARITHMETIC-RANGE clamp against ArithmeticModes.IntermediateExtremes, written as a real exact scaled-BigInteger comparison; LATENT by measurement, because the widest declarable carrier is binary64 whose extremes ARE the native intermediate's and the standard modes' SDIDI is wider still - it bites automatically the moment a wider carrier lands. GR32 c): no SIGN phrase means positive; the SIGN phrase's sign is applied to the magnitude and the ordinary store rule then drops it for an unsigned receiver. MEASURED at --std 2014: 01 WS-SIGNED PIC S9(4)V99 SIGN IS LEADING SEPARATE, SET CONTENT OF WS-SIGNED TO FARTHEST-FROM-ZERO -> +999999; SIGN NEGATIVE -> -999999; a PIC S9(4) COMP-5 receiver -> +32767 / -32768 (the two's-complement asymmetry SR31 a) exists for). The golden also asserts D.32's own equivalence in-program: SET ... TO FARTHEST-FROM-ZERO equals MOVE HIGHEST-ALGEBRAIC(x) TO x, and with SIGN NEGATIVE, LOWEST-ALGEBRAIC.",
+ "state": "OK"
+}

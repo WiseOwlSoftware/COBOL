@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.9.3-1",
+ "section": "7.3.9.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "CALL-CONVENTION directive",
+ "rule-digest": "ffb9495415cb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveStateRegistry.cs#Entries; src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#call-convention-directive-2002; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#ExternalizedName",
+ "test-ref": "conformance:cases/7.3.9-CALL-CONVENTION/l1c02_call_convention_default",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: \"The default for the CALL-CONVENTION directive is '>>CALL-CONVENTION COBOL'.\" (cite.py: OK §7.3.9.3 1)). The compiler holds no call-convention state (DirectiveStateRegistry row: 'every name is processed under the §7.3.9.3 GR1 default (COBOL)'), so with no directive every CALL/CANCEL/program-address/INVOKE name is processed under the COBOL mapping. Probe probe/callconv/A.cob (no directive): CALL \"ccsubA\" and CALL \"CCSUBA\" both reach PROGRAM-ID CCSUBA -> 'IN SUB' twice at 2023; same at --std 2002 (B.cob). The explicit '>>CALL-CONVENTION COBOL' (B.cob) is indistinguishable, as GR1 requires. --std 85 rejects the directive with COBOL0900 (facility introduced 2002). No spec-derived test asserts the default mapping (tests/conformance/2002/pb725_directive_facility.cob only proves the directive compiles and says 'no call convention varies here'), so test-ref empty. || editions (adjudicator): 2002, 2014, 2023 (the §7.3 directive facility; absent in COBOL-85)",
+ "state": "OK"
+}

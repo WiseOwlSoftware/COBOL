@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.10.4-18",
+ "section": "14.9.10.4",
+ "kind": "GR",
+ "ordinal": 18,
+ "subject": "DELETE statement",
+ "rule-digest": "6f0417f94fc2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ValidateFixedFileAttributes",
+ "test-ref": "conformance:cases/9.1.13.6-Permanent-error-condition-with-unsuccessful-completion/delete_file_attribute_set_empty; conformance:cases/14.9.10-DELETE/pb134_delete_file_format2",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "NOT-IMPLEMENTED -> CONFORMS (kb/Work PB196; the GR19 half is PB192/bcd330c5). BOTH of this row's prior claims were false against the current tree and are struck. (1) The grammar claim -- 'OVERRIDE is missing from deleteFileStatement and binds as the file-name' -- was stale within hours of being written: CobolIO.g4:514 has read 'DELETE FILE OVERRIDE? fileName' since commit 92ee39a7 (PB134, 2026-08-29), and a probe compiles and runs 'DELETE FILE OVERRIDE F-A'. (2) The REFINEMENT -- 'this row does NOT become CONFORMS under any resolution of GR19, because the grammar half stays NOT-IMPLEMENTED independently' -- rests entirely on that vanished premise and would have held a closable row open; it is withdrawn. WHAT WAS ACTUALLY DEFECTIVE, and is now fixed: the parser consumed OVERRIDE and the binder dropped it, so GR18's second sentence ('If the OVERRIDE phrase is specified, the file attributes are not checked') had no representation below the parse tree. BoundKeyedDeleteFile now carries Override, KeyedIoBinder sets it (GR12's as-if duplication carries the phrase onto every name in the list), and it reaches the runtime, where the ONE place the GR19 validated set is defined -- ValidateFixedFileAttributes -- consults it. BOTH HALVES OF GR18 NOW HOLD: the match-or-'39' branch is satisfied because the validated set is EMPTY by the A.1 item 50 determination, so '39' is unreachable BY DEFINITION rather than by omission; and the OVERRIDE branch is a real bypass rather than a coincidence, so a future non-empty set is a change to one method instead of a silent behaviour change for every program that wrote OVERRIDE to opt out. The OPEN sibling (14.9.27.4 GR10 / A.1 item 129) is NOT swept in -- its set is not empty and it needs the persisted attribute catalog: kb/Work PB193.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.3.3-2",
+ "section": "11.3.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "CLASS-ID paragraph",
+ "rule-digest": "f38b99647727",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build; src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Resolve; src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Lookup",
+ "test-ref": "conformance-test:OoSpineTests.InheritsUnknownBase_0821_KnownBaseCompiles",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1086: Rule: 'Object-class-name-2 shall be the name of a class specified in the REPOSITORY paragraph of this source element.' (cite.py --check 11.3.3 -> OK §11.3.3 2)). Resolved through the §8.4.6.4 funnel (PB365). Probe out/probe/class-id-paragraph/norepo.cob: base NB defined in the group but NOT in NC's REPOSITORY -> COBOL0821 '...is not declared in the REPOSITORY paragraph of this source element... (ISO §11.3.3 SR2; ISO §8.4.6.4)' - the rejecting half conforms. Unknown base -> 0821 and a REPOSITORY-declared in-group base compiles (OoSpineTests.InheritsUnknownBase_0821_KnownBaseCompiles). DEFECTIVE HALF: a name that IS specified in the REPOSITORY paragraph but whose class lives in the external repository (another compilation group; §12.3.8.3 SR6 b) 'there shall be information in the external repository for the class object-class-name-1', checked OK) is refused: extderived.cob -> COBOL0821 'no such a class is defined in this compilation group (ISO §11.3.3 SR2)' although SR2 is satisfied (finding external-repository-class). The 'defined in the group but not in REPOSITORY' arm has no dedicated test.",
+ "state": "GAP"
+}

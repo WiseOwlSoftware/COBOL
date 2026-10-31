@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.45.3-10",
+ "section": "13.18.45.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "RENAMES clause",
+ "rule-digest": "afcc363b65d4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveRedefines; src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#StartBitOf",
+ "test-ref": "conformance:cases/13.18.45-RENAMES/pb1284-renames-bit-area-fractional; conformance:cases/13.18.45-RENAMES/pb1284_renames_bit_whole_bytes",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1284: the THROUGH area is measured in bits on THE ONE bit layout (BitLayout.StartBitOf + RunBits) for a record holding a USAGE BIT leaf — the only way an area can be fractional (§8.5.1.6.3 packs same-level bit items) — and a non-multiple of 8 is refused COBOL2562; whole-byte bit ranges (3+5, 3+5+4+4 bits) compile.",
+ "state": "OK"
+}

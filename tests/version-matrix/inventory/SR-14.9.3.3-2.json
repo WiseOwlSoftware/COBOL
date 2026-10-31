@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.3.3-2",
+ "section": "14.9.3.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "ALLOCATE statement",
+ "rule-digest": "9143dfd5d2ce",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#BindAllocate",
+ "test-ref": "conformance:cases/_unassigned/allocate-chars-no-returning;conformance:cases/14.9.3-ALLOCATE/pointer_alloc",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (--check OK, §14.9.3.3 2): with data-name-1 the RETURNING phrase may be omitted; otherwise it shall be specified. Read `PtrBinder.BindAllocate`: on the CHARACTERS arm, `if (returning is null) { ctx.Edition.Error(\"COBOL0869\", \"ALLOCATE … CHARACTERS requires the RETURNING phrase (ISO §14.9.3 SR2 …)\"); return new BoundNop(); }` — the 'otherwise' half. The permissive half is the absence of any such check on the form-2 arm: `var alloc = new BoundAllocate(based, null, al.INITIALIZED() is not null, returning);` accepts returning == null and the emitter guards it with `if (s.Returning is { } ret2)`, so `ALLOCATE based-item.` binds and emits. Both halves therefore verified, and both have evidence: the negative fixture allocate-chars-no-returning (`ALLOCATE 10 CHARACTERS.`, reject-at 2002 2014 2023, .err 'CHARACTERS requires the RETURNING phrase') for the shall-specify half, and 2002/pointer_alloc's `ALLOCATE B.` (a passing golden with byte-compared output) for the may-omit half. The grammar deliberately makes RETURNING optional in BOTH arms and lets the binder narrow — the correct placement, since the rule is conditional on which operand form was written. || UPHELD: I read PtrBinder.cs:105-125 in order and confirmed the control flow the claim depends on — `returning` is populated ONLY inside `if (al.RETURNING() is not null)`, and that block returns BoundNop when PtrResolvePointer fails, so the `if (returning is null)` test at line 117 fires exactly when the RETURNING phrase was ABSENT and never as a mis-report of an SR3 failure. The permissive half is genuinely uncheck'd on the form-2 arm (line 130 constructs BoundAllocate with the possibly-null returning) and the emitter's `if (s.Returning is { } ret2)` at PtrEmitter.cs:106 consumes it safely. I read both fixtures and both .err files and confirmed the manifest entry for allocate-chars-no-returning; pointer_alloc's `ALLOCATE B.` is an enabled run-and-compare golden, so both halves have spec-derived closing evidence.",
+ "state": "OK"
+}

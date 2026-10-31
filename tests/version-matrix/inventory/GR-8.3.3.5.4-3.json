@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.3.3.5.4-3",
+ "section": "8.3.3.5.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "National literals",
+ "rule-digest": "cec35baca2de",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#Decode; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#IsZeroLength; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NationalLiteralOperand",
+ "test-ref": "conformance-test:NationalBooleanLiteralTests.NationalLiteral_NonLatin1Char_Accepted_DisplayOfCarriesIt",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 8.3.3.5.4 \"If character-1 is not specified, the literal is a zero-length literal\" -> OK (rule 3). Zero length: IsZeroLength tests the body structurally; probe p1 LENGTH(N\"\")=0 (also conformance:2002/pb425_zero_length_literal_move moves N\"\"). a) compile-time value: source is decoded as UTF-8 into UTF-16 (the D-N1 national compile-time set); probe p1 N\"\\u00e9x\" LENGTH=2 and N\"\\u00e9\\u6f22\" displays unchanged. b) runtime conversion (§8.1.2): compile-time and runtime national sets are both UTF-16, so the conversion is the identity - the covering test asserts a U+03A9 national literal round-trips. Both halves verified by probe. [editions as adjudicated: COBOL-2002, COBOL-2014, COBOL-2023 (national literals are a COBOL-2002 introduction; absent from COBOL-85, where the construct is rejected COBOL0900 via Constructs.NationalData2002)]",
+ "state": "OK"
+}

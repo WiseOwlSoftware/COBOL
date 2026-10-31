@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.16.4-2",
+ "section": "13.16.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Data description entry",
+ "rule-digest": "01d6762c6a87",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UsageInheritancePass; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CopyEntryDescription",
+ "test-ref": "conformance:cases/8.5.2.5-Boolean-category/pb522_group_usage_travels_with_the_description; conformance:cases/13.16-Data-description/pb79_group_usage_national; conformance:cases/13.16-Data-description/pb522-group-usage-copy-below-2002; unit:DescriptionCopyCompletenessDriftTests.TheDescriptionCopy_CarriesExactlyTheClassifiedClauses",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB522 LANDED — the NATIONAL half of the same implication (the code does not branch on BIT vs NATIONAL), discriminated by 15.50.4 r2 (a national group item → national character positions) against r3 (anything else → alphanumeric character positions). WHAT WAS PARTIAL, AND IS NOW CLOSED: the same lost clause. `01 TDEF IS TYPEDEF GROUP-USAGE NATIONAL. 02 T1. 03 TN PIC N(4).` + `01 VIA-TYPE TYPE TDEF.` measured LEN-VIATYPE=8 / LEN-T1=8 where 13.18.57.4 GR1 + 15.50.4 r2 require 4 and 4 against a byte-identical inline control giving 4/4; the SAME AS twin measured LEN-DST=8 / LEN-SG-DST=8 against LEN-SRC=4; and an explicit GROUP-USAGE NATIONAL on a group nested INSIDE a TYPEDEF was dropped the same way (LEN-NG-TEMPLATE-COPY=6 for PIC N(3)), which is the 13.18.58.4 GR1 subordinate-reproduction arm. The corroboration that it was the CLAUSE and not the leaf marks that was lost still holds and is now closed with it: CopyEntryDescription always copied DataItem.Pending, so the 13.18.60.3 SR12 leaf screen fired through a TYPE reference while the group's own category was gone. MEASURED at 2002/2014/2023 on this worktree's own build, conformance:cases/8.5.2.5-Boolean-category/pb522_group_usage_travels_with_the_description: `A=4 4 CTL=4 4` (TYPE), `C=4 4 5 5 CTL=4 5` (SAME AS, national and bit), `D=3 CTL=3` (the nested clause), and `CMP=OK` — the copy compares equal to its control as one national operand, the 13.18.29.4 GR2b as-if-elementary treatment an alphanumeric group could not have. EDITIONS unchanged: 2002/2014/2023, COBOL0900 at --std 85.",
+ "state": "OK"
+}

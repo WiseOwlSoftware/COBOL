@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-36",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 36,
+ "subject": "WRITE statement",
+ "rule-digest": "40378f8922bf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write",
+ "test-ref": "conformance:cases/14.9.51-WRITE/l1c37_indexed_dup_prime_key",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 14.9.51.4 'The value of the prime record key shall not be equal to the value of the prime record key of any record existing in the file' -> OK 36)). Code: `_recs.Any(r => KeyEq(KeyOf(r.Image, PrimeKey), prime, PrimeKey))` gives DuplicateKey '22', using collation-aware equality, and the record is not added. Probe dir: out/probe/write-statement-p3/ (pinned adj-d1 cobol.exe). idx1.cob: a DYNAMIC WRITE of K30, which the sequential connector wrote earlier, gives 'D3 INV 22' and runs INVALID KEY. The sequential-access equal-key case gets '21' first (GR42 a), which is the correct precedence: GR38's order test comes before existence. KeyedIoDifferentialTests.Indexed_RandomCrudByPrimeKey is legacy-pinned and does not qualify, so test-ref is empty. [editions as adjudicated: 85, 2002, 2014, 2023 (the rule is in every edition's relative/indexed WRITE text; Annex E records no 2014->2023 change to it)]",
+ "state": "OK"
+}

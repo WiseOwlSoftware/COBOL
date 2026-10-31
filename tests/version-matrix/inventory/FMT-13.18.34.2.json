@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.34.2",
+ "section": "13.18.34.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "LINAGE clause",
+ "rule-digest": "dedf15ecbb63",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#linageClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindLinageClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ClauseDataName",
+ "test-ref": "conformance:cases/13.18.34-LINAGE/pb489_linage_qualified_operands; conformance:cases/13.18.34-LINAGE/pb489-linage-phrases-out-of-order; conformance:cases/8.4.3.14-LINAGE-COUNTER/pb489-linage-operand-is-linage-counter; conformance:cases/13.18.34-LINAGE/pb489-linage-operand-subscripted; conformance-test:LinageConformanceTests.Gr26b_FootingEop_AtBranchReadsPostAdvanceCounter",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB489 LANDED. The printed shape was already matched token for token (the figure was rendered from the canonical PDF, printed folio 417, and the transcription is faithful); what diverged was the OPERAND EXTRACTION, and it no longer does. BindLinageClause captured `d.cobolWord()?.GetText()` - the FIRST word of the written dataReference - so a qualified data-name-1 bound the WRONG item and, for the register alternative, the first word is the FILE-NAME QUALIFIER, so `LINAGE IS LINAGE-COUNTER OF LPF LINES` recorded the file name as the clause's data-name. Both operand slots now go through DataBinder.ClauseDataName, which keeps the whole written reference and REFUSES the three shapes a data-name-n position does not admit (COBOL2024): a special register (8.4.3.1 Format 10/11 identifiers, confined to the procedure division by 8.4.3.14.3 SR1 / 8.4.3.15.3 SR1), a subscript (8.4.2.3's with-subscripts form is an identifier), and a reference-modifier (8.4.3.3.3 NOTE). THE FORMAT'S REMAINING COVERAGE IS ALSO CLOSED, and the adjudication named it open: the positive fixture writes ALL THREE optional phrases - WITH FOOTING AT, LINES AT TOP, LINES AT BOTTOM - on two files at once, one with every optional word OMITTED (`LINAGE 2 FOOTING 2 TOP 3 BOTTOM 2`, 8.3.2.4.3) and one with every optional word written and all four operands qualified, and asserts the two files are byte-identical on the medium and branch-identical at every end-of-page; the new negative pins the PHRASE ORDER. Grammar unchanged - the defect was never in the .g4.",
+ "state": "OK"
+}

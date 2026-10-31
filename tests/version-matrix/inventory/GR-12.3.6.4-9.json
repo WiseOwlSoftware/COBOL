@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.6.4-9",
+ "section": "12.3.6.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "OBJECT-COMPUTER paragraph",
+ "rule-digest": "fc96ecd63684",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#ResolveProgramCollating",
+ "test-ref": "conformance:cases/12.3.5-SOURCE-COMPUTER/pb78_object_computer_optional_name; conformance:cases/12.3.6-OBJECT-COMPUTER/pb3_ord_collating_tail; conformance:cases/12.3.6-OBJECT-COMPUTER/alphabet_national",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB78 (2026-08-18): the PROGRAM COLLATING SEQUENCE clause sets the initial alphanumeric (alphabet-name-1) and national (alphabet-name-2, 2002+) program collating sequences; an unspecified half is the native sequence — with or without computer-name-1 (the golden's REV alphabet makes \"A\" > \"B\").",
+ "state": "OK"
+}

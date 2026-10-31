@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.15.4-1",
+ "section": "13.18.15.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "CONSTANT RECORD clause",
+ "rule-digest": "d4de83b08461",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#RecipeFor; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#FieldInit; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupImageCodec.cs#ImageInitOf",
+ "test-ref": "conformance:cases/13.18.15-CONSTANT-RECORD/pb1233_constant_record_initialize_content; conformance:cases/13.18.15-CONSTANT-RECORD/pb1233_constant_record_options_initialize; unit:ConstantRecordSeedRecipeDriftTests.FieldInit_AsksTheChooserFirst; unit:ConstantRecordSeedRecipeDriftTests.ImageInitOf_AsksTheChooserFirst",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1233 LANDED (wave 1001 D). A CONSTANT RECORD root is seeded by SeedRecipe.Initialize (ValueInitializer.RecipeFor, asked first by both seed roots FieldInit and GroupImageCodec.ImageInitOf), the recipe PB1267 built for INITIALIZE ... WITH FILLER ALL TO VALUE THEN TO DEFAULT: a VALUE-less numeric-edited item holds its edited ZERO (14.9.20.4 GR6 c table), no OPTIONS INITIALIZE background reaches the record (the INITIALIZE overwrites it, GR5 c 3), a group-level VALUE is no sender (GR5 c 1 b needs a data-item VALUE on the ELEMENTARY item) and FILLER is initialized (the FILLER phrase). Witnessed on the record-struct lane, a REDEFINES window, an ADDRESS-OF-taken cell, LOCAL-STORAGE and an EXTERNAL cell.",
+ "state": "OK"
+}

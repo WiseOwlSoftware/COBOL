@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.2.2.3-5",
+ "section": "8.4.2.2.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "Qualification",
+ "rule-digest": "fba689f934e6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ConditionQualifierChainMatches; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#ConditionOf",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/pb567_condition_name_qualification; conformance:cases/8.4.2.2-Qualification/pb567-condition-name-misqualified",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 8.4.2.2.3 \"The qualification of a condition-name may include the conditional variable\" -> OK §8.4.2.2.3 5). ConditionQualifierChainMatches starts the one shared qualifier walk (QualifierChainMatchesFrom) AT the conditional variable (cond.Parent), so the qualifier set is the conditional variable plus every name that variable may be qualified by, including the record's FILE (Format 2's trailing [ file-name-1 ]). BOTH HALVES VERIFIED. Golden pb567 (spec-derived, expected values computed from SR4/SR5): Q1 IS-A OF S OF G1 (conditional variable + its qualifier) -> T; Q2 IS-A OF G1 (variable's qualifier alone, gap) -> T; Q3 IS-A OF S OF G2 -> F; Q5 three-deep; Q6/Q7 through the file. Probe e1 (--std 85 and 2023): `X-ON OF X OF M OF G` -> T; `X-ON OF G AND FC-OK OF FC OF FR OF FA AND FC-OK IN FA` -> T. Negative: probe n1 `FC-OK OF FB` (a file that does not own the variable's record) -> COBOL1639 'none is subordinate to the given qualifier'; golden negative/pb567-condition-name-misqualified (unrelated record) rejects at all four editions. Note: the 'does not uniquely identify' report is written three times (kb/Work PB1048, OPEN, process-only duplication, owns no rows) - behaviour unaffected. [editions as adjudicated: 85, 2002, 2014, 2023 (level-88 condition-names and their qualification exist in every edition)]",
+ "state": "OK"
+}

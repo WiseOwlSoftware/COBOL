@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.2.4-1",
+ "section": "8.4.3.2.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Function-identifier",
+ "rule-digest": "9467205b4218",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfActivate; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#CreateCompilerTemp; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#IsBooleanFunction",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/udf_returning_every_category; conformance-test:UdfInvocationTests.ReturningCategories_AreAllCarried",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1419 (wave 1005 C). GR1 (cite.py --check 8.4.3.2.4 'the description, class, and category of the temporary data item is that specified by the description in the linkage section of the item specified in the RETURNING phrase' -> OK 8.4.3.2.4 1)). UdfReturningResidue and its per-shape COBOL1510 refusals are deleted; FLOAT, BOOLEAN, INDEX, data pointer, object reference, strongly typed / REDEFINES / OCCURS DEPENDING groups are carried and read by their natural consumers (golden udf_returning_every_category); the boolean-expression channel reads a boolean-returning user function. A function-identifier of class pointer / object / index as a SET sender or a CALL USING argument is a separate consumer-routing gap (SET and CALL operand classifiers), not the temporary's description. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfReturningResidue (UdfReturningResidue was deleted by kb/Work PB1419: the residue list it held refused legal RETURNING categories and no longer exists.) retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#IsBooleanUserFunction (kb/Work PB1928 (train 1047) folded the two boolean-function arms into ConditionBinder.IsBooleanFunction, which reads the user function before the catalog (§12.3.8.4 GR12))",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.6.3.3-7",
+ "section": "12.4.6.3.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "APPLY COMMIT clause",
+ "rule-digest": "af0fdebde273",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#ScreenApplyCommitItem",
+ "test-ref": "conformance:cases/12.4.6-I-O-CONTROL/pb3338_apply_commit_sr7_object_reference",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB3338 (wave 1154): Annex A.4.3 is now PARTIAL (docs/CONFORMANCE.md §5, §4 item 2): the APPLY COMMIT clause, COMMIT and ROLLBACK are provided for RELATIVE and INDEXED files, whose keyed store engine keeps the transaction (kb/Work PB3337); a SEQUENTIAL or LINE SEQUENTIAL file named in the clause is under commit control too, its transaction journal being kb/Work PB3340 (COBOL1709, which refused it, is retired). The derived verdict commit-and-rollback-only that stamped the module DOCUMENTED-NON-SUPPORT is retired. §12.4.6.3.3 SR7: An item containing an object reference is refused, COBOL4709. retired-witness: conformance:wiseowl/cases/12.4.6.3-APPLY-COMMIT/declined-apply-commit (the commit and rollback facility is provided for the keyed organizations (kb/Work PB3338): the decline these witnessed is gone, and the rule is now witnessed by its own implementation) retired-witness: src/Cobol.Net.Compiler/Validation/DeclinedFacilityPass.cs#VisitApplyCommitClause (the commit and rollback facility is provided for the keyed organizations (kb/Work PB3338): the decline these witnessed is gone, and the rule is now witnessed by its own implementation)",
+ "state": "OK"
+}

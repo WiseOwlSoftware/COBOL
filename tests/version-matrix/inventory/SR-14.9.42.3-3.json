@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.42.3-3",
+ "section": "14.9.42.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "STOP statement",
+ "rule-digest": "7232679be301",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#ScreenStatusOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#IsIntegerLiteralText",
+ "test-ref": "conformance-test:StopGobackExitCodeTests.NonNumericStatusOperand_IsLegalAndInterpretedNumerically; conformance-test:StopGobackExitCodeTests.TheStatusPositionsOwnRules_AreEnforcedAndCited; conformance:cases/5.5-Integer-operands/pb169-status-non-integer-numeric-literal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB411.md - LANDED, the twin of SR-14.9.18.3-7 at the shared screen. The CONDITIONAL is what makes the non-numeric form conforming - a rule that has to say 'if it is numeric' presupposes that it may not be - so 'STOP RUN WITH ERROR STATUS \"007\"' compiles and exits 7 while 'STATUS 1.5' draws COBOL1704 naming SR3. The screen is keyed on the BOUND SHAPE rather than the parse arm (kb/Work PB216), so a constant-name substituting 1.5 under 13.10.4 GR1 - which arrives on the dataReference arm - is screened by the same rule; that row is in the theory.",
+ "state": "OK"
+}

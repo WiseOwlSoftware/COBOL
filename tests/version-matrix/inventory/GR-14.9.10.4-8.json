@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.10.4-8",
+ "section": "14.9.10.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "DELETE statement",
+ "rule-digest": "e5b3bb81069a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Delete; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitDelete",
+ "test-ref": "conformance:cases/14.9.10-DELETE/pb144_indexed_delete_record; conformance:cases/14.9.10-DELETE/l1_delete_record_area_unchanged",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The row was CONFORMS with NO test-ref — 'The execution of a DELETE RECORD statement does not affect the content of the record area.' It holds BY CONSTRUCTION (the record area is the generated record struct; the runtime connector cannot reach it), which is precisely why nothing had ever contradicted it — a dead lookup is also an unverified one. The fixture now READS the area rather than noting that the code does not write it: IXAREABEF and IXAREAAFT capture the area either side of a DELETE and are both printed in the golden, so any divergence shows as a value change rather than hiding behind a boolean, and IXGR8 reports the comparison.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.8.4-3",
+ "section": "14.9.8.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "COMPUTE statement",
+ "rule-digest": "44a3116c2c7b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/BooleanRenderer.cs#RenderAtItemWidth; src/WiseOwl.Cobol.Runtime/Values/Text/CobolBool.cs#ToItemWidth",
+ "test-ref": "conformance:cases/14.6.13.2-Incompatible-data/pb230_incompatible_boolean_sending; conformance:cases/8.8.4.2-Simple-relation-conditions/boolean_ops; conformance:cases/8.8.2-Boolean-expressions/boolean_shift; conformance:cases/14.9.8-COMPUTE/boolean_shift_mixed; conformance:cases/14.9.8-COMPUTE/pb157_compute_bit_group; conformance:cases/13.16-Data-description/pb79_group_usage_bit; conformance:cases/14.9.8-COMPUTE/pb589_bool_refmod_width; conformance:cases/14.9.8-COMPUTE/pb589_call_content_bool_width; unit:CobolBoolTests.ItemWidth_LiteralNeverWidens; unit:CobolBoolTests.ItemWidth_MaxOverItemsThroughEveryOperator",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR3's 'subject to ... 14.6.13.2' leg was DISCHARGED by kb/Work PB230 (CobolBool.Sending at both boolean sending-read channels, pinned by pb230_incompatible_boolean_sending). The last residue - a reference-modified operand with a RUN-TIME length counted at its inner item's FULL length (the deleted ConditionBinder.RefModLen fallback) - is closed by kb/Work PB589: the largest-ITEM width is carried at run time beside the value (CobolBoolSized; each item leaf CobolBool.Item, each literal CobolBool.Literal, CobolBool.ToItemWidth at the root), so B(1:N), B(K:) and a BOOLEAN-OF-INTEGER whose argument-2 is a run-time value (a function-identifier references a temporary data item, 8.4.3.2.4 GR1) are each counted at the length of the value they actually produced. One renderer serves every site that states this width: COMPUTE Format 2 and the BY CONTENT boolean argument of CALL and INVOKE. Measured before/after on the same program: COMPUTE R8 = B8(1:N) B-OR B\"1111111\" with N=3 gave 11111110, now 11100000; B8(K:) with K=6 the same; BOOLEAN-OF-INTEGER(3, W) B-OR B\"0000001\" with W=2 gave 11000010, now 11000000; CALL ... BY CONTENT B8(1:N) B-OR B\"1111111\" into a PIC 1 ANY LENGTH formal gave [11111110] LEN=8, now [111] LEN=3. The bit-group width model (PB157/PB173) is unchanged. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#Gr3Width (kb/Work PB589 deleted the bind-time Gr3Width: the GR3 width is a run-time quantity and is now carried beside the value by BooleanRenderer.RenderAtItemWidth / CobolBool.ToItemWidth)",
+ "state": "OK"
+}

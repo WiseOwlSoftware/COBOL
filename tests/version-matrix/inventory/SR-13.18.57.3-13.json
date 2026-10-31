@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.57.3-13",
+ "section": "13.18.57.3",
+ "kind": "SR",
+ "ordinal": 13,
+ "subject": "TYPE clause",
+ "rule-digest": "70de0e5c3100",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportGroupCensus",
+ "test-ref": "conformance:cases/13.18.57-TYPE/pb1299-two-report-headings; conformance:cases/13.18.57-TYPE/pb1299-two-page-headings; conformance:cases/13.18.57-TYPE/pb1299-two-page-footings; conformance:cases/13.18.57-TYPE/pb1299-two-report-footings; conformance:cases/13.18.57-TYPE/pb1299_report_group_census_legal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1299 landed 2026-10-04 (wave 1012 G): ScreenReportGroupCensus (COBOL2749) refuses a second REPORT HEADING, PAGE HEADING, REPORT FOOTING or PAGE FOOTING in one report description.",
+ "state": "OK"
+}

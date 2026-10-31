@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.16.3-2",
+ "section": "14.9.16.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "GENERATE statement",
+ "rule-digest": "54a875244ae1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ReportGenerateNeedsControl",
+ "test-ref": "conformance:cases/14.9.16-GENERATE/l1-generate-report-name-no-control",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§14.9.16.3 SR2: GENERATE report-name on an RD without CONTROL is rejected at every edition; .err pins the 'ISO §14.9.16.3 SR2' citation, not the PB1028 code",
+ "state": "OK"
+}

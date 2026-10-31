@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.10.3-1",
+ "section": "7.3.10.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "COBOL-WORDS directive",
+ "rule-digest": "54c48dd1339f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CobolWordsDirectiveProcessor.cs#Process; src/WiseOwl.Cobol.Frontend/Preprocessor/CompilationUnitStart.cs#IsAt; src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveSiteProcessor.cs#JudgeFirstUnitPlacement",
+ "test-ref": "conformance:cases/7.3.10-COBOL-WORDS/pb1373-cobol-words-sr1-equated-header; conformance:cases/7.3.10-COBOL-WORDS/pb1373_cobol_words_separators_header_populations; unit:CobolWordsDirectiveTests.Sr1_UnitHeaderSpelledWithAGroupSynonym_ClosesTheRegion; unit:CobolWordsDirectiveTests.Sr1_ASynonymNotYetEquated_DoesNotCloseTheRegion; unit:CobolWordsDirectiveTests.Sr1_ASynonymThatAPopWithdrew_DoesNotCloseTheRegion; unit:CobolWordsDirectiveTests.Sr1_AfterIdDivision_RejectedAsAPlacementViolation",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1373 landed (w1019 G). SR1 'The COBOL-WORDS directive may be specified only before the first IDENTIFICATION DIVISION within a compilation group' (cite.py OK §7.3.10.3 1)). The boundary is now read through the group's own COBOL-WORDS synonyms (§7.3.10.4 GR2): CobolWordsDirectiveProcessor.Process returns FirstUnitLine (CompilationUnitStart.IsAt(line, map) rewrites the first two words through the EQUATE/SUBSTITUTE entries in effect at the line, POP withdrawals honored) and DirectiveSiteProcessor.JudgeFirstUnitPlacement is the one COBOL2652 judge for the directive and for a PUSH/POP naming it. Measured: EQUATE IDENTIFICATION WITH IDENT / IDENT DIVISION. / >>COBOL-WORDS RESERVE ZQX -> COBOL2652 (was clean).",
+ "state": "OK"
+}

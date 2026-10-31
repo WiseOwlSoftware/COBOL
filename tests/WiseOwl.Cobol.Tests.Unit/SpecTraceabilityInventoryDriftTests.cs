@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <remarks>
 /// <para>
 /// A completion metric that nothing audits is a self-report. Every row of
-/// <c>tests/version-matrix/traceability-inventory.json</c> claims three things — that a rule was located in the
+/// <c>tests/version-matrix/inventory/&lt;rule-id&gt;.json</c> (one file per row, kb/Work PB4148) claims three things — that a rule was located in the
 /// code, that a verdict was reached against the spec text, and that a spec-derived test covers it — and each of
 /// those claims is cheap to write and expensive to earn. These tests make the cheap version fail:
 /// <c>state</c> is RECOMPUTED here rather than believed, a <c>code-location</c> must name a file and a symbol that
@@ -298,11 +298,9 @@ public sealed class SpecTraceabilityInventoryDriftTests
 
     private static List<Row> LoadInventory()
     {
-        string path = TestRepo.VersionMatrix("traceability-inventory.json");
-        Assert.True(File.Exists(path),
-            $"inventory missing: {path} — run python scripts/spec/build_inventory.py");
-        using var doc = JsonDocument.Parse(File.ReadAllText(path));
-        return [.. doc.RootElement.EnumerateArray().Select(e => new Row(
+        Assert.True(Directory.Exists(TraceabilityInventory.DirectoryPath),
+            $"inventory missing: {TraceabilityInventory.DirectoryPath} — run python scripts/spec/build_inventory.py");
+        return [.. TraceabilityInventory.Rows.Select(e => new Row(
             Str(e, "rule-id"), Str(e, "section"), Str(e, "kind"), e.GetProperty("ordinal").GetInt32(),
             Str(e, "subject"), Str(e, "verdict"), Str(e, "code-location"), Str(e, "test-ref"),
             Str(e, "derivation"), Str(e, "editions"), Str(e, "notes"), Str(e, "state")))];
@@ -1030,6 +1028,45 @@ public sealed class SpecTraceabilityInventoryDriftTests
     }
 
     // ── the gate ─────────────────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// ⛔ THE INVENTORY IS ONE FILE PER ROW, NAMED BY ITS RULE ID, AND NOTHING ELSE IS IN ITS DIRECTORY (kb/Work PB4148).
+    /// Two landings that close different rows edit different files, so the merge queue (which runs no merge driver) merges
+    /// them; the single 4,214-row file held every landing that closed a row behind any other open pull request that did.
+    /// Held from the files, not from the Python store: a file that is not <c>&lt;rule-id&gt;.json</c> for the row it
+    /// holds, a stray or temporary file, a subdirectory, and two names differing only in case (one file on NTFS and APFS)
+    /// are each a finding; the old single file is gone.
+    /// </summary>
+    [Fact]
+    public void EveryRow_IsItsOwnFile_AndTheDirectoryHoldsNothingElse()
+    {
+        string directory = TraceabilityInventory.DirectoryPath;
+        Assert.False(File.Exists(TestRepo.VersionMatrix("traceability-inventory.json")),
+            "the single-file inventory is back: rows are one file each under tests/version-matrix/inventory/ (kb/Work PB4148)");
+        var findings = new List<string>();
+        var names = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (string entry in Directory.EnumerateFileSystemEntries(directory).Order(StringComparer.Ordinal))
+        {
+            string name = Path.GetFileName(entry);
+            if (!File.Exists(entry) || !name.EndsWith(".json", StringComparison.Ordinal) || name[0] == '.')
+            {
+                findings.Add($"{name}: the directory holds one `<rule-id>.json` per row and nothing else");
+                continue;
+            }
+
+            using var doc = JsonDocument.Parse(File.ReadAllBytes(entry));
+            string? id = doc.RootElement.ValueKind == JsonValueKind.Object && doc.RootElement.TryGetProperty("rule-id", out var r)
+                ? r.GetString() : null;
+            if (id is null || name != id + ".json")
+                findings.Add($"{name}: holds {(id is null ? "no rule-id" : $"the row {id}")}, so the file is named <rule-id>.json");
+            else if (names.TryGetValue(name, out string? other) && other != name)
+                findings.Add($"{name}: differs from {other} only in case");
+            names[name] = name;
+        }
+
+        Assert.True(findings.Count == 0, Report("inventory file(s) off the one-file-per-row layout", findings, TraceabilityInventory.Rows.Count));
+        Assert.True(TraceabilityInventory.Rows.Count > 0, "no inventory row: this gate would be vacuous");
+    }
 
     /// <summary>The inventory covers the catalog EXACTLY — no orphan row, no unreviewed rule hidden by omission.</summary>
     [Fact]

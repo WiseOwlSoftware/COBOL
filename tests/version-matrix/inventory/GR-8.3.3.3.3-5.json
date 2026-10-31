@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.3.3.3.3-5",
+ "section": "8.3.3.3.3",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Numeric literals",
+ "rule-digest": "2976be871905",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/NumericLiteral.cs#TryParseExact; src/WiseOwl.Cobol.Frontend/Common/NumericLiteral.cs#ExpandFloatingPoint; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#LiteralNum; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#EditedImageOfNumericValue; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/EmitCore.cs#TryUnscaledParts; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/EmitCore.cs#UnscaledLit; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#NumericArgText; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitInstanceInvoke",
+ "test-ref": "conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb99_floating_literal_operand_exact; conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb99_floating_literal_standard_decimal; conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb99_floating_literal_extremes; conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb97_value_literal_form_and_88_edited; conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb156_float_literal_exact_native; conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb263_call_literal_arg_exact_value; conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb263_invoke_literal_arg_exact_value",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB99), COMPLETED 2026-08-31 by owner decision D-B (kb/Work PB156 + PB195), and CORRECTED 2026-09-02 (kb/Work PB263 + PB264). D-B's claim recorded here was that the literal's value - significand x 10^exponent - is carried EXACTLY in EVERY position through ONE rendering, NumericRenderer.LiteralNum. THAT CLAIM WAS NOT TRUE OF TWO POSITIONS WHEN IT WAS WRITTEN, and this row's five goldens were all VALUE-clause or arithmetic-operand positions, so none of them could have contradicted it. The CALL argument lane and the INVOKE argument lane do not reach LiteralNum at all: they render operand text through the raw EmitText.UnscaledLit helper, which returned the literal's own source text as a binary64 Real NumX for the E-form. The generated C# then handed a double to ManagedPointer<long|Int128>.Cell(...) and did not compile - conforming source rejected by a raw Roslyn CS1503 with no COBOL diagnostic at all (measured both carrier arms). UnscaledLit now honours its own scaled-integer contract for BOTH notations via TryUnscaledParts, taking the (significand, power of ten) pair exactly and never expanding it to text; the CALL lane funnels both of its non-place arms through one carrier build, and the two new goldens pin the four-cell table (two notations x BY CONTENT / BY VALUE, all four displaying the same value) plus the INVOKE arm. The evidence set now covers the argument positions the word EVERY always claimed.",
+ "state": "OK"
+}

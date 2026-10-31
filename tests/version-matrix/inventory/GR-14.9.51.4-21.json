@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-21",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 21,
+ "subject": "WRITE statement",
+ "rule-digest": "56df982cffc6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#TrimRecordEnd; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#IsNationalRecord",
+ "test-ref": "conformance:cases/14.9.51-WRITE/pb1191_line_sequential_trailing_space_strip; conformance:cases/14.9.51-WRITE/pb1191_line_sequential_record_category",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1191: the strip is keyed on the three things GR21 names. A FD whose RECORD clause has the DEPENDING phrase is untouched (GR22); the alphanumeric space is the space character only (U+00A0 survives); and a WRITE or REWRITE carries record-name-1's own category (FileModel.IsNationalRecord, rendered as nationalRecord: true), so an FD with a national and an alphanumeric record description writes each with its own space, never the area's flag.",
+ "state": "OK"
+}

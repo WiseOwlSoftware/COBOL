@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.100.4-1",
+ "section": "15.100.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "YEAR-TO-YYYY function",
+ "rule-digest": "f3a36bac0daa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#YearToYyyyAt",
+ "test-ref": "conformance:cases/15.100.3-Arguments-rule/l1_year_to_yyyy_defaults_and_sum_window; conformance:cases/15.23.4-Returned-value-rule/intrinsics_date_window; conformance:cases/15.100.3-Arguments-rule/l1-year-to-yyyy-float-item",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "PARTIAL -> CONFORMS, re-verdicted by the kb/Work PB245 golden round (2026-09-09). THE RULE: §15.100.4 r1 'Maximum-year is calculated as follows: (argument-2 + argument-3)' (cite.py --check 15.100.4 'Maximum-year is calculated as follows' -> OK, rule 1). DERIVED BEFORE THE RUN over the RESOLVED arguments, which is what 'the values of argument-2 and argument-3' means once r3 and r5 have supplied the omitted ones, and on all three arities: the one-argument form's maximum-year is 50 + FUNCTION NUMVAL(FUNCTION CURRENT-DATE(1:4)), evaluated in the golden by writing r5's own expression out and comparing; the three-argument form's is the literal sum, exercised at 1700 and at 9999 - the two extremes r6 admits - and at the SIGNED case §15.100.4 NOTE 1 states, YEAR-TO-YYYY(98 -15 2008) = 1898, which comes out only if the sum is signed with no abs and no clamp. MEASURED: every one as derived. THE ROW'S RESIDUE - maximum-year never being COMPUTED at all on the float carrier for the 1- and 2-argument references, because the r4 guard fired first on a baseYear 0 - is answered twice over: kb/Work PB119 split RealArgs.YearToYyyyReal into two overloads so the omitted form reaches the two-argument core (measured under --permissive on 2026-09-09: 2076 / 1976 / 2976, all derived), and kb/Work PB248 makes a floating-point argument at a §15.3 type-6 position a bind-time rejection, so conforming source never enters that lane (conformance:cases/15.100.3-Arguments-rule/l1-year-to-yyyy-float-item). There is still exactly ONE site computing maximum-year, which the §15.23.4 r1 and §15.25.4 r1 delegations also reach.",
+ "state": "OK"
+}

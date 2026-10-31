@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.22.4-21",
+ "section": "14.9.22.4",
+ "kind": "GR",
+ "ordinal": 21,
+ "subject": "INSPECT statement",
+ "rule-digest": "62cd01196696",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Convert; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#EmitBody",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/pb1907_inspect_converting_overlap",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§14.9.22.4 GR21 (identifier-4/6/7 in the storage of identifier-1: result undefined, Annex A.2 item 21 f)); §4.4 2). Documented and pinned (docs/CONFORMANCE.md D-INS4; kb/Work PB1907): the sets and delimiters are the values at the start of the statement, one store at the end; identical to GnuCOBOL 3.2 on every probe.",
+ "state": "OK"
+}

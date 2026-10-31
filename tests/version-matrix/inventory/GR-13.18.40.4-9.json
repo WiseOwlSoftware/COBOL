@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.40.4-9",
+ "section": "13.18.40.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "PICTURE clause",
+ "rule-digest": "6fe24b474040",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.Analyze",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/national_data; conformance-test:DataSkeletonEditionTests.NationalData_CompilesAt2002Plus_RejectedAt85; conformance-test:NationalBooleanDataTests.FdRecord_WithNationalLeaf_RoundTripsAsUtf16BePairs",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB492, 2026-09-12: THE REFUTATION THAT HELD THIS ROW AT PARTIAL NO LONGER REPRODUCES, and that was measured before it was written. The refutation was that GR9's definition is unavailable in the FILE SECTION -- `FD F1. 01 F1-REC. 05 F1-NAT PIC N(3).` drew COBOL0899 'national data in a file record ... the record codec is single-byte'. Re-probed on this worktree's own cobol.exe at --std 2023: that program COMPILES AND RUNS (probe a6 -- OPEN OUTPUT, MOVE into the national leaf, WRITE, CLOSE), because kb/Work PB327 landed the FD/SD record byte-window channel (data-model design D-N2, WIDENED 2026-09-05) and NationalBooleanDataTests.FdRecord_WithNationalLeaf_RoundTripsAsUtf16BePairs now pins the UTF-16BE pair serialization. The other byte-window surface the refutation's control named was re-probed too: `01 G1. 05 G1-NAT PIC N(3).` with `01 G1R REDEFINES G1 PIC X(6).` compiles and G1R reads the six UTF-16BE bytes. The classifier half was already verified and is unchanged (`expanded.All(c => c is 'N')` is exactly 'only one or more occurrences of the symbol N'; PicCategory.National + Usage.National + Length in national character positions; an explicit non-NATIONAL usage draws COBOL0881 per 13.18.60.3 SR20; SR13a's implication is honoured). What DID change here with PB492 is the sibling arm's diagnostic: an 'N' mixed with a symbol no category-defining rule admits is now COBOL1935 from the ONE Table-10 walk (PictureComposition) rather than a hand-written copy of Table 10's N row -- `PIC NN9NN` reports \"the symbol '9' at symbol position 3 may not follow the symbol 'N' at symbol position 1\" -- and that hand-written copy was ALSO the arm that refused GR10's legal character-1 leg.",
+ "state": "OK"
+}

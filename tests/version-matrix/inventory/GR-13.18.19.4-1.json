@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.19.4-1",
+ "section": "13.18.19.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "DYNAMIC LENGTH clause",
+ "rule-digest": "0b023ae70220",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/StorageFormPass.cs#Classify; src/WiseOwl.Cobol.Runtime/Values/Text/CobolDynString.cs#Store; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs",
+ "test-ref": "conformance:cases/8.5.1.11.3-Availability-and-persistence-of-variable-length/dynamic_length_item",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "cite.py --check 13.18.19.4 \"The minimum length of the data item is zero. The picture symbol determines the class.\" OK (GR1). Three sentences, all verified: (a) length varies - dynamic_length_item golden and probe; (b) minimum zero - initial FUNCTION LENGTH of `PIC X DYNAMIC LENGTH` with no VALUE is 0000 and displays [], MOVE \"\" gives length 0 (CobolDynString.Store never pads); (c) class from the picture symbol - StorageFormPass (1b) builds DynamicString(item.Pic.Category): a PIC N item is national (MOVE WN TO PIC X(4) refused COBOL0819 per the MOVE table; LIMIT 4 kept 4 national characters), PIC X alphanumeric. FUNCTION LENGTH of a PIC N dynamic item returns bytes (N\"AB\" -> 4), which is CORRECT per cite.py --check 15.50.4 \"If argument-1 is a dynamic-length elementary item, the current length of argument-1 in bytes is returned.\" OK - not a defect. Unit cover also in CobolDynStringTests (min-zero). || Editions (adjudicator): 2014, 2023 (COBOL-2014 introduction per VERSION_CHANGE_REFERENCE; the 2023 Annex E lists only the 2023 SET enhancement for dynamic-length items, E.3 item 17)",
+ "state": "OK"
+}

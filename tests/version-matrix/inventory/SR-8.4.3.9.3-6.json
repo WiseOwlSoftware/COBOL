@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.9.3-6",
+ "section": "8.4.3.9.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "Object property",
+ "rule-digest": "d92532a82da5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundStores.cs#StoreKindOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoWrapPropertyOps; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.ObjectProperty.cs#ResolveObjectProperty",
+ "test-ref": "conformance:cases/8.4.3.9-Object-property/pb1275_property_set_formats; conformance:cases/8.4.3.9-Object-property/pb1275-set-property-no-set",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1275 LANDED (w1014u). cite.py --check 8.4.3.9.3 'may be specified wherever a data item with that description would be valid as a receiving item' OK 6). With the store taxonomy total, a property receives in every statement that stores its description: SET R OF A TO A and SET INNER OF A TO D (Format 5, golden lines 1/4), SET Q OF A TO ADDRESS OF W (Format 7, line 3), SET Q OF A UP BY 2 (Format 10, read-modify-write, line 5), ALLOCATE ... RETURNING Q OF A (line 6), FREE Q OF A (line 7), STRING ... INTO S OF A (receiving only, line 8). A receiving use without a SET accessor is refused under SR4 by name (negative pb1275-set-property-no-set). The group-valued half and the temp's description (SR7) were kb/Work PB1448 / PB1450 (landed). retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#OoTryBindPropertyReference (the one-word property binder ReferenceResolver.OoTryBindPropertyReference is deleted by kb/Work PB1425 (w1021a): a property reference is resolved by ReferenceResolver.ResolveObjectProperty, which splits the chain and resolves identifier-3 through the ordinary resolver)",
+ "state": "OK"
+}

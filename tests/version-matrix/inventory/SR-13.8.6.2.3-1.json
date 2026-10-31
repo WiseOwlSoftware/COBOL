@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.8.6.2.3-1",
+ "section": "13.8.6.2.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Physical subdivisions of a report",
+ "rule-digest": "ee9bcb0a7dc4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#SumCounterFor; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#SumFamilyOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindSumClause; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#ReportSumCounterPlace; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SumOccurrence; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportEntryReferenceRefused",
+ "test-ref": "conformance:cases/13.8.6.2.3-Report-Items/pb882_report_sum_counter_identity; conformance:cases/13.8.6.2.3-Report-Items/pb1271_report_sum_counter_occurrences; conformance:cases/13.8.6.2.3-Report-Items/pb1271-sum-counter-occurrence-not-subscripted; conformance:cases/13.8.6.2.3-Report-Items/pb1046_report_sum_counter_in_contained_program; unit:ReportItemReferenceTests.ASumCounter_IsStillReferenceableInTheProcedureDivision",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Landed by kb/Work PB1271 (w1007a). 13.8.6.2.3 1) 'Sum counters may be inspected or altered in the procedure division.' (cite.py --check OK 13.8.6.2.3 1)) with 13.18.54.4 GR12 (OK 12)). A repeating SUM entry's counter is now a table (ReportSumFamily: one counter per occurrence, 13.18.54.4 GR8 a) OK 8) a); 13.18.14.4 GR12 / 13.18.35.4 GR9 make multiple COLUMN / LINE simple OCCURS levels, OK 12) / OK 9)), so CF-U(2), CF-U(WS-I), CF-V(2 WS-J), CF-U IN R1 (3) read and alter the selected occurrence (golden prints 0009 0509 0010), and the unsubscripted CF-U of a repeating entry is the 8.4.2.3.3 SR5 refusal COBOL2270 (OK 5)). Before: COBOL1639 'not defined' on every subscript; one counter shared by all columns.",
+ "state": "OK"
+}

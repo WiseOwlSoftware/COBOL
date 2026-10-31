@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.13.1.3-4",
+ "section": "14.6.13.1.3",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Exception conditions",
+ "rule-digest": "01b974dae974",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitArgOrPlain; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitEcPerformMember; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitExceptionPerform; src/WiseOwl.Cobol.Runtime/Exceptions/CobolFatalException.cs#Dispatched",
+ "test-ref": "conformance:cases/8.8.1.5.2-Standard-decimal-intermediate-data-item/pb75_sdidi_overflow_outside_arithmetic; conformance:cases/14.6.13.1.3-Fatal-exception-conditions/f3_perform_handler_turn_off_all; conformance:cases/7.3.25-TURN/exception_statement_ambient",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB75 (2026-08-18) + the F3 PERFORM wave: a fatal condition raised within imperative-statement-1 of an exception-checking PERFORM whose WHEN names it (or a higher level) runs that WHEN's imperative statement (the ambient F3 frame wins over the USE tiers, §14.9.28.4 GR17); after the handler the run unit terminates abnormally unless it RESUMEs (RESUME AT NEXT STATEMENT continues after the lowest-level raising statement, §14.9.33.4 GR2a3). ONE dispatch per raise: the PERFORM statement's own guard lets a condition its inner statement already dispatched pass (CobolFatalException.Dispatched) — before, it re-dispatched it to the USE declarative and continued.",
+ "state": "OK"
+}

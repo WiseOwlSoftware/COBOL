@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.63.4-7",
+ "section": "13.18.63.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "VALUE clause",
+ "rule-digest": "0742949108a4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#InitializerFrom",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb876_national_value_no_editing_bwz_inert; conformance:cases/13.18.63-VALUE/pb876_national_value_bwz_zero_contrast",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB562 — THE TWO EXCEPTIONS ARE THE RULE'S OWN CONTENT, AND BOTH ARE RIGHT IN FORMAT 1. (i) \"initialization is not affected by a JUSTIFIED clause\" -- probe gr7just: `05 J PIC X(5) JUSTIFIED RIGHT VALUE \"AB\"` and `05 K PIC X(5) VALUE \"AB\"` BOTH give [AB   ], so the JUSTIFIED item is byte-identical to its unjustified twin; the national form `05 NJ PIC N(4) JUSTIFIED RIGHT VALUE N\"AB\"` gives NJ=[AB  ] (probe gr7noedit). (ii) \"no editing takes place\" -- probe gr7noedit: `05 AE PIC XXBXX VALUE \"ABCDE\"` gives AE=[ABCDE], while the CONTROL `MOVE SRC TO A2` into the identical PIC XXBXX gives A2=[AB CD] -- the two paths are measurably different, which is the point (a probe that only showed [ABCDE] could pass because the emitter ignores edit masks everywhere). (iii) the 14.6.8 DELEGATION -- MEASURED for the categories the compiler builds: fixed-point numeric right-aligns with zero fill (`05 N PIC 9(5) VALUE 12` -> N=[00012]); a scaled numeric aligns on the decimal point (`05 M PIC 9(3)V99 VALUE 1.5` -> [   1.50] through PIC ---9.99); SIGN LEADING SEPARATE holds the sign (`05 SS PIC S9(3) SIGN LEADING SEPARATE VALUE -12` -> [ -12] through PIC ---9); category boolean zero-fills to the RIGHT per 14.6.8.6 (`05 BL PIC 1(4) USAGE BIT VALUE B\"10\"` -> BL=[1000], and `IF BL = B\"1000\"` is true) -- probes gr7just, gr7more2. NATIONAL LEG, MEASURED (kb/Work PB876, wave 1020 A): the vehicle exists - a national-edited PICTURE was un-staged by PB492 (COBOL0899 no longer fires) - and `01 NE PIC NNBNN USAGE NATIONAL VALUE N\"ABCDE\"` displays ABCDE (no editing: 13.18.63.4 GR7) where the MOVE control `MOVE N\"ABCDE\" TO NE2` into the identical picture displays AB CD (golden 2002/pb876_national_value_no_editing_bwz_inert). The JUSTIFIED half has no national-EDITED population by construction: 13.18.32.3 SR3 admits JUSTIFIED only for alphabetic, alphanumeric, boolean and national items, so a national-edited item with JUSTIFIED is COBOL2405 - the national JUSTIFIED leg is the plain national item, byte-measured earlier (NJ PIC N(4) JUSTIFIED RIGHT). Verdict PARTIAL -> CONFORMS.",
+ "state": "OK"
+}

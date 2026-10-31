@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-12.4.6.4.2",
+ "section": "12.4.6.4.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "SAME clause",
+ "rule-digest": "ef1242cdad87",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sameClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#ScreenSameOperands",
+ "test-ref": "conformance:cases/12.4.6.4-SAME/pb1087-same-one-file; conformance:cases/12.4.6.4-SAME/pb1087_same_clauses_legal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1087 (wave 1011 B2). cite.py --check 12.4.6.4.2 'file-name-1 { file-name-2 }' OK; 12.4.4.4 GR1/GR2 'two or more files' OK (12.4.6.4.4 1) and 2)). The grammar still superset-parses `fileName (COMMA? fileName)*` (bind-narrow); ScreenSameOperands refuses a clause naming fewer than two distinct files with COBOL2738 in all three formats and every edition. Positive: the legal spellings (golden).",
+ "state": "OK"
+}

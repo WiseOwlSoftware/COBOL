@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.52.4-3",
+ "section": "15.52.4",
+ "kind": "RV",
+ "ordinal": 3,
+ "subject": "LOCALE-DATE function",
+ "rule-digest": "a6cbe9559a1b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#Date",
+ "test-ref": "conformance:cases/14.6.6-Locale-identification/pb64t4_locale_functions",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T4: the result is a dynamic-length string whose length the locale's pattern decides (the LEN line; a MOVE / reference modification bounds it at run time) — the RuntimeDetermined shape the design named, realized by the dynamic result every §15 string function already returns.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.31.2",
+ "section": "15.31.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "EXCEPTION-LOCATION-N function",
+ "rule-digest": "92e16d644576",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic",
+ "test-ref": "conformance:cases/15.30.3-Returned-value-rules/pb63_exception_location_procedure_field; conformance:cases/15.31.3-Returned-value-rules/exception_file_n; conformance:cases/15.31-EXCEPTION-LOCATION-N/exception_file_n_below_2002",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB63 — the exception surface: the FD screen, the SELECT-spelled name on the connector, the one access-recording path, the r2b procedure field and element name, the MODULE-NAME determinations). `FUNCTION EXCEPTION-LOCATION-N` — pinned: the national value (golden N=, through DISPLAY-OF) and the reference-modified `FUNCTION EXCEPTION-LOCATION-N (1:7)` (RM= — a zero-argument NATIONAL function, §8.4.3.3.3 SR2 admits the ref-mod; SR6 does not apply since the definition permits no argument).",
+ "state": "OK"
+}

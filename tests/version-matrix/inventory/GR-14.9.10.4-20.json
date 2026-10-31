@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.10.4-20",
+ "section": "14.9.10.4",
+ "kind": "GR",
+ "ordinal": 20,
+ "subject": "DELETE statement",
+ "rule-digest": "2f5a370ccaef",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitDeleteFile; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc",
+ "test-ref": "conformance:cases/14.9.10-DELETE/pb141_delete_file_ec; conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_delete_file_gate",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED (kb/Work PB141): EmitDeleteFile now ALWAYS runs the USE hook, passing onExceptionHandled - the third suppression flag beside atEnd/invKey inside __IoCheckEc - so GR20 b)'s enabled level-3 EC-I-O sets to exist (SetIo runs first) while the phrase suppresses only the declarative dispatch and the fatal default (GR20 c) makes the phrase the handler). The missing QueryFor arm was the deeper half: DELETE FILE was the ONE I-O statement absent from EcBinder's per-verb (EC, file) enumeration, so no mask ever reached __IoCheckEc for it. pb141_delete_file_ec pins EXCEPTION-STATUS = EC-I-O-LOGIC-ERROR inside imperative-statement-3 on a '41'. The GR20/GR21 successful/successful contradiction in the printed standard (both open 'is successful'; GR20c transfers to ON EXCEPTION where GR21b ignores it) is adjudicated as a STANDARD DEFECT in docs/CONFORMANCE.md - GR20 read as the unsuccessful-execution rule (its d) invokes 9.1.12), verified against the PDF text layer page 638.",
+ "state": "OK"
+}

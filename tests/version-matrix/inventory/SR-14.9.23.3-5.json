@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.23.3-5",
+ "section": "14.9.23.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "INVOKE statement",
+ "rule-digest": "a9a4fc40056c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg",
+ "test-ref": "conformance:cases/14.9.23-INVOKE/oo-interface-arg-mismatch; conformance:cases/14.9.23-INVOKE/pb1116_strong_group_object_leaf; conformance:cases/8.4.3.4-Inline-method-invocation/pb1051_method_by_value; conformance:cases/14.9.23-INVOKE/pb1051-by-reference-argument-by-value-formal; conformance:cases/14.9.23-INVOKE/pb1051-by-value-argument-by-reference-formal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1051 landed (wave 1011 C): a METHOD formal declared BY VALUE is carried (OoFormal.ByValue). cite.py --check 14.9.23.3 'If a BY VALUE phrase is specified for an argument, a BY VALUE phrase shall be specified or implied for the corresponding formal parameter' -> OK 14.9.23.3 5) b); a) 'If a BY CONTENT or BY REFERENCE phrase is specified for an argument, a BY REFERENCE phrase shall be specified or implied for the corresponding formal parameter'; c) the 14.8.2/14.8.3 conformance rules. a) and b) are now both refused from both sides (negatives pb1051-by-reference-argument-by-value-formal and pb1051-by-value-argument-by-reference-formal) and the legal BY VALUE argument into a BY VALUE formal runs (golden pb1051_method_by_value).",
+ "state": "OK"
+}

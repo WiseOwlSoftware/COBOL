@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.2-7",
+ "section": "8.8.2",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "Expressions",
+ "rule-digest": "9eaf2902f629",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#PreviousTokenCouldBeDataName",
+ "test-ref": "unit:BooleanExpressionResolverTests.Groups_Per_Rule7; conformance:cases/8.8.2-Boolean-expressions/pb1465_boolean_paren_after_operator",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule 7 (evaluation order, parentheses first). kb/Work PB1162 re-verdicted (wave 73 group A): the PARTIAL was the parenthesized non-leading operand being unwritable (the lexer's subscript capture), not the evaluation order; PB1465's golden evaluates nested groups after every operator (K3 BW B-XOR (BW B-AND BZ) = 1, K4 B-NOT (BZ B-OR (BZ B-AND BW)) = 1).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.12.3-2",
+ "section": "14.9.12.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "DIVIDE statement",
+ "rule-digest": "737d171dfc7e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ScreenResultant",
+ "test-ref": "conformance:cases/14.9.2-ADD/pb128_resultant_categories",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB128): DIVIDE's GIVING and REMAINDER positions admit numeric-edited per SR2 - the golden pins the ADMIT side (an edited REMAINDER receives the edited image), and the in-place INTO receivers screen numeric-only per SR1. identifier-4 was also REROUTED through ResolveReceiving (it bypassed every chokepoint screen via a direct resolve).",
+ "state": "OK"
+}

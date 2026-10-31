@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-110",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 110,
+ "subject": "I-O status 9x (value of x)",
+ "rule-digest": "56e40a3b7778",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-110; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#LinageValueViolation; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#LinageViolationStatus; src/WiseOwl.Cobol.Runtime/IO/CodeSetConversion.cs#HasCharacterWithoutImage",
+ "test-ref": "conformance:cases/9.1.13.11-Implementor-defined-condition-with-unsuccessful-completion/pb526_linage_ec_condition; conformance:cases/13.18.34-LINAGE/pb526_linage_ec_condition_85; conformance-test:LinageConformanceTests.Gr6b1_PageSizeZeroAtOpenOutput_IsTheLinageStatus_AndExecutionContinues; conformance:cases/A.1-Implementor-defined-language-element-list/pb1542_code_set_unrepresentable_85; unit:CodeSetConversionTests.IndexedWrite_RefusesAnUnrepresentableRecord_AtTheStatement_AndTheCloseSucceeds",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB526 LANDED - the A.1 item 110 determination is STATED and IMPLEMENTED. §9.1.13.11 item 1 leaves the value of x in an implementor-defined 'I-O status = 9x' to the implementor and A.1 item 110 makes it documented-if-provided; WiseOwl COBOL now provides exactly ONE such value, '90', for the §13.18.34.4 GR6 b) LINAGE value-rule violation, and docs/CONFORMANCE.md §7 carries the determination with its full derivation: why the condition needs a status at all (§14.6.13.1.3 3) routes a fatal EC-I-O condition through §9.1.13's rules, which are rules about the status, and without one the whole §9.1.12 / §14.9.49.4 GR6 path is closed to a program that writes no >>TURN - which at --std 85 is every program), why 9x rather than a value in another class (§9.1.13.2-§9.1.13.10 enumerate every other class and none of them is this condition; '9' is a FATAL first digit under this implementation's own determination, which is what Table 13's Fatal for EC-I-O-LINAGE requires), why the surveyed GnuCOBOL value '57' is NOT followed (a nonfatal class whose first digit raises EC-I-O-RECORD-OPERATION - the wrong condition in the wrong fatality), and why the status does not carry the condition alone. audit_annex_a1.py --check reports the row ok and no findings.",
+ "state": "OK"
+}

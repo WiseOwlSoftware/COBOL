@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.10.3-2",
+ "section": "12.4.5.10.3",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "ORGANIZATION clause",
+ "rule-digest": "f16bf19d6812",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#MapOrganization; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOrganizationClause; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/pb329_line_sequential_charset_2023; conformance:cases/12.4.5.10-ORGANIZATION/pb327_national_line_sequential_fill; conformance:cases/12.4.5.10-ORGANIZATION/pb688-line-sequential-below-2023; conformance:cases/12.4.5.10-ORGANIZATION/pb688-line-sequential-fd-site-below-2023",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB688 (LANDED 2026-09-05). RULE: \"The LINE SEQUENTIAL phrase specifies that the file organization is line sequential. Line sequential organization is a permanent logical file structure in which a record is identified by a predecessor-successor relationship established when the record is placed into the file. Each record in a line sequential file is terminated by an implementor-defined line delimiter. The range of allowable characters in a line sequential file is implementor-defined.\" cite.py --check 12.4.5.10.3 'The LINE SEQUENTIAL phrase specifies that the file organization is line sequential' -> OK 12.4.5.10.3 2). THE EDITION: the phrase is a COBOL-2023 introduction - the Foreword's list of the main changes this third edition makes over ISO/IEC 1989:2014 names \"Line Sequential file organization\" (specs/ISO_COBOL.md, the Foreword; Annex E carries no item for it, and it is NOT derivable from VERSION_CHANGE_REFERENCE.md, which has no 85->2002 row set). It is a PHRASE of the sequential organization and not a fourth organization: cite.py --check 9.1.7.1 'There are three file organizations: sequential, relative, and indexed' -> OK, and 9.1.7.2 splits the sequential one into its record- and line-delimited types - the { LINE | RECORD } inner choice of the 12.4.5.10.2 general format. MEASURED on the built cobol.exe: before, a SELECT with ORGANIZATION IS LINE SEQUENTIAL compiled CLEAN at --std 85 (exit 0, .dll emitted); after, COBOL0900 at 85, 2002 and 2014 and clean at 2023. DataBinder.MapOrganization is the one recognition site (both grammar parents - the file control entry and the FD clause list - flow through the ONE VersionConformancePass.ParseArm.VisitOrganizationClause arm, pinned by the two negatives). The delimiter and the allowable-character-range determinations this rule leaves to the implementor are answered at docs/CONFORMANCE.md DOC-A.1-115 and by LineSequentialCharacterSet.",
+ "state": "OK"
+}

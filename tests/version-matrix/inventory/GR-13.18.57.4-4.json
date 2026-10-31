@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.57.4-4",
+ "section": "13.18.57.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "TYPE clause",
+ "rule-digest": "5e752c606109",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#IsBased; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CopyEntryDescription",
+ "test-ref": "conformance:cases/13.18.57-TYPE/l1c34_type_subject_based",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (cite.py --check 13.18.57.4 'that BASED clause applies and any BASED clause specified in the description of type-name-1 is ignored for this entry' -> OK §13.18.57.4 4)). The subject's own BASED is set at BindEntry; the one description copy ORs the template's in (`to.IsBased |= from.IsBased`, DescriptionCopyKind.EntryOnly - kb/Work PB1300), and since both clauses mean 'based' the result is the subject's clause applying with the template's ignored; l1c34_type_subject_based pins 'applies' (V TYPE T BASED over a non-based T is based). The complementary case (no own BASED over a BASED template) is GR1's and is pinned on GR-13.18.57.4-1.",
+ "state": "OK"
+}

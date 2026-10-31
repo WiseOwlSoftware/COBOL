@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.13.3-3",
+ "section": "7.3.13.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "EVALUATE directive",
+ "rule-digest": "15870facace9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/pb1364-when-operand-split-after-match",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1364. cite.py --check 7.3.13.3 '>>WHEN operand-2 [THROUGH operand-3] shall begin on a new line and shall be specified entirely on that line.' OK 3). A split operand is malformed on EVERY WHEN. A `THROUGH 5` line after a bare >>WHEN is text-1, which may be any source line (SR8) - not a violation (the refuter's probe R3 is legal source).",
+ "state": "OK"
+}

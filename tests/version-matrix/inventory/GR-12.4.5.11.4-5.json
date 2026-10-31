@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.11.4-5",
+ "section": "12.4.5.11.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "RECORD DELIMITER clause",
+ "rule-digest": "ce4f2e79b2a7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#EncodeFrameHead; src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#ReadFrame; src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#EncodeFrame",
+ "test-ref": "conformance:cases/12.4.5.11-RECORD-DELIMITER/pb292_record_delimiter_witness; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterAbsent_DrawsNoWarning_AndOnlyTheThreeClausesDo",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"If the RECORD DELIMITER clause is not specified, the method used for determining the length of a variable-length record is specified by the implementor\" — specified, and now documented, as Annex A.1 item 151 in docs/CONFORMANCE.md §7: a 4-byte little-endian binary length prefix per record for record sequential, relative and indexed files (one implementation, RecordFraming, shared by every organization), and the line delimiter for LINE SEQUENTIAL, which is §9.1.7.2's own rule. The licence to add a header at all is §9.1.7.2 (\"In record sequential files the length of each record is determined by any information the implementor may add to the record on the physical storage medium (such as record length headers)\"); the §9.1.13.6 \"externally-defined boundaries\" sentence that RecordFraming's header used to cite is the I-O status 34 rule about writing past a FILE's end and was corrected in this change set. GR5's ANTECEDENT is witnessed directly: golden file F4 writes no RECORD DELIMITER clause, draws no diagnostic (asserted as the complement) and reads its 3- and 8-byte records back at those lengths. retired-witness: src/Cobol.Net.Runtime/IO/RecordFraming.cs#WriteStore (kb/Work PB2660 split the store write into ComposeStore (the framing) and KeyedConnector.Persist (the positional I/O); WriteStore no longer exists) retired-witness: src/Cobol.Net.Runtime/IO/RecordFraming.cs#PrefixLength (kb/Work PB2754 made RecordFraming.EncodeFrameHead the one encoder and RecordFraming.ReadFrame the one decoder of the implementor's length-prefix method for every organization; the Latin-1 char decoders, PrefixLength among them, were deleted, and WritePrefix had already been replaced by WriteFrameHead) retired-witness: src/Cobol.Net.Runtime/IO/RecordFraming.cs#WritePrefix (kb/Work PB2754 made RecordFraming.EncodeFrameHead the one encoder and RecordFraming.ReadFrame the one decoder of the implementor's length-prefix method for every organization; the Latin-1 char decoders, PrefixLength among them, were deleted, and WritePrefix had already been replaced by WriteFrameHead) retired-witness: src/Cobol.Net.Runtime/IO/RecordFraming.cs#ComposeStore (the whole-store model's remains are deleted (kb/Work PB3335; DESIGN-runtime-library 2.2.1.13): a record is one framed leaf value (RecordFraming.EncodeFrame), and the whole store's composition went with the whole store)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.7.3-25",
+ "section": "12.3.7.3",
+ "kind": "SR",
+ "ordinal": 25,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "fb19834b1617",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#FinalizeCurrencySigns; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#Analyze",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb60_currency_sign_bare_implied_dollar; conformance:cases/12.3.7-SPECIAL-NAMES/pb60_currency_sign_set",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-17 (with PB60 / AR-15.68.3-3). 'If a source unit does not contain a CURRENCY SIGN clause that specifies '$' as the currency symbol (either as literal-7 or literal-8), the clause CURRENCY SIGN '$' PICTURE SYMBOL '$' is implied for that source unit.' FinalizeCurrencySigns adds '$' → '$' after the SPECIAL-NAMES walk unless a clause named '$' as literal-7 or literal-8, and PictureAnalyzer's SR2 whitelist admits '$' iff it is a set member — so PIC $$,$$9.99 is legal beside CURRENCY SIGN '#' (the FDL legs; it was COBOL0808 under the single-symbol model — a legal-source rejection).",
+ "state": "OK"
+}

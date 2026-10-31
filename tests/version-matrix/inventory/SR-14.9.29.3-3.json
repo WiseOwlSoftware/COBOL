@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.29.3-3",
+ "section": "14.9.29.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "RAISE statement",
+ "rule-digest": "f54f33436164",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#BindRaise",
+ "test-ref": "conformance:cases/14.9.29-RAISE/l1c23_raise_identifier_sending",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "\"Identifier-1 is a sending operand.\" (cite.py --check 14.9.29.3 -> OK §14.9.29.3 3)). BindRaise resolves identifier-1 through ResolveSending (the sending-operand chokepoint), and EmitRaiseObject only READS it (PlaceRenderer.Read) into ExceptionState.SetObject. EXCEPTION-OBJECT itself (a predefined reference that may not be a receiving operand, §8.4.3.6.3 SR1) is accepted as identifier-1 (probe/raise/sr2b.cob prints the handler line for `RAISE EXCEPTION-OBJECT`), consistent with sending-only use. No test asserts sending-ness specifically -> test-needed.",
+ "state": "OK"
+}

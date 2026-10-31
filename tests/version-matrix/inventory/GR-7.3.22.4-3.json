@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.22.4-3",
+ "section": "7.3.22.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "PUSH directive",
+ "rule-digest": "79951ab2e6c3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveStateStack.cs#Apply",
+ "test-ref": "unit:DirectiveStateStackTests.APush_LeavesTheSavedStateInForce; conformance:cases/7.3-Compiler-directives/pb941_push_pop_directive_state",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB941 (landed): a PUSH only snapshots (IDirectiveStateCarrier.Save), so the pushed directive's effect stays active; DEFINE's carrier snapshots the whole compilation-variable table, i.e. every instance.",
+ "state": "OK"
+}

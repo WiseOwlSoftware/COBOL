@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-11.2.1",
+ "section": "11.2.1",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Identification division structure",
+ "rule-digest": "22ccbe0d710a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#identificationParagraph; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#identificationDivision; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitIdentificationDivision; src/WiseOwl.Cobol.Frontend/Preprocessor/CompilationUnitStart.cs#IsAt; src/WiseOwl.Cobol.Frontend/Cst/ClauseCardinality.cs#ByClauseContext",
+ "test-ref": "conformance:cases/11.2-Identification-division-structure/pb829-identification-unrecognized-paragraph; conformance:cases/11.2-Identification-division-structure/pb829_closed_formats_legal; conformance:cases/11.2-Identification-division-structure/pb829_identification_header_optional; conformance:cases/11.2-Identification-division-structure/pb829-identification-header-omitted-85; conformance:cases/11.2-Identification-division-structure/pb829-cobol-words-after-headerless-unit; conformance:cases/11.2-Identification-division-structure/pb1508-options-paragraph-repeated",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB829. RENDERED from the printed page (PDF p293 / printed folio 263): `[ IDENTIFICATION DIVISION. ]`, then exactly one of program-id / function-id / class-id / factory / object / method-id / interface-id-paragraph, then `[ options-paragraph ]`. All seven source-unit paragraphs and OPTIONS are modelled and the residue is DIAGNOSED (COBOL1971, the pb829 negative). The BRACKETED header is now optional for the program and function units too (`identificationDivision : (IDENTIFICATION DIVISION DOT)? identificationBody`, wave 47 O) - it already was for the OO units - so `PROGRAM-ID. X.` as a unit's first line, and a header-less NESTED program, compile at 2002+ (the 2002 golden); X3.23-1985 required the header, so below 2002 it is the named relaxation gate identification-header-optional-2002 (COBOL0900, the 85 negative). Sibling fixed: the COBOL-WORDS placement stage (§7.3.10.3 SR1) now shares the ONE unit-start test with LEAP-SECOND (CompilationUnitStart.IsAt), so a directive after a header-less PROGRAM-ID is refused (COBOL1623).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.2.5-3",
+ "section": "8.5.2.5",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Class and category of data items and literals",
+ "rule-digest": "16ca5033d3bf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#GroupKindsOf; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfItem; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#Table16Operand.Of; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassNameOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NonNumericOperandKind",
+ "test-ref": "conformance:cases/8.5.2.5-Boolean-category/pb522_group_usage_travels_with_the_description; conformance:cases/8.5.2.5-Boolean-category/pb1400_group_usage_operand_class; conformance:cases/8.5.2.5-Boolean-category/pb1400-group-usage-arithmetic-operand; conformance-test:ArithmeticOperandClassTests.TheRefusal_NamesTheSection8521ClassOfTheOperand; unit:ClassSpellingDriftTests.TheArithmeticOperandScreen_AsksTheClassItNames",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1400 LANDED (w1095j). A group explicitly or implicitly described GROUP-USAGE BIT is category and class boolean everywhere it is asked: LENGTH/MOVE/boolean expressions (pb522, pb1400_group_usage_operand_class: GB B-XOR, subordinate GBS B-AND) and now the arithmetic-operand refusal too, whose text was the refuter's residual ('group item GB (class alphanumeric, ISO 8.5)'). ExpressionBinder.NonNumericOperandKind's group and ref-mod arms no longer spell a class; IntrinsicArgumentRules.ClassNameOf derives it from ClassOfPlace (the one 8.5.2.1 classifier): COMPUTE N = GB + 1 / GBS + 1 -> 'group item GB of class boolean (ISO 8.5.2.1)'. ClassSpellingDriftTests pins that no diagnostic spells a class from the enum name.",
+ "state": "OK"
+}

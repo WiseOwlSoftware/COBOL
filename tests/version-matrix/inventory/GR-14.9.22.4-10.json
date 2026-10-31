@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.22.4-10",
+ "section": "14.9.22.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "INSPECT statement",
+ "rule-digest": "13dd72ee0afb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#IsBareInspectOperand; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectCountPhrase",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/pb1125_inspect_tallying_next_counter_extent",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1125: an identifier followed by FOR - subscripted, qualified or reference-modified - is the next tallying counter; the end of a transitive ALL/LEADING list is decided over the whole reference extent, not LA(2).",
+ "state": "OK"
+}

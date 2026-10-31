@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.68.3-3",
+ "section": "15.68.3",
+ "kind": "AR",
+ "ordinal": 3,
+ "subject": "NUMVAL-C function",
+ "rule-digest": "fcfb7e3b827d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#SwitchBindCurrency; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#SoleCurrencyString; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Materialize; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#Analyze; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindNumvalCFamily",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb60_currency_sign_set; conformance:cases/12.3.7-SPECIAL-NAMES/pb60_currency_sign_bare_implied_dollar; unit:CobolEditCurrencyStringTests.Format_ExpandsTheCurrencyString; conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Re-anchored 2026-09-19 (kb/Work PB491): unchanged verdict, unchanged behaviour. The ExpandCurrency location this row pointed at is gone - the currency string is now written out by Materialize, the ONE variable-width pass it shares with the PICTURE EDITING literal of 13.18.40.4 GR14 'es'. The IntrinsicBinder location this row also carried is unaffected and stays as it was. retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

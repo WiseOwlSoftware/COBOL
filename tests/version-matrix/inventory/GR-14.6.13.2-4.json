@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.13.2-4",
+ "section": "14.6.13.2",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Exception condition handling",
+ "rule-digest": "134f7890caae",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.Float.cs#DeEditFloat; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#DeEdit; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#DataIncompatibleError; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#FatalAmbientGates; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolLocaleEdit.cs#DeEditNum; src/WiseOwl.Cobol.Runtime/Globalization/MonetaryFacts.cs#GroupingIsExact",
+ "test-ref": "conformance:cases/14.6.13.2-Incompatible-data/pb66_float_edited_algebraic_and_checking; conformance:cases/14.6.13.2-Incompatible-data/pb835_numvalc_locale_grouping",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (PB66 + its sweep). Under >>TURN EC-DATA-INCOMPATIBLE CHECKING ON a de-editing MOVE from content that is not a possible result of editing raises the (fatal, Table 13) exception before the receiver is written: the floating-point form validates position by position (a non-digit digit position, a wrong insertion character, a missing E or exponent sign — '1.23E+X' planted through a REDEFINES); the FIXED-POINT form verifies the round trip Format(DeEdit(image)) == image (Format IS the one editor, so the test is exact — ' 12.50' and a BLANK WHEN ZERO all-spaces zero pass, 'AB.CDE' raises). With checking off the digit positions are read (a non-digit contributes zero) — the standard's 'undefined' result, CONFORMANCE.md §3.",
+ "state": "OK"
+}

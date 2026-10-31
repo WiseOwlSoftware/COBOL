@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.15.3-15",
+ "section": "13.15.3",
+ "kind": "SR",
+ "ordinal": 15,
+ "subject": "Report group description entry",
+ "rule-digest": "d4a9753242f3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportEntryClausePresence",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb853-report-justified-without-column",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB853 sibling sweep. BLANK WHEN ZERO or JUSTIFIED without a COLUMN clause draws COBOL2247.",
+ "state": "OK"
+}

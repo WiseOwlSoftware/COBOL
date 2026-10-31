@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.14.4-1",
+ "section": "8.4.3.14.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "LINAGE-COUNTER",
+ "rule-digest": "086ddfb658c6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/AlgebraicRange.cs#CounterRegisterDigits; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsString; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#IsIntegerOperand; src/WiseOwl.Cobol.Compiler/Binding/RelationComparability.cs#IsNumericIntegerOperand",
+ "test-ref": "conformance:cases/8.4.3.14-LINAGE-COUNTER/pb1153_counter_register_character_image; conformance:cases/8.4.3.14-LINAGE-COUNTER/pb1153_counter_register_byte_length",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR1 (cite.py --check 8.4.3.14.4 OK 1): \"LINAGE-COUNTER references a temporary unsigned integer data item of class and category numeric whose size is equal to the page size specified in the LINAGE clause.\" The numeric channel (NumericRenderer, CobolFile.LinageCounter at scale 0) and the capacity (HIGHEST-ALGEBRAIC = page size) already conformed. kb/Work PB1153/PB1199/PB1318 LANDED (wave 73 group C): the register is an unsigned integer DATA ITEM whose implicit description is PIC 9(d) USAGE DISPLAY (docs/CONFORMANCE.md, the counter registers' declared capacity: d = the LINAGE page size's digits, 18 for LINE-/PAGE-COUNTER). AlgebraicRanges.CounterRegisterDigits / IsCounterRegister are the one reader: OperandText.AsString renders the d-digit zero-filled image in every character context (DISPLAY, MOVE to alphanumeric, STRING sender, relation with an alphanumeric operand), IntrinsicResultType.IsIntegerOperand makes it an integer (PERFORM ... TIMES), RelationComparability admits it as 8.8.4.2.5's integer display item, and the LENGTH / BYTE-LENGTH folds answer d. Golden: LINAGE IS 20 LINES, OPEN OUTPUT + one WRITE -> DISPLAY shows 02, MOVE to X(4) stores \"02  \", STRING, relation with \"02\" true, LENGTH 2.",
+ "state": "OK"
+}

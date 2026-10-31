@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.1.4-11",
+ "section": "14.9.1.4",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "ACCEPT statement",
+ "rule-digest": "f62c13bec0c3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#Time",
+ "test-ref": "conformance-test:AcceptDifferentialTests.Time_SmallNumericReceiver_KeepsLowOrderDigits; conformance-test:AcceptDifferentialTests.Time_ExactWidthReceiver_ShowsTheEightDigitImage",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "'TIME ... elapsed time since midnight on a 24-hour clock ... eight digits', positions 1-2 hours 00-23, 3-4 minutes 00-59, 5-6 seconds, 7-8 hundredths 00-99. AcceptSource.Time() returns n.Hour * 1000000 + n.Minute * 10000 + n.Second * 100 + n.Millisecond / 10 into the binder's GR11 conceptual item (AcceptKinds.ConceptualDigits: an unsigned PIC 9(8) usage-display compiler temp), which GR6's bound MOVE transfers to the receiver. Hundredths TRUNCATE (integer division: 679 ms is 67). The 'system does not have the facility ... zero is returned' clause is inapplicable (the facility exists). LEAP-SECOND: positions 5-6 are 00-59 on the OFF branch (DateTime.Second never exceeds 59); on the ON branch nn is implementor-defined and docs/CONFORMANCE.md Annex A.1 items 111/112 record the negative determination, so AcceptSource.Time not reading DataBinder.LeapSecond is a documented choice. WITNESSES (kb/Work PB227): Time_ExactWidthReceiver_ShowsTheEightDigitImage pins the whole eight-digit image through both MOVE arms (PIC 9(8) and PIC X(8)) under pinned clocks 09:05:03.07 (leading-zero hour, every positional weight) -> 09050307, 00:00:00.00 and 23:59:59.99 (range endpoints) -> 00000000 / 23595999, and 14:30:45.679 (hundredths truncation) -> 14304567; Time_SmallNumericReceiver_KeepsLowOrderDigits pins GR6's low-order keep into PIC 9(4).",
+ "state": "OK"
+}

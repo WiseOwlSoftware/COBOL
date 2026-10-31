@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.2.3.3-1",
+ "section": "8.4.2.3.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Subscripts",
+ "rule-digest": "0ae555ec5b95",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ReadSubscripts; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#FindItem; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#qualification",
+ "test-ref": "conformance:cases/8.4.2.3-Subscripts/l1c32_subscript_qualified_names",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 8.4.2.3.3 'Qualified-data-name-1 and qualified-condition-name-1 are defined in 8.4.2.2, Qualification.' -> OK §8.4.2.3.3 1)): a definitional cross-reference - the subscripted reference's base is an ordinary §8.4.2.2 qualified name. Code: the dataReference carries OF/IN qualification before (and the grammar also after) the subscript group; ReferenceResolver resolves the base by the §8.4.2.2 FindItem over the written qualifiers, and qualified identifiers INSIDE a subscript (each subscript item is a `dataReference` with its own `qualification`) resolve the same way. Probe scratchpad/adj-d2/out/probe/subscripts/sr1a.cob (pinned cobol.exe, 2023): `MOVE \"Z\" TO E OF G2 (W OF G3)` / `MOVE \"Q\" TO E IN G1 (W IN G4)` over two same-named tables and two same-named subscripts -> `AAQBZB` (correct occurrence of the correct table each time); qualified condition-names `CB OF E OF G2 (1)` / `CB OF G2 (2)` evaluate correctly; the unqualified `E (1)` draws COBOL1639 (§8.4.2.2 uniqueness). No spec-derived test targets this row by name - CONFORMS-untested. retired-witness: src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#subscriptQualification (kb/Work PB2113 deleted the dead structured subscript rules; a qualified subscript is an ordinary dataReference qualification inside a parsed subscriptItem)",
+ "state": "OK"
+}

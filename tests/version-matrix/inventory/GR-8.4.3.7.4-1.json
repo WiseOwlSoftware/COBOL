@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.7.4-1",
+ "section": "8.4.3.7.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "NULL object reference",
+ "rule-digest": "25d51945ed6d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindSetObjectRef; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#IsNull; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.InlineInvocation.cs",
+ "test-ref": "conformance:cases/8.4.3.7-NULL-object-reference/oo_universal_relation",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "\"Predefined object reference NULL contains the null object reference value; this is a unique value defined by the implementor such that it is guaranteed to never reference an object.\" (cite.py --check 8.4.3.7.4 -> OK). In the typed-native model NULL is the .NET null reference, which by construction references no object. Probed at 2002 and 2023 (p4.cob): a NEW instance compares NOT = NULL. After `SET G H TO NULL`, G = NULL and H = NULL (both operand orders, NULL = G). A universal reference set TO NULL equals NULL and equals a typed reference holding NULL, so there is one unique null value across categories. INVOKE on a null reference raises EC-OO-NULL (conformance:cases/14.9.23-INVOKE/ec_oo_null_invoke, §14.9.23.4 GR5). conformance:cases/8.4.3.7-NULL-object-reference/oo_universal_relation derives its expected values from this GR: the initial U = NULL, and after NEW U NOT = NULL.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.44.3-11",
+ "section": "13.18.44.3",
+ "kind": "SR",
+ "ordinal": 11,
+ "subject": "REDEFINES clause",
+ "rule-digest": "3f8edc8357d0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveRedefines; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ClassifyRedefinesClasses",
+ "test-ref": "unit:RedefinesClassificationTests.NestedRedefinesChain_AllAnchorToOriginal_SR11",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR11 (cite.py --check 13.18.44.3 'Data-name-2 may be subordinate to an entry that contains a REDEFINES clause.' OK) is a PERMISSION. ResolveRedefines scopes a subordinate redefiner to its own siblings (par.Children), so a REDEFINES inside a redefiner resolves; ClassifyRedefinesClasses chases to the anchor. Probe sr11_nested_ok: `01 A PIC X(8) VALUE \"ABCD1234\". 01 B REDEFINES A. 05 B1 PIC X(4). 05 B2 PIC X(4). 05 B3 REDEFINES B2 PIC 9(4).` ADD 1 TO B3 -> A = ABCD1235 (spec-derived expected). The unit test pins the class anchoring. || REFUTED: CONFORMS with test-ref emptied (test-needed) — The behavior is correct: a REDEFINES under a redefiner resolves and shares storage, including a two-deep nest, at 85 and 2023. But the cited unit test NestedRedefinesChain_AllAnchorToOriginal_SR11 does not pin SR11. It binds `01 WS-C REDEFINES WS-B`, where WS-B is itself a level-01 redefiner. No data-name-2 there is SUBORDINATE to a REDEFINES entry, and the shape is SR7-ILLEGAL: the compiler rejects it with COBOL1656 at both editions. So the test is not spec-derived for this rule and cannot close the row. Its name and assertion also misstate SR11/SR7, which is a test-hygiene defect to register. || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): 1985, 2002, 2014, 2023 (the REDEFINES clause is in the base language of every edition; the 2023 Annex E lists no change to this rule)",
+ "state": "OK"
+}

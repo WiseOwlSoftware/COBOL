@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.9.4-1",
+ "section": "11.9.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "OPTIONS paragraph",
+ "rule-digest": "4cd240464a6d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#InheritConfiguration; src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#BindParagraph; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations",
+ "test-ref": "conformance:cases/11.9-OPTIONS/pb60_nested_configuration_inheritance",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-17 (with PB60 / AR-15.67.3-5). The OPTIONS clauses of a source element apply to all contained source elements unless overridden by a clause in a contained element's own OPTIONS paragraph: OptionsBinder.Bind now takes the container's model as the BASELINE (InheritConfiguration hands it over) and applies the containee's clauses on top, clause by clause. Golden legs: ARITH (the inner program without OPTIONS inherits ARITHMETIC IS STANDARD-DECIMAL — 2/7*7 = 2,000000 in SDIDI arithmetic where native gives 1,999999) and ARITH2 (a second inner program's own OPTIONS. ARITHMETIC IS NATIVE. overrides — 1,999999). Below 2002 the paragraph is inert (the pass's introduction gate), so a contained program's baseline is simply its container's defaults there. retired-witness: src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#Bind (kb/Work PB780 V11 deleted OptionsBinder.Bind: a program unit's paragraph is found by OptionsBinder.ParagraphOf and bound by OptionsBinder.BindParagraph, called at ONE point for every element, DataBinder.BindDeclarations, after the element's constant entries are declared with the container's model (_inheritedOptions) as the baseline)",
+ "state": "OK"
+}

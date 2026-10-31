@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.51.3-16",
+ "section": "14.9.51.3",
+ "kind": "SR",
+ "ordinal": 16,
+ "subject": "WRITE statement",
+ "rule-digest": "ec691222c6cd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#FeatureAdvancing; src/WiseOwl.Cobol.Editions/ImplementorNames.cs#ImplementorNames",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb862-write-advancing-device-mnemonic; conformance-test:FileIoDifferentialTests.WriteAdvancingC01_IsThePageAdvance",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR16 - WRITE's mnemonic-name-1 is associated with a feature-name specified by the implementor (C01, CSP - DOC-A.1-190); any other mnemonic is COBOL2243. It used to bind every SPECIAL-NAMES mnemonic as a zero-line advance (kb/Work PB862). retired-witness: src/Cobol.Net.Compiler/Binding/ImplementorNames.cs#ImplementorNames (the pure-data implementor-name table moved to WiseOwl.Cobol.Editions so the front end's DISPLAY directive reads the same device-names as SPECIAL-NAMES (kb/Work PB807); ImplementorNameEntry stayed in the compiler as ImplementorNameEntry.cs)",
+ "state": "OK"
+}

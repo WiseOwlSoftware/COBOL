@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-28",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 28,
+ "subject": "VALUE clause",
+ "rule-digest": "da4b1e0548c8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
+ "test-ref": "conformance:cases/8.8.4.5-Simple-condition-name-condition/l1_value_thru_through_equivalent; conformance:cases/13.18.63-VALUE/l1_value_thru_through_equivalent_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "THROUGH and THRU asserted EQUAL on one level-88 shape over CV = 0..9, single range and two-range list; membership derived from 13.18.63.4 GR18 -> 14.7.8 rule 1 and 8.8.4.5.3 GR1 (ends included).",
+ "state": "OK"
+}

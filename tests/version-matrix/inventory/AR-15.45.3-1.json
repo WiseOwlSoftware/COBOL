@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.45.3-1",
+ "section": "15.45.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "INTEGER-OF-BOOLEAN function",
+ "rule-digest": "bf4560fdac57",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOf1; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindArgOperand; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Admissible; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfPlace; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#FieldAsString; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#IntegerOfBoolean",
+ "test-ref": "conformance:cases/15.2-Types-of-functions/pb65_boolean_expression_argument; conformance:cases/15.2-Types-of-functions/intrinsics_boolean_conv",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Argument-1 shall be of class boolean: the ONE argument-class table (ClassOf1) classifies a boolean expression operand as class boolean (kb/Work PB65), a boolean literal / item as before; the golden exercises the expression, literal (incl. zero-length) and item shapes.",
+ "state": "OK"
+}

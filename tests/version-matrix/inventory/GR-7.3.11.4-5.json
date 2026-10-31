@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.11.4-5",
+ "section": "7.3.11.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "DEFINE directive",
+ "rule-digest": "c3124953995e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateOperand; src/WiseOwl.Cobol.Frontend/Expressions/SoleOperand.cs",
+ "test-ref": "unit:ConditionalCompilationDefineTests.Define_SingleFractionLiteral_KeepsValue",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 7.3.11.4 \"that operand is treated as a literal, not as an arithmetic-expression\" -> OK GR5. A lone numeric literal is not INTEGER-PART truncated (§7.3.6.3 GR3 would): p1b '>>DEFINE F AS 1.5' then '>>IF F = 1.5' selects, while '7 / 2' truncates to 3. || editions (adjudicator): 2002, 2014, 2023 - §7.3 compiler-directive facility; ISO/IEC 1989:2023 Annex E lists no change to §7.3.11 against 2014 (the 2002 introduction is not stated in the 2023 text itself; below 2002 the directive is COBOL0900)",
+ "state": "OK"
+}

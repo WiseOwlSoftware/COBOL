@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.13.4-4",
+ "section": "7.3.13.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "EVALUATE directive",
+ "rule-digest": "d8d306eb67e0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#MatchWhen; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#SplitRange; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Frontend/Expressions/CtValue.cs#RelationalEquals",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/directive_expressions",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR4 (cite.py --check 7.3.13.4 4) b) OK): a) no THROUGH -> TRUE if subject equals the object; b) THROUGH -> TRUE if subject lies in the inclusive range; the first TRUE WHEN's text-1 is included, other WHEN text-1 and WHEN OTHER text-2 omitted. MatchWhen: RelationalEquals (numeric by value; boolean right-zero-extended per 8.8.4.2.8 2), cite OK; alphanumeric/national binary, length-sensitive) and lo <= subject <= hi; Render's WHEN arm sets Emitting=match and BranchTaken so every later WHEN and OTHER emit false. Probes: 2 * 3 vs 5 + 1 TRUE; subject 10 vs 1 THRU 9 FALSE, 10 THROUGH 20 TRUE (low end inclusive); 20 vs 10 THRU 20 TRUE (high end inclusive); >>EVALUATE 5 / >>WHEN 5 (empty text-1) / >>WHEN 6 text / >>WHEN 5 text -> nothing emitted (no fall-through, first match only); 01 vs 1.0 TRUE; B\"1\" vs B\"1000\" TRUE. Both halves covered by spec-derived goldens: conformance:cases/7.3.13-EVALUATE/directive_expressions derives MID from range 6 THROUGH 10 (b); conformance:cases/7.3.18-LISTING/pb725_directive_facility derives THREE from equality 3 = 3 (a). Probe dir out/probe/evaldir2 (pinned cobol.exe, --std 2023; p1 re-run at --std 2002 and 2014 with identical output; --std 85 rejects >>EVALUATE with COBOL0900). || editions (adjudicator): 2002, 2014, 2023 (the 7.3 directive facility is absent from 1985; Annex E.2 item 8 records the 2023 rewording of GR6/GR10 only)",
+ "state": "OK"
+}

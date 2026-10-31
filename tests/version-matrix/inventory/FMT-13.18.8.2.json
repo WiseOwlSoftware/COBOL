@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.8.2",
+ "section": "13.18.8.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "BLANK WHEN ZERO clause",
+ "rule-digest": "44aee37a9636",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#blankWhenZeroClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#ZERO; src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs#FigurativeSpellingMessage",
+ "test-ref": "conformance:cases/13.18.8-BLANK-WHEN-ZERO/pb510_figurative_keyword_spellings; conformance:cases/13.18.8-BLANK-WHEN-ZERO/pb510-blank-when-zeros; unit:KeywordSpellingDriftTests.BlankWhenZero_AdmitsOnlyThePrintedSpelling; unit:KeywordSpellingDriftTests.NoTwoReservedWords_ShareATokenType_ExceptPicAndPicture",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB510 LANDED. The printed format (rendered PDF page 409) is BLANK WHEN ZERO with BLANK and ZERO underlined, WHEN not: `BLANK WHEN? ZERO` in the grammar, where ZERO is now ONE token per spelling (ZERO, ZEROS and ZEROES are distinct 8.9 reserved words, interchangeable only in the 8.3.3.6.2 figurative constant, whose zeroWord rule writes that once). BLANK ZERO and BLANK WHEN ZERO compile and blank a zero (13.18.8.4 GR1: pb510_figurative_keyword_spellings B1=B2=[   ]); BLANK WHEN ZEROS / BLANK ZEROES are refused COBOL2418 at 85/2002/2014/2023 (5.2.2: a keyword is required as printed). The SCREEN SECTION arm stays owner-declined (COBOL1560, kb/Work PB260) and is not adjudicated here.",
+ "state": "OK"
+}

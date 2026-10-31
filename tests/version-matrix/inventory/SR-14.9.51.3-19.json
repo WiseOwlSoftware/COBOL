@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.51.3-19",
+ "section": "14.9.51.3",
+ "kind": "SR",
+ "ordinal": 19,
+ "subject": "WRITE statement",
+ "rule-digest": "1153403480a2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckWriteEopLinage; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindWrite",
+ "test-ref": "conformance-test:LinageConformanceTests.Sr19_EopWithoutLinage_IsRejected",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR19: 'If the END-OF-PAGE or the NOT END-OF-PAGE phrase is specified, the LINAGE clause shall be specified in the file description entry associated with the write file.' (--check OK). Sequential arm: CheckWriteEopLinage -> COBOL0860 for both the positive (ws1nolin, `WRITE R EOP ...`) and the negative-only phrase (ws1nolinn, `NOT AT END-OF-PAGE`). Relative/indexed arm: any END-OF-PAGE phrase is rejected outright by KeyedIoBinder.BindWrite under SR3 (COBOL1720), a superset of SR19's refusal there. A LINAGE file with EOP compiles and runs (ws1eop). [editions as adjudicated: 1985, 2002, 2014, 2023 (base WRITE statement; the 2023 text records no change to this rule in Annex E)]",
+ "state": "OK"
+}

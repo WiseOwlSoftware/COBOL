@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.8.2.3.2-3",
+ "section": "14.8.2.3.2",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Elementary items",
+ "rule-digest": "b374cb872214",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ParameterConformance.cs#CheckArgument",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/pb1115-function-arg-only-mismatch; conformance:cases/8.4.3.2-Function-identifier/pb1115_function_objref_conforming",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1115 landed (w61h). Rule 3 (cite.py --check 14.8.2.3.2 'and the FACTORY and ONLY phrases shall be the same' -> OK §14.8.2.3.2 3)). Function arm now asks the shared comparator at bind. Measured: OBJECT REFERENCE C1 ONLY argument into an OBJECT REFERENCE C1 formal -> COBOL2470 (was a silent run, R=NULL); ONLY on both sides still compiles and runs (O=NULL).",
+ "state": "OK"
+}

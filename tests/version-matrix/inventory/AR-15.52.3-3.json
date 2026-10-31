@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.52.3-3",
+ "section": "15.52.3",
+ "kind": "AR",
+ "ordinal": 3,
+ "subject": "LOCALE-DATE function",
+ "rule-digest": "54eb4443769a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLocaleFunction",
+ "test-ref": "conformance:cases/15.3-Arguments/pb64t4-locale-function-name-undeclared",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T4: COBOL1664 for an undeclared locale-name-1, citing this rule.",
+ "state": "OK"
+}

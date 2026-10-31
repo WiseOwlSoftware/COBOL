@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.50.2",
+ "section": "15.50.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "LENGTH function",
+ "rule-digest": "df2f3953ee38",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#fnArgPhraseWord; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgList; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+ "test-ref": "conformance:cases/15.50.4-Returned-value-rules/pb24_length_physical_keyword; conformance:cases/15.3-Arguments/pb124_keyword_positions; conformance:cases/15.50-LENGTH/pb24-length-two-operands",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Both legs of the format's optional [PHYSICAL] bracket pinned by pb24 (FIXPHYS/FIXPLAIN=0010, VARPHYS/VARPLAIN=0007, RMPHYS=0005); over-acceptance pinned by negative/pb24-length-two-operands; diagram re-read from PDF page 903 and identical to the transcription.",
+ "state": "OK"
+}

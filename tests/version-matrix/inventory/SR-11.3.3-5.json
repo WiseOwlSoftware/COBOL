@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.3.3-5",
+ "section": "11.3.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "CLASS-ID paragraph",
+ "rule-digest": "dc025e12c3dc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build",
+ "test-ref": "conformance-test:OoSpineTests.OverrideFinal_0838_0839_FinalBase_2791; conformance:cases/11.3-CLASS-ID/pb1505-parameterized-class-inherits-final",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1505 LANDED (wave 1015 Z). cite.py --check 11.3.3 'Object-class-name-2 shall not be the name of a class defined with the FINAL clause.' OK 5). The refuter's PARTIAL was the parameterized half: a USING class definition never entered the class table, so its INHERITS was never resolved. OoClassTable.Build now resolves a parameterized definition's INHERITS name through the §8.4.6.4 funnel (§11.3.3 SR2 included) unless it is one of the definition's own parameter-names (§11.3.4 GR6 — that names each expansion's actual, judged on the expansion), and a FINAL base is COBOL2791, the INHERITS-clause descriptor (kb/Work PB1784; pb1505-parameterized-class-inherits-final compiled clean before). Non-parameterized definitions keep OoSpineTests.OverrideFinal_0838_0839_FinalBase_2791. retired-witness: conformance-test:OoSpineTests.OverrideFinal_0838_0839 (renamed: kb/Work PB1784 branch review R1-1 - the fact also asserts the FINAL-base rule, now COBOL2791, so it is OverrideFinal_0838_0839_FinalBase_2791)",
+ "state": "OK"
+}

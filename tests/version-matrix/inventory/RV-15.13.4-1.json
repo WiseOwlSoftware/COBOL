@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.13.4-1",
+ "section": "15.13.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "BOOLEAN-OF-INTEGER function",
+ "rule-digest": "a9a6037b4bb6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#BooleanOfInteger; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AsIntWide; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#OperandCategory; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckRelationalOperands; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindBoolOperandValue; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BindPrimary; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#StringCategoryOf",
+ "test-ref": "conformance:cases/15.13.3-Arguments-rules/pb65_boolean_wide; conformance:cases/15.2-Types-of-functions/intrinsics_boolean_conv; conformance:cases/15.13.4-Returned-value-rule/pb68_boolean_function_operand_contexts; conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB68 — the D2/D3 layers): §15.13.1 'The function type is boolean' + §15.2 item 2 make the RESULT class/category boolean, and every checkpoint now asks the ONE classifier (IntrinsicResultType.OperandCategory — total; it gained the BoundBoolOperand arm) instead of re-deriving: the relation checkpoint (`IF FUNCTION BOOLEAN-OF-INTEGER(544, 6) = B\"100000\"` is the §8.8.4.2.8 comparison and binds — REL-EQ/ITEM/FF/EXT/NE in the golden; the alphanumeric MIRROR is now COBOL0844, negative pb68-boolean-function-vs-alphanumeric-literal — it used to be accepted and TRUE), the boolean-expression operand (§8.8.2 'an identifier referencing a boolean data item' — a function-identifier IS an identifier: BoundBoolCall, BAND/BXOR/BEXPR-REL/SIMPLE), the LENGTH fold (r1's boolean positions: LEN=8), the string-operand and condition-renderer classifiers (two boolean function results compared each other take the right-zero-extension), and §8.8.1.1's arithmetic screen at BIND (negative pb68-boolean-function-arithmetic — it compiled clean and threw NotImplemented at run time; --permissive decodes the digits like a data item). D1 (the wide bridge, PB65) stands as recorded. retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

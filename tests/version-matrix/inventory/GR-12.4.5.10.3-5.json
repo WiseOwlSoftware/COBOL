@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.10.3-5",
+ "section": "12.4.5.10.3",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "ORGANIZATION clause",
+ "rule-digest": "402e6b44c3ea",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#MapOrganization; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs; src/WiseOwl.Cobol.Runtime/IO/KeyedStore.cs",
+ "test-ref": "conformance:wiseowl/cases/12.4.5.10-ORGANIZATION/pb1098_organization_permanence_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1098 (w61d). Spec-derived golden now pins the indexed identity: records written K002 then K001 are identified by their prime key (READ K001 -> FST), an absent key K009 is '23', and the organization is permanent against a relative and a sequential I-O description ('39'). retired-witness: src/Cobol.Net.Runtime/IO/KeyedStoreTable.cs (the whole-store model's remains are deleted (kb/Work PB3335; DESIGN-runtime-library 2.2.1.13): KeyedStoreTable.cs is split: the store table is StoreTable.cs and the engine handle with its two views is KeyedStore.cs)",
+ "state": "OK"
+}

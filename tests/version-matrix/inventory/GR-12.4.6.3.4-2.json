@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.6.3.4-2",
+ "section": "12.4.6.3.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "APPLY COMMIT clause",
+ "rule-digest": "9e8e057178bb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterCommitControl; src/WiseOwl.Cobol.Runtime/IO/TransactionControl.cs#Rollback",
+ "test-ref": "conformance:cases/12.4.6-I-O-CONTROL/pb3338_apply_commit_external_two_elements",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB3338 (wave 1154): Annex A.4.3 is now PARTIAL (docs/CONFORMANCE.md §5, §4 item 2): the APPLY COMMIT clause, COMMIT and ROLLBACK are provided for RELATIVE and INDEXED files, whose keyed store engine keeps the transaction (kb/Work PB3337); a SEQUENTIAL or LINE SEQUENTIAL file named in the clause is under commit control too, its transaction journal being kb/Work PB3340 (COBOL1709, which refused it, is retired). The derived verdict commit-and-rollback-only that stamped the module DOCUMENTED-NON-SUPPORT is retired. GR2 binds the program: a file connector specified in more than one runtime element is an EXTERNAL one (only an EXTERNAL file connector can be), and the registry keeps ONE commit control per connector name, so every element naming it in its clause shares one transaction; the golden's second program's ROLLBACK undoes the first program's write after its COMMIT. retired-witness: conformance:wiseowl/cases/12.4.6.3-APPLY-COMMIT/declined-apply-commit (the commit and rollback facility is provided for the keyed organizations (kb/Work PB3338): the decline these witnessed is gone, and the rule is now witnessed by its own implementation) retired-witness: src/Cobol.Net.Compiler/Validation/DeclinedFacilityPass.cs#VisitApplyCommitClause (the commit and rollback facility is provided for the keyed organizations (kb/Work PB3338): the decline these witnessed is gone, and the rule is now witnessed by its own implementation)",
+ "state": "OK"
+}

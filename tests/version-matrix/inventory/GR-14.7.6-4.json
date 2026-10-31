@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.6-4",
+ "section": "14.7.6",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Common phrases and features for statements",
+ "rule-digest": "bdc9ebfbd39e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrEligible; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#IsIndexMessageTagObjectOrPointer",
+ "test-ref": "conformance:cases/14.7.6-CORRESPONDING/pb391_corresponding_rule2_rule4_categories; conformance:cases/14.7.6-CORRESPONDING/pb229_corresponding_filler_group_rule4",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule 4 (--check 14.7.6 -> OK §14.7.6 4)). CorrEligible excludes IsTable (fixed and DYNAMIC OCCURS), RedefinesTargetName != null, Renames, and the four-class set. PROBE c2.cob: TB PIC 9 OCCURS 2 not paired (TB of G2 stays 0), RR REDEFINES RQ not paired (0) while RQ pairs (6), OG OCCURS 1 group not paired, USAGE INDEX IX excluded. Level-66 never joins Children (structural). Goldens: 2023/pb391 rule4 categories (pointer under STRONG typedef stays NULL), 2014/dyn_corr (dynamic OCCURS), 85/pb393_corresponding_odo_group (ODO item). || editions as adjudicated: 1985, 2002, 2014, 2023 (the message-tag / object / pointer classes exist from 2002)",
+ "state": "OK"
+}

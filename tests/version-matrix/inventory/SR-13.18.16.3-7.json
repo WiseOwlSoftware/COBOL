@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.16.3-7",
+ "section": "13.18.16.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "CONTROL clause",
+ "rule-digest": "30e370ab1e04",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ControlOperandShapeViolation; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#HasVariableLengthSubordinate",
+ "test-ref": "conformance:cases/13.18.16-CONTROL/pb177-control-variable-length-group",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB177 arm C: the variable-length-group test is 8.5.1.12's - a dynamic-length elementary item or a dynamic-capacity table subordinate to the group - read through the one predicate the reference resolver already uses for 8.4.3.3.3 SR1.",
+ "state": "OK"
+}

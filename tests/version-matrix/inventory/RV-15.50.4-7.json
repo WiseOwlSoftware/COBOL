@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.50.4-7",
+ "section": "15.50.4",
+ "kind": "RV",
+ "ordinal": 7,
+ "subject": "LENGTH function",
+ "rule-digest": "0534b2533a2c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLengthFold; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ImageWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ElementaryImageWidth",
+ "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb61_length_byte_length_rule_branches",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "r7a+r7b as VLG=9/VLN=10, r7c as DCG0=2 / DCG4=14 / DCN=11, and all three summands together as MIX=20; the note's 'r7c is still a loud stage' residual is stale.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.11.4-1",
+ "section": "14.9.11.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "DISPLAY statement",
+ "rule-digest": "c0961445ea3c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#FieldAsString; docs/CONFORMANCE.md#DOC-A.1-56",
+ "test-ref": "conformance:cases/14.9.11-DISPLAY/pb148_display_zero_length; conformance:cases/14.9.11-DISPLAY/pb148_display_forms; conformance-test:DataDisplayDifferentialTests.Display_FullFieldWidth; conformance:cases/14.9.11-DISPLAY/comp5_display_beyond_picture",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB148): all three halves have their evidence. (a) Source-order full-content transfer was already pinned. (b) The GR1 conversion determination is COMPLETE in the A.1 item-56 row now: the PICTURE-digit image, the signed-non-DISPLAY-usage leading-minus VARIABLE-WIDTH form, the PICTURE-less float shortest-round-trip image, the alphanumeric/national/boolean verbatim character transfer, and the compile-time exclusions - each pinned (pb148_display_forms shows [-0123]0123], [1.5], [101]). (c) The zero-length sentence is a golden at last: pb148_display_zero_length brackets a zero-length literal, a zero-occurrence ODO group and a zero-length ref-mod slice (under >>REF-MOD-ZERO-LENGTH ON) and prints exactly [].",
+ "state": "OK"
+}

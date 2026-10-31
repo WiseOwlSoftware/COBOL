@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.18.2",
+ "section": "15.18.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "CONCAT function",
+ "rule-digest": "5fbf4705177c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgList; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgument; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FNARG_SEPARATOR",
+ "test-ref": "conformance:cases/15.8-ACOS/general_format_intrinsics_batch1",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "Verdict unchanged; supplies the missing spec-derived test. Covers BOTH the two-argument form (15.18.4 r1) and the three-argument form, which r4 defines as the pairwise repeat - the half a single two-argument call would not reach.",
+ "state": "OK"
+}

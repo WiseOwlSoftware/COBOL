@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.37.3-3",
+ "section": "13.18.37.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "NEXT GROUP clause",
+ "rule-digest": "0985e8ed4597",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindNextGroupClauses",
+ "test-ref": "conformance:cases/13.18.37-NEXT-GROUP/pb957-next-group-absolute-unpaged; conformance:cases/13.18.14-COLUMN/pb951_relative_sign_synonyms",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB957. An absolute or NEXT PAGE form in a report with no PAGE clause draws COBOL2284; the relative form is accepted unpaged (pb951 golden).",
+ "state": "OK"
+}

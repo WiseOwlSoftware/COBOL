@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-6.1-1",
+ "section": "6.1",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Reference format",
+ "rule-digest": "11fd4f5da5c1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs#NormalizeToFreeFormMapped; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#LogicalLineBuilder",
+ "test-ref": "conformance:cases/6-Reference-format/pb1359_floating_continuation_fixed; conformance:cases/6-Reference-format/pb1359_floating_continuation_free; unit:LogicalLineBuilderTests.FloatingContinuation_JoinsTheLiteral",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1359 landed the last failure of b) 'A COBOL compiler shall accept source text and library text written in reference format': the floating literal continuation indicator is accepted in both formats (the other, the fixed-form default, landed with PB1362; c) is DOC-A.1-157 with PB1586/PB1800; the free-form 255-position limit is PB1496).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-19",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 19,
+ "subject": "SET statement",
+ "rule-digest": "1f26debd6298",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/CobolPtr.cs#UpByAmount; src/WiseOwl.Cobol.Runtime/Values/SetAmount.cs#Land; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/PtrEmitter.cs#EmitSetPointerUpDown",
+ "test-ref": "conformance:cases/14.9.39-SET/pb465_set_pointer_range_ec; conformance:cases/14.9.39-SET/pb465-set-pointer-up-by-at-85; unit:CobolPtrTests.UpByAmount_IsTheExactGr19ValueRule; unit:CobolPtrTests.UpByAmountReal_IntegralityOnTheDouble; unit:CobolPtrTests.UpByAmountReal_AnIntegralAmountPastTheCarrier_IsGr20_NotGr19; unit:CobolPtrTests.UpByAmount_KeepsTheFullMagnitude_AndAnswersGr20",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB465.md LANDED - FORMAT 10. GR19 is now the integrality test and NOTHING ELSE: \"If arithmetic-expression-3 does not evaluate to an integer, the EC-SIZE-ADDRESS exception condition is set to exist, the execution of the SET statement is unsuccessful, and the content of identifier-9 is unchanged\" (cite.py --check 14.9.39.4 PASS). The DIVERGES verdict this replaces was earned by a MAGNITUDE guard folded into the same raise (CobolPtr.UpByReal's `by < long.MinValue || by > long.MaxValue`), so an integral 1.0E19 - an amount for which GR19's antecedent is FALSE - set EC-SIZE-ADDRESS and terminated the run unit. The magnitude half is now GR20's EC-RANGE-PTR (row GR-14.9.39.4-20). MEASURED at --std 2023 on this tree's own cobol.exe: the note's repro, `01 A USAGE FLOAT-LONG VALUE 1.0E19` under `>>TURN EC-SIZE-ADDRESS CHECKING ON`, printed `abnormal run-unit termination: EC-SIZE-ADDRESS (fatal)` before and prints `MOVED` after. Two siblings were found and fixed in the same mechanism, both of which made GR19 answer a magnitude question: the emitter's `long __ptrBy = (long)(...)` narrowing WRAPPED the amount, so `SET P UP BY 18446744073709551618` displaced by 2 (measured `AFTER-2POW64PLUS2=[C]`, now `[A]`), and `SET P UP BY 1844674407370955162.0` - an INTEGER at scale 1 - raised GR19's condition because the wrap left 4, which 10 does not divide (measured fatal EC-SIZE-ADDRESS, now `MOVED-SCALED-INT`). The integrality DECISION is now written ONCE for all four of 14.9.39.4's amount-taking formats in SetAmount.Land, which raises nothing; each format maps the outcome to its own condition. The 2002 golden pins both arms of GR19 plus GR20's, with the expected output computed from the rule text and not from a run; the negative pins that the construct is unavailable below 2002. SetIndexAmountLandingDriftTests.EverySetFamilyAmountSite_LandsThroughCobolIndex now asserts that no amount site renders its amount into a `long` temp - it was proven to fail by name on the restored narrowing before being trusted.",
+ "state": "OK"
+}

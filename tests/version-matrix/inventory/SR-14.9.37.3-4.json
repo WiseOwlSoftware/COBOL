@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.37.3-4",
+ "section": "14.9.37.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "SEARCH statement",
+ "rule-digest": "616fe02026a1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckSearchEndSearchNextSentence; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#Phrases; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#IsNextSentenceArm; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#SearchEndSearchNextSentence",
+ "test-ref": "conformance:cases/14.9.37-SEARCH/pb444-search-end-search-next-sentence; conformance:cases/14.9.37-SEARCH/pb444-search-all-end-search-next-sentence; conformance:cases/14.9.37-SEARCH/pb444_search_next_sentence; unit:SearchGeneralFormatShapeTests.ShapeNoFormatPrints_IsRefusedAtCompileTime; unit:SearchGeneralFormatShapeTests.ConformingSpelling_Compiles",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB444 LANDED (wave 58). cite.py --check 14.9.37.3 \"If the END-SEARCH phrase is specified, the NEXT SENTENCE phrase shall not be specified\" -> OK, Syntax rules 4) (ALL FORMATS). The rule now has ONE site for both formats: SearchBinder.Phrases (the one binder of the ALL-FORMATS phrases both arms share) calls StatementValidation.CheckSearchEndSearchNextSentence, which reports COBOL2409 when END-SEARCH is present and any WHEN arm IS the NEXT SENTENCE alternative - read through StatementBinder.IsNextSentenceArm, the one reading of the printed brace (a NEXT SENTENCE inside an IF nested in the arm is the IF's phrase, not this statement's). MEASURED before on this worktree's build: `SEARCH E ... WHEN K(IX) = 03 NEXT SENTENCE END-SEARCH DISPLAY \"TAIL\".` compiled at 85 and 2023 (only the unrelated COBOL0903 at 2023) and printed NEXTSENT; the Format-2 twin the same. AFTER: COBOL2409 at 85/2002/2014/2023, both formats, and at compile time whether or not the statement is reached (unit rows H/I/J sit behind a GO TO). The positive golden pins the legal spelling - NEXT SENTENCE as the whole WHEN body with no END-SEARCH, both formats - with output derived from 14.9.37.4 GR1 a).",
+ "state": "OK"
+}

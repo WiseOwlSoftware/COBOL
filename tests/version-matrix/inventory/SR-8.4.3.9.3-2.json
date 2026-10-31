@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.9.3-2",
+ "section": "8.4.3.9.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Object property",
+ "rule-digest": "1e09a74064cf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.ObjectProperty.cs#ResolveObjectProperty; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.PropertyObject.cs#OoBindPropertyObject",
+ "test-ref": "conformance:cases/8.4.3.9-Object-property/l1c20-property-of-universal-reference; conformance:cases/8.4.3.9-Object-property/pb1425-property-object-null",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1425 (w1021a). \"Identifier-1 shall be an object reference; neither a universal object reference nor the predefined object reference NULL shall be specified\" (cite.py --check 8.4.3.9.3 -> OK 2)). Both halves now name this rule under its own code, COBOL2918 (property-object; it shared COBOL0843 with SR1, SR3 and SR4): a universal object (BAL OF U, ReferenceResolver.RosterOf), NULL (BAL OF NULL - a parse error COBOL0901 before the propertyObject suffix existed; OoBinder.OoBindPropertyObject), and a computed object whose item is no object reference. A non-object data name falls out of the property reading to the generic undefined-name diagnosis. [editions: the OO facility, 2002+] retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#OoTryBindPropertyReference (the one-word property binder ReferenceResolver.OoTryBindPropertyReference is deleted by kb/Work PB1425 (w1021a): a property reference is resolved by ReferenceResolver.ResolveObjectProperty, which splits the chain and resolves identifier-3 through the ordinary resolver)",
+ "state": "OK"
+}

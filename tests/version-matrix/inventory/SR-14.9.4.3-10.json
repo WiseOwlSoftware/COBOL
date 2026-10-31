@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.4.3-10",
+ "section": "14.9.4.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "CALL statement",
+ "rule-digest": "aa46408e5976",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ScreenCallOperand",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb132-call-byref-pointer; conformance:cases/14.9.4-CALL/pb132-call-byref-strong-group; conformance:cases/14.9.4-CALL/pb132-call-byref-object-ref",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB132): all three kinds - a strongly-typed group (StrongTypeModel.IsStrongGroup, previously unreached from CALL), class object, class pointer (data- and program-pointer categories) - rejected on the RESOLVED BY REFERENCE mode in Format 1 only (Format 2 admits them under 14.8.2's conformance rules, which is why the screen narrows on formatTwo). One switch, three negatives.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.1.3.2-3",
+ "section": "8.5.1.3.2",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Levels",
+ "rule-digest": "2eaf9cbcc13e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries",
+ "test-ref": "conformance:cases/8.5.1.3.2-Level-numbers/pb1246-subdivided-level-77; conformance:cases/8.5.1.3.2-Level-numbers/pb1246-section-first-entry-not-level-1",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "(kb/Work PB1246) A level 2-49 entry after a level-77 item pops the 77 and reaches the empty-stack root arm, which refuses a root that is not level 1 or 77 (COBOL2771); the 77 is not subdivided.",
+ "state": "OK"
+}

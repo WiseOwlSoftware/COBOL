@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-3",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "SET statement",
+ "rule-digest": "026b3ac9a17d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#ScreenIndexAssignmentReceiver",
+ "test-ref": "conformance:cases/14.9.17-GO-TO/pb212_operand_class_screens; conformance:cases/14.9.39-SET/pb212-set-index-data-from-literal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB212 (landed): a cell of the receiver-class x sender-alternative table -- class-index receiver with arithmetic-expression-1. COBOL2326 through the Removed seam: error under strict, warning with the value stored under --permissive.",
+ "state": "OK"
+}

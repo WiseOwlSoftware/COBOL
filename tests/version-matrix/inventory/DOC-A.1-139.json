@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-139",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 139,
+ "subject": "PERFORM statement (whether location information is available when the LOCATION phrase is not specified)",
+ "rule-digest": "55e356f066ce",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-139; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundExceptionPerform.cs#WithLocation; src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs#WithImplicitEnable",
+ "test-ref": "conformance:cases/7.3.25-TURN/l1_exception_no_location_arms; conformance:cases/7.3.25-TURN/exception_statement_ambient",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "§14.9.28.4 GR14 (cite.py OK 14)) reads through to §7.3.25.4 GR7 (cite.py OK 7)); the substance was already stated under DOC-A.1-204 (TURN) and this row files it under item 139's own key. Verified: BoundExceptionPerform carries WithLocation into TurnState.WithImplicitEnable (TurnState.cs:93), and TurnState.WithLocation folds it per statement. Probe probe/pl.cob --std 2023: PERFORM ... RAISE EXCEPTION EC-USER-X1 WHEN EC-USER-X1 -> EXCEPTION-LOCATION [ ] and EXCEPTION-STATEMENT 63 spaces; PERFORM WITH LOCATION -> [PL; MAIN-P; 12] and RAISE; --std 2014 -> COBOL0900. Goldens: l1_exception_no_location_arms LEG B (B-L=[ ], B-N=[ ], B-T=63 spaces) pins the no-LOCATION PERFORM arm; exception_statement_ambient T2 pins the WITH LOCATION PERFORM arm. No open note on this behaviour. Refuter added the GR14 already-enabled edge (probes refute-probe/pl2.cob: outer >>TURN WITH LOCATION + plain PERFORM -> [PL2; MAIN-P; 7]; pl3.cob: outer >>TURN without LOCATION + PERFORM WITH LOCATION -> [ ]), matching TurnState.WithImplicitEnable's not-already-enabled guard; this edge has no golden.",
+ "state": "OK"
+}

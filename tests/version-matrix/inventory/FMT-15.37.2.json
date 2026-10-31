@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.37.2",
+ "section": "15.37.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "FIND-STRING function",
+ "rule-digest": "f4b5ab9a1927",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgument; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#fnArgPhraseWord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFindString",
+ "test-ref": "conformance:cases/15.37-FIND-STRING/find_string_format_lattice; conformance-test:IntrinsicFunctionDifferentialTests.FindString_Anycase_FoldsCase_2023; conformance-test:IntrinsicFunctionDifferentialTests.FindString_Positions_2023",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "§15.37.2's three optional elements give 12 written shapes ([LAST] x argument-3 absent/bare/START-AFTER x [ANYCASE]); the golden writes all 12 with §15.37.4-derived values, four of which - including the maximal LAST+START AFTER+ANYCASE - had no case. Every needle has matches exactly len(argument-2) apart, so no value depends on the under-determined overlapping-occurrence reading. Order and multiplicity rejected by conformance:cases/_unassigned/find-string-anycase-before-last and conformance:cases/_unassigned/find-string-four-operands.",
+ "state": "OK"
+}

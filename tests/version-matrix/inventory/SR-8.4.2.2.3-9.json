@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.2.2.3-9",
+ "section": "8.4.2.2.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "Qualification",
+ "rule-digest": "d7c03492728d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CounterReportOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportSectionNameIn",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/pb1456_other_report_counters_85; conformance:cases/8.4.2.2-Qualification/pb1456-counter-qualified-by-report-group; conformance:cases/8.4.2.2-Qualification/pb1049-unqualified-counter-two-reports",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1049 + PB1456 landed. cite.py --check 8.4.2.2.3 'LINE-COUNTER shall be qualified each time it is referenced in the procedure division if more than one report description entry is specified in the source element' OK (SR9, three sentences). (1) procedure division, more than one RD: an unqualified counter is COBOL2729 (the syntax-rule code, no longer the not-yet-implemented band). (2) report section: unqualified is the enclosing RD's. (3) a different report's counter is qualified explicitly by its report-name and is legal (LINE-COUNTER OF R2: pb1456_other_report_counters_85); a qualifier that names a report group is COBOL2729.",
+ "state": "OK"
+}

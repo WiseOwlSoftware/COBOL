@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.2.2-4",
+ "section": "14.2.2",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "Procedure division structure",
+ "rule-digest": "2689f480bf0a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#CallBindLinkage; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoBindMethodData; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReturningClause",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/l1c22_returning_three_arms",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§14.2.2 SR4 (cite.py --check 14.2.2 \"The RETURNING phrase may be specified in a method definition, a program definition, or a program prototype\" -> OK §14.2.2 4)). A permission with three arms, all probed: program definition RETURNING delivers 123 to CALL ... RETURNING (b2/sr4_prog.cob -> R=123); program prototype `PROGRAM-ID. PP4 IS PROTOTYPE.` with RETURNING compiles (b2/sr4_pgmproto.cob); method RETURNING delivers the value through INVOKE and inline invocation (b5/gr2_oo.cob). No existing spec-derived test names all three arms (goback_returning rides an implementor extension); left test-needed. || editions as adjudicated: 2002, 2014, 2023 (PROCEDURE DIVISION RETURNING is a COBOL-2002 introduction; ConstructRegistry procedure-returning-2002)",
+ "state": "OK"
+}

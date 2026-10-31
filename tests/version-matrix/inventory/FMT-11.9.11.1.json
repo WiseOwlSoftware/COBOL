@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-11.9.11.1",
+ "section": "11.9.11.1",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "INTERMEDIATE ROUNDING clause",
+ "rule-digest": "f2796dad142d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#intermediateRoundingClause; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#intermediateRoundingMode; src/WiseOwl.Cobol.Compiler/Binding/RoundingModes.cs#MapIntermediate; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitIntermediateRoundingClause; src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#Apply",
+ "test-ref": "conformance:cases/8.8.1.5.2-Standard-decimal-intermediate-data-item/pb145_round_even",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Rule: INTERMEDIATE ROUNDING IS {NEAREST-AWAY-FROM-ZERO|NEAREST-EVEN|PROHIBITED|TRUNCATION}, IS optional (not underlined), exactly one of four (cite.py --check 11.9.11.1 \"INTERMEDIATE\" -> OK, the general-format line). Grammar: `intermediateRoundingClause : INTERMEDIATE ROUNDING IS? intermediateRoundingMode` with a SEPARATE 4-alternative intermediateRoundingMode (not the 8-mode roundingModeName), so the restricted set is enforced by syntax; RoundingModes.MapIntermediate maps the four keywords 1:1 onto CobolRounding. PROBES (pinned cobol.exe, out/probe/irfmt): `INTERMEDIATE ROUNDING NEAREST-EVEN` (IS omitted) compiles and runs; `... IS PROHIBITED` compiles; `... IS NEAREST-TOWARD-ZERO` and `... IS AWAY-FROM-ZERO` (ROUNDED-phrase-only modes) are rejected COBOL0001; at --std 2002 the clause draws COBOL0900 'OPTIONS INTERMEDIATE ROUNDING requires COBOL-2014', at --std 2014 it compiles. Editions: the 2023 Annex E change lists neither introduce nor change this clause, so it is carried from 2014; absent from 2002 (OPTIONS carried only ARITHMETIC NATIVE/STANDARD) and 85 (no OPTIONS paragraph) -> 2014,2023. Test-ref: pb145_round_{away,even,trunc,prohib} (2023) spell the clause with IS and run it (spec-derived expectations); no golden spells the IS-omitted form or a negative for a non-listed mode (probe-verified only). retired-witness: src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#Bind (kb/Work PB780 V11 deleted OptionsBinder.Bind: a program unit's paragraph is found by OptionsBinder.ParagraphOf and bound by OptionsBinder.BindParagraph, called at ONE point for every element, DataBinder.BindDeclarations, after the element's constant entries are declared; the INTERMEDIATE ROUNDING clause is read by OptionsBinder.Apply)",
+ "state": "OK"
+}

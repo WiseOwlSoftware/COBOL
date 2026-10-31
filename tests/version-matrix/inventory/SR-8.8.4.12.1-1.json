@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.4.12.1-1",
+ "section": "8.8.4.12.1",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Abbreviated combined relation conditions",
+ "rule-digest": "5a20e307a489",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#succeedingCondition; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#abbreviatedRelation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindAbbreviatedRelation",
+ "test-ref": "conformance-test:AbbreviatedConditionDifferentialTests.Abbreviated; conformance:cases/8.8.4.12-Abbreviated-combined-relation-conditions/pb1390_abbreviated_tail_and_or; conformance:cases/7.3.8-Constant-conditional-expression/pb1390_abbreviated_tail_xor; conformance:cases/8.8.4.12-Abbreviated-combined-relation-conditions/pb1390-abbreviated-relation-without-subject",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1390 landed (wave 68 s). Rule 1): the omission of the subject (cite.py --check 8.8.4.12.1 \"The omission of the subject of the relation condition, or\" OK). An abbreviated relation (comparisonOperator comparisonOperand) is now admitted as the leftmost element of EVERY connective's operand — after OR, XOR/EXCLUSIVE-OR and AND alike (it was OR-only-then-AND-only, AND-only, never after XOR) — and never first (the leading tiers begin with unaryLogicalExpression). BindAbbreviatedRelation inserts the carried subject; with none (after a class/sign/88/boolean condition, GR1's termination) it is now COBOL2552 (was the COBOL2319 internal-error net). Goldens: E2/E4/E6/E7 (85) and X1/X2/X3/X6/X7 (2023) over 81 tuples, 0 disagreements with the expansion.",
+ "state": "OK"
+}

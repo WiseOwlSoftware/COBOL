@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.7.2",
+ "section": "15.7.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "ABS function",
+ "rule-digest": "34a2b6fc6390",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic",
+ "test-ref": "conformance:cases/15.7-ABS/pb40_integer_argument_positions; conformance:cases/15.7.4-Returned-value-rule/pb2_float_argument_exact_family",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB65 (2026-08-18): the format is FUNCTION ABS ( argument-1 ) — every legal position binds (a subscript / ref-mod position, a nested function argument — the former crash leg is fixed and pinned by pb40_integer_argument_positions); the edition window is 2014 by kb/Work R28's adversarially verified WG4 CD 1.2 Annex D.2 new-function list (the catalog block's 'provisional' caveat was retired 2026-08-08), so the --std 2002 rejection (COBOL1502) is the four-compilers rule, not a defect; the 15.7.1 integer-argument -> integer-function type row is modelled (IntrinsicResultRule.IntegerFollowsArgument1).",
+ "state": "OK"
+}

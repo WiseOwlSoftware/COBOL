@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.19.3-1",
+ "section": "15.19.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "CONVERT function",
+ "rule-digest": "837b802d720b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Convert",
+ "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.Convert_SyntaxRuleViolations_1514",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-08-09 (PB59): the RUNTIME zero-length screen at the top of Convert (arg.Length == 0 -> EC-ARGUMENT-FUNCTION + the 15.3 default, the Substitute shape) - the only place ISO 8.5.4's runtime zero-length shapes (DYNAMIC LENGTH at 0, zero-occurrence ODO, ...) are visible; the bind-time COBOL1514 literal screen stays as the compile-time catch for 8.5.4 shape 8 and its comment now names the runtime twin (the two-arm relationship written down).",
+ "state": "OK"
+}

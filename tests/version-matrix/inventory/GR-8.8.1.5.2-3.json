@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.1.5.2-3",
+ "section": "8.8.1.5.2",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Standard-decimal arithmetic",
+ "rule-digest": "5c394c4cfb17",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolDec.cs#Round34Wide",
+ "test-ref": "conformance:cases/8.8.1.5.2-Standard-decimal-intermediate-data-item/pb145_round_away; conformance:cases/8.8.1.5.2-Standard-decimal-intermediate-data-item/pb145_round_even; conformance:cases/8.8.1.5.2-Standard-decimal-intermediate-data-item/pb145_round_trunc; conformance-test:StandardDecimalTests.IntermediateTruncation_OneThird; conformance-test:StandardDecimalTests.PerOpRounding_TwoSeventhsTimesSeven_IsExactlyTwo; conformance:cases/8.8.1.5.2-Standard-decimal-intermediate-data-item/pb74_sdidi_intermediate_prohibited_ec",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "LANDED (kb/Work PB145): the NEAREST-EVEN half has its discriminating evidence - the pb145_round_* family lands an EXACT 35-digit tie with an EVEN kept digit (TIE: ...002.5 -> 3 away / 2 even) and an ODD kept digit (TIE2: ...001.5 -> 2 away / 2 even - the parity arm rounding UP to even), under INTERMEDIATE ROUNDING IS NEAREST-EVEN vs NEAREST-AWAY-FROM-ZERO vs TRUNCATION, with PROHIBITED raising r3d on the same tie. Both r3c parity directions are exercised; the r3b/r3c discrimination the row found untestable is a golden now.",
+ "state": "OK"
+}

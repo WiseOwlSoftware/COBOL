@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.6.7-3",
+ "section": "8.6.7",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Scope and life cycle of data",
+ "rule-digest": "8681377c6603",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#ArgCarrierText; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs",
+ "test-ref": "conformance:cases/8.6.7-Sharing-data-items/pb1009_global_linkage_formal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: \"The mechanism whereby an argument value is passed by reference from an activating runtime element to an activated runtime element establishes a common data item. The activated unit and the activating unit may use a different name to refer to the common data item.\" (cite.py --check 8.6.7: OK §8.6.7 3)). Code: CallEmitter.ArgCarrierText builds a BY REFERENCE accessor carrier over the caller's storage (§14.2.3 GR8). Probes: CALL BRSUB USING BY REFERENCE A TE(2) GR with formals X Y Z (different names, a subscripted element, a group): A=XXXX T=014101 GR=ZZ006 (--std 2023 and --std 85); FUNCTION BRFN(G2) with USING BY REFERENCE P, ADD 100 TO P: R=106 G2=106; INVOKE O \"SETIT\" USING BY REFERENCE A with formal Q: A=QQQQ. All three activation kinds share the common data item. Covering test conformance:cases/8.6.7-Sharing-data-items/pb1009_global_linkage_formal: PB1009M passes A/N/R, PB1009C names them X/Y/G, stores are visible in M (M A=XNEW ...). [editions as adjudicated: 1985, 2002, 2014, 2023 (CALL BY REFERENCE in every edition; function/method activation 2002+)]",
+ "state": "OK"
+}

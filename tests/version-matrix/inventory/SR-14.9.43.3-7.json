@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.43.3-7",
+ "section": "14.9.43.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "STRING statement",
+ "rule-digest": "0bcd347987fa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
+ "test-ref": "conformance:cases/14.9.43-STRING/pb88-string-pointer-not-integer",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB88 (2026-08-18): a bind-time rejection (COBOL1651) through the ONE Reject helper — it was a BoundUnsupported run-time stage on illegal source. Identifier-4 shall be an elementary numeric integer data item without the symbol P (StrUnstrIsInteger).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.4.12.1-2",
+ "section": "8.8.4.12.1",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Abbreviated combined relation conditions",
+ "rule-digest": "4edde5702a66",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#succeedingCondition; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#logicalOrExpression; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindSoleOperandCondition",
+ "test-ref": "conformance-test:AbbreviatedConditionDifferentialTests.Abbreviated; conformance:cases/8.8.4.12-Abbreviated-combined-relation-conditions/pb1390_abbreviated_tail_and_or; conformance:cases/7.3.8-Constant-conditional-expression/pb1390_abbreviated_tail_xor",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1390 landed (wave 68 s). Rule 2): the omission of the subject and relational operator; \"Within a sequence of relation conditions, both forms of omission may be used.\" (cite.py --check 8.8.4.12.1 OK). A bare object (and NOT + bare object) is the unaryLogicalExpression arm of succeedingCondition, reachable after every connective — including after an OR-led abbreviated relation, where the earlier chain rule had admitted only further abbreviated relations (A = B OR < C AND D was COBOL0001). BindSoleOperandCondition reads it against the carried subject and operator. Goldens E1/E2/E4/E5 (85), X4/X5/X6 (2023): 0 disagreements over 81 tuples. retired-witness: src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#abbreviatedAndChain (kb/Work PB1390 deleted the OR-only abbreviatedAndChain rule (it admitted no bare object after its AND); the bare object is succeedingCondition's unaryLogicalExpression arm)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.60.3-12",
+ "section": "13.18.60.3",
+ "kind": "SR",
+ "ordinal": 12,
+ "subject": "USAGE clause",
+ "rule-digest": "db508ca6a128",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ScreenUsageAgainstPicture; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#NationalWindow",
+ "test-ref": "conformance:cases/8.4.3.3-Reference-modification/pb646_national_form_numeric_2002; conformance:cases/13.18.40-PICTURE/pb646_national_form_numeric_2014; conformance:cases/13.18.40-PICTURE/pb646_national_form_numeric_2023; conformance:cases/13.18.40-PICTURE/pb646_national_form_numeric_bytes; conformance:cases/13.18.40-PICTURE/pb646-national-form-numeric-at-85; conformance-test:NationalBooleanDataTests.IllegalUsagePictureShape_Rejects0881; conformance:cases/13.18.40-PICTURE/pb492_national_edited_2023",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB646 LANDED 2026-09-13: SR12's permission is now FIVE-FIFTHS live, up from two-fifths. The rule admits five picture shapes under usage national - boolean, national, national-edited, numeric, numeric-edited - and the last three were refused BY NAME at COBOL0899 ('Phase 4a residue') from FOUR hand-written arms of PictureAnalyzer: the boolean arm and the numeric/numeric-edited arm of ScreenUsageAgainstPicture, plus private copies inside AnalyzeFloatEdited and AnalyzeLocaleEdited that were also the ONLY 13.18.60.3 screen those two paths ran, so a floating-point-edited or format-2 picture under USAGE BINARY/COMP/PACKED met no SR3 screen at all. All four are gone and both analyses now call the ONE screen. MEASURED on the landing tree at --std 2023: `PIC 9(3) USAGE NATIONAL VALUE 123` DISPLAYs [123], ADD 1 gives [124]; `PIC ZZ9 USAGE NATIONAL VALUE N\"  7\"` DISPLAYs [  7] and MOVE 42 edits to [ 42], de-editing back to [042]; `PIC 1(4) USAGE NATIONAL VALUE B\"1010\"` DISPLAYs [1010]; the 13.18.60.4 GR1 group-inherited spelling `01 G USAGE NATIONAL. 05 GL PIC 9(3) VALUE 12.` binds identically ([012]). The REJECTING half is unchanged and right: an alphabetic/alphanumeric PICTURE with USAGE NATIONAL is still COBOL0881 citing SR12 + 13.18.40.3 SR30, and the picture-less elementary form is refused by name. The introduction gate is unchanged at COBOL0900 below 2002 and now keys on the RESOLVED usage as well as the written keyword, so the inherited spelling is gated too (conformance:cases/13.18.40-PICTURE/pb646-national-form-numeric-at-85 carries both).",
+ "state": "OK"
+}

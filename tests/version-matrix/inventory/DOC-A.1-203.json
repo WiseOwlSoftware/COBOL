@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-203",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 203,
+ "subject": "THROUGH phrase in VALUE clause and EVALUATE statement (collating sequence used for determining range of values when no a",
+ "rule-digest": "78ea09b2cdc3",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-203; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#ThroughRangeClass; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#ForComparison; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#ConditionRenderer",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb398_range_in_alphabet; conformance:cases/A.1-Implementor-defined-language-element-list/pb728_level88_group_usage_collating",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 14.7.8 'When there is no IN alphabet-name phrase specified for the range, the collating sequence is defined by the implementor' -> OK §14.7.8 2). CollatingSelection.ThroughRangeClass = ForComparison over both ends (the relation-condition class rule). Probes probe/p203: th.cob --std 2023 (PCS EBCDIC, C='_'): 88 OUT, EV OUT, C<=Z, national no-PCS NEV IN; th85.cob/th85n.cob --std 85: with PCS 88 OUT/EV OUT, without PCS 88 IN/EV IN; thn.cob --std 2023 (PCS FOR NATIONAL IS NR = a _ Z): N88 IN, NEV IN, N>a. Goldens: pb398 legs C/E (no phrase -> PCS) and H (national no phrase -> native); pb728 V01 (national group under national PCS), V03/V04 (alphanumeric under alphanumeric PCS). Owning note: kb/Work/PB1534, PB372.",
+ "state": "OK"
+}

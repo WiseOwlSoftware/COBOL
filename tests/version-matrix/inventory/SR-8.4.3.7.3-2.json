@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.7.3-2",
+ "section": "8.4.3.7.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "NULL object reference",
+ "rule-digest": "a5d0403a94e5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindByReceiver; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindNullInvoke",
+ "test-ref": "conformance:cases/8.4.3.7-NULL-object-reference/pb1137_invoke_argument_forms; conformance:cases/14.9.23-INVOKE/pb1136_invoke_null_receiver; conformance:cases/14.9.23-INVOKE/pb1136-invoke-null-identifier-2",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 8.4.3.7.3 'NULL is implicitly described as class object and category object reference, and is not a universal object reference' OK 2). As an argument (kb/Work PB1137) NULL crosses BY CONTENT as the formal's null (pb1137_invoke_argument_forms). As INVOKE's identifier-1 (w1112b, kb/Work PB1136) it is an object reference and NOT universal: INVOKE NULL with literal-1 compiles, with BY CONTENT / BY VALUE arguments admitted (14.9.23.3 SR6 is the universal receiver's), and raises EC-OO-NULL (golden pb1136_invoke_null_receiver); identifier-2 through it is refused by SR7 because it is not universal (negative pb1136-invoke-null-identifier-2).",
+ "state": "OK"
+}

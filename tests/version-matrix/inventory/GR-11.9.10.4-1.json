@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.9.10.4-1",
+ "section": "11.9.10.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "INITIALIZE clause",
+ "rule-digest": "eea60a0e2bd4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#InitializeOf; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/InitialStateBackground.cs#FillFor",
+ "test-ref": "conformance:cases/11.9.10-INITIALIZE/pb152_options_initialize_background; conformance:cases/11.9.10-INITIALIZE/pb152_options_initialize_local_storage",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-09-02 (PB152). The ALL fold was BUILT by the binder from the start and read by NOBODY - OptionsInitialize.Sections was a producer-only field, so GR1 had never executed. It now has its first consumer. The fold is probed from both sides: pb152_options_initialize_background shows ALL selecting WORKING-STORAGE and pb152_options_initialize_local_storage shows the same clause selecting LOCAL-STORAGE without naming it.",
+ "state": "OK"
+}

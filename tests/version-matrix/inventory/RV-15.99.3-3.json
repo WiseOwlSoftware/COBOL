@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.99.3-3",
+ "section": "15.99.3",
+ "kind": "RV",
+ "ordinal": 3,
+ "subject": "WHEN-COMPILED function",
+ "rule-digest": "5017e30a74b5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/RoslynBackend.cs#Compile",
+ "test-ref": "unit:WhenCompiledStampTests.Backend_EmitsDeterministicPe_IdenticalSourceGivesIdenticalBytes",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB120): r3's object-code half decided EXPLICITLY - deterministic: true on the Roslyn compilation, so the COFF TimeDateStamp is a content hash, the MVID is content-derived, and the generated object code provides NO compilation date and time: r3's 'if provided in ... the generated object code' condition is not engaged (no listing facility exists either - ClockSeamDriftTests proves no other wall-clock read in the emitter). Determination recorded in DESIGN-codegen-backend 1.7. Identical source + references -> byte-identical assembly, proven pre-fix-failing by the random MVID.",
+ "state": "OK"
+}

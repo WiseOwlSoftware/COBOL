@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.41.2",
+ "section": "14.9.41.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "START statement",
+ "rule-digest": "241210dd3c57",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#comparisonOperator; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#RecordKeyNameOf",
+ "test-ref": "conformance:cases/14.9.41-START/pb332_start_length_optional_with; conformance:cases/14.9.41-START/pb332-start-length-word-required; conformance:cases/14.9.41-START/pb332-start-key-needs-operator; conformance-test:OptionalWordSubsetDriftTests.EveryOptionalWordSubset_CompilesAndRunsIdentically; conformance:cases/8.7.5-Relational-operators/pb333_start_general_relation_operators; conformance:cases/14.9.41-START/pb333-start-not-or-equal-operator; conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099_record_key_source",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB333 LANDED (wave 56) RESIDUE (a) CLOSED; the screen moved by kb/Work PB1034 (wave 1005 D). The relational-operator position of this format is the 8.8.4.2.2 general-relation set, and that set is now the grammar's comparisonOperator itself (the rule every condition shares), so no spelling outside the printed format parses; the NOT EQUAL exclusion stays in KeyedIoBinder.BindStart. Residue (b), the record-key-name-1 operand, was discharged by PB697 as the Annex A.3 item 40 decline and is now PROVIDED (kb/Work PB1099, from 2002; review R1-3): KeyedIoBinder.RecordKeyNameOf reads it with 8.4.2.2.2 Format 6's file-name qualifier, row SR-14.9.41.3-7 carries its rule, and conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099_record_key_source (S1, L1, F1) runs it. Nothing of the printed format remains divergent. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#InGeneralRelationFormat (kb/Work PB1034 deleted InGeneralRelationFormat; the grammar rule is the relational-operator position's printed set)",
+ "state": "OK"
+}

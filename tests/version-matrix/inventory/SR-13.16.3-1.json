@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.16.3-1",
+ "section": "13.16.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Data description entry",
+ "rule-digest": "76c97ae15248",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#CheckEntryFormat",
+ "test-ref": "conformance:cases/13.16-Data-description/pb485-level-66-not-renames; conformance:cases/13.16-Data-description/pb485-level-88-not-condition-name; conformance:cases/13.16-Data-description/pb485-level-78-working-storage; conformance:cases/13.16-Data-description/pb485_entry_format_legal_forms",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Format 1's level-number domain, enforced as the intersection of two independent screens rather than a fourth copy of a set: the 13.18.33.3 section screen bounds the VALUE, and the 13.18.33.4 GR2b/GR2c format arms remove 66 and 88 from any entry that is not written in the renames or condition-name format. What is left for a format-1 entry is exactly 77 or 1 through 49. The 2023 positive is the over-rejection guard proving the legal 66, 77 and 88 shapes still compile.",
+ "state": "OK"
+}

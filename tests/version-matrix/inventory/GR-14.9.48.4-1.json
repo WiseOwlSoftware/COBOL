@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.48.4-1",
+ "section": "14.9.48.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "UNSTRING statement",
+ "rule-digest": "55b7063f400a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringExtract",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/l1c35_unstring_or_operands_equal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR1 'All references to identifier-2 and literal-1 apply equally to identifier-3 and literal-2' (cite.py --check 14.9.48.4 'apply equally to identifier-3 and literal-2' -> OK 14.9.48.4 1)). The binder folds every DELIMITED BY / OR item through ONE loop (dp.unstringDelimiterItem()) into one List<BoundUnstringDelimiter>; the emitter renders one string[]/bool[] pair and the kernel treats every index alike (GR9 zero-length skip, GR7 ALL flag, GR10 scan). No code distinguishes the first delimiter from the OR'd ones, so every rule over identifier-2/literal-1 applies to identifier-3/literal-2 by construction. Probe p2 T1/T2/T3 exercised OR'd literals with ALL on the second position: correct. No spec-derived test names this rule.",
+ "state": "OK"
+}

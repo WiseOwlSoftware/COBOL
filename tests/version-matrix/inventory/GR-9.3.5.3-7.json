@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.3.5.3-7",
+ "section": "9.3.5.3",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "Polymorphism",
+ "rule-digest": "630a7c4c8c27",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#SignatureDifference; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#SignatureDifference",
+ "test-ref": "conformance:cases/9.3.5.3-Parametric-polymorphism/oo-parametric-polymorphism; conformance:cases/9.3.5.3-Parametric-polymorphism/w59h_vlg_override_signature; conformance:cases/9.3.5.3-Parametric-polymorphism/w59h-vlg-override-fixed-group",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1519 / R43 item 2 (owner, 2026-09-24): a rule half inside a declined facility takes its LIVE half's verdict. §9.3.5.3 7) (cite.py --check 9.3.5.3 'If the parameter is a variable-length group, sufficient information to determine if this group would match the group is specified in the invoke statement.' → OK 7)). HALF 2 (the optional parametric-polymorphism licence) is declined — A.4.10 item 3 Not claimed, COBOL0822, conformance:cases/9.3.5.3-Parametric-polymorphism/oo-parametric-polymorphism. HALF 1 (the variable-length-group component of the signature) is consumed by the MANDATORY override rule §11.7.3 SR3 ('If the OVERRIDE phrase is specified, there shall be a method with the same method resolution signature' → OK 3)) and is now VERIFIED, not read: the same variable-length group formal overrides (w59h_vlg_override_signature, SUB P=PP T1=aa T2=bb); an element-length change is refused COBOL0829 (8.5.1.12.3 matching); and a FIXED group opposite a variable-length one — compatible under 8.5.1.12 but a different signature — is refused COBOL0829 (negative/w59h-vlg-override-fixed-group). That last shape was a DEFECT found by this probe: OoConformance.DescriptionMismatch's pair mode accepted it on the collapsed width and Roslyn failed (CS0115); fixed in wave 59 H. At 2002 the component is vacuous: a variable-length group needs DYNAMIC LENGTH or OCCURS DYNAMIC, both COBOL-2014 constructs. retired-witness: src/Cobol.Net.Compiler/Oo/OoConformance.cs#DescriptionMismatch (kb/Work PB3101 (wave 1082): the DataItem comparator family is deleted (OoConformance.DescriptionMismatch, StrongTypeMismatch, AsIfElementaryGroupMismatch, IsCategoryAlphanumeric, PictureClauseIdentity.Mismatch, ObjectRefDescriptor.SameDescriptionAs); every activation and pair-mode question describes its items through ActivationDescriptions and asks ActivationRelations (CallArgumentViolation / CallReturningViolation / MatchViolation / SignatureDifference), the PICTURE identity entering through PictureClauseIdentity.Key)",
+ "state": "OK"
+}

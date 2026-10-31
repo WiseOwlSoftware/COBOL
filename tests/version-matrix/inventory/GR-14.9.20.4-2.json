@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.20.4-2",
+ "section": "14.9.20.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "INITIALIZE statement",
+ "rule-digest": "11fca55694bb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#initializeCategoryName; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundInitialize.cs#InitializeCategory; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#InitializeItemCategory; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#InitializeCategoryOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#Qualify",
+ "test-ref": "conformance:cases/14.9.20-INITIALIZE/pb415_initialize_category_set; conformance:cases/14.9.20-INITIALIZE/pb415_initialize_replacing_set_form; conformance:cases/14.9.20-INITIALIZE/pb415_initialize_function_pointer; conformance:cases/14.9.20-INITIALIZE/pb415_initialize_multi_category_85; unit:InitializeLaneDriftTests.TheThirteenCategoryNames_AreSpelledByTheGrammarAndCarriedByTheEnum",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB415.md - BOTH assertions now hold. (i) 'The keywords in category-name correspond to a category of data as specified in 8.5.2' is honoured for ALL THIRTEEN keywords: the grammar spells the thirteen the printed figure lists, InitializeCategory carries one member per word, and InitializeItemCategory maps every 8.5.2 category an elementary item can have onto the matching member (MESSAGE-TAG is spellable and classifies nothing, because no PicCategory carries message-tag - the A.4 message-control facility is owner-declined, so no such item can be declared and the category-name simply selects no receiving operand, which is the rule's own answer). Measured per word: NATIONAL and BOOLEAN and NATIONAL-EDITED in conformance:cases/14.9.20-INITIALIZE/pb415_initialize_category_set (T2/T3/T4 - and T3 is the negative half, NATIONAL-EDITED selecting nothing where a NATIONAL item exists, proving 8.5.2.10 and 8.5.2.11 are told apart), DATA-POINTER / PROGRAM-POINTER / OBJECT-REFERENCE in conformance:cases/14.9.20-INITIALIZE/pb415_initialize_replacing_set_form, FUNCTION-POINTER in conformance:cases/14.9.20-INITIALIZE/pb415_initialize_function_pointer, and the five classic words in conformance:cases/14.9.20-INITIALIZE/pb415_initialize_multi_category_85. (ii) 'If ALL is specified in the VALUE phrase it is as if all of the categories listed in category-name were specified' is the EMPTY InitializeCategorySet, which Qualify treats as matching every category (pinned by T6 of the category-set golden). A fourteenth keyword is one enum member; InitializeLaneDriftTests fails if the grammar and the enum disagree.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-36",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 36,
+ "subject": "Computer's coded character set (when composite alphanumeric and national, mapping of characters to each)",
+ "rule-digest": "ce985d15af93",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-36; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Repertoire",
+ "test-ref": "conformance:cases/15.26.4-Returned-value-rules/pb59_repertoire_identity; conformance:cases/12.3.7-SPECIAL-NAMES/l1c01_native_ordinal_positions_wide",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "A.1 item 36 conditionally required, condition met (one composite set, rows 33/188 and R48). cite.py --check 8.1.2 \"When these are implemented as one character set, the implementor shall specify the characters that map into the computer's alphanumeric coded character set\" -> OK §8.1.2 3). cite.py --check 8.1.2 \"the alphanumeric coded character set might consist of a subset of the UCS\" -> OK §8.1.2 (NOTE 2). Determination = kb/Work R48 second section (the alphanumeric coded character set is the UTF-16 BMP, identical to the national set). The code already does this: a PIC X item holds U+20AC (ORD 8365, i31.cob), the literal \"€é\" is 2 positions (L38.cob), and CobolIntrinsics.Repertoire is the identity both directions (golden pb59_repertoire_identity). The one-byte DISPLAY image and its above-U+00FF handling are item 31's ENCODING arm (DIVERGES there, owned by PB690 / PB547) — not part of this mapping. pin 80de60472 (E:\\wt\\gl2-pin), out/run/d7: i31.cob (01 A PIC X(3) VALUE \"€é\"; DISPLAY ORD(A(1:1)) BYTE-LENGTH(A) CONVERT(A ANY ANUM HEX)) -> '8365 3 3FE920'; SQ7.cob (MOVE \"€é\" to a LINE SEQUENTIAL and a record SEQUENTIAL record, WRITE each with FILE STATUS) -> 'LS WRITE FS=00', 'SQ WRITE FS=00', sq7.dat = 3F E9 0D 0A, sq7r.dat = 3F E9 20 (U+20AC written as '?' with a successful status; kb/Work PB690 reproduces); L38.cob: FUNCTION LENGTH(\"€é\") FUNCTION ORD(\"€\") -> '2 8365'. DOC-ROWS-2 REFUTER (citation): overturned and corrected; the recorded row carries the correction (adjudication/doc-rows-2/LANDING.md).",
+ "state": "OK"
+}
