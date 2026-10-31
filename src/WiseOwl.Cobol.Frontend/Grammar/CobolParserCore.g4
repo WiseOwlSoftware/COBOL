@@ -869,9 +869,11 @@ sectionDefinition
 
 // §14.4.2/§14.4.3 section-name-1 / paragraph-name-1 are user-defined words (§8.3.2.2), and BOTH are DEFINITION
 // slots — the two IsProvableUserWordPosition procedure-name positions. They reach the reservation gate's
-// `reservedGatedWord` through `procedureName` below, the one procedure-name word rule.
+// `reservedGatedWord` through `procedureName` below, the one procedure-name word rule. A word §8.9 reserves is read as
+// a header's name only where the header follows it (procedureHeaderHere, kb/Work PB4132): elsewhere it is its keyword,
+// so a stray END-DISPLAY at the start of a sentence is the misplaced terminator, not a paragraph missing its period.
 sectionName
-    : procedureName
+    : {procedureHeaderHere(SECTION)}? procedureName
     ;
 
 paragraphDefinition
@@ -888,7 +890,7 @@ paragraphDefinition
 // COBOL-85's own placement of a header — area A, beginning its fixed-form line — is not a parse rule either: it is the
 // reference format's, asked of every token at --std 85 by AreaPlacementPass (kb/Work PB3147; ISO §6.3.1 has no areas).
 paragraphName
-    : procedureName
+    : {procedureHeaderHere(DOT)}? procedureName
     ;
 
 // A procedure-name (§14.4.1: "a word used to refer to a paragraph or section") is a user-defined word (§8.3.2.2),

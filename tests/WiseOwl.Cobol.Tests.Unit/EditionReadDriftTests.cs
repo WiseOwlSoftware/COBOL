@@ -103,7 +103,7 @@ public sealed class EditionReadDriftTests
             "IsKeywordReadingHere", "NoteGatedOffender", "PrintsKeyword", "ReservedGatedWord",
             "ReservedUserWordViolation", "conditionalPhraseAssociates", "entryNameHere", "facilityWord",
             "gatedDeclaration", "is2002", "is2014",
-            "is2023", "is85", "keywordContinuesHere", "reservedHere", "screenPositionAhead", "setLocaleAhead",
+            "is2023", "is85", "keywordContinuesHere", "procedureHeaderHere", "reservedHere", "screenPositionAhead", "setLocaleAhead",
             "userWordHere",
         ],
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4"] =
@@ -152,6 +152,10 @@ public sealed class EditionReadDriftTests
         // The optional entry-name yields to the clause a word §8.9 reserves here begins (kb/Work PB845, PB2501).
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4 | dataDescriptionEntry | entryNameHere"] = (1, Verdict.WordStatus),
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolWords.g4 | reservedGatedWord | gatedDeclaration"] = (1, Verdict.WordStatus),
+        // A paragraph or section header names a word §8.9 reserves here only where its period or SECTION follows it;
+        // elsewhere the word is its keyword (a stray END-DISPLAY beginning a sentence, kb/Work PB4132 review R1-1).
+        ["src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4 | paragraphName | procedureHeaderHere"] = (1, Verdict.WordStatus),
+        ["src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4 | sectionName | procedureHeaderHere"] = (1, Verdict.WordStatus),
         // The lexer: the Annex C spelling of a word at the edition, and whether a '(' after a word the edition
         // reserves can open a subscript (kb/Work PB1465).
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4 | LPAREN | OnDefaultLParen"] = (1, Verdict.WordStatus),

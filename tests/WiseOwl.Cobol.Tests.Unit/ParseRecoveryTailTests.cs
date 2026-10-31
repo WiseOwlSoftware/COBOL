@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Globalization;
 using Antlr4.Runtime;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Generated;
@@ -59,42 +60,85 @@ public sealed class ParseRecoveryTailTests
         Assert.True(Terminators.Length >= 20, $"the grammar spells {Terminators.Length} scope terminators");
     }
 
-    /// <summary>The terminators that are also reservation-gated words (<c>reservedGatedWord</c>, read from the ATN:
-    /// END-ACCEPT, END-DISPLAY, END-RECEIVE and END-SEND, each a user-defined word at some edition §8.9 leaves it free),
-    /// with every edition that RESERVES the word (kb/Work PB4132). There the token is its keyword, so a stray one is the
-    /// misplaced terminator every other terminator is (COBOL0306), never a user-defined word refused by §8.9
-    /// (COBOL0901): it used to be, because the syntax-error listener re-coded every error on such a word after the
-    /// strategy had named the terminator.</summary>
-    public static TheoryData<string, int> EveryGatedTerminatorAtEveryEditionThatReservesIt()
+    /// <summary>The places a stray terminator is written where no statement is open, each a sentence of MAIN-PARA with
+    /// <c>{0}</c> for the word: after a complete MOVE whose receiving list would take another operand, beginning a
+    /// sentence after another, and beginning the paragraph's first sentence. At the start of a sentence a
+    /// reservation-gated terminator could also be read as a paragraph header, which it is only where the header's
+    /// period follows (ISO §14.4.3, <c>CobolParserCoreBase.procedureHeaderHere</c>, kb/Work PB4132 review R1-1).</summary>
+    private static readonly string[] StrayPositions =
+    [
+        "MOVE 1 TO W-N {0} MOVE 2 TO W-K.",
+        "MOVE 1 TO W-N. {0} MOVE 2 TO W-K.",
+        "{0} MOVE 1 TO W-N.",
+    ];
+
+    /// <summary>Every terminator at the start of a sentence, after another sentence and as the paragraph's first, at
+    /// the default edition: the terminator with no statement to end (ISO §14.5.3.2), named once at the word. The
+    /// position after a complete statement is the empty-opening row of <see cref="AStrayTerminator_DrawsExactlyOneDiagnostic"/>.</summary>
+    public static TheoryData<string, string> EveryTerminatorBeginningASentence()
+    {
+        var data = new TheoryData<string, string>();
+        foreach (string word in Terminators)
+            foreach (string position in StrayPositions.Skip(1))
+                data.Add(word, position);
+        return data;
+    }
+
+    [Theory]
+    [MemberData(nameof(EveryTerminatorBeginningASentence))]
+    public void AStrayTerminatorBeginningASentence_DrawsExactlyOneDiagnostic(string word, string position)
+        => AssertTheMisplacedTerminator(word, string.Format(CultureInfo.InvariantCulture, position, word), RecoverySources.DefaultEdition);
+
+    /// <summary>The editions that RESERVE each terminator that is also a reservation-gated word (<c>reservedGatedWord</c>,
+    /// read from the ATN: END-ACCEPT, END-DISPLAY, END-RECEIVE and END-SEND, each a user-defined word at some edition
+    /// §8.9 leaves it free; kb/Work PB4132). There the token is its keyword, so a stray one is the misplaced terminator
+    /// every other terminator is (COBOL0306), never a user-defined word refused by §8.9 (COBOL0901) nor a paragraph
+    /// header missing its period (COBOL0307 at the next word).</summary>
+    private static IEnumerable<(string Word, int Edition)> GatedTerminatorReservations()
     {
         var atn = CobolParserCore._ATN;
         var gated = atn.NextTokens(atn.ruleToStartState[CobolParserCore.RULE_reservedGatedWord]).ToList()
             .Select(t => CobolLexer.DefaultVocabulary.GetLiteralName(t)?.Trim('\'')).ToHashSet(StringComparer.Ordinal);
-        var data = new TheoryData<string, int>();
         foreach (string word in Terminators.Where(gated.Contains))
             foreach (int edition in (int[])[85, 2002, 2014, 2023])
-                if (ReservedWordSet.Default.RejectsAt(word, edition)) data.Add(word, edition);
+                if (ReservedWordSet.Default.RejectsAt(word, edition)) yield return (word, edition);
+    }
+
+    /// <summary>Each gated terminator in every stray position at every OTHER edition that reserves it: the default
+    /// edition's rows are the all-terminator sweeps above, which hold these words too (review R1-3 of PB4132: the same
+    /// compile twice is repeated work, never a second witness).</summary>
+    public static TheoryData<string, int, string> EveryGatedTerminatorAtEveryOtherEditionThatReservesIt()
+    {
+        var data = new TheoryData<string, int, string>();
+        foreach (var (word, edition) in GatedTerminatorReservations().Where(r => r.Edition != RecoverySources.DefaultEdition))
+            foreach (string position in StrayPositions)
+                data.Add(word, edition, position);
         return data;
     }
 
     [Fact]
     public void TheGatedTerminatorSweepReadsTheGrammar()
     {
-        // the four the note names, each reserved at 2023 at least (a sweep that matched nothing would prove nothing)
-        var words = EveryGatedTerminatorAtEveryEditionThatReservesIt().Select(row => (string)row[0]).ToHashSet();
-        Assert.Superset(new HashSet<string> { "END-ACCEPT", "END-DISPLAY", "END-RECEIVE", "END-SEND" }, words);
+        // the four the note names, each reserved at the default edition, which the all-terminator sweeps cover; and the
+        // earlier editions reserving them, which the gated sweep covers (END-DISPLAY from 2002; END-SEND only at 2023),
+        // so neither sweep is empty (a sweep that matched nothing would prove nothing)
+        var reservations = GatedTerminatorReservations().ToList();
+        string[] named = ["END-ACCEPT", "END-DISPLAY", "END-RECEIVE", "END-SEND"];
+        Assert.Superset(named.ToHashSet(), reservations.Where(r => r.Edition == RecoverySources.DefaultEdition).Select(r => r.Word).ToHashSet());
+        Assert.Contains(reservations, r => r.Word == "END-DISPLAY" && r.Edition == 2002);
     }
 
-    /// <summary>A gated terminator written after a complete MOVE, whose receiving list would take another operand, at an
-    /// edition that reserves it: the terminator with no statement to end (ISO §14.5.3.2), named once, exactly as a
-    /// stray END-ADD there is.</summary>
     [Theory]
-    [MemberData(nameof(EveryGatedTerminatorAtEveryEditionThatReservesIt))]
-    public void AStrayGatedTerminator_IsTheMisplacedTerminator_AtEveryEditionThatReservesIt(string word, int edition)
+    [MemberData(nameof(EveryGatedTerminatorAtEveryOtherEditionThatReservesIt))]
+    public void AStrayGatedTerminator_IsTheMisplacedTerminator_AtEveryOtherEditionThatReservesIt(string word, int edition, string position)
+        => AssertTheMisplacedTerminator(word, string.Format(CultureInfo.InvariantCulture, position, word), edition);
+
+    private static void AssertTheMisplacedTerminator(string word, string body, int edition)
     {
-        var errors = RecoverySources.Errors(RecoverySources.Program($"MOVE 1 TO W-N {word} MOVE 2 TO W-K."), edition);
-        Assert.True(errors.Count == 1, $"[{word} at {edition}] expected exactly one diagnostic, got:\n{string.Join("\n", errors)}");
+        var errors = RecoverySources.Errors(RecoverySources.Program(body), edition);
+        Assert.True(errors.Count == 1, $"[{body} at {edition}] expected exactly one diagnostic, got:\n{RecoverySources.Listing(errors)}");
         Assert.Contains("COBOL0306", errors[0]);
+        Assert.Contains($"'{word}'", errors[0]);
         Assert.Contains($"{word} appears without a matching", errors[0]);
     }
 

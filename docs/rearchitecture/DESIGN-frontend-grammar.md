@@ -650,8 +650,17 @@ syntax-error listener used to re-code every error on them to COBOL0901 after the
 `MOVE 1 TO W-N END-DISPLAY.` was told the word "cannot be used as a user-defined word"; it now draws the COBOL0306 a
 stray END-ADD draws (§14.5.3.2), while `DISPLAY END-RECEIVE.` (a DISPLAY still waiting for its operand, no terminator
 can stand) keeps COBOL0901. A misplaced phrase word where no user word can stand (`READ F ADVANCING ON LOCK RETRY 3
-TIMES`: the READ has ended) keeps the strategy's own refusal, COBOL2269. `ParseRecoveryTailTests` sweeps every gated
-terminator, read from the ATN, at every edition that reserves it.
+TIMES`: the READ has ended) keeps the strategy's own refusal, COBOL2269. At the start of a sentence a reserved word could
+also be read as the name of a paragraph or section header, the two definition slots `reservedGatedWord` reaches through
+`procedureName`, and for a gated word that was the only reading the prediction had: `END-DISPLAY MOVE 2 TO W-K.` became
+a header missing its period, refused at MOVE ("A period may be missing"), and the period that advice adds made it a
+reserved paragraph-name. So `paragraphName` and `sectionName` carry `{procedureHeaderHere(DOT|SECTION)}?`: a word §8.9
+reserves here is the header's name only where the header's period (§14.4.3) or SECTION follows it. A written header
+(`END-DISPLAY.`, `RECEIVE SECTION.`) still parses and draws the funnel's COBOL0901 for its name (a COBOL-85 paragraph
+so named, compiled where the word is reserved); anywhere else the word fails AT itself and the decision above names it,
+COBOL0306 for a stray terminator and COBOL0901 for a word whose header's user word stands there (`CONSTANT MOVE 1 TO
+W-N.` at 2002). `ParseRecoveryTailTests` sweeps every terminator after a statement and at both sentence starts, and
+every gated terminator in the same places at every other edition that reserves it, read from the ATN.
 
 ⛔ **AN OPERAND WHOSE INTRODUCING WORD IS OPTIONAL MAY NOT SWALLOW THE NEXT CLAUSE (kb/Work PB848).** §13.18.60.2
 prints `POINTER [ TO type-name-1 ]`, `FUNCTION-POINTER TO function-prototype-name-1` and

@@ -563,13 +563,27 @@ public sealed class ReservedWordPositionConformanceTests
     /// PB4132). Each of the three readings that admit a user-defined word at the token keeps COBOL0901: an operand of
     /// the statement still open (<c>DISPLAY CONSTANT</c>), the next operand of a list the statement before the token
     /// would continue (<c>MOVE 1 TO W-N CONSTANT W-K</c>, whose receiving list the parse had already left), and a
-    /// paragraph header a missing separator period would begin (<c>STOP RUN CONSTANT.</c>).</summary>
+    /// paragraph header a missing separator period would begin (<c>STOP RUN CONSTANT.</c>).
+    /// <para>At the start of a sentence the header's name is the user-defined word that stands there (kb/Work PB4132
+    /// review R1-1, <c>CobolParserCoreBase.procedureHeaderHere</c>). Where the header is written (ISO §14.4.3: "A
+    /// paragraph consists of a paragraph-name followed by a separator period") the funnel names the reserved
+    /// paragraph-name, a scope terminator included: <c>END-DISPLAY.</c> matches the paragraph format and no other, and
+    /// a COBOL-85 paragraph so named, compiled at an edition that reserves the word, is refused for its name. Where the
+    /// period does not follow, the word is its keyword and the report is made at it, never at the next word as a
+    /// missing period: <c>CONSTANT MOVE 1 TO W-N.</c> here, and a stray terminator's COBOL0306
+    /// (<c>ParseRecoveryTailTests</c>).</para></summary>
     [Theory]
     [InlineData("DISPLAY CONSTANT.")]
     [InlineData("MOVE 1 TO W-N CONSTANT W-K.")]
     [InlineData("MOVE 1 TO W-N CONSTANT.")]
     [InlineData("STOP RUN CONSTANT.")]
-    public void AReservedWordWhereAUserWordStands_Draws0901(string statement)
+    [InlineData("CONSTANT MOVE 1 TO W-N.")]
+    [InlineData("MOVE 1 TO W-N. CONSTANT MOVE 2 TO W-K.")]
+    [InlineData("MOVE 1 TO W-N. CONSTANT.")]
+    [InlineData("MOVE 1 TO W-N. END-DISPLAY.", "END-DISPLAY")]
+    [InlineData("MOVE 1 TO W-N. END-ACCEPT.", "END-ACCEPT", 2014)]
+    [InlineData("MOVE 1 TO W-N. END-SEND.", "END-SEND", 2023)]
+    public void AReservedWordWhereAUserWordStands_Draws0901(string statement, string word = "CONSTANT", int edition = 2002)
     {
         var (ok, diags) = EditionHarness.Compile($"""
                    IDENTIFICATION DIVISION.
@@ -583,10 +597,10 @@ public sealed class ReservedWordPositionConformanceTests
                        {statement}
                        STOP RUN.
 
-               """, 2002);
-        Assert.False(ok, "CONSTANT is reserved at --std 2002: the use is refused");
+               """, edition);
+        Assert.False(ok, $"{word} is reserved at --std {edition}: the use is refused");
         Assert.True(diags.Count == 1 && diags[0].Contains("COBOL0901", StringComparison.Ordinal)
-                                     && diags[0].Contains("'CONSTANT'", StringComparison.Ordinal),
-            $"expected exactly the one COBOL0901 naming 'CONSTANT', got:\n{string.Join("\n", diags)}");
+                                     && diags[0].Contains($"'{word}'", StringComparison.Ordinal),
+            $"expected exactly the one COBOL0901 naming '{word}', got:\n{string.Join("\n", diags)}");
     }
 }

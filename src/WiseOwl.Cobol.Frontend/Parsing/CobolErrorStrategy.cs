@@ -105,8 +105,12 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// user word) is the keyword out of place, which the strategy's own diagnosis names (hint 0h, COBOL2269).</item>
     /// </list>
     /// So END-ACCEPT, END-DISPLAY, END-RECEIVE and END-SEND, gated because some edition leaves them free, draw at an edition
-    /// that reserves them what every other terminator draws. Derived from the grammar (the expected set and the
-    /// terminator map), so a gated word a format gains tomorrow is decided the same way.</para>
+    /// that reserves them what every other terminator draws, after a statement and at the start of a sentence alike: the
+    /// paragraph and section headers take a reserved word only where the header follows it
+    /// (<see cref="CobolParserCoreBase.procedureHeaderHere"/>), so a stray terminator beginning a sentence fails AT the
+    /// word and reaches this decision, where it used to be read as a header missing its period (review R1-1). A WRITTEN
+    /// header (<c>END-DISPLAY.</c>) parses and is the funnel's reserved paragraph-name. Derived from the grammar (the
+    /// expected set and the terminator map), so a gated word a format gains tomorrow is decided the same way.</para>
     /// <para>It reads only the position, never the report's hints, so the report and both recoveries of the word ask
     /// this one decision: the resynchronization after the report (<see cref="IsReportedReservedOperand"/>) and the
     /// single-token deletion, which decides before its report is made (<see cref="IsReservedOperand"/>).</para></summary>

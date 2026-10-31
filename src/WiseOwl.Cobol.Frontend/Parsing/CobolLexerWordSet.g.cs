@@ -216,8 +216,9 @@ public partial class CobolLexer
 
     /// <summary>The RESERVATION-GATED token types (kb/Work PB693/PB655) — the same derived set step 4b
     /// keeps out of cobolWord and ReservationGateRewriter retypes where §8.9 frees a declared word. A parse
-    /// error ON one of these is the §8.9 violation itself (no name-slot alternative takes the token), so CobolErrorListener
-    /// answers with the targeted COBOL0901 instead of a raw COBOL0001 that never names the cause.
+    /// error ON one of these that §8.9 reserves is the §8.9 violation only where a user-defined word could stand,
+    /// and CobolErrorStrategy.ReservedWordUse decides it (kb/Work PB4132): there the report is the targeted COBOL0901,
+    /// elsewhere the word is its keyword out of place (a stray END-DISPLAY is COBOL0306, as END-ADD is).
     /// Generated, so a newly gated word needs no edit anywhere.</summary>
     internal static bool IsReservationGated(int tokenType) => _reservationGatedTokens.Contains(tokenType);
 
