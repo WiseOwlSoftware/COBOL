@@ -593,9 +593,17 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// owed rather than an omission: the printed format is <c>SET data-name-4 TO { data-name-5 | NULL }</c>,
     /// making data-name-4 the receiver, while §14.9.39.4 GR40 moves the content of data-name-4 INTO data-name-5
     /// and GR41 sets the content of data-name-5 — the two readings disagree about which operand is written, and
-    /// SR35 constrains only the class. kb/Work PB453 §2 records the contradiction.</para></summary>
+    /// SR35 constrains only the class. kb/Work PB453 §2 records the contradiction.</para>
+    /// <para>⛔ BELOW 2023 THE FACILITY IS NOT THIS EDITION'S TO DECLINE (kb/Work PB916): the statement is selected by
+    /// its operand's message-tag USAGE, which exists from 2023 only (<c>usage-message-tag-2023</c>, the row
+    /// <c>PictureAnalyzer.ParseUsage</c> asks for the entry's own decline), and below it that operand's entry already
+    /// draws the COBOL0900 introduction gate. A COBOL2205 beside it would name a 2023 facility to a COBOL-85/2002/2014
+    /// program, so the statement binds to a no-op there — <c>StatementBinder.BindDeclinedMcs</c>'s shape — and the
+    /// entry's gate fails the compile.</para></summary>
     private BoundStatement BindMessageTagSet(IReadOnlyList<Core.DataReferenceContext> receivers, string senderText)
     {
+        if (!ConstructRegistry.IsAvailable(ctx.Edition.Edition, Constructs.UsageMessageTag2023))
+            return new BoundNop();   // no-op: the operands' usage-message-tag-2023 gate (COBOL0900) refuses this compile (kb/Work PB916)
         ctx.Edition.Declined(DiagnosticCatalog.McsMessageTagSetUnsupported,
             $"SET {SetFormatSelection.Written(receivers)} TO {senderText}");
         return BoundRejected.Reported(ctx.Edition);
