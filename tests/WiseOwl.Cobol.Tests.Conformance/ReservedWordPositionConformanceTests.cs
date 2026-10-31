@@ -321,9 +321,9 @@ public sealed class ReservedWordPositionConformanceTests
     }
 
     /// <summary>ONE occurrence of the word, ONE report (kb/Work PB693). A REFERENCE to a reservation-gated
-    /// word cannot parse, so the §8.9 answer comes from <c>CobolErrorListener</c>'s re-code rather than the
-    /// bound-tree funnel — and ANTLR raises TWO syntax errors on the one offending token (the prediction
-    /// failure and <c>CobolErrorStrategy</c>'s recovery message). Re-coding both printed the identical
+    /// word cannot parse, so the §8.9 answer comes from the syntax error's report (<c>CobolErrorStrategy</c>'s
+    /// <c>ReservedWordUse</c>) rather than the bound-tree funnel — and ANTLR can raise TWO syntax errors on the one
+    /// offending token (the prediction failure and the strategy's recovery message). Naming both printed the identical
     /// sentence twice; §8.3.2.1 rule 1 is violated once by one occurrence, and it is reported once.</summary>
     [Theory]
     [InlineData(2002)]
@@ -408,8 +408,8 @@ public sealed class ReservedWordPositionConformanceTests
 
     /// <summary>⛔ THE OTHER ARM: A RESERVED VERB THAT CORRECTLY BEGINS THE NEXT STATEMENT IS READ AS THAT STATEMENT
     /// (kb/Work PB3248, branch review R1-1). After an incomplete statement (<c>MOVE W-X TO</c>, its receiver missing) the
-    /// syntax error falls AT the next statement's verb, and the listener reports it as the word's §8.9 violation just as
-    /// it does an operand. Consuming that verb as an operand resumed the parse inside the correct statement that follows
+    /// syntax error falls AT the next statement's verb, and the report names it as the word's §8.9 violation just as
+    /// it does an operand (a user-defined word stands there: the MOVE's missing receiver). Consuming that verb as an operand resumed the parse inside the correct statement that follows
     /// and refused one of ITS words: <c>RECEIVE FROM W-X GIVING W-Y W-N</c> drew "unexpected 'GIVING'", <c>SEND TO W-X
     /// FROM W-Y RETURNING W-N END-SEND</c> "unexpected 'FROM'", and <c>RESUME AT NEXT STATEMENT</c> was told to write
     /// SENTENCE. The recovery resumes at the verb when the statement it begins parses, so the source's one error is
@@ -511,5 +511,96 @@ public sealed class ReservedWordPositionConformanceTests
                                             && d.Contains($"'{word}'", StringComparison.Ordinal)),
                     $"no procedure is named '{word}': only SR12's COBOL1639 may stand beside the COBOL0901, got:\n{all}");
         }
+    }
+
+    // ── A reserved word where no user-defined word stands is its keyword, misplaced (kb/Work PB4132) ──────────────
+
+    /// <summary>⛔ §8.3.2.1 1) IS BROKEN BY A USE AS A USER-DEFINED WORD, SO COBOL0901 NAMES ONLY SUCH A USE (kb/Work
+    /// PB4132). ISO §8.3.2.1 1): "Reserved words shall not be used as user-defined words or system-names." Where §8.9
+    /// reserves a reservation-gated word the token IS its keyword, and a syntax error on it is that rule's violation only
+    /// where a user-defined word could stand. RETRY after <c>ADVANCING ON LOCK</c> stands where the READ has ended and no
+    /// statement begins with a user word: it begins the retry-phrase, the third alternative of the one bracket ISO
+    /// §14.9.30.2 Format 1 prints for ADVANCING ON LOCK, IGNORING LOCK and retry-phrase (ISO §5.2.6.2: "one of the
+    /// alternatives contained within the brackets may be explicitly specified"), and
+    /// the READ's own refusal (COBOL2269) names it. It used to draw COBOL0901, which the syntax-error listener wrote over
+    /// every report on such a word. The stray scope terminators (END-DISPLAY and its three gated siblings) are swept in
+    /// <c>ParseRecoveryTailTests</c>.</summary>
+    [Theory]
+    [InlineData(2002)]
+    [InlineData(2014)]
+    [InlineData(2023)]
+    public void ARetryPhraseAfterAdvancingOnLock_IsTheReadsRefusal_Never0901(int edition)
+    {
+        var (ok, diags) = EditionHarness.Compile("""
+                   IDENTIFICATION DIVISION.
+                   PROGRAM-ID. PB4132R.
+                   ENVIRONMENT DIVISION.
+                   INPUT-OUTPUT SECTION.
+                   FILE-CONTROL.
+                       SELECT SQF ASSIGN TO "pb4132r.dat"
+                           ORGANIZATION IS SEQUENTIAL.
+                   DATA DIVISION.
+                   FILE SECTION.
+                   FD SQF.
+                   01 SQ-REC PIC X(4).
+                   PROCEDURE DIVISION.
+                   MAIN-P.
+                       OPEN INPUT SQF.
+                       READ SQF NEXT RECORD ADVANCING ON LOCK RETRY 3 TIMES
+                           AT END CONTINUE
+                       END-READ.
+                       CLOSE SQF.
+                       STOP RUN.
+
+               """, edition);
+        Assert.False(ok, $"--std {edition}: two alternatives of one bracket are refused");
+        Assert.True(diags.Count == 1 && diags[0].Contains("COBOL2269", StringComparison.Ordinal)
+                                     && diags[0].Contains("'RETRY'", StringComparison.Ordinal),
+            $"expected exactly the one COBOL2269 at 'RETRY', got:\n{string.Join("\n", diags)}");
+    }
+
+    /// <summary>THE OTHER ARM: where a user-defined word DOES stand, the reserved word is refused as one (kb/Work PB693,
+    /// PB4132). Each of the three readings that admit a user-defined word at the token keeps COBOL0901: an operand of
+    /// the statement still open (<c>DISPLAY CONSTANT</c>), the next operand of a list the statement before the token
+    /// would continue (<c>MOVE 1 TO W-N CONSTANT W-K</c>, whose receiving list the parse had already left), and a
+    /// paragraph header a missing separator period would begin (<c>STOP RUN CONSTANT.</c>).
+    /// <para>At the start of a sentence the header's name is the user-defined word that stands there (kb/Work PB4132
+    /// review R1-1, <c>CobolParserCoreBase.procedureHeaderHere</c>). Where the header is written (ISO §14.4.3: "A
+    /// paragraph consists of a paragraph-name followed by a separator period") the funnel names the reserved
+    /// paragraph-name, a scope terminator included: <c>END-DISPLAY.</c> matches the paragraph format and no other, and
+    /// a COBOL-85 paragraph so named, compiled at an edition that reserves the word, is refused for its name. Where the
+    /// period does not follow, the word is its keyword and the report is made at it, never at the next word as a
+    /// missing period: <c>CONSTANT MOVE 1 TO W-N.</c> here, and a stray terminator's COBOL0306
+    /// (<c>ParseRecoveryTailTests</c>).</para></summary>
+    [Theory]
+    [InlineData("DISPLAY CONSTANT.")]
+    [InlineData("MOVE 1 TO W-N CONSTANT W-K.")]
+    [InlineData("MOVE 1 TO W-N CONSTANT.")]
+    [InlineData("STOP RUN CONSTANT.")]
+    [InlineData("CONSTANT MOVE 1 TO W-N.")]
+    [InlineData("MOVE 1 TO W-N. CONSTANT MOVE 2 TO W-K.")]
+    [InlineData("MOVE 1 TO W-N. CONSTANT.")]
+    [InlineData("MOVE 1 TO W-N. END-DISPLAY.", "END-DISPLAY")]
+    [InlineData("MOVE 1 TO W-N. END-ACCEPT.", "END-ACCEPT", 2014)]
+    [InlineData("MOVE 1 TO W-N. END-SEND.", "END-SEND", 2023)]
+    public void AReservedWordWhereAUserWordStands_Draws0901(string statement, string word = "CONSTANT", int edition = 2002)
+    {
+        var (ok, diags) = EditionHarness.Compile($"""
+                   IDENTIFICATION DIVISION.
+                   PROGRAM-ID. PB4132U.
+                   DATA DIVISION.
+                   WORKING-STORAGE SECTION.
+                   01 W-N PIC 9(4).
+                   01 W-K PIC 9(4).
+                   PROCEDURE DIVISION.
+                   MAIN-P.
+                       {statement}
+                       STOP RUN.
+
+               """, edition);
+        Assert.False(ok, $"{word} is reserved at --std {edition}: the use is refused");
+        Assert.True(diags.Count == 1 && diags[0].Contains("COBOL0901", StringComparison.Ordinal)
+                                     && diags[0].Contains($"'{word}'", StringComparison.Ordinal),
+            $"expected exactly the one COBOL0901 naming '{word}', got:\n{string.Join("\n", diags)}");
     }
 }
