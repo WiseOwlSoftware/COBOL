@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 using Xunit;
@@ -58,15 +59,43 @@ public sealed class ParseRecoveryTailTests
         Assert.True(Terminators.Length >= 20, $"the grammar spells {Terminators.Length} scope terminators");
     }
 
-    /// <summary>The terminators that are also reservation-gated words (<c>reservedGatedWord</c>: END-ACCEPT, END-DISPLAY,
-    /// END-RECEIVE, END-SEND, free as user-defined words before 2002), read from the ATN. A stray one parses as a
-    /// data-name, so the §8.9 funnel answers it (COBOL0901) where the misplaced-terminator hint is never asked: still
-    /// exactly one diagnostic, but not COBOL0306.</summary>
-    private static bool IsGatedWord(string word)
+    /// <summary>The terminators that are also reservation-gated words (<c>reservedGatedWord</c>, read from the ATN:
+    /// END-ACCEPT, END-DISPLAY, END-RECEIVE and END-SEND, each a user-defined word at some edition §8.9 leaves it free),
+    /// with every edition that RESERVES the word (kb/Work PB4132). There the token is its keyword, so a stray one is the
+    /// misplaced terminator every other terminator is (COBOL0306), never a user-defined word refused by §8.9
+    /// (COBOL0901): it used to be, because the syntax-error listener re-coded every error on such a word after the
+    /// strategy had named the terminator.</summary>
+    public static TheoryData<string, int> EveryGatedTerminatorAtEveryEditionThatReservesIt()
     {
         var atn = CobolParserCore._ATN;
-        var gated = atn.NextTokens(atn.ruleToStartState[CobolParserCore.RULE_reservedGatedWord]);
-        return gated.ToList().Any(t => CobolLexer.DefaultVocabulary.GetLiteralName(t)?.Trim('\'') == word);
+        var gated = atn.NextTokens(atn.ruleToStartState[CobolParserCore.RULE_reservedGatedWord]).ToList()
+            .Select(t => CobolLexer.DefaultVocabulary.GetLiteralName(t)?.Trim('\'')).ToHashSet(StringComparer.Ordinal);
+        var data = new TheoryData<string, int>();
+        foreach (string word in Terminators.Where(gated.Contains))
+            foreach (int edition in (int[])[85, 2002, 2014, 2023])
+                if (ReservedWordSet.Default.RejectsAt(word, edition)) data.Add(word, edition);
+        return data;
+    }
+
+    [Fact]
+    public void TheGatedTerminatorSweepReadsTheGrammar()
+    {
+        // the four the note names, each reserved at 2023 at least (a sweep that matched nothing would prove nothing)
+        var words = EveryGatedTerminatorAtEveryEditionThatReservesIt().Select(row => (string)row[0]).ToHashSet();
+        Assert.Superset(new HashSet<string> { "END-ACCEPT", "END-DISPLAY", "END-RECEIVE", "END-SEND" }, words);
+    }
+
+    /// <summary>A gated terminator written after a complete MOVE, whose receiving list would take another operand, at an
+    /// edition that reserves it: the terminator with no statement to end (ISO §14.5.3.2), named once, exactly as a
+    /// stray END-ADD there is.</summary>
+    [Theory]
+    [MemberData(nameof(EveryGatedTerminatorAtEveryEditionThatReservesIt))]
+    public void AStrayGatedTerminator_IsTheMisplacedTerminator_AtEveryEditionThatReservesIt(string word, int edition)
+    {
+        var errors = RecoverySources.Errors(RecoverySources.Program($"MOVE 1 TO W-N {word} MOVE 2 TO W-K."), edition);
+        Assert.True(errors.Count == 1, $"[{word} at {edition}] expected exactly one diagnostic, got:\n{string.Join("\n", errors)}");
+        Assert.Contains("COBOL0306", errors[0]);
+        Assert.Contains($"{word} appears without a matching", errors[0]);
     }
 
     /// <summary>A terminator written after a MOVE, with the statement after it still inside the open construct: the
@@ -84,11 +113,6 @@ public sealed class ParseRecoveryTailTests
         // twice, and the second is the stray one
         string stray = errors.Count == 1 ? errors[0] : string.Join("\n", errors);
         Assert.True(errors.Count == 1, $"[{opening} … {word}] expected exactly one diagnostic, got:\n{stray}");
-        if (IsGatedWord(word))
-        {
-            Assert.Contains("COBOL0901", errors[0]);
-            return;
-        }
         Assert.Contains("COBOL0306", errors[0]);
         Assert.Contains($"{word} appears without a matching", errors[0]);
     }

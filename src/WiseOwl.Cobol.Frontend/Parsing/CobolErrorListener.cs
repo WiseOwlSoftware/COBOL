@@ -2,7 +2,6 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using WiseOwl.Cobol.Frontend.Common;
-using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 
 namespace WiseOwl.Cobol.Frontend.Parsing;
@@ -23,12 +22,11 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
 
     private int _errorCount;
 
-    /// <summary>Start offsets of the offending tokens already re-coded to COBOL0901 (kb/Work PB693).
-    /// ANTLR raises TWO syntax errors on one offending token — the prediction failure and
-    /// <c>CobolErrorStrategy</c>'s recovery message — which used to render as two DIFFERENT sentences. The
-    /// §8.9 re-code below rewrites BOTH to the same one, so without this the user is told twice that the
-    /// word is reserved. ISO §8.3.2.1 rule 1 is violated ONCE by one occurrence of the word, and that is how
-    /// often it is reported; bounded by <see cref="MaxErrors"/>.</summary>
+    /// <summary>Start offsets of the offending tokens already reported as COBOL0901 (kb/Work PB693).
+    /// ANTLR can raise TWO syntax errors on one offending token — the prediction failure and
+    /// <c>CobolErrorStrategy</c>'s recovery message — and the strategy names the word's §8.9 violation in both, so
+    /// without this the user is told twice that the word is reserved. ISO §8.3.2.1 rule 1 is violated ONCE by one
+    /// occurrence of the word, and that is how often it is reported; bounded by <see cref="MaxErrors"/>.</summary>
     private readonly HashSet<int> _reservedWordReported = [];
 
     public override void SyntaxError(
@@ -43,22 +41,11 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
         if (_errorCount >= MaxErrors)
             return;
 
-        // ⛔ THE §8.9 ARM (kb/Work PB693). A syntax error ON a reservation-gated word IS the §8.9 violation: the
-        // gate is precisely why no user-defined-word alternative could match, and a REFERENCE to the word never
-        // reaches the bound-tree funnel because the source did not parse. Report the targeted COBOL0901 so the
-        // cause is NAMED, rather than "no viable alternative at input 'X'". The parser owns the test (it holds the
-        // edition, the >>COBOL-WORDS overlay and the generated gate set); this stage only re-codes the
-        // diagnostic, and the message has ONE definition in ReservedWordSet. Computed BEFORE the error is
-        // counted so a suppressed duplicate does not eat a slot of the MaxErrors budget.
-        string? reservedWordMessage = recognizer is CobolParserCoreBase parser
-            ? parser.ReservedUserWordViolation(offendingSymbol)
-            : null;
-        if (reservedWordMessage is not null && !_reservedWordReported.Add(offendingSymbol.StartIndex))
-            return;
-
-        _errorCount++;
-
-        // Extract [COBOLxxxx] code prefix from message if present
+        // Extract the [COBOLxxxx] code prefix from the message if present. ⛔ THE CODE IS THE STRATEGY'S (kb/Work PB693,
+        // PB4132). The §8.9 arm, a syntax error on a reserved reservation-gated word written where a user-defined word
+        // stands (COBOL0901), is decided where every other diagnosis of the token is ranked
+        // (CobolErrorStrategy.ReservedWordUse), so a misplaced keyword's own diagnosis, a stray END-DISPLAY's COBOL0306,
+        // is never overwritten after the fact here.
         string code = Diagnostics.DiagnosticDescriptors.COBOL0001.Code;
         string message = msg;
         if (msg.StartsWith('['))
@@ -71,11 +58,12 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
             }
         }
 
-        if (reservedWordMessage is not null)
-        {
-            code = WiseOwl.Cobol.Editions.EditionCodes.ReservedWord;
-            message = reservedWordMessage;
-        }
+        // Dropped BEFORE the error is counted, so a suppressed duplicate does not eat a slot of the MaxErrors budget.
+        if (code == WiseOwl.Cobol.Editions.EditionCodes.ReservedWord && offendingSymbol is not null
+            && !_reservedWordReported.Add(offendingSymbol.StartIndex))
+            return;
+
+        _errorCount++;
 
         // ANTLR's `line` and `charPositionInLine` count the RESULTANT text (after the reference-format conversion,
         // COPY, REPLACE and continuation joins). The map names the file, physical line AND column the user edits (a

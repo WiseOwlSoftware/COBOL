@@ -95,8 +95,8 @@ HALTING before emit so codegen never runs on an errored tree. Construct introduc
 predicates still read the compile edition, under several names. **The sanctioned read is §8.9 WORD STATUS** — whether a
 word that is a user-defined word in an earlier edition is reserved here, which no post-bind gate can decide because the
 parse itself depends on it: `reservedHere`, `facilityWord`, `screenPositionAhead`, `entryNameHere`, `setLocaleAhead`
-(LOCALE and USER-DEFAULT are 1985 user words), the `gatedDeclaration` action, the `NoteGatedOffender` and
-`ReservedUserWordViolation` listener calls, the `keywordContinuesHere` alternatives of the generated `CobolWords.g4`, and
+(LOCALE and USER-DEFAULT are 1985 user words), the `gatedDeclaration` action, the `NoteGatedOffender` listener call and the error strategy's
+`ReservedUserWordViolation` report, the `keywordContinuesHere` alternatives of the generated `CobolWords.g4`, and
 two `{isXXXX()}?` spellings (bare LOCATION in PERFORM, OPEN's RETRY phrase). The lexer and the retype stage read it
 too, as word status: the Annex C spelling a word has at the edition (`ApplyEditionSpelling`) and whether the edition
 reserves a subscript trigger (`PreviousTokenCouldBeDataName`, primed by `TokenRetypes.ReservedNonDataNames`). **A

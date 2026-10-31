@@ -1,6 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -56,9 +55,10 @@ internal static class RecoverySources
 
         """;
 
-    /// <summary>The errors of the check-only compile of <paramref name="source"/> (free form, COBOL-2023); the source
-    /// holds a syntax error and must be rejected.</summary>
-    public static IReadOnlyList<string> Errors(string source)
+    /// <summary>The errors of the check-only compile of <paramref name="source"/> (free form, at
+    /// <paramref name="edition"/>, COBOL-2023 by default: a sweep over the editions that reserve a word passes each,
+    /// kb/Work PB4132); the source holds a syntax error and must be rejected.</summary>
+    public static IReadOnlyList<string> Errors(string source, int edition = 2023)
     {
         string dir = ScratchDirectory.Create("WiseOwlCobol_PBREC_");
         try
@@ -66,7 +66,7 @@ internal static class RecoverySources
             string src = Path.Combine(dir, "prrec.cob");
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "prrec.dll"), DialectLevel: 2023, CheckOnly: true, SourceFormat: InitialReferenceFormat.Free));
+                src, Path.Combine(dir, "prrec.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: InitialReferenceFormat.Free));
             Assert.False(r.Success, "the source holds a syntax error and must be rejected");
             return r.Errors;
         }
