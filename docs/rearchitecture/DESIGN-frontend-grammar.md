@@ -1078,7 +1078,7 @@ reference formats, and the only place source comments are recognized. Its model:
   state is carried across a text's SOURCE FORMAT segments in either format, `ConvertSegment`) — a `REMARKS.` paragraph
   copied into a PROCEDURE DIVISION is program text. `DivisionCursor` is the ONE rule for which division a text is in
   (kb/Work PB2739, PB4241), fed by the fixed-form and free-form converters over the LOGICAL lines they have settled
-  (`LogicalLineBuilder.ReadInto`, asked where a new source line is about to be classified, so a header continued onto a
+  (`LogicalLineBuilder.ReadInto`, asked where a new TEXT line is about to be classified — a blank or comment line is discarded and joins nothing, so it asks nothing — so a header continued onto a
   second line, `PROCEDURE DIVI` / `-SION.`, is one word) and by the COPY driver over logical text: a `DIVISION` word
   preceded by `IDENTIFICATION` / `ID` enters, any other `… DIVISION` leaves, and `PROGRAM-ID` / `CLASS-ID` /
   `FUNCTION-ID` / `INTERFACE-ID` / `METHOD-ID` enter (the header being optional, §11.2.1) — wherever the word begins in
@@ -1089,7 +1089,8 @@ reference formats, and the only place source comments are recognized. Its model:
   DIVISION== BY …` operand moves nothing. §6.5 converts BEFORE conditional compilation, so the converter cannot know which
   branch of a `>>IF` / `>>EVALUATE` is compiled: the cursor counts a division word inside such a group only when every
   branch (the one no condition selects included, absent an `>>ELSE` / `>>WHEN OTHER`) ends in the same division, else the
-  text stays in the division it was in before the group (docs/CONFORMANCE.md D-CE2); the COPY driver's cursor reads the
+  text is taken for no IDENTIFICATION DIVISION (a comment-entry needs one certain, and no edition with the group has the
+  entry; docs/CONFORMANCE.md D-CE2); the COPY driver's cursor reads the
   text the conditional-compilation stage has already cut, so it is exact. The cursor belongs to a TEXT, not to a block the
   merged driver flushes between directive lines; a spliced library
   text hands its end division back to the text it was spliced into. And the `D` indicator is

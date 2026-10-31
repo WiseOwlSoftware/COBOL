@@ -2058,21 +2058,33 @@ of an unsupported facility.
   standard has both a comment-entry (removed by COBOL-2002) and a `>>IF` (introduced by COBOL-2002 together with the
   comment-entry's removal), so the standard is silent on the mixed text. **Determination (CLAUDE.md rule 1: the standard is
   silent, so the implementor chooses; the ideal is to read only the compiled branches, as a compiler whose preprocessor
-  selects the lines before its scanner reads the comment paragraphs does, and this change did not measure GnuCOBOL on
-  it).** The converter cannot see the compiled branches, so it reads a `>>IF … >>END-IF` or `>>EVALUATE … >>END-EVALUATE`
-  group as evidence of the division after it only when every branch ends in the same division (the branch no condition
-  selects counted when there is no `>>ELSE` or `>>WHEN OTHER`); when the branches disagree the text stays in the
-  division it was in before the group. A division word in a branch no condition selects therefore moves nothing (the
-  text after `>>IF NEVER IS DEFINED / IDENTIFICATION DIVISION. / >>END-IF` stays in the PROCEDURE DIVISION and a
-  paragraph named REMARKS there is an ordinary paragraph), and the one reading the rule cannot reach is a SELECTED
-  branch that alone changes the division, where the converter keeps the earlier division. The COPY driver reads the text
-  the conditional-compilation stage has already cut, so a COPY's library text starts in the true division. The
+  selects the lines before its scanner reads the comment paragraphs does, and this change did not measure
+  GnuCOBOL's comment-entry on it).** The converter cannot see the compiled branches, so it reads a `>>IF … >>END-IF` or
+  `>>EVALUATE … >>END-EVALUATE` group as evidence of the division after it only when every branch ends in the same
+  division (the branch no condition selects counted when there is no `>>ELSE` or `>>WHEN OTHER`); when the branches
+  disagree, the division after the group depends on a condition only the conditional-compilation stage evaluates, and the
+  converter takes the text for NO IDENTIFICATION DIVISION. The choice follows the standard where it speaks: every edition
+  that has the group (2002 on) has no comment-entry, so a paragraph named REMARKS, AUTHOR or INSTALLATION after such a
+  group is an ordinary paragraph of a legal program, and the reading that rejects no standard program is the one that
+  finds no comment-entry there. Both directions are pinned: a division word in a branch no condition selects moves
+  nothing (`>>IF NEVER IS DEFINED / IDENTIFICATION DIVISION. / >>END-IF` in a PROCEDURE DIVISION), and a division word in
+  the SELECTED branch is not undone (`>>DEFINE X AS 1 / >>IF X IS DEFINED / PROCEDURE DIVISION. … >>END-IF` in an
+  IDENTIFICATION DIVISION). The residue is a non-standard text that mixes the two: a COBOL-85 comment-entry
+  paragraph directly after a group whose branches disagree on the division (and no PROGRAM-ID paragraph between) is read
+  as program text; reading it exactly needs the comment-entry decision made after conditional compilation, a stage-order
+  redesign registered in the PB4241 report. A `>>WHEN` whose selection object merely begins with the letters OTHER
+  (`>>WHEN OTHERV`) is not the `>>WHEN OTHER` default branch (§7.3.13.3 SR5/SR6: the phrase is a word, asked of
+  `CompilerDirectiveLine.StartsWithWord` by this cursor and by the conditional-compilation stage alike). The COPY driver
+  reads the text the conditional-compilation stage has already cut, so a COPY's library text starts in the true division. The
   same change fixed two readings of the text that were not about conditional compilation: the cursor reads the LOGICAL
   lines (a header continued onto a second line, `PROCEDURE DIVI` / `-SION.`, is one word, §6.5 6) b)), and skips a COPY
   or REPLACE statement from its COPY / REPLACE word to its separator period outside pseudo-text, so a `REPLACING
   ==PROCEDURE DIVISION== BY …` operand leaves no division. Pinned by
   `conformance:cases/6.5-Logical-conversion/pb4241_omitted_branch_division_header`,
+  `conformance:cases/6.5-Logical-conversion/pb4241_selected_branch_division_header`,
+  `conformance:cases/6.5-Logical-conversion/pb4241_when_other_word_is_not_the_default`,
   `conformance:cases/6.5-Logical-conversion/pb4241_continued_division_header`,
+  `conformance:cases/6.5-Logical-conversion/pb4241_continued_division_header_across_blank_line`,
   `conformance:cases/6.5-Logical-conversion/pb4241_copy_operand_names_division` and
   `unit:DivisionCursorTests`.
 
