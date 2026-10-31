@@ -1,4 +1,4 @@
-## PB1253: the report file's record structure row GR-13.4.5.4-4 is CONFORMS, and the note lands
+## Entry 2856 — 2026-10-31 10:10 PDT — PB1253: the report file's record structure row GR-13.4.5.4-4 is CONFORMS, and the note lands
 
 Wave 20261784 group A, kb/Work PB1253. The note had been narrowed by earlier landings to one row, GR-13.4.5.4-4 (§13.4.5.4 GR4: "The report writer logical record structure of the file associated with file-name-1 is defined by the implementor", Annex A.1 item 159, required and documented). The row had been held PARTIAL since the PB929 sweep's review round 1 (R1-1) because DOC-A.1-159 said a refused wide print line gives I-O status `71` "if the file is ORGANIZATION LINE SEQUENTIAL", while `FileRegistry.RegisterReport` registers every report connector `lineSequential: false`. kb/Work PB2556 (wave 20261777 A) corrected that sentence to `91` for every report file and added its witness; kb/Work PB2510 settled the page-advance representation. Both blockers have landed, so this change is the re-verdict.
 
@@ -7,3 +7,4 @@ Wave 20261784 group A, kb/Work PB1253. The note had been narrowed by earlier lan
 **Fix shape.** No code change. The code already writes the structure the determination documents; the missing half was one wrong sentence, fixed by PB2556. The row's `record_verdicts` batch re-verdicts PARTIAL to CONFORMS (GAP 20 to 19) and adds the PB2556 golden as a second witness and `FileRegistry.RegisterReport` as a second site. The note flips to `landed` with `closes_rows: ["GR-13.4.5.4-4"]`; its other rows (DOC-A.1-116, GR-13.7.4-3 and -5 by PB2671; DOC-A.1-159, DOC-A.1-160 and GR-13.18.14.4-2 by PB690 and PB929) were already closed. No new golden: the two existing ones witness the row, and no diagnostic code was used.
 
 **Self-review.** Nothing in the diff to review for architecture, performance or duplication (a register change); the code lens checked that the row's `code-location` names the registration site (`RegisterReport`) that decides the line end and the status, not only the writer.
+
