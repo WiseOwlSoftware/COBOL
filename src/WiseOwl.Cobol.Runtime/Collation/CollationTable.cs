@@ -50,7 +50,8 @@ public sealed class CollationTable
 
     private readonly record struct ImplicitRange(int First, int Last, int Base, int Subtract, byte Kind);
 
-    private readonly CollationElement[] _elements;               // the element pool (primaries already shifted)
+    private readonly CollationElement[] _elements;               // the element pool (primaries already shifted); may hold spare room past _elementCount
+    private readonly int _elementCount;                           // the elements in use
     private readonly Dictionary<int, int> _singles;               // code point → (offset << 8) | count
     private readonly Dictionary<int, Contraction[]> _contractions; // first code point → candidates, longest first
     private readonly Dictionary<int, byte> _ccc;                  // non-starters only (ccc ≠ 0)
@@ -60,7 +61,7 @@ public sealed class CollationTable
     private readonly ReorderGroup[] _groups;                      // in this table's primary order
     private readonly int[] _digitRuns;                            // first code point of each run of ten decimal digits (Nd), ascending
 
-    private CollationTable(string name, string ucaVersion, string sourceTag, int primaryShift, CollationElement[] elements,
+    private CollationTable(string name, string ucaVersion, string sourceTag, int primaryShift, CollationElement[] elements, int elementCount,
         Dictionary<int, int> singles, Dictionary<int, Contraction[]> contractions, Dictionary<int, byte> ccc,
         ImplicitRange[] implicitRanges, Dictionary<int, int[]> nfd, ReorderGroup[] groups, int[] digitRuns, TailoringRules? tailoring,
         string? description, WeightMap? primaryMap, WeightMap? secondaryMap, WeightMap? tertiaryMap)
@@ -70,6 +71,7 @@ public sealed class CollationTable
         SourceTag = sourceTag;
         _primaryShift = primaryShift;
         _elements = elements;
+        _elementCount = elementCount;
         _singles = singles;
         _contractions = contractions;
         _ccc = ccc;
@@ -127,7 +129,7 @@ public sealed class CollationTable
     public int ClosedComposites { get; private init; }
 
     /// <summary>The number of elements in the pool (diagnostics).</summary>
-    public int ElementCount => _elements.Length;
+    public int ElementCount => _elementCount;
 
     /// <summary>The root → this-table mapping of PRIMARY weights, or null when this table keeps the root's primaries
     /// (the root itself, and every tailoring that only inserted into free room). A tailored table whose CLDR rules
@@ -288,7 +290,7 @@ public sealed class CollationTable
     internal CollationElement ElementAt(int index) => _elements[index];
 
     /// <summary>The whole element pool (read-only) — what a rule builder scans for the weights in use.</summary>
-    internal ReadOnlySpan<CollationElement> Pool => _elements;
+    internal ReadOnlySpan<CollationElement> Pool => _elements.AsSpan(0, _elementCount);
 
     /// <summary>Every explicit single mapping (code point → pool slice) — for builders and diagnostics.</summary>
     internal IEnumerable<(int CodePoint, int Offset, int Count)> Singles()
@@ -446,11 +448,26 @@ public sealed class CollationTable
                 if (contractions.Remove(cp, out var removed)) contractionCount -= removed.Length;
             }
         }
-        var pool = new List<CollationElement>(_elements.Length + plan.Entries.Count * 2);
+        // ONE array holds the new pool: the base's elements (re-weighted when the plan renumbered), the plan's entries,
+        // their NFD spellings' copies, and the composites closure re-derives — spare room for the last two is allotted up
+        // front, so the pool is allocated (and, past the large-object threshold, collected) once per build.
+        int spare = 2048;
+        foreach (var (_, entryElements) in plan.Entries) spare += entryElements.Length * 2;
+        var pool = new CollationElement[_elementCount + spare];
+        int poolCount = _elementCount;
         if (plan.Remap is { } remap)
-            foreach (var e in _elements) pool.Add(remap(e));
-        else
-            pool.AddRange(_elements);
+        {
+            for (int i = 0; i < _elementCount; i++) pool[i] = remap.Apply(_elements[i]);
+        }
+        else Array.Copy(_elements, pool, _elementCount);
+        int Append(ReadOnlySpan<CollationElement> elements)
+        {
+            int at = poolCount;
+            if (at + elements.Length > pool.Length) Array.Resize(ref pool, Math.Max(pool.Length * 2, at + elements.Length));
+            elements.CopyTo(pool.AsSpan(at));
+            poolCount = at + elements.Length;
+            return at;
+        }
 
         // The code points the tailoring can change the walk of: every code point of a key it maps, and the first code
         // point of every contraction it suppresses. A composite whose decomposition holds none of them walks exactly
@@ -459,9 +476,7 @@ public sealed class CollationTable
         if (plan.SuppressContractionsStartingWith is { } suppressed) touched.UnionWith(suppressed);
         foreach (var (codePoints, elements) in plan.Entries)
         {
-            int offset = pool.Count;
-            pool.AddRange(elements);
-            AddMapping(singles, contractions, codePoints, offset, elements.Length, ref contractionCount);
+            AddMapping(singles, contractions, codePoints, Append(elements), elements.Length, ref contractionCount);
             touched.UnionWith(codePoints);
         }
 
@@ -477,9 +492,7 @@ public sealed class CollationTable
             if (!MapsItsNfdSpelling(codePoints)) continue;
             var nfd = CanonicalForm(codePoints);
             if (nfd is null || plan.Defines(nfd)) continue;
-            int offset = pool.Count;
-            pool.AddRange(elements);
-            AddMapping(singles, contractions, nfd, offset, elements.Length, ref contractionCount);
+            AddMapping(singles, contractions, nfd, Append(elements), elements.Length, ref contractionCount);
             touched.UnionWith(nfd);
         }
         // (2) every precomposed character the plan does not map itself, whose decomposition holds a code point the
@@ -487,7 +500,7 @@ public sealed class CollationTable
         //     contraction, discontiguous over unblocked marks — the engine's own walk, UTS #10 S2.1), when they differ
         //     from what it maps to now: tailoring c moves ç; tailoring a mark moves every letter carrying it; a
         //     tailored ă reaches ặ = a + dot below + breve. Hangul syllables are algorithmic and never mapped.
-        var provisional = Derived(plan, pool.ToArray(), singles, contractions, contractionCount);
+        var provisional = Derived(plan, pool, poolCount, singles, contractions, contractionCount);
         var composites = new List<(int CodePoint, CollationElement[] Elements)>();
         if (touched.Count > 0)
         {
@@ -501,21 +514,19 @@ public sealed class CollationTable
         if (composites.Count == 0) return provisional;
         foreach (var (cp, elements) in composites)
         {
-            int offset = pool.Count;
-            pool.AddRange(elements);
-            AddMapping(singles, contractions, [cp], offset, elements.Length, ref contractionCount);
+            AddMapping(singles, contractions, [cp], Append(elements), elements.Length, ref contractionCount);
         }
-        return Derived(plan, pool.ToArray(), singles, contractions, contractionCount, composites.Count);
+        return Derived(plan, pool, poolCount, singles, contractions, contractionCount, composites.Count);
     }
 
     /// <summary>A table over this one's Unicode data with the given mappings and the plan's names, groups and maps.</summary>
-    private CollationTable Derived(TailoringPlan plan, CollationElement[] pool, Dictionary<int, int> singles,
+    private CollationTable Derived(TailoringPlan plan, CollationElement[] pool, int poolCount, Dictionary<int, int> singles,
         Dictionary<int, Contraction[]> contractions, int contractionCount, int closedComposites = 0)
     {
         int longest = 1;
         foreach (var list in contractions.Values)
             foreach (var c in list) longest = Math.Max(longest, c.Rest.Length + 1);
-        return new CollationTable(plan.Name, UcaVersion, SourceTag, _primaryShift, pool, singles, contractions,
+        return new CollationTable(plan.Name, UcaVersion, SourceTag, _primaryShift, pool, poolCount, singles, contractions,
             _ccc, _implicit, _nfd, plan.Groups ?? _groups, _digitRuns, plan.Tailoring, plan.Description, plan.PrimaryMap, plan.SecondaryMap, plan.TertiaryMap)
         {
             ContractionCount = contractionCount, MaxContractionLength = longest, ClosedComposites = closedComposites,
@@ -702,7 +713,7 @@ public sealed class CollationTable
         int longest = 1;
         foreach (var list in contractions.Values)
             foreach (var c in list) longest = Math.Max(longest, c.Rest.Length + 1);
-        return new CollationTable(name, version, sourceTag, shift, elements, singles, contractions, ccc, ranges, nfd, groups, digitRuns,
+        return new CollationTable(name, version, sourceTag, shift, elements, elements.Length, singles, contractions, ccc, ranges, nfd, groups, digitRuns,
             tailoring: null, description: $"{name} ({sourceTag})", primaryMap: null, secondaryMap: null, tertiaryMap: null)
             { ContractionCount = contractionCount, MaxContractionLength = longest };
     }
@@ -797,13 +808,32 @@ public sealed class WeightMap
 /// and the CLDR rule builder (entries in the new scale, plus the remapping of every base element and the resulting
 /// group ranges and root-scale maps).
 /// </summary>
+/// <summary>The re-weighting of one pool element by a tailoring that renumbered a level or reordered the primaries
+/// (<see cref="TailoringPlan.Remap"/>): each level through its own map — the primaries by a function (a map over some
+/// 25,000 weights plus the group permutation), the others by a direct lookup array — and an implicit weight's second
+/// element, which is never renumbered, left as it is.</summary>
+internal sealed class ElementRemap(Func<int, int>? primary, int[]? secondary, int[]? tertiary, int[]? quaternary, int implicitSecondFloor)
+{
+    public CollationElement Apply(in CollationElement e)
+    {
+        if (e.Secondary == 0 && e.Tertiary == 0 && e.Primary >= implicitSecondFloor) return e;
+        return e with
+        {
+            Primary = primary is null || e.Primary == 0 ? e.Primary : primary(e.Primary),
+            Secondary = secondary is null ? e.Secondary : secondary[e.Secondary],
+            Tertiary = tertiary is null ? e.Tertiary : tertiary[e.Tertiary],
+            Quaternary = quaternary is null ? e.Quaternary : quaternary[e.Quaternary],
+        };
+    }
+}
+
 internal sealed class TailoringPlan
 {
     public required string Name { get; init; }
     public string? Description { get; init; }
     public TailoringRules? Tailoring { get; init; }
     /// <summary>The re-weighting of every element of the base pool (renumbering + reordering), or null for identity.</summary>
-    public Func<CollationElement, CollationElement>? Remap { get; init; }
+    public ElementRemap? Remap { get; init; }
     /// <summary>The mappings to add or replace, elements in the NEW table's scale.</summary>
     public required List<(int[] CodePoints, CollationElement[] Elements)> Entries { get; init; }
     /// <summary>First code points whose contractions are removed (CLDR <c>[suppressContractions]</c>).</summary>

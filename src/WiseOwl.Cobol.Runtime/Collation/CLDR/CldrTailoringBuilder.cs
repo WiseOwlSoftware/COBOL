@@ -76,23 +76,24 @@ public static class CldrTailoringBuilder
     /// <summary>The ordered weights of one level: the root's distinct weights plus the slots inserted after them.</summary>
     private sealed class Line
     {
-        private readonly int[] _roots;                                          // ascending, includes 0
-        private readonly HashSet<int> _rootSet;
+        private readonly int[] _roots;                                          // ascending, includes 0; shared (BaseRoots), never written
         private readonly Dictionary<int, Slot> _rootSlots = new();
         private readonly Dictionary<int, LinkedList<Slot>> _after = new();      // anchor root value → inserted slots after it, in order
         private readonly int _fixedRoom;                                        // room after an anchor that is not a root (implicit BBBB)
 
-        public Line(int level, IEnumerable<int> rootValues, int fixedRoom)
+        public Line(int level, int[] roots, int fixedRoom)
         {
             Level = level;
-            _roots = rootValues.Append(0).Distinct().OrderBy(x => x).ToArray();
-            _rootSet = new HashSet<int>(_roots);
+            _roots = roots;
             _fixedRoom = fixedRoom;
         }
 
         public int Level { get; }
         public int InsertedCount { get; private set; }
         public bool Overflowed { get; private set; }
+
+        /// <summary>The root weights of the line, ascending (the shared array: read, never written).</summary>
+        public int[] Roots => _roots;
 
         public Slot RootSlot(int value)
         {
@@ -126,45 +127,120 @@ public static class CldrTailoringBuilder
         }
 
         /// <summary>Assign final values: root weights keep their value unless an overflowed gap below them forced a
-        /// shift; inserted slots take the values after their anchor. Returns the root → new mapping (null when identity).</summary>
+        /// shift; inserted slots take the values after their anchor. Returns the root → new mapping (null when identity).
+        /// SPARSE: only the anchors that have slots inserted after them, and the root slots the rules created, are
+        /// visited — the line itself (tens of thousands of weights) is walked only when a gap overflowed and the whole
+        /// map must be written.</summary>
         public WeightMap? Number()
         {
-            var to = new int[_roots.Length];
-            long shift = 0;
-            for (int i = 0; i < _roots.Length; i++)
+            // The anchors that are roots, ascending; each overflow shifts every root above its anchor.
+            var anchors = new List<(int Index, int Root, LinkedList<Slot> Slots)>();
+            foreach (var (anchor, list) in _after)
             {
-                int root = _roots[i];
+                if (list.Count == 0) continue;
+                int at = Array.BinarySearch(_roots, anchor);
+                if (at >= 0) anchors.Add((at, anchor, list));
+            }
+            anchors.Sort((x, y) => x.Index.CompareTo(y.Index));
+            var shifts = new List<(int FromIndex, long Shift)>();       // the shift in force from this root index on
+            long shift = 0;
+            foreach (var (index, root, list) in anchors)
+            {
                 int value = (int)(root + shift);
-                to[i] = value;
-                RootSlot(root).Value = value;
-                if (_after.TryGetValue(root, out var list) && list.Count > 0)
+                long gap = index + 1 < _roots.Length ? _roots[index + 1] - root : long.MaxValue / 4;
+                int v = value;
+                foreach (var slot in list) slot.Value = ++v;
+                if (list.Count >= gap)
                 {
-                    long gap = i + 1 < _roots.Length ? _roots[i + 1] - root : long.MaxValue / 4;
-                    if (list.Count >= gap)
-                    {
-                        Overflowed = true;
-                        shift += list.Count - gap + 1;
-                    }
-                    int v = value;
-                    foreach (var slot in list) slot.Value = ++v;
+                    Overflowed = true;
+                    shift += list.Count - gap + 1;
+                    shifts.Add((index + 1, shift));
                 }
             }
             // Anchors that are not roots (implicit BBBB weights): fixed room, never shift anything.
             foreach (var (anchor, list) in _after)
             {
-                if (_rootSet.Contains(anchor)) continue;
+                if (Array.BinarySearch(_roots, anchor) >= 0) continue;
                 if (list.Count > _fixedRoom)
                     throw new NotSupportedException($"more than {_fixedRoom} relations after an implicit-weight position (level {Level}) are not supported");
                 int v = anchor;
                 foreach (var slot in list) slot.Value = ++v;
             }
-            // Root slots that are not on the line (the same implicit BBBB weights, read from a reset) keep their value.
+            // The root slots the rules created: a root keeps its value plus the shift in force at it; a weight that is not
+            // on the line (the implicit BBBB weights, read from a reset) keeps its value.
             foreach (var slot in _rootSlots.Values)
-                if (slot.Value < 0) slot.Value = slot.Root;
-            if (shift == 0) return null;
+            {
+                int at = shifts.Count == 0 ? -1 : Array.BinarySearch(_roots, slot.Root);
+                slot.Value = at < 0 ? slot.Root : (int)(slot.Root + ShiftAt(shifts, at));
+            }
+            if (shifts.Count == 0) return null;
+            var to = new int[_roots.Length];
+            int s = 0;
+            long current = 0;
+            for (int i = 0; i < _roots.Length; i++)
+            {
+                while (s < shifts.Count && shifts[s].FromIndex <= i) current = shifts[s++].Shift;
+                to[i] = (int)(_roots[i] + current);
+            }
             return new WeightMap((int[])_roots.Clone(), to);
         }
+
+        private static long ShiftAt(List<(int FromIndex, long Shift)> shifts, int rootIndex)
+        {
+            long shift = 0;
+            foreach (var (from, amount) in shifts)
+            {
+                if (from > rootIndex) break;
+                shift = amount;
+            }
+            return shift;
+        }
     }
+
+    /// <summary>The distinct weights of each level of one base table's pool (and the implicit AAAA primaries), ascending
+    /// with 0 included — the "roots" the lines are built on. They are a property of the BASE table, which every
+    /// build of every locale shares, so they are computed once per table instead of by a scan of its 41,724 elements
+    /// on every build (kb/Work PB107: that scan was a third of a locale's build).</summary>
+    private sealed record BaseRoots(int[] Primaries, int[] Secondaries, int[] Tertiaries, int[] Quaternaries);
+
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<CollationTable, BaseRoots> s_baseRoots = new();
+
+    private static BaseRoots RootsOf(CollationTable table) => s_baseRoots.GetValue(table, static t =>
+    {
+        int shift = t.PrimaryShift;
+        var primaries = new HashSet<int>();
+        var secondaries = new HashSet<int>();
+        var tertiaries = new HashSet<int>();
+        var quaternaries = new HashSet<int>();
+        foreach (var e in t.Pool)
+        {
+            if (e.Primary != 0 && !IsImplicitSecond(e, shift)) primaries.Add(e.Primary);
+            if (e.Secondary != 0) secondaries.Add(e.Secondary);
+            if (e.Tertiary != 0) tertiaries.Add(e.Tertiary);
+            if (e.Quaternary != 0) quaternaries.Add(e.Quaternary);
+        }
+        // The implicit AAAA primaries are computed, not pooled: make them roots so a reset on a Han/Tangut character,
+        // [last regular], [first implicit] … can anchor an insertion, and so the map covers them (GetImplicit maps AAAA).
+        for (int aaaa = ImplicitFirst; aaaa <= ImplicitLastAaaa; aaaa++)
+            primaries.Add(t.PrimaryMap is { } m ? m.Map(aaaa << shift) : aaaa << shift);
+        return new BaseRoots(Sorted(primaries), Sorted(secondaries), Sorted(tertiaries), Sorted(quaternaries));
+
+        static int[] Sorted(HashSet<int> weights)
+        {
+            weights.Add(0);
+            var array = new int[weights.Count];
+            weights.CopyTo(array);
+            Array.Sort(array);
+            return array;
+        }
+    });
+
+    /// <summary>The second element of an implicit weight (or an explicit copy of one): a large primary with no
+    /// secondary/tertiary — compared only against its own kind, never renumbered.</summary>
+    private static bool IsImplicitSecond(in CollationElement e, int primaryShift) =>
+        e.Secondary == 0 && e.Tertiary == 0 && e.Primary >= 0x8000 << primaryShift;
+
+    private const int ImplicitFirst = 0xFB00, ImplicitLastAaaa = 0xFBC0 + (0x10FFFF >> 15);   // FBE1
 
     /// <summary>A collation element while the rules are being processed: three slots plus the flags.</summary>
     private readonly record struct BuildElement(Slot P, Slot S, Slot T, Slot Q, bool Variable, ElementCase Case)
@@ -280,7 +356,6 @@ public static class CldrTailoringBuilder
     private sealed class Builder
     {
         private const int CommonSecondary = 0x0020, CommonTertiary = 0x0002;
-        private const int ImplicitFirst = 0xFB00, ImplicitLastAaaa = 0xFBC0 + (0x10FFFF >> 15);   // FBE1
         private const int HanImplicitFirst = 0xFB40;
 
         private readonly CollationTable _base;
@@ -303,25 +378,11 @@ public static class CldrTailoringBuilder
             _base = baseTable;
             _name = name;
             _shift = baseTable.PrimaryShift;
-            var pool = baseTable.Pool;
-            var primaries = new HashSet<int>();
-            var secondaries = new HashSet<int>();
-            var tertiaries = new HashSet<int>();
-            var quaternaries = new HashSet<int>();
-            foreach (var e in pool)
-            {
-                if (e.Primary != 0 && !IsImplicitSecond(e)) primaries.Add(e.Primary);
-                if (e.Secondary != 0) secondaries.Add(e.Secondary);
-                if (e.Tertiary != 0) tertiaries.Add(e.Tertiary);
-                if (e.Quaternary != 0) quaternaries.Add(e.Quaternary);
-            }
-            // The implicit AAAA primaries are computed, not pooled: make them roots so a reset on a Han/Tangut character,
-            // [last regular], [first implicit] … can anchor an insertion, and so the map covers them (GetImplicit maps AAAA).
-            for (int aaaa = ImplicitFirst; aaaa <= ImplicitLastAaaa; aaaa++) primaries.Add(Mapped(aaaa << _shift));
-            _p = new Line(1, primaries, fixedRoom: (1 << _shift) - 1);
-            _s = new Line(2, secondaries, fixedRoom: 0);
-            _t = new Line(3, tertiaries, fixedRoom: 0);
-            _q = new Line(4, quaternaries, fixedRoom: 0);
+            var roots = RootsOf(baseTable);
+            _p = new Line(1, roots.Primaries, fixedRoom: (1 << _shift) - 1);
+            _s = new Line(2, roots.Secondaries, fixedRoom: 0);
+            _t = new Line(3, roots.Tertiaries, fixedRoom: 0);
+            _q = new Line(4, roots.Quaternaries, fixedRoom: 0);
             int spaceFirst = 0, punctLast = 0;
             if (baseTable.TryGetReorderGroup("space", out var sp)) spaceFirst = sp.FirstPrimary;
             if (baseTable.TryGetReorderGroup("punct", out var pu)) punctLast = pu.LastPrimary;
@@ -337,9 +398,6 @@ public static class CldrTailoringBuilder
         /// renumbered maps its own AAAA values through its map, as GetImplicit does).</summary>
         private int Mapped(int rootPrimary) => _base.PrimaryMap is { } m ? m.Map(rootPrimary) : rootPrimary;
 
-        /// <summary>The second element of an implicit weight (or an explicit copy of one): a large primary with no
-        /// secondary/tertiary — compared only against its own kind, never renumbered.</summary>
-        private bool IsImplicitSecond(in CollationElement e) => e.Secondary == 0 && e.Tertiary == 0 && e.Primary >= 0x8000 << _shift;
 
         public CldrBuildResult Run(CldrCollationSelection selection)
         {
@@ -450,13 +508,10 @@ public static class CldrTailoringBuilder
             WeightMap? primaryMap = null;
             if (primaryChanged)
             {
-                var roots = new List<int>();
-                foreach (var e in _base.Pool) if (e.Primary != 0 && !IsImplicitSecond(e)) roots.Add(e.Primary);
-                for (int aaaa = ImplicitFirst; aaaa <= ImplicitLastAaaa; aaaa++) roots.Add(Mapped(aaaa << _shift));
-                roots.Add(0);
-                var from = roots.Distinct().OrderBy(x => x).ToArray();
-                var to = from.Select(finalP).ToArray();
-                primaryMap = new WeightMap(from, to);
+                var from = _p.Roots;                  // the base table's primary roots, 0 and the implicit AAAA weights included
+                var to = new int[from.Length];
+                for (int i = 0; i < to.Length; i++) to[i] = finalP(from[i]);
+                primaryMap = new WeightMap((int[])from.Clone(), to);
             }
             if (newGroups is null && pMap is not null)
             {
@@ -487,20 +542,14 @@ public static class CldrTailoringBuilder
                 entries.Add((cps, elements));
             }
 
-            Func<CollationElement, CollationElement>? remap = null;
+            ElementRemap? remap = null;
             if (primaryChanged || sMap is not null || tMap is not null || qMap is not null)
             {
-                remap = e =>
-                {
-                    if (IsImplicitSecond(e)) return e;
-                    return e with
-                    {
-                        Primary = e.Primary == 0 ? 0 : finalP(e.Primary),
-                        Secondary = e.Secondary == 0 ? 0 : mapS(e.Secondary),
-                        Tertiary = e.Tertiary == 0 ? 0 : mapT(e.Tertiary),
-                        Quaternary = e.Quaternary == 0 ? 0 : mapQ(e.Quaternary),
-                    };
-                };
+                var roots = RootsOf(_base);
+                remap = new ElementRemap(
+                    primaryChanged ? finalP : null,
+                    LookupOf(sMap, roots.Secondaries), LookupOf(tMap, roots.Tertiaries), LookupOf(qMap, roots.Quaternaries),
+                    0x8000 << _shift);
             }
             var plan = new TailoringPlan
             {
@@ -655,6 +704,16 @@ public static class CldrTailoringBuilder
 
         private Line LineOf(int level) => level switch { 1 => _p, 2 => _s, 3 => _t, _ => _q };
 
+        /// <summary>A map of one level as a direct lookup array over that level's weights (they are small: secondaries
+        /// reach 0x127, tertiaries 0x1E) — the remap of the base pool reads it once per element instead of searching.</summary>
+        private static int[]? LookupOf(WeightMap? map, int[] levelRoots)
+        {
+            if (map is null) return null;
+            var lookup = new int[levelRoots[^1] + 1];
+            foreach (int w in levelRoots) lookup[w] = w == 0 ? 0 : map.Map(w);
+            return lookup;
+        }
+
         private bool IsVariableRoot(int rootPrimary) => rootPrimary >= _variableRootRange.First && rootPrimary <= _variableRootRange.Last;
 
         /// <summary>The case bits of a tailored string (ICU's rule): Upper when every cased letter is uppercase, Lower when
@@ -724,13 +783,13 @@ public static class CldrTailoringBuilder
                 case CldrSpecialPosition.FirstTrailing:
                 {
                     int limit = Mapped(ImplicitLastAaaa << _shift), min = int.MaxValue;
-                    foreach (var e in pool) if (e.Primary > limit && !IsImplicitSecond(e)) min = Math.Min(min, e.Primary);
+                    foreach (var e in pool) if (e.Primary > limit && !IsImplicitSecond(e, _shift)) min = Math.Min(min, e.Primary);
                     return Make(min == int.MaxValue ? limit + 1 : min, CommonSecondary, CommonTertiary);
                 }
                 default:   // LastTrailing
                 {
                     int max = 0;
-                    foreach (var e in pool) if (!IsImplicitSecond(e)) max = Math.Max(max, e.Primary);
+                    foreach (var e in pool) if (!IsImplicitSecond(e, _shift)) max = Math.Max(max, e.Primary);
                     return Make(max, CommonSecondary, CommonTertiary);
                 }
             }
