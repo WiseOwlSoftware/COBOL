@@ -1,4 +1,4 @@
-## PB3557: APPLY COMMIT SR1 and SR11 are reported under their own rules, and a file-name is a declared name
+## Entry 2858 — 2026-10-31 10:16 PDT — PB3557: APPLY COMMIT SR1 and SR11 are reported under their own rules, and a file-name is a declared name
 
 kb/Work PB3557 (a review lead of PB3338). A contained program whose APPLY COMMIT clause named a file of a containing program
 drew COBOL1639 "no declaration in this source element gives the name 'RELF'" — false for a GLOBAL file, which is visible by
@@ -49,3 +49,4 @@ on the way: the qualifier walk's file-name arm read only `FilesByName`, which ga
 binds, so a contained program's own `OCCURS ... DEPENDING ON CNT IN RREC IN RELF` was refused (COBOL0851, legal source rejected);
 the walk now asks `TryGetVisibleFile`. New golden `13.18.27-GLOBAL/pb3557-contained-clause-qualifies-by-global-file` and three
 `ApplyCommitEnclosingFileTests` cases.
+
