@@ -1,4 +1,4 @@
-## Filed two leads from the PB2556 and PB3245 reports as PB4183 and PB4184
+## Entry 2830 — 2026-10-30 20:14 PDT — Filed two leads from the PB2556 and PB3245 reports as PB4183 and PB4184
 
 The lead-filing clerk (units/enqueue.md step 5) turned two review and witness leads into `kb/Work/` notes. No code changed.
 
@@ -17,3 +17,4 @@ Four more notes from the PB4147 report (pull request #860, the registry split):
 Not filed: the report's `constructs.json` driver-hold lead. Of 89 DRIVER FILE QUEUED stops in the landing lane's logs, 41 name `diagnostics.json` (PB4147), 6 the traceability inventory (PB4148) and none `constructs.json`; PB3642 (landed) owns the hold itself, so the id PB4189 stays unused.
 
 PB3719 gained a Sibling paragraph: `enqueue.driver_file_holders` holds a branch for every driver-covered file when a pull request's file list is cut off at 100 (pull request #860 lists 100 of 3,144 files and held two unrelated landings); the root fix is one complete file list per pull request in `open_pull_requests`.
+
