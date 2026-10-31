@@ -22,9 +22,10 @@ namespace WiseOwl.Cobol.Frontend.Common;
 /// word is a length error, not an introduction gate), 31 at 2002/2014, 30 at 1985. Above 63 is a hard cap at
 /// every edition. The CHARACTER half of §8.3.2.1 is here too (kb/Work PB1402): from 2002 each character outside the
 /// basic repertoire must be where the edition's Annex B.3 permits it, and at every edition one that no Annex B holds is
-/// refused (<see cref="CharacterViolation"/>, COBOL2773); the below-2002 gates of the underscore and the extended
-/// letters stay in the tree funnel, because every <c>&gt;&gt;</c> directive is itself rejected below 2002, so neither
-/// can reach a directive word.</para>
+/// refused (<see cref="CharacterViolation"/>, COBOL2773; kb/Work PB4130); the below-2002 gates of the underscore and
+/// the extended letters are asked with it by <see cref="Parsing.WordCharacterScreen"/> over the lexer's words (parse or
+/// no parse, kb/Work PB3845), not by the directive stages, because every <c>&gt;&gt;</c> directive is itself rejected
+/// below 2002, so neither can reach a directive word.</para>
 /// </summary>
 public static class CobolWordRule
 {
@@ -69,7 +70,7 @@ public static class CobolWordRule
     /// operand) — the length and the Annex B characters — as (code, message), for the directive stages to report on
     /// their own channels. Every directive is itself a COBOL-2002 introduction, so the below-2002 extended-letter gate
     /// never applies to one. A 2023 removal (<see cref="RemovedAt2023"/>) carries the removed-construct code, as the
-    /// tree funnel's does; the directive channels report errors only.</summary>
+    /// word screen's does (<see cref="Parsing.WordCharacterScreen"/>); the directive channels report errors only.</summary>
     public static IEnumerable<(string Code, string Message)> DirectiveWordViolations(string word, int dialectLevel)
     {
         if (LengthViolation(word, dialectLevel) is { } length)
