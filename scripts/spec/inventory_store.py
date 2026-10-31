@@ -211,7 +211,7 @@ def self_test() -> int:
     for name, content, why in (("stray.txt", "x", "stray file"), ("GR-4.4-9.json", "{}", "not a row"),
                                ("GR-4.4-8.json", json.dumps(row("GR-4.4-7", "4.4", 7)), "misnamed row"),
                                ("GR-4.4-6.json", "{", "unparseable"), ("GR-4.4-2.json.tmp", "x", "torn write")):
-        (d / name).write_text(content, encoding="utf-8")
+        (d / name).write_text(content, encoding="utf-8", newline="\n")
         msg = refuses(lambda: load_inventory(d))
         check(name in msg, f"a {why} ({name}) is named in the refusal")
         (d / name).unlink()
