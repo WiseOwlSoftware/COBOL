@@ -131,8 +131,9 @@ element that has a weight at the level before it — a primary at primary streng
 account" is `strength primary` + `caseLevel on`, a secondary above it — compared between level 2 and level 3 at EVERY
 strength; the tertiary weight then carries no case prefix. **`NumericOrdering`** (`[numericOrdering on]`, `-u-kn-true`):
 a maximal run of decimal digits (General_Category Nd, from the table's own Unicode data: format 3 carries the 77
-runs of ten) is one number, ordered by value — a lead element where the digits stand, the count of significant digits,
-then the digits; leading zeros, scripts and widths drop out; the identical-prefix skip is off (a run straddles any
+runs of ten) is one number, ordered by value — a lead element (the digit zero's, one primary lower: before every string
+that begins with a digit-like character, as ICU has it, and equal to nothing but another number's lead), the count of
+significant digits, then the digits; leading zeros, scripts and widths drop out; the identical-prefix skip is off (a run straddles any
 boundary) and `PrefixShapeOf` sees the run as one mapping.
 
 **Keys.** `Collator.GetKey(text)` materializes the same weights into a `CollationKey`; `CompareTo` orders keys as

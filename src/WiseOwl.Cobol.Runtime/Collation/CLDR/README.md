@@ -115,7 +115,8 @@ reorder codes; `kh` hiraganaQ is parsed and reported unsupported.
    p+x whose elements are p's FINAL ones (read when the table is planned: ja.xml places ァ by `&ぁ<<<<ァ` after the
    rule `ァ|ー`, as ICU matches the prefix against p's own mapping) followed by x's.
 2. **Numbering**: a slot inserted between two adjacent root weights takes a free value between them (root primaries
-   are spaced 16 apart for exactly this); where more slots were inserted than the gap holds, every higher root weight
+   are spaced 16 apart for exactly this; the top value of each primary gap, `root - 1`, is never given away: the
+   numeric-ordering lead stands there under the digit zero); where more slots were inserted than the gap holds, every higher root weight
    is **shifted up** — the table records the root → table `WeightMap`s so a `.tailor` layer (root-scale weights) still
    lands right. Tertiary lines renumber for almost every `<<<` (root tertiaries are dense); the pool is re-weighted
    through direct lookup arrays (`ElementRemap`). Numbering is sparse — only the anchors that have inserted slots are
