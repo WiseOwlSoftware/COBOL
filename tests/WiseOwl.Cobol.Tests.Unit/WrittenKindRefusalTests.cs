@@ -93,6 +93,9 @@ public sealed class WrittenKindRefusalTests
         }
     }
 
+    private const string Options = "       OPTIONS.\n           ARITHMETIC IS FOO.\n       DATA DIVISION.\n" + Proc;
+    private const string RoundedMode = Table + "       PROCEDURE DIVISION.\n           ADD 1 TO W-N ROUNDED MODE IS FOO.\n           STOP RUN.\n";
+
     private const string UseDeclarative = Head + Files
         + "       PROCEDURE DIVISION.\n       DECLARATIVES.\n       H-SECT SECTION.\n           USE PROCEDURE ON F.\n"
         + "       H-PARA.\n           DISPLAY \"H\".\n       END DECLARATIVES.\n       MAIN-SECT SECTION.\n       MAIN.\n"
@@ -113,11 +116,20 @@ public sealed class WrittenKindRefusalTests
     [InlineData("paren-2023", 2023, Head + Table + "       PROCEDURE DIVISION.\n           COMPUTE W-N = (W-N + 1.\n           STOP RUN.\n",
         "expected B-AND, B-OR, B-SHIFT-L, B-SHIFT-LC, B-SHIFT-R, B-SHIFT-RC, B-XOR, '**', ')', '+', '-', '*' or '/' (ISO §5.2.1)", null)]
     [InlineData("program-id-attribute-85", 85, "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB4174G IS GLOBAL.\n" + Proc,
-        "expected COMMON, INITIAL or RECURSIVE (ISO §5.2.1)", "PROTOTYPE")]
+        "expected COMMON or INITIAL (ISO §5.2.1)", "PROTOTYPE")]   // RECURSIVE is in the 2002 list of §8.10, PROTOTYPE a 2002 §8.9 word
     [InlineData("program-id-attribute-2002", 2002, "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB4174G IS GLOBAL.\n" + Proc,
         "expected COMMON, INITIAL, PROTOTYPE or RECURSIVE (ISO §5.2.1)", null)]
     [InlineData("use-85", 85, UseDeclarative, "expected AFTER, BEFORE, ERROR, EXCEPTION", "EC, EO")]
     [InlineData("use-2002", 2002, UseDeclarative, "expected AFTER, BEFORE, EC, EO, ERROR, EXCEPTION", null)]
+    // The §8.10 context-sensitive words follow the same rule, from the edition of their first listing
+    // (ContextSensitiveWordEntry.Introduced): STANDARD-BINARY and STANDARD-DECIMAL are 2014's, NATIVE and STANDARD 2002's
+    // (ISO §8.10, whose 2002 list this repository records, and the 2014 words that Annex E.3.3 item 13 does not call new).
+    [InlineData("arithmetic-2002", 2002, Head + Options, "expected NATIVE or STANDARD (ISO §5.2.1)", "STANDARD-")]
+    [InlineData("arithmetic-2014", 2014, Head + Options, "expected NATIVE, STANDARD, STANDARD-BINARY or STANDARD-DECIMAL (ISO §5.2.1)", null)]
+    [InlineData("arithmetic-2023", 2023, Head + Options, "expected NATIVE, STANDARD, STANDARD-BINARY or STANDARD-DECIMAL (ISO §5.2.1)", null)]
+    // ROUNDED MODE is a 2014 phrase: its mode names are named from 2014 (§14.7.4; the construct registry's rounded-mode-is-2014).
+    [InlineData("rounded-mode-2014", 2014, Head + RoundedMode,
+        "expected AWAY-FROM-ZERO, NEAREST-AWAY-FROM-ZERO, NEAREST-EVEN, NEAREST-TOWARD-ZERO, PROHIBITED, TOWARD-GREATER, TOWARD-LESSER or TRUNCATION (ISO §5.2.1)", null)]
     public void TheWordsNamedAreTheOnesTheEditionHas(string name, int edition, string source, string expected, string? absent)
     {
         var errors = Compile(source, edition).Where(e => e.Contains("COBOL5506", StringComparison.Ordinal)).ToList();
@@ -130,9 +142,10 @@ public sealed class WrittenKindRefusalTests
         }
     }
 
-    /// <summary>The rule itself (<c>ReservedWords.AdmitsAsKeyword</c>): false only for a word the table proves a LATER
-    /// edition introduced; true for a reserved word, for one an older edition reserved and this one dropped (WORDS at 2023,
-    /// COBOL and PHYSICAL, which 2023 formats still underline), for one with no row and for one whose row may not reject.</summary>
+    /// <summary>The rule itself (<c>ReservedWords.AdmitsAsKeyword</c>): false only for a word a table proves a LATER
+    /// edition introduced (the §8.9 flags, or a §8.10 row's <c>Introduced</c>); true for a reserved word, for one an older
+    /// edition reserved and this one dropped (WORDS at 2023, COBOL and PHYSICAL, which 2023 formats still underline), for
+    /// one in neither table and for one whose §8.9 row may not reject.</summary>
     [Theory]
     [InlineData("B-AND", 85, false)]
     [InlineData("B-AND", 2002, true)]
@@ -144,8 +157,25 @@ public sealed class WrittenKindRefusalTests
     [InlineData("COBOL", 2023, true)]
     [InlineData("PHYSICAL", 2023, true)]
     [InlineData("PHYSICAL", 85, false)]
-    [InlineData("AWAY-FROM-ZERO", 85, true)]
     [InlineData("NO-SUCH-WORD", 85, true)]
+    // The §8.10 context-sensitive words, from the edition of their first listing (ContextSensitiveWordEntry.Introduced):
+    // 2002 from the 2002 list (AUTOMATIC, SECONDS), 2014 for the rest of the table that Annex E.3.3 item 13 does not
+    // call new (the ROUNDED MODE names, STANDARD-BINARY), 2023 for item 13's additions (BYTES, BACKWARD, HEX).
+    [InlineData("AUTOMATIC", 85, false)]
+    [InlineData("AUTOMATIC", 2002, true)]
+    [InlineData("SECONDS", 85, false)]
+    [InlineData("SECONDS", 2002, true)]
+    [InlineData("AWAY-FROM-ZERO", 85, false)]
+    [InlineData("AWAY-FROM-ZERO", 2002, false)]
+    [InlineData("AWAY-FROM-ZERO", 2014, true)]
+    [InlineData("STANDARD-BINARY", 2002, false)]
+    [InlineData("STANDARD-BINARY", 2014, true)]
+    [InlineData("BYTES", 2014, false)]
+    [InlineData("BYTES", 2023, true)]
+    [InlineData("BACKWARD", 2014, false)]
+    [InlineData("HEX", 2023, true)]
+    // A word an older edition RESERVED outright is §8.9's, whatever §8.10 says: MULTIPLE is a 1985 reserved word.
+    [InlineData("MULTIPLE", 85, true)]
     public void AKeywordIsNamedUnlessALaterEditionIntroducedIt(string word, int edition, bool expected)
         => Assert.Equal(expected, WiseOwl.Cobol.Editions.ReservedWords.AdmitsAsKeyword(word, edition));
 
@@ -159,6 +189,10 @@ public sealed class WrittenKindRefusalTests
         + "       01 W-LOOSE PIC X(5).\n       FD F.\n       01 R PIC X(5).\n" + Proc, "COBOL0001")]
     // A position where a statement may begin expects every statement's opening word, which the imperative-statement arms
     // own: a literal there stays the bare COBOL0001, never a list of fifty verbs (kb/Work PB4201).
+    // ROUNDED MODE IS is a 2014 phrase, so below 2014 no mode name is a keyword and the position has nothing to name
+    // (kb/Work PB4174): the bare COBOL0001, never the 2014 names sent to a COBOL-85 or 2002 reader.
+    [InlineData("rounded-mode-85", 85, RoundedMode, "COBOL0001")]
+    [InlineData("rounded-mode-2002", 2002, RoundedMode, "COBOL0001")]
     [InlineData("literal-at-a-statement-start", 2023,
         Table + "       PROCEDURE DIVISION.\n           IF W-N = 1 THEN 5 END-IF.\n           STOP RUN.\n", "COBOL0001")]
     public void APositionTheArmDoesNotName_KeepsItsDiagnosis(string name, int edition, string body, string code)

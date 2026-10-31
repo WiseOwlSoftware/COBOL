@@ -28,9 +28,9 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// four editions, so its expected set holds the 2002 boolean operators at COBOL-85 and the 2023 shift operators below
 /// 2023 — words ISO §8.9 has not reserved there, which §8.3.2.1 makes user-defined words. A keyword is named only where
 /// <c>theEditionPrints</c> says a general format of the compile edition can print it
-/// (<c>CobolParserCoreBase.PrintsKeyword</c>: not a word the §8.9 table proves a LATER edition introduced; the
-/// §8.10 context-sensitive words carry no per-edition flag and are named at every edition); the symbols and literal
-/// categories carry no edition and are named as the parse takes them.</para>
+/// (<c>CobolParserCoreBase.PrintsKeyword</c>: not a word the §8.9 table or the §8.10 row's <c>Introduced</c> edition
+/// proves a LATER edition introduced); the symbols and literal categories carry no edition and are named as the parse
+/// takes them.</para>
 /// <para>Three shapes, one rule (ISO §5.2.1: the elements of a general format are written in its sequence):</para>
 /// <list type="bullet">
 ///   <item><b>A closed position</b>: everything it expects can be named — no user-defined word, no separator period
