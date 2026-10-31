@@ -1,4 +1,4 @@
-## PB4206: a reserved verb written as a procedure-name is named by COBOL0901, in every procedure-name slot
+## Entry 2868 — 2026-10-31 12:30 PDT — PB4206: a reserved verb written as a procedure-name is named by COBOL0901, in every procedure-name slot
 
 **The defect.** `PERFORM RECEIVE.` at --std 2023 drew `COBOL0001: unexpected '.'` and never COBOL0901, although ISO
 §8.3.2.1 1) says "Reserved words shall not be used as user-defined words or system-names" and a procedure-name is a
@@ -41,3 +41,4 @@ and `pb4206-go-to-reserved-verb-as-procedure-name` (refused at 85, 2002 and 2023
 §14.9.28.4 and §14.9.17.4 GR2). No inventory row changes: SR-8.3.2.1-1 already conforms (`closes_rows: []`).
 
 **Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run 000001-20261031T185850Z: Conformance 10,431, Unit 37,624, Characterization 7 cases in leg 1; Linux half GREEN); all 13 rows of the new theory and the 7 golden cases passed in leg 1.
+
