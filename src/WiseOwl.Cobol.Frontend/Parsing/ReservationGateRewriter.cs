@@ -19,16 +19,18 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// Conformance reds when the PB655 words were admitted that way; <c>feedback_left_edge_predicates</c>).</para>
 /// <para><b>What it is instead.</b> A gated word is never a <c>cobolWord</c> alternative; it stays its keyword
 /// token, and its only grammar home is the generated <c>reservedGatedWord</c> rule that every DEFINITION slot
-/// offers. A parse that matches it there at an edition where §8.9 leaves the word FREE has found a DECLARATION
+/// offers, and <c>procedureName</c> with it, the procedure-name REFERENCES included (kb/Work PB4206: a reference matches
+/// it only where no keyword reading of the word parses). A parse that matches it there at an edition where §8.9 leaves
+/// the word FREE has found a USER-DEFINED WORD
 /// (<see cref="CobolParserCoreBase.FreeGatedDeclarations"/>); this rewriter then retypes EVERY occurrence of that
 /// word to <c>IDENTIFIER</c> and the source is parsed again, so the authoritative parse — every prediction in it —
 /// sees a plain user-defined word. The SECOND witness is a syntax error whose offending token is such a free word
 /// (<see cref="CobolParserCoreBase.NoteGatedOffender"/>): its keyword reading failed to parse, and the only other
 /// reading §8.9 leaves it is a user-defined word — which is how a name introduced in a slot that does not offer
 /// <c>reservedGatedWord</c> (an index-name, a SPECIAL-NAMES class-name) is reached. Where §8.9 RESERVES the word
-/// nothing is retyped: no name slot can take the
-/// keyword token, a reference fails with the targeted COBOL0901 (<see cref="CobolParserCoreBase.ReservedUserWordViolation"/>)
-/// and a declaration draws it from the funnel.</para>
+/// nothing is retyped: no other name slot can take the keyword token, a data or file reference fails with the
+/// targeted COBOL0901 (<see cref="CobolParserCoreBase.ReservedUserWordViolation"/>), and a declaration or a
+/// procedure-name draws it from the funnel.</para>
 /// <para><b>Its keyword occurrences are retyped too.</b> The retype is by word, so where a format still spells the
 /// declared free word as a keyword (MESSAGE in the 2023 RECEIVE's CONTINUE phrase, METHOD in END METHOD), that keyword
 /// arrives as <c>IDENTIFIER</c> as well. Such a word's row carries the <c>keywordWhereFree</c> determination and the
@@ -39,7 +41,9 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// the migration mode (<c>--permissive</c>) admits a word the edition added while it is ALSO that edition's
 /// keyword. A free word the program never declares can only be that keyword or an unresolvable reference; one it
 /// declares is, per §8.3.2.1, a user-defined word — the same DETERMINATION PB805 recorded for operand lists
-/// (<see cref="CobolParserCoreBase"/>'s <c>IsKeywordReadingHere</c>), now carried by the token itself.</para>
+/// (<see cref="CobolParserCoreBase"/>'s <c>IsKeywordReadingHere</c>), now carried by the token itself. A free word in
+/// a procedure-name reference whose keyword reading does not parse is that unresolvable reference: retyped, it draws
+/// the binder's COBOL1639 ("names no procedure"), the true diagnosis at an edition where the word is a user word.</para>
 /// <para>The same decision must reach every re-parse of this group's text (the D18 subscript and D2 argument
 /// fragments), which is why it travels as <see cref="TokenRetypes"/>. Design SSOT:
 /// <c>docs/rearchitecture/DESIGN-frontend-grammar.md</c> ("the token-level reservation gate").</para>
