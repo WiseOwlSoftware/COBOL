@@ -1,4 +1,4 @@
-## A word that starts or ends on an underscore is named by §8.3.2.1, not split at the underscore (PB4234)
+## Entry 2888 — 2026-10-31 16:10 PDT — A word that starts or ends on an underscore is named by §8.3.2.1, not split at the underscore (PB4234)
 
 ISO §8.3.2.1 ends its first paragraph with "The hyphen or underscore shall not appear as the first or last character in
 such words." The lexer's word class (`NAME_BODY`) could not start or end a word on an underscore, so `_A` lexed as the
@@ -27,3 +27,4 @@ lexer cannot take it whole without deciding the operator-spacing rules; it still
 `pb4234-leading-underscore-in-a-word` and `pb4234-trailing-underscore-in-a-word` (refused at 85/2002/2014/2023, COBOL2773).
 Tests: `WordCharacterScreenTests` (both word sources, every edition, `--permissive`, a comment-entry, directive words) and
 `WordCharacterEveryEditionTests`. No inventory row is claimed or closed.
+
