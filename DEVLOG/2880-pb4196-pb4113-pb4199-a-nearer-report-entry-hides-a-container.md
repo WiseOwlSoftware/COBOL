@@ -1,4 +1,4 @@
-## PB4196, PB4113, PB4199: a nearer report entry hides a container's GLOBAL name, a COMP-5 VALUE takes its range from the container, a contained FILE STATUS names a GLOBAL item
+## Entry 2880 — 2026-10-31 14:06 PDT — PB4196, PB4113, PB4199: a nearer report entry hides a container's GLOBAL name, a COMP-5 VALUE takes its range from the container, a contained FILE STATUS names a GLOBAL item
 
 Three notes of the data binder (wave 20261785, group A), fixed at their roots in harm order, on top of the PB3557 branch
 (`worktree-wf_34371f8b-c21-12`, merged first with `merge_drivers.py merge --keep`; it had already landed on main through PR #891).
@@ -39,3 +39,4 @@ RECORD DEPENDING ON and LINAGE naming container GLOBAL items compile and run. Th
 **Self-review.** Architecture (one narrowing, the refusal stays the callers'), full code (message and rule agree; sibling arms
 swept), performance (the report-entry test is free for a unit that inherits no global data or has no report, and depth-0 items
 return before any entry scan), duplication (the PB3767 special order removed, not kept beside the new rule).
+
