@@ -83,11 +83,11 @@ public sealed partial class DataBinder
                     var localeName = rlp.cobolWord();   // locale-name-1; LOCALE is the formatWord (kb/Work PB764)
                     var localeRef = LocaleRef.Current;
                     if (localeName is not null
-                        && ResolveLocaleName(localeName, localeName.GetText(), $"{where} PICTURE … LOCALE {localeName.GetText()}",
+                        && ResolveLocaleName(localeName, localeName.GetText(), $"{where} PICTURE LOCALE {localeName.GetText()}",
                             "ISO §13.18.40.3 SR37 — locale-name-1 shall be specified in the LOCALE clause in the SPECIAL-NAMES paragraph")
                             is { } sym)
                         localeRef = new LocaleRef(sym);
-                    int size = Math.Max(1, IntegerOperandValue(rlp.integerOperand(), $"{where} PICTURE … LOCALE SIZE")
+                    int size = Math.Max(1, IntegerOperandValue(rlp.integerOperand(), $"{where} PICTURE LOCALE SIZE")
                         ?? RecoveredIntegerOperand);
                     locale = new LocaleEditSpec(localeRef, size, "");
                 }

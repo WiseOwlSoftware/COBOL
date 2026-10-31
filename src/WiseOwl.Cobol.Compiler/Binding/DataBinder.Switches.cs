@@ -2134,7 +2134,7 @@ public sealed partial class DataBinder
         if (cd.cobolWord().Length > 1)
         {
             string inName = cd.cobolWord(1).GetText();
-            inSet = CodedCharacterSetOf(cd.cobolWord(1), inName, $"CLASS {name} … IN {inName}",
+            inSet = CodedCharacterSetOf(cd.cobolWord(1), inName, $"CLASS {name} IN {inName}",
                 "ISO §12.3.7.3 SR17 d — alphabet-name-4 shall not reference an alphabet specified with the LOCALE phrase");
             if (inSet is null) return;
             // SR17 b1/c1 — "When the IN phrase is specified, alphabet-name-4 shall reference an alphabet that defines
@@ -2178,7 +2178,7 @@ public sealed partial class DataBinder
         {
             int distinct = set.Distinct().Count();
             if (distinct > inSet.OrdinalCount)
-                Edition.Error(DiagnosticCatalog.ClassClauseViolation, $"{rules.What} … IN {cd.cobolWord(1).GetText()}: "
+                Edition.Error(DiagnosticCatalog.ClassClauseViolation, $"{rules.What} IN {cd.cobolWord(1).GetText()}: "
                     + $"{distinct} characters are specified — more than the {inSet.OrdinalCount} characters of the "
                     + $"character set referenced by alphabet-name-4 ({inSet.Phrase}) (ISO §12.3.7.3 {rules.Rule('5')})");
         }
@@ -2266,7 +2266,7 @@ public sealed partial class DataBinder
         CodedCharacterSet? inSet = null;
         if (sc.cobolWord() is { } inWord && inWord is not null)
         {
-            inSet = CodedCharacterSetOf(inWord, inWord.GetText(), $"SYMBOLIC CHARACTERS … IN {inWord.GetText()}",
+            inSet = CodedCharacterSetOf(inWord, inWord.GetText(), $"SYMBOLIC CHARACTERS IN {inWord.GetText()}",
                 "ISO §12.3.7.3 SR16 g — alphabet-name-3 shall not reference an alphabet specified with the LOCALE phrase");
             if (inSet is null) return;
             if (inSet.National != national)
