@@ -538,8 +538,11 @@ public abstract class CobolParserCoreBase : Parser
     /// separator period, as a <c>sentence</c> and — when the word begins the sentence — as a <c>procedureUnit</c>, whose
     /// header it then names. A reading that parses the whole span with the word under <c>procedureName</c> is the one the
     /// source means; a genuine fault elsewhere fails every re-read, and its own report stands. <c>Through</c> is the stream
-    /// index of the span's last token (its separator period): the one fault covers the sentence the re-read judged.</para></summary>
-    internal (IToken Word, string Message, int Through)? ReservedProcedureName(IToken offending)
+    /// index of the span's last token (its separator period): the one fault covers the sentence the re-read judged.
+    /// <paramref name="mayName"/> is the caller's veto on a candidate: the error strategy keeps an explicit scope terminator
+    /// out (§14.5.3.2: written where a statement may end it IS the terminator, so <c>PERFORM END-PERFORM</c> stays the
+    /// empty inline PERFORM, COBOL2072).</para></summary>
+    internal (IToken Word, string Message, int Through)? ReservedProcedureName(IToken offending, Func<IToken, bool> mayName)
     {
         IToken? first = null;
         bool inProcedureDivision = false;
@@ -564,7 +567,7 @@ public abstract class CobolParserCoreBase : Parser
         }
         if (first is null || offending.TokenIndex < first.TokenIndex) return null;
         candidates.RemoveAll(t => t.TokenIndex < first.TokenIndex || t.TokenIndex > offending.TokenIndex
-                                  || ReservedWordHere(t) is null);
+                                  || ReservedWordHere(t) is null || !mayName(t));
         if (candidates.Count == 0) return null;
 
         var span = new List<IToken>();

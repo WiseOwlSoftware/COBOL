@@ -81,7 +81,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // is the tail of the reading the parse took (the inline PERFORM's END-PERFORM, the READ statement's phrases): the
         // re-read found the whole sentence sound with the word as a name, so the one fault covers it through its period,
         // and the recovery discards that tail as orphaned.
-        if (violation is null && recognizer is CobolParserCoreBase parser && parser.ReservedProcedureName(at.Token) is { } word)
+        if (violation is null && recognizer is CobolParserCoreBase parser && parser.ReservedProcedureName(at.Token,
+                t => ScopeTerminator(recognizer, t.Type) is null) is { } word)
         {
             (named, violation) = (word.Word, word.Message);
             if (named != at.Token)

@@ -11,14 +11,13 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ EVERY MODE OF THE LEXER IS TOTAL, AND A LEXER ERROR IS A DIAGNOSTIC, NEVER A CONSOLE LINE (kb/Work PB4233). PICMODE
-/// had no rule for the separator period, so <c>01 X PIC.</c> matched nothing there: ANTLR's default listener printed
+/// ⛔ EVERY MODE OF CobolLexer IS TOTAL, AND A LEXER ERROR IS A DIAGNOSTIC (LexerErrorListener), NEVER A CONSOLE LINE
+/// (kb/Work PB4233). PICMODE had no rule for the separator period, so <c>01 X PIC.</c> matched nothing there: ANTLR's default listener printed
 /// "token recognition error" on the console, the period was dropped, the mode stayed open, and the next line's
 /// <c>X(3)</c> became the picture of an entry the source left without one — the program compiled and ran. The front end
 /// now reports every lexer error into the compilation's diagnostics (<see cref="LexerErrorListener"/>, COBOL5704), and
 /// this test holds the lexer to reporting none on the suite's sources, where a mode that is not total shows first.
 /// </summary>
-[Trait("Sweep", "tree")]
 public sealed class LexerTotalityDriftTests
 {
     [Fact]

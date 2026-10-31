@@ -598,6 +598,7 @@ public sealed class ReservedWordPositionConformanceTests
     [Theory]
     [InlineData("PERFORM DISPLAY W-N.")]            // an inline PERFORM missing its END-PERFORM
     [InlineData("PERFORM READ W-N.")]
+    [InlineData("PERFORM END-PERFORM.")]            // an empty inline PERFORM: a scope terminator is never a name here
     [InlineData("MOVE W-N TO\n           DISPLAY W-N.")]
     [InlineData("PERFORM P-END THRU\n           DISPLAY W-N.")]
     public void AStatementReading_ThatAProcedureNameDoesNotRepair_IsNotNamedCobol0901(string statement)
