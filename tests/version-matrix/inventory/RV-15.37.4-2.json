@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.37.4-2",
+ "section": "15.37.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "FIND-STRING function",
+ "rule-digest": "61f6f7bf8e22",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#FindString; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AsInt; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.cs#IntegerArg",
+ "test-ref": "conformance:cases/15.37.4-Returned-value-rules/find_string_skip_domain; conformance:cases/15.37.4-Returned-value-rules/find_string",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "EVIDENCE STRENGTHENED, verdict unchanged (kb/Work PB254). Citation re-derived: cite.py --check 15.37.4 \"argument-3 represents the number of matches to ignore\" -> OK (15.37.4 rule 2); --check 15.37.3 \"argument-3 shall be an integer data item or integer literal\" -> OK (15.37.3 rule 3). r3 places NO constraint on argument-3's value, so rule 2 has to answer for EVERY integer, and this row was CONFORMS with its widest half unmeasured: find_string_skip_domain stops at PIC 9(18) VALUE 999999999999999999, one order of magnitude BELOW long.MaxValue, which is exactly where the defect lived. Measured on this tree before the fix: FUNCTION FIND-STRING(hay ndl START AFTER 9999999999999999999) over a hay with three matches returned 1, and the LAST form returned 10 - the FIRST/LAST match position where rule 2 leaves no match and rule 3 requires zero - because the renderer sent argument-3 through CobolIntrinsics.IntegerArg, the 15.3 landing for the BOUNDED integer functions, which substituted its checking-off default 0, i.e. 'ignore no matches'; under >>TURN EC-ARGUMENT-FUNCTION CHECKING ON the same call terminated the run unit on conforming source. FIXED by giving FindString's skip parameter the Int128 carrier and the renderer arm the wide intake (IntArgWide), the declared-carrier pairing that IntrinsicCarrierAgreementDriftTests.EveryTotalIntegerArgument_TakesTheWideIntake now holds. kb/Work R08 had already removed an (int) narrowing INSIDE this body and left the Int128->long one at the intake - the same rule, one level up. conformance:cases/15.37.4-Returned-value-rules/find_string now carries EXHAUST3 (the in-range boundary: three matches, ignore three, none left), WIDESKIP (a 19-digit literal) and WIDELASTSKIP (a PIC 9(19) item under LAST), all 0.",
+ "state": "OK"
+}

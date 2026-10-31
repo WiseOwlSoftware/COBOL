@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.28.3-8",
+ "section": "14.9.28.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "PERFORM statement",
+ "rule-digest": "4217cabdd309",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#CheckUntilExitPlacement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/UntilExitPlacement.cs#Report; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureReach.cs",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/pb434-until-exit-under-varying; conformance:cases/14.9.28-PERFORM/pb434-varying-until-exit; conformance:cases/14.9.28-PERFORM/pb434_until_exit_unbarred; conformance-test:PerformUntilExitPlacementTests.UntilExit_WithOrUnderAVaryingOrTestPerform_IsRefusedOnce; conformance-test:PerformUntilExitPlacementTests.UntilExit_InASortInputProcedureUnderAVaryingPerform_IsRefusedOnce; conformance-test:PerformUntilExitPlacementTests.UntilExit_NotUnderAVaryingOrTestPerform_IsAccepted",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work/PB434.md (wave 1031 A). \"The UNTIL EXIT phrase shall not be specified in a PERFORM statement with or under a PERFORM statement with the VARYING phrase or either the TEST BEFORE or TEST AFTER phrase\" (cite.py --check 14.9.28.3 OK 8)). All three arms refuse with COBOL2954: WITH (the statement writes VARYING or a TEST phrase; the grammar's one performUntilTarget spells EXIT after every UNTIL of a PERFORM, so WITH TEST BEFORE UNTIL EXIT and VARYING ... UNTIL EXIT no longer fall to a bare COBOL0001), UNDER lexically (EnclosingContext.UnderVaryingOrTestPerform, any depth), and UNDER out of line (the paragraph is reached from the VARYING/TEST PERFORM's range per 14.9.28.4 GR1 through out-of-line PERFORMs, THRU ranges, PERFORM chains, Format-3 handlers and SORT/MERGE procedures - ProcedureReach.Closure, reported once the pc space is bound). Determination D-SR8 (docs/CONFORMANCE.md section 3): a TEST phrase counts only when written (SR1's assumed TEST BEFORE would forbid every UNTIL EXIT); GO TO destinations and declaratives are not followed. PerformUntilExitPlacementTests: thirteen refused shapes each refused exactly once, four admitted shapes compile.",
+ "state": "OK"
+}

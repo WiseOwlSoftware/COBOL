@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-18",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 18,
+ "subject": "VALUE clause",
+ "rule-digest": "aeac33709bbb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.TableValue.cs#ResolveTableValues; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.TableValue.cs#OccursChainOf",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb505-table-value-no-occurs; conformance:cases/13.18.63-VALUE/pb505_table_value_geometry; conformance:cases/13.18.63-VALUE/pb505_table_value_subordinate_odometer; conformance-test:ValueFormat2Tests.NoOccursAnywhere_Rejected1944; conformance-test:ValueFormat2Tests.SubordinateToOccurs_IsConforming_Sr18",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-09-09 (kb/Work PB505). THE RULE IS NOW WRITTEN DOWN, AND ITS CONFORMING HALF COMPILES. Before this landing there was no test of what SR18 says: DataBinder.ValidateTableValues asked `item.Occurs is not null || item.IsDynamicTable` -- about THIS entry only -- and answered every other shape with one staged COBOL0899 (\"recognized but currently supported only on a single-dimension table's own OCCURS entry\"). So the rule's CONFORMING half, `01 T OCCURS 3. 05 X PIC X(2) VALUE \"AB\" FROM (1).`, which SR18 expressly permits (\"...or be subordinate to a data description entry that contains an OCCURS clause\"), was REFUSED as legal source, and its VIOLATING half was rejected as a compiler limitation rather than as the user's bug. Both halves now answer from OccursChainOf, the Parent walk that IS the rule: an empty chain is COBOL1944 naming SR18, a non-empty one is the dimension list SR20/SR21 key against. MEASURED: the conforming subordinate shape runs and seeds ([AB|CD|AB], golden line 1 at 2023 and 2002); the violation draws COBOL1944 at ALL FOUR editions (SR18 carries no version proviso; at 85 the format-2 introduction gate COBOL0900 is reported alongside it, not instead of it). The screen runs post-forest because Parent does not exist at entry bind -- BindEntries links the item into its parent AFTER BindEntry returns.",
+ "state": "OK"
+}

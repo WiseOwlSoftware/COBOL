@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.41.3-2",
+ "section": "14.9.41.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "START statement",
+ "rule-digest": "81c1e627c830",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#IsSequential",
+ "test-ref": "conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb352_start_sequential_first_last; conformance:cases/14.9.41-START/pb352_start_sequential_first_last_line; conformance:cases/14.9.41-START/pb352-start-sequential-no-phrase; conformance:cases/14.9.41-START/pb352-start-sequential-key-phrase",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB352, evidence re-pointed by landing train 14. RULE (--check 14.9.41.3 2): 'If the organization of the file referenced by file-name-1 is sequential, either the FIRST or the LAST phrase shall be specified.' The rule PERMITS START on a sequential-organization file -- it only constrains WHICH phrase -- and 9.1.7.2 makes BOTH record sequential and line sequential 'sequential', so the rule's antecedent has two framings and the evidence needs both. It used to have both in ONE 2002 program. kb/Work PB688 then dated ORGANIZATION IS LINE SEQUENTIAL to COBOL-2023 (the Foreword's list of the main changes over ISO/IEC 1989:2014; 12.4.5.10.3 GR2), which makes a line-sequential SELECT illegal at 2002 -- so the line-sequential legs moved to conformance:cases/14.9.41-START/pb352_start_sequential_first_last_line and the 2002 program keeps the record-sequential ones, pinning START FIRST/LAST at the OLDEST edition that has it (the FIRST/LAST phrases are a 2002 introduction; conformance:cases/_unassigned/pb352-start-sequential-first-below-2002 pins the 1985 refusal). Both halves display the same six 14.9.41.4 GR20/GR21 + 14.9.30.4 GR21 b) values they displayed as one program: START LAST then READ yields the LAST record, START FIRST then READ yields the first, each START '00' with NOT INVALID KEY taken.",
+ "state": "OK"
+}

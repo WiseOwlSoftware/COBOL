@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.57.4-7",
+ "section": "13.18.57.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "TYPE clause",
+ "rule-digest": "e6482a3bdd53",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#GroupLimits; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentOrPageHeadings; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentPageFooting",
+ "test-ref": "conformance:cases/13.18.35-LINE/pb1270-detail-above-first-detail; conformance:cases/13.18.57-TYPE/pb1270-detail-inside-or-page-heading; conformance:cases/13.18.39-PAGE/pb1270-report-heading-above-heading; conformance:cases/13.18.57-TYPE/pb1270-page-footing-above-footing-plus-1; conformance:cases/13.18.57-TYPE/pb1270_report_or_page_upper_limit; conformance:cases/13.18.35-LINE/pb1270_report_page_region_boundaries; conformance:cases/13.18.57-TYPE/pb1298_control_heading_or_page; conformance-test:ReportWriterConformanceTests.PageAdvance_Gr6a_PfThenNewPage_TerminatePfRf",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PB55 FOLD (2026-10-15, owner decision 2026-08-08 'THE RULE IS THE UNIT'): the transcription printed this rule's nested list(s) at column 0, so 4 sub-item(s) held rows of their own; indented at their measured printed level, they are this rule's body and their adjudications are folded here, nothing dropped.\n\n[the rule's own record before the fold]\nkb/Work PB1270 landed 2026-10-04: GroupLimits computes the upper limit of every group type at bind, a) to g), with the OR PAGE headings of d) read by control level; the run-time placement consumers were already conforming (PB1298).\n\n[folded GR-13.18.57.4-L2.1 = §13.18.57.4 7) d) 1.: CONFORMS]\nkb/Work PB1298: a control heading at or above the highest OR PAGE level starts the page at FIRST DETAIL (it is the first body group of the page, GR5 b) 3.). The upper limit is realised by placement, not modelled as a limit.\n\n[folded GR-13.18.57.4-L2.2 = §13.18.57.4 7) d) 2.: CONFORMS]\nkb/Work PB1298: a heading below the highest OR PAGE heading follows the next higher heading's last line (relative placement from LINE-COUNTER after the reprinted headings). Realised by placement.\n\n[folded GR-13.18.57.4-L2.3 = §13.18.57.4 7) d) 3.: CONFORMS]\nkb/Work PB1298: a detail follows the last line of the lowest-level OR PAGE heading (the reprinted heading prints first: detail 7 at line 3 under H=A at line 2). Realised by placement.\n\n[folded GR-13.18.57.4-L2.4 = §13.18.57.4 7) d) 4.: CONFORMS]\nkb/Work PB1270 landed 2026-10-04: GR7 d) 4. (a control footing after the OR PAGE headings at its level or above), e), f), g) in GroupLimits.",
+ "state": "OK"
+}

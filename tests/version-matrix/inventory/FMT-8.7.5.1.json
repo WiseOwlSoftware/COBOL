@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.7.5.1",
+ "section": "8.7.5.1",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Relational operators",
+ "rule-digest": "ea39e29d888e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#comparisonOperator; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#MapOperator",
+ "test-ref": "conformance:cases/8.7.5-Relational-operators/pb1034_printed_relational_operator_set; conformance:cases/8.7.5-Relational-operators/pb1034_cce_printed_relational_operators; conformance:cases/8.7.5-Relational-operators/pb1034-not-gteq; conformance:cases/8.7.5-Relational-operators/pb1034-not-lteq; conformance:cases/8.7.5-Relational-operators/pb1034-not-greater-or-equal-words; conformance:cases/8.7.5-Relational-operators/pb1034-not-less-or-equal-words; conformance:cases/8.7.5-Relational-operators/pb1034-equal-than; conformance:cases/8.7.5-Relational-operators/pb1034-abbreviated-not-gteq; conformance:cases/8.7.5-Relational-operators/pb1034-directive-not-gteq; unit:RelationalOperatorFormatDriftTests.ComparisonOperator_IsTheSpellingsOfThePrintedFormat1_AndNoOther; conformance:cases/8.7.5-Relational-operators/pb1034_is_not_equal_symbol",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1034 LANDED (wave 1005 D). 8.7.5.1 prints six simple and the extended spellings; IS/THAN/TO optional. Both halves now hold: every printed spelling parses and evaluates (positive golden pb1034_printed_relational_operator_set at 85 for every spelling but the symbol <>, which is a COBOL-2002 introduction (VCR 7.26, PB1459) and so is asserted by 2002/pb1034_is_not_equal_symbol, and the >>IF lane pb1034_cce_printed_relational_operators), and the five spellings no format prints (NOT >=, NOT <=, NOT GREATER [THAN] OR EQUAL [TO], NOT LESS [THAN] OR EQUAL [TO], EQUAL THAN) are refused at 85/2002/2014/2023 in IF, the abbreviated tail and the >>IF relation (COBOL0001 / COBOL2072 / COBOL1619 by the lane's own parser). The >>IF rule's own free IS? NOT? before the operator was removed (it let >>IF X NOT >= 3 through). External corpora: NIST CCVS and the in-repo conformance sources hold no use of the five spellings (grep, 0 hits outside the pb333/pb1034 goldens); the GnuCOBOL differential was not run in this slice.",
+ "state": "OK"
+}

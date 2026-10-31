@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.3-8",
+ "section": "15.3",
+ "kind": "AR",
+ "ordinal": 8,
+ "subject": "Intrinsic functions",
+ "rule-digest": "c5d1e4062b4b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLocaleFunction",
+ "test-ref": "conformance:cases/14.6.6-Locale-identification/pb64t4_locale_functions; conformance:cases/15.3-Arguments/pb64t4-locale-function-name-undeclared; conformance:cases/15.3-Arguments/pb64t5-case-phrase-name-undeclared",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 15.3 'Locale-name. A locale-name defined in the SPECIAL-NAMES paragraph shall be specified' => OK §15.3 8). READ IntrinsicBinder.cs#BindLocaleFunction (dispatched at line 524 on `sig.ArgKinds.EndsWith('l')`, before the generic operand path): the leading positions bind as operands and the OPTIONAL LAST position is consumed as a NAME, resolved through DataBinder.ResolveLocaleName into the one LocaleRef; an undeclared name and a non-word in that position both draw COBOL1664, each message carrying the function's OWN rule (§15.51.3 r4 / §15.52.3 r3 / §15.53.3 r4 / §15.54.3 r2). The same resolver serves the other two locale-name sites — BindCaseFunctionWithLocale (the UPPER-CASE/LOWER-CASE LOCALE phrase) and BindNumvalCFamily (NUMVAL-C / TEST-NUMVAL-C LOCALE) — so there is ONE undeclared-locale-name diagnostic, not three. Absent, LocaleRef.Current applies (§14.6.6 r7/r8). The 'l' code carries its disposition in IntrinsicArgumentRules.NonOperandArgumentKinds, and IntrinsicArgumentClassDriftTests requires every catalog code to have either an Admissible arm or an entry there — so the name can never become the dead column §15.3 type 8 previously was (the catalog comment records that the column was unread while the rows bound as documented non-support). TESTS: 2014/pb64t4_locale_functions is the positive golden; pb64t4-locale-function-name-undeclared and pb64t5-case-phrase-name-undeclared pin the refusals.",
+ "state": "OK"
+}

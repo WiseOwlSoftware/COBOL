@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.41.4-2",
+ "section": "13.18.41.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "PRESENT WHEN clause",
+ "rule-digest": "58bdcbf352e2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginPresentation; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SetPresence; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#EndOfGroupSumReset; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#PresencePlan; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitPresenceProbe; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#PresentExpr",
+ "test-ref": "conformance:cases/13.18.41-PRESENT-WHEN/pb1272_present_when_snapshot; conformance:cases/13.18.14-COLUMN/rw_present_when; conformance:cases/13.18.53-SOURCE/pb4031_report_overflow_checking",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1272: every condition-1 of the group (line, printable item, SUM entry) and every OCCURS DEPENDING count is ONE snapshot per presentation, taken by the generated presence probe before the page fit test (GR2) and read by the placement, the compose and the sum reset; a group with no present line is still processed (its own counters reset) unless its level-01 entry is absent (GR2 b)). The golden: an item condition stays true across the page advance its group caused (4 OPT), and a control footing whose only line is absent still resets its counter (CNT=04).",
+ "state": "OK"
+}

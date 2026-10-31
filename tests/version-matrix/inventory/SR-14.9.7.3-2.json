@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.7.3-2",
+ "section": "14.9.7.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "COMMIT statement",
+ "rule-digest": "cba133df0d63",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateSortMergeProcedures",
+ "test-ref": "conformance:cases/14.9.7-COMMIT/pb137-commit-in-sort-proc",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED (kb/Work PB137): the batch-8 finding verbatim - the cross-pass implemented exactly this SR's ban with a MERGE-only predicate; the identity node makes COMMIT (and ROLLBACK, 14.9.36.3 SR2) its reachable siblings over the SAME prohibited-range machinery (COBOL1690). retired-witness: src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#GateMergeInSortMergeProc (the method was generalised and renamed GateSortMergeProcedures (kb/Work PB1139); same arm, same site)",
+ "state": "OK"
+}

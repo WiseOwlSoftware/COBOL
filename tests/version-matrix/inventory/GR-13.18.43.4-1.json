@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.43.4-1",
+ "section": "13.18.43.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "RECORD clause",
+ "rule-digest": "61cca5b6d730",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MaxRecordSize; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MinRecordSize",
+ "test-ref": "conformance:cases/13.18.43-RECORD/pb1276_record_contains_sizes_file; conformance:cases/13.4.6-Sort-merge-file-description/pb1277_record_size_in_bytes; conformance:cases/13.18.43-RECORD/pb1277-record-contains-national-larger",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Landed by kb/Work PB1276 + PB1277 (w61f). cite.py --check 13.18.43.4 'Each integer in a RECORD clause specifies a record size in terms of bytes' -> OK §13.18.43.4 1). Every integer is now compared with a BYTE size: Format 1 integer-1 sizes the file in bytes (PB1276), and the record sizes SR3/SR4/GR9/GR10/GR14 compare it with are DataItem.ByteWidth-based (PB1277: a PIC N(10) record is 20 bytes against RECORD CONTAINS 10 -> COBOL2010; FROM 16 TO 40 over X(10)+N(5) = 20 bytes compiles).",
+ "state": "OK"
+}

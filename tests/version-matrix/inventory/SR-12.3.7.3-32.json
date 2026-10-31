@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.7.3-32",
+ "section": "12.3.7.3",
+ "kind": "SR",
+ "ordinal": 32,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "2c78a1f651a8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#DynamicLengthStructureBind",
+ "test-ref": "conformance-test:DynamicLengthTests.StructureClause_Refused",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB829. 'The implementor shall specify the names supported for physical-structure-name-1' (cite.py --check 12.3.7.3 OK, 32). The specified set is EMPTY (docs/CONFORMANCE.md section 3 D-DL3): a physical-structure-name is refused by name, COBOL2257.",
+ "state": "OK"
+}

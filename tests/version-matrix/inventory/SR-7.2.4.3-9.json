@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.2.4.3-9",
+ "section": "7.2.4.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "REPLACE statement",
+ "rule-digest": "e82bd5cb8473",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair",
+ "test-ref": "unit:TextManipulationStatementTests.OverlongTextWord_IsScreened_InPseudoTextAndLibraryText",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1353 (w68x): 'The length of a text-word within pseudo-text shall be from 1 through 65,535 characters' (cite.py OK 7.2.4.3 9)): a 70,000-character text-word in pseudo-text-1 is COBOL2572.",
+ "state": "OK"
+}

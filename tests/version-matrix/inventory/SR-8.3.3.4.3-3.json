@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.3.4.3-3",
+ "section": "8.3.3.4.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Boolean literals",
+ "rule-digest": "23f400d67b05",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#RepertoireViolation; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#BOOL_BODY; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#Screen",
+ "test-ref": "conformance:cases/8.3.3.4-Boolean-literals/w73a-hex-boolean-literal-non-hex-digit; conformance:cases/8.3.3.4-Boolean-literals/w73a_prefix_literal_beside_named_item; unit:SeparatorRuleTests.OutsideRepertoire_NamesTheCharacterAndTheRule; unit:SeparatorRuleTests.InRepertoire_IsNotAViolation",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR3 (cite.py --check 8.3.3.4.3 \"Hexadecimal-digit-1 shall be a hexadecimal digit\" OK 3)). kb/Work PB1394 LANDED (wave 73 group A): BOOL_BODY Format 2 is 'BX' STR_BODY, BX\"G1\" is one BOOLLIT, and LiteralScreenPass reports COBOL2630 naming 'G' and SR3; the NOTE half (zero length) still holds (BX\"\" is in the repertoire) and no grouping rule is imposed on BX. Negative: DISPLAY BX\"G1\" beside 01 BX -> COBOL2630 at 2002/2014/2023; positive: BX\"A\" -> 1010 beside the item BX. retired-witness: src/Cobol.Net.Compiler/Validation/LiteralScreenPass.cs#Screen (kb/Work PB1616 moved LiteralScreenPass (Compiler/Validation) to LiteralScreen (Frontend/Parsing) so the directive lane asks the same body; the witness is the same code at its new path)",
+ "state": "OK"
+}

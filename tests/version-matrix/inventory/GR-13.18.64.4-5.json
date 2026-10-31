@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.64.4-5",
+ "section": "13.18.64.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "VARYING clause",
+ "rule-digest": "80bd3545976e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#VaryingInteger; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ReportVaryingError; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#VaryValue",
+ "test-ref": "conformance:cases/13.18.64-VARYING/pb1305_report_varying_expression; conformance:cases/13.18.64-VARYING/pb1305_report_varying_standard_decimal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1305 (w70 V3) closes F1 + F5: cite.py --check 13.18.64.4 'the EC-REPORT-VARYING exception condition is set to exist, the execution of the INITIATE, GENERATE, or TERMINATE statement is unsuccessful' OK 5). CobolReport.VaryingInteger tests the FROM/BY value for a fraction in its own lane (fixed: unscaled % 10^scale; binary64: Math.Truncate; SDIDI: truncation vs away-from-zero landing) and raises EC-REPORT-VARYING (Table 13 Fatal) through ExceptionState.ReportVaryingError, checking flag ReportVaryingChecking gated by EcEmitter's fatal ambient gate and bound to GENERATE/TERMINATE by EcBinder's report-production names (an INITIATE presents no group, so no VARYING expression is evaluated there). Goldens: 2002 FROM 7 / 2 and 2014 STANDARD-DECIMAL BY 7 / 2 each raise; the declarative displays EC-REPORT-VARYING and RESUME AT NEXT STATEMENT continues after the unsuccessful GENERATE. DETERMINATION (w70 V3): with checking OFF the counter takes the value's integer part and the statement continues - GR5 leaves the print line's content undefined (§A.2 item 63); the reading 'abandon the statement even with checking off' was not taken.",
+ "state": "OK"
+}

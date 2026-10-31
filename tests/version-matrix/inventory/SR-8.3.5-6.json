@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.5-6",
+ "section": "8.3.5",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "Lexical elements",
+ "rule-digest": "ee2494b9cc00",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadOperand",
+ "test-ref": "conformance:cases/8.3.5-Separators/pb1353-pseudo-text-delimiter-glued; unit:TextManipulationStatementTests.PseudoTextDelimiters_AreSeparated",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1353 (w68x): 'An opening pseudo-text delimiter shall be immediately preceded by a space; a closing pseudo-text delimiter shall be immediately followed by one of the separators space, comma, semicolon, or period' (cite.py OK 8.3.5 6)): ReadOperand checks both neighbours (COBOL2573) for COPY REPLACING and REPLACE alike (probe rep_glue: OK rc=0, now rejected). 'balanced pairs': an unclosed pseudo-text is COBOL2449 (PB1354).",
+ "state": "OK"
+}

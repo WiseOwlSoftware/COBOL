@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.57.4-6",
+ "section": "13.18.57.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "TYPE clause",
+ "rule-digest": "60b5eeb0db8d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentOrPageHeadings; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AdvancePage",
+ "test-ref": "conformance-test:ReportWriterConformanceTests.FirstGenerate_Gr4_RhOncePhPerPage; conformance:cases/13.18.57-TYPE/pb1298_control_heading_or_page",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1298: GR6 c) the OR PAGE heading is reprinted after every page advance, following the page heading, major to minor, as the first body group of the page. The proviso (not when the advance preceded a control footing at a lower control level) is applied as written; GR7 d) 4. reads the other way for such a footing, which is recorded in docs/CONFORMANCE.md A.4.11.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-22",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 22,
+ "subject": "CHAR-NATIONAL function (which one of the multiple characters is returned)",
+ "rule-digest": "a5809dfd0ee5",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-22; src/WiseOwl.Cobol.Runtime/Values/Text/LocaleCollation.cs#CharAt; src/WiseOwl.Cobol.Runtime/Values/Text/LiteralPhraseCollation.cs#CharAt; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#CharNational",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1_char_national_locale_tie; conformance:cases/12.3.7-SPECIAL-NAMES/l1_char_national_also_positions",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "A.1 item 22 is §15.16.4 r2's SECOND sentence - the branch where the order of several characters sharing an ordinal position is UNDEFINED. The row documented the FIRST sentence (the ALSO order, which §12.3.7.4 GR7 k)6 decides for the implementor) until 2026-09-03, so no golden could close it: l1_char_national_also_positions says in its own header that it does not. The undefined-order branch is reached through ALPHABET ... FOR NATIONAL IS LOCALE, whose sequence is an algorithm rather than a written order; l1_char_national_locale_tie reads position 1 (the completely-ignorable rank) twice and gets 000001 both times - the LOWEST-CODED member of the rank (LocaleCollation.OrderVector.FirstOfRank, materialized once per collator), which is r2's third sentence measured as well as its second.",
+ "state": "OK"
+}

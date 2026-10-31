@@ -181,7 +181,7 @@ COBOL source
 ## Status
 
 Every normative rule of ISO/IEC 1989:2023 is a row of the traceability inventory,
-`tests/version-matrix/traceability-inventory.json`, and a row closes only when a test derived from the standard proves
+`tests/version-matrix/inventory/` (one JSON file per row), and a row closes only when a test derived from the standard proves
 the compiler conforms. The open rows are the project's one progress number, and the checkout computes it:
 `pwsh scripts/session-probe.ps1` prints the rows, the open rows and the corpus sizes for the commit you are on, and
 the gate's verdict line prints the tests it ran.

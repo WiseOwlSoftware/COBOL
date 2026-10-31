@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.24.4-13",
+ "section": "14.9.24.4",
+ "kind": "GR",
+ "ordinal": 13,
+ "subject": "MERGE statement",
+ "rule-digest": "6f2f5d75b7b3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitGivingFile; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#ShortRecordFillNational; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#FillTo; src/WiseOwl.Cobol.Runtime/IO/RecordFill.cs#Fit",
+ "test-ref": "conformance:cases/14.9.24-MERGE/pb1140_sort_merge_short_record_fill",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1140 landed (w1003b). EmitGivingFile fills a returned record shorter than a fixed-length, non-line-sequential GIVING file with CobolSort.FillTo(tmp, width, output.ShortRecordFillNational, extents) BEFORE the governed WRITE: the decision is the GIVING file's own record descriptions (one record description, national data item or elementary usage-national numeric / numeric-edited / boolean -> national space; otherwise alphanumeric), no longer the connector's per-record-area NationalRecordArea flag (the READ's GR15 test). Golden leg M1 (MERGE from a VARYING 4-TO-6 SD: GNUM2 `PIC 9(3) USAGE NATIONAL` -> 00 58 00 58 00 20, GMUL2 two descriptions -> 00 58 00 58 20 20). A LINE SEQUENTIAL / variable-length GIVING file has no fixed length to fill to (docs/CONFORMANCE.md D-SMF (c)). editions: fill 1985..2023 (c); national arms from 2002.",
+ "state": "OK"
+}

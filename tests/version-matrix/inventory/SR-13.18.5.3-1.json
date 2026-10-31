@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.5.3-1",
+ "section": "13.18.5.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "BASED clause",
+ "rule-digest": "c732f44ff623",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.UsageDeclaration.cs#CheckUsageDeclarations; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.UsageDeclaration.cs#ScreenBasedClassObjectItem",
+ "test-ref": "conformance:cases/13.18.5-BASED/pb1212-based-type-of-class-object; conformance:cases/13.18.5-BASED/pb1212_composed_entry_class_rules_legal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "(kb/Work PB1212) The class-object screen is asked of the entries that DIRECTLY carry a TYPE clause too (the composed-entry loop), by the same code as the written-entry loop.",
+ "state": "OK"
+}

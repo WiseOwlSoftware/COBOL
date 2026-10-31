@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.43.3-6",
+ "section": "13.18.43.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "RECORD clause",
+ "rule-digest": "d95f25db99d1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Rules; src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveFiles",
+ "test-ref": "conformance:cases/13.18.43-RECORD/pb858-record-depending-in-record; conformance:cases/13.18.43-RECORD/pb858-record-depending-not-unsigned-integer; conformance:cases/13.18.43-RECORD/l1c23_record_varying_bounds_depending; unit:RecordClauseRuleDriftTests.Sr6StatesThreeObligations_AndTheTableHasARowForEach",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB858 (wave 1021 B). SR6's three obligations are three rows of the RecordClauseRules table (subject DependingOperand): elementary (a group is refused), unsigned integer (PicInfo.IsUnscaledInteger and not signed: PIC S99, PIC 9V9 and PIC XX refused), and the section (DataItem.Section, PB1080: an item of the FILE section, the FD's own record included, is refused; working-storage, local-storage and linkage are admitted). ResolveFiles now resolves the DEPENDING operand before the screen runs. One code, COBOL2922; the message names the obligation broken. The drift test re-derives the three arms from the printed rule.",
+ "state": "OK"
+}

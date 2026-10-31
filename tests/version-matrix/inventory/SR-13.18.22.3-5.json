@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.22.3-5",
+ "section": "13.18.22.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "EXTERNAL clause",
+ "rule-digest": "42030ccc9839",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandType; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#IsInExternalRecord",
+ "test-ref": "conformance:cases/13.18.22-EXTERNAL/pb1212-external-file-record-strong-type; conformance:cases/13.18.5-BASED/pb1212_composed_entry_class_rules_legal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "(kb/Work PB1212) The predicate is 'the record is an external item': its own EXTERNAL clause, an external type, or the record of an EXTERNAL file (13.18.22.4 GR4 b)); asked of the item's record so a subordinate TYPE clause is reached too.",
+ "state": "OK"
+}

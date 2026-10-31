@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.3.3.6.4-4",
+ "section": "8.3.3.6.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Figurative constant values",
+ "rule-digest": "494f39435471",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#FillChar; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs",
+ "test-ref": "conformance:cases/8.3.3.6-Figurative-constant-values/pb51_compute_figurative_zero; conformance:cases/8.3.3.6-Figurative-constant-values/pb3962_figurative_zero_before_a_signed_literal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'The zero format represents the numeric value '0', one or more of the boolean character '0', or one or more of the character '0' in the computer's runtime coded character set, depending on context.' (cite.py --check 8.3.3.6.4 -> OK 4)). All three context readings verified by probe probe/figurative-constant-values/p1.cob: MOVE ZERO TO PIC X(3) / PIC N(3) / PIC 1(4) / PIC 9(3) -> '000|000|0000|000'; s_g.cob ADD ZEROS TO D3 (D3=5) -> 005 (the numeric value 0). Numeric reading in intrinsic arguments is PB48/PB54 (landed), in WRITE ADVANCING PB87 (landed). Golden pb51_compute_figurative_zero pins the numeric arm; pb584_mixed_bit_group_image cites GR4 for the boolean arm. || editions as written by the adjudicator: 85, 2002, 2014, 2023 (the boolean-character reading from 2002, when boolean items were introduced)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-12.3.8.2",
+ "section": "12.3.8.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "9edb60d0d826",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#repositoryEntry; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#externalizedNamePhrase; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#expandsPhrase; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#BindSpecifierExternalizedName; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenParagraphPeriods",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb974_repository_as_phrase; conformance:cases/8.3.2.2-User-defined-words/pb237_program_prototype; conformance:cases/11.3-CLASS-ID/pb759_parameterized_class; conformance:cases/12.3.8-REPOSITORY/pb974-repository-class-as-zero-length; conformance:cases/12.3.8-REPOSITORY/pb2727-repository-period-per-specifier; conformance:cases/12.3.8-REPOSITORY/pb2727-repository-period-missing; conformance:cases/12.3.7-SPECIAL-NAMES/pb2727_paragraph_single_period",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rendered PDF p334-335: every specifier - class [AS literal-1] [EXPANDS ...], interface [AS literal-2] [EXPANDS ...], FUNCTION {intrinsic-function-name-1}... INTRINSIC | FUNCTION ALL INTRINSIC, program [AS literal-3], property [AS literal-4], user-defined function [AS literal-5] - now parses as printed (kb/Work PB974: the AS phrase was on PROGRAM only, and the intrinsic list took one name). The REPOSITORY paragraph is a 2002 introduction (VersionConformancePass ParseArm.VisitRepositoryEntry).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.21.2",
+ "section": "14.9.21.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "INITIATE statement",
+ "rule-digest": "422c195f5ac6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#initiateStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindInitiate",
+ "test-ref": "conformance:cases/8.4.3.15-Report-counters/pb1001_line_next_page",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'INITIATE { report-name-1 } ...' (cite.py --check 14.9.21.2 \"INITIATE\" -> OK §14.9.21.2 General format). Grammar `initiateStatement : INITIATE reportName+ ;` = one or more report-names, no qualification, no other phrases - exactly the format. Probes p1.cob/p2.cob (2023) and p3.cob (--std 85) compile and run `INITIATE R-A R-B.`. pb1001_line_next_page (2002, DERIVATION comment spec-derived) exercises the repeated form `INITIATE R-NP R-BF.`. || editions as adjudicated: 1985, 2002, 2014, 2023 (INITIATE is a Report Writer statement in every edition; format unchanged)",
+ "state": "OK"
+}

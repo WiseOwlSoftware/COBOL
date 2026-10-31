@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.5.4-2",
+ "section": "11.5.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "FUNCTION-ID paragraph",
+ "rule-digest": "34f8b20eb74c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit; src/WiseOwl.Cobol.Compiler/Binding/GroupRepository.cs#ResolveFunction; src/WiseOwl.Cobol.Compiler/Binding/GroupRepository.cs#FunctionsAt; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#UserFunctionSignature; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs",
+ "test-ref": "conformance:cases/11.5-FUNCTION-ID/pb989_function_prototype_externalized_name; conformance:cases/11.5-FUNCTION-ID/pb989_function_externalized_name_wins; conformance-test:RepositoryDetailsOrderTests.PrototypeLiteral_IsTheActivatedName_EvenWhenAFollowingDefinitionSharesItsWord",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB989: cite.py --check 11.5.4 'However, literal-1, if specified, is the name of the function prototype that is externalized to the operating environment.' -> OK 11.5.4 2). Two halves: (a) function-prototype-name-1 names the prototype (the word a FUNCTION reference or REPOSITORY FUNCTION entry resolves), (b) literal-1 is the externalized name. Code: BinderDriver.MakeUnit sets BoundUnit.ExternalizedName = literal-1 for a PROGRAM-ID or FUNCTION-ID AS phrase (a prototype included); GroupRepository resolves a prototype by its EXTERNALIZED name (GR11 a)/b)) and keys it by its own word, and UserFunctionSignature.Externalized, the emitter's activation key, is the prototype's literal-1. FIXED by kb/Work PB989: the old BuildUserFunctionTable merged a prototype and a definition by WORD, so a definition sharing the prototype's word replaced it and its literal-1 was dropped (prototype FIDDEF AS 'NOPE' activated FIDDEF). Witnesses: golden 2002/pb989_function_prototype_externalized_name (prototype PB989W AS 'PB989X' beside a following definition PB989W activates PB989X: W=0021, V=0021); conformance-test RepositoryDetailsOrderTests.PrototypeLiteral_IsTheActivatedName_EvenWhenAFollowingDefinitionSharesItsWord (the run-time EC-FUNCTION-NOT-FOUND names P989NOWHERE). Earlier probes: prototype FIDPA AS 'FIDREAL' + REPOSITORY FUNCTION FIDPA activates the definition FUNCTION-ID FIDREAL; the same program with the prototype's AS removed -> EC-FUNCTION-NOT-FOUND for FIDPC. Editions: 2002, 2014, 2023 (Format 2 function prototype, COBOL-2002 introduction; not in COBOL-85). retired-witness: src/Cobol.Net.Compiler/Binding/BinderDriver.cs#BuildUserFunctionTable (BuildUserFunctionTable (the order-blind, word-keyed merge of a function prototype and a definition) is deleted by kb/Work PB989; GroupRepository resolves by externalized name)",
+ "state": "OK"
+}

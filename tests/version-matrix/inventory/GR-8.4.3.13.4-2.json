@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.13.4-2",
+ "section": "8.4.3.13.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Program-address-identifier",
+ "rule-digest": "b2cd0e6e5244",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#EntryOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindProgramAddressOperand",
+ "test-ref": "conformance:cases/8.4.3.13-Program-address-identifier/l1c23_program_address_outermost",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 8.4.3.13.4 'For a COBOL program, the address is that of the outermost program identified by the externalized program-name in its PROGRAM-ID paragraph.' OK (GR2). EntryOf matches only ParentPath==null nodes (outermost) on Node.CallName (externalized; PB303); the prototype arm resolves through proto.ExternalizedName. Probed: a literal naming the CONTAINED program PAINEST -> NULL (NEST-NULL, probe ok2) - the outermost half. conformance:cases/8.4.3.13-Program-address-identifier/pb549_program_address_identifier arm 4 pins only the externalized-name half (PB549P AS \"PB549X\"), so it cannot close both halves; test-needed: a golden taking ADDRESS OF PROGRAM of a nested program-name and showing NULL. Non-COBOL half: implementor-defined, Annex A item 142 is conditionally required upon non-COBOL support; WiseOwl COBOL declares no CALL-CONVENTION directive and no non-COBOL program can be declared (CONFORMANCE.md DOC-A.1-19 says the same), so the condition is not met. [editions as adjudicated: 2002, 2014, 2023 (the program-pointer family; absent from COBOL-85 - Annex E covers only 2014->2023, the introduction is the 2002 address-identifier; probe: --std 85 draws COBOL0900)]",
+ "state": "OK"
+}

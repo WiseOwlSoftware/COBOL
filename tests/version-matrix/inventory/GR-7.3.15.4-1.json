@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.15.4-1",
+ "section": "7.3.15.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "FLAG-14 directive",
+ "rule-digest": "53acc3b946bf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/FlagConformancePass.cs#FlagConformancePass; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#FlagScanState; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#Flag14Warning",
+ "test-ref": "unit:FlagPopulationTests.IoStatus_FlagsEveryConditionThatTestsTheFileStatusItem; unit:FlagDirectiveTests.Compile_Flag14_DefaultedBraces_SelectTheRightOptions; unit:FlagDirectiveTests.Compile_Flag14ReadPreviousOn_EmitsCobol1621",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1374 (w1020f). cite.py --check 7.3.15.4 'The implementor shall provide a warning mechanism that flags the incompatibilities potentially affecting existing programs' OK (GR1). The mechanism (COBOL1621, a Warning, one per flagged construct, naming its GR4 sub-rule and Annex E.2 item; docs/DIAGNOSTICS.md, CONFORMANCE.md A.1 item 80) flags every option's whole GR4 population (GR-7.3.15.4-4), and every legal way to SELECT an option now reaches it: the implicit-ON / implicit-ALL forms `>>FLAG-14 VALUE-ZERO`, `>>FLAG-14 ALL`, `>>FLAG-14 ON`, `>>FLAG-14 OFF`, bare `>>FLAG-14` are accepted (FMT-7.3.15.2), probed on the w1020f build: each flags or silences VALUE-ZERO as 5.2.6.3 requires. retired-witness: unit:FlagDirectiveTests.Compile_Flag14ReadPreviousOn_EmitsCobolnet1621 (the same witness, re-spelled when the product's name retired the compiler's first name (kb/Work PB3837: a test name carrying a code spells it COBOL####, kb/Work PB3575); the new spelling is recorded in its place)",
+ "state": "OK"
+}

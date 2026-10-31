@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.9.11.2-3",
+ "section": "11.9.11.2",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "INTERMEDIATE ROUNDING clause",
+ "rule-digest": "4cf4242e16d5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolDec.cs#AddSigned; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolDec.cs#Round34Wide",
+ "test-ref": "conformance:cases/11.9.11-INTERMEDIATE-ROUNDING/pb1510_intermediate_rounding_truncation_signed_tail; conformance:cases/11.9.11-INTERMEDIATE-ROUNDING/pb1510_intermediate_rounding_nearest_signed_tail; conformance:cases/11.9.11-INTERMEDIATE-ROUNDING/pb1510_intermediate_rounding_nearest_even_tie; unit:CobolDecSignedTailTests.TheDroppedTail_CarriesItsOwnSign; unit:CobolDecSignedTailTests.Prohibited_RaisesOnAnInexactSignedTail_AndNotOnAnExactDifference",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1510 landed. AddSigned folded the far-exponent operand's discarded tail into an UNSIGNED sticky bit that Round34Wide read as excess in the result's direction, so an opposite-sign addition over-stated the magnitude: 1 - 1.0E-50 held 1.000...0 under TRUNCATION where 3 e) owes the nearest SDIDI value nearer zero (34 nines), and the NEAREST modes mis-rounded the same shape. The dropped tail now carries the low operand's SIGN (near - sign(near) with sticky when the signs oppose; an exact Int128 computation when a 38-digit operand cancels down to the tail's own digits). Every expected value in the goldens and CobolDecSignedTailTests is the exact sum rounded in the named mode by Python decimal.",
+ "state": "OK"
+}

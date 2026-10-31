@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-7.3.24.2",
+ "section": "7.3.24.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "SOURCE FORMAT directive",
+ "rule-digest": "08ebfd22913e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/WiseOwl.Cobol.Editions/DirectiveOperandSyntax.cs#DirectiveOperandSyntax; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs#FormatSegments",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb794-source-format-unknown; conformance:cases/7.3.24-SOURCE-FORMAT/pb794-source-format-literal; conformance:cases/7.3-Compiler-directives/pb794_directive_operands; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_DiagnosesAMalformedOperand; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": ">> SOURCE FORMAT IS { FIXED | FREE }, verified against the PRINTED page (folio 84): SOURCE, FIXED and FREE are underlined required words, FORMAT and IS are 5.2.3 optional words, and the braces are a plain required choice. The optional words are the row's optionalWords, so >>SOURCE FREE and >>SOURCE FORMAT IS FREE both select FREE; an operand that is neither, or none at all, is COBOL1911 and the line is still consumed (the reference format in effect carries on, since the directive selected none). kb/Work PB794. retired-witness: src/Cobol.Net.Frontend/Preprocessor/ReferenceFormatProcessor.cs#TryMatchDirective (kb/Work PB1361 (w70b) replaced the format-blind TryMatchDirective pre-scan with the in-order FormatSegments walk, which recognizes the directive by its word through CompilerDirectiveLine in the program-text area of the format in effect)",
+ "state": "OK"
+}

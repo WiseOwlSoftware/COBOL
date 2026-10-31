@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.4.4-4",
+ "section": "14.9.4.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "CALL statement",
+ "rule-digest": "deb93ebb7679",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#StoreReturn; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#StoreReturnGroup; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#ReturningDelivery; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#ReturningArgText",
+ "test-ref": "conformance:cases/14.9.4-CALL/goback_returning; conformance:cases/14.9.4-CALL/pb165_returning_wide_carrier; conformance:cases/14.9.4-CALL/pb962_returning_content_transfer; conformance:cases/14.2-Procedure-division-structure/pb965_fixed_group_vlg_boundary; unit:BoundaryGroupCorrespondenceTests.ANumericResult_IsItsContent_NeverAReParse; unit:BoundaryGroupCorrespondenceTests.AFixedGroupResult_LandsInAVariableLengthReceiver_AndTheReverse; unit:BoundaryGroupCorrespondenceTests.AFloatResult_HasADelivery",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "RE-VERIFIED (kb/Work PB962 + PB965). GR4 - `cite.py --check 14.9.4.4 \"If a RETURNING phrase is specified, the result of the activated program is placed into identifier-3.\"` -> OK, General rules 4; §14.6.5 (\"is the content of the data item referenced by that RETURNING phrase\") says WHAT is placed. The row's previous CONFORMS was wrong in three ways, each measured: (1) an image-carried fixed-point returning item's text was RE-PARSED as a C# number and a content that was not a digit run (spaces) ABORTED the run unit with EC-PROGRAM-ARG-MISMATCH although the pair conformed (§14.8.3.3); (2) a native value delivered into an image-carried receiver as its C# text, so -12.5 in PIC S9(3)V9 arrived as +12.5 (012E for 012N); (3) the double leg the row claimed did not exist - a USAGE FLOAT-LONG returning item did not compile (CS0315). A fixed group returning into a variable-length receiver (and the reverse), which §14.8.3.2 admits, also aborted. Now: the returning item crosses as a CobolArg (carrier + the receiver's description) and the activated element passes its sending item's NumProfile / §8.5.1.12 layout, so the delivery is a content transfer under the one description a conforming pair shares, and a compatible group pair meets at CobolVarGroup.CorrespondingSpans. Documented residue: a NATIVE numeric receiver holds a value, so non-numeric content reads as the value ParseDisplay gives it (the same as every character view of a native cell).",
+ "state": "OK"
+}

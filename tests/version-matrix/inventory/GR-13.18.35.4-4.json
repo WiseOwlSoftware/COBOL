@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.35.4-4",
+ "section": "13.18.35.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "LINE clause",
+ "rule-digest": "354fcfe9f645",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PlaceAfterSavedNextGroup; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#RepeatedLine",
+ "test-ref": "conformance:cases/8.4.3.15-Report-counters/pb1001_line_next_page; conformance:cases/8.4.3.15-Report-counters/pb957_next_group_forms",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1001. The page fit test runs for a body group other than the chronologically first since INITIATE (DE-N's first GENERATE prints N05 on page 1 with no advance despite NEXT PAGE). a) NEXT PAGE on the first LINE clause -> no test, fit unsuccessful: DE-N (LINE 5 ON NEXT PAGE) advances to pages 2 and 5, DE-B (bare ON NEXT PAGE) to page 3 at FIRST DETAIL. 'Which LINE clause is taken to be the first may depend on ... PRESENT WHEN': DE-P with its NEXT PAGE line absent fits on the current page (p05); present, it advances (P06). b) absolute integer-1 > LC and c) the relative trial sum against the lower limit are PresentBody's GR4b/GR4c arms (pb957_next_group_forms: B08 fits, DE-D at 16 > 14 advances). The NEXT GROUP modification is PlaceAfterSavedNextGroup (GR-13.18.37.4-4).",
+ "state": "OK"
+}

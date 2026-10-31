@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.64.4-4",
+ "section": "13.18.64.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "VARYING clause",
+ "rule-digest": "8dca6710186a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#VaryingExpr; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveSubscriptName; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#FieldImage",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/pb1292_source_operand_forms; conformance:cases/8.4.2.2-Qualification/pb1306_varying_scope",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1292 + PB1306 landed. cite.py --check 13.18.64.4 'as a subscript to a source data item' OK (GR4 NOTE). The value persists per occurrence and is a SOURCE operand bare (`SOURCE K`, also from a SUBORDINATE entry: pb1306_varying_scope line 1), as a subscript (`SOURCE WS-CC(K)` = A C E and `WS-CC(K + 1)` = B D F, pb1292_source_operand_forms lines 2-3) and inside an expression. retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#FieldVaryingSource (FieldVaryingSource rebound only the own entry's unqualified bare SOURCE; a counter is now read through ReferenceResolver.VaryingScope by every reader of a written name (operand, expression and subscript binders))",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.9.5.2-3",
+ "section": "11.9.5.2",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "ARITHMETIC clause",
+ "rule-digest": "1860d3883693",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SumEntry; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction; src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#ArithmeticOf; src/WiseOwl.Cobol.Compiler/Binding/OptionsModel.cs#IsDecimalEngine; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#StandardDecimal; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs",
+ "test-ref": "conformance:cases/11.9.5-ARITHMETIC/pb1509_sum_counter_wide_standard_decimal; conformance:cases/11.9.5-ARITHMETIC/pb116_sqrt_standard_decimal",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1509 (w70 V3) closes the SUM-clause arm: cite.py --check 11.9.5.2 'If the STANDARD-DECIMAL phrase is specified, the techniques used in handling arithmetic expressions, arithmetic statements, the SUM clause, and integer and numeric functions shall be as described for standard-decimal arithmetic' OK 3). Under STANDARD-DECIMAL an arithmetic-expression SUM addend renders in the CobolDec SDIDI lane and lands at the counter's scale through NumericRenderer.Align's Dec arm; the accumulation is one exact aligned addition of <=31-digit fixed-point values (§13.18.40.3 SR14), a <=32-digit result that a 34-digit SDIDI (§8.8.1.5.2) never rounds, carried in Int128 (no longer a C# (long) cast that wrapped a 20-digit addend modulo 2^64). Golden conformance:cases/11.9.5-ARITHMETIC/pb1509_sum_counter_wide_standard_decimal: SUM WS-A WS-A (24000000000000000000), the expression addend SUM WS-B * 3 (074074073407407407340), a 20-digit size error printing spaces, and ADD 1E21 TO the named counter (1024691357802469135780). Function arm: conformance:cases/11.9.5-ARITHMETIC/pb116_sqrt_standard_decimal; expression/statement arms as verified by the original adjudication.",
+ "state": "OK"
+}

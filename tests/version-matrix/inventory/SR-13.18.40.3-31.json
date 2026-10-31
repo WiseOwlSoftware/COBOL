@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-31",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 31,
+ "subject": "PICTURE clause",
+ "rule-digest": "79a36e0436a2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ApplyEffectiveNoSign",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb570-group-no-sign-signed-picture; conformance:cases/13.18.40-PICTURE/pb570_group_no_sign; conformance-test:UsageInheritanceDriftTests.InheritedUsagePhrase_IsTheSameItemAsAWrittenOne; conformance:cases/13.18.40-PICTURE/pb3682-typedef-usage-no-sign-over-signed-picture",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB570 LANDED. SR31's subject is 'the subject of the entry' the NO SIGN phrase is specified for, and 13.18.60.4 GR1 makes that each elementary item in the group whenever the clause is written at a group level. Both spellings are now adjudicated by ONE site, DataBinder.ApplyEffectiveNoSign, reached from the 13.18.60.4 GR1 walk: the phrase travels on DataItem.OwnNoSign (a DescriptionCopyKind.Clause field, so TYPE / SAME AS carry it) and on InheritedUsage.NoSign. MEASURED on this worktree's own build: `01 GS USAGE PACKED-DECIMAL WITH NO SIGN. 05 W1 PIC S9(4).` -> COBOL1566 citing SR31 plus the GR1 provenance, at all four editions (it compiled CLEAN before, at every nesting depth); the elementary spelling is unchanged. The negative fixture the previous record asked for is tests/conformance/negative/pb570-group-no-sign-signed-picture. The phrase axis of UsageInheritanceDriftTests now compares the group and leaf spellings of every keyword-only USAGE phrase over a picture set that includes PIC S9(4), so the arm cannot be lost again.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.7.3-20",
+ "section": "12.3.7.3",
+ "kind": "SR",
+ "ordinal": 20,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "926e79c8ba65",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#SwitchBindCurrency; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/l1_picture_currency_equivalent; conformance:cases/A.1-Implementor-defined-language-element-list/l1c06_currency_non_cobol_symbols; conformance:cases/A.1-Implementor-defined-language-element-list/l1c06_currency_non_cobol_equivalence_85; conformance:cases/A.1-Implementor-defined-language-element-list/l1c06-currency-non-cobol-equivalent-rebound",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule, two halves (cite.py --check 12.3.7.3 'any equivalence between that character and any other character in the computer' -> OK 12.3.7.3 20)). (2) A symbol that IS a COBOL character: equivalence is §8.1.3.2 GR3 b) case folding (NOTE 2: N'M', N'm', 'M', 'm' equivalent) - SwitchBindCurrency keys symbols by char.ToUpperInvariant, pinned by l1_picture_currency_equivalent (+ its 2002 twin, l1-picture-currency-not-equivalent). (1) A symbol that is NOT a COBOL character: the equivalence is the implementor's; it is the same invariant-culture upper-case mapping (e acute equivalent to E acute), now documented as docs/CONFORMANCE.md DOC-A.1-43 and pinned by the l1c06 goldens, with the matching code comment at SwitchBindCurrency. Both halves hold. kb/Work PB1092.",
+ "state": "OK"
+}

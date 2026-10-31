@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.2.3.3-5",
+ "section": "7.2.3.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "COPY statement",
+ "rule-digest": "1d1d1ca39ad6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadCopyName; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#DecodeHexDigits; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#GateCopyPhrase",
+ "test-ref": "unit:TextManipulationTextWordTests.IllegalLiteralForm_DrawsSr4OrSr5; unit:TextManipulationTextWordTests.AlphanumericLiteral_NamesTheLibraryText; conformance:cases/7.2.2.5-Text-words/pb1354_copy_header_2002; conformance:cases/7.2.3-COPY/pb1601-copy-literal-name-below-2002; conformance:wiseowl/cases/7.2.3-COPY/pb1355_library_text_literal; unit:TextManipulationTextWordTests.LiteralLibraryName_IsACobol2002Introduction",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1354 landed (w61a): National/boolean literal-1/literal-2 are COBOL2450 (probe p06); an alphanumeric literal (plain or X\"..\") names the text by its value (DOC-A.1-40). Spec re-derived and re-cited by the implementer; every probe of the note re-run on the fixed build. retired-witness: src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ReadTextNameOrLiteral (the symbol was removed by kb/Work PB1350/PB1354 (one TextWordScanner + a parsed COPY/REPLACE statement); its successor is named in code-location) retired-witness: src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#DecodeHexadecimal (kb/Work PB2919 folded the COPY name's private hexadecimal decoder into the one alphanumeric hex decoder; its successor CobolLiteral.DecodeHexDigits is named in code-location) kb/Work PB1601: the literal names and SUPPRESS are COBOL-2002 introductions (constructs rows copy-literal-name-2002, copy-suppress-2002; VCR row 7.44, edge DERIVED); band widened from 2023 (the literal forms exist from 2002).",
+ "state": "OK"
+}

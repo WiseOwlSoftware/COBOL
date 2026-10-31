@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.2.5-1",
+ "section": "8.5.2.5",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Class and category of data items and literals",
+ "rule-digest": "692513ceb590",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#Analyze; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs",
+ "test-ref": "unit:PictureCategoryDriftTests.EveryAcceptedPicture_DefinesTheCategoryItsGeneralRuleDefines",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: '1) An elementary data item described as boolean by its PICTURE character-string.' (cite.py OK). PictureAnalyzer assigns PicCategory.Boolean to a PIC 1 string (PictureComposition '1 - boolean (§8.5.2.5)'); PictureCategoryDriftTests asserts the boolean category is reached and matches §13.18.40.4 GR8. Probe p2.cob: MOVE B\"1\" TO a 1(3) item -> 100 (boolean left-justify, zero fill). || editions as written by the adjudicator: 2002, 2014, 2023 (boolean category; 2023 Annex E lists no change)",
+ "state": "OK"
+}

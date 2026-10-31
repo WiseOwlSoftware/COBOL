@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.3.4-3",
+ "section": "11.3.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "CLASS-ID paragraph",
+ "rule-digest": "923274f058fe",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#classIdParagraph",
+ "test-ref": "conformance-test:OoSpineTests.OverrideFinal_0838_0839_FinalBase_2791",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'If the FINAL clause is specified, the class shall not be the superclass for any other class.' (cite.py --check 11.3.4 -> OK §11.3.4 3)). Grammar `(IS? FINAL)?` accepts both spellings; IsFinal = id.FINAL() is not null; the base-link loop emits COBOL2791 (the INHERITS-clause rule, kb/Work PB1784) when the resolved base IsFinal. Probe out/probe/class-id-paragraph/final.cob (`CLASS-ID. FB FINAL.` then `CLASS-ID. FC INHERITS FB.` with REPOSITORY CLASS FB) -> COBOL2791 at (8,30) citing §11.3.3 SR5 / §11.3.4 GR3, at --std 2002, 2014, 2023. A FINAL class that is NOT used as a superclass compiles and runs (chain.cob: `CLASS-ID. CHD IS FINAL INHERITS FROM CHC.`, instantiated and invoked). OoSpineTests.OverrideFinal_0838_0839_FinalBase_2791 asserts 2791 for `CLASS-ID. BAS46 IS FINAL.` inherited by SUB46 (spec-derived negative). Only in-group superclasses exist (external-repository classes cannot be inherited at all, see GR-11.3.4-2), so no FINAL class escapes the check. retired-witness: conformance-test:OoSpineTests.OverrideFinal_0838_0839 (renamed: kb/Work PB1784 branch review R1-1 - the fact also asserts the FINAL-base rule, now COBOL2791, so it is OverrideFinal_0838_0839_FinalBase_2791)",
+ "state": "OK"
+}

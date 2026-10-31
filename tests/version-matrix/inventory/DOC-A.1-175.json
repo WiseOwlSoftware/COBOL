@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-175",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 175,
+ "subject": "SET statement (effect of SET on program whose address is being stored in a program-pointer)",
+ "rule-digest": "59f0c795becc",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-175; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSetProgramPointer; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#EntryOf",
+ "test-ref": "conformance:cases/14.9.39-SET/pb460_set_program_pointer_effect; conformance:cases/13.18.60-USAGE/program_pointer",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB460 - \"SET statement (effect of SET on program whose address is being stored in a program-pointer). This item is required. This item shall be documented in the implementor's user documentation.\" (cite.py --check A.1 -> OK 175)). DETERMINATION: NONE - a SET stores the externalized program-name of an outermost program (8.4.3.13.4 GR2) in the managed ProgramPointer; it neither activates, loads (beyond the sibling-module probe a CALL would make), cancels nor re-initializes the program. Documented in docs/CONFORMANCE.md section 7 beside item 174 (the function twin, same answer).",
+ "state": "OK"
+}

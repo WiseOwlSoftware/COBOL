@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.33.2",
+ "section": "15.33.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "EXCEPTION-STATUS function",
+ "rule-digest": "527c60876330",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectStatement",
+ "test-ref": "conformance:cases/15.30.3-Returned-value-rules/pb63_exception_location_procedure_field; conformance-test:ExceptionConditionConformanceTests.Raise_CheckingOff_Nonfatal_ActsAsContinue",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB63 — the exception surface: the FD screen, the SELECT-spelled name on the connector, the one access-recording path, the r2b procedure field and element name, the MODULE-NAME determinations). `FUNCTION EXCEPTION-STATUS` as an INSPECT subject (golden TALLY=2 — EC-USER-L's two hyphens) and as an INITIALIZE … REPLACING sending operand (INI=[EC-USER-L]).",
+ "state": "OK"
+}

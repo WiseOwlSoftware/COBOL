@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-76",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 76,
+ "subject": "File sharing (which devices allow concurrent access to the file)",
+ "rule-digest": "3d8ee41f1a8b",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-76; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#PhysicalFileTable",
+ "test-ref": "conformance:cases/14.9.27-OPEN/l1c11_sharing_every_device_shareable",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§9.1.15 (cite.py OK: 'The implementor shall specify which devices allow concurrent access to a physical file'); §14.9.27.4 21) (cite.py OK) 'effective only for files that are shareable'. grep shareable/device in WiseOwl.Cobol.Runtime: no device predicate; every connector is arbitrated. Probe /tmp/adj/doc/doc-w1-s3/probe/d76.cob: ASSIGN PRINTER \"d76.prt\" OUTPUT 00 plus ASSIGN DISK \"d76.prt\" EXTEND 00 concurrently (ALL OTHER), both writes land; two ALL OTHER EXTEND on /dev/null 00/00, NO OTHER on it while they are open 61, alone 00. sh78.cob confirms the regular-file arbitration. The cross-run-unit lock strength on Linux/macOS is kb/Work/PB833 (open) and the clause-less default is kb/Work/PB322 A (open). Neither is stated as settled in the row. Row closes PB322 determination B for item 76.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.47.4-2",
+ "section": "14.9.47.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "UNLOCK statement",
+ "rule-digest": "e607ae250fd8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#Unlock; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUnlock; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#MaterializeImpliedRecord",
+ "test-ref": "conformance:cases/13.4.5-File-description/pb345_record_less_fd_area_2023",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB345 (landed); PB360 (open, on the missing-connector arm of FileRegistry.Unlock, which this file connector no longer reaches). RULE: 'File-name-1 shall reference a file connector in the open mode.' - cite.py --check 14.9.47.4 'File-name-1 shall reference a file connector in the open mode.' -> OK 14.9.47.4 2). The consequence of violating it is named by 9.1.13.7 item 2, 'I-O status = 42. A CLOSE or UNLOCK statement is attempted for a file connector that is not in an open mode.' The golden's U1 line seeds FILE STATUS with 'ZZ' and then UNLOCKs a CLOSED record-description-less RELATIVE connector, measuring 42; U2 UNLOCKs the same connector while OPEN and measures 00. Before PB345 that connector was never registered and the statement aborted the run unit instead of setting a status.",
+ "state": "OK"
+}

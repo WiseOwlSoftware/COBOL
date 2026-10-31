@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.40.3-7",
+ "section": "15.40.3",
+ "kind": "AR",
+ "ordinal": 7,
+ "subject": "FORMATTED-DATETIME function",
+ "rule-digest": "ca48bb1cd438",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#EmitFormatted",
+ "test-ref": "conformance:cases/15.40.3-Argument-rules/l1_fdt_offset_omitted_is_zero",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "The rule measured as the equivalence it is: omitted vs explicit 0 compared item-to-item over both premises (UTC and offset) at both widths, with 15.3.3.6.1's +0000 / +00:00 zero-offset rendering derived from its NOTE 3.",
+ "state": "OK"
+}

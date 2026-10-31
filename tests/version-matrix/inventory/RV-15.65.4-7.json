@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.65.4-7",
+ "section": "15.65.4",
+ "kind": "RV",
+ "ordinal": 7,
+ "subject": "MODULE-NAME function",
+ "rule-digest": "10cee8fd60b8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ModuleStack.cs#Name; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#OutermostName",
+ "test-ref": "conformance:cases/15.65.4-Returned-value-rules/module_name; conformance:cases/14.9.4-CALL/pb36_module_name_invoke_activation; conformance-test:IntrinsicFunctionDifferentialTests.ModuleName_MainProgram_2023",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "module_name N-CUR=MAINMOD is read INSIDE contained NESTPROG, which is r7's discriminating branch (the outermost program of the compilation unit, not the running element); pb36 adds the method arm I-CUR=CPB36MN and the function arm F-CUR=PB36MNFN.",
+ "state": "OK"
+}

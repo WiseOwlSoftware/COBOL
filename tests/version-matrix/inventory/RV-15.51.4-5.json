@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.51.4-5",
+ "section": "15.51.4",
+ "kind": "RV",
+ "ordinal": 5,
+ "subject": "LOCALE-COMPARE function",
+ "rule-digest": "b6d4b11b3f97",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#Compare",
+ "test-ref": "conformance:cases/14.6.6-Locale-identification/pb64t4_locale_functions; unit:CobolLocaleTests.Compare_IsTheLocaleBasedRelation_WithTheSignMap",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T4: '=' / '<' / '>' from the comparison's sign.",
+ "state": "OK"
+}

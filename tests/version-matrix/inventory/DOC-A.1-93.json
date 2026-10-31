@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-93",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 93,
+ "subject": "Function returned values (returned value length exceeds implementor-defined limits)",
+ "rule-digest": "ade26e77fc76",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-93; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#BaseConvert; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#BooleanOfInteger; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ArgumentErrorZeroLength; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#ReturnedValueMaximum; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#ReturnedValueOverMaximum; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Concat; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Substitute; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Convert",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1_returned_value_length_limit; conformance:cases/A.1-Implementor-defined-language-element-list/l1_returned_value_limit_boolean_repro; unit:ReturnedValueMaximumTests.TheMaximum_IsTheNumberRowDocA193Publishes; unit:ReturnedValueMaximumTests.OnePastTheMaximum_IsTheZeroLengthValue",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "A.1 item 93 (15.4). The maximum returned length is 1,073,741,791 character positions (0x3FFFFFDF, CobolIntrinsics.ReturnedValueMaximum), the .NET string carrier's ceiling and the same number as DOC-A.1-62; rule-1 precedence took GnuCOBOL's answer (3.2 returns a 10,000-position UPPER-CASE / REVERSE / CONCAT / SUBSTITUTE whole), so the 8,191-position literal maximum is no longer a returned-value bound (kb/Work PB2631). Past the maximum the value returned is the 15.3 rule 14 checking-off default, a ZERO-LENGTH value, through ONE guard (ReturnedValueOverMaximum) at every function whose returned value can outgrow its arguments: CONCAT, SUBSTITUTE, CONVERT, BASECONVERT, BOOLEAN-OF-INTEGER. Witnesses: l1_returned_value_length_limit (BASECONVERT 8,191 and 8,192 binary digits whole; UPPER-CASE, CONCAT, SUBSTITUTE at 10,000 positions); l1_returned_value_limit_boolean_repro (BOOLEAN-OF-INTEGER at 8,192 positions whole, and at 1,073,741,792 the zero-length value read by 14.9.11.4 GR1 and as LENGTH 0 by 15.50.4 r1; NEG is the control, argument-1 rejected with a valid argument-2 still returning 8 real positions); unit:ReturnedValueMaximumTests pins the published number to the constant. BooleanOfInteger's separate 15.13.3 r2 arm is kb/Work PB383's split. || editions 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a facility that exists at every edition (the COBOL-85 nucleus, I-O, inter-program and SPECIAL-NAMES implementor-names; its arithmetic, the only arithmetic of COBOL-85, is what later editions name native).",
+ "state": "OK"
+}

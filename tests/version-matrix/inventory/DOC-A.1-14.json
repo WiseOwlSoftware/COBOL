@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-14",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 14,
+ "subject": "CALL statement (runtime resources that are checked)",
+ "rule-digest": "30471a257ac5",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-14; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ProbeSiblingModule; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ResolveVisible; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EnabledCallNames; src/WiseOwl.Cobol.Runtime/Control/ActivationStack.cs#IsAvailable; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#RunMain; src/WiseOwl.Cobol.Runtime/Repository/RepositoryLocator.cs#Find; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Create; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#RegisterModule; src/WiseOwl.Cobol.Runtime/Control/RuntimeFeatures.cs#DynamicProbe",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1_call_unloadable_module_not_found; conformance:cases/14.9.4-CALL/pb2659_call_resources_recursion; conformance:cases/A.1-Implementor-defined-language-element-list/pb2659-call-resources-below-2002; conformance-test:ActivationResourcesTests.UnhandledCall_PastTheStack_EndsAbnormally_AndClosesTheRunUnitsFiles; unit:ActivationStackTests.RecursiveCall_PastTheStack_IsEcProgramResources_AndUnwindsBalanced; unit:ActivationStackTests.RunUnitThread_RefusesAnActivation_BeforeTheRuntimesOwnMarginIsReached; conformance:wiseowl/cases/A.1-Implementor-defined-language-element-list/pb2101_locate_program_not_named_after_its_file; conformance:wiseowl/cases/A.1-Implementor-defined-language-element-list/pb2101_locate_two_assemblies_one_name; conformance:wiseowl/cases/A.1-Implementor-defined-language-element-list/pb2101_locate_named_file_beside_a_copy; conformance-test:RunTimeLocateFaultTests.ARegistrarThatThrows_ThroughTheProbe_IsProgramNotFoundNamingTheFault; conformance-test:RunTimeLocateFaultTests.ARegisteredProgramWhoseDependencyIsMissing_IsProgramNotFoundWithTheLoadersMessage; conformance-test:RunTimeLocateFaultTests.AProgramWhoseStaticInitializerThrows_IsProgramNotFound; unit:RepositoryLocatorTests.TheNamedFile_IsTheAnswer_AndNothingElseIsRead",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB2659: the checked set is ONE resource, the stack the activation needs (14.9.4.4 GR3c, cite.py --check OK 3)). The main program runs on a 384 MiB run-unit thread (ActivationStack.RunOnRunUnitThread); CallProgram asks ActivationStack.IsAvailable before GR3d-f and raises EC-PROGRAM-RESOURCES through the CALL carrier. Golden 2002/pb2659_call_resources_recursion: a self-CALLing RECURSIVE program passes depth 50,000, its one failing CALL takes ON EXCEPTION with status EC-PROGRAM-RESOURCES, every activation unwinds. Before: CLR stack overflow at depth ~250. A program-planted unloadable L1CRSMD.dll is still EC-PROGRAM-NOT-FOUND (locating is not a resource check; l1_call_unloadable_module_not_found).",
+ "state": "OK"
+}

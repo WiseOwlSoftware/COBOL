@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.13.3-1",
+ "section": "13.18.13.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "CODE-SET clause",
+ "rule-digest": "8b76e584f510",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindCodeSetClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#CodedCharacterSetOf",
+ "test-ref": "conformance:cases/13.18.13-CODE-SET/pb110-code-set-locale-alphabet; conformance:cases/12.3.7-SPECIAL-NAMES/pb110_code_set_identity",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB110 (2026-08-19): alphabet-name-1 shall reference an alphabet defining an ALPHANUMERIC coded character set — a LOCALE alphabet (no coded character set, Table 6) is COBOL1669 through the ONE resolver; a FOR NATIONAL alphabet in the slot or an undeclared name is COBOL1672/0898; the golden's STANDARD-1 satisfies it.",
+ "state": "OK"
+}

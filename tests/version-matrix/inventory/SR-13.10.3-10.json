@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.10.3-10",
+ "section": "13.10.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "Constant entry",
+ "rule-digest": "b00a99c6c1e7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#BindConstantLength",
+ "test-ref": "conformance:cases/13.10-Constant/pb1227-constant-byte-length-any-length; conformance:cases/13.10-Constant/pb1227-constant-length-any-length",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1227 (w1006c). cite.py --check 13.10.3 \"Data-name-1 and data-name-2 shall not be described with the ANY LENGTH clause\" -> OK SR10. Both halves are enforced by the one BindConstantLength screen: BYTE-LENGTH OF (data-name-1) and LENGTH OF (data-name-2) over a contained program's ANY LENGTH linkage item each draw COBOL1547 naming SR10 - the only diagnostic of either negative (ANY LENGTH is itself legal there, 13.18.2.3). Editions: ANY LENGTH exists from 2014.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.16.3-5",
+ "section": "7.3.16.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "IF directive",
+ "rule-digest": "07a3f3b65ef6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb806-end-if-trailing-word; unit:CompilerDirectiveCatalogDriftTests.EveryNoOperandWord_RejectsAnOperandAndAcceptsTheBareWord",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB806. cite.py --check 7.3.16.3 '>>END-IF shall begin on a new line and shall be specified entirely on that line.' OK 5).",
+ "state": "OK"
+}

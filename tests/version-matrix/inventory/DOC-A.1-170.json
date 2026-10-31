@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-170",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 170,
+ "subject": "SEARCH ALL statement (varying of the search index during the search operation)",
+ "rule-digest": "17f31c1a4402",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-170; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitAllScan; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#BindSearchAll",
+ "test-ref": "conformance:cases/14.9.37-SEARCH/pb447_search_all_index_stays_in_table",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Voluntary row (A.1 170 internal procedure need not be documented). cite.py --check 14.9.37.4 'Its setting is varied during the search operation in a manner specified by the implementor' -> OK §14.9.37.4 9). Read ControlFlowEmitter.EmitAllScan: index=1; if index>bound unsuccessful; loop WHENs; if index>=bound unsuccessful; index+=1. Bound from EmitSearchScan: DynTable Capacity / DependItem current count / Count. Golden pb447 asserts A=IN-RANGE (unsuccessful stays 1..5), C=IN-RANGE (ODO bound 3), D=03 (success position). Owning note: kb/Work/PB1535.",
+ "state": "OK"
+}

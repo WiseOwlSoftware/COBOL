@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.53.3-4",
+ "section": "15.53.3",
+ "kind": "AR",
+ "ordinal": 4,
+ "subject": "LOCALE-TIME function",
+ "rule-digest": "54eb4443769a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLocaleFunction",
+ "test-ref": "conformance-test:LocaleDispositionTests.LocaleFunctions_AreLive; conformance:cases/15.3-Arguments/pb64t4-locale-function-name-undeclared",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T4: COBOL1664 for an undeclared locale-name-1.",
+ "state": "OK"
+}

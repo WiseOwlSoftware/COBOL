@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.63.4-23",
+ "section": "13.18.63.4",
+ "kind": "GR",
+ "ordinal": 23,
+ "subject": "VALUE clause",
+ "rule-digest": "0589607a5dbb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#SourceAt; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportFieldModel; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExtractValueOperandList",
+ "test-ref": "conformance:cases/13.18.53-SOURCE/pb506_report_value_operand_list; conformance:cases/13.18.63-VALUE/pb506_report_operand_lists_2002; conformance:cases/13.18.63-VALUE/pb506_report_operand_lists_2014; unit:ReportOperandListDriftTests.SuccessiveOperands_GoToSuccessiveRepetitions; unit:ReportOperandListDriftTests.OperandsExhausted_AssignmentBeginsAgainFromTheFirst; unit:ReportOperandListDriftTests.TheOperandList_HasExactlyOneIndexer",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-09-13 (kb/Work PB506). SENTENCE 1 (successive operands to successive repeating printable items) — MEASURED: `03 COLUMNS ARE 1 6 11 PIC X(3) VALUES ARE \"AAA\" \"BBB\" \"CCC\".` now prints AAA at column 1, BBB at 6 and CCC at 11; before, all three columns printed AAA. THE FIX IS STRUCTURAL: ReportFieldModel.Source (one scalar) became ReportFieldModel.Sources (a LIST, one entry per written operand, a single-operand clause being a one-element list), DataBinder.ExtractValueOperandList reads every operand through the SAME literal-position reader the format-1 single-operand path uses instead of ExtractValue's item.GetText() glue, and EmitFieldPlacements composes SourceAt(rep) per repetition. SENTENCE 2 (wrap-around: 'If no further operands remain, assignment begins again from the first operand') — implemented as SourceAt's rep % Sources.Count and asserted DIRECTLY on the model by a unit test, because it has NO reachable COBOL source today: 13.18.63.3 SR35 admits a short operand list only when a HIGHER-level repeating entry multiplies the count, and both higher-level vehicles (report-group OCCURS, the multiple LINE clause) stage COBOL0899. SENTENCE 3 ('If any of the printable items are suppressed as a result of a PRESENT WHEN clause or an OCCURS clause with a DEPENDING phrase, VALUE operands are nevertheless assigned to them, even though they are not printed') — TRUE BY CONSTRUCTION: the operand index is the repetition ORDINAL, never a count of the items actually placed, so no suppression can shift the assignment. Its differential population is likewise unreachable: a PRESENT WHEN clause is written on an ENTRY, and a multiple-COLUMN entry is one entry, so its condition suppresses every repetition together; the OCCURS ... DEPENDING arm has no vehicle (COBOL0899). GR23's twin for the SOURCE clause, 13.18.53.4 GR4, is served by the same list and the same reader. EDITIONS: MEASURED at 2002, 2014 and 2023; the model and the emitter carry no version predicate, and the 85 leg is reasoned from that — the repetition vehicle it needs is 2002-gated (COBOL0900). Annex E carries no 2023 item touching GR23.",
+ "state": "OK"
+}

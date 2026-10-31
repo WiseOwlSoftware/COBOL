@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.6.3-4",
+ "section": "11.6.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "INTERFACE-ID paragraph",
+ "rule-digest": "ef6fc0987c41",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#AddSkeleton",
+ "test-ref": "conformance:cases/11.6-INTERFACE-ID/pb759-parameter-not-in-repository",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB759.md landed w46i3. INTERFACE-ID USING parameter-name not declared by a specifier of the interface's own REPOSITORY -> COBOL2239.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.49.2",
+ "section": "14.9.49.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "USE statement",
+ "rule-digest": "84ee6f5417ad",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useOnTarget; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useEcEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupReference; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse",
+ "test-ref": "conformance:cases/14.9.49-USE/pb332_use_optional_words; conformance:cases/14.9.49-USE/pb332_use_ec_after_optional; conformance:cases/14.9.49-USE/pb332-use-format1-needs-exception-or-error; conformance:cases/14.9.49-USE/pb365_use_eo_interface_two_pass; conformance:cases/14.9.49-USE/pb365_report_group_qualified; conformance-test:OptionalWordSubsetDriftTests.EveryOptionalWordSubset_CompilesAndRunsIdentically",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB332 (divergence 1) and PB365 (divergence 2), both LANDED. Divergence 1: AFTER and PROCEDURE were REQUIRED where 14.9.49.2 prints them un-underlined, so 5.2.3 / 8.3.2.4.3 make them optional words; PB332 relaxed them after measuring the printed figure. Divergence 2: Format 4's second brace group prints {object-class-name-1 | interface-name-1} and DeclBindUse resolved only the class arm, so half the format's operand alternatives were unreachable; PB365 landed the interface alternative (SR17) and the two-pass GR14 selector behind it. All four formats now parse and bind as printed. Format 2's operand also stopped being spelled `procedureName` in the grammar: identifier-1 references a report GROUP, so it is the shared `reportGroupReference` rule (`cobolWord ((IN|OF) reportName)?` per 8.4.2.2.2 Format 1's file-report-qualifier), which is also GENERATE's operand -- that is what lets ONE funnel own the qualified spelling and the 8.4.2.2 uniqueness rule for both. Re-affirmed 2026-10-22 (kb/Work PB3530) against the figure regenerated from the printed page: render_figure.py's brace-group layout now keeps every alternative inside its own enclosure, so the diagram's layout changed while its words did not (sweep_figures.py's word gate); the verdict stands on the printed format.",
+ "state": "OK"
+}

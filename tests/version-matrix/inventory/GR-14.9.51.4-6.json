@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-6",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "WRITE statement",
+ "rule-digest": "2b2bead3f260",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite",
+ "test-ref": "conformance:cases/14.9.51-WRITE/l1_write_from_space",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "WRITE FROM SPACE = MOVE of one alphanumeric space (GR5 a)/GR6): 8 spaces in an alphanumeric group, and national spaces in a PIC N record after conversion (§14.9.25.4 6)).",
+ "state": "OK"
+}

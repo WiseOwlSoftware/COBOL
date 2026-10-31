@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.16.4-3",
+ "section": "14.9.16.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "GENERATE statement",
+ "rule-digest": "e5737149427c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#DetectBreakLevel; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AddControl; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+ "test-ref": "conformance-test:ReportWriterConformanceTests.ControlBreak_Gr4a_CfSeesPriorValue_ChSeesNew; conformance:cases/14.9.16-GENERATE/pb1131_control_break_collating_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1131: the save is the control item's image; the break test is the program's equality comparison under the program collating sequence (§12.3.6.4 GR11 c), §13.18.16.4 GR3), emitted as the collated CobolString.Compare a relation condition renders.",
+ "state": "OK"
+}

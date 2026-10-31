@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.69.4-1",
+ "section": "15.69.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "NUMVAL-F function",
+ "rule-digest": "682976f36569",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalFDec",
+ "test-ref": "conformance:cases/15.69.3-Argument-rules/numvalf_decimal_comma_and_spaces",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Leading, trailing and embedded spaces are ignored wherever the §15.69.3 r1 figure admits one: the value is a projection of the ONE positional NvfScan (NumvalFDec), the same scan TEST-NUMVAL-F reads, which skips them and never joins the runs on either side, so inserting or removing them never changes the value. That holds on the alphanumeric and the national path alike, and in every channel, because the value is the same exact parse whatever receiver, mode or channel reads it (kb/Work PB3839). The deliberate split from AR-15.69.3-5 stands: r1 tells you how to VALUE a conforming argument, it does not license ACCEPTING a non-conforming one, and §15.3 makes the argument-rule violation a separate obligation. Witness: the spec-derived golden numvalf_decimal_comma_and_spaces (\" + 1.5E + 1 \" is 15). cite.py --check OK on §15.69.4 1. || editions 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the NUMVAL-F function exists from 2002 (IntrinsicCatalog.cs, the COBOL1502 edition window). retired-witness: src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalF (kb/Work PB3839 deleted CobolIntrinsics.NumvalF, the scaled-Int128 NUMVAL-F projection: the function returns the exact NumvalFDec SDIDI value in every arithmetic mode, channel and receiver)",
+ "state": "OK"
+}

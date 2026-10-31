@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.12.3-4",
+ "section": "14.9.12.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "DIVIDE statement",
+ "rule-digest": "4e8604ecf41d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite",
+ "test-ref": "conformance:cases/14.9.12-DIVIDE/pb155-divide-composite-edited; conformance:cases/14.9.2-ADD/pb155_composite_edges",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB155): InComposite admits Category NumericEdited - SR2 expressly admits an edited identifier-3, and SR4's explicit REMAINDER-only exclusion is what proves resultants ARE operands here - contributing the MASK's geometry through DataBinder.StoredShapeOf, the ONE fixed-point (digits, scale) shape lifted from the 13.18.63.3 VALUE-fit check (DigitPositions less P positions, at CobolEdit.MaskScale; PicInfo.Scale is 0 for a '.'-mask so Digits/Scale would mis-shape), with IsFloatEdited excluded like the float usages (no fixed decimal alignment to superimpose). OfExpr skips floating-point-FORM literals (r2b). All four edges now pinned: native-only (the mode guard), GIVING-resultants-count (pb155-divide-composite-edited - a LEGAL 31-position Z9.9(29) receiver superimposed with 9(18) spans 47 and rejects 0805), REMAINDER-excluded (pb155_composite_edges' DIVIDE 7 BY 2 GIVING Q REMAINDER R: Q is 9V9 so counting R's 31 integer digits would compose maxInt 31 + maxFrac 1 = 32 > 31 - the statement is legal ONLY because identifier-4 is excluded; the review fleet caught the first draft's non-discriminating integer Q, whose composite passed either way), float-literal-excluded (the same golden's ADD leg).",
+ "state": "OK"
+}

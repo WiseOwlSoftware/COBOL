@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.8.3-5",
+ "section": "8.4.3.8.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "SELF and SUPER",
+ "rule-digest": "481e62b03af2",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build",
+ "test-ref": "conformance:wiseowl/cases/8.4.3.8-SELF-and-SUPER/oo-multi-base-super",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "docs/CONFORMANCE.md §5 row A.4.10 (Object orientation optional items — Not claimed), for items 1 and 3 ONLY. Licence: §4.2.7 + Annex A.4.1. The OO CORE is mandatory surface and is implemented; only the CLASS-side INHERITS repetition (item 1) and parametric polymorphism (item 3) are declined. Item 2, the INTERFACE-ID INHERITS repetition, IS IMPLEMENTED (CobolOO.g4 `INHERITS FROM interfaceName+`; OoClassTable enforces §11.6.3 SR2 with COBOL0840 and SR3/SR6 with COBOL2791 (kb/Work PB1784)) — its rows are NOT in this batch. SR5's OWN subject — a bare SUPER inside a class with more than one base. ⚠ NOT to be read as covering SR-8.4.3.8.3-4/-6 or GR-8.4.3.8.4-4: the `[object-class-name-1 OF] SUPER` prefix of FMT-8.4.3.8.2 has NO grammar surface at all (objectReference admits a bare SUPER only), which leaves those three as genuine open NOT-IMPLEMENTED rows, not module-licensed ones.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.34.3-2",
+ "section": "14.9.34.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "RETURN statement",
+ "rule-digest": "50c7f20a0bac",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckIntoReceiver; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#AdmitsIntoOperand; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#AdmitsIntoRecord; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#IntoPhraseRules; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#IsAlphanumericOrNational; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindReturn",
+ "test-ref": "conformance:cases/14.9.34-RETURN/pb337-return-into-not-admissible; conformance:cases/14.9.30-READ/pb337_into_receiver_admissible_85; conformance:cases/14.9.30-READ/pb337_into_receiver_admissible_2002; conformance:cases/14.9.30-READ/pb337_into_receiver_admissible_2014; conformance:cases/14.9.30-READ/pb337_into_receiver_admissible_2023; unit:ImplicitMoveConstructionDriftTests.AnIntoPhraseRulesRow_ReachesOnlyBindIntoPhrase",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB337, LANDED. The RETURN twin of SR-14.9.30.3-1, and the SAME screen: SortBinder.BindReturn reaches it through MoveBinder.BindIntoPhrase with IntoPhraseRules.Return, so the two verbs cannot drift. The wording difference is carried on the rules row rather than in a second code path -- RETURN's arm a) reads 'If only one record description is subordinate to the sort-merge file description entry', with no record-less admission, because 13.4.6.3 SR2 requires a record description under an SD (and the binder already rejects one that has none), where 13.4.5.3 SR3 permits a record-less FD. Arm b) is the identical operand set, so it is the identical ItemCategory.IsAlphanumericOrNational call over identifier-1 and every SD record. Diagnostic COBOL1994. PRE-FIX MEASUREMENT: an SD with '01 S-REC' (an alphanumeric group) and '01 S-NUM PIC 9(6)' (elementary, category numeric) returned INTO an alphanumeric group compiled AND RAN on this worktree's own build, printing INTO=1ONE / INTO=2TWO; it now draws COBOL1994 at all four editions. The positive golden's case R is the RETURN over-reject guard -- an SD with TWO alphanumeric-group records into an alphanumeric group is ADMITTED by arm b) and returns its record unchanged.",
+ "state": "OK"
+}

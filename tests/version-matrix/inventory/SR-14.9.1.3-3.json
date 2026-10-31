@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.1.3-3",
+ "section": "14.9.1.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "ACCEPT statement",
+ "rule-digest": "17afaa5105bd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindAccept",
+ "test-ref": "conformance:cases/14.9.1-ACCEPT/pb139-accept-alphabetic-temporal; conformance:cases/14.9.1-ACCEPT/pb139-accept-boolean-temporal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB139): SR3's class index/object/pointer rows share the SR1 screen; the class-alphabetic and class-boolean exclusions are AUTOMATIC - the temporal store's legality is asked of the ONE Table 16 mechanism (MoveTable16.Refusal with an integer-numeric sender, per 14.9.1.4 GR6 'according to the rules for the MOVE statement'), and both are 'No' rows for an integer sender. The stale 'await the PicCategory split' excuse comment is deleted with the hand-rolled screen it excused.",
+ "state": "OK"
+}

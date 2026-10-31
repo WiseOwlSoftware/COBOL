@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.22.3-3",
+ "section": "14.9.22.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "INSPECT statement",
+ "rule-digest": "8d1d5896163e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#InspectCharOperandOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#ScreenZeroLength; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#InspectCharOperand; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#figurativeConstant",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/pb1127-inspect-zero-length-literal; conformance:cases/14.9.22-INSPECT/pb1127-inspect-zero-length-delimiter; conformance:cases/14.9.22-INSPECT/pb1127-inspect-boolean-figurative-not-zero; conformance:cases/14.9.22-INSPECT/pb1127_inspect_constant_name_operands; conformance:cases/14.9.22-INSPECT/pb1128-inspect-all-figurative-literal3; conformance:cases/8.3.3.2-Alphanumeric-literals/pb1663_inspect_hexadecimal_alphanumeric_literal; conformance:cases/8.3.3.6-Figurative-constant-values/pb1414_figurative_follows_program_collating_sequence_every_verb; conformance:cases/14.9.22-INSPECT/pb1029-inspect-numeric-literal; conformance:cases/14.9.22-INSPECT/pb3233_inspect_figurative_pattern_size; conformance:cases/14.9.22-INSPECT/pb3233-inspect-figurative-literal1-size",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED kb/Work PB1127 (+ PB1128/PB1663/PB1414 halves). Every clause of SR3 is screened at every literal position: numeric literal refused (pb1029), a figurative beginning with ALL refused for literal-1..4 and legal for literal-5 (pb1128), hexadecimal alphanumeric literal admitted (pb1663), a constant-name substitutes its literal before the identifier arm (pb1127 positive), a zero-length literal refused at every position including a BEFORE/AFTER delimiter (pb1127 negatives), a boolean identifier-1 admits only ZERO (pb1127 negative), and a figurative reads identifier-1's class context (pb1414 sweep). The zero-length and ALL screens are edition-invariant; boolean clause 2002+.",
+ "state": "OK"
+}

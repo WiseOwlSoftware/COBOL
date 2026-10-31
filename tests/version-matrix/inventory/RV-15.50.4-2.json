@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.50.4-2",
+ "section": "15.50.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "LENGTH function",
+ "rule-digest": "6875461947a4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLengthFold; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemLength.cs#Positions",
+ "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb61_length_byte_length_rule_branches; conformance:cases/13.16-Data-description/pb79_group_usage_national; conformance-test:NationalBooleanReviewFixTests.NationalBooleanLiterals_AsIntrinsicArguments_Parse; conformance:cases/15.50.4-Returned-value-rules/intrinsics_byte_length",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB61 + PB79). §15.50.4 r2 national positions: an elementary national item PIC N(4) -> 4 (BYTE-LENGTH 8); and NOW the NATIONAL GROUP ITEM leg (PB79/D20): a GROUP-USAGE NATIONAL group of N(2)+N(3) -> 5 (BYTE-LENGTH 10), a nested national group -> its positions — ItemLength.Positions reads the ONE OperandPic. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LengthPositions (LengthPositions moved out of IntrinsicBinder and is ItemLength.Positions (kb/Work PB1213, 7d4f0a4a4))",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.20.3-1",
+ "section": "15.20.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "COS function",
+ "rule-digest": "5e4a69b9f544",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#DeliberatelyUnscreened; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+ "test-ref": "conformance:cases/15.20.3-Argument-rule/l1-cos-class-numeric",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PIC X(3) is class ALPHANUMERIC by S8.5.2.1 Table 2, so FUNCTION COS(W-A) violates S15.20.3 r1 and must draw COBOL1627 at 85/2002/2014/2023.",
+ "state": "OK"
+}

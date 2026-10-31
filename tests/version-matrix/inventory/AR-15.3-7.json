@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.3-7",
+ "section": "15.3",
+ "kind": "AR",
+ "ordinal": 7,
+ "subject": "Intrinsic functions",
+ "rule-digest": "805afc7feed6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindTrim",
+ "test-ref": "conformance:cases/15.3-Arguments/pb124_keyword_positions; conformance:cases/15.3-Arguments/pb124-trim-keyword-after-arg2; conformance:cases/15.3-Arguments/pb124-substitute-keyword-order; conformance:cases/15.3-Arguments/pb124-substitute-midpair-keyword; conformance:cases/15.3-Arguments/find_string_phrase_order; conformance:cases/15.3-Arguments/intrinsics_convert; conformance:cases/15.3-Arguments/intrinsics_trim; conformance:cases/15.3-Arguments/intrinsic-phrase-word-argument",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB124 wave 1): the last three order-free keyword walks are now POSITIONAL. BindTrim: [LEADING|TRAILING] only after argument-1, before every argument-2, once (15.96.2's figure notes confirm the bracket's position - and the vendor-habit TRIM(LEADING x) is NOT the ISO order; pb117_trim_sequential itself carried it and was corrected). BindLengthFamily: PHYSICAL is the keyword ONLY in its slot (after argument-1, last, once) - it is not a reserved word, so LENGTH(PHYSICAL) now measures a data item NAMED PHYSICAL where the old swallow consumed the user's name (the golden pins both readings). BindSubstitute: [ANYCASE] [FIRST|LAST] in the printed order, before the pair, no repeats, none between argument-2 and argument-3. Negative fixtures pin the mis-ordered/repeated/mid-pair shapes for the first time (the row's charge).",
+ "state": "OK"
+}

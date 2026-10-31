@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.30.4-3",
+ "section": "14.9.30.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "READ statement",
+ "rule-digest": "d706fb336589",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitImageInto; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Fit",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-14.9.30.4-3",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule text (cite.py --check 14.9.30.4 \"the content of any data item, where any part of that data item lies beyond the range of the current record, is undefined\" => OK 3)). The rule imposes NO requirement: it declares the content UNDEFINED, and it is registered as such in Annex A.2 item 41 (Undefined language element list — unlike A.1, A.2 carries no documentation obligation). WiseOwl COBOL makes the choice DETERMINATE: FileConnector.Fit pads/truncates the physical record to the record-area width with SPACES, and SequentialIoEmitter.EmitImageInto stores that full-width image into FileModel.AreaRecord (the LARGEST record description, §13.4.2), so every position past the current record reads as a space. A determinate space fill is one admissible realization of 'undefined'. Editions: Annex E records no change to GR3 (its only READ entry, E.2 item 22, touches GR21 d.3 — READ PREVIOUS after OPEN). || EDITIONS AS ADJUDICATED: 1985 · 2002 · 2014 · 2023",
+ "state": "OK"
+}

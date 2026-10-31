@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-12.4.5.14.2",
+ "section": "12.4.5.14.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "RESERVE clause",
+ "rule-digest": "af2027060203",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileReserveClause; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#IntegerOperandRules.Slots",
+ "test-ref": "conformance:cases/12.4.5.14-RESERVE/l1c24_reserve_clause_forms; conformance:cases/12.4.5.14-RESERVE/l1c24-reserve-missing-integer",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§12.4.5.14.2 prints `RESERVE integer-1 [AREA|AREAS]` (RESERVE underlined, AREA/AREAS optional, one of). Grammar `fileReserveClause : RESERVE integerLiteral (AREA | AREAS)?` matches exactly and is a fileControlClauses alternative. integer-1 is governed by §5.5 1) (cite.py --check 5.5 \"shall be unsigned and nonzero unless otherwise specified in the associated rules\" -> OK); IntegerOperandRules maps FileReserveClauseContext = Nonzero. Probes with the pinned cobol.exe at --std 85 and 2023: `RESERVE 5 AREAS`, `RESERVE 1 AREA`, `RESERVE 3` compile and run (OK); `RESERVE 0 AREAS` -> COBOL2386 citing §5.5 1); `RESERVE -2 AREAS` rejected (COBOL0312); `RESERVE 2.5 AREAS` rejected (COBOL0001); `RESERVE AREAS` rejected. cite.py --check 12.4.5.14.2 \"integer-1\" -> OK. Side observation (not this rule's shape, a §12.4.5.1 SELECT-format issue): a repeated clause (`RESERVE 2 AREAS RESERVE 3`, and equally `ACCESS SEQUENTIAL ACCESS SEQUENTIAL`) is accepted — reported as a dossier gap/lead against §12.4.5.1. No spec-derived test names RESERVE; test-ref empty. [registrar 14a — editions as adjudicated: 85, 2002, 2014, 2023 (the clause and its format are unchanged across editions; no Annex E entry)]",
+ "state": "OK"
+}

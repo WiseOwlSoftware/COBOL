@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.19.2",
+ "section": "15.19.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "CONVERT function",
+ "rule-digest": "0e9b929219bb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindConvert; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build",
+ "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.Convert_Formats_2023; conformance-test:IntrinsicFunctionDifferentialTests.Convert_ArgumentRuleViolations_1514; conformance:cases/15.3-Arguments/intrinsics_convert",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-08-09 (PB59 family 5a): BindConvert now walks the 15.19.2 format BY POSITION - slot 0 is ALWAYS argument-1 and binds as an operand, slots 1+ must be format keywords in order. A data item NAMED one of the 8.10 context-sensitive words (NAT/ANUM/HEX/BYTE) is legal as argument-1 and compiles (CONVERT(NAT HEX ANUM) with 01 NAT PIC XX -> A, the CS corpus row); a misplaced operand (CONVERT(ANUM WS-A ANUM HEX), CONVERT(ANUM ANUM HEX WS-A) - both previously ACCEPTED, printing 41) is rejected with COBOL1514 plus the 1639 name-resolution error the operand position now correctly surfaces. The catalog row's MinArgs corrected 2 -> 3 (argument-1 + source-format + destination-format is the format's minimum) alongside BindConvert's own guard.",
+ "state": "OK"
+}

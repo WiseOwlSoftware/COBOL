@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.51.3-3",
+ "section": "15.51.3",
+ "kind": "AR",
+ "ordinal": 3,
+ "subject": "LOCALE-COMPARE function",
+ "rule-digest": "b87ecd480eb3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
+ "test-ref": "conformance-test:LocaleDispositionTests.LocaleFunctions_AreLive",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T4: no cross-argument class rule is applied — the two may differ (the schema carries CrossArgRule.None).",
+ "state": "OK"
+}

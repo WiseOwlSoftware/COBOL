@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-26",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 26,
+ "subject": "COBOL character repertoire (if more than one encoding in a compilation group, control functions if any)",
+ "rule-digest": "2aa9404def6b",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-26; src/WiseOwl.Cobol.Frontend/Pipeline/CompilationInputs.cs#ReadSourceText; src/WiseOwl.Cobol.Frontend/Pipeline/SourceTextDecoder.cs#Decode",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1_encoding_per_file_bom; conformance:cases/A.1-Implementor-defined-language-element-list/l1_encoding_marked_malformed_is_refused; conformance:cases/A.1-Implementor-defined-language-element-list/l1_encoding_unmarked_non_utf8_is_latin1; unit:SourceTextDecoderTests.Utf8Mark_WithInvalidContent_IsMalformed",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "A no-BOM UTF-8 main COPYs UTF-16LE/BE, UTF-32LE/BE and UTF-8 BOM library texts; each is decoded by its own mark (displays O€K|AéB|Ω€Z|ÆØÅ|äöü|é€!) retired-witness: src/WiseOwl.Cobol.Frontend/Pipeline/CompilationInputs.cs#ReadAllText (CompilationInputs.ReadAllText no longer exists: the bytes of a source or library text become characters in SourceTextDecoder.Decode, read through CompilationInputs.ReadSourceText (kb/Work PB1397))",
+ "state": "OK"
+}

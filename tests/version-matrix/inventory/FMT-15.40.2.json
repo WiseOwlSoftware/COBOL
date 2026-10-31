@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.40.2",
+ "section": "15.40.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "FORMATTED-DATETIME function",
+ "rule-digest": "1d580f40a446",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall",
+ "test-ref": "conformance:cases/15.40-FORMATTED-DATETIME/l1_fdt_general_format; conformance:cases/15.40-FORMATTED-DATETIME/l1-fdt-arity-two-arguments; conformance:cases/15.40-FORMATTED-DATETIME/l1-fdt-arity-five-arguments",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Both arities of the underlined general format plus the 8.4.3.2.3 SR2 keyword-omitted spelling; the BRACKET -- the arity bounds the positive golden cannot see -- is pinned by the two cited negatives (COBOL1504, emitted at IntrinsicBinder.cs:575 before any class or format screen); 2014 leg in 2014/l1_fdt_rules_2014.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.67.4-1",
+ "section": "15.67.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "NUMVAL function",
+ "rule-digest": "b9ce1d908672",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NvScan; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolDec.cs#FromParsed",
+ "test-ref": "conformance:cases/15.4.1-Numeric-and-integer-functions/pb60_numval_standard_decimal; conformance:cases/15.67.3-Argument-rules/pb60_numval_one_scan; unit:CobolIntrinsicsDecTests.NumvalDec_IsTheParsedValueAtTheParsedScale; unit:CobolIntrinsicsDecTests.NumvalFamily_IsOneProjection_OnTheSharedDomain",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-17 (PB60, RV-15.67.4-1 half a — the last half; half b, the unchecked accumulate wrap, closed 2026-08-09 with the digit-cap landing). §15.4.1: under a standard arithmetic mode the returned value is contained in an SDIDI temporary; §15.67.4 r1 fixes it as the numeric value represented by argument-1. The value is now the ONE positional scan's (sign, unscaled, frac) lifted to CobolDec EXACTLY at the parsed scale (CobolIntrinsics.NumvalDec / NumvalCDec / NumvalFDec — the standard-mode projections of NvScan/NvfScan, sharing the native twins' reject projections), dispatched by IntrinsicRenderer.RenderDec's NUMVAL-family arm, which routes UNCONDITIONALLY under the standard modes (the argument is a string; no carrier question). Measured flips (--std 2023, ARITHMETIC IS STANDARD-DECIMAL): the receiver-less DISPLAY of NUMVAL(\"1.2345678\") renders 1.2345678 where it rendered 1.234567; NUMVAL-C(\"$1,234.5678901234\",\"$\") 1234.5678901234 (was 1234.567890); a 34-digit argument (legal under §15.67.3 r4) renders its 34 digits exactly where the native Int128 projection saturated its rescale and printed 170141183460469231731687303715884.105727. Under NATIVE arithmetic the item-92 working-scale determination (CONFORMANCE.md) is unchanged and remains the documented §15.4.1 implementor determination. Golden pb60_numval_standard_decimal (19 lines: the three receiver-less channels, N34, F40, the parsed-scale text form, sign forms, the shared reject projections, and the SDIDI value through relation/MOVE/COMPUTE at 20 digits/argument/subscript/alphanumeric MOVE/edited MOVE/EVALUATE); unit: the four NUMVAL tests in CobolIntrinsicsDecTests, incl. the native-agreement theory on the shared fixed-point domain. EDITIONS: OPTIONS ARITHMETIC IS STANDARD-DECIMAL is 2014+; ARITHMETIC IS STANDARD (2002) routes to the same SDIDI engine (D3). retired-witness: unit:CobolIntrinsicsDecTests.NumvalFamily_DecAgreesWithNative_OnTheSharedDomain (the same test renamed NumvalFamily_IsOneProjection_OnTheSharedDomain: the family has no native Int128 twin to agree with since kb/Work PB3839, so it now asserts the three SDIDI projections are one)",
+ "state": "OK"
+}

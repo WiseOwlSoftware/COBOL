@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.65.4-2",
+ "section": "15.65.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "MODULE-NAME function",
+ "rule-digest": "19c96d4bea10",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ModuleStack.cs#Name; docs/CONFORMANCE.md#DOC-A.1-133",
+ "test-ref": "unit:ModuleStackInvariantTests.NoTrailingSpaces_AndNoTruncation_AtEveryDepth; unit:ModuleStackInvariantTests.TopLevel_WithoutAMainFrame_IsTheDocumentedNonCobolValue",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB63 — the exception surface: the FD screen, the SELECT-spelled name on the connector, the one access-recording path, the r2b procedure field and element name, the MODULE-NAME determinations). §15.65.4 r2 (EC-BOUND-FUNC-RET-VALUE when the information does not fit) is satisfied VACUOUSLY and that vacuity is now PINNED: the returned item is a dynamic-length string with no width between the module stack and the expression — ModuleStackInvariantTests carries a 300-character element name through STACK untruncated at depth 62; CONFORMANCE.md A.1 item 133 documents the length characteristics.",
+ "state": "OK"
+}

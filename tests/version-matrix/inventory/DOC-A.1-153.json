@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-153",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 153,
+ "subject": "Record locking (default mode when unspecified by user)",
+ "rule-digest": "724f929397ab",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-153; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultShare; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ShareOf",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/pb669_lock_visibility_plain_connector",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§12.4.5.9.4 GR1 b) 2. (cite.py OK 1) b) 2.) lets the implementor specify 'no record locking'. Code: FileRegistry.ImplementorDefaultShare = new(ImplementorDefaultSharing, FileLockMode.None, Multiple: false) (FileRegistry.cs:830), read by ShareOf for every clause-less connector. Probe probe/lk.cob --std 2023 (relative file): A READ WITH LOCK 00; B READ 00; B REWRITE 00 (A set no lock); C (LOCK MODE AUTOMATIC) READ 00; B READ 51 (§9.1.16, cite OK). The pb669 golden pins the visibility half (READB/REWB/DELB 51, IGNB 00); the 'sets no lock' half is probed, not pinned. The default SHARING mode (PB322 A, item 131) is a separate open determination and the row does not state it. No kb/Work note claims items 153-155 (the staged record named PB1092, whose inventory_rows are DOC-A.1-8/43/186 only); campaign note PB1534. PB669 landed. Refuter: the row's worked example opens two clause-less connectors I-O on one file concurrently, which is admitted only by the undetermined default sharing mode (item 131, PB322 determination A, OMITTED this batch); the example now says so instead of presenting that coexistence as settled. The lock determination itself (GR1 b) 2. 'no record locking') is unaffected.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.14.4-12",
+ "section": "13.18.14.4",
+ "kind": "GR",
+ "ordinal": 12,
+ "subject": "COLUMN clause",
+ "rule-digest": "1711604f070f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#SourceAt; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportColumnClause",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/rw_present_when",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: a multiple COLUMN clause is functionally equivalent to a single-operand COLUMN plus a simple OCCURS with integer = operand count, except it allows unequal intervals (cite.py --check 13.18.14.4 'allows the printable items to be defined at unequal horizontal intervals' -> OK 12)). The emitter places once per operand with the repetition ordinal driving VALUE/SOURCE operand cycling (§13.18.63.4 GR23) and VARYING stepping (§13.18.64.4 GR3) - the same ordinal the OCCURS replay uses. Probe p6.cob (2023): `COLUMN 1 3 5 PIC X VALUE \"A\" \"B\" \"C\"` and `COLUMN 1 PIC X OCCURS 3 STEP 2 VALUE \"A\" \"B\" \"C\"` both printed 'A B C'; relative `COLUMN PLUS 1 PLUS 2 PLUS 1` -> '3 33' vs `COLUMN PLUS 1 OCCURS 3` -> '333' (equal intervals, as GR12's exception allows). Probe p1 --std 85: multiple/relative forms -> COBOL0900 requires COBOL-2002. rw_present_when is a spec-derived golden exercising the multiple COLUMN with VARYING. || Editions (adjudicator): 2002, 2014, 2023 (the multiple COLUMN clause is a 2002 form; at 85 it is refused COBOL0900) || Code sites (adjudicator detail): src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements (per-operand loop, RepetitionOrdinal); src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportFieldModel.SourceAt; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportColumnClause",
+ "state": "OK"
+}

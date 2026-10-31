@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.40.3-3",
+ "section": "14.9.40.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "SORT statement",
+ "rule-digest": "5709f0849363",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs#CheckCrossStatementBans; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#IsFileFormat; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#ScreenDeclarativePlacement; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateSortMergeProcedures",
+ "test-ref": "conformance:cases/14.9.40-SORT/pb1139-sort-in-declarative; conformance:cases/14.9.40-SORT/pb1139-sort-in-sort-procedure; conformance:cases/14.9.40-SORT/pb1139-sort-in-inverted-sort-procedure; conformance:cases/14.9.40-SORT/pb1139_table_sort_legal_regions; conformance-test:PerformFormat3Tests.SortInImp1_Rejected1617",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1139 landed: SR3 binds the FILE format only (printed under the FORMAT 1 heading): the exception-checking PERFORM leg now asks SortBinder.IsFileFormat (a legal table SORT there no longer draws COBOL1617), the input/output-procedure leg is GateSortMergeProcedures' BoundSort arm (COBOL2700, every edition, over PcRange.Spans) and the declarative leg is SortBinder.ScreenDeclarativePlacement (COBOL2700). A table SORT is legal in all three regions (golden 2023/pb1139_table_sort_legal_regions).",
+ "state": "OK"
+}

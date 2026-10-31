@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-92",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 92,
+ "subject": "Function returned values (characteristics, representation, and returned value for native arithmetic)",
+ "rule-digest": "3141348e06db",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-92; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolFloat.cs#Display; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#SenderContext",
+ "test-ref": "conformance:cases/15.63.4-Returned-value-rules/da2_function_as_text; conformance:cases/8.4.3.3-Reference-modification/pb73_table16_function_type_and_boolean_view; conformance:cases/15.67.3-Argument-rules/pb60_numval_one_scan; conformance:cases/15.7.4-Returned-value-rule/pb2_float_argument_exact_family",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "editions 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a facility that exists at every edition (the COBOL-85 nucleus, I-O, inter-program and SPECIAL-NAMES implementor-names; its arithmetic, the only arithmetic of COBOL-85, is what later editions name native).",
+ "state": "OK"
+}

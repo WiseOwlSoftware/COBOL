@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.23.3-3",
+ "section": "15.23.3",
+ "kind": "AR",
+ "ordinal": 3,
+ "subject": "DATE-TO-YYYYMMDD function",
+ "rule-digest": "53d334d7b273",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#DateToYyyymmdd; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
+ "test-ref": "unit:CobolDateWindowingTests.DateToYyyymmdd_Defaults_DelegateToWindowCore",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SUSTAINED. The omission default is the C# optional parameter `long off = 50` on CobolDate.DateToYyyymmdd, and the renderer's `case \"DateToYyyymmdd\" or \"DayToYyyyddd\" or \"YearToYyyy\"` arm emits ONLY the arguments actually written (`string.Join(\", \", Enumerable.Range(0, ic.Args.Count).Select(i => IntArg(ic, i)))`), so an omitted argument-2 reaches 50 rather than a zero. Because 15.23.2 nests argument-3 inside argument-2's brackets, the 1-argument reference is the ONLY shape in which argument-2 can be omitted, so there is no second case to miss. Verified end to end and INDEPENDENTLY OF THE r5 DEFECT by pinning the base year: under WISEOWL_COBOL_CLOCK=1990-06-10T12:00:00, `FUNCTION DATE-TO-YYYYMMDD(500101)` and `FUNCTION DATE-TO-YYYYMMDD(500101, 50)` both print 19500101, and unpinned both print 20500101 - the two forms agree under every clock, which is what r3 asserts. The cited unit test is on disk at tests/WiseOwl.Cobol.Tests.Unit/CobolDateWindowingTests.cs and DISCRIMINATES the default (491231 under a pinned 2026 clock gives 20491231 only for offset 50; offset 0 would give 19491231); its expected values are hand-derived from 15.23.4 r1 + 15.100.4 r2a/r2b, so it is spec-derived, not a characterization.",
+ "state": "OK"
+}

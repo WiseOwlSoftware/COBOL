@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.4.4.3-3",
+ "section": "8.8.4.4.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Simple class condition",
+ "rule-digest": "a3c51ed97ca2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#Violates; src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#Alternatives",
+ "test-ref": "conformance:cases/8.8.4.4-Simple-class-condition/pb590-boolean-class-usage-bit; conformance:cases/8.8.4.4-Simple-class-condition/pb590_boolean_class_condition",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB590. SR3's list - alphabet-name-1, ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, BOOLEAN, class-name-1 - is the set of ClassConditionModel rows carrying ClassOperandRule.UsageDisplayOrNational, and NUMERIC is deliberately absent from it because SR8 states the same rule with a category escape. The predicate reads the operand's OPERAND picture (DataItem.OperandPic), so a bit or national GROUP answers as the elementary item 13.18.29.4 GR1b/GR2b makes it; a null picture is an ordinary alphanumeric group or a picture-less leaf and fails OPEN, which is the direction a screen must fail. Measured: `01 BT PIC 1(4) USAGE BIT. IF BT IS BOOLEAN` draws COBOL2202 where it previously compiled. The rule has no edition axis - the class condition and every alternative in its list except BOOLEAN exist at COBOL-85, and BOOLEAN is unreachable as a keyword below 2002 because it is not a reserved word there.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.4-1",
+ "section": "14.6.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Execution",
+ "rule-digest": "0c1e8cd21902",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#Locale; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs",
+ "test-ref": "conformance:cases/14.6.4-Item-identification/pb1123_locale_current_at_editing",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED kb/Work PB1123 (evidence). Locale identification is step 1 of item identification, and 14.6.6 GR6 says what it yields for an edited item: with no locale-name, category LC_MONETARY of the locale current AT THE TIME OF EDITING or de-editing - so nothing is captured before the identifier's later steps and the answer is the run unit's one locale state read at the edit. Probed: MOVE N TO A(FUNCTION SWLOC) where SWLOC runs SET LOCALE LC_MONETARY TO de-DE and A is a LOCALE-format item edits in de-DE (1.234,50) where the same MOVE under en-US gives 1,234.50 (witness 2014/pb1123_locale_current_at_editing).",
+ "state": "OK"
+}

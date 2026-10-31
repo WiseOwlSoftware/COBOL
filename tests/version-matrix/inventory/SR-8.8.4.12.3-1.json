@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.4.12.3-1",
+ "section": "8.8.4.12.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Abbreviated combined relation conditions",
+ "rule-digest": "239ac580fb38",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindComparison; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindPrimaryBoolean; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindAbbreviatedRelation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#RefuseAbbreviationAfterBooleanRelation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindPartialComparison",
+ "test-ref": "conformance:cases/8.8.4.12-Abbreviated-combined-relation-conditions/pb1391-abbrev-not-equal-after-boolean-relation; conformance:cases/8.8.4.12-Abbreviated-combined-relation-conditions/pb1391-abbrev-equal-after-boolean-literal-relation; conformance:cases/8.8.4.12-Abbreviated-combined-relation-conditions/pb1391-abbrev-after-boolean-expression-relation; conformance:cases/8.8.4.12-Abbreviated-combined-relation-conditions/pb1391-evaluate-partial-after-boolean-relation; conformance:cases/8.8.4.12-Abbreviated-combined-relation-conditions/pb1391_boolean_relations_stated_in_full",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1391 LANDED (wave 1005 D). Rule: Relation-condition-1 shall not be a boolean relation condition (cite.py --check 8.8.4.12.3 -> OK 1)); 8.8.4.2.1 calls a relation involving operands of class boolean a boolean relation condition. AbbrevCarry.BooleanRelation is set where the carry is seeded - BindComparison (either operand of class boolean, figurative ZERO excluded), BindPrimaryBoolean's relation arm, BindPartialComparison (after the spliced relation, which is relation-condition-1) - and both consumers of the carry refuse through RefuseAbbreviationAfterBooleanRelation with COBOL2723: B1 = B2 OR <> B3, B1 = B\"0\" OR = B3, B1 B-AND B2 = B\"0\" OR = B3 (formerly the COBOL2319 internal-error net, naming no rule) and EVALUATE B1 WHEN = B2 OR <> B3. A bare boolean item after a boolean relation stays a simple boolean condition (8.8.4.3), pinned by pb1391_boolean_relations_stated_in_full. Vacuous at 85 (no boolean class).",
+ "state": "OK"
+}

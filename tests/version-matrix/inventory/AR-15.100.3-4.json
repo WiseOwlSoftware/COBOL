@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.100.3-4",
+ "section": "15.100.3",
+ "kind": "AR",
+ "ordinal": 4,
+ "subject": "YEAR-TO-YYYY function",
+ "rule-digest": "8717e05debe1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#YearToYyyyAt",
+ "test-ref": "conformance:cases/15.23.3-Argument-rules/pb65_date_windowing; conformance:cases/15.90.3-Argument-rule/pb248-integer-arg-float-item; unit:IntrinsicArgumentClassDriftTests.EveryIntegerArgumentPosition_RejectsAFloatingPointItem",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "CLOSED BY kb/Work PB248, and the row carried TWO reasons for its PARTIAL - both are now answered. cite.py --check 15.100.3 \"Argument-3 shall be an integer greater than 1600 and less than 10000\" => OK (15.100.3 4). (1) THE INTEGER-NESS HALF - a floating-point argument-3 passed the 15.3 type-6 screen and TryIntegerArg truncated it toward zero. Rejected at bind now, through PicInfo.IsIntegerDescription, with the drift test asserting this position by name against every floating-point Usage member. (2) THE SPURIOUS-REJECT HALF the refuter added - r4 firing on a reference that OMITS argument-3, because the float body filled baseYear = 0 for the 1- and 2-argument forms alike and took the line-123 range branch. That half was already repaired before this landing: CobolIntrinsics.RealArgs.cs carries TWO overloads (YearToYyyyReal(double, double = 50) delegating to the two-argument CobolDate.YearToYyyy, and the three-argument twin), which is the PB65 \"omitted-ness is the ARITY, never a value\" discipline propagated to the float carrier; the verdict was stale, and PB248 re-measured it at HEAD rather than inheriting it. It is moot for conforming source in any case - no float operand reaches that body any more - and the permissive coercion lane is covered by conformance-test:FloatIntegerArgumentPermissiveTests. The RANGE half was already correct and correctly strict at both bounds (1600 rejected, 1601 admitted, 9999 admitted, 10000 rejected) and is exercised through the shared core by conformance:cases/15.23.3-Argument-rules/pb65_date_windowing.",
+ "state": "OK"
+}

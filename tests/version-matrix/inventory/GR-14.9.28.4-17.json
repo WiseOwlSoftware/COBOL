@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.28.4-17",
+ "section": "14.9.28.4",
+ "kind": "GR",
+ "ordinal": 17,
+ "subject": "PERFORM statement",
+ "rule-digest": "b2dd07db10f9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitMatcherArms; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitEcPerformMember; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#RunTopFrame; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#PushPerformFrame; src/WiseOwl.Cobol.Runtime/Exceptions/PerformFrame.cs#Activation",
+ "test-ref": "conformance-test:PerformFormat3BehaviorTests.Tier_SpecificBeatsEcAll_RegardlessOfSourceOrder; conformance:cases/14.9.28-PERFORM/pb442_f3_when_activation_scope; conformance:cases/9.1.12-Input-output-exception-processing/pb442_f3_when_method_scope; conformance:cases/9.1.12-Input-output-exception-processing/pb442_f3_when_io_enablement",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB442: GR17's scope word is decided once, docs/CONFORMANCE.md §3 D-F3S - dynamic within the activation (a raise in a paragraph PERFORMed from imp-1 selects the WHEN, GR1's range; GR20 continues after the raising statement), bounded by it (an exception status indicator exists 'for each function, method, or program', §14.6.13.1.1; a condition reaches the activator only by propagation, §14.9.18.4 GR1 b), raised at the CALL/INVOKE, §14.9.33.4 GR2 a) 2.). One mechanism: each WHEN frame carries the activation that pushed it and RunTopFrame stops at the first foreign frame. Before: a CALLed program or an ordinary method whose raise sites consulted the frame stack ran the ACTIVATOR's WHEN inside itself (measured: CEE-RAISE / Q2-WHEN-WRONG; DRV-WHEN-LEAK). Enablement stays lexical (GR14's implicit TURN is a directive): pinned by pb442_f3_when_io_enablement.",
+ "state": "OK"
+}

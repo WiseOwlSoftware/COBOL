@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.30.4-27",
+ "section": "14.9.30.4",
+ "kind": "GR",
+ "ordinal": 27,
+ "subject": "READ statement",
+ "rule-digest": "ffe6d6d2cc35",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadSequential",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/l1_read_alt_dup_walk",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR27 a) and b) on one duplicate set: 02,02,00,00 forward and 00,02,02,00 reverse; the '00' lines pin the negative half that an unconditional '02' would break.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.12-1",
+ "section": "9.1.12",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Files",
+ "rule-digest": "b80465784607",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitPerformInterceptor; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#performWhenPhrase; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#RunTopFrame",
+ "test-ref": "conformance:cases/9.1.12-Input-output-exception-processing/pb344_use_f3_perform_preempt; conformance:cases/9.1.12-Input-output-exception-processing/pb442_f3_when_io_enablement; conformance:cases/9.1.12-Input-output-exception-processing/pb442_f3_when_method_scope",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB442: item 1's 'active PERFORM' is the dynamic range within the activation (D-F3S). The refuted axis is §9.1.12's own precondition: 'When execution of an input-output statement raises an exception condition', and §9.1.13.1 'Whether or not the exception condition is raised depends on whether or not checking for that exception condition is enabled' - a READ in a PERFORMed paragraph written after >>TURN EC-I-O raises and the WHEN EXCEPTION F selects it (Q2-WHEN), one written before raises nothing and §14.9.49.4 GR6 runs the USE procedure (DECL-F 10). The cross-CALL/INVOKE half is the activation boundary (pb442_f3_when_method_scope).",
+ "state": "OK"
+}

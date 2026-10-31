@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.35.4-10",
+ "section": "14.9.35.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "REWRITE statement",
+ "rule-digest": "41691922df5f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite",
+ "test-ref": "conformance:cases/14.9.35-REWRITE/l1c25_rewrite_from_item_available",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "\"After the execution of the REWRITE statement is complete, the information in the area referenced by identifier-1 is available, provided that identifier-1 is not one or part of one of the record descriptions subordinate to the file-description ...\" The emitters only READ identifier-1 (the bound implicit MOVE, GR7 a)) and never store into it; the runtime receives a string image. Probe pa.cob: after `REWRITE R2 FROM W20` W20 still displays YYYYYYYYYYYYYYYYYYYY. The subordinate case is 'not available' = unspecified content, which any behaviour satisfies. cite.py --check 14.9.35.4 GR10 -> OK. No spec-derived test pins it. [editions as adjudicated: 2023 (clarified in 2023 per Annex E.3.3 item 41: identifier-1 subordinate to the FD is not available); the availability of a non-subordinate identifier-1 is unchanged in 2014]",
+ "state": "OK"
+}

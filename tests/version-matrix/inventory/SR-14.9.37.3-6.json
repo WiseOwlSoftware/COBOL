@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.37.3-6",
+ "section": "14.9.37.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "SEARCH statement",
+ "rule-digest": "39301996432a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs",
+ "test-ref": "conformance:cases/8.8.4.6-Simple-switch-status-condition/l1_search_when_condition_forms; conformance:cases/8.8.4.3-Simple-boolean-condition/l1_search_when_boolean_omitted",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Breadth witness for the SR6 permission: one Format-1 WHEN per 8.8.4 sub-form (8.8.4.2 relation, .4 class, .5 condition-name, .6 switch-status both ways, .7 sign, .10 negated, .11 parenthesised and precedence, .12 both omission forms), each expected occurrence derived from 14.9.37.4 GR4 + GR1a; 8.8.4.3 boolean and 8.8.4.8 omitted-argument in conformance:cases/8.8.4.3-Simple-boolean-condition/l1_search_when_boolean_omitted, which is why the test-ref names BOTH files. The two 8.8.4.12 legs are '= 9 OR 7' -> occurrence 4 and '> 0 AND > 8' -> occurrence 5, chosen so that dropping the implied subject/operator lands on a DIFFERENT occurrence and the leg can fail.",
+ "state": "OK"
+}

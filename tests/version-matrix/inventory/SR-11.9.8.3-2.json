@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.9.8.3-2",
+ "section": "11.9.8.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "FLOAT-BINARY clause",
+ "rule-digest": "3a115cebcd2b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#FloatItem",
+ "test-ref": "unit:NumericByteFormDriftTests.FloatBinaryEndianness_ReachesOnlyStandardBinaryFloatProfiles",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "HIGH-ORDER-LEFT specified: implied for every standard binary float item without its own endianness-phrase - big-endian, the same bytes as the default (the drift theory pins FloatLittleEndian=false for the HighOrderLeft row). The per-item endianness-phrase on the USAGE clause is kb/Work PB174.",
+ "state": "OK"
+}

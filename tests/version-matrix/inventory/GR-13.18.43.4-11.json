@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.43.4-11",
+ "section": "13.18.43.4",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "RECORD clause",
+ "rule-digest": "6d3a9f136570",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Stored",
+ "test-ref": "conformance:cases/8.5.4-Zero-length-items/pb721_zero_length_record",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 13.18.43.4 GR11. The rule obliges the PROGRAM to place the length in data-name-1 before RELEASE/REWRITE/WRITE; the implementation's side is to read it at that point, which it does (GR13 a) - WRITE with L=7 writes 7 bytes (probe/record-clause/p4.cob), RELEASE with L=5/9 releases 5/9 bytes (p6.cob RETURN L=05 'BBxxx', L=09 'AAyyyyyyy'). pb721_zero_length_record sets L=0 before WRITE and expects a zero-length record.",
+ "state": "OK"
+}

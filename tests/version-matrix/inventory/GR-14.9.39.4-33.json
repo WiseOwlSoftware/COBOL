@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-33",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 33,
+ "subject": "SET statement",
+ "rule-digest": "131eab96f9ef",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#setContentStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetContent; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSetContent; src/WiseOwl.Cobol.Compiler/Binding/IeeeSpecials.cs#Bits; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolFloat.cs#FromBinary32Bits; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.Image.cs#FormatImageSingle",
+ "test-ref": "conformance:cases/14.9.39-SET/pb452_set_content_float; conformance:cases/14.9.39-SET/pb452-set-content-not-standard-float; unit:IeeeSpecialsTests.EveryCanonicalValue_DecodesToWhatItsGeneralRuleRequires; unit:IeeeSpecialsTests.TheStoredImage_CarriesTheDocumentedBits",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work/PB452.md LANDED 2026-09-09. FLOAT-INFINITY stores the ISO/IEC 60559:2020 Clause 3 canonical infinity of the receiver's basic interchange format, with GR33's sign. SR32 confines the receiver to a STANDARD floating-point usage (3.166/3.167) and the two WiseOwl COBOL provides map EXACTLY onto binary32 (FLOAT-BINARY-32 -> float) and binary64 (FLOAT-BINARY-64 -> double), so the carrier IS the interchange format and nothing is approximated; the other three standard usages are Annex A.3 items 17/19 documented non-support, refused at declaration. MEASURED: two receivers of one statement both compare equal to each other (+infinity = +infinity); SIGN NEGATIVE gives a value LESS than the positive one, so the sign reached the sign bit. kb/Work/PB961 (2026-09-22): re-sited - IeeeSpecials.Text deleted; the infinities are emitted through RuntimeApi.FloatFromBits over IeeeSpecials.Bits. retired-witness: src/Cobol.Net.Compiler/Binding/IeeeSpecials.cs#Text (IeeeSpecials.Text was deleted by kb/Work PB961 (the emitted expression is RuntimeApi.FloatFromBits over IeeeSpecials.Bits) and TheEmittedExpression_EvaluatesToTheDocumentedBits was replaced by TheStoredImage_CarriesTheDocumentedBits, which asserts the stored image rather than the expression)",
+ "state": "OK"
+}

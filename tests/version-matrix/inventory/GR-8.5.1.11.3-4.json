@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.1.11.3-4",
+ "section": "8.5.1.11.3",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Variable-length data items",
+ "rule-digest": "ca812b70a068",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode",
+ "test-ref": "conformance:cases/8.5.1.11.3-Availability-and-persistence-of-variable-length/pb154_cancel_initial",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "PERMISSIVE rule: §8.5.1.11.3 says the resources 'MAY be freed automatically when' the listed event occurs, and 'The actual time when the resources used by a variable-length data item are freed is implementor-defined' (Annex A item 220: required, need not be documented). The only binding content is that freeing is unobservable ('this has no effect on the results of the execution of the program') and persistence equals a fixed-length item's. WiseOwl COBOL's variable-length items are managed .NET objects: a dynamic-length item IS a System.String field (CobolDynString), a dynamic-capacity table IS a CobolDynTable<T> (T[] + count); reclamation is by the CLR GC once unreachable, so every listed event is honoured at a GC-determined time, which the implementor-defined timing admits. cite.py --check 8.5.1.11.3 \"The resources used by a variable-length data item may be freed automatically when\" -> OK; --check 8.5.1.11.3 \"The actual time when the resources used by a variable-length data item are freed is implementor-defined\" -> OK; --check 8.5.1.11.1 \"The term variable-length data item refers to either a dynamic-capacity table or a dynamic-length elementary item\" -> OK. Editions: the facility is ISO 2014+ (Annex E item 17 of 2023 records only the SET SIZE enhancement as new, so the items pre-exist in 2014). Event 4 (CANCEL of a called program): ProgramTable.CancelNode sets n.Instance = null (dropping instance WS) and invokes n.StaticReset (__ResetStatics re-assigns a RECURSIVE unit's static WS to its initializers), so the old CobolDynString/CobolDynTable objects become unreachable and are collected. Covered by conformance:cases/8.5.1.11.3-Availability-and-persistence-of-variable-length/pb154_cancel_initial (spec-derived from §14.9.5 GR3 / §14.6.2.3.2): after CANCEL the next CALL sees the dynamic-capacity table at its minimum (CAP=0000000001) and the DYNAMIC LENGTH item at LEN=0 -- the only observable consequence of the release.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-10.7.3-7",
+ "section": "10.7.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "End markers",
+ "rule-digest": "21f7ffc3e6c7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#ScreenProgram",
+ "test-ref": "conformance:cases/10.7-End-markers/pb988-end-function-name-mismatch; conformance:cases/10.7-End-markers/pb988_end_markers",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB988 LANDED (wave 1015 Z2). cite.py --check 10.7.3 'User-function-name-1 shall be identical to the user-function-name declared in the corresponding FUNCTION-ID paragraph.' OK 7). FUNCTION-ID. PB988F. ... END FUNCTION PB988G. is COBOL2793 (SR7); pb988_end_markers' END FUNCTION pb988f closes PB988F, and FUNCTION PB988F(7) returns 14 (F=14). The END FUNCTION keyword on a PROGRAM-ID unit is §10.6.1's (SourceUnitShape, COBOL2274).",
+ "state": "OK"
+}

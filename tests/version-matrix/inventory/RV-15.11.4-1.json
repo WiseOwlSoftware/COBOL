@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.11.4-1",
+ "section": "15.11.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "ATAN function",
+ "rule-digest": "31e24c40fee2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#SignDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.cs#FromDouble",
+ "test-ref": "conformance:cases/15.4.1-Numeric-and-integer-functions/pb56_dec_carrier_intrinsics; conformance:cases/15.10.4-Returned-value-rule/pb65_bounded_returned_value_landing; conformance:cases/14.7.4-ROUNDED/pb3829_rounded_bounded_function_modes",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PB56 LANDED 2026-08-09 (the Dec-carrier body, standard modes). The returned value lies strictly inside the open (-pi/2, +pi/2): atan(+-10^18) in binary64 is +-1.5707963267948965..., below pi/2 in magnitude. kb/Work PB3829 (2026-10-26, owner-approved): the bound is on the RETURNED value only; a ROUNDED store into a four-place receiver gives +-1.5708 (14.7.4.3 r4), past pi/2, and the PB65 clamp that cut it to 1.5707 is deleted. Witness pb3829_rounded_bounded_function_modes runs ATAN(+-10^18) under all nine rounding phrases at scales 4, 2 and -1. retired-witness: conformance:cases/15.10.4-Returned-value-rule/pb65_codomain_clamp (kb/Work PB3829 deleted the codomain clamp (the rule bounds the returned value, not the stored one) and renamed and re-derived its golden) retired-witness: src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.cs#FromDoubleBounded (kb/Work PB3829 deleted the codomain clamp (the rule bounds the returned value, not the stored one) and renamed and re-derived its golden)",
+ "state": "OK"
+}

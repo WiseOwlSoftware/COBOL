@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.19.4-3",
+ "section": "15.19.4",
+ "kind": "RV",
+ "ordinal": 3,
+ "subject": "CONVERT function",
+ "rule-digest": "1b23576f307f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Repertoire",
+ "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.Convert_AnumNatAnum_RoundTrip_2023",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-08-09 (PB59): under the item-33 total national set (all 65536 code units are valid national characters - the same declaration item 188 makes for the repertoire), r3's 'invalid national character' premise is unsatisfiable on the HEX->NAT path: every 16-bit pattern is a valid national character, so the substitution+EC machinery is vacuous by declaration. The round-trip differential test now carries a WIDE leg (Z + U+0160) proving the character pathway is total.",
+ "state": "OK"
+}

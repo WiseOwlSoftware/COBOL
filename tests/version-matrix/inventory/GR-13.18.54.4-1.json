@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.54.4-1",
+ "section": "13.18.54.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "SUM clause",
+ "rule-digest": "acf4be3f6dec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportSumModel; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindSumClause; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AddSum; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#SumCounterItem; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#SumCounterDigits",
+ "test-ref": "conformance:cases/13.8.6.2.3-Report-Items/pb882_report_sum_counter_identity; conformance:cases/13.18.54-SUM/pb882-sum-counter-ambiguous; conformance:cases/13.18.54-SUM/pb883_report_sum_expression; conformance:cases/13.18.54-SUM/pb1296_sum_counter_digits_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1296: the counter digit count is derived per category from the entry PICTURE excluding insertion editing characters (numeric: the 9s; numeric-edited: every digit position; alphanumeric/national: each non-insertion character position); one counter per ENTRY (PB882). The engine carrier caps a counter at 18 digits (a 19+-digit PICTURE is a reported lead).",
+ "state": "OK"
+}

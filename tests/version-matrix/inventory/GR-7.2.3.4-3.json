@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.2.3.4-3",
+ "section": "7.2.3.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "COPY statement",
+ "rule-digest": "19a91b5296f0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#LibraryPlaces; docs/CONFORMANCE.md#DOC-A.1-40",
+ "test-ref": "conformance:wiseowl/cases/7.2.3-COPY/pb1355_library_text_located",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1355 (w68x): 'The implementor shall define the rules for locating the library text ... The implementor defines the mechanism for identifying the default COBOL library' (cite.py OK 7.2.3.4 3)). Defined and documented as DOC-A.1-40 (GnuCOBOL's order, CLAUDE.md rule 1) and now implemented as written: the working directory, then each --copy DIR, then the --nist copylib; the source file's directory is not searched (CopyProcessor.RegisterSourceDir deleted; the test harnesses name a golden's directory as --copy).",
+ "state": "OK"
+}

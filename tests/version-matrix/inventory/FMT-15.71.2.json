@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.71.2",
+ "section": "15.71.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "ORD-MAX function",
+ "rule-digest": "43fec38df76f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall",
+ "test-ref": "conformance:cases/15.75.3-Argument-rules/pb1_intrinsic_formats",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "15.71.2 FUNCTION ORD-MAX ( {argument-1} ... ) - the variadic format, now covered by a SPEC-DERIVED golden (the previous NIST-only cover is a regression net and cannot close a row). The golden also pins 15.71.4 r3 leftmost-wins on a tie.",
+ "state": "OK"
+}

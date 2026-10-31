@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.75.3-3",
+ "section": "15.75.3",
+ "kind": "AR",
+ "ordinal": 3,
+ "subject": "RANDOM function",
+ "rule-digest": "b66dbae09a0b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Random; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat",
+ "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.Random_SeededSequence_PinnedToSpec",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Random(long seed) REPLACES the one static _random with a freshly seeded generator and returns its first value, so a subsequent seeded reference restarts the sequence. Re-verified independently at HEAD: RANDOM(42) -> 668106466, argument-less -> 140907298, argument-less -> 125518289, RANDOM(42) again -> 668106466, argument-less -> 140907298 — the restart reproduces the whole PREFIX, not merely the first value. Editions from the catalog window IntroducedIn 85 (the 1989 Intrinsic Function Module amendment, which this compiler treats as part of --std 85); FUNCTION RANDOM was confirmed to compile and run at 85, 2002, 2014 and 2023. Test-ref nist:IF131A was STRUCK by review: its five RANDOM paragraphs only range-check 0 <= r < 1 and never compare two same-seed references, so it does not exercise this rule. The surviving conformance-test asserts R1 = R3 across an intervening argument-less draw, which is exactly rule 3's observable.",
+ "state": "OK"
+}

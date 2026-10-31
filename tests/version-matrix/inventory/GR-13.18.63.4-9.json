@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.63.4-9",
+ "section": "13.18.63.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "VALUE clause",
+ "rule-digest": "ca6efd5e9fa5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupImageCodec.cs; src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ExpandInitialize",
+ "test-ref": "conformance:cases/13.18.63-VALUE/table_value_occurs; conformance:cases/13.18.63-VALUE/pb577_odo_value_initial_state; conformance:cases/13.18.63-VALUE/pb577_odo_value_initialize; conformance:cases/13.15-Report-group-description/pb565_report_repeating_entry",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB577.md - ALL THREE REFUTATION GROUNDS DISCHARGED AND RE-MEASURED. (1) GR9's population includes an entry containing OCCURS ... DEPENDING, and GR4c makes an INITIALIZE statement one of the two occasions; over an occurs-depending table that statement used to throw NotImplementedCobolFeatureException at all four editions. RE-PROBED: it does not reproduce - kb/Work PB393 (a7a64fad9) fixed the place dispatch. conformance:cases/13.18.63-VALUE/pb577_odo_value_initialize now pins the ODO population at that occasion in both DEPENDING quadrants. (2) GR21 makes GR9 normative in FORMAT 4 and the vehicle was refused by name (COBOL0899, 'OCCURS in a report group description is not yet implemented'). RE-PROBED: a report group with `10 COLUMN 1 PIC X(3) OCCURS 3 STEP 4 VALUE \"ABC\"` compiles and GENERATEs `ABC ABC ABC` - every occurrence took the value. kb/Work PB565 landed the repeating report entry and its golden conformance:cases/13.15-Report-group-description/pb565_report_repeating_entry pins GR21's import of GR9 for BOTH of GR9's legs, so the Format-4 half is covered by a registered spec-derived test rather than deflected to rows 21/22. (3) THE TEST-REF COVERED ONE ARM OF TWO: conformance:cases/13.18.63-VALUE/table_value_occurs pins only 'an entry that contains an OCCURS clause', because all three of its elements carry their own OCCURS. The second named arm, 'an entry that is subordinate to an entry that contains an OCCURS clause', is now pinned twice - conformance:cases/13.18.63-VALUE/pb577_odo_value_initial_state line G92 at the initial-state occasion (A9(3)=XY, B9(3)=7 over `05 G9 OCCURS 3. 10 A9 PIC X(2) VALUE \"XY\". 10 B9 PIC 9 VALUE 7.`) and conformance:cases/13.18.63-VALUE/pb577_odo_value_initialize line L5 at the INITIALIZE occasion.",
+ "state": "OK"
+}

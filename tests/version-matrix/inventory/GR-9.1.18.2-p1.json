@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.18.2-p1",
+ "section": "9.1.18.2",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Commit and Rollback",
+ "rule-digest": "29b52bde8f6b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/WiseOwl.Cobol.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CommitSequential; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RollbackSequential; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
+ "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3338_apply_commit_rollback; conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.First_write_under_extend_then_commit",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB3340 (wave 1157): Every file 9.1.18.2 admits may be named: the SEQUENTIAL operand is accepted (COBOL1709 retired); sort-merge and report files are refused (SR2, COBOL4709). Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5). retired-witness: conformance:wiseowl/cases/12.4.6.3-APPLY-COMMIT/declined-apply-commit (the refusal it pinned, COBOL1709 for a SEQUENTIAL operand of APPLY COMMIT, is retired by kb/Work PB3340 and the case is deleted; pb695-apply-commit-no-on and pb3340_sequential_file_under_apply_commit witness the operand accepted)",
+ "state": "OK"
+}

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build / refresh the traceability inventory — the P14 burn-down instrument.
 
-`scripts/session-probe.ps1` already looks for tests/version-matrix/traceability-inventory.json and reports
+`scripts/session-probe.ps1` already looks for the tests/version-matrix/inventory/ directory and reports
 "invent: N rows · M GAP (v1.0 = zero GAP)". Until now that file did not exist, so the probe said "not built yet"
 and the project had no burn-down number at all.
 
@@ -35,8 +35,8 @@ import re
 import sys
 from collections import Counter
 
-from inventory_schema import (ADJUDICATED as CARRIED, CATALOG_PATH as CATALOG,
-                              INVENTORY_PATH as INVENTORY, REPO, load_schema, write_inventory)
+from inventory_schema import ADJUDICATED as CARRIED, CATALOG_PATH as CATALOG, load_schema
+from inventory_store import INVENTORY_DIR, INVENTORY_DIR_REL, load_inventory, write_inventory
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -74,8 +74,8 @@ def main() -> int:
     rules = json.loads(CATALOG.read_text(encoding="utf-8"))["rules"]
 
     prior: dict[str, dict] = {}
-    if INVENTORY.exists():
-        for row in json.loads(INVENTORY.read_text(encoding="utf-8")):
+    if INVENTORY_DIR.is_dir():
+        for row in load_inventory():
             prior[row["rule-id"]] = row
 
     out: list[dict] = []
@@ -163,8 +163,8 @@ def main() -> int:
     if args.stats:
         return 0
 
-    write_inventory(out)
-    print(f"\nwrote {INVENTORY.relative_to(REPO)}  ({INVENTORY.stat().st_size / 1_048_576:.1f} MB)")
+    changed = write_inventory(out)
+    print(f"\nwrote {INVENTORY_DIR_REL}/  ({len(out)} rows, {changed} file(s) changed)")
     print("session-probe will now report the live GAP count.")
 
     # kb/Conformance/ is a RENDERED VIEW over this file (kb/Work PB3026, scripts/rendered_views.py): the session probe

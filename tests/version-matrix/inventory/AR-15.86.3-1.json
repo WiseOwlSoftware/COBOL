@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.86.3-1",
+ "section": "15.86.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "STANDARD-DEVIATION function",
+ "rule-digest": "5e4a69b9f544",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+ "test-ref": "conformance:cases/15.86.3-Argument-rule/stat-standard-deviation-arg-class-numeric",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "New negative: PIC X(3) at argument-4 of 4 - the deepest position in the batch and, measured across tests/conformance/negative, the deepest ordinal any class fixture exercises - proving the tail rule rather than a fixed ordinal list. 15.86.4 r1 defines the value through VARIANCE, but 15.86.3 r1 is a rule in its own right and the .err pins that clause, not 15.98.3.",
+ "state": "OK"
+}

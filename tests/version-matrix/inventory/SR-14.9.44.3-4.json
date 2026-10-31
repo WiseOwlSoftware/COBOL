@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.44.3-4",
+ "section": "14.9.44.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "SUBTRACT statement",
+ "rule-digest": "bd1d55785a2c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#Receivers; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#Receivers; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ScreenResultant",
+ "test-ref": "conformance:cases/14.9.44-SUBTRACT/l1_subtract_giving_resultant_categories; conformance:cases/14.9.44-SUBTRACT/l1-subtract-sr4-giving-alphanumeric",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Both admitted categories in one statement (G=0019 by 14.6.8.2 r4; NE=[  19] by 14.6.8.2 r5 into 13.18.40.5 r7 Z-suppression) plus an alphanumeric resultant outside both -> COBOL1675. The admitting program is in tests/conformance/2023 and runs at --std 2023 only; the negative's reject-at covers all four editions.",
+ "state": "OK"
+}

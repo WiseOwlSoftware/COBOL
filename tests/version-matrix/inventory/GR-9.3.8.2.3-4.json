@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.3.8.2.3-4",
+ "section": "9.3.8.2.3",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Conformance for object orientation",
+ "rule-digest": "581cf0947357",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#MethodConformanceMismatches",
+ "test-ref": "conformance:cases/9.3.8.2.3-Conformance-between-interfaces/l1c05-oo-returning-absent-in-impl; conformance:cases/9.3.8.2.3-Conformance-between-interfaces/l1c05-oo-returning-extra-in-impl; conformance:cases/9.3.8.2.3-Conformance-between-interfaces/pb1012_strong_type_override_factory",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule text (cite.py --check 9.3.8.2.3 OK: '4) The presence or absence of the procedure division RETURNING phrase is the same.'). MethodConformanceMismatches: (m1.Binding.Returning is null) != (m2.Binding.Returning is null) -> 'RETURNING presence differs from ... (ISO §9.3.8.2.3 rule 4)'. The one rule set serves every asker: §11.8.3 SR2 / §11.4.3 SR2 IMPLEMENTS (ValidateImplements, COBOL0841), §11.7.3 SR9 overrides (ValidateOverrideSignatures, COBOL0829) and the interface-to-interface relation (InterfaceConformsTo). Witnesses: negatives l1c05-oo-returning-absent-in-impl (prototype RETURNING, implementation none) and l1c05-oo-returning-extra-in-impl (the reverse), both COBOL0841 (golden-lane-1 wave 1, 3031e2e90); positive pb1012_strong_type_override_factory (kb/Work PB1012, w1091f): RETURNING present on both sides of an override and of a FACTORY IMPLEMENTS, compiles and runs. Re-probed on the w1091f build: both negatives refuse with the rule-4 message.",
+ "state": "OK"
+}

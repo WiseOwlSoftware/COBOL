@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.15.3-1",
+ "section": "7.3.15.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "FLAG-14 directive",
+ "rule-digest": "57e7afd0c221",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/DirectivePlacementPass.cs#Run",
+ "test-ref": "unit:PushPopAllPlacementTests.FlagDirectivesAndNamedPushPop_InsideAStatement_Warn_BetweenStatements_DoNot",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1065. The FLAG-14 twin of SR-7.3.14.3-1 (cite.py --check 7.3.15.3 OK 1)).",
+ "state": "OK"
+}

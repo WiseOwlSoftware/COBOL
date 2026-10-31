@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.6.4-2",
+ "section": "12.3.6.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "OBJECT-COMPUTER paragraph",
+ "rule-digest": "c9c6817cd5ca",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#computerName",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/pb3_ord_collating_tail; conformance:cases/12.3.5-SOURCE-COMPUTER/pb78_object_computer_optional_name",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB78 (2026-08-18): computer-name-1 MAY identify an equipment configuration — WiseOwl COBOL defines none: any computer-name is accepted and implies the one object computer, the .NET runtime (documented on CONFORMANCE.md's A.1 item 127 row).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.48.3-8",
+ "section": "14.9.48.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "UNSTRING statement",
+ "rule-digest": "552c5029dbfd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#StrUnstrSender; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#strUnstrSender",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/da4_function_sending_operand; conformance:cases/14.9.48-UNSTRING/pb1182_constant_name_literal_positions; conformance-test:StringUnstringOperandScreenTests.Unstring_ConstantNameSender_IsSR8",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1182 (wave 1011 A). SR8 'The data item referenced by identifier-1 is the sending operand.' With 13.10.3 SR2 (a constant-name stands only where a format specifies a literal), BindUnstring refuses a constant-name identifier-1 (COBOL1651) while StrUnstrSender keeps substituting the literal at STRING's sender and both verbs' delimiters (the positive golden). The other halves stay witnessed by da4_function_sending_operand.",
+ "state": "OK"
+}

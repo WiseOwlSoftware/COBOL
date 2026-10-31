@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.40.4-10",
+ "section": "13.18.40.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "PICTURE clause",
+ "rule-digest": "a5c2faa773af",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.Analyze; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#IsEditedCategorySymbol; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#IsCharacterEdited",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb492_national_edited_2002; conformance:cases/13.18.40-PICTURE/pb492_national_edited_2014; conformance:cases/13.18.40-PICTURE/pb492_national_edited_2023; conformance:cases/13.18.40-PICTURE/pb492_national_edited_editing; conformance:cases/13.18.40-PICTURE/pb492-national-edited-at-85; conformance-test:DataSkeletonEditionTests.NationalEditedPicture_CompilesAt2002Plus_RejectedAt85; unit:LoudGuardTests.Analyze_NationalEdited_At85_ClassifiesSilently",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB492 LANDED 2026-09-12. GR10 is now implemented WHOLE and BOTH of its legs are measured on this tree's own cobol.exe. The category is REAL, not a staged skeleton: Analyze returns PicInfo(PicCategory.National, Usage.National, Length = the symbol count) carrying EditMask = the expanded string, which is exactly the shape alphanumeric-edited already used (data-model design D-N6); the former StagedNotImplemented(NationalEdited2002) + PicInfo.Recovery is gone and so is PicInfo.SkeletonGate, which existed only to carry the recovered identity forward. Measured before -> after at --std 2023: `01 W-1 PIC NNBNN.` COBOL0899 -> compiles, MOVE N\"ABCD\" renders [AB CD]; at --std 85 COBOL0900 naming COBOL-2002 (exactly one, pinned by RepositoryPrototypeEditionTests.NationalEditedPicture_At85_ExactlyOne0900 -- the picture-shape gate wins over the usage gate because national-edited is the finer construct). The CHARACTER-1 leg, GR10's other way of being national-edited, was refused outright as an invalid PICTURE and now works: `01 W-1 PIC NNTNN EDITING \"T\" IS N\":\".` COBOL0808 ('Table 10: N may be combined only with the insertion symbols B 0 /', a message GR10 itself contradicts) -> compiles, renders [AB:CD]. The root cause was the shape PB490 found one level down: the GR7/GR10 insertion set was written out as a literal list at each recognition arm and the national copy omitted character-1. It is now CobolEdit.IsEditedCategorySymbol -- ONE definition, derived from rule 3's simple-insertion set minus the grouping separator (Table 10 admits a ',' only beside the numeric rows) -- read by BOTH arms, with unit:CobolEditSimpleInsertionDriftTests.TheEditedCategorySetIsRule3sMinusTheGroupingSeparator as the drift test. Expected bytes in the goldens are computed from GR14's per-symbol text plus 13.18.40.5 rule 3, position by position.",
+ "state": "OK"
+}

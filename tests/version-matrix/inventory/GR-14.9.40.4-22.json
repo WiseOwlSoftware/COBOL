@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.40.4-22",
+ "section": "14.9.40.4",
+ "kind": "GR",
+ "ordinal": 22,
+ "subject": "SORT statement",
+ "rule-digest": "3301ed87cbc6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindTable",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb846_sort_table_occurs_keys",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'If the KEY phrase is specified, it overrides any KEY phrase specified in the data description entry of the table referenced by data-name-2.' (cite.py --check 14.9.40.4 OK, GR22). Code: SortBindTable reads OccursSpec.Keys ONLY when s.sortKeyPhrase().Length == 0; any written KEY phrase builds the key list from the statement alone, so the OCCURS KEY phrase plays no part. Covered: pb846 leg X (TBE OCCURS ... DESCENDING KEY KA ASCENDING KEY KB, sorted ON ASCENDING KEY KA DESCENDING KEY KB -> A3A2A1B3B2B1, expected derived in the golden header). Re-probed (podo.cob): E2 OCCURS 4 ASCENDING KEY K2, SORT E2 DESCENDING KEY K2 -> 4D3B2C1A (override), SORT E2 -> 1A2C3B4D (own key).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.49.3-4",
+ "section": "13.18.49.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "SAME AS clause",
+ "rule-digest": "7df608c4cd20",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandType; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CloneItem",
+ "test-ref": "conformance:cases/13.18.49-SAME-AS/l1c27-same-as-type-of-enclosing-record",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR4 \"The description of data-name-1, including its subordinate data items, shall not contain a TYPE clause that references the record to which this entry is subordinate.\" (--check 13.18.49.3 -> OK 4)). The only record a TYPE clause can reference is a TYPEDEF record, so SR4's shape is a SAME AS inside a type declaration whose data-name-1 is (or contains) TYPE of that declaration. No dedicated check exists: the rejection falls out of ExpandType cloning the template's SAME AS subordinate under data-name-1, where the SR3 ancestor walk fires. Probe p05_sr4 (`01 T TYPEDEF. 05 A PIC X. 05 B SAME AS X.` / `01 X TYPE T.`) -> COBOL1557 (whose catalog entry names SR3/SR4), but the message text cites SR3 rather than SR4. Since data-name-1 containing TYPE T always reproduces the SAME AS under data-name-1, every SR4 violation is caught by this route; the SR3 wording is cosmetic. No test. || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (the SAME AS clause is absent from COBOL-85 and is not in Annex E's 2014->2023 substantive-changes list, so the rule stands unchanged in 2014 and 2023)",
+ "state": "OK"
+}

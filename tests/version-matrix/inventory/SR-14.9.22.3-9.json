@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.22.3-9",
+ "section": "14.9.22.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "INSPECT statement",
+ "rule-digest": "96f369e3f4d2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhraseOperands; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckInspectLiteralSizes; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#InspectLiteralSize",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/pb1127-inspect-constant-name-converting-size; conformance:cases/14.9.22-INSPECT/pb1127_inspect_constant_name_operands; conformance:cases/14.9.22-INSPECT/pb3233-inspect-figurative-literal4-size; conformance:cases/14.9.22-INSPECT/pb3233_inspect_figurative_pattern_size",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED kb/Work PB1127, PB3233. A constant-name literal-4/literal-5 reaches the SR9 size check (equal sizes run, unequal draws COBOL0846); a figurative literal-5 stays exempt. PB3233: a figurative literal-4 is SR3's one character, measured by the ONE size rule StatementValidation.CheckInspectLiteralSizes (shared with SR6), so CONVERTING SPACE TO \"QR\" draws COBOL0846 at every edition (it compiled clean and converted each space to the first character). retired-witness: src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs#CheckInspectConvertingSize (kb/Work PB3233 merged the SR6 and SR9 size checks into the one rule StatementValidation.CheckInspectLiteralSizes)",
+ "state": "OK"
+}

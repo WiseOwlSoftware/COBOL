@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.28.4-5",
+ "section": "14.9.28.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "PERFORM statement",
+ "rule-digest": "8155cd5dc457",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitOutOfLinePerform; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#DispatchCall; src/WiseOwl.Cobol.Compiler/Binding/Model/PcRange.cs",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/pb440_perform_empty_range_2023; conformance:cases/14.9.28-PERFORM/pb440_perform_range_composition; conformance:cases/14.9.28-PERFORM/pb440_perform_empty_range_85; unit:ProcedureRangeEmptinessDriftTests.DispatchCallRefusesAnEmptyRange; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_perform_thru_inverted",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB440.md - LANDED. The two arms the row's previous verdict rested on are fixed at the ROOT: a resolved procedure range is now a PcRange that CARRIES its emptiness (it cannot be derived - a zero-paragraph section, 14.4.2, and an ADJACENT inverted THRU range, GR6, are the identical pair (s, s-1)), BindPerform has ONE path that always binds the control phrase, EmitOutOfLinePerform emits the control-phrase scaffold for EVERY range and supplies an EMPTY body when the set is empty, and DispatchState.DispatchCall is the one place a range becomes __Dispatch and THROWS on an empty one. GR5's transfer and BOTH return-mechanism arms are measured on non-empty ranges by pb440_perform_range_composition (a) procedure-name-2 omitted: PERFORM WORK-SEC returns after the section's last statement, NEXT-SEC does not run; b) procedure-name-2 specified: PA THRU PC returns after PC, PD does not run). The exception the rule states - \"except as indicated in General rules 9, 10, and 11\" - is now joined by the case that had no arm at all: an EMPTY specified set has no first statement, so no transfer takes place, TAIL-SEC never runs and every N in pb440_perform_empty_range is 0. Previously the THRU form transferred control to a statement that was NOT in the specified set and returned after it; DispatchCall now refuses the inverted pair at EMIT time (DispatchCallRefusesAnEmptyRange), so that construction cannot recur.",
+ "state": "OK"
+}

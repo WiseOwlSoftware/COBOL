@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.8.4-4",
+ "section": "8.4.3.8.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "SELF and SUPER",
+ "rule-digest": "4d9a1e036d8d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindByReceiver",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1425_qualified_super",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1425 (w1014 group S). GR4 (cite.py --check 8.4.3.8.4 4) OK): the search includes only the methods defined for object-class-name-1 — the search root is the named class, whose methods include those it inherits (9.3.9). Golden: PB1425C's `PB1425B OF SUPER \"SPEAK\"` runs PB1425B's override (ANIMAL, DOG), and `PB1425B OF SUPER :: \"NAME\"` finds NAME inherited from PB1425A (A-NAME).",
+ "state": "OK"
+}

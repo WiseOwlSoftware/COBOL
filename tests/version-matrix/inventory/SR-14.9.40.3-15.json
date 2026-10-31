@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.40.3-15",
+ "section": "14.9.40.3",
+ "kind": "SR",
+ "ordinal": 15,
+ "subject": "SORT statement",
+ "rule-digest": "148f9d3b4922",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindTable",
+ "test-ref": "conformance:cases/14.9.40-SORT/pb846-sort-table-no-key-anywhere; conformance:cases/13.18.38-OCCURS/pb846_sort_table_occurs_keys",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB846: the grammar's key-phrase list is zero-or-more (CobolIO.g4 sortStatement), and SR15 is screened on the RESOLVED table in SortBinder - omission with a table KEY phrase binds (GR21), omission without one is a named SR15 rejection, not a parse error. Format 1's braced at-least-one is screened beside it (negative/pb846-sort-file-no-key).",
+ "state": "OK"
+}

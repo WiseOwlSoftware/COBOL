@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.2-2",
+ "section": "9.1.13.2",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "I-O status",
+ "rule-digest": "9aa7684d9b6f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#DuplicateAlternateKey",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/l1_read_alt_dup_walk; conformance:cases/9.1.13.2-Successful-completion/l1_rewrite_alt_key_order",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 9.1.13.2 \"For a READ statement with the PREVIOUS phrase specified, the key value for the current key of reference is equal to the value of the same key in the prior record\" -> OK §9.1.13.2 2); --check 9.1.13.2 \"the record just written created a duplicate key value for at least one alternate record key for which duplicates are allowed\" -> OK 2) c). a)/b): ReadSequential looks at the ADJACENT record in Ordered(_refKey) (suppressed records excluded per §12.4.5.6.4 GR6) in the read direction and answers '02' on key equality under KeyEq (collating-sequence based); prime key of reference cannot duplicate so the look-ahead is gated _refKey>=0. c): Write sets '02' when any non-suppressed permitted-dup alternate already exists; Rewrite sets it only when the key CHANGED into a duplicate (AltChanged; kb/Work PB341) - 'created' in the rule text. Probe out/probe/iostat-ix: W2-DUPALT=02, RW-DUPALT=02, RW-UNCHANGED=00. Golden l1_read_alt_dup_walk walks NEXT and PREVIOUS across a 3-record dup set with exactly the spec-derived 02/02/00 and 00/02/02/00 pattern; l1_rewrite_alt_key_order pins CW=02 for REWRITE. || Editions (adjudicator, verbatim): 85,2002,2014,2023 (arm b READ PREVIOUS exists only where the PREVIOUS phrase does, 2002+)",
+ "state": "OK"
+}

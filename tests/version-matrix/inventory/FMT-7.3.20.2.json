@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-7.3.20.2",
+ "section": "7.3.20.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "POP directive",
+ "rule-digest": "61a37992d86f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/WiseOwl.Cobol.Editions/DirectiveOperandSyntax.cs#DirectiveOperandSyntax",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb794_directive_operands; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_DiagnosesAMalformedOperand; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "{ directive-name | ALL }, plain braces - exactly one shall be written. The admissible directive-names are DERIVED from the catalog itself minus 7.3.20.3 SR1's exclusions (EVALUATE, IF, PAGE, POP, PUSH), by ROW: >>POP WHEN is refused because WHEN is a word of the excluded EVALUATE directive. Anything else is COBOL1911.",
+ "state": "OK"
+}

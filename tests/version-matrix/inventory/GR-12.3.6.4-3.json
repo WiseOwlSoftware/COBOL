@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.6.4-3",
+ "section": "12.3.6.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "OBJECT-COMPUTER paragraph",
+ "rule-digest": "0db19d0dcb21",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectComputerParagraph",
+ "test-ref": "conformance:cases/12.3.5-SOURCE-COMPUTER/pb78_object_computer_optional_name",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB78 (2026-08-18): the paragraph without computer-name-1 — the object computer is the implementor's, i.e. the same .NET runtime a named paragraph gets; the name-less clause form behaves identically (PCS=REV).",
+ "state": "OK"
+}

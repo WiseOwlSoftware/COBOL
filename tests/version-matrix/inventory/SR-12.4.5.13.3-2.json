@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.13.3-2",
+ "section": "12.4.5.13.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "RELATIVE KEY clause",
+ "rule-digest": "4d3ed0d608ad",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Rules",
+ "test-ref": "conformance:cases/12.4.5.13-RELATIVE-KEY/pb699-relative-key-not-unsigned-integer; conformance-test:FileControlKeyRuleSpecTests.RelativeKeyOperandRule_ReportsOnAnEntryOnlyProgram_AtEveryEdition",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-09-06 (kb/Work PB699). RULE (--check 12.4.5.13.3 2): \"Data-name-1 shall reference an unsigned integer data item whose description does not contain the picture symbol 'P'.\" The screen was already implemented but had never been claimed, and it cited the WRONG CLAUSE - \"ISO 12.4.5.13 SR2\", a clause that carries no syntax rules at all (`cite.py --check 12.4.5.13 \"shall reference an unsigned integer data item\"` FAILS; the sentence is in 12.4.5.13.3). Citation repaired and the screen moved to the entry in the same change. The test is `item.Pic is not { Category: Numeric, Scale: 0, Signed: false }`, which covers all three halves: non-numeric, scaled (a 'P' or 'V' gives a non-zero scale), and signed.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-134",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 134,
+ "subject": "MODULE-NAME Function, (What is returned if the indicated module is not COBOL)",
+ "rule-digest": "bcf33a733994",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-134; src/WiseOwl.Cobol.Runtime/Control/ModuleStack.cs#Name",
+ "test-ref": "unit:ModuleStackInvariantTests.TopLevel_WithoutAMainFrame_IsTheDocumentedNonCobolValue",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "editions 2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the MODULE-NAME function is a COBOL-2023 introduction (Annex E.3.3 item 28). cite.py --check E.3.3 \"The MODULE-NAME intrinsic function has been added\" OK.",
+ "state": "OK"
+}

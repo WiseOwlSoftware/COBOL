@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.97.3-1",
+ "section": "15.97.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "UPPER-CASE function",
+ "rule-digest": "248e8624b5f5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#PredicateViolation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindCaseFunctionWithLocale",
+ "test-ref": "conformance:cases/15.97.3-Argument-rule/pb58-upper-zero; conformance:cases/12.3.6-OBJECT-COMPUTER/pb64t5_case_locale_phrase; conformance:cases/15.3-Arguments/pb58_argument_predicates_legal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB58 / PB64 T5 (2026-08-19): UPPER-CASE's Verified row mirrors LOWER-CASE's (AR-15.57.3-1) — class alphabetic / alphanumeric / national with a MinWidth(1) predicate (negative pb58-upper-zero rejects a zero-length reference-modified argument; a one-character literal binds in the T5 golden) — and the LOCALE-phrase path (BindCaseFunctionWithLocale) binds argument-1 through the SAME row's class screen (CheckArgumentClasses), so the phrase adds no second argument rule.",
+ "state": "OK"
+}

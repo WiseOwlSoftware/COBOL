@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.2.2-11",
+ "section": "14.2.2",
+ "kind": "SR",
+ "ordinal": 11,
+ "subject": "Procedure division structure",
+ "rule-digest": "51870388b15e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PrototypeUnitRules.cs#ScreenBody",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/l1c22-method-prototype-statement",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§14.2.2 SR11 (cite.py --check 14.2.2 \"A procedure division in a method prototype shall contain only a procedure division header\" -> OK §14.2.2 11)). Probe b2/sr11_ifacebody.cob: an interface method with a DISPLAY statement -> COBOL2272 'a prototype's procedure division shall contain only a procedure division header' (cites §10.6.2 SR4 f), the parallel rule). Header-only interface method compiles (b2/sr13_ifacestmts.cob). ExitPlacementContextDriftTests pins 2272 only for the PROGRAM prototype, not the method prototype - test-needed. || editions as adjudicated: 2002, 2014, 2023 (method prototypes / interfaces are COBOL-2002 OO)",
+ "state": "OK"
+}

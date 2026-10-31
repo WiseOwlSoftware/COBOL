@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-17",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 17,
+ "subject": "SET statement",
+ "rule-digest": "a0760a259b2d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSetProgramPointer; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/PtrEmitter.cs#EmitSetEntry; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#EntryOf; docs/CONFORMANCE.md#DOC-A.1-175",
+ "test-ref": "conformance:cases/14.9.39-SET/pb460_set_program_pointer_effect; conformance:cases/13.18.60-USAGE/program_pointer",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB460 - FORMAT 9. \"The effect of the SET statement on the program whose address is being stored in the program-pointer is implementor-defined\" (cite.py --check 14.9.39.4 -> OK 17)). The behaviour was already right (a registry lookup for ENTRY, a carrier copy for a pointer sender; no activation, CANCEL or initial-state establishment); what held this row below CONFORMS was the absent required A.1 item 175 row, now docs/CONFORMANCE.md DOC-A.1-175 (NONE), witnessed by OBSERVATION: 2002/pb460_set_program_pointer_effect calls a counting program (COUNT=1), stores its address three times, calls it through the pointer (COUNT=2 - a re-initializing SET would give 1), and a located-but-never-called program's address is stored without it running.",
+ "state": "OK"
+}

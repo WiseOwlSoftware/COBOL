@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.24.3-12",
+ "section": "14.9.24.3",
+ "kind": "SR",
+ "ordinal": 12,
+ "subject": "MERGE statement",
+ "rule-digest": "3e3618015781",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#ScreenTransferRecordSizes; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordSizeRange",
+ "test-ref": "conformance:cases/14.9.24-MERGE/pb995-merge-record-size-using-giving; conformance:cases/14.9.24-MERGE/pb995_sort_merge_record_size_ranges; conformance-test:SortMergeRecordSizeTests.RecordSizeRules_RefuseExactlyTheirViolations",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB995. cite.py --check 14.9.24.3 'the file description entry for file-name-1 shall describe neither records smaller than the smallest record nor larger than the largest record described for file-name-4' -> OK §14.9.24.3 12). The MERGE GIVING half of the one screen: a fixed GIVING file smaller than the SD's record, and a variable GIVING file whose range does not contain the SD's, are refused (COBOL1757, citing SR12).",
+ "state": "OK"
+}

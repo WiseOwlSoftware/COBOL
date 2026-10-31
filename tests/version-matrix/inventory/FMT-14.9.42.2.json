@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.42.2",
+ "section": "14.9.42.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "STOP statement",
+ "rule-digest": "4a67afcbb27d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#stopStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#statusPhrase; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#StopRunStatus2002; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindStop",
+ "test-ref": "conformance-test:GobackGeneralFormatTests.TheSharedStatusPhrase_ReadsTheSameOnStopRun",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Figure §14.9.42.2: STOP RUN [WITH? {ERROR|NORMAL} STATUS? [identifier-1|literal-1]], only STOP/RUN/ERROR/NORMAL underlined. Grammar statusPhrase = WITH? (ERROR|NORMAL) STATUS? (dataReference|literal)? matches exactly. Probed with pinned cobol.exe (probe dir out/probe/stop-statement/): 'STOP RUN.' exit 0; 'STOP RUN WITH ERROR.' 1; 'WITH NORMAL.' 0; 'WITH ERROR STATUS 16.' 16; 'STOP RUN ERROR 5.' (WITH+STATUS omitted) 5; 'STOP RUN NORMAL STATUS.' 0; 'STOP RUN STATUS 3.' rejected COBOL0307 and 'STOP RUN WITH STATUS 3.' rejected COBOL0001 (brace requires ERROR|NORMAL - correct). Edition: 'STOP RUN WITH ERROR.' at --std 85 -> COBOL0900, accepted at 2002/2014/2023; STOP literal accepted at 85 and rejected COBOL0902 at 2023 (2023 format has no literal arm). Doc drift only: an orphaned doc comment in StatementBinder.cs above the File I/O banner still says 'The phrase has no runtime effect in this compiler' - false since the exit-code wiring. [editions as adjudicated: STOP RUN: 1985/2002/2014/2023; the WITH {ERROR|NORMAL} [STATUS] phrase predates 2023 (Annex E item 32: GOBACK 'now allows the same status phrase as the STOP statement'); its 2002 introduction is the project's VERSION_CHANGE_REFERENCE datum, not re-derivable from the 2023 text]",
+ "state": "OK"
+}

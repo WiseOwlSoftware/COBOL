@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.9.3-1",
+ "section": "8.4.3.9.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Object property",
+ "rule-digest": "eda999577bef",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#OoRepositoryProperties; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.ObjectProperty.cs#ResolveObjectProperty",
+ "test-ref": "conformance-test:OoSpineTests.PropertyReference_NoRepositorySpecifier_0843",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 8.4.3.9.3 'Property-name-1 shall be an object property specified in the REPOSITORY paragraph' OK. OoTryBindPropertyReference raises COBOL0843 when the name is absent from data.OoRepositoryProperties (the REPOSITORY PROPERTY specifiers, AS literal-4 honoured per PB974). Probe p5 (no PROPERTY specifier) -> 0843 citing SR1; with the specifier the reference binds (oo_property_ref). A name that is not an accessor of the roster at all is rejected by the generic 1639 (still rejected). OoSpineTests.PropertyReference_NoRepositorySpecifier_0843 is spec-derived (asserts the SR1 rejection). [editions as adjudicated: 2002, 2014, 2023 (the object property is part of the OO facility introduced by ISO/IEC 1989:2002; absent from X3.23-1985)] retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#OoTryBindPropertyReference (the one-word property binder ReferenceResolver.OoTryBindPropertyReference is deleted by kb/Work PB1425 (w1021a): a property reference is resolved by ReferenceResolver.ResolveObjectProperty, which splits the chain and resolves identifier-3 through the ordinary resolver)",
+ "state": "OK"
+}

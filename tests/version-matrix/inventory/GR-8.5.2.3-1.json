@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.2.3-1",
+ "section": "8.5.2.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Class and category of data items and literals",
+ "rule-digest": "8e44e9c2114a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#Analyze",
+ "test-ref": "unit:PictureCategoryDriftTests.EveryAcceptedPicture_DefinesTheCategoryItsGeneralRuleDefines",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: '1) An elementary data item described as alphanumeric by its PICTURE character-string.' (cite.py --check 8.5.2.3 OK). PictureAnalyzer.Analyze assigns PicCategory.Alphanumeric (no EditMask, not IsAlphabetic) to a PIC X string; PictureCategoryDriftTests walks every 1..3-symbol picture and asserts each accepted string binds the category its §13.18.40.4 defining GR selects. Probe p2.cob: MOVE 12 TO an X(5) item gives '12   ' (alphanumeric left-justify), as Table 16/§14.9.25.4 require for an alphanumeric receiver. || editions as written by the adjudicator: 85, 2002, 2014, 2023 (no 2014->2023 change in Annex E)",
+ "state": "OK"
+}

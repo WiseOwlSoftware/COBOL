@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.6.3-2",
+ "section": "7.3.6.3",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Compile-time arithmetic expressions",
+ "rule-digest": "4ddadbbc938f",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-29; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvalArith; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs#For",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/gl2m2_ct_arith_mode; conformance:cases/_unassigned/pb1592_ct_arith_standard; unit:CompileTimeArithmeticModeTests.Selection_IsStandardArithmeticBelow2023; unit:CompileTimeArithmeticModeTests.ModeDependentValues_FollowTheEditionsMode; unit:CompileTimeArithmeticModeTests.ModeIndependentValues_AgreeAtEveryEdition",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1369 re-verdict (w20261759a), cite.py --check 7.3.6.3 -> OK 7.3.6.3 2). GR2 lets the implementor define and document the mode: native, a standard mode or a mode unique to compile-time arithmetic. DOC-A.1-29 now documents the implemented mode per edition (System.Decimal, an implementor-unique mode, at 2023; standard arithmetic at 2002/2014, Annex E.2 6)) and the three defects the registrar found are gone: no 'standard mode for portability' claim, division is documented as ROUNDING (2/3*3 = 2 and 100/7*7 = 100, the documented values; probe on this build: C7=2 C11=100 C13=0 C14=-3 at 2023, and V3 = 2 selects in >>IF), the deleted EvalConstExpr and the closed directive-operand GAP are no longer named (also swept from CONFORMANCE.md section 3 and DESIGN-compile-time-expressions.md).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.33.3-3",
+ "section": "13.18.33.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Level-number",
+ "rule-digest": "6c5d7c7ff1d3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#VisitLevelNumber",
+ "test-ref": "conformance:cases/8.5.1.3.2-Level-numbers/pb485_level_number_legal_forms",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "A spelling permission, not a set: the screen parses the level-number TEXT to its VALUE and tests the value, so 01 through 09 and the bare 1 through 9 are the same level and both pass. The positive golden writes all of 01..09 plus a bare 1 and must still compile.",
+ "state": "OK"
+}

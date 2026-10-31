@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.2.3.2-L2.3",
+ "section": "14.6.2.3.2",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Initial and last-used states of data",
+ "rule-digest": "ae9bc07201b1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#__filesRegistered; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#CloseFiles; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#Register",
+ "test-ref": "conformance:cases/8.5.1.11.3-Availability-and-persistence-of-variable-length/pb154_cancel_initial; conformance:cases/14.6.2.3.2-Initial-state/pb1133_recursive_container_file_section",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1133 (wave 1012 J). cite.py --check 14.6.2.3.2 'initialized by setting them to not be in any open mode' OK action 3. The RECURSIVE container that declares a FILE SECTION and contains programs now compiles: pb1133_recursive_container_file_section leaves the connector OPEN at the end of the second activation (last-used, 14.6.2.3.3), CANCELs the container, and the third activation's OPEN OUTPUT answers 00 (a connector still open would answer 41), while a contained program writes the container's static record area and stores its status in the container's static FILE STATUS item.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.19.4-4",
+ "section": "15.19.4",
+ "kind": "RV",
+ "ordinal": 4,
+ "subject": "CONVERT function",
+ "rule-digest": "8610f5f7637f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Convert",
+ "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.Convert_Formats_2023; conformance:cases/15.3-Arguments/intrinsics_convert",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-08-09 (PB59 family 5b): the HEX legs hex THE SOURCE'S OWN BITS after r4's TRAILING zero-bit pad to a 16-bit multiple (one national character, D-N1) - implemented as the odd-byte-count zero append in the dstHex leg (byte-aligned reductions) plus the pre-packed BIT image (sub-byte ANY). The row's own repro now answers the rule: CONVERT(WS-A ANUM NAT HEX) = 4100 (corpus row AN; theory row), B\"101\" ANY NAT HEX = A000 (corpus row BN). The destination keyword picks only the DIGIT repertoire - the result is national-format digits with the 15.19.1 National category - never a re-encoding of the value (a same-day '0041' mis-derivation in the 5a landing text was corrected before this landing; DEVLOG 1277).",
+ "state": "OK"
+}

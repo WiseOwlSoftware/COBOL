@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.15.3-1",
+ "section": "13.18.15.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "CONSTANT RECORD clause",
+ "rule-digest": "2a01b652114f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries",
+ "test-ref": "conformance:cases/13.18.15-CONSTANT-RECORD/l1c04-constant-record-linkage; conformance:cases/13.18.15-CONSTANT-RECORD/l1c04-constant-record-file-section; conformance:cases/13.18.15-CONSTANT-RECORD/l1c04_constant_record_ws_ls",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: \"The CONSTANT RECORD clause may be specified only in the local-storage or working-storage sections.\" (cite.py --check 13.18.15.3 OK). DataBinder errors COBOL1549 when item.IsConstantRecord && section is not WorkingStorage/LocalStorage. Probes (pinned cobol.exe, --std 2023): FILE SECTION record -> COBOL1549 SR1; LINKAGE SECTION -> COBOL1549 SR1; LOCAL-STORAGE -> accepted, runs `[LSOK00]`; WORKING-STORAGE accepted. SCREEN SECTION and REPORT SECTION entries are rejected too, but at parse (COBOL0901 'CONSTANT' is a reserved word) rather than by the SR1 diagnostic - rejected as required, less precise message. Communication section not probed. No negative fixture pins SR1 (existing constant-record-* negatives cover level / 85 gate / stores / SR13 only) -> test-needed. || Code sites (adjudicator detail): src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries (section check at the IsConstantRecord placement arm, COBOL1549)",
+ "state": "OK"
+}

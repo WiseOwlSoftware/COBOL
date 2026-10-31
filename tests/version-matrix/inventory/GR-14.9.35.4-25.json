@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.35.4-25",
+ "section": "14.9.35.4",
+ "kind": "GR",
+ "ordinal": 25,
+ "subject": "REWRITE statement",
+ "rule-digest": "d2228be59894",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#KeySuppressionOf",
+ "test-ref": "conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1072_suppress_when_forms",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1072 landed (w61c). GR25 c): golden REWRITE of record 04 sets R-NA (SUPPRESS WHEN SPACE, no DUPLICATES) to the WORD 'SPACE', which record 01 also holds; the word is not the suppression value (spaces), so the REWRITE is refused '22' (RW4 22). Before the fix the raw word 'SPACE' was the suppression value and both keys were skipped as suppressed. Rows below 2023 are unaffected (SUPPRESS WHEN is a 2023 introduction; the key-equality path is shared).",
+ "state": "OK"
+}

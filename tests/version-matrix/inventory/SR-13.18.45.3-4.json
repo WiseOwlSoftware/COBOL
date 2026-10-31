@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.45.3-4",
+ "section": "13.18.45.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "RENAMES clause",
+ "rule-digest": "7f7aac1e07d8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveRedefines",
+ "test-ref": "conformance:cases/13.18.45-RENAMES/pb93-renames-undefined-operand; conformance-test:RedefinesTargetTests.UndefinedRenamesOperand_IsRejected",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (PB93). data-name-2 / data-name-3 must name an item of the record the level-66 entry follows (FindDescendantOrSelf over the owning record) — a miss is COBOL1655 (it used to `continue` silently, leaving a picture-less alias). The 'shall not be the same data-name' half and SR5's level restrictions are not separately diagnosed (recorded on kb/Work PB96's sweep list with the span-composition defect).",
+ "state": "OK"
+}

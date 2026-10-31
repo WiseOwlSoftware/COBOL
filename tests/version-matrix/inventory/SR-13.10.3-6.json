@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.10.3-6",
+ "section": "13.10.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "Constant entry",
+ "rule-digest": "eaf9316301d3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#BindConstantStringLiteral; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvalArith",
+ "test-ref": "conformance:cases/13.10-Constant/constant-figurative; conformance:cases/7.3.6-Compile-time-arithmetic-expressions/constant-figurative-arith-operand; unit:CompileTimeExpressionEvaluatorTests.Rejects_FigurativeZeroOperand",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1229 (wave 1031 D). Both halves of SR6 are enforced: literal-1 (AS ZERO / SPACE / ALL \"A\", BindConstantStringLiteral, COBOL1547) and every literal of arithmetic-expression-1 — the figurative ZERO/ZEROS/ZEROES the token rewriter turns into ZERO_ARITH next to an arithmetic operator (`AS ZERO + 1`, `AS ZEROES * 3`, `AS 2 - (ZEROS)`, `AS -ZERO`) is refused by EvalArith (COBOL1547, negative constant-figurative-arith-operand); EvalArith used to return 0 for it. The directive twin (>>DEFINE / >>IF operands) was already barred by EvaluateDirectiveArithmetic (COBOL1619, §7.3.3 SR10). Editions: §13.10 is unchanged 2014->2023 (Annex E lists no constant-entry change); the 2002 band follows the row's earlier adjudication.",
+ "state": "OK"
+}

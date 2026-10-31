@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.54.3-1",
+ "section": "13.18.54.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "SUM clause",
+ "rule-digest": "7ab8d9e3cbca",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportSumClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportValueOperand; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#SumAddendRef; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BareReferenceOf",
+ "test-ref": "conformance:cases/13.18.54-SUM/pb883_report_sum_expression; conformance:cases/13.18.54-SUM/pb883-sum-expression-report-section; unit:ReportValueOperandDriftTests.BothValueClauses_ReferenceTheOneOperandProduction",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "All THREE addend forms are admitted, and the SUM keyword may appear more than once in one clause. arithmetic-expression-1 had no grammar surface at all (the SUM operand was a dataReference with a dead trailing OF report-name), so SUM WS-K + 1 died as COBOL0307 at every edition; the operand production is now shared with the SOURCE clause and BareReferenceOf is the one classifier that decides which form was written. RESIDUE: an expression addend written with a LEADING parenthesis (SUM (A * B)) is still refused, because the lexer's 8.4.3.2.3 SR2 keyword-omitted-intrinsic trigger on the SUM token pushes SUBSCRIPT mode at that '(' - against 13.18.54.3 SR9 - which is a distinct mechanism reported to the registrar. Every other spelling is live and 13.18.54.3 states no parenthesization rule that would force the refused one. kb/Work PB883.",
+ "state": "OK"
+}
