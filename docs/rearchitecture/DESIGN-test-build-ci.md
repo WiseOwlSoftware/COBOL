@@ -688,7 +688,8 @@ was already spread across threads.
 
 xUnit v2 offers exactly two levers and only one of them can split: `[Collection]` MERGES classes into a shared
 collection, so it can never divide one. (A third-party framework that runs a class's rows in parallel was measured
-against the partitions after M6 and rejected: section 3.11.1, kb/Work PB4150.) That leaves genuine class splits — and the naive class split duplicates
+against the partitions after M6 and not adopted, its lead inside the shared host's noise: section 3.11.1, kb/Work
+PB4150.) That leaves genuine class splits — and the naive class split duplicates
 the test bodies, which is how a split rots. So the tests live ONCE in an abstract generic base and each partition
 is one line:
 
@@ -818,21 +819,51 @@ Wall seconds:
 | 9 | 197 | 224 | 291 | – | – |
 | **median** | **197** | **218** | **212** | **234** | **176** |
 
-- **The noise is the finding's scale.** The host is shared with the fleet's gates (0–4 other slots held, system CPU
-  55–96 % across runs), so arm A alone ranged 170–277 s (standard deviation 43.5 s over 9 runs). B against A in the
-  same round ran from 54 s faster to 161 s slower (median 29 s faster), inside A's own noise, and B's spread (96 s) is
-  twice A's. Neither the algorithm (Ag) nor twice the threads (A64) beat the noise either.
-- **The pass sets are identical** by name key (section 3.11.2) in every run of every arm, except the two witnesses each
+A second series (the same arms A, Ag and B2, rebuilt at `773f18466`: 19,961 cases)
+re-measured A against B2 to see whether B2's lead survives a quieter host. Rounds 1–5 ran A, B2, Ag in that order and
+rounds 6–8 ran B2 before A; every run also sampled the gate slots every 5 s, so a run is QUIET only when no other gate
+held a slot at any sample:
+
+| round | A | B2 | Ag | most other gates in a slot during the A / B2 run |
+|---|---|---|---|---|
+| 1 | 196 | 208 | 177 | 1 / 2 |
+| 2 | 193 | 170 | 141 | 2 / 2 |
+| 3 | 181 | 143 | 173 | 1 / 1 |
+| 4 | 140 | 140 | 178 | none / none |
+| 5 | 211 | 160 | 229 | none / none |
+| 6 | 290 | 254 | – | 2 / 2 |
+| 7 | 441 | 233 | – | 2 / 2 |
+| 8 | 414 | 494 | – | 2 / 2 |
+
+- **⚠ The host was never idle, so the protocol's step 3 was not met, and the noise here is the shared host's.**
+  PB4150 asked for the arms measured on an otherwise idle host. The fleet's gates held other slots through 12 of the 14
+  A/B2 pairs (first series: 0–4 other slots, system CPU 55–96 %), and even the two pairs with no other gate (rounds 4
+  and 5 above) ran beside other sessions' builds: arm A took 140 s and 211 s in them. Arm A alone ranged 170–277 s in
+  the first series (standard deviation 43.5 s, n = 9) and 140–441 s in the second. A reserved host was not available:
+  the experiment ends when the fleet's next wave fills the slots, as the second series did after round 8.
+- **B2, the arm that would retire the partition machinery, led in most paired rounds.** B2 minus A per round:
+  −2, −10, −39, −68, −80, +114 s (first series) and +12, −23, −38, 0, −51, −36, −208, +80 s (second). Pooled over the 14
+  pairs, B2 was faster in 10, slower in 3 and tied in 1; its median ratio to A is 0.878 and the geometric mean of the
+  ratios 0.877, about 12 % faster. That lead does not clear the shared host's noise: a paired t-test on the log ratio
+  gives p = 0.070 (t = −1.97, 13 degrees of freedom) and an exact sign test p = 0.092. Ag against A over the same 14
+  rounds is noise (8 faster, 6 slower, geometric mean 0.977, p = 0.70), so a real B2 gain would come from the per-row
+  parallelism, not from the `aggressive` algorithm it runs under. Arm B (per-row parallelism over the 32 partitions)
+  ran from 54 s faster to 161 s slower than A in its rounds, and twice the threads (A64) did not beat the noise either.
+- **The pass sets are identical** by name key (section 3.11.2) in every run of every arm of both series, except the two witnesses each
   variant trips by construction: `GateLegDriftTests.Arm4_ThisAssembly_NamesTheGateFramework` (B and B2 name Meziantou's
   framework) and `ConformancePartitioningDriftTests.TheSuiteRunner_KeepsItsMeasuredPartitionFloor` (B2). No row failed
   only under per-row parallelism.
-- **The leg is bound by its threads waiting on child processes, not by the class structure.** Every arm keeps 32 cases
+- **The leg is bound mostly by its threads waiting on child processes; the class structure costs at most B2's
+  unproven 12 %.** Every arm keeps 32 cases
   in flight until its tail (average concurrency 25–32); a mid-run stack sample of arm B found 32 test threads, 26 of them
   in `Process.WaitForExit` on a compiled program, and the test host itself used 548–734 s of CPU per run. The GC pause
   share was 2–5 % in most runs (1.6–13.5 %).
 
-**Determination: keep the partition classes.** Per-row parallelism does not clear run-to-run noise, and the experiment
-showed four costs:
+**Determination: keep the partition classes until a measurement on a reserved host decides.** PB4150's bar is a gain
+beyond run-to-run noise with an identical pass set. The pass sets are identical, but B2's 12 % lead is not beyond this
+host's noise (p = 0.07), and the shared host's noise is all the two series could measure, so per-row parallelism is
+neither adopted nor rejected: the question stays open until the arms run with every gate slot reserved for them, and
+the four costs below are what an adoption must answer:
 1. **Under xunit 2.9.2's default algorithm it is unbounded.** Its assembly runner overrides `RunTestCollectionAsync`
    and so skips the `conservative` algorithm's semaphore of `maxParallelThreads`, and with no
    `MaxConcurrencySyncContext` it starts every case with `Task.Run`. The first such run reached 1,720 threads, 1,710 of
@@ -849,7 +880,7 @@ showed four costs:
    parallelism ran three rows of one partition together at 52–56 s each (round 4; the slowest NIST rows take 12–24 s
    under the partitions).
 
-The Unit assembly was not measured (PB4150's step 4 runs only if B clears the bar). Its `[Collection("process-globals")]`
+The Unit assembly was not measured (PB4150's step 4 runs only after the Conformance arm clears the bar). Its `[Collection("process-globals")]`
 classes would stay serial (the framework leaves an explicit collection serial), but a class outside that collection
 that swaps process-wide state in each case would race with its own rows: `AcceptSourceTests` sets `Console.In` in each
 of its five facts. The remaining levers are to
@@ -868,7 +899,7 @@ the sharded leg, and it was re-run locally against the split tree: 349+349+349+1
 
 ### 3.12 THE COMPILED-PROGRAM CACHE — reducing the WORK of a re-gate (kb/Work PB985)
 
-§3.11 ends with more parallelism measured and rejected and "reduce the WORK" as the lever left. The largest repeated work
+§3.11 ends with more parallelism not shown to beat the shared host's noise and "reduce the WORK" as the lever left. The largest repeated work
 is the lander's whole-Conformance re-gate after a TEST-ONLY fix (a probe template, a stale test-ref, a pinned
 expectation — the dominant cause of trains 46–48's first-gate reds): ~7,900 cases recompiled although no compiler
 or runtime bit changed. `tests/WiseOwl.Cobol.Tests.Conformance/CompiledProgramCache.cs` makes that re-gate reuse every
@@ -1697,10 +1728,11 @@ token of every compilation recomputes the closure over all default-mode rules an
   `GateLegDriftTests` asserts its host's runtimeconfig carries `System.GC.Server`.
 - **The compiled-program cache** (§3.12) already stores check-only results, so a TEST-ONLY re-gate hits every
   continuity cell; a gate after a product change misses by design. No change.
-- **§3.11's "the class-split lever is exhausted"** was measured under this lock. After M6, the partition counts
+- **The class split's 17 % (§3.11.1, battery #41)** was measured under this lock. After M6, the partition counts
   (one `Partitions` constant per family, audited by `TestPartitionAudit`) are re-measured; the first re-measure
   (w1033, kb/Work PB2527) took `CorpusRunnerTests` from 3 partitions to 24 and split `OptionalWordSubsetDriftTests` 8
-  ways, and kb/Work PB4150 measured per-row parallelism against the partitions and kept the partitions (section 3.11.1).
+  ways, and kb/Work PB4150 measured per-row parallelism against the partitions on the shared host: a lead of about
+  12 % that does not clear the host's noise, so the partitions stay until a reserved-host measurement (section 3.11.1).
 
 **M7 — the long poles.** `pb505-table-value-dynamic-span-levels` (266 s in the battery; **29.6 s alone through the
 `cobol` CLI** for a 26-line program) and `DynamicWithoutTo_HigherSubscriptsShallBeEqual_1946` (116 s) are one
