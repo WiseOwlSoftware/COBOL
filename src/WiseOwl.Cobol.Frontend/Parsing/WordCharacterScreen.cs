@@ -21,6 +21,9 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// <item>below COBOL-2002 any extended letter is the construct <see cref="Constructs.UserWordExtendedLetter2002"/>
 /// (COBOL0900) — but a character that no edition's Annex B holds (U+00A0, the euro sign) is no extended letter, so it is
 /// COBOL2773 at every target (<see cref="CobolWordRule.CharacterViolation"/>, kb/Work PB4130);</item>
+/// <item>at every edition a hyphen or underscore as the FIRST or LAST character of a word is COBOL2773
+/// (<see cref="CobolCharacterRepertoire.SeparatorPositionViolation"/>; the lexer takes <c>_A</c> and <c>A_</c> whole as
+/// ill-formed words so that this names them, kb/Work PB4234); at COBOL-85 the underscore itself is also the construct above;</item>
 /// <item>from 2002 a character where the edition's Annex B does not permit it is COBOL2773
 /// (<see cref="CobolWordRule.CharacterViolation"/>), or — when the 2002/2014 Annex B permitted it and 2023's does not
 /// (Annex E.2 item 4) — the removed construct <see cref="Constructs.UserWordCharacterRemoved2023"/> (COBOL0902; a
@@ -107,7 +110,6 @@ public static class WordCharacterScreen
             if (word.Contains('_'))
                 ConstructRegistry.Check(edition, sink, Constructs.UserWordUnderscore2002,
                     $"the underscore in the COBOL word '{word}'");
-            if (!CobolCharacterRepertoire.HasExtendedCharacter(word)) continue;
             string? character = CobolWordRule.CharacterViolation(word, edition.Year);
             // The 2002 gate names an EXTENDED LETTER, decided per CHARACTER: a character in no edition's Annex B is none
             // (CharacterViolation answers it as COBOL2773 at every target, kb/Work PB4130), but the same word may also hold

@@ -104,7 +104,8 @@ public static class DiagnosticCatalog
     // (kb/Work PB1402). The lexer's word class is a superset of Annex B, so a character outside it is named here.
     public static readonly DiagnosticDescriptor WordCharacterNotPermitted = new(
         "COBOL2773", "word-character-not-permitted", EditionSeverity.Error,
-        "A COBOL word holds a character that the edition's Annex B does not permit where it stands: one outside the "
+        "A COBOL word holds a character where ISO 8.3.2.1 does not permit it: a hyphen or underscore as its first or "
+        + "last character (every edition), or a character that the edition's Annex B does not permit where it stands: one outside the "
         + "repertoire (Annex B.3; a character no edition's Annex B holds, such as U+00A0 or the euro sign, is refused "
         + "at every target, COBOL-85 included), or a continuing character (B.3 item 2) as the first character. (A character the "
         + "COBOL 2014 Annex B permitted where COBOL 2023's does not — Annex E.2 item 4 — is the removed construct "

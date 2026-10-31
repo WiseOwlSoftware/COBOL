@@ -295,8 +295,9 @@ public static class CobolWordsDirectiveProcessor
         bool ok = CobolCharacterRepertoire.IsWordShape(word) && word.Any(CobolCharacterRepertoire.IsLetter);
         if (!ok)
         {
-            Invalid(diag, loc,
-                $">>COBOL-WORDS: '{word}' is not a valid user-defined word (ISO §7.3.10.3 SR4 / §8.3.2.2)");
+            Invalid(diag, loc, CobolCharacterRepertoire.SeparatorPositionViolation(word) is { } position
+                ? $">>COBOL-WORDS: '{word}' is not a valid user-defined word — {position} (ISO §7.3.10.3 SR4)"
+                : $">>COBOL-WORDS: '{word}' is not a valid user-defined word (ISO §7.3.10.3 SR4 / §8.3.2.2)");
             return false;
         }
         // The rest of §8.3.2.1 — the 63-character ceiling and the Annex B placement of each extended character — is the

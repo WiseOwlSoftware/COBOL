@@ -47,24 +47,28 @@ public static class CobolWordRule
             : null;
     }
 
-    /// <summary>The COBOL2773 message when a character of <paramref name="word"/> is not where the edition's Annex B
-    /// permits it (<see cref="CobolCharacterRepertoire.Violation"/>); null when every character is legal. From COBOL
+    /// <summary>The COBOL2773 message when a character of <paramref name="word"/> is not where §8.3.2.1 permits it: a
+    /// hyphen or underscore as the first or last character (<see cref="CobolCharacterRepertoire.SeparatorPositionViolation"/>,
+    /// every edition, kb/Work PB4234), or a character the edition's Annex B does not permit where it stands
+    /// (<see cref="CobolCharacterRepertoire.Violation"/>); null when every character is legal. From COBOL
     /// 2002, which introduced extended letters, that is the edition's own Annex B. Below it there is no Annex B, and
     /// ANY character outside the basic repertoire is the construct gate <c>user-word-extended-letter-2002</c>, which
     /// the caller asks instead (kb/Work PB1402) — except a character no edition's Annex B holds (U+00A0, the euro
     /// sign), which is no extended letter, so it is COBOL2773 at every target
     /// (<see cref="CobolCharacterRepertoire.ViolationAtEveryEdition"/>, kb/Work PB4130).</summary>
     public static string? CharacterViolation(string word, int dialectLevel) =>
-        dialectLevel >= 2002
+        CobolCharacterRepertoire.SeparatorPositionViolation(word)
+        ?? (dialectLevel >= 2002
             ? CobolCharacterRepertoire.Violation(word, dialectLevel)
-            : CobolCharacterRepertoire.ViolationAtEveryEdition(word);
+            : CobolCharacterRepertoire.ViolationAtEveryEdition(word));
 
     /// <summary>True when <paramref name="word"/>'s character violation at <paramref name="dialectLevel"/> is one the
     /// COBOL 2002/2014 Annex B did not have — Annex E.2 item 4 deleted U+037A and made U+30FB medial at 2023 — so the
     /// word is the REMOVED construct <c>user-word-character-removed-2023</c> (COBOL0902; a warning that keeps the 2014
-    /// rule under <c>--permissive</c>) rather than COBOL2773.</summary>
+    /// rule under <c>--permissive</c>) rather than COBOL2773. A hyphen or underscore at an edge is no 2023 removal: the
+    /// 2014 rule is violated too, so it asks <see cref="CharacterViolation"/> at 2014, not the Annex B table alone.</summary>
     public static bool RemovedAt2023(string word, int dialectLevel) =>
-        dialectLevel >= 2023 && CobolCharacterRepertoire.Violation(word, 2014) is null;
+        dialectLevel >= 2023 && CharacterViolation(word, 2014) is null;
 
     /// <summary>Every §8.3.2.1 violation of a DIRECTIVE-carried word (a <c>&gt;&gt;DEFINE</c> name, a <c>&gt;&gt;TURN</c>
     /// operand) — the length and the Annex B characters — as (code, message), for the directive stages to report on
