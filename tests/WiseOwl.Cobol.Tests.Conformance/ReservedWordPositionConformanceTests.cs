@@ -388,4 +388,46 @@ public sealed class ReservedWordPositionConformanceTests
                                      && diags[0].Contains($"'{word}'", StringComparison.Ordinal),
             $"expected exactly the one COBOL0901 naming '{word}', got:\n{string.Join("\n", diags)}");
     }
+
+    /// <summary>⛔ THE OTHER ARM: A RESERVED VERB THAT CORRECTLY BEGINS THE NEXT STATEMENT IS READ AS THAT STATEMENT
+    /// (kb/Work PB3248, branch review R1-1). After an incomplete statement (<c>MOVE W-X TO</c>, its receiver missing) the
+    /// syntax error falls AT the next statement's verb, and the listener reports it as the word's §8.9 violation just as
+    /// it does an operand. Consuming that verb as an operand resumed the parse inside the correct statement that follows
+    /// and refused one of ITS words: <c>RECEIVE FROM W-X GIVING W-Y W-N</c> drew "unexpected 'GIVING'", <c>SEND TO W-X
+    /// FROM W-Y RETURNING W-N END-SEND</c> "unexpected 'FROM'", and <c>RESUME AT NEXT STATEMENT</c> was told to write
+    /// SENTENCE. The recovery resumes at the verb when the statement it begins parses, so the source's one error is
+    /// reported once. The last row is the arm's control: a reserved verb whose statement does NOT parse
+    /// (<c>SEND TO W-X.</c>, no FROM phrase) is still consumed, and still draws one diagnostic. Each row asserts exactly
+    /// one diagnostic, at the verb's line.</summary>
+    [Theory]
+    [InlineData("MOVE W-X TO", "RECEIVE FROM W-X GIVING W-Y W-N", "DISPLAY \"A\".", "RECEIVE")]
+    [InlineData("MOVE W-X TO", "SEND TO W-X FROM W-Y RETURNING W-N END-SEND", "DISPLAY \"A\".", "SEND")]
+    [InlineData("IF W-N = 1 MOVE W-X TO", "SEND TO W-X FROM W-Y RETURNING W-N END-SEND", "END-IF.", "SEND")]
+    [InlineData("MOVE W-X TO", "RESUME AT NEXT STATEMENT", "DISPLAY \"A\".", "RESUME")]
+    [InlineData("MOVE W-X TO", "VALIDATE W-X", "DISPLAY \"A\".", "VALIDATE")]
+    [InlineData("MOVE W-X TO", "SEND TO W-X.", "DISPLAY \"A\".", "SEND")]
+    public void AReservedVerbBeginningTheNextStatement_DrawsOneDiagnostic(
+        string incomplete, string statement, string rest, string word)
+    {
+        var (ok, diags) = EditionHarness.Compile($"""
+                   IDENTIFICATION DIVISION.
+                   PROGRAM-ID. PB3248N.
+                   DATA DIVISION.
+                   WORKING-STORAGE SECTION.
+                   01 W-X PIC X(4).
+                   01 W-Y PIC X(4).
+                   01 W-N PIC 9(4).
+                   PROCEDURE DIVISION.
+                   MAIN-P.
+                       {incomplete}
+                       {statement}
+                       {rest}
+                       STOP RUN.
+
+               """, 2023);
+        Assert.False(ok, "the MOVE has no receiver: the source is refused");
+        Assert.True(diags.Count == 1 && diags[0].Contains($"'{word}'", StringComparison.Ordinal)
+                                     && diags[0].Contains("(11,", StringComparison.Ordinal),
+            $"expected exactly one diagnostic, at '{word}' on line 11, got:\n{string.Join("\n", diags)}");
+    }
 }

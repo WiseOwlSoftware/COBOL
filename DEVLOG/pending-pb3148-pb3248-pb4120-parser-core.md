@@ -22,6 +22,14 @@ the listener re-codes it to COBOL0901 (`IsReportedReservedUserWord`), as the ope
 `ReservedWordPositionConformanceTests.AReservedVerbWrittenAsAnOperand_DrawsOneDiagnostic` (nine rows, exactly one COBOL0901 each).
 `PERFORM RECEIVE.` draws one diagnostic too but not a 0901 (the inline PERFORM's reading); reported as a lead.
 
+**Review finding R1-1 (the review finisher).** The branch review showed the PB3248 recovery too wide: the listener re-codes a
+syntax error AT a reserved verb to COBOL0901 also when the verb correctly begins the next statement after an incomplete one, and
+consuming it there resumed inside that statement (`MOVE W-X TO` then `RECEIVE FROM W-X GIVING W-Y W-N` drew `unexpected
+'GIVING'`; `RESUME AT NEXT STATEMENT` was told to write SENTENCE). Now the word is consumed only when the statement it would begin
+does not parse (`CobolParserCoreBase.LookaheadBeginsAStatementThatParses`, a speculative parse of `statement`, sharing
+`ReadingParses` with `entryNameHere`'s clause probe). Witness: `AReservedVerbBeginningTheNextStatement_DrawsOneDiagnostic` (six
+rows, four of which fail without the probe).
+
 **PB4120 (and PB4172, the same defect filed from the slot side) — a bare ZERO in an arithmetic-expression-only slot.** Re-probe:
 `SET IX UP BY ZERO`, `SET IX TO ZERO`, `CONTINUE AFTER ZERO SECONDS`, `ALLOCATE ZERO CHARACTERS` each drew `COBOL0001: unexpected
 'ZERO'`, legal by ISO §8.8.1.1 ("the figurative constant ZERO (ZEROS, ZEROES)"). Fix, derived from the grammar rather than a slot
