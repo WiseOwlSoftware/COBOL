@@ -1271,6 +1271,19 @@
    "source": "IDENTIFICATION DIVISION.\nFUNCTION-ID. KFPPROTO IS PROTOTYPE.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L-R PIC 9(4).\nPROCEDURE DIVISION RETURNING L-R.\nEND FUNCTION KFPPROTO.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. KFP.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    FUNCTION KFPPROTO.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 FP USAGE FUNCTION-POINTER TO KFPPROTO.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\nEND PROGRAM KFP.\n"
   },
   {
+   "id": "usage-message-tag-2023",
+   "status": "pending",
+   "description": "PENDING - USAGE MESSAGE-TAG (ISO §13.18.60.2 / §13.18.60.4 GR9), a COBOL-2023 introduction (§8.9 reserves MESSAGE-TAG from 2023; Annex E.2 item 25 = VCR row 32): below 2023 the word is a user-defined word, so the entry draws the ordinary COBOL0900 introduction gate (bound-arm UsageConstructId, the usage-function-pointer-2014 shape) and PictureAnalyzer.ParseUsage's decline does NOT also fire (kb/Work PB916 - COBOL1943 used to fire at 85/2002/2014 against its own message text). The row is pending because no PROGRAM can be accepted at 2023: the data half of the asynchronous messaging facility is declined non-support (Annex A.3 item 4; docs/CONFORMANCE.md 4 item 1), so every conforming spelling is refused COBOL1943 and the active-row matrix cell 'compiles at introducedIn' cannot hold - the initialize-category-2023 precedent. The gate is live and witnessed by the pb916 goldens and MessageTagIntroductionGateTests.",
+   "display": "USAGE MESSAGE-TAG",
+   "diagnosticCode": "COBOL0900",
+   "citation": "ISO §13.18.60.4 GR9 / §8.9 (reserved from 2023)",
+   "introducedIn": 2023,
+   "removedIn": null,
+   "expectDiagnostic": "COBOL0900",
+   "vcr": "2023 introduction (ISO Annex E.2 item 25 = VCR row 32, the MESSAGE-TAG reserved word)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KMT.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 MT USAGE MESSAGE-TAG.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+  },
+  {
    "id": "set-function-pointer-2014",
    "status": "active",
    "description": "SET { identifier-12 } … TO identifier-13 (ISO §14.9.39.2 Format 8, function-pointer-assignment), including the §8.4.3.12 ADDRESS OF FUNCTION function-address-identifier sender — dated 2014 by its only possible operand, the 2014 USAGE FUNCTION-POINTER item (usage-function-pointer-2014). The plain form reuses the setToValueStatement / setObjectReferenceStatement shapes and re-routes on the receiver's category in SetBinder (the Format-9 pattern); the ADDRESS OF FUNCTION sender is its own grammar rule (setFunctionAddressStatement). SR20's same-signature screen is COBOL1959 and §8.4.3.12.3 SR1/SR2 is COBOL1960. LIVE as of kb/Work PB452 + PB817.",

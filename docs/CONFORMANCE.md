@@ -2832,7 +2832,9 @@ WHICH annex licenses the decline, and the distinction is normative, not stylisti
    (`async-messaging-2023`) and the facility is not named: §8.9 reserves RECEIVE and SEND at COBOL-85 too, for the
    '85 communication module, so the 2023 formats are recognized at every edition and gated on introduction, never
    on reservation (kb/Work PB374; `conformance:cases/_unassigned/pb374-async-messaging-below-2023`).
-   The **MESSAGE-TAG usage** is instead REFUSED BY NAME with **COBOL1943**, in BOTH its spellings
+   The **MESSAGE-TAG usage** is instead REFUSED BY NAME with **COBOL1943** at `--std 2023` (it is a COBOL-2023 addition,
+   so below it the edition pass answers **COBOL0900**, `usage-message-tag-2023`, and the decline is not named — kb/Work
+   PB916), in BOTH its spellings
    (§13.18.60.2 prints `[ USAGE IS ]` as optional, so bare `01 M MESSAGE-TAG.` is the same clause as
    `01 M USAGE MESSAGE-TAG.`). It cannot join the accept-inert band for the reason 1560/1705/1706/1707 cannot:
    §13.18.60.4 GR9 fixes the class AND category of a message-tag data item as message-tag, so an accepted item

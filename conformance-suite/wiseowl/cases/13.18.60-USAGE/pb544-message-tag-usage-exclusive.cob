@@ -13,11 +13,10 @@
       *> and SR21's subject — the SET of usage clauses in the entry — did not exist. COBOL2158 is raised
       *> from the clause LIST, BEFORE and independently of the decline, so the rule is enforced whichever
       *> order the two clauses are written in.
-      *> ⚠ PINNED AT 2023 ONLY, on purpose. MESSAGE-TAG is an Annex E.2 item-25 COBOL-2023 addition, so 2023
-      *> is the edition where SR21 is unambiguously the right answer. Below 2023 the word is a user-defined
-      *> word and the edition-correct diagnostic is the introduction gate; that routing is broken for the
-      *> whole MESSAGE-TAG surface (COBOL1943 fires at 2002 and 2014 against its own message text) and is
-      *> registered as its own mechanism. A golden that also pinned 2002 would freeze that defect.
+      *> All four editions refuse it (kb/Work PB916 took the sweep PB544 had to hold back). MESSAGE-TAG is an
+      *> Annex E.2 item-25 COBOL-2023 addition, so below 2023 the entry ALSO draws the COBOL0900 introduction gate
+      *> (usage-message-tag-2023) - and no longer the COBOL1943 decline, which names a 2023 facility; SR21 is a rule
+      *> of the usage clause and is reported beside the gate, as COBOL1958 is beside FUNCTION-POINTER's.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB544EX.
        DATA DIVISION.
