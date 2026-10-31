@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.40.4-5",
+ "section": "13.18.40.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "PICTURE clause",
+ "rule-digest": "5660976386bf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.Analyze; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#Table16Operand",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/l1_picture_alphabetic_only_a",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "INITIALIZE REPLACING ALPHABETIC / ALPHANUMERIC (§14.9.20.4 GR5c2, GR6b) reads the category back: PIC AAA and PIC A are written by the first arm, PIC AA9 and PIC XXX only by the second — GR5's ONLY test in both directions.",
+ "state": "OK"
+}

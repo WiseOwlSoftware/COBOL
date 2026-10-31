@@ -226,6 +226,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     {
         set = ResynchronizationSet(recognizer, set);
         var input = (ITokenStream)recognizer.InputStream;
+        if (set.Contains(input.LA(1)) && IsReportedReservedOperand(recognizer, input.LT(1))) recognizer.Consume();
         for (int ttype = input.LA(1); ttype != TokenConstants.EOF && !set.Contains(ttype); ttype = input.LA(1))
         {
             if (!IsOpenParen(ttype))
@@ -244,6 +245,31 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             while (depth > 0 && ttype != TokenConstants.EOF && ttype != CobolLexer.DOT);
         }
     }
+
+    /// <summary>⛔ A REFERENCE REFUSED AS A RESERVED WORD IS CONSUMED AS THE NAME IT WAS WRITTEN AS (kb/Work PB3248). A
+    /// syntax error on a reservation-gated word §8.9 reserves at this edition is reported as that word's §8.9 violation
+    /// (COBOL0901, <see cref="CobolParserCoreBase.ReservedUserWordViolation"/>), and ISO §8.3.2.1 1) ("Reserved words
+    /// shall not be used as user-defined words") is broken once, by that occurrence. A verb such as RECEIVE or SEND
+    /// begins a statement, so it is in every statement-level recovery set, and the base recovery resumed AT it:
+    /// <c>DISPLAY RECEIVE.</c> then parsed RECEIVE as a RECEIVE statement and refused the period, a second diagnostic
+    /// naming the recovery's own reading of a word the first had already called a name. So such a word is consumed
+    /// first, as the operand it stood for, and the resynchronization goes on from the token after it.
+    /// <para>⛔ BUT THE SAME REPORT FIRES AT A VERB THAT CORRECTLY BEGINS THE NEXT STATEMENT (review R1-1). After an
+    /// incomplete statement (<c>MOVE W-X TO</c>, its receiver missing) the error token is the next statement's verb,
+    /// and the listener re-codes it to COBOL0901 just the same. Consuming it there resumed inside that correct
+    /// statement's operands (<c>RECEIVE FROM W-X GIVING W-Y W-N</c> drew "unexpected 'GIVING'"; <c>RESUME AT NEXT
+    /// STATEMENT</c> was told to write SENTENCE). The two are told apart by the grammar, never by a list: the word is
+    /// the operand the report named exactly when the statement it would begin is NOT a complete reading
+    /// (<see cref="CobolParserCoreBase.LookaheadBeginsAStatementThatParses"/>); where it is, the recovery resumes
+    /// at it and the statement is read as written. A statement that parses only as a prefix, stopping at a token no
+    /// statement is followed by (<c>GOBACK</c> in <c>MOVE GOBACK TO W-X</c>, review R2-1), is an operand.</para>
+    /// Only the token the last report named (<see cref="_lastReported"/>), only where the listener re-codes it to
+    /// COBOL0901, and only when it is a resynchronization point at all (the caller asks the set first, so the speculative
+    /// parse runs only where its answer decides something): every other refused token keeps the base recovery.</summary>
+    private bool IsReportedReservedOperand(Parser recognizer, IToken token)
+        => token.TokenIndex == _lastReported.Through && recognizer is CobolParserCoreBase parser
+           && parser.ReservedUserWordViolation(token) is not null
+           && !parser.LookaheadBeginsAStatementThatParses();
 
     /// <summary><para>The other half of the same rule: single-token deletion never deletes a '(' (kb/Work PB2152). Deleting
     /// one paren of a balanced pair (§8.3.5 4) orphans the other, so <c>DISPLAY (W-S).</c> recovered by dropping the
@@ -607,8 +633,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         if (!HasStructuralHint(hints) && ScopeTerminator(recognizer, token.Type) is null && at.Admitted() is { } admitted
             && AdmittedKinds.Refusal(token, admitted.Tokens, admitted.Words, StatementBlockStart(recognizer),
                    at.APeriodLetsTheSentenceFollow,
-                   ZeroTokenRewriter.AZeroWrittenAtIsArithmetic(((BufferedTokenStream)recognizer.InputStream).GetTokens(),
-                       token.TokenIndex)) is { } kindMsg)
+                   // The words the compile edition has (kb/Work PB4174): the parse is the superset of the editions.
+                   recognizer is CobolParserCoreBase editionParser ? editionParser.PrintsKeyword : _ => true) is { } kindMsg)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL5506, kindMsg, 0));
 
         // ⛔ NO "MISSING SPACE BEFORE / AFTER STRING LITERAL" GUESS HERE (kb/Work PB1394). A literal delimiter that is not
@@ -1346,7 +1372,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         var ctx = recognizer.Context;
         if (token.Type == CobolLexer.KEY && NearestSearchBeforeWhen(ctx) is { } keyed)
             return (keyed is CobolParserCore.SearchAllStatementContext ? "SEARCH ALL" : "SEARCH")
-                + " … KEY:" + formats + "neither has a KEY phrase — the key of a SEARCH ALL is declared by the "
+                + " KEY:" + formats + "neither has a KEY phrase — the key of a SEARCH ALL is declared by the "
                 + "ASCENDING/DESCENDING KEY phrase of identifier-1's OCCURS clause (§14.9.37.3 SR7), and the "
                 + "Format-2 WHEN phrase names it. Remove the phrase.";
 
@@ -1358,9 +1384,9 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // reports a missing WHEN from INSIDE the just-entered (Format-2) WHEN clause, whose context already exists.
         if (notAtEnd && NearestSearchBeforeWhen(ctx) is { } searching)
             return searching is CobolParserCore.SearchAllStatementContext
-                ? "SEARCH ALL … NOT AT END:" + formats + "each has an AT END phrase alone — there is no "
+                ? "SEARCH ALL NOT AT END:" + formats + "each has an AT END phrase alone — there is no "
                   + "NOT AT END phrase. Test for a hit in the WHEN branch instead."
-                : "SEARCH … NOT AT END:" + formats + "each has an AT END phrase alone — there is no NOT "
+                : "SEARCH NOT AT END:" + formats + "each has an AT END phrase alone — there is no NOT "
                   + "AT END phrase. Test for a hit in a WHEN branch instead.";
 
         if (token.Type == CobolLexer.WHEN)

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.6.4-5",
+ "section": "14.9.6.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "CLOSE statement",
+ "rule-digest": "d655c06a30f0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitClose; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#IsActive; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.RaiseDeclarations.cs#NodeKindRaises",
+ "test-ref": "conformance:cases/14.9.6-CLOSE/pb141_report_not_terminated; conformance:cases/14.9.6-CLOSE/pb893_close_report_completes; conformance:cases/14.9.6-CLOSE/pb3102_report_not_terminated_with_location",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "RE-VERDICTED (kb/Work PB893). GR5: 'the CLOSE statement for that file is completed and the EC-REPORT-NOT-TERMINATED exception condition is set to exist' - completion FIRST. EmitClose reads ReportWriter.IsActive for the file's associated reports BEFORE the close, then runs the close, its GR4 status update and the I-O USE hook, and only then raises the nonfatal EC and runs the declarative dispatch. The pre-PB893 shape raised before the close, so a declarative saw the pre-close status and a RESUME AT procedure-name (14.9.33.4 GR3) transferred out with the file still OPEN. pb893_close_report_completes pins it: after RESUME AT P2 the re-OPEN of the report file answers 00 (was 41), and the second declarative sees the updated status 00 (was 41). pb141_report_not_terminated pins CLOSE=00 with EXCEPTION-STATUS EC-REPORT-NOT-TERMINATED.",
+ "state": "OK"
+}

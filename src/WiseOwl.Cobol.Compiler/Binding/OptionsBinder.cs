@@ -3,6 +3,7 @@
 using WiseOwl.Cobol.Frontend.Generated;
 
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 
 namespace WiseOwl.Cobol.Binding;
@@ -184,7 +185,11 @@ internal static class OptionsBinder
     private static OptionsModel DeclineFloatDecimal(OptionsModel m, Core.FloatDecimalClauseContext clause,
         EditionContext? edition)
     {
-        if (edition is null) return m;
+        // Below 2014 the clause is not this edition's to decline: the pass's COBOL0900 (options-float-decimal-2014)
+        // is the whole answer, and a COBOL2424 warning beside it would name a 2014 facility to a 2002 program
+        // (kb/Work PB916's mechanism, found at this sibling site: StatementBinder.BindDeclinedMcs is the precedent).
+        if (edition is null || !ConstructRegistry.IsAvailable(edition.Edition, Constructs.OptionsFloatDecimal2014))
+            return m;
         using var _ = edition.At(clause);
         edition.Declined(DiagnosticCatalog.FloatDecimalClauseUnsupported);
         return m;

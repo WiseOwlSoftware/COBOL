@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.8.4-1",
+ "section": "14.9.8.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "COMPUTE statement",
+ "rule-digest": "2a8b1e520b88",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitCompute",
+ "test-ref": "conformance:cases/14.6.13.2-Incompatible-data/pb230_incompatible_sending_sweep; conformance:cases/14.7.4-ROUNDED/rounded_modes; conformance:cases/14.9.8-COMPUTE/arithmetic_standard_decimal; conformance:cases/14.9.8-COMPUTE/pb157_compute_sdidi_sole",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Arm (a)'s residue is discharged (kb/Work PB230). PB157 had already closed both named arm-(a) gaps - pb157_compute_sdidi_sole pins a SOLE fixed-point data item AND a sole fixed-point literal under ARITHMETIC IS STANDARD-DECIMAL, each ROUNDED into a narrower receiver (2.25 -> 2.3 both ways, where production-side alignment would answer 2.2) - leaving only arm (a)'s own 'within the constraints specified in 14.6.13.2'. That constraint is 14.6.13.2 rule 2, which had no raise site: EcBinder.EcWrap gated the EC-DATA-INCOMPATIBLE family on `node is BoundMove`, so a COMPUTE whose arithmetic-expression-1 referenced a numeric-DISPLAY window holding non-digits fabricated a value in silence. The gate is now ambient and the raise rides the sending read (CobolNum.ParseImageSending at NumericRenderer.FieldNumCore's windowed arm - the ONE place every arithmetic operand is read); pb230_incompatible_sending_sweep pins COMPUTE at L2 (`COMPUTE R = N + 1` raises, R unchanged at 00000). The standard-binary NOTE stays unreachable by decision (COBOL0806 rejects ARITHMETIC IS STANDARD-BINARY as obsolete).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.43.2",
+ "section": "15.43.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "HIGHEST-ALGEBRAIC function",
+ "rule-digest": "187bfcaff6be",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindAlgebraicFold; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#DeclareUserWord",
+ "test-ref": "conformance:cases/15.43.4-Returned-value-rules/highest_lowest_algebraic; conformance:cases/8.3.2-COBOL-words/pb65_repository_r5_intrinsic_names; conformance:cases/8.3.2-COBOL-words/pb65-repository-intrinsic-name-as-data-name",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB65 (2026-08-18): the format's keyword-omitted spelling under a REPOSITORY entry is the FUNCTION reference (+999 for a S999 argument) — the reference no longer yields to a same-named data item, because 8.3.2.1 rule 5 forbids that declaration (COBOL1649 at the declaration). The counter-argument legs (LINAGE-COUNTER / LINE-COUNTER / PAGE-COUNTER) were fixed earlier (BindAlgebraicFold admits the counter refs). retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.cs#ScreenRepositoryIntrinsicName (kb/Work PB1083 renamed the screen to the one declaration funnel DataBinder.DeclareUserWord)",
+ "state": "OK"
+}

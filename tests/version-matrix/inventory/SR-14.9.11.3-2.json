@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.11.3-2",
+ "section": "14.9.11.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "DISPLAY statement",
+ "rule-digest": "18d941ce63a4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/MnemonicRegistry.cs#Of",
+ "test-ref": "conformance:cases/14.9.11-DISPLAY/pb135_oo_environment; conformance-test:DisplayUponTests.Upon_InputOnlyDevice_Rejected0817; conformance-test:DisplayUponTests.Upon_Syserr_GoesToStderr_NotStdout; conformance-test:DisplayUponTests.Upon_UndeclaredMnemonic_Rejected0817",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB135): the refuter's exact finding - the mnemonic walk collected SPECIAL-NAMES from an enclosing ProgramUnitContext ONLY, so a method's chain (methodDefinition -> object/factoryParagraph -> classDefinition -> compilationGroup) produced an EMPTY device map and DISPLAY UPON drew COBOL0817 on legal source, while the SWITCH map built from the SAME grammar rule resolved through OoDriver's synthetic reparented unit. The walk now reads each OO ancestor's own configuration (a method may not declare one - 12.3.3 SR2, enforced separately as 1519), TryAdd keeping the nearest scope; the golden displays UPON a class-declared mnemonic from inside a method. The same walk serves ACCEPT FROM and WRITE ADVANCING mnemonic-name - three statements, one registry, one fix.",
+ "state": "OK"
+}

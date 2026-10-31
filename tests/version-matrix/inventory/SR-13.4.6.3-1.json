@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.4.6.3-1",
+ "section": "13.4.6.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Sort-merge file description entry",
+ "rule-digest": "0cda1e9f25c3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileSection",
+ "test-ref": "conformance:cases/13.4.5-File-description/w73b-pb1237-fd-sd-without-select",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1290 landed with PB1077 (w73b). cite.py --check 13.4.6.3 \"File-name-1 shall be specified in a file control entry\" -> OK 1). The SD arm of BindFileSection reports COBOL2636 like the FD arm. Probe: SD S9 with no SELECT compiled clean; now COBOL2636 at --std 2023 and 85.",
+ "state": "OK"
+}

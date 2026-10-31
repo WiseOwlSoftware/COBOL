@@ -49,6 +49,7 @@ import tempfile
 REPO = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 sys.path.insert(0, str(REPO / "scripts" / "orchestrator"))
+import inventory_store  # noqa: E402  (the inventory's one reader)
 import work  # noqa: E402  (the register's one reader)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -382,12 +383,8 @@ def problems(items: list[dict], plan: dict, rem: dict) -> list[str]:
     return bad
 
 
-def load_inventory() -> list[dict]:
-    return json.loads((REPO / "tests" / "version-matrix" / "traceability-inventory.json").read_text(encoding="utf-8"))
-
-
 def live_problems() -> list[str]:
-    items, rows = work.load(), load_inventory()
+    items, rows = work.load(), inventory_store.load_inventory()
     gap = sum(1 for r in rows if r["state"] == "GAP")
     return problems(items, measure(items, gap), remaining(items, rows, gap, fleet_population()))
 

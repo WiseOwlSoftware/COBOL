@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-7.3.17.2",
+ "section": "7.3.17.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "LEAP-SECOND directive",
+ "rule-digest": "51955fd91648",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/LeapSecondDirectiveProcessor.cs#Process; src/WiseOwl.Cobol.Editions/DirectiveOperandSyntax.cs#DirectiveOperandSyntax",
+ "test-ref": "unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_DiagnosesAMalformedOperand; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "{ ON | OFF } with ON un-underlined in the printed format, so per 5.2.3 a bare >>LEAP-SECOND selects ON - the 'specified or implied' case 7.3.17.4 GR2/GR4 presuppose. Any other operand is COBOL1911. The 7.3.17.3 SR1 PLACEMENT rule is a different row and stays with the stage as COBOL1650.",
+ "state": "OK"
+}

@@ -687,7 +687,9 @@ was already spread across threads.
 **The mechanism** — `tests/_shared/TestPartitioning.cs`, linked into every project under `tests/`.
 
 xUnit v2 offers exactly two levers and only one of them can split: `[Collection]` MERGES classes into a shared
-collection, so it can never divide one. That leaves genuine class splits — and the naive class split duplicates
+collection, so it can never divide one. (A third-party framework that runs a class's rows in parallel was measured
+against the partitions after M6 and not adopted, its lead inside the noise on the shared host and on a reserved one:
+section 3.11.1, kb/Work PB4150, PB4195.) That leaves genuine class splits — and the naive class split duplicates
 the test bodies, which is how a split rots. So the tests live ONCE in an abstract generic base and each partition
 is one line:
 
@@ -785,27 +787,117 @@ the count N-fold. The StorageForm sweep is the one deliberate count change (6 �
 assertion: the whole-corpus bar was `parsed >= 50`, and each partition now asserts its proportional share rounded
 UP, so a partition that silently stopped binding goes RED instead of green-and-empty (§3.10 corollary 1).
 
-**Measured, same box (24-physical/32-logical i9-13900K), same `Conformance ∥ Unit ∥ Characterization` shape:**
+**What the split bought (battery #41, 2026-09, before M6; same box, 24-physical/32-logical i9-13900K):**
 
 | leg | wall | sum of test time | avg concurrency |
 |---|---|---|---|
 | Conformance | 721 s → **600 s** | 1948 s → 10469 s | 2.7× → **17.4×** |
 | Unit | 171 s → **138 s** | 329 s → 895 s | 1.9× → **6.5×** |
 
-⛔ **THE TAIL IS GONE; THE WALL BARELY MOVED — AND THE SECOND HALF OF THAT SENTENCE IS THE FINDING.** A13
-predicted ~783 s → ~80 s. The split did precisely what it was designed to do, yet bought 17%, because
-`sum-of-test-time ÷ wall` measures COLLECTION concurrency, **not core utilisation**, and the "idle" cores were
-never idle: one WiseOwl COBOL compile is internally parallel (Roslyn `Emit`) and a NIST row spawns a `dotnet` child
-that is too. The proof is in the after-profile itself — the SAME work reports **5.4× more test time** because the
-new collections found contention, not silicon; at 17.4× + 6.5× ≈ 24 threads on 24 physical cores the box is
-saturated. **The class-split lever is therefore EXHAUSTED**, and the remaining lever is to reduce the WORK — the
-persistent compile/run host of §3.10's `guard-fast` row and A13(c), not more parallelism. Kept for the balance
-and for the drift gate, exactly as the `guard-fast` regrouping was kept for correctness rather than speed. ⚠ The
-contention was since NAMED (§3.14.5): for check-only compiles it is one lock in the ANTLR lexer's ATN simulation,
-reached on every token because predicated rules keep its DFA from caching (the start state, and every edge through a
-predicate),
-so the continuity partitions ran at ~3.8 busy cores, not a saturated host; the partition counts are re-measured
-once M6 removes it.
+The split removed the serial tail but moved the wall only 17 %, because one lock in the ANTLR lexer's ATN simulation
+(§3.14.5) serialized every compile in the process. M6 removed that lock, so whether running a class's rows in parallel
+would now beat the partition classes was measured again.
+
+**⭐ Per-row parallelism against the partitions, after M6 (kb/Work PB4150, 2026-10-30).** The Conformance assembly at
+`3abfbbdbb` (Debug, compiled-program cache off, server GC, xunit 2.9.2, 32 threads = the processor count, 19,881
+cases), each run inside a gate slot, the arms alternated round by round on the gate host. The arms: **A** today's
+assembly (32 suite partitions; xunit's default `conservative` algorithm); **Ag** A with `parallelAlgorithm: aggressive`;
+**B** A under `Meziantou.Xunit.ParallelTestFramework` 2.3.0 (the latest; it supports xunit v2), which runs every row of
+a class in parallel, with `aggressive`; **B2** B with the suite collapsed into ONE class; **A64** A at 64 threads.
+Wall seconds:
+
+| round | A | Ag | A64 | B | B2 |
+|---|---|---|---|---|---|
+| 1 | 176 | 154 | – | 291 | 174 |
+| 2 | 187 | 171 | – | 141 | 177 |
+| 3 | 170 | 143 | – | 135 | 131 |
+| 4 | 230 | 149 | – | 391 | 162 |
+| 5 | 277 | 320 | – | 223 | 197 |
+| 6 | 266 | 332 | – | 244 | 380 |
+| 7 | 263 | 218 | 187 | – | – |
+| 8 | 176 | 246 | 212 | – | – |
+| 9 | 197 | 224 | 291 | – | – |
+| **median** | **197** | **218** | **212** | **234** | **176** |
+
+A second series (the same arms A, Ag and B2, rebuilt at `773f18466`: 19,961 cases)
+re-measured A against B2 to see whether B2's lead survives a quieter host. Rounds 1–5 ran A, B2, Ag in that order and
+rounds 6–8 ran B2 before A; every run also sampled the gate slots every 5 s, so a run is QUIET only when no other gate
+held a slot at any sample:
+
+| round | A | B2 | Ag | most other gates in a slot during the A / B2 run |
+|---|---|---|---|---|
+| 1 | 196 | 208 | 177 | 1 / 2 |
+| 2 | 193 | 170 | 141 | 2 / 2 |
+| 3 | 181 | 143 | 173 | 1 / 1 |
+| 4 | 140 | 140 | 178 | none / none |
+| 5 | 211 | 160 | 229 | none / none |
+| 6 | 290 | 254 | – | 2 / 2 |
+| 7 | 441 | 233 | – | 2 / 2 |
+| 8 | 414 | 494 | – | 2 / 2 |
+
+- **⚠ The host was never idle, so the protocol's step 3 was not met, and the noise here is the shared host's.**
+  PB4150 asked for the arms measured on an otherwise idle host. The fleet's gates held other slots through 12 of the 14
+  A/B2 pairs (first series: 0–4 other slots, system CPU 55–96 %), and even the two pairs with no other gate (rounds 4
+  and 5 above) ran beside other sessions' builds: arm A took 140 s and 211 s in them. Arm A alone ranged 170–277 s in
+  the first series (standard deviation 43.5 s, n = 9) and 140–441 s in the second. A reserved host was not available:
+  the experiment ends when the fleet's next wave fills the slots, as the second series did after round 8.
+- **B2, the arm that would retire the partition machinery, led in most paired rounds.** B2 minus A per round:
+  −2, −10, −39, −68, −80, +114 s (first series) and +12, −23, −38, 0, −51, −36, −208, +80 s (second). Pooled over the 14
+  pairs, B2 was faster in 10, slower in 3 and tied in 1; its median ratio to A is 0.878 and the geometric mean of the
+  ratios 0.877, about 12 % faster. That lead does not clear the shared host's noise: a paired t-test on the log ratio
+  gives p = 0.070 (t = −1.97, 13 degrees of freedom) and an exact sign test p = 0.092. Ag against A over the same 14
+  rounds is noise (8 faster, 6 slower, geometric mean 0.977, p = 0.70), so a real B2 gain would come from the per-row
+  parallelism, not from the `aggressive` algorithm it runs under. Arm B (per-row parallelism over the 32 partitions)
+  ran from 54 s faster to 161 s slower than A in its rounds, and twice the threads (A64) did not beat the noise either.
+- **The pass sets are identical** by name key (section 3.11.2) in every run of every arm of both series, except the two witnesses each
+  variant trips by construction: `GateLegDriftTests.Arm4_ThisAssembly_NamesTheGateFramework` (B and B2 name Meziantou's
+  framework) and `ConformancePartitioningDriftTests.TheSuiteRunner_KeepsItsMeasuredPartitionFloor` (B2). No row failed
+  only under per-row parallelism.
+- **The leg is bound mostly by its threads waiting on child processes; the class structure costs at most B2's
+  unproven 12 %.** Every arm keeps 32 cases
+  in flight until its tail (average concurrency 25–32); a mid-run stack sample of arm B found 32 test threads, 26 of them
+  in `Process.WaitForExit` on a compiled program, and the test host itself used 548–734 s of CPU per run. The GC pause
+  share was 2–5 % in most runs (1.6–13.5 %).
+
+**⭐ The reserved-host series (kb/Work PB4195, 2026-10-30/31).** The owner reserved the host overnight: no fleet, no
+other session's gates, the gate cap set to 1 so each run held the only slot (every run's slot samples show it alone).
+A and B2 rebuilt at `f49f3e7e4`, alternated A then B2, six rounds, the same settings as above. Wall seconds:
+
+| round | 1 | 2 | 3 | 4 | 5 | 6 | mean | sd |
+|---|---|---|---|---|---|---|---|---|
+| A | 128 | 143 | 132 | 133 | 136 | 127 | 133.2 | 5.8 |
+| B2 | 126 | 127 | 128 | 137 | 131 | 129 | 129.7 | 4.0 |
+
+B2 minus A per round: −2, −16, −4, +4, −5, +2 s; mean −3.5 s, geometric mean of the ratios 0.974 (2.6 % faster),
+paired t = −1.23 with 5 degrees of freedom: inside the quiet host's own noise. The pass sets are identical except the
+same two by-construction witnesses. The shared host's 12 % lead was contention, not the per-row parallelism. And the
+quiet host runs the leg in about 133 s against about 200 s on the shared host, so the other gates beside a leg cost it
+far more than its class structure does (section 3.14.6 has the cap measurement).
+
+**Determination: keep the partition classes** (kb/Work PB4195). PB4150's bar is a gain beyond run-to-run noise with an
+identical pass set; on the reserved host B2's gain is 2.6 % and not beyond the noise, so per-row parallelism is not
+adopted. Its four costs, each witnessed, are what any future proposal must answer:
+1. **Under xunit 2.9.2's default algorithm it is unbounded.** Its assembly runner overrides `RunTestCollectionAsync`
+   and so skips the `conservative` algorithm's semaphore of `maxParallelThreads`, and with no
+   `MaxConcurrencySyncContext` it starts every case with `Task.Run`. The first such run reached 1,720 threads, 1,710 of
+   them inside `ProcessObserver.Observe` (most waiting on a child's stdout read, which needs a pool thread the
+   blocked cases hold); a child that had used 0.1 s of CPU never exited, so
+   `DisplayUponTests.Upon_EachOutputDevice_TransfersALongOperandAsOneLine` timed out twice (120 s each), and the run
+   was stopped at 10 minutes. It needs `parallelAlgorithm: aggressive` to keep the cap.
+2. **It names its own `[assembly: Xunit.TestFramework]`**, and an assembly names exactly one framework
+   (`GateTestFramework`, section 3.14.3), so adopting it means re-implementing its runners inside the gate's framework.
+3. **It schedules the long pole last.** `ConformanceSuiteRunnerDriftTests.BothRunners_GiveEverySuiteTestTheSameVerdict`
+   (one case, 50–205 s) is its own collection under the partitions; under B it queues behind thousands of rows,
+   started 113–234 s into four of the six runs, and ended those four runs. It ended one of the nine arm-A runs.
+4. **It removes the bound on a heavy family.** Six NIST partitions run at most six NIST rows at once; per-row
+   parallelism ran three rows of one partition together at 52–56 s each (round 4; the slowest NIST rows take 12–24 s
+   under the partitions).
+
+The Unit assembly was not measured (PB4150's step 4 runs only after the Conformance arm clears the bar). Its `[Collection("process-globals")]`
+classes would stay serial (the framework leaves an explicit collection serial), but a class outside that collection
+that swaps process-wide state in each case would race with its own rows: `AcceptSourceTests` sets `Console.In` in each
+of its five facts. The remaining levers are to
+reduce the WORK (the persistent compile/run host of §3.10's `guard-fast` row and A13(c)) and the long pole above.
 
 #### 3.11.2 ⛔ Filters must key on the METHOD, never on `Class.Method`
 
@@ -820,7 +912,7 @@ the sharded leg, and it was re-run locally against the split tree: 349+349+349+1
 
 ### 3.12 THE COMPILED-PROGRAM CACHE — reducing the WORK of a re-gate (kb/Work PB985)
 
-§3.11 ended with the parallelism lever exhausted and "reduce the WORK" as the one left. The largest repeated work
+§3.11 ends with more parallelism not shown to beat the shared host's noise and "reduce the WORK" as the lever left. The largest repeated work
 is the lander's whole-Conformance re-gate after a TEST-ONLY fix (a probe template, a stale test-ref, a pinned
 expectation — the dominant cause of trains 46–48's first-gate reds): ~7,900 cases recompiled although no compiler
 or runtime bit changed. `tests/WiseOwl.Cobol.Tests.Conformance/CompiledProgramCache.cs` makes that re-gate reuse every
@@ -1656,10 +1748,11 @@ token of every compilation recomputes the closure over all default-mode rules an
   `GateLegDriftTests` asserts its host's runtimeconfig carries `System.GC.Server`.
 - **The compiled-program cache** (§3.12) already stores check-only results, so a TEST-ONLY re-gate hits every
   continuity cell; a gate after a product change misses by design. No change.
-- **§3.11's "the class-split lever is exhausted"** was measured under this lock. After M6, the partition counts
+- **The class split's 17 % (§3.11.1, battery #41)** was measured under this lock. After M6, the partition counts
   (one `Partitions` constant per family, audited by `TestPartitionAudit`) are re-measured; the first re-measure
   (w1033, kb/Work PB2527) took `CorpusRunnerTests` from 3 partitions to 24 and split `OptionalWordSubsetDriftTests` 8
-  ways (section 3.11.1).
+  ways, and kb/Work PB4150 measured per-row parallelism against the partitions: about 12 % on the shared host, 2.6 %
+  and inside the noise on the reserved host (kb/Work PB4195), so the partitions stay (section 3.11.1).
 
 **M7 — the long poles.** `pb505-table-value-dynamic-span-levels` (266 s in the battery; **29.6 s alone through the
 `cobol` CLI** for a 26-line program) and `DynamicWithoutTo_HigherSubscriptsShallBeEqual_1946` (116 s) are one
@@ -1795,6 +1888,23 @@ cannot start.
   three anyway: at cap 1 implementer gates waited 62 % of their wall time (the w1033 survey), and under batched gating
   every gate runs leg 1 only, so a landing's gate competes with three short gates rather than three whole
   populations. The verdict line prints the wait and the slot (`Slot.describe()`).
+  **The host's throughput at N concurrent legs (kb/Work PB4181, 2026-10-31, the reserved host).** N copies of the
+  Conformance assembly (arm A of section 3.11.1, cache off, server GC) started together inside one slot, nothing else
+  running, two repetitions; runs per hour = N × 3600 / the batch's wall:
+
+  | N | 1 | 2 | 3 | 4 | 6 | 8 |
+  |---|---|---|---|---|---|---|
+  | batch wall, rep 1 / rep 2 (s) | 125 / 123 | 213 / 217 | 308 / 298 | 421 / 389 | 618 / 594 | 841 / 824 |
+  | runs per hour (mean) | 29.0 | 33.5 | 35.7 | 35.6 | 35.7 | 34.6 |
+  | one run's wall against N = 1 | 1.00× | 1.73× | 2.40× | 3.25× | 4.86× | 6.63× |
+
+  Throughput rises 23 % from one leg to three and not at all beyond: one quiet Conformance leg already keeps most of the
+  32 processors busy. (PB4181's premise, about 3 busy cores per leg, counted the test host's own CPU only, never the
+  compiled programs it runs as children.) At N = 8 two runs of rep 1 and all eight of rep 2 ended RED on a HARNESS
+  NON-OBSERVATION (a compiled program, 8–9 s of its own CPU, not finished in two 120 s attempts at 77–87 % host load),
+  never on a value: that oversubscription starves a program past its run budget. This is a proxy, test legs without
+  builds, but on this host more slots than 3 add waiting, not throughput, for a whole leg. The owner kept the cap at 3 on
+  this series (2026-10-31, kb/Work PB4181).
   `gate_slot.py status` prints the cap and the scope with who set them, EVERY held slot (one taken under an earlier,
   higher cap included) and the live tickets in queue order.
 - `gate_slot.py --self-test` proves eleven arms against throwaway repositories, each with one linked worktree (the queue
@@ -2471,7 +2581,7 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    predecessor or a sibling carries conflict resolutions in its merge commits, which a rebase discards and asks for
    again, and the queue lands by merge commit anyway. **THROUGH THE MERGE DRIVERS** (`scripts/merge_drivers.py`, kb/Work
    PB3610): the files two landings both edit are merged by key, not by line — the keyed catalogues a landing adds an
-   entry to (the traceability inventory, `constructs.json`), the work notes
+   entry to (`constructs.json`), the work notes
    two branches append to, the runtime ABI pin (`RuntimeAbi.pin`, which `scripts/abi_pin.py` measures: the counters
    two branches each raised add, the merged surface's hashes are measured on the merged tree before the merge commit;
    that measuring build, like every build in a worktree after its agent has returned, is not blocked by a session's

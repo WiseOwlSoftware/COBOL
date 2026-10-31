@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.1.3-1",
+ "section": "13.18.1.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "ALIGNED clause",
+ "rule-digest": "18516ff67973",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Aligned.cs#CheckAlignedClauses",
+ "test-ref": "conformance:cases/13.18.1-ALIGNED/pb487-aligned-non-bit-subject; conformance:cases/13.16-Data-description/pb487-aligned-co-clause-rules",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "'The ALIGNED clause may be specified only for a bit group item or an elementary bit data item.' The subject predicate is BitLayout.IsBitItem - the SAME predicate 8.5.1.6.3's layout walk uses, since the rule asks the same question in the same words, so the rule that decides whether ALIGNED is legal and the walk that implements it cannot disagree. Adjudicated in a POST-FOREST pass, not BindEntry, because a group becomes a bit group by 13.16.4 GR1 inheritance which UsageInheritancePass settles. A violation clears IsAligned so the item lays out by the default rules under an already-failed compile. COBOL1942. kb/Work PB487.",
+ "state": "OK"
+}

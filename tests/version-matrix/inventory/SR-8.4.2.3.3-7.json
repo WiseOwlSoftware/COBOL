@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.2.3.3-7",
+ "section": "8.4.2.3.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "Subscripts",
+ "rule-digest": "3d2aa1d68615",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.SubscriptSegments.cs#BindPositionTemporary",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-SR-8.4.2.3.3-7",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 8.4.2.3.3 'ALL shall not be specified if qualified-condition-name-1 is specified.' -> OK §8.4.2.3.3 7)). No path admits ALL on a condition-name: the only two ALL-admitting contexts (§8.4.2.3.3 SR6) take a data item (intrinsic argument / SORT data-name-2), and everywhere else the ALL segment fails the subscript parse. Probes scratchpad/adj-d2/out/probe/subscripts/sr7a-d.cob over `05 E1 PIC 9 OCCURS 3. 88 C1 VALUE 1.`: `IF C1(ALL)`, `SET C1(ALL) TO TRUE`, `EVALUATE TRUE WHEN C1(ALL)` -> COBOL2363; `FUNCTION MAX(C1(ALL))` -> COBOL1639 (a condition-name identifies no data item); legal `IF C1(2)` / `IF C1 OF E1 (3)` run (sr7e). Every illegal spelling is refused at compile time; the COBOL2363 text names SR6 rather than SR7 (diagnostic wording only - SR6 independently forbids each of these). No test targets the condition-name spelling - CONFORMS-untested. retired-witness: src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.SubscriptSegments.cs#MaterializeSubscriptSegment (renamed: kb/Work PB2151 - the D18 hook binds the position's parse node only (BindPositionTemporary))",
+ "state": "OK"
+}

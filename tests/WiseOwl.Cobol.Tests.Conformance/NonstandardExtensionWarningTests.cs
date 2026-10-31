@@ -79,7 +79,11 @@ public sealed class NonstandardExtensionWarningTests
         Assert.DoesNotContain(Warnings(gobackReturning, edition, flag: false), w => w.Contains(Code));
 
         string setToEntry = Prog("       01 PP USAGE PROGRAM-POINTER.\n", "           SET PP TO ENTRY \"X\".\n");
-        Assert.Contains(Warnings(setToEntry, edition, flag: true), w => w.Contains(Code) && w.Contains("SET … TO ENTRY"));
+        var flaggedSetToEntry = Warnings(setToEntry, edition, flag: true);
+        Assert.Contains(flaggedSetToEntry, w => w.Contains(Code) && w.Contains("SET 'PP' TO ENTRY"));
+        // ⛔ The rendered half of the PB4160 net sees WARNINGS too (review R1-1): the extension seam writes the caller's
+        // string as the HEAD of COBOL2894, so an elided `SET … TO ENTRY` there is the defect that net exists to refuse.
+        Assert.DoesNotContain(flaggedSetToEntry, w => ElidedMessageOpening.Rendered.IsMatch(w));
         Assert.DoesNotContain(Warnings(setToEntry, edition, flag: false), w => w.Contains(Code));
 
         // The standard forms of the same two jobs are not extensions.

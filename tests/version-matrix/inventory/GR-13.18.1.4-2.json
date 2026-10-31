@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.1.4-2",
+ "section": "13.18.1.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "ALIGNED clause",
+ "rule-digest": "5ea540306846",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#StrideBits",
+ "test-ref": "conformance:cases/13.18.1-ALIGNED/pb487_aligned_bit_layout",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "'An ALIGNED clause specified for a multiple-occurrence data item applies to each occurrence of that item.' The per-occurrence STRIDE therefore rounds up to a byte while the WIDTH stays the declared bit count; the two were one number at every subscript site (ReferenceResolver, CallBinder, InitializeBinder, OdoModel, GroupValueSlicer) and are now split by BitLayout.StrideBits. RunBits counts stride x (n-1) + width, never stride x n, because 8.5.1.6.3 generates trailing filler only 'to advance alignment ... for the NEXT item'. Golden derivation: 05 T PIC 1(4) BIT OCCURS 3 ALIGNED. places occurrences at bits 0, 8, 16 for an extent of 20 padded to 24, so FUNCTION LENGTH is 3 where without ALIGNED it is 2 - measured 3, with each occurrence read back at its own value.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.64.3-1",
+ "section": "13.18.64.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "VARYING clause",
+ "rule-digest": "8d958fb2ffd4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs",
+ "test-ref": "conformance:cases/13.18.64-VARYING/report-varying-no-repetition",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 13.18.64.3 'shall also contain an OCCURS clause or, if the VARYING clause appears in a report group description entry, a multiple LINE or multiple COLUMN clause' OK (SR1). repeatingEntry is set by an OCCURS clause and by a LINE clause with >1 operand; columns.Count>1 is the multiple COLUMN vehicle. Violation diagnosed on a printable entry (negative golden) and on a group entry (probe probe/varying-clause/vsr1grp: `02 LINE PLUS 1 VARYING K.` -> COBOL1559 SR1). All three legal vehicles accepted (conformance:cases/13.15-Report-group-description/pb565_report_repeating_entry OCCURS, conformance:cases/13.15-Report-group-description/pb565_report_vertical_repetition multiple LINE, conformance:cases/13.18.14-COLUMN/rw_present_when multiple COLUMN). The non-report (VALIDATE) half is the declined VALIDATE facility, refused by name COBOL1708 (docs/CONFORMANCE.md §5; PB283 landed). || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (report-group VARYING is a COBOL-2002 introduction per docs/VERSION_CHANGE_REFERENCE; the 2023 Annex E lists no change; the VALIDATE leg is part of the obsolete VALIDATE facility, §13.18.64.1 NOTE) || Code-location detail (moved from the field by registrar 14e): src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs (the `!repeatingEntry && columns.Count <= 1` test at the registrar's pin -> COBOL1559) || Code-location witnesses adjusted by registrar 14e: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs (the symbol named was not in the file at 071ff04ea; path kept)",
+ "state": "OK"
+}

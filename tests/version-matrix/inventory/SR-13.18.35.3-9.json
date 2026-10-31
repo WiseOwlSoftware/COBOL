@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.35.3-9",
+ "section": "13.18.35.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "LINE clause",
+ "rule-digest": "1f5bb8515c7f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportLineClauses",
+ "test-ref": "conformance:cases/13.18.35-LINE/pb1248-or-page-heading-absolute-line",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1248: COBOL2199 refuses an absolute LINE (or a bare NEXT PAGE operand) in a control heading written with OR PAGE.",
+ "state": "OK"
+}

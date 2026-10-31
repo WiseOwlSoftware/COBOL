@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-40",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 40,
+ "subject": "COPY statement (rules for identifying and locating default library text)",
+ "rule-digest": "0b7f9f19b3b3",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-40; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#FindCopybook; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#LocateInLibrary",
+ "test-ref": "conformance:wiseowl/cases/7.2.3-COPY/pb1355_library_text_located; conformance:cases/7.2.3-COPY/pb1355-library-text-not-found; conformance:cases/7.2.3-COPY/pb1355-library-not-available; unit:TextManipulationStatementTests.LibraryText_APeriodInADirectoryPart_IsNotAnExtension; conformance-test:DiagnosticPositionTests.Copy_MainLinesStayMain_CopiedLinesNameTheCopybook",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1355 finisher (w69x): the suffix skip now reads the FILE NAME only (a period in a directory part, '../lib/BOOK' or 'lib.v2/BOOK', is not an extension); the including source's directory stays OUT of the default library - GnuCOBOL 3.2's own testsuite carries 'COPY: relative copybooks' as AT_XFAIL (not implemented), so CLAUDE.md rule 1 keeps the determination; DiagnosticPositionTests name their directory as a --copy path and the GnuCOBOL differential runs each case with cwd = its directory.",
+ "state": "OK"
+}

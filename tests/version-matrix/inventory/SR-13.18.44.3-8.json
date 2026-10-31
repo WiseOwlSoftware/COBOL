@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.44.3-8",
+ "section": "13.18.44.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "REDEFINES clause",
+ "rule-digest": "428c714a3fbc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveRedefines; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.RedefinesEntry.cs#ScreenRedefinesEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.RedefinesEntry.cs#StorageBitsOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#TemplateItems",
+ "test-ref": "conformance-test:KeyedOffsetSpecTests.Redefines_WiderThanTarget_NonLevel01_Rejected; conformance:cases/13.18.44-REDEFINES/pb1280-redefines-external-larger; conformance:cases/13.18.44-REDEFINES/pb1280-redefines-bits-larger; conformance:cases/8.4.2.2-Qualification/pb1280_redefines_entry_rules_legal; conformance:cases/13.18.44-REDEFINES/pb2071-template-redefines-larger",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1280 (wave 1011 B2). cite.py --check 13.18.44.3 'The storage area required for the subject of the entry shall not be larger than the storage area required' OK SR8. Two corrections: the level-1 exemption now needs the 'without the EXTERNAL clause' conjunct (HasExternalClause), and the areas are compared in BITS (13.18.44.4 GR1), a bit item exactly (BitLayout.RunBits) so 8 bits over 4 inside one byte is refused; COBOL1539.",
+ "state": "OK"
+}

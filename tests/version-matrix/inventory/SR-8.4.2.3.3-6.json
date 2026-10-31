@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.2.3.3-6",
+ "section": "8.4.2.3.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "Subscripts",
+ "rule-digest": "a618ccf56ac1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindTable; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ReadTableSubjectSubscripts; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveTableOperand; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#MaterializePosition; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#IllegalPositionMessage",
+ "test-ref": "conformance:cases/8.4.2.3-Subscripts/pb1030-all-subscript-outside-function; conformance:cases/8.4.2.3-Subscripts/pb1473-table-sort-all-not-rightmost; conformance:cases/8.4.2.3-Subscripts/pb1055-table-sort-subject-subscripts; conformance:cases/8.4.2.3-Subscripts/pb1055_table_sort_nested_subject",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1473 (discharged by PB1055's landing, re-probed on the w1012h build). cite.py --check 8.4.2.3.3 'as the rightmost or only subscript of a table in the table format of a SORT statement' -> OK §8.4.2.3.3 6). Two halves. (a) INTRINSIC-ARGUMENT half: ALL outside a function argument fails the subscript-segment parse and draws COBOL2363 naming SR6 (pb1030 witness). (b) SORT half: the Format-2 subject's WRITTEN subscripts are read once (ReferenceResolver.ReadTableSubjectSubscripts, kb/Work PB1055) and ALL stands only as the rightmost or only subscript: `SORT E2(ALL, 1) DESCENDING` over `05 R2 OCCURS 2. 10 E2 PIC 9 OCCURS 3.` draws COBOL2363 at 2002/2014/2023 (negative/pb1473-table-sort-all-not-rightmost pins ALL in the first position of two and of three), while its legal twin `SORT E2(1, ALL)` sorts ROW 1 (2002/pb1055_table_sort_nested_subject leg 2). The table format of SORT is absent from 1985, so (b) holds at 2002 and later. retired-witness: src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.SubscriptSegments.cs#IllegalSegmentMessage (moved: kb/Work PB2151 - the COBOL2363 refusal of ALL (or any non-arithmetic position) is made by the resolver on the parse node (MaterializePosition, IllegalPositionMessage)) retired-witness: src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.SubscriptSegments.cs#MaterializeSubscriptSegment (moved: kb/Work PB2151 - the COBOL2363 refusal of ALL (or any non-arithmetic position) is made by the resolver on the parse node (MaterializePosition, IllegalPositionMessage))",
+ "state": "OK"
+}

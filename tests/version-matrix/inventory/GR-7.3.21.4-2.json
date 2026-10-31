@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.21.4-2",
+ "section": "7.3.21.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "PROPAGATE directive",
+ "rule-digest": "fc7c30e5c41c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitSelection; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitPropagationPickup",
+ "test-ref": "conformance:cases/7.3.21-PROPAGATE/w73d2_pb1119_propagate_on; conformance-test:AutomaticPropagationTests.MethodAndIoArms_PropagateToTheActivator; conformance-test:AutomaticPropagationTests.ExceptionObject_ItemThree_ObjectOrEcOoException",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1119 LANDED (wave 73 D2). cite.py --check 7.3.21.4 'any exception condition raised and not handled by either an exception phrase or exception processing procedures in that runtime element shall be propagated' -> OK 7.3.21.4 2). Realized where the two processing orders name the directive: 14.6.13.1.3 6) (fatal, checking enabled, no handler) and 14.6.13.1.5 EXIT/GOBACK item 3 (exception object in the activator). Determination CONFORMANCE.md D-PROP a): a NONFATAL level-3 condition is not propagated - 14.6.13.1.4 has no propagation step and its 4) continues the statement (cite.py --check 14.6.13.1.4 'Execution of the statement continues as specified in the rules for that statement' -> OK 4)); the golden's 'B CONTINUES S=ABC' witnesses it.",
+ "state": "OK"
+}

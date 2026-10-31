@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.4-9",
+ "section": "8.5.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "Data description and representation",
+ "rule-digest": "dc5ca3a64989",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/MoveClassifier.cs#CanBeZeroLengthItem; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#RefModPlace; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#Emit; src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#CobolClass",
+ "test-ref": "conformance:cases/8.5.4-Zero-length-items/pb425_zero_length_sender_shapes",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "Stem: `OK  §8.5.4` \"A zero-length item is a data item or a literal whose minimum length is zero and whose length at runtime is zero.\" The compiler holds the stem's description half as ONE recurrence (DataItem.MinimumLengthIsZero) and the runtime half as the emitted current-length test; consumers read it (MoveClassifier.ZeroLengthItemRoute / MoveEmitter for §14.9.25.4 GR1, CobolClass for §8.8.4.4.4 GR1, STRING/UNSTRING/INSPECT runtime length). Item 9: CanBeZeroLengthItem admits a RefModPlace only when rm.AllowZeroLength (the directive's region); outside it `OK §7.3.23.3 1)` makes the result EC-BOUND-REF-MOD instead. Probe p4 (>>REF-MOD-ZERO-LENGTH ON, S PIC X(3), K=0): S(2:K) IS ALPHABETIC false, MOVE S(2:K) TO X(5)=spaces, TO 999='   ', STRING S(2:K) ... \"Q\" -> QBCDE, STRING S DELIMITED S(1:K) -> whole sender transferred (XYZDE, §14.9.43.4 3) c)), UNSTRING S(2:K) receiver unchanged, INSPECT tally 0, FUNCTION LENGTH 0. Goldens: 2023/pb425_zero_length_sender_shapes arm (1), 2023/ref_mod_zero_length, 2023/find_string_zero_length. || editions as written by the adjudicator: 2023 only (Annex E.3.3 item 23: 'The resultant data item may now have a length of zero, when the REF-MOD-ZERO-LENGTH compiler directive is in effect'; the directive is gated below 2023 by row ref-mod-zero-length-2023, COBOL0900)",
+ "state": "OK"
+}

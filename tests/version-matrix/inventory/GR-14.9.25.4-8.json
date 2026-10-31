@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.25.4-8",
+ "section": "14.9.25.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "MOVE statement",
+ "rule-digest": "fd39c62d2431",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#ConvertSource; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#EmitGroupToElementaryMove; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsString",
+ "test-ref": "conformance:cases/14.9.25-MOVE/pb393_move_group_to_dynlen; conformance:cases/8.5.1.11.3-Availability-and-persistence-of-variable-length/dynamic_length_item; conformance:cases/14.9.25-MOVE/dynamic_length_figurative; conformance:cases/13.18.19-DYNAMIC-LENGTH/dynamic_length_limit",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work/PB393.md landed. The PARTIAL was the RECEIVING shape reached from a GROUP sender: the ONE dynamic-length store (RuntimeApi.DynStore in ConvertSource) is reached only by MoveKind.Convert, and a group sender routes to MoveKind.GroupToElementary, whose renderer asked IsImageCapable first and aborted the run unit. EmitGroupToElementaryMove now carries GR8's own arm FIRST -- 8.5.1.10.4's \"the new value becomes the content of the item. The new length ... is determined by the length of new content\", with no width fitting because the receiver has no width -- and 8.5.1.10.4's LIMIT truncation is the same DynStore the elementary path uses. The other three MoveKinds were swept and cannot reach a dynamic-length receiver: Group's receiver is a group, FigurativeToNumericImage's is numeric (a dynamic-length item is alphanumeric or national per 8.5.1.10.1), and a RefModSlice receiver is by 8.5.1.10.4's own first sentence a FIXED-length item of the current length. conformance:cases/14.9.25-MOVE/pb393_move_group_to_dynlen pins both the plain store (length 5) and the LIMIT truncation (length 3).",
+ "state": "OK"
+}

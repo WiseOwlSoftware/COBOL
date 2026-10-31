@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.30.4-2",
+ "section": "14.9.30.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "READ statement",
+ "rule-digest": "bff533cd4871",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#ReadNotOpenForInput",
+ "test-ref": "conformance-test:FileIoDifferentialTests.ReadNotOpen_Status47_AtEndNotTaken_RecordAreaUnchanged",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "RULE: 'The open mode ... shall be input or I-O. If it is any other value, the execution of the READ statement is unsuccessful and the I-O status value for file-name-1 is set to 47.' cite.py --check 14.9.30.4 'the I-O status value for file-name-1 is set to 47' -> OK 14.9.30.4 2). All five READ entries open with the SAME two-part guard: `if (!IsOpen ...) return 47` and `if (Mode is Output or Extend) return 47`, so all four not-input/not-I-O states are covered -- never opened, closed, open OUTPUT, open EXTEND. SequentialConnector.Read splits the guard over two statements plus a third `_reader is null` arm, all three yielding 47; the keyed connectors fold it into one expression. Matches 9.1.13.7 item 7 ('a file connector that is not open in the input or I-O mode'). ADVERSARIAL EDGES CHECKED: (i) after CLOSE the connector is not open -> 47, and the named test asserts exactly that plus that AT END does NOT fire (47 is not the 1x family) and the record area is unchanged; (ii) a governed (sharing-active) READ cannot pre-empt the 47 -- FileRegistry.ReadShared consults SequentialConnector.ReadEligible, which requires IsOpen and Mode input/I-O, so a mode failure keeps its own 47 instead of a premature 51; (iii) an ABSENT OPTIONAL file opened I-O is created and opened, so its first READ is at-end 10 and not 47 (conformance-test:SequentialFileIoSpecTests.OptionalSequential_OpenIoAbsent_Creates05_ThenFirstReadIsAtEnd10). Version-invariant rule; the named test is spec-pinned, not a legacy differential (its own summary says so and cites the ST146A re-baseline).",
+ "state": "OK"
+}

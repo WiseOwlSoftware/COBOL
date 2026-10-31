@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-169",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 169,
+ "subject": "SAME SORT/SORT-MERGE AREA clause (extent of allocation)",
+ "rule-digest": "4ddd3ed2f21d",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-169; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#BindIoControl",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-DOC-A.1-169",
+ "editions": "85,2002,2014,2023",
+ "notes": "Voluntary row (A.1 169: internal procedure need not be documented). cite.py --check 12.4.6.4.4 'The extent of such allocation shall be specified by the implementor' -> OK §12.4.6.4.4 4) b). Code: DataBinder.BindIoControl line ~1801 'if (clause.sameClause() is not { } same || same.RECORD() is null) continue;' — only SAME RECORD AREA binds; sort-merge-area format has no storage effect. Probe probe/p169/s2.cob (SAME SORT AREA FOR SF1 SF2 PLF, two SORTs USING/GIVING PLF) -> CCC BBB AAA at --std 85 and 2023. No spec-derived test pins it (NIST ST13x corroborate only). Adjacent open SR under-rejection kb/Work/PB1087 is a different rule set. Owning note: kb/Work/PB1535.",
+ "state": "OK"
+}

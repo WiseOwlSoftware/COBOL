@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.49.3-4",
+ "section": "14.9.49.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "USE statement",
+ "rule-digest": "a3844145acff",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckDeclarativesBoundary; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureOperand",
+ "test-ref": "conformance:cases/14.9.49-USE/pb362_declaratives_reference_boundary; conformance:cases/14.9.49-USE/pb362-goto-into-declarative; unit:DeclarativesStructuralRulesTests.AGoToIntoADeclarativeFromTheNondeclarativePortion_IsRefused; unit:DeclarativesStructuralRulesTests.AGoToIntoADifferentDeclarativeSection_IsRefused; unit:DeclarativesStructuralRulesTests.AnAlterOfAndToADeclarativeParagraph_IsRefused; unit:DeclarativesStructuralRulesTests.AnAlterToProceedToADeclarativeParagraph_IsRefused; unit:DeclarativesStructuralRulesTests.ASortInputProcedureNamingADeclarativeSection_IsRefused; unit:DeclarativesStructuralRulesTests.PerformIntoADeclarative_AndAnyReferenceWithinTheSameSection_AreAccepted",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB362 LANDED. A procedure of a declarative section referenced from outside THAT section (the nondeclarative portion or a different declarative section) by any statement but PERFORM is the ERROR COBOL2376 (determination D-DECLREF). Asked of section identity in ResolveProcedureOperand, so GO TO (both formats), ALTER (both operands) and the SORT/MERGE INPUT/OUTPUT PROCEDURE phrases are covered by one predicate; the two design comments that described GO TO entry as the SR4 design were corrected.",
+ "state": "OK"
+}

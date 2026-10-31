@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.63.4-5",
+ "section": "13.18.63.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "VALUE clause",
+ "rule-digest": "d0aaf2829416",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupValueSlicer.cs#AreaOf; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupValueSlicer.cs#SliceInit; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupValueSlicer.cs#SliceBitInit; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupImageCodec.cs#ImageInitOf; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupImageCodec.cs#BitAreaOf",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb207_group_value_area_85; conformance:cases/13.18.63-VALUE/pb184_group_value_area; conformance:cases/13.18.63-VALUE/pb207_bit_group_value; conformance:cases/13.18.63-VALUE/pb184-group-value-non-display; conformance:cases/13.18.63-VALUE/pb207-bit-group-level-value",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-09-04 (PB207; PB184 landed the alphanumeric half). ONE area rule, GroupValueSlicer.AreaOf, ridden by BOTH initializer lanes - the typed-native record-struct fields and GroupImageCodec.ImageInitOf, the seeder for every character-image backing (Tier-B REDEFINES, EXTERNAL cells, BASED/ADDRESS-OF cells, OO backings) - so the deposit cannot differ between them. The area is composed in the unit the GROUP's own storage is measured in and the rule reports which: m BOOLEAN POSITIONS for a bit group (13.18.29.4 GR1 b) makes it an as-if PICTURE 1(m) item and GR1 c) lays its members out per 8.5.1.6.3), ImageWidth CHARACTER positions otherwise. GR7's 14.6.8 arm follows the receiving CATEGORY: 14.6.8.6 zero fill / right truncation for a boolean area, 14.6.8.5 space fill for alphanumeric and national. All three operand forms are area fills under 8.3.3.6.4 GR2 (quoted literal, ALL literal-1, figurative word). The complement of GR5's conforming population is diagnosed, not silently deposited: 13.18.63.3 SR14 (COBOL1702) refuses a non-DISPLAY subordinate under an alphanumeric group item carrying a VALUE, which is why a positional deposit needs no character/byte reconciliation there. EDITIONS: GR5's text is edition-invariant; the 85 witness is conformance:cases/13.18.63-VALUE/pb207_group_value_area_85 (neither 2002+ pin can stand at 85 - one writes TYPEDEF/TYPE, the other GROUP-USAGE), and the bit and national arms are gated by their own 2002 constructs (COBOL0900).",
+ "state": "OK"
+}

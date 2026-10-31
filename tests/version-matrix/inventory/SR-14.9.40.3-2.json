@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.40.3-2",
+ "section": "14.9.40.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "SORT statement",
+ "rule-digest": "7af61d2451db",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindCollating; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSortCollatingPhrase",
+ "test-ref": "conformance:cases/14.9.40-SORT/l1c29-sort-collating-slot2-alphanumeric; conformance:cases/14.9.40-SORT/l1c29-sort-collating-national-utf8",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 14.9.40.3 \"Alphabet-name-2 shall reference an alphabet that defines a national collating sequence\" OK (SR2). Table 6 (§12.3.7.4 GR7): of the national-branch operands UTF-8 and UTF-16 reference NO collating sequence; LOCALE, NATIVE, UCS-4, code-name-2, literal phrase do. SortBindCollating: natName not in NationalAlphabets -> COBOL0898 (alphanumeric alphabet or undeclared); def.HasCollatingSequence false -> COBOL0898. PROBES --std 2023: c_ok2 (IS A-LOC N-NAT) rc 0; c_ok3 (FOR NATIONAL N-NAT FOR ALPHANUMERIC A-AN) rc 0; c_nloc (IS A-AN N-LOC, N-LOC FOR NATIONAL IS LOCALE) rc 0; c_an2 (alphanumeric A-AN in slot 2) rc 70; c_u8 (N-U8 UTF-8) rc 70; c_u16f (FOR NATIONAL IS N-U16) rc 70; c_unk2 (data-name) rc 70 — all COBOL0898. Edition gate is recognition-fired (VisitSortCollatingPhrase -> COBOL0872), pinned by conformance:cases/14.9.24-MERGE/pb678-sort-collating-for-forms-at-85 (which pins the EDITION gate, not SR2's class check — hence not claimed as test-ref). Cosmetic: the UTF message says 'only NATIVE, UCS-4, and literal-phrase national alphabets may collate', omitting LOCALE and code-name-2 which Table 6 also marks Y (LOCALE is in fact accepted, probe c_nloc) — message text only. [editions as adjudicated: 2002, 2014, 2023 (alphabet-name-2 / FOR NATIONAL are the 2002 national class; below 2002 the surface is gated COBOL0872, sort-collating-national-2002).]",
+ "state": "OK"
+}

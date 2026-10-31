@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.2-4",
+ "section": "12.4.5.2",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "File control entry",
+ "rule-digest": "6ca222e2d0a1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#assignTarget; src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs#Text",
+ "test-ref": "conformance:cases/8.3.3.2-Alphanumeric-literals/pb1078_assign_hex_and_concat_literal; conformance:cases/12.4.5-File-control/pb1078-assign-literal-shape",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1078: literal-1 is screened BY NAME (COBOL2645) - zero-length, figurative, national and boolean refused; the hexadecimal-alphanumeric literal and an alphanumeric concatenation expression admitted.",
+ "state": "OK"
+}

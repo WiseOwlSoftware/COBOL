@@ -5,7 +5,7 @@
     python scripts/orchestrator/inventory_ratchet.py --base REF --head REF
 
 Design: docs/rearchitecture/DESIGN-orchestrator-loop.md section 7 (kb/Work PB1981 item 1). The inventory
-(`tests/version-matrix/traceability-inventory.json`) defines "done"; its GAP count is the project's progress metric.
+(`tests/version-matrix/inventory/`) defines "done"; its GAP count is the project's progress metric.
 `audit_witness_loss.py` guards a row's EVIDENCE; nothing guarded its STATE, so a landing could reopen a closed row
 and every gate stayed green. Two rules:
 
@@ -31,8 +31,9 @@ import sys
 from typing import Any, Iterable
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "spec"))
-from audit_witness_loss import default_base, rows_at  # noqa: E402  (one reader of the inventory at a ref)
-from inventory_schema import REPO, load_inventory  # noqa: E402
+from audit_witness_loss import default_base  # noqa: E402
+from inventory_schema import REPO  # noqa: E402
+from inventory_store import inventory_at, load_inventory  # noqa: E402  (the one reader of the inventory, in the tree and at a ref)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -92,11 +93,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--head", default=WORKTREE, help=f"a ref, or {WORKTREE} (default) for the working tree")
     a = ap.parse_args(argv)
     base = a.base or default_base()
-    before = rows_at(base)
+    before = inventory_at(base)
     if before is None:
         print(f"⛔ the inventory does not exist at {base}: nothing to compare against")
         return 2
-    after = load_inventory() if a.head == WORKTREE else rows_at(a.head)
+    after = load_inventory() if a.head == WORKTREE else inventory_at(a.head)
     if after is None:
         print(f"⛔ the inventory does not exist at {a.head}")
         return 2

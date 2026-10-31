@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.2.4.3-3",
+ "section": "7.2.4.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "REPLACE statement",
+ "rule-digest": "46507fd49e62",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair",
+ "test-ref": "conformance:cases/7.2.4-REPLACE/pb1353-replace-operand-content; unit:TextManipulationStatementTests.ReplaceOperandContent_IsScreened",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1353 (w68x): the REPLACE twin of COPY SR6 (cite.py OK 7.2.4.3 3)) - the same screen, REPLACE's rule number: ==,== and ==== as pseudo-text-1 are COBOL2572 (were silently discarded).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.10.4-1",
+ "section": "14.9.10.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "DELETE statement",
+ "rule-digest": "c9245598c740",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Delete",
+ "test-ref": "conformance:cases/14.9.10-DELETE/pb144_indexed_delete_record; conformance:cases/14.9.10-DELETE/w73b_pb1194_mutation_open_mode_first",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PARTIAL -> CONFORMS (kb/Work PB144). 'The open mode of the file connector referenced by file-name-1 shall be I-O.' IndexedConnector.Delete gates on !IsOpen || Mode != IO -> '49', but that arm had never executed against an INDEXED connector: MEASURED, 37 fixtures mention INDEXED and NOT ONE issued a DELETE against one, and both DELETE unit tests build RELATIVE connectors. The new fixture's IX49 leg is the first execution of it.",
+ "state": "OK"
+}

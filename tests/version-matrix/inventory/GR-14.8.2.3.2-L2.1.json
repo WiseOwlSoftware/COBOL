@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.8.2.3.2-L2.1",
+ "section": "14.8.2.3.2",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Elementary items",
+ "rule-digest": "f85b0fa7919a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#BoundaryItem; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#ArgumentLength; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#Text; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#DescribesOperands; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#CallArgumentViolation",
+ "test-ref": "conformance:cases/14.8.2.3.2-Elementary-items-passed-by-reference/pb165_dynamic_call_description_check; unit:BoundaryItemConformanceTests.Rule1_Elementary_SameLengthOnly_InEveryMode; conformance:cases/14.8.2.3.2-Elementary-items-passed-by-reference/pb165_repository_prototype_description_check",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "14.8.2.3.2 rule 1 (cite.py --check 14.8.2.3.2 'the formal parameter shall be of the same length as the corresponding argument' OK 1)), applied at run time by 14.9.4.4 GR3 d) (cite.py --check OK 3)) on the dynamic Format-1 lane. FIXED (kb/Work PB165, w1015w): a unit that checks EC-PROGRAM-ARG-MISMATCH registers each formal's BoundaryItem (storage length from DataItem.ImageWidth, the one width authority, plus the group/alphanumeric class) at ProgramRegistry.Register, a CALL site that checks it states the same description for each Place argument (Length/Class on CobolArg), and ProgramTable.CallProgram compares the pair under the enabled-in-both gate (BoundaryItem.ArgumentConforms) before the callee runs. Re-probed on this tree: BY REFERENCE X(4)->X(6) and 9(4)->9(3) now raise EC-PROGRAM-ARG-MISMATCH (ON EXCEPTION runs), X(4)->X(4) and the same-length cross-category 9(4)->X(4) do not (rule 1 asks length only). Applies only on the lane the rule names (no program-specifier, no NESTED, not a function: CallEmitter.IsDynamicLane), because rule 2 converts. kb/Work PB165 w1015w. retired-witness: src/Cobol.Net.Compiler/CodeGen/Verbs/CallEmitter.cs#IsDynamicLane (kb/Work PB165 (w1037a): IsDynamicLane is replaced by CallEmitter.DescribesOperands plus the run-time lane decision in ProgramTable.CallProgram; the unit fact was rewritten over ActivationDescription as Rule1_Elementary_SameLengthOnly_InEveryMode) retired-witness: unit:BoundaryItemConformanceTests.Elementary_SameLengthOnly_ByReferenceAndByContent (kb/Work PB165 (w1037a): IsDynamicLane is replaced by CallEmitter.DescribesOperands plus the run-time lane decision in ProgramTable.CallProgram; the unit fact was rewritten over ActivationDescription as Rule1_Elementary_SameLengthOnly_InEveryMode)",
+ "state": "OK"
+}

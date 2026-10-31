@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.3.3.2-1",
+ "section": "8.3.3.3.2",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Numeric literals",
+ "rule-digest": "55dd4d5b2500",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#INT_BODY; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#DEC_BODY; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#numericLiteralCore",
+ "test-ref": "conformance:cases/8.3.3.3.2-Fixed-point-numeric-literals/l1c19-numeric-literal-without-digit",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"A literal shall contain at least one digit.\" (cite.py --check 8.3.3.3.2 -> OK §8.3.3.3.2 1)). Enforced by construction in the lexer: INT_BODY is [0-9]+, DEC_BODY is [0-9]+ '.' [0-9]+ | '.' [0-9]+, SIGNED_*LIT are [+-] followed by those bodies, and numericLiteralCore's comma alternatives (INTEGERLIT COMMA INTEGERLIT | COMMA INTEGERLIT) each carry an INTEGERLIT. No token or parser alternative forms a numeric literal from a bare sign or a bare decimal point, so a digitless 'literal' can only be a parse error. Structural rule; no probe needed beyond confirming the fragments. No dedicated negative golden -> test-ref empty. [editions as adjudicated: 1985, 2002, 2014, 2023 (the formation/value rules are unchanged across editions; only the digit ceiling moves: 18 at COBOL-85, 1 through 31 from 2002 per the clause's lead paragraph)]",
+ "state": "OK"
+}

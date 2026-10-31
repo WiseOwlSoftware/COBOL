@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.6.4-13",
+ "section": "12.3.6.4",
+ "kind": "GR",
+ "ordinal": 13,
+ "subject": "OBJECT-COMPUTER paragraph",
+ "rule-digest": "1c7611a27461",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindCollating; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/pb678_table_sort_key_class",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR13 (cite.py --check 12.3.6.4 \"unless the sort or merge collating sequence has been modified by execution of a SET statement\" -> OK §12.3.6.4 13)). SortBindCollating (shared by file SORT, table SORT, and MERGE — SortBinder.cs:82/241/275) starts from SortCollation(Collating, NationalCollating) — the PCS per class — and only a COLLATING SEQUENCE phrase overrides it, per class (a phrase naming one class leaves the other on the PCS). The SET arm: the only SET format that can modify a sort/merge sequence is Format 11 set-locale LC_COLLATE, which moves a current-locale LocaleCollation; CobolSort snapshots it at statement start (§14.6.6 r5). Probe gr13.cob (file SORT, PCS FOR ALPHANUMERIC IS REV (\"C\" \"B\" \"A\") FOR NATIONAL IS NREV): alphanumeric key -> CBA, national key -> CBA, same sort with COLLATING SEQUENCE NAT (NATIVE) -> ABC. pb678_table_sort_key_class pins the PCS on both key classes for the Format-2 table sort plus the one-class-phrase precedence; pb64t1_sort_locale_snapshot pins the SET-LOCALE interplay. [registrar 14a — editions as adjudicated: 1985, 2002, 2014, 2023 (the national-key half and the SET LOCALE arm from 2002)]",
+ "state": "OK"
+}

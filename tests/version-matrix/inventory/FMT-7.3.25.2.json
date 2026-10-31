@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-7.3.25.2",
+ "section": "7.3.25.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "TURN directive",
+ "rule-digest": "36efde4c0027",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TurnDirectiveProcessor.cs#ParseTurn",
+ "test-ref": "conformance:cases/7.3.25-TURN/pb1365_turn_checking_implied_on; conformance:cases/7.3.25-TURN/pb1365_turn_checking_with_location_implied_on; conformance:cases/7.3.25-TURN/pb1365_turn_checking_location_optional_with; conformance:cases/7.3.25-TURN/pb1365-turn-off-with-location; conformance:cases/7.3-Compiler-directives/pb1365-turn-directive-trailing-word; conformance:cases/7.3-Compiler-directives/pb1365-turn-file-name-is-directive-word; unit:StageOwnedDirectiveOperandDriftTests.EveryStageDirectiveWord_RejectsAWordAfterItsOperand_AndAcceptsItsOperandAndAComment",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1365 (wave 1019 B re-probe on a fresh build). The printed diagram (PDF p115) underlines TURN, CHECKING, OFF and LOCATION only, so ON and WITH are optional words (cite.py --check 7.3.25.4 'If the ON phrase is specified or implied' OK 6)). ParseTurn reads { exception-name [file-name]... }... CHECKING [ON] [[WITH] LOCATION] | OFF and ends the operand there: CHECKING / CHECKING WITH LOCATION / CHECKING LOCATION / CHECKING ON LOCATION all select ON (checking takes effect: pb1365_turn_checking_implied_on); CHECKING OFF WITH LOCATION, CHECKING ON JUNK, CHECKING JUNK, CHECKING WITH and a directive with no CHECKING are COBOL0718; EC-I-O ON / LOCATION as file-name-1 is COBOL0718 (SR-7.3.25.3-1); the exception-name/file-name ellipses accept several of each. All re-run: turn_ok / turn_impl / turn_impl_loc / turn_on_loc_nowith / turn_comment run, the rest are rejected.",
+ "state": "OK"
+}

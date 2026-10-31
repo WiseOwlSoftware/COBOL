@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.43.2",
+ "section": "13.18.43.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "RECORD clause",
+ "rule-digest": "eaecef407473",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#recordClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#BYTES; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordClause",
+ "test-ref": "conformance:cases/13.18.43-RECORD/pb721_record_bytes_synonym",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Three printed formats: F1 RECORD [CONTAINS] integer-1 [BYTES|CHARACTERS]; F2 RECORD [IS] VARYING [IN] [SIZE] [[FROM] integer-2] [TO integer-3] [BYTES|CHARACTERS] [DEPENDING [ON] data-name-1]; F3 RECORD [CONTAINS] integer-4 TO integer-5 [BYTES|CHARACTERS]. Grammar alt 1 `RECORD CONTAINS? integerLiteral (TO integerLiteral)? (CHARACTERS|BYTES)?` covers F1+F3 (TO required in F3, optional word CONTAINS), alt 2 covers F2 with every optional word optional and DEPENDING ON as its own bracket. BYTES/CHARACTERS braces: all words unmarked, so the whole group is optional - grammar matches. Probed (probe/record-clause/fm.cob) at --std 2014 and 2023: `RECORD 20`, `RECORD 5 TO 20`, `RECORD IS VARYING IN SIZE TO 20 CHARACTERS`, `RECORD IS VARYING FROM 5` compile clean at both; `RECORD CONTAINS 20 BYTES` and `RECORD VARYING 5 TO 20 BYTES DEPENDING L` compile at 2023 and draw COBOL0900 at 2014 (BYTES is the 2023 addition). VARYING compiles at --std 85 (probe/record-clause/p3.cob) - correct: the 1985 RECORD clause had the VARYING format (note: docs/FILES_DESIGN.md ~L2108 claims VARYING is a 2002 introduction rejected at 85; that doc text is stale, the code is right). || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): 85, 2002, 2014, 2023 (BYTES spelling 2023 only - Annex E.3.3 item 13)",
+ "state": "OK"
+}

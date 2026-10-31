@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.18.3-5",
+ "section": "14.9.18.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "GOBACK statement",
+ "rule-digest": "db6a5bb3814b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcBindRaising; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindMethodRaising",
+ "test-ref": "conformance:cases/14.9.18-GOBACK/pb410-goback-raising-last-out-of-place; conformance-test:GobackStatusArmParityTests.RaisingLastInAPerformWhenPhrase_IsAcceptedOnBothArms; conformance-test:GobackStatusArmParityTests.RaisingLastInAnOrdinaryParagraph_IsRejectedOnBothArms",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB410.md landed w39. Both arms of the fork now answer SR5 with the SAME predicate: OoBindMethodRaising's unconditional refusal (COBOL0899 oo-method-raising-last) is DELETED along with its catalog descriptor, and the method arm routes through EcBindRaising like the program arm. The rule has no method qualifier, so a RAISING LAST written in a method's PERFORM WHEN phrase is now accepted - it was rejected by a diagnostic quoting this very rule - and one in an ordinary paragraph is refused on both arms with COBOL2103.",
+ "state": "OK"
+}

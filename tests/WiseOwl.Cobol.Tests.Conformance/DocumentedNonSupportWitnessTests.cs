@@ -291,6 +291,20 @@ public sealed class DocumentedNonSupportWitnessTests
         Assert.DoesNotContain(warnings, w => w.Contains(FloatDecimalClauseNonSupport, StringComparison.Ordinal));
     }
 
+    /// <summary>Below its 2014 introduction the clause is the COBOL0900 gate's alone (kb/Work PB916's mechanism, found
+    /// at this sibling): the A.3 item 13 decline names a 2014 facility, so a COBOL2424 beside the gate told a
+    /// COBOL-2002 program about a facility its edition does not have.</summary>
+    [Fact]
+    public void FloatDecimalClause_At2002_DrawsTheIntroductionGateAndNotTheDecline()
+    {
+        var (ok, errors, warnings) = EditionHarness.CompileFull(Golden("w59_float_decimal_clause_witness"), 2002);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0900");
+        EditionHarness.AssertHasDiagnostic(errors, "OPTIONS FLOAT-DECIMAL requires COBOL-2014");
+        EditionHarness.AssertNoDiagnostic(warnings, FloatDecimalClauseNonSupport);
+        EditionHarness.AssertNoDiagnostic(errors, FloatDecimalClauseNonSupport);
+    }
+
     /// <summary>EVERY legal spelling of the declined FLOAT-DECIMAL clause reaches the COBOL2424 warning — never a
     /// parse error (kb/Work PB1508, wave 59 H; owner decision R43 item 5: a decline that diagnoses legal source
     /// wrongly is a leak). §11.9.9.2's phrases are enclosed in CHOICE INDICATORS, and §5.2.6.4 says "The

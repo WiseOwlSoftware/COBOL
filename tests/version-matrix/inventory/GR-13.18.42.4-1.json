@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.42.4-1",
+ "section": "13.18.42.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "PROPERTY clause",
+ "rule-digest": "aed0936f7840",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoBindPropertyClauses; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#ResolveOverrides",
+ "test-ref": "conformance:cases/8.4.3.9-Object-property/pb1275_property_set_formats; conformance:cases/13.18.42-PROPERTY/pb1274_property_accessor_override; conformance:cases/13.18.42-PROPERTY/pb1274-property-accessor-redefined-without-override",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1274 LANDED (wave 1015 Z). cite.py --check 13.18.42.4 'If the GET phrase is not specified, the PROPERTY clause causes a method to be defined for the containing object' OK 1); 8.4.3.9.1 'a method implicitly generated for a data item described with the PROPERTY clause' OK. The clause's GET accessor is a method of the containing object in every respect: OoClassTable.ResolveOverrides (OVERRIDE / FINAL marking) now runs once every class's data has bound, so the implicit GET is on the superclass roster when a subclass's explicit GET PROPERTY N OVERRIDE is resolved (pb1274_property_accessor_override prints D=9 through the override and C=1 through the implicit method; it was COBOL0838), and a redefinition without OVERRIDE is SR4 a) COBOL0837. The PB1275 half (the implicit GET in every sending position) stays witnessed by pb1275_property_set_formats.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.60.4-11",
+ "section": "13.18.60.4",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "USAGE clause",
+ "rule-digest": "e57af73e2327",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#StorageWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#ByteForm; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.Image.cs#FormatPackedImage; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ApplyEffectiveNoSign; docs/CONFORMANCE.md#DOC-A.1-215",
+ "test-ref": "conformance:cases/13.18.60-USAGE/usage_packed_no_sign; conformance:cases/13.18.40-PICTURE/pb570_group_no_sign; conformance:cases/13.18.60-USAGE/pb570-group-no-sign-below-2023; conformance-test:UsageInheritanceDriftTests.InheritedUsagePhrase_IsTheSameItemAsAWrittenOne",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB570 LANDED. The refuted half was the WITH NO SIGN sentence -- 'If the WITH NO SIGN phrase is specified the representation of the data item in the storage of the computer reserves no storage for representing any sign value' -- which held on the elementary spelling and was DISCARDED on the group-inherited one. The phrase is part of the USAGE clause (13.18.60.2 prints it inside the PACKED-DECIMAL alternative), so 13.18.60.4 GR1 hands it down with the word; it now does, through InheritedUsage.NoSign and the one ApplyEffectiveNoSign site. MEASURED on this worktree's own build, widths DERIVED from the rule (plain packed 9(n) = n/2+1 bytes, NO SIGN = ceil(n/2)): group-level NO SIGN 9(4) leaf = 2 (was 3, the signed layout), the same leaf two levels down at 9(6) = 3, a plain-packed group's 9(4) leaf = 3, the elementary spelling = 2, a TYPE reference to a TYPEDEF that wrote the phrase = 2, and the 13.18.49.4 GR3 SAME-AS ancestor transform = 2. GR1's nearest-enclosing half is pinned too: a subordinate group writing a plain PACKED-DECIMAL clause gives its leaf 3. Everything else in the rule was re-measured unchanged (radix-10 BCD two digits per byte, trailing sign nibble C/D, CONFORMANCE.md item 215; MOVE -42 into the NO SIGN leaf stores 0042). The 2023 introduction gate fires on the group spelling too -- conformance:cases/13.18.60-USAGE/pb570-group-no-sign-below-2023, COBOL0900 at 85/2002/2014.",
+ "state": "OK"
+}

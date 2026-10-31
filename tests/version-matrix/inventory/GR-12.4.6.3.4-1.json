@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.6.3.4-1",
+ "section": "12.4.6.3.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "APPLY COMMIT clause",
+ "rule-digest": "b3c6f818398b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/WiseOwl.Cobol.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CommitSequential; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RollbackSequential; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
+ "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3338_apply_commit_rollback; unit:TransactionControlTests.A_commit_saves_the_items_and_a_later_rollback_restores_them_with_the_files; conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:CommitRollbackRefusalWitnessTests.A_sequential_operand_puts_the_file_and_its_status_item_under_commit_control",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB3340 (wave 1157): The files the clause names, of every organization, and the data items are subject to the facility: TransactionEmitter registers every file of the clause (ApplyCommitModel.Files) and FileRegistry.RegisterCommitControl accepts a sequential connector. Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5).",
+ "state": "OK"
+}

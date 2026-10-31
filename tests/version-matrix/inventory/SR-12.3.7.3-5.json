@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.7.3-5",
+ "section": "12.3.7.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "36ad3e848bf7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#BindImplementorNameEntry; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#SwitchBindSet; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#MnemonicDevice; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#FeatureAdvancing",
+ "test-ref": "unit:ImplementorNamesDriftTests.MnemonicUse_IsKeyedOnTheNamesKind; conformance:cases/12.3.7-SPECIAL-NAMES/pb862_implementor_names",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR5 - mnemonic-name-1 (a switch's) only in SET: the switch registry holds ONLY switch mnemonics, DISPLAY/ACCEPT refuse a switch's mnemonic (COBOL0817) and WRITE ADVANCING refuses it (COBOL2243). kb/Work PB862 - a device's mnemonic used to be SET-able as a switch.",
+ "state": "OK"
+}

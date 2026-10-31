@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.10.3-6",
+ "section": "12.4.5.10.3",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "ORGANIZATION clause",
+ "rule-digest": "080c2be67a22",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#MapOrganization",
+ "test-ref": "conformance:cases/12.4.5.10-ORGANIZATION/pb706_organization_record_sequential",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB706 (2026-09-22). --check 12.4.5.10.3 \"sequential organization with the RECORD SEQUENTIAL phrase is implied\" -> OK 6). MapOrganization's null arm (no ORGANIZATION clause) is FileOrganization.Sequential - the same value RECORD SEQUENTIAL and bare SEQUENTIAL bind to; the golden's third file (no clause) writes and reads back as record sequential.",
+ "state": "OK"
+}

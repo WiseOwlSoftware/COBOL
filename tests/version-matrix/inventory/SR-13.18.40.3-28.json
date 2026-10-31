@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-28",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 28,
+ "subject": "PICTURE clause",
+ "rule-digest": "05a7dd98e602",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/l1_picture_currency_equivalent; conformance:cases/13.18.40-PICTURE/l1_picture_currency_equivalent_2002; conformance:cases/13.18.40-PICTURE/l1-picture-currency-not-equivalent",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Equivalent occurrences (PIC wwW9, case-folded per §12.3.7.3 SR20 -> §8.1.3.2 GR3) form one floating string and render [ W12] identically to PIC WWW9; non-equivalent ones (PIC $$W9 with '$' implied by §12.3.7.3 SR25) are rejected COBOL0808. The 85 leg is vacuous — only '$' exists there.",
+ "state": "OK"
+}

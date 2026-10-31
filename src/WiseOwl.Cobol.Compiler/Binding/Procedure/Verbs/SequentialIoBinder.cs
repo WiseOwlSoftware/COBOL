@@ -418,7 +418,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             // PAGE twin is a parse error because PAGE is a keyword. The word used to be dropped in silence.
             if ((wba.LINE() ?? wba.LINES()) is { } word)
                 ctx.Edition.Error(DiagnosticCatalog.StatementFormatShape,
-                    $"WRITE … ADVANCING {DataBinder.WrittenText(m)} {word.GetText()}: '{name}' "
+                    $"WRITE ADVANCING {DataBinder.WrittenText(m)} {word.GetText()}: '{name}' "
                     + "is a mnemonic-name, and ISO §14.9.51.2 Format 1 writes LINE or LINES only after the count "
                     + "alternative { identifier-2 | integer-1 } — the other alternative is { mnemonic-name-1 | PAGE } "
                     + $"with no such word. Remove '{word.GetText()}'.");
@@ -507,7 +507,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
     private BoundAdvancing FeatureAdvancing(bool before, string mnemonic, ImplementorName system)
     {
         if (system.Kind != SystemNameKind.Feature)
-            ctx.Edition.Error(DiagnosticCatalog.WriteAdvancingMnemonicNotFeature, $"WRITE … ADVANCING '{mnemonic}': "
+            ctx.Edition.Error(DiagnosticCatalog.WriteAdvancingMnemonicNotFeature, $"WRITE ADVANCING '{mnemonic}': "
                 + $"'{mnemonic}' is the mnemonic-name of the {ImplementorNames.KindWord(system.Kind)} '{system.Name}' — "
                 + "\"When mnemonic-name-1 is specified, the name is associated with a feature-name specified by the "
                 + "implementor\" (ISO §14.9.51.3 SR16), and a mnemonic-name that is not a feature-name's may not be "

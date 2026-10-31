@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.7.3-31",
+ "section": "12.3.7.3",
+ "kind": "SR",
+ "ordinal": 31,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "aa39b566bbbb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolSpecialNames.g4#specialNamesParagraph",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb1090_empty_special_names_two_periods",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1090: the empty paragraph is written SPECIAL-NAMES. or SPECIAL-NAMES. . ; a non-empty paragraph's closing period stays its last entry's own.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.19.3-4",
+ "section": "13.18.19.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "DYNAMIC LENGTH clause",
+ "rule-digest": "2ef00814c317",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/Model/DynamicLengthStructure.cs#MaximumLength",
+ "test-ref": "conformance:cases/13.18.19-DYNAMIC-LENGTH/pb829-dynamic-length-structure-limit; conformance-test:DynamicLengthTests.StructureName_LimitAboveTheLengthField_Rejected2258",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB829. LIMIT above the maximum length associated with the structure (its PREFIXED field capacity bounded by the implementor maximum) is COBOL2258: SHORT PREFIXED accepts 65535 and refuses 65536; SIGNED SHORT PREFIXED refuses 40000.",
+ "state": "OK"
+}

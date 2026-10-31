@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.2.3-11",
+ "section": "14.2.3",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "Procedure division structure",
+ "rule-digest": "c2b59b54a140",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#Num; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#Text; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#TextValue; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#LandForFormal; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#FormalAdopt",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/pb873_signed_argument_image_carried_formal; conformance:cases/14.2-Procedure-division-structure/pb873_by_value_image_carried_formal; conformance:cases/14.2-Procedure-division-structure/pb288_call_argument_scale_landing; unit:CallAbiNumericCarrierDriftTests.ASignedArgument_KeepsItsSign_OnBothImageArms; unit:CallAbiNumericCarrierDriftTests.TheCarriedDescription_DecidesTheImageShape; unit:CallAbiNumericCarrierDriftTests.TheGr8ViewAndTheGr10Copy_LandIdentically",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB873. Every reference to a formal resolves through its LINKAGE description on every carrier arm: a native numeric formal lands the argument through the formal's profile (CobolArgAdapt.Num / NumValue, the shared Land - PB288); an IMAGE-carried (redefined) numeric formal reads the argument's storage image under the argument's carried NumProfile (GR8 / GR9 first branch) or, after GR9/GR10's COMPUTE, under the formal's own (LandForFormal sets Num = formal; TextValue renders GR10's record in the formal's profile) - so the operational sign, SIGN SEPARATE position and byte form are the description's, where CobolArg's former (Digits, Scale) pair built an UNSIGNED zoned image and -12.34 arrived as +12.34 (00123D for 00123M) on both the BY REFERENCE and BY CONTENT arm.",
+ "state": "OK"
+}

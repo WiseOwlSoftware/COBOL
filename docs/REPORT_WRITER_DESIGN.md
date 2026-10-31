@@ -447,6 +447,11 @@ off-by-one through every later counter check.
   (every procedure division identifier), `DataBinder.ResolveClauseOperand` (FILE STATUS, RELATIVE KEY, LINAGE, APPLY
   COMMIT) and the data-division OCCURS … DEPENDING ON lookup; `ReportItemReferenceTests` pins the three. The report
   section's own clauses are not refused here: their operand rules are theirs (`ReportSectionNameIn`, COBOL2144).
+  **The ambiguity among data items is told first** (kb/Work PB3767): a reference that reaches SEVERAL data items breaks
+  §8.4.2.2.3 SR1 whether or not a report entry spells the same, so `DataBinder.DataItemsAmbiguousBeforeReportEntry` is
+  the ONE order both arms read before they ask the refusal (COBOL1639, its text counting the report entries of the data
+  items' source element, `ReportEntriesInTierOf`) — except that a report entry of a NEARER source element than the
+  ambiguous GLOBAL data items is the referenced item (§8.4.6.2.1 3) a)) and keeps COBOL5092.
 - **A REPEATING ENTRY'S SUM COUNTER IS A TABLE, ONE COUNTER PER OCCURRENCE** (kb/Work PB1271). §13.18.54.4 GR8 a)
   adds each occurrence of a repeating addend "into the corresponding occurrence of the sum counter", GR10 speaks of
   "the corresponding sum counter" of an absent occurrence, and all three §13.15.4 GR3 repetition vehicles are OCCURS

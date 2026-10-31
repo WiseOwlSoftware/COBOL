@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.2.3.4-4",
+ "section": "7.2.3.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "COPY statement",
+ "rule-digest": "143cf48b8053",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#GateCopyPhrase",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-7.2.3.4-4",
+ "editions": "2002,2014,2023",
+ "notes": "GR4: 'If the SUPPRESS phrase is specified, library text incorporated as a result of COPY statement processing is not listed. If a listing is being produced, the COPY statement itself is listed.' cite.py --check 7.2.3.4 'If the SUPPRESS phrase is specified, library text incorporated as a result of COPY statement processing is not listed' -> OK §7.2.3.4 4). WiseOwl COBOL produces no source listing (docs/CONFORMANCE.md: '>>LISTING / >>PAGE ... no source listing is produced'; A.1 item 200 is conditioned on the implementor producing listings), so both halves hold vacuously; SUPPRESS [PRINTING] is accepted (ResolveOneCopy scans past it to the period) — probe p2c (COPY p2book SUPPRESS.) incorporated the text. ⚠ The SUPPRESS phrase is NOT harmless: because it is skipped by the scan-to-period rather than parsed, a REPLACING phrase that follows it (the general-format order) is silently discarded — filed against GR8/GR6 (finding 'COPY phrase parse is positional'). The legacy integration test SourceTextSpecTests.CopySuppressPrinting_IsBenignAndStillCopies exercises Legacy.Compiler, not WiseOwl.Cobol, so it does not close this row. probe dir E:/Temp/claude/E--COBOL/a700c052-f9e4-4942-84ff-a13c7505d6ec/scratchpad/adj-d2/out/probe/copy-p2/ || editions (adjudicator): 85, 2002, 2014, 2023 (COPY statement present in every edition; Annex E.2 item 1 bullet 4 touches only non-pseudo-text REPLACING operands at 2023) kb/Work PB1601: the SUPPRESS phrase is a COBOL-2002 introduction (constructs row copy-suppress-2002; VCR row 7.44, edge DERIVED), so the rule exists from 2002; below it COBOL0900.",
+ "state": "OK"
+}

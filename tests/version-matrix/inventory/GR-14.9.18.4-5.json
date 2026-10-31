@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.18.4-5",
+ "section": "14.9.18.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "GOBACK statement",
+ "rule-digest": "a57f85a8e829",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindGoback; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitGoback",
+ "test-ref": "conformance:cases/14.9.18-GOBACK/udf_bare_zero_arg; conformance:cases/14.9.18-GOBACK/any_length_function",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Measured and covered. Probe gr5fn/fn: a user-defined function whose body computes LK-R = LK-A * 2, GOBACKs, and then has a further COMPUTE LK-R = 999 - the caller reads R=0006 and the trailing statement never runs, so the GOBACK terminated the FUNCTION (not the run unit: 'ALIVE' still prints). conformance:cases/14.9.18-GOBACK/udf_bare_zero_arg is the existing spec-derived pin: its function body is 'MOVE 42 TO R-OUT. GOBACK.' and the golden is 0042 - the RETURNING item's value IS the function result. The GR1b propagation half also works from a function (probe gr1fn/fnraise). Boundary confirmed in the other direction: a function is not a main program, so its GOBACK status phrase must not reach the OS - probe gr10fn/fnstatus ('GOBACK WITH ERROR STATUS 5.' inside the function) exits 0.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindGoback; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs (the function-activation return, 14.9.18.4 GR5 semantics); src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitGoback",
+ "state": "OK"
+}

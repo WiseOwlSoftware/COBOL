@@ -24,6 +24,13 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// SET's integer-1 is any numeric literal for its bind check, a later edition's words are tokens at every edition), so
 /// the expected elements can hold one the format does not print there. The sentence says "expected", the parser's own
 /// word, and never "the general format admits only".</para>
+/// <para>⛔ EXCEPT FOR THE WORDS THE TARGETED EDITION DOES NOT HAVE (kb/Work PB4174). The grammar is the superset of the
+/// four editions, so its expected set holds the 2002 boolean operators at COBOL-85 and the 2023 shift operators below
+/// 2023 — words ISO §8.9 has not reserved there, which §8.3.2.1 makes user-defined words. A keyword is named only where
+/// <c>theEditionPrints</c> says a general format of the compile edition can print it
+/// (<c>CobolParserCoreBase.PrintsKeyword</c>: not a word the §8.9 table proves a LATER edition introduced; the
+/// §8.10 context-sensitive words carry no per-edition flag and are named at every edition); the symbols and literal
+/// categories carry no edition and are named as the parse takes them.</para>
 /// <para>Three shapes, one rule (ISO §5.2.1: the elements of a general format are written in its sequence):</para>
 /// <list type="bullet">
 ///   <item><b>A closed position</b>: everything it expects can be named — no user-defined word, no separator period
@@ -46,28 +53,22 @@ internal static class AdmittedKinds
     /// <summary>The refusal sentence for <paramref name="token"/>, written where the parse takes
     /// <paramref name="admitted"/> (predicates evaluated at the token) and the text predicates refusing it tested
     /// <paramref name="words"/>; null when the token is taken (the fault lies further on) or no shape applies.
-    /// <paramref name="statementStart"/> is FIRST(<c>statementBlock</c>).
-    /// <para>⛔ <c>ZERO_ARITH</c> IS NAMED ONLY WHERE A WRITTEN ZERO WOULD BECOME IT (kb/Work PB3861 review R1-1). It is a
-    /// token no program writes: <c>ZeroTokenRewriter</c> makes a written ZERO that one by its neighbours, an arithmetic
-    /// operator, the ref-mod colon or a paren pair around it alone. A parse that expects it expects a ZERO only in such
-    /// a context, so it is named "the figurative constant ZERO" only when <paramref name="aZeroWrittenHereIsArithmetic"/>
-    /// (the rewriter's own test, asked of the refused token's place): after <c>1 +</c> a ZERO written instead of
-    /// <c>"A"</c> parses, while after <c>SET IX TO</c> it stays the figurative ZERO the position does not take, and naming
-    /// it there sent the user to a rewrite the compiler refuses (and wrote "The word ZERO is not expected here: expected
-    /// the figurative constant ZERO" for <c>SET IX TO ALL ZERO</c>).</para></summary>
+    /// <paramref name="statementStart"/> is FIRST(<c>statementBlock</c>); <paramref name="theEditionPrints"/> says
+    /// whether a general format of the compile edition can print a keyword (kb/Work PB4174), and a keyword it refuses
+    /// is not named.
+    /// <para>⛔ <c>ZERO_ARITH</c> IS NAMED "the figurative constant ZERO" WHEREVER THE PARSE EXPECTS IT (kb/Work PB4120). It is
+    /// a token no program writes, and a ZERO written where the parse expects it becomes it: <c>ZeroTokenRewriter</c>
+    /// makes it so by the ZERO's neighbours, and where no neighbour shows the arithmetic expression the parse does
+    /// (<c>ZeroSignReading</c>: a figurative ZERO the slot refuses is read as the expression's operand), so after
+    /// <c>SET IX TO</c> a ZERO written instead of <c>"A"</c> parses exactly as after <c>1 +</c>. The narrowing that once
+    /// stood here (kb/Work PB3861 review R1-1: named only where the rewriter's neighbour test held) answered a defect of
+    /// the rewrite, not of the name, and went with it.</para></summary>
     public static string? Refusal(IToken token, IntervalSet admitted, IReadOnlyCollection<string> words,
-        IntervalSet statementStart, Func<bool> aPeriodLetsTheSentenceFollow, bool aZeroWrittenHereIsArithmetic)
+        IntervalSet statementStart, Func<bool> aPeriodLetsTheSentenceFollow, Func<string, bool> theEditionPrints)
     {
-        if (!aZeroWrittenHereIsArithmetic && admitted.Contains(CobolParserCore.ZERO_ARITH))
-        {
-            var writable = new IntervalSet();
-            writable.AddAll(admitted);
-            writable.Remove(CobolParserCore.ZERO_ARITH);
-            admitted = writable;
-        }
         if (token.Type == TokenConstants.EOF || admitted.Contains(token.Type) || admitted.Count == 0 && words.Count == 0)
             return null;
-        var named = Name(admitted, words, statementStart);
+        var named = Name(admitted, words, statementStart, theEditionPrints);
         string written = Written(token);
         if (!named.Open && named.Words.Count + named.Literals.Count + named.Symbols.Count == 0)
             return null;   // nothing the position expects can be named, so nothing is said
@@ -113,8 +114,8 @@ internal static class AdmittedKinds
     /// <summary>The figurative-constant words, each a literal (ISO §8.3.3.1: "A literal is defined by a reserved word
     /// that references a figurative constant or is a character-string …"): FIRST(<c>figurativeConstant</c>) but its ALL
     /// prefix, and ZERO_ARITH, the ZERO the token rewriter marks arithmetic (§8.8.1.1: an arithmetic expression may be
-    /// "the figurative constant ZERO (ZEROS, ZEROES)"), which reaches here only where a ZERO written at the refused
-    /// token would be that token (<see cref="Refusal"/>). A position that takes some of them, not the whole family,
+    /// "the figurative constant ZERO (ZEROS, ZEROES)"), which a ZERO written at the refused token becomes
+    /// (<see cref="Refusal"/>). A position that takes some of them, not the whole family,
     /// names each as a figurative constant among its literals.</summary>
     private static IntervalSet FigurativeWords => _figurativeWords ??= BuildFigurativeWords();
 
@@ -133,11 +134,12 @@ internal static class AdmittedKinds
 
     private sealed record Named(List<string> Words, List<string> Literals, List<string> Symbols, bool Open);
 
-    private static Named Name(IntervalSet admitted, IReadOnlyCollection<string> words, IntervalSet statementStart)
+    private static Named Name(IntervalSet admitted, IReadOnlyCollection<string> words, IntervalSet statementStart,
+        Func<string, bool> theEditionPrints)
     {
         bool open = admitted.Contains(CobolLexer.IDENTIFIER) || admitted.Contains(CobolLexer.DOT)
                     || admitted.Contains(TokenConstants.EOF) || admitted.And(statementStart).Count > 0;
-        var wordNames = new SortedSet<string>(words, CobolNames.Comparer);
+        var wordNames = new SortedSet<string>(words.Where(theEditionPrints), CobolNames.Comparer);
         var literals = new List<string>();
         var symbols = new List<string>();
         var rest = new IntervalSet();
@@ -155,6 +157,7 @@ internal static class AdmittedKinds
             if (type is CobolLexer.IDENTIFIER or CobolLexer.DOT or TokenConstants.EOF) continue;
             if (LiteralTokens.CategoryOf(type) is { } kind) Add(literals, Article(kind));
             else if (Spelling(type) is not { } spelling) open = true;   // a token with no name cannot be listed
+            else if (char.IsAsciiLetter(spelling[0]) && !theEditionPrints(spelling)) continue;   // a word the edition lacks
             else if (FigurativeWords.Contains(type)) Add(literals, $"the figurative constant {spelling}");
             else if (char.IsAsciiLetter(spelling[0])) wordNames.Add(spelling);
             else Add(symbols, $"'{spelling}'");

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.20.3-1",
+ "section": "13.18.20.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Entry-name clause",
+ "rule-digest": "f52cd027dea2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataName",
+ "test-ref": "conformance:cases/13.18.20-Entry-name/l1c08-entry-name-qualified; conformance:cases/13.18.20-Entry-name/l1c08-entry-name-subscripted",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"Data-name-1 shall not be qualified or subscripted.\" (cite.py --check 13.18.20.3 OK, rule 1). dataName is a single cobolWord/FILLER token with no qualifier or subscript alternative, so the declaration slot cannot carry either: probe/entry-name-clause/p4.cob `05 A OF G PIC X(3).` -> COBOL0001 near 'OF'; p5.cob `05 A(1) PIC X(3).` -> COBOL0001 near '('. Report group name (cobolWord) likewise. Rejection is a generic parse error, not a named diagnostic — acceptable for a syntax rule. No spec-derived negative test pins it. || Editions (adjudicator): 85, 2002, 2014, 2023 (the clause's own text; Annex E records no change to the entry-name clause)",
+ "state": "OK"
+}

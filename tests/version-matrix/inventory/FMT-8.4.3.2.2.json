@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.4.3.2.2",
+ "section": "8.4.3.2.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Function-identifier",
+ "rule-digest": "f8c1698aef9f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#subscriptPart",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/pb969_empty_argument_list; conformance:cases/8.4.3.2-Function-identifier/pb969_function_pointer_empty_arguments; conformance:cases/8.4.3.2-Function-identifier/pb969-empty-parentheses-on-data-item",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "[FUNCTION] {function-pointer-name-1 | function-prototype-name-1 | intrinsic-function-name-1} [ ( [ {argument-1 | OMITTED} ] ... ) ] - rendered PDF p157: the arguments are bracketed INSIDE the parentheses, so the empty list is legal on both the keyword route (functionCall's functionArgList?) and the keyword-omitted route (subscriptPart : REF_LPAREN subscriptList? REF_RPAREN, kb/Work PB969). An empty group after a DATA reference is refused by name, COBOL2309 (ReferenceResolver.ScreenEmptyParentheses). retired-witness: src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#subscriptOrRefMod (kb/Work PB2113: the keyword-omitted argument list is the parsed subscriptPart, whose items are functionArguments)",
+ "state": "OK"
+}

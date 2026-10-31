@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.84.4-2",
+ "section": "15.84.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "SQRT function",
+ "rule-digest": "8728652531fb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolDec.cs#Sqrt",
+ "test-ref": "conformance:cases/11.9.5-ARITHMETIC/pb116_sqrt_standard_decimal; unit:CobolDecSqrtTests.SqrtPointOne_RoundsAtThe34thDigit",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "LANDED (kb/Work PB116): the 34-digit correctly-rounded value by construction - the 36-37-digit integer root carries 2-3 guard digits below the rounding position and the floor remainder is the sticky bit into the ONE Round34 funnel, so every intermediate rounding mode lands exactly (the mode-sensitive 35th-digit-5 case pinned both ways). The RenderDec arm is guarded `when num.StandardDecimal` and Sqrt joined alwaysDec (a plain-operand call otherwise early-outed to binary64 - caught by the golden's first run).",
+ "state": "OK"
+}

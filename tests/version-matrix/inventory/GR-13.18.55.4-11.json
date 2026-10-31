@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.55.4-11",
+ "section": "13.18.55.4",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "SYNCHRONIZED clause",
+ "rule-digest": "1cce39daf61f",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-195",
+ "test-ref": "conformance:cases/13.18.55-SYNCHRONIZED/l1_sync_file_record",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "A record WRITTEN through the synchronized FD description and READ back through the unsynchronized one on the same external file decodes intact, and both record lengths are 4 - DOC-A.1-195's 'GR11 adds no file-level synchronization' (A.1 item 196 is optional documentation).",
+ "state": "OK"
+}

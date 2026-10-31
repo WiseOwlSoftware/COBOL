@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-82",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 82,
+ "subject": "Floating-point numeric literals (maximum permitted value and minimum permitted value of the exponent)",
+ "rule-digest": "e2641f151ff1",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-82; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolDec.cs#FromParsed",
+ "test-ref": "conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb99_floating_literal_extremes; conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb156_float_literal_exact_native; conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb99-floating-literal-range",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "editions 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): floating-point numeric literals and data are a COBOL-2002 introduction. cite.py --check 8.3.3.3.3 \"Floating-point\" OK.",
+ "state": "OK"
+}

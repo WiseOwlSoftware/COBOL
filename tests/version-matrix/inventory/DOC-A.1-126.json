@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-126",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 126,
+ "subject": "OBJECT-COMPUTER paragraph (default object computer)",
+ "rule-digest": "8ac05524eb39",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-126; docs/CONFORMANCE.md#DOC-A.1-127; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/ObjectComputerEmit.cs#ObjectComputerEmit; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#ComputerNameOptional2002",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/pb373_object_computer_name_inert",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§12.3.6.4 GR3 and GR4 (cite.py OK §12.3.6.4 3) and 4)). The determination was written only under the neighbouring key DOC-A.1-127 (GR2, computer-name, 'Not provided.'); this row files it under its own item so the computed anchor resolves. Verified: golden 2023/pb373_object_computer_name_inert re-run at the branch build is identical to its .out (OTHER-NAME=SAME, NO-NAME=SAME, NO-PARAGRAPH=SAME, CONTROL=DIFFER; PCS-WITH-NAME=REV, PCS-NO-NAME=REV); probe copy /tmp/adj/doc/doc-w1-s4/probe/p126.cob/p126.out; --std 2002 runs the same assertions (85 is refused only for the golden's 19-digit item). Target framework net10.0 / Microsoft.NETCore.App 10.0.0 read from the compiled .runtimeconfig.json. ObjectComputerEmit renders the only OBJECT-COMPUTER-derived members (collating carriers, classification), which do not depend on computer-name-1; VersionConformancePass gates the name-less paragraph (ComputerNameOptional2002): probe p126b.cob (an empty 'OBJECT-COMPUTER.' paragraph) -> OK at 85 and 2002; a clause without a name is refused below 2002.",
+ "state": "OK"
+}

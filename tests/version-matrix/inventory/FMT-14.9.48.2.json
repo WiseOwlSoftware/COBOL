@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.48.2",
+ "section": "14.9.48.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "UNSTRING statement",
+ "rule-digest": "21ad0933d607",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#unstringStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#unstringIntoPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#unstringDelimiterPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/pb1183-unstring-into-repeated; conformance:cases/14.9.48-UNSTRING/l1c35_unstring_receiving_operands",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1183 (landed, wave 1019 F). cite.py --check 14.9.48.2 \"INTO\" -> OK §14.9.48.2: `INTO { identifier-4 [ DELIMITER IN identifier-5 ] [ COUNT IN identifier-6 ] } …` — the ellipsis follows the braced receiver group, so it repeats the receivers, never the INTO keyword. The grammar read `unstringIntoPhrase+` and compiled `UNSTRING S DELIMITED BY \",\" INTO A INTO B` at every edition (A=[AB  ] B=[CD5E]); it now reads ONE `unstringIntoPhrase` (`INTO unstringIntoTarget+`) and the second INTO is COBOL0307 at 85/2002/2014/2023 (negative/pb1183-unstring-into-repeated). The one-INTO-many-receivers form stays pinned by conformance:cases/14.9.48-UNSTRING/l1c35_unstring_receiving_operands (three receivers with DELIMITER IN). GnuCOBOL 3.2 (-std=cobol2014 and default) refuses the same source: 'syntax error, unexpected INTO'. Every other facet of the format was verified by the d1-14c adjudication (optional BY/IN/WITH/ON words, the ON/NOT ON OVERFLOW choice indicators, POINTER/TALLYING order, identifier-only sender); unchanged. The legacy binder's per-phrase loop collapsed with it (StringStatementBinder). retired-witness: src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#unstringOnOverflow (kb/Work PB3830: every Table 12 [NOT] phrase is the one conditionalPhrases rule now; the per-statement phrase rule no longer exists)",
+ "state": "OK"
+}

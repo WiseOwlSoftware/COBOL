@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.40.4-8",
+ "section": "14.9.40.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "SORT statement",
+ "rule-digest": "de9426f4c180",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortAddFileKeys; src/WiseOwl.Cobol.Runtime/IO/SortKeyColumns.cs#SortKeyColumns",
+ "test-ref": "conformance-test:SortMergeDifferentialTests.Sort_InputOutputProcedures_MultiKeyMixedDirections",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'To determine the relative order in which two records are returned from the file referenced by file-name-1, the contents of corresponding key data items are compared according to the rules for comparison of operands in a relation condition, starting with the most significant key data item.' a) ASC lower first, b) DESC higher first, c) equal -> next key (cite.py --check 14.9.40.4 OK, GR8). KeyColumns dispatches on the key's class: numeric -> algebraic via the leaf's own NumProfile (8.8.4.2.4, incl. IEEE float and unsigned 128-bit lanes), national -> decoded national positions under the GR5 national sequence (8.8.4.2.9), boolean -> no sequence (8.8.4.2.8), alphanumeric/group -> byte window under the GR5 alphanumeric sequence (8.8.4.2.7); Compare walks keys in significance order and negates for DESCENDING. a/b/c all pinned by the spec-pinned multi-key test; algebraic numeric by conformance-test:SortMergeDifferentialTests.Sort_SignedNumericKeys_CompareAlgebraically; national by conformance:cases/14.9.24-MERGE/pb678_sort_national_key_collating; float by conformance:cases/_unassigned/pb164_float_sort_key. [editions as adjudicated: 1985, 2002, 2014, 2023] retired-witness: src/Cobol.Net.Runtime/IO/CobolSort.cs#KeyColumns (kb/Work PB3339 moved the key columns, unchanged in their lanes, out of CobolSort into SortKeyColumns)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.16.4-3",
+ "section": "13.18.16.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "CONTROL clause",
+ "rule-digest": "b9c98ef7c94a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#DetectBreakLevel; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+ "test-ref": "conformance:cases/13.18.16-CONTROL/pb205_control_ref_mod; conformance:cases/13.18.16-CONTROL/rw_suppress",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The prior control is a saved character image per control operand (the emitted get/set pair over the operand's place); the chronologically first GENERATE saves without testing, later ones test major to minor and stop at the first change, and break processing runs for that level and every lower one. kb/Work PB205 made the SAVED item the right one for a reference-modified operand: GR3 gives the prior control 'the same data description as the corresponding data item', which for such an operand is the 8.4.3.3.4 GR5 unique data item - the slice - and the golden's two overlapping-item controls could not be told apart otherwise. kb/Work PB688 (2026-09-05): the golden moved from tests/conformance/2002 to tests/conformance/2023 - it observes the report by re-reading the report file through ORGANIZATION IS LINE SEQUENTIAL, which is a COBOL-2023 introduction (12.4.5.10.3 GR2; the Foreword's main-changes list over ISO/IEC 1989:2014), so the program is not expressible at 2002. The RULE's editions are unchanged.",
+ "state": "OK"
+}

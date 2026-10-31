@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.40.5-13",
+ "section": "13.18.40.5",
+ "kind": "GR",
+ "ordinal": 13,
+ "subject": "PICTURE clause",
+ "rule-digest": "0fc30f67cb09",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolLocaleEdit.cs#Format",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb64t6_locale_edit_rules",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-115",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 115,
+ "subject": "Line sequential character set",
+ "rule-digest": "6431fd6e9ced",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-115; src/WiseOwl.Cobol.Runtime/IO/LineSequentialCharacterSet.cs#HasCharacterOutside; src/WiseOwl.Cobol.Runtime/IO/LineSequentialCharacterSet.cs#Lowest; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#RecordAreaOutsideLineCharacterSet",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/pb329_line_sequential_charset_2023; conformance:cases/A.1-Implementor-defined-language-element-list/pb1542_code_set_line_sequential; unit:CodeSetConversionTests.LineSequentialCharacterSet_CeilingIsTheCodeSetAlphabet",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "A.1 item 115 -- 'Line sequential character set. This item is required. This item shall be documented in the implementor's user documentation. (14.9.30, READ statement, General rule 16, 9.1.13.2, Successful completion, I-O Status = 09; 14.9.35, REWRITE statement, General rule 17d; 14.9.51, WRITE statement General rule 23; and 9.1.13.10, Record with invalid content with unsuccessful completion, I-O Status = 71)'. The determination is made and documented (kb/Work PB329): the set is every character at code point U+0020 or above; the C0 controls U+0000-U+001F are outside it, the two line delimiters CR and LF and the tab HT among them; DEL and the Latin-1 supplement are inside, so an ordinary 8-bit text file reads without 09. The delimiters are FORCED out by 9.1.7.2's definition of a line sequential record's extent; the set cannot be only 'everything but the delimiters' because the reader consumes CR/LF as the framing and GR16's 09 would then be unreachable by construction; the remaining C0 controls are the stream/device repertoire, not text, and a line sequential file exists to be plain text. Surveyed, not assumed: GnuCOBOL's COB_LS_VALIDATE defaults to TRUE 'per COBOL 2022' and validates data read (status 09) and written (status 71) against the same below-SPACE boundary. ONE type carries the set for all four cross-referenced rules, so the READ and WRITE directions cannot disagree; the test is character-wise (national record areas two bytes at a time as UTF-16BE) rather than byte-wise. Pinned at all three editions the LINE SEQUENTIAL organization exists in. kb/Work PB688 (2026-09-05): ORGANIZATION IS LINE SEQUENTIAL is a COBOL-2023 INTRODUCTION - the Foreword's list of the main changes this third edition makes over ISO/IEC 1989:2014 names \"Line Sequential file organization\", and 9.1.6 / 9.1.7.1 still name exactly three organizations with 9.1.7.2 splitting the sequential one into its record- and line-delimited types. The organization therefore does not exist below 2023 (the pass now rejects it with COBOL0900, registry row file-organization-line-sequential-2023), the 2002 and 2014 copies of the golden were deleted as programs no edition below 2023 can express, and this row's editions are 2023 alone.",
+ "state": "OK"
+}

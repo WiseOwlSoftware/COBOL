@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.7.4-5",
+ "section": "12.3.7.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "d020268c55c2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#LocaleBind; src/WiseOwl.Cobol.Compiler/Binding/Model/LocaleSymbol.cs#LocaleSymbol; src/WiseOwl.Cobol.Runtime/Control/LocaleState.cs#LocaleIdentification",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/pb64t1_locale_declare; conformance:cases/12.3.7-SPECIAL-NAMES/pb64t1-locale-literal-sr10; unit:LocaleStateTests.ExternalIdentification_IsNormalized_PerDeterminationL1; unit:LocaleStateTests.Availability_IsTheOneKnownLocaleRule; conformance:cases/12.3.7-SPECIAL-NAMES/pb100-picture-locale-format-2",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T1 (2026-08-19): the LOCALE clause declares locale-name-1 with its external identification (either branch). The implementor half (DETERMINATION L1, CONFORMANCE.md §4 item 5): the identification is a locale TAG — any CLDR locale (BCP-47) or the root spelled INVARIANT — with POSIX spellings normalized (fr_FR.UTF-8 ≡ fr_FR ≡ fr-FR; a CLDR collation-type @modifier becomes -u-co-type, any other makes the locale unavailable); availability is decided at run time (EC-LOCALE-MISSING), never at compile time (§8.1.5). Was DOCUMENTED-NON-SUPPORT (PB25).",
+ "state": "OK"
+}

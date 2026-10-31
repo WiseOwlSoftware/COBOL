@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.87.4-5",
+ "section": "15.87.4",
+ "kind": "RV",
+ "ordinal": 5,
+ "subject": "SUBSTITUTE function",
+ "rule-digest": "b5fcce123828",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Substitute",
+ "test-ref": "conformance:cases/15.87.3-Argument-rules/substitute; conformance:cases/15.87.4-Returned-value-rules/pb81_substitute_table_all",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "ANYCASE matches as if both argument-1 and argument-2 were lowered per LOWER-CASE without LOCALE (the `substitute` golden's ANY row; PB81's AC row over an enumerated pair).",
+ "state": "OK"
+}

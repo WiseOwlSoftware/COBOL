@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-138",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 138,
+ "subject": "Parameterized classes and interfaces (when expanded)",
+ "rule-digest": "68f6227eff4f",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-138; src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#OoExpansion; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BinderDriver",
+ "test-ref": "conformance:cases/11.3-CLASS-ID/pb759_parameterized_class",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "A.1-138 is required + need not be documented, so this row is VOLUNTARY (like 90/92/123/144). §7.1 (cite.py OK) leaves manner and time to the implementor except that expansion follows text manipulation. Verified: BinderDriver.cs:332 calls OoExpansion.Expand on the parse tree of the already preprocessed source; OoExpansion re-parses the definition's tokens with formals replaced (§12.3.8.4 GR5, cite.py OK 5)) and renames the header; identity per §9.3.12 (cite.py OK), COBOL2240 on a conflicting reuse. New probe probe/pc.cob --std 2002: REPLACE ==ZZZ== BY ==ELEM== over the definition's USAGE OBJECT REFERENCE ZZZ, expanded USING PCTXT -> INVOKE ITEM SHOW prints TXT, so the substitution sees post-REPLACE text (the after-text-manipulation edge the staged record left unprobed). pb759 golden pins the manner (separate factory counters, INHERITS-by-formal, interface expansion, expansion of an expansion). Owning note kb/Work PB759 (landed).",
+ "state": "OK"
+}

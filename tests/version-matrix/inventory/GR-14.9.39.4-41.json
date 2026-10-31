@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-41",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 41,
+ "subject": "SET statement",
+ "rule-digest": "3819f56c8d82",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindMessageTagSet",
+ "test-ref": "conformance:wiseowl/cases/14.9.39-SET/pb453-set-message-tag-format17; conformance:wiseowl/cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb487-message-tag-usage",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB453 - Format 17's NULL general rule, under the same decline as GR-14.9.39.4-40. GR41 - \"If NULL is specified, the content of data-name-5 shall be set to that of the null value\" (cite.py --check 14.9.39.4 OK). Its own witness is the TO NULL statement in negative/pb453-set-message-tag-format17, which is the arm that used to draw Format 5's SR8 diagnostic: `SET MT1 TO NULL` reaches the format selection through setObjectReferenceStatement rather than setToValueStatement, so a fix that answered only the second arm would have left this rule's exact spelling still mis-diagnosed (feedback_two_arm_dispatch). The null value here is 8.4.3.10.4's implementor-defined value guaranteed not to represent a message server or requestor - distinct from the data-pointer NULL - and is unimplemented with GR40 under the same owner determination.",
+ "state": "OK"
+}

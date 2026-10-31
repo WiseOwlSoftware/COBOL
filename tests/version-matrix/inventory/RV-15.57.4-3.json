@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.57.4-3",
+ "section": "15.57.4",
+ "kind": "RV",
+ "ordinal": 3,
+ "subject": "LOWER-CASE function",
+ "rule-digest": "8facbdbe66bb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#LowerCase; src/WiseOwl.Cobol.Runtime/Globalization/CharacterClassification.cs#For",
+ "test-ref": "conformance:cases/8.8.4.4-Simple-class-condition/pb64t5_character_classification; conformance:cases/12.3.6-OBJECT-COMPUTER/pb64t5_case_locale_phrase",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T5 (2026-08-19) — LANDED; was DIVERGES: the CHARACTER CLASSIFICATION clause used to be swallowed by the OBJECT-COMPUTER attribute token sink (then, PB78, refused by name), so a program asking for a classification locale got the rule-4 invariant fold silently. The clause is a typed production now (characterClassificationClause; in either order with PROGRAM COLLATING SEQUENCE, at most once — COBOL2104, counted by the ClauseCardinalities OBJECT-COMPUTER row since kb/Work PB3133), bound to a ClassificationSpec and resolved at activation, and LOWER-CASE without a phrase maps through the classification's LC_CTYPE: LOWER-CASE(\"I\") → U+0131 under CLASSIFICATION IS TR (LO-I). Rule --check verified at 15.57.4 3).",
+ "state": "OK"
+}

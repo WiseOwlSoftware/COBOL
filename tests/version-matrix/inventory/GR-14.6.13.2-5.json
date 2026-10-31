@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.13.2-5",
+ "section": "14.6.13.2",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Exception condition handling",
+ "rule-digest": "93c4976e594b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/CobolDynString.cs#Agree; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#ReadsForeignDynamicLength; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#DynAgree",
+ "test-ref": "conformance:cases/14.6.13.2-Incompatible-data/pb1118_dyn_length_agreement; unit:CobolDynStringTests.Agree_ReadsTheContentUnchanged",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1118 (landed). cite.py --check 14.6.13.2 'When the internal format of a dynamic-length elementary item is not correctly formed or does not agree with the corresponding DYNAMIC LENGTH clause' -> OK 14.6.13.2 5). A dynamic-length item is a managed string (always correctly formed); it disagrees only by exceeding THIS description's 8.5.1.10.1 maximum, which content stored through the same description never does (every store truncates). So the two reads through a description that does not own the storage ask it: a LINKAGE item (PlaceRenderer.Read MemberPlace arm, ReadsForeignDynamicLength - a formal occupies the argument's storage, 14.2.3 GR8) and a cell-backed DynSlotWindow member (an EXTERNAL record described in two programs). CobolDynString.Agree raises the fatal condition under checking; checking off reads the content whole. Witness: pb1118_dyn_length_agreement (BY REFERENCE LIMIT 10 -> LIMIT 4: HANDLED, W4 unchanged; 2 chars agree; EXTERNAL LIMIT 10 vs 4; unchecked callee reads ABCD). Determination: docs/CONFORMANCE.md section 4.2.6 entry 'Incompatible dynamic-length and dynamic-capacity data'.",
+ "state": "OK"
+}

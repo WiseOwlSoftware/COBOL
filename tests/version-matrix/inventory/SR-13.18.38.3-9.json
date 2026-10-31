@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.38.3-9",
+ "section": "13.18.38.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "OCCURS clause",
+ "rule-digest": "f90fdee2eddf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#OccursKeyItemFault",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb1263-occurs-key-variable-length-group",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1263 (wave 1015 Y). cite.py --check 13.18.38.3 \"Data-name-2 shall not reference a variable-length group\" -> OK 9); 8.5.1.12.1 defines the group (--check OK). A key whose GroupKindsOf carries VariableLength draws COBOL2787.",
+ "state": "OK"
+}

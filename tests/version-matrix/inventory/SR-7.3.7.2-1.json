@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.7.2-1",
+ "section": "7.3.7.2",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Compile-time boolean expressions",
+ "rule-digest": "5b735ea7ed61",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateBoolean; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#BooleanLeaf; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#BooleanShift; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#compileTimeOperand; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#booleanShiftSuffix; src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#boolExprAhead; src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#ParenRunOpensOnBoolLiteral; src/WiseOwl.Cobol.Frontend/Expressions/ArithmeticFormationRules.cs#ShiftCountNotSoleOperand; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#ShiftCount; src/WiseOwl.Cobol.Frontend/Expressions/BooleanOperatorGate.cs#Check; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#GateBooleanOperators",
+ "test-ref": "conformance:cases/7.3.7-Compile-time-boolean-expressions/boolean_expression_formation; conformance:cases/7.3.7-Compile-time-boolean-expressions/pb1370-directive-shift-below-2023; unit:BooleanExpressionFormationTests.ParenthesizedBooleanLiteral_IsABooleanOperand; unit:BooleanExpressionFormationTests.ShiftCount_NotASingleIdentifierOrLiteral_IsATable4Violation; unit:BooleanExpressionGateSiteDriftTests.EveryDirectiveFragmentSite_IsGatedByItsEvaluatingHelper",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1370 landed (wave 66 h). Rule (cite.py --check 7.3.7.2 'Compile-time boolean expressions shall be formed in accordance with 8.8.2, Boolean expressions' -> OK §7.3.7.2 1)). The three divergences the adjudication measured are closed in the ONE model both lanes share: (a) a parenthesized boolean literal with no operator - §8.8.2 'a boolean expression enclosed in parentheses' (--check OK) - is recognized by boolExprAhead/boolArgAhead (ParenRunOpensOnBoolLiteral: a grouping-paren run opening on a BOOLLIT can only be boolean), so >>DEFINE X AS (B\"101\"), >>IF (B\"1\") = B\"1\" and >>EVALUATE (B\"1\") evaluate, and so do the runtime siblings IF (B\"1\") = F / IF F = (B\"1\") / INTEGER-OF-BOOLEAN((B\"1010\")); (b) the shift count is held to Table 4's single identifier-or-literal by the shared ArithmeticFormationRules screen (rule 5 --check OK; rule 6 --check OK) and to an INTEGER literal by form (§5.5 2) a) --check OK; §8.3.3.3.2 'An integer literal is a fixed-point numeric literal that contains no decimal point' --check OK) - 1 + 1, 2 * 1, (1), - 1, 1.0, and a variable holding 1.5 are COBOL1619; (c) the directive stage asks the ONE BooleanOperatorGate (shared with VersionConformancePass), so a B-SHIFT-* in >>DEFINE / >>IF at 2002/2014 is COBOL0900 like its runtime twin (§E.2 3) --check OK); BooleanExpressionGateSiteDriftTests now requires both fragment sites to be gated instead of exempting them.",
+ "state": "OK"
+}

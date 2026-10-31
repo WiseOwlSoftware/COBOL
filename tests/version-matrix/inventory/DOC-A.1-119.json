@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-119",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 119,
+ "subject": "Locale specification (manner of implementation)",
+ "rule-digest": "cf74dd982a8b",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-119; src/WiseOwl.Cobol.Runtime/Control/LocaleState.cs#LocaleIdentification; src/WiseOwl.Cobol.Runtime/Control/LocaleState.cs#LocaleState; src/WiseOwl.Cobol.Runtime/Globalization/LocaleFacts.cs#LocaleFacts",
+ "test-ref": "unit:LocaleStateTests.ExternalIdentification_IsNormalized_PerDeterminationL1; unit:LocaleStateTests.Availability_IsTheOneKnownLocaleRule; unit:LocaleStateTests.Set_SwitchesOnlyTheNamedCategories_AndTheyPersist",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§8.2.1 (cite.py OK 'The format and implementation of locales may differ from those specifications provided that logically-equivalent functionality is supported'). A.1-119 need not be documented: VOLUNTARY row. Verified by code: LocaleCategory enum (six categories + All), LocaleIdentification.Normalize/IsAvailable (-> CollationEngine.IsKnownLocale), LocaleFacts summary (LC_COLLATE from own CLDR/UCA engine; CTYPE/MONETARY/TIME from nearest .NET culture via parent chain; incomplete -> invariant + EC-LOCALE-INVALID gated); CONFORMANCE.md §4 line ~1116 states CLDR release-48-2 / UCA 17.0.0. Tests: LocaleStateTests ExternalIdentification_IsNormalized_PerDeterminationL1 (de-u-kf-upper@phonebk, INVARIANT/root/C/POSIX/'' -> root), Availability_IsTheOneKnownLocaleRule (es_ES.UTF-8 and de-DE@phonebook available; xx-NOWHERE, de@nonsense not), Set_SwitchesOnlyTheNamedCategories_AndTheyPersist (per-category state). Probe /tmp/adj/doc/doc-w1-s4/probe/p118.cob confirms per-locale LC_TIME content (de-DE 24.09.2026, fr-FR 24/09/2026, ja-JP 2026/09/24) and invariant mode rc 0.",
+ "state": "OK"
+}

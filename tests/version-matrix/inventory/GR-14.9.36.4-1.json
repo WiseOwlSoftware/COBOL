@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.36.4-1",
+ "section": "14.9.36.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "ROLLBACK statement",
+ "rule-digest": "cb3989d8c5cf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindCommitRollback; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#Visit; src/WiseOwl.Cobol.Runtime/IO/TransactionControl.cs#Rollback",
+ "test-ref": "conformance:cases/14.9.7-COMMIT/pb137_commit_inert; conformance:cases/14.9.7-COMMIT/wave_h_facilities_inert; conformance:wiseowl/cases/14.9.7-COMMIT/pb261_commit_facility_witness; conformance:wiseowl/cases/14.9.7-COMMIT/pb259_commit_rollback_under_sort; conformance:wiseowl/cases/14.9.7-COMMIT/pb259_commit_rollback_recursive; unit:TransactionControlTests.With_no_active_clause_commit_and_rollback_are_continue",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB3338 (wave 1154): Annex A.4.3 is now PARTIAL (docs/CONFORMANCE.md §5, §4 item 2): the APPLY COMMIT clause, COMMIT and ROLLBACK are provided for RELATIVE and INDEXED files, whose keyed store engine keeps the transaction (kb/Work PB3337); a SEQUENTIAL or LINE SEQUENTIAL file named in the clause is under commit control too, its transaction journal being kb/Work PB3340 (COBOL1709, which refused it, is retired). The derived verdict commit-and-rollback-only that stamped the module DOCUMENTED-NON-SUPPORT is retired. GR1: with no active clause TransactionControl.Rollback returns before asking anything else (GR2 included), the statement's whole effect being CONTINUE's. retired-witness: src/Cobol.Net.Compiler/Validation/DeclinedFacilityPass.cs#VisitApplyCommitClause (the commit and rollback facility is provided for the keyed organizations (kb/Work PB3338): the decline these witnessed is gone, and the rule is now witnessed by its own implementation)",
+ "state": "OK"
+}

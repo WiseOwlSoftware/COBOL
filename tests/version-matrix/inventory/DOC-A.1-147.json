@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-147",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 147,
+ "subject": "RECORD clause (implicit RECORD clause if RECORD clause is not specified)",
+ "rule-digest": "de1ed699bb57",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-147; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#ImpliesVariableFormat; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMin; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordMax; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelease",
+ "test-ref": "conformance:cases/13.18.43-RECORD/pb322_release_short_record_fixed_sd",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "A.1 item 147 required + documented. cite.py --check 13.18.43.4 'This implicit RECORD clause is defined by the implementor' -> OK §13.18.43.4 5). The determination (docs/CONFORMANCE.md §7 DOC-A.1-147, the §3 D-FRA (iv) rule stated once for FD and SD) is now implemented for the SD arm as well: kb/Work PB322 F made RELEASE send the record area's image when record-name-1 is shorter than the largest description (85/pb322_release_short_record_fixed_sd).",
+ "state": "OK"
+}

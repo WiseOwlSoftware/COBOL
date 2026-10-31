@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.39.3-2",
+ "section": "15.39.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "FORMATTED-DATE function",
+ "rule-digest": "4b8367e14d10",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DateTimeFormatGrammar.cs#Classify; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#FormatKindsAdmittedBy",
+ "test-ref": "conformance:cases/15.3.3.6.1-Offset-subformats/pb11_datetime_format_grammar; conformance:cases/15.39.3-Argument-rules/pb11-format-wrong-kind",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Was DIVERGES: the format was validated character-wise, so a TIME format passed and the function FABRICATED a value (FORMATTED-DATE(\"hhmmss\") returned \"000000\"). Now decided by MEMBERSHIP of the closed 15.3 set at bind time (15.39.3 r1 makes argument-1 a literal), rejecting with COBOL1631. The negative fixture pins the wrong-KIND case; the positive golden pins all six date formats of 15.3.1.1 so the recogniser cannot pass by rejecting everything.",
+ "state": "OK"
+}

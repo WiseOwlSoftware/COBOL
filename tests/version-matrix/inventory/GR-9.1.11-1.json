@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.11-1",
+ "section": "9.1.11",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Files",
+ "rule-digest": "32644a1c831c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#InvalidateFilePosition; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ApplyUnsuccessfulReadPosition; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs",
+ "test-ref": "conformance:cases/9.1.11-File-position-indicator/pb336_optional_absent_read_46",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (9.1.11 item 1): \"No valid record position has been established.\" [cite.py --check PASS 9.1.11]. The state is modelled as LastReadUnsuccessful (base) plus the keyed validity bit (IndexedConnector overrides InvalidateFilePosition); set by every unsuccessful START (StartOpenModeGuard applies GR7), every unsuccessful READ (GR18 via ApplyUnsuccessfulReadPosition / the guards), cleared only by a reposition (OPEN / START / successful READ) — the setter-independence comment names why a WRITE does not clear it. Read back as '46' by SequentialReadGuard (14.9.30.4 GR21: \"if the previous READ or START statement for the file connector was unsuccessful, then the READ statement is unsuccessful and the I-O status is set to '46'\" [cite.py --check PASS 14.9.30.4]). Covering test pb336 (2023 + 85 copy): REL/IDX-START=23 then AFTER-START=46; REL/IDX-RANDOM=23 then AFTER-RANDOM=46. Also conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/l1_start_indexed_invalid_key S2R=46. Probe E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2b\\out\\probe\\p911\\r1.cob: IX-P2 46 then IX-N3 46, START (00) repositions -> IX-N4 00 BBBB, at 2002/2014/2023. || Editions (adjudicator, verbatim): 1985, 2002, 2014, 2023 (no Annex E change) || Code sites (adjudicator, verbatim): src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#InvalidateFilePosition; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ApplyUnsuccessfulReadPosition; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs (_fpiKey + validity)",
+ "state": "OK"
+}

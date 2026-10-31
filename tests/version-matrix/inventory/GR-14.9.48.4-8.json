@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.48.4-8",
+ "section": "14.9.48.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "UNSTRING statement",
+ "rule-digest": "cc26704cdf5a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/pb979_unstring_receiver_size; conformance:cases/14.9.48-UNSTRING/pb979_unstring_any_length_national; conformance:cases/14.9.48-UNSTRING/pb3226_unstring_symbolic_delimiter",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB979 (2026-09-22). Two contiguous delimiters: an alphabetic / alphanumeric / national receiver is space-filled by the MOVE of the zero-length conceptual item (14.9.25.4 GR1/GR2 substitute SPACE); a receiver DESCRIBED as numeric carries its own bound ZeroFill MOVE of ZERO (BoundUnstringReceiver.ZeroFill), taken when nothing was examined - the one place GR8 differs from the MOVE rules. Witnessed: N3 PIC 9(3) VALUE 999 -> 000 and A3 'YYY' -> spaces (85); a usage-national numeric receiver -> 000 (2002).",
+ "state": "OK"
+}

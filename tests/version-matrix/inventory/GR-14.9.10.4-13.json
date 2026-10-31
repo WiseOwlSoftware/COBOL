@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.10.4-13",
+ "section": "14.9.10.4",
+ "kind": "GR",
+ "ordinal": 13,
+ "subject": "DELETE statement",
+ "rule-digest": "c841ac776c5b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#DeleteFile",
+ "test-ref": "conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_delete_file_gate",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "Existing enabled golden: OPEN I-O F / DELETE FILE F / DISPLAY 'DF41=' WS-ST records DF41=41, pinning GR13's operative consequence (the '41' stamped in the file connector when the connector is open, corroborated by 9.1.13.7 item 1). GR13's first sentence is a requirement on the program whose consequence sentence 2 states; no golden line pins physical-file survival, because the intervening CLOSE re-persists the relative store (RelativeConnector.CloseCore -> Persist -> RecordFraming.WriteStore), and none is needed to close the row.",
+ "state": "OK"
+}

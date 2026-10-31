@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.24.2",
+ "section": "15.24.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "DAY-OF-INTEGER function",
+ "rule-digest": "283a89ef5096",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+ "test-ref": "conformance:cases/15.8-ACOS/general_format_intrinsics_batch1",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Verdict unchanged; supplies the missing spec-derived test, replacing the test-ref STRUCK by the earlier review for being a differential rather than spec-derived. Exact case: 15.5.2 fixes the integer date form's epoch at 1 January 1601, and 15.24.4 r2 the YYYYDDD shape, so DAY-OF-INTEGER(1) is 1601001 - derived, not sampled.",
+ "state": "OK"
+}

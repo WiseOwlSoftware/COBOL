@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-5",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "SET statement",
+ "rule-digest": "7ed59c1086a2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#SwitchBindSet; src/WiseOwl.Cobol.Compiler/Binding/Procedure/MnemonicRegistry.cs#Of; docs/CONFORMANCE.md#DOC-A.1-191",
+ "test-ref": "conformance:cases/14.9.39-SET/pb454-set-option2-switch-name; conformance:cases/12.3-Configuration-section/nested_special_names_inheritance; unit:ImplementorNamesDriftTests.MnemonicUse_IsKeyedOnTheNamesKind; unit:ImplementorNamesDriftTests.DataBinder_KeepsNoSecondMnemonicMap",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB454 - \"Mnemonic-name-1 shall be associated with an external switch, the status of which may be altered. The implementor defines which external switches may be referenced by the SET statement.\" (cite.py --check 14.9.39.3 -> OK 5)). FIRST SENTENCE: the operand is looked up in the ONE per-unit mnemonic registry (Procedure.MnemonicRegistry, whose value is the ImplementorName row) and must be a row of kind Switch; anything else is COBOL1757 naming what the word IS - a device/feature mnemonic, an implementor-name itself (an Option-2 entry's SWITCH-1, 8.3.2.3.11), or nothing. The measured defect (an Option-2 switch clause, status phrases and no mnemonic, entered the switch-NAME as a mnemonic so SET SWITCH-1 TO ON ran) had been removed by kb/Work PB862 (d346691f6); this landing deletes the second, switch-only map (DataBinder.SwitchMnemonics) and its second walk of the entries, so the switch/device/feature distinction is decided in one place (drift: DataBinder_KeepsNoSecondMnemonicMap). Contained programs inherit the switch mnemonics through the registry's enclosing-unit walk (12.3.4 GR1; 85/nested_special_names_inheritance). SECOND SENTENCE: the documented implementor definition is docs/CONFORMANCE.md DOC-A.1-191 (SWITCH-0..36, UPSI-0..7, every one referenceable by SET).",
+ "state": "OK"
+}

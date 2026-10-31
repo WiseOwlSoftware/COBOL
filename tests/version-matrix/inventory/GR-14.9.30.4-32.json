@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.30.4-32",
+ "section": "14.9.30.4",
+ "kind": "GR",
+ "ordinal": 32,
+ "subject": "READ statement",
+ "rule-digest": "41ffa95d2b25",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Ordinal",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/l1_rewrite_alt_key_order",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB341 LANDED. RULE: 'For an indexed file accessed through a given file connector, execution of a READ statement sets the file position indicator to the value in the key of reference. This value is compared with the value contained in the corresponding data item of the stored records in the file until the first record having an equal value is found. In the case of an alternate key with duplicate values, the first record found is the first record in a sequence of duplicates that was released to the operating environment.' VALIDATED: python scripts/spec/cite.py --check 14.9.30.4 \"the first record found is the first record in a sequence of duplicates that was released to the operating environment\" -> OK 32). WAS DIVERGES on the last sentence only: ReadRandom's tie-break was rec.Arrival, one scalar per record that Rewrite bumped whenever ANY alternate key changed, so a REWRITE leaving THIS key alone still moved the record inside THIS key's duplicate sequence. MEASURED before the fix (probe pb341a.cob): READ F KEY IS R-A2 with 'PP' answered record 01 before the REWRITE of a DIFFERENT alternate key and record 02 after it. NOW the tie-break is Ordinal(rec, keyIndex) - the release ordinal under the key of reference itself - and Rewrite re-stamps only the changed keys (14.9.35.4 GR24 a)/b)). The rest of the rule was already right and stays so: the key value is sliced from the record area image the program filled, compared with KeyEq under that key's 12.4.5.7 collating sequence (12.4.5.12.4 GR1, not ordinal), SUPPRESS WHEN records are skipped (12.4.5.6.4 GR6), and no match is '23' plus the invalid key condition. A format-2 random READ is not a sequential access, so 14.9.30.4 GR27's '02' never applies to it - it reports '00'. PINNED: conformance:cases/9.1.13.2-Successful-completion/l1_rewrite_alt_key_order lines AR/BR (the random read on R-A2 answers 01 both before and after a REWRITE that changed R-A1 only).",
+ "state": "OK"
+}

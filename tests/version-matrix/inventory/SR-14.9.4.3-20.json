@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.4.3-20",
+ "section": "14.9.4.3",
+ "kind": "SR",
+ "ordinal": 20,
+ "subject": "CALL statement",
+ "rule-digest": "bfd2e28b6b90",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.ObjectProperty.cs#IsObjectPropertyReference",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb238_call_sr20_object_property; conformance:cases/14.9.4-CALL/pb131_gr9_formal_mode",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB238 LANDED — the object-property exception is modelled. Rule (cite.py OK, 14.9.4.3 rule 20): 'BY CONTENT shall not be omitted when identifier-4 is an identifier that is permitted as a receiving operand, except that BY CONTENT may be omitted when identifier-4 is an object property.' The prohibition half needs no arm of its own and never did: 14.9.4.4 GR9 a)1 gives BY REFERENCE to every keyword-less argument that MEETS 14.9.4.3 SR3, so such an operand is identifier-2 and the omitted phrase is BY REFERENCE, not an omitted BY CONTENT. The rule bites exactly on GR9 a)2 — an identifier permitted as a receiving operand that is NOT a data item of the file/working-storage/local-storage/linkage sections — and the standard names the one member of that set: an object property. ReferenceResolver.IsObjectPropertyReference is the ONE such test, running the same OoTryBindPropertyReference resolution the committing path runs, under _probing so no temp is synthesized, no 8.4.3.9.4 pending op is registered and no diagnostic is reported (the R30 probe contract). CallBinder's keyword-less arm then binds CobolPassMode.Content and resolves through the SENDING resolver. PARTIALLY-LANDED HALF UNCHANGED (PB131): Format 2's bare receiving-permitted identifier derives its mechanism from its own formal, never from a preceding phrase, and Format 1's BY VALUE arm is rejected outright, so BY VALUE is transitive under no path. TEST: pb238_call_sr20_object_property — CALL 'PB238PS1' AS NESTED USING BAL OF A, callee MOVEs 777 into the formal, AFTER=00100 proves the SET accessor is NOT invoked. The arm's failure branch was FIRED once (the predicate forced to false and rebuilt): the same source then printed AFTER=00777. EDITIONS 2002+ (FORMAT 2). retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#IsObjectPropertyReference (IsObjectPropertyReference moved with the Format 7 resolution into ReferenceResolver.ObjectProperty.cs (kb/Work PB1425, w1021a))",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-106",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 106,
+ "subject": "I-O status 0x (value of x)",
+ "rule-digest": "d8290e5b883c",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-106; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#FileStatusCode",
+ "test-ref": "conformance:wiseowl/cases/A.1-Implementor-defined-language-element-list/l1_dns_a1_106_no_0x_io_status",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "§9.1.13.3 1) 0x not provided (DOC-A.1-106): a sampled successful site of each of the eight §9.1.13.1 statements (DELETE and START on RL/IX only) across seq/rel/idx answers §9.1.13.2 1) 00",
+ "state": "OK"
+}

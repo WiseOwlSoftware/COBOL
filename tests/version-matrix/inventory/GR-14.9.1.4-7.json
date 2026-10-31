@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.1.4-7",
+ "section": "14.9.1.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "ACCEPT statement",
+ "rule-digest": "c6f29321838f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#Date",
+ "test-ref": "conformance-test:AcceptDifferentialTests.Date_FormatIsYYMMDD; conformance-test:AcceptDifferentialTests.Date_ExactWidthReceivers_ShowEachZeroPaddedImage",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "'DATE without the phrase YYYYMMDD ... unsigned elementary integer of usage display SIX digits', positions 1-2 = the two low-order digits of the Gregorian year, 3-4 = month 01-12, 5-6 = day 01-31. AcceptSource.Date() returns `n.Year % 100 * 10000L + n.Month * 100L + n.Day` -- the two low-order year digits weighted 10^4, the month 10^2, the day 10^0, exactly the printed positional layout. The SIX-digit width comes from the emitter: EmitAcceptTemporal maps AcceptKind.Date to (\"AcceptSource.Date()\", 6). .NET DateTime is proleptic-Gregorian, satisfying 'Gregorian calendar'. Pinned end-to-end by AcceptDifferentialTests.Date_FormatIsYYMMDD: clock 2026-06-10T14:30:45.67 into PIC 9(6) displays exactly '260610'. || UPHELD (verdict) with the mechanism corrected. I recomputed the layout for the zero-fill edges the test does not cover: 2026-01-05 -> 26*10000 + 1*100 + 5 = 260105, and 2005-01-05 -> 5*10000 + 105 = 50105 which renders '050105' at width 6, so the '01 through 12' / '01 through 31' two-position zero fill holds at both ends and the item stays unsigned. Clock provenance also checked: SystemClock.Now() returns DateTimeOffset.Now (Clock.cs:38-42) and AcceptSource.Now() takes `.DateTime`, i.e. the LOCAL wall clock, which is what 'provided by the system on which the ACCEPT statement is executed' requires -- not UTC. || REFUTED (evidence chain, not verdict): the adjudicator attributed the six-position zero fill in Date_FormatIsYYMMDD to `CobolNum.FormatUnsignedDisplayU(value, 6)`. That is not the path that test takes. Its receiver is PIC 9(6), so EmitAcceptTemporal enters `case { Category: PicCategory.Numeric, IsFloat: false }` (AcceptDisplayEmitter.cs:131-138), which stores `NumStore(call, \"0\", profile)` narrowed by ArithmeticEmitter.Narrow and never evaluates `sendImage` at all -- the six-digit zero-padded image the test observes is produced by the RECEIVER's own PIC 9(6) display rendering. FormatUnsignedDisplayU governs only the alphanumeric / alphanumeric-edited / group / ref-mod receivers. The rule is still met on both paths (I checked each), but the closing evidence for the conceptual item's own width is the X(4) DAY test, not this one.",
+ "state": "OK"
+}

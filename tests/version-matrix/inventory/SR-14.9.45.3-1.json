@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.45.3-1",
+ "section": "14.9.45.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "SUPPRESS statement",
+ "rule-digest": "43903b965471",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindSuppress; src/WiseOwl.Cobol.Compiler/Binding/Procedure/EnclosingContext.cs#Declarative",
+ "test-ref": "conformance:cases/14.9.45-SUPPRESS/l1c31-suppress-outside-use-before-reporting",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR1 \"The SUPPRESS statement may appear only in a USE BEFORE REPORTING procedure.\" (cite.py --check 14.9.45.3 OK). BindSuppress rejects with COBOL1581 when ctx.Enclosing.Declarative?.ReportGroup is null. Probes: sr1a.cob (SUPPRESS in nondeclarative MAIN) -> COBOL1581; sr1b.cob (SUPPRESS in a USE AFTER STANDARD ERROR declarative) -> COBOL1581; sr1c.cob (SUPPRESS in a nondeclarative paragraph PERFORMed from the BEFORE REPORTING declarative; the rule is lexical 'appear') -> COBOL1581. No spec-derived negative test for COBOL1581 found in tests/ -> test-needed. [editions as adjudicated: 2014, 2023 (not an Annex E 2014->2023 addition, so present in 2014); 85/2002 availability not derivable from the 2023 text (VERSION_CHANGE_REFERENCE row 130d, RW accepted at every edition)]",
+ "state": "OK"
+}

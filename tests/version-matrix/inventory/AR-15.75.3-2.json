@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.75.3-2",
+ "section": "15.75.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "RANDOM function",
+ "rule-digest": "21d8a7a10499",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Random",
+ "test-ref": "conformance:cases/15.9.3-Argument-rules/pb65_domain_guards; conformance:cases/15.75.3-Argument-rules/pb636_random_total_seed; unit:RandomSeedSubsetTests.ANegativeSeed_StillRaises_AtEveryWidth",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PB65 (domain-guard members) LANDED 2026-08-09: the argument-value guards exist at one raise site per rule, both carriers. PROBED: RD-NEG line: RANDOM(-5) raises per SS15.75.3 r2 instead of aliasing a positive seed through the mask. PRIOR (DIVERGES): Neither half of 'it shall be zero or a positive integer' is enforced at bind or at run time, and the §15.3 raise ('If the evaluation of an argument results in an incorrect value for that argument ... the EC-ARGUMENT-FUNC kb/Work PB636 (2026-09-21): the SEED's totality is now witnessed. §15.75.3 r2 constrains the SIGN alone and r3 makes the distinct-sequence subset a FLOOR, so §15.3 has no incorrect value to raise on; the intake rode the PARTIAL-function narrowing, so a 19-digit seed terminated the run unit under armed EC-ARGUMENT-FUNCTION checking and substituted the ARGUMENT 0 with checking off. The runtime body now declares Int128 — the carrier IS the totality claim IntrinsicCarrierAgreementDriftTests pairs against — and the arm takes IntArgWide; the low-31-bit reduction (CONFORMANCE.md DOC-A.1-145) is unchanged.",
+ "state": "OK"
+}

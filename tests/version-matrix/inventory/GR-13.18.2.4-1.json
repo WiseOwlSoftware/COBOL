@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.2.4-1",
+ "section": "13.18.2.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "ANY LENGTH clause",
+ "rule-digest": "19286e982d55",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitCallMethod; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#ReturningSeed; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#OoSignatureOf",
+ "test-ref": "conformance:cases/13.18.2-ANY-LENGTH/any_length_contained; conformance:cases/13.18.2-ANY-LENGTH/pb1167_any_length_returning; unit:ReturningSeedTests.Zero_Length_Receiver_Gives_A_Zero_Length_Item; unit:ReturningSeedTests.Any_Length_Receiver_Gives_Its_Current_Length; conformance:cases/8.5.4-Zero-length-items/pb1167_any_length_returning_zero_length",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1167 (w1013 L). The RETURNING leg of GR1 is implemented on both ABIs: n is the activator's receiver length (CobolArg.Length / an ANY LENGTH receiver's carrier on the program ABI; the method's trailing __retLen on the INVOKE ABI), n = 0 for a zero-length receiver (GR1 a), witnessed end to end by pb1167_any_length_returning_zero_length). The argument leg was already verified by registrar 14d. retired-witness: conformance:2002/pb1167_any_length_returning_zero_length (the golden moved to the 2014 corpus: it writes a zero-length literal, a COBOL-2014 introduction gated by kb/Work PB895 (same program, same expected output))",
+ "state": "OK"
+}

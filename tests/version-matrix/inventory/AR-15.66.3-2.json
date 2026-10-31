@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.66.3-2",
+ "section": "15.66.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "NATIONAL-OF function",
+ "rule-digest": "ed2021621e54",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KnownWidth",
+ "test-ref": "conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-09 (PB59): the same totalization on the NATIONAL-OF side - the two-position refmod view N4(1:2), the PIC N(2) group, and ALL QQ all draw 1546 naming the width and 15.66.3 rule 2 (the fixtures pin the RULE ORDINAL in the .err substring, not the bare code - a swapped-rule regression cannot pass green). One-position national group probed positive. retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

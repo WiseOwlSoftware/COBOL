@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-39",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 39,
+ "subject": "VALUE clause",
+ "rule-digest": "4c7995b5d542",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidateValidPhrase",
+ "test-ref": "conformance:wiseowl/cases/13.18.63-VALUE/declined-validate-value-format5",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "docs/CONFORMANCE.md §5 row A.4.14 (VALIDATE — Not claimed) + §4 item 3. Licence: Annex A.4.1, \"An implementation shall accept the syntax and provide the functionality for an optional element only when support for that language element is claimed by the implementor\", and its second sentence carrying the licence to the module's unlisted rules. Obsolescence (F.2 item 5) is corroboration, never the licence (kb/Work PB198). ⚠ NOT REACHABLE BY THE DERIVED SELECTOR — printed under the §13.18.63 \"FORMAT 5\" heading with module-silent text (SR-36 is \"Syntax rules 10, 11, 13, 17, 26, 27, 28, 29, 30, and 31 above apply.\"; GR-24 is \"General rule 18 applies.\"). Reaching them by regex would be a hand list in regex clothing; the catalog needs a `format` field plus a `requires-formats` selector arm. SR-39 in particular was REFUSED by the deriver as an all-formats editorial rule and the refuter overturned that: format 5's general format is the only one printing VALUE / VALUES WITHOUT the IS / ARE connectives, with a separate [ IS / ARE ] bracket governing { INVALID / VALID } — so SR-39 is the rule that licenses that detached bracket and is genuinely format-5's.",
+ "state": "OK"
+}

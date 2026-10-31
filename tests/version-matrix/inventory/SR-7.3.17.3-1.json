@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.17.3-1",
+ "section": "7.3.17.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "LEAP-SECOND directive",
+ "rule-digest": "9381c74a5774",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/DirectivePlacementPass.cs#Run; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#DirectivePlacementViolation",
+ "test-ref": "conformance:cases/7.3.17-LEAP-SECOND/pb65-leap-second-within-unit; conformance:cases/7.3.17-LEAP-SECOND/pb1378_leap_second_between_units; conformance:cases/7.3.17-LEAP-SECOND/pb1377-push-leap-second-within-unit",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1378. cite.py --check 7.3.17.3 'The LEAP-SECOND directive shall not be specified within a compilation unit.' OK 1). Judged on the parse tree's unit spans; a directive BETWEEN sibling units is outside both and takes effect for the units that follow (7.3.4 GR5), pinned by pb1378_leap_second_between_units. retired-witness: src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#LeapSecondDirectiveSyntax (kb/Work PB1378: the COBOL1650 descriptor is retired; the within-a-unit rule is data on the row, judged by DirectivePlacementPass (COBOL2652))",
+ "state": "OK"
+}

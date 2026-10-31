@@ -141,6 +141,29 @@ public static partial class CobolCharacterRepertoire
         return null;
     }
 
+    /// <summary>Is <paramref name="codePoint"/> (beyond the basic repertoire) in SOME edition's Annex B — the 2023 table or the
+    /// 2002/2014 one? Such a character is an EXTENDED LETTER (§8.1.3.2 GR4: Annex B less the basic characters), which COBOL-85
+    /// lacks; one in neither is no extended letter at all (U+00A0, the euro sign). The one place that distinction is drawn:
+    /// <see cref="HasExtendedLetter"/> and <see cref="ViolationAtEveryEdition"/> both ask it.</summary>
+    private static bool IsInSomeAnnexB(int codePoint) =>
+        PositionOf(codePoint, 2023) != WordCharacterPosition.NotPermitted
+        || PositionOf(codePoint, 2014) != WordCharacterPosition.NotPermitted;
+
+    /// <summary>True when <paramref name="word"/> holds an EXTENDED LETTER — a character beyond the basic repertoire that some
+    /// edition's Annex B holds (<see cref="IsInSomeAnnexB"/>) — whatever else the word holds. The question is per CHARACTER:
+    /// below COBOL-2002 the construct gate <c>user-word-extended-letter-2002</c> is asked of a word that holds one, even when
+    /// the same word also holds a character no edition's Annex B has (<see cref="ViolationAtEveryEdition"/> names that one
+    /// separately; kb/Work PB4156).</summary>
+    public static bool HasExtendedLetter(string word)
+    {
+        for (int i = 0; i < word.Length;)
+        {
+            int cp = NextCodePoint(word, ref i);
+            if (cp >= 0x80 && IsInSomeAnnexB(cp)) return true;
+        }
+        return false;
+    }
+
     /// <summary>The first character of <paramref name="word"/> that NO edition's Annex B holds anywhere — outside the
     /// COBOL 2023 repertoire and the 2002/2014 one alike — as the diagnostic's message; null when every character is
     /// in some edition's Annex B. This is the question a pre-2002 target asks: COBOL-85 has no extended letters, so
@@ -153,8 +176,7 @@ public static partial class CobolCharacterRepertoire
         for (int i = 0; i < word.Length;)
         {
             int cp = NextCodePoint(word, ref i);
-            if (cp >= 0x80 && PositionOf(cp, 2023) == WordCharacterPosition.NotPermitted
-                           && PositionOf(cp, 2014) == WordCharacterPosition.NotPermitted)
+            if (cp >= 0x80 && !IsInSomeAnnexB(cp))
                 return $"the COBOL word '{word}' contains U+{cp:X4}, which is in no edition's Annex B, so it is not a "
                     + "character of a COBOL word at any edition: a word is made of basic letters, basic digits, hyphen, "
                     + "underscore and the extended letters of Annex B (ISO §8.3.2.1; §8.1.3.2 GR4)";

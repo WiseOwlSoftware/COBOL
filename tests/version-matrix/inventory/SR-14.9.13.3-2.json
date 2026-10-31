@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.13.3-2",
+ "section": "14.9.13.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "EVALUATE statement",
+ "rule-digest": "573a3230520f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#ScreenObjectCount",
+ "test-ref": "conformance:cases/14.9.13-EVALUATE/pb399-evaluate-more-objects-than-subjects; conformance:cases/14.9.13-EVALUATE/pb399-evaluate-fewer-objects-than-subjects; conformance:cases/14.9.13-EVALUATE/pb399_evaluate_selection_set_shapes; conformance-test:Format3RelationSurfaceDriftTests.SelectionObjectCount_BothDirections_Report2106; conformance-test:Format3RelationSurfaceDriftTests.SelectionObjectCount_IsRaisedAtEveryEdition",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB399.md LANDED. SR2 is now screened as a RULE and not as a bounds guard: ScreenObjectCount compares each WHEN phrase's selection-object count against the statement's selection-subject count, BOTH directions, once per phrase, through COBOL2106 at every edition. The `if (i >= subjects.Length) return new BoundUnsupported(...)` guard inside the pairing loop is DELETED; the loop now clamps to min(objects, subjects) as pure recovery after the screen has already failed the compile. A set of selection objects is ONE WHEN phrase, so consecutive WHEN phrases sharing an imperative-statement are counted separately (golden leg TWO-PHRASES is the legal shape; negative PB399C3 the illegal one). The legal complement - equal counts, including ANY in a position (SR7 c) - is pinned by conformance:cases/14.9.13-EVALUATE/pb399_evaluate_selection_set_shapes.",
+ "state": "OK"
+}

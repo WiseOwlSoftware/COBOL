@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.4.2.3-2",
+ "section": "8.8.4.2.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Simple relation conditions",
+ "rule-digest": "b693ff3ee2c0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckFormat3Relation; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckRelationalOperands",
+ "test-ref": "conformance-test:RelationComparabilityTests.NullAndBoolean_OutsideTheirRelation_Rejected; conformance-test:RelationComparabilityTests.NullAndBoolean_InTheirRelation_Compile; conformance-test:Format3RelationSurfaceDriftTests.EverySurface_AdmitsALegalFormat3Pair",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Closed by kb/Work PB1468's landing (wave 67 N; PB1427's finding F4 at the same checkpoint). SR2 (cite.py OK). (a) NULL no longer borrows the other operand's class unconditionally: CheckFormat3Relation gives it that class only opposite an operand of class object or pointer and class pointer (§8.4.3.10.1, cite.py OK) opposite any other decidable operand, so `IF X = NULL`, `IF N = NULL`, `EVALUATE X WHEN NULL` are Format 3 relations SR5 refuses (COBOL0869) — §8.4.3.10.3 SR1 a) admits NULL only 'in a pointer-or-object-reference relation condition' (cite.py OK). (b) `IF B1 = SPACE` is COBOL0844 (candidate-set BoolCompatible). The legal forms `IF PP = NULL`, `IF NULL NOT = PP`, `EVALUATE WS-P WHEN NULL` compile.",
+ "state": "OK"
+}

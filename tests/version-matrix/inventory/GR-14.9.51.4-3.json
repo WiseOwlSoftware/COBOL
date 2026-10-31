@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-3",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "WRITE statement",
+ "rule-digest": "89606a4a9a76",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#WriteAdvancing; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write",
+ "test-ref": "unit:Table20WriteOpenModeTests.RelativeWrite_IoModeAtSequentialAccess_Is48",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR3: sequential access -> open mode shall be extend or output; otherwise I-O or output; else '48'. Sequential connector: both write arms return WriteNotOpenForOutput ('48') unless Mode is Output/Extend (and when not open). Relative: sequential access requires Output/Extend, random/dynamic requires IO/Output (RelativeConnector.Write lines ~366-384). PROBE pa.cob: sequential not-open 48, OPEN INPUT 48, OPEN I-O 48; pb.cob: relative sequential OPEN I-O 48, indexed sequential OPEN I-O 48, relative/indexed dynamic OPEN I-O 00. Unit Table20WriteOpenModeTests pins the keyed arms (IoModeAtSequentialAccess_Is48, ExtendModeAtNonSequentialAccess_Is48, IoModeAtNonSequentialAccess_Succeeds); golden conformance:cases/14.9.27-OPEN/l1_open_not_open_statements pins the sequential not-open arm. cite.py --check 14.9.51.4 \"the I-O status for the write file connector is set to '48'\" -> OK rule 3.",
+ "state": "OK"
+}

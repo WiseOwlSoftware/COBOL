@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.7.4-6",
+ "section": "12.3.7.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "0caaa152f1b7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#CodedCharacterSet; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#CollatingTable.Repertoire; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#LiteralPhraseOperand",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/l1c01_native_ordinal_positions; conformance:cases/12.3.7-SPECIAL-NAMES/l1c01_native_ordinal_positions_wide",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: \"The implementor shall define the order of characters within the native alphanumeric coded character set and the native national coded character set, associating each character with an ordinal position within the character set.\" (cite.py --check 12.3.7.4 \"The implementor shall define the order of characters within the native alphanumeric coded character set\" -> OK §12.3.7.4 6)). The implementation defines it ONCE for both classes: the 65,536 UTF-16 code units in code-unit order, ordinal n = code unit n-1 (CodedCharacterSet doc 'Determinations'; CollatingTable.Repertoire = 0x10000; LiteralPhraseOperand maps a numeric ordinal to (char)(ordinal-1) for either class). Measured with the pinned cobol.exe (probe/snp3/g6n.cob, no PCS): ORD(\"A\")=66, ORD(CHAR(257))=257, ORD(CHAR(65536))=65536 - one consistent association across CHAR/ORD and the ALPHABET/CLASS/SYMBOLIC ordinal readers. The DOCUMENTATION obligation is a separate row: Annex A.1 item 8 (\"ALPHABET clause (ordinal number of characters in the native coded character sets). This item is required ... (12.3.7, SPECIAL-NAMES paragraph, General rule 6)\") has NO DOC-A.1-8 row in docs/CONFORMANCE.md §7 - owned by the open register note A11 (Annex A.1 documentation register); not re-reported here. Cross-rule observation (NOT this row's defect, reported under GR8/GR10's finding): the native HIGH-VALUE pin (U+00FF, ORD 256) is not the highest ordinal of this 65,536-character native set. No spec-derived covering test (pb59_repertoire_identity pins the implementor's A.1-33 correspondence, not this rule). [registrar 14a — editions as adjudicated: 85, 2002, 2014, 2023 (the native NATIONAL half from 2002, with the national class)]",
+ "state": "OK"
+}

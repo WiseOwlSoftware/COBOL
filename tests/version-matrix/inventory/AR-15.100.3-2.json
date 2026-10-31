@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.100.3-2",
+ "section": "15.100.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "YEAR-TO-YYYY function",
+ "rule-digest": "6d84c284566d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#NonIntegralItemReason",
+ "test-ref": "conformance:cases/15.100.3-Arguments-rule/pb58-yeartoyyyy-frac; conformance:cases/15.90.3-Argument-rule/pb248-integer-arg-float-item; conformance:cases/15.90.3-Argument-rule/pb248-integer-arg-float-literal; conformance:wiseowl/cases/_unassigned/pb248_integer_arg_float_admitted; unit:IntrinsicArgumentClassDriftTests.EveryIntegerArgumentPosition_RejectsAFloatingPointItem",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "CLOSED BY kb/Work PB248. cite.py --check 15.100.3 \"Argument-2 shall be an integer\" => OK (15.100.3 2). The scaled-item half was already closed by conformance:cases/15.100.3-Arguments-rule/pb58-yeartoyyyy-frac; the row stayed PARTIAL on the FLOATING-POINT sibling - `FUNCTION YEAR-TO-YYYY(85, F)` with F a COMP-2 holding 23.6 evaluated as though 23 were written, with EC-ARGUMENT-FUNCTION never set even under checking. That shape is now rejected at bind: YEAR-TO-YYYY's schema is Schema(\"15.100.3 r1/r2/r4\", ['i','i','i']), so all three positions take the 'i' arm, and the drift test asserts each of them by name against every floating-point Usage member. The refuter's ADDITIONAL finding - that a float argument re-routes the whole call to a different runtime body, and that under --arithmetic standard it takes a THIRD lane - is moot for conforming source, because no float operand reaches any of the three lanes any more; under --permissive the coercion lane is still taken deliberately and is covered by conformance-test:FloatIntegerArgumentPermissiveTests. Proven not-blind: the drift test failed against the pre-fix predicate on all ten float usages.",
+ "state": "OK"
+}

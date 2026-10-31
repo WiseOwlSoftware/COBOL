@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.20.3-8",
+ "section": "14.9.20.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "INITIALIZE statement",
+ "rule-digest": "105291a247bd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#SenderFor; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ReplacementFor; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ElementaryAction; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#Bind",
+ "test-ref": "conformance:cases/14.9.11-DISPLAY/initialize_phrases; conformance:cases/8.4.3.1-Identifier/pb10_function_identifier_sending; conformance:cases/14.9.20-INITIALIZE/pb415_initialize_replacing_set_form; conformance:cases/14.9.20-INITIALIZE/pb415_initialize_function_pointer; conformance:cases/14.9.20-INITIALIZE/pb415_initialize_national_group_sender; conformance:cases/14.9.20-INITIALIZE/pb418_initialize_dynamic_length_senders",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB415.md - THE LAST HOLE IS CLOSED. Sentence 1's designation ('if the REPLACING phrase is specified, literal-1 or the data item referenced by identifier-2 is the sending operand') already held over the whole category space and over the SET form as well as the MOVE form after PB415's category-name set landed; the one population where the designated operand was still DISCARDED was the dynamic-length receiver, where 14.9.20.4 GR7's length-zeroing was applied unconditionally and substituted an empty literal for literal-1/identifier-2 at bind time. DETERMINATION D-DL1 (docs/CONFORMANCE.md section 3, recorded on GR-14.9.20.4-7) confines GR7 to the GR6c arm, so the REPLACING sender now reaches a dynamic-length receiver intact: conformance:cases/14.9.20-INITIALIZE/pb418_initialize_dynamic_length_senders line L2, 'INITIALIZE DN REPLACING ALPHANUMERIC DATA BY \"ABC\"' -> LEN=03 [ABC] where the pre-determination compiler wrote LEN=00 []. Sentence 2's no-REPLACING half is the GR6c fill table and was already pinned.",
+ "state": "OK"
+}

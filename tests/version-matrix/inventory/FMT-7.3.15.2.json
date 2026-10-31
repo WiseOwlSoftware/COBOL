@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-7.3.15.2",
+ "section": "7.3.15.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "FLAG-14 directive",
+ "rule-digest": "bf4880254e17",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/FlagDirective.cs#TryParse; src/WiseOwl.Cobol.Frontend/Preprocessor/FlagDirectiveProcessor.cs#Process",
+ "test-ref": "unit:FlagDirectiveTests.Parse_AllAndOn_AreTheDefaults_WhenOmitted; unit:FlagDirectiveTests.Parse_RepeatedAlternative_IsError; unit:FlagDirectiveTests.Parse_OnOffNotLast_IsError; unit:FlagDirectiveTests.Compile_Flag14_DefaultedBraces_SelectTheRightOptions; conformance:cases/7.3.15-FLAG-14/pb1374_flag14_defaults; conformance:cases/7.3.15-FLAG-14/pb1374-flag14-option-repeated",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1374 (w1020f). Printed format rendered from the canonical PDF (p.102, folio 72): `>> FLAG-14 { ALL | { |twelve options| } } { ON | OFF }` with FLAG-14, every option word and OFF underlined and ALL and ON NOT (the spec figure note agrees; its closing sentence calling the ON/OFF braces 'required' contradicted its own first paragraph and is corrected in specs/ISO_COBOL.md). cite.py --check 5.2.3, 5.2.6.3, 5.2.6.4 and 7.3.15.4 'If ON is explicitly or implicitly specified for an option' OK. TryParse now accepts `>>FLAG-14 VALUE-ZERO`, `>>FLAG-14 ALL`, `>>FLAG-14 ON`, `>>FLAG-14 OFF` and a bare `>>FLAG-14` (ALL and ON are the defaults, 5.2.6.3), and refuses `>>FLAG-14 VALUE-ZERO VALUE-ZERO ON` (5.2.6.4) with COBOL1622. Before: the first five drew COBOL1622 and the repeat compiled clean. [editions: a 2023 introduction (7.3.15.1); COBOL0900 below 2023]\nPB55 (2026-10-15): the catalog text of this row was regenerated here. Landing 4e34a3c61 (PB1374) corrected this diagram's transcription against the printed page without regenerating spec-rule-catalog.json, so the catalog kept the pre-correction text; the verdict was adjudicated by that landing against the corrected diagram and is unchanged. extract_rule_catalog.py --check now fails on a stale catalog.",
+ "state": "OK"
+}

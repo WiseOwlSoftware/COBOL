@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.9.10.4-6",
+ "section": "11.9.10.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "INITIALIZE clause",
+ "rule-digest": "beabece6503c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/InitialStateBackground.cs#FillFor; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#DefaultInitializer",
+ "test-ref": "unit:InitialStateBackgroundDriftTests.WithNoClauseTheBaselineSeedIsUnchanged; conformance:cases/11.9.10-INITIALIZE/pb152-options-initialize-below-2023",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-09-02 (PB152). GR6's second sentence - with no INITIALIZE clause the content of items without predefined initialization values 'is undefined or specified by the implementor' - is what makes PicInfo.DefaultInitializer's space/zero seed a conforming choice, and it stays EXACTLY that seed: FillFor returns null when the clause is absent, so the whole no-clause population (every program in the corpus) is byte-unchanged. That invariant is a unit test rather than an assumption, because a regression in it is a corpus-wide wrong answer. The determination is documented in CONFORMANCE.md as required by 4.2.16.",
+ "state": "OK"
+}

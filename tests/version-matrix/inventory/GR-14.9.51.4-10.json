@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-10",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "WRITE statement",
+ "rule-digest": "d35a2596f7ba",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#WriteShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReleasePriorRecordLocks",
+ "test-ref": "unit:CobolFileLockTests.WriteShared_WithLock_LocksTheWrittenRecord_AndSingleLockingReleasesItOnTheNextWrite",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR10: 'If the locking mode of the write file connector is single record locking, any record lock associated with that file connector is released by the execution of the WRITE statement.' Every WRITE (sequential and keyed emitters both render FileWriteShared unconditionally) calls ReleasePriorRecordLocks before the operation; it returns early only for meta.Multiple (multiple record locking keeps its locks), otherwise ReleaseAllForConnector. Released 'by the execution' regardless of the write's outcome, which matches the rule text (no success condition). Organization-independent. The unit test asserts WA's WITH LOCK record 2 is released by the next WRITE under single locking. cite.py --check 14.9.51.4 'any record lock associated with that file connector is released by the execution of the WRITE statement' -> OK rule 10. Record locking is a COBOL-2002 introduction (LOCK MODE clause).",
+ "state": "OK"
+}

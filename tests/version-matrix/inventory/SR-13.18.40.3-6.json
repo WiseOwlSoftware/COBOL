@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-6",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "PICTURE clause",
+ "rule-digest": "8157358ae04a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#TryExpandRepeats; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#TryRepetitionFactor; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#ExpandPicConstants",
+ "test-ref": "conformance:wiseowl/cases/13.18.40-PICTURE/pb531_picture_repetition_factor; conformance:cases/13.18.40-PICTURE/pb531-picture-repetition-factor-negative; conformance:cases/13.18.40-PICTURE/pb531-picture-repetition-factor-signed; conformance:cases/13.18.40-PICTURE/pb531-picture-repetition-factor-zero; conformance:cases/13.18.40-PICTURE/pb531-picture-repetition-factor-constant; conformance:cases/13.18.40-PICTURE/pb531-picture-item-too-large",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-09-19 (kb/Work PB531). 'An unsigned nonzero integer ... enclosed in parentheses' is now VALIDATED at the one place a repetition factor is read, TryExpandRepeats, instead of parsed with a bare int.TryParse and fed to StringBuilder.Append(char, int). UNSIGNED and NONZERO both bind, and so does the second sentence's constant-name arm: DataBinder.Constants.ExpandPicConstants rewrites (constant-name) to (integer) in the SOURCE string and hands it to the same expander, so both arms are screened by one rule - the two-arm shape the note named, where the constant arm had been added without re-deriving the factor's own syntax rule. MEASURED BEFORE: PIC X(-3) and 01 N CONSTANT AS -3. + PIC 9(N) each left the binder as an unhandled System.ArgumentOutOfRangeException with NO COBOL diagnostic and no source location - the only reachable hard compiler crash in this part - PIC X(+3) was accepted silently as XXX, and PIC X(2000000000) died with an OutOfMemoryException. AFTER: COBOL2147 naming SR6 for the negative, signed, zero, empty and non-numeric spellings by either arm, and COBOL2148 for a factor past the implementor maximum. The zero spelling used to be caught only incidentally, by 13.18.40.4 GR11's 'at least one symbol 9' - a rule about a NUMERIC character-string, reported for PIC X(0) and PIC N(0) as well; it now names the rule that is actually broken.",
+ "state": "OK"
+}

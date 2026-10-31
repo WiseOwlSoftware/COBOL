@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-7.3.22.2",
+ "section": "7.3.22.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "PUSH directive",
+ "rule-digest": "490442122f75",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/WiseOwl.Cobol.Editions/DirectiveOperandSyntax.cs#DirectiveOperandSyntax",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb794_directive_operands; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_DiagnosesAMalformedOperand; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "{ directive-name | ALL }, plain braces - exactly one shall be written, with the admissible directive-names derived from the catalog minus 7.3.22.3 SR1's exclusions, by row. Anything else is COBOL1911. Re-affirmed 2026-10-22 (kb/Work PB3530, review R1-1) against the figure regenerated again: render_figure.py now keeps each printed line whole inside the enclosures that hold its words and starts a new row at a step wider than 3.5 pt, so the diagram's layout changed while its words did not (sweep_figures.py's word gate); the verdict stands on the printed format.",
+ "state": "OK"
+}

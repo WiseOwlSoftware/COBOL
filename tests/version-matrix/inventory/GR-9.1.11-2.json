@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.11-2",
+ "section": "9.1.11",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Files",
+ "rule-digest": "29d52c957ade",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OptionalAbsent; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#RandomReadAbsentOptionalGuard; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs",
+ "test-ref": "conformance:cases/9.1.11-File-position-indicator/pb336_optional_absent_read_46",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (9.1.11 item 2): \"An optional input file is not present.\" [cite.py --check PASS 9.1.11]. OPEN INPUT/I-O of an absent OPTIONAL file sets OptionalAbsent on all three organizations (open, '05'); it is deliberately NOT part of openness and survives CLOSE (14.9.6.4 GR6, kb/Work PB140). First sequential READ -> '10' (9.1.13.4 item 1 c), every later one -> '46' (GR21 tested first, PB336 landed), every random READ/START -> '23' (9.1.13.5 item 3 b). Covering test pb336 (2023 and conformance:cases/9.1.13.4-At-end-condition-with-unsuccessful-completion/pb336_optional_absent_read_46_85): SEQ/REL/IDX-ABSENT OPEN=05, R1=10, R2=46; REL/IDX-RANDOM1/2=23. Also conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb344_use_mode_invalid_key_2023 C4 (random READ of absent optional = 23). || Editions (adjudicator, verbatim): 1985, 2002, 2014, 2023 (no Annex E change) || Code sites (adjudicator, verbatim): src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OptionalAbsent; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#RandomReadAbsentOptionalGuard; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs (OptionalAbsent = true at OPEN)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-112",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 112,
+ "subject": "LEAP-SECOND directive (whether standard numeric time form values greater than or equal to 86,400 may be reported)",
+ "rule-digest": "dc7f35f558c0",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-112; src/WiseOwl.Cobol.Frontend/Preprocessor/LeapSecondDirectiveProcessor.cs#LeapSecondDirectiveProcessor",
+ "test-ref": "conformance:cases/7.3.17-LEAP-SECOND/pb65_leap_second_on; conformance:cases/7.3.17-LEAP-SECOND/pb65_leap_second_off; unit:CobolDateWindowingTests.SecondsPastMidnight_Range_StandardNumericTimeForm",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "editions 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the LEAP-SECOND directive, whose General rule 4 states the implementor's choice this item documents, is a COBOL-2002 introduction (the 7.3 directive facility); the item's other references (the SECONDS-PAST-MIDNIGHT function, 15.80, and the 15.3.3 time formats) are 2014 users of the same choice, and a documentation item exists from the first edition at which a rule it documents exists. cite.py --check 7.3.17.4 \"The implementor defines whether a value greater than or equal to 86,400\" OK.",
+ "state": "OK"
+}

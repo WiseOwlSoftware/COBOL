@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-28",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 28,
+ "subject": "WRITE statement",
+ "rule-digest": "34c582795125",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitWrite",
+ "test-ref": "conformance:cases/13.18.34-LINAGE/pb686_linage_gr26_boundary; conformance:cases/8.4.3.14-LINAGE-COUNTER/pb578_advancing_page_overflow_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR28: 'If, during the successful execution of a WRITE statement with the NOT END-OF-PAGE phrase, the end-of-page condition does not occur, then after execution of the input-output operation, control is transferred to imperative-statement-2 of the NOT END-OF-PAGE phrase. If control is returned from imperative-statement-2, control is then transferred to the end of the WRITE statement.' (cite.py --check 14.9.51.4 -> OK rule 28). EmitWrite snapshots the connector status before the FILE STATUS store and USE hook, then renders `if (successful && EndOfPage) {AT} else if (successful) {NOT}` — the NOT arm runs only on a successful write without the condition, after the operation, and falls to the end of the statement. Both orders of the phrases parse (conditionalPhrases' choice indicators, §5.2.6.4). Goldens conformance:cases/13.18.34-LINAGE/pb686_linage_gr26_boundary and conformance:cases/13.18.34-LINAGE/pb686_linage_gr26_boundary_85 print 'NO-EOP' on exactly the writes that land inside the page body (spec-derived per the PB686 determination).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.53.4-4",
+ "section": "13.18.53.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "SOURCE clause",
+ "rule-digest": "8789b721755e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#SourceAt; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements",
+ "test-ref": "conformance:cases/13.18.53-SOURCE/pb506_report_value_operand_list",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"successive operands are assigned to successive repeating printable items, horizontally and then vertically ... If no further operands remain, assignment begins again from the first operand. If any of the printable items are suppressed as a result of a PRESENT WHEN clause or an OCCURS clause with a DEPENDING phrase, SOURCE operands are nevertheless assigned to them\" (cite.py --check 13.18.53.4 OK GR4). Probe out13/probe/source-clause/p1: LINE OCCURS 2 over COLUMN OCCURS 3 with SOURCES A..F -> `A  B  C` / `D  E  F` (horizontal then vertical); three operands over 3x2 -> `A  B  C` twice (wrap); LINE OCCURS 1 TO 3 DEPENDING ON WS-N=2 over COLUMNS 1 4 with six operands -> `A  B` / `C  D` (suppressed third line keeps E F). The emitter indexes SourceAt by the repetition ORDINAL, never by printed position, so suppression cannot shift assignment (sentence 3 holds by construction; with ODO the suppressed items are always trailing, so it is not separately observable). Covering tests: the cited golden (sentence 1, spec-derived) and unit:ReportOperandListDriftTests.OperandsExhausted_AssignmentBeginsAgainFromTheFirst (sentence 2, model-level); the vertical-hierarchy order has no golden (test-needed for that leg). || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): 1985, 2002, 2014, 2023 (Report Writer: 85 optional module, 2023 optional element A.4.11; the 2023 Annex E lists no SOURCE-clause change; the multi-operand / SOURCES / arithmetic-expression forms are 2002 introductions per docs/VERSION_CHANGE_REFERENCE - not derivable from the 2023 text itself)",
+ "state": "OK"
+}

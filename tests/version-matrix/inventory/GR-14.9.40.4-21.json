@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.40.4-21",
+ "section": "14.9.40.4",
+ "kind": "GR",
+ "ordinal": 21,
+ "subject": "SORT statement",
+ "rule-digest": "d511448fe6c1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindTable",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb846_sort_table_occurs_keys",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB846: with the KEY phrase omitted the keys are the table's OCCURS KEY phrase read through the ONE ordered model SEARCH ALL reads (OccursSpec.Keys / OdoModel.KeyItems) - significance order and per-key direction as written (13.18.38.4 GR3); the golden sorts a DESCENDING-major / ASCENDING-minor table.",
+ "state": "OK"
+}

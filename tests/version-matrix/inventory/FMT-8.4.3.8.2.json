@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.4.3.8.2",
+ "section": "8.4.3.8.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "SELF and SUPER",
+ "rule-digest": "612a15704c08",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#selfAndSuper; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#primaryExpression; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.OoIdentifier.cs#OoBindOoIdentifier; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindByReceiver",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1425_predefined_object_operands; conformance:cases/8.4.3.1-Identifier/pb1425_qualified_super; conformance:cases/8.4.3.8-SELF-and-SUPER/pb1425-super-operand; conformance:cases/8.4.3.8-SELF-and-SUPER/pb1425-super-qualifier-not-inherited",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1425 (w1020c). The general format `{ SELF | [ object-class-name-1 OF ] SUPER }` is ONE rule, `selfAndSuper`, and it is now an identifier of the expression tier (`primaryExpression`), besides the object-reference operand rule (INVOKE / inline receiver, SET Format 5, RAISE, the GOBACK / EXIT RAISING phrase). So every sending position spells it: relation and EVALUATE operands (`IF O = SELF`), INVOKE and inline-invocation arguments, SET senders, RAISING SELF - each was a parse error (COBOL0001 / COBOL0901 'SELF is a reserved word'). The binder's one door is OoBinder.OoBindOoIdentifier; SELF binds to an ACTIVE-CLASS temporary filled with the method's object (BoundSelfReference). The object of an object-property identifier (`BAL OF SELF`) is Format 7's identifier-3, owned by FMT-8.4.3.9.2. [editions: the OO facility, 2002+]",
+ "state": "OK"
+}

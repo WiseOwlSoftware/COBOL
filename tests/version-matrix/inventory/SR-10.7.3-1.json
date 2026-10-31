@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-10.7.3-1",
+ "section": "10.7.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "End markers",
+ "rule-digest": "69363e81b4a0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#ScreenProgram; src/WiseOwl.Cobol.Compiler/Binding/SourceUnitShape.cs#Screen",
+ "test-ref": "conformance:cases/10.7-End-markers/pb988-end-program-missing-container; conformance:cases/10.7-End-markers/pb988-end-program-missing-precedes; conformance:cases/10.7-End-markers/pb988_end_markers",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB988 LANDED (wave 1015 Z2). cite.py --check 10.7.3 'An end marker shall be present in every source unit that contains, is contained in, or precedes another source unit.' OK 1). Validation.EndMarkerPass reports COBOL2793 (SR1) on a program definition that contains another unit (pb988-end-program-missing-container) or precedes one (pb988-end-program-missing-precedes) without its END PROGRAM; a contained program's marker is required by the grammar (nestedProgram), and the prototype and function formats print theirs unbracketed, asked by SourceUnitShape (§10.6.1, COBOL2274). The last unit of a group may omit it: pb988_end_markers' final program PB988L has none and runs (LAST).",
+ "state": "OK"
+}

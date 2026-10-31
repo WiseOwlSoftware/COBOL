@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.14.3-10",
+ "section": "13.18.14.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "COLUMN clause",
+ "rule-digest": "308ed3581a34",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportColumnClauses; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportColumnArrangement",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb1222-multiple-column-with-occurs; conformance:cases/13.18.14-COLUMN/pb1222-multiple-column-not-increasing; conformance:cases/13.15-Report-group-description/pb1222_report_arrangement_present_when",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1222 landed 2026-10-04: SR10 a) no OCCURS in a multiple COLUMN entry, SR10 b) integer-1 strictly increasing (COBOL2745); the COLUMN arm of the two-arm rule whose LINE arm was already screened.",
+ "state": "OK"
+}

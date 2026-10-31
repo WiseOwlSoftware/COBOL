@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.5-1",
+ "section": "9.1.5",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Files",
+ "rule-digest": "357a35a9cedc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#RunUnit; src/WiseOwl.Cobol.Compiler/Oo/OoDriver.cs; src/WiseOwl.Cobol.Runtime/Control/CobolObject.cs",
+ "test-ref": "conformance:cases/9.1.5-Sharing-file-connectors/oo_external_file_shared",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (9.1.5 item 1): \"An external file connector may be referenced from any runtime element that describes that file connector.\" [cite.py --check PASS 9.1.5]. EXTERNAL FDs key ONE run-unit connector (::EXT:: by FD name). Probe E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2b\\out\\probe\\p915\\e1.cob (2023) and e85.cob (85): P915E OPENs OUTPUT EF EXTERNAL and writes AAAA; sibling program P915F (own EXTERNAL FD EF, own 01 name) WRITEs FFFF with no OPEN of its own; P915E closes, reopens INPUT; P915G READs -> G-R=AAAA; P915E READs next -> E-R=FFFF. Identical at --std 85 and 2023: one connector shared by three programs, position shared too. Program<->object sharing: conformance:cases/9.1.5-Sharing-file-connectors/oo_external_file_shared (spec-derived; program opens, object writes through the same connector, R1/R2 read back) covers the 'any runtime element' breadth; conformance:cases/12.4.5-File-control/pb673_external_assign_executor covers program<->program. || Editions (adjudicator, verbatim): 1985, 2002, 2014, 2023 (no Annex E change; 'runtime element' reaches objects from 2002) || Code sites (adjudicator, verbatim): src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#RunUnit (run-unit file-connector registry); src/WiseOwl.Cobol.Compiler/Oo/OoDriver.cs (program<->class sharing is EXTERNAL only); src/WiseOwl.Cobol.Runtime/Control/CobolObject.cs",
+ "state": "OK"
+}

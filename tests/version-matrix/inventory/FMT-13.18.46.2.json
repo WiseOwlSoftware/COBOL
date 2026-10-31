@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.46.2",
+ "section": "13.18.46.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "REPORT clause",
+ "rule-digest": "b20316e2c2f5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#reportClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ResolveReports",
+ "test-ref": "conformance:cases/13.18.12-CODE/pb1050_reports_share_file",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "(kb/Work PB1050, wave 1005 A). Format: {REPORT IS | REPORTS ARE} {report-name-1}... Grammar `(REPORT IS? | REPORTS ARE?) reportName+` matches the diagram and the ellipsis half - REPORTS ARE R-A R-B - now binds (pb1050_reports_share_file). cite.py --check 13.18.46.3 OK 1).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.61.4-3",
+ "section": "15.61.4",
+ "kind": "RV",
+ "ordinal": 3,
+ "subject": "MEDIAN function",
+ "rule-digest": "13e89d4feb22",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#MedianDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#MedianScaled; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Align; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#MedianReal; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AlignedArgs",
+ "test-ref": "conformance:cases/15.59.4-Returned-value-rules/pb65_selection_mixed_carriers; conformance:cases/8.4.2.3-Subscripts/pb62_all_subscript_runtime_ranges",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The sort uses the simple-condition comparison: exact over fixed-point arguments (MedianScaled), exact on the SDIDI over a mixed list (kb/Work PB65, 2026-08-18 — MEDIAN(F1 N1 N2) returned 0 through the double lane; now the middle argument's content, 999999999999999998), and the even-count mean is exact on the same carrier. retired-witness: src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AlignedArgsEx (kb/Work PB3860 folded IntrinsicRenderer.AlignedArgsEx into AlignedArgs: its third tuple member (an any-Real flag) had no reader once MEAN's native arm was deleted)",
+ "state": "OK"
+}

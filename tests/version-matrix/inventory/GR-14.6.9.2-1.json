@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.9.2-1",
+ "section": "14.6.9.2",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Operations on dynamic-capacity tables",
+ "rule-digest": "f07324f6b675",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#VariableLengthGroupMove; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#VarCarrierWrite; src/WiseOwl.Cobol.Runtime/Values/CobolVarGroup.cs#ToImage",
+ "test-ref": "conformance:cases/14.6.9.2-Moving-a-table/l1c20_move_dyn_table_superfluous; unit:BoundaryGroupCorrespondenceTests.AFixedTableOfFixedElements_ReachesADynamicTableOfVariableLengthElements_ElementByElement",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Rule (cite.py --check 14.6.9.2 \"superfluous elements are not moved and no exception exists\" -> OK §14.6.9.2 1)): when the receiving table is NOT dynamic-capacity and the sender's current capacity is higher, superfluous elements are not moved, no exception. §14.6.9.1 (checked OK) makes an ODO receiver a table of capacity = DEPENDING value. Code: GR9 MOVE (MoveEmitter.VariableLengthGroupMove) routes a fixed receiving group through VarCarrierWrite -> RuntimeApi.VarGroupToFixedImage -> CobolVarGroup.ToFixedImage, which CobolString.Store-fits each carried component to its span width (truncation = superfluous elements dropped). Probe out/probe/dyncap/p1.cob (pinned cobol.exe, --std 2023 and 2014 identical): dyn sender capacity 4 -> OCCURS 2 fixed receiver gives A=[HH][AAA][BBB] (elements 3,4 not moved, no exception); dyn sender capacity 3 -> ODO receiver with N=2, then N raised to 4, gives C=[AAA][BBB][OL3][OL4] (element 3 beyond the DEPENDING count untouched). No spec-derived MOVE golden exercises the superfluous arm (conformance:cases/14.6.9.2-Moving-a-table/pb393_move_varlen_table covers only the shorter-sender arm; BoundaryGroupCorrespondenceTests exercise the CALL boundary, not MOVE) -> test-ref empty. The element-wise MOVE-rule defect (finding 2, filed under GR-14.6.9.2-2) also runs through this path but is the other sentence's obligation. || editions as adjudicated: 2014, 2023 (dynamic-capacity tables / variable-length groups arrive with ISO/IEC 1989:2014; 2023 Annex E lists no change to 14.6.9) retired-witness: src/Cobol.Net.Runtime/Values/CobolVarGroup.cs#ToFixedImage (kb/Work PB2690 replaced ToFixedImage by ToImage, the same fit of a dynamic sender into a non-dynamic receiving table through Reshape over the pair's atoms)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.24.3-4",
+ "section": "14.9.24.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "MERGE statement",
+ "rule-digest": "3104e7c1aa7b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortKeyAdmission.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortAddFileKeys; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#KeyWindowOf",
+ "test-ref": "conformance:cases/14.9.24-MERGE/pb1173-merge-key-pointer; conformance:cases/14.9.24-MERGE/pb1173-merge-key-occurs; conformance:cases/14.9.24-MERGE/pb1173-sort-file-key-boolean; conformance:cases/14.9.24-MERGE/pb1173-sort-file-key-odo-group; conformance:cases/14.9.24-MERGE/pb1173-sort-file-key-dynamic-length; conformance:cases/14.9.24-MERGE/pb1173-sort-file-key-not-in-record; conformance:cases/14.9.24-MERGE/pb1173_sort_key_second_record; conformance:cases/14.9.24-MERGE/pb1025-sort-key-after-dynamic-beyond-minimum",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1173 + PB1052 landed: MERGE's key rules are SORT Format 1's through the SAME function - SortAddFileKeys (key resolution, SR4 a) record test, window, e) same byte positions, g) minimum-size bound) and SortKeyAdmission.Violation with the Merge arm (b/f OCCURS, c class, d shape; messages cite 14.9.24.3 SR4). The MERGE-specific witnesses are the pointer and OCCURS keys; the rest are shared code paths witnessed through the SORT statement.",
+ "state": "OK"
+}

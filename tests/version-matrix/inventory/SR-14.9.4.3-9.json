@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.4.3-9",
+ "section": "14.9.4.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "CALL statement",
+ "rule-digest": "251f1424638b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall",
+ "test-ref": "conformance:cases/14.9.4-CALL/l1-call-returning-constant-record; conformance:cases/14.9.4-CALL/goback_returning",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "CLOSED 2026-09-09 (kb/Work PB258 golden round) - the CLASSIFICATION half this row recorded as unmet is landed and now witnessed. Citation re-validated: cite.py --check 14.9.4.3 'Identifier-3 is a receiving operand.' -> OK, Syntax rules 9. || DERIVED BEFORE MEASURING, two halves. SEMANTIC: the value the called program returns is STORED into identifier-3 - conformance:cases/14.9.4-CALL/goback_returning pins it with SUM=0042 / SUM2=0013, derived from 14.9.18's GOBACK RETURNING and not from any oracle. CLASSIFICATION: because identifier-3 IS a receiving operand, every 'shall not be a receiving operand' rule applies to it, 13.18.15.3 SR2 (no part of a CONSTANT RECORD may be modified) among them - so CALL 'SUB' RETURNING an item of a CONSTANT RECORD shall be REJECTED, not bound to a writable carrier. || THE RESIDUE HAS LANDED: CallBinder.BindCall's callReturningPhrase arm resolves the operand with host.Expr.ResolveReceiving(rp.dataReference()) instead of the plain ctx.Refs.Resolve this row measured, so the receiving chokepoint's screens finally reach the SECOND arm of the dispatch. MEASURED on this worktree's built compiler at --std 2002, 2014 and 2023: COBOL1548 'receiving operand KA names a data item of the CONSTANT RECORD K - the content of a structured constant cannot be modified (ISO 13.18.15.3 SR2)'. Pinned by conformance:cases/14.9.4-CALL/l1-call-returning-constant-record. || The identifier-2 twin of the same screen is conformance:cases/14.9.4-CALL/pb128-call-constant-by-reference: a two-arm dispatch with only one arm fixed is this repository's most reproducible defect shape, and both arms now carry their own fixture. Editions: batch default.",
+ "state": "OK"
+}

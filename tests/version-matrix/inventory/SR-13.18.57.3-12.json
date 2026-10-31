@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.57.3-12",
+ "section": "13.18.57.3",
+ "kind": "SR",
+ "ordinal": 12,
+ "subject": "TYPE clause",
+ "rule-digest": "a37249bee499",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindGroupType",
+ "test-ref": "conformance:cases/13.18.57-TYPE/pb1298-or-page-without-page-limit",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1298: the PAGE HEADING, PAGE FOOTING and OR PAGE legs are screened by one condition (report-page-type-requires-page).",
+ "state": "OK"
+}

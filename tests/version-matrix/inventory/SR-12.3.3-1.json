@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.3-1",
+ "section": "12.3.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Configuration section",
+ "rule-digest": "82dba2fffc61",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ConfigurationSectionInContainedProgram",
+ "test-ref": "conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-17 (with PB60 / AR-15.67.3-5). A CONFIGURATION SECTION in a program contained within another program is diagnosed — COBOL1643 (catalogued descriptor), at every edition (X3.23-1985 carried the same restriction; no Annex E change) — after which the section is still walked so a second diagnostic never masks this one; the container's configuration applies (GR-12.3.4-1). Before this the containee's own section was silently bound locally. Negative fixture tests/conformance/negative/config-section-in-contained-program (reject-at 85 2002 2014 2023). retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.4.1-4",
+ "section": "15.4.1",
+ "kind": "RV",
+ "ordinal": 4,
+ "subject": "Intrinsic functions",
+ "rule-digest": "e2495718cb3b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-RV-15.4.1-4",
+ "editions": "85,2002,2014,2023",
+ "notes": "CLOSED by kb/Work PB245 as a section 1.1 DERIVATION, arm unpopulatable-antecedent - see docs/CONFORMANCE.md section 8 DRV-RV-15.4.1-4. The rule is 15.4.1 NOTE 1 item 4, 'The result is explicitly implementor-defined' (cite.py --check 15.4.1 -> OK, rule 4), whose normative twin under a standard mode is the same clause's rule 2 c), 'The returned value is explicitly implementor-defined' (--check -> OK, rule 2). THE ENUMERATION THE GOLDEN ROUND SAID WAS OWED HAS NOW BEEN DONE, MECHANICALLY OVER SECTION 15 AND NOT FROM RECALL. NOTE 1's own lead-in scopes item 4 to 'the result of an equivalent arithmetic expression', so it reaches only functions that HAVE one; the clauses containing 'The equivalent arithmetic expression is as follows' are exactly fourteen - 15.7 ABS, 15.9 ANNUITY, 15.17 COMBINED-DATETIME, 15.23 DATE-TO-YYYYMMDD, 15.25 DAY-TO-YYYYDDD, 15.36 FACTORIAL, 15.60 MEAN, 15.74 PRESENT-VALUE, 15.79 SECONDS-FROM-FORMATTED-TIME, 15.81 SIGN, 15.86 STANDARD-DEVIATION, 15.88 SUM, 15.98 VARIANCE, 15.100 YEAR-TO-YYYY - and NOT ONE of those fourteen function clauses contains 'implementor-defined', 'implementor defines' or 'defined by the implementor' anywhere in it. The antecedent is therefore false for every equivalent arithmetic expression THE STANDARD DEFINES, before it is ever an implementation question, so section 1(c)'s covering test is unmeetable rather than unwritten. The row's own history named the wrong functions and the round had already corrected it: 15.75 RANDOM, 15.80 SECONDS-PAST-MIDNIGHT and 15.38 FORMATTED-CURRENT-DATE carry no equivalent arithmetic expression at all, so their implementor-defined results are Annex A.1 determinations (section 7 items 144/145, 171, 112, 87) and instances of 15.4.1's LAST paragraph, never of item 4; 15.27 E and 15.73 PI print no EAE either and are covered by NOTE 1 item 1. TEST-REF CLEARED DELIBERATELY: conformance:cases/8.8.1.5.4-Exponentiation-in-standard-decimal-arithmetic/exp_standard_decimal_eae is evidence about rule 1's 'shall equal' obligation and moved to nothing here - it stays on RV-15.4.1-1, which is CONFORMS on it - because a test about rule 1 is not evidence about rule 4, and the derivation mechanism refuses a row that still claims one. TWO OF THE ROW'S THREE RECORDED COSTS WERE ALREADY DEAD: PB125 landed FACTORIAL's standard-decimal arm and PB198 recorded the standard-binary section 4.2.6 decline.",
+ "state": "OK"
+}

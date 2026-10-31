@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-187",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 187,
+ "subject": "SPECIAL-NAMES paragraph, ALPHABET clause, STANDARD-1 and STANDARD-2 phrases (correspondence with native character set)",
+ "rule-digest": "7cae95ed1615",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-187; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#CodedCharacterSet; src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#CodedSetKind; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#MediumCorrespondence; src/WiseOwl.Cobol.Runtime/IO/CodeSetConversion.cs#Represents; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#RecordHasCharacterWithoutByteImage",
+ "test-ref": "conformance:cases/8.8.4.4-Simple-class-condition/pb109_class_condition_alphabet; conformance:cases/12.3.7-SPECIAL-NAMES/pb110_code_set_identity; conformance:cases/A.1-Implementor-defined-language-element-list/pb1542_code_set_unrepresentable_85; conformance:cases/A.1-Implementor-defined-language-element-list/pb1542_code_set_line_sequential; unit:CodeSetConversionTests.Iso646_RepresentsExactlyItsOwn128Characters",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1542 LANDED (wave 65 D, with PB1150). cite.py --check 12.3.7.4 'When the STANDARD-1 phrase is specified, the referenced coded character set shall be as specified in ISO/IEC 646 International Reference Version' -> OK §12.3.7.4 7) c); cite.py --check 13.18.13.4 'On output, each native coded character in the record is replaced for the storage medium with its associated coded character as defined in the alphabet being used' -> OK §13.18.13.4 6) b). The determination (identity on U+0000-U+007F, 128 ordinals) is unchanged; the CODE-SET edge the refuter recorded PARTIAL on is closed: CodedCharacterSet.MediumCorrespondence now gives STANDARD-1 / STANDARD-2 / the ASCII code-name their 128-entry identity correspondence, so the connector's CodeSetConversion knows where the set ends, and FileConnector.RecordHasCharacterWithoutByteImage asks CodeSetConversion.Represents at every WRITE/REWRITE: a record character above U+007F is refused with '91' (DOC-A.1-110) or '71' on a line sequential file (DOC-A.1-115), nothing reaches the medium. Re-probed on the w65d build: STANDARD-2 'AeB' (U+00E9) -> W2=91, medium 41 42 7E only; EBCDIC U+20AC -> W2=91, no exception. Input direction documented as a determination in the row: a medium byte X'80'-X'FF' reads as the native character of the same value (line sequential: '09') and a relative/indexed store re-persists it byte-exactly. Goldens 85/pb1542_code_set_unrepresentable_85 and 2023/pb1542_code_set_line_sequential pin every leg.",
+ "state": "OK"
+}

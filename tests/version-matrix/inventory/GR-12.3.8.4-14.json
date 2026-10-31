@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.8.4-14",
+ "section": "12.3.8.4",
+ "kind": "GR",
+ "ordinal": 14,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "2f4a38d4bf5b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#IsRepositoryIntrinsic; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#TryIntrinsicOfThisCompilation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#IsFunctionBearing; src/WiseOwl.Cobol.Compiler/Binding/FunctionWord.cs#FunctionWord",
+ "test-ref": "conformance:cases/12.3.8-REPOSITORY/pb1083_repository_all_cobol_words; conformance:cases/12.3.8-REPOSITORY/pb1083-cobol-words-synonym-as-user-word; conformance:cases/12.3.8-REPOSITORY/pb1083_all_intrinsic_edition_names",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1083: the ALL list is ONE membership, DataBinder.IsRepositoryIntrinsic, asked by the declaration screen, IntrinsicBinder.KeywordOmittedFunction (and its reserved-name arm) and ReferenceResolver.IsFunctionBearing — it used to be IntrinsicCatalog.TryGet(written word) three times over. The word goes through CobolWordsMap.Resolve (GR14: an UNDEFINE'd or SUBSTITUTE'd-away name leaves the list, a SUBSTITUTE literal-5 or EQUATE literal-2 joins it) and its function's D8 window. 2023/pb1083_repository_all_cobol_words: with SQRT undefined, PI EQUATE'd to MYPI and E SUBSTITUTE'd by EULER, 01 SQRT and 01 E are legal (7, 8) and FUNCTION-less MYPI / EULER are pi and e; they drew COBOL1649 and COBOL1639 before. retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.cs#ScreenRepositoryIntrinsicName (kb/Work PB1083 moved the ALL-list membership to DataBinder.IsRepositoryIntrinsic, which the three consumers ask) retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.cs#CanonicalIntrinsicWord (kb/Work PB1372 landed: DataBinder.CanonicalIntrinsicWord (a bare Resolve on word text) is deleted - the >>COBOL-WORDS answer for an intrinsic-function-name is made once as a FunctionWord (OfToken / OfWrittenWord) and TryIntrinsicOfThisCompilation reads it, so a SUBSTITUTE'd tokenized name is no longer resolved twice)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.3.5.3-2",
+ "section": "8.3.3.5.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "National literals",
+ "rule-digest": "1e5087e272d6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#NAT_BODY; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NationalLiteralOperand",
+ "test-ref": "conformance-test:NationalBooleanLiteralTests.NationalLiteral_NonLatin1Char_Accepted_DisplayOfCarriesIt",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 8.3.3.5.3 \"any character in the national coded character set that the implementor has designated for source code representation\" -> OK (rule 2). STR_BODY admits every character except the delimiter and CR/LF; source text is read as UTF-8 so both dashes hold: an ASCII (alphanumeric-set) character and a character outside Latin-1 are each stored as one national (UTF-16) position. Probe p1: N\"\\u00e9\\u6f22\" MOVE/DISPLAY exact, LENGTH(N\"\\u00e9x\")=2. The character set designation itself is Annex A.1 item 31 (documentation owned by that DOC row). [editions as adjudicated: COBOL-2002, COBOL-2014, COBOL-2023 (national literals are a COBOL-2002 introduction; absent from COBOL-85, where the construct is rejected COBOL0900 via Constructs.NationalData2002)]",
+ "state": "OK"
+}

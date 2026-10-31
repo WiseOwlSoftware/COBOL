@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.35.4-11",
+ "section": "14.9.35.4",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "REWRITE statement",
+ "rule-digest": "6b32309f26c1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RewriteShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ConflictOnLockedRecord; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite",
+ "test-ref": "unit:CobolFileLockTests.RewriteAndDelete_HonorAnotherConnectorsLock_51_ThenUnlockFrees",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"If the RETRY phrase is not specified or the record is not successfully rewritten as specified by the RETRY phrase, the record operation conflict condition exists ... a) The file position indicator is unchanged. b) A value is placed into the I-O status ... c) The REWRITE statement is unsuccessful.\" Both emitters route EVERY REWRITE through CobolFile.RewriteShared, which computes the target record id and calls ConflictOnLockedRecord (the RETRY loop of 14.7.9) BEFORE RewriteAnyOrg, returning the conflict status (51, or 52 for FOREVER deadlock) - so nothing is written, the connector's FPI/state is untouched and the statement is unsuccessful. The unit test asserts 51 without RETRY, 51 after RETRY 2 TIMES (DELETE twin), 52 under FOREVER, and success after UNLOCK; unit:CobolFileLockTests.PlainConnector_SeesAnothersRecordLock_ButSetsNone_9_1_16 covers the clause-less connector. The test does not re-read the record to prove non-update; that follows from the early return. cite.py --check 14.9.35.4 GR11 -> OK. [editions as adjudicated: 2023 and 2014 (Annex E lists no 2014->2023 change); the record-locking facility it belongs to is post-1985 - the exact introducing edition is not derivable from the 2023 text]",
+ "state": "OK"
+}

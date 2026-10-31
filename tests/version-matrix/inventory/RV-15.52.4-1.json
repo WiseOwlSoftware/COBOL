@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.52.4-1",
+ "section": "15.52.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "LOCALE-DATE function",
+ "rule-digest": "fbd7024abb73",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#Facts",
+ "test-ref": "conformance:cases/14.6.6-Locale-identification/pb64t4_locale_functions; unit:CobolLocaleTests.NamedUnavailableLocale_IsMissing_AndTheRootAnswers",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T4: the named locale, else the current LC_TIME (§14.6.6 r8); EC-LOCALE-MISSING for an unavailable named locale (the HANDLED/MISSING lines — the statement interrupted, the root's format standing when checking is off).",
+ "state": "OK"
+}

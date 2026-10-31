@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.7.3-1",
+ "section": "8.4.3.7.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "NULL object reference",
+ "rule-digest": "97b322be96a8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolWords.g4#reservedGatedWord; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#setObjectReferenceStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetFormatSelection.cs#KindOf; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#nonReceivableIdentifier; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ReceivingOperandForms.cs#Rules",
+ "test-ref": "conformance:cases/8.4.3.7-NULL-object-reference/l1m7-null-receiving-operand",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§8.4.3.7.3 SR1: SET NULL TO OR1 (NULL as receiver) is refused by this rule, COBOL3977, at the receiving chokepoint's form table in every receiving position (kb/Work PB1551, w1097d); it was COBOL0901, a parse error re-coded to 8.9. SET OR1 TO NULL is the legal direction.",
+ "state": "OK"
+}

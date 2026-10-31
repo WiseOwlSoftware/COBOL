@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.3-7",
+ "section": "12.4.5.3",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "File control entry",
+ "rule-digest": "8b91c8b9d337",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#MapOrganization; src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs#RegisterRelative",
+ "test-ref": "conformance:wiseowl/cases/12.4.5-File-control/pb742_legal_entry_formats_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'The relative format defines a file connector for a relative file.' (cite.py --check 12.4.5.3 -> OK 7)). Code: MapOrganization maps `RELATIVE` to FileOrganization.Relative; registration via CobolFile.RegisterRelative. The spec-derived golden conformance:wiseowl/cases/12.4.5-File-control/pb742_legal_entry_formats_85 reads R=0002 'TWO' by relative record number (§12.4.5.13.4 GR1/GR2 derivation); probes probe/fce/gr2rel show relative OPEN/presence behavior. [registrar 14a — editions as adjudicated: 85, 2002, 2014, 2023 (Format 2 general rule; no Annex E row)]",
+ "state": "OK"
+}

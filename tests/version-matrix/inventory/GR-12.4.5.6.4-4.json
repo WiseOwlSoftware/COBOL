@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.6.4-4",
+ "section": "12.4.5.6.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "ALTERNATE RECORD KEY clause",
+ "rule-digest": "1ec81e6d91c3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#AddAlternateKey; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#OrderOf; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#KeyOrder; src/WiseOwl.Cobol.Runtime/IO/Store/KeyOrders.cs#WeightedKeyOrder",
+ "test-ref": "conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/l1c01_alt_key_duplicates; conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/l1c01_alt_key_equality_collating",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "NOW (kb/Work PB3334, INDEXED on the keyed store engine): the INDEXED organization moved to the keyed store engine (kb/Work PB3334; DESIGN-runtime-library 2.2.1.4): key equality is the key order's over the key's channel bytes (IndexedConnector.OrderOf, KeyOrders.WeightedKeyOrder for a declared sequence). cite.py --check 12.4.5.6.4 \"If the DUPLICATES phrase is not specified, the value of the associated alternate record key shall not be equal\" -> OK GR4; cross-checked §14.9.51.4 GR42 c) (WRITE '22', --check OK) and §9.1.13.2 2) c) ('02' for a duplicate on a DUPLICATES key). Probe gr4.cob (2023): unique alt key duplicate WRITE -> INVALID KEY '22'; REWRITE creating a duplicate -> '22'; WITH DUPLICATES key duplicate WRITE -> '02'. The collating-sequence half: file G with `COLLATING SEQUENCE OF G-ALT IS FOLD` (ALPHABET FOLD \"A\" ALSO \"a\" \"B\" ALSO \"b\") - keys \"Ab\" and \"aB\" are equal under that sequence and the second WRITE -> '22', so equality is judged under the file's collating sequence (IndexedConnector.OrderOf -> IndexedConnector.OrderOf with the key's weights). Both halves verified. No existing spec-derived test pins the '22'/'02' on an alternate key (grep of tests/conformance ALTERNATE goldens: none asserts 22 on a unique alternate), so test-ref is empty. NOTE: the duplicate check is also where the GR6 suppression defect surfaces (spurious '22' between two records whose keys equal a figurative/short SUPPRESS WHEN value) - that is GR-12.4.5.6.4-6's mechanism, not this rule's. retired-witness: src/Cobol.Net.Runtime/IO/IndexedConnector.cs#KeyCompare (the INDEXED organization moved to the keyed store engine (kb/Work PB3334; DESIGN-runtime-library 2.2.1.4): key equality is the key order's over the key's channel bytes (IndexedConnector.OrderOf, KeyOrders.WeightedKeyOrder for a declared sequence)) retired-witness: src/Cobol.Net.Runtime/IO/IndexedConnector.cs#KeyEq (the INDEXED organization moved to the keyed store engine (kb/Work PB3334; DESIGN-runtime-library 2.2.1.4): key equality is the key order's over the key's channel bytes (IndexedConnector.OrderOf, KeyOrders.WeightedKeyOrder for a declared sequence))",
+ "state": "OK"
+}

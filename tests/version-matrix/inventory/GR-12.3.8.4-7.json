@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.8.4-7",
+ "section": "12.3.8.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "8db5d279147d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Resolve; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#IsParameterized",
+ "test-ref": "conformance:cases/11.3-CLASS-ID/pb759_parameterized_class",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB759.md landed w46i3. interface-name-2 (PB759IPUT-BOX) is usable throughout the scope (USAGE OBJECT REFERENCE, IMPLEMENTS); a parameterized interface name outside a REPOSITORY takes the same GR1/GR7 refusal in Resolve.",
+ "state": "OK"
+}

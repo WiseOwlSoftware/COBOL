@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.22.2",
+ "section": "15.22.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "DATE-OF-INTEGER function",
+ "rule-digest": "4cc823ec1b60",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicArgs",
+ "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.IntegerDateForm_Epoch_PinnedToSpec",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SURVIVES REVIEW. Independently re-verified rather than inherited. Symbols confirmed literally present: `functionCall : FUNCTION functionName (LPAREN functionArgList? RPAREN)?` at CobolExpressions.g4, `public static class IntrinsicCatalog`, and `BindIntrinsicArgs` in IntrinsicBinder.cs; the catalog row is `Add(new(\"DATE-OF-INTEGER\", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, \"i\", \"DateOfInteger\", ...))` — Fixed 1..1, matching the single parenthesized argument-1 of §15.22.2. Positive forms RAN clean: `FUNCTION DATE-OF-INTEGER(143951)`, `FUNCTION DATE-OF-INTEGER ( 143951 )` (separator spaces), an identifier operand, an arithmetic-expression operand `(A + B)`, a numeric-edited operand, and the call as an EVALUATE subject and in an IF condition. Negative direction RAN: two arguments gives 'error COBOL1504: FUNCTION DATE-OF-INTEGER takes 1 argument(s); 2 given (ISO 15.3)'; the paren-less form is caught by the same arity arm ('0 given'), so the grammar's optional argument-list parenthesis does not let the format through. Identical acceptance under --std 85, 2002, 2014 and 2023 (all four print 16010101 for the epoch case). Test-ref re-verified ON DISK at tests/WiseOwl.Cobol.Tests.Conformance/IntrinsicFunctionDifferentialTests.cs line 265; its helper `AssertSpec` compiles and compares to a hand-written expectation with NO oracle involved (`AssertSameAsLegacy` is a different helper this method does not call), so it is genuinely spec-derived and it does compile the §15.22.2 form. Caveat, not a defect: the test pins only the POSITIVE form; the arity rejection is unpinned by any checked-in spec-derived test.",
+ "state": "OK"
+}
