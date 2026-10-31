@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.17.4-4",
+ "section": "7.3.17.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "LEAP-SECOND directive",
+ "rule-digest": "30148fe2ede9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#SecondsOfReal; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#SecondsOfDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#TimeOfDay",
+ "test-ref": "conformance:cases/7.3.17-LEAP-SECOND/pb65_leap_second_on; conformance:cases/7.3.17-LEAP-SECOND/pb1379_time_form_floor_float_carriers_on; unit:CobolDateSecondsLandingTests.ATinyNegativeFloat_TakesTheOutOfRangePath",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1379 landed. The floor ('greater than or equal to zero') was lost on the float and SDIDI carriers of FORMATTED-TIME, FORMATTED-DATETIME and LOCALE-TIME-FROM-SECONDS because the landing truncated a tiny negative to 0 before the screen; the landing now rounds toward negative infinity (CobolDate.SecondsOfReal / SecondsOfDec), so a COMP-2 -1.0E-10 takes the EC-ARGUMENT-FUNCTION path under ON. The ceiling (86,401) and the fixed-point carriers were already right. LOCALE-TIME-FROM-SECONDS(86400) under ON now presents the leap second as 23:59:60 through the one CobolDate.TimeOfDay reading (15.54.4 r2), where it said 24:00:00.",
+ "state": "OK"
+}

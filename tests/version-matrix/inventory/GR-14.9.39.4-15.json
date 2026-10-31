@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-15",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 15,
+ "subject": "SET statement",
+ "rule-digest": "b380778b49e5",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-174; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#FunctionAddressOf; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/PtrEmitter.cs#EmitSetFunctionAddress",
+ "test-ref": "conformance:cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb452_set_function_pointer; conformance:cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb452_function_address_runtime",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "'The effect of the SET statement on the function whose address is being stored in the function-pointer is implementor-defined.' The whole obligation is to SAY what the effect is, and Annex A.1 item 174 makes saying it REQUIRED - so this rule closes only with its DOC row, which docs/CONFORMANCE.md section 7 DOC-A.1-174 now carries. The determination is NONE: taking a function's address performs no activation, no loading, no linking, no allocation and no initial-state establishment, because a function-pointer here IS the externalized function-name (8.4.3.12.4 GR2) and FunctionAddressOf performs a registry LOOKUP only. Witnessed rather than asserted: the 2014 golden activates FUNCTION PBF8DBL(21) BEFORE the first SET and AFTER the last and both print 000000042, so the function's result cannot depend on whether its address was taken.",
+ "state": "OK"
+}

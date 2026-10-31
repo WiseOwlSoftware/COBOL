@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.46.3-3",
+ "section": "13.18.46.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "REPORT clause",
+ "rule-digest": "a92facb5c44a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenReportFileReference; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveFile; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenModeForFile",
+ "test-ref": "conformance:cases/13.4.5-File-description/pb1171-report-file-io-reference; conformance:cases/13.4.5-File-description/pb1171_report_file_legal_references",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1035 (landed by PB1171, wave 68 Y — the same mechanism). §13.18.46.3 SR3 states §13.4.5.3 SR9 word for word from the REPORT clause's side ('may be referenced in the procedure division only by the USE statement, the WHEN phrase of a PERFORM statement, the CLOSE statement, or the OPEN statement with the OUTPUT or EXTEND phrase', cite.py OK 13.18.46.3 3)); it is the same ONE screen, ScreenReportFileReference, asked from ResolveFile. PB1035's probe `READ RPTF` after OPEN EXTEND and `UNLOCK RPTF` are COBOL2577 now (were clean and printed RAN).",
+ "state": "OK"
+}

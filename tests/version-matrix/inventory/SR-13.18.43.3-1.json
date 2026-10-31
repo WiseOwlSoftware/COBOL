@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.43.3-1",
+ "section": "13.18.43.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "RECORD clause",
+ "rule-digest": "caffa1f48758",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#MaterializeImpliedRecord",
+ "test-ref": "conformance:cases/13.4.5-File-description/pb345-fd-no-record-clause; conformance:cases/13.18.43-RECORD/pb345-fd-varying-no-maximum; conformance:cases/13.4.5-File-description/pb345_record_less_fd_area_2023",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB345 (landed). RULE: 'If no record description entries are specified in a file description entry for a file that is not a report file, the RECORD clause shall be specified.' - cite.py --check 13.18.43.3 'If no record description entries are specified in a file description entry for a file that is not a report file, the RECORD clause shall be specified.' -> OK 13.18.43.3 1). Enforced as COBOL1836, which reads the rule as 14.9.30.4 GR6 makes it load-bearing: the clause has to establish a MAXIMUM, because GR6 sizes the implied record description by 'the maximum size established by the RECORD clause'. Two negatives, both rejecting at all four editions: the absent clause, and the written format-2 clause with no TO phrase (13.18.43.4 GR10 refers that case to the largest record DESCRIBED, and this file describes none). The exclusion 'for a file that is not a report file' is exercised the other way by the existing report-file corpus, whose FDs legally carry neither a record description entry nor a RECORD clause.",
+ "state": "OK"
+}

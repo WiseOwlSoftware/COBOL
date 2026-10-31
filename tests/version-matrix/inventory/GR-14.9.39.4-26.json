@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-26",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 26,
+ "subject": "SET statement",
+ "rule-digest": "35b559561759",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/LocaleState.cs#Save; src/WiseOwl.Cobol.Runtime/Control/LocaleState.cs#SavedLocalePointer; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSaveLocale",
+ "test-ref": "conformance:cases/14.9.39-SET/pb64t1_save_restore_locale; unit:LocaleStateTests.SaveAndRestore_IsAPerCategorySnapshot_ThroughAManagedHandle",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T1 (2026-08-19): SET identifier-11 TO LOCALE LC_ALL saves the CURRENT locale (every category, as a snapshot) and places a saved-locale handle into the data-pointer (L4). Was DOCUMENTED-NON-SUPPORT (PB92).",
+ "state": "OK"
+}

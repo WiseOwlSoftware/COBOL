@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.80.3-3",
+ "section": "15.80.3",
+ "kind": "RV",
+ "ordinal": 3,
+ "subject": "SECONDS-PAST-MIDNIGHT function",
+ "rule-digest": "d81dde0ec6aa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#SecondsPastMidnight; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; docs/CONFORMANCE.md#DOC-A.1-171",
+ "test-ref": "unit:CobolDateWindowingTests.SecondsPastMidnight_PinnedClock_ExactTicks",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "The implementor-specified precision is 100 nanoseconds — 7 fraction digits, the .NET DateTime tick resolution — documented in docs/CONFORMANCE.md §7 as A.1 item 171 ('SECONDS-PAST-MIDNIGHT function returned value (precision)', required + documented). Mechanically confirmed: `python scripts/spec/audit_annex_a1.py` (run 2026-08-08, read-only) lists item 171 among the discharged rows with no findings. The runtime returns the tick count and the renderer types it at scale 7, so the documented precision and the delivered precision are one contract rather than two constants that can drift; the pinned-clock unit test asserts the 7th fraction digit (…8124791) survives exactly.",
+ "state": "OK"
+}

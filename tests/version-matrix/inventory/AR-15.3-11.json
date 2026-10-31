@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.3-11",
+ "section": "15.3",
+ "kind": "AR",
+ "ordinal": 11,
+ "subject": "Intrinsic functions",
+ "rule-digest": "36befef72ff7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.OoIdentifier.cs#OoBindSelfOperand; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemLength.cs#Positions",
+ "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb61_length_byte_length_rule_branches; conformance:cases/8.4.3.1-Identifier/pb1425_predefined_object_operands; conformance-test:IntrinsicFunctionDifferentialTests.Length_SuperIsRefusedByName",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB124 wave 5c, re-witnessed by kb/Work PB1425 (w1020c). \"An object reference shall be specified; the predefined object reference SUPER shall not be specified\" (15.3 item 11). pb61's CARR line carries OBJECT REFERENCE and PROGRAM-POINTER legs (LENGTH / BYTE-LENGTH 8/8). SELF and SUPER are now identifiers of the expression tier (8.4.3.1.2 Format 6), so the refusal of SUPER is no longer a parse accident: FUNCTION LENGTH(SUPER) is refused by name, COBOL2900 (8.4.3.8.3 SR3 - SUPER only as an invocation's or a property's object), and FUNCTION LENGTH(SELF) in a method is the legal type-11 argument (golden pb1425_predefined_object_operands: LENGTH(SELF) = LENGTH(O)). retired-witness: conformance-test:IntrinsicFunctionDifferentialTests.Length_SuperIsStructurallyUnparseable (renamed Length_SuperIsRefusedByName by kb/Work PB1425: SUPER is now an expression-tier identifier refused by 8.4.3.8.3 SR3 (COBOL2900), not a parse error) retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LengthPositions (LengthPositions moved out of IntrinsicBinder and is ItemLength.Positions (kb/Work PB1213, 7d4f0a4a4))",
+ "state": "OK"
+}

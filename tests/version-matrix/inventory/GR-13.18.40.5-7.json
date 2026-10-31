@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.40.5-7",
+ "section": "13.18.40.5",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "PICTURE clause",
+ "rule-digest": "e141546fd43c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Format; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#TrySimpleInsertion",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb490_simple_insertion_strings_85; conformance:cases/13.18.40.5-Editing-rules/pb490_simple_insertion_strings_2002; conformance:cases/13.18.40.5-Editing-rules/pb490_simple_insertion_strings_2014; conformance:cases/13.18.40.5-Editing-rules/pb490_simple_insertion_strings_2023; conformance:cases/12.3.7-SPECIAL-NAMES/pb490_simple_insertion_comma_mode; unit:CobolEditSimpleInsertionDriftTests.Pass2_ReplacesTheSymbolEmbeddedInAZeroSuppressionString; unit:CobolEditSimpleInsertionDriftTests.ASimpleInsertionSymbolLeftOfTheStringIsNotPartOfIt",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB490 LANDED. Rule 7's zero-suppression string absorbs every simple insertion editing symbol embedded in it or immediately right of it, from the ONE set: PIC ZZ/ZZ and PIC ZZ0ZZ MOVE 12 now render '   12' and PIC **/** MOVE 12 renders '***12' (rule 7 a) - the replacement character 'into any character position immediately preceding' the first nonzero numeric character). The membership test is new and is the other half of the fix: EMBEDDED or to the immediate RIGHT, never LEFT, so a leading simple insertion keeps its insertion character (PIC 0ZZ9 -> '0  1', PIC ,ZZ9 -> ',  1', PIC /ZZ9 -> '/  1'), which is what 13.18.40.4 GR15 requires from the VALIDATE side and what 13.18.40.6 Table 10 admits; the previous code blanked a leading ',' as well. 7 b) is unchanged and still pinned (PIC ZZ/ZZ MOVE 0 -> all spaces, PIC **/** MOVE 0 -> all asterisks). The 'PIC $***.** MOVE 0 -> ****.**' reading the adjudication recorded rather than charged is untouched and still conforms to 7 b)'s literal text.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.4.5.3-8",
+ "section": "13.4.5.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "File description entry",
+ "rule-digest": "f62781c2bcd6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#MaterializeImpliedRecord",
+ "test-ref": "conformance:cases/13.4.5-File-description/pb1171-report-fd-record-entry; conformance:cases/13.4.5-File-description/pb1171_report_file_legal_references",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1171 LANDED (wave 68 Y; the row moved from PB1238, whose FD-format determination covers SR4/SR5, not this). SR8 'Format 3 is the file description entry for a report file. No record description entries or constant entries shall be associated with the file description entry for a report file.' (cite.py OK 13.4.5.3 8)). Asked in the FD loop after the clauses (the REPORT clause may follow any other): an FD with a REPORT clause and any subordinate entry is COBOL2578 (probe ws3rpt0 compiled clean). A report FD with no entry keeps no implied record (MaterializeImpliedRecord returns for a report file).",
+ "state": "OK"
+}

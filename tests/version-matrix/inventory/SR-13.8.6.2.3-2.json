@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.8.6.2.3-2",
+ "section": "13.8.6.2.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Physical subdivisions of a report",
+ "rule-digest": "ee72bfe6a916",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate; src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#SumCounterFor; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportEntryReferenceRefused",
+ "test-ref": "conformance:cases/13.8.6.2.3-Report-Items/pb1271_report_sum_counter_occurrences; conformance:cases/13.8.6.2.3-Report-Items/pb1046-report-group-referenced-in-procedure-division; unit:ReportItemReferenceTests.AGenerateOfADetailGroup_IsNotAReportItemReference",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Landed by kb/Work PB1271 (w1007a). The refuter's PARTIAL half: an elementary report item that is a REPEATING sum counter may now be a function argument - FUNCTION INTEGER(CF-U(2)) = 509, FUNCTION SUM(CF-U(ALL)) = 528, SUM(CF-V(ALL, ALL)) = 83, SUM(CF-V(2, ALL)) = 25 (8.4.2.3.3 SR6, cite.py OK 6)); the table(ALL) argument reads the counter family's OCCURS levels off its register. The GENERATE/DETAIL half and the group-item refusal are unchanged (only sum counters, always elementary, enter the name space).",
+ "state": "OK"
+}

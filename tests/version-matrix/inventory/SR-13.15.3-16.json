@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.15.3-16",
+ "section": "13.15.3",
+ "kind": "SR",
+ "ordinal": 16,
+ "subject": "Report group description entry",
+ "rule-digest": "0e0c08950503",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#CheckConditionOperands; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportSectionOnlyNames",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb1289-present-when-on-printless-group; conformance:cases/13.15-Report-group-description/pb1222_report_arrangement_present_when",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1289 landed 2026-10-04: the scan reads the PRESENT WHEN clauses off the written entries (ReportModel.WrittenEntries) against the data-name of every written entry of every report description.",
+ "state": "OK"
+}

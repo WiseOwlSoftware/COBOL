@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-7.2.4.2",
+ "section": "7.2.4.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "REPLACE statement",
+ "rule-digest": "e746a0cbcc55",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands",
+ "test-ref": "conformance:cases/7.2.4-REPLACE/pb1357_replace_also_last; conformance:cases/7.2.4-REPLACE/pb1357-replace-also-below-2002; unit:TextManipulationStatementTests.LastWithoutOff_IsASyntaxError; conformance:cases/7.2.3-COPY/pb1670_replacing_partial_word_copy_replace; conformance:cases/7.2.3-COPY/pb1670-replacing-partial-word-below-2002; unit:TextManipulationStatementTests.PartialWordPhrases_AreGatedBelow2002_OncePerStatement",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1357 (w68x): both general formats parse (cite.py OK 7.2.4.2 'REPLACE [ ALSO ]'): format 1 REPLACE [ALSO] operands... . and format 2 REPLACE [LAST] OFF . (probe also.cob was COBOL1641 x2, now prints AAA / AAA CCC / AAA). ALSO and LAST are gated at their introducing edition by the new constructs row replace-also-last-2002 (COBOL0900 at 85; a provisional pre-2023 edge per decision 1). BY stays required (COBOL2449). kb/Work PB1670 (w1032c): the LEADING / TRAILING partial-word phrases of format 1 are gated by the sibling row replacing-partial-word-2002 (COBOL0900 at 85, once per statement; VCR row 7.33), through the same parser (ParseReplacingOperands) COPY REPLACING uses. || editions 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the REPLACE statement exists at every edition (an ANSI X3.23-1985 text-manipulation statement); ALSO/LAST and LEADING/TRAILING are its 2002 additions (constructs replace-also-last-2002). cite.py --check 7.2.4.1 \"REPLACE statement\" OK.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.22.3-4",
+ "section": "7.3.22.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "PUSH directive",
+ "rule-digest": "a8a1d73a51f3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs#CheckDirectiveBans; src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveSiteProcessor.cs",
+ "test-ref": "unit:ExceptionCheckingPerformDirectiveBanDriftTests.APushOrPopInsideAnExceptionCheckingPerform_WarnsCitingItsOwnRule; unit:ExceptionCheckingPerformDirectiveBanDriftTests.TheSameDirectivesOutsideTheStatement_DrawNothing; unit:ExceptionCheckingPerformDirectiveBanDriftTests.TheSiteScannerAndTheBanTable_NameTheSameDirectives",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work/PB595.md - LANDED with SR-7.3.25.3-5: the PUSH ban is decided by the SAME lexical-containment predicate D20 mandates (one predicate for TURN/PUSH/POP, never a second region-partitioned mechanism), and the diagnostic quotes THIS rule's own clause and words rather than an intersection of the three. COBOL2187, a suppressible warning; the program still compiles. >>PUSH is a 2023 compiler-directive word (Annex E.2 item 5 / E.3.3 item 38) and the Format-3 PERFORM the rule is about is 2023-only, so the row has no edition below 2023. The directive-state SEMANTICS of 7.3.22 (save the directive state) remain unimplemented and are a separate row family; this row is the POSITION rule.",
+ "state": "OK"
+}

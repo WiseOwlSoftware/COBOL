@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-20",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 20,
+ "subject": "PICTURE clause",
+ "rule-digest": "5b534245d41f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb528-picture-composition; conformance:cases/13.18.40-PICTURE/pb528-picture-composition-decimal-comma; unit:PictureCompositionTests.ACompositionViolation_IsCOBOL1934",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-09-09 (kb/Work PB528). 'The symbol V and the symbol . are mutually exclusive in character-string-1' - PIC 9V9.9 is COBOL1934 (golden entry PB07) at all four editions, and SR13 carries the rule to the comma under DECIMAL-POINT IS COMMA (PIC 9V9,9, entry PE01). Previously PIC 9V9.9 compiled and MOVE 1.23 rendered '12.3'. retired-witness: unit:PictureCompositionTests.ACompositionViolation_IsCOBOLNET1934 (the same witness, re-spelled when the diagnostic code prefix became COBOL#### (kb/Work PB3575); the new spelling is recorded in its place)",
+ "state": "OK"
+}

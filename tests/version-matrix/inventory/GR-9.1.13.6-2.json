@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.6-2",
+ "section": "9.1.13.6",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "I-O status",
+ "rule-digest": "03a9a675cee8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Associate; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#AssignNotConsistent",
+ "test-ref": "conformance:cases/9.1.13.6-Permanent-error-condition-with-unsuccessful-completion/pb324_assign_using_dynamic",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (cite.py --check 9.1.13.6 \"the content of the data item referenced by the data-name specified in the USING phrase of the file control entry is not consistent\" -> OK §9.1.13.6 2)). FileConnector.Associate runs at each OPEN (kb/Work PB324 landed) and returns '31' for empty (all-space) content or a control character, the consistency rule being the Annex A.1 items 10/73 determination (docs/CONFORMANCE.md DOC-A.1-73); residual host-rejected path shapes are '30' (ArgumentException/NotSupportedException catch). Probe iostat-seq: ASSIGN USING an all-SPACES item -> AU-SPACES=31. Golden pb324_assign_using_dynamic BLANK=31 is spec-derived. || Editions (adjudicator, verbatim): 2002,2014,2023 (ASSIGN USING data-name is a 2002+ form; §12.4.5.3 GR3)",
+ "state": "OK"
+}

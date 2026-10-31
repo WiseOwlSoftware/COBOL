@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.14.4-11",
+ "section": "13.18.14.4",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "COLUMN clause",
+ "rule-digest": "c2e28e827b18",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitCompose; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#NewLine",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/l1c03_report_column_absent_not_printed",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'If an entry containing a LINE clause has no subordinate entry defining a printable item, the resultant report line will be blank.' (cite.py --check 13.18.14.4 -> OK 11)). A LINE with no fields composes the space-filled buffer and returns it. Probe p1.cob (2002): `02 LINE PLUS 1.` with no subordinates between two printing lines produced an empty (blank) record in its position. Also a LINE whose only subordinate lacks COLUMN (p1 line 3 before QQ) prints nothing from it. No spec-derived golden pins a printable-less LINE; test-needed.",
+ "state": "OK"
+}

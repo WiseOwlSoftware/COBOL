@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.63.4-17",
+ "section": "13.18.63.4",
+ "kind": "GR",
+ "ordinal": 17,
+ "subject": "VALUE clause",
+ "rule-digest": "ad2b35922362",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#InitializerFrom",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb560_condition_value_float_and_false_2002; unit:ConditionValueRecipeDriftTests.TheSetEmitter_SpellsNoPartOfTheValueRecipe",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB560, LANDED. GR17 imports GR1 into format 3, so a float conditional variable receives \"an approximation of the arithmetic value of the literal\" (cite --check OK, §13.18.63.4 1) and 17)). The STORE arm now reaches that rule by the only route §14.9.39.4 GR6 gives it — \"according to the rules for the VALUE clause\" — because SetEmitter.EmitSet's private literal recipe is deleted and the store is DataEmitter.ValueImageOf, i.e. ValueInitializer.InitializerFrom, the SAME method that renders the item's own VALUE clause; its PicCategory.Numeric-when-IsFloat arm is RawValueAsFloat. MEASURED on this worktree's own build: `01 F USAGE FLOAT-LONG. 88 F-HALF VALUE 0.5.` + `SET F-HALF TO TRUE` gave F=[0] with F-FALSE before and gives F=[0.5] with F-TRUE after. The TEST arm (ConditionRenderer.FloatMembershipValue) was already right, which is why the round trip — SET followed immediately by its own IF, §8.8.4.5.3 GR3 — localised the defect to the store with no appeal to a third party; the golden is written as that round trip so the two arms cannot drift apart again, and unit:ConditionValueRecipeDriftTests pins that no second copy of the recipe can be written.",
+ "state": "OK"
+}

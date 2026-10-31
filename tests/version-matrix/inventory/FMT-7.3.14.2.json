@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-7.3.14.2",
+ "section": "7.3.14.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "FLAG-02 directive",
+ "rule-digest": "1df3dcb486ca",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/FlagDirective.cs#TryParse; src/WiseOwl.Cobol.Frontend/Preprocessor/FlagDirectiveProcessor.cs#Process",
+ "test-ref": "unit:FlagDirectiveTests.Parse_AllAndOn_AreTheDefaults_WhenOmitted; unit:FlagDirectiveTests.Parse_RepeatedAlternative_IsError; unit:FlagDirectiveTests.Parse_OnOffNotLast_IsError; unit:FlagDirectiveTests.Compile_Flag02_DefaultedBraces_SelectTheRightOptions; conformance:cases/7.3.14-FLAG-02/pb1374_flag02_defaults; conformance:cases/7.3.14-FLAG-02/pb1374-flag02-all-repeated",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1374 (w1020f). Printed format rendered from the canonical PDF (p.100, folio 70): `>> FLAG-02 { ALL | { |EC-PROGRAM-EXCEPTIONS | I-O-STATUS-07 | MOVE-TO-SAME-NAME | RANGE-EXCEPTION-FOR-INDEX | TERMINATE-WITH-VARYING| } } { ON | OFF }` with FLAG-02, the five option words and OFF underlined and ALL and ON NOT. cite.py --check 5.2.3 'They are shown in uppercase and not underlined in general formats' OK; 5.2.6.3 'If one of the alternatives contains only optional words, that alternative is the default and is selected unless another alternative is explicitly specified' OK; 5.2.6.4 'any single alternative shall be specified only once' OK. FlagDirectiveLine.TryParse now takes the ON/OFF braces as optional (default ON) and the outer braces as ALL by default, so `>>FLAG-02`, `>>FLAG-02 ON` and `>>FLAG-02 OFF` are accepted (ALL ON / ALL ON / ALL OFF), and a repeated option word or repeated ALL, ALL combined with options, or an ON/OFF that is not the last word is COBOL1622. Before: the three forms were rejected and a repeated word silently merged. The same parse serves FLAG-14 (FMT-7.3.15.2). [editions: introduced 2014 (7.3.14.1), obsolete element at 2023 (7.3.14.1 NOTE) so it warns COBOL0903 and still works; refused below 2014 with COBOL0900]",
+ "state": "OK"
+}

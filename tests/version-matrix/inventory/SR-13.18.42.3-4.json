@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.42.3-4",
+ "section": "13.18.42.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "PROPERTY clause",
+ "rule-digest": "06d2c9b78b32",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#ScreenInheritedPropertyNames",
+ "test-ref": "conformance:cases/13.18.42-PROPERTY/pb1274-property-name-of-later-superclass",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1274 LANDED (wave 1015 Z). cite.py --check 13.18.42.3 'The data-name for the subject of the entry shall not be the same as a property-name defined in a superclass' OK 4). Asked by OoClassTable.ScreenInheritedPropertyNames from ResolveOverrides, once every class's accessors exist, over the base chain's matching roster by property-name (both NOTE routes: explicit GET/SET PROPERTY methods and PROPERTY-clause accessors). The refuter's source-order hole is closed: pb1274-property-name-of-later-superclass writes the subclass first and is COBOL2563 (it compiled clean). Moved off the shared 0842 onto the PROPERTY-clause rule descriptor COBOL2563.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-7.3.2",
+ "section": "7.3.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Compiler directives",
+ "rule-digest": "d15666092e9b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveLine.cs#TryParse; src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#Find; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+ "test-ref": "unit:CompilerDirectiveCatalogDriftTests.UnrecognizedDirective_SurvivesForTheParser",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§7.3.2 general format '>>compiler-instruction' (cite.py --check 7.3.2 \">>compiler-instruction\" OK). ONE parse of a directive line (CompilerDirectiveLine.TryParse: indicator, optional space, the compiler-directive word, operand) feeds every stage; the word is looked up in the constructs.json-derived CompilerDirectiveCatalog, and an unrecognized word is left in the text so the parser rejects it. Probes (pinned cobol.exe, E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2\\out\\probe\\cd): F1 '>>FOO BAR' -> COBOL0001; F3 bare '>>' -> COBOL0001; V1/V2 every 2023 directive word (LEAP-SECOND, COBOL-WORDS, FLAG-14, DEFINE, EVALUATE/WHEN/END-EVALUATE, PUSH, POP, TURN, PROPAGATE, REF-MOD-ZERO-LENGTH, CALL-CONVENTION, DISPLAY, LISTING, PAGE, SOURCE) recognized with and without the space. Rejection of a non-directive '>>' is a generic parse error rather than a directive-specific diagnostic, which is acceptable. Operand shape per directive is SR-7.3.3-6's question, not this format row's. || editions (adjudicator): 2002, 2014, 2023 (the >> compiler-directive facility is absent from X3.23-1985; per-directive introducing editions are the §7.3.x rows' own, e.g. PUSH/POP added in 2023 per Annex E.3.3 item 38 and E.2 item 5)",
+ "state": "OK"
+}

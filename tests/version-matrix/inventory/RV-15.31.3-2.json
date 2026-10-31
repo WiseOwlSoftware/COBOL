@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.31.3-2",
+ "section": "15.31.3",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "EXCEPTION-LOCATION-N function",
+ "rule-digest": "79591044a27f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcLocation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#AddAnonymousParagraph; docs/CONFORMANCE.md#4.2.16",
+ "test-ref": "conformance:cases/15.30.3-Returned-value-rules/pb63_exception_location_procedure_field",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "FOLDED 1 sub-item row(s) into this rule by the PB698 transcription repair (their outdented text was returned to its printed level, so they are addressed by citation path on this rule instead of by rows of their own). VERDICT RE-DERIVED: parent CONFORMS; the folded 2) b) 3. CONFORMS and is pinned by pb63.\nLANDED 2026-08-18 (kb/Work PB63 — the exception surface: the FD screen, the SELECT-spelled name on the connector, the one access-recording path, the r2b procedure field and element name, the MODULE-NAME determinations). §15.31.3 r2b — the national twin of the same string (golden N=[PB63LOC; IN-PARA OF ONLY-SECT; 42] through DISPLAY-OF), the same three procedure shapes and element rule.\n|| FOLDED FROM RV-15.31.3-L2.3 [OK  §15.31.3 2) b) 3.  (Returned value rules)] verdict CONFORMS: LANDED 2026-08-18 (kb/Work PB63 — the exception surface: the FD screen, the SELECT-spelled name on the connector, the one access-recording path, the r2b procedure field and element name, the MODULE-NAME determinations). §15.31.3 r2b3 / §15.30.3 r2b3 'an implementor-defined identifier of the source line' — the DETERMINATION is now written (CONFORMANCE.md ⚖): the statement's first-token line in the compilation unit's RESULTANT text (§7.2), which equals the source line when no COPY/REPLACE intervenes (golden: 36/39/42/68 are the RAISE lines). kb/Work PB82 (a source-line map through the preprocessing chain) will revise it to the source-file line — the clause's NOTE permits either.\n",
+ "state": "OK"
+}

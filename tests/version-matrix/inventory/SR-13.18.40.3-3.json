@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-3",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "PICTURE clause",
+ "rule-digest": "94d90a503342",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1c06_currency_non_cobol_equivalence_85; conformance:cases/A.1-Implementor-defined-language-element-list/l1c06_currency_non_cobol_symbols; conformance:cases/A.1-Implementor-defined-language-element-list/l1c06-currency-non-cobol-equivalent-rebound",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "re-verdicted CONFORMS by the 2026-10-23 analyses sweep (PB534 closed; witness: docs/CONFORMANCE.md DOC-A.1-43 and goldens l1c06_currency_non_cobol_equivalence_85, l1c06_currency_non_cobol_symbols, l1c06-currency-non-cobol-equivalent-rebound)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.2.13-3",
+ "section": "8.8.4.2.13",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Simple relation conditions",
+ "rule-digest": "408c325a6d4c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RelationComparability.cs#Breach",
+ "test-ref": "conformance:wiseowl/cases/8.8.4.2-Simple-relation-conditions/pb1468_relation_defined_pairs; conformance-test:RelationComparabilityTests.EveryPair_MatchesTheComparisonsDefinedList; conformance-test:RelationComparabilityTests.EverySurface_ReportsTheBreach",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1468 LANDED (wave 67 N). Row 3 'an index data item and an index-name or another index data item' (cite.py OK). An index data item against a numeric literal, a numeric item, ZERO or an alphanumeric item is COBOL2533 (measured `IF IDA = 3`, `IF IDA = N3`, `IF IDA = ZERO`, `IF IDA = XA`, and SEARCH WHEN IDA = 3); IDA = I1 compares the actual values (golden lines 11/12: EQ, then NE after SET I2 UP BY 1). The golden 2002/pb495_group_usage_applies_to_each_leaf wrote `IF A-INDEX = 3` and now writes `IF A-INDEX = T-X`, the index-name it was SET from.",
+ "state": "OK"
+}

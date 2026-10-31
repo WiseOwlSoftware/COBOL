@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.32.4-3",
+ "section": "13.18.32.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "JUSTIFIED clause",
+ "rule-digest": "db19c5f86f4a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#StrStoreAligned; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs",
+ "test-ref": "conformance:cases/13.18.32-JUSTIFIED/l1c16_justified_spellings; conformance:cases/13.18.32-JUSTIFIED/l1c16_justified_omitted_national_boolean",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"When the JUSTIFIED clause is omitted, the standard rules for aligning data within an elementary item apply (see 14.6.8 ...)\" (cite.py --check 13.18.32.4 -> OK §13.18.32.4 3); --check 14.6.8 \"Alignment\" -> OK). StrStoreAligned(justified:false) routes to the standard left-justified StrStore; the boolean store passes justifiedRight from the item flag. Probes: P1 A5 PIC X(5) (no JUSTIFIED) <- \"AB\" = [AB   ]; P10 PIC N(4) <- N\"XY\" = [XY  ], PIC 1(4) <- B\"11\" = [1100] — left alignment with right space/zero fill per §14.6.8, across alphanumeric, national and boolean. The substance of §14.6.8 is owned by its own rows; this row only requires that absence of JUSTIFIED leaves the standard rules in force, which holds. No test names this rule -> test-ref empty.",
+ "state": "OK"
+}

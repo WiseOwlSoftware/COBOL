@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.32.3-2",
+ "section": "14.9.32.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "RELEASE statement",
+ "rule-digest": "e80a8c2808a5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFromPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#FromPhraseRules; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#SenderPosition; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease",
+ "test-ref": "conformance:cases/14.9.32-RELEASE/pb348-release-from-integer-function; conformance:cases/14.9.32-RELEASE/pb348-write-from-integer-function; conformance:cases/14.9.32-RELEASE/pb348-rewrite-from-integer-function; conformance:cases/8.4.3.1-Identifier/pb10_function_identifier_sending",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB348 LANDED. RULE (`--check 14.9.32.3 \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or national function.\"` => OK). WHAT WAS ABSENT: nothing screened the function's result class in this position. The FROM phrase of RELEASE, WRITE and REWRITE alike bound its operand through SequentialIoBinder.WriteSource, an unconditional three-way hand-off that INSPECTED NOTHING, so each verb's own phrase rule was applied by no one. WHAT IS THERE NOW: MoveBinder.BindFromPhrase applies the rule from a FromPhraseRules row, ONE PER VERB, because the three verbs name DIFFERENT SETS and a scalar column would reject legal source: RELEASE (14.9.32.3 SR2) and WRITE (14.9.51.3 SR4) admit an alphanumeric or national function, REWRITE (14.9.35.3 SR9, the FILE phrase not specified) also admits a boolean one. The FILE-phrase readings (14.9.51.3 SR10, 14.9.35.3 SR8) are unreachable: the FILE arm is Annex A.4.13 item 2 and is declined COBOL1706 earlier. The class is read off the BOUND operand through the SAME Table-16 sender position the category screen uses (MoveBinder.SenderPosition), which is what makes a folded FUNCTION LENGTH -- it reaches the binder as a plain numeric literal -- answer 'numeric' rather than 'unknown'. DIAGNOSTIC COBOL1914. MEASURED before: `RELEASE SRT-REC FROM FUNCTION LENGTH(WS-A).` compiled clean at 85, 2002 and 2023 and released R=[8       ]. MEASURED after: refused at every edition, and the WRITE and REWRITE siblings with it. || EDITIONS AS ADJUDICATED: 2002 . 2014 . 2023",
+ "state": "OK"
+}

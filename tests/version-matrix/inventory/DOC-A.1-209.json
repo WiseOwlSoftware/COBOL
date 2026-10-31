@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-209",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 209,
+ "subject": "USAGE DISPLAY (size and representation of characters)",
+ "rule-digest": "3534989914aa",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-209; src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#BitLayout; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ByteWidth",
+ "test-ref": "conformance:cases/8.1.2-Computer-s-coded-character-set/l1_usage_display_character_size",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "A.1 item 209 is USAGE DISPLAY (§13.18.60.4 GR7); the row carried the USAGE BIT determination (GR5 + §8.5.1.6.3) under its number until 2026-09-03, when it was re-filed and the BIT determination moved to §3 (A.1 has no USAGE BIT item at all - 208 COMPUTATIONAL runs straight to 209 DISPLAY). All three GR7 obligations are measured, not asserted: uniform size (UNI=1 5 9 over X(1)/X(5)/X(9)), the constraint against the national size (LEQN=1 2), the character-boundary alignment that generates no filler (ALIGN=5), the position/byte identity (POS=5 5), and the numeric-DISPLAY sign grid (NUM=5 5 6). retired-witness: src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#ByteWidth (ByteWidth is a member of DataItem (Binding/Model/DataItem.cs); PicInfo.cs names it only in comments)",
+ "state": "OK"
+}

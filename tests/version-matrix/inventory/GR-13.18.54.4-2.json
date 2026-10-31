@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.54.4-2",
+ "section": "13.18.54.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "SUM clause",
+ "rule-digest": "5c2c5e2ba47c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ProcessControlFootings; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#EndOfGroupSumReset; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate",
+ "test-ref": "conformance:cases/13.18.54-SUM/pb1297_sum_reset_level_upon_85; conformance:cases/13.18.41-PRESENT-WHEN/pb1272_present_when_snapshot; conformance:cases/13.18.35-LINE/pb1130_report_sum_size_line_overlap",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1297: a RESET ON counter resets at the end of its LEVEL (declared or assumed control footing, ProcessControlFootings - the 1->2 break restarts RESET ON WS-C with no CF declared); a counter with no RESET phrase resets at the end of the group it prints in on EVERY presentation path (the page footing page total restarts: PT=04 then PT=01), including a group with no present line (kb/Work PB1272); INITIATE zeroes counters and indicators (PB1130).",
+ "state": "OK"
+}

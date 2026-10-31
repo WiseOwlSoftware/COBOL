@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.20.3-7",
+ "section": "14.9.20.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "INITIALIZE statement",
+ "rule-digest": "73ccf855939c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#BindInitializeTarget; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveReceiving; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#ConstantStoreProhibition; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ReceivingPlaceBar",
+ "test-ref": "conformance:cases/13.18.15-CONSTANT-RECORD/pb416-initialize-target-constant-record; conformance:cases/14.9.20-INITIALIZE/pb416_initialize_operand_screens_85; unit:InitializeLaneDriftTests.InitializeBinder_ResolvesIdentifier1ThroughTheOneReceivingChokepoint",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB416.md LANDED -- the CONSEQUENCE half now holds, and it holds as a FUNNEL rather than as a check. identifier-1 resolves through ExpressionBinder.ResolveReceiving, the ONE receiving chokepoint, so it collects every receiving-operand prohibition that lives there: LINE-COUNTER (§8.4.3.15.3 SR3), a constant-name substituting a literal (§13.10.4 GR1), PAGE-COUNTER, a resolved-but-unimplemented receiver shape (COBOL0899, replacing the former run-time InitializeErrorAction staging -- §4.2.2 puts a syntax-rule violation in the compile-time mechanism), the OCCURS DYNAMIC CAPACITY register (§13.18.38 SR30-32) and a CONSTANT RECORD (§13.18.15.3 SR2 / COBOL1548). The routing rather than a bolted-on CONSTANT RECORD test is what makes the NEXT prohibition automatic, and a drift test asserts the routing survives. The DESIGNATION half was already correct and is unchanged (identifier-1 is a Place every expanded store writes through; a function-identifier is refused by the grammar, as §8.4.3.2.3 SR1 requires). Measured before: 'INITIALIZE CR.' over a CONSTANT RECORD compiled clean and destroyed the constant's content at run time. retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.Constants.cs#RejectConstantStore (kb/Work PB1418 turned the reporting RejectConstantStore into the non-reporting ConstantStoreProhibition, asked by ExpressionBinder.ReceivingPlaceBar (the place half of the receiving-prohibition table ResolveReceiving reports))",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.2.2.1-6",
+ "section": "8.4.2.2.1",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "Qualification",
+ "rule-digest": "7116b2080d95",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureWord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureNameMap.cs#IsDuplicated",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/pb466_procedure_name_uniqueness; conformance:cases/8.4.2.2-Qualification/pb466-ambiguous-procedure-name; unit:ProcedureNameUniquenessDriftTests.AQualifiedOrSameSectionReferenceIsAccepted",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB466.md - rule 6, the paragraph-specific excuse from qualification: 'The name is a paragraph-name and the section containing the reference also contains the named paragraph.' Implemented as the FIRST unqualified arm of the one resolution algorithm - the referencing section's own map is consulted before the source element's, so a duplicated paragraph-name resolves locally without a qualifier, and only a reference the excuse does not reach falls through to the rule-1 uniqueness count. The excuse is CONDITIONED on the containing section declaring the name once (SR-8.4.2.2.3-7), which the same arm now enforces. Witnessed positively by conformance:cases/8.4.2.2-Qualification/pb466_procedure_name_uniqueness, where two textually IDENTICAL unqualified PERFORM COMMON-P sentences written in two different sections print different lines - the whole content of rule 6, and the observation a first-definition-wins resolver cannot produce - and at all four editions by the drift test; the complementary reject is conformance:cases/8.4.2.2-Qualification/pb466-ambiguous-procedure-name, where the referencing section declares neither copy.",
+ "state": "OK"
+}

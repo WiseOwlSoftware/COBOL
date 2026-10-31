@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.5-5",
+ "section": "14.7.5",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Common phrases and features for statements",
+ "rule-digest": "227182c326f5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Divide; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Multiply; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#RangeChecksOf",
+ "test-ref": "conformance:cases/14.7.5-SIZE-ERROR-phrase-and-size-error/pb91_native_overflow_outside_arithmetic; conformance:cases/14.7.5-SIZE-ERROR-phrase-and-size-error/highest_algebraic_comp5_unsigned; conformance:cases/8.8.1.2-Native-standard-binary-and-standard-decimal/pb3538_chained_division_native; conformance:cases/8.8.1.2-Native-standard-binary-and-standard-decimal/pb3538_unbounded_operand_products",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB91; item 179 (1)), re-stated 2026-10-22 (kb/Work PB3538). Native arithmetic: WiseOwl COBOL DEFINES that the intermediate's range is checked whenever checking is enabled for the CONDITION that occurred (an ON SIZE ERROR phrase takes every one; otherwise EC-SIZE-OVERFLOW / EC-SIZE-UNDERFLOW checking by TURN / an exception-checking PERFORM takes its own name, kb/Work PB4092, NumericRenderer.RangeChecksOf): AddChecked / SubChecked raise CobolSizeError(EC-SIZE-OVERFLOW) in the arithmetic statement's operands AND, since PB91, in every receiver-less arithmetic expression the statement evaluates; with checking not enabled a sum wraps (the implementor's determination the case conditions on). The range is the VALUE's: a product whose operands' digit bounds may leave the Int128 carrier is formed exactly, and a nested quotient carries its operands' precision plus 14 guard digits (never an earlier quotient's guard digits) on the Int128 while its digit bound fits and on the SDIDI otherwise, so neither raises the size error condition for a value the range holds (PB3538: `A / B / B / B / B` and three FUNCTION MEAN values multiplied used to). retired-witness: src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs#MulChecked (kb/Work PB3538 deleted CobolNum.MulChecked: a native product whose digit bound may leave the Int128 carrier is formed exactly (the 256-bit lane, MulAtScale or the SDIDI), so no product is a checked Int128 multiply any more) retired-witness: src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Checked (NumericRenderer.Checked (one family-wide bool) is replaced by the per-condition-name RangeChecks / RangeChecksOf / Taken (kb/Work PB4092); the intermediate-range kernels it selected are chosen by RangeChecksOf now)",
+ "state": "OK"
+}

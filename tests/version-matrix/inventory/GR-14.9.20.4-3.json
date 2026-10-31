@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.20.4-3",
+ "section": "14.9.20.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "INITIALIZE statement",
+ "rule-digest": "c6e4eb367fc6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundImplicitSeries; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcWrap; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#Visit",
+ "test-ref": "conformance:cases/14.9.20-INITIALIZE/pb419_initialize_resume_boundary; conformance:cases/14.9.20-INITIALIZE/pb419-initialize-resume-below-2002; unit:ImplicitStatementSeriesDriftTests.EveryVerbTheSpecGivesTheResumptionRule_BindsThroughTheImplicitSeries",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB419.md - BOTH SENTENCES now implemented and measured. SENTENCE 1 (several identifier-1 behave as separate INITIALIZE statements in source order): Bind() builds ONE BoundInitialize per identifier-1, in parse order, inside a BoundImplicitSeries - the standard's own shape rather than one flat expansion. SENTENCE 2 (a declarative that executes RESUME ... NEXT STATEMENT resumes at the NEXT IMPLICIT INITIALIZE): the resume protocol lands a -2 action after the STATEMENT SITE the checked wrapper emits, so EcBinder.EcWrap DISTRIBUTES BoundEcChecked over the series members and each implicit INITIALIZE owns a site. Before this the whole statement was one site and a -2 fell out past every remaining identifier-1 - measured on HEAD 89044aa0 and again here (INITIALIZE EN (BADX) A1 A2 left A1=222 A2=333; it now yields 000 000). RESUME is COBOL-2002+, so sentence 2 has no 85 arm even though the row does: the 2002 golden pins the behaviour at its introducing edition and the negative twin pins the rejection below it (COBOL0900 on the >>TURN the mechanism needs). The same boundary is the one ISO 14.9.6.4 GR10 (CLOSE), 14.9.15.4 GR2 (FREE), 14.9.21.4 GR5 (INITIATE), 14.9.27.4 GR20 (OPEN) and 14.9.46.4 GR4 (TERMINATE) state in identical words; all five bind through it now, and ImplicitStatementSeriesDriftTests re-derives that verb census FROM specs/ISO_COBOL.md so an eighth verb cannot join the standard without joining the mechanism.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.55.2",
+ "section": "13.18.55.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "SYNCHRONIZED clause",
+ "rule-digest": "d44d11f2b4e3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4",
+ "test-ref": "conformance:cases/8.5.1.6.4-Item-alignment-for-increased-object-code/l1_byte_length_implicit_filler",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The ANTLR rule is the printed figure token for token: a REQUIRED choice of SYNCHRONIZED|SYNC (no `?`, so one must be written) followed by an OPTIONAL at-most-one LEFT|RIGHT. Measured at all four editions (probe sy_elem_/sy_elem_left_/sy_elem_right_/sy_77_ x 85|2002|2014|2023, all exit 0), and the figure's complement is measured too: `SYNC LEFT RIGHT` -> COBOL0307 (probe sy_fmt_both_lr), a bare `LEFT` with no SYNC -> COBOL0307 (sy_fmt_bare_left), `SYNC IS LEFT` -> COBOL0001 (sy_fmt_sync_is; the figure has no IS). The clause is confined to the DATA DESCRIPTION entry, as the standard requires - `syncClause` is unreachable from CobolReport.g4 and CobolScreen.g4 - and a level-66 RENAMES entry rejects it at parse (probe syp_l66_sync). TWO NOTES, neither a defect of this figure. (1) The LEFT/RIGHT selection is PARSED AND DISCARDED - `clause.Context.syncClause()` is tested for null-ness at DataBinder.cs:2308 and the token is never read (one `syncClause()` call site in the whole compiler), and DataItem carries a single `bool Synchronized` - so the three format shapes are indistinguishable downstream; see finding sync-left-right-phrase-discarded on GR-13.18.55.4-4/-5. (2) The entry admits the clause MORE THAN ONCE - `01 A PIC X SYNC SYNCHRONIZED.` and `01 A PIC X SYNC LEFT SYNC RIGHT.` both compile clean at 85 and 2023 (probes sy_fmt_twice, syq_dup_sync_lr, syq_dup_sync_lr_85) - but that is the shared `dataDescriptionClauses : dataDescriptionClause*` hole already reported this batch as `sign-duplicate-clause-last-wins` against FMT-13.18.52.2; for SYNCHRONIZED the repeat is value-idempotent (both passes set the same bool), so no wrong answer follows from it here. || code sites, verbatim from the adjudication: src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4:656-658 (`syncClause : (SYNCHRONIZED | SYNC) (LEFT | RIGHT)?`), reached from CobolData.g4:277 (the `syncClause` alternative of `dataDescriptionClause`); tokens at src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4:686-687 || editions, verbatim from the adjudication: 85, 2002, 2014, 2023 (the figure is unchanged across all four; only the GROUP subject is edition-gated - see SR-13.18.55.3-1)",
+ "state": "OK"
+}

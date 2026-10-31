@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.28.4-10",
+ "section": "14.9.28.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "PERFORM statement",
+ "rule-digest": "db0d15ab4388",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitPerformLoop; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerformControl",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/l1_perform_until_semantics",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "One leg per sentence: exit on first true (3), entry-true TEST BEFORE (0 inline and out-of-line), TEST AFTER (1 both), and a subscript in condition-1 re-identified at every test (2 passes, WK=3).",
+ "state": "OK"
+}

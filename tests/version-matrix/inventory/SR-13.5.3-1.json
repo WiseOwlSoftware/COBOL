@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.5.3-1",
+ "section": "13.5.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Working-storage section",
+ "rule-digest": "beb8e06dd183",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoBindMethodData",
+ "test-ref": "conformance:cases/13.5-Working-storage-section/pb1308-method-working-storage-every-edition; conformance:cases/13.5-Working-storage-section/pb1308_method_storage_is_local_or_object; conformance-test:OoSpineTests.MethodWorkingStorage_IsRefusedAtEveryEdition",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1308 / decision R62: a method's WORKING-STORAGE SECTION is refused at every edition (COBOL1519), never an edition window. retired-witness: conformance-test:OoSpineTests.MethodWorkingStorage_StaticSemantics_EditionWindow (the test pinned the 2002 acceptance that decision R62 (kb/Work PB1308) reversed, and was re-derived as MethodWorkingStorage_IsRefusedAtEveryEdition; the second ref was a mis-spelled witness kind) retired-witness: conformance:OoSpineTests.MethodWorkingStorage_IsRefusedAtEveryEdition (the test pinned the 2002 acceptance that decision R62 (kb/Work PB1308) reversed, and was re-derived as MethodWorkingStorage_IsRefusedAtEveryEdition; the second ref was a mis-spelled witness kind)",
+ "state": "OK"
+}

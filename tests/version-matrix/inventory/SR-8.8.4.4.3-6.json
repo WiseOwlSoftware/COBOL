@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.4.4.3-6",
+ "section": "8.8.4.4.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "Simple class condition",
+ "rule-digest": "13a19454d71e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#Violates; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#CheckClassConditionOperand",
+ "test-ref": "conformance:cases/8.8.4.4-Simple-class-condition/pb225-numeric-content-class-not-numeric; conformance:cases/8.8.4.4-Simple-class-condition/pb225_float_class_conditions",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB225: FARTHEST-FROM-ZERO / IN-ARITHMETIC-RANGE / NEAREST-TO-ZERO carry ClassOperandRule.NumericCategory, a POSITIVE requirement: the operand's CATEGORY is read through THE ONE operand-category reader (IntrinsicResultType.OperandCategory), so a reference-modified numeric item - category alphanumeric by 8.4.3.3.4 GR6 c) - and an alphanumeric group break it. COBOL2216. The negative is a ref-mod slice of PIC 9(4).",
+ "state": "OK"
+}

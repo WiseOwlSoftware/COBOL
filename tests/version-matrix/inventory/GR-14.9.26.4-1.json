@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.26.4-1",
+ "section": "14.9.26.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "MULTIPLY statement",
+ "rule-digest": "c23478290ae3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Multiply",
+ "test-ref": "conformance:cases/14.9.26-MULTIPLY/pb1143_native_product_beyond_scaled_int128; unit:CobolDecRoundToOddTests.AProductWithATailPastTheThirtyFourthDigit_RoundsAsTheExactProductWould",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1143 landed. Format 1 stored a WRAPPED product for legal operands (14.7.7 r2 a caps the composite at 31 digits, not the unscaled product: PIC 9V9(30) x PIC 9V9(30) has 61-digit scaled operands). NumericRenderer.Multiply now decides from the operands' digit bounds (NumX.Digits): N+M <= 38 is a bare multiply, N+M > 38 forms the exact product on the SDIDI, an unknown bound uses the checked multiply in every statement. The golden also pins a REAL size error (9.5 x 9.5 into one integer digit) so the fix cannot be read as 'stopped raising'.",
+ "state": "OK"
+}

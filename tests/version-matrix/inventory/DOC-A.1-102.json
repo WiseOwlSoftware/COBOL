@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-102",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 102,
+ "subject": "INVOKE statement (runtime resources that are checked)",
+ "rule-digest": "add42d336522",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-102; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#FactoryObject; src/WiseOwl.Cobol.Runtime/Control/CobolObject.cs#__CobolInvoke; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs; src/WiseOwl.Cobol.Runtime/Control/ActivationStack.cs#RequireForMethod; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitMethod",
+ "test-ref": "unit:FactoryInitializationFailureTests.ClassWhoseTypeInitializerThrows_IsEcOoMethod_EveryTime; unit:FactoryInitializationFailureTests.ClassThatInitializes_IsTheSameFactoryObjectEveryTime; conformance-test:ActivationResourcesTests.RecursiveMethod_PastTheStack_IsEcOoMethod; unit:ActivationStackTests.RecursiveMethod_PastTheStack_IsEcOoMethod",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "14.9.23.4 GR7 b) (cite.py --check OK 7)): two resources are checked - the stack (kb/Work PB2659: the emitted head of every method body calls ActivationStack.RequireForMethod before the GR7 d) external check, EC-OO-METHOD) and the class's type initialization (RunUnit.FactoryObject, kb/Work PB1422). A self-invoking factory method past the stack ends in EC-OO-METHOD and the abnormal termination.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.46.2",
+ "section": "15.46.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "INTEGER-OF-DATE function",
+ "rule-digest": "183f160a02a1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgument; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindArgOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build",
+ "test-ref": "conformance:cases/15.46.4-Returned-value-rule/l1_integer_date_form_returned; conformance:cases/15.46-INTEGER-OF-DATE/l1-integer-of-date-arity2; conformance:cases/15.46-INTEGER-OF-DATE/l1-integer-of-date-no-function-word; conformance:cases/12.3.8-REPOSITORY/l1_repository_bare_intrinsic_names",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The format asserts one argument and two required words, and each assertion is now measured in both directions. Arity: the one-argument form throughout l1_integer_date_form_returned, and l1-integer-of-date-arity2 rejecting a second argument at all four editions (COBOL1504) — §15.46 being a COBOL-85 function, no lower edition rejects the name first. Required word: l1-integer-of-date-no-function-word omits FUNCTION with no REPOSITORY paragraph (COBOL1543, reject-at 2002+ because KeywordOmittedFunction returns null below 2002 and §8.4.3.2.3 SR2's permission arrives with §12.3.8 at COBOL-2002), and l1_repository_bare_intrinsic_names supplies the permission's ACCEPTING arm under FUNCTION ALL INTRINSIC — so KeywordOmittedFunction, which this code-location names, is exercised from both sides rather than cited and never reached.",
+ "state": "OK"
+}

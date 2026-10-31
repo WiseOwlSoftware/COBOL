@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.37.3-2",
+ "section": "14.9.37.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "SEARCH statement",
+ "rule-digest": "78990a9d63b1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveSearchTable; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveTableOperand; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#SubscriptSegmentsOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#Identifier1",
+ "test-ref": "conformance:cases/14.9.37-SEARCH/pb443-search-identifier-1-subscripted; conformance:cases/14.9.37-SEARCH/pb443-search-identifier-1-not-a-table; conformance:cases/14.9.37-SEARCH/pb443-search-identifier-1-no-indexed-phrase; conformance:cases/14.9.37-SEARCH/pb443_search_identifier_1; unit:DecidedRuleStageDriftTests.SearchIdentifier1_IsACompileTimeError_NamingTheRule; unit:DecidedRuleStageDriftTests.SearchIdentifier1_LegalControl",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB443 LANDED - BOTH SENTENCES, AT THE RIGHT STAGE, UNDER THE RIGHT NUMBER. Sentence 1 (an OCCURS clause with an INDEXED phrase) was DECIDED before this and then delivered as a BoundUnsupported, which the emitter renders as a run-time NotImplementedCobolFeatureException - so the program compiled, shipped an assembly and aborted the run unit blaming WiseOwl COBOL for a gap, and on an unexecuted path said nothing at all, where ISO 4.2.2 paragraph 2 puts the indication at compile time; worse, the message miscited itself as SR1 (the reference-modification rule) in BOTH arms. It is now COBOL2075 quoting SR2, with the two halves - no OCCURS at all, and an OCCURS with no INDEXED phrase - given their own sentences. Sentence 2 (\"identifier-1 shall not be subscripted at the level for which the SEARCH is applicable\") had NO site: the subscripts were discarded with the rest of the written reference, so `SEARCH E(IX)` and `SEARCH E(2)` ran as though `SEARCH E` had been written (measured). It is now an UPPER BOUND on the subscripts AS WRITTEN (ReferenceResolver.SubscriptSegmentsOf, the same declaration-informed splitter SR8/SR9 use): a table-item reference normally takes one subscript per OCCURS level (8.4.2.3), this rule removes the searched level's, so MORE subscripts than identifier-1 has superordinate tables means one sits at that level. NOT a lower bound - see SR-14.9.37.3-3, where reading one into SR3 failed six NIST programs. kb/Work PB444 keeps SR4 (END-SEARCH with NEXT SENTENCE), the one remaining SEARCH syntax rule with no site; kb/Work PB211 keeps SR5 (identifier-2's class).",
+ "state": "OK"
+}

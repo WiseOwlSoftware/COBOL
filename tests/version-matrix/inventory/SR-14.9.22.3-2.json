@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.22.3-2",
+ "section": "14.9.22.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "INSPECT statement",
+ "rule-digest": "3413f99d53fd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckInspectOperandUsage; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#IsInspectElementaryCharacterItem; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#InspectCharOperand; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#IsDisplayOrNationalUsage; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckInspectFunctionUsage; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#FunctionIsNotDisplayOrNational",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/pb856_inspect_national_identifier_operands; conformance:cases/14.9.22-INSPECT/pb856-inspect-operand-binary-usage; conformance:cases/14.9.22-INSPECT/pb3665-inspect-integer-function-operand; conformance:cases/14.9.22-INSPECT/pb3665-inspect-length-function-operand; conformance:cases/14.9.22-INSPECT/pb3665_inspect_function_usage_controls; conformance:cases/14.9.22-INSPECT/pb3665-inspect-omitted-keyword-integer-function-operand; conformance:cases/14.9.22-INSPECT/pb3665_inspect_omitted_keyword_function_controls",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB856.md - 'Identifier-3, ... , identifier-n shall reference an elementary item described implicitly or explicitly as usage display or national.' Only the DISPLAY half had been written: a national identifier operand drew COBOL0847 'shall be an elementary usage-display item (ISO 14.9.22.3 SR2)' - the diagnostic paraphrasing away the half of the rule it violated. Every identifier operand position (TALLYING FOR, REPLACING pattern and replacement, BEFORE/AFTER delimiters, CONVERTING from/to) reaches the one InspectCharOperand arm and the one predicate; the positive exercises each with a national identifier (CT=003, CHARACTERS BEFORE INITIAL -> 001, REPLACING -> BBBBB, CONVERTING -> ZBZBZ by 14.9.22.4 GR12 a / GR8 e / GR7 / GR20), the negative pins the refusing half (a BINARY operand, COBOL0847 at every edition). Groups stay refused (the rule says elementary).",
+ "state": "OK"
+}

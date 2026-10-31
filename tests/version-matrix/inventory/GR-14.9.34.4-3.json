@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.34.4-3",
+ "section": "14.9.34.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "RETURN statement",
+ "rule-digest": "10cdaf1c1841",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#ReturnStatement; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Return; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitReturn; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#FatalAmbientGates; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcWrap",
+ "test-ref": "conformance-test:MixedUsageRecordImageDifferentialTests.ReleaseReturn_SignedCompLeaves_RoundTripZeroAndMax; conformance:cases/14.9.32-RELEASE/pb349_sort_merge_flow_ec; conformance:cases/14.9.34-RETURN/pb722_return_into_flow_ec; conformance-test:ReturnIntoExceptionPathTests.SortMergeReturn_AfterAtEnd_NoDeclarative_TerminatesAbnormally; conformance-test:ReturnIntoExceptionPathTests.SortMergeReturn_AfterAtEnd_DeclarativeCompletesNormally_TerminatesAbnormally; conformance-test:ReturnIntoExceptionPathTests.SortMergeReturn_AfterAtEnd_CheckingOff_ReportsAtEndAgainAndLeavesTheReceiver",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB349 (landed, wave 56). RULE (cite.py --check 14.9.34.4 'After the execution of imperative-statement-1 in the AT END phrase, no RETURN statement may be executed as part of the current output procedure' -> OK 14.9.34.4 3)). All three obligations now hold: (i) next record in key order into the record area and (ii) AT END transfer, as verified before; (iii) the store latches AtEndReached when a RETURN statement in the output procedure finds no next record, and a further RETURN statement raises EC-SORT-MERGE-RETURN (ExceptionState.SortMergeReturnError; FatalAmbientGates row (EC-SORT-MERGE-RETURN, SortMergeReturnChecking); QueryFor(BoundReturn)) before retrieving. Checking OFF: the undefined result is the deterministic at-end-again. Golden: OUT-P returns AAA, BBB, AT-END, and the fourth RETURN -> HANDLED=EC-SORT-MERGE-RETURN (SECOND-AT-END not printed).",
+ "state": "OK"
+}

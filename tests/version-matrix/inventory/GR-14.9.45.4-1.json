@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.45.4-1",
+ "section": "14.9.45.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "SUPPRESS statement",
+ "rule-digest": "48146abb243f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindSuppress; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitSuppress; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SuppressPrinting",
+ "test-ref": "conformance:cases/14.9.45-SUPPRESS/pb1186_suppress_named_group_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1186: SUPPRESS names its declarative's group and inhibits only that group, only while that group's own BEFORE REPORTING hook runs; performed from elsewhere (§14.9.49.3 SR4) it has no effect.",
+ "state": "OK"
+}

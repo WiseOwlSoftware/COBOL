@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.4.3.3-1",
+ "section": "8.8.4.3.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Simple boolean condition",
+ "rule-digest": "dbf58043f8e0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindSimpleBooleanCondition; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BoolExprAllLengthOne; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#StaticBoolRefLength; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#StaticBoolCallWidth",
+ "test-ref": "conformance:cases/8.8.4.3-Simple-boolean-condition/l1-bool-condition-length-8",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "IF B8, where B8 is PIC 1(8) (a boolean item of length 8), is rejected with COBOL1511 at 2002/2014/2023 (§8.8.4.3.3 SR1).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.51.4-3",
+ "section": "13.18.51.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "SELECT WHEN clause",
+ "rule-digest": "193564231247",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Declined; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry",
+ "test-ref": "conformance:wiseowl/cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/a48-select-when-condition-name; conformance:wiseowl/cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/a48-select-when-other",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Annex A.4.8 (items 1 FORMAT clause §13.18.24, 2 SELECT WHEN clause §13.18.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed', which is the WHOLE of the §4.2.7 user documentation for this module (§4's four documented-non-support facilities are MCS, commit/rollback, VALIDATE and screen handling — there is no §4 item for A.4.8, so no §4 reference may be invented). Annex A.4.1 carries the licence from the two named clauses to every associated rule: 'Any associated syntax rules, general rules, other rules, exception conditions, and I-O status values are also optional, even if not explicitly listed.' The row closes on a DIAGNOSIS, not on silence: conformance:wiseowl/cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/a48-select-when-condition-name; conformance:wiseowl/cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/a48-select-when-other. COBOL1705 is raised at bind for EVERY occurrence and is an Error, not the COBOL1560 accept-inert band, because an inert FORMAT changes which bytes reach the medium (§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry (§13.18.51.4 GR1) — a wrong answer, not a missing facility. Measured 2026-09-02: refused at --std 85/2002/2014/2023 and under --permissive. || editions corrected from '85,2002,2014,2023' to 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): an A.4.8 FORMAT / SELECT WHEN file-handling rule; the FORMAT clause is post-85 (FORMAT is first reserved at 2002, so no COBOL-85 source can write it) and is not a 2023 introduction (Annex E.3 lists none), so the facility's edge is 2002 (derived). cite.py --check 13.18.24.1 \"The FORMAT clause specifies\" OK.",
+ "state": "OK"
+}

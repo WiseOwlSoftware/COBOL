@@ -277,7 +277,7 @@ symbolicCharactersClause
 //      parses exactly as it always did (an ambiguity resolves to the lowest alternative);
 //   2. `IS|ARE` then `integerOperand+` — the ordinals may be constant-names;
 //   3. words only — the optional IS/ARE omitted with constant-name ordinals: `SYMBOLIC CHARACTERS SOH K1`.
-// Whichever alternative parsed, the BINDER (DataBinder.SymbolicEntryGroups) re-reads the entry's tokens in source
+// Whichever alternative parsed, the BINDER (DataBinder.SymbolicClauseOperands) re-reads the clause's tokens, all entries, in source
 // order and decides each WORD by whether the compilation unit defines it as a constant — the only fact that
 // separates a name from an ordinal — so a greedy parse that folded a following IS-less group into the previous
 // group's ordinals (`SC-A IS K1 SC-B K2`) is regrouped correctly.

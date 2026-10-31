@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.26.3-2",
+ "section": "15.26.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "DISPLAY-OF function",
+ "rule-digest": "940816213096",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KnownWidth",
+ "test-ref": "conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-09 (PB59): KnownWidth is TOTAL over the static shapes - a GROUP answers ImageWidth (null only when a dynamic-length leaf, dynamic-capacity table, or ODO subordinate makes the width a run-time fact), an ALL literal answers its literal's length (8.3.3.6.4 GR3c), a figurative 1 (GR3b), a literal-length refmod its view width - so the 15.26.3 r2 LENGTH half fires on every statically-sized shape instead of silently skipping on null. MEASURED: the six-position group draws 1546 naming '6' and rule 2; the ONE-position group and one-char ALL literal still compile (the PB1 over-rejection guard, probed positive). The CLASS half's OperandCategory totalization is deliberately deferred to family 7 (it changes MAX/MIN result-type resolution - measured together with the ALPHABETIC channel), recorded in the KnownWidth remarks. retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

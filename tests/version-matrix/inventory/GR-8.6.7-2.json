@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.6.7-2",
+ "section": "8.6.7",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Scope and life cycle of data",
+ "rule-digest": "2d4c9052439d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#CallBindExternalAndGlobal; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
+ "test-ref": "conformance:cases/8.6.7-Sharing-data-items/l1c31_global_indirect_container",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: \"both programs may refer to data possessing the global attribute either in the containing program or in any program that directly or indirectly contains the containing program.\" (cite.py --check 8.6.7: OK §8.6.7 2)). Code: BinderDriver.BindUnitData walks every ancestor (nearest container first, local names shadow) and adds anc.Data.GlobalBridgesOf(g, outer) ref-bridges over the CONTAINER INSTANCE's fields, so containee and container address one storage. Probe (--std 85 and --std 2023): GOUTER{G1 GLOBAL, G1T GLOBAL table, L1 non-global} > GMID{G2 GLOBAL} > GIN; GIN adds to G1 (indirect container), G2 (direct container), stores G1E(2): output MID G1=102 G2=025 / OUTER G1=102 G1E2=ZZ L1=007 / MID G1=203 G2=030 / OUTER G1=203 -- both halves (direct and indirect) share storage, and state persists across calls. Negative edge: GIN referencing non-global L1 -> COBOL1639 undefined (correct). Test-ref left empty: conformance:cases/8.6.7-Sharing-data-items/pb1009_global_linkage_formal, 2023/pb163_global_local_storage and 2002/pb1019 cover only the DIRECT-container half; no spec-derived conformance test references a GLOBAL item of an INDIRECTLY containing program (test-needed for that half). [editions as adjudicated: 1985, 2002, 2014, 2023 (GLOBAL/nested programs are in every edition)]",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.27.3-2",
+ "section": "14.9.27.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "OPEN statement",
+ "rule-digest": "547ccec7c52f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenModeForFile; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen",
+ "test-ref": "conformance:cases/14.9.27-OPEN/pb318-open-extend-access-linage; conformance:cases/14.9.27-OPEN/pb318_open_extend_sequential_access",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB318 LANDED (wave 56). RULE (cite.py --check 14.9.27.3 'The EXTEND phrase shall be specified only if the access mode of the file connector referenced by file-name-1 is sequential and the LINAGE clause is not specified' -> OK 14.9.27.3 2)). ONE sentence, TWO conjuncts, both now screened in CheckOpenModeForFile (COBOL2372 open-extend-access-linage, the message naming the conjunct violated; both reported when both fail): FileModel.AccessMode not Sequential, and FileModel.Linage present. The predicate is the ACCESS MODE, not the organization. MEASURED (w56a/probe/ext1.cob, --std 85 and 2023): EXTEND on a RELATIVE RANDOM file, a RELATIVE DYNAMIC file and a LINAGE file rejected; EXTEND on a RELATIVE file with ACCESS MODE IS SEQUENTIAL accepted, and the positive golden runs it end to end (14.9.27.4 GR15 positioning: R002 lands after R001). A scan of every positive corpus and NIST program opening EXTEND beside a RANDOM/DYNAMIC file found no program the screen now rejects.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.8.3-16",
+ "section": "12.3.8.3",
+ "kind": "SR",
+ "ordinal": 16,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "34211d48970a",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.ObjectProperty.cs#ResolveObjectProperty",
+ "test-ref": "",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1086: Rule (cite.py --check 12.3.8.3 'there shall be information in the external repository for the property property-name-1 that is part of one of the classes or interfaces that are declared in this REPOSITORY paragraph' -> OK, located under §12.3.8.3 16) a) by the transcription, it is item b)). a) with literal-4 the rule text says 'the property literal-5' - evidently literal-4 (the property specifier's own literal; literal-5 is the function specifier's); the code reads literal-4, which is the only coherent reading, and the transcription/erratum question is recorded as a dossier gap. Code: the property specifier is only recorded (OoRepositoryProperties); no check that the property belongs to a class or interface declared in the same paragraph. At a REFERENCE, OoTryBindPropertyReference looks the accessor up on the RECEIVER's class (not restricted to the paragraph's declared classes), returning to the generic diagnosis on a miss. Probe out/probe/repo/sr10.cob: 'PROPERTY NOSUCHPR' with no class declaring such a property -> compiles clean and runs. Expected: the specifier violates SR16 b). Verified half: pb974_repository_as_phrase's 'PROPERTY AMOUNT AS \"BAL\"' reaches the BAL property of the declared class (a) with the literal). retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#OoTryBindPropertyReference (the one-word property binder ReferenceResolver.OoTryBindPropertyReference is deleted by kb/Work PB1425 (w1021a): a property reference is resolved by ReferenceResolver.ResolveObjectProperty, which splits the chain and resolves identifier-3 through the ordinary resolver)",
+ "state": "GAP"
+}

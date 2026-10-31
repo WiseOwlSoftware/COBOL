@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-12.3.2",
+ "section": "12.3.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Configuration section",
+ "rule-digest": "08695062731f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#configurationParagraph; src/WiseOwl.Cobol.Frontend/Cst/ClosedFormats.cs#ByContext; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedClause; src/WiseOwl.Cobol.Frontend/Cst/ClauseCardinality.cs#ByClauseContext; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenClauseRepetition",
+ "test-ref": "conformance:cases/12.3-Configuration-section/pb829-configuration-unrecognized-paragraph; conformance:cases/11.2-Identification-division-structure/pb829_closed_formats_legal; unit:ClosedFormatDriftTests.EveryContextCarryingTheErrorProduction_HasAClosedFormatRow; conformance:cases/12.3-Configuration-section/pb1508-configuration-paragraph-out-of-order; conformance:cases/12.3-Configuration-section/pb1508-configuration-paragraph-repeated",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The format is `CONFIGURATION SECTION.` followed by four BRACKETED paragraph names — source-computer-paragraph, object-computer-paragraph, special-names-paragraph, repository-paragraph — and nothing else, RENDERED from the printed page (PDF p313 / printed folio 283; re-rendered w1032d). All four are modelled and all four are exercised together by the positive golden. The residue is DIAGNOSED: an unrecognized paragraph header is the shared `unrecognizedClause` error production, refused by name with COBOL1971 (kb/Work PB829). ORDER AND REPETITION (kb/Work PB1508's sibling arm, landed w1032d): §12.3.3's three syntax rules place the section and never reorder it, so §5.2.1 binds the printed sequence (cite.py --check 5.2.1 \"shall be written in the compilation group in the sequence given in the general format, unless otherwise specified by the rules of that format\" -> OK) and each bracket admits its paragraph once (§5.2.6.2, §5.2.7). ClauseCardinalities.ByClauseContext[ConfigurationParagraphContext] (Sequence SOURCE-COMPUTER, OBJECT-COMPUTER, SPECIAL-NAMES, REPOSITORY) is read by ClosedFormatPass: SPECIAL-NAMES before SOURCE-COMPUTER -> COBOL2987 and two SOURCE-COMPUTER paragraphs -> COBOL2423 at 85/2002/2014/2023 (both compiled clean before). Three corpus programs wrote SPECIAL-NAMES before OBJECT-COMPUTER and were corrected to the printed order (2014/pb1133, 2023/pb728, negative/pb1075-character-classification-for-repeated).",
+ "state": "OK"
+}

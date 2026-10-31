@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.48.4-12",
+ "section": "14.9.48.4",
+ "kind": "GR",
+ "ordinal": 12,
+ "subject": "UNSTRING statement",
+ "rule-digest": "4faf908abfc8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/pb979_unstring_receiver_size",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR12 'The initialization of the contents of the data items associated with the POINTER phrase or the TALLYING phrase is the responsibility of the user' (cite.py --check -> OK 14.9.48.4 12)). EmitUnstring initializes the working pointer from the POINTER item's CURRENT value (else 1, GR11a) and the tally from the TALLYING item's current value (else 0) - it never resets the user's items. Probe p2 T3: TALLYING T starting at 5 ends 08 (5+3). Golden pb979_unstring_receiver_size RM2 starts WITH POINTER P = 4 (user-initialized) and pins P = 08 derived from the rules.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.43.4-6",
+ "section": "13.18.43.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "RECORD clause",
+ "rule-digest": "6b9b7dfb6f2c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordWidth; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindRecordClause",
+ "test-ref": "conformance:cases/13.18.43-RECORD/pb1276_record_contains_sizes_file; unit:RecordSizeModelTests.RecordContains_SizesTheFileAboveItsDescriptions",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Landed by kb/Work PB1276 (w61f). cite.py --check 13.18.43.4 'Integer-1 specifies the number of bytes contained in each record in the file' -> OK §13.18.43.4 6). FileModel.RecordWidth - the ONE record-area size every connector registration, the SORT/MERGE record length and the fixed-file attributes read - is max(integer-1, the descriptions' physical width), so integer-1 sizes an FD and an SD whose descriptions are smaller (§13.18.43.3 SR3 permits them). Golden 85/pb1276_record_contains_sizes_file: two WRITEs of a 10-byte R1 under RECORD CONTAINS 20 read back through a 20-byte FD as TWO records (was one 20-byte record), and SORT through an SD RECORD CONTAINS 20 over a 10-byte description keeps each 20-byte USING record whole (was cut to 10).",
+ "state": "OK"
+}

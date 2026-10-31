@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.40.3-7",
+ "section": "14.9.40.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "SORT statement",
+ "rule-digest": "da4b1e0548c8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sortInputProcedurePhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sortOutputProcedurePhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortRange",
+ "test-ref": "conformance:cases/14.9.40-SORT/l1c29_sort_through_thru_equivalent",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 14.9.40.3 \"The words THROUGH and THRU are equivalent\" OK (SR7). Both procedure phrases are `(INPUT|OUTPUT) PROCEDURE IS? procedureName ((THRU | THROUGH) procedureName)?` — one alternative, one parse node, and SortRange reads procedureName()[1] without looking at which token was written, so the two spellings cannot bind differently. PROBE fmt1.cob --std 2023: `INPUT PROCEDURE IS IP-1 THROUGH IP-2` + `OUTPUT PROCEDURE OP-1 THRU OP-2` ran and returned R7r,Q5q (both input paragraphs executed; the THRU output range reached OP-2's RETURN loop). conformance:cases/14.9.28-PERFORM/pb440_sort_procedure_range exercises only the THRU spelling, so it does not witness the equivalence; test-ref left empty. [editions as adjudicated: 85, 2002, 2014, 2023 (Format 1).]",
+ "state": "OK"
+}

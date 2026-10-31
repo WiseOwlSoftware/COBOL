@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.16.2",
+ "section": "13.16.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Data description entry",
+ "rule-digest": "58ea2b8a6f10",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Cst/ClauseCardinality.cs#ClauseCardinalities; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenClauseRepetition",
+ "test-ref": "conformance:cases/13.16-Data-description/pb487-unrecognized-data-clause; conformance:cases/13.18.1-ALIGNED/pb487_aligned_bit_layout; conformance:cases/8.3.2.2-User-defined-words/pb511_external_as_name; conformance:cases/13.16-Data-description/pb511-external-as-below-2002; conformance:cases/13.18.22-EXTERNAL/pb511-external-as-figurative; unit:DataClauseKindDriftTests.EveryGrammarAlternative_HasADataClauseKind; conformance:cases/13.16-Data-description/pb849-renames-entry-has-no-name; conformance:cases/13.16-Data-description/pb849-condition-name-entry-filler; conformance:cases/13.16-Data-description/pb501-condition-name-entry-has-no-name; conformance:cases/13.16-Data-description/pb917-data-usage-twice; conformance:cases/13.16-Data-description/pb917-condition-value-twice; conformance:cases/13.16-Data-description/pb917_clause_lists_repeat_where_printed; unit:ClauseCardinalityDriftTests.EveryClosedFormat_IsARowOrAReviewedExemption",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "(kb/Work PB917) The repetition axis: Format 1 prints every clause once with no ellipsis, so a clause written twice is COBOL2423 at every level (88 entries included), through the one clause-cardinality table that also covers the report group, FD, SD and file control entries. retired-witness: unit:ClauseCardinalityDriftTests (a test-ref names <Class>.<Method>; the class alone does not resolve)",
+ "state": "OK"
+}

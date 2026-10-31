@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.52.3-1",
+ "section": "15.52.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "LOCALE-DATE function",
+ "rule-digest": "db56e53e38e8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
+ "test-ref": "conformance:cases/15.52.3-Argument-rules/pb64t4-locale-date-width; conformance-test:LocaleDispositionTests.LocaleDateTime_IntegerArgument_IsAClassViolation",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T4: class alphanumeric/national ('s') AND exactly 8 positions (ArgPredicate.ExactWidth(8)) — a 7-position item or an integer literal is COBOL1627.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.9.3-1",
+ "section": "14.7.9.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "RETRY phrase",
+ "rule-digest": "ef80a77a1b1b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#RetryTimes; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#AlignRoundedUp; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RetryLoop",
+ "test-ref": "conformance:cases/14.7.9-RETRY/pb1033_integer_operand_full_value; unit:CobolFileLockTests.RetryLoop_AttemptCount_FollowsGR1AndGR4",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1033 landed (w59b). cite.py --check 14.7.9.3 \"the value of arithmetic-expression-1 is rounded up to the next whole number\" -> OK 1); --check 14.7.9.3 \"The implementor determines the interval between these attempts\" -> OK 1). The rounded-up count now reaches the runtime as a long through the saturating RuntimeApi.HostInt64, and every retryAmount parameter (CobolFile / FileRegistry / RetryLoop) is a long. Measured after the fix: `WN PIC 9(10) VALUE 4294967297`, `DELETE FILE F RETRY WN TIMES` against an external holder (FileShare.None, released after 1.5 s) -> '00' in 1332 ms, file deleted (before: '62' in 51 ms, one re-attempt). The literal `RETRY 4294967297 TIMES` compiles (was CS0221) - the golden compiles it. RetryLoop's GR1 count stays pinned by the unit AttemptCount test; interval zero is DOC-A.1-165.",
+ "state": "OK"
+}

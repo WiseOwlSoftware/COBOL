@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.97.4-2",
+ "section": "15.97.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "UPPER-CASE function",
+ "rule-digest": "cfaba63a8c3c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindCaseFunctionWithLocale; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#UpperCase; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/pb64t5_case_locale_phrase; conformance:cases/15.3-Arguments/pb64t5-case-phrase-name-undeclared; unit:CobolLocaleTests.CaseMapping_FollowsTheLocalesLcCtype; conformance-test:LocaleDispositionTests.CaseFunctionLocalePhrase_IsLive",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T5 (2026-08-19) — LANDED; was NOT-IMPLEMENTED behind the COBOL1518 by-name refusal (A.4.9 item 13). With the LOCALE phrase the correspondence is LC_CTYPE of locale-name-1's locale: UPPER-CASE(\"i\" LOCALE TR) → U+0130 (ORD 305) whatever the current locale and whatever the module's classification (PHRASE-UP). locale-name-1 shall be a SPECIAL-NAMES LOCALE clause's name (COBOL1664 otherwise); the phrase is the 2002 construct row case-function-locale-phrase-2002; an unavailable named locale is EC-LOCALE-MISSING at use (§8.2.1), the root's map standing when checking is off. Rule --check verified at 15.97.4 2).",
+ "state": "OK"
+}

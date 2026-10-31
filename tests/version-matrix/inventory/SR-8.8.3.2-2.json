@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.3.2-2",
+ "section": "8.8.3.2",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Concatenation expressions",
+ "rule-digest": "a2f070a1f8a0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConcatFolder.cs#ResultLengthViolation; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFigurativeConstant; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#MaxPositions",
+ "test-ref": "conformance-test:LiteralScreenTests.ConcatenatedAllLiteral_ResultLength_IsScreened; conformance-test:LiteralScreenTests.LiteralLength_BoundIsTheEditions",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1393 (w61g). cite.py --check 8.8.3.2 \"For operands of class alphanumeric, the length of the value resulting from concatenation shall\" -> OK SR2. Both concatenation forms: the & expression (ConcatFolder.Fold, boundary exact 8,191/8,192 per the adjudicator) and the concatenated ALL literal-1 (8.3.3.6.3 SR2), whose fold is diagnostic-free and which the refuter found unchecked - now ALL \"<4096>\" & \"<4096>\" is COBOL1545 once, 4096+4095 legal. One statement of the rule: ConcatFolder.ResultLengthViolation. kb/Work PB1615: the bound is the EDITION's - 8,191 from COBOL-2014, 160 below it (constructs row literal-length-8191-2014; VCR row 7.43, edge DERIVED from GnuCOBOL 3.2 cobol85.conf/cobol2002.conf literal-length 160 and cobol2014.conf 8191): CobolLiteral.MaxPositions(edition), read by LiteralScreen and ConcatFolder.ResultLengthViolation.",
+ "state": "OK"
+}

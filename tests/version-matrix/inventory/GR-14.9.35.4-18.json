@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.35.4-18",
+ "section": "14.9.35.4",
+ "kind": "GR",
+ "ordinal": 18,
+ "subject": "REWRITE statement",
+ "rule-digest": "2e708c5a8b73",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Stored; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite",
+ "test-ref": "conformance:cases/14.9.35-REWRITE/l1c25_rewrite_length_differs",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"The number of bytes in the record ... may differ from the number of bytes in the record being replaced.\" (RELATIVE AND INDEXED FILES.) Relative and indexed Rewrite have no equality test against the replaced record; Stored bounds only by VaryMin/VaryMax (GR20). Probe pd.cob (RELATIVE DYNAMIC, RECORD VARYING 5 TO 20 DEPENDING ON LN): a 10-byte record 1 rewritten at LN=15 -> 00, re-read LN=0015 with the 15-char content. Indexed read, not probed. cite.py --check 14.9.35.4 GR18 -> OK. [editions as adjudicated: 2023; ISO 1989:2023 Annex E lists no 2014->2023 change to this rule (E.3.3 item 41 touches GR10 only), so 2014 identically; the 1985/2002 wording is not derivable from the 2023 text]",
+ "state": "OK"
+}

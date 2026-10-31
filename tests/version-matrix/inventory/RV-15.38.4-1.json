@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.38.4-1",
+ "section": "15.38.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "FORMATTED-CURRENT-DATE function",
+ "rule-digest": "0a642b4da26c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#FormattedCurrentDate",
+ "test-ref": "conformance:cases/15.38.3-Argument-rules/l1_datetime_general_formats; conformance:cases/15.3.3.6.1-Offset-subformats/formatted_datetime",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Sentence 2 pinned structurally (§15.92.4 r1 → FCD-VALID=00) and character-wise (§15.3.1.2/§15.3.3.1/§15.3.3.7 separator positions 5,8,11,14,17 → FCD-SEPARATORS=OK). Sentence 1 names the current date AND TIME, so it is pinned in BOTH halves, each a race-free agreement with the function reporting the same system's clock and neither writing a clock value down: DATE, a 0-or-1-day agreement with §15.21.3 r1's CURRENT-DATE positions 1-8 (FCD-TRACKS-SYSTEM-DATE=YES); TIME, a 0..60-second elapsed agreement between the YYYYMMDDThhmmss value's positions 10-15 (§15.3.3.7's in-data 'T' at 9 plus §15.3.3.1's six-character basic common time format) and §15.21.3 r1's CURRENT-DATE positions 9-14, both read through SECONDS-FROM-FORMATTED-TIME (§15.79.3 r1/r3 admit an alphanumeric literal format with a same-type PIC X(6) argument-2; §15.79.4 r1's EAE makes each seconds past midnight) with the day term carrying a midnight rollover (FCD-TRACKS-SYSTEM-CLOCK=YES). The time half is what refutes an implementation returning today's date with a frozen time; §15.38.4 r2 does not cover it, being the ACCURACY of the time portion rather than its source.",
+ "state": "OK"
+}

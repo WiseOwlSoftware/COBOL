@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.44.3-17",
+ "section": "13.18.44.3",
+ "kind": "SR",
+ "ordinal": 17,
+ "subject": "REDEFINES clause",
+ "rule-digest": "095ae15781f7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ClassifyRedefinesClasses; src/WiseOwl.Cobol.Compiler/Binding/Model/VariableLengthCompatibility.cs#DynamicLengthOrVariableLengthGroup; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenRedefinesClause",
+ "test-ref": "conformance:cases/13.18.44-REDEFINES/pb177-redefines-dynamic-length-target; conformance:cases/13.18.44-REDEFINES/pb2071-template-redefines-dynamic-length",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "SR17 (cite.py --check 13.18.44.3 'Neither data-name-2 nor the subject of the entry shall be a variable-length group or a dynamic-length elementary item.' OK). Symmetric screen over both sides (COBOL1698). Probes: sr17_vlgroup_target (target group with a DYNAMIC LENGTH subordinate) -> 1698; sr17_dynlen_subject -> COBOL1563 (§13.16.3 SR18 bars REDEFINES with DYNAMIC LENGTH in one entry, an earlier legitimate barrier); NOTE 3's legal shape sr17_note3_ok (REDEFINES under a variable-length group) -> 0013 correct. Goldens: pb177-redefines-dynamic-length-target, pb177-redefines-vl-group-subject, pb177-redefines-dynamic-subordinate; unit:RedefinesClassificationTests.TierD_VariableLengthSide_RejectedSr17. || Editions (adjudicator's statement, normalized to 2014,2023 by registrar 14e): 2014, 2023 (dynamic-length elementary items and dynamic-capacity tables; Annex E.3 item 17 of 2023 treats them as pre-existing) retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.cs#Sr17Shape (kb/Work PB1213 folded DataBinder.Sr17Shape into the one screen VariableLengthCompatibility.DynamicLengthOrVariableLengthGroup, which ClassifyRedefinesClasses now asks for both sides)",
+ "state": "OK"
+}

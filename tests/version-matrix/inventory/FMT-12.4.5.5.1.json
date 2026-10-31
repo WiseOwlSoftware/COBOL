@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-12.4.5.5.1",
+ "section": "12.4.5.5.1",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "General",
+ "rule-digest": "ce888455e095",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#accessModeClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#accessMode; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#MapAccessMode",
+ "test-ref": "conformance:cases/12.4.5-File-control/l1c12_access_mode_random_dynamic; conformance:cases/12.4.5-File-control/l1c12_access_mode_sequential_default",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Format: ACCESS MODE IS {SEQUENTIAL|RANDOM|DYNAMIC}, ACCESS/SEQUENTIAL/RANDOM/DYNAMIC underlined, MODE and IS optional words (cite.py --check 12.4.5.5.1 \"ACCESS\" -> OK). Grammar accessModeClause : ACCESS MODE? IS? accessMode; accessMode : SEQUENTIAL|RANDOM|DYNAMIC -- exact match. DataBinder.BindFileControl maps it via MapAccessMode onto FileModel.AccessMode. Probes (pinned cobol.exe, --std 85 and 2023): 'ACCESS MODE IS DYNAMIC', 'ACCESS RANDOM', 'ACCESS IS DYNAMIC', 'ACCESS MODE SEQUENTIAL' all accepted and honoured (gA.cob, gB.cob); 'ACCESS MODE IS' with no mode rejected COBOL0312 (gE.cob); 'MODE IS RANDOM' without ACCESS rejected COBOL0312 (gF.cob). SIBLING (not this row): the FD grammar fileDescriptionClause (CobolData.g4:69-71) also admits organizationClause/accessModeClause/recordKeyClause, which §13.4.5.2's closed formats do not, and nothing reads them -- 'FD SQ ORGANIZATION IS INDEXED ACCESS MODE IS DYNAMIC.' compiles and runs silently as a plain sequential file (gG.cob, gH.cob); reported as a finding against FMT-13.4.5.2. No spec-derived golden targets the clause's format variants, so test-ref is empty. [registrar 14a — editions as adjudicated: 1985, 2002, 2014, 2023 (Annex E lists no substantive change to the ACCESS MODE clause)]",
+ "state": "OK"
+}

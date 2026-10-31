@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-16",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 16,
+ "subject": "SET statement",
+ "rule-digest": "1c032bfd3b5a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs",
+ "test-ref": "conformance:cases/13.18.60-USAGE/program_pointer",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "FORMAT 9 — \"The address identified by identifier-8 is stored in each data item referenced by identifier-7 in the order specified. Item identification of the data item referenced by identifier-7 is done immediately before the value of that data item is changed\" (cite.py --check 14.9.39.4 PASS). Both sentences hold and both were MEASURED at --std 2002. Probe p4_gr16_pp: `SET Q0 TO ENTRY \"SUBA\". SET Q1 Q2 TO Q0. CALL Q2.` prints SUBA-RAN — the plural receiver list works and the address really reached the LAST receiver in the list. Probe p4_gr16_itemid: a SUBSCRIPTED receiver, `05 QA USAGE PROGRAM-POINTER OCCURS 3` with `SET QA(I) TO Q0.` then `CALL QA(1)`, prints SUBB-RAN — the receiver's subscript is evaluated at its own store site (the emitter renders PlaceRenderer.Write inside the receiver loop, so nothing is hoisted). conformance:cases/13.18.60-USAGE/program_pointer (registered in tests/conformance/2002/manifest.json, goldened .out) exercises the identifier-8 sender directly — `SET PP-2 TO PP-1.` then `CALL PP-2` → SUB-CALLED — with a spec-computed expectation, so it closes this row; it does not exercise a plural receiver list, which the probes cover.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs:228-268 (BindSetProgramPointer — every target and the sender screened to PicCategory.ProgramPointer per SR21, targets collected in written order) + SetBinder.cs:54-57 and :339-340 (the two dispatch entries: the objectReference-sender route and the setToValueStatement semantic re-route) + src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs:74-79 (EmitSetProgramPointer — `foreach (var t in s.Targets) Write(t, src)`, so each receiver's Place, and therefore its item identification, is rendered at its own store)",
+ "state": "OK"
+}

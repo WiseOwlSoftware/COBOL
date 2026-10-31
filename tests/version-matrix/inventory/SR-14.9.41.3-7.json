@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.41.3-7",
+ "section": "14.9.41.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "START statement",
+ "rule-digest": "b2a5609dbf4e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#RecordKeyNameOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordKeyNameCandidates",
+ "test-ref": "conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099_record_key_source; conformance-test:FileControlKeyRuleSpecTests.KeyPhraseRecordKeyName_MustBeDeclaredForTheStatementsFile",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1099 Q1 (w1095i): the record-key SOURCE phrase is PROVIDED (owner rule R65); cite.py --check 14.9.41.3 \"Record-key-name-1 shall be specified with the SOURCE phrase\" -> OK 7). START names a record-key-name only of file-name-1 (bare or qualified by it); one only another visible file declares is refused naming SR7. retired-witness: conformance-test:FileControlKeyRuleSpecTests.AlternateKeySourcePhrase_IsRefusedByName_AtEveryEdition (the COBOL1954 decline of the SOURCE phrase is retired: kb/Work PB1099 provides it) retired-witness: conformance-test:FileControlKeyRuleSpecTests.PrimeKeySourcePhrase_IsRefusedByName_AndTheClauseIsNotAlsoReportedMissing (the COBOL1954 decline of the SOURCE phrase is retired: kb/Work PB1099 provides it) retired-witness: conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb358-alternate-key-source (the COBOL1954 decline of the SOURCE phrase is retired: kb/Work PB1099 provides it) retired-witness: conformance:wiseowl/cases/14.9.41-START/pb358-alternate-key-source-duplicates (the COBOL1954 decline of the SOURCE phrase is retired: kb/Work PB1099 provides it) retired-witness: conformance:wiseowl/cases/14.9.41-START/pb358-alternate-key-source-optional-words (the COBOL1954 decline of the SOURCE phrase is retired: kb/Work PB1099 provides it) retired-witness: conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb358-record-key-source (the COBOL1954 decline of the SOURCE phrase is retired: kb/Work PB1099 provides it) retired-witness: conformance:cases/14.9.41-START/pb358-record-key-source-optional-words (the COBOL1954 decline of the SOURCE phrase is retired: kb/Work PB1099 provides it) retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.cs#DeclineRecordKeySource (the COBOL1954 decline of the SOURCE phrase is retired: kb/Work PB1099 provides it) retired-witness: src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#RecordKeySourcePhraseUnsupported (the COBOL1954 decline of the SOURCE phrase is retired: kb/Work PB1099 provides it) retired-witness: src/Cobol.Net.Compiler/Binding/Model/FileModel.cs#KeyIndexOfRecordKeyName (kb/Work PB1099 review R1-2 replaced the first-match lookup by the counted set FileModel.RecordKeyNameCandidates, judged by DataBinder.UniqueOrReportAmbiguous)",
+ "state": "OK"
+}

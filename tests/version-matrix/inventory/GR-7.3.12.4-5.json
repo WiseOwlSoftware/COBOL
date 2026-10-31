@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.12.4-5",
+ "section": "7.3.12.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "DISPLAY directive",
+ "rule-digest": "d2c6bff1d9ed",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.Display.cs#DisplayDestinations; src/WiseOwl.Cobol.Editions/ImplementorNames.cs#ImplementorNames",
+ "test-ref": "unit:DisplayDirectiveTests.Upon_NamesTheDestinations; unit:DisplayDirectiveTests.Upon_BreakingItsFormat_IsDiagnosedAndTransfersNothing; conformance:cases/7.3.12-DISPLAY/pb807-display-directive-upon-input-device",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB807 landed (w1004b). UPON LISTING goes to the device used for source listings (none is produced: the compiler's standard output); UPON compile-time-device-1 goes to the output device-name's stream (CONSOLE and SYSOUT standard output, SYSERR standard error); an input-only or unknown word is COBOL2698.",
+ "state": "OK"
+}

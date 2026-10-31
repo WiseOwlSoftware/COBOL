@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.41.4-5",
+ "section": "14.9.41.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "START statement",
+ "rule-digest": "19e7ff681984",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#StartFirstLast; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#StartFirstLast; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#StartFirstLast",
+ "test-ref": "conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb352_start_sequential_first_last; conformance:cases/14.9.41-START/pb870_start_first_last_relative_exceptions",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB352. RULE (cite.py --check 14.9.41.4 OK, GR5): 'If, at the time of the execution of the START statement, the file position indicator indicates that an optional input file is not present, the invalid key condition exists and the execution of the START statement is unsuccessful.' The status value comes from 9.1.13.5 3b (cite.py --check 9.1.13.5 OK): 'a START or random READ statement is attempted on a file described as optional and the physical file is not present' => '23'. RELATIVE + INDEXED HALF — VERIFIED. Both connectors carry `if (OptionalAbsent) return StartFail();` in Start and `if (OptionalAbsent || <empty>) return StartFail();` in StartFirstLast; StartFail sets '23' + _fpiValid=false + LastReadUnsuccessful=true. OpenCore sets OptionalAbsent only on the INPUT-with-absent-optional path (an I-O/EXTEND absent optional file is CREATED per 14.9.27 GR17 and is therefore present, correctly leaving the flag clear). OBSERVED (probe/opt-absent/STPRB7.cob, SELECT OPTIONAL over a non-existent path, OPEN INPUT -> '05'): relative implicit-KEY START -> INVALID KEY taken, FS='23'; relative START FIRST -> INVALID KEY, '23'; indexed implicit-KEY START -> INVALID KEY, '23'; indexed START LAST -> INVALID KEY, '23'. SEQUENTIAL HALF — NOT IMPLEMENTED: an OPTIONAL sequential file plus START ... FIRST cannot execute at all (finding M1), so the rule has no sequential arm. Two halves, one verified => PARTIAL.\n\nLANDED 2026-09-05 (kb/Work PB352). The missing sequential half exists: SequentialConnector.StartFirstLast tests `if (OptionalAbsent) return StartFail();` in the same position its keyed twins do. MEASURED in conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb352_start_sequential_first_last: `SELECT OPTIONAL OPF` over an absent path, OPEN INPUT -> OOPEN=05, then `START OPF FIRST` takes the INVALID KEY imperative and reports OF=23 (9.1.13.5 item 3 b)).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.22.3-8",
+ "section": "14.9.22.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "INSPECT statement",
+ "rule-digest": "f54f33436164",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindFunctionTarget",
+ "test-ref": "conformance:cases/13.18.15-CONSTANT-RECORD/pb881_constant_record_sending_roles",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "'Identifier-1 is a sending operand.' --check OK (14.9.22.3 8), FORMAT 1 only. The binder resolves identifier-1 through ResolveSending exactly when no REPLACING/CONVERTING phrase is present: a CONSTANT RECORD is legal in Format 1 (P50 N=02) and refused as receiving in Format 2 (P52 COBOL1548); a function-identifier is legal in Format 1 (P51 N=02; conformance:cases/8.4.3.1-Identifier/pb10_function_identifier_sending) and refused in 2/3/4 (negative/pb10-*). pb881_constant_record_sending_roles derives its expected value from SR8 + GR12a. probes under scratchpad/adj-d1/out/probe/inspect-p1 (pinned cobol.exe, --std 2023 unless noted) [code-location note: (modifies / ResolveSending vs ResolveReceiving)] || editions as adjudicated: 85/2002/2014/2023",
+ "state": "OK"
+}

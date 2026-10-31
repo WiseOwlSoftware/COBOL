@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.38.3-27",
+ "section": "13.18.38.3",
+ "kind": "SR",
+ "ordinal": 27,
+ "subject": "OCCURS clause",
+ "rule-digest": "0141878b947c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportOccursOf",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb565_report_repeating_entry",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB565 (2026-09-13). 'A report group description entry that contains an OCCURS clause with a DEPENDING phrase may be followed within that report group only by report group description entries that are subordinate to it.' ReportOccursOf computes the entry's subtree end (the level-number hierarchy of 13.15) and, when the DEPENDING phrase is present, rejects with COBOL2021 if the next entry inside the group is not subordinate. MEASURED: the rule fired on the first draft of the positive golden, whose DEPENDING entry stood third of five - the golden now writes it LAST, which is the rule's own consequence and is why the leg is a real observation rather than a claim.",
+ "state": "OK"
+}

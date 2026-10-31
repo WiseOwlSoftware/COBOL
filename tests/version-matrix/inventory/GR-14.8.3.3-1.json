@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.8.3.3-1",
+ "section": "14.8.3.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Returning items",
+ "rule-digest": "4a78ab7036e7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ParameterConformance.cs#ReturningConformanceReason; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindResolvedInvoke; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ObjectRefAssignmentMismatch; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#CallReturningViolation; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#ReturningConformance; src/WiseOwl.Cobol.Compiler/Oo/ActivationDescriptions.cs#Of",
+ "test-ref": "conformance:cases/14.8.3.3-Elementary-items/pb1164_call_returning_set_rule; conformance:cases/14.8.3.3-Elementary-items/pb1164-call-returning-superclass-into-subclass; unit:ActivationConformanceDriftTests.CallAndInvoke_AskTheOneReturningConformance",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1164 (wave 1005 C). Rule 1 (cite.py --check 14.8.3.3 'the conformance rules are the same as if a SET statement were performed in the activated runtime element with the returning item in the activated element as the sending operand' -> OK 14.8.3.3 1)). ParameterConformance.ReturningConformanceReason is the one returning-item half of 14.8.3 for CALL and INVOKE: two object references conform as a SET from the activated returning item (subclass into class-typed or universal receiver legal, superclass into subclass refused); CobolArgAdapt.StoreReturn stores the widened result. The FUNCTION-ID object-reference RETURNING refusal went with PB1419. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfReturningResidue (UdfReturningResidue was deleted by kb/Work PB1419 (its object-reference refusal was the function lane of this row).) retired-witness: src/Cobol.Net.Compiler/Oo/OoConformance.cs#DescriptionMismatch (kb/Work PB3101 (wave 1082): the DataItem comparator family is deleted (OoConformance.DescriptionMismatch, StrongTypeMismatch, AsIfElementaryGroupMismatch, IsCategoryAlphanumeric, PictureClauseIdentity.Mismatch, ObjectRefDescriptor.SameDescriptionAs); every activation and pair-mode question describes its items through ActivationDescriptions and asks ActivationRelations (CallArgumentViolation / CallReturningViolation / MatchViolation / SignatureDifference), the PICTURE identity entering through PictureClauseIdentity.Key)",
+ "state": "OK"
+}

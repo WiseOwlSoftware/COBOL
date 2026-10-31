@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.4.7.3-2",
+ "section": "8.8.4.7.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Simple sign condition",
+ "rule-digest": "8d5f5fdb9881",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#IsFormat2FloatSign; src/WiseOwl.Cobol.Frontend/Expressions/SoleOperand.cs",
+ "test-ref": "conformance:cases/8.8.4.7-Simple-sign-condition/pb1471_sign_condition_float_partition; conformance:cases/8.8.4.7-Simple-sign-condition/l1c32_sign_condition_format2",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1471 LANDED (wave 70 A). SR2: 'Data-name-1 shall be the name of a single data item in the data division described with a standard floating-point usage, and that name shall not be enclosed in parentheses' (cite.py --check 8.8.4.7.3 2) OK); §3.166 'usages float-binary-32, float-binary-64, and float-binary-128', §3.167 'usages float-decimal-16 and float-decimal-34' (cite.py OK). Both halves conform: the usage half is UsageFamilies.IsStandardFloat (was PicInfo.IsFloat, which admitted FLOAT-SHORT/-LONG/-EXTENDED and COMP-1/COMP-2); the parenthesis half is SoleDataReference (null for a parenthesized, unary or operator form). Both call sites (BindSignConditionOn and the EVALUATE BindPartialComparison) share the one predicate. Witness pb1471_sign_condition_float_partition: FLOAT-BINARY-64 and -32 +0 IS POSITIVE true; (FB) +0 NOT POSITIVE; FLOAT-LONG +0 NOT POSITIVE; EVALUATE FB WHEN POSITIVE selects, EVALUATE FL WHEN POSITIVE does not.",
+ "state": "OK"
+}

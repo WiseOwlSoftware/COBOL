@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.13.4-8",
+ "section": "7.3.13.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "EVALUATE directive",
+ "rule-digest": "26b220fb99fa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#EvaluateCceText; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateCce",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/l1c07_evaldir_fmt2_truth",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR8 (cite.py --check 7.3.13.4 8) OK): Format 2 - each WHEN's constant-conditional-expression evaluated per 7.3.8 in turn; first TRUE included, others and WHEN OTHER omitted. >>EVALUATE TRUE sets TruthForm (inline comment stripped by CompilerDirectiveLine; '>>EVALUATE TRUE *> c' probed); each WHEN runs EvaluateCceText, the same cce evaluator as >>IF. Probe: >>DEFINE VV AS 3; WHEN VV > 5 FALSE; WHEN VV IS DEFINED AND VV = 3 TRUE (emitted); a later WHEN 1 = 1 and WHEN OTHER omitted. No spec-derived golden for Format 2 (the SpecFixTests cases are in the legacy Legacy.Tests.Integration project). Probe dir out/probe/evaldir2 (pinned cobol.exe, --std 2023; p1 re-run at --std 2002 and 2014 with identical output; --std 85 rejects >>EVALUATE with COBOL0900). || editions (adjudicator): 2002, 2014, 2023 (the 7.3 directive facility is absent from 1985; Annex E.2 item 8 records the 2023 rewording of GR6/GR10 only)",
+ "state": "OK"
+}

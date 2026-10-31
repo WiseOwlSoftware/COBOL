@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.40.4-10",
+ "section": "14.9.40.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "SORT statement",
+ "rule-digest": "8c09d12806d9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSort; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#ReturnStatement; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Init; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateSortMergeProcedures",
+ "test-ref": "conformance:cases/13.18.43-RECORD/pb1036_sort_merge_statement_ec; unit:SortMergeStatementEcTests.Return_InAnInputProcedure_RaisesActive_BeforeFlowReturn; unit:SortMergeStatementEcTests.Init_WhileAProcedureRuns_RaisesActive_AndLeavesTheEnclosingStoreIntact",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 14.9.40.4 \"If the range of the input procedure causes the execution of any MERGE, RETURN, or format 1 SORT statements\" -> OK 10). The range half CONFORMS as adjudicated. The EC half now CONFORMS: CobolSort.Init raises EC-SORT-MERGE-ACTIVE for a MERGE or format 1 SORT executed while a procedure phase runs (before touching a store, so the enclosing SORT survives - golden case E: SM=EC-SORT-MERGE-ACTIVE, E-IN, then R=AAA R=BBB from the outer sort), and ReturnStatement raises it while any store is in the INPUT phase, ahead of EC-FLOW-RETURN (D-SMA (a); unit Return_InAnInputProcedure_RaisesActive_BeforeFlowReturn). Wired by kb/Work PB1036 (w59c): FatalAmbientGates row + CheckingFlags field + ExceptionEngine helper; EcBinder.QueryFor asks the name at the SORT/MERGE/RELEASE/RETURN node; the golden raises it under >>TURN ... CHECKING ON with a USE AFTER EXCEPTION CONDITION declarative; checking off keeps the pre-PB1036 lenient behaviour (docs/CONFORMANCE.md §3 D-SMA (c)). retired-witness: src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#GateMergeInSortMergeProc (the method was generalised and renamed GateSortMergeProcedures (kb/Work PB1139); same arm, same site)",
+ "state": "OK"
+}

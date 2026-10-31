@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.25.4-10",
+ "section": "14.9.25.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "MOVE statement",
+ "rule-digest": "a6afb6345ba5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#Write",
+ "test-ref": "conformance:cases/14.9.25-MOVE/l1_move_overlap_same_entry",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR10's referent 14.6.10 rule 2 held through MOVE on four same-entry self-moves (elementary, group, numeric, numeric-edited) all chosen outside GR6b's two specific-result shapes and outside GR6c's reading; 14.6.10 rule 1 is unconstrained and is not claimed.",
+ "state": "OK"
+}

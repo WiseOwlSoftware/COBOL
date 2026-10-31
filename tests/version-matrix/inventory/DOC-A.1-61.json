@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-61",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 61,
+ "subject": "Dynamic-capacity table (physical allocation)",
+ "rule-digest": "ab8d29fb838a",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-61; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#GrowTo; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#FromCurrentImage; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#SetCapacity",
+ "test-ref": "unit:CobolDynTableTests.CreatedOccurrences_TakeTheInitializedSeed_OpeningOccurrencesTheInitialState; conformance:cases/13.18.38-OCCURS/pb1267_dyn_initialized_seed; conformance:cases/8.5.1.9.6-Exceeding-capacity/pb1144_dyn_move_recreate",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1410 + PB1267 + PB1144 (landed w67o). docs/CONFORMANCE.md section 7 DOC-A.1-61 now states the whole allocation story the code implements: one managed array per table, doubling with an exact-size fallback, opening occurrences from the initial state and statement-created ones from the INITIALIZED recipe when written, lowering clears the deleted occurrences, a variable-length group transfer allocates a new array, and an unsatisfiable allocation is EC-BOUND-TABLE-LIMIT with the table unchanged (the open-note caveat is gone).",
+ "state": "OK"
+}

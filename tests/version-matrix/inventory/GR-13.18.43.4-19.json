@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.43.4-19",
+ "section": "13.18.43.4",
+ "kind": "GR",
+ "ordinal": 19,
+ "subject": "RECORD clause",
+ "rule-digest": "f903a04fd0c9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Stored; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#ReleaseStatement; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#RecordRange",
+ "test-ref": "conformance:cases/13.18.43-RECORD/pb1036_sort_merge_statement_ec; unit:SortMergeStatementEcTests.ReleaseStatement_SizeOutsideTheRange_IsUnsuccessful_AndLenientWhenUnchecked",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 13.18.43.4 \"If the number of bytes in the logical record to be written is less than integer-4 or greater than integer-5\" -> OK 19). a) CONFORMS as adjudicated. b) now CONFORMS: a Format 3 SD (RECORD CONTAINS 5 TO 20 over an ODO record) is variable-length (D-FRA) and its VaryMin/VaryMax reach ReleaseStatement; probe w59c/p/sf3.cob: S1-N 0 (4 bytes) -> DECL EC-SORT-MERGE-RELEASE, S1-N 8 (12 bytes) -> nothing. Wired by kb/Work PB1036 (w59c): FatalAmbientGates row + CheckingFlags field + ExceptionEngine helper; EcBinder.QueryFor asks the name at the SORT/MERGE/RELEASE/RETURN node; the golden raises it under >>TURN ... CHECKING ON with a USE AFTER EXCEPTION CONDITION declarative; checking off keeps the pre-PB1036 lenient behaviour (docs/CONFORMANCE.md §3 D-SMA (c)).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.16-p8",
+ "section": "9.1.16",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "Files",
+ "rule-digest": "1f4141fe8b62",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/WiseOwl.Cobol.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CommitSequential; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RollbackSequential; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
+ "test-ref": "unit:CommitRollbackRuntimeTests.Rollback_restores_the_run_units_changes_to_the_start_of_the_run_unit; conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.A_read_not_ignoring_lock_meets_the_records_a_live_transaction_holds",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB3340 (wave 1157): ROLLBACK releases the record locks of every file under commit control, keyed and sequential alike (FileRegistry.ReleaseAllKept after the sequential rollback, RollbackSequential). Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5).",
+ "state": "OK"
+}

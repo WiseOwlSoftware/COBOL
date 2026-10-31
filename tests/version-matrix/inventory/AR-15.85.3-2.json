@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.85.3-2",
+ "section": "15.85.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "STANDARD-COMPARE function",
+ "rule-digest": "467cd96b2a14",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindStandardCompare",
+ "test-ref": "unit:StandardCompareTests.Argument1And2_ObeyTheClassAndZeroLengthRules; conformance:cases/12.3.7-SPECIAL-NAMES/pb101_standard_compare",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB101 T7: same screen as argument-1.",
+ "state": "OK"
+}

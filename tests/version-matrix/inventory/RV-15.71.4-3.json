@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.71.4-3",
+ "section": "15.71.4",
+ "kind": "RV",
+ "ordinal": 3,
+ "subject": "ORD-MAX function",
+ "rule-digest": "ffbdcc81bd4f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#OrdMax; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#ExtremeIndex",
+ "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.OrdMax_TieTakesFirst_PinnedToSpec; nist:IF128A",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Both selection bodies were read: OrdMax does `if (xs[i] > m)` and ExtremeIndex does `if (max ? c > 0 : c < 0)` — a STRICTLY-greater update, so an argument equal to the running maximum never displaces it and the leftmost position is returned. ExtremeIndex is the ONE selection helper shared by MaxString/MinString/OrdMaxString/OrdMinString and all three collation variants, so there is no second mechanism to drift. Re-verified by running: ORD-MAX(1.50 1.5) -> 1 (a cross-scale tie), ORD-MAX(\"A\" \"A \") -> 1 (a tie created by the space-padding rule), ORD-MAX(-1.05 -1.5 -1.05) -> 1, and IND(ALL) over 3,9,1,9 -> 2. Both test-refs genuinely exercise the tie: OrdMax_TieTakesFirst_PinnedToSpec asserts FUNCTION ORD-MAX(3, 7, 7, 2) = 002, and nist:IF128A test F-ORD-MAX-09 is FUNCTION ORD-MAX(A, 5, 5, A) with A PIC S9(10) VALUE 5 — a four-way tie.",
+ "state": "OK"
+}

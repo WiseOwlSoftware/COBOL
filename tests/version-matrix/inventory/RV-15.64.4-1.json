@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.64.4-1",
+ "section": "15.64.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "MOD function",
+ "rule-digest": "ced571565f96",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Power",
+ "test-ref": "conformance:cases/15.64.4-Returned-value-rule/pb65_power_receiver",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-09 (PB65): the receiver-bearing integer-power arm no longer forces FloatWorkingScale onto an integer-exact result - a non-negative literal exponent lands exact Int128 at scale 0 on BOTH arms (receiver never read), and a negative/runtime-item exponent returns the SDIDI carrier (PowNativeIntDec) whose scale is a run-time fact. MEASURED post-fix: MOD(A ** 2, B) = 13657001 into S9(9)/S9(18)/S9(28)/S9(31) identically, DISPLAY/IF agree, REM recovered, MOD(A ** X, B) with X=2 (the runtime-exponent axis) exact, 2 ** -2 = 0.25 on both new arms, 10 ** 30 exact. Sweep: ModReal/RemReal ride the exact carrier % instead of the cancelling a-(b*floor(a/b)). Citations re-checked: 15.64.4 r1, 15.3 6), 15.2 5), 15.4.1 (native approximation approximates the EXPRESSION - a saturated sentinel is not an approximation). Golden pb65_power_receiver, every value independently derived. The PAST-Int128 shape (A ** 3, 45 digits) still answers from the saturation sentinel - pre-existing, excluded from the golden, ledgered as kb/Work/PB69. retired-witness: src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#PowNativeInt (PowNativeInt is gone: one native ** arm on the SDIDI (kb/Work PB69, 5c429e98e))",
+ "state": "OK"
+}

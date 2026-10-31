@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.4.3-3",
+ "section": "8.4.3.4.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Inline method invocation",
+ "rule-digest": "0b60b039ca9c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg",
+ "test-ref": "conformance:cases/8.4.3.4-Inline-method-invocation/pb1051_method_by_value; conformance:cases/8.4.3.4-Inline-method-invocation/pb1051-inline-by-value-formal-alphanumeric; conformance:cases/8.4.3.4-Inline-method-invocation/pb1051-by-value-argument-alphanumeric",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1051 landed (wave 1011 C): a METHOD formal declared BY VALUE is carried (OoFormal.ByValue). The inline form imports every 14.9.23.3 syntax rule through the same OoBindInvocationArg body. SR17 was closed by kb/Work PB1137; the BY VALUE halves SR5 b)/SR15/SR16 are now exercised by the inline form too: a bare inline argument into a BY VALUE formal is BY VALUE (golden pb1051_method_by_value, INLINE=12) and an alphanumeric one is COBOL2741 (negative pb1051-inline-by-value-formal-alphanumeric).",
+ "state": "OK"
+}

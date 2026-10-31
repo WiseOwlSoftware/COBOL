@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.8.3.3-L3.5",
+ "section": "14.8.3.3",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Returning items",
+ "rule-digest": "da528fa49d06",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitInstanceInvoke; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#FitToReceiver; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#CallReturningViolation; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#ReturningConformance; src/WiseOwl.Cobol.Compiler/Oo/ActivationDescriptions.cs#Of",
+ "test-ref": "conformance:cases/13.18.2-ANY-LENGTH/pb1167_any_length_returning; conformance:cases/8.5.4-Zero-length-items/pb1167_any_length_returning_zero_length",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1167 (w1013 L). cite.py --check 14.8.3.3 rule 5 'If the sending operand is described with the ANY LENGTH clause, the length of the sending operand is considered to match the length of the receiving operand': the relaxation and the delivery that were dead code are live now that an ANY LENGTH returning item is declarable - a method / contained program RETURNING item is n positions (n = the receiver's), the comparator skips the length compare, and the delivery stores the n positions into the fixed, group, national, boolean and ANY LENGTH receivers the golden exercises. retired-witness: conformance:2002/pb1167_any_length_returning_zero_length (the golden moved to the 2014 corpus: it writes a zero-length literal, a COBOL-2014 introduction gated by kb/Work PB895 (same program, same expected output)) retired-witness: src/Cobol.Net.Compiler/Oo/OoConformance.cs#DescriptionMismatch (kb/Work PB3101 (wave 1082): the DataItem comparator family is deleted (OoConformance.DescriptionMismatch, StrongTypeMismatch, AsIfElementaryGroupMismatch, IsCategoryAlphanumeric, PictureClauseIdentity.Mismatch, ObjectRefDescriptor.SameDescriptionAs); every activation and pair-mode question describes its items through ActivationDescriptions and asks ActivationRelations (CallArgumentViolation / CallReturningViolation / MatchViolation / SignatureDifference), the PICTURE identity entering through PictureClauseIdentity.Key)",
+ "state": "OK"
+}

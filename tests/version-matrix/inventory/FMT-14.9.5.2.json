@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.5.2",
+ "section": "14.9.5.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "CANCEL statement",
+ "rule-digest": "1d87e439a708",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#cancelTarget; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCancel",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb237_program_prototype; conformance:cases/13.5-Working-storage-section/recursive_ws",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB237). BOTH residues this row carried are closed. (1) The third brace alternative, program-prototype-name-1: it needs no production of its own because it is spelled exactly like identifier-1 - `cancelTarget : literal | dataReference` already carries the word - so the missing half was the BINDER's, and BindCancel now reads a bare word that is not a data item as a prototype (14.9.5.3 SR3 / 14.9.5.4 GR1 c)). CallBinder.BarePrototypeWord is the shared shape test: a qualified, subscripted or reference-modified operand can only be identifier-1, so it never enters the prototype arm. (2) The multi-target ellipsis: pb237_program_prototype writes `CANCEL PB237ADD SCALE-IT`, two operands in one statement, the first a prototype naming a program by its own name and the second a prototype whose literal-3 externalized name differs - so cancelTarget+ with more than one operand now has a golden. The comma-separator half was already REFUTED by this row's own probe (the comma-space separator is skipped before the parser sees it) and is unchanged.",
+ "state": "OK"
+}

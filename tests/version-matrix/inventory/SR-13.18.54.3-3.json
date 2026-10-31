@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.54.3-3",
+ "section": "13.18.54.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "SUM clause",
+ "rule-digest": "24c4903bb9f3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindSumClause; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ReportSumRoundedWithoutColumn",
+ "test-ref": "conformance:cases/13.18.54-SUM/pb883-sum-rounded-without-column",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR3 'The ROUNDED phrase may be specified in the SUM clause only if the COLUMN clause is specified for the subject of the entry' (cite.py --check 13.18.54.3 OK). COBOL2143 rejects ROUNDED without COLUMN at 85/2002/2014/2023 (negative golden); the positive half (ROUNDED with COLUMN) is accepted and rounds - conformance:cases/13.18.54-SUM/pb883_report_sum_expression and probe p6 print 2 for 1.5 ROUNDED. || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): 85, 2002, 2014, 2023 (Report Writer optional module, A.4.11 item 17; Annex E records no 2014->2023 change to 13.18.54) || Code-location detail (moved from the field by registrar 14e): src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ReportSumRoundedWithoutColumn (COBOL2143)",
+ "state": "OK"
+}

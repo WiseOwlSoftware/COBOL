@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.4.3-15",
+ "section": "14.9.4.3",
+ "kind": "SR",
+ "ordinal": 15,
+ "subject": "CALL statement",
+ "rule-digest": "418cd67160e1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb131_gr9_formal_mode; conformance:cases/14.9.4-CALL/pb131-as-nested-scope; conformance:cases/14.9.4-CALL/pb131-as-nested-identifier; conformance:cases/14.9.4-CALL/pb46_call_format2_as_nested",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB131): both sentences enforced at BIND time through the ONE SR15 diagnostic (COBOL1676 CallAsNestedScope, replacing the 0899-staged CallAsNestedNeedsLiteral - this is a permanent conformance rejection, not staging debt). Sentence 1: an identifier target with AS NESTED is rejected (negative pb131-as-nested-identifier pins the long-enforced check). Sentence 2: the literal is resolved against BinderDriver.NestedCallablesOf's per-caller table - the caller's directly contained children plus every COMMON program contained in a transitive ancestor (nearest wins), the 10.7.2 visibility computed statically - and a miss is a compile-time rejection (negative pb131-as-nested-scope) where the old binder discarded the NESTED flag and let ProgramTable.ResolveVisible rule 4 / ProbeSiblingModule activate ANY outermost program at run time. The sweep this forced: five of our own fixtures spelled AS NESTED at a SIBLING callee and were restructured to genuine containment (pb84 pair, udf_by_value, the NBLIT07 fact, the pb6 negative).",
+ "state": "OK"
+}

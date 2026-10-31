@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-114",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 114,
+ "subject": "Line delimiter, specification of",
+ "rule-digest": "7831faee1b9a",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-114; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#LineSequentialDelimiter; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReadPhysicalLine; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#CountRecords",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/pb1540_ls_lone_cr_is_data; conformance-test:LinageConformanceTests.Bytes_LineSequential_EveryPlacementMix; conformance:cases/14.9.51-WRITE/pb964_ls_plain_write_after_after",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1540 landed (w67p). cite.py --check 12.4.5.10.3 'Each record in a line sequential file is terminated by an implementor-defined line delimiter' -> OK §12.4.5.10.3 2). The §7 determination (host newline written; LF or CR LF read on every host; a lone CR is data and '09') is now the code: SequentialConnector.LineSequentialDelimiter (Environment.NewLine) is every line end a line sequential connector writes (record delimiter, ADVANCING/LINAGE lines, CLOSE of an open line); ReadPhysicalLine ends a record only at LF or CR LF; ExistingRecordCount counts under the same rule. Witnesses: the golden reads 'AB<CR>CD<LF>EF<CR><LF>GH' as AB<CR>CD '09', EF '00', GH '00', '10'; LinageConformanceTests pin the host bytes of every write arm; pb964 is re-derived host-independently. The record sequential PRINT stream keeps CR LF (not governed by item 114; DOC-A.1-146 (c′)). retired-witness: src/Cobol.Net.Runtime/IO/SequentialConnector.cs#ExistingRecordCount (kb/Work PB2692 (train 1047) replaced ExistingRecordCount with the one bounded measurement SequentialConnector.CountRecords)",
+ "state": "OK"
+}

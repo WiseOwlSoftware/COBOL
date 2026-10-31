@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.26.3-1",
+ "section": "14.9.26.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "MULTIPLY statement",
+ "rule-digest": "437fa1876f91",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BindIdentifierOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#OperandRef; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ScreenResultant; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#Receivers",
+ "test-ref": "conformance:cases/14.9.26-MULTIPLY/pb1142-multiply-alphanumeric-function; conformance-test:ArithmeticIdentifierOperandTests.AlphanumericIdentifier_AsArithmeticOperand_IsRejected; conformance:cases/14.9.26-MULTIPLY/pb1142_arithmetic_identifier_operands",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1142 landed (w65c). SR1 'Identifier-1 and identifier-2 shall reference a data item of category numeric.' (cite --check 14.9.26.3 OK). Data-name operands were already screened (0844 sending / 1675 receiving). The function-identifier and inline-method-invocation formats now take the SAME 8.8.1.1 class screen through ExpressionBinder.BindIdentifierOperand, the one entry the expression spine (BindPrimary) and the operand-wrapper walk (BindOperandExprCore) share: MULTIPLY FUNCTION UPPER-CASE(\"12\") BY B (identifier-1), MULTIPLY A BY FUNCTION UPPER-CASE(\"12\") GIVING C (F2 identifier-2) and the alphanumeric inline-invocation forms are COBOL0844 under strict, digit-decoded with the 0844 warning under --permissive (DA6 gate). Before, the walk bound the function unscreened (B = 3.3 x 12 = 39.6 under STRICT) and no position screened an invocation. As a F1 identifier-2 a function / invocation is a receiver violation (FMT-14.9.26.2, COBOL1689).",
+ "state": "OK"
+}

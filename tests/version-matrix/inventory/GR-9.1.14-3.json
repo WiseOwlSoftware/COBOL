@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.14-3",
+ "section": "9.1.14",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Files",
+ "rule-digest": "4d9f118d4cd2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc",
+ "test-ref": "conformance:cases/9.1.14-Invalid-key-condition/l1_delete_invalid_key_transfer; conformance:cases/14.9.41-START/pb870_start_first_last_relative_exceptions; conformance:cases/14.9.41-START/pb870_start_first_last_relative_ecio_checked",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (9.1.14 item 3): \"If the INVALID KEY phrase is not specified in the input-output statement, any applicable exception processing statements are executed\" then end of statement [cite.py --check PASS 9.1.14]; Annex E.2 item 19 a) \"any declarative that specified INPUT, OUTPUT, I-O, or EXTEND would not have been executed. It will now be executed\" [cite.py --check PASS E.2]. Covering test l1_delete_invalid_key_transfer arm C (D=23, NOT INVALID KEY not taken, C=23). Open-mode tier at all four editions: conformance:{85,2002,2014,2023}/pb344_use_mode_invalid_key C1 (DECL-IO then C1=22). Probes E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2b\\out\\probe\\p914\\k1.cob (USE ON F) and k2.cob (USE ON I-O) T2 at 85/2023: DECL then T2-END 22; k3.cob T7/T8 (a PERFORM WHEN is the applicable statement and preempts the USE; control then continues after the WRITE per 14.9.28.4 GR20 nonfatal). || Editions (adjudicator, verbatim): 1985, 2002, 2014, 2023 (Annex E.2 item 19 a) open-mode reach applied at every edition — PB344 determination; PERFORM WHEN leg 2023 only)",
+ "state": "OK"
+}

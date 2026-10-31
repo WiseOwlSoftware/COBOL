@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.1.2-4",
+ "section": "8.8.1.2",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Arithmetic expressions",
+ "rule-digest": "a970872409e8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/ArithmeticFormationRules.cs#StackedUnarySign; src/WiseOwl.Cobol.Compiler/Validation/ExpressionFormationPass.cs",
+ "test-ref": "conformance:cases/8.8.1.2-Native-standard-binary-and-standard-decimal/pb158-stacked-unary-identifier; conformance:cases/8.8.1.2-Native-standard-binary-and-standard-decimal/pb158-stacked-unary-literal; conformance:cases/8.8.1.2-Native-standard-binary-and-standard-decimal/pb158_arith_precedence_spine; unit:CompileTimeExpressionEvaluatorTests.Rejects_StackedUnarySigns_PinnedToSpec",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PARTIAL -> CONFORMS (kb/Work PB158, landed 2026-09-02). The rule is Table 3's symbol-adjacency matrix. WHICH CELLS THE GRAMMAR CAN STILL PRODUCE WAS MEASURED, one probe program per cell, parsed through the real compiler rather than reasoned about: ten of the thirteen invalid cells are already hard parse errors ((ident,ident), (binop,binop), (binop,')'), (unary,binop), (unary,')'), ('(',binop), ('(',')'), (')',ident), (')',unary), (')','(')), and two more - (ident,'(') and its sibling - cannot form as an arithmetic PAIR at all because COBOL reads a '(' after an identifier as a subscript or reference-modifier. Exactly ONE cell was producible: (unary, unary). It is now screened by ExpressionFormationPass over the shared frontend rule, covering all THREE evaluating arms (ExpressionBinder.BindExprCore, CompileTimeExpressionEvaluator.EvalArith, and its SoleNumericLiteral reclassification probe, which used to fold `- - 5` to the literal 5). The screen reads TOKEN POSITIONS, not the tree, because SS8.3.3.3.2 rule 2 makes an ADJACENT sign part of the numeric literal - `- -2` is the PERMISSIBLE (unary, literal) pair while `- - 2` is the invalid one, and in the default lexer mode both emit MINUS MINUS INTEGERLIT. A grammar tier would have rejected both, i.e. rejected legal source. The over-rejection guard is pinned positively (golden R10/R11/R12 and three unit cases).",
+ "state": "OK"
+}

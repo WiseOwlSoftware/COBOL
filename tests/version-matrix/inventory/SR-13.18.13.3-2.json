@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.13.3-2",
+ "section": "13.18.13.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "CODE-SET clause",
+ "rule-digest": "96ba9ae6d00d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindCodeSetClause",
+ "test-ref": "conformance:cases/13.18.13-CODE-SET/pb110-code-set-locale-alphabet",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB110 (2026-08-19): alphabet-name-2 shall reference an alphabet defining a NATIONAL coded character set — the class-mismatch arm (COBOL1672) mirrors SR1's; 2002+ (the national half). The same negative's LOCALE arm covers the Table-6 refusal shared with SR1.",
+ "state": "OK"
+}

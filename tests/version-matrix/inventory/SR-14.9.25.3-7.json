@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.25.3-7",
+ "section": "14.9.25.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "MOVE statement",
+ "rule-digest": "029196c75cdb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#MoveCategoryLegality; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#ShapeRefusal",
+ "test-ref": "conformance:cases/14.9.25-MOVE/move-space-to-boolean; conformance-test:NationalBooleanMoveTests.BooleanReceiver_LegalSenders_StoreWithZeroFill",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Re-pointed by kb/Work PB878 (verdict unchanged). SR7 is the bound-operand arm of MoveTable16.ShapeRefusal (a figurative whose characters are not boolean, and the ALL-literal form, into a boolean receiver; ZERO exempt per 8.3.3.6.4 GR4), asked for every receiver through the one 14.9.25.3 chain MoveTable16.Validity and framed COBOL0819 by MoveBinder.MoveCategoryLegality. The former MoveReceiverCategory group filter is deleted: every receiver is asked, and Table 16 exempts groups itself (14.9.25.4 GR4). retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#MoveReceiverCategory (kb/Work PB878 deleted MoveBinder.MoveReceiverCategory; SR7's source-shape reading is MoveTable16.ShapeRefusal, asked through MoveTable16.Validity)",
+ "state": "OK"
+}

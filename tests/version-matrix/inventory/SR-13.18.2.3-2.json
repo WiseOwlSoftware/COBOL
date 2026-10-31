@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.2.3-2",
+ "section": "13.18.2.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "ANY LENGTH clause",
+ "rule-digest": "464bfe228509",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#AnyLengthValidateUnit; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoBindMethodData",
+ "test-ref": "conformance:cases/13.18.2-ANY-LENGTH/any-length-outermost",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'may be specified only in an elementary level 1 entry in the linkage section of a function, of a contained program, or of a method that is not a property method' (cite.py --check 13.18.2.3 OK). Every limb probed: WORKING-STORAGE item (p5 W) -> 1542; level 77 in linkage (p5 L77) -> 1542; group (p5 G - rejected via SR1 first; the IsGroup arm exists in both sweeps); outermost program -> 1542 (negative/any-length-outermost golden); object/factory paragraph arm read (OoIsClassUnit); GET PROPERTY method (p8.cob) -> 1542 'may not be specified in a PROPERTY method'; contained program / function / ordinary method accepted (goldens any_length_contained, any_length_function, oo_any_length). A method's LOCAL-/WORKING-STORAGE root is refused in OoBindMethodData. || Editions (adjudicator): 2002, 2014, 2023 (ISO 2023 Annex E lists no substantive change to 13.18.2, so the rule is unchanged from 2014; the 2002 introduction is the project's COBOL-2002 gate and is not derivable from the 2023 text alone - see dossier gap) || Code sites (adjudicator detail): src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#(ANY LENGTH level-is-not-1 check); src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#AnyLengthValidateUnit; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoBindMethodData",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.49.4-1",
+ "section": "13.18.49.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "SAME AS clause",
+ "rule-digest": "52d4e09b110e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CopyEntryDescription; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs",
+ "test-ref": "conformance:cases/13.18.49-SAME-AS/typedef_same_as; conformance:cases/13.18.49-SAME-AS/pb3682_same_as_picture_less_group_usage",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR1 (--check 13.18.49.4 -> OK 1)). Copy via the one CopyEntryDescription (scope Entry - alignment carried, as GR1 has no alignment exclusion); exclusion list enforced by DataItem [DescriptionCopy] classifications + DescriptionCopyCompletenessDriftTests. Probes: VALUE/JUSTIFIED/BLANK WHEN ZERO carried and REDEFINES excluded (p09: `01 B REDEFINES A PIC X(4) JUSTIFIED RIGHT. 01 S SAME AS B.` MOVE \"AB\" TO S -> A stays [WXYZ], S [  AB]; SZ SAME AS a BWZ VALUE 0 item -> [   ]); GLOBAL excluded (p21: nested program cannot see W SAME AS a GLOBAL item -> COBOL1639); EXTERNAL excluded by classification (HasExternalClause None), while a TYPE-derived external rides §13.18.22.4 GR3; level-number/name excluded (qualified references to the copy work, p10). CONSTANT RECORD exclusion is vacuous under SR10. SELECT WHEN belongs to Annex A.4.8 (declined, CONFORMANCE.md §5; DataBinder refuses the clause), so its exclusion is unreachable. Chained copy with VALUE through OCCURS: q10 -> [AB12][AB12AB12] length 8. Also conformance:cases/8.5.2.5-Boolean-category/pb522_group_usage_travels_with_the_description (GROUP-USAGE travels). EDGE NOTED (not a verdict change): an elementary data-name-1 inside a GROUP-USAGE NATIONAL group (p24, q02) yields a DISPLAY subject (BYTE-LENGTH 3 / 4 vs E's 8) - the national usage is implied by the group (§13.18.29.3 SR3 'explicitly or implicitly described as usage national', --check OK) and GR3 transfers a USAGE clause only from an alphanumeric or strongly-typed group; the literal reading supports the compiler, recorded as a dossier gap. || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (the SAME AS clause is absent from COBOL-85 and is not in Annex E's 2014->2023 substantive-changes list, so the rule stands unchanged in 2014 and 2023) || Code-location witnesses adjusted by registrar 14e: src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs (the symbol named was not in the file at 071ff04ea; path kept)",
+ "state": "OK"
+}

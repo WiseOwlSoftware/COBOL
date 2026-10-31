@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.96.4-4",
+ "section": "15.96.4",
+ "kind": "RV",
+ "ordinal": 4,
+ "subject": "TRIM function",
+ "rule-digest": "71d90f147650",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Trim",
+ "test-ref": "conformance:cases/15.96.4-Returned-value-rules/l1_trim_zero_length_result; conformance:cases/15.96.4-Returned-value-rules/l1_trim_zero_length_result_2014",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "All three of r4's antecedents measured through FUNCTION LENGTH of the RESULT — the only instrument that can see a zero-length return, since a MOVE receiver's own space filling (§14.9.25.4 GR6a) renders an empty result and a correct one identically. ALLSP/LEAD/TRAIL/ALLA2/ZEROL = 00 with CTRL=02 as the live-channel control; two editions because the explicit argument-2 leg is 2023-only (Annex E.3.3 item 31).",
+ "state": "OK"
+}

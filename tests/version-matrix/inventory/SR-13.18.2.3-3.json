@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.2.3-3",
+ "section": "13.18.2.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "ANY LENGTH clause",
+ "rule-digest": "344b74cef3ba",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#AnyLengthValidateUnit; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoBindMethodData",
+ "test-ref": "conformance:cases/13.18.2-ANY-LENGTH/pb1167_any_length_returning; conformance:cases/13.18.2-ANY-LENGTH/any_length_contained; conformance:cases/13.18.2-ANY-LENGTH/oo_any_length",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1167 (w1013 L). cite.py --check 13.18.2.3: SR3 'If the source element containing the ANY LENGTH clause is a contained program or is a method, the subject of the entry shall be referenced in its procedure division header as either: a) a formal parameter with the BY REFERENCE phrase, or b) the returning item' - both legs are accepted and run (the COBOL0899 'ANY-LENGTH-RETURNING' staging is deleted from AnyLengthValidateUnit and OoBindMethodData); a BY VALUE formal and an unreferenced item stay refused COBOL1542; a PROPERTY method stays refused (SR2, conformance:cases/_unassigned/pb1167-any-length-returning-property-method).",
+ "state": "OK"
+}

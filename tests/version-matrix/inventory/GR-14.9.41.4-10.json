@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.41.4-10",
+ "section": "14.9.41.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "START statement",
+ "rule-digest": "848ba4760f80",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Start",
+ "test-ref": "conformance:cases/14.9.41-START/l1_start_relative_key_item",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "On a relative file sparse at RRN 3/7/9, START KEY > with the RELATIVE KEY item holding 5 positions at 0007 (GR9a), the KEY phrase OMITTED with the item holding 7 positions at 0007 (GR8 defaults to the same item), and the same relation with the item holding 9 is INVALID KEY '23' - S1 and S3 differ only in that item's content.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.4-3",
+ "section": "8.5.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Data description and representation",
+ "rule-digest": "74697e51b699",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#MinimumLengthIsZero; src/WiseOwl.Cobol.Compiler/Binding/Bound/MoveClassifier.cs#ZeroLengthItemRoute; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#ReturningSeed",
+ "test-ref": "unit:ReturningSeedTests.Zero_Length_Receiver_Gives_A_Zero_Length_Item; conformance:cases/8.5.4-Zero-length-items/pb1167_any_length_returning_zero_length",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1167 (w1013 L). cite.py --check 8.5.4 item 3 'A data item defined with the ANY LENGTH clause corresponding to an argument or returning item that is a zero-length item': the argument half was verified by registrar 15b; the returning half is now reachable and witnessed end to end (a zero-length literal argument -> an ANY LENGTH formal -> CALL AS NESTED RETURNING it -> the callee's ANY LENGTH returning item is zero-length: FUNCTION LENGTH = 0, a MOVE into it keeps nothing). retired-witness: conformance:2002/pb1167_any_length_returning_zero_length (the golden moved to the 2014 corpus: it writes a zero-length literal, a COBOL-2014 introduction gated by kb/Work PB895 (same program, same expected output))",
+ "state": "OK"
+}

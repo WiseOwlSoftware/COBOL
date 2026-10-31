@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.2.12-5",
+ "section": "8.5.2.12",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Class and category of data items and literals",
+ "rule-digest": "cdb0224076b3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#CheckClassConditionOperand; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderClass; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderComputedNumericClass; src/WiseOwl.Cobol.Compiler/Binding/AlgebraicRange.cs#OfCounterRegister; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolValueClass.cs",
+ "test-ref": "conformance:cases/8.5.2.12-Numeric-category/pb1401_computed_numeric_class; conformance:cases/8.5.2.12-Numeric-category/pb1401_computed_numeric_numeric",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1401 LANDED (wave 65 E). Rule: cite.py --check 8.5.2.12 OK 5) - A PAGE-COUNTER is a data item of category numeric. The class condition now honors it: ConditionBinder.CheckClassConditionOperand classifies EVERY operand through IntrinsicResultType.OperandCategory (so 8.8.4.4.3 SR4/SR5/SR6 and SR3's function sentence reach a computed operand), and ConditionRenderer.RenderClass sends a computed category-numeric operand to RenderComputedNumericClass, which asks every question of its VALUE, once (CobolValueClass / CobolFloatClass): NUMERIC per 8.8.4.4.4 GR3 n) 1. (true; finite for a binary64), FARTHEST-/NEAREST-TO-ZERO per g)/m) against the described capacity (AlgebraicRanges.OfCounterRegister / OfFunctionReturnedValue, CONFORMANCE.md counter capacity + DOC-A.1-92), IN-ARITHMETIC-RANGE per l) against the mode intermediate. Measured on the wave-65 build: the compiler crashes (NRE at RenderInArithmeticRange/RenderExtremeClass) and the run-time NotImplemented are gone; goldens pin every leg at 2014 and the NUMERIC legs at 85.",
+ "state": "OK"
+}

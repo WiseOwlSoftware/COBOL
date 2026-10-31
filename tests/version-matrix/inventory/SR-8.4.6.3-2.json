@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.6.3-2",
+ "section": "8.4.6.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Scope of names",
+ "rule-digest": "1ecd83c6fc5d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramNameScope.cs#CommonProgramReferable; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#NestedCallablesOf; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ResolveVisible; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall",
+ "test-ref": "conformance:cases/8.4.6.3-Scope-of-program-names/w73d2_pb1460_common_recursive_nested; conformance:cases/8.4.6.3-Scope-of-program-names/w73d2-pb1460-as-nested-self; conformance:cases/8.4.6.3-Scope-of-program-names/w73d2-pb1460-as-nested-own-containee; unit:ProgramNameScopeDriftTests.CommonProgramException_ByValue; unit:ProgramNameScopeDriftTests.BothScopes_AskTheOnePredicate",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1460 LANDED (wave 73 D2). cite.py --check 8.4.6.3 'except that the program possessing the common attribute and any programs contained within it may reference the program-name only if the program possesses the recursive attribute' -> OK 8.4.6.3 2). The exception is written ONCE, ProgramNameScope.CommonProgramReferable (the containment walk is a parameter), and both scope implementations ask it: BinderDriver.NestedCallablesOf (the bind-time AS NESTED table that decides 14.9.4.3 SR15 - it admitted every COMMON child of every ancestor) and ProgramTable.ResolveVisible (whose own path-prefix onOwnChain test is deleted). Re-probed: the note's r2n.cob compiled clean and died on EC-PROGRAM-NOT-FOUND; now COBOL1676 at the containee's CALL. Positive: a COMMON RECURSIVE program is called AS NESTED from its own containee and runs.",
+ "state": "OK"
+}

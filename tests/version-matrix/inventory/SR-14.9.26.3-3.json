@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.26.3-3",
+ "section": "14.9.26.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "MULTIPLY statement",
+ "rule-digest": "3509352ffb92",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NumLiteral",
+ "test-ref": "conformance:cases/14.9.26-MULTIPLY/l1c19-multiply-alphanumeric-literal; conformance:cases/14.9.26-MULTIPLY/l1c19-multiply-alphanumeric-literal-2",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR3 'Literal-1 and literal-2 shall be numeric literals.' (cite --check 14.9.26.3 OK). Probes: literal-1 \"12\" -> COBOL0844 (N5); literal-2 \"12\" in F2 -> 0844 (N6); SPACE -> 0844 (N14); ZERO accepted (N15) per 8.3.3.6.3 SR1a (ZERO permitted where a numeric literal is required). No negative golden -> test-needed. [code-location note: (COBOL0844)] || editions as adjudicated: 1985, 2002, 2014, 2023 (MULTIPLY formats 1 and 2 with the SIZE ERROR / NOT SIZE ERROR pair; the rounded-phrase MODE option carries 14.7.4's own edition)",
+ "state": "OK"
+}

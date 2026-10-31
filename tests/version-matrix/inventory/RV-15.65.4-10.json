@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.65.4-10",
+ "section": "15.65.4",
+ "kind": "RV",
+ "ordinal": 10,
+ "subject": "MODULE-NAME function",
+ "rule-digest": "1aececd8309f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ModuleStack.cs#Name; docs/CONFORMANCE.md#DOC-A.1-134",
+ "test-ref": "unit:ModuleStackInvariantTests.NoTrailingSpaces_AndNoTruncation_AtEveryDepth; unit:ModuleStackInvariantTests.TopLevel_WithoutAMainFrame_IsTheDocumentedNonCobolValue; conformance-test:IntrinsicFunctionDifferentialTests.ModuleName_MainProgram_2023",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB63 — the exception surface: the FD screen, the SELECT-spelled name on the connector, the one access-recording path, the r2b procedure field and element name, the MODULE-NAME determinations). §15.65.4 r10 TOP-LEVEL 'the runtime element that was activated by the operating environment' — the arm now tests frame 0's IsMain: a .NET host driving a COBOL element without RunMain (frame 0 an ordinary CALLed frame) gets r3's documented single space (A.1 item 134); the CLI's every stack has a genuine main and is unchanged (golden M-TOP/X-TOP). Pinned by the unit test — the configuration cobol.exe cannot reach.",
+ "state": "OK"
+}

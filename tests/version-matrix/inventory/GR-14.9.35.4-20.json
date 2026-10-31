@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.35.4-20",
+ "section": "14.9.35.4",
+ "kind": "GR",
+ "ordinal": 20,
+ "subject": "REWRITE statement",
+ "rule-digest": "2162939d82b7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Stored; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Rewrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#VaryingLengthArg; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite",
+ "test-ref": "conformance:cases/14.9.35-REWRITE/l1c26_rewrite_relative_invalid_key",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"The number of bytes ... after any changes made to the record length by the FORMAT clause shall not be larger than the largest or smaller than the smallest number of bytes allowed by the RECORD IS VARYING clause ... If this rule is violated ... '44'.\" The emitters pass the DEPENDING item's content as the length (13.18.43.4 GR13 a)) or -1 (image length); SequentialConnector.Rewrite and Stored (relative/indexed) return RecordSizeViolation '44' outside [VaryMin, VaryMax]. Probe pd.cob: LN=3 (below 5) -> 44, LN=25 (above 20) -> 44, record unchanged. The 'changes made ... by the FORMAT clause' qualifier is vacuous here: the FORMAT clause is Annex A.4.8, declared Not claimed in docs/CONFORMANCE.md (named decline), so no record length is ever FORMAT-changed. cite.py --check 14.9.35.4 GR20 -> OK. No spec-derived REWRITE test pins the bounds. [editions as adjudicated: 2023; ISO 1989:2023 Annex E lists no 2014->2023 change to this rule (E.3.3 item 41 touches GR10 only), so 2014 identically; the 1985/2002 wording is not derivable from the 2023 text]",
+ "state": "OK"
+}

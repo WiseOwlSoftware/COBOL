@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.1.4-10",
+ "section": "14.9.1.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "ACCEPT statement",
+ "rule-digest": "ab857d368cd5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#DayYYYYDDD",
+ "test-ref": "conformance-test:AcceptDifferentialTests.DayYYYYDDD_RejectedAt85_RunsAt2002; conformance-test:AcceptDifferentialTests.Date_ExactWidthReceivers_ShowEachZeroPaddedImage",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Clock pinned to 2026-06-10: positions 1-4 the Gregorian year 2026, positions 5-7 the day of year 161, seven digits = 2026161; the 85 leg asserts COBOL0815 and the DAY arm of the gate's message ternary.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.86.4-1",
+ "section": "15.86.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "STANDARD-DEVIATION function",
+ "rule-digest": "032537504fec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#StdDevDec; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#ExactListBodies",
+ "test-ref": "conformance:cases/11.9.5-ARITHMETIC/pb116_sqrt_standard_decimal; unit:CobolDecSqrtTests.StdDevDec_RidesTheDecimalSqrt; conformance:cases/15.74.4-Returned-value-rule/pb1565_variadic_exact_argument_list; unit:WholeRangeBodiesDriftTests.ExactListBodies_DoNotCancelTheArgumentsLowDigits",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED with PB116 (the sibling sweep): 15.86.4 r1's EAE = SQRT(VARIANCE) now evaluates in SDIDI form end to end - StdDevDec detoured through Math.Sqrt in binary64 (~16 digits) via FromDouble. The native lane keeps its r4-licensed binary64 body.",
+ "state": "OK"
+}

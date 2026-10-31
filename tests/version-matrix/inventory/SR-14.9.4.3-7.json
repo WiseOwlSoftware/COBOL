@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.4.3-7",
+ "section": "14.9.4.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "CALL statement",
+ "rule-digest": "644aa0b937b3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#OperandUnresolved",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb132-call-returning-screen-name",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB132): the section rule holds by construction for everything resolvable (report groups never enter the storage forest), and the one resolvable-in-name-only case - a SCREEN SECTION entry - now draws the CITED SR7 rejection at BIND time through OperandUnresolved, where the old resolve failure staged a runtime loud (the PB88 wrong-stage shape; the R32 posture distinguishes 'declared in an unsupported section' from 'not defined').",
+ "state": "OK"
+}

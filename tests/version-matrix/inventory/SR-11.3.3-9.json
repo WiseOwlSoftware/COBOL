@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.3.3-9",
+ "section": "11.3.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "CLASS-ID paragraph",
+ "rule-digest": "adf3844a60df",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#AddSkeleton",
+ "test-ref": "conformance-test:ParameterizedClassTests.RepeatedParameterName_2239",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB759.md landed w46i3. A parameter-name repeated in one USING clause -> COBOL2239 (the shared AddSkeleton arm serves CLASS-ID SR9 and INTERFACE-ID SR7).",
+ "state": "OK"
+}

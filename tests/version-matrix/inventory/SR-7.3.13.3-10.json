@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.13.3-10",
+ "section": "7.3.13.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "EVALUATE directive",
+ "rule-digest": "f9545b5fb8bc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#MatchWhen",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/directive_expressions",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 7.3.13.3 \"Literal-1, arithmetic-expression-1, and boolean-expression-1 are selection subjects.\" OK. Definitional: Frame.Subject holds the evaluated selection subject; MatchWhen compares it with each WHEN's object(s). directive_expressions (LVL=7 against 1 THROUGH 5 / 6 THROUGH 10 -> MID) and pb725_directive_facility (THREE) exercise it with spec-derived expectations. || editions (adjudicator): 2002, 2014, 2023 (the §7.3 compiler-directive facility, absent from 1985; Annex E E.2 item 8 shows the EVALUATE directive already in the previous standard)",
+ "state": "OK"
+}

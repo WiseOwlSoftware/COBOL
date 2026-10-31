@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.4.3.14.2",
+ "section": "8.4.3.14.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "LINAGE-COUNTER",
+ "rule-digest": "92e5991719f6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#dataReference; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#LinageFileOf",
+ "test-ref": "conformance-test:LinageConformanceTests.QualifiedCounter_TwoLinageFiles",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Format: LINAGE-COUNTER [ {IN|OF} file-name-1 ]. Grammar alternative `LINAGE_COUNTER ((OF | IN) cobolWord)?` is exactly the diagram (qualifier optional, exactly one of IN/OF). LinageFileOf treats the cobolWord as the file-name. Probes (probe/linage-counter/Q1, Q5, g4) at --std 85 and 2023: `LINAGE-COUNTER OF LPF`, `LINAGE-COUNTER IN LPG` and bare `LINAGE-COUNTER` all bind and read the right file's counter (Q1/Q5 print their OK line). The covering test writes both `OF LP1` and `IN LP2`. cite.py --check 8.4.3.14.3 \"Qualification requirements for LINAGE-COUNTER are defined by 8.4.2.2, Qualification.\" -> OK. || editions as written by the adjudicator: 85 2002 2014 2023",
+ "state": "OK"
+}

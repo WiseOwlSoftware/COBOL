@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.6.3-1",
+ "section": "8.8.4.6.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Simple switch-status condition",
+ "rule-digest": "ac3f3dd0fea6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#Visit; src/WiseOwl.Cobol.Runtime/Control/SwitchStore.cs#Get",
+ "test-ref": "conformance:cases/8.8.4.6-Simple-switch-status-condition/pb400_evaluate_condition_subject_forms; conformance:cases/8.8.4.6-Simple-switch-status-condition/l1_search_when_condition_forms",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR1: \"The result of the test is true if the switch is set to the specified position corresponding to condition-name-1.\" (cite.py --check 8.8.4.6.3 OK, General rule 1). Renderer emits ExternalSwitches.Get(name) for an ON-STATUS name and !Get(name) for an OFF-STATUS name; SwitchStore holds per-run-unit state, initial from COBOL_<NAME> env (implementor-defined, absent = off), SET overrides. Probe at 85 and 2023: initial OFF -> S1-ON F, S1-OFF T, S2-ON F/S2-OFF T, S3-OFF T; after SET ON -> S1-ON T, S1-OFF F, NOT S1-ON F, S3-OFF F; PERFORM UNTIL S1-OFF loops once; env COBOL_SWITCH_2=ON flips S2-ON T/S2-OFF F. Both halves (ON name and OFF name, true and false) covered: pb400 (SWON/SWOFF subject true/false) and l1_search_when_condition_forms (SW1-ON false then true).",
+ "state": "OK"
+}

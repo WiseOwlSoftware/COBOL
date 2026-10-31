@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.24.4-2",
+ "section": "14.9.24.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "MERGE statement",
+ "rule-digest": "e985dee4f8a7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitInputFile; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#ShortRecordFillNational; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#FillTo; src/WiseOwl.Cobol.Runtime/IO/RecordFill.cs#Fit",
+ "test-ref": "conformance:cases/14.9.24-MERGE/pb1140_sort_merge_short_record_fill",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1140 landed (w1003b). The fixed-SD arm of EmitInputFile fills the USING record with CobolSort.FillTo(tmp, sdWidth, input.ShortRecordFillNational): national space when the USING file has ONE record description that is a national data item or an elementary usage-national numeric / numeric-edited / boolean item (a), alphanumeric space otherwise (c); arm b) cannot arise (SELECT WHEN is declined, Annex A.4.8, COBOL1705; docs/CONFORMANCE.md D-SMF). Golden leg U1 (SORT, N(2) USING record into a 6-byte SD: 00 20) and U2 (X(4): 20 20); the shared EmitInputFile serves MERGE GR2 a), so the MERGE USING arm is the same code (the MERGE golden legs run a varying SD, which fills on the GIVING side). editions: the fill itself 1985, 2002, 2014, 2023 (c); the national arm a) from 2002.",
+ "state": "OK"
+}

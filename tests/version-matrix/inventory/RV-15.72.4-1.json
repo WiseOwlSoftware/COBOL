@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.72.4-1",
+ "section": "15.72.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "ORD-MIN function",
+ "rule-digest": "2a8259d87c6c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#OrdMinReal; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AnyRealArgument",
+ "test-ref": "conformance:cases/15.7.4-Returned-value-rule/pb2_float_argument_exact_family",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PB2 LANDED. Same rule and same fix as AR/RV-15.71 - ORD-MIN's body is ORD-MAX's body with the comparison reversed, so fixing one without the other would have been the split the DA wave warned about (feedback_scan_all_similar).",
+ "state": "OK"
+}

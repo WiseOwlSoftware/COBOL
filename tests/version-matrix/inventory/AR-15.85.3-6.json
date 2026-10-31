@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.85.3-6",
+ "section": "15.85.3",
+ "kind": "AR",
+ "ordinal": 6,
+ "subject": "STANDARD-COMPARE function",
+ "rule-digest": "c7b9d02d31b9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindStandardCompare",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb101_standard_compare; unit:StandardCompareTests.BadOrderingNameOrLevel_IsCobol1663",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB101 T7: a literal level that is not a positive nonzero integer is COBOL1663 (r6); a level whose value exceeds the table's levels is r2's run-time condition. retired-witness: unit:StandardCompareTests.BadOrderingNameOrLevel_IsCobolnet1663 (the same witness, re-spelled when the product's name retired the compiler's first name (kb/Work PB3837: a test name carrying a code spells it COBOL####, kb/Work PB3575); the new spelling is recorded in its place)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.12.3-5",
+ "section": "12.4.5.12.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "RECORD KEY clause",
+ "rule-digest": "cd9e8a84503c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#CategorySource; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveKeyCollating; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart",
+ "test-ref": "conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099_record_key_source; conformance-test:FileControlKeyRuleSpecTests.SourcePhraseOperandRules_ReachEachDataName2_Once",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1099 Q1 (w1095i): the record-key SOURCE phrase is PROVIDED (owner rule R65); cite.py --check 12.4.5.12.3 \"Record-key-name-1 has the class and category of data-name-2\" -> OK 5). The resolved key takes its class and category from its first data-name-2 (RecordKey.CategorySource), which every consumer of a key's class reads (the key-level COLLATING SEQUENCE class, START's LENGTH units, the SUPPRESS WHEN sizing); SR2's last sentence (a FileControlKeyRules row) makes every data-name-2 the same answer. retired-witness: conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb358-alternate-key-source (the COBOL1954 decline of the SOURCE phrase is retired: kb/Work PB1099 provides it) retired-witness: conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb358-record-key-source (the COBOL1954 decline of the SOURCE phrase is retired: kb/Work PB1099 provides it) retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.cs#DeclineRecordKeySource (the COBOL1954 decline of the SOURCE phrase is retired: kb/Work PB1099 provides it) || editions 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the record-key-name-1 SOURCE (split-key) form of RECORD KEY / ALTERNATE RECORD KEY; absent from X3.23-1985 (RECORD KEY IS data-name only) and not a 2023 introduction (Annex E.3 lists none); taken as 2002 with the inventory's own FMT-12.4.5.12.2 band. ⚠ DERIVED, LOW CONFIDENCE: the repo holds no 2002 or 2014 text to tell 2002 from 2014, so this edge is overturnable in one batch. cite.py --check 12.4.5.12.4 \"Record-key-name-1 defines a record key consisting of the concatenation\" OK.",
+ "state": "OK"
+}

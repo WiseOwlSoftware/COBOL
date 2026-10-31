@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.79.3-1",
+ "section": "15.79.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "SECONDS-FROM-FORMATTED-TIME function",
+ "rule-digest": "264922500198",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
+ "test-ref": "conformance:cases/15.3-Arguments/pb58_argument_predicates_legal",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). §15.79.3 r1 'a national or alphanumeric literal' — BOTH halves: the class half (the 's' row) and literal-ness (COBOL1517), which now ADMITS ALL \"hh:mm:ss\" (§8.3.3.6.3 SR1: a figurative constant may be used whenever 'literal' appears; §8.3.3.6.4 GR3c: the literal once in a length-unspecified context — it re-binds as that string literal). Golden SFFTALL = 3723 for ALL \"hh:mm:ss\" over \"01:02:03\"; it was an over-rejection.",
+ "state": "OK"
+}

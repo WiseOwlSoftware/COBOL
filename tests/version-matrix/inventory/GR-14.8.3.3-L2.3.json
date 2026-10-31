@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.8.3.3-L2.3",
+ "section": "14.8.3.3",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Returning items",
+ "rule-digest": "6549f234b372",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#CallReturningViolation; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#ReturningConformance; src/WiseOwl.Cobol.Compiler/Oo/ActivationDescriptions.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/Model/PictureClauseIdentity.cs#Key; src/WiseOwl.Cobol.Compiler/Oo/ActivationDescriptions.cs#ElementaryClauses",
+ "test-ref": "conformance:cases/9.3.6-Method-invocation/w61b_pb1166_picture_identity; conformance:cases/9.3.6-Method-invocation/w61b-pb1166-invoke-currency-dpc; unit:PictureClauseIdentityDriftTests.PeriodAndCommaSymbols_MatchOnlyUnderTheSameDecimalPointSetting",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1166 landed (w61b): the comma twin: a DPC class returning Z9,99 into a non-DPC Z9,99 receiver is COBOL0828 (negative GETE leg; before the fix it ran and the receiver read 1234 for 12,34); DPC in both matches (positive DPC leg). retired-witness: src/Cobol.Net.Compiler/Binding/Model/PictureClauseIdentity.cs#Mismatch (kb/Work PB3101 (wave 1082): the DataItem comparator family is deleted (OoConformance.DescriptionMismatch, StrongTypeMismatch, AsIfElementaryGroupMismatch, IsCategoryAlphanumeric, PictureClauseIdentity.Mismatch, ObjectRefDescriptor.SameDescriptionAs); every activation and pair-mode question describes its items through ActivationDescriptions and asks ActivationRelations (CallArgumentViolation / CallReturningViolation / MatchViolation / SignatureDifference), the PICTURE identity entering through PictureClauseIdentity.Key) retired-witness: src/Cobol.Net.Compiler/Oo/OoConformance.cs#DescriptionMismatch (kb/Work PB3101 (wave 1082): the DataItem comparator family is deleted (OoConformance.DescriptionMismatch, StrongTypeMismatch, AsIfElementaryGroupMismatch, IsCategoryAlphanumeric, PictureClauseIdentity.Mismatch, ObjectRefDescriptor.SameDescriptionAs); every activation and pair-mode question describes its items through ActivationDescriptions and asks ActivationRelations (CallArgumentViolation / CallReturningViolation / MatchViolation / SignatureDifference), the PICTURE identity entering through PictureClauseIdentity.Key)",
+ "state": "OK"
+}

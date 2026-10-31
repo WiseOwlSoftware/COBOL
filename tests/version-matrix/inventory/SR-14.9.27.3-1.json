@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.27.3-1",
+ "section": "14.9.27.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "OPEN statement",
+ "rule-digest": "c745d4b6e59a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenModeForFile; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen",
+ "test-ref": "conformance:cases/14.9.27-OPEN/pb318-open-report-file-input; conformance:cases/14.9.21-INITIATE/pb326_ec_report_file_mode",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB318 LANDED (wave 56). RULE (cite.py --check 14.9.27.3 'The OPEN statement for a report file shall not contain the INPUT phrase or the I-O phrase' -> OK 14.9.27.3 1)); corroborated from the file's side by 13.18.46.3 SR3 (cite.py --check 13.18.46.3 'may be referenced in the procedure division only by the USE statement' -> OK 13.18.46.3 3)). StatementValidation.CheckOpenModeForFile, called per file-name from BindOpen with THAT group's mode, reports COBOL2371 open-report-file-mode when FileModel.IsReportFile (the one spelling of 'an FD with a REPORT clause') meets INPUT or I-O. MEASURED (w56a/probe/rpt1.cob): OPEN INPUT and OPEN I-O of a report file rejected at 85 and 2023; OPEN OUTPUT / OPEN EXTEND of the same file accepted (witness: 2023/pb326_ec_report_file_mode ARM 3). That golden's former ARM 2 opened its report file INPUT — non-conforming source under this rule — and was removed in the same change set. Edition-invariant: the report writer and the rule exist at every edition.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.4-1",
+ "section": "7.3.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Compiler directives",
+ "rule-digest": "65b2b980ba84",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements",
+ "test-ref": "unit:TextManipulationDirectiveLineTests.CopyReplacing_DoesNotRewriteTheCopybooksDefine; unit:TextManipulationDirectiveLineTests.Replace_DoesNotRewriteALaterStagesDirective; conformance:cases/7.2.3-COPY/pb1352_directive_lines_not_replaced",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1352 (w67m): the one text-word scanner reads a whole compiler directive line (CompilerDirectiveLine.TryParse, preceded only by spaces per 7.3.3 SR2) as ONE TextWordKind.DirectiveLine element; ApplyReplacements never compares or rewrites it and writes back, on its own line, any directive line lying inside a matched span. COPY REPLACING (applied before the copybook's own DEFINE/IF lines are rendered) and REPLACE (before the TURN/PROPAGATE/PAGE stages) therefore leave every directive line unchanged. cite.py --check 7.3.4 OK 1).",
+ "state": "OK"
+}

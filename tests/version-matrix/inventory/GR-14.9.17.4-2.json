@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.17.4-2",
+ "section": "14.9.17.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "GO TO statement",
+ "rule-digest": "e4067afb4728",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindGoTo; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitGoToDepending; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcWrap; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.Image.cs#ParseImageSending; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#HostInt32; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#Position32",
+ "test-ref": "conformance:cases/14.9.17-GO-TO/pb395_goto_depending_incompatible; conformance:cases/14.9.17-GO-TO/pb395-turn-data-incompatible-below-2002; conformance:cases/14.7.9-RETRY/pb1033_integer_operand_full_value; conformance:cases/14.9.17-GO-TO/pb3491_go_to_depending_out_of_perform_range; unit:DispatcherTransferIdiomDriftTests.OnlyACompletionCallsTheBareTransferJump; unit:DispatcherTransferIdiomDriftTests.GoToDependingLeavesThroughTheExplicitTransfer",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1033 landed (w59b). cite.py --check 14.9.17.4 \"control is transferred to procedure-name-1, etc., depending on the value of identifier-1 being 1, 2\" -> OK 2); --check 14.9.17.4 \"no transfer occurs\" -> OK 2). The selector is read through the ONE integer landing (Align(...,0)) and narrowed to the switch's int through RuntimeApi.HostInt32 = CobolNum.Position32, which SATURATES: a value past int stays outside 1..n and falls through. The former (int) cast wrapped G PIC 9(10) VALUE 4294967297 to 1 and went to P1 (measured on df452130e: WENT-P1; after: FELL-THROUGH). conformance:cases/14.7.9-RETRY/pb1033_integer_operand_full_value pins the fall-through for 4294967297 and the transfer for 2; pb395_goto_depending_incompatible keeps the value 0 / EC-DATA-INCOMPATIBLE halves (both halves measured by the PRIOR CONFORMS record, kb/Work PB395). kb/Work PB3491 landed: the in-range jump of GO TO ... DEPENDING cleared nothing, so a selected target that physically follows the PERFORM's exit paragraph was taken for the exit paragraph completing and the PERFORM returned without transferring (WiseOwl printed nothing for the fuzz reduction; the standard transfers control to the selected procedure-name). The jump is now ExplicitTransferJump (clears __atExit, then the dispatcher transfer), the one rendering every explicit transfer shares with the format-1 and ALTERed GO TO. cases/14.9.17-GO-TO/pb3491_go_to_depending_out_of_perform_range pins six shapes; DispatcherTransferIdiomDriftTests closes the list of bare-jump callers.",
+ "state": "OK"
+}

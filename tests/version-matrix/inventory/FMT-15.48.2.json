@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.48.2",
+ "section": "15.48.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "INTEGER-OF-FORMATTED-DATE function",
+ "rule-digest": "672059ae3e50",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgList; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#Resolve",
+ "test-ref": "conformance:cases/15.48-INTEGER-OF-FORMATTED-DATE/l1_iofd_two_argument_format; conformance:cases/15.48-INTEGER-OF-FORMATTED-DATE/l1-iofd-arity1; conformance:cases/15.48-INTEGER-OF-FORMATTED-DATE/l1-iofd-arity3; conformance:cases/15.48-INTEGER-OF-FORMATTED-DATE/l1-iofd-no-function-word; conformance:cases/12.3.8-REPOSITORY/l1_repository_bare_intrinsic_names; conformance-test:IntrinsicFunctionDifferentialTests.IntegerOfFormattedDate_Ordinal_2014; conformance:cases/15.3.3.6.1-Offset-subformats/formatted_datetime",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Neither argument is bracketed, so the admitted count is exactly two and both words are required. Count: the positive writes the two-argument form four ways over one date derived once from §15.48.4 r1 and §15.5.2 (143951 for 1995-02-15) — space- and comma-separated, and in §15.3.1.2's basic and extended calendar formats and §15.3.1.4's basic ordinal format, so what is pinned is the ANALYSIS, not one string — while l1-iofd-arity1 and l1-iofd-arity3 reject one and three (COBOL1504). Required word: l1-iofd-no-function-word omits FUNCTION with no REPOSITORY paragraph (COBOL1543), and l1_repository_bare_intrinsic_names writes the same reference bare under FUNCTION ALL INTRINSIC and requires it to equal its FUNCTION-keyword twin — so KeywordOmittedFunction, cited in this code-location, is reached from both arms.",
+ "state": "OK"
+}

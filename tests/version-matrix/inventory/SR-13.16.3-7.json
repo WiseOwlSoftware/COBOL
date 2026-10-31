@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.16.3-7",
+ "section": "13.16.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "Data description entry",
+ "rule-digest": "76154300747a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenClausePlacement; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenFileRecordEntryNames",
+ "test-ref": "conformance:cases/13.16-Data-description/pb518-external-fd-filler-record; unit:DataClausePlacementDriftTests.MisplacedExternalOrGlobal_IsRefused_AndNeverRegistered",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB518 LANDED. Both halves: the entry's own EXTERNAL/GLOBAL clause without the data-name format (the DataNameRequired row, BindEntry) and a record description of an EXTERNAL or GLOBAL FD without one (ScreenFileRecordEntryNames, after the FD's clause loop and before the implied record, which is not written) -> COBOL2404. MEASURED at 85/2002/2014/2023: `01 FILLER IS EXTERNAL`, `01 FILLER IS GLOBAL`, `01 IS GLOBAL` (implied FILLER), `FD F IS EXTERNAL. 01 FILLER PIC X(10).` and `FD F IS GLOBAL. 01 FILLER ...` all refused (were: accepted, clause silently dropped).",
+ "state": "OK"
+}

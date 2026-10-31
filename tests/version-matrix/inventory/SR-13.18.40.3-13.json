@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-13",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 13,
+ "subject": "PICTURE clause",
+ "rule-digest": "8fe7d3903dfc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#Analyze; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#MaskScale",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb528-picture-composition-decimal-comma; conformance:cases/13.18.40-PICTURE/pb528_picture_composition_comma_85; unit:PictureCompositionTests.TheCommaPeriodRolesFollowDecimalPointIsComma; conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb66_float_edited_comma_mode",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-09-09 (kb/Work PB528). The FIRST sentence (the comma is the decimal separator, the period the grouping separator) was already live at edit time via CobolEdit.MaskScale. The SECOND - 'The rules for the symbol period apply to the symbol comma, and the rules for the symbol comma apply to the symbol period' - was VACUOUS, because the period-specific composition rules it transfers did not exist. They do now, and the transfer is a PARAMETER of the one validator rather than a comma copy of every period rule: PictureAnalyzer.Analyze takes decimalPointIsComma from DataBinder and PictureComposition reads which character is the decimal separator for SR12b, SR17, SR20 and for the Table-10 roles (13.18.40.6: 'When the DECIMAL-POINT IS COMMA clause is specified, the precedence rules for the symbols comma and period are interchanged'). Both directions measured: PIC 9V9,9 and PIC PP99,99 are COBOL1934 in comma mode (SR20 and SR17 transferred) while PIC 9.999.999,99 and PIC ZZ.ZZZ.ZZZ,99 - NIST NC107A and SM103A shapes, with TWO grouping periods each - compile and render 1.234.567,89 and '     1.234,50'. Without the flag those two NIST shapes are rejected as legal source, which is exactly what the drift test pins.",
+ "state": "OK"
+}

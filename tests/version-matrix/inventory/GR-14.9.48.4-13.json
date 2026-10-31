@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.48.4-13",
+ "section": "14.9.48.4",
+ "kind": "GR",
+ "ordinal": 13,
+ "subject": "UNSTRING statement",
+ "rule-digest": "692699d986a3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringExtract; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/pb979_unstring_receiver_size",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR13 'incremented by one for each character examined ... initial value plus the number of characters examined' (cite.py --check -> OK 14.9.48.4 13)). Kernel: pointer = pos + extractLen + consumed + 1 (delimiter characters, including every ALL-collapsed repeat, are examined characters); emitter stores the pointer back after the receivers (StoreArith) and leaves it unchanged on the GR15a initiation overflow. Probes: p2 T3 (ALL run of three A's) P=+08; T6 P=12 -> 13; T7 P ends 11 on GR15b overflow; T4 P=0 unchanged. Goldens pb979_unstring_receiver_size RM2 (P 4 -> 08) and pb429_page_counter_receiving (-> 7) pin spec-derived values.",
+ "state": "OK"
+}

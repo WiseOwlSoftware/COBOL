@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.2.1-5",
+ "section": "8.8.4.2.1",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Simple relation conditions",
+ "rule-digest": "0cd4e3f20299",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#ForComparison; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs",
+ "test-ref": "conformance:cases/8.8.4.2-Simple-relation-conditions/l1c32_relation_national_mixed",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Item 5 'Two operands of class national' -> §8.8.4.2.9. ForComparison returns National when either side is national. Measured: N(3) N\"ABC\" < N\"ABD\" TRUE; GROUP-USAGE NATIONAL group NG (N\"AB\") = N\"AB  \" TRUE and < N\"AC\" TRUE — the national-group-as-elementary sentence holds. National collating-sequence ordering is §8.8.4.2.9's rows. [editions as adjudicated: 2002, 2014, 2023 (class national enters with ISO/IEC 1989:2002)]",
+ "state": "OK"
+}

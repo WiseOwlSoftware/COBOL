@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.8.4-1",
+ "section": "12.4.5.8.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "FILE STATUS clause",
+ "rule-digest": "3f86001fb864",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitStoreFileStatus; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitInputFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSuccessfulTransfer; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitGivingFile",
+ "test-ref": "conformance-test:InterProgramFileDifferentialTests.GlobalUse_ContainedFailureFiresOuterGlobalDeclarative; conformance:cases/12.4.5.8-FILE-STATUS/pb749_sort_implicit_statement_status",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB749 landed (w1003b). The hole this row was PARTIAL for is closed: of the four as-if statements of a SORT/MERGE transfer the implicit OPEN, the retrieval that ended the READ loop and the CLOSE already stored the status before their hooks (PB837, PB993), and now every successful as-if READ (EmitSuccessfulTransfer) and every as-if WRITE (EmitGivingFile: the store moved out of the unsuccessful branch) stores its status into the FILE STATUS item and, where an EC-I-O name is enabled, offers a nonzero successful status to the EC-I-O-WARNING hook. Golden 2023/pb749_sort_implicit_statement_status: a LINE SEQUENTIAL USING file whose as-if READ is '06' runs the declarative once during the SORT and it sees 06 in the FILE STATUS item; a clean GIVING transfer runs none. The pre-existing NOTE 1 / NOTE 2 witnesses stay. editions 2002, 2014, 2023 (EC-I-O-WARNING is a 2023 name; the status store is every edition's).",
+ "state": "OK"
+}

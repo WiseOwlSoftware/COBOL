@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.57.3-1",
+ "section": "13.18.57.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "TYPE clause",
+ "rule-digest": "1c045e6c963a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandType; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CloneItem",
+ "test-ref": "conformance:cases/13.18.57-TYPE/l1c34-type-same-as-subject; conformance:cases/13.18.57-TYPE/l1c34-type-same-as-ancestor",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "'The description of any data item subordinate to type-name-1 shall not contain a SAME AS clause that references the subject of this entry or any group item to which this entry is subordinate.' No TYPE-side screen is written for SR1; it is enforced through the SAME AS expansion's §13.18.49.3 SR3 ancestor walk, which runs over the TYPE clone (the clone makes the SAME AS entry subordinate to the TYPE subject, so SR1's two referents are exactly SR3's). Probes: `01 T TYPEDEF. 05 A SAME AS REC.` + `01 REC. 05 X TYPE T.` -> COBOL1557; `05 A SAME AS Y` + `01 Y TYPE T.` (the subject itself) -> COBOL1557; grandparent through two levels -> COBOL1557; legal control (SAME AS an unrelated item) compiles and DISPLAY Y prints 'WXYZ12'. Same verdict at --std 2002. The diagnostic cites §13.18.49.3 SR3 rather than §13.18.57.3 SR1 and says 'a group item' even for the subject-itself case — a labeling nuance, not a wrong verdict. No spec-derived test targets the TYPE-side shape; test-needed. cite.py --check 13.18.57.3 and 13.18.49.3 SR3 text OK. probes under out13/probe/type-clause-p1/ (pinned adj-d1 cobol.exe, --std 2023 unless noted) || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): Format 1: COBOL-2002, 2014, 2023 (the TYPEDEF/TYPE family; absent from COBOL-85; Annex E lists no 2014->2023 change to §13.18.57). Not edition-gated beyond the clause's own introduction gate.",
+ "state": "OK"
+}

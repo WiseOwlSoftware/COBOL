@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.37.4-5",
+ "section": "13.18.37.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "NEXT GROUP clause",
+ "rule-digest": "f07c469cf7cc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup",
+ "test-ref": "conformance:cases/8.4.3.15-Report-counters/pb957_next_group_forms",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB957. PF: relative adds integer-2 (absolute sets it) to LINE-COUNTER, which places a relative report footing (§13.18.35.4 GR5b5): RF prints on line 19, not 18.",
+ "state": "OK"
+}

@@ -76,7 +76,7 @@ internal sealed class ProcedureFormatPass(IDiagnosticSink sink) : CursorFollowin
         using var _ = Sink.At(s);
         Sink.Report(new EditionDiagnostic(DiagnosticCatalog.ConditionalStatementAsImperative.Code,
             EditionSeverity.Error, DiagnosticCatalog.ConditionalStatementAsImperative.Id,
-            $"{owner} … {phrase}: this {name} statement is written without its explicit scope terminator END-{name}, "
+            $"{owner} {phrase}: this {name} statement is written without its explicit scope terminator END-{name}, "
             + "so it is a conditional statement, and the operand of this phrase is an imperative-statement — ISO "
             + "§14.5.1: \"Any statement with a conditional phrase that is not terminated by its explicit scope terminator "
             + "is a conditional statement\"; an imperative statement \"is a conditional statement that is delimited by its "

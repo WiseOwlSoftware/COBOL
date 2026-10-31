@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.6.3-1",
+ "section": "14.9.6.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "CLOSE statement",
+ "rule-digest": "2c672d333ed6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindClose",
+ "test-ref": "conformance:cases/14.9.6-CLOSE/pb140-close-reel-relative; conformance:cases/14.9.6-CLOSE/pb140-close-norewind-indexed",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB140): BindClose rejects the NO REWIND / REEL / UNIT phrases on a non-sequential-organization file with COBOL1693 (record and line sequential both pass, 9.1.7.2; the WITH LOCK phrase is exempt - SR1 does not name it). The silent wrong answer behind the miss (CloseReelUnit's pattern-match skipping the status assignment, the FILE STATUS item keeping a stale value) is unreachable: the runtime surface now throws the compiler-defect invariant if a keyed connector arrives.",
+ "state": "OK"
+}

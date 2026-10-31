@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.7.3-5",
+ "section": "11.7.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "METHOD-ID paragraph",
+ "rule-digest": "d7c04f4fd481",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoBindPropertyClauses",
+ "test-ref": "conformance:cases/11.7-METHOD-ID/pb1503-property-no-get-plus-explicit-get; conformance-test:OoSpineTests.PropertyClause_DuplicateExplicitAccessor_2790",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1503 LANDED (wave 1015 Z). cite.py --check 11.7.3 'the PROPERTY clause shall not be specified in the data description entry of that data-name' OK 5). SR5 is its own rule (COBOL2790) in OoBindPropertyClauses: an explicit GET or SET PROPERTY method of the subject's name, whatever WITH NO GET / WITH NO SET says, refuses the clause (it was a by-product of an accessor-name collision, so PROPERTY WITH NO GET + explicit GET PROPERTY compiled clean). retired-witness: conformance-test:OoSpineTests.PropertyClause_DuplicateExplicitAccessor_0842 (renamed PropertyClause_DuplicateExplicitAccessor_2790 by kb/Work PB1503 (SR5 has its own descriptor COBOL2790))",
+ "state": "OK"
+}

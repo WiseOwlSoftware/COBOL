@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-6.3.4-2",
+ "section": "6.3.4",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Fixed-form reference format",
+ "rule-digest": "2deabd82a1c3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#ConvertLine; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#Add",
+ "test-ref": "conformance:cases/6.3.4-Program-text-area/pb1494-indicator-not-fixed; conformance:cases/6-Reference-format/pb1359_floating_continuation_fixed; unit:ReferenceFormatLogicalConversionTests.IndicatorArea_OnlyFixedIndicators_OutsideNist",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1494 + PB1359 landed both halves: the third floating indicator (the floating literal continuation indicator) is implemented in both reference formats, and a column-7 character that is not a fixed indicator is COBOL2616 (the NIST CCVS letters only under --nist), so the program-text area holds text only 'when the indicator area contains a continuation indicator or a source indicator'.",
+ "state": "OK"
+}

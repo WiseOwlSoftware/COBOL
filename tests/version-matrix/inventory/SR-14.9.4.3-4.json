@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.4.3-4",
+ "section": "14.9.4.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "CALL statement",
+ "rule-digest": "82d66dee59e1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#ArgText; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#ArgCarrierText",
+ "test-ref": "conformance:cases/8.4.3.13-Program-address-identifier/pb239_call_address_identifier; conformance:cases/8.4.3.13-Program-address-identifier/pb239_call_program_address_not_found",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB239): BOTH arms of the sending-operand rule are realized and run-verified by a spec-derived golden. (a) 'If the BY REFERENCE phrase is not specified or implied for an identifier-2' - a BY CONTENT data item crosses as a detached snapshot cell (ArgCarrierText's non-Reference arm), and pb239_call_address_identifier asserts it: the callee's ADD 10 to its formal leaves N=005 (14.2.3 GR9's allocated record) - the evidence that used to exist only as the legacy bake CallByContent_CalleeMutationNotVisibleToCaller. (b) 'or if identifier-2 is an address-identifier' - an address-identifier crosses as a detached ManagedPointer<ManagedPointer>/<ProgramPointer> cell in EVERY mode (BoundCallArg.DataAddress/ProgramAddress), so the callee's SET P TO NULL on its BY REFERENCE formal changes nothing the caller sees; the golden's second call reaches R again. Program arm: an unlocatable program is 8.4.3.13.4 GR4's NULL (Q=NULL), raised as EC-PROGRAM-NOT-FOUND while the argument array is built when checking is enabled (14.9.4.4 GR3a - no program is called; pb239_call_program_address_not_found prints EXC and never CALLED).",
+ "state": "OK"
+}

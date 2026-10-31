@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.5.4-2",
+ "section": "12.3.5.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "SOURCE-COMPUTER paragraph",
+ "rule-digest": "f5eda9fa4ad0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sourceComputerParagraph; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-12.3.5.4-2",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'When the SOURCE-COMPUTER paragraph is not specified and the source unit is not contained within a source unit including a SOURCE-COMPUTER paragraph, the computer on which the source unit is being compiled is the source computer.' (cite.py --check 12.3.5.4 -> OK §12.3.5.4 2)). The paragraph is optional in the grammar and the compiler has no source-computer-dependent behavior: no code consumes a source-computer identity (grep of src for computerName() finds only the OBJECT-COMPUTER gate at VersionConformancePass.cs:1468), so the source computer is always the compiling host — exactly the rule. The only paragraph-derived state (DebuggingModeDeclared) defaults to false when the paragraph is absent, which is the no-clause behavior. No dedicated spec-derived test; every golden omitting the paragraph exercises it implicitly. [registrar 14a — editions as adjudicated: 1985, 2002, 2014, 2023]",
+ "state": "OK"
+}
