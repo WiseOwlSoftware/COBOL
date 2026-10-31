@@ -144,7 +144,7 @@ public sealed partial class DataBinder
             // unit-wide maps, kb/Work PB3192), exactly as the SET bind will resolve it.
             DataItem? hit = ResolveStorageClaimHead(name, quals, method, contained, firstOfSeveral: true);
             if (hit is null)
-                continue;   // unresolved / ambiguous — the SET bind reports 0869 with the source text
+                continue;   // unresolved or ambiguous (the SET bind reports 0869 with the source text), or a container's GLOBAL item (declined, the container claims it; no 0869 follows)
             DataItem root = hit;
             while (root.Parent is { } p) root = p;
             if (contained && !CallGlobalRoots.Contains(root)) continue;   // not a global name — not this unit's to force
