@@ -688,8 +688,8 @@ was already spread across threads.
 
 xUnit v2 offers exactly two levers and only one of them can split: `[Collection]` MERGES classes into a shared
 collection, so it can never divide one. (A third-party framework that runs a class's rows in parallel was measured
-against the partitions after M6 and not adopted, its lead inside the shared host's noise: section 3.11.1, kb/Work
-PB4150.) That leaves genuine class splits — and the naive class split duplicates
+against the partitions after M6 and not adopted, its lead inside the noise on the shared host and on a reserved one:
+section 3.11.1, kb/Work PB4150, PB4195.) That leaves genuine class splits — and the naive class split duplicates
 the test bodies, which is how a split rots. So the tests live ONCE in an abstract generic base and each partition
 is one line:
 
@@ -859,11 +859,24 @@ held a slot at any sample:
   in `Process.WaitForExit` on a compiled program, and the test host itself used 548–734 s of CPU per run. The GC pause
   share was 2–5 % in most runs (1.6–13.5 %).
 
-**Determination: keep the partition classes until a measurement on a reserved host decides.** PB4150's bar is a gain
-beyond run-to-run noise with an identical pass set. The pass sets are identical, but B2's 12 % lead is not beyond this
-host's noise (p = 0.07), and the shared host's noise is all the two series could measure, so per-row parallelism is
-neither adopted nor rejected: the question stays open until the arms run with every gate slot reserved for them, and
-the four costs below are what an adoption must answer:
+**⭐ The reserved-host series (kb/Work PB4195, 2026-10-30/31).** The owner reserved the host overnight: no fleet, no
+other session's gates, the gate cap set to 1 so each run held the only slot (every run's slot samples show it alone).
+A and B2 rebuilt at `f49f3e7e4`, alternated A then B2, six rounds, the same settings as above. Wall seconds:
+
+| round | 1 | 2 | 3 | 4 | 5 | 6 | mean | sd |
+|---|---|---|---|---|---|---|---|---|
+| A | 128 | 143 | 132 | 133 | 136 | 127 | 133.2 | 5.8 |
+| B2 | 126 | 127 | 128 | 137 | 131 | 129 | 129.7 | 4.0 |
+
+B2 minus A per round: −2, −16, −4, +4, −5, +2 s; mean −3.5 s, geometric mean of the ratios 0.974 (2.6 % faster),
+paired t = −1.23 with 5 degrees of freedom: inside the quiet host's own noise. The pass sets are identical except the
+same two by-construction witnesses. The shared host's 12 % lead was contention, not the per-row parallelism. And the
+quiet host runs the leg in about 133 s against about 200 s on the shared host, so the other gates beside a leg cost it
+far more than its class structure does (section 3.14.6 has the cap measurement).
+
+**Determination: keep the partition classes** (kb/Work PB4195). PB4150's bar is a gain beyond run-to-run noise with an
+identical pass set; on the reserved host B2's gain is 2.6 % and not beyond the noise, so per-row parallelism is not
+adopted. Its four costs, each witnessed, are what any future proposal must answer:
 1. **Under xunit 2.9.2's default algorithm it is unbounded.** Its assembly runner overrides `RunTestCollectionAsync`
    and so skips the `conservative` algorithm's semaphore of `maxParallelThreads`, and with no
    `MaxConcurrencySyncContext` it starts every case with `Task.Run`. The first such run reached 1,720 threads, 1,710 of
@@ -1738,8 +1751,8 @@ token of every compilation recomputes the closure over all default-mode rules an
 - **The class split's 17 % (§3.11.1, battery #41)** was measured under this lock. After M6, the partition counts
   (one `Partitions` constant per family, audited by `TestPartitionAudit`) are re-measured; the first re-measure
   (w1033, kb/Work PB2527) took `CorpusRunnerTests` from 3 partitions to 24 and split `OptionalWordSubsetDriftTests` 8
-  ways, and kb/Work PB4150 measured per-row parallelism against the partitions on the shared host: a lead of about
-  12 % that does not clear the host's noise, so the partitions stay until a reserved-host measurement (section 3.11.1).
+  ways, and kb/Work PB4150 measured per-row parallelism against the partitions: about 12 % on the shared host, 2.6 %
+  and inside the noise on the reserved host (kb/Work PB4195), so the partitions stay (section 3.11.1).
 
 **M7 — the long poles.** `pb505-table-value-dynamic-span-levels` (266 s in the battery; **29.6 s alone through the
 `cobol` CLI** for a 26-line program) and `DynamicWithoutTo_HigherSubscriptsShallBeEqual_1946` (116 s) are one
@@ -1875,6 +1888,22 @@ cannot start.
   three anyway: at cap 1 implementer gates waited 62 % of their wall time (the w1033 survey), and under batched gating
   every gate runs leg 1 only, so a landing's gate competes with three short gates rather than three whole
   populations. The verdict line prints the wait and the slot (`Slot.describe()`).
+  **The host's throughput at N concurrent legs (kb/Work PB4181, 2026-10-31, the reserved host).** N copies of the
+  Conformance assembly (arm A of section 3.11.1, cache off, server GC) started together inside one slot, nothing else
+  running, two repetitions; runs per hour = N × 3600 / the batch's wall:
+
+  | N | 1 | 2 | 3 | 4 | 6 | 8 |
+  |---|---|---|---|---|---|---|
+  | batch wall, rep 1 / rep 2 (s) | 125 / 123 | 213 / 217 | 308 / 298 | 421 / 389 | 618 / 594 | 841 / 824 |
+  | runs per hour (mean) | 29.0 | 33.5 | 35.7 | 35.6 | 35.7 | 34.6 |
+  | one run's wall against N = 1 | 1.00× | 1.73× | 2.40× | 3.25× | 4.86× | 6.63× |
+
+  Throughput rises 23 % from one leg to three and not at all beyond: one quiet Conformance leg already keeps most of the
+  32 processors busy. (PB4181's premise, about 3 busy cores per leg, counted the test host's own CPU only, never the
+  compiled programs it runs as children.) At N = 8 two runs of rep 1 and all eight of rep 2 ended RED on a HARNESS
+  NON-OBSERVATION (a compiled program, 8–9 s of its own CPU, not finished in two 120 s attempts at 77–87 % host load),
+  never on a value: that oversubscription starves a program past its run budget. This is a proxy, test legs without
+  builds, but on this host more slots than 3 add waiting, not throughput, for a whole leg.
   `gate_slot.py status` prints the cap and the scope with who set them, EVERY held slot (one taken under an earlier,
   higher cap included) and the live tickets in queue order.
 - `gate_slot.py --self-test` proves eleven arms against throwaway repositories, each with one linked worktree (the queue
