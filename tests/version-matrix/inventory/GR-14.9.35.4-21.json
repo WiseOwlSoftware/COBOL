@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.35.4-21",
+ "section": "14.9.35.4",
+ "kind": "GR",
+ "ordinal": 21,
+ "subject": "REWRITE statement",
+ "rule-digest": "be06855cf633",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Rewrite",
+ "test-ref": "conformance:cases/14.9.35-REWRITE/l1c26_rewrite_relative_invalid_key",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"For a file accessed in either random or dynamic access mode, the operating environment logically replaces the record identified by the relative key data item ... If the file does not contain the record specified by the key, the invalid key condition exists ... '23'.\" KeyedIoEmitter.EmitRewrite sets the relative key from the RELATIVE KEY item (FileSetRelativeKey) for non-sequential access; RelativeConnector.Rewrite (non-sequential) returns RecordNotFound '23' when the slot is absent, else Put at _pendingKey. Probe pd.cob (DYNAMIC): RK=7 absent -> 'IK7 ST=23', RK=1 -> 00 and a later READ of key 1 returns the new content. KeyedIoDifferentialTests.Relative_RandomRewriteDelete_StatusAndNotInvalidContract cites GR21 but is AssertSameAsLegacy - a regression net, not a spec-derived test - so test-ref empty. cite.py --check 14.9.35.4 GR21 -> OK. [editions as adjudicated: 2023; ISO 1989:2023 Annex E lists no 2014->2023 change to this rule (E.3.3 item 41 touches GR10 only), so 2014 identically; the 1985/2002 wording is not derivable from the 2023 text]",
+ "state": "OK"
+}

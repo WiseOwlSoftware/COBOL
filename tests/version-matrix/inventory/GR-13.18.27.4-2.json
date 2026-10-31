@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.27.4-2",
+ "section": "13.18.27.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "GLOBAL clause",
+ "rule-digest": "e2d6efa35132",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData; src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs#NearestDeclaring",
+ "test-ref": "conformance:cases/8.4.6.2-Local-and-global-names/pb163_global_local_storage; conformance:cases/8.4.6.2-Local-and-global-names/pb1047_nearest_declaring_element",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1243 (w68z). cite.py --check 13.18.27.4 'A statement in a program contained directly or indirectly within a program that describes' -> OK §13.18.27.4 2). GR2 defers resolution to 8.4.6; the refuter's DIVERGES was §8.4.6.2.1 3) a) failing for a SUBORDINATE homonym (the 01-level ContainsKey shadow handled only a same-named 01). Fixed by the one tier rule (SymbolTable.NearestDeclaring over depth-tagged inherited globals, kb/Work PB1047): golden pb1047_nearest_declaring_element — I X=LOC (the containee's own subordinate X, not the container's G.X), and O Y=NEW (indirect write-back through the bridge, the adjudicator's p1 shape). Condition-names and index-names under the global are covered by the same golden (I C=FALSE, I IX=7).",
+ "state": "OK"
+}

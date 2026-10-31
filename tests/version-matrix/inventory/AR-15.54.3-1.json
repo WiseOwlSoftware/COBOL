@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.54.3-1",
+ "section": "15.54.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "LOCALE-TIME-FROM-SECONDS function",
+ "rule-digest": "476e2f2d3685",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#SecondsOutOfStandardFormFor",
+ "test-ref": "conformance:cases/15.54.3-Argument-rules/pb64t4-time-from-seconds-class; unit:CobolLocaleTests.TimeFromSeconds_CarriesTheFraction_AndScreensTheStandardForm",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB64 T4: class numeric at bind ('n' — a fractional value is legal); the §7.3.17 standard-numeric-time-form RANGE is the ONE exact Int128 screen FORMATTED-TIME uses (EC-ARGUMENT-FUNCTION; LEAP-SECOND ON admits 86400).",
+ "state": "OK"
+}

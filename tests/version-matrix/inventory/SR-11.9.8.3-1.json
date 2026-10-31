@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.9.8.3-1",
+ "section": "11.9.8.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "FLOAT-BINARY clause",
+ "rule-digest": "c7b4e88af311",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#FloatItem",
+ "test-ref": "conformance:cases/11.9.8-FLOAT-BINARY/pb164_float_group_image; unit:NumericByteFormDriftTests.FloatBinaryEndianness_ReachesOnlyStandardBinaryFloatProfiles; unit:FloatImageLaneTests.FormatImageFloat_Ieee32_IsBigEndianBinary32",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "No FLOAT-BINARY clause: the implementor-specified implied phrase is HIGH-ORDER-LEFT (big-endian) - the REQUIRED documented determination (Annex A.1 item 48; docs/CONFORMANCE.md row 48). Matches the big-endian pin of every other byte representation so records interchange.",
+ "state": "OK"
+}

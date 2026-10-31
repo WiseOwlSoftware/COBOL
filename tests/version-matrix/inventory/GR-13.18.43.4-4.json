@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.43.4-4",
+ "section": "13.18.43.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "RECORD clause",
+ "rule-digest": "54e8530f3776",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ByteWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MinRecordSize; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MaxRecordSize",
+ "test-ref": "conformance:cases/13.4.6-Sort-merge-file-description/pb1277_record_size_in_bytes; unit:RecordSizeModelTests.UnstatedRange_IsTheRecordsByteSize",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Landed by kb/Work PB1277 (w61f). cite.py --check 13.18.43.4 'the record size includes the entire byte in which that data item ends' -> OK §13.18.43.4 4). BOTH record-size computations now use the §8.5.1.6.3 bit walk: a record of two PIC 1(3) USAGE BIT items is 1 byte at minimum and maximum (was min 2 from a per-leaf re-summation), so RECORD IS VARYING DEPENDING 1 writes (FB1=00) and 2 answers 44; a bit ODO X(1) + PIC 1(3) BIT OCCURS 1 TO 4 is min 2 (11 bits) / max 3 (20 bits). The value of the filler bits is undefined by the rule and not asserted.",
+ "state": "OK"
+}

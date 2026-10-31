@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.46.3-1",
+ "section": "15.46.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "INTEGER-OF-DATE function",
+ "rule-digest": "f16c5e5f30a0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation",
+ "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.IntegerDateForm_Epoch_PinnedToSpec; conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). INTEGER-OF-DATE's 'i' row (§15.46.3 r1) — a scaled argument is rejected at bind (negative pb58-integer-of-date-fraction); the sweep's FIXED verdict (class screen + SR11 arm + the *Real bodies) pinned. retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

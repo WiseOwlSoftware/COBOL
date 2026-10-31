@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.4-1",
+ "section": "12.3.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Configuration section",
+ "rule-digest": "e0d668aa4417",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#InheritConfiguration; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData; src/WiseOwl.Cobol.Compiler/Binding/Procedure/MnemonicRegistry.cs#Of",
+ "test-ref": "conformance:cases/11.9-OPTIONS/pb60_nested_configuration_inheritance; conformance:cases/12.3-Configuration-section/nested_special_names_inheritance",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-17 (with PB60 / AR-15.67.3-5). The container's configuration section applies to each directly or indirectly contained program: DataBinder.InheritConfiguration copies the whole configuration-derived state (SPECIAL-NAMES — DECIMAL-POINT IS COMMA, CURRENCY SIGN, CLASS names, ALPHABETs, switch mnemonics and status condition-names; OBJECT-COMPUTER's PROGRAM COLLATING SEQUENCE; SOURCE-COMPUTER's DEBUGGING MODE; the REPOSITORY function/intrinsic/property specifiers) into every containee before it binds; the device-name mnemonics (Format 4, DISPLAY UPON / ACCEPT FROM) were already inherited by MnemonicRegistry's enclosing-unit walk — a second, tree-walking mechanism for the same rule, correct today and noted for folding into InheritConfiguration when the environment division gets a bound model. Implicit entries (the implied CURRENCY SIGN '$', the native alphabet) inherit as the defaults. Goldens: the 2023 one (six SPECIAL-NAMES/OBJECT-COMPUTER legs through a contained program, plus OPTIONS) and the 85 one (the edition-invariant five).",
+ "state": "OK"
+}

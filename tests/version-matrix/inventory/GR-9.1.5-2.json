@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.5-2",
+ "section": "9.1.5",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Files",
+ "rule-digest": "83dbd5f05dcc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#RunUnit",
+ "test-ref": "conformance:cases/9.1.5-Sharing-file-connectors/l1c11_global_file_common_connector",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (9.1.5 item 2): \"both programs may refer to a common file connector by referring to an associated global file-name either in the containing program or in any program that directly or indirectly contains the containing program\" [cite.py --check PASS 9.1.5]. Probe E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2b\\out\\probe\\p915\\g1.cob (2023) / g85.cob (85, EXIT PROGRAM): A declares FD GF GLOBAL, OPENs OUTPUT, writes AAAA, CALLs contained B which WRITEs BBBB (B-W 00) and CALLs C (contained in B, i.e. INDIRECTLY contained in A) which WRITEs CCCC (C-W 00); A CLOSEs, reopens and reads R=AAAA R=BBBB R=CCCC then EOF 10. Same at 85 and 2023 — one common connector across direct and indirect containment. TEST-NEEDED: conformance:cases/13.18.27-GLOBAL/pb369_global_file_use_selection references the global file-name from B and C but each OPEN fails (35), so it never demonstrates the connector is COMMON; tests/Legacy.Tests.Integration/SpecFixTests.NestedProgram_ReadsContainingGlobalIndexedFile_SharesConnector exercises the LEGACY compiler and does not qualify. || Editions (adjudicator, verbatim): 1985, 2002, 2014, 2023 (nested programs + GLOBAL are COBOL-85; no Annex E change) || Code sites (adjudicator, verbatim): src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs (containers' GLOBAL FDs merged into FilesByName); src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#RunUnit",
+ "state": "OK"
+}

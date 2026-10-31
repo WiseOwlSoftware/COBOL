@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.39.3-3",
+ "section": "13.18.39.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "PAGE clause",
+ "rule-digest": "9cd18dabb0db",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindReportDescriptionClauses",
+ "test-ref": "conformance:cases/13.18.39-PAGE/pb1059-page-phrase-without-limit",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1059: COBOL2709 refuses a HEADING / FIRST DETAIL / LAST CONTROL HEADING / LAST DETAIL / FOOTING phrase written without integer-1 (`PAGE 80 COLUMNS HEADING 2`).",
+ "state": "OK"
+}

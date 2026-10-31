@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.37.3-1",
+ "section": "15.37.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "FIND-STRING function",
+ "rule-digest": "138bacda159d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfItem; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfCategory; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFindString",
+ "test-ref": "conformance:cases/15.37.3-Argument-rules/find_string_argument1_classes",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "r1's whole admitted set in one program - three classes x the data-item and literal species: PIC A(9); PIC X(9), an alphanumeric GROUP searched across the child boundary, PIC XXBXX alphanumeric-edited, Table 2's numeric-edited-with-usage-display species, and an alphanumeric literal; PIC N(9) (first and LAST) and a national literal; plus a reference-modified view (§8.4.3.3.4 r6). Nine of the ten values were unreachable by any prior case, which used a single PIC X item. The defect the numeric-edited species exposes is §15.37.3 r2's CROSS screen and is charged to AR-15.37.3-2, not here: r1's own screen admits the item (IntrinsicArgumentRules.cs:959 lists NumericEditedDeEditing in the 's' set).",
+ "state": "OK"
+}

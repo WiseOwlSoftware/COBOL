@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.7.4-3",
+ "section": "12.3.7.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "5883f1354dd9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#SwitchBindSet; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs; docs/CONFORMANCE.md#DOC-A.1-191",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb862_implementor_names; conformance-test:AlterSwitchesDifferentialTests.Switch_MultiReceiverAndCompoundSet_EachGroupTakesItsOwnPosition",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR3 - SET mnemonic-name alters the switch; the implementor defines which switches SET may reference: every available switch-name (DOC-A.1-191). kb/Work PB862.",
+ "state": "OK"
+}

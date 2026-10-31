@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.4.4-1",
+ "section": "8.4.3.4.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Inline method invocation",
+ "rule-digest": "00d8e7063520",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectReference; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindComputedObjectReference; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoObjectReferenceTemporary; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.InlineInvocation.cs#OoBindInlineInvocation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindResolvedInvoke; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoCreateInvocationTemp; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindByReceiver",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb428_inline_method_invocation; conformance:cases/8.4.3.4-Inline-method-invocation/pb1425_computed_object_reference_operands; conformance:cases/8.4.3.4-Inline-method-invocation/pb1425-invoke-receiver-not-object; conformance:cases/8.4.3.4-Inline-method-invocation/pb1425-inline-function-receiver-universal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1425 (w1018d) closes the object-reference half the refuter recorded. \"An inline method invocation references a temporary data item with the same class, category, and content as the temp-identifier that would be returned from the execution of the applicable form of INVOKE statement\" (cite.py --check 8.4.3.4.4 -> OK §8.4.3.4.4 1)). The temp is an identifier wherever an object reference is asked: `SET U1 TO A1 :: \"ME\"` already compiled through SetSenders.Classify (PB1399/PB1929); `INVOKE A1 :: \"ME\" \"WHO\" RETURNING W` was COBOL0001 '::' and now invokes on the temp (§14.9.23.3 SR1 \"Identifier-1 shall be an object reference\", OK) -- `objectReference` (INVOKE's receiver, SET Format 5's sender, RAISE) gained `inlineMethodInvocation`, and its atom (the inline receiver) gained `functionCall`, so a function-identifier whose item is an object reference is a receiver and an inline identifier-1 too. The golden pins INVOKE through an inline temp and a chained segment, INVOKE through a typed and a universal function result, the keyword-omitted function, a function as inline identifier-1, and RAISE of an inline temp and of a function result caught by the class's declarative. A temp that is not an object reference is refused by the position's own rule naming the identifier as written (COBOL0824 / COBOL0848); a universal function result as inline identifier-1 is §8.4.3.4.3 SR2 (COBOL2138). [editions: the OO facility, 2002+]",
+ "state": "OK"
+}

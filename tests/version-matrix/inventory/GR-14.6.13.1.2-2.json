@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.13.1.2-2",
+ "section": "14.6.13.1.2",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Exception conditions",
+ "rule-digest": "8d79b7d051f3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody",
+ "test-ref": "conformance:cases/14.6.13.1.2-Normal-completion-of-a-declarative-procedure/l1c08_declarative_indirect_stop_run",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: §14.6.13.1.2 2) (cite.py --check 14.6.13.1.2 \"Any directly or indirectly activated runtime element terminates the run unit\" -> OK 2)). A run-unit termination inside a CALLed element unwinds as the runtime's stop signal through __RunUse's try/finally, so no -1 ('completed normally') is ever returned and no continuation after the raising statement happens. Probe n5 (out/probe/exc-normal): RAISE EC-USER-X (checked) -> USE AFTER EC declarative CALLs EXN5B which executes STOP RUN -> output 'DECL-START / B-STOPS', exit 0; neither DECL-END nor AFTER-RAISE is displayed. No existing spec-derived test found that activates a terminating element from within a declarative (test-needed). || editions as adjudicated: 2002, 2014, 2023 (EC model introduced by ISO 2002)",
+ "state": "OK"
+}

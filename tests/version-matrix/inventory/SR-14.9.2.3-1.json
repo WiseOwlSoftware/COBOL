@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.2.3-1",
+ "section": "14.9.2.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "ADD statement",
+ "rule-digest": "2c576f202f5f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite",
+ "test-ref": "conformance:cases/14.9.2-ADD/ca4_giving_composite; conformance:cases/14.9.2-ADD/ca6_binary_operand_composite; conformance:cases/14.9.2-ADD/pb155_composite_edges",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB155): the incorporated 14.7.7 r2 exclusion list is now complete - OfExpr skips a floating-point-FORM literal (NumericLiteral.IsFloatingPointForm), so `ADD 1.5E+3 TO <9(28)V9>` composes at 29 and compiles (pb155_composite_edges pins it beside the SR1b GIVING exclusion the ca4 golden already pinned). The three per-form legs stand as adjudicated: fmt1 all operands including the TO receivers; fmt2 excluding the post-GIVING resultants (SR1b cited at the empty-receivers call site); fmt3 per corresponding pair. An intrinsic-function operand remains excluded by shape (a BoundIntrinsicCall matches no OfExpr arm). The usage exclusions (binary-char family; float via IsFloat) were CA6's and stand.",
+ "state": "OK"
+}

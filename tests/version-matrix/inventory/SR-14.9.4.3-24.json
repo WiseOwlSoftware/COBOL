@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.4.3-24",
+ "section": "14.9.4.3",
+ "kind": "SR",
+ "ordinal": 24,
+ "subject": "CALL statement",
+ "rule-digest": "c6fa66d05ea5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/pb133_omitted_args; conformance:cases/14.2-Procedure-division-structure/pb133-omitted-not-optional",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB133 wave C1, over PB130's parse): with the AS NESTED callee's header known at bind, each written OMITTED argument's corresponding formal is checked for the OPTIONAL phrase (COBOL1685) - the rule's exact sentence. The omitted argument itself BINDS (GR11): it crosses as the NULL carrier, the callee's 8.8.4.8 condition answers true, and the trailing-omission form rides the same law. The prototype-side correspondence (a Format-2 prototype CALL) remains inexpressible until P13.",
+ "state": "OK"
+}

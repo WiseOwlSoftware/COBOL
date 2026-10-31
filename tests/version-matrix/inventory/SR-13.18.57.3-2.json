@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.57.3-2",
+ "section": "13.18.57.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "TYPE clause",
+ "rule-digest": "f32c0adae69c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries",
+ "test-ref": "conformance-test:TypedefReviewFixTests.SubordinateAfterTypeEntry_Rejected1537; conformance-test:TypedefReviewFixTests.Level88AfterTypeEntry_Rejected1537",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "'A data description entry in which a TYPE clause is specified shall not be followed immediately by a subordinate data description entry or a level 88 entry.' Both arms in DataBinder.cs (~L791 88-arm, ~L860 subordinate arm) emit COBOL1537. Probes: `01 Y TYPE T. 05 Z PIC X.` -> 1537; `01 Y TYPE T. 88 YES VALUE \"Y\".` -> 1537; a same-level sibling after a TYPE entry (`05 Y TYPE T. 05 Z ...`) is legal and runs ('QZ'). Both halves have spec-derived negative tests (2002). cite.py --check OK. probes under out13/probe/type-clause-p1/ (pinned adj-d1 cobol.exe, --std 2023 unless noted) || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): Format 1: COBOL-2002, 2014, 2023 (the TYPEDEF/TYPE family; absent from COBOL-85; Annex E lists no 2014->2023 change to §13.18.57). Not edition-gated beyond the clause's own introduction gate. || Code-location detail (moved from the field by registrar 14e): src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries (subordinate arm ~L860 and level-88 arm ~L791)",
+ "state": "OK"
+}

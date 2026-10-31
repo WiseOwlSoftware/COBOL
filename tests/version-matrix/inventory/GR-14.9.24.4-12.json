@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.24.4-12",
+ "section": "14.9.24.4",
+ "kind": "GR",
+ "ordinal": 12,
+ "subject": "MERGE statement",
+ "rule-digest": "35599ecced8e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitMerge; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitGivingFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#RuleFor; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#FileNotOpen; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#Rewind",
+ "test-ref": "conformance:cases/14.6.13.1.3-Fatal-exception-conditions/pb993_sort_merge_transfer_termination; conformance:cases/14.9.24-MERGE/pb714_merge_using_sharing_read_only; conformance:cases/13.18.43-RECORD/pb1036_sort_merge_statement_ec; conformance:cases/14.9.24-MERGE/pb994_sort_merge_keyed_using_giving; unit:SortWorkBoundTests.EveryGivingFile_ReceivesTheWholeResult_FromDiskRuns",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB994 landed: MERGE shares EmitGivingFile with SORT, so a RELATIVE GIVING file receives relative records 1..n and the key item indicates the last record returned (golden leg 3: MERGE ... GIVING RLH, RK3 = 05); the PB993/PB714/PB1036 legs stand. 'all the merged records are written on each file referenced by file-name-4' (cite.py --check 14.9.24.4 -> OK 12)): CobolSort.Rewind restarts the store's return phase before each GIVING file (SortWork.Rewind -> SortMergeCursor.Restart), from memory or from the run files (kb/Work PB3339).",
+ "state": "OK"
+}

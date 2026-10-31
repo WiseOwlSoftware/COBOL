@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.15.3-10",
+ "section": "13.15.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "Report group description entry",
+ "rule-digest": "9c68018d516b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportEntryClausePresence",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb853-report-column-no-operand; conformance:cases/13.15-Report-group-description/pb853-report-column-no-operand-no-picture",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB853. 'Every elementary entry with a COLUMN clause shall also contain either a SOURCE, VALUE or SUM clause' is screened ONCE per written entry over the flat RD entry array (before the walk, so a Format 3 replay cannot multiply it) under COBOL2247; the binder's fabricated figurative-SPACE operand is deleted. BOTH shapes witnessed: the PICTURE-bearing entry (which printed 000) and the PICTURE-less one (previously refused only by accident under the SR12 PICTURE arm).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-128",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 128,
+ "subject": "OCCURS clause (range of values allowed in the index)",
+ "rule-digest": "f394f14602b7",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-128; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolIndex.cs#MinIndex; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolIndex.cs#TryAmount; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolIndex.cs#Augment; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#MaxOccurrences; src/WiseOwl.Cobol.Compiler/Binding/Model/IndexDeclaration.cs#IndexDeclaration",
+ "test-ref": "conformance:cases/14.9.39-SET/pb459_set_index_amount_guards; conformance:cases/14.9.39-SET/pb459_set_index_amount_ec; conformance:cases/13.18.38-OCCURS/pb459_set_index_range_ec; conformance:cases/14.9.39-SET/pb459_set_index_overflow_unchanged",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Existing §7 row DOC-A.1-128 re-verified against code: CobolIndex.MinIndex/MaxIndex = long.MinValue/long.MaxValue (CobolIndex.cs:71/74); TryAmount (L136) and Augment (L163) reject a result outside that interval leaving the index unchanged; CobolDynTable.MaxOccurrences = 0x3FFF_FFFF so §13.18.38.4 GR2's (1-n)..(2n) is contained. Probe probe/ix.cob (--std 2023; 5-occurrence table): SET KX TO 10 -> 10 (past the table, no raise), SET KX DOWN BY 14 -> -4, SET KX TO 9223372036854775807 then UP BY 1 -> unchanged at max. One correction: the row named `DataBinder.IndexFields`, a symbol that no longer exists in src (PB919 replaced it with IndexDeclaration minted by DataBinder.RegisterIndexes, whose Cell is the C# long) - row rewritten to name the live symbols; the determination itself is unchanged. cite.py --check 13.18.38.4 OK GR2. All four pins exist under tests/conformance. Owning notes PB459 (landed), PB919 (landed).",
+ "state": "OK"
+}

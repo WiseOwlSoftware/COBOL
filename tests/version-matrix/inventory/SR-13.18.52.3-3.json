@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.52.3-3",
+ "section": "13.18.52.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "SIGN clause",
+ "rule-digest": "169b99e2dd57",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.CodeSetRecords.cs#CheckCodeSetRecordItems; src/WiseOwl.Cobol.Compiler/Binding/Passes/BindPipeline.cs#CheckCodeSetRecordItems; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#CodeSetRecordClass",
+ "test-ref": "conformance:cases/13.18.52-SIGN/pb536_code_set_group_sign; conformance:cases/13.18.52-SIGN/pb536-code-set-signed-without-separate",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB536 - LANDED (wave 39). The rule and its CODE-SET twin 13.18.13.3 SR3 a) stay ONE screen with ONE diagnostic (COBOL1672); what changed is the PHASE. The screen is no longer run from BindFileSection at entry-bind time: it is the declared pass CheckCodeSetRecordItems at PassPhase.SignResolved, so 'described with the SIGN IS SEPARATE clause' is read AFTER 13.18.52.4 GR1 group-SIGN propagation (InheritSignClauses) and after 13.18.60.4 GR1 group-USAGE propagation, and the leaves of a record described with TYPE or SAME AS exist because ExpandTypes has run. Only the selected class travels, on FileModel.CodeSetRecordClass; the clause's own SR1/SR2/SR3 and GR2/GR6 work stays at the FD. Measured after the fix: `FD F CODE-SET IS AL1. 01 R. 05 G SIGN IS LEADING SEPARATE. 10 N PIC S9(4). 05 T PIC X(2).` compiles at every edition and round-trips the 7-character image -0012ZZ that 13.18.52.4 GR6 a/b compute (positive 85/pb536_code_set_group_sign), while the same record with NO sign clause anywhere is still COBOL1672 (negative pb536-code-set-signed-without-separate). The diagnostic now points at the offending record ITEM rather than the FD line.",
+ "state": "OK"
+}

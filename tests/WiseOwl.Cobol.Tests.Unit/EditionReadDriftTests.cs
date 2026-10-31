@@ -100,7 +100,7 @@ public sealed class EditionReadDriftTests
     {
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs"] =
         [
-            "IsKeywordReadingHere", "NoteGatedOffender", "ReservedGatedWord",
+            "IsKeywordReadingHere", "NoteGatedOffender", "PrintsKeyword", "ReservedGatedWord",
             "ReservedUserWordViolation", "conditionalPhraseAssociates", "entryNameHere", "facilityWord",
             "gatedDeclaration", "is2002", "is2014",
             "is2023", "is85", "keywordContinuesHere", "reservedHere", "screenPositionAhead", "setLocaleAhead",
@@ -136,8 +136,9 @@ public sealed class EditionReadDriftTests
         // SET LOCALE: setLocaleAhead's `|| Edition.Has(2002)` decides whether LOCALE and USER-DEFAULT are §8.9 user
         // words (two receivers of a COBOL-85 SET) or the Format-11 keywords.
         ["src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4 | setLocaleStatement | setLocaleAhead"] = (1, Verdict.WordStatus),
-        // The declined facility statements VALIDATE, COMMIT and ROLLBACK: is the verb reserved here.
-        ["src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4 | statement | facilityWord"] = (3, Verdict.WordStatus),
+        // The bare-verb facility statements COMMIT and ROLLBACK: is the verb reserved here (below 2023 `COMMIT.` is a
+        // paragraph header). VALIDATE left this read for the union grammar and its introduction gate (kb/Work PB3148).
+        ["src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4 | statement | facilityWord"] = (2, Verdict.WordStatus),
         // §14.5.3.3: a Table 12 [NOT] phrase joins the innermost open statement whose general format, as the edition
         // prints it, admits it (kb/Work PB3830).
         ["src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4 | conditionalPhrases | conditionalPhraseAssociates"] = (1, Verdict.PhraseAssociation),
@@ -156,6 +157,14 @@ public sealed class EditionReadDriftTests
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4 | LPAREN | OnDefaultLParen"] = (1, Verdict.WordStatus),
         // The listeners: the authoritative pass's syntax-error listener reports and retypes a reservation-gated word.
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorListener.cs | CobolErrorListener.SyntaxError | ReservedUserWordViolation"] = (1, Verdict.WordStatus),
+        // The error strategy's COBOL5506 sentence names the keywords EXPECTED at a refused token, leaving out each one a
+        // general format of the compile edition cannot print (kb/Work PB4174, PrintsKeyword): a word the §8.9 table proves
+        // a LATER edition introduced. Every other word is named, the §8.10 context-sensitive words and the words a format
+        // spells where §8.9 leaves them free (IsKeywordWhereFree) included. It refuses nothing itself and gates no construct.
+        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.GuessCobolIntent | PrintsKeyword"] = (1, Verdict.WordStatus),
+        // The error strategy's recovery asks the same question of the token the last report named: a reference the
+        // listener re-codes to COBOL0901 is consumed as the operand it stood for, never resumed at (kb/Work PB3248).
+        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.IsReportedReservedOperand | ReservedUserWordViolation"] = (1, Verdict.WordStatus),
         ["src/WiseOwl.Cobol.Frontend/Parsing/ReservationGateRewriter.cs | OffenderWitness.SyntaxError | NoteGatedOffender"] = (1, Verdict.WordStatus),
         // The front end's driver decides whether a re-parse lexes differently because a word the program declared is
         // reserved at the edition.

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.34.4-1",
+ "section": "13.18.34.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "LINAGE clause",
+ "rule-digest": "5d37c2b0e9cd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs",
+ "test-ref": "conformance:cases/13.18.34-LINAGE/pb523_linage_margins_on_the_medium; conformance:cases/13.18.34-LINAGE/pb523_linage_margins_on_the_medium_85; conformance-test:LinageConformanceTests.Bytes_TopAndBottomMarginsAreLinesOfTheLogicalPage; conformance-test:LinageConformanceTests.Bytes_NoMarginPhrases_LeaveThePrintStreamUnchanged; conformance-test:LinageConformanceTests.Gr1_NoFooting_EopIsOverflowOnly",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB523 LANDED - THE LOGICAL PAGE SIZE IS THE SUM, AND THE SUM IS ON THE MEDIUM. All four conjuncts now hold, and the one that did not is the one this row was PARTIAL for. (a) 'The logical page size is the SUM of the values referenced by each phrase except the FOOTING phrase': SequentialConnector no longer keeps a counter over an untouched print stream - it keeps a PHYSICAL-POSITION model of the logical page (top margin, page body, bottom margin) and derives a page transition's travel from that page (BeginNextLogicalPage: the unwritten rest of the body, then the bottom margin, then exactly one line onto the next page, which is what 13.18.34.4 GR8's contiguity makes it) rather than from the WRITE's own ADVANCING amount. MEASURED on LINAGE IS 2 LINES LINES AT TOP 3 LINES AT BOTTOM 2: the logical page is 3 + 2 + 2 = 7 lines, page 1 occupies physical lines 1-7 and page 2 begins at physical line 8, so a record on page-1 body line 2 and the next on page-2 body line 1 stand FIVE lines apart (bottom margin 2 + top margin 3) where the old code wrote one. Pinned byte-for-byte by the named 2023 golden (which writes, closes and reads the file back AS LINE SEQUENTIAL so each DISPLAYed index is a physical line number: A05 / A11 / A12) and by its 85 twin (which reads the medium one character at a time and pins LEN=0036, A@=0009, B@=0025, C@=0031 against the counter-only reading's LEN=0020, A@=0003, B@=0009, C@=0015). (b) 'If the LINES AT TOP or LINES AT BOTTOM phrases are not specified, the values of these items are zero' - LinageOpExpr renders the literal 0 for an absent operand, and Bytes_NoMarginPhrases_LeaveThePrintStreamUnchanged pins that a zero margin is the IDENTITY on the medium, which is the half no test could reach while the margins produced no bytes at all. (c) 'If the FOOTING phrase is not specified, no end-of-page condition independent of the page overflow condition exists' - the footing arm is guarded by _footing > 0 and Gr1_NoFooting_EopIsOverflowOnly covers it. (d) 'There is not necessarily any relationship between the size of the logical page and the size of a physical page' - a permission, and now honoured with content rather than vacuously: the model never consults a physical page.",
+ "state": "OK"
+}

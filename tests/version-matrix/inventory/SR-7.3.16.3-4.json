@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.16.3-4",
+ "section": "7.3.16.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "IF directive",
+ "rule-digest": "4ca719a910e5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb806-else-trailing-word; conformance:cases/7.3.16-IF/pb806-else-trailing-word-in-omitted-branch; unit:CompilerDirectiveCatalogDriftTests.EveryNoOperandWord_RejectsAnOperandAndAcceptsTheBareWord",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB806. cite.py --check 7.3.16.3 'Text-2 shall begin on a new line.' OK 4). Text-2 written on the >>ELSE line is no longer discarded: >>ELSE takes no operand, so any word after it is COBOL1911 (7.3.3 SR3/SR4), in a compiled and in an omitted branch alike; text-2 on the following lines is ordinary text (probe `>>ELSE DISPLAY \"B\"` -> COBOL1911).",
+ "state": "OK"
+}

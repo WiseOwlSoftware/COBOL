@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-10.7.3-4",
+ "section": "10.7.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "End markers",
+ "rule-digest": "f154b3bd442b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#ScreenClass",
+ "test-ref": "conformance-test:OoSpineTests.EndClassNameMismatch_2793; conformance:cases/10.7-End-markers/pb988_end_markers",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB988 LANDED (wave 1015 Z2). cite.py --check 10.7.3 'Object-class-name-1 shall be identical to the object-class-name declared in the corresponding CLASS-ID paragraph.' OK 4). The END CLASS comparison moved from OoClassTable.Build and OoExpansion.AddSkeleton (COBOL0820) to the one EndMarkerPass (COBOL2793), which also asks parameterized skeletons over the written tree; EndMarkerRuleDriftTests pins the single home. pb988_end_markers: END CLASS Pb988c closes PB988C. retired-witness: conformance-test:OoSpineTests.EndClassNameMismatch_0820 (kb/Work PB988 moved the END CLASS name rule to Validation/EndMarkerPass (COBOL2793); the test was renamed EndClassNameMismatch_2793 and OoClassTable.Build / OoExpansion.AddSkeleton no longer compare the name) retired-witness: src/Cobol.Net.Compiler/Oo/OoClassTable.cs#Build (kb/Work PB988 moved the END CLASS name rule to Validation/EndMarkerPass (COBOL2793); the test was renamed EndClassNameMismatch_2793 and OoClassTable.Build / OoExpansion.AddSkeleton no longer compare the name) retired-witness: src/Cobol.Net.Compiler/Oo/OoExpansion.cs (kb/Work PB988 moved the END CLASS name rule to Validation/EndMarkerPass (COBOL2793); the test was renamed EndClassNameMismatch_2793 and OoClassTable.Build / OoExpansion.AddSkeleton no longer compare the name)",
+ "state": "OK"
+}

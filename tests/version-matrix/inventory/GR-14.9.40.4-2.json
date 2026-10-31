@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.40.4-2",
+ "section": "14.9.40.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "SORT statement",
+ "rule-digest": "34d88fd9e93d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortAddFileKeys; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitTableSort; src/WiseOwl.Cobol.Runtime/IO/SortKeyColumns.cs#Compare",
+ "test-ref": "conformance-test:SortMergeDifferentialTests.Sort_InputOutputProcedures_MultiKeyMixedDirections",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'The data items referenced by the specifications of data-name-1 are the key data items ... The order of significance of the keys is the order in which they are specified in the SORT statement, without regard to their association with ASCENDING or DESCENDING phrases.' (cite.py --check 14.9.40.4 OK, GR2). Keys are appended in statement order (file: List<BoundSortMergeKey>; table: List<BoundTableSortKey>), and both comparators walk the list first-to-last returning on the first non-zero result. The spec-pinned test orders S-K1 (ASC, first phrase) above S-K2/S-K3 (DESC, second phrase): R=2AA3R3 last. Table arm: conformance:cases/13.18.38-OCCURS/pb846_sort_table_occurs_keys leg X (KA major, KB minor across two phrases). Both halves (file order of return, table storage order) verified. [editions as adjudicated: 1985, 2002, 2014, 2023 (file format); 2002, 2014, 2023 (table format)] retired-witness: src/Cobol.Net.Runtime/IO/CobolSort.cs#Compare (kb/Work PB3339 moved the one key comparison, unchanged, out of CobolSort into SortKeyColumns (the bounded sort store's slot-based columns))",
+ "state": "OK"
+}

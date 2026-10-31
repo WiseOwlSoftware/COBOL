@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.21.4-5",
+ "section": "14.9.21.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "INITIATE statement",
+ "rule-digest": "0d3cf4c4d637",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindInitiate; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundImplicitSeries; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitInitiate",
+ "test-ref": "conformance:cases/14.9.21-INITIATE/l1_initiate_resume_next_implicit",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "The PAGE-COUNTER presets are the probe. In the handler, A=1 and C=5 pin the written order (sentence 1). After RESUME NEXT, C=1 pins resumption at the next implicit INITIATE (sentence 2). At 1985 GR5 has no observable that is separable from GR1, because without exception checking or RESUME no conforming program can see the order. The 85 cell is therefore unwitnessed by any GR5-specific test. conformance:cases/_unassigned/l1_initiate_multi_each_report_85 is only a GR1 c) witness.",
+ "state": "OK"
+}

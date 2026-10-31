@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.37.4-1",
+ "section": "14.9.37.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "SEARCH statement",
+ "rule-digest": "511c366fa659",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs",
+ "test-ref": "conformance:cases/14.9.37-SEARCH/ca36_search_range_dispatch; conformance:cases/14.9.37-SEARCH/l1_search_no_at_end_no_checking; unit:DispatcherTransferIdiomDriftTests.NoDispatcherTransferIsCapturedByALoweredContainer; unit:DispatcherTransferIdiomDriftTests.TheFixturePlacesEveryTransferInsideALoweredContainer",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "RE-MEASURED BY LANDING TRAIN 36 on the merged tree, which is the first tree carrying BOTH kb/Work PB388's citation repair and train 35's PB405 transfer repair. The ONE clause that held this row at PARTIAL was GR1 b) 2 - 'a procedure branching or conditional statement results in an explicit transfer of control' - where the defect was NOT in SEARCH at all: StatementEmitter.Visit(BoundGoTo) emitted `__pc = N; break;` for every GO TO, and inside a lowered C# container (an inline PERFORM's while, an EVALUATE arm, the SEARCH scan) that `break` binds to THAT container and never reaches the pc dispatcher, so control was silently LOST. PB405 replaced every such site with the one transfer idiom (`__pc = N; goto __xfer;`) and landed on main in train 35. MEASURED HERE, on a freshly built cobol.exe from the merged tree: probe_gr37_goto.cob - `PERFORM 3 TIMES ... SEARCH E ... WHEN E(IX1) = 3 GO TO HIT-PARA ... END-PERFORM`, the exact shape the PARTIAL verdict recorded - prints LOOP then HIT-PARA (it printed LOOP then NOT-REACHED-2 when the row was adjudicated); the isolating control probe_gr37_ctrl.cob, a bare GO TO out of an inline `PERFORM 3 TIMES` with no SEARCH anywhere, prints C1 1 then C1-OUT and no longer falls through. Every other clause of GR1 was already measured CONFORMING by kb/Work PB388's adjudication and is unchanged: (i) only the FIRST index of identifier-1 varies, (ii) a WHEN phrase's subscripting is re-evaluated per pass, (iii) only an index of identifier-1 is modified for a subordinate table, (iv) GR1a's immediate termination with the index left at the satisfying occurrence, (v) NEXT SENTENCE. The WITNESS for the repaired clause is PB405's DispatcherTransferIdiomDriftTests, whose fixture carries a GO TO inside a SEARCH AT END phrase and a GO TO inside an EVALUATE arm, both inside an inline PERFORM, and whose companion fact asserts the fixture really places those transfers inside lowered containers so the invariant is not vacuously true. The folded sub-item 1) b) 3. is unchanged at CONFORMS. kb/Work PB388 stays `half`: GR-14.9.39.4-12/-13 (SET with more than one receiver) and SR-14.9.39.3-2 remain open under it.",
+ "state": "OK"
+}

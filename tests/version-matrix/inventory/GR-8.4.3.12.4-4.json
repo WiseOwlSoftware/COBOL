@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.12.4-4",
+ "section": "8.4.3.12.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Function-address-identifier",
+ "rule-digest": "52a4866fb3dc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#FunctionAddressOf; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/PtrEmitter.cs#EmitSetFunctionAddress; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs",
+ "test-ref": "conformance:cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb452_function_address_runtime",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "'If the runtime system cannot locate the function, the EC-FUNCTION-NOT-FOUND exception condition is set to exist and the value of the address-identifier is the predefined address NULL.' BOTH halves are measured by the 2023 golden's NF-RAISED/B-NULL pair: the declarative runs AND the receiver takes NULL. The value is DEFINED by the rule, so the store happens whether or not checking is enabled and only the raise is checking-gated (14.6.13.1.4) - the opposite arrangement from 14.9.39.4 GR14, which NAMES its no-change outcome and therefore skips the store unconditionally. The two legs are written separately for that reason. EcBinder.QueryFor gained the BoundSetFunctionAddress arm in the SAME change set as the raise site, after the same gap was MEASURED on its BoundSetEntry sibling (a >>TURN EC-PROGRAM-NOT-FOUND CHECKING ON over SET pp TO ENTRY 'NOSUCH' printed only 'AFTER SET' - the 8.4.3.13 GR4 raise had been dead since P10 Step 7).",
+ "state": "OK"
+}

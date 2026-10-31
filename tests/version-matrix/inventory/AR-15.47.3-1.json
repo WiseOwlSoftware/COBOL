@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.47.3-1",
+ "section": "15.47.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "INTEGER-OF-DAY function",
+ "rule-digest": "0e449d5e7ffa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation",
+ "test-ref": "conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). INTEGER-OF-DAY's 'i' row (§15.47.3 r1) — negative pb58-integer-of-day-fraction; the legal always-integral float literal 1.995046E6 stays admitted (the *Real body). retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

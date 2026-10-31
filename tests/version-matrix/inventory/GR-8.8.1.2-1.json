@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.1.2-1",
+ "section": "8.8.1.2",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Arithmetic expressions",
+ "rule-digest": "3b017783a323",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Visit",
+ "test-ref": "conformance:cases/8.8.1.2-Native-standard-binary-and-standard-decimal/pb129_store_discipline; conformance:cases/8.8.1.2-Native-standard-binary-and-standard-decimal/pb129_remainder_no_phrase; conformance:cases/8.8.1.2-Native-standard-binary-and-standard-decimal/ca5a_prohibited_nested_no_size_error",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB129): the _outermost final-transfer flag is now cleared by EVERY recursion - BoundNegate, BoundPower and BoundComputedOperand join BoundBinary - so a division under a unary minus, an exponent base or an operand wrapper computes at the D2 guard scale with truncation and the receiver's ROUNDED mode binds to the final transfer only (14.7.4.3 GR3-GR10; 8.8.1.2 r1's treated-as-a-single-operand). Pinned twice: (1/3) ** 0 under PROHIBITED is exactly 1.00 (the CA5 sibling - the leak reinstated the pre-CA5 spurious EC-SIZE-TRUNCATION), and (A/B) ** 2 = 1 * (A/B) ** 2 = 11.1111 (the leak made multiplying by one change the value).",
+ "state": "OK"
+}

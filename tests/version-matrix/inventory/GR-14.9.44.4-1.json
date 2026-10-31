@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.44.4-1",
+ "section": "14.9.44.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "SUBTRACT statement",
+ "rule-digest": "9cf7be559629",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindSubtract; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#Visit; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitInPlace; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Fold",
+ "test-ref": "conformance:cases/14.9.44-SUBTRACT/l1_subtract_format1_initial_evaluation; conformance:cases/14.9.44-SUBTRACT/l1_subtract_format1_standard_decimal; conformance:cases/14.9.44-SUBTRACT/pb228_subtract_standard_decimal_order",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Four lines per program: the sum, the once-only discriminator (009 vs 008), the 14.7.7 NOTE 3 sender/receiver overlap, and the (identifier-2 - initial-evaluation) direction via SIGN LEADING SEPARATE; run under native (11.9.5.2 GR4) and standard-decimal (8.8.1.5.1), the rule's two reachable modes. BOTH PROGRAMS LIVE IN tests/conformance/2023 AND THEREFORE RUN AT --std 2023 ONLY -- no run in this batch measures 85, 2002 or 2014; the native program carries no post-85 construct, so duplicating it into tests/conformance/85/ is available to the director if the 85 edition is to be measured. PB228 sibling sweep (2026-10-16): 2014/pb228_subtract_standard_decimal_order's FROM leg (SUBTRACT X Z Y FROM R, R = 0.0008, X = 10**30, Y = -(10**30), Z = 0.0004) gives 0.0008 only under the rule's (identifier-2 - initial-evaluation) with the initial evaluation summed first in an SDIDI; native and a left-to-right fold both give 0.0004. l1_subtract_format1_standard_decimal's values are exact in every order.",
+ "state": "OK"
+}

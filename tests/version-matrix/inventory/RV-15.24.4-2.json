@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.24.4-2",
+ "section": "15.24.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "DAY-OF-INTEGER function",
+ "rule-digest": "a60bd50a7801",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#DayOfInteger",
+ "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.IntegerDateForm_Epoch_PinnedToSpec",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SUSTAINED; both halves of the rule independently re-verified. 'return d.Year * 1000L + d.DayOfYear;' places the Gregorian year in the YYYY positions and the ORDINAL day of that year in DDD — the §15.5.4 Julian date form ('The Julian date form is YYYYDDD, where YYYY represents the year and DDD represents the ordinal date within that year'). YYYY half: 1 -> 1601001 (epoch year), 3067671 -> 9999365 (terminal year), 143951 -> 1995046. DDD half, over the 62-value spec-computed sweep described in RV-15.24.4-1: the leap-day ordinal is counted (2000-02-29 -> 2000060) and 366-day years reach 366 (2000-12-31 -> 2000366), while the century non-leap years do not (1900-12-31 -> 1900365, 1700-03-01 -> 1700060 vs 2000-03-01 -> 2000061), so §15.5.1's Gregorian leap rule is honoured in the DDD positions and not merely in YYYY. Identical at --std 85 / 2002 / 2014 / 2023. Coverage note (not a test-need for this row): the cited test's only DAY-OF-INTEGER expectation is 01601001, whose DDD is 001 — no on-disk spec-derived case reaches a leap-day or a three-digit ordinal, which is why the DDD half was checked by running rather than by trusting the suite.",
+ "state": "OK"
+}

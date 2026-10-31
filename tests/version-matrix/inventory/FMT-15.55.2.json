@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.55.2",
+ "section": "15.55.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "LOG function",
+ "rule-digest": "2296a04e056b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#RepeatsAnArgument",
+ "test-ref": "unit:IntrinsicRepeatedArgumentDriftTests.RepeatsAnArgument_IsExactly_TheFormatsEllipsis; conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB62 — the ALL subscript as ONE enumerating operand with the standard's three ranges; admissibility from the definition; the summing family on the SDIDI carrier under a standard mode). `FUNCTION LOG ( argument-1 )` repeats no argument: `LOG(T(ALL))` is COBOL1645 (negative pb62-all-subscript-log; it evaluated over a one-occurrence table before). The FIXED leg (a §8.9 phrase word as argument-1, COBOL1638) stands. retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

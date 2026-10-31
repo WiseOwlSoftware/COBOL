@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.1.12.1-3",
+ "section": "8.5.1.12.1",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Variable-length groups",
+ "rule-digest": "f42879ace0c4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/GroupCompatibility.cs#Walk",
+ "test-ref": "conformance:cases/8.5.1.12-Variable-length-groups/pb204_vlg_boundary; conformance:cases/8.5.1.12-Variable-length-groups/pb204_vlg_invoke; conformance:cases/8.5.1.12-Variable-length-groups/pb204-nested-vlg-position; conformance:cases/8.5.1.12-Variable-length-groups/pb204-nested-returning-incompatible; conformance:cases/_unassigned/pb480_universal_variable_length_shapes",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "Condition 3 - 'For each dynamic-length elementary item in either group there is a corresponding dynamic-length elementary item in the other group as specified in 8.5.1.12.2' - with 8.5.1.12.2 sentence 1's 'start at the same relative byte positions within their groups' as the correspondence and 8.5.1.12.3 sentence 1's 'Two dynamic-length elementary items always match, regardless of their definitions' as the matching. POSITIVE: pb204_vlg_boundary and pb204_vlg_invoke each pair a dynamic-length item across the boundary against a group whose FIXED members are split differently (1+2 against X(3), and 2+1 against X(3)), so the rule is observed to key on byte position and not on the declaration tree. NEGATIVE: pb204-nested-vlg-position (an argument/formal pair) and pb204-nested-returning-incompatible (a RETURNING pair, through 14.8.3.2) each displace the item by one byte and are rejected naming this rule. || kb/Work PB480 (w1031b): the walk moved to the runtime (GroupCompatibility.Walk over GroupAtom layouts) so the bind-time screens (VariableLengthCompatibility builds the atoms and words the reasons) and the run-time relation a universal INVOKE asks of two descriptions compiled apart are ONE copy; two variable-length groups of different shapes now cross both INVOKE lanes (CobolVarGroup.Reshape / Overlay) - conformance:cases/_unassigned/pb480_universal_variable_length_shapes. retired-witness: src/Cobol.Net.Compiler/Binding/Model/VariableLengthCompatibility.cs#Walk (kb/Work PB480 moved the 8.5.1.12 walk to the runtime (GroupCompatibility.Walk); VariableLengthCompatibility no longer has a Walk member)",
+ "state": "OK"
+}

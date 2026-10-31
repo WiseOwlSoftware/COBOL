@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-204",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 204,
+ "subject": "TURN directive (whether location information is available when the LOCATION phrase is not specified)",
+ "rule-digest": "79b53ef88034",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-204; src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs#WithLocation",
+ "test-ref": "conformance:cases/7.3.25-TURN/l1_exception_no_location_arms; conformance:cases/7.3.25-TURN/exception_statement_ambient",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "A.1 item 204 (7.3.25.4 GR7). Location information is NOT made available when the LOCATION phrase is absent, uniformly across the explicit >>TURN directive and the implicit TURN directive 14.9.28.4 GR14 supplies for a PERFORM WHEN phrase. The determination is what RV-15.30.3-1 / RV-15.31.3-1 / RV-15.32.3-1 depend on and it lived only in a design doc until this change set; l1_exception_no_location_arms measures both legs side by side. || editions 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a compiler-directive rule; the 7.3 compiler-directive facility is a COBOL-2002 introduction (COBOL-85 has no >> directive line: docs/VERSION_CHANGE_REFERENCE.md Table 7 row 7.21, a derived edge). cite.py --check 7.3.3 \"A compiler directive may be specified anywhere in a compilation group\" OK.",
+ "state": "OK"
+}

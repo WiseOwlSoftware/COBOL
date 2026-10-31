@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.7.3-2",
+ "section": "12.3.7.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "50450035009c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OoEnvironmentRules.cs#Screen",
+ "test-ref": "conformance-test:OoEnvironmentPlacementTests.EnvironmentPlacement_FollowsTheOneTable",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1076: a factory or instance SPECIAL-NAMES admits CURSOR and CRT STATUS only.",
+ "state": "OK"
+}

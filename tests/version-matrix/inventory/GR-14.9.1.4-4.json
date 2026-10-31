@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.1.4-4",
+ "section": "14.9.1.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "ACCEPT statement",
+ "rule-digest": "d70b0d47f662",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#Device; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReceivingStore.cs#CharacterPositions",
+ "test-ref": "unit:AcceptSourceTests.ZeroLengthReceiver_ConsumesItsRecord; unit:AcceptSourceTests.LongLine_SplitsIntoPaddedRecords; unit:AcceptSourceTests.LongLine_NarrowReceiver_RemainingRecordsIgnored; unit:AcceptSourceTests.EndOfInput_SpaceFillsRemainder; conformance-test:AcceptDifferentialTests.Device_LongLine_SplitsAtRecordBoundary; conformance-test:AcceptDifferentialTests.Device_LongLine_NarrowReceiver_RemainingRecordsIgnored; conformance-test:AcceptDifferentialTests.Device_OverlongLine_KeepsLeftmost_RestOfRecordIgnored; conformance-test:AcceptDifferentialTests.Device_ShortLine_StoresLeftAlignedSpaceFilled; conformance-test:AcceptDifferentialTests.Device_WideReceiver_ReadsAdditionalRecords; conformance-test:AcceptDifferentialTests.Device_AnyLengthReceiver_TransfersTheArgumentsSize",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1013 (2026-09-22): a) and b) compare against the same run-time receiver size - an ANY LENGTH receiver bound to X(6) keeps the leftmost six characters of an 8-character record (b) and stores a 2-character record aligned left, space-filled (a).",
+ "state": "OK"
+}

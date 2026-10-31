@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.57.3-3",
+ "section": "13.18.57.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "TYPE clause",
+ "rule-digest": "98760a624803",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CheckStrongTypeDeclarations; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandType; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#DeclaresStrongType",
+ "test-ref": "conformance-test:TypedefStrongTests.RenamesOverStrongItem_Rejected1532; conformance:cases/13.18.57-TYPE/pb1304-typedef-strong-renames; conformance:cases/13.18.57-TYPE/pb1301_strong_type_chain",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1301 (wave 1019 D). The refuter's PARTIAL was the self-contradictory strength of an item typed through a chained declaration (01 S2 TYPEDEF TYPE S, S STRONG): strong for SR3's RENAMES ban, weak for SR6. Strength is now ONE predicate, DataItem.DeclaresStrongType: by 13.18.57.4 GR1 ('as though the data description identified by type-name-1 had been coded in place') data typed through S2 is described with TYPE S and is strongly typed (8.5.3.1), so SR3 rejecting RENAMES over it (COBOL1532) and SR6's level screen now agree. Direct part/whole/THRU cases unchanged (pb1304-typedef-strong-renames).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.2.1-11",
+ "section": "8.8.4.2.1",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "Simple relation conditions",
+ "rule-digest": "58c9d1ef0342",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckFormat3Relation",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb399_format3_relation_legal_shapes",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Item 11 'Two operands of class pointer where each operand is of the same category' -> §8.8.4.2.16 ('The operands are equal if they reference the same address', cite.py OK). CheckFormat3Relation asks class from the Table-2 lattice and category from OperandCategory; measured: POINTER = POINTER and = NULL accepted, POINTER = PROGRAM-POINTER refused COBOL0869 'not of the same category' (also negative pb399-pointer-relation-category-mix), POINTER > POINTER refused, POINTER = numeric refused. [editions as adjudicated: 2002, 2014, 2023 (class pointer enters with ISO/IEC 1989:2002)]",
+ "state": "OK"
+}

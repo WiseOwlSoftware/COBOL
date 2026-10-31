@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.15.3-2",
+ "section": "8.4.3.15.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Report counters",
+ "rule-digest": "e9049cb5bba6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CounterReportOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportSectionNameIn; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#RefExpr",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/pb1456_other_report_counters_85; conformance:cases/8.4.2.2-Qualification/pb1456_counter_in_source_expression; conformance:cases/8.4.2.2-Qualification/pb1456-counter-qualified-by-report-group",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1456 landed. cite.py --check 8.4.3.15.3 'Qualification requirements for PAGE-COUNTER and LINE-COUNTER are defined by 8.4.2.2, Qualification.' OK (SR2). The requirements are 8.4.2.2.3 SR9/SR10: in the report section an unqualified counter is the enclosing RD's (ReferenceResolver.ReportScope), a counter of a DIFFERENT report is qualified explicitly by its report-name - as a SOURCE identifier (PAGE-COUNTER OF R1) and inside an expression ((PAGE-COUNTER OF R1 + 100)); a qualifier that is no report is COBOL2729. retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#BindSourceReference (BindSourceReference staged the qualified counter of another report loud; a counter is bound by the one operand/expression binder through CounterReportOf)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-10.7.3-9",
+ "section": "10.7.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "End markers",
+ "rule-digest": "39b1e188fc3d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#ScreenProgram",
+ "test-ref": "conformance:cases/10.7-End-markers/pb988-end-function-prototype-name-mismatch; conformance:cases/10.7-End-markers/pb988_end_markers",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB988 LANDED (wave 1015 Z2). cite.py --check 10.7.3 'Function-prototype-name-1 shall be identical to the function-prototype-name declared in the corresponding FUNCTION-ID paragraph.' OK 9). FUNCTION-ID. PB988FP IS PROTOTYPE. ... END FUNCTION PB988FQ. is COBOL2793 (SR9); pb988_end_markers' END FUNCTION pb988fp closes PB988FP.",
+ "state": "OK"
+}

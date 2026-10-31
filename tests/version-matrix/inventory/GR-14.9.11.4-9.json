@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.11.4-9",
+ "section": "14.9.11.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "DISPLAY statement",
+ "rule-digest": "c1d627153dfb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitDisplay",
+ "test-ref": "conformance:cases/14.9.11-DISPLAY/l1_display_no_advancing",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Three NO ADVANCING displays land contiguously as ABCDEF and the GR10 complement puts GH on its own line; '<' WS-X '>' proves the rest position is after the LAST character of the LAST operand (the X(4) pad), not after the last non-space; the fourth line writes the phrase without the optional word WITH.",
+ "state": "OK"
+}

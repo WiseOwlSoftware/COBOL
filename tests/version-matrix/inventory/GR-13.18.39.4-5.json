@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.39.4-5",
+ "section": "13.18.39.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "PAGE clause",
+ "rule-digest": "ea41c0b3badd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindReportDescriptionClauses; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#CobolReport",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb1059_page_columns_width; conformance:cases/13.18.14-COLUMN/pb1059_page_width_only; conformance:cases/13.18.14-COLUMN/pb1059-column-beyond-assumed-page-width",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1059: ReportModel.PageWidth is integer-2 when written, else the assumed 999; it reaches the engine through the CobolReport constructor (the width Place truncates at and EC-REPORT-PAGE-WIDTH measures).",
+ "state": "OK"
+}

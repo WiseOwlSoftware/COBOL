@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.13.4-9",
+ "section": "7.3.13.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "EVALUATE directive",
+ "rule-digest": "3db83c9988e4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/l1c07_evaldir_fmt2_truth",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR9 (FORMAT 2 twin of GR5, same wording; cite.py --check 7.3.13.4 5) text OK): Format 2 with no TRUE WHEN includes WHEN OTHER text-2. The same Render WHEN-OTHER arm serves both formats. Probe: >>EVALUATE TRUE / WHEN NOPE IS DEFINED (FALSE) / WHEN OTHER -> GR9-OK only. No spec-derived golden. Probe dir out/probe/evaldir2 (pinned cobol.exe, --std 2023; p1 re-run at --std 2002 and 2014 with identical output; --std 85 rejects >>EVALUATE with COBOL0900). || editions (adjudicator): 2002, 2014, 2023 (the 7.3 directive facility is absent from 1985; Annex E.2 item 8 records the 2023 rewording of GR6/GR10 only)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.11-6",
+ "section": "14.6.11",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "Execution",
+ "rule-digest": "1460b6941c5f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#Terminate; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#AdoptStaticStorage; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Register; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/RecordStructEmitter.cs#EmitStaticReset",
+ "test-ref": "unit:RunUnitStateDriftTests.EveryMember_IsFreshInTheNextRunUnit; unit:RunUnitStateDriftTests.StaticStorage_IsResetAtAdoption_OnceEach_AndAgainAtTermination",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1069 LANDED (wave 73 D). cite.py --check 14.6.11 'Any resources occupied by dynamic-capacity tables or dynamic-length elementary items are freed' -> OK §14.6.11 6). A dynamic item in STATIC working-storage (a RECURSIVE program's or FUNCTION-ID's WS at 2023) is reset to its initial state by RunUnit.Terminate - the unit's __ResetStatics, adopted at its registration - so its resources are released at termination rather than held until the next run unit's registration. The same epilogue serves both run-unit boundaries (RunMain, RunUnit.Run).",
+ "state": "OK"
+}

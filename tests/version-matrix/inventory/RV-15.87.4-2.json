@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.87.4-2",
+ "section": "15.87.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "SUBSTITUTE function",
+ "rule-digest": "0053d72d7cdb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Substitute",
+ "test-ref": "conformance:cases/15.87.3-Argument-rules/substitute; conformance:cases/15.87.4-Returned-value-rules/pb81_substitute_table_all",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "The returned value is argument-1 with every argument-2 match replaced by argument-3 (the `substitute` golden's ALL/MULTI rows; PB81's P2/P3/TWO rows over enumerated pairs).",
+ "state": "OK"
+}

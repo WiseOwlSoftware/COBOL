@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.3.6-L3.7",
+ "section": "9.3.6",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "Objects",
+ "rule-digest": "05bf97df1436",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindResolvedInvoke; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#ReturningMatches; src/WiseOwl.Cobol.Runtime/Values/MoveValidity.cs#Table16Refusal; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#MoveViolation",
+ "test-ref": "conformance:cases/9.3.6-Method-invocation/w59-invoke-returning-narrower-receiver; conformance:cases/9.3.6-Method-invocation/pb2076_universal_returning_move_match; conformance:cases/9.3.6-Method-invocation/pb2076-universal-returning-move-match-below-2002",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely — item 2: a rule HALF inside a declined facility takes its LIVE half's verdict; the declined half (the lead-in of the exact-match criteria, parametric polymorphism, A.4.10 item 3) is non-support. The first sentence is enforced through §14.8.3.3's stricter identical-description rule (COBOL0828). || kb/Work PB1519: Rule (§9.3.6 match rule 7, cite.py OK §9.3.6 7)), two sentences: (1) a non-object/pointer/index returning item needs a method returning item that may be a MOVE sender into it; (2) 'Additionally, for each parameter that is passed by value or by content, and for the returning item, the following criteria are considered an exact match:' - the lead-in to the exact-match criteria (rows GR-9.3.6-L5.1..L5.3). Half (1) verified: OoBindResolvedInvoke applies §14.8.3.3's identical-description rule (OoConformanceError) which is STRICTER than MOVE-ability and is independently required of every activation by §14.8.3.3 ('the receiving operand shall have the same ... PICTURE ... clauses', cite.py OK §14.8.3.3) - probes R1/R2 (PIC 9(5) method RETURNING into PIC 9(7) / 9(3)) correctly refused COBOL0828; the missing/extra RETURNING pairings are refused COBOL0828 too. Half (2) only matters when more than one candidate can match, i.e. under parametric polymorphism (§9.3.5.3), which CONFORMANCE.md A.4.10 item 3 / §2 row 45 declares NOT claimed (overloading refused COBOL0822; the resolution signature is the method NAME). Two halves, one verified -> PARTIAL. || Editions (adjudicator, verbatim): 2002, 2014, 2023 (OO method invocation, §9.3.6, is introduced by ISO 2002; absent from X3.23-1985) retired-witness: src/Cobol.Net.Runtime/Control/ActivationRelations.cs#MayMove (kb/Work PB3101: MayMove became MoveViolation, which returns the refused rule (SR1, SR2, SR6 / SR7, SR8, SR9, Table 16) instead of a bool; ReturningMatches asks it unchanged)",
+ "state": "OK"
+}

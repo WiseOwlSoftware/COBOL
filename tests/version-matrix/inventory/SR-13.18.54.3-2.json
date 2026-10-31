@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.54.3-2",
+ "section": "13.18.54.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "SUM clause",
+ "rule-digest": "93274565c78b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportEntryPicture; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#NumericSenderRefusal",
+ "test-ref": "conformance:cases/13.18.54-SUM/pb1295-sum-entry-alphabetic; conformance:cases/13.18.54-SUM/pb1295-sum-entry-boolean; conformance:cases/13.18.54-SUM/pb1295-sum-entry-unprintable-alphabetic",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1295 landed 2026-10-04 (wave 1012 G): the SUM entry's PICTURE category is asked of the one MOVE validity chain with a numeric sender (COBOL2750). DETERMINATION (docs/CONFORMANCE.md): the sender is the INTEGER numeric row, so only what the integer row refuses (alphabetic, boolean) is refused.",
+ "state": "OK"
+}

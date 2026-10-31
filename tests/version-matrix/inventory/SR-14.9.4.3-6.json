@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.4.3-6",
+ "section": "14.9.4.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "CALL statement",
+ "rule-digest": "e2e8d9dde4f1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ScreenBitAlignment; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#BitWindow",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb132_bit_byref_aligned; conformance:cases/14.9.4-CALL/pb132-call-bit-unaligned; conformance:cases/14.9.4-CALL/pb132-call-bit-variable-subscript; conformance:cases/14.9.4-CALL/pb240_call_operand_screens; conformance:cases/14.9.4-CALL/pb240-call-bit-redefines-unaligned",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB240): the exotic-carrier corner is closed. A bit member reached through a Tier-B REDEFINES view (RedefViewPlace with a BitWindow) had no member path, so ScreenBitAlignment ACCEPTED it unproven and a genuinely misaligned bit item crossed BY REFERENCE (measured: RB2 at bit 3 of a group-level REDEFINES, and VB2 at bit 3 of a level-01 REDEFINES). The start is now composed statically: the class canonical's start within its record (RecordBitOffset - the SAME 8.5.1.6.3 StartBitWithin walk over its parent chain; 13.18.44.4 GR1 puts the redefining entry at the redefined entry's leftmost position) plus BitWindow.ClassRelativeExpr (the member's in-class bit offset and each in-class subscript's stride, excluding a BASED class's whole-byte runtime displacement), plus a ref-mod's leftmost. A non-literal in-class subscript is the second-clause rejection, as on the member-path arm. Legal side: pb240_call_operand_screens passes an aligned REDEFINES-view bit item BY REFERENCE with the 14.2.3 GR8 writeback visible; the member-path shapes stay pinned by the pb132 fixtures.",
+ "state": "OK"
+}

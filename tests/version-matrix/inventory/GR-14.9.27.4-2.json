@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.27.4-2",
+ "section": "14.9.27.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "OPEN statement",
+ "rule-digest": "0caffb8d51d0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#FileAlreadyOpen",
+ "test-ref": "unit:FileStatusDisciplineTests.ReadGate_AlreadyOpen41DropsIt_DeleteIs43",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "RULE: 'The file connector referenced by file-name-1 shall not be open. If it is open, the execution of the OPEN statement is unsuccessful and the I-O status associated with file-name-1 is set to \\'41\\'.' cite.py --check 14.9.27.4 on the rule text: OK (§14.9.27.4 2)); the status is §9.1.13.7 1) 'I-O status = 41. An OPEN statement or a DELETE FILE statement that is attempted for a file connector in an open mode.' CODE: FileConnector.Open line 175 — 'if (IsOpen) return Status = FileStatusCode.FileAlreadyOpen;' is the FIRST statement, BEFORE 'Mode = mode' / ModeKnown / OptionalAbsent / LastReadUnsuccessful are touched, so the 'unsuccessful' half holds too: the open connector keeps its existing mode and position. PROBE (out-b1/probe/openbasic/OPBAS01.cob, sequential, --std default 2023): OPEN OUTPUT F ⇒ '00'; a second OPEN OUTPUT F ⇒ '41'. Spec-derived expected: '41'. Matches. COVERING TEST: tests/WiseOwl.Cobol.Tests.Unit/FileStatusDisciplineTests.cs ReadGate_AlreadyOpen41DropsIt_DeleteIs43 asserts Status == FileAlreadyOpen after a second Open on an open connector, and its following DeleteRecord answering '43' (not '49') proves the connector kept its I-O mode — both halves of GR2. Its expected values are derived from §9.1.13.7 items 1 and 3, not from an oracle. || EDITIONS AS ADJUDICATED: 1985 · 2002 · 2014 · 2023",
+ "state": "OK"
+}

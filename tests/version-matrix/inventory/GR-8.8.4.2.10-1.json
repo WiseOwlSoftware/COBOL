@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.2.10-1",
+ "section": "8.8.4.2.10",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Simple relation conditions",
+ "rule-digest": "27d448d6af5e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderRelationalCore; src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#Compare; src/WiseOwl.Cobol.Runtime/Values/Text/LiteralPhraseCollation.cs#Compare; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs",
+ "test-ref": "conformance-test:NationalBooleanDataTests.NationalComparison_OrderingAndSpaceExtension",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (cite.py --check 8.8.4.2.10 \"positioned higher in the national collating sequence is the greater operand\" -> OK §8.8.4.2.10 1)): standard comparison (selected by §8.8.4.2.9 when the national PCS is not locale based — --check 8.8.4.2.9 \"Locale-based comparison is used when the national program collating sequence in effect is locale based; otherwise, standard comparison is used\" OK) proceeds high-order first to the first unequal pair, which is ordered by the NATIONAL collating sequence; two zero-length operands are equal. Code: CollatingClass.National arm of RenderRelationalCore renders CobolString.Compare(l, r{ctx.NatCollateArg}) — native = UTF-16 code-unit ordinal loop (first-difference, high-order first; empty/empty -> 0), non-native ALPHABET … FOR NATIONAL = LiteralPhraseCollation.Compare (same loop over Weight()). The ALPHANUMERIC PCS is deliberately never passed. The locale arm is §8.8.4.2.11's, not this rule's. Probe E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2\\out\\probe\\srcp2\\nat1.cob (2023 and 2002): N2<N3, N3>N4, NX\\\"00E90041\\\" > N\\\"AB\\\" (U+00E9 > U+0041), national group vs N item, EVALUATE, NATIONAL-OF result, alphanumeric operand converted (§8.8.4.2.6) — all as derived. nat2.cob under PROGRAM COLLATING SEQUENCE FOR NATIONAL IS NA (ALPHABET NA FOR NATIONAL IS N\\\"A\\\" N\\\"Z\\\" N\\\" \\\" N\\\"B\\\"): N\\\"B\\\" > N\\\"Z\\\" -> TRUE (native order would say FALSE), so the first unequal pair is weighed by the declared national sequence. Zero-length operands verified by reading (both loops return 0 for two empty strings); no conforming source can write a zero-length national operand directly. [editions as adjudicated: 2002, 2014, 2023 (class national introduced by ISO/IEC 1989:2002)]",
+ "state": "OK"
+}

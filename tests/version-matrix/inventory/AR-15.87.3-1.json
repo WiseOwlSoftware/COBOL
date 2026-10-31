@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.87.3-1",
+ "section": "15.87.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "SUBSTITUTE function",
+ "rule-digest": "48087774f577",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindSubstitute; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+ "test-ref": "conformance:cases/15.87.3-Argument-rules/l1-substitute-numeric-argument1; conformance:cases/15.87.3-Argument-rules/l1-substitute-boolean-argument1; conformance:cases/15.87.3-Argument-rules/l1-substitute-index-argument1; conformance:cases/15.87.3-Argument-rules/substitute",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "r1's reject side had NO fixture at all; three witnesses because the class model reaches Numeric, Boolean and Index by three different routes (category table · the item's own PICTURE · a USAGE key consulted before the category table). All three expect COBOL1627 and carry reject-at: 2023 only (SUBSTITUTE is new at 2023, Annex E.3.3 item 30). The index witness was repaired before landing: its table is now subordinate to a group, because §13.18.38.3 SR1 a) bars OCCURS on a level-01 entry and WiseOwl COBOL does not yet enforce that screen — the fixture would otherwise have rested on a second, unrecorded gap.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.44.2",
+ "section": "15.44.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "INTEGER function",
+ "rule-digest": "f4df9095acef",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#BindPosition",
+ "test-ref": "conformance:cases/15.44.3-Argument-rule/l1_integer_floor_85; conformance:cases/15.42.3-Argument-rule/l1_integer_family_notes; conformance:cases/15.44-INTEGER/l1-integer-arity",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§15.44.2's one-argument format accepted at --std 85 and 2023 and a two-argument list rejected COBOL1504 at all four editions per §15.3; the recorded code-location names only the segment renderer and may want widening. retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#RenderSegment (replaced: kb/Work PB2151 reads the position's parse node into a typed Position (BindPosition); RenderSegment is deleted)",
+ "state": "OK"
+}

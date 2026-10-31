@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.85.3-1",
+ "section": "15.85.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "STANDARD-COMPARE function",
+ "rule-digest": "2bb10003f1b8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindStandardCompare",
+ "test-ref": "unit:StandardCompareTests.Argument1And2_ObeyTheClassAndZeroLengthRules; conformance:cases/12.3.7-SPECIAL-NAMES/pb101_standard_compare",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB101 T7: the class screen (alphabetic / alphanumeric / national) runs on both operands through the shared CheckArgumentClasses; a numeric operand is refused.",
+ "state": "OK"
+}

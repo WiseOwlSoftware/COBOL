@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.60.4-6",
+ "section": "13.18.60.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "USAGE clause",
+ "rule-digest": "2bfb36905509",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#ByteForm; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#StorageWidth; docs/CONFORMANCE.md#DOC-A.1-208; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#Truncation",
+ "test-ref": "conformance:cases/13.18.60-USAGE/l1_usage_computational_identity",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR6's three determinations each get a leg group: W=2 2 2 (radix/format at COMPUTATIONAL, COMP and BINARY, DOC-A.1-208 + DOC-A.1-205), BE=252 47 with IDENT=YES (the algebraic-sign representation, two's complement most-significant-byte-first, identical bytes at all three spellings), and HOLD=YES / SIZE=YES / KEEP=YES (the PICTURE-digit range, 14.7.5 case 3 and rule 2). PROGRAM-ID L1UCMP01. PROVENANCE: the writer report reached the fixer truncated inside this record's code-location ('PicInfo.cs#S'); the tail was resolved to #StorageWidth (PicInfo.cs:549, the only S-named member at that path) and this note was rebuilt from the writer's intact derivation text - the registrar should sanity-check the code-location before recording.",
+ "state": "OK"
+}

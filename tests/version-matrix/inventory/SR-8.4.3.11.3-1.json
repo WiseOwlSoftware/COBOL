@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.11.3-1",
+ "section": "8.4.3.11.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Data-address-identifier",
+ "rule-digest": "897ffb8a6a5b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AddressOfOperandScreen.cs#Admit; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#PtrBindAddressOf",
+ "test-ref": "conformance:cases/8.4.3.11-Data-address-identifier/pb1062-address-of-object-data; conformance:cases/8.4.3.11-Data-address-identifier/pb1019_address_of_linkage_formal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1062. First sentence: FILE, WORKING-STORAGE, LOCAL-STORAGE and LINKAGE items are admitted (landed PB1019); a SCREEN SECTION or REPORT SECTION entry, a constant-name and a special register identify no data item and are refused COBOL0869 whose message now names this rule (ISO 8.4.3.11.3 SR1) instead of 'unresolvable, reference-modified'. Second sentence: an item of an OBJECT's or FACTORY's WORKING-STORAGE or FILE section (any root of a class unit that is not method-scoped, DataBinder.OoIsObjectData) is refused COBOL2784 by AddressOfOperandScreen in every surface (SET sender, relation operand, CALL argument), pinned by negative pb1062-address-of-object-data (object and factory halves; the method's own LOCAL-STORAGE is legal in the same statements).",
+ "state": "OK"
+}

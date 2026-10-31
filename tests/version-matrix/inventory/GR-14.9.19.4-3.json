@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.19.4-3",
+ "section": "14.9.19.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "IF statement",
+ "rule-digest": "a7dde7f91c6f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
+ "test-ref": "conformance:cases/14.9.19-IF/l1_if_format2_arms",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Format 2 (no END-IF, terminated by the sentence period), condition true: GR3-T1 and GR3-C=1, the ELSE arm ignored.",
+ "state": "OK"
+}

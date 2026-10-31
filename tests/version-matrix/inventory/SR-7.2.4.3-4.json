@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.2.4.3-4",
+ "section": "7.2.4.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "REPLACE statement",
+ "rule-digest": "b8989be82e79",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements",
+ "test-ref": "conformance:cases/7.2.3-COPY/pb1353_replacing_operands_legal; unit:TextManipulationStatementTests.LegalOperands_AreNotScreened",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1353 (w68x): permissive ('Pseudo-text-2 shall contain zero, one, or more text-words', cite.py OK 7.2.4.3 4)); the literal-with-== half was discharged by PB1350. The golden pins the one-literal [A==B] and empty [] forms of a REPLACE pseudo-text-2.",
+ "state": "OK"
+}

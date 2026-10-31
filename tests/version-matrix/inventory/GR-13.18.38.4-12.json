@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.38.4-12",
+ "section": "13.18.38.4",
+ "kind": "GR",
+ "ordinal": 12,
+ "subject": "OCCURS clause",
+ "rule-digest": "600de8c3eaa1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#RepeatedPlacements; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#RepeatedLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SubsequentTarget",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb565_report_vertical_repetition; conformance:cases/13.15-Report-group-description/pb565_report_repeating_entry; unit:ReportRepeatingEntryDriftTests.TheStepDisplacement_IsReadThroughTheAxis; unit:ReportRepeatingEntryDriftTests.EveryLinePlacementKind_IsDeclaredByBothTheModelAndTheEngine; unit:ReportRepeatingEntryDriftTests.EveryColumnPlacementKind_IsReadByBothPlacementReaders",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB565 (vertical axis). All four STEP legs are implemented by twin builders, one per axis. a) and b) are RepeatedPlacements against the 13.18.14.4 GR7 horizontal counter. c) 'If the entry contains a LINE clause, each successive occurrence is positioned integer-3 lines vertically beneath the preceding occurrence' is RepeatedLine: an absolute line displaces to integer-1 + the sum of ordinal x integer-3 and stays a compile-time constant (golden lines 16, 18, 20). d) 'report lines in successive occurrences are positioned integer-3 lines vertically beneath the line they occupy in the preceding occurrence' needs a datum a relative line has no compile-time value for, so the first occurrence SEEDS an engine-held anchor with the page line it lands on and later occurrences read anchor + displacement (golden lines 21, 22, 25, 26 - NOT LINE-COUNTER + 4, because 13.18.35.4 GR1's LINE-COUNTER holds the last line PRINTED while GR12d measures from the preceding OCCURRENCE). GR12's closing sentence - no STEP, the interval is the relative LINE or COLUMN numbers - is golden lines 27-29. The engine's four group presentations share ONE subsequent-line rule, so the STEP arm cannot be live in one and missing in the others.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-21",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 21,
+ "subject": "PICTURE clause",
+ "rule-digest": "f844621fd70c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb528-picture-composition; conformance:cases/13.18.40-PICTURE/pb528_picture_composition_legal_85; unit:PictureCompositionTests.ACompositionViolation_IsCOBOL1934",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-09-09 (kb/Work PB528). 'The symbol Z and the symbol * are mutually exclusive in character-string-1' - PIC ZZ**9 is COBOL1934 (golden entry PB08), with PIC ZZ9 and PIC ***9 legal in the positive golden. 13.18.40.5 rule 7 is why: an item has ONE replacement character, space for Z and asterisk for *. Previously PIC ZZ**9 compiled and MOVE 7 rendered '  **7' - space fill and asterisk fill in one item, an image no rule defines. retired-witness: unit:PictureCompositionTests.ACompositionViolation_IsCOBOLNET1934 (the same witness, re-spelled when the diagnostic code prefix became COBOL#### (kb/Work PB3575); the new spelling is recorded in its place)",
+ "state": "OK"
+}

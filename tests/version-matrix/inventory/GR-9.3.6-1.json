@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.3.6-1",
+ "section": "9.3.6",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Objects",
+ "rule-digest": "f294017c054e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInstanceInvoke; src/WiseOwl.Cobol.Compiler/Oo/OoClassSymbol.cs#FindFactoryMethod; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitCobolInvoke",
+ "test-ref": "conformance:cases/9.3.6-Method-invocation/pb389_object_reference_descriptor",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'if the identified object is a factory object, the method invocation will resolve to a factory method' (cite.py --check 9.3.6 -> OK §9.3.6 1)). Code: a typed receiver's FACTORY axis picks the roster at bind time (OoBindInstanceInvoke: rdesc.Factory ? cls.FindFactoryMethod : cls.FindMethod, walking INHERITS); a UNIVERSAL receiver dispatches on the runtime object through __CobolInvoke, which EmitCobolInvoke emits separately in the instance type and in the FACTORY singleton type (FOO__FACTORY : BASE__FACTORY), so a universal reference holding a factory object reaches the factory roster. Probe out/probe/objects-p1/p1.cob (pinned cobol.exe, --std 2002/2014/2023): SET U TO OBJC (factory object) then INVOKE U \"PING\" printed C-FACTORY-PING while the same name through an instance printed A-INSTANCE-PING; INVOKE U \"FAONLY\" (factory method defined only in grand-base OBJA) found it through the factory chain, and SELF \"WHOF\" inside it resolved polymorphically to OBJB's factory override (WHOF-B). Golden pb389 (INVOKE F \"TAG\" through a FACTORY OF reference holding PB389D's factory -> FTAG-D) has spec-derived expected output. || Editions (adjudicator, verbatim): 2002, 2014, 2023 (OO is an ISO/IEC 1989:2002 introduction; absent from 1985 — probe p1.cob at --std 85 is refused COBOL0900)",
+ "state": "OK"
+}

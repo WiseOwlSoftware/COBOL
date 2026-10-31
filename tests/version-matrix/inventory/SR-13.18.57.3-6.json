@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.57.3-6",
+ "section": "13.18.57.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "TYPE clause",
+ "rule-digest": "dcfeed90031b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#StrongPlacementAdmitted; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandType; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandTemplate",
+ "test-ref": "conformance-test:TypedefStrongTests.StrongRefInOrdinaryGroup_Rejected1532; conformance:cases/13.18.57-TYPE/pb1301-strong-type-chain-level; conformance:cases/13.18.57-TYPE/pb1301_strong_type_chain",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1301 + PB1302 (wave 1019 D). SR6 is asked through DataItem.DeclaresStrongType, so `01 G. 05 Y TYPE S2.` over `01 S2 TYPEDEF TYPE S.` (S STRONG) is COBOL1532; and every type declaration is completed as a declaration (ExpandTemplate), so a strong reference inside an UNREFERENCED weak typedef (`01 W TYPEDEF. 05 Y TYPE S.`) is rejected at the declaration rather than only per reference. The enclosing-strong test reads StrongTypeModel.DeclaredStrong (a strong declaration or a strongly-typed item), so strong-in-strong stays legal (typedef_nested_strong, pb1301_strong_type_chain).",
+ "state": "OK"
+}

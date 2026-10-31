@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.14-4",
+ "section": "9.1.14",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Files",
+ "rule-digest": "fad5ee590e9d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitInvalid; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery",
+ "test-ref": "conformance:cases/9.1.14-Invalid-key-condition/l1c11_invalid_key_no_phrase_no_use; conformance:cases/14.9.41-START/pb870_start_first_last_relative_exceptions; conformance:cases/14.9.41-START/pb870_start_first_last_relative_nofs_nouse",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule text (item 4 + the opening sentence of the not-exists paragraph): \"If the INVALID KEY phrase is not specified ... and there are no applicable exception processing statements, control is transferred to the end of the input-output statement\" and \"If the invalid key condition does not exist ... the INVALID KEY phrase is ignored, if specified\" [cite.py --check PASS 9.1.14]. Two halves, both verified. (a) no phrase, no applicable statement: a declarative-free unit emits no hook (EmitUseHook returns when !UseDecls and no EC mask) and no branch, so control falls to the next statement — probe E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2b\\out\\probe\\p914\\k6.cob at 85 and 2023 (declarative-free, duplicate-key WRITE with no phrase: NEXT-STMT 22) and k2.cob T5 (the USE ON I-O tier does not apply to a closed file: T5-END 48 with no DECL line). (b) phrase ignored when no invalid key: EmitInvalid runs the INVALID KEY imperative on '2x' only — l1_delete_invalid_key_transfer arm B (NOTINV=00, no INV-B) and arm D ('49' with INVALID KEY written: INV-D absent); probe k1.cob T4/T5. TEST-NEEDED for half (a): every spec-derived 9.1.14 golden carries a USE declarative or writes the phrase; none pins the no-phrase, no-applicable-statement case. || Editions (adjudicator, verbatim): 1985, 2002, 2014, 2023 (no Annex E change for these sentences)",
+ "state": "OK"
+}

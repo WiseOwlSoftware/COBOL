@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.6.3-5",
+ "section": "12.4.5.6.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "ALTERNATE RECORD KEY clause",
+ "rule-digest": "fe888dabfa10",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#BeyondMinimum; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#KeyWindowOf",
+ "test-ref": "conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1025-alternate-key-beyond-minimum; conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1025_key_after_dynamic_member",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1025. cite.py --check 12.4.5.6.3 \"each data-name-1 and data-name-2 shall be contained within the first x bytes of the record\" -> OK SR5. The ALTERNATE RECORD KEY twin of SR-12.4.5.12.3-4: the same FileControlKeyRules reach reader (COBOL0863), the same KeyWindowOf. The 2014 golden's alternate key follows a dynamic-length item and is read, STARTed and walked by the per-record window.",
+ "state": "OK"
+}

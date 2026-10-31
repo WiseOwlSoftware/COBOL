@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.3.3.5.4-1",
+ "section": "8.3.3.5.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "National literals",
+ "rule-digest": "ed592089fcbe",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#Decode; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NationalLiteralOperand",
+ "test-ref": "conformance-test:NationalBooleanLiteralTests.Display_NationalLiteral_DecodesPrefixAndQuotes",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"The separators that delimit the national literal are not included in the value\" (cite.py --check 8.3.3.5.4 -> OK, rule 1). CobolLiteral.Decode strips the N/NX prefix and both delimiters (Body[1..^1]). Probe p1: FUNCTION LENGTH(N\"A\"\"B\")=3, LENGTH(N\"\")=0, VALUE N\"Q\"\"R\" -> [Q\"R ]. The covering test asserts DISPLAY N\"AB\" -> AB. [editions as adjudicated: COBOL-2002, COBOL-2014, COBOL-2023 (national literals are a COBOL-2002 introduction; absent from COBOL-85, where the construct is rejected COBOL0900 via Constructs.NationalData2002)]",
+ "state": "OK"
+}

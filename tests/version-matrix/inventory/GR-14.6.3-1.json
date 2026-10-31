@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.3-1",
+ "section": "14.6.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Execution",
+ "rule-digest": "e4912002b5c8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#ExplicitTransferOut",
+ "test-ref": "conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb367_use_procedure_is_the_section; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb1148_perform_exit_paragraph_go_to_next; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_sort_merge_procedure_ends_at_last_paragraph",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1148: the implied return fires only for control that completes the exit paragraph (fall-through, EXIT PARAGRAPH / SECTION, NEXT SENTENCE); an explicit GO TO to the paragraph that physically follows clears __atExit, so it is not mistaken for fall-through.",
+ "state": "OK"
+}

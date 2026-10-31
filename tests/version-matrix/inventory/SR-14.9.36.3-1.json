@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.36.3-1",
+ "section": "14.9.36.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "ROLLBACK statement",
+ "rule-digest": "ec080f031ee4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindCommitRollback; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#UnitRecursive",
+ "test-ref": "conformance:cases/14.9.7-COMMIT/pb137-rollback-in-function",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "cite.py --check 14.9.36.3 \"This statement shall not be specified in a recursive source element.\" -> OK §14.9.36.3 1). Recursive = explicit RECURSIVE clause and any program contained in one (cite.py --check 11.10.4 \"The RECURSIVE clause specifies that the program and any programs contained within it are recursive.\" -> OK 4)), every method (--check 9.3.4 \"A method always possesses the recursive attribute and may call itself.\" -> OK) and every user-defined function (--check 9.4 \"a user defined function always possesses the recursive attribute and may call itself\" -> OK). BindCommitRollback rejects on UnitRecursive || InMethod || UdfSelfName with COBOL1690 Error. Probes on the pinned cobol.exe (out/probe/rollback/): rb1_recursive (PROGRAM-ID RECURSIVE) -> COBOL1690; rb2_nested_in_recursive (non-RECURSIVE program contained in a RECURSIVE one) -> COBOL1690; rb5_method -> COBOL1690; negative control rb7_outer_nonrec (ROLLBACK in a non-recursive program that CONTAINS a recursive one) compiles and runs (INNER / OUTER-OK). The golden pb137-rollback-in-function covers the function arm with ROLLBACK itself; the explicit-RECURSIVE arm is golden-covered only for COMMIT (pb137-commit-recursive), which reads the same predicate.",
+ "state": "OK"
+}

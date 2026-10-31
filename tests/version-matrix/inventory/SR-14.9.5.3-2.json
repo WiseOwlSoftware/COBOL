@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.5.3-2",
+ "section": "14.9.5.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "CANCEL statement",
+ "rule-digest": "6a87bff9adbd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ProgramNameLiteral",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb130-cancel-zero-length",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB130): CANCEL rides the same reader - national/hex admitted, zero-length screened (BindCall had the screen, BindCancel did not), the miscited 14.9.5.2 SR1 message replaced with the correct clause, and a bad target no longer aborts the whole statement (the loop continues, so legal targets survive beside the diagnostic).",
+ "state": "OK"
+}

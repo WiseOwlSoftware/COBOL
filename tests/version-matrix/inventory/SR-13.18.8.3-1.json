@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.8.3-1",
+ "section": "13.18.8.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "BLANK WHEN ZERO clause",
+ "rule-digest": "d2d8daaa6227",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#CheckClauseSubjects",
+ "test-ref": "unit:DataClausePlacementDriftTests.ClauseOnAnInadmissibleSubject_IsRefused; unit:DataClausePlacementDriftTests.ClauseOnAnAdmissibleSubject_BindsClean; conformance:cases/13.16-Data-description/pb518_clause_placement_legal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB507 LANDED. The CheckClauseSubjects pass (after UsageInheritancePass and CheckPictureRequired) refuses BLANK WHEN ZERO on any category but numeric / numeric-edited -> COBOL2405 (alphanumeric, alphabetic, national, boolean, pointer, ...). The 'S' half is 13.18.40.3's own SR22 (COBOL1934, PictureComposition) - the same fact reported once, at the picture; 13.18.8.4 GR2 re-defines the admitted numeric subject as numeric-edited. The group leg is 13.16.3 SR11 (COBOL2403). MEASURED at 85/2002/2014/2023: `01 WS-ALPHA PIC X(5) BLANK WHEN ZERO.` -> COBOL2405; `PIC S9(5) BLANK WHEN ZERO` -> COBOL1934; `01 WS-GRP BLANK WHEN ZERO.` group -> COBOL2403.",
+ "state": "OK"
+}

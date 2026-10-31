@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.43.4-14",
+ "section": "13.18.43.4",
+ "kind": "GR",
+ "ordinal": 14,
+ "subject": "RECORD clause",
+ "rule-digest": "d956a629e464",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Stored; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#ReleaseStatement; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelease",
+ "test-ref": "conformance:cases/13.18.43-RECORD/pb1036_sort_merge_statement_ec; conformance:cases/13.18.43-RECORD/pb1036-sort-merge-turn-at-85; unit:SortMergeStatementEcTests.ReleaseStatement_SizeOutsideTheRange_IsUnsuccessful_AndLenientWhenUnchecked",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 13.18.43.4 \"If a RELEASE statement is being executed, the EC-SORT-MERGE-RELEASE exception condition is set to exist and the execution of the RELEASE statement is unsuccessful\" -> OK 14). a) CONFORMS as adjudicated (WRITE/REWRITE 44 + EC-I-O-LOGIC-ERROR). b) now CONFORMS: CobolSort.ReleaseStatement tests the GR13 size (the DEPENDING ON value, else the image length) against integer-2..integer-3 BEFORE releasing and raises EC-SORT-MERGE-RELEASE, the record unreleased; the runtime slices the DEPENDING size itself so no EC-BOUND-REF-MOD precedes it. Golden case F (VLEN 9 outside 2 TO 5 -> RS=EC-SORT-MERGE-RELEASE; VLEN 3 -> nothing), unit pins the unsuccessful release and the unchecked byte-identical slice. Wired by kb/Work PB1036 (w59c): FatalAmbientGates row + CheckingFlags field + ExceptionEngine helper; EcBinder.QueryFor asks the name at the SORT/MERGE/RELEASE/RETURN node; the golden raises it under >>TURN ... CHECKING ON with a USE AFTER EXCEPTION CONDITION declarative; checking off keeps the pre-PB1036 lenient behaviour (docs/CONFORMANCE.md §3 D-SMA (c)).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.68.3-5",
+ "section": "15.68.3",
+ "kind": "AR",
+ "ordinal": 5,
+ "subject": "NUMVAL-C function",
+ "rule-digest": "4477ba6853cb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindNumvalCFamily; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.NumvalLocale.cs#NvScanLocale; src/WiseOwl.Cobol.Runtime/Globalization/MonetaryFacts.cs#GroupingAdmits; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.NumvalLocale.cs#TryLocTemplate",
+ "test-ref": "conformance:cases/15.68.3-Argument-rules/pb64t6_numvalc_locale; unit:LocaleModuleNonSupportTests.TheNumvalCLocaleKeyword_IsEditionGated_NowThatItIsLive; conformance-test:LocaleDispositionTests.NumvalCLocalePhrase_IsLive; unit:NumvalCLocaleScanTests.Conforming_ReturnsZero; conformance:cases/14.6.13.2-Incompatible-data/pb835_numvalc_locale_grouping; unit:MonetaryFactsTests.EveryHostCulture_GroupingWalk_AgreesWithDotNetsOwnGroupSizeRendering; unit:NumvalCLocaleScanTests.NonConforming_ReportsTheFirstErrorPosition",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "PB55 FOLD (2026-10-15, owner decision 2026-08-08 'THE RULE IS THE UNIT'): the transcription printed this rule's nested list(s) at column 0, so 7 sub-item(s) held rows of their own; indented at their measured printed level, they are this rule's body and their adjudications are folded here, nothing dropped.\n\n[the rule's own record before the fold]\nThe LOCALE keyword is LIVE (PB64 T6); the former documented-non-support disposition and its LocaleDispositionTests.*_A49 pins are inverted in the landing commit.\n\n[folded AR-15.68.3-L2.1 = §15.68.3 5) b) 1.: CONFORMS]\n\n\n[folded AR-15.68.3-L2.2 = §15.68.3 5) b) 2.: CONFORMS]\n\n\n[folded AR-15.68.3-L2.3 = §15.68.3 5) b) 3.: CONFORMS]\n\n\n[folded AR-15.68.3-L2.4 = §15.68.3 5) b) 4.: CONFORMS]\n\n\n[folded AR-15.68.3-L2.5 = §15.68.3 5) b) 5.: CONFORMS]\n\n\n[folded AR-15.68.3-L2.6 = §15.68.3 5) b) 6.: CONFORMS]\n\n\n[folded AR-15.68.3-L2.7 = §15.68.3 5) b) 7.: CONFORMS]\n",
+ "state": "OK"
+}

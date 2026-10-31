@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.10.3-9",
+ "section": "13.10.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "Constant entry",
+ "rule-digest": "2098bd8bc014",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#BindConstantEntry; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordSequence; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#BindDeclaredConstant; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#WrittenSpecification",
+ "test-ref": "conformance:cases/13.10-Constant/constant-dup-mismatch; conformance:cases/13.10-Constant/pb1230-constant-dup-same-value; conformance:cases/13.10-Constant/pb1230_constant_literal_as_written; unit:TextWordSequenceTests.SameSpecification; unit:TextWordSequenceTests.DifferentSpecification; conformance:cases/13.10-Constant/pb1225_constant_optional_words",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "(kb/Work PB1230 landed, w65f). SR9 (cite.py --check 13.10.3 'the specification of arithmetic-expression-1, literal-1, data-name-1, data-name-2, or compilation-variable-name-1 shall be the same as specified in the other constant-name' -> OK 13.10.3 9)). BindConstantEntry now compares the AS operands AS WRITTEN (ConstantDef.Specification) through the ONE text-word equality (TextWordSequence.Matches over TextWord.MatchesForReplacing, 7.2.3.4 9) c)), not the folded (Category, Text) values: AS 5 then AS 2 + 3, and AS LENGTH OF W then AS 7, are now COBOL1547 (negative pb1230-constant-dup-same-value); a duplicate differing only in separator spacing / word case is accepted (golden K2 / k2). DETERMINATION: 'the same' specification = text-word equality (5 / 05 / +5 are three specifications). The compilation-variable-name-1 leg is unreachable while CONSTANT ... FROM is staged loud (COBOL0899, kb/Work PB1228): no FROM entry is accepted, so no SR9 violation through it compiles.",
+ "state": "OK"
+}

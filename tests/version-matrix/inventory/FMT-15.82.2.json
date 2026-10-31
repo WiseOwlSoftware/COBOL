@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.82.2",
+ "section": "15.82.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "SIN function",
+ "rule-digest": "8351ee2fb1f4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+ "test-ref": "conformance:cases/15.82.3-Argument-rule/l1_sin_format_value; conformance:cases/15.82-SIN/l1-sin-two-arguments",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "15.82.2 'FUNCTION SIN ( argument-1 )' written over every 15.3 type-10 argument shape -- numeric literal, numeric data item, arithmetic expression and nested function-identifier, each returning sin(0)=0 exactly by 15.82.4 r1; the complement, a second argument the format has no place for, rejects with COBOL1504 at all four editions.",
+ "state": "OK"
+}

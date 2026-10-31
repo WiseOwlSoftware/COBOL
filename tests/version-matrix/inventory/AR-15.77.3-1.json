@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.77.3-1",
+ "section": "15.77.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "REM function",
+ "rule-digest": "9e51e8f3bbe5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+ "test-ref": "conformance:cases/15.77.3-Argument-rules/pb1-numeric-arg2-alphanumeric",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PB1 LANDED. 15.77.3 r1 names BOTH arguments, so the fixture exercises argument-2 specifically - a screen that stopped at the first argument would pass every argument-1 test and still miss this rule's second half.",
+ "state": "OK"
+}

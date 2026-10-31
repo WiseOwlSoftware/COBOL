@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.2.1-4",
+ "section": "8.3.2.1",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "COBOL words",
+ "rule-digest": "2c92f3955402",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/MnemonicRegistry.cs#MnemonicRegistry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolWords.g4#cobolWord; src/WiseOwl.Cobol.Editions/ImplementorNames.cs#ImplementorNames",
+ "test-ref": "conformance:cases/8.3.2-COBOL-words/l1c03_system_name_as_user_word",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: `OK  §8.3.2.1 4)` \"A given word may be used as a system-name and as a user-defined word, subject to the rules specified in 8.3.2.2, User-defined words, and 8.3.2.3, System-names.\" System-names are held apart from user-defined words by construction: implementor names live in the ONE table ImplementorNames (a SPECIAL-NAMES entry's system-name position), computer-names are read by text in the configuration paragraphs, and none of them is entered into the data-name / procedure-name / mnemonic namespaces, so a data-name, paragraph-name or mnemonic-name spelled like a system-name never collides. PROBE (pinned cobol.exe, out/probe/sysuser/su1.cob) at 85 and 2023: SOURCE-COMPUTER. MYBOX. + 01 MYBOX (computer-name = data-name), CONSOLE IS CONSOLE (device-name = its own mnemonic-name), SYSOUT IS OUTDEV + 01 SYSOUT (device-name = data-name), SWITCH-1 IS SW1 + 01 SWITCH-1 (switch-name = data-name), 01 C01 (feature-name = data-name), paragraph SYSERR (device-name = paragraph-name) -> compiles and prints MSWC / K at both editions (DISPLAY UPON OUTDEV and UPON CONSOLE route to the device, the data-names read their own values). The 'subject to 8.3.2.3' half: §8.3.2.3.1's one-type rule for device/feature/switch names holds by construction — ImplementorName carries exactly ONE SystemNameKind per name (ImplementorNamesDriftTests). The 'subject to 8.3.2.2' half defers to §8.3.2.2's own rows; its one-type-of-user-defined-word restriction is unenforced and owned by open kb/Work PB990 (rows SR-8.3.2.2-1/-2/-3), which concerns two USER-DEFINED types and not the system-name/user-word sharing this row permits. No spec-derived test names this row (the dossier's §8.3.2.1 test citations are all rule 1 / rule 3 / rule 5 / word length), so test-ref is empty. || editions as written by the adjudicator: 85, 2002, 2014, 2023 (the permission is unchanged across editions; the §8.3.2.3 system-name types it references grew — call-convention-name, entry-convention-name, external-locale-name — but the sharing permission applies to whichever types an edition has) retired-witness: src/Cobol.Net.Compiler/Binding/ImplementorNames.cs#ImplementorNames (the pure-data implementor-name table moved to WiseOwl.Cobol.Editions so the front end's DISPLAY directive reads the same device-names as SPECIAL-NAMES (kb/Work PB807); ImplementorNameEntry stayed in the compiler as ImplementorNameEntry.cs)",
+ "state": "OK"
+}

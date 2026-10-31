@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.3-1",
+ "section": "12.4.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Input-output section",
+ "rule-digest": "d6d423e9b878",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OoEnvironmentRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoBindMethodData; src/WiseOwl.Cobol.Compiler/Oo/OoDriver.cs",
+ "test-ref": "conformance-test:OoEnvironmentPlacementTests.EnvironmentPlacement_FollowsTheOneTable",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1076: the INPUT-OUTPUT SECTION is refused (COBOL2644) in a method, the class's own environment division and an interface; admitted in a factory or instance.",
+ "state": "OK"
+}

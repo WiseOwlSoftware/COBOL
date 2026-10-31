@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.41.4-3",
+ "section": "13.18.41.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "PRESENT WHEN clause",
+ "rule-digest": "386d42a08af8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLines; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PlaceAfterSavedNextGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#EndOfGroupSumReset; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Place; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLine",
+ "test-ref": "conformance-test:ReportWriterConformanceTests.PresentWhen_Gr3g_AbsentSumNeitherPrintsNorResets; conformance:cases/13.18.41-PRESENT-WHEN/pb1272_present_when_snapshot; conformance:cases/13.18.14-COLUMN/pb1188_report_nonfatal_raise",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1272 / PB1188: a) the first line is the first PRESENT line (PresentLines); b) the runtime line-overlap test (EC-REPORT-LINE-OVERLAP) sees only present lines; c) d) the page fit trial and the page-limit test see only present lines; e) f) an absent printable item never reaches CobolReport.Place, so it neither occupies columns (EC-REPORT-COLUMN-OVERLAP) nor is measured against the page width (EC-REPORT-PAGE-WIDTH); g) an absent SUM entry is neither printed nor reset, both halves reading ONE snapshot slot. The compile-time base rules GR3 b)/c)/e)/f) exempt from (§13.18.35.3 SR6, §13.18.14.3 SR7/SR8) are their own rows.",
+ "state": "OK"
+}

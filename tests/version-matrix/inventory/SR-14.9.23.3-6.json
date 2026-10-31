@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.23.3-6",
+ "section": "14.9.23.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "INVOKE statement",
+ "rule-digest": "301e0ad17952",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindUniversalInvoke; src/WiseOwl.Cobol.Compiler/Oo/ActivationDescriptions.cs#OfAddress",
+ "test-ref": "conformance-test:OoSpineTests.Universal_ForbiddenArgShapes_0866; conformance:cases/8.4.3.7-NULL-object-reference/pb1137_invoke_argument_forms",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1137 (landed w61j). Rule: universal identifier-1 -> neither BY CONTENT nor BY VALUE; BY REFERENCE assumed implicitly (cite.py --check 14.9.23.3 OK, SR6). Both halves now hold: explicit BY CONTENT / BY VALUE -> COBOL0866; every universal argument is identifier-3, including an ADDRESS-IDENTIFIER (SR9), which crosses as its pointer value under a class-pointer descriptor (OoConformance.AddressDescriptor, P:D:<type|*> / P:P:<prototype|*>) and is never copied out (SR19). Golden pb1137_invoke_argument_forms: INVOKE U \"ECHOP\" USING ADDRESS OF X RETURNING Q prints ADDR OK. The typed and universal arms of the dispatch now agree (PB1021 fixed the typed one). retired-witness: src/Cobol.Net.Compiler/Oo/OoConformance.cs#AddressDescriptor (kb/Work PB480 deleted the string descriptor; ActivationDescriptions.OfAddress describes the address-identifier argument)",
+ "state": "OK"
+}

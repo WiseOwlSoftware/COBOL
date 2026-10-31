@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-191",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 191,
+ "subject": "SPECIAL-NAMES paragraph, switch-name (names available, which switches may be referenced by the SET statement, scope of, ",
+ "rule-digest": "493331dad4d4",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-191; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#BindImplementorNameEntry; src/WiseOwl.Cobol.Runtime/Control/SwitchStore.cs#SwitchStore; src/WiseOwl.Cobol.Editions/ImplementorNames.cs#ImplementorNames",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb862_implementor_names; conformance-test:AlterSwitchesDifferentialTests.Switch_EnvironmentVariableSuppliesInitialState; unit:ImplementorNamesDriftTests.EveryTableName_IsAccepted_InTheArmItsKindAllows",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "A.1 item 191 (switch-name: names, SET-able switches, scope, external facility), optional: PROVIDED - SWITCH-0..SWITCH-36 and UPSI-0..UPSI-7, every one SET-able, run-unit scope, initial status from the COBOL_<SWITCH-NAME> environment variable. Before kb/Work PB862 any word was a switch-name, which cannot stand beside a device-name set (8.3.2.3.1). retired-witness: src/Cobol.Net.Compiler/Binding/ImplementorNames.cs#ImplementorNames (the pure-data implementor-name table moved to WiseOwl.Cobol.Editions so the front end's DISPLAY directive reads the same device-names as SPECIAL-NAMES (kb/Work PB807); ImplementorNameEntry stayed in the compiler as ImplementorNameEntry.cs) || editions 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a facility that exists at every edition (the COBOL-85 nucleus, I-O, inter-program and SPECIAL-NAMES implementor-names; its arithmetic, the only arithmetic of COBOL-85, is what later editions name native).",
+ "state": "OK"
+}

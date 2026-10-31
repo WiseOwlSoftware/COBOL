@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.44.3-16",
+ "section": "13.18.44.3",
+ "kind": "SR",
+ "ordinal": 16,
+ "subject": "REDEFINES clause",
+ "rule-digest": "3bb39d340d72",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveRedefines",
+ "test-ref": "conformance:cases/13.18.44-REDEFINES/l1c24-redefines-any-length-target",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR16 (cite.py --check 13.18.44.3 'Data-name-2 shall not be described with the ANY LENGTH clause.' OK). ResolveRedefines: `if (item.RedefinesTarget is { IsAnyLength: true }) Edition.Error(\"COBOL1542\", ... SR16)`. Probe sr16_anylen2 (contained program, LINKAGE `01 L PIC X ANY LENGTH. 01 M REDEFINES L PIC X(4).`) -> COBOL1542 'the redefined item is described with the ANY LENGTH clause (ISO §13.18.44.3 SR16)'. No spec-derived test found - test-needed. (Diagnostic code 1542 is shared with the §13.18.2 placement rule - a catalog-hygiene note, not a verdict issue.) || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (ANY LENGTH arrives in 2002)",
+ "state": "OK"
+}

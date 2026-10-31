@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.63.4-2",
+ "section": "13.18.63.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "VALUE clause",
+ "rule-digest": "72ad697c1994",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/DataEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InitializeEmitter.cs#EmitAction",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb576_file_section_value_initialize",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB576.md - THE FLOAT POPULATION THE REFUTATION NAMED IS DELIVERED, AND THE ROW NOW HAS A TEST. The refuter upheld the adjudicator's latitude reading of the initial-state seeding (GR2's second sentence, 'The initial value of the data items in the file section is undefined', makes any initial content permitted) and rested the overturn solely on the float arm: for a file-section item of usage float-short / float-long / float-extended the ONE path GR2 names - 'VALUE clauses take effect only during the execution of an INITIALIZE statement' - aborted at run time, so GR2's operative half was undelivered for that whole population. RE-PROBED: it does not reproduce; kb/Work PB420 (c2f0c4c50) removed InitializeEmitter's float-receiver loud. conformance:cases/13.18.63-VALUE/pb576_file_section_value_initialize pins BOTH halves over an FD record carrying an alphanumeric, a numeric and a FLOAT-LONG member: `INITIALIZE R ALL TO VALUE` restores ABC / 123 / the binary64 approximation of 0.1 (compared against a MOVE of the same literal, so no float rendering is pinned), and a PLAIN `INITIALIZE R` gives the 14.9.20.4 GR6c category defaults instead - SPACES / 000 / zero - which is what proves the VALUE clause is applied on the named path and on no other. NOTHING IS ASSERTED ABOUT THE RECORD AREA BEFORE THE INITIALIZE, deliberately: GR2's second sentence makes it undefined, so a golden that pinned it would pin a latitude rather than the rule. || editions corrected from '85,2023' to 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a file-section VALUE clause that takes effect only through INITIALIZE belongs to INITIALIZE's VALUE phrase, a COBOL-2002 introduction (COBOL-85 permits no VALUE clause in the file section outside a condition-name entry); derived.",
+ "state": "OK"
+}

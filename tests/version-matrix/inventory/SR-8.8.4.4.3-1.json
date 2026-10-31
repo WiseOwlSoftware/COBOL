@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.4.4.3-1",
+ "section": "8.8.4.4.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Simple class condition",
+ "rule-digest": "fd7629753c17",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#Sr1Refusal; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#CheckClassConditionOperand",
+ "test-ref": "conformance:cases/8.8.4.4-Simple-class-condition/pb571-class-condition-index-operand; conformance:cases/8.8.4.4-Simple-class-condition/pb148-display-index-item",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB571. All three arms of SR1 are screened at the ONE class-condition operand screen, which every spelling of the condition reaches (the IF form, 14.9.13.3 SR5's identifier-less form, and the EVALUATE selection subject's own class test, which used to be bound by a separate copy). The class list is asked through ItemCategory.IsIndexMessageTagObjectOrPointer for a data-item reference - the population that also answers for MESSAGE-TAG and FUNCTION-POINTER, whose entries never gain a PicInfo - and through IntrinsicArgumentRules.ClassOf for the operand shapes that are not one (an index-NAME, an intrinsic of 15.2 item 6's index class, the NULL predefined address). The variable-length group arm delegates to ReferenceResolver.HasVariableLengthSubordinate, which IS 8.5.1.12.1's definition. The strongly-typed-group arm keeps the COBOL1533 strong-typing family's own code (that family is split by rule) and the other two are COBOL2200; the split is stated in the code so it is not re-argued.",
+ "state": "OK"
+}

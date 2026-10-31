@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.54.4-8",
+ "section": "13.18.54.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "SUM clause",
+ "rule-digest": "f082fc132252",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ResolveRolledAddend; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#CoordinatesOf",
+ "test-ref": "conformance:cases/13.18.54-SUM/pb1294_report_rolled_repeating; conformance:cases/13.18.54-SUM/pb1294_report_rolled_varying",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1294 landed. GR8 a): CELL (OCCURS 3) of a detail into COLT (OCCURS 3) of the final footing, occurrence to corresponding occurrence (11 22 33 over rows 1,2,3 and 10,20,30). GR8 b): CELL into ROWT of its own group, the complete table into one counter (6 and 60). The mapping is the INNERMOST levels of the two tables being the same levels (SR4 d)), the addend's outer levels the table that is totalled.",
+ "state": "OK"
+}

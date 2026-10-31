@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.64.4-1",
+ "section": "13.18.64.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "VARYING clause",
+ "rule-digest": "8e59b5c36ad0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportVaryingModel; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#VaryingCountersOf; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitVaryingCounters",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/pb1306_varying_scope; conformance:cases/13.15-Report-group-description/pb565_report_repeating_entry",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1306 landed. cite.py --check 13.18.64.4 'establishes an independent temporary integer data item' OK (GR1). The counter is the data item of its ENTRY: VaryingCountersOf makes one ReportVaryingModel per written entry per enclosing occurrence, so a GROUP entry's counter exists (golden pb1306_varying_scope line 1, `03 OCCURS 3 TIMES STEP 5 VARYING K` over `04 COLUMN 1 SOURCE K` prints `1    2    3`) and two entries not subordinate to one another that reuse a name are independent (lines 4-5: 1 2 3 / 5 7 9). retired-witness: src/Cobol.Net.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#VaryName (VaryName keyed the counter by the synthetic print item's uid; the counter is now the data item of its ENTRY (ReportVaryingModel.Uid / CsName), emitted by EmitVaryingCounters)",
+ "state": "OK"
+}

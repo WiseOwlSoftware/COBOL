@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.16.3-2",
+ "section": "7.3.16.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "IF directive",
+ "rule-digest": "6d311a146838",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#EvaluateCceText",
+ "test-ref": "conformance:cases/7.3.16-IF/l1c13-if-directive-text1-same-line",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR2 (cite.py --check 7.3.16.3 OK): 'Text-1 shall begin on a new line.' Text written after the cce on the >>IF line is part of the directive operand, and the cce fragment parse rejects it: probe p06 '>>IF V = 1 DISPLAY \"A\"' -> COBOL1619 \">>IF: malformed compile-time expression 'V = 1 DISPLAY \"A\"'\". Text on following lines is text-1 (p01). No spec-derived negative test located. || editions (adjudicator): 2002, 2014, 2023 (the §7.3 compiler-directive facility, incl. conditional compilation, is absent from COBOL-85; the pinned compiler gates >>IF at --std 85 with COBOL0900, probe p01)",
+ "state": "OK"
+}

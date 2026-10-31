@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.8.4-2",
+ "section": "11.8.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "OBJECT paragraph",
+ "rule-digest": "2b0bb8f753a5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#ImplementsClosure; src/WiseOwl.Cobol.Compiler/Oo/OoInterfaceSymbol.cs; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ValidateImplements",
+ "test-ref": "conformance:cases/11.4-FACTORY/pb451_set_format5_self_sender",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR2 a)/b)/c) (cite.py --check 11.8.4 each leg OK). ImplementsClosure walks the class and every Base (c), adds each direct IMPLEMENTS (a) and recursively every interface it INHERITS (b), cycle-safe; factory:false selects the instance roster. Probe p1 (probe dir out/probe/object-paragraph (gen.py)): CC INHERITS CB (no IMPLEMENTS of its own), CB IMPLEMENTS IB, IB INHERITS IA -> SET RA(IA) TO RC and SET RB(IB) TO RC both accepted, INVOKE dispatches CB-PA/CB-PB/CB-PA (legs b and c together); p9 negative (no leg) -> COBOL0867. p6 confirms leg b) feeds conformance (IB's inherited PA required, 0841). Golden pb451_set_format5_self_sender comments derive SR10 d)2. over GR2 b) and c); pb365_use_eo_interface_two_pass derives the closure for USE EO. || Editions (adjudicator, verbatim): 2002, 2014, 2023 (the OO facility, introduced by ISO/IEC 1989:2002; absent from X3.23-1985)",
+ "state": "OK"
+}

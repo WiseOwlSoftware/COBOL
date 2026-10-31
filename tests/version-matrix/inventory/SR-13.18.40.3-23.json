@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-23",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 23,
+ "subject": "PICTURE clause",
+ "rule-digest": "fb536ddf249e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeFloatEdited; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#Analyze",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb66_float_edited_picture; conformance:cases/13.18.40-PICTURE/pb66-float-edited-picture-symbols",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (PB66). The one sanctioned two-sign form is the significand's fixed +/- beside the exponent's + (NOTE 3): -9.9(5)E+99 and +9(3).9(2)E+999 classify and edit (the golden's E1 / E2); a CR or DB in the significand (9.99CRE+99, 9.99DBE+99) and a floating sign string (+++9.99E+99) are COBOL1658; the fixed-point mutual exclusion is Analyze's long-standing check.",
+ "state": "OK"
+}

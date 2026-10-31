@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.10.3-4",
+ "section": "14.9.10.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "DELETE statement",
+ "rule-digest": "56d7c66cedce",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs#CheckCrossStatementBans",
+ "test-ref": "conformance-test:PerformFormat3Tests.MultiFileDeleteInImp1_Rejected1613",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED (kb/Work PB134): the RESERVED COBOL1613 went LIVE with the Format-2 grammar - a multi-name DELETE FILE inside imperative-statement-1 of an exception-checking PERFORM is rejected beside its 1612 CLOSE sibling, pinned in the same test class.",
+ "state": "OK"
+}

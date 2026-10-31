@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.70.4-2",
+ "section": "15.70.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "ORD function",
+ "rule-digest": "e1e0198cc345",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Ord; src/WiseOwl.Cobol.Runtime/Values/Text/LiteralPhraseCollation.cs#Weight; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#AlphabetLiteralPhrase; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#Collate; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+ "test-ref": "conformance:cases/15.16.4-Returned-value-rules/char_national; conformance:cases/12.3.6-OBJECT-COMPUTER/alphabet_national",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Re-verified independently and it survives, including the edge that killed r1. Class national arrived with COBOL-2002, so r2 applies 2002+. The national table is SPARSE over the full 65,536 code units (AlphabetBindNationalLiteralPhrase: no & 0xFF mask, no fixed-size array) and NationalCollation.Weight computes an unspecified code unit's position as NextFree + (c − |specified codes below c|) — the §12.3.7 GR7 k3 arithmetic, which is correct under ALSO collapsing. PROBED: ALPHABET RN FOR NATIONAL IS N\"A\" ALSO N\"B\" with PROGRAM COLLATING SEQUENCE FOR NATIONAL IS RN printed ORD(N\"A\")=00001, ORD(N\"B\")=00001, ORD(N\"C\")=00067 — all three match the hand-derived GR7 k3 values, and 00067 is exactly the case the alphanumeric r1 path gets wrong. Routing: BindIntrinsicCore sets CollateNat (never the alphanumeric Collate) whenever the argument's category is National, so the 256-entry alphanumeric table can never alias a national character; with no ALPHABET … FOR NATIONAL literal phrase in effect the identity body Ord(string) IS the r2 value (D-N3 code-unit order). Premise checks that killed two candidate findings: a NATIONAL GROUP item — the one shape whose category OperandCategory returns null for — is unreachable because GROUP-USAGE appears in no grammar rule and is explicitly not modelled; and a class-national-but-category-national-edited argument (PIC NBN), which would route to the alphanumeric weights, is loud-rejected at bind with COBOL0899 before ORD ever sees it. Both test-refs exist and pin ORD VALUES on the national path (char_national ORD=19991 on the native sequence; alphabet_national ORD-A=00003 and ORD-SP=00036 under a REV-NAT literal phrase).",
+ "state": "OK"
+}

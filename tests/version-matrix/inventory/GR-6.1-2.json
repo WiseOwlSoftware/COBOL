@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-6.1-2",
+ "section": "6.1",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Reference format",
+ "rule-digest": "22025b4250bf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#FixedFormConverter; src/WiseOwl.Cobol.Frontend/Preprocessor/PhysicalLines.cs#Read",
+ "test-ref": "conformance:cases/6-Reference-format/pb1491_continued_literal_logical_line; conformance:cases/6-Reference-format/pb1493_floating_comment_fixed; unit:ReferenceFormatLogicalConversionTests.ContinuedLiteral_JoinsAcrossADiscardedLine",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1491: fixed-form lines are processed through the §6.5 logical conversion itself (FixedFormConverter: rules 2, 3, 5, 6); the resultant free-form lines may be longer than 255 positions (a joined continued literal) and keep every character of an alphanumeric literal, spaces to margin R included. retired-witness: src/Cobol.Net.Frontend/Preprocessor/ReferenceFormatProcessor.cs#ConvertFixedToFree (ConvertFixedToFree was deleted by PB1800 (the one line-entry stage, PhysicalLines); the row's other site, FixedFormConverter, is the converter it named, and PhysicalLines.Read is where the lines it converts are made)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.6.4-11",
+ "section": "12.3.6.4",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "OBJECT-COMPUTER paragraph",
+ "rule-digest": "1e62cfa792ea",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#ResolveProgramCollating; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#ConditionBinder; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/ObjectComputerEmit.cs#ObjectComputerEmit",
+ "test-ref": "conformance:cases/12.3.5-SOURCE-COMPUTER/pb78_object_computer_optional_name; conformance:cases/11.9-OPTIONS/pb60_nested_configuration_inheritance; conformance:cases/12.3.6-OBJECT-COMPUTER/pb3_ord_collating_tail; conformance:cases/12.3.6-OBJECT-COMPUTER/pb111_class_object_computer",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB78 (2026-08-18): the program collating sequences determine the truth value of alphanumeric / national comparisons — `IF X > \"B\"` under REV (\"B\" before \"A\") is TRUE for X = \"A\" (the golden's observable), also across the contained-program inheritance golden. kb/Work PB111 (2026-08-19): a CLASS-ID's PROGRAM COLLATING SEQUENCE governs its methods' comparisons (CLS-REL = GT under the class's reversed sequence while the invoking program's PRG-REL = LT) — the class used to be a CS0103 '__COLLATE' on its emitted methods.",
+ "state": "OK"
+}

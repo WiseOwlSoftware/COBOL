@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-6.5-9",
+ "section": "6.5",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "Reference format",
+ "rule-digest": "8223293338a8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/PhysicalLines.cs#Read; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#NormalizeCopybookMapped",
+ "test-ref": "conformance:cases/6.5-Logical-conversion/pb1067_library_text_source_format; conformance:cases/6.5-Logical-conversion/pb1496_lone_cr_is_a_character; unit:PhysicalLinesTests.SegmentsKeepFileLineNumbers",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1496 (also PB1067, PB1800). cite.py --check 6.5 'The implementor shall define the effect on the source listing, if any, of logical conversion' OK 6.5 9). Both halves the refuter found are now closed. (1) Iteration: source AND library text are read by ONE walker from ONE line-entry stage (PhysicalLines.Read, called from NormalizeToFreeFormMapped, which CopyProcessor.NormalizeCopybookMapped also calls), so step 1's 'the next input line is obtained' is uniform; probe: a fixed-form main COPYing a sequence-numbered copybook (000100* comment / 000200 01 W PIC X(3) VALUE \"ABC\". / 000300 >>DEFINE ZZ AS 1) drops the comment line, honors the directive and prints ABC (the old bypass is gone since PB1067). (2) Listing: DOC-A.1-117 is its own row in docs/CONFORMANCE.md (no listing is produced, so logical conversion has no listing effect) and is CONFORMS.",
+ "state": "OK"
+}

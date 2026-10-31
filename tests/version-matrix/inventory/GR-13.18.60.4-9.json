@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.60.4-9",
+ "section": "13.18.60.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "USAGE clause",
+ "rule-digest": "005c05f59acd",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#usageKeyword",
+ "test-ref": "conformance:wiseowl/cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb487-message-tag-usage",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "The MESSAGE-TAG usage is the DATA half of the asynchronous messaging facility, a processor-dependent element (ISO 4.2.6; Annex A.3 item 4) this implementation does not provide - the owner decision is recorded in docs/CONFORMANCE.md section 4 item 1, alongside SEND/RECEIVE. It is REFUSED BY NAME (COBOL1943), not accepted inert like those statements, because GR9 fixes the class AND category of a message-tag data item as message-tag: an accepted item would have to bind as some other class and every reference to it would answer wrong. Both spellings are refused - 13.18.60.2 prints [ USAGE IS ] as optional, so bare 01 M MESSAGE-TAG. is the same clause. Before kb/Work PB487 the bare spelling was not refused at all: it fell to the 13.16.2 catch-all, bound with no usage and no PICTURE, and crashed the compiler.",
+ "state": "OK"
+}

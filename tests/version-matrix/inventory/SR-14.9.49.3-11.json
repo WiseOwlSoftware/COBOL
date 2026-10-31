@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.49.3-11",
+ "section": "14.9.49.3",
+ "kind": "SR",
+ "ordinal": 11,
+ "subject": "USE statement",
+ "rule-digest": "619fc2b454e3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CheckControlDataStores; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundStores.cs#StoresInto; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatement",
+ "test-ref": "conformance:cases/14.9.49-USE/pb363_before_reporting_legal_store; conformance:cases/14.9.49-USE/pb363-control-item-altered; unit:DeclarativesStructuralRulesTests.AStoreIntoAControlDataItem_IsRefused; unit:DeclarativesStructuralRulesTests.OtherStatementsInABeforeReportingProcedure_AreAccepted",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB363 LANDED. Every statement bound in a USE BEFORE REPORTING procedure is asked, in BindStatement, whether the emitter-verified store classification (BoundStores.StoresInto, the generated exhaustive visitor) stores into any report's control data item, a group containing one, or an item subordinate to one; COBOL2378, one diagnostic per store (a nested statement reports at its own position and suppresses its container's). A BY REFERENCE CALL argument / INVOKE write-back is not counted: whether the callee alters it is not decidable from the source element. Residual not claimed: a store through a REDEFINES alias of a record that holds the control item is not related to it (the hierarchy test only) - a narrower-than-rule reading that never rejects legal source.",
+ "state": "OK"
+}

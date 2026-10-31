@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.40.3-4",
+ "section": "15.40.3",
+ "kind": "AR",
+ "ordinal": 4,
+ "subject": "FORMATTED-DATETIME function",
+ "rule-digest": "893067f962fc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFormattedDatetime",
+ "test-ref": "conformance:cases/7.3.17-LEAP-SECOND/l1_fdt_argument3_time_form",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "15.5.5 / 7.3.17.4 GR5 interval [0, 86400) under the implied LEAP-SECOND OFF: 0 and 86399 legal, a fractional value in the form (asserted at a TWO-digit width, where truncation and rounding agree), and 86400 and -1 each setting EC-ARGUMENT-FUNCTION; the ON branch stays pinned by pb65_leap_second_on's T8 line.",
+ "state": "OK"
+}

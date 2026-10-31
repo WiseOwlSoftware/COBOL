@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.13.3-1",
+ "section": "14.9.13.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "EVALUATE statement",
+ "rule-digest": "da4b1e0548c8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#valueRange",
+ "test-ref": "conformance:cases/14.9.13-EVALUATE/l1_evaluate_thru_through_equivalent",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR1 THROUGH/THRU equivalence: paired EVALUATEs differing only in that word. The NUMERIC range is a spec obligation via 14.9.13.4 GR2 -> 14.7.8 1) (both endpoints and all algebraic values between). The alphanumeric pair's HIT is IMPLEMENTOR-DEFINED — 14.7.8 2), no IN alphabet-name phrase — and comes from this implementation's native UTF-16 collation; what SR1 mandates on that line is only that the THRU and THROUGH columns AGREE. The NOT line is GR4 a) 5.'s explicit '< left-part OR > right-part' conditional.",
+ "state": "OK"
+}

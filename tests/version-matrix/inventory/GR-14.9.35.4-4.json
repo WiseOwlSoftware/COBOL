@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.35.4-4",
+ "section": "14.9.35.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "REWRITE statement",
+ "rule-digest": "030909116250",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OverwriteInPlace; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#NoteRelease; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite",
+ "test-ref": "conformance:cases/14.9.35-REWRITE/pb753_shared_read_coherence_2023; conformance:cases/14.9.35-REWRITE/pb753_shared_read_coherence_2002; unit:SharedReadCoherenceDriftTests.ASiblingsRewriteIsVisibleToAnAlreadyReadingConnector; unit:SharedReadCoherenceDriftTests.TheKeyedOrganizationsSeeASiblingsRewriteImmediately",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "A successful REWRITE releases the record to the operating environment, not to a buffer, and the OBSERVABLE content of that is what ANOTHER file connector over the same physical file then reads: OverwriteInPlace is the ONE in-place overwrite for both sequential framings (the record-sequential GR16/GR20 arm and the line-sequential GR17 arm validate differently and release identically), and it seeks to the record's byte anchor, writes, FLUSHES, and announces the release on the physical file's shared state (NoteRelease -> PhysicalFileTable.State.ReleaseGeneration) so no sibling connector's read-ahead can keep serving the superseded image. The keyed organizations release into the per-physical-file shared record store, which every attached connector sees the instant the mutation happens (kb/Work PB143). MEASURED, both goldens: over 300 records, reader R takes record 1, sibling W rewrites a later record to NEW and reports '00', and R's next reads are OLD then NEW on record-sequential FIXED width, RECORD VARYING, LINE SEQUENTIAL (2023 only), a CLAUSE-LESS pair, RELATIVE and INDEXED. The SHARING WITH ALL OTHER legs close W before R reads on, which is the reported shape; the CLAUSE-LESS leg instead re-fills R's read-ahead AFTER W's OPEN and reads with W STILL OPEN, because a change in the 9.1.15 union repostures - and therefore rebuilds and empties - the other connectors' handles, which for the undetermined-default spelling would hide the defect (measured: with the coherence rule injected out, that leg still printed NEW while the three ALL OTHER legs printed OLD). Before kb/Work PB753 the four sequential legs all read OLD while the physical file held NEW, with '00' from every statement. COBOL-85 has no file sharing, so the sibling observation cannot be made there; the release itself is the same code on every edition.",
+ "state": "OK"
+}

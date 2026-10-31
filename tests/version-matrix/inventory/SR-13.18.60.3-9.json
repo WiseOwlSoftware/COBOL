@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.60.3-9",
+ "section": "13.18.60.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "USAGE clause",
+ "rule-digest": "b0ab1fa644f0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#SenderClassRefusal; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#ReceiverClassRefusal; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs",
+ "test-ref": "conformance:cases/13.18.60-USAGE/pb423-move-pointer-sender; conformance:cases/13.18.60-USAGE/pb423-move-pointer-receiver; conformance:cases/13.18.60-USAGE/l1-display-pointer-operand; conformance:cases/13.18.60-USAGE/pointer_data",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB542 (wave 42) - RE-MEASURED, THE HOLE IS CLOSED. This row recorded the worst-behaved shape in its part: 'MOVE P TO X' with 01 X PIC X(8) COMPILED, RAN, and stored the .NET type name - SET P TO NULL / MOVE P TO X / DISPLAY X printed X=[WiseOwl.Cobol], the first eight characters of 'WiseOwl.Cobol.Runtime.ManagedPointer' - and 'MOVE P TO N' died in the backend as a raw CS1503. Both were re-run on this worktree's own build at --std 2002 and 2023 and both now draw COBOL0809, which quotes SR9's own sentence ('may be referenced explicitly only in a CALL statement, an INITIALIZE statement, an INVOKE statement, a SET statement, a relation condition, a procedure division header, the argument list of an inline invocation of a method, as an argument in a function-identifier, in the RETURNING phrase of an ALLOCATE statement, or in a FREE statement') beside 14.9.25.3 SR1 and 8.5.2.1 Table 2. The landing was kb/Work PB416 + PB423, whose two negatives pb423-move-pointer-sender and pb423-move-pointer-receiver pin both operand positions. Every PERMITTED context this row already measured still works: SET P TO NULL, INITIALIZE P, FREE P, ALLOCATE 8 CHARACTERS RETURNING P, FUNCTION LENGTH(P) and a relation condition; the other prohibitions (DISPLAY P, ADD 1 TO P) are unchanged.",
+ "state": "OK"
+}

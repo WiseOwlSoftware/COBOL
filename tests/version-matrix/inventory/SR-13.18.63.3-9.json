@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-9",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "VALUE clause",
+ "rule-digest": "ec73209473c1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#AdmitsNoValueLiteral",
+ "test-ref": "conformance:cases/13.16-Data-description/pb557-value-on-object-reference; conformance:cases/13.16-Data-description/pb557-value-null-on-pointer; conformance:cases/13.18.63-VALUE/pb557_pointer_class_initial_value_is_null; unit:ValueClauseUsageSetDriftTests.EverySr9NamedUsage_WithAMember_AdmitsNoValueLiteral",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB557, LANDED. \"The VALUE clause shall not be specified if a USAGE clause with a phrase of FUNCTION-POINTER, MESSAGE-TAG, OBJECT-REFERENCE, or PROGRAM-POINTER is also specified\" (cite --check OK, §13.18.63.3 9)) is now ONE SET — UsageFamilies.AdmitsNoValueLiteral, beside UsageFamilies.IsPictureless and in the same shape — read by ONE screen, COBOL2168. The screen previously covered TWO of the four usages, exactly the two that already had a diagnostic band. MEASURED BEFORE and AFTER on this worktree's own build: `01 O USAGE OBJECT REFERENCE VALUE \"X\".` compiled, linked and RAN CLEAN (rc=0, the literal silently discarded) and now reports COBOL2168; `USAGE OBJECT REFERENCE VALUE NULL` and `USAGE POINTER VALUE NULL` each failed the whole Roslyn compilation with CS0029 ('string' to CobolObject / ManagedPointer) and now report COBOL2168; the PROGRAM-POINTER control still rejects. The MESSAGE-TAG arm is in the set but unobservable: the usage is declined non-support and refused by name earlier (COBOL1943, Annex A.3 item 4). ⚠ DETERMINATION — USAGE POINTER is a DELIBERATE addition to the set that SR9 does not name: §13.18.63.2 format 1 takes literal-1, §8.4.3.10.1 makes NULL \"a predefined address of class pointer or a predefined content of class message-tag\" (an identifier under §8.4.3, cite --check OK), §8.3.3.6.2 does not list NULL among the figurative constants, and no syntax rule of §13.18.63.3 types a literal for a subject of class pointer (SR2 numeric, SR4 alphabetic/alphanumeric/alphanumeric-edited, SR5 national, SR6/SR7 numeric-edited, SR10 boolean). §13.18.63.4 GR4's closing paragraph makes the prohibition costless — such an item is null at initial state with no clause written — which conformance:cases/13.18.63-VALUE/pb557_pointer_class_initial_value_is_null pins. The reading REJECTED is accepting `VALUE NULL` on a pointer as a leniency; the shape it replaced was a compiler crash, not an accepted program. unit:ValueClauseUsageSetDriftTests re-reads SR9's sentence out of the spec on every run and its failure branch was fired once, deliberately, before this was recorded.",
+ "state": "OK"
+}

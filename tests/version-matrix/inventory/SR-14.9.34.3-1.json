@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.34.3-1",
+ "section": "14.9.34.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "RETURN statement",
+ "rule-digest": "f752a4832c8d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindReturn; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReturnFile; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveFile",
+ "test-ref": "conformance:cases/14.9.34-RETURN/pb236-return-file-not-sd; conformance:cases/14.6.6-Locale-identification/pb64t1_sort_locale_snapshot",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB236 (landed). RULE (cite.py --check 14.9.34.3 'File-name-1 shall be described by a sort-merge file description entry in the data division.' -> OK, 14.9.34.3 1). A SYNTAX rule, so the obligation is on the compiler at compile time (cite.py --check 4.2.2 'An implementation shall provide a warning mechanism that optionally may be invoked by the user at compile time to indicate violations of the general formats and the explicit syntax rules of standard COBOL.' -> OK). The predicate and the citation were already right at BindReturn; only the STAGE was wrong -- BoundUnsupported is not a diagnostic, StatementEmitter rendered it as NotImplemented.Run, and probe p14 (the same illegal RETURN on a paragraph the flow jumps over) compiled AND ran to normal completion. Both are now fixed, and the ONE test the old code wrote has been split into the TWO verdicts it was conflating: `!FilesByName.TryGetValue(...) || !file.IsSortMerge` answered 'there is no such file-name' (8.4.2.1) and 'the file exists but is described by an FD' (14.9.34.3 SR1) with one message, which told a user whose file was right there in the FILE SECTION that the name was undefined. The undeclared case now goes through StatementValidation.ResolveFile -> COBOL1639, and SR1 itself through CheckReturnFile -> COBOL1757. Measured on a build of this worktree, RETURN behind a GO TO: `error COBOL1757: RETURN 'F-IN' -- file-name-1 shall be described by a sort-merge (SD) file description entry in the data division (ISO 14.9.34.3 SR1); this file is described by an FD`. Witness: conformance:cases/14.9.34-RETURN/pb236-return-file-not-sd for the prohibition, conformance:cases/14.6.6-Locale-identification/pb64t1_sort_locale_snapshot for the admitted RETURN over a real SD.",
+ "state": "OK"
+}

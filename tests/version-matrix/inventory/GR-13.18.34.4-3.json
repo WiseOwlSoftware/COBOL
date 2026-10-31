@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.34.4-3",
+ "section": "13.18.34.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "LINAGE clause",
+ "rule-digest": "699e8f90c7d9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#EvaluateLinage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#PositionOnLogicalPage; src/WiseOwl.Cobol.Runtime/IO/LinagePage.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#LinageOpExpr",
+ "test-ref": "conformance-test:LinageConformanceTests.Gr26ab_CounterEqualsBody_IsFootingEopNotOverflow; conformance-test:LinageConformanceTests.Gr6b2_FootingPhraseHoldingZero_IsAViolation_NotAnAbsentPhrase; conformance-test:LinageConformanceTests.Gr1_NoFootingPhrase_SamePageAndWrite_IsAnOrdinarySuccessfulWrite; conformance:cases/13.18.34-LINAGE/pb686_linage_gr26_boundary; conformance:cases/13.18.34-LINAGE/pb686_linage_gr26_boundary_85; conformance:cases/9.1.13.11-Implementor-defined-condition-with-unsuccessful-completion/pb526_linage_ec_condition; conformance:cases/13.18.34-LINAGE/pb526_linage_ec_condition_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB525 LANDED - THE 'GREATER THAN ZERO' HALF IS NOW ENFORCEABLE, BECAUSE ZERO IS NO LONGER THE ABSENT-PHRASE SENTINEL. The footing AREA was always right ([footing start, page size] INCLUSIVE - pinned at the boundary by Gr26ab_CounterEqualsBody_IsFootingEopNotOverflow and its goldens). What was not implemented was GR3's 'The value shall be greater than zero and not greater than integer-1 or the value of the data item referenced by data-name-1', because ONE integer slot carried two different facts: 'the footing start' and 'there is no FOOTING phrase', with 0 encoding the second. The fix is the SHAPE, not the guard: LinagePage.Footing is int?, SequentialIoEmitter.LinageOpExpr renders null for an OMITTED phrase (TOP and BOTTOM stay int - GR1 says their values ARE zero when absent, so only FOOTING had a collision), EvaluateLinage applies GR6 b) 2 to every footing start that IS specified including 0, and the GR26 b) end-of-page arm's guard became `_footing is { } f` - a test of PRESENCE rather than of value. THE DISCRIMINATING PAIR is on disk: Gr6b2_FootingPhraseHoldingZero_IsAViolation_NotAnAbsentPhrase and Gr1_NoFootingPhrase_SamePageAndWrite_IsAnOrdinarySuccessfulWrite are the same page size, the same WRITE, differing only in whether the FOOTING phrase is written - a model that encodes absence as 0 cannot tell them apart, which is exactly what used to happen (the first one printed NO-EOP / LC=005 like the second). A specified footing of 0 is now the §13.18.34.4 GR6 b) 2 violation, reported as I-O status '90' with the EC-I-O-LINAGE condition - see GR-13.18.34.4-6.",
+ "state": "OK"
+}

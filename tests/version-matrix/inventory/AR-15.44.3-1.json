@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.44.3-1",
+ "section": "15.44.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "INTEGER function",
+ "rule-digest": "5e4a69b9f544",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
+ "test-ref": "conformance:cases/15.44.3-Argument-rule/l1-integer-class; conformance:cases/15.3-Arguments/intrinsic-index-argument; conformance:cases/15.44.3-Argument-rule/l1_integer_floor_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§15.44.3 r1 class numeric: a PIC X(4) argument draws COBOL1627 at all four editions (the existing index-class fixture covers only 2002+), accept side at 85 and 2023.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.27.4-21",
+ "section": "14.9.27.4",
+ "kind": "GR",
+ "ordinal": 21,
+ "subject": "OPEN statement",
+ "rule-digest": "3b8b3a50e82d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#OpenShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterSharing; src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#FileSharing; docs/CONFORMANCE.md#DOC-A.1-76",
+ "test-ref": "conformance:cases/14.9.27-OPEN/l1c11_sharing_every_device_shareable",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "RE-VERDICTED (kb/Work PB322, w1013m): the missing piece was the determination, and it is written - DOC-A.1-76 states that every device allows concurrent access (every physical file is a host path), so 'the SHARING phrase is effective only for files that are shareable' is true of every file. Witness conformance:cases/14.9.27-OPEN/l1c11_sharing_every_device_shareable (PRINTER and DISK paths, /dev/null).",
+ "state": "OK"
+}

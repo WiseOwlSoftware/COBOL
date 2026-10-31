@@ -1269,7 +1269,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         : "";   // bare `ASSIGN USING …`: no device-name-1/literal-1 exists — UNASSOCIATED until an OPEN
                     if (asg.dataReference() is { } dyn)
                     {
-                        (file.AssignUsingName, file.AssignUsingQualifiers) = ClauseDataName(dyn, "ASSIGN … USING");
+                        (file.AssignUsingName, file.AssignUsingQualifiers) = ClauseDataName(dyn, "ASSIGN USING");
                         using var __ = Edition.At(dyn);
                         file.AssignUsingAt = Edition.Cursor;   // §12.4.5.2 SR7 reports here, from ResolveFiles
                     }
@@ -1479,7 +1479,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         var operands = new List<KeySourceOperand>();
         foreach (var dref in src.dataReference())
         {
-            var (n, q) = ClauseDataName(dref, $"{clause} … SOURCE");
+            var (n, q) = ClauseDataName(dref, $"{clause} SOURCE");
             using var _ = Edition.At(dref);
             operands.Add(new KeySourceOperand { Name = n, Qualifiers = q, At = Edition.Cursor });
         }
@@ -1587,7 +1587,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             if (!IsAlphabetName(alphabet3))
             {
                 Edition.Error(DiagnosticCatalog.FileCollatingAlphabet, $"file '{file.CobolName}': COLLATING SEQUENCE "
-                    + $"OF … IS '{alphabet3}' — alphabet-name-3 names no alphabet declared in SPECIAL-NAMES "
+                    + $"OF {string.Join(' ', keys.Select(k => WrittenQualified(k.Name, k.Qualifiers)))} IS '{alphabet3}' — alphabet-name-3 names no alphabet declared in SPECIAL-NAMES "
                     + "(ISO §12.4.5.7.3 SR7)");
                 continue;
             }
@@ -2292,7 +2292,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         Editions.DiagnosticCursor depAt = default;
         if (rc.dataReference() is { } d)
         {
-            (dep, depQuals) = ClauseDataName(d, "RECORD … DEPENDING ON");
+            (dep, depQuals) = ClauseDataName(d, "RECORD DEPENDING ON");
             // The OPERAND's own position, inside the clause cursor kb/Work PB721 pushed at the method top.
             using var _dep = Edition.At(d);
             depAt = Edition.Cursor;
@@ -2430,7 +2430,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     return item is null ? null : RecordKey.OfItem(item);
                 }
                 foreach (var op in source.Operands)
-                    op.Item = InRecords(op.Name, op.Qualifiers, $"{face} … SOURCE", op.At);
+                    op.Item = InRecords(op.Name, op.Qualifiers, $"{face} SOURCE", op.At);
                 return source.Operands.All(o => o.Item is not null)
                     ? RecordKey.OfSource(source.Name, [.. source.Operands.Select(o => o.Item!)]) : null;
             }
@@ -2462,7 +2462,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // working-storage, local-storage or linkage section) is one of the screen's rows (kb/Work PB858).
             if (file.Varying?.DependingName is { } vn)
                 file.VaryingDependingItem = ResolveClauseOperand(
-                    vn, file.Varying.DependingQualifiers, "RECORD … DEPENDING ON", file.Varying.DependingAt);
+                    vn, file.Varying.DependingQualifiers, "RECORD DEPENDING ON", file.Varying.DependingAt);
             RecordClauseRules.Screen(file, Edition);
             ResolveLinage(file);   // §13.18.34 — the logical-page operands and §13.18.34.3's syntax rules
         }
@@ -2491,7 +2491,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (_refusedClauseOperands.Contains(name)) return null;   // already refused at capture — one fault, one verdict
         using var __ = Edition.At(at);
         string written = WrittenQualified(name, quals);
-        if (survivors.Count > 1)
+        // The ambiguity is told first unless a report entry of a NEARER source element is the referenced item
+        // (DataItemsAmbiguousBeforeReportEntry, kb/Work PB3767: ISO §8.4.6.2.1 3) a)); the report section's own clauses
+        // never ask the report-item refusal below, so for them the ambiguity always stands.
+        if (survivors.Count > 1 && (inReportSection || DataItemsAmbiguousBeforeReportEntry(survivors, name, quals)))
             return UniqueOrReportAmbiguous(survivors, clauseFace, written, out _);
         // A name the REPORT SECTION declares is not undefined (kb/Work PB1046): §13.8.6.2.3 bars every clause of a data
         // division section other than the report section from referring to a report item. (The report section's own
@@ -2737,7 +2740,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // uniqueness one.
         // Counted (kb/Work PB978): two survivors are §8.4.2.2.3 SR1's ambiguity, reported once by the ONE verdict.
         DataItem? item = UniqueOrReportAmbiguous(
-            QualifiedCandidates(dynName, file.AssignUsingQualifiers, Model.Scope.Program), "ASSIGN … USING",
+            QualifiedCandidates(dynName, file.AssignUsingQualifiers, Model.Scope.Program), "ASSIGN USING",
             WrittenQualified(dynName, file.AssignUsingQualifiers), out bool ambiguous);
         if (ambiguous && item is null) return;
         if (item is null || !ItemCategory.IsAlphanumeric(item))
@@ -6243,14 +6246,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// silently, with the last clause winning. That is a WIDER rule about clause repetition in a closed
     /// general format, not §13.18.60.3 SR21, and it is registered as its own mechanism; this list is the
     /// structure it will be enforced from.</para>
-    /// <para>⚠ NO EDITION GATE HERE, DELIBERATELY. MESSAGE-TAG is an Annex E.2 item-25 COBOL-2023 addition and
-    /// below 2023 the word is an ordinary user-defined word, so the edition-correct diagnostic below 2023 is
-    /// the introduction gate rather than this rule. That routing is BROKEN for the whole MESSAGE-TAG surface —
-    /// COBOL1943 itself fires at 2002 and 2014, contradicting its own message text — and it is one
-    /// mechanism with one fix, registered separately. Gating only THIS screen would re-open the silent
-    /// acceptance below 2023 while leaving the sibling wrong, so the screen stays edition-blind until the
-    /// gate lands, and its negative golden pins only the 2023 cell (feedback green_test_can_hold_a_gap_open:
-    /// a golden that pinned 2002 would freeze the defect).</para></summary>
+    /// <para>⚠ NO EDITION GATE HERE, AND NOW NONE IS OWED. MESSAGE-TAG is an Annex E.2 item-25 COBOL-2023
+    /// addition, so below 2023 the entry also draws the COBOL0900 introduction gate (usage-message-tag-2023,
+    /// <c>VersionConformancePass.UsageConstructId</c>) — and ParseUsage no longer adds COBOL1943 beside it
+    /// (kb/Work PB916). This rule is a SYNTAX rule of the usage clause and, like FUNCTION-POINTER's COBOL1958, is
+    /// reported beside the introduction gate rather than instead of it, so the clause list that breaks it is
+    /// named at every edition; the negative golden sweeps all four.</para></summary>
     private void CheckMessageTagExclusivity(
         Core.UsageClauseContext? firstUsage, List<Core.UsageClauseContext>? extraUsages, string entryWhere)
     {
@@ -6404,21 +6405,21 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         var (alnumName, natName) = ChoiceIndicators.AlphabetPair(Edition, cs.codeSetForPhrase(),
             f => f.NATIONAL() is not null, f => f.cobolWord().GetText(), cs.cobolWord(),
             $"file '{file.CobolName}' CODE-SET", "13.18.13.2");
-        var alnumSet = alnumName is null ? null : CodedCharacterSetOf(cs, alnumName, $"CODE-SET … {alnumName}",
+        var alnumSet = alnumName is null ? null : CodedCharacterSetOf(cs, alnumName, $"CODE-SET {alnumName}",
             "ISO §13.18.13.3 SR1 — alphabet-name-1 shall reference an alphabet that defines an alphanumeric coded character set");
-        var natSet = natName is null ? null : CodedCharacterSetOf(cs, natName, $"CODE-SET … {natName}",
+        var natSet = natName is null ? null : CodedCharacterSetOf(cs, natName, $"CODE-SET {natName}",
             "ISO §13.18.13.3 SR2 — alphabet-name-2 shall reference an alphabet that defines a national coded character set");
         if (alnumName is not null && alnumSet is null || natName is not null && natSet is null) return;
         if (alnumSet is { National: true })
         {
-            Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET … {alnumName}: alphabet-name-1 shall "
+            Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET {alnumName}: alphabet-name-1 shall "
                 + "reference an alphabet that defines an ALPHANUMERIC coded character set — this alphabet is defined "
                 + "FOR NATIONAL (ISO §13.18.13.3 SR1)");
             return;
         }
         if (natSet is { National: false })
         {
-            Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET … {natName}: alphabet-name-2 shall "
+            Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET {natName}: alphabet-name-2 shall "
                 + "reference an alphabet that defines a NATIONAL coded character set — this alphabet is alphanumeric "
                 + "(ISO §13.18.13.3 SR2)");
             return;
@@ -6440,7 +6441,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         {
             if (set is null) continue;
             if (set.Medium is CodeSetMedium.NotProvided)
-                Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET … {name}: the {set.Phrase} coded "
+                Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET {name}: the {set.Phrase} coded "
                     + "character set's on-medium representation differs from the native encoding, and this processor "
                     + "does not provide alternate device code sets (Annex A §A.3 item 27 — documented non-support, "
                     + "CONFORMANCE.md §2 row 27); NATIVE, STANDARD-1, STANDARD-2, UTF-16 and the ASCII code-name "
@@ -6918,10 +6919,23 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             "PICTURE may not be specified with USAGE INDEX — an index data item is picture-less, and "
             + "its content is an occurrence number rather than a pictured value (ISO §13.16.3 SR8; "
             + "§13.18.60.4 GR10)"),
-        _ => ("COBOL1521",
+        // §13.16.3 SR8 names message-tag in the same sentence as the float usages, so it reaches this screen on
+        // BOTH paths (its own clause, and the usage a group hands down — §13.18.60.4 GR1), and before this arm the
+        // fall-through below told the programmer their message-tag item was floating-point (kb/Work PB916).
+        Usage.MessageTag => (DiagnosticCatalog.UsageClauseCompatibility.Code,
+            "PICTURE may not be specified with USAGE MESSAGE-TAG — a message-tag item is picture-less "
+            + "(ISO §13.16.3 SR8; §13.18.60.4 GR9)"),
+        // The float family is a NAMED arm and the fall-through refuses, so a picture-less usage added tomorrow
+        // is a crash in the drift test that enumerates Usage, never a message naming the wrong family.
+        Usage.Float or Usage.Double or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended
+            or Usage.FloatBinary32 or Usage.FloatBinary64 or Usage.FloatBinary128
+            or Usage.FloatDecimal16 or Usage.FloatDecimal34 => ("COBOL1521",
             "PICTURE may not be specified with a floating-point usage "
             + "(COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED/FLOAT-BINARY-*/FLOAT-DECIMAL-*) — a "
             + "floating-point item is picture-less (ISO §13.16.3 SR8; §13.18.60.2)"),
+        _ => throw new ArgumentOutOfRangeException(nameof(usage), usage,
+            "Sr8PicturelessVerdict was asked about a usage with no verdict of its own — guard the call with "
+            + "UsageFamilies.IsPictureless and give the new picture-less usage an arm"),
     };
 
     /// <summary>The USAGE an entry hands DOWN to the elementary items under it — ISO §13.18.60.4 GR1, "If the

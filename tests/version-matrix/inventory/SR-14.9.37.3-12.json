@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.37.3-12",
+ "section": "14.9.37.3",
+ "kind": "SR",
+ "ordinal": 12,
+ "subject": "SEARCH statement",
+ "rule-digest": "1099c9331d5d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/SearchAllFormat2Rules.cs#CheckKeySide; src/WiseOwl.Cobol.Compiler/Binding/Validation/SearchAllFormat2Rules.cs#CheckSendingSide; src/WiseOwl.Cobol.Compiler/Binding/Model/VariableLengthCompatibility.cs#IsVariableLength",
+ "test-ref": "conformance:cases/14.9.37-SEARCH/pb445-search-all-key-variable-length; conformance:cases/14.9.37-SEARCH/pb445-search-all-sending-variable-length",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB445.md LANDED. \"Data-name-1, data-name-2, identifier-3, or identifier-4 shall not specify a variable-length group\" (cite.py --check 14.9.37.3 -> OK, Syntax rules 12). BOTH arms are screened and BOTH are witnessed -- the data-name arm (pb445-search-all-key-variable-length) and the identifier arm (pb445-search-all-sending-variable-length) -- through the ONE VariableLengthCompatibility.IsVariableLength predicate, which already existed and which this rule's absence had left uncalled at this site. THE NOTE'S ORIGINAL SR12 MEASUREMENT WAS A FALSE FINDING and is corrected here: its probe used an OCCURS DEPENDING group as the variable-length witness, but 8.5.1.12.1 defines a variable-length group as \"a group item whose data description has at least one dynamic-length elementary item or dynamic-capacity table as a subordinate item\" (cite.py -> OK) -- a dynamic-capacity table is OCCURS DYNAMIC (13.18.38 Format 4), not OCCURS ... DEPENDING ON -- so the clean compile that probe measured was CORRECT and the note also recorded the data-name arm as untested on that basis. Re-witnessed with a genuine variable-length group (a subordinate DYNAMIC LENGTH item, 13.18.19) both arms fire. The rule applies at every edition; the two goldens reject from 2014 because a variable-length group cannot be DECLARED below it, so there is no edition at which either program is accepted. COBOL1965 (key side) and COBOL1966 (sending side).",
+ "state": "OK"
+}

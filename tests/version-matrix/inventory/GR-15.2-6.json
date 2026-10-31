@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-15.2-6",
+ "section": "15.2",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "Intrinsic functions",
+ "rule-digest": "918b2664200e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOf1",
+ "test-ref": "conformance:cases/15.2-Types-of-functions/pb124_index_function; conformance:cases/14.9.25-MOVE/pb124-move-index-function; conformance:cases/15.2-Types-of-functions/pb124-sqrt-index-function",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB124 wave 5b): an index-typed function result is now DISTINGUISHABLE everywhere the distinction is normative, typed by the ONE IntrinsicResultType.Resolve the binder resolves results with. ClassOf1's nested-call arm answers CobolClass.Index when Resolve says Index (the ResultCategory storage fold no longer decides the CLASS question); MoveBinder's 14.9.25.3 SR1 arm reaches a FUNCTION sender through 15.2 item 6 (MOVE FUNCTION MAX(IX1 IX2) drew nothing before and silently stored an occurrence-number image - now COBOL0809 citing item 6). The consumers where NO distinction is normative keep the numeric carriage deliberately: a relation over index operands IS a value comparison of occurrence numbers (8.8.4.2), pinned running in the golden (bare, MIN, and SUBSCRIPTED forms), and the render lane serves exactly that relation path. PicCategory deliberately gains no Index member - it is the STORAGE enum; the class/type question rides IntrinsicType + CobolClass, one mechanism (Resolve) consulted at each consumer that cares.",
+ "state": "OK"
+}

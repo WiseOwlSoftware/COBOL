@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.38.4-16",
+ "section": "13.18.38.4",
+ "kind": "GR",
+ "ordinal": 16,
+ "subject": "OCCURS clause",
+ "rule-digest": "09b05b2dd91f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#OdoBindOccursSpec; src/WiseOwl.Cobol.Compiler/Binding/Model/OdoModel.cs#InitialCap; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#FieldInit; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#CobolDynTable",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb500_format1_value_dynamic_table; conformance-test:OccursDynamicGuardTests.ValueOnElementaryDynamicEntry_CapacityIsMinimum_EveryOccurrenceTakesTheValue",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "LANDED 2026-09-13 (kb/Work PB500). BOTH SENTENCES, AND THE SECOND ONE HAD NEVER BEEN OBSERVABLE. \"Integer-4 is the minimum capacity of the table. If integer-4 is absent, a value of zero is assumed for it.\" The FROM integer-4 is bound to OccursSpec.InitialCap (OdoBindOccursSpec) and read by ValueInitializer.FieldInit as `OccursSpec.InitialCap ?? 0` -- the ?? IS the second sentence -- and handed to CobolDynTable as the capacity the table opens at. The rule was unobservable for a whole class of programs because DataBinder.DynamicResolve REFUSED any dynamic entry carrying a Format 1 VALUE (COBOL1528, now deleted), and the minimum capacity is exactly the number under dispute in those programs: the refusal cited 13.18.63.4 GR16 and read its subrule (b) as setting the capacity to the OCCURS EXPECTED capacity instead. GR16 is a FORMAT 2 general rule (band GR11-GR16) and does not reach a Format 1 VALUE -- 13.18.63 imports rules across bands only INTO a later band (GR11, GR17, GR21, GR24) and never back into FORMAT 1, and 13.18.63.3 SR22, the rule that keeps GR16b from having no operand, is FORMAT 2 too (band SR16-SR23) with no FORMAT 1 counterpart. MEASURED on today's tree, golden pb500_format1_value_dynamic_table: `PIC 9(3) OCCURS DYNAMIC FROM 3 TO 9 VALUE 7` opens at 3, NOT at the expected 9 (line 1); a group at FROM 2 TO 10 opens at 2 (line 2) and the same group with no TO also opens at 2 (line 3), which is the two-arm witness -- the retired refusal fired on line 2 and not line 3, so one optional phrase decided whether identical source compiled; and `OCCURS DYNAMIC` with NO FROM at all opens at 0 (line 4), the absent-integer-4 sentence, which no prior test exercised.",
+ "state": "OK"
+}

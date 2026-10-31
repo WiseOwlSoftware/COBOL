@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.8.4-1",
+ "section": "8.8.4.8.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Simple omitted argument condition",
+ "rule-digest": "c9cf9c42e7fd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/OmittedProbe.cs#OmittedProbe; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#OmittedTest; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#WholeFormalProbe",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/pb757_invoke_omitted; conformance-test:MethodOmittedArgumentTests.UniversalForward_OmittedFormal_StaysOmitted",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB757.md landed w46i2. One presence fact (OmittedProbe: a program/function formal's null carrier, a method formal's bool presence parameter), rendered by CallEmitter.OmittedTest for the condition and for every forward. a) OMITTED specified - golden TAKE / SUB / PB757F; b) trailing argument omitted - golden TWO and F(W4); c) the argument is itself an omitted formal - golden FWD (method formal forwarded by INVOKE SELF and by CALL), SUB2 (program formal forwarded by INVOKE), and a universal forward (test). All three activation kinds: program, function, method.",
+ "state": "OK"
+}

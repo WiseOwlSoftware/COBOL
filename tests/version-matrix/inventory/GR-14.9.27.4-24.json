@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.27.4-24",
+ "section": "14.9.27.4",
+ "kind": "GR",
+ "ordinal": 24,
+ "subject": "OPEN statement",
+ "rule-digest": "48705b466190",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#OpenShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RetryLoop; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#RenderRetry",
+ "test-ref": "conformance:cases/14.9.10-DELETE/pb142_retry_open_sharing; conformance:cases/14.9.10-DELETE/pb142_retry_conflict_class_ec; conformance:cases/14.9.27-OPEN/pb316_open_group_scope; unit:OpenGroupScopeDriftTests.EachOpenEntry_CarriesOnlyItsOwnGroupsPhrases",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "RE-VERDICTED (kb/Work PB322, w1013m). Both recorded divergences are gone: (1) the RETRY phrase is per-group like SHARING (PB316; its scope is pinned on the bound tree by unit:OpenGroupScopeDriftTests.EachOpenEntry_CarriesOnlyItsOwnGroupsPhrases, kb/Work PB675 - pb316_open_group_scope parts 1-2 stopped discriminating a RETRY leak once PB321 arbitrated every OPEN) and (2) every RETRY form (n TIMES, FOREVER, FOR n SECONDS) on a file-sharing conflict answers '61', the conflict's own class, not '52' (PB142; re-probed 2026-10-04: R3=61 RF=61 RS=61 RG=61 61 against a NO OTHER holder). The remaining determinations the rule delegates are documented: the deadlock condition at DOC-A.1-109 and the retry interval / maximum meaningful timeout under §14.7.9.3.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.54.4-7",
+ "section": "13.18.54.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "SUM clause",
+ "rule-digest": "0090a48bcc09",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Fires; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ResolveUponDetail; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyRolled; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AddGenerateTrigger",
+ "test-ref": "conformance:cases/13.18.54-SUM/pb1297_sum_reset_level_upon_85; conformance:cases/13.18.54-SUM/pb883_report_sum_expression; conformance:cases/13.18.53-SOURCE/pb1294_report_rolled_totals; conformance:cases/13.18.54-SUM/pb1294_report_rolled_cross_report; conformance:cases/13.18.54-SUM/pb1294_report_rolled_repeating",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1297: a detail named n times in a term UPON phrase adds n times, each addition its own GR3 size error test (SumTerm.Fires returns the count): UPON DE-A DE-A prints 02 04 06 08 for K = 1..4. No UPON: every GENERATE; identifier-1 repeated: added per reference.",
+ "state": "OK"
+}

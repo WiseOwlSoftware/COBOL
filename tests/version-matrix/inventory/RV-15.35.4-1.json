@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.35.4-1",
+ "section": "15.35.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "EXP10 function",
+ "rule-digest": "d54cf8c5c663",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#StoreExpr; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#Store; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Exp10; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#InBinary64Range",
+ "test-ref": "conformance:cases/15.17.4-Returned-value-rule/pb65_dec_move_channel; conformance:cases/15.20.4-Returned-value-rule/pb1041_exp_and_wide_exact_argument; unit:WholeRangeBodiesDriftTests.EveryExactIntakeArm_AnswersForTheExactArgument; conformance:cases/15.34.4-Returned-value-rules/pb1566_exp_result_range; unit:WholeRangeBodiesDriftTests.AResultOutsideBinary64_IsTheSizeErrorCondition",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "PB65 (Dec MOVE-channel members) LANDED 2026-08-09: MOVE was the one numeric consumer without the Dec-carrier store case; both edited and plain arms now land through the SDIDI final transfer. PROBED: RATIO line: EXP10(30)/EXP10(15) = 10^15 exactly in SDIDI form - the receiverless FromDouble clamp no longer touches the standard-mode EAE (the native-mode clamp-sentinel remains PB65's open FromDouble member). PRIOR (DIVERGES): CONFIRMED DIVERGES — but sub-finding (A)'s SCOPE is wrong in the first pass, in the direction that matters: it under-states reach by two whole dimensions, and a fix-queue entry scoped to its \"narrow b",
+ "state": "OK"
+}

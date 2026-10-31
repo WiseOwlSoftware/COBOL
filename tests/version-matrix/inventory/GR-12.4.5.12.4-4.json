@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.12.4-4",
+ "section": "12.4.5.12.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "RECORD KEY clause",
+ "rule-digest": "982798d51c6d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#KeyWindowOf; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterIndexed; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs",
+ "test-ref": "conformance:cases/12.4.5.12-RECORD-KEY/pb354_start_generic_key_ok; conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099_record_key_source",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely — item 2: a rule HALF inside a declined facility takes its LIVE half's verdict; the declined half (data-name-2, the record-key SOURCE form, A.3 item 40, refused COBOL1954) is non-support. The data-name-1 half is witnessed by pb354_start_generic_key_ok, whose key is described in one of three record description entries. || kb/Work PB1099: cite.py --check 12.4.5.12.4 \"are implicitly referenced as keys for all other record description entries of that file\" -> OK GR4. The prime key is registered as a BYTE WINDOW (offset,length) over the file's shared record area (KeyedIoEmitter, 'THE KEY WINDOW IS IN BYTES', kb/Work PB327; FileRegistry.RegisterIndexed), so every record description entry of the FD is keyed at those positions by construction; the key need be described in only one record (first sentence). Probe gr4.cob (2023): FD with 01 R (R-KEY = bytes 2-3) and 01 S (no key described): records WRITTEN THROUGH S are indexed on bytes 2-3 - 'QZZ111' 00, 'XAA222' 00, then R with R-KEY 'ZZ' -> 22 (duplicate of the S-written key), 'QZY444' 00; READ KEY IS R-KEY='ZZ' returns the S-written 'QZZ111'; START >= LOW-VALUES + READ NEXT walks AA, ZY, ZZ (byte-position order). Covering test: conformance:cases/12.4.5.12-RECORD-KEY/pb354_start_generic_key_ok case K2 STARTs by an item at the prime key's identical byte positions in a SECOND record description and its expected record is derived from this GR (and §14.9.41.3 SR6 a). || REFUTED: PARTIAL — The data-name-1 half is verified and holds in every shape probed, but the rule names 'data-name-1 OR data-name-2'. The data-name-2 half (the SOURCE key form) is refused by COBOL1954 as the Annex A.3 item 40 decline. That is the same unresolved question the adjudicator itself classed NEEDS-OWNER-DECISION on FMT, GR2 and SR5. Two halves with only one verified makes this PARTIAL, not CONFORMS. Whether the data-name-2 half is DOCUMENTED-NON-SUPPORT is for the owner (PB260/PB261/PB281-PB283-style decline owners, PB358), not this row. kb/Work PB1099 Q1 (w1095i): the record-key SOURCE phrase is PROVIDED (owner rule R65); the data-name-2 half: the byte positions of each data-name-2 are the key in every record description entry.",
+ "state": "OK"
+}

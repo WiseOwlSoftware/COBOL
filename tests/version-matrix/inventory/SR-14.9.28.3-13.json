@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.28.3-13",
+ "section": "14.9.28.3",
+ "kind": "SR",
+ "ordinal": 13,
+ "subject": "PERFORM statement",
+ "rule-digest": "96bb189162ec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureOperand; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#RejectProcedureName",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/pb390-perform-unknown-procedure-name-2; conformance:cases/8.4.4-Condition-name/pb390_procedure_and_condition_operands; unit:DecidedRuleStageDriftTests.DecidedRule_IsACompileTimeError_NamingTheRule_AndNeverTheDeferralWarning",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB390.md — The procedure-name-2 twin of SR12, fixed in the same change set and through the same ONE resolution, each arm naming its OWN rule number (the message says SR13 here and SR12 there; fixing one arm and not the other is the two-arm defect this project keeps finding). Its own negative case exists for that reason. The INVERTED range stays legal — §14.9.28.4 GR6, 'there is no necessary relationship between procedure-name-1 and procedure-name-2' — and the positive golden's `PERFORM P-ONE THRU P-TWO` plus the drift suite's inverted `PERFORM P2 THRU P1` row keep it so.",
+ "state": "OK"
+}

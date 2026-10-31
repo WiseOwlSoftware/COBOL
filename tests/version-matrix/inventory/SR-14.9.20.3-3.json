@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.20.3-3",
+ "section": "14.9.20.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "INITIALIZE statement",
+ "rule-digest": "df507fb79a96",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckInitializeReplacingSetCategoryIdentifier; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundInitialize.cs#InitializeCategories; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#Bind",
+ "test-ref": "conformance:cases/14.9.20-INITIALIZE/pb415-initialize-replacing-pointer-literal; conformance:cases/14.9.20-INITIALIZE/pb415_initialize_replacing_set_form; conformance:cases/14.9.20-INITIALIZE/pb415_initialize_function_pointer",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB415.md - IMPLEMENTED WITH THE GRAMMAR FIX, which is what the row's NOT-IMPLEMENTED note demanded ('the check must land WITH the grammar fix, not after it'). The five categories SR3 names are ONE definition, InitializeCategories.IsSetForm - the same list 14.9.20.4 GR4 gives the implicit SET form and SR4 constrains - read by this check, by SR4's, and by the binder's receiver arm, so a sixth pointer-ish category is one entry rather than four that can drift apart. A REPLACING item whose category-name names any of the five and whose sending operand is literal-1 is COBOL1982 at every edition the words exist (conformance:cases/14.9.20-INITIALIZE/pb415-initialize-replacing-pointer-literal); the POSITIVE control, identifier-2 accepted and actually stored through GR6b's implicit SET, is conformance:cases/14.9.20-INITIALIZE/pb415_initialize_replacing_set_form and conformance:cases/14.9.20-INITIALIZE/pb415_initialize_function_pointer. The rule was unreachable before, not enforced: the five category words were a COBOL0001 'no viable alternative'.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.26.4-1",
+ "section": "15.26.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "DISPLAY-OF function",
+ "rule-digest": "79314a5fe5d2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Repertoire",
+ "test-ref": "conformance:cases/15.26.4-Returned-value-rules/pb59_repertoire_identity; conformance:cases/15.2-Types-of-functions/national_intrinsics",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-09 (PB59): the Annex A.1 item-33 determination is DECLARED (docs/CONFORMANCE.md section 7, audited by audit_annex_a1.py - 20 of 199 discharged) and IMPLEMENTED: both repertoires are UTF-16 one code unit per position (item 188's substrate), so the correspondence is the TOTAL IDENTITY both directions - CobolIntrinsics.Repertoire is the identity, the old 0xFF cut and its '?' substitution are gone. MEASURED: DISPLAY-OF(N-Wide U+4E16/U+0160) carries the character (ORD 353 witness in the golden), round trips both directions, MOVE GR6's legal alphanumeric-to-national direction carries the same identity (probe pb59a2_movegr6: MOVE-AN=SAME). The standard display device now writes UTF-8 (item 59's row; ProgramTable.RunMain) so the carried characters survive the device boundary. Citations: cite.py --check 15.26.4 r1/r2/r3, A.1 33.",
+ "state": "OK"
+}

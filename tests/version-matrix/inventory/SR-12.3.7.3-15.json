@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.7.3-15",
+ "section": "12.3.7.3",
+ "kind": "SR",
+ "ordinal": 15,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "ac1d3c793de7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ImplementorCodeNames.cs#ImplementorCodeNames; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#AlphabetCodeName",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb793_code_name_alphabets; conformance:cases/12.3.7-SPECIAL-NAMES/pb793_code_name_alphabets_85; conformance:cases/12.3.7-SPECIAL-NAMES/pb770-alphabet-unsupported-code-name; conformance-test:AlphabetLiteralPhraseTests.NationalUnsupportedCodeName_IsSR15",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR15 leaves the supported code-name-1 / code-name-2 names to the implementor, 'if any'. OWNER DECISION kb/Work PB793 (2026-09-06) fills the ALPHANUMERIC half of that set: code-name-1 = ASCII and EBCDIC, following the surveyed model implementation where the standard leaves a point open and the vendors split (follow_gnucobol_on_split_latitude - its LATITUDE only; none of its tables or sources are used). code-name-2 stays EMPTY, because the native national set is the UTF-16 repertoire (D-N1) and the standard's own UCS-4 / UTF-8 / UTF-16 keywords already name the ISO/IEC 10646 forms. The set is documented as Annex A.1 item 184 in docs/CONFORMANCE.md section 7, and what each name MEANS as item 183. ⛔ THE ANSWER IS A TABLE, NOT A PAIR OF ARMS: ImplementorCodeNames holds one row per supported name carrying everything 12.3.7.4 GR7 i/j obliges the implementor to supply, and DataBinder.AlphabetCodeName is a LOOKUP keyed by (spelling, class) with the refusal on miss - so the next supported code-name is a row and no code path, and the COBOL1907 message names the supported set FROM the table and cannot go stale. The refusal itself is unchanged for a word outside the set (kb/Work PB770's correction stands: before it, the ALPHANUMERIC arm had no SR15 check at all and an unrecognized word fell through to the literal-phrase reading, so ALPHABET A-ASC IS ASCII built an alphabet whose first four positions were A, S, C, I).",
+ "state": "OK"
+}

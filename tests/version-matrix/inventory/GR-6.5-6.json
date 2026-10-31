@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-6.5-6",
+ "section": "6.5",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "Reference format",
+ "rule-digest": "44e82b39874c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#FixedFormConverter",
+ "test-ref": "conformance:cases/6-Reference-format/pb1491_continued_literal_logical_line; unit:ReferenceFormatLogicalConversionTests.ContinuedLiteral_JoinsAcrossADiscardedLine; unit:ReferenceFormatLogicalConversionTests.InlineCommentOnAContinuationLine_IsRemovedBeforeTheNextJoin",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1491: a) literal continuation appends from after the initial quotation symbol and b) otherwise from the first non-space character, \"immediately to the right of the last character in the latest logical line\" - the join target is tracked by index, so an interspersed comment or blank line is never it, and the continued line carries every position up to margin R. Validation of the continuation line (SR6) is kb/Work PB1492. retired-witness: src/Cobol.Net.Frontend/Preprocessor/ReferenceFormatProcessor.cs#HandleContinuation (moved or replaced by the ONE §6.5 logical conversion in ReferenceFormatProcessor.LogicalConversion.cs (kb/Work PB1491)) retired-witness: src/Cobol.Net.Frontend/Preprocessor/ReferenceFormatProcessor.cs#ScanLiteralState (moved or replaced by the ONE §6.5 logical conversion in ReferenceFormatProcessor.LogicalConversion.cs (kb/Work PB1491))",
+ "state": "OK"
+}

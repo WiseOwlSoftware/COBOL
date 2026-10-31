@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.6.4-7",
+ "section": "12.3.6.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "OBJECT-COMPUTER paragraph",
+ "rule-digest": "47415846481b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#UpperCase; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#LowerCase; src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#IsAlphabetic; src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#IsAlphabeticUpper; src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#IsAlphabeticLower; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#ConditionRenderer; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/ObjectComputerEmit.cs#ClassificationArg",
+ "test-ref": "conformance:cases/8.8.4.4-Simple-class-condition/pb64t5_character_classification; conformance:cases/12.3.6-OBJECT-COMPUTER/pb64t5_case_locale_phrase; unit:CobolLocaleTests.Classification_ResolvesAtActivation_AndDrivesTheClassTests; unit:CobolLocaleTests.CaseMapping_FollowsTheLocalesLcCtype; conformance:cases/8.8.4.4-Simple-class-condition/pb760_classification_national_group",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB760 (wave 45 A): GR7 names the two consumers - a) UPPER-CASE / LOWER-CASE and b) the ALPHABETIC class tests - and both now append the SAME selector, ObjectComputerEmit.ClassificationArg (IntrinsicRenderer.IsNationalArg and ConditionRenderer.IsNationalOperand, one rule written twice, are deleted). The semgrep invariant wiseowl-cobol-condition-category-from-raw-picture is widened from ConditionRenderer.cs to IntrinsicRenderer.cs and ObjectComputerEmit.cs - scoped to the property, not the file it was first found in. Golden: a national group, its elementary twin, a national ref-mod slice and a NATIONAL-OF result all map case through tr-TR; the PIC X control through en-US.",
+ "state": "OK"
+}

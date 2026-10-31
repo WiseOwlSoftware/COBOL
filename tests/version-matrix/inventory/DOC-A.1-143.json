@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-143",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 143,
+ "subject": "Program-name (formation rules for a non-COBOL program)",
+ "rule-digest": "76dee6f0f168",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-143; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ProbeSiblingModule; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#EntryOf",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/w59h_non_cobol_names_not_found",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Derived: a1-optional-not-provided (kb/Work PB280 Q1 — an A.1-OPTIONAL item whose §7 row opens 'Not provided.' is DOCUMENTED-NON-SUPPORT). Determination evidence (PB1522 step 3): A.1-143 is OPTIONAL, so owner decision kb/Work PB280 Q1 governs: a 'Not provided.' row, which the derived selector a1-optional-not-provided turns into DOCUMENTED-NON-SUPPORT (kb/Work PB1536 also lists 143, but its Q1 concerns CONDITIONALLY-required items; 143's class is optional). §8.3.2.2.21 (cite.py OK) leaves the formation rules to the implementor 'for a non-COBOL program'. Probe probe/nc.cob --std 2023: CALL \"Antlr4.Runtime.Standard\" and CALL \"System.Console\" take ON EXCEPTION; SET PP TO ADDRESS OF PROGRAM \"System.Console\" -> NULL. ProgramTable.ProbeSiblingModule requires a WiseOwl COBOL registrar. No golden pins the non-provision.",
+ "state": "OK"
+}

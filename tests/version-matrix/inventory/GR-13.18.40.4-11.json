@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.40.4-11",
+ "section": "13.18.40.4",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "PICTURE clause",
+ "rule-digest": "f2b782d954eb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.Analyze; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb535-picture-no-category; conformance:cases/13.18.40-PICTURE/pb535_picture_category_size_2023; conformance:cases/13.18.40-PICTURE/pb535_picture_category_size_85; unit:PictureCategoryDriftTests.EveryAcceptedPicture_DefinesTheCategoryItsGeneralRuleDefines; unit:PictureCategoryDriftTests.TheWalk_AcceptsEveryOneOfTheEightCategories",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB535 LANDED 2026-09-13. THE UNDER-REJECTION THIS ROW RECORDED NO LONGER REPRODUCES, and that was measured before it was written: re-probed on this worktree's own cobol.exe, `01 W-1 PIC S.`, `PIC PPP`, `PIC SV` and `PIC SPPP` are each rejected at 85/2002/2014/2023 (COBOL1934, naming 13.18.40.3 SR12 a), where each used to bind a ZERO-LENGTH category-numeric item and compile clean. The landing that closed the behaviour was PB528 (08ba8f9b, train 26), which read SR2's SECOND obligation - the 13.18.40.6 Table 10 combination - for the first time. What PB535 adds is GR11's OWN antecedent at the arm that answers it, plus the evidence the row owes. The pure-numeric arm is the FALL-THROUGH of Analyze, reached by exhaustion by everything that is not national, boolean, alphabetic/alphanumeric or edited, and it had no precondition at all; it now states GR11 - 'shall include at least one symbol 9' - as a loud COBOL0808, exactly the shape the national (GR9/GR10) and boolean (GR8) arms beside it already carried. It is unreachable while the composition validator and GR11 agree, and it is written down so that the agreement is asserted rather than assumed. The property is measured over the whole accepted set rather than over these four strings: PictureCategoryDriftTests walks 7 239 short character-strings plus 22 longer shapes, and for each of the 1 142 the compiler ACCEPTS it asks whether the category the analyzer assigned is the one whose defining general rule (GR5-GR13) the string satisfies. The population guard was proved failing once (it reports the accepted count and a per-category histogram), and the property itself was proved failing once by widening the alphanumeric arm by one symbol - 57 accepted strings then bound a category GR6/GR7 do not define.",
+ "state": "OK"
+}

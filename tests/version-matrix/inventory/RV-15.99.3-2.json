@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.99.3-2",
+ "section": "15.99.3",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "WHEN-COMPILED function",
+ "rule-digest": "d1fed63a4f40",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#_whenCompiledStamp",
+ "test-ref": "conformance:cases/15.99.3-Returned-value-rules/pb120_when_compiled_contained; unit:WhenCompiledStampTests.WhenCompiled_StampIsPerCompilation_NotPerProcess",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB120): the stamp is COMPILATION-scoped, not process-scoped - ProgramEmitter captures it once per EmitBound through the injectable IntrinsicBinder.CompileClock seam and threads it via EmitContext.WhenCompiledStamp; the process-static Lazy that handed every later compilation the FIRST one's timestamp is deleted. The golden pins r2's second sentence (a contained unit bakes the CONTAINING compilation's stamp) plus r1's shape; the unit test injects two clocks into two successive in-process compilations and reads each baked constant.",
+ "state": "OK"
+}

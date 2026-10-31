@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.6.2",
+ "section": "13.6.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Local-storage section",
+ "rule-digest": "609cf5f89642",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#localStorageSection; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#Bind; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDivision; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitLocalStorageSection",
+ "test-ref": "conformance:cases/13.10-Constant/pb1227_constant_byte_length",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1227 (w1006c). cite.py --check 13.6.2 \"LOCAL-STORAGE SECTION\" -> OK general format. Every alternative of the bracket is now witnessed in LOCAL-STORAGE by a spec-derived golden: a 77-level entry (L77 PIC X(5)), constant entries (LK = BYTE-LENGTH OF L77 = 5 - the BYTE-LENGTH arm the refuter found refused - and LK2 = LK - 3), a type-declaration entry (LTYPE TYPEDEF with LT PIC X(LK2)) and a record description entry (LR TYPE LTYPE; MOVE \"ABC\" keeps \"AB\"). The refuter's PARTIAL rested on the BYTE-LENGTH arm being staged loud, now removed.",
+ "state": "OK"
+}

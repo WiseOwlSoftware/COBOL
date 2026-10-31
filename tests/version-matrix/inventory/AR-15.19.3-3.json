@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.19.3-3",
+ "section": "15.19.3",
+ "kind": "AR",
+ "ordinal": 3,
+ "subject": "CONVERT function",
+ "rule-digest": "9ed99537f0f9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindConvert",
+ "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.Convert_SyntaxRuleViolations_1514",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "SUSTAINED - exhaustiveness re-derived, then confirmed BY EXECUTION rather than by reading. Citation validated (--check 15.19.3 \"The source-format shall be different from the destination-format\" -> OK, rule 3). The source-format space is {ANY, ANUM, HEX, NAT} and the destination space is {ANUM, ANUM HEX, NAT, NAT HEX, BYTE}, so the only pairs that can be the SAME format are ANUM->ANUM and NAT->NAT with no HEX - which is exactly `(src==1 && dst==1 && !hex) || (src==3 && dst==3 && !hex)`. ANUM -> ANUM HEX must NOT be diagnosed and is not (15.19.4 NOTE 3 a depends on it, and the corpus golden AH=41 pins it). ANY and BYTE cannot appear on both sides; a bare HEX destination is not in the format and is rejected earlier by the pair check (verified: CONVERT(WS-A ANUM HEX) and CONVERT(WS-A HEX HEX) both -> COBOL1514 'not a valid source-format destination-format pair'). Ran a negative battery in one program: CONVERT(A ANUM ANUM) and CONVERT(N NAT NAT) each emit the SR3 message and nothing else. EditionContext.Error is unconditional, so the check is not dialect-gated away.\nTest-ref audited and KEPT: Convert_SyntaxRuleViolations_1514 is a plain xUnit theory (not a legacy/GnuCobol comparison - it calls WiseOwlCobolCompiler(2023).CompileAndRun and asserts Assert.False(ok) with the spec reason \"violates a 15.19.3 syntax rule\"); its CONVERT(A ANUM ANUM) row can trip no other rule, which I confirmed from the emitted message text.\nEditions: 2023 only, from Annex E item 24; NOT the IntrinsicCatalog row.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.51.3-1",
+ "section": "14.9.51.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "WRITE statement",
+ "rule-digest": "a76cedc3ac31",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveRecordName; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#FileWhoseRecordIs",
+ "test-ref": "conformance:cases/14.9.32-RELEASE/pb347_record_name_identity",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "'The write file is the file referenced by file-name-1 or by the file-name associated with record-name-1.' (cite.py --check 14.9.51.3 OK, SR1). ResolveRecordName's identity test returns the FileModel whose Records contain the item (own files, then inherited GLOBAL FDs via FilesByName); that FileModel is the write file every later check (SR12/SR13/SR19/SR22, org reroute) and the BoundWrite/BoundKeyedWrite node use. The FILE file-name-1 arm is Annex A.4.13 declined (COBOL1706) so only the record-name arm is reachable. pb347_record_name_identity writes OUT-REC / OUT-REC OF OUTF and reads the records back from OUTF. [editions as adjudicated: 1985, 2002, 2014, 2023 (base WRITE statement; the 2023 text records no change to this rule in Annex E)]",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-198",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 198,
+ "subject": "System-names (rules for formation of a system-name)",
+ "rule-digest": "ff3e2f39a3b9",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-198; src/WiseOwl.Cobol.Editions/ImplementorNames.cs#ImplementorNames",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1c32_system_name_formation; conformance:cases/A.1-Implementor-defined-language-element-list/l1c32-system-name-all-digits",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Optional item PROVIDED (one restriction), not 'not provided': §8.3.2.3.1 lets the implementor add restrictions to COBOL-word formation, and an all-digit system-name - a legal COBOL word, since §8.3.2.2's 'at least one basic letter' binds user-defined words only - is rejected (the lexer reads it as an integer literal). cite.py --check 8.3.2.3.1 'The implementor may define rules for the formation of a system-name that add restrictions to the rules for formation of a COBOL word' -> OK. Probes refute-probe/p198: sn3.cob OBJECT-COMPUTER. 12345. -> COBOL0001 unexpected '12345'; d1.cob OBJECT-COMPUTER. 1-2. -> OK (no letter needed); sn.cob 123ABC / MY_BOX-9-... -> OK at 2023; sn4.cob ABC- -> COBOL0001; sn5.cob 31/32 chars -> COBOL1567 limit 30 at 85, 31 at 2002/2014; sn2.cob 64 chars -> COBOL1567 limit 63 at 2023; dv.cob unknown device FOO-DEVICE -> COBOL2241. Owning note: kb/Work/PB1534, PB280. retired-witness: src/Cobol.Net.Compiler/Binding/ImplementorNames.cs#ImplementorNames (the pure-data implementor-name table moved to WiseOwl.Cobol.Editions so the front end's DISPLAY directive reads the same device-names as SPECIAL-NAMES (kb/Work PB807); ImplementorNameEntry stayed in the compiler as ImplementorNameEntry.cs)",
+ "state": "OK"
+}

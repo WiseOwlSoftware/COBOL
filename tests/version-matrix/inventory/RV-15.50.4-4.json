@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.50.4-4",
+ "section": "15.50.4",
+ "kind": "RV",
+ "ordinal": 4,
+ "subject": "LENGTH function",
+ "rule-digest": "a286b7ad1a02",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#VariableLengthGroupSum; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#WrapIfOdoGroup; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Visit; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundOdoExtent",
+ "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb61_length_byte_length_rule_branches; conformance:cases/13.18.38-OCCURS/pb80_based_odo_group",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB80 (2026-08-18) closes the PB61 residue: r4a's BASED-entry half — an UNASSOCIATED based entry answers the receiving-item (maximum) length (LENGTH(BODO) = 17 before ALLOCATE and after SET ADDRESS OF BODO TO NULL; BoundOdoExtent.BasedAddress guards the ODO term with the runtime's null-pointer test, before data-name-1 is read), an associated one r4b's current extent (8 at NN = 2). The resolver now wraps a class-tier (BASED) ODO group as an OdoGroupPlace exactly like a struct group (WrapIfOdoGroup — ONE rule), so the LENGTH builder's ODO term, the GR8 sending slice and the receiving direction-split all apply. r4a for a TYPE declaration and r4b/r7 for the storage forms were landed by PB61.",
+ "state": "OK"
+}

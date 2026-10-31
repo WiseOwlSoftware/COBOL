@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.10.3-3",
+ "section": "11.10.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "PROGRAM-ID paragraph",
+ "rule-digest": "ad0d4e473eca",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#CheckDefinitionNameUniqueness",
+ "test-ref": "conformance:cases/11.10-PROGRAM-ID/pb660-duplicate-contained-program-name; unit:DefinitionNameUniquenessTests.TwoProgramsInOneContainerMayNotShareAName",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'A program contained within another program shall not be assigned the same name as that of any other program contained within the outermost program that contains this program' (--check 11.10.3 -> OK §11.10.3 3)). CheckDefinitionNameUniqueness part (2) flattens every outermost program's whole containment subtree (Containees, direct AND indirect) onto one OrdinalIgnoreCase set -> COBOL2214, not edition-gated. Probe probe dir out/probe/program-id-paragraph/sr3.cob -- SR3X nested inside SR3A AND a direct SR3X child of SR3OUT (the INDIRECT shape the golden does not cover) -> COBOL2214 at --std 85, 2002, 2023. The positive control (two different outermost programs each containing X) is pinned by unit TwoContainersMayEachContainOneName. The rule does not extend to a containee sharing the OUTERMOST program's own name (not 'contained within'), and the check correctly iterates only containees. || Editions (adjudicator, verbatim): 1985, 2002, 2014, 2023",
+ "state": "OK"
+}

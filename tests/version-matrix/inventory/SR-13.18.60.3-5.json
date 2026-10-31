@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.60.3-5",
+ "section": "13.18.60.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "USAGE clause",
+ "rule-digest": "61972b43dede",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UsageInheritancePass; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UsageInheritanceElementary; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ApplyEffectiveUsage; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ScreenUsageAgainstPicture; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#IsPictureless",
+ "test-ref": "conformance:cases/13.18.60-USAGE/bit-usage-numeric-pic; conformance:cases/13.18.60-USAGE/pb495-inherited-usage-bit-needs-a-picture; conformance-test:NationalBooleanDataTests.IllegalUsagePictureShape_Rejects0881; conformance-test:UsageInheritanceDriftTests.InheritedUsage_IsTheSameItemAsAWrittenOne; unit:PicturelessUsageSetDriftTests.EverySr8NamedUsage_WithAMember_IsPictureless; unit:PicturelessUsageSetDriftTests.EveryPicturelessMember_IsSr8Named_OrACoveredDetermination",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB495 landed the ONE derivation of an elementary item's EFFECTIVE usage -- its own USAGE clause, else the nearest enclosing group's (13.18.60.4 GR1) -- feeding the group-header shed, the leaf's representation and EVERY 13.18.60.3 screen through the SAME code the written-clause path runs (PictureAnalyzer.ScreenUsageAgainstPicture, extracted for the purpose). The invariant is stated and locked as an EQUIVALENCE rather than as cases: `01 G USAGE u. 05 A <pic>.` and `01 G. 05 A <pic> USAGE u.` are the same item, so they must produce the same verdict, the same diagnostic code and the same width, for EVERY member of the Usage enum. UsageInheritanceDriftTests enumerates the enum and asserts exactly that (24 members x 6 pictures x 2 arms). MEASURED on the pre-fix tree 39479e19: 108 of those 138 cells DIFFERED between the two arms; after the fix, 0 differ. THE FOURTH CELL IS CLOSED. The row's own REFUTED paragraph named the shape exactly: SR5 is a 2x2 over (acquisition arm) x (non-boolean picture, no picture), and the picture-less INHERITED cell -- `01 G USAGE BIT. 05 A.` -- was accepted SILENTLY and the item was dropped from the emitted record struct, so referencing it leaked a raw Roslyn error instead of a diagnostic. It is now the same COBOL0881 the written-clause spelling has always given, naming the group the usage came from (\"an elementary item with USAGE BIT inherited from its group 'G' requires a PICTURE clause\"). The other three cells are unchanged and still pinned. USAGE BIT and category boolean are COBOL-2002 additions (COBOL0900 at --std 85), which is the row's edition set.",
+ "state": "OK"
+}

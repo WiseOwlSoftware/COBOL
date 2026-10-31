@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.2.2.1-3",
+ "section": "8.4.2.2.1",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Qualification",
+ "rule-digest": "5e8ef35c6e65",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportVaryingModel; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveSubscriptName; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#VaryingExpr",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/pb1306_varying_scope; conformance:cases/8.4.2.2-Qualification/pb1292_source_operand_forms",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1306 landed. cite.py --check 8.4.2.2.1 'It is unique within the context of a VARYING clause' OK (rule 3). The VARYING context is 13.18.64.3 SR2's scope: a counter name is unqualified wherever it is in scope - its own entry and every subordinate entry's SOURCE, subscripts, FROM and BY (pb1306_varying_scope, pb1292_source_operand_forms) - and, because SR2 forbids defining the name elsewhere, no other item can answer it. retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#FieldVaryingSource (FieldVaryingSource is deleted; the counter name is read through ReferenceResolver.VaryingScope)",
+ "state": "OK"
+}

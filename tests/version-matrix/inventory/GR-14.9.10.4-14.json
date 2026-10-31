@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.10.4-14",
+ "section": "14.9.10.4",
+ "kind": "GR",
+ "ordinal": 14,
+ "subject": "DELETE statement",
+ "rule-digest": "e0602f8fc0a4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#DeleteFile",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/delete_file_absent;conformance:cases/9.1.13.9-File-sharing-conflict-condition-with-unsuccessful/delete_file_sharing",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "Read FileRegistry.DeleteFile: 'if (!File.Exists(c.HostPath)) status = FileStatusCode.OptionalFileNotFound;' with OptionalFileNotFound = \\\"05\\\" (FileStatus.cs), reached only after the '41' and '62' guards, and assigned as the ordinary (non-throwing) outcome so it is treated as SUCCESS downstream. The success classification is load-bearing and is implemented: KeyedIoEmitter.EmitDeleteFile branches on 'st[0] != \\'0\\'' for ON EXCEPTION, so '05' takes the NOT ON EXCEPTION arm, and its comment states the rule ('\\'05\\' (absent file) is a SUCCESSFUL completion (GR14) and takes the NOT ON EXCEPTION path'). Two spec-derived goldens close it: tests/conformance/2023/delete_file_absent.cob deletes a never-created file with both phrases written and its .out is exactly 'NOEXC' + 'ST=05' -- proving both the value and the success classification; tests/conformance/2023/delete_file_sharing.cob re-deletes an already-deleted file and pins 'DEL05=05'. DESIGN-SPEC-RECONCILIATION row 20 records the earlier wrong claim (that a missing file gave '35') as repaired, and docs/FILES_DESIGN.md:117 now states the rule correctly. || UPHELD: the success CLASSIFICATION, which is the half that can silently go wrong, I validated independently against the spec rather than against the code comment -- cite.py --check 9.1.13.2 -> 'OK 9.1.13.2 4) b) For a DELETE FILE statement, the referenced file is not available', and 9.1.13.2 is titled 'Successful completion', so '05' is a success-class status and the NOT ON EXCEPTION routing is right. Confirmed the '05' assignment sits inside the try at FileRegistry.cs:381, after the '41' and '62' guards, and is not thrown. Both goldens are registered and actually run (tests/conformance/2023/manifest.json:35-36; ConformanceTests.cs:241,244) and I read their .out files: 'NOEXC' + 'ST=05', and 'DEL05=05'. Edition 2023 re-derived from Annex E.3.3 items 15 and 35 (both validated), not from the compiler's gate. One boundary this row does NOT own and does not claim: a file that is present but cannot be observed is also classified '05' by File.Exists -- that is charged to GR-14.9.10.4-16.",
+ "state": "OK"
+}
