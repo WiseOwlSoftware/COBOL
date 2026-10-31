@@ -1,4 +1,4 @@
-## CI's concurrent-job budget is 60 on GitHub Team: the workflow comment and the design say so, and the merge queue's width of 5 is re-measured and kept (PB3773)
+## Entry 2871 — 2026-10-31 12:58 PDT — CI's concurrent-job budget is 60 on GitHub Team: the workflow comment and the design say so, and the merge queue's width of 5 is re-measured and kept (PB3773)
 
 The org moved to GitHub Team on 2026-10-25, which gives standard hosted runners 60 concurrent jobs where the Free plan gave
 20. The workflow's comment at the `pull_request` trigger and `DESIGN-test-build-ci.md` section 3.17.2 step 5 still described
@@ -18,3 +18,4 @@ narrowing (a measured day in which full groups wait for runners). No ruleset cha
 reports ACTIVE with the committed value.
 
 No code changed, so no golden; the note claims no inventory row and closes none.
+
