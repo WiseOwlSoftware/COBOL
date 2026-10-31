@@ -470,12 +470,22 @@ class KeyGroup:
 
 #: The suite runner's theory argument naming a test (ConformanceSuiteTests: `SuiteTest_…(edition, id)` and
 #: `WiseOwlRefusal_…(id, edition)`): a case of a test the change touches (`impacted_tests.suite_tests`) is tier 0a.
-SUITE_ID = 'id: '
+#: xunit cuts a long string argument and marks the cut with `···` after its closing quote (`id: "<first 50>"···`), so
+#: a cut argument names every touched id it begins: the rows of a long id are tier 0a too, never left to the budget.
+SUITE_ID = re.compile(r'(?:\(|, )id: "([^"]*)"(···)?')
+
+
+def names_golden(display: str, goldens: set[str]) -> bool:
+    """Whether a case's display names a suite test the change touches, by its `id` argument, whole or cut."""
+    for m in SUITE_ID.finditer(display):
+        arg, cut = m.group(1), m.group(2)
+        if arg in goldens or (cut and any(g.startswith(arg) for g in goldens)):
+            return True
+    return False
 
 
 def tier_of(display: str, key: str, ctx: Context, per_case: float | None, has_timings: bool) -> str:
-    if (method_of(display) in ctx.changed_tests or key in ctx.reds
-            or any(f'({SUITE_ID}"{g}"' in display or f', {SUITE_ID}"{g}"' in display for g in ctx.goldens)):
+    if method_of(display) in ctx.changed_tests or key in ctx.reds or names_golden(display, ctx.goldens):
         return "0a"
     cls = class_of(key)  # the class without its partition suffix: a trait is declared on the family
     if cls in ctx.host_classes or cls == TRAIT_GUARD:
@@ -736,6 +746,16 @@ def self_test() -> int:
           p["leg1"] == [name_key(red), f"{ns}Changed.M", name_key(row)]   # inside tier 0a, cheapest first
           and p["stats"]["tiers"]["0a"] == 3, p["leg1"])
     check("tiers 2 and 3 never enter leg 1 on the budget", p["stats"]["leg1_cases"] == 3, p["stats"])
+    # xunit cuts a string argument over 50 characters: `id: "<first 50>"···` (the 2014 row of this refusal was left to
+    # leg 2 by a whole-id match while its registry file was in the diff, PB4147's finisher).
+    long_id = "pb1125-inspect-tallying-first-operand-without-adjective"
+    refusal = f"{ns}ConformanceSuiteTests_P22.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic"
+    cut = f'{refusal}(id: "{long_id[:50]}"···, edition: "2014")'
+    stranger = f'{refusal}(id: "{"z" * 50}"···, edition: "2014")'
+    got = [tier_of(d, name_key(d), ctx(goldens=g), None, False)
+           for d, g in ((cut, {long_id}), (stranger, {long_id}), (cut, {long_id[:20]}), (row, {"g1"}))]
+    check("tier 0a: a touched golden's row is named by its id argument, whole or cut by xunit; a cut argument names "
+          "only the ids it begins", got == ["0a", "1", "1", "0a"], got)
     # tier 0u: unknown cases charged the median; the budget admits some, the overflow LEADS leg 2.
     new = [f"{ns}New.M{i}" for i in range(30)]
     p = plan_assembly(cheap + [pole] + new, ctx(previous=t, map_known=known, tiers={k: 1 for k in known}))

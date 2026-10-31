@@ -126,7 +126,7 @@ CONVENTIONS = {
                        "otherwise). Deterministic output only. There is no manifest.",
     "negative-golden": "conformance-suite/cases/<ISO clause>-<Name>/<id>.cob with the metadata header and NO accept; "
                        "return its refusal {\"refuse-at\": [<editions>], \"expect\": \"<code, e.g. COBOL1560>\"} "
-                       "for conformance-suite/wiseowl/diagnostics.json (the director merges it).",
+                       "for conformance-suite/wiseowl/diagnostics/<test id>.json (the director writes the file).",
     "test-ref-forms": "conformance:cases/<clause folder>/<id> (spec-derived) · conformance:wiseowl/cases/<folder>/<id> · "
                       "unit:<Class>.<Method> · conformance-test:<Class>.<Method>. nist:/characterization: and any "
                       "*_MatchesLegacy method are NOT spec-derived and cannot close a row.",

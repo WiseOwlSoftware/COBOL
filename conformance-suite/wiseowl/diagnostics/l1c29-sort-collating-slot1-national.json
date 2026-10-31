@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "COBOL0898: SORT/MERGE COLLATING SEQUENCE 'N-NAT': alphabet-name-1 shall reference an alphabet that defines an ALPHANUMERIC collating sequence — 'N-NAT' is defined FOR NATIONAL (ISO §14.9.40.3 SR1)"}

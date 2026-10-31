@@ -314,6 +314,25 @@ channels { ABSENT_DEBUG_LINE }
         Column = TokenStartColumn + length;
     }
 
+    // The action of the four delimited-literal tokens (kb/Work PB3245). A literal whose closing delimiter the line never
+    // writes is still that literal's token (see STR_BODY), and it runs to the end of the line, so a line's trailing
+    // separator period would be inside it and the statement it ends would run on into the next. The token therefore
+    // gives back its trailing spaces and ONE trailing period: `DISPLAY "HELLO.` is the unterminated literal "HELLO, the
+    // separator period, and nothing else to report. Content only: neither a prefix letter nor the opening delimiter is
+    // a space or a period, so the cut never reaches them. A closed literal is never cut: it ends on its quotation
+    // symbol, so a match that ends on a space or a period is an open one, and that one-character test is all the action
+    // asks of the common case (no text is materialized for it).
+    private void OnDelimitedLiteral()
+    {
+        int last = InputStream.LA(-1);   // the match's last character
+        if (last != ' ' && last != '.') return;
+        string text = Text;
+        int end = text.Length;
+        while (text[end - 1] == ' ') end--;
+        if (text[end - 1] == '.') end--;
+        if (end < text.Length) CutTokenTo(end);
+    }
+
     public override Antlr4.Runtime.IToken NextToken()
     {
         var token = base.NextToken();
@@ -1058,7 +1077,21 @@ COMMA_FLOATLIT : FLOAT_COMMA_BODY ;
 // One definition per literal tokenization shape, referenced by the literal tokens and their sign-adjacent twins. A
 // second lexer mode used to re-declare each body char-for-char (the SUBSCRIPT mode, deleted by kb/Work PB2113); a
 // string-escape / national-literal / data-name fix is applied ONCE (DESIGN-frontend-grammar §3.3b).
-fragment STR_BODY  : '"' (~["\n] | '""')* '"' | '\'' (~['\n] | '\'\'')* '\'' ;   // STRINGLIT
+// ⛔ THE CLOSING DELIMITER IS OPTIONAL HERE, AND AN UNTERMINATED LITERAL IS STILL THE LITERAL'S TOKEN (kb/Work PB3245).
+// The general formats close every delimited literal (§8.3.3.2.2, §8.3.3.4.2, §8.3.3.5.2), and a literal may stay open at
+// the end of a line only when a continuation line continues it (§6.3.5 1) fixed, §6.4.2 floating: "When such a literal
+// is incomplete at the end of a line, the incomplete portion of the literal shall be terminated by a floating
+// continuation indicator") — and the reference-format stage has already joined every continued literal into one line,
+// so an opening delimiter this text never closes is an error. It used to match nothing: the delimiter fell to ANY_CHAR
+// and the literal's content lexed as words, so the parser reported a cascade of unnamed COBOL0001s and no diagnostic
+// said "unterminated". The R03 doctrine above settles the shape — the token must MATCH so something is left to
+// diagnose: the literal runs to the end of its line (maximal munch prefers the closed form whenever the line closes it,
+// a doubled delimiter included), keeps its kind and its prefix, and the parser reads it as the literal it was meant to
+// be. LiteralScreen.ReportUnterminated names it (COBOL5563) over every token of the unit and of each compiler-directive
+// fragment; OnDelimitedLiteral gives back a trailing separator period. Not the reference-format stage's to decide: an
+// unterminated literal on a line an >>IF omits is legal (§7.3.16.4 3) omits "all lines of text-1"), and conditional
+// compilation runs after that stage.
+fragment STR_BODY  : '"' (~["\n] | '""')* '"'? | '\'' (~['\n] | '\'\'')* '\''? ;   // STRINGLIT
 // ⛔ FORMAT 2 IS THE SAME LITERAL KIND, SO IT IS THE SAME TOKEN (fix-queue R03). §8.3.3.5.2 and §8.3.3.4.2 each
 // print TWO general formats — `N"…"` / `NX"…"` and `B"…"` / `BX"…"` — and their ALL-FORMATS general rules put
 // both formats in ONE class and category (§8.3.3.5.4 GR2 national, §8.3.3.4.4 GR2 boolean). Folding Format 2
@@ -1179,12 +1212,12 @@ INTEGERLIT  : INT_BODY ;
 
 // ── String literals ──
 
-STRINGLIT   : STR_BODY ;
+STRINGLIT   : STR_BODY { OnDelimitedLiteral(); } ;
 // National literal N"…" / N'…' (ISO §8.3.3.5, COBOL-2002). The leading N is part of the token so
 // ANTLR's maximal-munch prefers it over IDENTIFIER (a bare N) and over a plain STRINGLIT; an
 // identifier such as NAME is unaffected (it has no opening quote). NX"…" (Format 2, hexadecimal-national) is
 // the same token (fix-queue R03).
-NATLIT      : NAT_BODY ;
+NATLIT      : NAT_BODY { OnDelimitedLiteral(); } ;
 // ⚠ ZERO LENGTH IS LEGAL IN BOTH DELIMITERS — §8.3.3.2.3 NOTE 2, "Hexadecimal-alphanumeric literals can be
 // of zero length", and §8.3.3.2.2 Format 2 brackets the hex sequence under BOTH delimiter spellings (page
 // rendered and verified — PB59). The quotation arm's `+` was fixed by R03's sweep; the APOSTROPHE arm kept
@@ -1192,11 +1225,11 @@ NATLIT      : NAT_BODY ;
 // hole, one delimiter over. The GROUPING rule (§8.3.3.2.3 r6, pairs of digits) and the REPERTOIRE rule (SR5,
 // hexadecimal digits) are asked by LiteralScreen, not here: a lexer that refused an odd count or a non-hex
 // digit would put the literal back in the silent-split hole this whole item exists to close (see HEX_BODY).
-HEXLIT      : HEX_BODY ;
+HEXLIT      : HEX_BODY { OnDelimitedLiteral(); } ;
 // Boolean literal B"0101" / B'0101' (ISO §8.3.3.4, COBOL-2002). The leading B is part of the token so
 // maximal-munch prefers it over IDENTIFIER (a bare B) and over a plain STRINGLIT. BX"…" (Format 2,
 // hexadecimal-boolean) is the same token; neither body is judged here (§8.3.3.4.3 SR2/SR3 — see HEX_BODY).
-BOOLLIT     : BOOL_BODY ;
+BOOLLIT     : BOOL_BODY { OnDelimitedLiteral(); } ;
 
 // ── Operators (multi-char before single-char) ──
 

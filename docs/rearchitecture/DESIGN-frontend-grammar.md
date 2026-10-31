@@ -929,10 +929,10 @@ reference formats, and the only place source comments are recognized. Its model:
   tab or a supplementary-plane character, for the physical columns PB1801 and PB2983 need); **the `--nist` archive markers** (`*HEADER,` / `*END-OF,` become empty lines, only when
   `ccvsIndicators`, PB1803); and the line NUMBER (every `PhysicalLine` carries the file's own, so a SOURCE FORMAT segment
   needs no offset). Every consumer — `IsFixedForm` (the Auto detector), `FirstSourceDirectiveCandidate` / `DirectiveText`
-  / `FormatSegments`, `FixedFormConverter.Convert` and `ConvertFreeLines` — takes `ReadOnlySpan<PhysicalLine>` and never
+  / `FormatSegments`, `FixedFormConverter.Convert` and `FreeFormConverter.Convert` — takes `ReadOnlySpan<PhysicalLine>` and never
   a string, so no caller can bypass the reader; `StripNistArchiveMarkers`, `ConvertFixedToFree`, the string
   `IsFixedForm` and the per-segment re-join are deleted. The free-form 255-position limit (§6.1 3) a); COBOL2653) is
-  asked in the free-form arm (`ConvertFreeLines`) on the expanded line — never on a fixed-form line, which may run past
+  asked in the free-form arm (`FreeFormConverter.Convert`) on the expanded line — never on a fixed-form line, which may run past
   margin R (§6.1 2) b)). Nothing after the stage has a tab or CR rule: the lexer's `WS` set is `[ \n]`, `TextWordScanner`
   and `SeparatorRule` agree, and `PhysicalLinesDriftTests` fails if a pipeline stage spells `\t` or `\r`, if a
   reference-format walker splits text itself, or if `PhysicalLines.Read` gains a second production caller.
@@ -1005,12 +1005,17 @@ reference formats, and the only place source comments are recognized. Its model:
   header line is written `AUTHOR. .`, the paragraph's terminating period standing for the discarded comment-entry,
   because COBOL-85 ended the entry at the next Area-A word — and only the entry (the rest of the header line and its
   Area-B body) is discarded, at every edition, so the `identification-comments-removed-2002` / `remarks-removed-2002`
-  gate (COBOL0902 from 2002) sees a fixed-form paragraph exactly as it sees a free-form one. The comment-entry exists
+  gate (COBOL0902 from 2002) sees the same paragraph in either format. The FREE-form classifier (`FreeFormConverter`)
+  does the same (docs/CONFORMANCE.md D-CE1, kb/Work PB3245 review R1-1): a line whose first word is a comment-entry
+  paragraph's word is written `AUTHOR. .` and the rest of that line, the entry, is discarded (GnuCOBOL 3.2's `-free`
+  reading; no edition has both free form and a comment-entry), so in neither format does comment-entry text reach the
+  lexer, where an apostrophe in a name would be an unclosed literal (COBOL5563) and a comma with no space after it a
+  misplaced separator. The comment-entry exists
   only in an IDENTIFICATION DIVISION, so library text is converted starting in the division its COPY statement stands in
   (`DivisionCursor` reads it off the text-words before the COPY; `CopyProcessor` hands it to the shared walker, and the
-  state is carried across a text's SOURCE FORMAT segments) — a `REMARKS.` paragraph copied into a PROCEDURE DIVISION is
-  program text. `DivisionCursor` is the ONE rule for which division a text is in (kb/Work PB2739), fed by the fixed-form
-  converter line by line and by the COPY driver over logical text: a `DIVISION` word preceded by `IDENTIFICATION` / `ID`
+  state is carried across a text's SOURCE FORMAT segments in either format, `ConvertSegment`) — a `REMARKS.` paragraph
+  copied into a PROCEDURE DIVISION is program text. `DivisionCursor` is the ONE rule for which division a text is in
+  (kb/Work PB2739), fed by the fixed-form and free-form converters line by line and by the COPY driver over logical text: a `DIVISION` word preceded by `IDENTIFICATION` / `ID`
   enters, any other `… DIVISION` leaves, and `PROGRAM-ID` / `CLASS-ID` / `FUNCTION-ID` / `INTERFACE-ID` / `METHOD-ID`
   enter (the header being optional, §11.2.1) — wherever the word begins in the program-text area (§6.3.1 draws no Area A
   line), a word merely ending in `-ID` being a user's name; within the conversion only the comment-entry paragraph's
@@ -1890,6 +1895,25 @@ is lexed apart from the unit and so never on that tree (the conditional-compilat
 kb/Work PB1616: the literal rules, and in a compiled branch the edition gates of a literal's format, are COBOL0814 /
 1635 / 2630 / 0900 there exactly as in the program text). A lexer action that ends a token early does
 so through `CutTokenTo(length)`, which restores the column with the input position (kb/Work PB1728).
+
+**A literal its line ends inside is still that literal's token (kb/Work PB3245).** The general formats close every
+delimited literal (§8.3.3.2.2, §8.3.3.4.2, §8.3.3.5.2), and one may stay open at the end of a line only when a
+continuation line continues it (§6.3.5 1), §6.4.2) — which the reference-format stage has already joined, so a literal
+still open when the text is lexed was never closed. `STR_BODY`'s closing delimiter is therefore optional: maximal munch
+takes the closed form whenever the line closes the literal (a doubled delimiter is content), and otherwise the literal
+runs to the end of its line, keeping its kind and prefix, so the parser reads the literal that was meant and draws no
+cascade (the delimiter used to fall to `ANY_CHAR` and the content to lex as words: a run of unnamed COBOL0001s). The four
+literal tokens share one action, `OnDelimitedLiteral`, which gives back an open literal's trailing spaces and ONE trailing
+period through `CutTokenTo`, so `DISPLAY "HELLO.` still ends its sentence (a closed literal ends on its quotation
+symbol, so the action needs only the match's last character to know it has nothing to cut).
+`CobolLiteral.IsUnterminated` is the one question the report asks; `CobolLiteral.SplitLiteral` declines an open literal, so the §8.3.3
+rules and the format gates never judge its content. `LiteralScreen.ReportUnterminated` names each one (COBOL5563) — over
+the unit's TOKEN stream in `Frontend.LexAndParseOnce`, first of the post-lex rules, because the open literal is usually why
+the parse fails and a unit whose parse fails is never bound; and over each directive fragment in
+`ScreenFragment`, whose verdict it joins (an open literal has no value to evaluate). The rule is not the reference-format
+stage's: a literal open on a line an `>>IF` omits is legal (§7.3.16.4 3)), and conditional compilation runs after that
+stage. The other literal scanners already name the case themselves (pseudo-text COBOL2449, a COPY operand COBOL2450,
+`>>COBOL-WORDS` its SR2 defect).
 
 ### 3.13 The characters of a COBOL word, and the ONE fold that compares words (kb/Work PB1402)
 

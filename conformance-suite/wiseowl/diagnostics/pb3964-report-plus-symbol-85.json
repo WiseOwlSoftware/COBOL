@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "COBOL0900: the '+' symbol for PLUS in a relative LINE or NEXT GROUP operand (report group description) requires COBOL-2002"}

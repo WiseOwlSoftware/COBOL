@@ -38,7 +38,7 @@ def main() -> int:
         f"tests/conformance/{rel.as_posix()} is under the REMOVED corpus tree (kb/Work PB3177): it never runs, and "
         f"`python conformance-suite/harness/generate.py --check` (a gate audit) refuses it. Move the test into "
         f"conformance-suite/cases/<ISO clause>-<Name>/ with its metadata header (conformance-suite/README.md, "
-        f"'Adding a test'); a negative is a refusal entry in conformance-suite/wiseowl/diagnostics.json.")}},
+        f"'Adding a test'); a negative is a refusal file conformance-suite/wiseowl/diagnostics/<test id>.json.")}},
         sys.stdout)
     return 0
 

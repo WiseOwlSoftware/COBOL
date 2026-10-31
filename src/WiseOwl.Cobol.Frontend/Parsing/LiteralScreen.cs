@@ -28,6 +28,10 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// rules that parse a sign as a separate token (<c>signedNumericLiteral</c>, <c>signedIntegerLiteral</c>): a sign
 /// separated from its digits is refused (<c>COBOL2155</c>; kb/Work PB1445). Not a token rule, but a rule of the
 /// literal as written, so it rides the same walk and every future signed slot is screened with no arm.</item>
+/// <item>the CLOSING DELIMITER — a literal its line ends inside, not continued (§6.3.5 1), §6.4.2;
+/// <see cref="ReportUnterminated(IEnumerable{IToken}, Action{IToken, DiagnosticDescriptor, string})"/> →
+/// <c>COBOL5563</c>, kb/Work PB3245). Asked of the TOKENS before the parse rather than by this walk, for the reason given
+/// there.</item>
 /// </list>
 /// </summary>
 /// <remarks>
@@ -156,6 +160,59 @@ public static class LiteralScreen
         using var _ = sink.At(t.Symbol.Line, t.Symbol.Column);
         ConstructRegistry.Check(edition, sink, Constructs.FloatingPointLiteral2002,
             $"the floating-point numeric literal {t.GetText()}");
+    }
+
+    /// <summary>⛔ THE LITERAL ITS LINE ENDS INSIDE (kb/Work PB3245) — every token of <paramref name="tokens"/> that is a
+    /// delimited literal with no closing delimiter (<see cref="CobolLiteral.IsUnterminated"/>), reported once each to
+    /// <paramref name="report"/> under COBOL5563. True when there is none. ISO §6.3.5 1) and §6.4.2 let a literal stay open
+    /// at the end of a line only when a continuation line continues it, and the reference-format stage has joined every
+    /// one that was; the lexer makes the rest the literal's own token (CobolLexer.g4 STR_BODY).
+    /// <para>⚠ ASKED OF THE TOKENS, BEFORE THE PARSE, AND NOT BY <see cref="Run"/>: an unterminated literal is often why
+    /// the parse fails, and a unit whose parse fails is never bound, so the bind-time walk would not see the one literal
+    /// that explains the failure. <c>Frontend</c> asks it of the unit's token stream beside the other post-lex rules
+    /// (<c>SeparatorRule</c>, <c>PictureSeparatorPeriodRule</c>), and the conditional-compilation stage of each directive
+    /// fragment's tree (<see cref="ReportUnterminated(IParseTree, Action{IToken, DiagnosticDescriptor, string})"/>), whose
+    /// lexing is apart from the unit's. <see cref="CobolLiteral.SyntaxViolation"/> never sees one: an open literal is no
+    /// well-formed literal, so it has no content for the §8.3.3 rules to judge and no format to gate.</para>
+    /// <para>A token on the <c>ABSENT_DEBUG_LINE</c> channel belongs to a debugging line that is a comment (kb/Work
+    /// PB1705), so it is no literal.</para></summary>
+    public static bool ReportUnterminated(IEnumerable<IToken> tokens, Action<IToken, DiagnosticDescriptor, string> report)
+    {
+        bool clean = true;
+        foreach (var t in tokens)
+        {
+            if (t.Channel == CobolLexer.ABSENT_DEBUG_LINE || !LiteralTokens.Types.Contains(t.Type)
+                || !CobolLiteral.IsUnterminated(t.Text)) continue;
+            // The opening delimiter is the first quotation symbol: a prefix letter is never one.
+            string closing = t.Text[t.Text.IndexOfAny(Quotes)] == '"' ? "quotation mark (\")" : "apostrophe (')";
+            report(t, DiagnosticCatalog.LiteralUnterminated,
+                $"the literal {CobolLiteral.Abbreviated(t.Text)} is not closed — its line ends before the closing "
+                + $"{closing}, and no continuation line continues it. ISO §6.4.2: \"When such a literal is incomplete at "
+                + "the end of a line, the incomplete portion of the literal shall be terminated by a floating continuation "
+                + "indicator\" (in fixed form, §6.3.5 1) also admits a hyphen in the indicator area of the next line)");
+            clean = false;
+        }
+        return clean;
+    }
+
+    /// <summary><see cref="ReportUnterminated(IEnumerable{IToken}, Action{IToken, DiagnosticDescriptor, string})"/> over
+    /// every token of a parsed compiler-directive fragment — the tokens the fragment's own lexing produced.</summary>
+    public static bool ReportUnterminated(IParseTree tree, Action<IToken, DiagnosticDescriptor, string> report) =>
+        ReportUnterminated(Tokens(tree), report);
+
+    private static readonly char[] Quotes = ['"', '\''];
+
+    /// <summary>The tokens of <paramref name="tree"/>'s terminal nodes, in source order.</summary>
+    private static IEnumerable<IToken> Tokens(IParseTree tree)
+    {
+        var pending = new Stack<IParseTree>();
+        pending.Push(tree);
+        while (pending.Count > 0)
+        {
+            var node = pending.Pop();
+            if (node is ITerminalNode t) { yield return t.Symbol; continue; }
+            for (int i = node.ChildCount - 1; i >= 0; i--) pending.Push(node.GetChild(i));
+        }
     }
 
     /// <summary>Report an ERROR under <paramref name="descriptor"/>'s code through the layer-neutral sink — the
