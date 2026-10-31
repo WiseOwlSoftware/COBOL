@@ -350,7 +350,7 @@ public sealed class ReservedWordPositionConformanceTests
 
     // ── One reserved-word reference, one diagnostic (kb/Work PB3248) ───────────────────────────────────────────
 
-    /// <summary>⛔ A REFERENCE TO A RESERVED VERB IS ONE §8.9 VIOLATION, REPORTED ONCE (kb/Work PB3248). ISO §8.3.2.1 1):
+    /// <summary>⛔ A REFERENCE TO A RESERVED VERB IS ONE §8.9 VIOLATION, REPORTED ONCE (kb/Work PB3248, PB4208, PB4218). ISO §8.3.2.1 1):
     /// "Reserved words shall not be used as user-defined words or system-names" — one occurrence breaks it once. RECEIVE
     /// and SEND (reserved at 85 and 2023) and VALIDATE (reserved from 2002) also BEGIN a statement, so the parser's
     /// recovery from the COBOL0901 used to resume AT the word, parse it as that statement and refuse the token after it:
@@ -383,6 +383,36 @@ public sealed class ReservedWordPositionConformanceTests
     [InlineData(2023, "PERFORM UNTIL VALIDATE W-X = 1 DISPLAY \"X\" END-PERFORM.", "VALIDATE")]
     [InlineData(2023, "PERFORM UNTIL W-N = 1 OR RECEIVE W-X = 1 DISPLAY \"X\" END-PERFORM.", "RECEIVE")]
     [InlineData(2023, "PERFORM WITH TEST AFTER UNTIL RECEIVE W-X = 1 DISPLAY \"X\" END-PERFORM.", "RECEIVE")]
+    // The verbs §8.9 reserves at EVERY edition are the same misuse (kb/Work PB4208): CONTINUE and EXIT parse as a statement
+    // of their own, so the recovery resumed at them and refused the token after (COBOL0001, then COBOL2269 at TO);
+    // EVALUATE and IF open a construct and drew a third diagnostic. No cascade for any verb, at any edition.
+    [InlineData(2023, "MOVE CONTINUE TO W-X.", "CONTINUE")]
+    [InlineData(85, "MOVE CONTINUE TO W-X.", "CONTINUE")]
+    [InlineData(2023, "MOVE EXIT TO W-X.", "EXIT")]
+    [InlineData(2023, "ADD STOP TO W-N.", "STOP")]
+    [InlineData(2023, "MOVE EVALUATE TO W-X.", "EVALUATE")]
+    [InlineData(2023, "DISPLAY ADD.", "ADD")]
+    [InlineData(2023, "MOVE ADD TO W-X.", "ADD")]
+    [InlineData(2023, "DISPLAY IF.", "IF")]
+    [InlineData(2023, "IF CONTINUE = 1 DISPLAY \"X\" END-IF.", "CONTINUE")]
+    [InlineData(2023, "COMPUTE W-N = MOVE + 1.", "MOVE")]
+    // The word is the WHOLE left operand of an inline PERFORM's UNTIL condition, or the operand of another statement's
+    // phrase (kb/Work PB4218): deleting it cannot repair the condition, ANTLR's resynchronization stopped at the "1" (an
+    // integer begins a TIMES phrase), and a false COBOL5506 "expected TIMES" followed the COBOL0901. The word is read as
+    // the name it stood for, and the source goes on as written.
+    [InlineData(2023, "PERFORM UNTIL RECEIVE = 1 DISPLAY \"X\" END-PERFORM.", "RECEIVE")]
+    [InlineData(2023, "PERFORM UNTIL GOBACK = 1 DISPLAY \"X\" END-PERFORM.", "GOBACK")]
+    [InlineData(2023, "PERFORM UNTIL SEND = 1 DISPLAY \"X\" END-PERFORM.", "SEND")]
+    [InlineData(85, "PERFORM UNTIL RECEIVE = 1 DISPLAY \"X\" END-PERFORM.", "RECEIVE")]
+    [InlineData(2002, "PERFORM UNTIL VALIDATE = 1 DISPLAY \"X\" END-PERFORM.", "VALIDATE")]
+    [InlineData(2023, "PERFORM UNTIL W-N = 1 OR SEND = 2 DISPLAY \"X\" END-PERFORM.", "SEND")]
+    [InlineData(2023, "PERFORM WITH TEST AFTER UNTIL SEND = 1 DISPLAY \"X\" END-PERFORM.", "SEND")]
+    [InlineData(2023, "PERFORM VARYING IX FROM 1 BY 1 UNTIL SEND = 1 DISPLAY \"X\" END-PERFORM.", "SEND")]
+    [InlineData(2023, "PERFORM VARYING RECEIVE FROM 1 BY 1 UNTIL W-N = 1 DISPLAY \"X\" END-PERFORM.", "RECEIVE")]
+    [InlineData(2023, "PERFORM VARYING ADD FROM 1 BY 1 UNTIL W-N = 1 DISPLAY \"X\" END-PERFORM.", "ADD")]
+    [InlineData(2023, "EVALUATE SEND WHEN 1 DISPLAY \"X\" END-EVALUATE.", "SEND")]
+    [InlineData(2023, "EVALUATE TRUE WHEN SEND = 1 DISPLAY \"X\" END-EVALUATE.", "SEND")]
+    [InlineData(2023, "IF SEND = 1 DISPLAY \"X\" END-IF.", "SEND")]
     public void AReservedVerbWrittenAsAnOperand_DrawsOneDiagnostic(int edition, string statement, string word)
     {
         var (ok, diags) = EditionHarness.Compile($"""
@@ -406,25 +436,37 @@ public sealed class ReservedWordPositionConformanceTests
             $"expected exactly the one COBOL0901 naming '{word}', got:\n{string.Join("\n", diags)}");
     }
 
-    /// <summary>⛔ THE OTHER ARM: A RESERVED VERB THAT CORRECTLY BEGINS THE NEXT STATEMENT IS READ AS THAT STATEMENT
-    /// (kb/Work PB3248, branch review R1-1). After an incomplete statement (<c>MOVE W-X TO</c>, its receiver missing) the
-    /// syntax error falls AT the next statement's verb, and the report names it as the word's §8.9 violation just as
-    /// it does an operand (a user-defined word stands there: the MOVE's missing receiver). Consuming that verb as an operand resumed the parse inside the correct statement that follows
-    /// and refused one of ITS words: <c>RECEIVE FROM W-X GIVING W-Y W-N</c> drew "unexpected 'GIVING'", <c>SEND TO W-X
+    /// <summary>⛔ THE OTHER ARM: A RESERVED VERB THAT CORRECTLY BEGINS THE NEXT STATEMENT IS READ AS THAT STATEMENT AND
+    /// IS NOT CALLED A MISUSED NAME (kb/Work PB3248 review R1-1; PB4207). After an incomplete statement (<c>MOVE W-X TO</c>,
+    /// its receiver missing) the syntax error falls AT the next statement's verb, and a user-defined word could stand there:
+    /// the MOVE's missing receiver. Consuming that verb as an operand resumed the parse inside the correct statement that
+    /// follows and refused one of ITS words: <c>RECEIVE FROM W-X GIVING W-Y W-N</c> drew "unexpected 'GIVING'", <c>SEND TO W-X
     /// FROM W-Y RETURNING W-N END-SEND</c> "unexpected 'FROM'", and <c>RESUME AT NEXT STATEMENT</c> was told to write
-    /// SENTENCE. The recovery resumes at the verb when the statement it begins parses, so the source's one error is
-    /// reported once. The last row is the arm's control: a reserved verb whose statement does NOT parse
-    /// (<c>SEND TO W-X.</c>, no FROM phrase) is still consumed, and still draws one diagnostic. Each row asserts exactly
-    /// one diagnostic, at the verb's line.</summary>
+    /// SENTENCE. The recovery resumes at the verb when the statement it begins parses, so the source's one error is reported
+    /// once; and the REPORT is the ordinary one for the parse at that token ("unexpected 'RECEIVE'", exactly what ADD or
+    /// DISPLAY there draws), never COBOL0901, which says the verb was misused as a name (§8.3.2.1 1)), when the fault is the
+    /// missing receiver (PB4207). The last row is the arm's control: a reserved verb whose statement does NOT parse
+    /// (<c>ADD.</c>, the verb alone) or is cut short by the sentence's end where the word read as a name goes on (<c>MOVE W-Y.</c>,
+    /// <c>DISPLAY RECEIVE W-X.</c>) stands for the operand, is refused as the name (COBOL0901) and consumed. Each
+    /// row asserts exactly one diagnostic, at the verb's line.</summary>
     [Theory]
-    [InlineData("MOVE W-X TO", "RECEIVE FROM W-X GIVING W-Y W-N", "DISPLAY \"A\".", "RECEIVE")]
-    [InlineData("MOVE W-X TO", "SEND TO W-X FROM W-Y RETURNING W-N END-SEND", "DISPLAY \"A\".", "SEND")]
-    [InlineData("IF W-N = 1 MOVE W-X TO", "SEND TO W-X FROM W-Y RETURNING W-N END-SEND", "END-IF.", "SEND")]
-    [InlineData("MOVE W-X TO", "RESUME AT NEXT STATEMENT", "DISPLAY \"A\".", "RESUME")]
-    [InlineData("MOVE W-X TO", "VALIDATE W-X", "DISPLAY \"A\".", "VALIDATE")]
-    [InlineData("MOVE W-X TO", "SEND TO W-X.", "DISPLAY \"A\".", "SEND")]
+    [InlineData("MOVE W-X TO", "RECEIVE FROM W-X GIVING W-Y W-N", "DISPLAY \"A\".", "RECEIVE", false)]
+    [InlineData("MOVE W-X TO", "SEND TO W-X FROM W-Y RETURNING W-N END-SEND", "DISPLAY \"A\".", "SEND", false)]
+    [InlineData("IF W-N = 1 MOVE W-X TO", "SEND TO W-X FROM W-Y RETURNING W-N END-SEND", "END-IF.", "SEND", false)]
+    [InlineData("MOVE W-X TO", "RESUME AT NEXT STATEMENT", "DISPLAY \"A\".", "RESUME", false)]
+    [InlineData("MOVE W-X TO", "VALIDATE W-X", "DISPLAY \"A\".", "VALIDATE", false)]
+    // The verbs §8.9 reserves at every edition are asked the same question (kb/Work PB4207, PB4208).
+    [InlineData("MOVE W-X TO", "ADD 1 TO W-N", "DISPLAY \"A\".", "ADD", false)]
+    [InlineData("MOVE W-X TO", "CONTINUE", "DISPLAY \"A\".", "CONTINUE", false)]
+    [InlineData("MOVE W-X TO", "GOBACK", "DISPLAY \"A\".", "GOBACK", false)]
+    // The verb alone before the period shows nothing was written beyond the word (kb/Work PB4207 review R1-1): the operand.
+    [InlineData("MOVE W-X TO", "ADD.", "DISPLAY \"A\".", "ADD", true)]
+    // A statement cut short by the sentence's end that the word read as a name does not exclude: MOVE W-X TO MOVE W-Y is a
+    // MOVE with two receivers and DISPLAY RECEIVE W-X a DISPLAY of two operands, and §8.3.2.1 1) names that reading.
+    [InlineData("MOVE W-X TO", "MOVE W-Y.", "DISPLAY \"A\".", "MOVE", true)]
+    [InlineData("DISPLAY", "RECEIVE W-X.", "DISPLAY \"A\".", "RECEIVE", true)]
     public void AReservedVerbBeginningTheNextStatement_DrawsOneDiagnostic(
-        string incomplete, string statement, string rest, string word)
+        string incomplete, string statement, string rest, string word, bool standsForTheOperand)
     {
         var (ok, diags) = EditionHarness.Compile($"""
                    IDENTIFICATION DIVISION.
@@ -446,6 +488,42 @@ public sealed class ReservedWordPositionConformanceTests
         Assert.True(diags.Count == 1 && diags[0].Contains($"'{word}'", StringComparison.Ordinal)
                                      && diags[0].Contains("(11,", StringComparison.Ordinal),
             $"expected exactly one diagnostic, at '{word}' on line 11, got:\n{string.Join("\n", diags)}");
+        Assert.Equal(standsForTheOperand, diags[0].Contains("COBOL0901", StringComparison.Ordinal));
+    }
+
+    /// <summary>⛔ THE SAME ARM, THE NEXT STATEMENT CARRYING A FAULT OF ITS OWN (kb/Work PB4207, review R1-1). The verb after
+    /// an incomplete statement begins a statement the writer meant even when that statement is itself incomplete, and the
+    /// word read as a name would not let the source go on: ADD, SEND and DISPLAY below each lack something of their own (ISO
+    /// §14.9.2.2 prints "TO identifier-2", §14.9.11.2 a mnemonic-name after UPON, and the SEND statement its FROM phrase).
+    /// Calling the verb a misused name (COBOL0901) consumed it as the MOVE's receiver and lost the second statement's fault.
+    /// Each row asserts BOTH faults: the ordinary refusal at the verb (line 10, never COBOL0901) and the second statement's
+    /// own refusal after it.</summary>
+    [Theory]
+    [InlineData("ADD 1 TO.", "ADD")]
+    [InlineData("SEND TO W-X.", "SEND")]
+    [InlineData("DISPLAY W-Y UPON.", "DISPLAY")]
+    public void AReservedVerbBeginningAnIncompleteNextStatement_IsNotCalledAMisusedName(string statement, string word)
+    {
+        var (ok, diags) = EditionHarness.Compile($"""
+                   IDENTIFICATION DIVISION.
+                   PROGRAM-ID. PB4207R1.
+                   DATA DIVISION.
+                   WORKING-STORAGE SECTION.
+                   01 W-X PIC X(4).
+                   01 W-Y PIC X(4).
+                   PROCEDURE DIVISION.
+                   MAIN-P.
+                       MOVE W-X TO
+                       {statement}
+                       DISPLAY W-Y.
+                       STOP RUN.
+
+               """, 2023);
+        Assert.False(ok);
+        Assert.True(diags.Count == 2 && diags[0].Contains($"unexpected '{word}'", StringComparison.Ordinal)
+                                     && diags[0].Contains("(10,", StringComparison.Ordinal)
+                                     && diags.All(d => !d.Contains("COBOL0901", StringComparison.Ordinal)),
+            $"expected the refusal at '{word}' on line 10 and the statement's own, no COBOL0901, got:\n{string.Join("\n", diags)}");
     }
 
     // ── A reserved word in a procedure-name slot (kb/Work PB4206) ─────────────────────────────────────────────────

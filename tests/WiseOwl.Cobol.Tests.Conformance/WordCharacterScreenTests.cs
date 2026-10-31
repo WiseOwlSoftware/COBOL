@@ -16,7 +16,7 @@ public sealed class WordCharacterScreenTests
     private const string Euro = "€";
     private const string Katakana = "・";
 
-    /// <summary>A program whose second DISPLAY does not parse (<c>MOVE MOVE</c>), so nothing here reaches a bound tree.</summary>
+    /// <summary>A program whose second DISPLAY does not parse (<c>MOVE TO</c>), so nothing here reaches a bound tree.</summary>
     private static string Unparseable(string name, string uses) => $"""
         IDENTIFICATION DIVISION.
         PROGRAM-ID. PB3845T.
@@ -24,7 +24,7 @@ public sealed class WordCharacterScreenTests
         WORKING-STORAGE SECTION.
         01 {name} PIC X VALUE "M".
         PROCEDURE DIVISION.
-            DISPLAY {uses} MOVE MOVE.
+            DISPLAY {uses} MOVE TO.
             STOP RUN.
         """;
 
@@ -86,7 +86,7 @@ public sealed class WordCharacterScreenTests
     public void AParsedSource_KeepsItsBindErrorsBesideTheWordCharacterError()
     {
         string word = "X" + Euro;
-        var (ok, errors, _) = EditionHarness.CompileFull(Unparseable(word, word + " NOWHERE-DEFINED").Replace(" MOVE MOVE", ""), 2023);
+        var (ok, errors, _) = EditionHarness.CompileFull(Unparseable(word, word + " NOWHERE-DEFINED").Replace(" MOVE TO", ""), 2023);
         Assert.False(ok);
         Assert.Contains(errors, e => e.Contains("COBOL2773"));
         Assert.Contains(errors, e => e.Contains("NOWHERE-DEFINED"));
@@ -101,7 +101,7 @@ public sealed class WordCharacterScreenTests
             IDENTIFICATION DIVISION.
             PROGRAM-ID. PB3845P.
             PROCEDURE DIVISION.
-                DISPLAY "X" UPON OUT{Euro} MOVE MOVE.
+                DISPLAY "X" UPON OUT{Euro} MOVE TO.
                 STOP RUN.
             """;
         var (_, errors, _) = EditionHarness.CompileFull(source, 2023);
@@ -120,7 +120,7 @@ public sealed class WordCharacterScreenTests
             PROGRAM-ID. PB3845F.
             AUTHOR. JOSE_X {Euro}.
             PROCEDURE DIVISION.
-                DISPLAY "A" MOVE MOVE.
+                DISPLAY "A" MOVE TO.
                 STOP RUN.
             """;
         var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition);
@@ -146,7 +146,7 @@ public sealed class WordCharacterScreenTests
             "       PROGRAM-ID. PB3845D.",
             "       PROCEDURE DIVISION.",
             "      D    DISPLAY " + word + ".",
-            "           DISPLAY \"A\" MOVE MOVE.",
+            "           DISPLAY \"A\" MOVE TO.",
             "           STOP RUN.",
             "");
         var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition);
@@ -171,7 +171,7 @@ public sealed class WordCharacterScreenTests
     {
         string word = "PREIS" + character;
         string source = Unparseable(word, word);
-        if (parses) source = source.Replace(" MOVE MOVE", "");
+        if (parses) source = source.Replace(" MOVE TO", "");
         var (ok, errors, warnings) = EditionHarness.CompileFull(source, 85);
         string all = string.Join('\n', errors.Concat(warnings));
         Assert.False(ok);
@@ -197,7 +197,7 @@ public sealed class WordCharacterScreenTests
     {
         string word = "CAFÉ" + Euro;
         string source = Unparseable(word, word);
-        if (parses) source = source.Replace(" MOVE MOVE", "");
+        if (parses) source = source.Replace(" MOVE TO", "");
         var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition);
         Assert.False(ok);
         Assert.Contains(errors, e => e.Contains("COBOL2773") && e.Contains("U+20AC"));
@@ -221,9 +221,9 @@ public sealed class WordCharacterScreenTests
             IDENTIFICATION DIVISION.
             PROGRAM-ID. PB4131A.
             PROCEDURE DIVISION.
-                DISPLAY "A" MOVE MOVE.
-                DISPLAY X{Euro} MOVE MOVE.
-                DISPLAY "B" MOVE MOVE.
+                DISPLAY "A" MOVE TO.
+                DISPLAY X{Euro} MOVE TO.
+                DISPLAY "B" MOVE TO.
                 STOP RUN.
             """;
         var (ok, errors, _) = EditionHarness.CompileFull(source, edition);
@@ -267,7 +267,7 @@ public sealed class WordCharacterScreenTests
     {
         string word = "CAFÉ" + Euro;
         string source = Unparseable(word, word);
-        if (parses) source = source.Replace(" MOVE MOVE", "");
+        if (parses) source = source.Replace(" MOVE TO", "");
         var (ok, errors, _) = EditionHarness.CompileFull(source, 85);
         Assert.False(ok);
         var codes = errors
@@ -287,12 +287,12 @@ public sealed class WordCharacterScreenTests
             IDENTIFICATION DIVISION.
             PROGRAM-ID. PB4200C.
             PROCEDURE DIVISION.
-                DISPLAY "A" MOVE MOVE.
+                DISPLAY "A" MOVE TO.
                 COPY BADMEMBER.
-                DISPLAY X{Euro} MOVE MOVE.
+                DISPLAY X{Euro} MOVE TO.
                 STOP RUN.
             """;
-        string member = "\n\n\n\n\n\n\n\n    DISPLAY \"C\" MOVE MOVE.\n";
+        string member = "\n\n\n\n\n\n\n\n    DISPLAY \"C\" MOVE TO.\n";
         var (ok, errors, _) = EditionHarness.CompileFull(source, 2023,
             copybooks: new Dictionary<string, string> { ["BADMEMBER.cpy"] = member });
         Assert.False(ok);
@@ -316,12 +316,12 @@ public sealed class WordCharacterScreenTests
             IDENTIFICATION DIVISION.
             PROGRAM-ID. PB4200D.
             PROCEDURE DIVISION.
-                DISPLAY "A" MOVE MOVE.
+                DISPLAY "A" MOVE TO.
                 DISPLAY X{Euro}.
                 COPY BADMEMBER.
                 STOP RUN.
             """;
-        string member = "    DISPLAY \"C\" MOVE MOVE.\n";
+        string member = "    DISPLAY \"C\" MOVE TO.\n";
         var (ok, errors, _) = EditionHarness.CompileFull(source, 2023,
             copybooks: new Dictionary<string, string> { ["BADMEMBER.cpy"] = member });
         Assert.False(ok);
