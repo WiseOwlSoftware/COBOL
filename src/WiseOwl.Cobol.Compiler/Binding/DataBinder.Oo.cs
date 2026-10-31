@@ -525,6 +525,7 @@ public sealed partial class DataBinder
         }
         if (pd?.returningClause()?.dataReference() is { } rref)
         {
+            using var returningAt = Edition.At(rref);   // the RETURNING item's own position, as each USING parameter's (kb/Work PB2034)
             m.Binding!.Returning = m.Binding!.LinkageRoots.FirstOrDefault(r =>
                 CobolNames.Same(r.CobolName, rref.GetText()));
             if (m.Binding!.Returning is null)
@@ -556,6 +557,7 @@ public sealed partial class DataBinder
         foreach (var root in m.Binding!.LocalRoots)
             if (root.IsAnyLength)
             {
+                using var localAt = Edition.At(root);   // the entry's own position, as AnyLengthValidateUnit's (kb/Work PB2034)
                 Edition.Error("COBOL1542", $"{where}: data item '{root.CobolName ?? "FILLER"}': the ANY "
                     + "LENGTH clause may be specified only in the LINKAGE SECTION (ISO §13.18.2.3 SR2)");
                 root.IsAnyLength = false;
@@ -563,6 +565,7 @@ public sealed partial class DataBinder
         foreach (var root in m.Binding!.LinkageRoots)
         {
             if (!root.IsAnyLength) continue;
+            using var linkageAt = Edition.At(root);   // the entry's own position, as AnyLengthValidateUnit's (kb/Work PB2034)
             string rw = $"{where}: data item '{root.CobolName ?? "FILLER"}'";
             if (root.IsGroup)
                 Edition.Error("COBOL1542", $"{rw}: the subject of an ANY LENGTH clause shall be ELEMENTARY "

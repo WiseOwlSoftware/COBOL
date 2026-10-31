@@ -755,7 +755,7 @@ internal static class FileControlKeyRules
                 {
                     if (rule.Role != role || (rule.ScreenedOn & kind) == 0
                         || !rule.Applies(file) || !rule.Violated(file, op)) continue;
-                    using var _ = edition.At(op.At.IsSet ? op.At : file.EntryAt);
+                    using var _ = edition.At(file.ClauseOrEntryAt(op.At));
                     edition.Error(rule.Diagnostic, rule.Message(file, op));
                 }
             }
