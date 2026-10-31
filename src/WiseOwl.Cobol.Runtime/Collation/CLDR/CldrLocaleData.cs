@@ -177,9 +177,11 @@ public sealed record CldrSettings
     /// <summary><c>[normalization on|off]</c> — accepted and irrelevant: the engine normalizes whenever a text holds a
     /// combining mark, which is what "on" asks for and what "off" merely permits skipping.</summary>
     public bool? Normalization { get; init; }
-    /// <summary><c>[caseLevel on|off]</c> — recorded; not implemented (reported in <see cref="CldrCollation.Unsupported"/>).</summary>
+    /// <summary><c>[caseLevel on|off]</c> — a level of case alone between level 2 and level 3
+    /// (<see cref="CollationOptions.CaseLevel"/>).</summary>
     public bool? CaseLevel { get; init; }
-    /// <summary><c>[numericOrdering on|off]</c> — recorded; not implemented.</summary>
+    /// <summary><c>[numericOrdering on|off]</c> — a run of decimal digits is ordered by its numeric value
+    /// (<see cref="CollationOptions.NumericOrdering"/>).</summary>
     public bool? NumericOrdering { get; init; }
     /// <summary><c>[hiraganaQ on|off]</c> — recorded; not implemented (deprecated in CLDR).</summary>
     public bool? HiraganaQuaternary { get; init; }
@@ -199,6 +201,8 @@ public sealed record CldrSettings
         MaxVariable = MaxVariable ?? defaults.MaxVariable,
         CaseFirst = CaseFirst ?? defaults.CaseFirst,
         BackwardsSecondary = BackwardsSecondary ?? defaults.BackwardsSecondary,
+        CaseLevel = CaseLevel ?? defaults.CaseLevel,
+        NumericOrdering = NumericOrdering ?? defaults.NumericOrdering,
     };
 
     /// <summary>These settings with <paramref name="over"/>'s stated values applied on top (an import's settings are
@@ -223,8 +227,6 @@ public sealed record CldrSettings
     /// <summary>The settings this engine does not implement, as one-line descriptions.</summary>
     public IEnumerable<string> UnsupportedSettings()
     {
-        if (CaseLevel == true) yield return "[caseLevel on] — a separate case level is not implemented; case decides at level 3 (or first, with caseFirst)";
-        if (NumericOrdering == true) yield return "[numericOrdering on] — digit sequences collate by their digits, not by numeric value";
         if (HiraganaQuaternary == true) yield return "[hiraganaQ on] — the deprecated Hiragana quaternary distinction is not implemented";
     }
 }
@@ -274,8 +276,8 @@ public enum CldrRelationStrength
     Secondary = 2,
     /// <summary><c>&lt;&lt;&lt;</c></summary>
     Tertiary = 3,
-    /// <summary><c>&lt;&lt;&lt;&lt;</c> — the quaternary difference (Japanese hiragana/katakana); the engine applies it
-    /// as an identity at levels 1–3 and reports it as unsupported nuance.</summary>
+    /// <summary><c>&lt;&lt;&lt;&lt;</c> — the quaternary difference (Japanese hiragana/katakana): the same at levels 1–3,
+    /// a new weight after the position's on the fourth level (<see cref="CollationElement.Quaternary"/>).</summary>
     Quaternary = 4,
     /// <summary><c>=</c></summary>
     Identity = 5,
