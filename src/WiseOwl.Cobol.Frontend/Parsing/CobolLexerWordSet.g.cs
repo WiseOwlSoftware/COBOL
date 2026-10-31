@@ -354,4 +354,18 @@ public partial class CobolLexer
         VAL_STATUS,
         XOR,
     };
+
+    /// <summary>The words a general format spells as a keyword where ISO §8.9 may leave them free — the rows
+    /// carrying the keywordWhereFree determination, whose &lt;word&gt;Keyword rules step 5c emits (kb/Work PB4174). A syntax
+    /// diagnostic that names the words EXPECTED at an edition (AdmittedKinds) keeps them although the reserved-word
+    /// table does not reserve them there. Generated, so a determination added tomorrow needs no edit anywhere.</summary>
+    internal static bool IsKeywordWhereFree(string word) => _keywordWhereFreeWords.Contains(word);
+
+    private static readonly System.Collections.Generic.HashSet<string> _keywordWhereFreeWords = new(System.StringComparer.Ordinal)
+    {
+        "MESSAGE",
+        "METHOD",
+        "MULTIPLE",
+        "ORDER",
+    };
 }
