@@ -578,8 +578,9 @@ public abstract class CobolParserCoreBase : Parser
         }
         foreach (var word in candidates)
         {
-            var copies = span.Select(t => (IToken)new CommonToken(t)).ToList();
             int at = span.IndexOf(word);
+            if (at < 0) continue;   // not a default-channel token of the span
+            var copies = span.Select(t => (IToken)new CommonToken(t)).ToList();
             var asName = (CommonToken)copies[at];
             asName.Type = CobolLexer.IDENTIFIER;
             int[] readings = word == first
@@ -587,7 +588,8 @@ public abstract class CobolParserCoreBase : Parser
                 : [CobolParserCore.RULE_sentence];
             foreach (int rule in readings)
                 if (Reading(copies, rule) is { Next: TokenConstants.EOF } reading && NamesAProcedure(reading.Tree, asName))
-                    return (word, ReservedWordSet.UserWordViolationMessage(ReservedWordHere(word)!, Edition.Year), span[^1].TokenIndex);
+                    return (word, ReservedWordSet.UserWordViolationMessage(ReservedWordHere(word)!, Edition.Year),
+                        span[^1].TokenIndex);
         }
         return null;
     }
