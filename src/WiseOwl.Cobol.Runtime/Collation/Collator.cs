@@ -8,20 +8,23 @@ namespace WiseOwl.Cobol.Runtime.Collation;
 /// The SETTINGS of a comparison over a <see cref="CollationTable"/> — the UTS #35 collation settings this engine
 /// implements, in one immutable value: <see cref="Strength"/> (how many levels decide), <see cref="Alternate"/> (how
 /// variable elements take part), <see cref="MaxVariable"/> (which groups are variable), <see cref="CaseFirst"/> (case
-/// before the other tertiary distinctions) and <see cref="BackwardsSecondary"/> (level 2 compared from the end —
-/// Canadian French). A CLDR collation's own settings (<c>[caseFirst upper]</c>, <c>[backwards 2]</c>, <c>[alternate
-/// shifted]</c>, <c>[strength n]</c>, <c>[maxVariable g]</c>) and the BCP 47 <c>-u-</c> keys (<c>ks</c>, <c>ka</c>,
-/// <c>kv</c>, <c>kf</c>, <c>kb</c>) both resolve to this. <see cref="Default"/> is the CLDR default.
-/// <para>Not represented, because the engine does not implement them (documented in Collation/CLDR/README.md; a
-/// CLDR file that asks for one is loaded with the setting reported as unsupported): <c>caseLevel</c>,
-/// <c>numericOrdering</c>, <c>hiraganaQuaternary</c>.</para>
+/// before the other tertiary distinctions), <see cref="BackwardsSecondary"/> (level 2 compared from the end —
+/// Canadian French), <see cref="CaseLevel"/> (a level of case alone between level 2 and level 3) and
+/// <see cref="NumericOrdering"/> (a run of decimal digits ordered by its numeric value). A CLDR collation's own
+/// settings (<c>[caseFirst upper]</c>, <c>[backwards 2]</c>, <c>[alternate shifted]</c>, <c>[strength n]</c>,
+/// <c>[maxVariable g]</c>, <c>[caseLevel on]</c>, <c>[numericOrdering on]</c>) and the BCP 47 <c>-u-</c> keys
+/// (<c>ks</c>, <c>ka</c>, <c>kv</c>, <c>kf</c>, <c>kc</c>, <c>kn</c>, <c>kb</c>) both resolve to this. <see cref="Default"/> is the CLDR default.
+/// <para>Not represented, because the engine does not implement it (documented in Collation/CLDR/README.md; a CLDR
+/// file that asks for it is loaded with the setting reported as unsupported): <c>hiraganaQuaternary</c>.</para>
 /// </summary>
 public sealed record CollationOptions(
     CollationStrength Strength = CollationStrength.Tertiary,
     AlternateHandling Alternate = AlternateHandling.NonIgnorable,
     MaxVariable MaxVariable = MaxVariable.Punct,
     CaseFirst CaseFirst = CaseFirst.Off,
-    bool BackwardsSecondary = false)
+    bool BackwardsSecondary = false,
+    bool CaseLevel = false,
+    bool NumericOrdering = false)
 {
     /// <summary>The CLDR default: tertiary, non-ignorable, maxVariable punct, caseFirst off, forward secondaries.</summary>
     public static CollationOptions Default { get; } = new();
@@ -31,7 +34,7 @@ public sealed record CollationOptions(
 
     /// <summary>True when only <see cref="Strength"/> and <see cref="Alternate"/> may differ from the defaults —
     /// the configurations the fast paths and the shared caches are keyed on.</summary>
-    public bool IsPlain => MaxVariable == MaxVariable.Punct && CaseFirst == CaseFirst.Off && !BackwardsSecondary;
+    public bool IsPlain => MaxVariable == MaxVariable.Punct && CaseFirst == CaseFirst.Off && !BackwardsSecondary && !CaseLevel && !NumericOrdering;
 }
 
 /// <summary>
@@ -57,6 +60,12 @@ public sealed class Collator
     // Space narrows the marked set to the space group; Symbol / Currency widen it by the symbol (and currency) groups.
     private readonly (int First, int Last)[] _variableRanges;
     private readonly bool _variableByFlag;       // MaxVariable.Punct — the element's own flag is the answer
+    private readonly bool _level4;                // a fourth level exists: variables shifted into it, or tailored <<<< weights
+    private readonly int[] _levels;               // the weight levels that decide, in comparison order (see ActiveLevels)
+
+    /// <summary>The pseudo-level number of the CASE LEVEL (UTS #35 <c>caseLevel</c>): its place in the comparison is
+    /// between level 2 and level 3, its number outside 1–4 so the four weight levels keep theirs.</summary>
+    internal const int CaseLevelNumber = 5;
 
     public Collator(CollationTable table, CollationStrength strength = CollationStrength.Tertiary,
         AlternateHandling alternate = AlternateHandling.NonIgnorable)
@@ -73,6 +82,8 @@ public sealed class Collator
         Table = table;
         Options = options;
         _variableByFlag = options.MaxVariable == MaxVariable.Punct;
+        _level4 = options.Alternate == AlternateHandling.Shifted || table.HasQuaternary;
+        _levels = ActiveLevels(options, _level4);
         _variableRanges = _variableByFlag ? [] : VariableRanges(table, options.MaxVariable);
     }
 
@@ -90,7 +101,7 @@ public sealed class Collator
 
     /// <summary>A collator differing from this one in the given settings only.</summary>
     public Collator With(CollationStrength? strength = null, AlternateHandling? alternate = null, CollationTable? table = null,
-        MaxVariable? maxVariable = null, CaseFirst? caseFirst = null, bool? backwardsSecondary = null) =>
+        MaxVariable? maxVariable = null, CaseFirst? caseFirst = null, bool? backwardsSecondary = null, bool? caseLevel = null, bool? numericOrdering = null) =>
         new(table ?? Table, Options with
         {
             Strength = strength ?? Options.Strength,
@@ -98,6 +109,8 @@ public sealed class Collator
             MaxVariable = maxVariable ?? Options.MaxVariable,
             CaseFirst = caseFirst ?? Options.CaseFirst,
             BackwardsSecondary = backwardsSecondary ?? Options.BackwardsSecondary,
+            CaseLevel = caseLevel ?? Options.CaseLevel,
+            NumericOrdering = numericOrdering ?? Options.NumericOrdering,
         });
 
     /// <summary>A collator over the same table with other settings.</summary>
@@ -114,31 +127,65 @@ public sealed class Collator
         // Fast path: identical code units are identical at every level.
         if (a.SequenceEqual(b)) return 0;
         bool forIdentical = Strength == CollationStrength.Identical;
-        if (Normalizer.NeedsNfd(a, Table, forIdentical)) a = Normalizer.ToNfd(a, Table);
-        if (Normalizer.NeedsNfd(b, Table, forIdentical)) b = Normalizer.ToNfd(b, Table);
+        bool nfdA = Normalizer.NeedsNfd(a, Table, forIdentical), nfdB = Normalizer.NeedsNfd(b, Table, forIdentical);
+        return nfdA || nfdB ? CompareDecomposing(a, b, nfdA, nfdB) : CompareNormalized(a, b);
+    }
 
+    /// <summary>The comparison of two texts one or both of which need their NFD first: decomposed into caller-stack
+    /// buffers (a pooled array past 128 chars), so a comparison allocates nothing (kb/Work PB107).</summary>
+    private int CompareDecomposing(ReadOnlySpan<char> a, ReadOnlySpan<char> b, bool nfdA, bool nfdB)
+    {
+        Span<char> scratchA = stackalloc char[128], scratchB = stackalloc char[128];
+        char[]? rentedA = null, rentedB = null;
+        try
+        {
+            ReadOnlySpan<char> walkedA = nfdA ? Normalizer.ToNfd(a, Table, scratchA, out rentedA) : a;
+            ReadOnlySpan<char> walkedB = nfdB ? Normalizer.ToNfd(b, Table, scratchB, out rentedB) : b;
+            return CompareNormalized(walkedA, walkedB);
+        }
+        finally
+        {
+            Normalizer.Return(rentedA);
+            Normalizer.Return(rentedB);
+        }
+    }
+
+    /// <summary>The comparison of two texts already in the form the walk needs (<see cref="Compare(ReadOnlySpan{char}, ReadOnlySpan{char})"/>
+    /// normalizes first).</summary>
+    private int CompareNormalized(ReadOnlySpan<char> a, ReadOnlySpan<char> b)
+    {
         // Identical-prefix skip: an identical prefix yields identical elements at every level, so the walks may
         // start at its end — provided the boundary is CONTEXT-SAFE (see SafeBoundary). Under Shifted the level-4
         // "following a variable" state depends on the prefix, and under backwards secondaries the level-2 sequence
         // is compared from its END (the prefix's weights are compared last, after the differing tail — a shorter
         // tail then meets the prefix's weights, not "end of text"), so the skip is taken only for the state-free
         // forward non-ignorable collators (every default locale sequence; STANDARD-COMPARE's arguments are short).
-        int skip = Alternate == AlternateHandling.NonIgnorable && !Options.BackwardsSecondary ? SafeBoundary(a, b, a.CommonPrefixLength(b)) : 0;
+        // Nor under numeric ordering, where a digit run is one number whichever side of the boundary its digits are on.
+        int skip = Alternate == AlternateHandling.NonIgnorable && !Options.BackwardsSecondary && !Options.NumericOrdering
+            ? SafeBoundary(a, b, a.CommonPrefixLength(b)) : 0;
         ReadOnlySpan<char> ta = a[skip..], tb = b[skip..];
 
-        int c = CompareLevel(ta, tb, 1);
-        if (c != 0 || Strength == CollationStrength.Primary) return c;
-        c = Options.BackwardsSecondary ? CompareLevelBackwards(ta, tb) : CompareLevel(ta, tb, 2);
-        if (c != 0 || Strength == CollationStrength.Secondary) return c;
-        c = CompareLevel(ta, tb, 3);
-        if (c != 0 || Strength == CollationStrength.Tertiary) return c;
-        if (Alternate == AlternateHandling.Shifted)
+        foreach (int level in _levels)
         {
-            c = CompareLevel(ta, tb, 4);
+            int c = level == 2 && Options.BackwardsSecondary ? CompareLevelBackwards(ta, tb) : CompareLevel(ta, tb, level);
             if (c != 0) return c;
         }
-        if (Strength == CollationStrength.Quaternary) return 0;
-        return CompareCodePoints(ta, tb);   // Identical: the canonically decomposed code point sequences
+        return Strength == CollationStrength.Identical ? CompareCodePoints(ta, tb) : 0;   // Identical: the canonically decomposed code point sequences
+    }
+
+    /// <summary>The weight levels that decide a comparison under <paramref name="options"/>, in the order they are
+    /// compared: 1 always; 2 from secondary strength; the case level (<see cref="CaseLevelNumber"/>) when
+    /// <see cref="CollationOptions.CaseLevel"/> is on — whatever the strength, as UTS #35 has it ("a level consisting
+    /// only of case characteristics will be inserted in front of the tertiary level"; primary strength with it ignores
+    /// accents but not case); 3 from tertiary; 4 from quaternary when the collation has one.</summary>
+    private static int[] ActiveLevels(CollationOptions options, bool level4)
+    {
+        var levels = new List<int> { 1 };
+        if (options.Strength >= CollationStrength.Secondary) levels.Add(2);
+        if (options.CaseLevel) levels.Add(CaseLevelNumber);
+        if (options.Strength >= CollationStrength.Tertiary) levels.Add(3);
+        if (options.Strength >= CollationStrength.Quaternary && level4) levels.Add(4);
+        return levels.ToArray();
     }
 
     /// <summary>Back the common-prefix length <paramref name="p"/> of two (normalized) texts up to a boundary at
@@ -214,18 +261,11 @@ public sealed class Collator
     {
         text ??= "";
         string walked = NeedsNormalization(text) ? Normalizer.ToNfd(text, Table) : text;
-        int levels = Strength switch
-        {
-            CollationStrength.Primary => 1,
-            CollationStrength.Secondary => 2,
-            CollationStrength.Tertiary => 3,
-            _ => Alternate == AlternateHandling.Shifted ? 4 : 3,
-        };
-        var perLevel = new int[levels][];
-        for (int level = 1; level <= levels; level++)
+        var perLevel = new int[CaseLevelNumber + 1][];     // by level number; null = a level this collator does not compare
+        foreach (int level in _levels)
         {
             var weights = new List<int>(walked.Length + 4);
-            var it = new CollationElementIterator(walked, Table);
+            var it = new CollationElementIterator(walked, Table, Options.NumericOrdering);
             bool afterVariable = false;
             while (it.TryNext(out var ce))
             {
@@ -233,7 +273,7 @@ public sealed class Collator
                 if (w != 0) weights.Add(w);
             }
             if (level == 2 && Options.BackwardsSecondary) weights.Reverse();
-            perLevel[level - 1] = weights.ToArray();
+            perLevel[level] = weights.ToArray();
         }
         return new CollationKey(perLevel, Strength == CollationStrength.Identical ? walked : null, this);
     }
@@ -260,7 +300,7 @@ public sealed class Collator
             origin = new List<int>(text.Length + 8);
             walked = Normalizer.ToNfd(text, Table, origin);
         }
-        var it = new CollationElementIterator(walked, Table);
+        var it = new CollationElementIterator(walked, Table, Options.NumericOrdering);
         bool afterVariable = false;
         int before = 0, since = 0;          // the level-1 weights before the last cut, and since it
         int cut = 0, reach = 0;             // the last cut, and past the furthest position consumed since it
@@ -319,8 +359,8 @@ public sealed class Collator
 
     private int CompareLevel(ReadOnlySpan<char> a, ReadOnlySpan<char> b, int level)
     {
-        var ia = new CollationElementIterator(a, Table);
-        var ib = new CollationElementIterator(b, Table);
+        var ia = new CollationElementIterator(a, Table, Options.NumericOrdering);
+        var ib = new CollationElementIterator(b, Table, Options.NumericOrdering);
         bool va = false, vb = false;
         while (true)
         {
@@ -356,7 +396,7 @@ public sealed class Collator
 
         int Gather(ReadOnlySpan<char> text, ref int[] buffer)
         {
-            var it = new CollationElementIterator(text, Table);
+            var it = new CollationElementIterator(text, Table, Options.NumericOrdering);
             bool afterVariable = false;
             int n = 0;
             while (it.TryNext(out var ce))
@@ -422,12 +462,14 @@ public sealed class Collator
     /// <summary>The weight of <paramref name="element"/> at <paramref name="level"/> under this collator's settings —
     /// UTS #10 Table 12 for <see cref="AlternateHandling.Shifted"/>: a variable element moves its primary to level 4
     /// and is 0 at levels 1–3; a primary-ignorable element FOLLOWING a variable one is 0 everywhere; every other
-    /// element keeps its three weights and takes the maximum ("no variable here") at level 4. Under
-    /// <see cref="AlternateHandling.NonIgnorable"/> the three weights are used as they are and level 4 is unused (0).
+    /// element keeps its three weights and takes the maximum ("no variable here") at level 4, raised by its tailored
+    /// <see cref="CollationElement.Quaternary"/> weight. Under <see cref="AlternateHandling.NonIgnorable"/> the three
+    /// weights are used as they are and level 4 is the tailored quaternary weight alone (0 on every element of the root).
     /// With <see cref="CaseFirst"/> on, the level-3 weight is prefixed by the case bit (upper-first: uppercase 0,
     /// other 1; lower-first: the reverse) so case decides before width/compat/font/circled variants.</summary>
     internal int WeightAt(in CollationElement element, int level, ref bool afterVariable)
     {
+        if (level == CaseLevelNumber) return CaseWeight(element, ref afterVariable);
         if (Alternate == AlternateHandling.Shifted)
         {
             if (IsVariable(element))
@@ -439,21 +481,35 @@ public sealed class Collator
             if (element.Primary == 0)
             {
                 if (afterVariable) return 0;
-                return level switch { 2 => element.Secondary, 3 => Tertiary(element), 4 => Table.MaxPrimary, _ => 0 };
+                return level switch { 2 => element.Secondary, 3 => Tertiary(element), 4 => Table.MaxPrimary + element.Quaternary, _ => 0 };
             }
             afterVariable = false;
-            return level switch { 1 => element.Primary, 2 => element.Secondary, 3 => Tertiary(element), 4 => Table.MaxPrimary, _ => 0 };
+            return level switch { 1 => element.Primary, 2 => element.Secondary, 3 => Tertiary(element), 4 => Table.MaxPrimary + element.Quaternary, _ => 0 };
         }
-        return level switch { 1 => element.Primary, 2 => element.Secondary, 3 => Tertiary(element), _ => 0 };
+        return level switch { 1 => element.Primary, 2 => element.Secondary, 3 => Tertiary(element), 4 => element.Quaternary, _ => 0 };
     }
 
     /// <summary>The level-3 weight with the case bits in front when <see cref="CaseFirst"/> is on: upper-first ranks
-    /// Upper 0, Mixed 1, Lower 2 (ICU's inverted case bits); lower-first ranks Lower 0, Mixed 1, Upper 2.</summary>
+    /// Upper 0, Mixed 1, Lower 2 (ICU's inverted case bits); lower-first ranks Lower 0, Mixed 1, Upper 2. Not when
+    /// <see cref="CollationOptions.CaseLevel"/> is on: case has been decided at its own level by then, and the tertiary
+    /// weight alone orders what remains (ICU removes the case bits from the tertiary weight in that case).</summary>
     private int Tertiary(in CollationElement element)
     {
         int t = element.Tertiary;
-        if (t == 0 || Options.CaseFirst == CaseFirst.Off) return t;
-        int rank = Options.CaseFirst == CaseFirst.Upper ? 2 - (int)element.Case : (int)element.Case;
-        return (rank << 16) | t;
+        if (t == 0 || Options.CaseFirst == CaseFirst.Off || Options.CaseLevel) return t;
+        return (CaseRank(element) << 16) | t;
     }
+
+    /// <summary>The element's rank at the case bits: upper-first ranks Upper 0, Mixed 1, Lower 2; otherwise Lower 0,
+    /// Mixed 1, Upper 2.</summary>
+    private int CaseRank(in CollationElement element) =>
+        Options.CaseFirst == CaseFirst.Upper ? 2 - (int)element.Case : (int)element.Case;
+
+    /// <summary>The weight of <paramref name="element"/> at the CASE LEVEL (UTS #35 <c>caseLevel</c>): its
+    /// <see cref="CaseRank"/> plus one, for every element that has a weight at the level before it — a primary at
+    /// primary strength, a secondary above it, each under this collator's alternate handling — and 0 for the rest
+    /// (the case bits of a primary-ignorable element at primary strength, and of an ignorable one, are not compared;
+    /// ICU's <c>compareUpToQuaternary</c> skips them the same way).</summary>
+    private int CaseWeight(in CollationElement element, ref bool afterVariable) =>
+        WeightAt(element, Strength == CollationStrength.Primary ? 1 : 2, ref afterVariable) == 0 ? 0 : CaseRank(element) + 1;
 }
