@@ -68,6 +68,21 @@ public sealed class CldrCollationSettingsTests
         Assert.True(shifted.Compare("かカ", "かか") > 0);
     }
 
+    /// <summary>Under non-ignorable handling the POSITION of a quaternary difference decides (ICU's compareUpToQuaternary
+    /// gives every regular element a common level-4 weight): the first difference is hiragana on one side, katakana on the other.</summary>
+    [Theory]
+    [InlineData("かカ", "カか")]
+    [InlineData("かカか", "カかか")]
+    [InlineData("かかカ", "かカか")]
+    public void Level4_NonIgnorable_OrdersByThePositionOfTheDifference(string x, string y)
+    {
+        var level4 = Ja(CollationStrength.Quaternary);
+        Assert.True(level4.Compare(x, y) < 0, $"{x} vs {y}");
+        Assert.True(level4.Compare(y, x) > 0);
+        Assert.True(level4.GetKey(x).CompareTo(level4.GetKey(y)) < 0);
+        Assert.Equal(0, Ja().Compare(x, y));                  // below quaternary strength they stay equal
+    }
+
     [Fact]
     public void Keys_AgreeWithCompare_AtEveryStrength_OverTheKana()
     {
@@ -86,8 +101,11 @@ public sealed class CldrCollationSettingsTests
     public void QuaternaryKey_CarriesTheSlot_OnlyForTheTailoredString()
     {
         var level4 = Ja(CollationStrength.Quaternary);
-        Assert.Empty(level4.GetKey("ぁ").Quaternary);
-        Assert.NotEmpty(level4.GetKey("ァ").Quaternary);
+        var small = level4.GetKey("ぁ").Quaternary;
+        var katakana = level4.GetKey("ァ").Quaternary;
+        Assert.Single(small);                                  // every element weighs the common level-4 weight ...
+        Assert.Single(katakana);
+        Assert.True(small[0] < katakana[0]);                   // ... and the tailored slot raises ァ's above ぁ's
         Assert.Equal(4, level4.GetKey("ァ").LevelCount);
         Assert.Equal(3, Ja().GetKey("ァ").LevelCount);          // tertiary strength: no fourth level
     }
