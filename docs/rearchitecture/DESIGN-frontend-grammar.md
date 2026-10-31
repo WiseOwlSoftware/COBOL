@@ -1315,6 +1315,19 @@ target:
   a second COBOL0001 at the next period; IF, EVALUATE and SEARCH, whose terminators are optional, hid it.
   `RequiredImperativeStatementDriftTests` reads every rule that calls `statementBlock` from the ATN and requires an
   empty-block witness for each, drawing exactly one COBOL2072 at both nesting depths.
+- ⛔ **A token the missing element would let follow is never deleted** (kb/Work PB4133; ISO §5.2.6.2, §5.2.6.3).
+  ANTLR deletes the token at a required element when the token after it is what the rule expects. A STATEMENT written
+  where a header operand is required satisfies that test (`IF DISPLAY "X" END-IF`: the `"X"` is a legal condition), and the
+  repair made a different program: an IF with an empty block (a false COBOL2072 after the true COBOL0001), a key list
+  taking F1 for its key and meeting GIVING where USING was due (`MERGE SW ON ASCENDING KEY USING F1 F2 GIVING F3`).
+  `SingleTokenDeletion` therefore declines when `TheMissingElementLetsItFollow`: the token may follow the element the parser
+  stands before, in the real context. The element is, in turn, the token a matching state takes or the block a block-start
+  state opens (the tokens that follow the state after it: ANTLR's own single-token INSERTION test, so a token insertion
+  would take is never deleted instead), and the whole rule when it has consumed nothing yet (the follow of the rule: the
+  condition is missing though the parser stands at the first, optional, sign of an operand). The PB911 test above is the
+  same finding for the block an owner's terminator ends, which sits one element downstream of the state the parser stands
+  at. Both Sync (a decision) and `RecoverInline` (a match) reach it through the one override.
+  `ParseRecoveryDeletionTests` pins the count.
 - Recovery beyond that and the sync-point behavior is out of scope for this rearchitecture (the battery does
   not exercise multi-error recovery quality; changing it risks the green net for no measured gain) — but a
   change in the diagnostics a negative fixture produces is visible to the oracle
@@ -1752,12 +1765,34 @@ format does not print) by the stray COBOL0306 of its statement's END-x, a second
 COBOL0901 at an END-x, and a repeated WHEN OTHER (COBOL2073) by the stray COBOL0306 of the END-EVALUATE. When the winning hint
 of a report is one of those three codes (`CobolErrorStrategy.EndsAConstructEarly`:
 the faults found AFTER the statements around the token had closed), the resynchronization of THAT fault stops only at the
-sentence's separator period (`ConsumeUntil` through `ResynchronizationSet`, which both the loop recovery of `Sync` and
+sentence's separator period (`ConsumeUntil` through `BeginUnitTailDiscard`, which both the loop recovery of `Sync` and
 `Recover` reach; the sentence's own period is consumed when the sentence is the rule that recovers), so the tail is
 discarded with its sentence and the next sentence is parsed afresh. It is never a missing period (hint 0h is refused where a
-period lets the sentence follow; a terminator cannot begin one), and outside a sentence the base recovery runs.
-`ParseRecoveryTailTests` sweeps every scope terminator the grammar spells, read from the same ATN map as the hint, against an
+period lets the sentence follow; a terminator cannot begin one), and outside a unit that ends at a period the base recovery
+runs. `ParseRecoveryTailTests` sweeps every scope terminator the grammar spells, read from the same ATN map as the hint, against an
 open and a closed enclosing statement, and pins the count of each row of the note.
+**A refused operand orphans its phrase's words the same way, in an entry as in a sentence (kb/Work PB4173).** An operand of the
+wrong kind inside a phrase (`OCCURS "A" TIMES`, `RECORD CONTAINS "A" CHARACTERS`, `PERFORM "A" TIMES … END-PERFORM`) is the
+fault of hint 0i (COBOL5506, `CobolErrorStrategy.OrphansItsTail`): the rule that failed returns, and the words of its phrase
+that follow (TIMES, CHARACTERS, the END-PERFORM) were met by the enclosing list as a clause or a statement of their own, a
+false COBOL1941, COBOL1970 or COBOL0306 each. So that fault, but not the MISSING token (the recovery conjures it and the rule
+goes on), is a fault whose tail the parser cannot place, and its recovery discards to the period of the nearest enclosing UNIT:
+any rule that ends at a separator period (`EndsWithPeriod`, read from the ATN: the sentence, a data description entry, and
+every entry or paragraph the grammar ends with a DOT; `ParseRecoveryUnitTailTests.ThePeriodTerminatedUnits_AreReadFromTheGrammar`
+holds the list), not the sentence alone. The unit's own period is consumed
+when that unit is the rule that recovers (`FinishUnitTailDiscard`).
+**The discard also stops where the structure around the unit resumes (kb/Work PB4134).** A unit may lack its period, and the
+period the discard ran to then belonged to the structure around it: `END PROGRAM A.`, the next program's `IDENTIFICATION
+DIVISION.`, `END DECLARATIVES.`, the next section's `name SECTION.`, the `PROCEDURE DIVISION.` after a data entry. The tokens
+eaten with the tail held a true second fault (`END PROGRAM 123.`) or the structure the next rule required. So the discard
+stops, without consuming, where the parse of some rule AROUND the unit (every enclosing frame, from the unit's parent out),
+completed, takes the next two tokens: `UnitTailDiscard.Resumes` asks a `ResimulationWalk` positioned at the end of each
+enclosing rule in its real context (`ResimulationWalk.After`), and only for a token in that rule's follow set. It is the
+ATN's follow and no list of words. Two tokens, because `END` alone is also the AT END phrase of a READ. A word and the period
+after it is never a resumption when the unit itself may hold the word (`TokensWithin`): the unit's last operand and its period,
+or a paragraph header, which no layout rule the parser knows tells apart, so a missing period before a paragraph header still
+costs the header (the sentences after it are parsed afresh). It is a resumption where the unit cannot hold the word at all
+(`PROGRAM-ID.` of a nested program). `ParseRecoveryUnitTailTests` pins the count of each row of the three notes.
 **What the one report reads (review R2).** Since the repeat is dropped, the first report must say everything it could:
 every hint reads the position's expected set (`OffendingPosition.Expected`) for every report kind, never the text of
 an exception's set, which a failed prediction does not carry. The expected-set guesses (the missing period COBOL0307,

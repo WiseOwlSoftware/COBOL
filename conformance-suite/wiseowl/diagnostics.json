@@ -15906,6 +15906,24 @@
   ],
   "expect": "COBOL2172"
  },
+ "pb4133-if-condition-omitted": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0001: unexpected 'DISPLAY'"
+ },
+ "pb4134-fault-before-a-missing-period-then-a-malformed-end-marker": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL5506: unexpected '123'. The integer literal 123 is not expected here: no literal is expected at this position"
+ },
  "pb415-initialize-category-national-85": {
   "refuse-at": [
    "85"
@@ -16006,6 +16024,15 @@
    "2023"
   ],
   "expect": "COBOL0819"
+ },
+ "pb4173-occurs-alphanumeric-literal-then-times": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL5506: cannot parse construct near '\"A\"'. The alphanumeric literal \"A\" is not expected here: of the literals, only an integer literal is expected at this position"
  },
  "pb418-initialize-dynamic-length-2002": {
   "refuse-at": [
