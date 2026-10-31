@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.49.3-7",
+ "section": "13.18.49.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "SAME AS clause",
+ "rule-digest": "00fdc5435c02",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#EntryClauseCandidates; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAsEntry",
+ "test-ref": "conformance-test:SameAsTests.SameAsOfMidLevelGroup_Rejected1556; conformance:cases/13.18.49-SAME-AS/pb3682-same-as-group-with-usage-not-level-1; conformance:cases/13.18.49-SAME-AS/pb3682_same_as_leaf_under_group_usage",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR7 \"Data-name-1 shall reference an elementary item or a level 1 group item described in the file, working-storage, local-storage, or linkage section.\" (--check 13.18.49.3 -> OK 7)). Shape half: `target.Level == 66 || !(IsElementary || Level == 1)` -> 1556 (SameAsOfMidLevelGroup_Rejected1556; probe q03_66 RENAMES target -> 1556; r02_gr4 level-05 group -> 1556). Section half: resolution through EntryClauseCandidates only finds data-division record items; constant-name (p01), condition-name (p02), TYPEDEF root (p03), REPORT SECTION group (p20) all -> 1556 'does not resolve'; SCREEN SECTION (p04) is refused as a declined module (COBOL1560, CONFORMANCE.md §5). Positives: FILE (q06_fdok, q07), LOCAL-STORAGE and LINKAGE (p16_sr7ok -> [ABC][QQ][LS]), WORKING-STORAGE throughout. The test covers only the level half. || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (the SAME AS clause is absent from COBOL-85 and is not in Annex E's 2014->2023 substantive-changes list, so the rule stands unchanged in 2014 and 2023)",
+ "state": "OK"
+}

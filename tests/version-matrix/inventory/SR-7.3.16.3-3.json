@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.16.3-3",
+ "section": "7.3.16.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "IF directive",
+ "rule-digest": "7169750533f3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb806-else-trailing-word; conformance:cases/7.3.16-IF/pb806-else-trailing-word-in-omitted-branch; unit:CompilerDirectiveCatalogDriftTests.EveryNoOperandWord_RejectsAnOperandAndAcceptsTheBareWord",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB806. cite.py --check 7.3.16.3 '>>ELSE shall begin on a new line and shall be specified entirely on that line.' OK 3). NoOperandWords is data on the if/evaluate rows, checked centrally (COBOL1911).",
+ "state": "OK"
+}

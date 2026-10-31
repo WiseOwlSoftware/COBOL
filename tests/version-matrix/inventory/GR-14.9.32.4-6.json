@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.32.4-6",
+ "section": "14.9.32.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "RELEASE statement",
+ "rule-digest": "db70c872f22b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelease; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#TransfersPastRecord; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Release",
+ "test-ref": "conformance:cases/13.18.43-RECORD/pb322_release_short_record_fixed_sd",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB322 F. cite.py --check 14.9.32.4 'If the number of bytes to be released to the sort operation is greater than the number of bytes in record-name-1, the content of the bytes that extend beyond the end of record-name-1 are undefined.' -> OK §14.9.32.4 6); Annex A.2 item 45 makes the content implementor latitude. The over-length release now EXISTS in both realizations of GR13 (the DEPENDING ON item, and the implied Format 1 whose size is the largest record description's) and its content is the determination docs/CONFORMANCE.md §3 D-WRT1 makes for WRITE and REWRITE: position n past the end of record-name-1 is position n of the record area. Witness 85/pb322_release_short_record_fixed_sd: SD with 01 A X(4) and 01 B X(10), RELEASE A releases the 10-byte area (AAAAZZZZZZ), RELEASE A FROM F4 moves first then releases (CCCCQQQQQQ).",
+ "state": "OK"
+}

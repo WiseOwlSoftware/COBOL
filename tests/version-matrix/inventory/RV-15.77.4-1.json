@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.77.4-1",
+ "section": "15.77.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "REM function",
+ "rule-digest": "e5e37c374eb6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#RemReal; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AnyRealArgument",
+ "test-ref": "conformance:cases/15.7.4-Returned-value-rule/pb2_float_argument_exact_family",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PB2 LANDED. The exact leg was already the EAE exactly; the float leg is now RemReal, which TRUNCATES the quotient (15.77.4) rather than flooring it - the golden pins REM(-7,3) = -1 against MOD(-7,3) = 2, the pair that distinguishes a correct body from a plausible one.",
+ "state": "OK"
+}

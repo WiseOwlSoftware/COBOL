@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.15.2",
+ "section": "14.9.15.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "FREE statement",
+ "rule-digest": "878711d8c517",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#freeStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#BindFree; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#FREE",
+ "test-ref": "conformance:cases/14.9.15-FREE/l1c10_free_multi_operand_arms",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Format `FREE { data-name-1 } ...` (cite.py --check 14.9.15.2 \"FREE\" -> OK). Grammar `freeStatement : FREE dataReference+` = one-or-more operands; dataReference also admits qualification/subscripting, which only reaches a data-pointer inside a STRONG typedef (13.18.60.3 SR14 --check OK confines USAGE POINTER to level 1 or STRONG-typedef subordinates) - the pointer then has to be referenced that way, so this is not a leniency beyond reference-format rules. Probes (pinned cobol.exe, probe/free): f1 `FREE P Q N P` parses and runs; f3 --std 85 -> COBOL0900 'FREE requires COBOL-2002'; --std 2002 compiles and runs. Existing goldens conformance:cases/14.9.3-ALLOCATE/pointer_alloc and allocate_initialized exercise only single-operand FREE, so no spec-derived test covers the repeated-operand shape -> test-ref empty. [code-location note: edition gate] || editions as adjudicated: 2002, 2014, 2023 (FREE is absent from ISO 1989:1985; the 2023 Annex E records only 2014->2023 changes, and 14.9.15 is unchanged text in 2014/2023)",
+ "state": "OK"
+}

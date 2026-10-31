@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.8.2-1",
+ "section": "14.6.8.2",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Alignment and transfer of data into data items",
+ "rule-digest": "e28bc97870fe",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolFloat.cs#ToScaledUnchecked; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#SenderContext",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/pb77_move_past_the_carrier; conformance:cases/14.6.8.2-Fixed-point-numeric-and-fixed-point/pb60_numvalf_native_channels",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB77 (2026-08-18): an intermediate sending operand (a function's returned value — NUMVAL-F's exact SDIDI value, kb/Work PB3839, or the float family's binary64 per CONFORMANCE.md item 92) is 'treated as if it had been converted to a fixed-point value' and then aligned/truncated per rule 4 — now for a value past the carrier as well (the golden's NVF-* and D40-* rows). A standard-float (FLOAT-BINARY-64) sending item takes the same double landing as a FLOAT-LONG one (rule 2). retired-witness: src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#Rescaled (kb/Work PB3839 deleted CobolIntrinsics.Rescaled with the last Int128 NUMVAL-F body: NUMVAL, NUMVAL-C and NUMVAL-F are all SDIDI functions now (IntrinsicCarrierRules.ReturnsExactParse), and the Int128 landing helper had no other caller)",
+ "state": "OK"
+}

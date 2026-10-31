@@ -75,9 +75,14 @@ internal enum CobolClass
     /// REJECTS an index argument (kb/Work R27 — the lattice previously could not express it: an index DATA
     /// item's <see cref="PicInfo.IndexItem"/> carries category Numeric for storage, so it passed every 'n'
     /// screen, and an index-NAME fell into the computed-operand-is-numeric arm). USAGE MESSAGE-TAG (Table 2's
-    /// other unexpressed class) has NO <see cref="Usage"/> member — the MCS facility is unmodeled — so it gets
-    /// no dead enum member here; the Usage-inventory drift test forces the classification decision the moment
-    /// the usage lands.</summary>
+    /// other class this lattice does not express) HAS a <see cref="Usage"/> member (<c>Usage.MessageTag</c>, kb/Work
+    /// PB487) and gets no <see cref="CobolClass"/> member DELIBERATELY: the facility is declined non-support (Annex A.3
+    /// item 4; COBOL1943), so an entry that writes the usage binds <c>PicInfo.MessageTagRecovery()</c>, a recovery
+    /// profile whose <c>AnalyzedCategory</c> is null, and <see cref="ClassOfPic"/> answers "not statically decidable"
+    /// for it — every screen over this table fails OPEN, and the entry's own refusal is the diagnostic (kb/Work
+    /// PB960). The decision is recorded where it is enforced, in
+    /// <c>IntrinsicArgumentClassDriftTests.EveryUsageMember_HasATable2ClassDisposition</c>; implementing the
+    /// facility changes it together with this member (§13.18.60.4 GR9 then requires a class of its own).</summary>
     Index,
 }
 

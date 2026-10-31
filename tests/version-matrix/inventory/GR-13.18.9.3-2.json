@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.9.3-2",
+ "section": "13.18.9.3",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "BLINK clause",
+ "rule-digest": "7cbd072b6ca3",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ScreenFacility.cs#ReportClause",
+ "test-ref": "conformance:wiseowl/cases/13.18.9-BLINK/a42-screen-blink; unit:ScreenFacilityConstructDriftTests.ScreenNameReference_IsRefusedByFacility_NeverAsUndefined",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Annex A.4.2 (ACCEPT and DISPLAY screen handling) is an OPTIONAL module for which no support is claimed - docs/CONFORMANCE.md section 5 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' and section 4 item 4. A.4.1: an implementation shall accept an optional element's syntax ONLY when support is claimed, so the construct is REFUSED by name (COBOL1560 data/environment surface, COBOL1707 procedure surface); A.4.1 paragraph 2 extends the licence from the 27 printed items to the syntax and general rules hanging off them. Witnessed by conformance:wiseowl/cases/13.18.9-BLINK/a42-screen-blink. kb/Work PB260.",
+ "state": "OK"
+}

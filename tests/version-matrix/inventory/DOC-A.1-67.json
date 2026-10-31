@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-67",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 67,
+ "subject": "External repository information (other information beyond the required information)",
+ "rule-digest": "f9c0180580a8",
+ "verdict": "NOT-IMPLEMENTED",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-67; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#ProgramPrototypesOf; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#UserFunctionsOf; src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Resolve; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs",
+ "test-ref": "",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "A.1 item 67: 'External repository information (other information beyond the required information). This item is optional. This item, if provided by the implementor, shall be documented' (8.13). cite.py --check 8.13 'any other information that the implementor requires' -> OK §8.13 (External repository). Owner decision kb/Work/R44 (2026-09-24): the repository IS compiled-assembly metadata, with a WiseOwl COBOL-owned metadata record for what .NET metadata cannot express, and a design doc lands first (rule 2). R44 does NOT decide the content of the implementor's additional information (the doc-rows-2 writer's 'assembly name+version, implementing type/member, never compared, nothing else' was refuted as exceeding R44), so the row states only R44 and defers the content to PB1086's design doc. NOT-IMPLEMENTED: no repository exists; the CLI has no reference/update option; probe rep67.cob (REPOSITORY. CLASS NOSUCHCL PROGRAM NOSUCHPG.) --std 2023 compiles, prints RAN, exit 0 (pin 80de60472). Owning note: kb/Work/PB1086 (its design doc must fix the §8.13 'any other information' content and write DOC-A.1-67 from it). PB1099 Q3 answered by R44. DOC-ROWS-2 REFUTER (determination): overturned and corrected; the recorded row carries the correction (adjudication/doc-rows-2/LANDING.md).",
+ "state": "GAP"
+}

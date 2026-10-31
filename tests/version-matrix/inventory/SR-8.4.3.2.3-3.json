@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.2.3-3",
+ "section": "8.4.3.2.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Function-identifier",
+ "rule-digest": "450e4859c8d4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#DefinitionPermitsArguments; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfBindCall; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs",
+ "test-ref": "conformance-test:UdfInvocationTests.MissingRepositoryEntry_1501_WithGr12Hint",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR3 (cite.py --check 8.4.3.2.3 'Function-prototype-name-1 shall be the user-function-name of the containing function definition or a function prototype specified in the REPOSITORY paragraph' -> OK §8.4.3.2.3 3)). A name is a user function only if it is in ctx.Data.UserFunctionNames (REPOSITORY) or equals host.UdfSelfName (the containing function). Probe out/probe/function-identifier/p7_sr3.cob: FUNCTION FIP7F with an in-group FUNCTION-ID but no REPOSITORY entry -> COBOL1501 naming the REPOSITORY. The self-name half is covered by conformance:cases/_unassigned/udf_recursion, where UFACT references itself with no REPOSITORY of its own (5! = 120), and by conformance-test UdfInvocationTests.SelfRecursion_WithoutRepositoryEntry_Binds. [code-location note: (UdfSelfName)] || editions as written by the adjudicator: 2002, 2014, 2023 (function-prototype-name form; function-pointer-name form 2014, 2023). Annex E (2014->2023) lists no change to 8.4.3.2",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.21.4-4",
+ "section": "7.3.21.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "PROPAGATE directive",
+ "rule-digest": "9e1b80626d2c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/PropagateDirectiveProcessor.cs#Process; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EcEmitter",
+ "test-ref": "conformance:cases/7.3.21-PROPAGATE/l1c21_propagate_default_off",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'The default for a compilation group is PROPAGATE OFF.' (cite.py --check 7.3.21.4 -> OK §7.3.21.4 4)). With no directive, an unhandled fatal EC in a called program terminates the run unit (§14.6.13.1.3 GR7, no PROPAGATE ON applicable). Probe gr4.cob (gr2t.cob with the directive removed): observed 'abnormal run-unit termination: EC-SIZE-TRUNCATION (fatal)' — the OFF behavior, caller's declarative not entered. Conforms, though only because OFF is the sole behavior the compiler has (see GR-7.3.21.4-1); when the ON state is implemented the default must be pinned by a test. No spec-derived covering test exists (tests/conformance/2014/propagate_directive.cob only proves recognition). || editions (adjudicator): COBOL-2002, 2014, 2023 (§7.3.21 is live in the 2023 text; Annex E.2/E.3 list no 2023 introduction or removal, so it predates 2023; not in COBOL-85 — the §7.3 compiler-directive facility)",
+ "state": "OK"
+}

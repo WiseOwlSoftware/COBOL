@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.49.3-16",
+ "section": "14.9.49.3",
+ "kind": "SR",
+ "ordinal": 16,
+ "subject": "USE statement",
+ "rule-digest": "7bbb6f4e40c9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Resolve; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#RepositoryScopeFor; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse",
+ "test-ref": "conformance:cases/14.9.49-USE/pb365-use-eo-not-in-repository; conformance:cases/14.9.49-USE/pb365_use_eo_interface_two_pass; conformance-test:OoSpineTests.UseF4_UnknownClass_0859",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB365, LANDED. The rule's condition is membership of the REPOSITORY paragraph of the SOURCE ELEMENT containing the USE, and the code tested membership of the COMPILATION GROUP (`ctx.Data.OoClasses?.Find`) -- the miss diagnostic COBOL0859 even named the wrong condition out loud, 'does not name a class of the compilation group'. Measured before the fix: norep.cob, a program with NO REPOSITORY paragraph at all whose declarative writes `USE AFTER EXCEPTION OBJECT CF4A` naming a class defined later in the same compilation unit, compiled with ZERO diagnostics at --std 2023. Now resolved through OoNameResolution, the one funnel for ISO 8.4.6.4 ('The object-class-name of an object class referenced within a source element shall be either the name of the containing object class definition or declared in the REPOSITORY paragraph of that or a containing source element'); the scope is an ancestor walk over the parse tree, memoized per source element, and 12.3.3 SR1/SR2/SR3 plus 12.3.4 GR1 are what make that walk the rule. The under-rejection was systemic, so the funnel now also serves 11.3.3 SR2, 11.4.3 SR1, 11.6.3 SR2, 11.8.3 SR1, 14.2.2 SR8, USAGE OBJECT REFERENCE and INVOKE/SET class-name-1; OoNameResolutionDriftTests keeps every remaining direct OoClassTable.Find caller adjudicated. Witness: negative/pb365-use-eo-not-in-repository (norep.cob as a corpus case) -> COBOL0859 at 2002/2014/2023; the positive arm is 2002/pb365_use_eo_interface_two_pass, whose REPOSITORY declares the classes it names.",
+ "state": "OK"
+}

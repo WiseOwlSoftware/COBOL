@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.2.4.4-1",
+ "section": "7.2.4.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "REPLACE statement",
+ "rule-digest": "570ba4eaaa0b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Process; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements",
+ "test-ref": "conformance:cases/7.2.4-REPLACE/l1c24_replace_source_text_is_cc_group",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 7.2.4.4 \"'source text' refers to the conditionally-processed compilation group\" -> OK 1). REPLACE runs as Step 3 over the CC+COPY-expanded text (ConditionalCompilationProcessor.cs:85), so text in an omitted >>IF branch is neither a REPLACE statement nor replace-subject text and copybook text is. Probe out/probe/replace-p2/cc.cob / ccok.cob: a REPLACE inside a false >>IF branch has no effect (DISPLAY XX -> 'XX '). No spec-derived golden pins the CC interaction. || editions (adjudicator): 85, 2002, 2014, 2023 (REPLACE statement; Annex E 2014->2023 lists no change to it) || code-location detail: src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Process (Step 3); src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements",
+ "state": "OK"
+}

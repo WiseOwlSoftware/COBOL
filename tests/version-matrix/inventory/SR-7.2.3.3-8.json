@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.2.3.3-8",
+ "section": "7.2.3.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "COPY statement",
+ "rule-digest": "faa8650d0f61",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ContinueFloating",
+ "test-ref": "conformance:cases/6.5-Logical-conversion/pb1359_floating_continuation_copy_replacing; conformance:cases/6-Reference-format/pb1359_floating_continuation_fixed",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1359 landed: a literal continued with the floating indicator inside COPY REPLACING pseudo-text is joined by the §6.5 logical conversion BEFORE text manipulation, so pseudo-text-1 \"HELLO\" matches the library text's literal (golden 2002/pb1359_floating_continuation_copy_replacing); fixed-indicator continuation inside pseudo-text already worked (PB1491).",
+ "state": "OK"
+}

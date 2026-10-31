@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.7.4-2",
+ "section": "8.8.4.7.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Simple sign condition",
+ "rule-digest": "8a7be27ff1e3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderSign; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/SendingRef.cs#SignCondition; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#IsFormat2FloatSign",
+ "test-ref": "conformance:cases/8.8.4.7-Simple-sign-condition/pb1471_sign_condition_float_partition; conformance:cases/8.8.4.7-Simple-sign-condition/l1c32_sign_condition_format2",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1471 LANDED (wave 70 A). GR2a/b: POSITIVE/NEGATIVE is true iff 'the sign of the content of the data item identified by data-name-1 is positive/negative ... regardless of whether the content of that item would evaluate to true in a NUMERIC class test or a ZERO sign test'; GR2c ZERO sign-agnostic (cite.py --check 8.8.4.7.4 2) OK). RenderSign's Format2Float arm reads the sign bit (double.IsNegative; binary32 widening preserves the sign of zero and NaN), and SendingRef.SignCondition suppresses EC-DATA-NOT-FINITE per §14.6.13.2 rule 3. Both PARTIAL residues are closed: (1) the non-finite edges are now PROBED by golden, not read: SET CONTENT (§14.9.39.4 GR33/34) -Inf POSITIVE F / NEGATIVE T / ZERO F, +NaN POSITIVE T / NEGATIVE F / ZERO F, -NaN POSITIVE F / NEGATIVE T; (2) the over-application to FLOAT-SHORT/-LONG/-EXTENDED is gone (IsFormat2FloatSign asks UsageFamilies.IsStandardFloat). FLOAT-BINARY-128 and FLOAT-DECIMAL-16/-34 are refused with COBOL1564 as processor-dependent (Annex A.3 items 17/19), outside the claim.",
+ "state": "OK"
+}

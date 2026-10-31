@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.3.4-1",
+ "section": "8.4.3.3.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Reference-modification",
+ "rule-digest": "c0d462cbd5a0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#CategoryOf; src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#Characters",
+ "test-ref": "conformance:cases/8.4.3.3-Reference-modification/pb73_table16_function_type_and_boolean_view; conformance:cases/8.4.3.3-Reference-modification/pb73-move-bit-boolean-view-to-numeric; conformance:cases/8.4.3.3-Reference-modification/pb73-move-display-boolean-view-to-numeric",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB73 (adjudicated 2026-08-18): leftmost-position is a boolean position for a boolean item — in EITHER form (GR5a makes the positions bits under USAGE BIT and characters otherwise): a BIT-form slice moves bits 2-3 into a boolean receiver (01) and INTEGER-OF-BOOLEAN(BB4(1:3)) = 5; a DISPLAY-form slice is the same class-boolean unique item over character positions (INTEGER-OF-BOOLEAN(B4(2:3)) = 2). An alphanumeric position for an alphanumeric item; a national position for a national one.",
+ "state": "OK"
+}

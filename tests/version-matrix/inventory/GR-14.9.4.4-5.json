@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.4.4-5",
+ "section": "14.9.4.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "CALL statement",
+ "rule-digest": "e74cb844ff3e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb131_gr5_transitivity; conformance:cases/14.9.4-CALL/call_by_reference_wide_comp5; conformance:cases/14.9.4-CALL/pb130-call-by-value-format1",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB131 closing PB130's residue): all three obligations hold and are pinned spec-derived. (i) an explicit BY CONTENT / BY REFERENCE phrase governs every following bare parameter - golden 85/pb131_gr5_transitivity (`USING BY CONTENT A B BY REFERENCE C D`, callee adds 10 to all four formals: A=0001 B=0002 unchanged, C=0013 D=0014 written back, derived from 14.2.3 GR8/GR9). (ii) the transitivity ends ONLY at another BY CONTENT or BY REFERENCE phrase - the unauthorized third terminator is gone: Format 1's BY VALUE arm is rejected (negative pb130-call-by-value-format1) and Format 2's keyword-less arguments never read the transitive mode (GR9 formal derivation, kb/Work PB131). (iii) BY REFERENCE assumed before the first phrase - call_by_reference_wide_comp5.",
+ "state": "OK"
+}

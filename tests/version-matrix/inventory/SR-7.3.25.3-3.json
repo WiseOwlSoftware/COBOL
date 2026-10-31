@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.25.3-3",
+ "section": "7.3.25.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "TURN directive",
+ "rule-digest": "8a6c52cddabc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TurnDirectiveProcessor.cs#ParseTurn",
+ "test-ref": "conformance-test:ExceptionConditionConformanceTests.Turn_DuplicateName_Diagnosed",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 7.3.25.3 \"No exception-name-1 and file-name-1 combination shall be specified more than once\" OK. AddPair keys a case-insensitive set on ec|file. Probes: TRNP7 'EC-SIZE EC-SIZE' -> COBOL0718 SR3; TRNF6 'EC-I-O F1 F1' -> COBOL0718 'EC-I-O F1' SR3; TRNF3 'EC-I-O-AT-END F1 F2' (distinct combinations) accepted. The covering test witnesses the exception-name duplicate; the file-name combination duplicate is verified by probe only. || editions (adjudicator): 2002, 2014, 2023 (the TURN directive is a COBOL-2002 introduction; §7.3 compiler directives) || code-location detail: src/WiseOwl.Cobol.Frontend/Preprocessor/TurnDirectiveProcessor.cs#TurnDirectiveProcessor.ParseTurn (AddPair)",
+ "state": "OK"
+}

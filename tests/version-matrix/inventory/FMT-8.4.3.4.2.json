@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.4.3.4.2",
+ "section": "8.4.3.4.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Inline method invocation",
+ "rule-digest": "370fedb1ca53",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#inlineMethodInvocation; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#inlineInvocationSegment; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#argument; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.InlineInvocation.cs#OoBindInlineInvocation; src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs#IsEmptyInlineArgumentList; src/WiseOwl.Cobol.Frontend/Parsing/SeparatorRule.cs#Violations",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb428_inline_method_invocation; conformance:cases/8.4.3.4-Inline-method-invocation/pb1430_operator_separator_spaces; conformance:cases/8.4.3.1-Identifier/pb1430-inline-invocation-empty-arguments; conformance:cases/8.4.3.4-Inline-method-invocation/pb1430-invocation-operator-spacing; unit:InlineMethodInvocationOperandDriftTests.TheRuleMatchesThePrintedGeneralFormat",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1430 landed (wave 1032 F). Format rendered from the canonical PDF page 163 (printed folio 133): {object-class-name-1 | identifier-1} :: literal-1 [ ( {arithmetic-expression-1 | boolean-expression-1 | identifier-2 | literal-2 | OMITTED} ... ) ]. The bracket makes the parenthesised group optional, but the argument forms are a BRACE whose ellipsis repeats inside the one pair (cite.py --check 5.2.6.3 'one of the alternatives contained within the braces shall be explicitly specified' OK; 5.2.7 OK), so a written pair holds at least one argument. inlineInvocationSegment is now `COLONCOLON literal (LPAREN argumentList RPAREN)?`; `A1 :: \"GETNAME\" ( )` (which compiled and ran, W=ACCOUNT) is refused with COBOL2994 named by CobolErrorStrategy. The drift test pins the required list. The format's '::' punctuation carries the 8.7.4 separator-space rule (cite.py --check 8.7.4 'shall be immediately preceded and followed by a separator space' OK), now decided by SeparatorRule as COBOL2993 (with its 8.7.3 '&' twin); positive golden pb1430_operator_separator_spaces pins line-end separators and both argument separators. Re-affirmed 2026-10-22 (kb/Work PB3530) against the figure regenerated from the printed page: render_figure.py's brace-group layout now keeps every alternative inside its own enclosure, so the diagram's layout changed while its words did not (sweep_figures.py's word gate); the verdict stands on the printed format. Re-affirmed 2026-10-22 (kb/Work PB3530, review R1-1) against the figure regenerated again: render_figure.py now keeps each printed line whole inside the enclosures that hold its words and starts a new row at a step wider than 3.5 pt, so the diagram's layout changed while its words did not (sweep_figures.py's word gate); the verdict stands on the printed format.",
+ "state": "OK"
+}

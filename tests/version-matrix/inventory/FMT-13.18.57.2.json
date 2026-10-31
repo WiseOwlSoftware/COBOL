@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.57.2",
+ "section": "13.18.57.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "TYPE clause",
+ "rule-digest": "511d91dc15cb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupType; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportControlName",
+ "test-ref": "conformance:cases/13.18.57-TYPE/pb1298_control_heading_or_page; conformance:cases/13.18.57-TYPE/pb1298-control-footing-or-page-not-in-format",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1298: Format 2 as rendered (PDF p524): `{CONTROL HEADING|CH} [ [ON|FOR] {data-name-1|FINAL} [OR PAGE] ]`, `{CONTROL FOOTING|CF} [ [ON|FOR] {data-name-2|FINAL} ]`: ON/FOR optional, OR PAGE inside the one optional bracket and on the heading only (a footing with OR PAGE is a parse error).",
+ "state": "OK"
+}

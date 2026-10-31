@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.48.3-3",
+ "section": "14.9.48.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "UNSTRING statement",
+ "rule-digest": "61d942af2955",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AllOrNothingClass.cs#Violated",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/pb980-unstring-national-mix; conformance:cases/14.9.48-UNSTRING/pb979_unstring_any_length_national",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB980 (2026-09-22). Unenforced before: `UNSTRING S DELIMITED BY \",\" INTO NR` with S PIC X(4) and NR PIC N(3) compiled clean and ran (NR=[AB ]). Now identifier-1, every delimiter, every identifier-4 and identifier-5 are asked of the ONE all-or-nothing predicate STRING SR1 and INSPECT SR4 share (AllOrNothingClass, COBOL2306); identifier-6 is not named. A figurative delimiter takes identifier-1's class (GR7) and never mixes. DETERMINATION D-UN3 (docs/CONFORMANCE.md): a numeric identifier-4 answers by its usage, as SR4 pairs them - read by category alone SR3 would leave SR4's usage-national numeric arm unusable. Category national is a 2002 introduction; at 85 the operands cannot be declared.",
+ "state": "OK"
+}

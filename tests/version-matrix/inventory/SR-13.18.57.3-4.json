@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.57.3-4",
+ "section": "13.18.57.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "TYPE clause",
+ "rule-digest": "81e33c444cf2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CheckStrongTypeDeclarations; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#FirstStrongItemIn; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#TemplateItems",
+ "test-ref": "conformance:cases/13.18.57-TYPE/pb836-strong-record-implicitly-redefined; unit:ImplicitRecordRedefinitionTests.StrongRecord_InAMultiRecordFd_IsSr4_NeverAClauseRule; unit:ImplicitRecordRedefinitionTests.StrongRecord_InASameRecordArea_IsSr4_CitingTheSameClause; conformance-test:TypedefStrongTests.RedefinesOverStrongItem_Rejected1532; conformance:cases/13.18.57-TYPE/pb2071-template-redefines-strong-typed-group",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB836 LANDED. 'If type-name-1 is described with the STRONG phrase, the subject of the entry shall not be implicitly or explicitly redefined in whole or in part.' BOTH arms now screened, each by the construct that performs it. EXPLICIT: a written REDEFINES clause whose data-name-2 is (part of) a strong item from outside its strong subtree - COBOL1532, pinned by TypedefStrongTests.RedefinesOverStrongItem_Rejected1532 (unchanged; now restricted to RedefinitionKind.Clause). IMPLICIT: the only implicit redefinitions the standard defines are an FD/SD's multiple level-1 entries (13.18.33.4 GR3) and a record-area SAME clause (12.4.6.4.4 GR2 'equivalent to an implicit redefinition of the area'); a strongly-typed item anywhere in such a record is implicitly redefined by every other record sharing the area, tested on BOTH sides of each pair because the sharing is symmetric (the binder anchors on the first record; before the fix the strong-FIRST order drew 13.18.44.3 SR14 + SR4 and the strong-SECOND order drew only 13.18.44.3 SR12, a REDEFINES-clause rule for source with no REDEFINES). 'In part': 13.18.57.3 SR6 admits a STRONG reference only at level 1 or under a strong group, so the strong item in a file record is the record itself; FirstStrongItemIn walks the subtree regardless. MEASURED at 2002 and 2023: both orders -> one COBOL1532 citing 13.18.33.4 GR3 and 13.18.57.3 SR4, no 13.18.44 diagnostic; the SAME RECORD AREA pair -> COBOL1532 citing 12.4.6.4.4 GR2. EDITIONS 2002/2014/2023 (TYPEDEF STRONG is a 2002 introduction).",
+ "state": "OK"
+}

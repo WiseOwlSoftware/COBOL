@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.45.2",
+ "section": "15.45.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "INTEGER-OF-BOOLEAN function",
+ "rule-digest": "002c59dc15ef",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgument; src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#boolArgAhead; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindArgOperand",
+ "test-ref": "conformance:cases/15.2-Types-of-functions/pb65_boolean_expression_argument; conformance:cases/15.2-Types-of-functions/intrinsics_boolean_conv",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB65 (2026-08-18): FUNCTION INTEGER-OF-BOOLEAN(argument-1) admits every 8.4.3.2.3 SR8 argument shape the grammar can express — a boolean EXPRESSION (functionArgument's booleanExpression arm behind the ARGUMENT-scoped boolArgAhead predicate, bound as a BoundBoolOperand of class boolean, rendered as its '0'/'1' image), a boolean literal incl. the zero-length B\"\" (8.3.3.4.4 GR4 — the lexer's [01]+ became [01]*), an elementary boolean item. A BIT GROUP item (13.18.29 GROUP-USAGE BIT) is the one 15.3 item-3 shape not yet declarable — kb/Work PB79 (GROUP-USAGE not modelled) owns it.",
+ "state": "OK"
+}

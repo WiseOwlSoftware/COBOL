@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.51.3-6",
+ "section": "14.9.51.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "WRITE statement",
+ "rule-digest": "9b663a6699cb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFromPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindMoveOf",
+ "test-ref": "conformance:cases/14.9.32-RELEASE/pb348-write-from-invalid-move-sender",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR6: 'If record-name-1 is specified, identifier-1 or literal-1 shall be valid as a sending operand in a MOVE statement specifying record-name-1 as the receiving operand.' (--check OK). BindFromPhrase ends in BindMoveOf(source, [record], phrase) - the MOVE statement's own screen, with the phrase named in every message. Probes: index item sender -> COBOL0809 (ws3snd2); national function to alphanumeric record -> 0819 (ws3fnatof); SPACE to a numeric record at 2023 -> 0902 (the edition-dependent Table 16 cell, ws3snd5); alphanumeric literal, numeric-edited item and 3.5 to PIC 9(5) accepted, all legal MOVEs (ws3snd1/3/4). Both arms (sequential and keyed) call the same helper. [editions as adjudicated: 1985, 2002, 2014, 2023 (base WRITE statement; the 2023 text records no change to this rule in Annex E)]",
+ "state": "OK"
+}

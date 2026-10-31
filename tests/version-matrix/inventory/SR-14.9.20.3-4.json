@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.20.3-4",
+ "section": "14.9.20.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "INITIALIZE statement",
+ "rule-digest": "73317e0120ce",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#CheckReplacingMoveValidity; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundInitialize.cs#Table16Receiver; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#ShapeRefusal; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#ScreenImplicitSet; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ElementaryAction",
+ "test-ref": "conformance:cases/14.9.20-INITIALIZE/pb416-initialize-replacing-numeric-to-alphabetic; conformance:cases/14.9.20-INITIALIZE/pb416-initialize-replacing-zero-to-alphabetic; conformance:cases/13.18.60-USAGE/pb416-initialize-replacing-index-sender; conformance:cases/14.9.20-INITIALIZE/pb416_initialize_operand_screens_85; unit:InitializeLaneDriftTests.EveryCategoryName_IsScreenedByExactlyOneHalfOfSyntaxRule4; conformance:cases/14.9.20-INITIALIZE/pb3817-initialize-replacing-restricted-program-pointer; conformance:cases/14.9.20-INITIALIZE/pb3817-initialize-replacing-restricted-function-pointer; conformance:cases/14.9.20-INITIALIZE/pb3817-initialize-replacing-restricted-data-pointer; conformance:cases/14.9.20-INITIALIZE/pb3817-initialize-replacing-object-reference-class; conformance:cases/14.9.20-INITIALIZE/pb3817_initialize_replacing_restricted_program_pointer",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB416.md LANDED -- both halves of SR4 are now screened, by the two rules the standard's two paragraphs name. The SET half (the five §14.9.20.4 GR4 categories) was already CheckInitializeReplacingSetCategoryAgrees/COBOL1983; the MOVE half is CheckReplacingMoveValidity/COBOL2031, asked once per REPLACING item over the category-name SET. Because the rule's receiving operand is 'an item of the specified category' and not any item identifier-1 contains, the screen is a pure bind-time test of each (category, sender) pair and walks no receivers. The question is asked of MoveTable16 -- the SAME screen MoveBinder asks -- so the implicit MOVE and the explicit one cannot disagree; InitializeCategories.Table16Receiver maps a category-name to its Table-16 receiving position and a drift test asserts that EVERY category-name is screened by exactly one of SR4's two paragraphs, so the fourteenth word cannot arrive unscreened. The whole category-keyed validity question is covered, not the table alone: §14.9.25.3 SR1's sending half (SenderClassRefusal), SR8, SR7, SR6 (ShapeRefusal) and SR10 (Refusal). RESIDUE, stated: §14.9.25.3 SR5's figurative-to-numeric prohibition is an EDITION row living in VersionConformancePass.GateMove, re-derived from a bound MOVE node INITIALIZE never builds, so 'INITIALIZE g REPLACING NUMERIC DATA BY SPACE' is still un-gated at 2023 where 'MOVE SPACE TO n' is COBOL0902 -- the version lane's own row, reported rather than copied here edition-blind.",
+ "state": "OK"
+}

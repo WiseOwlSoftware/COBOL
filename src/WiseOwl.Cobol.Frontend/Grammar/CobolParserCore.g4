@@ -975,12 +975,19 @@ statement
     //    (VersionConformancePass VisitMcs*Statement → async-messaging-2023 → COBOL0900). No legal program of
     //    any edition loses a reading: at 2002/2014 a user-defined word RECEIVE or SEND cannot begin a statement,
     //    and the operand-list keyword choice for an undeclared one is keywordContinuesHere's (kb/Work PB805).
-    //    VALIDATE (reserved from 2002, its introduction) and COMMIT / ROLLBACK (reserved from 2023, theirs) keep
-    //    facilityWord: their reservation starts at their introduction and never lapses, so it never admits a format
-    //    at an edition that lacks it (and a bare `COMMIT.` at 2014, where COMMIT is a user word, stays a paragraph). ──
+    //    ⛔ VALIDATE IS THE UNION GRAMMAR TOO, GATED ON INTRODUCTION (kb/Work PB3148). Its reservation does start at
+    //    its 2002 introduction and never lapses, but a reservation predicate turned `VALIDATE WS-A.` at --std 85 into
+    //    a token-level parse error (COBOL0307 at the operand) where every other post-85 statement (UNLOCK, INVOKE,
+    //    ALLOCATE, RAISE) parses at every edition and names its introduction. The arm fires wherever the token spells
+    //    the verb, and the edition pass names the introduction (VersionConformancePass VisitValidateFacilityStatement
+    //    → validate-statement-2002 → COBOL0900). No COBOL-85 program loses a reading: a user-defined word VALIDATE
+    //    cannot begin a statement, `VALIDATE.` (a paragraph header) cannot match the arm, which needs an operand, and a
+    //    program that DECLARES the word has every occurrence retyped to IDENTIFIER by the reservation gate (PB655).
+    //    COMMIT / ROLLBACK (reserved from 2023, their introduction) keep facilityWord: the statement is the bare verb,
+    //    so `COMMIT.` at 2014, where COMMIT is a user word, IS a paragraph header and no parse can tell otherwise. ──
     | {wordAhead("RECEIVE")}?     mcsReceiveStatement
     | {wordAhead("SEND")}?        mcsSendStatement
-    | {facilityWord("VALIDATE")}? validateFacilityStatement
+    | {wordAhead("VALIDATE")}?    validateFacilityStatement
     | {facilityWord("COMMIT")}?   commitFacilityStatement
     | {facilityWord("ROLLBACK")}? rollbackFacilityStatement
     | continueStatement

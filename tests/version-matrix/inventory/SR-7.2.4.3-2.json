@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.2.4.3-2",
+ "section": "7.2.4.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "REPLACE statement",
+ "rule-digest": "d6a06857d513",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#FindStatementKeyword",
+ "test-ref": "conformance:cases/7.2.4-REPLACE/pb1358-replace-not-preceded-by-space; unit:TextManipulationStatementTests.ReplaceAfterAParenthesis_IsNotPrecededByASpace; unit:TextManipulationStatementTests.ReplaceGluedBehindAPeriod_IsDiagnosed",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1358 (w68x): 'shall be preceded by a space except when it is the first statement in a compilation group' (cite.py OK 7.2.4.3 2)): REPLACE after '(' / ':' / a literal / == is COBOL2449 naming SR2; REPLACE glued behind a period, comma or semicolon (not a text-word of its own) is reported by FindStatementKeyword's glued arm - the COPY twin's rule, one finder.",
+ "state": "OK"
+}

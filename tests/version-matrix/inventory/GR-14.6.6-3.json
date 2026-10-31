@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.6-3",
+ "section": "14.6.6",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Execution",
+ "rule-digest": "f5d73900ad1b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/LocaleState.cs#LocaleValue",
+ "test-ref": "conformance:cases/14.6.6-Locale-identification/pb64t1_set_locale_categories; unit:LocaleStateTests.Set_SwitchesOnlyTheNamedCategories_AndTheyPersist",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T1 (2026-08-19): LocaleValue.With copies only the switched categories; the others are unchanged (the OTHERS line of the golden).",
+ "state": "OK"
+}

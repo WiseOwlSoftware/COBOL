@@ -45,14 +45,15 @@ public sealed class WrittenKindRefusalTests
     [InlineData("open-mode", 2023, Files + "       PROCEDURE DIVISION.\n           OPEN F.\n           STOP RUN.\n",
         "COBOL5506: unexpected 'F'. The word 'F' is not expected here: expected EXTEND, I-O, INPUT or OUTPUT")]
     // A literal of a category the position does not take, and a literal where no literal is expected. The figurative
-    // ZERO is named only where a ZERO written instead would parse (review R1-1): beside an arithmetic operator, the
-    // ZERO_ARITH the token rewriter makes it; after SET … TO alone the parse does not take a sole ZERO, so it is not named.
+    // ZERO is named wherever the parse expects the arithmetic ZERO_ARITH, because a ZERO written there parses: beside an
+    // arithmetic operator the token rewriter makes it ZERO_ARITH, and after SET … TO alone the parse does
+    // (ZeroSignReading, kb/Work PB4120). The theory below writes the ZERO and requires it to parse.
     [InlineData("set-index-alphanumeric", 2023, Table + "       PROCEDURE DIVISION.\n           SET IX TO \"A\".\n           STOP RUN.\n",
         "COBOL5506: cannot parse construct near '\"A\"'. The alphanumeric literal \"A\" is not expected here: of the literals, "
-        + "only a numeric literal is expected at this position")]
+        + "only a numeric literal or the figurative constant ZERO is expected at this position")]
     [InlineData("set-up-by-alphanumeric", 2023, Table + "       PROCEDURE DIVISION.\n           SET IX UP BY \"A\".\n           STOP RUN.\n",
         "COBOL5506: unexpected '\"A\"'. The alphanumeric literal \"A\" is not expected here: of the literals, only a numeric "
-        + "literal is expected at this position")]
+        + "literal or the figurative constant ZERO is expected at this position")]
     [InlineData("compute-operand-alphanumeric", 2023, Table + "       PROCEDURE DIVISION.\n           COMPUTE W-N = 1 + \"A\".\n           STOP RUN.\n",
         "COBOL5506: cannot parse construct near '\"A\"'. The alphanumeric literal \"A\" is not expected here: of the literals, "
         + "only a numeric literal or the figurative constant ZERO is expected at this position")]
@@ -78,6 +79,62 @@ public sealed class WrittenKindRefusalTests
         }
     }
 
+    private const string UseDeclarative = Head + Files
+        + "       PROCEDURE DIVISION.\n       DECLARATIVES.\n       H-SECT SECTION.\n           USE PROCEDURE ON F.\n"
+        + "       H-PARA.\n           DISPLAY \"H\".\n       END DECLARATIVES.\n       MAIN-SECT SECTION.\n       MAIN.\n"
+        + "           STOP RUN.\n";
+
+    /// <summary>⛔ THE WORDS NAMED ARE THE ONES THE TARGETED EDITION HAS (kb/Work PB4174). The parse is the superset of
+    /// the four editions, so its expected set holds words ISO §8.9 has not reserved at the edition — and §8.3.2.1 1)
+    /// ("Reserved words shall not be used as user-defined words or system-names") makes such a word a user-defined
+    /// one there. The 2002 boolean operators B-AND, B-OR and B-XOR, the 2023 shift operators (Annex E.2 3), PROTOTYPE
+    /// (2002) and EC and EO (2002) are named from the edition that reserves them and not before.</summary>
+    [Theory]
+    [InlineData("paren-85", 85, Head + Table + "       PROCEDURE DIVISION.\n           COMPUTE W-N = (W-N + 1.\n           STOP RUN.\n",
+        "expected '**', ')', '+', '-', '*' or '/' (ISO §5.2.1)", "B-")]
+    [InlineData("paren-2002", 2002, Head + Table + "       PROCEDURE DIVISION.\n           COMPUTE W-N = (W-N + 1.\n           STOP RUN.\n",
+        "expected B-AND, B-OR, B-XOR, '**', ')', '+', '-', '*' or '/' (ISO §5.2.1)", "B-SHIFT")]
+    [InlineData("paren-2014", 2014, Head + Table + "       PROCEDURE DIVISION.\n           COMPUTE W-N = (W-N + 1.\n           STOP RUN.\n",
+        "expected B-AND, B-OR, B-XOR, '**', ')', '+', '-', '*' or '/' (ISO §5.2.1)", "B-SHIFT")]
+    [InlineData("paren-2023", 2023, Head + Table + "       PROCEDURE DIVISION.\n           COMPUTE W-N = (W-N + 1.\n           STOP RUN.\n",
+        "expected B-AND, B-OR, B-SHIFT-L, B-SHIFT-LC, B-SHIFT-R, B-SHIFT-RC, B-XOR, '**', ')', '+', '-', '*' or '/' (ISO §5.2.1)", null)]
+    [InlineData("program-id-attribute-85", 85, "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB4174G IS GLOBAL.\n" + Proc,
+        "expected COMMON, INITIAL or RECURSIVE (ISO §5.2.1)", "PROTOTYPE")]
+    [InlineData("program-id-attribute-2002", 2002, "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB4174G IS GLOBAL.\n" + Proc,
+        "expected COMMON, INITIAL, PROTOTYPE or RECURSIVE (ISO §5.2.1)", null)]
+    [InlineData("use-85", 85, UseDeclarative, "expected AFTER, BEFORE, ERROR, EXCEPTION", "EC, EO")]
+    [InlineData("use-2002", 2002, UseDeclarative, "expected AFTER, BEFORE, EC, EO, ERROR, EXCEPTION", null)]
+    public void TheWordsNamedAreTheOnesTheEditionHas(string name, int edition, string source, string expected, string? absent)
+    {
+        var errors = Compile(source, edition).Where(e => e.Contains("COBOL5506", StringComparison.Ordinal)).ToList();
+        Assert.True(errors.Count == 1, $"[{name}] expected exactly one COBOL5506, got:\n{string.Join("\n", errors)}");
+        Assert.Contains(expected, errors[0], StringComparison.Ordinal);
+        if (absent is not null)
+        {
+            string sentence = errors[0][errors[0].IndexOf("expected ", StringComparison.Ordinal)..];
+            Assert.DoesNotContain(absent, sentence, StringComparison.Ordinal);
+        }
+    }
+
+    /// <summary>The rule itself (<c>ReservedWords.AdmitsAsKeyword</c>): false only for a word the table proves a LATER
+    /// edition introduced; true for a reserved word, for one an older edition reserved and this one dropped (WORDS at 2023,
+    /// COBOL and PHYSICAL, which 2023 formats still underline), for one with no row and for one whose row may not reject.</summary>
+    [Theory]
+    [InlineData("B-AND", 85, false)]
+    [InlineData("B-AND", 2002, true)]
+    [InlineData("B-SHIFT-L", 2014, false)]
+    [InlineData("B-SHIFT-L", 2023, true)]
+    [InlineData("PROTOTYPE", 85, false)]
+    [InlineData("PROTOTYPE", 2023, true)]
+    [InlineData("WORDS", 2023, true)]
+    [InlineData("COBOL", 2023, true)]
+    [InlineData("PHYSICAL", 2023, true)]
+    [InlineData("PHYSICAL", 85, false)]
+    [InlineData("AWAY-FROM-ZERO", 85, true)]
+    [InlineData("NO-SUCH-WORD", 85, true)]
+    public void AKeywordIsNamedUnlessALaterEditionIntroducedIt(string word, int edition, bool expected)
+        => Assert.Equal(expected, WiseOwl.Cobol.Editions.ReservedWords.AdmitsAsKeyword(word, edition));
+
     /// <summary>The controls: each keeps the diagnosis it had, and none draws COBOL5506.</summary>
     [Theory]
     [InlineData("residue-word", 85, Config + "       OBJECT-COMPUTER. XYZ FOO IS 12.\n" + Proc, "COBOL1970")]
@@ -86,11 +143,6 @@ public sealed class WrittenKindRefusalTests
     [InlineData("level-number-before-its-fd", 2023, "       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n"
         + "       FILE-CONTROL.\n           SELECT F ASSIGN TO \"pb3428u.dat\".\n       DATA DIVISION.\n       FILE SECTION.\n"
         + "       01 W-LOOSE PIC X(5).\n       FD F.\n       01 R PIC X(5).\n" + Proc, "COBOL0001")]
-    // A ZERO the rewriter left figurative, where the parse takes only the arithmetic ZERO_ARITH: the refusal named
-    // ZERO_ARITH "the figurative constant ZERO" and wrote "The word ZERO is not expected here: expected the figurative
-    // constant ZERO" (review R1-1). Nothing the position expects can be named, so the arm says nothing.
-    [InlineData("all-zero-after-set-to", 2023, Table + "       PROCEDURE DIVISION.\n           SET IX TO ALL ZERO.\n           STOP RUN.\n",
-        "COBOL0001")]
     public void APositionTheArmDoesNotName_KeepsItsDiagnosis(string name, int edition, string body, string code)
     {
         var errors = Compile(Head + body, edition);

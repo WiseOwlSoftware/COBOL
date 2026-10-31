@@ -64,7 +64,7 @@ internal sealed record FromPhraseRules(
 
     /// <summary>RELEASE (ISO §14.9.32) — the only FROM phrase carrying the zero-length-literal rule.</summary>
     public static readonly FromPhraseRules Release = new(
-        "RELEASE … FROM",
+        "RELEASE FROM",
         "ISO §14.9.32.4 GR4 a); §14.9.32.3 SR3",
         [PicCategory.Alphanumeric, PicCategory.National],
         "ISO §14.9.32.3 SR2 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or "
@@ -75,7 +75,7 @@ internal sealed record FromPhraseRules(
     /// ("alphanumeric, boolean, or national"), so a conforming program satisfies both only inside SR4's set —
     /// which is what is enforced. The FILE-phrase arm (SR10) is unreachable: Annex A.4.13 item 2 is declined.</summary>
     public static readonly FromPhraseRules Write = new(
-        "WRITE … FROM",
+        "WRITE FROM",
         "ISO §14.9.51.4 GR5 a); §14.9.51.3 SR6",
         [PicCategory.Alphanumeric, PicCategory.National],
         "ISO §14.9.51.3 SR4 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or "
@@ -85,7 +85,7 @@ internal sealed record FromPhraseRules(
     /// <summary>REWRITE (ISO §14.9.35). §14.9.35.3 SR9's set is the WIDER one — it admits a boolean function —
     /// and it is the applicable rule because the FILE phrase (SR8's condition) is declined, A.4.13 item 2.</summary>
     public static readonly FromPhraseRules Rewrite = new(
-        "REWRITE … FROM",
+        "REWRITE FROM",
         "ISO §14.9.35.4 GR7 a); §14.9.35.3 SR6",
         [PicCategory.Alphanumeric, PicCategory.Boolean, PicCategory.National],
         "ISO §14.9.35.3 SR9 — \"If identifier-1 references a function and the FILE phrase is not specified, "

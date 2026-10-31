@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.6.4-9",
+ "section": "14.9.6.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "CLOSE statement",
+ "rule-digest": "85496b70b040",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedClose; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseByFormat",
+ "test-ref": "conformance:cases/14.9.6-CLOSE/pb235_close_unit_locks; conformance:cases/14.9.6-CLOSE/file_sharing_seq; unit:CobolFileLockTests.DeleteFile_OpenByAnotherConnector_62_ThenCloseFrees",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB235). THE PREVIOUS ROW'S OPEN CHARGE WAS INVERTED, and re-probing settled it. The charge was that GR9 carries no 'without the UNIT phrase' qualifier while FileRegistry.CloseReelUnit releases nothing, so a CLOSE F UNIT leaves locks held. DERIVED ANSWER: that is CORRECT BEHAVIOUR, not a defect. GR3's Table 14 gives CLOSE UNIT on a Non-unit physical file the single symbol e, NOT symbol c ('Close file'), and symbol e's non-unit branch is 'Execution of this statement is considered successful. The file remains in the open mode, the file position indicator is unchanged, the I-O status indicator ... is set to 07, and no other action takes place' (cite.py --check 14.9.6.4 -> OK, rule 3) - a lock release IS another action. The same reading is forced on unit media, where symbol e performs a UNIT SWAP and the connector keeps reading: a connector that released its own file lock mid-file would arbitrate against nothing. 9.1.16 states the record-lock half as released 'by the execution of an explicit or implicit CLOSE statement FOR THE FILE' (cite.py --check 9.1.16 -> OK), and Table 14's own vocabulary separates symbol c 'Close file' from symbol e 'Close unit'. So GR9's release rides symbol c - every CLOSE format except the two UNIT rows - and that is what the code does. pb235_close_unit_locks is the spec-derived golden that pins BOTH lock kinds through both arms: a manual record lock held by A survives CLOSE A UNIT (B's READ stays '51', 9.1.13.8 item 1) and is released by the plain CLOSE A (B reads '00'); a SHARING WITH NO OTHER file lock survives CLOSE X UNIT (Y's OPEN stays '61', 9.1.13.9 item 1) and is released by CLOSE X (Y opens '00'). THE UNCONDITIONAL-SIDE-EFFECT CAVEAT THE PREVIOUS ROW RECORDED IS ALSO CLOSED: SharedClose used to run BEFORE the connector's own Close on every path, so an unsuccessful CLOSE performed GR9's release anyway; GR1 ('If the file connector is not open, the CLOSE statement is unsuccessful and the I-O status indicator ... is set to 42') is now HOISTED to the top of the one CloseByFormat dispatch, ahead of every symbol, so an unsuccessful CLOSE performs none of the closing actions - the golden's final arm pins the '42' and shows the other connector keeps the file it took. GR9's APPLY COMMIT carve-out remains unpopulatable and is licensed, not owed: the commit-and-rollback module is Annex A.4.3, recorded 'Not claimed' in docs/CONFORMANCE.md 5 with the 4 item 2 non-support, so no program this compiler accepts can name an APPLY COMMIT clause and the exception the rule carves out has no case to apply to.",
+ "state": "OK"
+}

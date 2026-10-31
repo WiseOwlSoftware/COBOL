@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.8.3-3",
+ "section": "12.4.5.8.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "FILE STATUS clause",
+ "rule-digest": "614442396e73",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenFileStatusItem",
+ "test-ref": "conformance:cases/12.4.5.8-FILE-STATUS/pb1080-file-status-dynamic-based",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1080 landed (w61c). cite.py --check 12.4.5.8.3 'Data-name-1 shall not reference a dynamic-length elementary item or a variable-length group' -> OK SR3. DataItem.IsDynamicLength or VariableLengthCompatibility.IsVariableLength (8.5.1.12's definition) -> COBOL2455; formerly a PIC X DYNAMIC LENGTH status ran with a one-character status (probe p7).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.54.4-9",
+ "section": "13.18.54.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "SUM clause",
+ "rule-digest": "c63a6c52a2a9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#RegisterCrossEngineAdditions",
+ "test-ref": "conformance:cases/13.18.54-SUM/pb883_report_sum_expression; conformance:cases/13.18.53-SOURCE/pb1294_report_rolled_totals",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1294 landed. GR9 for an addend list that mixes the two kinds: T5 SUM DA WS-AMT adds the data-name-1 DA when its group is processed and the identifier WS-AMT on every GENERATE, each as its own addition, so each record contributes its value twice (024 and 022). A term's rolled addends leave its GENERATE-driven addition.",
+ "state": "OK"
+}

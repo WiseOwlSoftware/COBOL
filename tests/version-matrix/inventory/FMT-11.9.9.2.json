@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-11.9.9.2",
+ "section": "11.9.9.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "FLOAT-DECIMAL clause",
+ "rule-digest": "371d3c918b2f",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#DeclineFloatDecimal; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#floatDecimalClause",
+ "test-ref": "conformance:cases/4.2.10-Nonstandard-extensions/w59_float_decimal_clause_witness; conformance-test:DocumentedNonSupportWitnessTests.FloatDecimalClause_NamedNonSupportWarning_PinnedToSpec; conformance-test:DocumentedNonSupportWitnessTests.FloatDecimalClause_EveryPhraseOrder_ReachesTheWarning_NotAParseError",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work R43 item 1 (owner, 2026-09-24): wholly inside a declined facility → DOCUMENTED-NON-SUPPORT. §11.9.9.2 is the general format of the OPTIONS paragraph's FLOAT-DECIMAL clause, which docs/CONFORMANCE.md §2 Annex A.3 row 13 declines (Not claimed): the clause is accepted inert with the §4.2.6 warning COBOL2424 (OptionsBinder.DeclineFloatDecimal), and §4.2.6 frees the implementation from diagnosing syntax errors inside unsupported syntax (cite.py --check 4.2.6 'not required to diagnose syntax errors within this unsupported syntax' → OK). The earlier DIVERGES (kb/Work PB1508 / PB298: the choice-indicator shape of the clause's format) was a finding about the internals of a declined clause; recorded by batch, not by the float-formats selector, because a derived selector never overwrites an adjudicated verdict (orchestrator decision, wave 59 H).",
+ "state": "OK"
+}

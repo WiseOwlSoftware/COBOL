@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014"], "expect": "COBOL5506: cannot parse construct near '.'. The separator period is not expected here: expected B-AND, B-OR, B-XOR, '**', ')', '+', '-', '*' or '/'"}

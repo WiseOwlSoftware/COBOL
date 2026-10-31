@@ -20,11 +20,11 @@
       *> Both arms are here on purpose: `TO NULL` reaches the format selection through
       *> setObjectReferenceStatement and `TO MT2` through setToValueStatement, and it was the FIRST arm that
       *> produced the SR8 diagnostic - one dispatch, two arms (feedback_two_arm_dispatch).
-      *> 2023 ONLY, DELIBERATELY: MESSAGE-TAG is an Annex E.2 item-25 COBOL-2023 addition, so below 2023 the
-      *> word is an ordinary user-defined word and the edition-correct answer is the introduction gate.  That
-      *> routing is broken for the whole MESSAGE-TAG surface (COBOL1943 fires at 2002 and 2014 too, against
-      *> its own message text) and is registered as its own mechanism; pinning 2002 here would freeze the
-      *> defect (feedback_green_test_can_hold_a_gap_open).  The entry's own witness is
+      *> 2023 ONLY, BY DESIGN: MESSAGE-TAG is an Annex E.2 item-25 COBOL-2023 addition, so below 2023 the
+      *> word is an ordinary user-defined word and the edition-correct answer is the COBOL0900 introduction gate
+      *> on the two entries.  Since kb/Work PB916 the statement's COBOL2205 follows its operand's usage and is
+      *> not reported below 2023 (MessageTagIntroductionGateTests holds that absence); this harness checks that
+      *> the named code is reported, so the 2023 cell is the one it can pin.  The entry's own witness is
       *> negative/pb487-message-tag-usage; this one is the STATEMENT's.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEGPB453F17.

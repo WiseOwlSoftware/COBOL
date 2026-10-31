@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-154",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 154,
+ "subject": "Record locking (maximum number allowed for a run unit)",
+ "rule-digest": "3cb90dda0a5e",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-154; src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#RunUnitLockMax; src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#PreflightNewLock; src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#TotalRunUnitLocks",
+ "test-ref": "unit:CobolFileLockTests.RunUnitLockLimit_256thRunUnitLock_Is53",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§12.4.5.9.4 GR7 (cite.py OK 7)) requires a run-unit maximum of at least 255 and an unsuccessful statement with a status that indicates it; §9.1.13.8 item 3 (cite OK) is '53'. Code: PhysicalFileTable.RunUnitLockMax = 255 (L71); LockRecord (L100-101) and PreflightNewLock (L149-150) check the connector ceiling first (54) then TotalRunUnitLocks() >= 255 (53); self re-lock returns 00 before counting. One PhysicalFileTable per run unit's FileRegistry. unit test CobolFileLockTests.RunUnitLockLimit_256thRunUnitLock_Is53 pins 17x15 locks then 53. No COBOL-level golden reaches 256 locks.",
+ "state": "OK"
+}

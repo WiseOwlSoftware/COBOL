@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.16.4-4",
+ "section": "13.18.16.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "CONTROL clause",
+ "rule-digest": "8778f441e562",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#FloatControlKey; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore",
+ "test-ref": "conformance-test:ReportWriterConformanceTests.ControlBreak_Gr4a_CfSeesPriorValue_ChSeesNew; conformance:cases/13.18.16-CONTROL/pb1234_report_control_float; conformance:cases/13.18.16-CONTROL/pb1234-report-control-float-85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1234 (w70 V3) closes the defect half: a floating-point CONTROL operand (legal - no §13.18.16.3 rule excludes it) now has the GR4 a) save/restore channel. GR3 (cite OK 3)) gives the prior control 'the same data description as the corresponding data item', so both directions are same-usage copies: the emitter reads the item on its own carrier (NumericRenderer.FloatCarrierRead, SameUsageMove), keys it by its exact bit pattern (CobolReport.FloatControlKey), writes it back through the item's own encoding (ImageOfCarrier for an image-stored float) and breaks on a VALUE change (CobolReport.FloatControlEqual: -0 equals +0). Golden conformance:cases/13.18.16-CONTROL/pb1234_report_control_float: FLOAT-LONG minor + FLOAT-SHORT major controls; CF-N prints the PRIOR value (CN=1.00, then 0.33), a major break prints CF-N then CF-S, and the items hold exactly their new values after each GENERATE (CN = 1/3 compared with the same quotient). The DISPLAY/character 4a path stays covered by conformance-test:ReportWriterConformanceTests.ControlBreak_Gr4a_CfSeesPriorValue_ChSeesNew.",
+ "state": "OK"
+}

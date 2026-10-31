@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.4.1-1",
+ "section": "15.4.1",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "Intrinsic functions",
+ "rule-digest": "67d42fb36baf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#FactorialDec",
+ "test-ref": "conformance:cases/15.4.1-Numeric-and-integer-functions/pb13_float_quantize_headroom; conformance:cases/15.4.1-Numeric-and-integer-functions/pb125_factorial_standard_decimal; conformance:cases/15.4.1-Numeric-and-integer-functions/pb125_factorial_native_size; unit:FactorialDecTests.Factorial34_IsExactOnTheSdidi; conformance:cases/15.4.1-Numeric-and-integer-functions/pb620_combined_datetime_eae",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB125): the refuter's counter-example - FACTORIAL(34) returning the 15.3 default 0 on a CONFORMING argument (15.36.3 r1 admits every nonnegative integer; zero is no 15.4.1 approximation of 2.95e38) - is gone in BOTH modes. Standard modes: FactorialDec on the RenderDec lane (alwaysDec + 'when num.StandardDecimal', the PB116 SQRT shape) evaluates 15.36.4 r1c's product on the SDIDI with per-multiply 8.8.1.5.3 rounding; 34! is EXACT (every intermediate's dropped digits are its trailing zeros), overflow past decimal128 raises EC-SIZE-OVERFLOW near n=1755 from CobolDec.Mul's range check. Native: n>33 now raises the SIZE error condition (the value exceeds the Int128 intermediate - CONFORMANCE.md item 179's class; ON SIZE ERROR takes it, without checking item 70's fatal termination) instead of a misapplied EC-ARGUMENT-FUNCTION with a silent 0; a negative argument keeps the genuine 15.36.3 r1 argument error. No returned native value is now a non-approximation of its EAE. The related premise rows: RV-15.4.1-2 unchanged; RV-15.4.1-3 stays open on the refuter's own half-two finding (not re-read here); CobolDec.Pow's non-integer core is the DOCUMENTED 8.8.1.5.4 r2e determination in its doc comment, with the exact r2a-d arms in place and conformance:cases/8.8.1.5.4-Exponentiation-in-standard-decimal-arithmetic/exp_standard_decimal_eae pinning convergence. kb/Work PB620 (2026-09-21): COMBINED-DATETIME was the one §15.4.1 r1 function still consuming its argument through the LANDED intake, which truncates an SDIDI operand at max(receiver scale, 6) — COMBINED-DATETIME(1, WS-S + 0) answered 1.03661123456 where COMBINED-DATETIME(1, WS-S) answered 1.0366112345678 in the same program, and NOTE 2's relation condition evaluated FALSE. §15.17.3 r2 admits any value in standard numeric time form and §15.5.5 bounds that form by MAGNITUDE only, so no working scale may stand in front of argument-2: the function now has a RenderDec arm over CobolDate.CombinedDatetimeDec (the EAE on the SDIDI), the exact arm takes RawArg, both carriers share ONE §15.17.3 screen, and ExactCarrierBoundaryDriftTests.EveryArmThatCanTakeADecArgument_HasADecBody holds the shape for the next function.",
+ "state": "OK"
+}

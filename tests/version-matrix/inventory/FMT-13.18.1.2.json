@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.1.2",
+ "section": "13.18.1.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "ALIGNED clause",
+ "rule-digest": "8e3cac1742da",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#alignedClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#ALIGNED",
+ "test-ref": "conformance:cases/13.18.1-ALIGNED/pb487_aligned_bit_layout; conformance:cases/13.18.1-ALIGNED/pb487-aligned-non-bit-subject",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "The general format is the single required word ALIGNED, underlined. It had NO lexer token and NO parser rule anywhere in the frontend before kb/Work PB487 - the word arrived as an IDENTIFIER and the 13.16.2 catch-all ate it. ALIGNED is 8.9-reserved from 2002, so the token is cobolWord / reservedGatedWord-admitted (cobol-words.json, generated) and stays a legal user-defined word at 85; the clause's 2002 introduction gate is VersionConformancePass ParseArm.VisitAlignedClause (constructs.json row aligned-clause-2002).",
+ "state": "OK"
+}

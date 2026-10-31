@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.69.4-3",
+ "section": "15.69.4",
+ "kind": "RV",
+ "ordinal": 3,
+ "subject": "NUMVAL-F function",
+ "rule-digest": "86a64311cb21",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalFDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NvfScan; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolDec.cs#FromParsed",
+ "test-ref": "conformance:cases/15.4.1-Numeric-and-integer-functions/pb60_numval_standard_decimal; unit:CobolIntrinsicsDecTests.NumvalFDec_LiftsTheExponent_ThroughTheOneRangeCheck",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "LANDED 2026-08-17 (PB60, with RV-15.67.4-1a — the same RenderDec arm). §15.69.4 r3: under standard-decimal arithmetic the returned value IS the numeric value represented by argument-1 (r2 grants only native and standard-binary the approximation). NUMVAL-F's standard-mode value is now the one NvfScan's significand × 10^(exponent − fraction digits), lifted through CobolDec.FromParsed — the ONE §8.8.1.5.2 r2 range check every SDIDI result gets, since a 4-digit E-exponent can leave decimal128 (1E+9999 ⇒ EC-SIZE-OVERFLOW). The refuter's headline — TWO returned values for one function and one argument in one execution (COMPUTE exact, DISPLAY the Int128 saturation sentinel, and NUMVAL-F(\"1E+30\") = NUMVAL-F(\"9E+30\") TRUE) — cannot recur under the standard modes: there is ONE SDIDI value in every channel (golden legs RAWF, F40, CMF20, SUM, and the relation/EVALUATE legs). The NATIVE-mode value is the same SDIDI (RV-15.69.4-2, kb/Work PB3839), so the value no longer differs by mode. NUMVAL-F is 2014+.",
+ "state": "OK"
+}

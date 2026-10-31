@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.1.9.1-2",
+ "section": "8.5.1.9.1",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Dynamic-capacity tables",
+ "rule-digest": "984cbcd50439",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#MaxOccurrences; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#GrowTo",
+ "test-ref": "conformance:cases/8.5.1.9-Dynamic-capacity-tables/l1c06_dyn_table_unlimited_capacity",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 8.5.1.9.1 2) 'it may have an unlimited capacity' (--check OK 8.5.1.9.1 2)). The declaration imposes no ceiling: TO is only the EXPECTED capacity (exceedable, dyn_capacity_bounds SET 9 over TO 4 -> 9) and a TO-less table grows freely (probe p3 LZ(100000) -> LC=100000). The only ceiling is the implementor maximum MaxOccurrences = 0x3FFFFFFF, which 8.5.1.9.1 last paragraph expressly allows ('The actual limit for the current capacity imposed by the implementor and by current resource availability is referred to as the maximum capacity', --check OK). The resource-availability arm of that maximum is defective but belongs to GR-8.5.1.9.6-2 (raw OutOfMemory crash, see that record), not to this rule. No spec-derived golden asserts growth of a TO-less table to a large capacity, so test-ref is empty (test-needed). || editions as written by the adjudicator: 2014, 2023 (dynamic-capacity tables are a COBOL-2014 facility, ISO optional module A.4.4; absent from 1985/2002 - the compiler gates them COBOL0900 below 2014, probe p4 --std 2002; the 2023 Annex E records no change to 8.5.1.9)",
+ "state": "OK"
+}

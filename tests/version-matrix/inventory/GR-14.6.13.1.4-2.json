@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.13.1.4-2",
+ "section": "14.6.13.1.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Exception conditions",
+ "rule-digest": "ef014f360168",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitNotPhrase; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitInvalid",
+ "test-ref": "conformance:cases/14.6.13.1.4-Nonfatal-exception-conditions/pb1120_handled_warning_by_when_phrase_skips_not_invalid_key",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1120 landed. Sentence 3 (a NOT phrase in the interrupted statement \"is also not executed\" after a WHEN handled the condition) now holds on the I-O path: __IoCheckEc answers ResumeSignal.HandledNonfatal (-4) when a WHEN/USE handled a warning raised by a SUCCESSFUL statement, and every NOT phrase (NOT INVALID KEY, NOT AT END, NOT END-OF-PAGE) asks for -1 only. Witness: an indexed WRITE ending 02 inside PERFORM ... WHEN EC-I-O-WARNING runs the WHEN and skips NOT INVALID KEY; sentences 1-2 were verified earlier (g1) and the CALL arm is pb606.",
+ "state": "OK"
+}

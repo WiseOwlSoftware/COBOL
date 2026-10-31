@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.57.4-5",
+ "section": "15.57.4",
+ "kind": "RV",
+ "ordinal": 5,
+ "subject": "LOWER-CASE function",
+ "rule-digest": "cdc3cb41ed72",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#LowerCase; src/WiseOwl.Cobol.Runtime/Globalization/LocaleFacts.cs#TextInfo",
+ "test-ref": "conformance:cases/8.8.4.4-Simple-class-condition/pb64t5_character_classification; unit:CobolLocaleTests.CaseMapping_FollowsTheLocalesLcCtype",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB64 T5 (2026-08-19) — was PARTIAL (the locale half unreachable). DETERMINATION L9: the LC_CTYPE correspondence is SIMPLE (TextInfo.ToLower — one code unit to one, as ISO 9945's tolower is), so it is always one-to-one and the returned string has argument-1's length in every case: LEN-LO = 1 for LOWER-CASE(\"I\") under tr (the tailored dotless ı), and the locale-phrase form in the unit test. The second sentence is a permission not exercised; documented under §4.2.7. Rule --check verified at 15.57.4 5).",
+ "state": "OK"
+}

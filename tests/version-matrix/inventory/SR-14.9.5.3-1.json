@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.5.3-1",
+ "section": "14.9.5.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "CANCEL statement",
+ "rule-digest": "e8a87016deaa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCancel",
+ "test-ref": "conformance:cases/14.9.5-CANCEL/pb154-cancel-numeric",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB154): BindCancel's dataReference arm gains the 14.9.5.3 SR1 class screen - only Alphanumeric/National admitted, `continue` on reject so legal targets beside the bad operand survive. The screen carries its OWN descriptor, DiagnosticCatalog.CancelTargetCategory (COBOL1696): 14.9.5.3 SR1 is a NARROWER rule than 14.9.4.3 SR1 (which also admits program-pointer), so the landing initially reused the CALL twin's COBOL1681 and the review fleet caught the descriptor text promising a program-pointer CANCEL admits. The row's sibling-sweep claim (BindCall shares the hole) was stale at landing time - PB132 had already closed the CALL arm.",
+ "state": "OK"
+}

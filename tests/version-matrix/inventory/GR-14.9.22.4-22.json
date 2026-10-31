@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.22.4-22",
+ "section": "14.9.22.4",
+ "kind": "GR",
+ "ordinal": 22,
+ "subject": "INSPECT statement",
+ "rule-digest": "f91bb7eaf91c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Convert; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#RangeInspectSizeError; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhraseOperands",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/pb1126_inspect_size_ec; conformance:cases/14.9.22-INSPECT/pb1128_inspect_identifier1_class_store",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1126 (landed w66k). Unequal non-figurative CONVERTING sets set EC-RANGE-INSPECT-SIZE before any character converts (witness E3); a figurative literal-5 takes identifier-6's / literal-4's size at RUN time (BoundInspectConvert.ToIsFigurative; an ALL literal repeats per 8.3.3.6.4 GR2) - CONVERTING FUNCTION LOWER-CASE(F) TO ZEROS gives 000def (witness N8), and was 0bcdef. || editions corrected from '85' to 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a facility that exists at every edition (the COBOL-85 nucleus, I-O, inter-program and SPECIAL-NAMES implementor-names; its arithmetic, the only arithmetic of COBOL-85, is what later editions name native).",
+ "state": "OK"
+}

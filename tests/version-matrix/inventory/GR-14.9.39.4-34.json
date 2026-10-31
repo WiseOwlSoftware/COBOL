@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-34",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 34,
+ "subject": "SET statement",
+ "rule-digest": "1a9cba8a1c8d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetContent; docs/CONFORMANCE.md#DOC-A.1-176; src/WiseOwl.Cobol.Compiler/Binding/IeeeSpecials.cs#Bits; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolFloat.cs#FromBinary32Bits; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.Image.cs#FormatImageSingle",
+ "test-ref": "conformance:cases/14.9.39-SET/pb452_set_content_float; unit:IeeeSpecialsTests.EveryCanonicalValue_DecodesToWhatItsGeneralRuleRequires; unit:IeeeSpecialsTests.TheStoredImage_CarriesTheDocumentedBits",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work/PB452.md LANDED 2026-09-09. FLOAT-NOT-A-NUMBER stores a canonical QUIET NaN with the sign GR34 names. The rule's implementor-defined PAYLOAD is the Annex A.1 item 176 obligation and it is DISCHARGED, not defaulted: docs/CONFORMANCE.md 7 DOC-A.1-176 publishes payload ZERO for the quiet form (binary32 0x7FC00000, binary64 0x7FF8000000000000, sign bit per the SIGN phrase), and IeeeSpecials is both the documented table and the emitted one. Every NaN is written as a BIT PATTERN through BitConverter rather than as a CLR constant, because double.NaN is 0xFFF8000000000000 (sign bit SET) and GR34's positive default would otherwise depend on how a constant negation folds. Observable witness: a quiet NaN is unequal to ITSELF. The quiet-vs-signaling distinction has no COBOL surface until the 8.8.4.4 class condition lands (kb/Work PB225), so the unit test decodes the encodings. kb/Work/PB961 (2026-09-22): re-sited - IeeeSpecials.Text deleted, the quiet NaN is emitted through RuntimeApi.FloatFromBits over IeeeSpecials.Bits and stored through the binary32 carrier lane; conformance:cases/14.9.39-SET/pb961_signaling_nan_binary32 QUIET-WINDOW pins 0x7FC00000 = 2143289344. retired-witness: src/Cobol.Net.Compiler/Binding/IeeeSpecials.cs#Text (IeeeSpecials.Text was deleted by kb/Work PB961 (the emitted expression is RuntimeApi.FloatFromBits over IeeeSpecials.Bits) and TheEmittedExpression_EvaluatesToTheDocumentedBits was replaced by TheStoredImage_CarriesTheDocumentedBits, which asserts the stored image rather than the expression) retired-witness: unit:IeeeSpecialsTests.TheEmittedExpression_EvaluatesToTheDocumentedBits (IeeeSpecials.Text was deleted by kb/Work PB961 (the emitted expression is RuntimeApi.FloatFromBits over IeeeSpecials.Bits) and TheEmittedExpression_EvaluatesToTheDocumentedBits was replaced by TheStoredImage_CarriesTheDocumentedBits, which asserts the stored image rather than the expression)",
+ "state": "OK"
+}

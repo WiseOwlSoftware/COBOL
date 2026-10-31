@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-68",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 68,
+ "subject": "Externalized names (formation and mapping rules)",
+ "rule-digest": "204fb1294d87",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-68; src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckWords",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb303_as_externalized_name; conformance:cases/A.1-Implementor-defined-language-element-list/w73d_pb1539_as_name_formation; conformance:cases/A.1-Implementor-defined-language-element-list/w73d-pb1539-as-literal-all-spaces; conformance:cases/7.3.9-CALL-CONVENTION/pb1383-call-convention-undefined-name; conformance:cases/7.3.9-CALL-CONVENTION/pb1383_call_convention_cobol; conformance:cases/8.3.2.2-User-defined-words/w1095g_pb661_entry_convention_invoke_mapping",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "A.1 item 68 (formation and mapping of externalized names; §8.3.2.2, §7.3.9.3 GR2). cite.py --check 8.3.2.2 'when two or more source elements identify something with the same externalized name, they refer to the same instance' -> OK §8.3.2.2 2). SPACE ARM LANDED (kb/Work PB1539, wave 73 D): one function, WiseOwl.Cobol.Runtime.ExternalizedNames, forms (leading/trailing spaces removed) and maps (case ignored) every externalized name - the AS literal at bind time through ExternalizedName.Screen -> Form (warning COBOL2642; an all-space literal refused COBOL2643 where the clause refuses a zero-length literal), and every CALL/CANCEL/ADDRESS OF PROGRAM/ADDRESS OF FUNCTION target, INVOKE method name and EXTERNAL key at run time (ProgramTable, ExternalTable, CobolObject.NormalizeMethodName). Re-probed on the fixed build: as68b.cob PROGRAM-ID S68 AS \"trail  \" + CALL \"trail  \" -> 'IN S68' with the COBOL2642 warning (was EC-PROGRAM-NOT-FOUND); cc68.cob EXTERNAL AS \"Shared Two \" vs AS \"shared two\" -> 'Y=ABC' (was blank). Witness conformance:cases/A.1-Implementor-defined-language-element-list/w73d_pb1539_as_name_formation (three CALL spellings reach AS \" PB1539-Trail  \"; two EXTERNAL AS spellings share). CALL-CONVENTION ARM LANDED (kb/Work PB1383, w1007b): the determination (no call-convention-name is defined; >>CALL-CONVENTION COBOL is the only accepted form) is now what the compiler does — any other word is COBOL1911 (conformance:cases/7.3.9-CALL-CONVENTION/pb1383-call-convention-undefined-name). retired-witness: src/Cobol.Net.Runtime/Control/ProgramRegistry.cs#Register (kb/Work PB1539: the formation and mapping rule now lives in WiseOwl.Cobol.Runtime.ExternalizedNames (already on the row); ProgramTable.NameEquals is deleted and ProgramRegistry.Register only forwards the name) retired-witness: src/Cobol.Net.Runtime/Control/ProgramTable.cs#NameEquals (kb/Work PB1539: the formation and mapping rule now lives in WiseOwl.Cobol.Runtime.ExternalizedNames (already on the row); ProgramTable.NameEquals is deleted and ProgramRegistry.Register only forwards the name)",
+ "state": "OK"
+}

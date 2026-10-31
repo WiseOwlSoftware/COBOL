@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.7.3-13",
+ "section": "12.3.7.3",
+ "kind": "SR",
+ "ordinal": 13,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "50a7ddf09c57",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#ForPhraseIsNational; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#AlphabetBind; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#LiteralPhraseRules.Alphabet",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/l1c30_alphabet_implied_alphanumeric",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'When the ALPHABET clause is specified with neither the ALPHANUMERIC phrase nor the NATIONAL phrase, the ALPHANUMERIC phrase is implied.' cite.py --check 12.3.7.3 -> OK §12.3.7.3 13). ForPhraseIsNational returns NATIONAL only when the phrase says so; the unmarked clause takes the alphanumeric branch and the SR14 b-rules. Probes: sr13_implied_nat_lit (`ALPHABET AL IS N\"C\" N\"B\"`) and sr13_explicit_nat_lit (`FOR ALPHANUMERIC`) draw the identical COBOL1906 SR14 b2 diagnostics; sr13_implied_ok runs as a PCS (C,B,A at positions 1-3); sr13_implied_pcs_nat refuses the implied-alphanumeric alphabet as PROGRAM COLLATING SEQUENCE FOR NATIONAL (COBOL0898, §12.3.6.3 SR2) - the implied class is carried downstream, not just to the operand rules. No existing test pins implied == explicit; test-ref empty. [registrar 14a — editions as adjudicated: 2002, 2014, 2023 (the ALPHANUMERIC/NATIONAL phrase enters at 2002; at 85 every alphabet is alphanumeric, which is the same result) | code-location as adjudicated: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#ForPhraseIsNational; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#AlphabetBind (the ALPHANUMERIC branch); src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#LiteralPhraseRules.Alphabet]",
+ "state": "OK"
+}

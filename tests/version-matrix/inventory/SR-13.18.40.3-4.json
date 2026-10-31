@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-4",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "PICTURE clause",
+ "rule-digest": "264404b61f3c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#Analyze; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#MaxPictureStringLength",
+ "test-ref": "conformance:wiseowl/cases/13.18.40-PICTURE/pb531_picture_repetition_factor; conformance:cases/13.18.40-PICTURE/pb532-picture-string-over-63",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-09-19 (kb/Work PB532). \"The maximum number of characters allowed in character-string-1 is 63\" now has a site: Analyze's prologue measures character-string-1 AS WRITTEN, after DataBinder.Constants.ExpandPicConstants has substituted every constant-name, and reports COBOL2146. The as-written reading is SR6's second sentence's ('the length of the integer, not the length of the constant-name, is counted toward the maximum number of characters in character-string-1'), and it is what keeps PIC X(30000) - four written characters, 30000 character positions - legal; the expanded reading would outlaw it. MEASURED: 64 written X's draw COBOL2146 at every edition (conformance:cases/13.18.40-PICTURE/pb532-picture-string-over-63), the 63-character control compiles (R3 of the positive witness, SIZE=63), and PIC X(30000) compiles with SIZE=30000. Before this the constant 63 appeared nowhere on the PICTURE path at any edition while docs/DATA_MODEL_DESIGN.md D21 listed 'SR4 (63 characters)' among its anchors - a doc/code divergence as well as a missing rule. Editions: ALL FORMATS, identical text at 85/2002/2014/2023.",
+ "state": "OK"
+}

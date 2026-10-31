@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.84.3-2",
+ "section": "15.84.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "SQRT function",
+ "rule-digest": "cf9a4b63cf8c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Sqrt; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#SqrtDec",
+ "test-ref": "conformance:cases/10.6-COBOL-compilation-group/pb246_sqrt_absolute_value_and_domain; conformance:cases/15.84.3-Argument-rules/pb13_domain_raise_receiver_shape",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "CLOSED by kb/Work PB246. Citation re-derived: cite.py --check 15.84.3 'The value of argument-1 shall be zero or positive' -> OK, rule 2; the disposition is 15.3 rule 14 ('If the evaluation of an argument results in an incorrect value for that argument ... the EC-ARGUMENT-FUNCTION exception condition is set to exist ... the implementor defines the result of the function reference' -> OK), so a run-time EC and not a compile-time reject. THE RESIDUE WAS THAT THE CONSTRAINT WAS TESTED ON A NARROWED VALUE. CobolIntrinsics.Float.cs's body was a bare Math.Sqrt and the whole family's detection was the NaN artifact, which is sound only while the double the body receives has the same SIGN as argument-1 - and it does not: NumericRenderer.Real converts an SDIDI operand as (expr).ToDouble(), CobolDec.ToDouble is (double)Sig * Math.Pow(10, Exp), and for Exp <= -324 the power underflows to +0.0, so a NEGATIVE value arrives as -0.0 and Math.Sqrt(-0.0) is -0.0, not NaN. RealResult and FromDouble screen double.IsNaN ALONE, so nothing downstream recovered it and a genuinely negative argument-1 was accepted in silence with no EC even under checking ON. The body now carries an EXPLICIT 'x < 0 -> ArgumentError(15.84.3 rule 2)' beside Log's and Log10's, which closes the -0.0 case by construction; its in-code comment had also misnamed the clause it claimed to honour ('rule 1' - r1 is the CLASS rule). The DEC lane's guard (SqrtDec, kb/Work PB116) is unchanged and correct. EVIDENCE: 2002/pb246_sqrt_absolute_value_and_domain SQN=00000 pins the checking-OFF default result on a runtime-valued negative argument, and the '  RAISED' / SQC=00000 legs pin the checking-ON raise through a USE AFTER EXCEPTION CONDITION EC-ARGUMENT-FUNCTION declarative - the branch the row recorded as untested for SQRT specifically. pb13_domain_raise_receiver_shape keeps the receiver-less relation-operand arm.",
+ "state": "OK"
+}

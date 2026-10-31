@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.2.2.3-3",
+ "section": "8.4.2.2.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Qualification",
+ "rule-digest": "c4be5f50238b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#qualification; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#dataReference; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupReference",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/pb567_condition_name_qualification; conformance:cases/8.4.2.2-Qualification/pb919_index_name_qualified; conformance:cases/8.4.2.2-Qualification/qualified_unique_match",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 8.4.2.2.3 \"The words IN and OF are equivalent\" -> OK §8.4.2.2.3 3). Every qualifier position in the grammar spells (OF | IN) as one alternative with no semantic distinction downstream: the general `qualification` suffix, the three counter registers, the qualification inside a subscript, which is the ordinary `dataReference` of a subscript item (`subscriptItem` / `functionArgument`) and the report-group reference. PROBED every name class with IN (pinned cobol.exe, --run, --std 85 and 2023): e1 - data `X IN M IN G` and mixed `X IN M OF G` -> X; file-qualified `FC IN FA` -> F; index `SET IX IN G TO 2` then `E IN T (2)` -> 7; condition-name `FC-OK IN FA` -> true; procedure `PERFORM P2 IN S1` -> executes P2; m1 - in-subscript `E (K IN G1)` / `E (K OF G2)` -> X/Y and in-reference-modifier `S (K OF G1 : K IN G2)` -> BCD; g1 - `PAGE-COUNTER IN R1` -> 001; h3 - `LINE-COUNTER IN R2` -> 003; k3/Linage tests - `LINAGE-COUNTER IN LP2`. Goldens computing their expected values from the rule: pb567 Q4 (`IS-A IN G2` -> F), pb919 (`IX IN TB`), qualified_unique_match (`Z IN X IN G2`). [editions as adjudicated: 85, 2002, 2014, 2023 (IN and OF are equivalent qualifier connectives in every edition)] retired-witness: src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#subscriptQualification (kb/Work PB2113 deleted the dead structured subscript rules; a qualified subscript is an ordinary dataReference qualification inside a parsed subscriptItem)",
+ "state": "OK"
+}

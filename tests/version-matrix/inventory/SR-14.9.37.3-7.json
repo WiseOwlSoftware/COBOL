@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.37.3-7",
+ "section": "14.9.37.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "SEARCH statement",
+ "rule-digest": "6e556488aeab",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/SearchAllFormat2Rules.cs#Check; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckSearchAllFormat2; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#BindSearchAll",
+ "test-ref": "conformance:cases/14.9.37-SEARCH/pb445-search-all-no-key-phrase; conformance:cases/14.9.37-SEARCH/pb445_search_all_format2_legal; unit:SearchAllFormat2RuleCoverageDriftTests.EveryFormat2SyntaxRule_IsCitedInTheRuleModule",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB445.md LANDED. \"The OCCURS clause associated with identifier-1 shall contain the KEY phrase\" (cite.py --check 14.9.37.3 -> OK, Syntax rules 7). SEARCH ALL over a table whose OCCURS clause declares no ASCENDING/DESCENDING KEY is now COBOL1964 at every edition, reported ALONE because SR8-SR12 are all written about that phrase and continuing would report each WHEN operand as 'not a key' for a table that declares none. The KEY phrase itself is OccursSpec.Keys -- ONE ordered list built by DataBinder.OdoBindOccursSpec and resolved by OdoModel.KeyItems; it replaced two per-direction lists the data binder WROTE and nothing READ. Negative golden rejects at 85, 2002, 2014 and 2023 with exactly one code; the positive golden proves the legal shapes still compile and answer.",
+ "state": "OK"
+}

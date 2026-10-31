@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.13.1.4-1",
+ "section": "14.6.13.1.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Exception conditions",
+ "rule-digest": "d640aea89591",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitOverflow; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc",
+ "test-ref": "conformance-test:ExceptionConditionConformanceTests.IoAtEnd_AtEndPhrase_SuppressesDeclarative",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: §14.6.13.1.4 1) (cite.py --check 14.6.13.1.4 \"the imperative statement associated with that conditional phrase is executed as specified in the rules for the specific statement\" -> OK 1)). Code: EmitOverflow sets the status and runs no dispatch when hasPhrase; __IoCheckEc returns -1 before any selection when the statement's AT END / INVALID KEY / ON EXCEPTION / END-OF-PAGE phrase covers the raised family. The named test: >>TURN EC-I-O ON, USE AFTER EC EC-I-O-AT-END, READ ... AT END -> 'ATEND' only. Probe g1 (out/probe/exc-nonfatal) additionally shows a propagated EC-USER condition does not enter the CALL's ON EXCEPTION phrase, which is §14.9.4.4 GR3i's own routing - 'as specified in the rules for the specific statement'. || editions as adjudicated: 2002, 2014, 2023 (EC model introduced by ISO 2002)",
+ "state": "OK"
+}

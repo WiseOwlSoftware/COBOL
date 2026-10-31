@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.37.3-1",
+ "section": "13.18.37.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "NEXT GROUP clause",
+ "rule-digest": "102e6a124884",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindNextGroupClauses; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportNextGroupClause",
+ "test-ref": "conformance:cases/13.18.37-NEXT-GROUP/pb957-next-group-exceeds-page-limit",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB957. Integer-1/integer-2 beyond the page limit (or 9999 unpaged) draws COBOL2284; 'shall be unsigned' holds by the grammar (integerLiteral carries no sign, and SR2's + is the relative operator).",
+ "state": "OK"
+}

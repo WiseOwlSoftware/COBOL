@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.45.2",
+ "section": "13.18.45.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "RENAMES clause",
+ "rule-digest": "b02ac495ba0e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#renamesClause; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#EntryNameObligation",
+ "test-ref": "conformance:cases/13.16-Data-description/l1_renames_through_thru; conformance:cases/14.9.25-MOVE/pb430_gr4_no_conversion; conformance:cases/13.16-Data-description/pb849-renames-entry-has-no-name",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB849: `66 data-name-1 RENAMES data-name-2 [{THROUGH|THRU} data-name-3] .` (PDF p394 / folio 364 rendered). The grammar's renamesClause carries the RENAMES / THRU|THROUGH shape (both spellings and the single-item form witnessed); data-name-1 is printed unbracketed and is NOT an entry-name clause, so an omitted name and FILLER are both refused by LevelNumberRules.EntryNameObligation with COBOL1747 — before PB849 both compiled clean and the entry evaporated.",
+ "state": "OK"
+}

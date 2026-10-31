@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-10",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 10,
+ "subject": "ASSIGN clause, USING phrase (meaning and rules for operands; consistency rules)",
+ "rule-digest": "ed8fa90093f7",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-10; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Associate",
+ "test-ref": "conformance:cases/9.1.13.6-Permanent-error-condition-with-unsuccessful-completion/pb324_assign_using_dynamic",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB324. A.1 item 10 -- 'ASSIGN clause, USING phrase (meaning and rules for operands; consistency rules). This item is optional...' -- the CONSISTENCY half of 12.4.5.3 GR4, whose second sentence asks for 'The consistency rules, if any, that apply between the content of the data item referenced by data-name-1 and either the specification of device-name-1 or the value of literal-1' (cite.py --check 12.4.5.3 OK, 4). The determination is that there are NONE, and 'if any' makes the empty set a complete answer: where a file control entry writes both phrases, GR3 b) applies 'when the USING phrase of the ASSIGN clause is specified' with no condition on the TO phrase, so the content wins outright and literal-1 is never used to identify a file. Pinned by the MIX connector leg of the 2023 golden -- `SELECT MIX ASSIGN TO \"pb324mix.dat\" USING WS-NAME` writes to pb324e.dat while an OPTIONAL connector over pb324mix.dat opens '05', proving the literal was never used and the unrelated content was not diagnosed. The item is OPTIONAL and IS provided, so A.1's preamble makes documenting it a duty rather than a courtesy.",
+ "state": "OK"
+}

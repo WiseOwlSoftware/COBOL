@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.2.1-3",
+ "section": "8.8.4.2.1",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Simple relation conditions",
+ "rule-digest": "22ea2ef58ed1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#ForComparison; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs",
+ "test-ref": "conformance:cases/8.8.4.2-Simple-relation-conditions/l1c32_relation_alphabetic_alphanumeric",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Item 3 'Two operands of class alphanumeric' + the group sentence ('an alphanumeric group item shall be treated as an elementary alphanumeric data item', cite.py OK). Measured: X(5) 'ABC' = 'ABC  ' TRUE, = SPACES FALSE; group G1 ('AB'+9(2) 12) = 'AB12' TRUE and > 'AB1' TRUE (space-extended); numeric-edited ZZ9 = ' 12' TRUE and '-1' > ' 1' TRUE (NOTE: numeric-edited compares alphanumerically). Collating-sequence detail belongs to §8.8.4.2.7's rows. Many goldens exercise it; none located whose header derives item 3 specifically, so test-ref left empty. [editions as adjudicated: 85, 2002, 2014, 2023 (general-relation text carried unchanged into ISO/IEC 1989:2023; no Annex E entry — Annex E scopes only 2014->2023)]",
+ "state": "OK"
+}

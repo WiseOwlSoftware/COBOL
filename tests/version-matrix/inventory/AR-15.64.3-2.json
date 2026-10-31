@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.64.3-2",
+ "section": "15.64.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "MOD function",
+ "rule-digest": "f30f3288787a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#ModScaled; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#ModDec; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ArgumentError; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#ModZeroDivisor",
+ "test-ref": "conformance:cases/15.64.3-Argument-rules/l1_mod_rem_zero_divisor",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "A VALUE rule, so 15.3 fixes the observable: a zero argument-2 sets the fatal EC-ARGUMENT-FUNCTION condition, caught by a USE declarative under >>TURN ... CHECKING ON. Witnessed on the TWO carriers legal MOD source can reach: ModScaled (a VALUE-0 item and a run-time computed zero, NATIVE) and ModDec (the same VALUE-0 item under OPTIONS ARITHMETIC IS STANDARD-DECIMAL with a 15.3 type-6 arithmetic-expression argument-1, the shape that routes to the SDIDI body). ModReal is unreachable from conforming source - 15.64.3 r1 requires integer arguments - and is covered by IntrinsicCarrierAgreementDriftTests instead. Control from 15.64.4 r1 on both carriers: MOD(-11,5) = 4, distinct from REM's -1 in the same run. retired-witness: src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#ModReal (kb/Work PB651 deleted ModReal: MOD's two positions are 15.3 type 6, IntrinsicRenderer.RawArg takes their integers before a lane is chosen, so no call reaches a binary64 MOD; the rule's raise site for every MOD carrier is ModZeroDivisor) || editions 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the MOD function exists from 85 (IntrinsicCatalog.cs, the COBOL1502 edition window).",
+ "state": "OK"
+}

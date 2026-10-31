@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.13.3-7",
+ "section": "7.3.13.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "EVALUATE directive",
+ "rule-digest": "ad0191e16074",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb806-end-evaluate-trailing-word; unit:CompilerDirectiveCatalogDriftTests.EveryNoOperandWord_RejectsAnOperandAndAcceptsTheBareWord",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB806. cite.py --check 7.3.13.3 '>>END-EVALUATE shall be specified on a new line and shall be specified entirely on that line.' OK 7).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.14.4-6",
+ "section": "13.18.14.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "COLUMN clause",
+ "rule-digest": "16e6422fe15f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportColumnClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportColumnSpec; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb1220_column_alignment; conformance:cases/13.18.14-COLUMN/pb1220-column-alignment-left-of-line",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "(kb/Work PB1220, wave 1005 A). ReportColumnSpec.AbsoluteLeftmost is the ONE computation of GR6 b)-d): LEFT integer-1; RIGHT integer-1 - size + 1; CENTER integer-1 - (size - 1) / 2 (odd and even formulas agree in truncating integer arithmetic). The golden derives RIGHT 10 x3 -> 8-10, CENTER 15 x3 -> 14-16, CENTER 20 x4 -> 19-22 from the quoted formulas before the run. A leftmost column before column 1 is a case the standard states no outcome for: COBOL2712, CONFORMANCE section 3 'COLUMN alignment'. cite.py --check 13.18.14.4 OK 6) c) and 6) d).",
+ "state": "OK"
+}

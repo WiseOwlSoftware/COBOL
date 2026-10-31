@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.14.4-9",
+ "section": "13.18.14.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "COLUMN clause",
+ "rule-digest": "b8159e65c90e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportColumnSpec",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb951_relative_sign_synonyms; conformance:cases/13.18.14-COLUMN/pb1220_column_alignment",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "(kb/Work PB1220, wave 1005 A). The counter takes the item's rightmost column for every alignment: ReportColumnSpec.AbsoluteRightmost (GR6 b) integer-1 + size - 1, c) integer-1, d) integer-1 + size / 2). Witness: pb1220_column_alignment line 2 places a relative item after a RIGHT item (counter 10 -> P at 12), after an even CENTER item (counter 22 -> Q at 23) and after an odd CENTER item (counter 31 -> S at 34). cite.py --check 13.18.14.4 OK 9).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.75.4-1",
+ "section": "15.75.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "RANDOM function",
+ "rule-digest": "6284cbd577f8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/RandomSequence.cs#Restart; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.cs#FromDouble",
+ "test-ref": "nist:IF131A; conformance:cases/15.75.3-Argument-rules/pb636_random_total_seed; unit:RandomSeedSubsetTests.SeedsPastLong_AnswerInRange_AndRaiseNothingUnderChecking; conformance:cases/15.10.4-Returned-value-rule/pb65_bounded_returned_value_landing; conformance:wiseowl/cases/15.75.4-Returned-value-rules/pb3829_random_fraction_rounded_store",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The returned value is System.Random.NextDouble(), which is >= 0 and < 1 (the seeded generator, CONFORMANCE.md DOC-A.1-145); pb65_bounded_returned_value_landing draws 20,000 values with none >= 1. kb/Work PB3829 (2026-10-26, owner-approved) OVERTURNED the PB65 premise this row once rested on (a clamp of the QUANTIZED value against the bound): the rule bounds the RETURNED value, the 15.4 temporary, while the stored value follows 14.9.8.4 r2 (14.6.8, 14.7.4, 14.7.5). RANDOM(97090) = 0.99999789... ROUNDED into a four-place receiver is 1.0000 (14.7.4.3 r4), and into PIC SV9999 (no integer position) a size error (14.7.5 3)) that ON SIZE ERROR sees, where the clamp stored a silent .9999 (wiseowl pb3829_random_fraction_rounded_store). kb/Work PB636 (2026-09-21): the SEED's totality is witnessed - 15.75.3 r2 constrains the SIGN alone and r3 makes the distinct-sequence subset a FLOOR; the runtime body takes Int128 and the low-31-bit reduction (DOC-A.1-145) is unchanged. retired-witness: conformance:cases/15.10.4-Returned-value-rule/pb65_codomain_clamp (kb/Work PB3829 deleted the codomain clamp and the catalog's codomain column (the rule bounds the returned value, not the stored one) and renamed and re-derived the golden) retired-witness: src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCodomain (kb/Work PB3829 deleted the codomain clamp and the catalog's codomain column (the rule bounds the returned value, not the stored one) and renamed and re-derived the golden) retired-witness: src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.cs#FromDoubleBounded (kb/Work PB3829 deleted the codomain clamp and the catalog's codomain column (the rule bounds the returned value, not the stored one) and renamed and re-derived the golden)",
+ "state": "OK"
+}

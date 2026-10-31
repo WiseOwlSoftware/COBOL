@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.30.3-10",
+ "section": "14.9.30.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "READ statement",
+ "rule-digest": "e8f3db71e667",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadKeyOrganization",
+ "test-ref": "conformance:cases/14.9.30-READ/pb334-read-key-sequential-org; conformance:cases/14.9.30-READ/pb331_read_lock_brackets",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB334, LANDED (row inherited from PB331, which landed 14.9.30.2's format defect without touching this one). RULE: 'The KEY phrase may be specified only if ORGANIZATION IS INDEXED is specified in the file control entry for file-name-1.' (cite.py --check 14.9.30.3 OK.) WHAT WAS WRONG: the rule names an ORGANIZATION, so it cannot live on one organization's binder arm -- and it did. KeyedIoBinder.BindRead raised COBOL0864 (reaching RELATIVE files, which is why the diagnostic LOOKED present), while SequentialIoBinder.BindRead never called r.readKey() at all, so on a SEQUENTIAL or LINE SEQUENTIAL file the phrase was parsed and dropped without a word. The two-arm dispatch with the fixed arm being the one the diagnostic names. NOW: the check is StatementValidation.CheckReadKeyOrganization, ONE site called by BOTH READ binder arms, raising the same COBOL0864; the citation in the message was tightened from 'ISO 14.9.30 SR10' to 'ISO 14.9.30.3 SR10'. VERIFIED: probe seqkey.cob (ORGANIZATION IS SEQUENTIAL, READ SQF KEY IS WS-K) ran and printed 'GOT=AAA ST=00' before, and after gives 'error COBOL0864: READ . KEY on SQF: the KEY phrase may be specified only when ORGANIZATION IS INDEXED (ISO 14.9.30.3 SR10)' at 85, 2002, 2014 and 2023. CLOSING TESTS: conformance:cases/14.9.30-READ/pb334-read-key-sequential-org pins the rejection at all four editions; conformance:cases/14.9.30-READ/pb331_read_lock_brackets is the positive half -- the phrase written in all three printed spellings on an INDEXED file, where it binds the key of reference and runs. EDITIONS: the 2023 text carries no edition marker on this clause and Annex E lists no change to it; the KEY phrase and INDEXED organization are both COBOL-85 surface.",
+ "state": "OK"
+}

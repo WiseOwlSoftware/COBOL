@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-1",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "WRITE statement",
+ "rule-digest": "99a7e9b906c2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#WriteAdvancing; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#WriteShared",
+ "test-ref": "conformance:cases/14.9.27-OPEN/l1_open_not_open_statements",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR1: 'The execution of a WRITE statement causes the value of the I-O status of the write file connector to be updated to a value given in 9.1.13, I-O status.' Every return path of every WRITE arm assigns Status (success '00'/'0x' via WriteSucceeded, '48', '44', '71', '24', '22', '34', '21', '90', the '53'/'54' lock-ceiling preflight via c.SetStatus). Emitters store FILE STATUS after every WRITE (SequentialIoEmitter.EmitWrite / KeyedIoEmitter.EmitWrite -> EmitStoreFileStatus). Probe E:/Temp/claude/E--COBOL/a700c052-f9e4-4942-84ff-a13c7505d6ec/scratchpad/adj-d1/out/probe/write-p2/pa.cob / pb.cob: statuses 48/44/00/24/22/34/21 all observed in the FILE STATUS item. cite.py --check 14.9.51.4 'causes the value of the I-O status of the write file connector to be updated' -> OK rule 1. Golden l1_open_not_open_statements displays WRITE=48 then WRITE2=00 from the FILE STATUS item.",
+ "state": "OK"
+}

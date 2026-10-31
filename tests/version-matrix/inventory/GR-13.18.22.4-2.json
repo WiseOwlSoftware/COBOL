@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.22.4-2",
+ "section": "13.18.22.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "EXTERNAL clause",
+ "rule-digest": "b4b99386fe76",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandType",
+ "test-ref": "conformance-test:TypedefResidueTests.ExternalTypeReferenceBelowLevel1_Rejected1558",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§13.18.22.4 GR2: \"If the EXTERNAL clause is specified in a type declaration entry, any data description containing that type declaration shall be at level-number 1.\" (cite.py OK §13.18.22.4 2)). ExpandType rejects every reference to an external type whose subject is not level 1. Probes at --std 2002: GR2L5 (05 A TYPE TE under a group) -> COBOL1558; GR2L77 (77 A TYPE TE; 77 is not level 1) -> COBOL1558; GR2NEST (the reference nested inside ANOTHER type declaration, 05 X TYPE TE under 01 T2 TYPEDEF) -> COBOL1558; GR2OK (01 A TYPE TE) accepted. The conformance-test pins the level-05 edge with a spec-derived expectation (rejection). || Editions (adjudicator): 2002, 2014, 2023 (type declarations are 2002+) || Code sites (adjudicator detail): src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandType (template.IsExternalTypedef, item.Level != 1 -> COBOL1558)",
+ "state": "OK"
+}

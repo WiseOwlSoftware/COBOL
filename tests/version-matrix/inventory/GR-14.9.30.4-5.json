@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.30.4-5",
+ "section": "14.9.30.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "READ statement",
+ "rule-digest": "3991087c18d2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead",
+ "test-ref": "conformance:cases/14.9.30-READ/l1_read_into_unsuccessful",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Both GR5 obligations: identifier-1 still reads KEEP after the at-end READ INTO, and the out-of-range subscript raises EC-BOUND-SUBSCRIPT on the successful read (GR4b, the positive control) but not on the unsuccessful one.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.3.3.4.2",
+ "section": "8.3.3.4.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Boolean literals",
+ "rule-digest": "9042dc02b501",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#BOOL_BODY; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#BOOLLIT; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#Decode",
+ "test-ref": "conformance:cases/8.3.3.4-Boolean-literals/l1c02_boolean_literal_forms",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Format 1 B\"[0|1]...\"/B'...' and Format 2 BX\"[hex]...\"/BX'...' with the character sequence OPTIONAL under both delimiters. BOOL_BODY = 'B' STR_BODY | 'BX' STR_BODY: one body for both delimiters and both formats, zero length legal, the [01] and hexadecimal-digit repertoires asked of the whole token by LiteralScreen (COBOL2630, kb/Work PB1441); caseInsensitive lexer. Probes out/probe/boolean-literals/bl1 (B\"0101\", B'10', BX\"...\", BX'f0', VALUE BX'0f') and bl12 (B\"\", B'', BX'', BX\"\") all accepted with correct values. cite.py --check 8.3.3.4.2 \"hexadecimal-boolean\" OK. No spec-derived test exercises the apostrophe spelling of either format (r03 covers BX\"...\" only) -> test-ref empty. The lexer comments this row once recorded as stale (a deferred BX form, a '[01]+' repertoire) no longer say so. || editions as written by the adjudicator: 2002, 2014, 2023 (boolean literals are a COBOL-2002 introduction, gated COBOL0900 at --std 85 - probe bl7; the zero-length-literal introduction edge is not derivable from the in-repo 2023 text, whose Annex E lists only the 2014->2023 delta) retired-witness: conformance:2002/l1c02_boolean_literal_forms (the golden moved to the 2014 corpus: it writes a zero-length literal, a COBOL-2014 introduction gated by kb/Work PB895 (same program, same expected output)) retired-witness: src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#HEXDIGITS (the repertoire fragment of the prefixed literal bodies; kb/Work PB1441, PB1394 made every prefixed body STR_BODY and moved the repertoire to LiteralScreen)",
+ "state": "OK"
+}

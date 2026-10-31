@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.8.2.3.3-1",
+ "section": "14.8.2.3.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Elementary items",
+ "rule-digest": "dc15d0c51a67",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ActiveClassFormalMismatch; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ObjectReferenceContentMismatch; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ParameterConformance.cs#ContentConformanceReason",
+ "test-ref": "conformance:cases/14.8.2.3.2-Elementary-items-passed-by-reference/pb1112_active_class_invocation; conformance:cases/14.8.2.3.3-Elementary-items-passed-by-content-or/pb1112-active-class-content-invocation",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1112 (wave 73 E). Rule (cite.py --check 14.8.2.3.3 \"and a SET statement shall be valid in the activating unit with the argument as the sending operand and an object reference described with the ACTIVE-CLASS phrase\" -> OK §14.8.2.3.3 1)). ContentMismatch's object-reference arm asks ActiveClassFormalMismatch(byReference: false) for an ACTIVE-CLASS formal: alternative 1) = invoked with SELF, SUPER or an ACTIVE-CLASS reference AND ObjectRefAssignmentMismatch (SET SR14) into an ACTIVE-CLASS receiver with the formal's FACTORY presence; the SELF argument arm requires the ACTIVE-CLASS invocation (alternative 2)'s ONLY receiver admits no SELF, SR12 c)1.) and the NULL arm requires either invocation. Measured: INVOKE SELF \"M\" USING BY CONTENT W / USING SELF run (M#4, M#5); INVOKE O2 \"M\" USING BY CONTENT Y (ac_con_bad4a) ran, now COBOL0828. retired-witness: src/Cobol.Net.Compiler/Oo/OoConformance.cs#ContentMismatch (kb/Work PB3101: ContentMismatch is deleted; the ACTIVE-CLASS alternatives are asked through OoConformance.ObjectReferenceContentMismatch from the one activation entry)",
+ "state": "OK"
+}

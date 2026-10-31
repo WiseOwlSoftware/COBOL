@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.57.3-8",
+ "section": "13.18.57.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "TYPE clause",
+ "rule-digest": "752277c6c17e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandType; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#TypeObjectReferenceFileSection",
+ "test-ref": "conformance:cases/13.18.57-TYPE/pb545-type-file-objref-nested",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB545 (wave 1031 C). 'When the TYPE clause is specified in the file section, the description of type-name-1, including its subordinate data items, shall not contain a data item described with a USAGE OBJECT REFERENCE clause.' (cite.py --check OK). ExpandType now asks IsFileSectionItem(item) && HasObjectReferenceLeaf(template) over the COMPLETE template (ExpandTemplate ran first), reporting COBOL2960 — the TYPE arm of the prohibition whose direct-USAGE arm is COBOL1725 (§13.18.60.3 SR15) and SAME AS arm COBOL1556 (§13.18.49.3 SR6). Re-probed on this build: FD `01 FR TYPE T.` (T STRONG group holding an object reference), FD `01 R TYPE OT.` (OT an elementary object-reference TYPEDEF), an FD subordinate `05 FX TYPE T2.`, an SD record `01 SR TYPE T2.` and the object reference one TYPE level deeper (negative pb545-type-file-objref-nested) each draw COBOL2960; the control with the object reference replaced by PIC X compiles and runs. The SAME AS twin no longer cascades COBOL0881 (re-probed: COBOL1556 alone). Editions: the TYPEDEF/TYPE family is 2002+, no 2014->2023 change.",
+ "state": "OK"
+}

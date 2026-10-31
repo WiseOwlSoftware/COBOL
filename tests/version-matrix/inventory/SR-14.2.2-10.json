@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.2.2-10",
+ "section": "14.2.2",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "Procedure division structure",
+ "rule-digest": "27e6c6d39e5a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindMethodRoster; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#CollectMethodDeclaratives; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitMethod; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#procedureDivision",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/pb1010_method_declaratives; conformance:cases/14.2-Procedure-division-structure/pb1010-declaratives-outside-method",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1010 (2026-09-22): both directions of 'if and only if'. IF: the declaratives format (Format 1) is accepted and runs in a program definition (every declarative golden), a function definition (probe: a FUNCTION-ID's USE AFTER EC EC-SIZE runs), and now a METHOD definition. Before this change a method was refused COBOL0899. A method's declarative sections bind at the head of its pc slice through the same DeclCollectSection a program's take, and its selection machinery is emitted method-local, so a condition raised in a method selects the method's own USE statements (14.9.49.4 GR3/GR4 a)). ONLY IF: an instance, factory or interface definition's own procedure division is the object-oriented format, which holds method definitions only (SR12/SR13); DECLARATIVES written there are a syntax error (COBOL0001). Program and function prototypes are governed by SR11 (a procedure division header only), which is a separate row.",
+ "state": "OK"
+}

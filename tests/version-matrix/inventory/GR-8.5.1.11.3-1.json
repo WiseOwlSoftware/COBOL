@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.1.11.3-1",
+ "section": "8.5.1.11.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Variable-length data items",
+ "rule-digest": "a0ef659ec391",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/CobolDynString.cs#CobolDynString; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#CobolDynTable",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-8.5.1.11.3-1",
+ "editions": "2014,2023",
+ "notes": "PERMISSIVE rule: §8.5.1.11.3 says the resources 'MAY be freed automatically when' the listed event occurs, and 'The actual time when the resources used by a variable-length data item are freed is implementor-defined' (Annex A item 220: required, need not be documented). The only binding content is that freeing is unobservable ('this has no effect on the results of the execution of the program') and persistence equals a fixed-length item's. WiseOwl COBOL's variable-length items are managed .NET objects: a dynamic-length item IS a System.String field (CobolDynString), a dynamic-capacity table IS a CobolDynTable<T> (T[] + count); reclamation is by the CLR GC once unreachable, so every listed event is honoured at a GC-determined time, which the implementor-defined timing admits. cite.py --check 8.5.1.11.3 \"The resources used by a variable-length data item may be freed automatically when\" -> OK; --check 8.5.1.11.3 \"The actual time when the resources used by a variable-length data item are freed is implementor-defined\" -> OK; --check 8.5.1.11.1 \"The term variable-length data item refers to either a dynamic-capacity table or a dynamic-length elementary item\" -> OK. Editions: the facility is ISO 2014+ (Annex E item 17 of 2023 records only the SET SIZE enhancement as new, so the items pre-exist in 2014). Event 1 (object finalized): OBJECT working-storage variable-length items are per-instance managed fields; they become unreachable with the instance and are collected with it. Probe probe/vldi/p2.cob (CLASS-ID CDYN, OBJECT WS with OCCURS DYNAMIC + DYNAMIC LENGTH; two instances, FILL on O1, SHOW both, SET O1 TO NULL): output 'CAP=0000000006 D=[HELLO]' / 'CAP=0000000001 D=[]' -- per-instance storage, no sharing, released with the instance. No spec-derived test pins OO-instance variable-length data (none exists; the freeing itself is unobservable).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.11.4-6",
+ "section": "14.9.11.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "DISPLAY statement",
+ "rule-digest": "1de780a75c29",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-58; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#FieldAsString; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitDisplay; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#TransferImageCapable; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupImageCodec.cs#EmitImageMethods",
+ "test-ref": "conformance:cases/14.9.11-DISPLAY/pb148_display_forms; conformance:cases/14.9.11-DISPLAY/pb164_comp5_group_image; conformance:cases/13.18.60-USAGE/pb164_index_group_image; conformance:cases/14.9.11-DISPLAY/pb164_vlg_display; conformance:cases/14.9.11-DISPLAY/ca3_figurative_display_pcs; conformance:cases/14.9.11-DISPLAY/initialize_phrases; conformance:cases/13.18.40-PICTURE/national_data; conformance:cases/14.9.11-DISPLAY/pb244_pointer_group_transfer; conformance-test:TierCRejectionTests.DisplayPointerGroup_RendersPlaceholderPositions",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "CLOSED by kb/Work PB244 shape (a) (2026-09-22), the residue the R40 review fleet kept open after PB148 + PB164 + R40: a group with a pointer/object-class leaf now HAS a sending size - its storage width, each such leaf counting its ByteWidth (8) reserved positions - so a multi-operand DISPLAY sums it like any other operand (GR6). The golden pins the width three ways: the displayed image is 33 characters (3 + 8 + 2 x (2 + 8) + 2), a MOVE to PIC X(40) pads it by 7, and FUNCTION LENGTH answers 33. Every other operand kind was already sized (fixed groups their image width, variable-length groups their current-extent width, the signed non-DISPLAY forms per A.1 item 56).",
+ "state": "OK"
+}

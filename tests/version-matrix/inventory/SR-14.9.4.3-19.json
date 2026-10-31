@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.4.3-19",
+ "section": "14.9.4.3",
+ "kind": "SR",
+ "ordinal": 19,
+ "subject": "CALL statement",
+ "rule-digest": "98975ae26954",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb133-arg-mode-content; conformance:cases/14.9.4-CALL/pb131_gr9_formal_mode",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB133 wave C2a): with the AS NESTED callee's header at bind, an EXPLICIT BY CONTENT / BY REFERENCE argument whose corresponding formal is BY VALUE draws COBOL1687 citing the rule. A keyword-less argument DERIVES its mode from the formal (GR9, PB131) and can never disagree - only a written phrase can, which is why the check needs no runtime half for the NESTED lane. The prototype lane is inexpressible until P13.",
+ "state": "OK"
+}

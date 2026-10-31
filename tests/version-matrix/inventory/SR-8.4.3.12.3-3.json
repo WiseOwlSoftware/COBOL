@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.12.3-3",
+ "section": "8.4.3.12.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Function-address-identifier",
+ "rule-digest": "bb75159da8ab",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#setFunctionAddressStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#nonReceivableIdentifier; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ReceivingOperandForms.cs#Rules; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveReceiving",
+ "test-ref": "conformance:cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb452_set_function_pointer; conformance:cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb452_function_address_runtime; conformance:cases/8.4.3.12-Function-address-identifier/pb1551-function-address-receiving",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "'This identifier format shall not be specified as a receiving operand.' (cite.py --check 8.4.3.12.3 -> OK 3)). Since kb/Work PB1551 (w1097d) the function-address-identifier has TWO grammar homes: the sending tail of setFunctionAddressStatement (`TO ADDRESS OF? FUNCTION ...`), and nonReceivableIdentifier, the superset every receiving slot parses (receivingIdentifier / setReceivingIdentifier, and CALL / INVOKE BY REFERENCE, which 14.9.4.3 SR5 makes receiving because 8.4.3.1.2 Format 9 lists no function arm). In a receiving position the receiving chokepoint refuses it by this rule from the ReceivingOperandForms table (COBOL3979): conformance:cases/8.4.3.12-Function-address-identifier/pb1551-function-address-receiving pins `CALL ... USING BY REFERENCE ADDRESS OF FUNCTION F`, which was a parse error (COBOL0001). The sending uses stay witnessed by pb452_set_function_pointer and pb452_function_address_runtime.",
+ "state": "OK"
+}

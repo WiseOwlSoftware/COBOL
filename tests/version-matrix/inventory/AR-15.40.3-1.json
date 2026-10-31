@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.40.3-1",
+ "section": "15.40.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "FORMATTED-DATETIME function",
+ "rule-digest": "264922500198",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+ "test-ref": "conformance:cases/15.40.3-Argument-rules/l1_fdt_argument1_literal_kinds; conformance:cases/15.40.3-Argument-rules/l1-fdt-argument1-not-a-literal; conformance:cases/15.40.3-Argument-rules/l1-fdt-argument1-boolean-literal; conformance:cases/15.40.3-Argument-rules/l1-fdt-national-result-to-alphanumeric",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Both admitted literal categories accepted and computing the same value; literal-ness and the category list pinned by negative/l1-fdt-argument1-not-a-literal (COBOL1517) and -boolean-literal (COBOL1627); the national TYPING made observable ONLY by negative/l1-fdt-national-result-to-alphanumeric, because 14.9.25.3 Table 16 gives Alphanumeric->National \"Yes\" (so the positive golden's AN-/NAT- lines are byte-identical and cannot discriminate) and National->Alphanumeric \"No\".",
+ "state": "OK"
+}

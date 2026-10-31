@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-28",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 28,
+ "subject": "SET statement",
+ "rule-digest": "652aca95e633",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs",
+ "test-ref": "conformance-test:ExceptionConditionConformanceTests.SetLastExceptionToOff_ClearsTheStatus",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "FORMAT 13 — \"The predefined object reference EXCEPTION-OBJECT is set to null, and the last exception status is set to indicate no exception\" (cite.py --check 14.9.39.4 PASS). BOTH halves are in the ONE runtime call the statement lowers to. Half 2 (last exception status) is closed by a spec-derived conformance test: ExceptionConditionConformanceTests.SetLastExceptionToOff_ClearsTheStatus raises EC-USER-C, executes SET LAST EXCEPTION TO OFF and asserts FUNCTION EXCEPTION-STATUS is 31 spaces — the §15.33 no-exception value derived from the standard, through AssertSpec (not the legacy differential). Half 1 (EXCEPTION-OBJECT := null) is settled by reading the whole path rather than by probe: ExceptionState.Clear() assigns `ExceptionObject = null` and also drops the staged propagation slots, and the only source-level READ of that register — the SET Format-5 EXCEPTION-OBJECT sender at OoEmitter.cs:401-419 — renders `ExceptionState.ExceptionObject`, so the null is what a program would observe. I could not close half 1 by probe: EXCEPTION-OBJECT is not resolvable as a relation-condition operand (probe p4_gr28_excobj → COBOL1639 + COBOL0901), and constructing a live exception OBJECT needs the OO RAISE surface — that is a §8.4.3.6 question, not this rule's, and is not charged here. No test covers half 1.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs:120-133 (Clear — sets LastName/LastFatal/LastFile/LastIoStatus/LastStatement/LastLocation to their no-exception values AND `ExceptionObject = null`) + src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs:318 (Visit(BoundSetLastException) → `ExceptionState.Clear();`) + src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs:146-153 (BindSetLastException) + src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs:401-419 (the read side — `SET x TO EXCEPTION-OBJECT` renders `ExceptionState.ExceptionObject`, the same slot Clear nulls)",
+ "state": "OK"
+}

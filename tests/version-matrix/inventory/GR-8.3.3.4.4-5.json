@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.3.3.4.4-5",
+ "section": "8.3.3.4.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Boolean literals",
+ "rule-digest": "4cfd8bc776f1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#Decode",
+ "test-ref": "conformance:cases/8.3.3.2-Alphanumeric-literals/r03_hexadecimal_national_and_boolean_literals",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Each hexadecimal digit -> its 4-position boolean equivalent (cite.py --check 8.3.3.4.4 GR5 OK). Decode's BX arm: Convert.ToString(Convert.ToInt32(c,16),2).PadLeft(4,'0') per digit. Probe bl1 row 6: DISPLAY BX\"0123456789ABCDEF\" -> 0000000100100011010001010110011110001001101010111100110111101111 (all 16 table entries exact); row 10 lowercase BX\"abcdef\" -> 101010111100110111101111; row 7 BX'f0' -> 11110000. r03 rows 3/11/12 pin '5','A','B' (3 of 16 entries; the mapping is one generic expression, fully verified by probe). || editions as written by the adjudicator: 2002, 2014, 2023 (boolean literals are a COBOL-2002 introduction, gated COBOL0900 at --std 85 - probe bl7; the zero-length-literal introduction edge is not derivable from the in-repo 2023 text, whose Annex E lists only the 2014->2023 delta)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.38.4-13",
+ "section": "13.18.38.4",
+ "kind": "GR",
+ "ordinal": 13,
+ "subject": "OCCURS clause",
+ "rule-digest": "ef0a2d29f05d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#RepetitionTest; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#LinePresent; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ResolveReportOccursDepending",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb565_report_repeating_entry; conformance:cases/13.15-Report-group-description/pb565_report_vertical_repetition",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB565 (vertical axis). GR13's count - repetition n appears iff n < (data-name-1 in [integer-1, integer-2-1] ? data-name-1 : integer-2) - is ONE presence test, and it now reaches both axes: horizontally it guards the printable item's placement, vertically it guards the whole report LINE, because 'the OCCURS clause has the same effect as an OCCURS clause with no TO or DEPENDING phrases and with an integer-2 equal to the current value of data-name-1' means the surplus repetitions do not EXIST rather than print blank. Both ride the SAME delegate as the PRESENT WHEN chain (ReportWriterEmitter.LinePresent), which is what makes GR13's last sentence - 'This same principle is used in the computing of the trial sum used in performing the page fit test' - and 13.18.35.4 GR4c's twin sentence about it true for the two suppressors at once, since the engine evaluates presence once per presentation and the page-fit trial sum reads that same answer.",
+ "state": "OK"
+}

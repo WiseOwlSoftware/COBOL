@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.41.4-11",
+ "section": "14.9.41.4",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "START statement",
+ "rule-digest": "616b4096fe7a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#StartFirstLast; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#StartFail; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart",
+ "test-ref": "conformance:cases/14.9.41-START/l1_start_first_last_relative; conformance:cases/14.9.41-START/pb870_start_first_last_relative_exceptions; conformance:cases/14.9.41-START/pb870-start-first-last-relative-85; conformance:cases/14.9.41-START/pb870_start_first_last_relative_ecio_checked; conformance:cases/14.9.41-START/pb870_start_first_last_relative_nofs_nouse",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "On a relative file sparse at RRN 3/7/9, START FIRST positions at 0003 - the first EXISTING record, not RRN 1 - and on a file with no records takes INVALID KEY with '23'. || editions widened from 2014,2023 to 2002,2014,2023 (kb/Work PB870): FIRST and LAST are ONE construct, start-first-last-2002 (tests/version-matrix/constructs.json, COBOL0900; docs/VERSION_CHANGE_REFERENCE.md row 7.38), which the gate refuses below 2002 on every organization, and the RELATIVE twin compiles and runs identically at 2002 (accepted at 2002 and 2023 by l1_start_first_last_relative); the INDEXED twins GR18/GR19 and the SEQUENTIAL twins GR20/GR21 already carry 2002,2014,2023, and no rule of 14.9.41.4 makes the RELATIVE arm later. Below 2002: pb870-start-first-last-relative-85 (COBOL0900). Abnormal and exception arms (47 on an OUTPUT-mode and on a closed file, 23 with INVALID KEY and without it and the USE procedure, the absent OPTIONAL file, GR7 read back as 46, a file no USE covers): pb870_start_first_last_relative_exceptions.",
+ "state": "OK"
+}

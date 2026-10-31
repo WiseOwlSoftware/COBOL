@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-5",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "PICTURE clause",
+ "rule-digest": "ab754637e277",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/l1_picture_abbreviation",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PIC and PICTURE, with and without IS, over the same character-strings: identical size (§13.18.40.4 GR4), identical alphanumeric alignment (§14.6.8.5) and identical edited image (§14.6.8.2 rule 5 + editing rule 7a).",
+ "state": "OK"
+}

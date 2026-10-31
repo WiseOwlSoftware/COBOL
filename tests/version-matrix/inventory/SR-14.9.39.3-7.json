@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-7",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "SET statement",
+ "rule-digest": "b74afbb5a8f6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetCondition",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb555-set-false-no-phrase; conformance:cases/13.18.63-VALUE/pb555_value_false_phrase; conformance:cases/13.18.63-VALUE/pb455_set_false_group_length",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB455 + PB561 - LANDED, RE-MEASURED. 'If the FALSE phrase is specified, the FALSE phrase shall be specified in the VALUE clause of the data description entry for condition-name-1.' The screen is a COMPILE-TIME error (COBOL2049) in SetBinder.BindSetCondition, guarded on `!toTrue && cond.FalseValue is null`; measured, `01 WF PIC X VALUE \"Y\". 88 WF-YES VALUE \"Y\".` + `SET WF-YES TO FALSE` is `error COBOL2049: ... writes no WHEN SET TO FALSE phrase, so there is no literal-4 to place in the conditional variable (ISO 14.9.39.3 SR7)` at --std 2023. The rule became EXPRESSIBLE only when Condition88.FalseValue existed: before it, the conforming program and the SR7-violating one were byte-identical to the binder, which is what made this row NOT-IMPLEMENTED rather than DIVERGES. The TRUE arm needs no twin screen - 13.18.63.3 SR24 -> SR10 makes a VALUE clause mandatory on a level-88 entry. Landed by e76c275d0 (kb/Work PB555).",
+ "state": "OK"
+}

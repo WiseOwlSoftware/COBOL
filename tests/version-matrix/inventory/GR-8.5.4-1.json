@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.4-1",
+ "section": "8.5.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Data description and representation",
+ "rule-digest": "0e51324cf366",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#MinimumLengthIsZero; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#MinimumOccurrences; src/WiseOwl.Cobol.Compiler/Binding/Bound/MoveClassifier.cs#ZeroLengthItemRoute; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#Emit; src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#CobolClass",
+ "test-ref": "conformance:cases/8.5.4-Zero-length-items/pb896_zero_length_group_sender",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Stem: `OK  §8.5.4` \"A zero-length item is a data item or a literal whose minimum length is zero and whose length at runtime is zero.\" The compiler holds the stem's description half as ONE recurrence (DataItem.MinimumLengthIsZero) and the runtime half as the emitted current-length test; consumers read it (MoveClassifier.ZeroLengthItemRoute / MoveEmitter for §14.9.25.4 GR1, CobolClass for §8.8.4.4.4 GR1, STRING/UNSTRING/INSPECT runtime length). Item 1 (`OK §8.5.4 1)` checked via stem): the recurrence answers yes when every non-redefining child has MinimumOccurrences 0 (ODO integer-1). Probe p1 (pinned cobol.exe, --std 2023): `01 ZG. 05 ZE PIC X OCCURS 0 TO 5 DEPENDING ON N.` with N=0 -> IS ALPHABETIC false / IS NOT ALPHABETIC true (§8.8.4.4.4 GR1-2, `OK §8.8.4.4.4 1)`), MOVE ZG TO PIC X(5) = 5 spaces, STRING ZG DELIMITED SIZE \"Q\" -> sender ignored (`OK §14.9.43.4 3) a)`) giving QBCDE, UNSTRING ZG -> receiver unchanged (`OK §14.9.48.4 2)`), INSPECT tally 0, FUNCTION LENGTH 0; p7 MOVE ZG TO PIC XX/XX = \"  /  \" (GR1's substituted SPACE edited). The 'containing ONLY' discriminator is pinned by unit:ZeroLengthItemDriftTests.OrdinaryShapes_AreNotZeroLengthItems (MIXED group answers no). Covered by the PB896 golden (landed). || editions as written by the adjudicator: 85, 2002, 2014, 2023 (an OCCURS DEPENDING integer-1 of zero is legal at every edition; §13.18.38.4 GR8 a) states the same zero-length group; §8.5.4 is not in Annex E's 2014->2023 delta, so the concept predates 2023; the repo holds no 2002/2014 text, so the 2002-vs-2014 introduction edge is not separately derivable (VERSION_CHANGE_REFERENCE ratified decision #1). ) retired-witness: conformance:85/pb896_zero_length_group_sender (the golden moved to the 2014 corpus: it writes a zero-length literal, a COBOL-2014 introduction gated by kb/Work PB895 (same program, same expected output))",
+ "state": "OK"
+}

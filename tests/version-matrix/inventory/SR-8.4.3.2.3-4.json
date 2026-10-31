@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.2.3-4",
+ "section": "8.4.3.2.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "Function-identifier",
+ "rule-digest": "cff6bfeb65dc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#FunctionPointerNamed",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/pb847_function_pointer_call",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB847: function-pointer-name-1 is recognized exactly when the name resolves to ONE data item of category function-pointer (IntrinsicBinder.FunctionPointerNamed, asked by the FUNCTION-keyword and keyword-omitted forms alike); any other name takes the prototype / intrinsic paths and their diagnostics.",
+ "state": "OK"
+}

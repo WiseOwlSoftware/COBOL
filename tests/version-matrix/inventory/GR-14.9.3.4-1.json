@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.3.4-1",
+ "section": "14.9.3.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "ALLOCATE statement",
+ "rule-digest": "f09551f53764",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/CobolPtr.cs#AllocateReal; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/PtrEmitter.cs#EmitAllocate",
+ "test-ref": "conformance:cases/14.9.3-ALLOCATE/pb151_allocate; unit:CobolPtrTests.AllocateReal_CeilsAndClassifies; unit:CobolPtrTests.UpByAmountReal_IntegralityOnTheDouble; conformance-test:PointerAddressingTests.Allocate_Legs_Compile",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB151): GR1's round-UP holds on EVERY lane. A NATIVE-FLOAT arithmetic-expression-1 ceilings on the DOUBLE inside CobolPtr.AllocateReal (the old emitter's Scale==0 split read a Real-carried double and (long)(double) TRUNCATED 2.5 to 2 - a silently undersized cell); the fixed/SDIDI lane rounds up through NumericRenderer.AlignRoundedUp, the one place 14.9.3.4 GR1's and 14.7.9.3 GR1's shared \"rounded up to the next whole number\" is written, and the size travels to the runtime as the FULL Int128 so a 20-digit request cannot WRAP into a small valid allocation. TEST-REF REPAIRED by kb/Work PB465, which renamed the third witness: CobolPtr.UpByReal became CobolPtr.UpByAmountReal when 14.9.39.4 GR19's integrality test and GR20's address-range test were separated into two checks with two exception conditions, and the test with it. SpecTraceabilityInventoryDriftTests.EveryTestRef_ResolvesToARealTest is what caught the dangling reference - the verdict and the evidence are unchanged, only the symbol moved.",
+ "state": "OK"
+}

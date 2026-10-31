@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.6.7-1",
+ "section": "8.6.7",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Scope and life cycle of data",
+ "rule-digest": "8ea08b64ff47",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs#Cell; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitExternalBackings; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#CallBindExternalAndGlobal",
+ "test-ref": "conformance:cases/8.6.7-Sharing-data-items/ec_external_format_conflict",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: \"The data content of an external data record may be referenced from any runtime element provided that the runtime element has described that record.\" (cite.py --check 8.6.7: OK §8.6.7 1)). Code: each EXTERNAL record is emitted as a ref-bridge over ONE run-unit ExternalStore cell keyed by the external name (OoEmitter.EmitExternalBackings -> ExternalTable.Cell), so every describer shares one storage copy. Probes with the pinned cobol.exe: (a) --std 2023 program EXTMAIN + separate program EXTSUB (different subordinate names) + FUNCTION-ID EXTFN all describing 01 SHR EXTERNAL: SUB SEES MAIN 005 / A=SUBX N=015 / FN=115 N=115 (all correct); (b) --std 85 same program pair in one compilation group AND with the sub compiled to its own assembly (separate compilation, one run unit): SUB SEES MAIN 005 / A=SUBX N=015 both. A runtime element that has not described the record has no name for it (reference-resolution error), which is the 'provided that' half. Covering test conformance:cases/8.6.7-Sharing-data-items/ec_external_format_conflict: the conforming describer's store through the shared cell is visible in MAIN; conformance:cases/9.1.5-Sharing-file-connectors/oo_external_file_shared covers program+object sharing an EXTERNAL FD record. [editions as adjudicated: 1985, 2002, 2014, 2023 (EXTERNAL data is in every edition; 1985 says 'program' where 2002+ says 'runtime element')]",
+ "state": "OK"
+}

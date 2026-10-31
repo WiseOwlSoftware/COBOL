@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.42.4-2",
+ "section": "14.9.42.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "STOP statement",
+ "rule-digest": "365022f65013",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#ExitStatus; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#ExitStatus; docs/CONFORMANCE.md#DOC-A.1-192",
+ "test-ref": "conformance-test:StopGobackExitCodeTests.TerminationStatus_SetsProcessExitCode; conformance-test:StopGobackExitCodeTests.StatusBeyondTheHostExitCode_IsClampedNeverWrapped",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "w68w (kb/Work PB1178): cite.py --check 14.9.42.4 'If the ERROR phrase is specified, the operating system will indicate an error termination of the run unit if such a capability exists within the operating system' -> OK 14.9.42.4 2). The host's one termination channel is the process exit code (Environment.ExitCode), shared with GR5's value. Without a STATUS value, WITH ERROR exits 1 (the error indication). With a value, the recorded determination (docs/CONFORMANCE.md DOC-A.1-192 and section 3 'STOP RUN / GOBACK termination status': the value, when present, wins; GR5's implementor latitude settled by CLAUDE.md rule 1 precedence - GnuCOBOL passes the one integer to exit(status), surveyed kb/Work PB169; confirmed under the standing owner-decision protocol on PB1178) makes WITH ERROR STATUS 0 exit 0 (witness InlineData added by w68w). The former wrap (4294967296 -> exit 0, a NORMAL termination for ERROR) is gone: the value is clamped through the one saturating narrowing (re-probed on the w68w build: exit 2147483647).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.12.4-3",
+ "section": "8.4.3.12.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Function-address-identifier",
+ "rule-digest": "f2c8d42e1fed",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetFunctionAddress; src/WiseOwl.Cobol.Compiler/Binding/PrototypeSignatures.cs#Same",
+ "test-ref": "conformance:cases/8.4.3.12-Function-address-identifier/pb452-set-function-pointer-signature; conformance:cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb452_set_function_pointer",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "'When function-prototype-name-1 is specified, the function-address-identifier has the characteristics of a function-pointer restricted to function-prototype-name-1.' The rule's whole observable consequence is that the sender then enters 14.9.39.3 SR20's same-signature compare as a restricted function-pointer, and that is exactly how it is implemented: the prototype arm of BindSetFunctionAddress runs the SAME PrototypeSignatures.Same test the pointer-to-pointer arm runs, against the receiver's own prototype, and COBOL1959 names the mismatch. It is ALSO why the prototype arm needs no run-time GR14 screen of its own - the characteristics are known at bind - while the identifier-1 arm does.",
+ "state": "OK"
+}

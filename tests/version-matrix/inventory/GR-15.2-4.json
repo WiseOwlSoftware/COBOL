@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-15.2-4",
+ "section": "15.2",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Intrinsic functions",
+ "rule-digest": "9ff4df89be62",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#IsIntegerOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#MoveCategoryLegality; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#Table16Operand",
+ "test-ref": "conformance:cases/8.4.3.3-Reference-modification/pb73_table16_function_type_and_boolean_view; conformance:cases/14.9.25-MOVE/pb73-move-numeric-function-to-alphanumeric; conformance:cases/14.9.25-MOVE/pb73-move-numval-function-to-national; conformance-test:MoveTable16FunctionTypeTests.NumericFunction_ToAlphanumeric_IsRefusedStrict",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB73 (adjudicated 2026-08-18): a NUMERIC function is class and category numeric with an operational sign and 'may be used anywhere a sending data item of that class and category may be specified' — as a MOVE sender it is Table 16's NONINTEGER numeric row (item 4 says nothing about digits right of the decimal point; §8.4.3.2.3 SR11 states the principle), so it moves only to a numeric / numeric-edited receiver: COBOL0819 into alphanumeric / national / boolean / alphabetic, a warning + the item-92 literal text under --permissive. Before this every function carried IsNonInteger: false (an under-rejection).",
+ "state": "OK"
+}

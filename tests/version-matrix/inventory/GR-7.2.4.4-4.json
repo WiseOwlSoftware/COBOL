@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.2.4.4-4",
+ "section": "7.2.4.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "REPLACE statement",
+ "rule-digest": "3f26ca380bbb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReplaceStates",
+ "test-ref": "conformance:cases/7.2.4-REPLACE/pb1357_replace_also_last; unit:TextManipulationStatementTests.AlsoStacks_CurrentFirst_AndLastOffPops",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1357 (w68x): the three states (cite.py OK 7.2.4.4 4) b) 'held in a last-in first-out queue') are ReplaceStates: _active (null = none), a Stack of inactive operand lists, cancellation = removal. Before, one flat list was cleared by every REPLACE.",
+ "state": "OK"
+}

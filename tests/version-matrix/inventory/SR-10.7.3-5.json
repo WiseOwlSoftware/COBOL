@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-10.7.3-5",
+ "section": "10.7.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "End markers",
+ "rule-digest": "c177e4c1344a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#ScreenMethod",
+ "test-ref": "conformance:cases/10.7-End-markers/pb988-end-method-interface-mismatch; conformance:cases/10.7-End-markers/pb988-end-method-names-property-method; conformance:cases/10.7-End-markers/pb988_end_markers",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB988 LANDED (wave 1015 Z2). cite.py --check 10.7.3 'If the PROPERTY phrase is specified in the METHOD-ID paragraph, method-name-1 shall be omitted.' OK 5). One ScreenMethod serves the factory, object and interface arms: an interface prototype METHOD-ID. PING. ... END METHOD PONG. and a GET PROPERTY method closed by END METHOD V. are COBOL2793 (SR5); before the fix the interface loop never read the name and the property arm was skipped (`sel is null`). pb988_end_markers: END METHOD Make, END METHOD ping and a bare END METHOD on GET PROPERTY V compile and run (MAKE, V=5).",
+ "state": "OK"
+}

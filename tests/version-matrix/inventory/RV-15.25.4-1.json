@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.25.4-1",
+ "section": "15.25.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "DAY-TO-YYYYDDD function",
+ "rule-digest": "e8a4e1705e3a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#YearToYyyyAt",
+ "test-ref": "conformance:cases/15.23.3-Argument-rules/pb65_date_windowing; conformance:cases/15.23.4-Returned-value-rule/intrinsics_date_window",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "PB65 (date-windowing members) LANDED 2026-08-09: omitted-ness is the ARITY (two-arg vs three-arg overloads; the renderer emits exactly the arguments present), argument-3 is validated AS WRITTEN, and errored delegations return the documented default whole. PROBED: R6VIOL=0000000: the wrapper returns the documented default WHOLE - no more nnn manufactured onto an errored delegation. PRIOR (PARTIAL): ⛔ OVERTURNED: CONFORMS -> PARTIAL. The adjudicator recorded the defect INSIDE the CONFORMS row ('OBSERVATION, NOT A DIVERGENCE ... recorded so the row is not read as cleaner than it is') and closed it anyway. A finding w",
+ "state": "OK"
+}

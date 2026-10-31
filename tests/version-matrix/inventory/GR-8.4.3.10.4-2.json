@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.10.4-2",
+ "section": "8.4.3.10.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "NULL address pointer and message tag content",
+ "rule-digest": "d061e411ebac",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/FunctionPointer.cs; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs",
+ "test-ref": "conformance:cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb452_set_function_pointer; conformance:cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb452_function_address_runtime",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "'When associated with a function-pointer, the predefined address NULL references a data item of category function-pointer that contains the NULL function address. The null function address is an implementor-defined value that is guaranteed not to represent the address of any function.' The value is the NULL NAME - FunctionPointer.Null, the struct default - and the guarantee holds because no FUNCTION-ID paragraph can name a function null, so no registered function can ever compare equal to it. It is also the item's initial state (PicInfo.DefaultInitializer) and the INITIALIZE SET-NULL target (14.9.20.4 GR4/GR6c). Witnessed at both polarities by the 2014 golden's NULL1/NOTNULL3 pair and by the 2023 golden's B-NULL. NOTE THE CLAUSE: this is GR2, not the GR3 that the PROGRAM twin takes - the first draft of this landing inherited GR3 from ProgramPointer.cs and audit_doc_citations caught it.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.35.4-8",
+ "section": "14.9.35.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "REWRITE statement",
+ "rule-digest": "69989ed266d6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-14.9.35.4-8",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'The figurative constant SPACE when specified in the REWRITE statement references one alphanumeric space character.' cite.py --check 14.9.35.4 -> OK 8). With record-name-1, GR7 makes the FROM a MOVE, and MOVE of a one-character alphanumeric space to the record space-fills it, which is what the bound implicit MOVE of the figurative produces. Probe probe/rewrite-statement-p2/p2.cob: `REWRITE F1-REC FROM SPACE` -> FROMSP=00 F1=[      ], read back [      ]. The FILE-phrase context where the one-character length would matter is barred by SR10 b) (no figurative with FILE) and A.4.13 is declined (PB282, landed). No spec-derived golden -> test-needed. [editions as adjudicated: every edition whose REWRITE general format admits literal-1 (2002, 2014, 2023)]",
+ "state": "OK"
+}

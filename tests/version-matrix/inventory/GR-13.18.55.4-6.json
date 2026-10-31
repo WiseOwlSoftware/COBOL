@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.55.4-6",
+ "section": "13.18.55.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "SYNCHRONIZED clause",
+ "rule-digest": "2fdafbe898d3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs",
+ "test-ref": "conformance:cases/13.18.55-SYNCHRONIZED/l1_sync_size_unchanged",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "BYTE-LENGTH of the synchronized ELEMENTARY item equals its clause-free twin on four carriers (COMP, SIGN SEPARATE display, alphanumeric, LEFT/RIGHT) - the item's own size, which the GR9 b) golden never measured. The SEPARATE legs pin 13.18.52.4 GR6 a), not GR5 a).",
+ "state": "OK"
+}

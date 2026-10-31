@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-1",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "SET statement",
+ "rule-digest": "bb7b0f65fc2d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ScreenIndexNameAssociation; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RegisterIndexes; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#DeclaredInHierarchy",
+ "test-ref": "conformance:cases/8.4.2.3-Subscripts/pb459-index-name-not-in-table; conformance:cases/14.9.39-SET/pb459_set_index_amount_guards; unit:SetIndexAmountLandingDriftTests.TheSpecStatesTheSetAmountIntegralityGuard_InExactlyTheRulesThisTestCovers; conformance-test:IndexNameUniquenessTests.OtherTablesQualifiedIndex_AsSubscript_IsSR4",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB459.md LANDED. FORMATS 1 AND 2 GR1 - 'Index-names are associated with a given table by being specified in the INDEXED BY phrase of the OCCURS clause for that table' (cite.py --check 14.9.39.4 PASS). The association is recorded by DataBinder (DataItem.IndexNames on the OCCURS-bearing entry) and is now CONSUMED on the reference side as well as by SEARCH: ReferenceResolver.ScreenIndexNameAssociation applies 8.4.2.3.3 SR4 - 'Index-name-1 shall correspond to a data description entry in the hierarchy of the table being referenced that contains an INDEXED BY phrase specifying that index-name' (cite.py --check 8.4.2.3.3 PASS) - and rejects a cross-table index subscript with COBOL1961 in BOTH dialect lanes. The prior adjudication charged this row with the MISSING RANGE TESTS of GR2a1b/GR2a3b/GR4a, and that premise was re-derived and CORRECTED during the fix: the limit those arms cite is the IMPLEMENTOR'S index range (13.18.38.4 GR2), not the table's bounds - every one of them ends 'even if that occurrence is not a valid occurrence within this table' - so the range half needs no index-to-table map at all and a table-bounds test there would reject legal source. What GR1's association actually serves on the reference side is SR4, which was measured missing (MOVE 77 TO E2 (IX1), with IX1 the index of another table, compiled clean and wrote through the wrong occurrence number) and is now a compile-time diagnostic. The range half is closed under GR-14.9.39.4-4 and -L2.* by CobolIndex, whose implementor range is documented as CONFORMANCE.md section 7 row DOC-A.1-128 (A.1 item 128, required + documented). kb/Work PB919 (wave 57): the association is now an IndexDeclaration(name, table, cell) minted per table by DataBinder.RegisterIndexes, and SR4 is judged against the RESOLVED declaration (DeclaredInHierarchy, by identity) rather than the spelling - so EB(IX OF EA), with both tables INDEXED BY IX, is refused where a spelling test would pass it. retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#IndexNameInHierarchy (kb/Work PB919 replaced the spelling test with DeclaredInHierarchy (identity of the resolved declaration))",
+ "state": "OK"
+}

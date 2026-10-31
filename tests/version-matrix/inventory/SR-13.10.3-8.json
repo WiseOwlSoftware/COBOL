@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.10.3-8",
+ "section": "13.10.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "Constant entry",
+ "rule-digest": "e7fd9d9a5ad8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#BindConstantFrom",
+ "test-ref": "conformance:cases/13.10-Constant/constant-from-compilation-variable; conformance:cases/7.3.11-DEFINE/pb1368-constant-from-after-define-off; conformance:cases/7.3.11-DEFINE/pb1368-constant-from-defined-later",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1228 (w1006c). cite.py --check 13.10.3 \"Compilation-variable-name-1 shall be a compilation-variable-name for which the defined\" -> OK SR8. 'Currently true' is read at the entry's resultant line through the >>DEFINE timeline (POP-revoked definitions excluded): never defined (negative constant-from-compilation-variable), OFF before the entry (pb1368-constant-from-after-define-off) and defined only after it (pb1368-constant-from-defined-later) each draw COBOL1547. || editions corrected from '2002' to 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a constant-entry rule; the constant entry (level 01 CONSTANT) is a COBOL-2002 introduction. cite.py --check 13.10.3 \"The length of data-name-1 or data-name-2 shall not be dependent\" OK.",
+ "state": "OK"
+}

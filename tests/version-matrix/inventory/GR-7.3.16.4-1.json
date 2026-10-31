@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.16.4-1",
+ "section": "7.3.16.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "IF directive",
+ "rule-digest": "d6c1d360bfe9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements",
+ "test-ref": "unit:TextManipulationDirectiveLineTests.CopyReplacing_DoesNotRewriteAnIfCondition; conformance:cases/7.2.3-COPY/pb1352_directive_lines_not_replaced",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1352 (w67m): only text words that do not form a compiler directive line are matched and replaced; the >>IF / >>ELSE / >>END-IF lines are DirectiveLine elements, so COPY IFCB REPLACING ==V== BY ==W== leaves >>IF V = 1 intact (golden leg [V-TRUE]) while text-1/text-2 remain subject to replacing.",
+ "state": "OK"
+}

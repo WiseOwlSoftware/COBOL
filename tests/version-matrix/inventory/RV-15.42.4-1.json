@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.42.4-1",
+ "section": "15.42.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "FRACTION-PART function",
+ "rule-digest": "db3d32ed7ea0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#FractionPart; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#FractionPartReal; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#FieldNumCore; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#CombineCore",
+ "test-ref": "conformance:cases/15.42.3-Argument-rule/l1_integer_family_notes; conformance:wiseowl/cases/15.75.4-Returned-value-rules/pb3829_random_fraction_rounded_store",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§15.42.4 r1's EAE (a - INTEGER-PART(a)) evaluated over seven arguments under ARITHMETIC IS STANDARD-DECIMAL, where §15.4.1 r1 makes equality mandatory. The floor split (a - INTEGER(a)) already fails the NOTE's own -1.5 case (+0.5 against r1's -0.5, because §15.44.4 r1 makes INTEGER(-1.5) = -2); the added |a| < 1 lines reach the region the NOTE cannot, where the subtrahend is zero and r1 returns the argument itself (-0.25 against the floor split's +0.75).",
+ "state": "OK"
+}

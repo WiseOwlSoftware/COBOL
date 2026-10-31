@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.8.4.4.2",
+ "section": "8.8.4.4.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Simple class condition",
+ "rule-digest": "45db2dbcf401",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#ClassConditionModel; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindClassConditionOn; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#className",
+ "test-ref": "conformance:cases/8.8.4.4-Simple-class-condition/pb225_float_class_conditions; conformance:cases/8.8.4.4-Simple-class-condition/pb225_float_class_words_are_user_words; conformance:cases/8.8.4.4-Simple-class-condition/pb571_class_condition_one_table; conformance:cases/8.8.4.4-Simple-class-condition/pb590_boolean_class_condition; conformance:cases/8.8.4.4-Simple-class-condition/pb225-float-class-below-2014; unit:ClassConditionTableDriftTests.EveryGrammarAlternative_HasABinderArmAndAModelRow",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB225 (wave 45 A): all FOURTEEN alternatives of the printed general format (PDF p224 / printed 194, rendered by PB571: one brace group, no choice indicator, IS not underlined) are offered by the ONE className rule. The seven COBOL-2014 numeric-content alternatives FARTHEST-FROM-ZERO, FLOAT-INFINITY, FLOAT-NOT-A-NUMBER, FLOAT-NOT-A-NUMBER-QUIET, FLOAT-NOT-A-NUMBER-SIGNALING, IN-ARITHMETIC-RANGE and NEAREST-TO-ZERO landed as seven keyword alternatives placed AFTER cobolWord - the BOOLEAN precedent - so the reservation gate is the edition gate: 8.9 reserves the seven from 2014 (reserved-words.json r2002 false / r2014 true; Annex E names none of them, so 2014 is the introducing edition), below that each is a SPECIAL-NAMES class-name (2002 golden) and an undeclared one is COBOL1639 (negative, 85/2002). FLOAT-NOT-A-NUMBER-QUIET gained its lexer token with the class condition, its only surface. ClassConditionTableDriftTests pins grammar alternative = binder arm = model row = renderer arm. retired-witness: src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#className (the className rule lives in CobolOO.g4 (kb/Work PB845+PB2501+PB2292+PB2506, d080fc6ad))",
+ "state": "OK"
+}

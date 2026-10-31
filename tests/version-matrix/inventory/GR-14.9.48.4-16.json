@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.48.4-16",
+ "section": "14.9.48.4",
+ "kind": "GR",
+ "ordinal": 16,
+ "subject": "UNSTRING statement",
+ "rule-digest": "2628a2c17dc4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitOverflow; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitOverflow",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/phrase_order_overflow",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR16 a)-e) (cite.py --check -> OK 14.9.48.4 16) b) 'The EC-OVERFLOW-UNSTRING exception condition is set to exist'; 16) e) 'The NOT ON OVERFLOW phrase, if specified, is ignored'). a) GR15a: the else-block with all transfers is skipped; GR15b is detected after the last receiver (nothing further happens). b) EcEmitter.EmitOverflow sets EC-OVERFLOW-UNSTRING only when checking is enabled - correct per 14.6.13.1.1 'it is raised only if checking for that exception condition is enabled' (cite.py --check 14.6.13.1.1 -> OK). Probe p4 (>>TURN EC-OVERFLOW-UNSTRING CHECKING ON): with ON OVERFLOW the phrase runs and EXCEPTION-STATUS = EC-OVERFLOW-UNSTRING; with no phrase, execution continues (no declarative) and the status is EC-OVERFLOW-UNSTRING (14.6.13.1.4 #4). c)/e) EmitOverflow: 'if (flag) ON else NOT' - golden phrase_order_overflow pins UNS-ON (and not UNS-NOT) for GR15b with the phrases in reversed order. d) no-phrase: EcDispatchExpr selects a declarative or resumes. Over-raise on a zero-length sender belongs to GR15/GR2's finding, not to this rule's effects. [editions as adjudicated: 85, 2002, 2014, 2023 (items b) EC-OVERFLOW-UNSTRING and d) the 14.6.13.1.4 continuation are 2002+: the exception-condition facility and >>TURN are 2002 introductions - pinned build rejects >>TURN at --std 85 with COBOL0900)]",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.4.3-8",
+ "section": "14.9.4.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "CALL statement",
+ "rule-digest": "56932a2d741c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ScreenBitAlignment",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb132-call-returning-bit-unaligned",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB240): identifier-3 rides the SAME chokepoint as SR6's arguments (ScreenCallOperand's isReturning arm -> ScreenBitAlignment), so the REDEFINES-view arm PB240 added to that one method closes the exotic-carrier corner for the RETURNING item too - there is no second copy of the rule to fix. Pinned by pb132-call-returning-bit-unaligned (member path); the view arm is the one pb240-call-bit-redefines-unaligned exercises.",
+ "state": "OK"
+}

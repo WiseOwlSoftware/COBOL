@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.8.4.4-1",
+ "section": "7.3.8.4.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Defined condition",
+ "rule-digest": "9a4458a44d4c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvalDefined; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#ApplyDefine",
+ "test-ref": "unit:CompileTimeBooleanCceTests.Cce_DefinedCondition",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'A defined condition using the IS DEFINED syntax evaluates TRUE if compilation-variable-name-1 is currently defined.' (cite.py --check 7.3.8.4.4 OK). EvalDefined: defined = _resolveName(name) is not null; resolveName = the _defines (OrdinalIgnoreCase) lookup, so 'currently defined' is the running >>DEFINE table: ApplyDefine removes the name on OFF (§7.3.11 GR2) and on PARAMETER with no environment value (GR4), and a DEFINE inside an omitted >>IF branch is not applied. Probe p1.cob at 2002/2014/2023: T1 defined -> TRUE, T2 case-insensitive name TRUE, T5 after >>DEFINE VAR-A OFF -> not defined, T6 PARAMETER with no env -> not defined, T7 DEFINE in omitted branch -> not defined; all PASS. conformance:cases/7.3.16-IF/conditional_compilation also exercises IS DEFINED end-to-end. Probe dir E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2\\out\\probe\\defined-condition || editions (adjudicator): 2002, 2014, 2023 (the §7.3 compiler-directive facility incl. >>DEFINE/>>IF is not in ISO 1989:1985; no 2023 Annex E change to §7.3.8.4)",
+ "state": "OK"
+}

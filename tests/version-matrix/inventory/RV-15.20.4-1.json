@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.20.4-1",
+ "section": "15.20.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "COS function",
+ "rule-digest": "0c794832c6ee",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#SignDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Cos; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#WholeRangeBodies; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.TwoPi.cs#ReduceQuarterTurns",
+ "test-ref": "conformance:cases/15.4.1-Numeric-and-integer-functions/pb56_dec_carrier_intrinsics; conformance:cases/15.20.4-Returned-value-rule/pb999_log_trig_decimal_range; unit:WholeRangeBodiesDriftTests.Trig_ReducesTheExactArgumentModuloTwoPi; unit:InverseTwoPiDigitsDriftTests.TheDigitString_IsOneOverTwoPi; conformance:cases/15.8.4-Returned-value-rule/pb1041_trig_log_arc_exact_argument; conformance:cases/15.20.4-Returned-value-rule/pb1041_exp_and_wide_exact_argument; unit:WholeRangeBodiesDriftTests.EveryExactIntakeArm_AnswersForTheExactArgument",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PB56 LANDED 2026-08-09: the Dec-carrier body - the SS15.4.1 r1 EAE evaluates ON the SDIDI (CobolIntrinsics.Dec.cs via IntrinsicRenderer.RenderDec), arguments lifted exactly, never quantized; prose-family results convert in per SS8.8.1.5.1. PROBED: CO=1.000000000: COS(0)=1 exact through the conversion. PRIOR (DIVERGES): test-needed. RULE (validated: python scripts/spec/cite.py --check 15.20.4 \"greater than or equal to\" -> OK §15.20.4 1)) has TWO halves: the returned value IS the approximation of the cosine of argument-1, AND it lies in [-1, +1]. ⚠ THE ADJUDICATED RE retired-witness: src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.TwoPi.cs#ReduceTwoPi (ReduceTwoPi (mod-2pi reduction from 2pi up) was replaced by ReduceQuarterTurns, the quadrant-and-residue reduction that also covers arguments near every multiple of pi/2 (kb/Work PB1041); the new site is on the row)",
+ "state": "OK"
+}

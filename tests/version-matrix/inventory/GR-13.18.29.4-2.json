@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.29.4-2",
+ "section": "13.18.29.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "GROUP-USAGE clause",
+ "rule-digest": "a56843d703c2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#AsIfPic; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#OperandPic; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#Of",
+ "test-ref": "conformance:cases/13.16-Data-description/pb79_group_usage_national",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (PB79; D20). (a) class/category national; (b) treated as PICTURE N(m): Table 16's NATIONAL row on both sides of a MOVE (padded/truncated in national positions — the NOTE's purpose), national comparison, INSPECT in national positions, reference-modifiable as an elementary item, FUNCTION LENGTH = m (r2), BYTE-LENGTH = 2m.",
+ "state": "OK"
+}

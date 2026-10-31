@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.36.4-1",
+ "section": "15.36.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "FACTORIAL function",
+ "rule-digest": "8a73e3814935",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#Factorial; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AsInt; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#CombineCore",
+ "test-ref": "conformance:cases/15.36.4-Returned-value-rule/l1_factorial_eae_branches; conformance:cases/15.36.4-Returned-value-rule/l1_factorial_eae_native",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "All three lettered arms in one output under STANDARD-DECIMAL where S15.4.1 r1 makes the digits required (0!, 1!, 2!, 5!, 20!, 3!/2!); the native lane's same arms are relational in 85/l1_factorial_eae_native, which the row now names so its edition-85 claim carries its own evidence.",
+ "state": "OK"
+}

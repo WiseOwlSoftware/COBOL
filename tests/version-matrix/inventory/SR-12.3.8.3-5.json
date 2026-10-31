@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.8.3-5",
+ "section": "12.3.8.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "cfe0d1b64d0b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Build; src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Lookup",
+ "test-ref": "conformance:cases/12.3.8-REPOSITORY/l1c24_repository_self_class_specifier",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (cite.py --check 12.3.8.3 'If the specified object-class-name-1 is the name of the class definition in which this REPOSITORY paragraph is specified' -> OK §12.3.8.3 5)). Code: OoRepositoryScope.Build walks outward from the reference; at the ClassDefinitionContext it ASSIGNS classes[ownName] = null (resolve by the declared word = the containing class) before Collect() adds that class's own REPOSITORY entries with TryAdd, so a self-named class-specifier (and its AS literal-1) never displaces the self binding. Probe out/probe/repo/sr5.cob (--std 2023): CLASS-ID. S5SELF whose REPOSITORY writes 'CLASS S5SELF AS \"S5OTHER\"' (S5OTHER is a real group class with a factory MAKE printing WRONG-OTHER-MAKE); S5SELF's factory MAKE does INVOKE S5SELF \"NEW\"; main prints SELF-HELLO - the self reference reached S5SELF. The code comment at OoNameResolution.cs:127 cites this as '§12.3.8.2 GR5/GR8' (wrong clause; the Build() comment at the same file correctly says §12.3.8.3 SR5/SR8). No spec-derived test pins a self-named class-specifier -> test-ref empty.",
+ "state": "OK"
+}

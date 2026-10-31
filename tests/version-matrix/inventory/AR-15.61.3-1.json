@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.61.3-1",
+ "section": "15.61.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "MEDIAN function",
+ "rule-digest": "5e4a69b9f544",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#DeliberatelyUnscreened; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog",
+ "test-ref": "conformance:cases/15.61.3-Argument-rule/stat-median-arg-class-numeric",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "New negative: PIC X(3) at argument-2 of 3, the position a screen that stopped at the first argument would let through. pb1-numeric-arg2-alphanumeric already varies that axis for a DECLARED position (15.77.3 r1, FUNCTION REM(6 A)); what is new here is the same axis on a VARIADIC TAIL, where 15.61.2's { argument-1 } ... makes every written position argument-1. 15.61.3 r1 is the clause's only argument rule. Code-location corrected: the stale #DeliberatelyUnscreened locator is dropped - MEDIAN sits in Verified (IntrinsicArgumentRules.cs:690) and appears nowhere in DeliberatelyUnscreened (:833+). Fixture rejects at 85 2002 2014 2023; row carried no editions -- and that window is CATALOG-DERIVED (IntrinsicCatalog's MEDIAN row plus --std probes), NOT spec-derived: no in-repo spec source establishes MEDIAN at 85 or 2002 (docs/VERSION_CHANGE_REFERENCE.md row 7.19 -- Annex E covers only 2014->2023, 8.11 lists intrinsic NAMES without edition data, ratified decision #1 leaves the repo without 1985/2002/2014 text). Recorded rather than narrowed, because unlike AR-15.60.3-1 this row carries NO adjudicated window for a wider fixture to contradict, and the landed enabled sibling pb1-numeric-arg2-alphanumeric asserts the same four legs for the same class screen. The legs are BEHAVIOURAL coverage of this compiler, not an edition CLAIM -- the record's editions field stays empty, so nothing here widens the row. DIRECTOR DECISION OWED, once for MEDIAN/MIDRANGE/STANDARD-DEVIATION/VARIANCE together. || editions 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the MEDIAN function exists from 85 (IntrinsicCatalog.cs, the COBOL1502 edition window).",
+ "state": "OK"
+}

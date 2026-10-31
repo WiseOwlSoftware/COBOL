@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.37.4-4",
+ "section": "15.37.4",
+ "kind": "RV",
+ "ordinal": 4,
+ "subject": "FIND-STRING function",
+ "rule-digest": "b5fcce123828",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#FindString; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFindString; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#LowerCase",
+ "test-ref": "conformance:cases/15.37.4-Returned-value-rules/find_string; conformance-test:IntrinsicFunctionDifferentialTests.FindString_Anycase_FoldsCase_2023; conformance-test:IntrinsicFunctionDifferentialTests.FindString_CaseSensitiveByDefault_2023",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "ANYCASE=7 folds BOTH operands as r4 requires, and the fold's two halves are separately discriminated: folding only argument-2 gives 0, folding only argument-1 gives 0, and only both gives \"world\" first at 7. Controlled by CASED=0, the identical call without ANYCASE. Only the A-Z correspondence is pinned: §15.57.4 r4 leaves the rest implementor-defined when no locale is in effect. #LowerCase is NOT in the code-location - FindString inlines ToLowerInvariant() (CobolIntrinsics.Text.cs:504-505) and never calls LowerCase (line 118), which is itself the finding: r4 defers to LOWER-CASE by name and the deferral is written twice.",
+ "state": "OK"
+}

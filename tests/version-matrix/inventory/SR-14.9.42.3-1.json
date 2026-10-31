@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.42.3-1",
+ "section": "14.9.42.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "STOP statement",
+ "rule-digest": "aa171e415d99",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#RefusedOutOfSequence; src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#StatementPosition; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#EndsImperativeRun",
+ "test-ref": "conformance:cases/14.9.42-STOP/pb397-stop-not-last; conformance:cases/14.9.14-EXIT/pb397_sequence_placement_legal; conformance-test:StatementSequencePlacementTests.Stop_FollowedByAStatement_IsRefused; conformance-test:StatementSequencePlacementTests.Stop_LastInItsBlock_IsAccepted; conformance-test:StatementSequencePlacementTests.StopLiteral_FollowedByAStatement_IsAccepted; conformance:cases/14.9.17-GO-TO/pb2610_go_to_before_conditional",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Train-1031 lander review (kb/Work PB397): the rule governs STOP RUN, the only STOP of 14.9.42. The X3.23-1985 STOP literal (deleted 2002) communicates to the operator and continues with the next statement, so a statement after it executes and it is not refused (it was, at 85, before this correction); StopLiteral_FollowedByAStatement_IsAccepted and the 85 golden's AFTER-STOP-LITERAL line pin it. kb/Work PB2610: 'a discreet block of code' is read (docs/CONFORMANCE.md D-SEQ) as 14.9.17.3 SR2's consecutive sequence of imperative statements, so a following CONDITIONAL statement ends it as it ends SR2's: STOP RUN before an IF with no END-IF is accepted (Stop_LastInItsBlock_IsAccepted SQS04, the 85 golden pb2610_go_to_before_conditional P-STOP), STOP RUN before a delimited EVALUATE is refused (SQS14). retired-witness: conformance-test:StatementSequencePlacementTests.StopLiteral_FollowedByAStatement_IsRefused (renamed StopLiteral_FollowedByAStatement_IsAccepted by the train-1031 review: the 1985 STOP literal continues with the next statement, so SR1 does not govern it)",
+ "state": "OK"
+}
