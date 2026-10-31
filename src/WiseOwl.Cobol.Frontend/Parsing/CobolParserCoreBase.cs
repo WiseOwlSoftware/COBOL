@@ -443,6 +443,25 @@ public abstract class CobolParserCoreBase : Parser
 
     private (int Index, bool Parses)? _entryClauseProbe;
 
+    /// <summary>⛔ A RESERVED WORD IS READ AS A PROCEDURE HEADER'S NAME ONLY WHERE THE HEADER IT WOULD BEGIN IS WRITTEN
+    /// (kb/Work PB4132) — the predicate on the two definition slots, <c>paragraphName</c> (<paramref name="follower"/>
+    /// the separator period) and <c>sectionName</c> (the word SECTION). ISO §14.4.3: "A paragraph consists of a
+    /// paragraph-name followed by a separator period"; the general formats of §14.2.1 write a section header as
+    /// <c>section-name-1 SECTION.</c> A procedure-name is a user-defined word, so a word §8.9 reserves at this edition stands there only as
+    /// the §8.3.2.1 1) violation ("Reserved words shall not be used as user-defined words or system-names") the funnel
+    /// names with COBOL0901, and the source writes that use only where the header follows: <c>END-DISPLAY.</c> and
+    /// <c>RECEIVE SECTION.</c> are headers naming a reserved word. Where the header does not follow, the word is its
+    /// keyword: <c>END-DISPLAY MOVE 2 TO W-K.</c> at the start of a sentence is a scope terminator no statement owns
+    /// (§14.5.3.2, COBOL0306), exactly as <c>END-ADD</c> there is, and <c>CONSTANT MOVE 1 TO W-N.</c> at --std 2002 a
+    /// reserved word where the header's user word stands (COBOL0901 at the word). Without this the gated word was the
+    /// only reading the prediction had left, so the header was taken and the parse died at the next token with
+    /// "a period may be missing" — and the period it advised turned the terminator into a paragraph-name.
+    /// <para>Only a reservation-gated word §8.9 reserves here (<see cref="ReservedGatedWord"/>): a free gated word is the
+    /// user-defined word the reservation gate retypes, and every other word's header reading is untouched. Read-only,
+    /// so safe in prediction.</para></summary>
+    protected bool procedureHeaderHere(int follower)
+        => TokenStream.LT(1) is not { } word || ReservedGatedWord(word) is null || TokenStream.LA(2) == follower;
+
     /// <summary>Whether the lookahead word begins a <c>statement</c> that parses — the question the error recovery
     /// asks of a reserved verb it has just reported as a reference (kb/Work PB3248, reviews R1-1 and R2-1;
     /// <see cref="CobolErrorStrategy"/>). A syntax error AT a reservation-gated word is reported as its §8.9 violation

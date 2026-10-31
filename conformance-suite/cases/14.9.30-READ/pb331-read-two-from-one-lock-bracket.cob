@@ -11,9 +11,8 @@
       *> (figure_geometry.py 722: y=280.90 h=48.79 over three stacked alternatives, and
       *> the stems are PLAIN - no 5.2.6.4 choice indicators), so at most one of the
       *> three may be written. The READ below writes two of them (ADVANCING ON LOCK and
-      *> IGNORING LOCK). It does not write the retry-phrase as the third: RETRY is a
-      *> reserved word from 2002, and the reservation gate reads a misplaced RETRY as a
-      *> user-defined word (COBOL0901) before the statement's own refusal can name it.
+      *> IGNORING LOCK); pb4132-read-retry-after-advancing-on-lock writes the
+      *> retry-phrase as the second.
       *> Until kb/Work PB331 this compiled: the grammar offered the three as free
       *> independent optionals, which is the same defect as the over-rejection of the
       *> legal pair in 2002/pb331_read_lock_brackets, read from the other side.

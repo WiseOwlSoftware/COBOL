@@ -135,7 +135,7 @@ public sealed class InvokeContentOperandChannelTests
     /// §8.9 reservation gate on <c>cobolWord</c> was silently INOPERATIVE for every hyphenated word: the
     /// generator emitted <c>userWordHere("B_AND")</c>, the ANTLR token name, into a predicate that looks its
     /// argument up in <c>reserved-words.json</c> by SPELLING (kb/Work PB792). With the gate working the operand
-    /// list stops at the reserved word and <c>CobolErrorListener</c>'s §8.9 re-code names it — the same sentence
+    /// list stops at the reserved word and the error strategy's §8.9 report names it — the same sentence
     /// the funnel used to produce, now at the offending token.</para></summary>
     [Fact]
     public void ByValue_HasNoBooleanAlternative_UnlikeByContent()
