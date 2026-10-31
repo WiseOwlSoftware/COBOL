@@ -1,4 +1,4 @@
-## PB4162: a table(ALL) function argument is held for GR2's argument order
+## Entry 2851 — 2026-10-31 08:58 PDT — PB4162: a table(ALL) function argument is held for GR2's argument order
 
 ISO section 8.4.3.2.4 GR2 evaluates a function's arguments individually, left to right, and section 15.3 14) makes `T (ALL)` "as if each table element associated with that subscript position were specified": a sequence of arguments, each evaluated where it stands in the list. A later argument's user-defined function activation is a statement-scoped pre-op that runs before the statement renders its call, and an ALL operand was neither recorded in the `ArgumentOrder` window nor held, because the backend enumerated it where the call renders. So `MAX (T (ALL), UDF (X))` read T after the activation, and `ArgumentOrder.Hold` had a guard that held a nested call naming an ALL as a value, which gave `LENGTH (MAX (MAX (T (ALL), 1), UDF (X)))` the value's description (4) where the unheld form answered 8 (PB4124's residual).
 
@@ -15,3 +15,4 @@ ISO section 8.4.3.2.4 GR2 evaluates a function's arguments individually, left to
 **Finisher (CONFLICT at the landing, exit 4).** Bringing origin/main (e70c69e85) in met a modify/delete conflict on `conformance-suite/wiseowl/diagnostics.json`: PB4147 had made WiseOwl's refusals one file per test while this branch added its two below-edition refusals to the old object. The deletion was taken and the two entries, checked mechanically to be the branch's only change to the object (none changed or removed), were written as `wiseowl/diagnostics/pb4162_table_all_argument_held_below_2002.json` and `pb4162_table_all_dynamic_capacity_held_below_2014.json` in the serializer form of the files already there; `generate.py --check` reads 5,892 tests.
 
 `PB4162` landed; it closes no inventory row (`closes_rows: []`, with the reason).
+
