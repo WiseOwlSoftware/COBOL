@@ -5162,10 +5162,11 @@ public sealed partial class DataBinder
     /// is the referenced item (ISO §8.4.6.2.1 3) a): "If the name is declared in source element B, the item in source
     /// element B is the referenced item"), however many farther GLOBAL data items spell the same, so the report-item
     /// refusal (§13.8.6.2.3) stands. <paramref name="dataItems"/> is the nearest tier already
-    /// (<see cref="QualifiedCandidates"/>), so its depth is any member's. Read by every site that counts data items
-    /// before it refuses a report entry: the procedure division's unidentified reference and a data division clause
-    /// operand.</summary>
-    internal bool DataItemsAmbiguousBeforeReportEntry(NameCandidates<DataItem> dataItems, string name, IReadOnlyList<string> qualifiers)
+    /// (<see cref="QualifiedCandidates"/>), so its depth is any member's. Read by <see cref="ReportEntryReferenceRefused"/>
+    /// itself, so every arm that asks the refusal takes the one order by passing its candidates: the order cannot be
+    /// left out of an arm (it was, at three arms, when kb/Work PB3766 made a container's GLOBAL data items reach a
+    /// contained program's FILE-CONTROL and OCCURS clauses and the arms PB3768 added counted first).</summary>
+    private bool DataItemsAmbiguousBeforeReportEntry(NameCandidates<DataItem> dataItems, string name, IReadOnlyList<string> qualifiers)
     {
         if (dataItems.Count <= 1) return false;
         return ReportEntriesNamed(name, qualifiers) is not [var (report, _), ..]
@@ -5196,10 +5197,16 @@ public sealed partial class DataBinder
     /// counter resolves before name lookup fails), so a word that reaches an unidentified-reference report AND names a
     /// report entry is a reference the standard forbids — and saying "not defined" about a name the report section
     /// declares is false and sends the reader hunting a declaration that is right there. Returns true having
-    /// reported; false when the written reference names no report entry, leaving the caller's own verdict.</summary>
+    /// reported; false when the written reference names no report entry, or when it reaches several
+    /// <paramref name="dataItems"/> that no nearer report entry hides (<see cref="DataItemsAmbiguousBeforeReportEntry"/>,
+    /// kb/Work PB3767: §8.4.2.2.3 SR1's ambiguity is then the verdict), leaving the caller's own verdict.</summary>
+    /// <param name="dataItems">The data items the written reference reaches (<see cref="QualifiedCandidates"/>, the
+    /// nearest tier): none, or several when the caller found no unique one.</param>
     /// <param name="subject">The reference as the caller words it: <c>'PV OF DL'</c>, or <c>FILE STATUS 'PN'</c>.</param>
-    internal bool ReportEntryReferenceRefused(string subject, string name, IReadOnlyList<string> qualifiers)
+    internal bool ReportEntryReferenceRefused(NameCandidates<DataItem> dataItems, string subject, string name,
+                                              IReadOnlyList<string> qualifiers)
     {
+        if (DataItemsAmbiguousBeforeReportEntry(dataItems, name, qualifiers)) return false;
         if (ReportEntriesNamed(name, qualifiers) is not [var (report, entry), ..]) return false;
         Edition.Error(DiagnosticCatalog.ReportItemReference,
             $"{subject} names the report group description entry '{entry.Name}' of report '{report.Name}', which a reference "

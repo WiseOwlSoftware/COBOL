@@ -459,9 +459,13 @@ off-by-one through every later counter check.
   section's own clauses are not refused here: their operand rules are theirs (`ReportSectionNameIn`, COBOL2144).
   **The ambiguity among data items is told first** (kb/Work PB3767): a reference that reaches SEVERAL data items breaks
   §8.4.2.2.3 SR1 whether or not a report entry spells the same, so `DataBinder.DataItemsAmbiguousBeforeReportEntry` is
-  the ONE order both arms read before they ask the refusal (COBOL1639, its text counting the report entries of the data
-  items' source element, `ReportEntriesInTierOf`) — except that a report entry of a NEARER source element than the
-  ambiguous GLOBAL data items is the referenced item (§8.4.6.2.1 3) a)) and keeps COBOL5092.
+  the ONE order, and `ReportEntryReferenceRefused` reads it itself: every arm passes the data items its reference
+  reaches, so no arm can ask the refusal without the order. Several data items leave the ambiguity standing (COBOL1639;
+  in the procedure division its text counts the report entries of the data items' source element,
+  `ReportEntriesInTierOf`) — except that a report entry of a NEARER source element than the ambiguous GLOBAL data items
+  is the referenced item (§8.4.6.2.1 3) a)) and keeps COBOL5092, in all five arms (a contained program's own FILE
+  STATUS, ASSIGN USING, RECORD KEY and OCCURS DEPENDING ON reach a container's GLOBAL data items since kb/Work PB3766;
+  `pb3766-contained-*-nearer-report-entry-hides-global-data-items`).
   **A contained program sees its containers' GLOBAL reports from the end of its own declaration half** (kb/Work
   PB3766): `BinderDriver.BindUnitData` OFFERS them (`DataBinder.ContainerGlobalReports`, nearest container first) and
   `DataBinder.InheritContainerReports` inherits them at the end of `BindDeclarations`, before `BindResolve`, so the
