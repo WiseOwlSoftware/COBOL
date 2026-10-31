@@ -20,3 +20,13 @@ and already count first, so `ReportUnidentified` was the only arm out of order.
 all four editions through `conformance-suite/wiseowl/diagnostics/`.
 
 **Rows.** None claimed, none closed: a misleading diagnostic on source refused either way.
+
+**Review round 1.** The reviewer found the count depth-blind (R1-1): with two GLOBAL `PV` items in a container and a
+report entry `PV` in the contained program, 8.4.6.2.1 3) a) makes the nearer report entry the referenced item and
+COBOL5092 must stand, but the first fix said COBOL1639. The order is now one method,
+`DataBinder.DataItemsAmbiguousBeforeReportEntry` (ambiguity first unless a report entry of a nearer source element
+exists), read by `ReportUnidentified` and `ResolveClauseOperand`; the golden is
+`pb3767-local-report-entry-nearer-than-ambiguous-global-data-items`. The ambiguity text now counts the report entries of
+the data items' source element (R1-2, `ReportEntriesInTierOf`). Probing the clause-operand sibling found that a contained
+program's `FILE STATUS IS` a container's GLOBAL data item is refused as undefined (COBOL1639): the contained data
+division binds before the globals are inherited, the PB3766 mechanism, reported as a lead.
