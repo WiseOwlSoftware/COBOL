@@ -1,0 +1,4177 @@
+{
+  "schema": 1,
+  "rule": "DESIGN-architecture-review.md §8.1: a cross-layer dependency is allowed iff its (from, to) layer pair is listed; intra-layer edges are free; every product namespace is placed; a tolerated row lists every type pair it holds, each with the kb/Work notes that remove it (removedBy, the row's is their union); uses (the census record named by census) and walkUses (the drift test's metadata walk) only ever fall; plan is R1's account of the removal",
+  "census": "7cb79581e1dd7f66cb86df5d7e63ffdffb6f3bd0",
+  "layers": [
+    {
+      "id": "runtime",
+      "namespaces": [
+        "WiseOwl.Cobol.Runtime",
+        "WiseOwl.Cobol.Runtime.*"
+      ]
+    },
+    {
+      "id": "editions",
+      "namespaces": [
+        "WiseOwl.Cobol.Editions",
+        "WiseOwl.Cobol.Editions.Diagnostics"
+      ]
+    },
+    {
+      "id": "frontend.common",
+      "namespaces": [
+        "WiseOwl.Cobol.Frontend.Common",
+        "WiseOwl.Cobol.Common"
+      ]
+    },
+    {
+      "id": "frontend.diagnostics",
+      "namespaces": [
+        "WiseOwl.Cobol.Frontend.Diagnostics"
+      ]
+    },
+    {
+      "id": "frontend.parse",
+      "namespaces": [
+        "WiseOwl.Cobol.Frontend.Generated",
+        "WiseOwl.Cobol.Frontend.Cst",
+        "WiseOwl.Cobol.Frontend.Parsing",
+        "WiseOwl.Cobol.Frontend.Expressions"
+      ]
+    },
+    {
+      "id": "frontend.preprocessor",
+      "namespaces": [
+        "WiseOwl.Cobol.Frontend.Preprocessor"
+      ]
+    },
+    {
+      "id": "frontend.pipeline",
+      "namespaces": [
+        "WiseOwl.Cobol.Frontend"
+      ]
+    },
+    {
+      "id": "compiler.model",
+      "namespaces": [
+        "WiseOwl.Cobol.Binding.Model"
+      ]
+    },
+    {
+      "id": "compiler.bound",
+      "namespaces": [
+        "WiseOwl.Cobol.Binding.Bound"
+      ]
+    },
+    {
+      "id": "compiler.binding",
+      "namespaces": [
+        "WiseOwl.Cobol.Binding",
+        "WiseOwl.Cobol.Binding.Repository",
+        "WiseOwl.Cobol.Binding.Procedure",
+        "WiseOwl.Cobol.Binding.Passes",
+        "WiseOwl.Cobol.Binding.Validation",
+        "WiseOwl.Cobol.Compiler.Oo"
+      ]
+    },
+    {
+      "id": "compiler.validation",
+      "namespaces": [
+        "WiseOwl.Cobol.Validation"
+      ]
+    },
+    {
+      "id": "compiler.codegen",
+      "namespaces": [
+        "WiseOwl.Cobol.CodeGen",
+        "WiseOwl.Cobol.CodeGen.Emit"
+      ]
+    },
+    {
+      "id": "compiler.pipeline",
+      "namespaces": [
+        "WiseOwl.Cobol"
+      ]
+    },
+    {
+      "id": "cli",
+      "namespaces": [
+        "WiseOwl.Cobol.Cli"
+      ]
+    }
+  ],
+  "compositionRoots": [
+    "compiler.pipeline",
+    "cli"
+  ],
+  "excluded": [
+    {
+      "assembly": "WiseOwl.Cobol.Compiler.SourceGen",
+      "reason": "build-time generator; references no product assembly (census projects[].projectReferences = [])"
+    }
+  ],
+  "allowed": [
+    [
+      "editions",
+      "runtime"
+    ],
+    [
+      "frontend.common",
+      "editions"
+    ],
+    [
+      "frontend.common",
+      "runtime"
+    ],
+    [
+      "frontend.diagnostics",
+      "frontend.common"
+    ],
+    [
+      "frontend.diagnostics",
+      "editions"
+    ],
+    [
+      "frontend.parse",
+      "frontend.diagnostics"
+    ],
+    [
+      "frontend.parse",
+      "frontend.common"
+    ],
+    [
+      "frontend.parse",
+      "editions"
+    ],
+    [
+      "frontend.parse",
+      "runtime"
+    ],
+    [
+      "frontend.preprocessor",
+      "frontend.parse"
+    ],
+    [
+      "frontend.preprocessor",
+      "frontend.diagnostics"
+    ],
+    [
+      "frontend.preprocessor",
+      "frontend.common"
+    ],
+    [
+      "frontend.preprocessor",
+      "editions"
+    ],
+    [
+      "frontend.preprocessor",
+      "runtime"
+    ],
+    [
+      "frontend.pipeline",
+      "frontend.preprocessor"
+    ],
+    [
+      "frontend.pipeline",
+      "frontend.parse"
+    ],
+    [
+      "frontend.pipeline",
+      "frontend.diagnostics"
+    ],
+    [
+      "frontend.pipeline",
+      "frontend.common"
+    ],
+    [
+      "frontend.pipeline",
+      "editions"
+    ],
+    [
+      "frontend.pipeline",
+      "runtime"
+    ],
+    [
+      "compiler.model",
+      "frontend.common"
+    ],
+    [
+      "compiler.model",
+      "editions"
+    ],
+    [
+      "compiler.model",
+      "runtime"
+    ],
+    [
+      "compiler.bound",
+      "compiler.model"
+    ],
+    [
+      "compiler.bound",
+      "frontend.common"
+    ],
+    [
+      "compiler.bound",
+      "editions"
+    ],
+    [
+      "compiler.bound",
+      "runtime"
+    ],
+    [
+      "compiler.binding",
+      "compiler.bound"
+    ],
+    [
+      "compiler.binding",
+      "compiler.model"
+    ],
+    [
+      "compiler.binding",
+      "frontend.preprocessor"
+    ],
+    [
+      "compiler.binding",
+      "frontend.parse"
+    ],
+    [
+      "compiler.binding",
+      "frontend.common"
+    ],
+    [
+      "compiler.binding",
+      "editions"
+    ],
+    [
+      "compiler.binding",
+      "runtime"
+    ],
+    [
+      "compiler.validation",
+      "compiler.binding"
+    ],
+    [
+      "compiler.validation",
+      "compiler.bound"
+    ],
+    [
+      "compiler.validation",
+      "compiler.model"
+    ],
+    [
+      "compiler.validation",
+      "frontend.preprocessor"
+    ],
+    [
+      "compiler.validation",
+      "frontend.parse"
+    ],
+    [
+      "compiler.validation",
+      "frontend.common"
+    ],
+    [
+      "compiler.validation",
+      "editions"
+    ],
+    [
+      "compiler.validation",
+      "runtime"
+    ],
+    [
+      "compiler.codegen",
+      "compiler.bound"
+    ],
+    [
+      "compiler.codegen",
+      "compiler.model"
+    ],
+    [
+      "compiler.codegen",
+      "frontend.common"
+    ],
+    [
+      "compiler.codegen",
+      "editions"
+    ],
+    [
+      "compiler.codegen",
+      "runtime"
+    ],
+    [
+      "compiler.pipeline",
+      "compiler.codegen"
+    ],
+    [
+      "compiler.pipeline",
+      "compiler.validation"
+    ],
+    [
+      "compiler.pipeline",
+      "compiler.binding"
+    ],
+    [
+      "compiler.pipeline",
+      "compiler.bound"
+    ],
+    [
+      "compiler.pipeline",
+      "compiler.model"
+    ],
+    [
+      "compiler.pipeline",
+      "frontend.pipeline"
+    ],
+    [
+      "compiler.pipeline",
+      "frontend.preprocessor"
+    ],
+    [
+      "compiler.pipeline",
+      "frontend.parse"
+    ],
+    [
+      "compiler.pipeline",
+      "frontend.diagnostics"
+    ],
+    [
+      "compiler.pipeline",
+      "frontend.common"
+    ],
+    [
+      "compiler.pipeline",
+      "editions"
+    ],
+    [
+      "compiler.pipeline",
+      "runtime"
+    ],
+    [
+      "cli",
+      "compiler.pipeline"
+    ],
+    [
+      "cli",
+      "compiler.binding"
+    ],
+    [
+      "cli",
+      "frontend.pipeline"
+    ],
+    [
+      "cli",
+      "frontend.preprocessor"
+    ],
+    [
+      "cli",
+      "frontend.diagnostics"
+    ],
+    [
+      "cli",
+      "frontend.common"
+    ],
+    [
+      "cli",
+      "editions"
+    ],
+    [
+      "cli",
+      "runtime"
+    ]
+  ],
+  "tolerated": [
+    {
+      "from": "WiseOwl.Cobol.Binding",
+      "to": "WiseOwl.Cobol.CodeGen",
+      "uses": 4,
+      "walkUses": 3,
+      "removedBy": [
+        "PB2395"
+      ],
+      "plan": "PB2395 (extract: the figurative-constant classification and FillChar to compiler.model — DataBinder.cs:2435,2470,2850,4855; DataBinder.ImpliedPicture.cs:212); and the numeric-edited VALUE image compose, DataBinder.cs:4792 -> ValueInitializer.EditedImageOfNumericValue, which PB2395 also moves to compiler.model once the alphabet family is there (Draft 6, G1)",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.Binding.DataBinder",
+          "to": "WiseOwl.Cobol.CodeGen.FigurativeConstants",
+          "removedBy": [
+            "PB2395"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.DataBinder",
+          "to": "WiseOwl.Cobol.CodeGen.PlaceIdentification",
+          "removedBy": [
+            "PB2395"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.DataBinder",
+          "to": "WiseOwl.Cobol.CodeGen.ValueInitializer",
+          "removedBy": [
+            "PB2395"
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WiseOwl.Cobol.Binding",
+      "to": "WiseOwl.Cobol.CodeGen.Emit",
+      "uses": 1,
+      "walkUses": 1,
+      "removedBy": [
+        "PB2396"
+      ],
+      "plan": "PB2396 (move: EmitText.RepeatToWidth to frontend.common — DataBinder.cs:2970)",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.Binding.DataBinder",
+          "to": "WiseOwl.Cobol.CodeGen.Emit.EmitText",
+          "removedBy": [
+            "PB2396"
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WiseOwl.Cobol.Binding",
+      "to": "WiseOwl.Cobol.Validation",
+      "uses": 15,
+      "walkUses": 14,
+      "removedBy": [
+        "PB2320",
+        "PB2404",
+        "PB2421"
+      ],
+      "plan": "PB2320 (move: BinderDriver, whose ten *Pass.Run calls are BinderDriver.cs:61-217, to compiler.pipeline) and PB2404 (move: IntegerOperandRules with IntegerSlot and IntegerSlotKind, IntegerOperandPass.cs:14-89, called from DataBinder.Constants.cs:858, to compiler.binding); PB2421 ends DataBinder -> VersionConformancePass (PictureConstructId to PicInfo, DataBinder.Reports.cs:3777), the pair no move of BinderDriver removes (Draft 6, G1)",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.Binding.BinderDriver",
+          "to": "WiseOwl.Cobol.Validation.AreaPlacementPass",
+          "removedBy": [
+            "PB2320",
+            "PB2404",
+            "PB2421"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.BinderDriver",
+          "to": "WiseOwl.Cobol.Validation.ClosedFormatPass",
+          "removedBy": [
+            "PB2320",
+            "PB2404",
+            "PB2421"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.BinderDriver",
+          "to": "WiseOwl.Cobol.Validation.DeclinedFacilityPass",
+          "removedBy": [
+            "PB2320",
+            "PB2404",
+            "PB2421"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.BinderDriver",
+          "to": "WiseOwl.Cobol.Validation.DirectivePlacementPass",
+          "removedBy": [
+            "PB2320",
+            "PB2404",
+            "PB2421"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.BinderDriver",
+          "to": "WiseOwl.Cobol.Validation.EndMarkerPass",
+          "removedBy": [
+            "PB2320",
+            "PB2404",
+            "PB2421"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.BinderDriver",
+          "to": "WiseOwl.Cobol.Validation.ExpressionFormationPass",
+          "removedBy": [
+            "PB2320",
+            "PB2404",
+            "PB2421"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.BinderDriver",
+          "to": "WiseOwl.Cobol.Validation.FlagConformancePass",
+          "removedBy": [
+            "PB2320",
+            "PB2404",
+            "PB2421"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.BinderDriver",
+          "to": "WiseOwl.Cobol.Validation.IntegerOperandPass",
+          "removedBy": [
+            "PB2320",
+            "PB2404",
+            "PB2421"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.BinderDriver",
+          "to": "WiseOwl.Cobol.Validation.LevelNumberPass",
+          "removedBy": [
+            "PB2320",
+            "PB2404",
+            "PB2421"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.BinderDriver",
+          "to": "WiseOwl.Cobol.Validation.ProcedureFormatPass",
+          "removedBy": [
+            "PB2320",
+            "PB2404",
+            "PB2421"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.DataBinder",
+          "to": "WiseOwl.Cobol.Validation.IntegerOperandRules",
+          "removedBy": [
+            "PB2320",
+            "PB2404",
+            "PB2421"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.DataBinder",
+          "to": "WiseOwl.Cobol.Validation.IntegerSlot",
+          "removedBy": [
+            "PB2320",
+            "PB2404",
+            "PB2421"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.DataBinder",
+          "to": "WiseOwl.Cobol.Validation.VersionConformancePass",
+          "removedBy": [
+            "PB2320",
+            "PB2404",
+            "PB2421"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.ReferenceResolver",
+          "to": "WiseOwl.Cobol.Validation.IntegerOperandRules",
+          "removedBy": [
+            "PB2320",
+            "PB2404",
+            "PB2421"
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WiseOwl.Cobol.Binding.Bound",
+      "to": "WiseOwl.Cobol.Binding",
+      "uses": 39,
+      "walkUses": 38,
+      "removedBy": [
+        "PB2347",
+        "PB2405",
+        "PB2419",
+        "PB2420"
+      ],
+      "plan": "PB2347 (move: StatementBinder and its SubscriptSegments partial out of Bound/) and PB2405 (the rule families the bound nodes read move into compiler.bound); PB2420 (move: EditionContext, SortCollation, IeeeSpecial to compiler.model) and PB2419 (BoundAllLiteral.Of leaves for ConcatFolder) end the last nine pairs (Draft 6, G1)",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.BoundAllLiteral",
+          "to": "WiseOwl.Cobol.Binding.ConcatFolder",
+          "removedBy": [
+            "PB2347",
+            "PB2405",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.BoundBoolError",
+          "to": "WiseOwl.Cobol.Binding.EditionContext",
+          "removedBy": [
+            "PB2347",
+            "PB2405",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.BoundDeclarative",
+          "to": "WiseOwl.Cobol.Binding.ReportGroupModel",
+          "removedBy": [
+            "PB2347",
+            "PB2405",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.BoundExprError",
+          "to": "WiseOwl.Cobol.Binding.EditionContext",
+          "removedBy": [
+            "PB2347",
+            "PB2405",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.BoundGenerate",
+          "to": "WiseOwl.Cobol.Binding.ReportGroupModel",
+          "removedBy": [
+            "PB2347",
+            "PB2405",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.BoundGenerate",
+          "to": "WiseOwl.Cobol.Binding.ReportModel",
+          "removedBy": [
+            "PB2347",
+            "PB2405",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.BoundInitiate",
+          "to": "WiseOwl.Cobol.Binding.ReportModel",
+          "removedBy": [
+            "PB2347",
+            "PB2405",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.BoundIntrinsicCall",
+          "to": "WiseOwl.Cobol.Binding.IntrinsicResultType",
+          "removedBy": [
+            "PB2347",
+            "PB2405",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.BoundIntrinsicCall",
+          "to": "WiseOwl.Cobol.Binding.IntrinsicSig",
+          "removedBy": [
+            "PB2347",
+            "PB2405",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.BoundIntrinsicCall",
+          "to": "WiseOwl.Cobol.Binding.IntrinsicType",
+          "removedBy": [
+            "PB2347",
+            "PB2405",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.BoundMerge",
+          "to": "WiseOwl.Cobol.Binding.SortCollation",
+          "removedBy": [
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.BoundNumLiteral",
+          "to": "WiseOwl.Cobol.Binding.IntrinsicType",
+          "removedBy": [
+            "PB2347",
+            "PB2405",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.BoundNumericLiteral",
+          "to": "WiseOwl.Cobol.Binding.IntrinsicType",
+          "removedBy": [
+            "PB2347",
+            "PB2405",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.BoundOperandError",
+          "to": "WiseOwl.Cobol.Binding.EditionContext",
+          "removedBy": [
+            "PB2347",
+            "PB2405",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.BoundRejected",
+          "to": "WiseOwl.Cobol.Binding.EditionContext",
+          "removedBy": [
+            "PB2347",
+            "PB2405",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.BoundReportCounterRef",
+          "to": "WiseOwl.Cobol.Binding.ReportModel",
+          "removedBy": [
+            "PB2347",
+            "PB2405",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.BoundSort",
+          "to": "WiseOwl.Cobol.Binding.SortCollation",
+          "removedBy": [
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.BoundSortMergeKey",
+          "to": "WiseOwl.Cobol.Binding.CollatingClass",
+          "removedBy": [
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.BoundSuppress",
+          "to": "WiseOwl.Cobol.Binding.ReportGroupModel",
+          "removedBy": [
+            "PB2347",
+            "PB2405",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.BoundSuppress",
+          "to": "WiseOwl.Cobol.Binding.ReportModel",
+          "removedBy": [
+            "PB2347",
+            "PB2405",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.BoundTableSort",
+          "to": "WiseOwl.Cobol.Binding.SortCollation",
+          "removedBy": [
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.BoundTerminate",
+          "to": "WiseOwl.Cobol.Binding.ReportModel",
+          "removedBy": [
+            "PB2347",
+            "PB2405",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.InitializeCategories",
+          "to": "WiseOwl.Cobol.Binding.Table16Operand",
+          "removedBy": [
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.SetContentStore",
+          "to": "WiseOwl.Cobol.Binding.IeeeSpecial",
+          "removedBy": [
+            "PB2347",
+            "PB2405",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.CalleeSignature",
+          "removedBy": [
+            "PB2347",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2347",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.DiagnosticCursorAt",
+          "removedBy": [
+            "PB2347",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.EditionContext",
+          "removedBy": [
+            "PB2347",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.OptionsModel",
+          "removedBy": [
+            "PB2347",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.ProgramPrototype",
+          "removedBy": [
+            "PB2347",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.PrototypeSignatureClasses",
+          "removedBy": [
+            "PB2347",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.PrototypeSignatures",
+          "removedBy": [
+            "PB2347",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
+          "removedBy": [
+            "PB2347",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.ReportModel",
+          "removedBy": [
+            "PB2347",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.RestrictedPrototype",
+          "removedBy": [
+            "PB2347",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.SegmentPosition",
+          "removedBy": [
+            "PB2347",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.TurnState",
+          "removedBy": [
+            "PB2347",
+            "PB2420",
+            "PB2419"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.UserFunctionSignature",
+          "removedBy": [
+            "PB2347",
+            "PB2420",
+            "PB2419"
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WiseOwl.Cobol.Binding.Bound",
+      "to": "WiseOwl.Cobol.Binding.Procedure",
+      "uses": 40,
+      "walkUses": 39,
+      "removedBy": [
+        "PB2347"
+      ],
+      "plan": "PB2347 (the same move; MoveClassifier and MoveOverlap stay in compiler.bound); the walk reads 39 at 669e32aa9, two pairs more than at a02b165da (StatementBinder -> PlacementRules, UntilExitPlacement, landed after the census; Draft 7, H1)",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.AcceptDisplayBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.ArgumentOrder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.ArithmeticBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.BinderContext",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.CallBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.ConditionBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.ControlFlowBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.CorrespondingBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.DeclinedFacilityBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.EcBindState",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.EcBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.EnclosingContext",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.EvaluateBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.FileLockBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.InitializeBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.InspectBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.KeyedIoBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.MoveBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.OoBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.OoMethodScope",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.ParameterConformance",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.PhraseBlocks",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.PlacementRules",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.ProcedureTableBuilder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.PtrBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.ReportWriterBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.SearchBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.SectionInfo",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.SendingValueTemp",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.SequentialIoBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.SetAlterBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.SetBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.SortBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.SourceElementKind",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.StringUnstringBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.UdfBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.UntilExitPlacement",
+          "removedBy": [
+            "PB2347"
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WiseOwl.Cobol.Binding.Bound",
+      "to": "WiseOwl.Cobol.Binding.Validation",
+      "uses": 1,
+      "walkUses": 1,
+      "removedBy": [
+        "PB2347"
+      ],
+      "plan": "PB2347 (StatementBinder moves to Binding/Procedure, the same layer as StatementValidation; a row landed after a02b165da by the fix lane, measured by the walk at 669e32aa9, StatementBinder.cs:446; Draft 7, H1)",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Validation.StatementValidation",
+          "removedBy": [
+            "PB2347"
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WiseOwl.Cobol.Binding.Bound",
+      "to": "WiseOwl.Cobol.Compiler.Oo",
+      "uses": 6,
+      "walkUses": 6,
+      "removedBy": [
+        "PB2347",
+        "PB2402"
+      ],
+      "plan": "PB2402 (the OO symbols to compiler.model; 6 -> 1) and PB2347 (StatementBinder -> OoClassTable leaves Bound/)",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.BoundEoClass",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoClassSymbol",
+          "removedBy": [
+            "PB2402",
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.BoundEoInterface",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoInterfaceSymbol",
+          "removedBy": [
+            "PB2402",
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoClassSymbol",
+          "removedBy": [
+            "PB2402",
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoClassTable",
+          "removedBy": [
+            "PB2402",
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoMethodBinding",
+          "removedBy": [
+            "PB2402",
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoMethodSymbol",
+          "removedBy": [
+            "PB2402",
+            "PB2347"
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WiseOwl.Cobol.Binding.Bound",
+      "to": "WiseOwl.Cobol.Frontend.Generated",
+      "uses": 21,
+      "walkUses": 1,
+      "removedBy": [
+        "PB2347",
+        "PB2398"
+      ],
+      "plan": "PB2347 (StatementBinder, the parse-context reader, out of Bound/) and PB2398 (BoundOo.cs's parse-context use becomes a bound-node fact)",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Frontend.Generated.CobolParserCore",
+          "removedBy": [
+            "PB2347",
+            "PB2398"
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WiseOwl.Cobol.Binding.Bound",
+      "to": "WiseOwl.Cobol.Frontend.Parsing",
+      "uses": 1,
+      "walkUses": 0,
+      "removedBy": [],
+      "plan": "PB2347 and PB2398 (the StatementBinder move and the parse-context extract)",
+      "pairs": []
+    },
+    {
+      "from": "WiseOwl.Cobol.Binding.Bound",
+      "to": "WiseOwl.Cobol.Frontend.Preprocessor",
+      "uses": 1,
+      "walkUses": 1,
+      "removedBy": [
+        "PB2347"
+      ],
+      "plan": "PB2347 (the StatementBinder move)",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Frontend.Preprocessor.DirectiveSite",
+          "removedBy": [
+            "PB2347"
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WiseOwl.Cobol.Binding.Model",
+      "to": "WiseOwl.Cobol.Binding",
+      "uses": 24,
+      "walkUses": 25,
+      "removedBy": [
+        "PB2361",
+        "PB2375",
+        "PB2399",
+        "PB2402"
+      ],
+      "plan": "PB2361 (DataBindResult: BoundUnit.Data and .Refs, BoundCompilation.InterfaceData, OoClassUnit's binder), PB2375 (PlaceBuilder at bind time: OdoModel.SearchDepending's resolver, OdoModel.cs:188), PB2402 (OoMethodDataScope and OptionsModel.cs's types move with the OO symbols) and PB2399 (the rest: SymbolTable's binder, the binder statics the model calls, BoundCompilation.Turn, LinkageFormal, Table16Operand, the alphabet family); PB2399 also ends DataItem and FileModel -> ReferenceResolver (HasVariableLengthSubordinate, DataItem.cs:956, FileModel.cs:566,627) and moves NationalAlphabetDef with the alphabet family (Draft 6, G1)",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.BoundCompilation",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.BoundCompilation",
+          "to": "WiseOwl.Cobol.Binding.PrototypeSignatureClasses",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.BoundCompilation",
+          "to": "WiseOwl.Cobol.Binding.TurnState",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.BoundUnit",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.BoundUnit",
+          "to": "WiseOwl.Cobol.Binding.LinkageFormal",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.BoundUnit",
+          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.CallBridge",
+          "to": "WiseOwl.Cobol.Binding.LinkageFormal",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.DataItem",
+          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.DataItem",
+          "to": "WiseOwl.Cobol.Binding.RestrictedPrototype",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.FileModel",
+          "to": "WiseOwl.Cobol.Binding.AlphabetDef",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.FileModel",
+          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.ItemCategory",
+          "to": "WiseOwl.Cobol.Binding.Table16Operand",
+          "removedBy": [
+            "PB2375",
+            "PB2399"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.OccursKey",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.OdoModel",
+          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.OoClassUnit",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.OoClassUnit",
+          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.PicInfo",
+          "to": "WiseOwl.Cobol.Binding.FloatEndianness",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.RecordLayout",
+          "to": "WiseOwl.Cobol.Binding.CobolClass",
+          "removedBy": [
+            "PB2375",
+            "PB2399"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.RecordLayout",
+          "to": "WiseOwl.Cobol.Binding.IntrinsicArgumentRules",
+          "removedBy": [
+            "PB2375",
+            "PB2399"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.RecordLayout",
+          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
+          "removedBy": [
+            "PB2375",
+            "PB2399"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.Scope",
+          "to": "WiseOwl.Cobol.Binding.OoMethodDataScope",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.StrongTypeModel",
+          "to": "WiseOwl.Cobol.Binding.PrototypeSignatures",
+          "removedBy": [
+            "PB2399"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.SymbolTable",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.SymbolTable",
+          "to": "WiseOwl.Cobol.Binding.OoMethodDataScope",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.VariableLengthCompatibility",
+          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
+          "removedBy": [
+            "PB2375",
+            "PB2399"
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WiseOwl.Cobol.Binding.Model",
+      "to": "WiseOwl.Cobol.Binding.Bound",
+      "uses": 2,
+      "walkUses": 2,
+      "removedBy": [
+        "PB2400"
+      ],
+      "plan": "PB2400 (move: BoundUnit, OoClassUnit and BoundCompilation to compiler.bound, once they hold no binder, C# chain, parse context or OO-layer answer)",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.BoundUnit",
+          "to": "WiseOwl.Cobol.Binding.Bound.BoundProgram",
+          "removedBy": [
+            "PB2400"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.OoClassUnit",
+          "to": "WiseOwl.Cobol.Binding.Bound.BoundProgram",
+          "removedBy": [
+            "PB2400"
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WiseOwl.Cobol.Binding.Model",
+      "to": "WiseOwl.Cobol.CodeGen",
+      "uses": 1,
+      "walkUses": 1,
+      "removedBy": [
+        "PB2397"
+      ],
+      "plan": "PB2397 (extract: the C# member chain leaves the model — BoundUnit.cs:67, RuntimeApi.OuterChain)",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.BoundUnit",
+          "to": "WiseOwl.Cobol.CodeGen.RuntimeApi",
+          "removedBy": [
+            "PB2397"
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WiseOwl.Cobol.Binding.Model",
+      "to": "WiseOwl.Cobol.Compiler.Oo",
+      "uses": 5,
+      "walkUses": 5,
+      "removedBy": [
+        "PB2402",
+        "PB2403"
+      ],
+      "plan": "PB2402 (move: the OO symbols with the closure they name, to compiler.model; 5 -> 2) and PB2403 (AdapterPair to compiler.model; the OoClassTable answers become BoundCompilation data; 2 -> 0)",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.BoundCompilation",
+          "to": "WiseOwl.Cobol.Compiler.Oo.AdapterPair",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.BoundCompilation",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoClassTable",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.BoundCompilation",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoInterfaceSymbol",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.ObjectRefDescriptor",
+          "to": "WiseOwl.Cobol.Compiler.Oo.NamingConvention",
+          "removedBy": [
+            "PB2402"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.OoClassUnit",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoClassSymbol",
+          "removedBy": [
+            "PB2402"
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WiseOwl.Cobol.Binding.Model",
+      "to": "WiseOwl.Cobol.Frontend.Generated",
+      "uses": 4,
+      "walkUses": 2,
+      "removedBy": [
+        "PB2398"
+      ],
+      "plan": "PB2398 (extract: BoundCompilation.Tree and BoundUnit.Ctx, BoundCompilation.cs:34, BoundUnit.cs:34, carry parse contexts across ICodeGenBackend; each reader's fact becomes a bound-node fact, DESIGN-backend-abstraction §1.1 lists no parse context)",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.BoundCompilation",
+          "to": "WiseOwl.Cobol.Frontend.Generated.CobolParserCore",
+          "removedBy": [
+            "PB2398"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.BoundUnit",
+          "to": "WiseOwl.Cobol.Frontend.Generated.CobolParserCore",
+          "removedBy": [
+            "PB2398"
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WiseOwl.Cobol.Binding.Passes",
+      "to": "WiseOwl.Cobol.Validation",
+      "uses": 1,
+      "walkUses": 1,
+      "removedBy": [
+        "PB2320"
+      ],
+      "plan": "PB2320 (BindPipeline's VersionConformancePass row, BindPipeline.cs:163, goes with the driver's pass schedule)",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.Binding.Passes.BindPipeline",
+          "to": "WiseOwl.Cobol.Validation.VersionConformancePass",
+          "removedBy": [
+            "PB2320"
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WiseOwl.Cobol.Binding.Procedure",
+      "to": "WiseOwl.Cobol.CodeGen",
+      "uses": 3,
+      "walkUses": 2,
+      "removedBy": [
+        "PB2395"
+      ],
+      "plan": "PB2395 (the same extract — InitializeBinder.cs:869)",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.Binding.Procedure.InitializeBinder",
+          "to": "WiseOwl.Cobol.CodeGen.FigurativeConstants",
+          "removedBy": [
+            "PB2395"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Procedure.MoveBinder",
+          "to": "WiseOwl.Cobol.CodeGen.PlaceIdentification",
+          "removedBy": [
+            "PB2395"
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WiseOwl.Cobol.Binding.Procedure",
+      "to": "WiseOwl.Cobol.Validation",
+      "uses": 2,
+      "walkUses": 2,
+      "removedBy": [
+        "PB2320",
+        "PB2404"
+      ],
+      "plan": "PB2320 and PB2404 (the same moves)",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.Binding.Procedure.ConditionBinder",
+          "to": "WiseOwl.Cobol.Validation.IntegerOperandRules",
+          "removedBy": [
+            "PB2404"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder",
+          "to": "WiseOwl.Cobol.Validation.IntegerOperandRules",
+          "removedBy": [
+            "PB2320",
+            "PB2404"
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WiseOwl.Cobol.CodeGen",
+      "to": "WiseOwl.Cobol.Binding",
+      "uses": 105,
+      "walkUses": 112,
+      "removedBy": [
+        "PB2290",
+        "PB2320",
+        "PB2361",
+        "PB2375",
+        "PB2399",
+        "PB2402",
+        "PB2405",
+        "PB2418",
+        "PB2420"
+      ],
+      "plan": "PB2361 and PB2375 (extract: the backend input stops carrying the binder — DataBindResult replaces EmitContext.Data, EmitCore.cs:19,34, and BoundUnit.Data/Refs; PlaceBuilder runs at bind time, so UnitEmitters.Refs and the 24 emit-time ReferenceResolver.ResolveItem calls go), PB2290 and PB2320 (the BinderDriver calls of CSharpEmitter, ProgramEmitter and OoEmitter leave code generation), PB2402 and PB2399 (the OPTIONS, alphabet and linkage types move to compiler.model) and PB2405 (the report-model, intrinsic-rule, class-rule and MOVE-rule families move to compiler.bound); PB2418 (OoEmitter -> BinderDriver: ExternalItemIdentity to DataItem) and PB2420 (the value types: EditionContext, CallExternalBacking, ProgramSpecifier, RangeCollationCarrier, CellLifetime, IeeeSpecials, the report field sources) end the pairs onto types other than DataBinder and ReferenceResolver (Draft 6, G1)",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.CodeGen.CSharpEmitter",
+          "to": "WiseOwl.Cobol.Binding.BinderDriver",
+          "removedBy": [
+            "PB2361",
+            "PB2290",
+            "PB2418",
+            "PB2320",
+            "PB2399",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.CSharpEmitter",
+          "to": "WiseOwl.Cobol.Binding.EditionContext",
+          "removedBy": [
+            "PB2361",
+            "PB2290",
+            "PB2418",
+            "PB2320",
+            "PB2399",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.CallEmitter",
+          "to": "WiseOwl.Cobol.Binding.CobolClass",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.CallEmitter",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.CallEmitter",
+          "to": "WiseOwl.Cobol.Binding.EditionContext",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.CallEmitter",
+          "to": "WiseOwl.Cobol.Binding.IntrinsicArgumentRules",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.CallEmitter",
+          "to": "WiseOwl.Cobol.Binding.LinkageFormal",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.CallEmitter",
+          "to": "WiseOwl.Cobol.Binding.ProgramSpecifier",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.CallUnitState",
+          "to": "WiseOwl.Cobol.Binding.LinkageFormal",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2290",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.CollationEmit",
+          "to": "WiseOwl.Cobol.Binding.AlphabetDef",
+          "removedBy": [
+            "PB2399",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.CollationEmit",
+          "to": "WiseOwl.Cobol.Binding.CollatingTable",
+          "removedBy": [
+            "PB2399",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.CollationEmit",
+          "to": "WiseOwl.Cobol.Binding.LocaleCollatingSpec",
+          "removedBy": [
+            "PB2399",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.CollationEmit",
+          "to": "WiseOwl.Cobol.Binding.NationalAlphabetDef",
+          "removedBy": [
+            "PB2399",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.DataEmitter",
+          "to": "WiseOwl.Cobol.Binding.CallExternalBacking",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.DispatchEmitter",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.DispatchEmitter",
+          "to": "WiseOwl.Cobol.Binding.EditionContext",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.DispatchEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportModel",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.DispatchState",
+          "to": "WiseOwl.Cobol.Binding.ReportModel",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2290",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.FigurativeConstants",
+          "to": "WiseOwl.Cobol.Binding.AlphabetDef",
+          "removedBy": [
+            "PB2399",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.FigurativeConstants",
+          "to": "WiseOwl.Cobol.Binding.NationalAlphabetDef",
+          "removedBy": [
+            "PB2399",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.GroupImageCodec",
+          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2399",
+            "PB2405"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.GroupValueSlicer",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.GroupValueSlicer",
+          "to": "WiseOwl.Cobol.Binding.IntrinsicArgumentRules",
+          "removedBy": [
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.HostEntryEmitter",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.HostEntryEmitter",
+          "to": "WiseOwl.Cobol.Binding.LinkageFormal",
+          "removedBy": [
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.InitialStateBackground",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.InitialStateBackground",
+          "to": "WiseOwl.Cobol.Binding.OptionsFill",
+          "removedBy": [
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.InitialStateBackground",
+          "to": "WiseOwl.Cobol.Binding.OptionsInitialize",
+          "removedBy": [
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.InitialStateBackground",
+          "to": "WiseOwl.Cobol.Binding.OptionsModel",
+          "removedBy": [
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.InspectEmitter",
+          "to": "WiseOwl.Cobol.Binding.IntrinsicArgumentRules",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.KeyedIoEmitter",
+          "to": "WiseOwl.Cobol.Binding.AlphabetDef",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.KeyedIoEmitter",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.KeyedIoEmitter",
+          "to": "WiseOwl.Cobol.Binding.EditionContext",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.KeyedIoEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.MoveEmitter",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.MoveEmitter",
+          "to": "WiseOwl.Cobol.Binding.IntrinsicArgumentRules",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.MoveEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ObjectComputerEmit",
+          "to": "WiseOwl.Cobol.Binding.AlphabetDef",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ObjectComputerEmit",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ObjectComputerEmit",
+          "to": "WiseOwl.Cobol.Binding.IntrinsicResultType",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ObjectComputerEmit",
+          "to": "WiseOwl.Cobol.Binding.NationalAlphabetDef",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ObjectComputerEmit",
+          "to": "WiseOwl.Cobol.Binding.RangeCollationCarrier",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Binding.BinderDriver",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2290",
+            "PB2418",
+            "PB2320",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Binding.CallExternalBacking",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2290",
+            "PB2418",
+            "PB2320",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Binding.CellLifetime",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2290",
+            "PB2418",
+            "PB2320",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2290",
+            "PB2418",
+            "PB2320",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Binding.EditionContext",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2290",
+            "PB2418",
+            "PB2320",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Binding.LinkageFormal",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2290",
+            "PB2418",
+            "PB2320",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Binding.OptionsModel",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2290",
+            "PB2418",
+            "PB2320",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2290",
+            "PB2418",
+            "PB2320",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportModel",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2290",
+            "PB2418",
+            "PB2320",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.PhysicalModel",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ProgramEmitter",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2290",
+            "PB2418",
+            "PB2320",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ProgramEmitter",
+          "to": "WiseOwl.Cobol.Binding.LinkageFormal",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2290",
+            "PB2418",
+            "PB2320",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ProgramEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2290",
+            "PB2418",
+            "PB2320",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ProgramEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportModel",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2290",
+            "PB2418",
+            "PB2320",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.PtrEmitter",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.PtrEmitter",
+          "to": "WiseOwl.Cobol.Binding.EditionContext",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RecordStructEmitter",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.CollatingSelection",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.FieldComputeSource",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.FieldReferenceSource",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.FieldSumSource",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.FieldValueSource",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportCodeModel",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportColumnKindModel",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportColumnSpec",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportControlModel",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportControlRef",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportDetailRef",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportEntryFamily",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportFieldModel",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportFieldSource",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportGroupKindModel",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportGroupModel",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportItemOccurrence",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportLineKindModel",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportLineModel",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportModel",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportOccursSpec",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportRepetitionGuard",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportSumAddend",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportSumFamily",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportSumModel",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportSumTerm",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportVaryingModel",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportVaryingUse",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RuntimeApi",
+          "to": "WiseOwl.Cobol.Binding.CollatingClass",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RuntimeApi",
+          "to": "WiseOwl.Cobol.Binding.IntrinsicDomain",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.SequentialIoEmitter",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.SequentialIoEmitter",
+          "to": "WiseOwl.Cobol.Binding.EditionContext",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.SequentialIoEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.SequentialIoEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportModel",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.SetEmitter",
+          "to": "WiseOwl.Cobol.Binding.IeeeSpecial",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.SetEmitter",
+          "to": "WiseOwl.Cobol.Binding.IeeeSpecials",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.SortEmitter",
+          "to": "WiseOwl.Cobol.Binding.AlphabetDef",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.SortEmitter",
+          "to": "WiseOwl.Cobol.Binding.CollatingClass",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.SortEmitter",
+          "to": "WiseOwl.Cobol.Binding.CollatingSelection",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.SortEmitter",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.SortEmitter",
+          "to": "WiseOwl.Cobol.Binding.NationalAlphabetDef",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.SortEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.SortEmitter",
+          "to": "WiseOwl.Cobol.Binding.SortCollation",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.StringEmitter",
+          "to": "WiseOwl.Cobol.Binding.IntrinsicSig",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2290",
+            "PB2418",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.TransactionEmitter",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.TransactionEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.UnitEmitters",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2290",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.UnitEmitters",
+          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2290",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ValueInitializer",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ValueInitializer",
+          "to": "WiseOwl.Cobol.Binding.EditionContext",
+          "removedBy": [
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ValueInitializer",
+          "to": "WiseOwl.Cobol.Binding.IntrinsicArgumentRules",
+          "removedBy": [
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WiseOwl.Cobol.CodeGen",
+      "to": "WiseOwl.Cobol.Binding.Procedure",
+      "uses": 4,
+      "walkUses": 4,
+      "removedBy": [
+        "PB2406"
+      ],
+      "plan": "PB2406 (the four cursor records of Binding/Procedure/PlaceCursor.cs and ReferenceResolver.BuildCellPath to compiler.model; EcBinder.ExternalNames to the model, IntrinsicBinder.CompileClock read at bind time)",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.CodeGen.EcEmitter",
+          "to": "WiseOwl.Cobol.Binding.Procedure.EcBinder",
+          "removedBy": [
+            "PB2406"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.PlaceRenderer",
+          "to": "WiseOwl.Cobol.Binding.Procedure.PlaceCursor",
+          "removedBy": [
+            "PB2406"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.PlaceRenderer",
+          "to": "WiseOwl.Cobol.Binding.Procedure.ViewCursor",
+          "removedBy": [
+            "PB2406"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ProgramEmitter",
+          "to": "WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder",
+          "removedBy": [
+            "PB2406"
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WiseOwl.Cobol.CodeGen",
+      "to": "WiseOwl.Cobol.Binding.Repository",
+      "uses": 26,
+      "walkUses": 29,
+      "removedBy": [],
+      "plan": "",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.CodeGen.HostEntryEmitter",
+          "to": "WiseOwl.Cobol.Binding.Repository.DescriptionRecord",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.HostEntryEmitter",
+          "to": "WiseOwl.Cobol.Binding.Repository.FormalRecord",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.HostEntryEmitter",
+          "to": "WiseOwl.Cobol.Binding.Repository.RecordList`1",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.HostEntryEmitter",
+          "to": "WiseOwl.Cobol.Binding.Repository.RepositoryCodec",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.HostEntryEmitter",
+          "to": "WiseOwl.Cobol.Binding.Repository.RepositoryRecord",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Binding.Repository.ClassRecord",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Binding.Repository.DescriptionRecord",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Binding.Repository.FormalRecord",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Binding.Repository.MethodRecord",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Binding.Repository.RecordList`1",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Binding.Repository.RepositoryCodec",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Binding.Repository.RepositoryRecord",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
+          "to": "WiseOwl.Cobol.Binding.Repository.ClassRecord",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
+          "to": "WiseOwl.Cobol.Binding.Repository.CurrencyRecord",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
+          "to": "WiseOwl.Cobol.Binding.Repository.DescriptionRecord",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
+          "to": "WiseOwl.Cobol.Binding.Repository.EditRuleRecord",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
+          "to": "WiseOwl.Cobol.Binding.Repository.FormalRecord",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
+          "to": "WiseOwl.Cobol.Binding.Repository.LocaleEditRecord",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
+          "to": "WiseOwl.Cobol.Binding.Repository.MethodRecord",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
+          "to": "WiseOwl.Cobol.Binding.Repository.OccursRecord",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
+          "to": "WiseOwl.Cobol.Binding.Repository.PicRecord",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
+          "to": "WiseOwl.Cobol.Binding.Repository.PictureClauseRecord",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
+          "to": "WiseOwl.Cobol.Binding.Repository.PropertyRecord",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
+          "to": "WiseOwl.Cobol.Binding.Repository.PrototypeRecord",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
+          "to": "WiseOwl.Cobol.Binding.Repository.RaisingRecord",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
+          "to": "WiseOwl.Cobol.Binding.Repository.RecordList`1",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
+          "to": "WiseOwl.Cobol.Binding.Repository.RepositoryCodec",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
+          "to": "WiseOwl.Cobol.Binding.Repository.RepositoryRecord",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
+          "to": "WiseOwl.Cobol.Binding.Repository.StructureRecord",
+          "removedBy": []
+        }
+      ]
+    },
+    {
+      "from": "WiseOwl.Cobol.CodeGen",
+      "to": "WiseOwl.Cobol.Compiler.Oo",
+      "uses": 28,
+      "walkUses": 28,
+      "removedBy": [
+        "PB2402",
+        "PB2403"
+      ],
+      "plan": "PB2402 (the OO symbols to compiler.model) and PB2403 (AdapterPair to compiler.model; the OoClassTable, ActivationDescriptions and OoStandardClasses answers reach the backend as BoundCompilation data); PB2403's sites include ProgramEmitter's OoClassTable read (Draft 6, G1)",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.CodeGen.CallEmitter",
+          "to": "WiseOwl.Cobol.Compiler.Oo.ActivationDescriptions",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.CallEmitter",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoClassTable",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.CallUnitState",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoFormal",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.EcEmitter",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoClassSymbol",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.EcEmitter",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoInterfaceSymbol",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.EcState",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoClassSymbol",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.EcState",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoClassTable",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.EcState",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoInterfaceSymbol",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.HostEntryEmitter",
+          "to": "WiseOwl.Cobol.Compiler.Oo.ActivationDescriptions",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.HostEntryEmitter",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoClassTable",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.HostEntryEmitter",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoConformance",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.MoveEmitter",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoClassTable",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Compiler.Oo.ActivationDescriptions",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Compiler.Oo.AdapterPair",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Compiler.Oo.NamingConvention",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoClassSymbol",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoClassTable",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoFormal",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoInterfaceSymbol",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoMethodBinding",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoMethodSymbol",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoStandardClasses",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ProgramEmitter",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoClassSymbol",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ProgramEmitter",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoClassTable",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ProgramEmitter",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoInterfaceSymbol",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RecordStructEmitter",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoClassTable",
+          "removedBy": [
+            "PB2402",
+            "PB2403"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoClassSymbol",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
+          "to": "WiseOwl.Cobol.Compiler.Oo.OoInterfaceSymbol",
+          "removedBy": []
+        }
+      ]
+    },
+    {
+      "from": "WiseOwl.Cobol.CodeGen",
+      "to": "WiseOwl.Cobol.Frontend",
+      "uses": 3,
+      "walkUses": 3,
+      "removedBy": [
+        "PB2407"
+      ],
+      "plan": "PB2407 (move: CompilationInputs with the InputProbe and EnvironmentRead it names, Pipeline/CompilationInputs.cs, to frontend.common)",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.CodeGen.BackendOptions",
+          "to": "WiseOwl.Cobol.Frontend.CompilationInputs",
+          "removedBy": [
+            "PB2407"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.CSharpEmitter",
+          "to": "WiseOwl.Cobol.Frontend.CompilationInputs",
+          "removedBy": [
+            "PB2407"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ProgramEmitter",
+          "to": "WiseOwl.Cobol.Frontend.CompilationInputs",
+          "removedBy": [
+            "PB2407"
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WiseOwl.Cobol.CodeGen",
+      "to": "WiseOwl.Cobol.Frontend.Generated",
+      "uses": 2,
+      "walkUses": 1,
+      "removedBy": [
+        "PB2398"
+      ],
+      "plan": "PB2398 (the two code-generation parse-context reads become bound-node facts)",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.CodeGen.CSharpEmitter",
+          "to": "WiseOwl.Cobol.Frontend.Generated.CobolParserCore",
+          "removedBy": [
+            "PB2398"
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WiseOwl.Cobol.CodeGen",
+      "to": "WiseOwl.Cobol.Frontend.Preprocessor",
+      "uses": 1,
+      "walkUses": 1,
+      "removedBy": [
+        "PB2408"
+      ],
+      "plan": "PB2408 (extract: the DirectiveResults read, CSharpEmitter.cs:32, moves to bind time)",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.CodeGen.CSharpEmitter",
+          "to": "WiseOwl.Cobol.Frontend.Preprocessor.DirectiveResults",
+          "removedBy": [
+            "PB2408"
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WiseOwl.Cobol.CodeGen.Emit",
+      "to": "WiseOwl.Cobol.Binding",
+      "uses": 38,
+      "walkUses": 34,
+      "removedBy": [
+        "PB2361",
+        "PB2375",
+        "PB2399",
+        "PB2402",
+        "PB2405",
+        "PB2420"
+      ],
+      "plan": "PB2361, PB2375, PB2402, PB2399 and PB2405 (the same extracts and moves); PB2420 ends EditionContext, RangeCollationCarrier and RelationPair (Draft 6, G1)",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.ConditionRenderer",
+          "to": "WiseOwl.Cobol.Binding.AlgebraicRange",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.ConditionRenderer",
+          "to": "WiseOwl.Cobol.Binding.AlgebraicRanges",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.ConditionRenderer",
+          "to": "WiseOwl.Cobol.Binding.ArithmeticModes",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.ConditionRenderer",
+          "to": "WiseOwl.Cobol.Binding.CollatingClass",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.ConditionRenderer",
+          "to": "WiseOwl.Cobol.Binding.CollatingSelection",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.ConditionRenderer",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.ConditionRenderer",
+          "to": "WiseOwl.Cobol.Binding.EditionContext",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.ConditionRenderer",
+          "to": "WiseOwl.Cobol.Binding.IntrinsicResultType",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.ConditionRenderer",
+          "to": "WiseOwl.Cobol.Binding.OptionsModel",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.ConditionRenderer",
+          "to": "WiseOwl.Cobol.Binding.RangeCollationCarrier",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.ConditionRenderer",
+          "to": "WiseOwl.Cobol.Binding.RelationPair",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.EmitContext",
+          "to": "WiseOwl.Cobol.Binding.CollatingClass",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.EmitContext",
+          "to": "WiseOwl.Cobol.Binding.CollatingSelection",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.EmitContext",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.EmitContext",
+          "to": "WiseOwl.Cobol.Binding.EditionContext",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.EmitContext",
+          "to": "WiseOwl.Cobol.Binding.NumericDisplayForm",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.FunctionDeviceText",
+          "to": "WiseOwl.Cobol.Binding.FunctionDeviceForm",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.FunctionDeviceText",
+          "to": "WiseOwl.Cobol.Binding.IntrinsicCatalog",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.FunctionDeviceText",
+          "to": "WiseOwl.Cobol.Binding.IntrinsicSig",
+          "removedBy": []
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer",
+          "to": "WiseOwl.Cobol.Binding.ArithmeticModes",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer",
+          "to": "WiseOwl.Cobol.Binding.IntrinsicArgumentRules",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer",
+          "to": "WiseOwl.Cobol.Binding.IntrinsicResultType",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer",
+          "to": "WiseOwl.Cobol.Binding.IntrinsicSig",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer",
+          "to": "WiseOwl.Cobol.Binding.OptionsModel",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.NumericRenderer",
+          "to": "WiseOwl.Cobol.Binding.AlphabetDef",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.NumericRenderer",
+          "to": "WiseOwl.Cobol.Binding.ArithmeticModes",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.NumericRenderer",
+          "to": "WiseOwl.Cobol.Binding.DataBinder",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.NumericRenderer",
+          "to": "WiseOwl.Cobol.Binding.NationalAlphabetDef",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.NumericRenderer",
+          "to": "WiseOwl.Cobol.Binding.OptionsModel",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.NumericRenderer",
+          "to": "WiseOwl.Cobol.Binding.ReportModel",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.OperandText",
+          "to": "WiseOwl.Cobol.Binding.AlgebraicRanges",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.OperandText",
+          "to": "WiseOwl.Cobol.Binding.IntrinsicArgumentRules",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.OperandText",
+          "to": "WiseOwl.Cobol.Binding.NumericDisplayForm",
+          "removedBy": [
+            "PB2375",
+            "PB2361",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WiseOwl.Cobol.Frontend.Parsing",
+      "to": "WiseOwl.Cobol.Frontend.Preprocessor",
+      "uses": 1,
+      "walkUses": 1,
+      "removedBy": [
+        "PB2409"
+      ],
+      "plan": "PB2409 (move: ReferenceFormatProcessor.DebugLineCarrier to frontend.common — DebuggingLineRewriter.cs:95)",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.Frontend.Parsing.DebuggingLineRewriter",
+          "to": "WiseOwl.Cobol.Frontend.Preprocessor.ReferenceFormatProcessor",
+          "removedBy": [
+            "PB2409"
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WiseOwl.Cobol.Frontend.Preprocessor",
+      "to": "WiseOwl.Cobol.Frontend",
+      "uses": 3,
+      "walkUses": 2,
+      "removedBy": [
+        "PB2407"
+      ],
+      "plan": "PB2407 (the same move)",
+      "pairs": [
+        {
+          "from": "WiseOwl.Cobol.Frontend.Preprocessor.ConditionalCompilationProcessor",
+          "to": "WiseOwl.Cobol.Frontend.CompilationInputs",
+          "removedBy": [
+            "PB2407"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Frontend.Preprocessor.CopyProcessor",
+          "to": "WiseOwl.Cobol.Frontend.CompilationInputs",
+          "removedBy": [
+            "PB2407"
+          ]
+        }
+      ]
+    }
+  ]
+}
