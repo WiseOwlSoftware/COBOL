@@ -82,7 +82,7 @@ internal static class RepositoryCodec
         var encoder = new Encoder(cls.Data.OoClasses);
         RecordList<MethodRecord> methods = List(symbol.Methods.Concat(symbol.FactoryMethods).Select(encoder.Method));
         var facts = new ClassRecord(symbol.IsFinal, symbol.Base?.ExternalizedName, List(symbol.Implements.Select(i => i.ExternalizedName)),
-            List(symbol.FactoryImplements.Select(i => i.ExternalizedName)), symbol.FactoryCsName, PropertiesOf(methods), methods);
+            List(symbol.FactoryImplements.Select(i => i.ExternalizedName)), symbol.FactoryClrName, PropertiesOf(methods), methods);
         return new RepositoryRecord(RepositoryUnitKind.Class, symbol.Name, symbol.ExternalizedName, CobolEntryConvention,
             cls.Data.DecimalPointIsComma, Currencies(cls.Data), RecordList<RaisingRecord>.Empty, RecordList<FormalRecord>.Empty, null,
             encoder.TypeDeclarations, encoder.Structures, encoder.Prototypes, facts);
@@ -165,7 +165,7 @@ internal static class RepositoryCodec
             return new MethodRecord(m.Name, m.Accessor == '\0' ? m.ExternalizedName : m.PropertyName!, m.IsFactory,
                 PersistedAccessor(m.Accessor), m.PropertyName, Override: m.OverrideOf is not null, m.IsFinal, CobolEntryConvention,
                 Raising(m.Raising), List(binding.Formals.Select(f => Formal(f.Item, f.Position, f.ByValue, f.Optional))),
-                binding.Returning is { } r ? Describe(r, r) : null, m.CsName);
+                binding.Returning is { } r ? Describe(r, r) : null, m.ClrName);
         }
 
         /// <summary>One entry and its subordinates; <paramref name="root"/> is the record's level-1 entry, the scope an OCCURS
@@ -377,7 +377,7 @@ internal static class RepositoryCodec
             int serial = ++_serial;
             var item = new DataItem
             {
-                Level = r.Level, CobolName = r.Name, CsName = $"__rd{serial}", Uid = -serial,
+                Level = r.Level, CobolName = r.Name, ClrName = $"__rd{serial}", Uid = -serial,
                 IsTypedef = r.IsTypedef, TypedefStrong = r.TypedefStrong, IsExternalTypedef = r.IsExternalTypedef,
                 HasExternalClause = r.External, Occurs = r.Occurs,
                 OccursSpec = r.Table is { } t ? new OccursSpec

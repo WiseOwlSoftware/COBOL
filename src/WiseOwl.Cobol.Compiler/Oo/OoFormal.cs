@@ -21,7 +21,7 @@ namespace WiseOwl.Cobol.Compiler.Oo;
 /// lives in, or null), exactly the pair a program's <c>CobolArg</c> carries. A <paramref name="CarrierResident"/>
 /// formal (an elementary one no other LINKAGE entry REDEFINES and whose ADDRESS OF is not taken — the program arm's
 /// <c>DataBinder.FormalIsCarrierResident</c>) reads and writes through the carrier on every access: its
-/// <see cref="DataItem.CsName"/> IS <c>{CarrierLocal}.Value</c>. Every other formal is an AREA formal when a cell
+/// <see cref="DataItem.ClrName"/> IS <c>{CarrierLocal}.Value</c>. Every other formal is an AREA formal when a cell
 /// can carry it (<see cref="IsArea"/>): its description is laid over the argument's area, as a BASED item's is.</para></summary>
 public sealed record OoFormal(DataItem Item, int Position, string ParamName, bool Optional = false, bool ByValue = false,
     bool CarrierResident = false)

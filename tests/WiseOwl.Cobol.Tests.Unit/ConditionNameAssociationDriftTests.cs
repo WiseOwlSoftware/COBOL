@@ -32,14 +32,14 @@ public sealed class ConditionNameAssociationDriftTests
     private static string? Sr4PhraseOf(Usage? u) => ItemCategory.Sr4PhraseOf(u);
 
     private static DataItem Elem(string name, PicInfo pic, int level = 1) =>
-        new() { Level = level, CobolName = name, CsName = name, Pic = pic };
+        new() { Level = level, CobolName = name, ClrName = name, Pic = pic };
 
     private static PicInfo Alnum(int len = 2) =>
         new(PicCategory.Alphanumeric, Usage.Display, Length: len, Digits: 0, Scale: 0, Signed: false);
 
     private static DataItem Group(string name, int level, params DataItem[] children)
     {
-        var g = new DataItem { Level = level, CobolName = name, CsName = name };
+        var g = new DataItem { Level = level, CobolName = name, ClrName = name };
         foreach (var c in children)
         {
             c.Parent = g;
@@ -86,8 +86,8 @@ public sealed class ConditionNameAssociationDriftTests
     [Fact]
     public void EveryLetteredExclusionFiresOnItsOwnShape()
     {
-        Assert.Equal('a', Excl(new DataItem { Level = 88, CobolName = "C", CsName = "C" }));
-        Assert.Equal('b', Excl(new DataItem { Level = 66, CobolName = "R", CsName = "R" }));
+        Assert.Equal('a', Excl(new DataItem { Level = 88, CobolName = "C", ClrName = "C" }));
+        Assert.Equal('b', Excl(new DataItem { Level = 66, CobolName = "R", ClrName = "R" }));
 
         var comp = Elem("X", new PicInfo(PicCategory.Numeric, Usage.Binary, 4, 4, 0, false), level: 5);
         Assert.Equal('c', Excl(Group("G", 1, comp, Elem("Y", Alnum(), 5))));
@@ -117,7 +117,7 @@ public sealed class ConditionNameAssociationDriftTests
         anyLen.IsAnyLength = true;
         Assert.Equal('f', Excl(anyLen));
 
-        var strongDecl = new DataItem { Level = 1, CobolName = "T", CsName = "T", IsTypedef = true, TypedefStrong = true };
+        var strongDecl = new DataItem { Level = 1, CobolName = "T", ClrName = "T", IsTypedef = true, TypedefStrong = true };
         Assert.Equal('g', Excl(strongDecl));
         var subGroup = Group("SG", 5, Elem("F1", Alnum(), 10));
         subGroup.Parent = strongDecl;
@@ -128,7 +128,7 @@ public sealed class ConditionNameAssociationDriftTests
         Assert.Equal('h', Excl(Group("G", 1, dynLen)));
         var dynCap = new DataItem
         {
-            Level = 5, CobolName = "E", CsName = "E", Pic = Alnum(),
+            Level = 5, CobolName = "E", ClrName = "E", Pic = Alnum(),
             OccursSpec = new OccursSpec { Min = 1, Max = 3, IsDynamic = true },
         };
         Assert.Equal('h', Excl(Group("G", 1, dynCap)));
@@ -155,14 +155,14 @@ public sealed class ConditionNameAssociationDriftTests
 
         // g)'s second arm is "a GROUP item subordinate to such a type declaration" — an elementary member is
         // not one.
-        var strongDecl = new DataItem { Level = 1, CobolName = "T", CsName = "T", IsTypedef = true, TypedefStrong = true };
+        var strongDecl = new DataItem { Level = 1, CobolName = "T", ClrName = "T", IsTypedef = true, TypedefStrong = true };
         var member = Elem("F1", Alnum(), 5);
         member.Parent = strongDecl;
         Assert.Null(DataBinder.ConditionalVariableExclusion(member));
 
         // A WEAK type declaration is not excluded at all — g) names the STRONG phrase.
         Assert.Null(DataBinder.ConditionalVariableExclusion(
-            new DataItem { Level = 1, CobolName = "W", CsName = "W", IsTypedef = true }));
+            new DataItem { Level = 1, CobolName = "W", ClrName = "W", IsTypedef = true }));
     }
 
     /// <summary>⛔ c)'s SUBJECT IS §3.11's "ALPHANUMERIC GROUP ITEM", WHICH EXCLUDES FOUR KINDS (kb/Work PB947). The
@@ -210,7 +210,7 @@ public sealed class ConditionNameAssociationDriftTests
     {
         var odo = new DataItem
         {
-            Level = 5, CobolName = "E", CsName = "E", Pic = Alnum(),
+            Level = 5, CobolName = "E", ClrName = "E", Pic = Alnum(),
             OccursSpec = new OccursSpec { Min = 1, Max = 3, DependingName = "N" },
         };
         var g = Group("G", 1, Elem("N", new PicInfo(PicCategory.Numeric, Usage.Display, 1, 1, 0, false), 5), odo);
@@ -233,8 +233,8 @@ public sealed class ConditionNameAssociationDriftTests
         // The WRITTEN clause arm: MESSAGE-TAG and FUNCTION-POINTER never gain a PicInfo (the usage is refused
         // or staged at ParseUsage), so only DataItem.OwnUsage sees them and the screen must read it.
         foreach (var u in new[] { Usage.MessageTag, Usage.FunctionPointer, Usage.Pointer, Usage.Index })
-            Assert.True(ExcludedClass(new DataItem { Level = 1, CobolName = "X", CsName = "X", OwnUsage = u }));
-        Assert.False(ExcludedClass(new DataItem { Level = 1, CobolName = "G", CsName = "G" }));
+            Assert.True(ExcludedClass(new DataItem { Level = 1, CobolName = "X", ClrName = "X", OwnUsage = u }));
+        Assert.False(ExcludedClass(new DataItem { Level = 1, CobolName = "G", ClrName = "G" }));
     }
 
     /// <summary>Exclusion e)'s row carries the §13.18.60.3 SR11 cross-citation, because the two rules state the

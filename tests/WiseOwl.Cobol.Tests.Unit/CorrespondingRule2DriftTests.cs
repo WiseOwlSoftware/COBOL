@@ -60,7 +60,7 @@ public sealed class CorrespondingRule2DriftTests
             .Invoke(null, [s, d])!;
 
     private static DataItem Elem(string name, PicInfo pic) =>
-        new() { Level = 5, CobolName = name, CsName = name, Pic = pic };
+        new() { Level = 5, CobolName = name, ClrName = name, Pic = pic };
 
     private static PicInfo P(PicCategory cat, int len = 4, int digits = 0, int scale = 0,
                              bool alphabetic = false, string? edit = null, Usage usage = Usage.Display) =>
@@ -106,18 +106,18 @@ public sealed class CorrespondingRule2DriftTests
 
     private static DataItem GroupOf(string name)
     {
-        var g = new DataItem { Level = 5, CobolName = name, CsName = name };
-        var c = new DataItem { Level = 10, CobolName = "C", CsName = "C", Pic = P(PicCategory.Alphanumeric) };
+        var g = new DataItem { Level = 5, CobolName = name, ClrName = name };
+        var c = new DataItem { Level = 10, CobolName = "C", ClrName = "C", Pic = P(PicCategory.Alphanumeric) };
         g.AddMember(c);
         return g;
     }
 
     private static DataItem VarLenGroupOf(string name)
     {
-        var g = new DataItem { Level = 5, CobolName = name, CsName = name };
+        var g = new DataItem { Level = 5, CobolName = name, ClrName = name };
         var c = new DataItem
         {
-            Level = 10, CobolName = "C", CsName = "C", IsDynamicLength = true,
+            Level = 10, CobolName = "C", ClrName = "C", IsDynamicLength = true,
             Pic = P(PicCategory.Alphanumeric, len: 1),
         };
         g.AddMember(c);
@@ -229,7 +229,7 @@ public sealed class CorrespondingRule2DriftTests
             Assert.True(ItemCategory.IsIndexMessageTagObjectOrPointer(Elem("K", pic)));
         foreach (var u in new[] { Usage.MessageTag, Usage.FunctionPointer })
             Assert.True(ItemCategory.IsIndexMessageTagObjectOrPointer(
-                new DataItem { Level = 5, CobolName = "K", CsName = "K", OwnUsage = u }));
+                new DataItem { Level = 5, CobolName = "K", ClrName = "K", OwnUsage = u }));
 
         // ...and an ordinary alphanumeric child is NOT excluded — the over-rejection direction, which is the
         // hazard a widened class predicate would create (it would silently empty the correspondence set).

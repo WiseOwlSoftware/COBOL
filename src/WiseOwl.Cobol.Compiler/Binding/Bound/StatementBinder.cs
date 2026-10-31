@@ -314,7 +314,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 m.Binding!.EntryPc = table.Paragraphs.Count;
                 m.Binding!.DeclStartPc = m.Binding!.EntryPc;
                 m.Binding!.EndPc = table.Paragraphs.Count - 1;   // empty body by construction
-                methods.Add(new BoundMethod(m.Name, m.CsName, m.Binding!.EntryPc, m.Binding!.EndPc));
+                methods.Add(new BoundMethod(m.Name, m.ClrName, m.Binding!.EntryPc, m.Binding!.EndPc));
                 continue;
             }
             // The method's DATA (LINKAGE → params-as-locals, LOCAL-STORAGE → locals, method-WS → statics) was
@@ -341,7 +341,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 table.CollectNondeclaratives(pd, used);
             }
             m.Binding!.EndPc = table.Paragraphs.Count - 1;
-            methods.Add(new BoundMethod(m.Name, m.CsName, m.Binding!.EntryPc, m.Binding!.EndPc));
+            methods.Add(new BoundMethod(m.Name, m.ClrName, m.Binding!.EntryPc, m.Binding!.EndPc));
         }
         Ctx.CurrentMethodScope = null;
 

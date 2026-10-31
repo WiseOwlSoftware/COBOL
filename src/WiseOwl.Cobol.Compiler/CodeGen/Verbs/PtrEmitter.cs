@@ -59,12 +59,12 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
                 ? addr
                 : RuntimeApi.PtrUpBy(addr, off);
         // Every other cell-backed class — ADDRESS-OF-forced or EXTERNAL — addresses the cell member the class
-        // NAMES (RedefinesClass.BackingCellCsName): the unit's own per-instance cell, the EXTERNAL cell property
+        // NAMES (RedefinesClass.BackingCellClrName): the unit's own per-instance cell, the EXTERNAL cell property
         // over ExternalStore (whose one seed composer the property already calls), or — in a contained program —
         // the ref-bridge to the container's cell (kb/Work PB1009). This used to look the class up in THIS unit's
         // tables, which a contained program's ADDRESS OF a GLOBAL name could never satisfy.
         if (cls.IsCellBacked)
-            return $"ManagedPointer.At({cls.BackingCellCsName}, {off})";
+            return $"ManagedPointer.At({cls.BackingCellClrName}, {off})";
         return LoudValue("ManagedPointer", $"ADDRESS OF '{item.CobolName}' — unrecognized cell backing");
     }
 
