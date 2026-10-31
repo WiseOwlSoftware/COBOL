@@ -124,6 +124,10 @@ class Reach:
     goldens: set[str] = field(default_factory=set)                 # suite test ids the change touches
     drift_tests: set[str] = field(default_factory=set)             # drift classes the index says govern a changed file
     every_tier1: list[str] = field(default_factory=list)
+    # The changed files taken at the FILE level because they differ between the map's commit and the base
+    # (`drifted_change`): their tier 1 is every test that executed them, a superset the map could not narrow, so the plan
+    # runs that tier whole (kb/Work PB4269, `gate_plan.whole_tier_reason`).
+    drifted: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
 
 
@@ -603,6 +607,7 @@ def drifted_change(ix: MapIndex, path: str, base: str | None, reach: Reach) -> N
     if path not in ix.known:
         reach.every_tier1.append(f"{path}: differs between the map's commit and the base, and the map has never seen it")
         return
+    reach.drifted.append(path)
     reach.direct |= ix.file_ids.get(path, 0)
     declaration_change(ix, path, base, reach, "differs between the map's commit and the base (its recorded line ranges "
                                               "describe another version)")
@@ -1041,6 +1046,21 @@ def self_test() -> int:
              "src/WiseOwl.Cobol.Compiler/New2.cs", "M", None, reach)
     check("... while a SOURCE file the map never saw, in drift, is still unattributable", bool(reach.every_tier1),
           reach.every_tier1[:1])
+    # kb/Work PB4269: a source file the map KNOWS, in drift, is attributed at the file level and named in `drifted`, so the
+    # plan runs its tier 1 whole; the file the map never saw above is an every-tier-1 reason, never a `drifted` entry.
+    reach = Reach()
+    reach_cs(MapIndex(synthetic_map(), frozenset({"src/WiseOwl.Cobol.Compiler/A.cs"})),
+             "src/WiseOwl.Cobol.Compiler/A.cs", "M", None, reach)
+    check("a source file the map knows, in drift, is taken at the file level and named in drifted (kb/Work PB4269)",
+          reach.drifted == ["src/WiseOwl.Cobol.Compiler/A.cs"] and not reach.every_tier1 and bool(reach.direct),
+          (reach.drifted, reach.every_tier1[:1]))
+    reach = Reach()
+    reach_cs(MapIndex(synthetic_map(), frozenset({"src/WiseOwl.Cobol.Compiler/New2.cs"})),
+             "src/WiseOwl.Cobol.Compiler/New2.cs", "M", None, reach)
+    check("... and a source file the map never saw names no drifted entry", reach.drifted == [], reach.drifted)
+    reach = Reach()
+    reach_cs(ix, "src/WiseOwl.Cobol.Compiler/A.cs", "M", None, reach)
+    check("... and a file outside the drift (its line ranges hold) names none either", reach.drifted == [], reach.drifted)
     t, reach = tiers_for(["src/WiseOwl.Cobol.Runtime/PublicAPI.Unshipped.txt", "src/WiseOwl.Cobol.Runtime/PublicAPI.Shipped.txt",
                           "src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin"])
     check("a public-API analyzer baseline is data a test may read, not a non-C# input: no test goes to tier 1 for it "
