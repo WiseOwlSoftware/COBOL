@@ -1954,6 +1954,11 @@ lowercase with Annex C. Three pieces, each in one place:
   compiler's sink, so the reports sit beside the binder's own diagnostics and do not stop the compile before it). The one text that is not words is a comment-entry (`AUTHOR. JOSÉ` is a legal '85 comment), which the parse tree
   names by its single context `commentEntry`; the six paragraph rules call it. The directive stages scan their own words
   and ask `CobolWordRule` themselves (a directive leaves the text before the lexer runs).
+  **The order it reports in (kb/Work PB4131).** The frontend screen needs the failed parse, so it reports after it, but the word
+  it names is why the parser died at the NEXT token: `LexAndParseOnce` screens into a bag of its own and
+  `DiagnosticBag.AddBeforeEffects` places each report before the first parse report of the same file at or after its position
+  (a tie going to the cause). So the COBOL2773 for a word reads before the COBOL0001 it explains, a parse error before the
+  word stays before it, and the placement is the one place, for every diagnosis the screen makes.
 - **The fold** — `CobolNames` (Runtime, because the run-time externalized-name match needs it too): `Fold`, the
   `Comparer` every name table uses, `Same` / `StartsWith` / `EndsWith` / `Contains` over spans, and `UpperFold`, a
   word's one upper-case spelling (the fold with the basic letters raised), which is the key wherever a word is
