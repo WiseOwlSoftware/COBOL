@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.1.3-5",
+ "section": "8.4.3.1.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "Identifier",
+ "rule-digest": "0bccc2e21727",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#inlineMethodInvocation; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#inlineInvocationSegment",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb428_inline_method_invocation; conformance:cases/8.4.3.1-Identifier/pb428-inline-method-invocation-below-2002; conformance:cases/8.4.3.1-Identifier/pb1430-inline-invocation-empty-arguments",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1430 landed (wave 1032 F). SR5 (cite.py --check 8.4.3.1.3 'Inline-invocation-1 is defined by 8.4.3.4, Inline method invocation.' OK): Format 4 imports the 8.4.3.4.2 format, and the refuter's PARTIAL was that format's DIVERGES (an empty parenthesis pair accepted). With FMT-8.4.3.4.2 now CONFORMS (argumentList required inside the optional parentheses; COBOL2994 for `O :: \"M\" ( )`), the imported shape is exact: golden pb428 exercises the legal positions, negative pb1430-inline-invocation-empty-arguments the refused one, and pb428-inline-method-invocation-below-2002 the 2002 introduction.",
+ "state": "OK"
+}

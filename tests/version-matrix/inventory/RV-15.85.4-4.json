@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.85.4-4",
+ "section": "15.85.4",
+ "kind": "RV",
+ "ordinal": 4,
+ "subject": "STANDARD-COMPARE function",
+ "rule-digest": "4921ac486a9a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#StandardCompare; src/WiseOwl.Cobol.Runtime/Values/Text/LocaleCollation.cs#TrimForLocale",
+ "test-ref": "unit:StandardCompareTests.TrailingSpaces_AreTruncated_AllSpacesToOne; conformance:cases/12.3.7-SPECIAL-NAMES/pb101_standard_compare",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB101 T7: the ONE TrimForLocale (also §8.8.4.2.11's rule for locale-based comparison) — trailing spaces off, an all-space operand ONE space (not empty).",
+ "state": "OK"
+}

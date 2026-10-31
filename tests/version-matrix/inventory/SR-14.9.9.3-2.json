@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.9.3-2",
+ "section": "14.9.9.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "CONTINUE statement",
+ "rule-digest": "7b22955e02f5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindContinue",
+ "test-ref": "conformance:cases/14.9.9-CONTINUE/continue_after; conformance:cases/14.9.9-CONTINUE/ec_range_search; conformance:cases/14.9.9-CONTINUE/pb241_continue_bare_equals_after_zero; conformance:cases/14.9.9-CONTINUE/pb241-continue-after-zero-below-2023",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB241 (w1084c): the EQUIVALENCE is now pinned, not deduced. cite.py --check 14.9.9.3 \"If the AFTER phrase is not specified, then the statement is processed as if an AFTER phrase were specified with arithmetic-expression-1 specified as zero.\" -> OK SR 2); 14.9.9.4 GR1 (zero is not less than zero: no suspension, no EC-CONTINUE-LESS-THAN-ZERO) and 14.9.9.1 (execution continues with the next statement). conformance:cases/14.9.9-CONTINUE/pb241_continue_bare_equals_after_zero runs bare CONTINUE and CONTINUE AFTER 0 SECONDS under >>TURN EC-CONTINUE-LESS-THAN-ZERO CHECKING ON WITH LOCATION: from no exception both leave the same EXCEPTION-STATUS/-STATEMENT/-LOCATION triple (31 spaces per 15.33.3 r1, one space per 15.30.3 r2 a); after a real raise (CONTINUE AFTER -1 SECONDS) each spelling KEEPS the raise's triple (EC-CONTINUE-LESS-THAN-ZERO / CONTINUE / 'PB241CEQ; MAIN; 55'), since the last exception status is a run-unit entity (14.6.13.1.1); inside PERFORM ... WHEN EC-CONTINUE-LESS-THAN-ZERO neither spelling reaches the WHEN phrase while the AFTER -1 control does (14.9.28.4 GR17). Measured on the w1084c build. The negative pins the edition window of the AFTER spelling (COBOL0900 at 85/2002/2014; Annex E.3.3 item 14). The prior PARTIAL was an evidence downgrade (the static read already found the code right: BindContinue binds the bare form to BoundNop, which emits nothing; ContinueAfter(0) touches nothing; EnterStatement/ExitStatement are save-and-restore), recorded because no golden compared the spellings. PARTIAL -> CONFORMS.",
+ "state": "OK"
+}

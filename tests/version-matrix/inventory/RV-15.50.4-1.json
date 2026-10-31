@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.50.4-1",
+ "section": "15.50.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "LENGTH function",
+ "rule-digest": "b851fa3b1731",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLengthFold; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemLength.cs#Positions",
+ "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb61_length_byte_length_rule_branches; conformance:cases/13.16-Data-description/pb79_group_usage_bit; conformance-test:NationalBooleanReviewFixTests.NationalBooleanLiterals_AsIntrinsicArguments_Parse",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB61 + PB79). §15.50.4 r1 boolean positions: an elementary boolean item — PIC 1(12) USAGE BIT -> 12 (BYTE-LENGTH 2), a DISPLAY boolean PIC 1(4) -> 4; a boolean literal B\"10110\" -> 5; a boolean TYPEDEF -> 5; and NOW the BIT GROUP ITEM leg (PB79/D20): a GROUP-USAGE BIT group of 3+5+4 bits -> 12 (BYTE-LENGTH 2), a nested bit group of 5 -> 5 — ItemLength.Positions reads the ONE OperandPic. Boolean items are 2002+; the row is 85-applicable only for the vocabulary that does not exist there. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LengthPositions (LengthPositions moved out of IntrinsicBinder and is ItemLength.Positions (kb/Work PB1213, 7d4f0a4a4))",
+ "state": "OK"
+}

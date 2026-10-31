@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.2.3-10",
+ "section": "14.2.3",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "Procedure division structure",
+ "rule-digest": "9a3c84cc24eb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#FormalAdopt; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#CallBindLinkage; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#SlotValue; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#NumValue; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#LandForFormal; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#LandArguments; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#CarrierLanding",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/pb663_linkage_managed_formal_carrier; conformance:cases/14.2-Procedure-division-structure/pb640_call_argument_landing_checked_2023; conformance:cases/14.2-Procedure-division-structure/pb640_call_argument_landing_checked_2014; conformance:cases/14.2-Procedure-division-structure/pb640_call_argument_landing_checked_2002; conformance:cases/14.2-Procedure-division-structure/pb640_invoke_argument_landing_checked_2023; conformance:cases/14.2-Procedure-division-structure/pb640_invoke_argument_landing_checked_2014; conformance:cases/14.2-Procedure-division-structure/pb640_invoke_argument_landing_checked_2002; conformance:cases/14.2-Procedure-division-structure/pb288_call_argument_scale_landing; unit:LinkageCarrierDriftTests.AManagedFormalIsDeclaredWithItsOwnCarrier; unit:CallAbiNumericCarrierDriftTests.TheGr8ViewAndTheGr10Copy_LandIdentically; unit:CallAbiNumericCarrierDriftTests.AnOmittedArgument_IsNotLanded; unit:CallAbiNumericCarrierDriftTests.TheCheckedLandingRaisesExactlyWhereTheValueDoesNotFit; conformance:cases/14.2-Procedure-division-structure/pb2549_runtime_located_call_landing; unit:BoundaryItemLandingTests.Checked_Overflow_RaisesEcSizeTruncation",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB640 + PB663. The PARTIAL residual PB640 recorded here is CLOSED: 'the class-object / class-pointer SET leg, which is loud-staged at bind with COBOL0899'. GR10's allocated record for such a formal is now CobolArgAdapt.SlotValue - a detached ManagedPointer<T> cell over the argument's reference value, T being the formal's own PicInfo.ClrType - and 14.8.2.3.2 forces both sides to the same category and the same object class, so that reference copy IS the 'SET statement' GR10 names for a formal of class object or pointer; there is no conversion for it to apply, which is why the numeric lane's landing machinery has no counterpart on this leg. Measured by the golden's VAL=SET / AFTER-VAL=SET pair: the callee sees the activator's address and its own SET TO NULL does not reach the activator, which is GR10's 'The activated runtime element is given access to the allocated record' and nothing more. COBOL0899 survives only for a FLOATING-POINT usage and for a METHOD's BY VALUE formal on the INVOKE channel; 14.2.2 SR2's fourth admitted class, message-tag, is the unmodelled MCS module and is undeclarable.",
+ "state": "OK"
+}

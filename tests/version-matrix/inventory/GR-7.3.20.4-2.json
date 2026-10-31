@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.20.4-2",
+ "section": "7.3.20.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "POP directive",
+ "rule-digest": "b734fc041f3d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveSiteProcessor.cs#Process; src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveStateStack.cs#Apply",
+ "test-ref": "unit:DirectiveStateStackTests.ANamedPopWithNothingStored_Warns_AndPopAllDoesNot; conformance:cases/7.3-Compiler-directives/pb941_push_pop_directive_state",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB941 (landed): an unsuccessful named POP (nothing saved, or already restored) is the COBOL2297 warning, issued once by DirectiveSiteProcessor over the final text; it restores nothing (golden L4). POP ALL with nothing stored draws no warning (GR2 speaks of directive-name only).",
+ "state": "OK"
+}

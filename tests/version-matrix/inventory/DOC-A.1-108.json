@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-108",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 108,
+ "subject": "I-O status 34 (manner in which the boundaries of a file are defined)",
+ "rule-digest": "7ba896538e12",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-108; src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#IsMediumBoundary; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#ForWriteFailure; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#PermanentBoundary",
+ "test-ref": "unit:FileBoundaryTests.SequentialWrite_OnAFullMedium_Is34_AtTheWrite; unit:FileBoundaryTests.WriteFailure_MediumExhaustionIs34_AnyOtherFailureIs30",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1192 (w61d). A.1 item 108 required + documented; cite.py --check 9.1.13.6 'an attempt is made to write outside the externally-defined boundaries of a physical sequential file' -> OK 3). The §7 determination (the host medium's capacity; '34' at the WRITE, any other host write failure '30') is implemented at HostFile.IsMediumBoundary + FileStatusCode.ForWriteFailure, wrapping SequentialConnector's three write entry points; witnessed by the classifier test and the Linux /dev/full WRITE loop.",
+ "state": "OK"
+}

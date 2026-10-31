@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.10.4-1",
+ "section": "11.10.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "PROGRAM-ID paragraph",
+ "rule-digest": "8ec8ee02781e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb303_as_externalized_name; conformance:cases/8.3.2.2-User-defined-words/pb303_as_externalized_name_2014; conformance:cases/8.3.2.2-User-defined-words/pb303_as_module_name_and_invoke",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Program-name-1 and literal-1 are separate fields (BoundUnit.Name / BoundUnit.ExternalizedName), and 8.3.2.2 makes the split observable in both directions: CALL by the AS literal reaches the program while END PROGRAM names the declared word, and FUNCTION MODULE-NAME reports the declared word (docs/CONFORMANCE.md DOC-A.1-135). Before kb/Work PB303 the two were one field AND the phrase had no grammar surface.",
+ "state": "OK"
+}

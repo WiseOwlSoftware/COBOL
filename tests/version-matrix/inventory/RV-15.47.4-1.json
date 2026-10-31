@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.47.4-1",
+ "section": "15.47.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "INTEGER-OF-DAY function",
+ "rule-digest": "33693922ca65",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AnyRealArgument; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RealMethod; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#CobolIntrinsics; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#IntegerOfDay",
+ "test-ref": "conformance:cases/15.46.4-Returned-value-rule/l1_integer_date_form_returned",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Same rule text, same §15.5.2 content, reached through §15.47.3 r1's Julian argument '(YYYY * 1000) + DDD': 1601001 -> 1, 9999365 -> 3067671 (9999 is not a leap year, so its ordinal year ends at 365 and that day is 9999-12-31), 1604060 -> 1155, 2000060 -> 145791, 1700059 -> 36218, 1700060 -> 36219, 1995046 -> 143951. Ordinal day 60 landing on a different calendar date in 1700 than in 1604 or 2000 is where §15.5.1's century branch bites hardest, and all three are printed.",
+ "state": "OK"
+}

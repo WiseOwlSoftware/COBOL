@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-189",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 189,
+ "subject": "SPECIAL-NAMES paragraph, device-name (names available, restrictions on use)",
+ "rule-digest": "044e744c34a3",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-189; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#MnemonicDevice; src/WiseOwl.Cobol.Editions/ImplementorNames.cs#ImplementorNames",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb862_implementor_names; conformance:cases/12.3.7-SPECIAL-NAMES/pb862-unavailable-device-name; unit:ImplementorNamesDriftTests.EveryTableName_IsDocumented_AndNamedByTheDiagnostic",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "A.1 item 189 (device-name: names available, restrictions on use), optional and documented-if-provided: PROVIDED - CONSOLE, SYSIN, SYSOUT, SYSERR with their input/output capabilities, as ONE table (ImplementorNames) that the SPECIAL-NAMES binder refuses every other name against (COBOL2241) and ACCEPT/DISPLAY read the capability from (COBOL0817). kb/Work PB862. retired-witness: src/Cobol.Net.Compiler/Binding/ImplementorNames.cs#ImplementorNames (the pure-data implementor-name table moved to WiseOwl.Cobol.Editions so the front end's DISPLAY directive reads the same device-names as SPECIAL-NAMES (kb/Work PB807); ImplementorNameEntry stayed in the compiler as ImplementorNameEntry.cs) || editions 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a facility that exists at every edition (the COBOL-85 nucleus, I-O, inter-program and SPECIAL-NAMES implementor-names; its arithmetic, the only arithmetic of COBOL-85, is what later editions name native).",
+ "state": "OK"
+}

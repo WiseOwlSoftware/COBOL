@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.40.4-18",
+ "section": "14.9.40.4",
+ "kind": "GR",
+ "ordinal": 18,
+ "subject": "SORT statement",
+ "rule-digest": "016d7b649b76",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindTable; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitTableSort; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSharedAreaTableSort",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb846_sort_table_occurs_keys; conformance:cases/14.9.40-SORT/w70c_pb1174_table_sort_odo_count; conformance:cases/14.9.40-SORT/w70c_pb1174_table_sort_dynamic_capacity; conformance:cases/14.9.40-SORT/pb1175_table_sort_shared_storage; conformance:cases/8.4.2.3-Subscripts/pb1055_table_sort_nested_subject; conformance:cases/14.9.40-SORT/pb1055_table_sort_nested_dynamic",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1175 + PB1055 landed: the subject may lie in a REDEFINES class, a shared record area or a BASED record (TableSortStorage.SharedArea, sorted through the class's windows) and may be nested under other tables (TableSortStorage.TypedArray over ReferenceResolver.BuildTablePath, the enclosing tables' subscripts read once by ReadTableSubjectSubscripts).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.19.3-2",
+ "section": "13.18.19.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "DYNAMIC LENGTH clause",
+ "rule-digest": "458ab305ea29",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#InheritConfiguration",
+ "test-ref": "conformance-test:DynamicLengthTests.StructureName_Declared_Accepted_Undeclared_Rejected2258; conformance:cases/12.3.7-SPECIAL-NAMES/pb829_dynamic_length_structure",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB829. dynamic-length-structure-name-1 must correspond to a DYNAMIC LENGTH STRUCTURE declaration of the source element or a containing one (8.4.6.1 - the golden's contained program uses its container's DS-SS); an undeclared name is COBOL2258. It used to be refused whether declared or not (COBOL1562, retired).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.20.3-6",
+ "section": "14.9.20.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "INITIALIZE statement",
+ "rule-digest": "fdd2c7530d0a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckInitializeCategoryUnique; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#CategorySetOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#Bind",
+ "test-ref": "conformance:cases/14.9.20-INITIALIZE/l1-initialize-replacing-category-repeat; conformance:cases/14.9.20-INITIALIZE/pb415-initialize-category-repeated-word",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB415.md - THE RULE'S SCOPE GREW WITH THE CATEGORY-NAME SET, AND THE CHECK GREW WITH IT. SR6 ('the same category shall not be repeated in a REPLACING phrase') and 5.2.6.4 ('any single alternative shall be specified only once') are the same ban at two scopes - across the phrase's items, and WITHIN one category-name - and the second scope did not exist while a category-name was one word. Both are now evaluated against ONE accumulator, the running union of every category already named in the phrase, so `REPLACING NUMERIC NUMERIC DATA BY 7` and `REPLACING NUMERIC ... NUMERIC ...` are diagnosed identically (COBOL0834, unconditional at all four editions). Witnesses: the original cross-item case (conformance:cases/14.9.20-INITIALIZE/l1-initialize-replacing-category-repeat) and the new within-one-category-name case (conformance:cases/14.9.20-INITIALIZE/pb415-initialize-category-repeated-word). A repeated word is DROPPED rather than doubled, and the item is dropped only when every word in it was a repeat - HasReplacing still records that the phrase was SPECIFIED, which GR5c4's premise depends on.",
+ "state": "OK"
+}

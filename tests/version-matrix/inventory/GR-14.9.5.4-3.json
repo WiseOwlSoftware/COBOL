@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.5.4-3",
+ "section": "14.9.5.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "CANCEL statement",
+ "rule-digest": "0ff029035f01",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RouteStaticRoot; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/RecordStructEmitter.cs#EmitStaticReset; src/WiseOwl.Cobol.Runtime/Control/StorageCell.cs#Reinitialize",
+ "test-ref": "conformance:cases/13.5-Working-storage-section/recursive_ws; conformance:cases/8.5.1.11.3-Availability-and-persistence-of-variable-length/pb154_cancel_initial; conformance:cases/14.9.5-CANCEL/pb234_recursive_address_of_static",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB234): the residue that kept this PARTIAL - legal source REFUSED - is gone. An ADDRESS-OF-taken record of a RECURSIVE unit's static working-storage (13.5.4 GR1: one static copy) routes its StorageCell - the record's ONE storage, which ManagedPointer.At aliases - onto the static channel (DataBinder.StaticAddressableCells), and __ResetStatics re-seeds it IN PLACE from the declaration's own VALUE image with its managed slots cleared (StorageCell.Reinitialize; 14.6.2.3.2 action 2), so after CANCEL the next CALL finds W back at its VALUE while a pointer taken before the CANCEL still names the one copy. A level-01 REDEFINES of a BASED record in the same unit (the other arm of the deleted COBOL0899 recursive-working-storage-pointer-backed reject) rides the based root's static bridge. pb234_recursive_address_of_static runs it: the recursive activation's ADDRESS OF W equals the outer one's (SAME), last-used state survives a plain return (ENTRY=WXYZ D=2), and CANCEL restores the initial state (ENTRY=ABCD D=1). The other initial-state actions stay evidenced by recursive_ws and pb154_cancel_initial.",
+ "state": "OK"
+}

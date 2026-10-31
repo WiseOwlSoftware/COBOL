@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.20.4-1",
+ "section": "14.9.20.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "INITIALIZE statement",
+ "rule-digest": "c9f4f6d5fe87",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ExpandInitialize; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#BindInitializeTarget; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#IsAsIfElementary",
+ "test-ref": "conformance:cases/14.9.20-INITIALIZE/pb415_initialize_national_group_sender",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB415.md - SENTENCE 2 IS NOW REACHABLE AND MEASURED, which is the only thing that held this row at PARTIAL. Sentence 1 (identifier-1 a bit / national group is processed as a GROUP) was already implemented and measured: ExpandInitialize branches on the STRUCTURAL DataItem.IsElementary / IsGroup and never on OperandPic / IsAsIfElementary. Sentence 2 (identifier-2 a bit / national group is processed as an ELEMENTARY item) was unreachable because 14.9.20.3 SR4 admits such a sender only where a MOVE to an item of the NAMED category is valid, and NATIONAL was one of the eight of 14.9.20.2's thirteen category names the grammar could not spell. With the words landed: `01 NG GROUP-USAGE NATIONAL. 05 SA PIC N(2). 05 SB PIC N(3).` holding N\"ab\"/N\"cde\", then `INITIALIZE G REPLACING NATIONAL DATA BY NG` moves all FIVE national positions into `05 N1 PIC N(5)` as ONE elementary national sender -> N1=[abcde], while the alphanumeric sibling is left unchanged (conformance:cases/14.9.20-INITIALIZE/pb415_initialize_national_group_sender).",
+ "state": "OK"
+}

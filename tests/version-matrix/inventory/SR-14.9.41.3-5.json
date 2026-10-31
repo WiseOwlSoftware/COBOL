@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.41.3-5",
+ "section": "14.9.41.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "START statement",
+ "rule-digest": "a78fb0657fd9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#DenotedItem; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveImplCore",
+ "test-ref": "conformance:cases/14.9.41-START/pb602_start_key_identity; conformance:cases/14.9.41-START/pb602-start-key-refmod-slice; conformance:cases/14.9.41-START/pb602-start-key-renames-alias; unit:PlaceDenotedItemDriftTests.EveryPlaceKindIsAdjudicated; unit:PlaceDenotedItemDriftTests.NoProductSourceReDerivesTheIdentityQuestion",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB602 (wave 42) - THE REFUTED HALF IS CLOSED. RULE (cite.py --check 14.9.41.3 5): 'For relative files, data-name-1, if specified, shall be the data item specified in the RELATIVE KEY clause in the associated file control entry.' 'Shall BE the data item' is an IDENTITY OVER DATA ITEMS, and the screen was asking Place.Item - which answers about the ATTRIBUTES and STORAGE a reference reads, not about which item it is. Place now answers both questions, as 13.18.45.4 GR1 writes them ('all of the data attributes of data-name-2 become the data attributes of data-name-1 AND the storage area occupied by data-name-2 becomes the storage area occupied by data-name-1'): Place.Item is unchanged, and Place.DenotedItem is null for a reference-modified place (8.4.3.3.4 GR5 - 'Reference modification creates a unique data item that is a subset of the data item referenced by identifier-1', which no data description entry declares) and is the level-66 item for a non-THROUGH alias (recorded by the ONE resolver in Place.DenotesAs, so nothing about the ACCESS changes). MEASURED at 2023 on this tree: START RLF KEY IS = WS-RK(1:2) and START RLF KEY IS = RK-ALIAS both now draw COBOL0862 naming SR5, where both compiled clean and positioned the file on the relative record number the key's first two characters spell (12.4.5.13.4 GR1 makes 1 the first legal one). SR6's indexed arm asks the same question and refuses IX-KEY(1:2) the same way. POSITIVE CONTROLS in the same golden: the plain RELATIVE KEY item and the prime record key START successfully and READ the record, and both RENAMES forms remain legal MOVE / ADD receivers with the renamed item's attributes and storage. The clause number in this screen's four diagnostics was repaired in the same change set: they said 'ISO 14.9.41 SR5/SR3/SR8/SR1' and every one of those syntax rules is in 14.9.41.3. The PB128 route-around this note named - a hand-written 'p is not RefModPlace' beside a p.Item test, i.e. one caller's private copy of 8.4.3.3.4 GR5 - was written out at twenty sites and all twenty now read DenotedItem; PlaceDenotedItemDriftTests holds the roster so a new Place kind is a failing test rather than a silent inherit.",
+ "state": "OK"
+}

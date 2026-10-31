@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.3.3.6.4-5",
+ "section": "8.3.3.6.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Figurative constant values",
+ "rule-digest": "59f97a57f930",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#FillChar",
+ "test-ref": "conformance:cases/8.3.3.6-Figurative-constant-values/l1c10_figurative_space_quote_zero_chars; conformance:cases/8.3.3.6-Figurative-constant-values/l1c10_figurative_code_values",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'The space format represents one or more of the character space in the computer's runtime coded character set.' (cite.py --check 8.3.3.6.4 -> OK 5)). FillChar 'S' -> ' ' for alphanumeric and national; probe probe/figurative-constant-values/p1.cob MOVE SPACE TO PIC X(3), PIC N(3) -> '[   |   ]'; p6.cob INSPECT TALLYING FOR ALL SPACE counts 3 blanks. The boolean arm ('S' against a boolean operand -> '0') is DETERMINATION D-B2 (CONFORMANCE.md), reachable only via §14.9.25.4 GR2's zero-length-literal substitution since MOVE SR7 forbids a written SPACE to a boolean item — a documented latitude choice, not a divergence. No spec-derived test isolates the space character itself; test-needed.",
+ "state": "OK"
+}

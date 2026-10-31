@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.10.4-1",
+ "section": "8.4.3.10.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "NULL address pointer and message tag content",
+ "rule-digest": "460f5174a165",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ReplacementFor; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#ArgCarrierText; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfArg",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1427_null_operand_model; conformance:cases/8.4.3.1-Identifier/pb1630_null_argument_crossing",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1427 LANDED (wave 68 Y). GR1 'When associated with a data-pointer, the predefined address NULL references a data item of category data-pointer that contains the null address' (cite.py OK 8.4.3.10.4 1)). INITIALIZE WP REPLACING DATA-POINTER DATA BY NULL is the GR4 SET WP TO NULL (was COBOL1982, NULL read as literal-1): the golden prints P1 NULL after P0 ADDR; the prototype CALL / function / INVOKE argument NULL reaches a pointer formal as its null (pb1630 golden, C NULL / V NULL / F NULL / IP NULL — the function lane had regressed to 2576 mid-change and is restored by BindArgOperand's nullAdmitting leg).",
+ "state": "OK"
+}

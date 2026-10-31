@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.43.4-4",
+ "section": "14.9.43.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "STRING statement",
+ "rule-digest": "d248ee552efa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitString; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#HostInt64; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#StringTransfer",
+ "test-ref": "conformance-test:StringUnstringDifferentialTests.String_PointerBelowOne_OverflowsWithoutTransfer_SpecPinned; conformance:cases/14.7.9-RETRY/pb1033_integer_operand_full_value",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1033 landed (w59b). cite.py --check 14.9.43.4 \"if the value associated with the data item referenced by identifier-4 is either less than one or exceeds\" -> OK 8); --check 14.9.43.4 \"is changed during execution of the STRING statement only by the behavior specified above\" -> OK 6). The starting pointer is the POINTER item's VALUE narrowed through the saturating RuntimeApi.HostInt64 (CobolNum.Position), so a 9(20) pointer of 2^64+3 stays past the receiver: GR8 overflow before the first move, no transfer, ON OVERFLOW; and the pointer item is stored back only when a character moved (GR6), so it keeps its exact value. Before: the (long) cast wrapped it to 3, wrote at position 3, ran NOT ON OVERFLOW and stored P = 5. The UNSTRING twin (GR15 a) pointer, GR14 tally) is fixed the same way and pinned by the same golden; the P<1 half stays pinned by StringUnstringDifferentialTests.String_PointerBelowOne_OverflowsWithoutTransfer_SpecPinned.",
+ "state": "OK"
+}

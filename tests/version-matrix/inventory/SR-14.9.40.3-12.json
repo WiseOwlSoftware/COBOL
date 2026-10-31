@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.40.3-12",
+ "section": "14.9.40.3",
+ "kind": "SR",
+ "ordinal": 12,
+ "subject": "SORT statement",
+ "rule-digest": "0dc882c3d9bf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortMapIoFiles",
+ "test-ref": "conformance:cases/14.9.24-MERGE/pb994_sort_merge_keyed_using_giving; conformance:cases/12.4.5-File-control/pb994-sort-using-random-access",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB994 landed: a relative or indexed USING file is a legal operand when its access mode is SEQUENTIAL or DYNAMIC (golden 85/pb994_sort_merge_keyed_using_giving: a sequential relative, a dynamic indexed USING file); ACCESS RANDOM is refused by name, citing 12.4.5.5.2 SR1 and this rule, in SortMapIoFiles - the 'G5 keyed slice' refusal that rejected every keyed file is gone.",
+ "state": "OK"
+}

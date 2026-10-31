@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.2.3.4-1",
+ "section": "7.2.3.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "COPY statement",
+ "rule-digest": "14a0a28e0459",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#FindCopybook",
+ "test-ref": "conformance:wiseowl/cases/7.2.3-COPY/pb1355_library_text_located; conformance:cases/7.2.3-COPY/pb1355-library-text-not-found",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1355 (w68x): 'Text-name-1 or literal-1 identifies the library text to be processed by the COPY statement' (cite.py OK 7.2.3.4 1)). A COPY whose text cannot be located is CBL3620 at every edition on every path: the CopyProcessor 'strict' flag (and Frontend's strict: false) is deleted, so the silent comment fallback is gone (probe nobook.cob: was 'OK' rc=0, now CBL3620 rc=65).",
+ "state": "OK"
+}

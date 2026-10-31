@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.4.3.9.2",
+ "section": "8.4.3.9.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Object property",
+ "rule-digest": "b35b86858e12",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.ObjectProperty.cs#ResolveObjectProperty; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#propertyObject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.PropertyObject.cs#OoBindPropertyObject",
+ "test-ref": "conformance:cases/11.7-METHOD-ID/pb1449_interface_property; conformance:cases/8.4.3.1-Identifier/pb1425_object_property_identifier; conformance:cases/8.4.3.9-Object-property/pb1425-property-object-null",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1425 (w1021a). 8.4.3.9.2 prints `property-name-1 OF {object-class-name-1 | identifier-1}` and 8.4.3.1.3 SR1 makes identifier-1 any identifier (cite.py --check 8.4.3.1.3 -> OK 1)). The property binder no longer takes one bare word: ReferenceResolver.ResolveObjectProperty splits the written chain - the head word is property-name-1, identifier-1 is the rest less the reference modifiers (8.4.3.1.4 GR1 a) before d), g) last) - and resolves identifier-1 through the ordinary resolver, so a qualified and subscripted object reference (BAL OF A OF T(2), BAL OF AR(2), which used to name the compiler's temporary), a chained property (NM OF NXT OF D), and the forms a word cannot spell (the grammar's propertyObject suffix: SELF, SUPER, object-class-name-1 OF SUPER, an object-view BAL OF U AS C, a function-identifier BAL OF FUNCTION F (5)) are all the object. The class-name arm (factory accessors) is unchanged. [editions: the OO facility, 2002+] retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#OoTryBindPropertyReference (the one-word property binder ReferenceResolver.OoTryBindPropertyReference is deleted by kb/Work PB1425 (w1021a): a property reference is resolved by ReferenceResolver.ResolveObjectProperty, which splits the chain and resolves identifier-3 through the ordinary resolver)",
+ "state": "OK"
+}

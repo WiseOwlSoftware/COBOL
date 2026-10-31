@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.2.2",
+ "section": "13.18.2.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "ANY LENGTH clause",
+ "rule-digest": "a7ea93383b81",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#anyLengthClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAnyLengthClause; src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#any-length-clause-2002",
+ "test-ref": "conformance:cases/13.18.2-ANY-LENGTH/any_length_contained",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Format `ANY LENGTH`, both words underlined (required). cite.py --check 13.18.2.2 \"ANY\" -> OK (<u>ANY</u> <u>LENGTH</u>). Grammar `anyLengthClause : ANY LENGTH`, ungated superset parse; introduction gate COBOL0900 below 2002 (probe p1.cob --std 85 -> COBOL0900 'ANY LENGTH clause requires COBOL-2002'). The positive golden any_length_contained parses and runs the clause; negative/any-length-at-85 covers the gate. || Editions (adjudicator): 2002, 2014, 2023 (ISO 2023 Annex E lists no substantive change to 13.18.2, so the rule is unchanged from 2014; the 2002 introduction is the project's COBOL-2002 gate and is not derivable from the 2023 text alone - see dossier gap)",
+ "state": "OK"
+}

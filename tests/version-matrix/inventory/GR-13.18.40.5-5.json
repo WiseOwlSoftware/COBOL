@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.40.5-5",
+ "section": "13.18.40.5",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "PICTURE clause",
+ "rule-digest": "14f9ad621bca",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Render; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Materialize; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ValidateEditing; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#EditingPositions",
+ "test-ref": "conformance-test:PictureEditingTests.FixedSignControl_Renders; conformance-test:PictureEditingTests.MultiCharLiteral_RendersAtTheLiteralsWidth; conformance-test:PictureEditingTests.SimpleInsertionMultiCharLiteral_WidensTheItem; conformance:cases/13.18.40-PICTURE/pb491_editing_variable_width; unit:CobolEditCurrencyStringTests.Format_ExpandsTheCurrencyString",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-09-19 (kb/Work PB491). Rule 5's Table 8 note - 'Literal-2 or literal-3 or spaces means one instance of literal-2 or literal-3 or as many spaces as there are characters in literal-2 or literal-3' - is a rule about a literal of ANY width (SR9 caps it at 50), and the fixed-width 1:1 mask model could not carry it, which is why a literal wider than one character was staged loud with COBOL0899. The render is now split in two: Render produces the LOGICAL image, one character per picture SYMBOL, which is the image every editing rule of 13.18.40.5 is written about; Materialize gives each symbol the width 13.18.40.4 GR14 gives it. That is the SAME mechanism the multi-character currency string had to itself (ExpandCurrency/CollapseCurrency, both now deleted), so there is one variable-width pass rather than two, and DeEdit walks the same widths in reverse instead of searching the image for a string. SR12c's default is applied at the specified literal's width ('the space character repeated for the number of characters in' it). MEASURED: the Annex D.24 images, verbatim, plus the alphanumeric-edited IS-form twin PIC XXTXX EDITING T IS \"::\" -> 'AB::CD' at SIZE 6 (GR14 'es' first sentence), which used to bind SIZE 5.",
+ "state": "OK"
+}

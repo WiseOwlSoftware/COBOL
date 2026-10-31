@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.19.4-6",
+ "section": "14.9.19.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "IF statement",
+ "rule-digest": "2c8647914703",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitParagraphBody; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#TransferOut",
+ "test-ref": "conformance:cases/14.9.19-IF/pb414_next_sentence_last_sentence_inline; unit:DispatcherTransferIdiomDriftTests.NoDispatcherTransferIsCapturedByALoweredContainer",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB414.md - LANDED. GR6 is the ELSE-phrase statement of the same transfer as GR4, and the binder does not record which arm produced the BoundNextSentence node, so the two cannot diverge behaviourally: one lowering, one repair, but each arm now has its OWN measured witness. Before the fix, NEXT SENTENCE in an ELSE phrase inside an inline PERFORM in a last sentence printed `BAD-TAIL / P2` where GR6 requires `P2`. This arm ALSO had no test anywhere in tests/ - the only line in the tree pairing ELSE with NEXT SENTENCE put the NEXT SENTENCE in the THEN phrase - so the coverage hole is closed by the golden's GR6-P paragraph (`IF K NOT = 2 CONTINUE ELSE NEXT SENTENCE`), which is the construct GR6 actually governs.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.3.3-1",
+ "section": "8.8.3.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Concatenation expressions",
+ "rule-digest": "43995998c157",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConcatFolder.cs#Walk; src/WiseOwl.Cobol.Compiler/Binding/ConcatFolder.cs#ClassOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#OperandLiteralClass",
+ "test-ref": "conformance:cases/8.8.3-Concatenation-expressions/pb1406-concat-figurative-pair-class; conformance:cases/8.8.3-Concatenation-expressions/pb1406_concat_word_operands",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1406 (w62k). cite.py --check 8.8.3.3 \"the class of the literal or concatenation expression that constitutes the other operand\" -> OK a); \"when both of the operands are figurative constants, the class alphanumeric\" -> OK b). ONE walk (ConcatFolder.Walk) answers ClassOf (the diagnostic-free routing predicate for ConditionBinder / OoBinder), Peek and Fold, folding GR1 a/b/c pairwise left to right; the SPECIAL-NAMES ALPHABET/CLASS class screen (OperandLiteralClass) now asks it instead of the leading operand's prefix, so CLASS NSP FOR NATIONAL IS SPACE & N\"A\" is national (was a class error). Golden: SYM-A & SYM-B & \"!\" = AB!, KN & N\"Y\" & SPACE national, B\"0\" & KB & ZERO boolean (routes the boolean relation). retired-witness: conformance:2002/pb1406_concat_word_operands (the golden moved to the 2014 corpus: it writes a zero-length literal, a COBOL-2014 introduction gated by kb/Work PB895 (same program, same expected output))",
+ "state": "OK"
+}

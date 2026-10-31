@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.7.4-3",
+ "section": "13.7.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Linkage section",
+ "rule-digest": "51cd52f7ba95",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#Activate; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#Call; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#Unbound; src/WiseOwl.Cobol.Compiler/CodeGen/HostEntryEmitter.cs",
+ "test-ref": "conformance:cases/13.7-Linkage-section/pb2087_by_reference_area_formals; conformance-test:NonCobolActivatorLinkageTests.ANetHost_CallsTheEntry_WhichGuaranteesLinkageAccessAndOmitsANullOptionalFormal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "(kb/Work PB2671, which takes this row from PB1253.) cite.py --check 13.7.4 \"In a program definition, access to formal parameters and the returning item is guaranteed if and only if the program is to execute under the control of a CALL statement, and the CALL statement contains a USING phrase\" -> OK 3); --check 13.7.4 \"If a program is activated by a non-COBOL runtime element, the implementor defines whether access to formal parameters and the returning item is guaranteed\" -> OK 3). Three sentences. (1) Under a CALL with USING, access is guaranteed: the formals read and write the caller's storage through the carriers (conformance:cases/13.7-Linkage-section/pb2087_by_reference_area_formals: a CALL USING whose formals occupy the arguments' storage, and ADDRESS OF the formal is the argument's address). (2) Accessed in a program activated by the operating system: undefined (Annex A.2 item 23), and any behaviour conforms; the main entry now gives each formal its category-default storage. (3) Activated by a non-COBOL element: the implementor's choice is documented as DOC-A.1-116 (access guaranteed through ICobolProgram.Call, not guaranteed through ICobolProgram.Activate, with the storage each formal then refers to stated), and NonCobolActivatorLinkageTests pins every arm from a real .NET host. PB1253's PARTIAL was the missing third half. retired-witness: conformance-test:NonCobolActivatorLinkageTests.ANetHost_CallGuaranteesLinkageAccess_MainEntrySeesCategoryDefaultsOrTheLastCallsBinding (kb/Work PB2099 retired the untyped host route (ProgramRegistry.CallProgram/RunMain); the same witness, renamed, now hosts the generated entry)",
+ "state": "OK"
+}

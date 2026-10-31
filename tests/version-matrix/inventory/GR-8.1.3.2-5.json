@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.1.3.2-5",
+ "section": "8.1.3.2",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "COBOL character repertoire",
+ "rule-digest": "886c52eabc58",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Pipeline/CompilationInputs.cs#ReadSourceText; src/WiseOwl.Cobol.Frontend/Pipeline/SourceTextDecoder.cs#Decode",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-8.1.3.2-5",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'When an implementation does not provide a graphic representation of all characters of the COBOL character repertoire, substitute graphics may be specified by the implementor to replace the characters not represented.' (cite.py --check 8.1.3.2 -> OK 8.1.3.2 5)). A permission conditioned on a missing graphic. The source is decoded to UTF-16, which represents every Table 1 basic letter, digit and special character (all in ISO/IEC 646 IRV) and every Annex B character, so the antecedent is false and no substitute graphic is used or needed -- verified by reading SourceTextDecoder.Decode and by the probes (rcase/rcase2 exercise the basic set incl. hyphen, quote, parentheses, period). No latitude exercised. Documenting 'substitute graphics: none' is stated in A.1 item 25 = docs/CONFORMANCE.md DOC-A.1-25 (kb/Work PB1397); this permissive rule was never defective. CONFORMS; the source decoding it rests on is pinned by l1_encoding_per_file_bom and l1_encoding_unmarked_non_utf8_is_latin1. || editions as written by the adjudicator: 85, 2002, 2014, 2023 (no Annex E change) retired-witness: src/WiseOwl.Cobol.Frontend/Pipeline/CompilationInputs.cs#ReadAllText (CompilationInputs.ReadAllText no longer exists: the bytes of a source or library text become characters in SourceTextDecoder.Decode, read through CompilationInputs.ReadSourceText (kb/Work PB1397))",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.49.3-12",
+ "section": "14.9.49.3",
+ "kind": "SR",
+ "ordinal": 12,
+ "subject": "USE statement",
+ "rule-digest": "d57cdd9c5925",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#EC",
+ "test-ref": "conformance-test:ExceptionConditionConformanceTests.UseF3_SelectionTiers_Level3BeatsEcAll",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "The grammar writes `USE AFTER (EXCEPTION CONDITION | EC) useEcEntry+` -- one alternation, and DeclBindUseF3 is reached by `use.useEcEntry() is { Length: > 0 }` without ever inspecting which spelling was written, so the two cannot diverge by construction. The lexer note records the maximal-munch consequence that keeps EC-I-O-AT-END one IDENTIFIER rather than EC + '-I-O-AT-END'; probe ec.cob (`USE AFTER EC EC-ALL.`) and base.cob (`USE AFTER EXCEPTION CONDITION EC-ALL.`) both compile clean. The named test is spec-derived (AssertSpec on computed output, not a legacy bake): it writes `USE AFTER EXCEPTION CONDITION EC-ALL.` and `USE AFTER EC EC-USER-T.` in ONE program and asserts the 14.9.49.4 GR3e-before-GR3g selection -- the EC-spelled declarative is selected on its tier exactly as an EXCEPTION-CONDITION-spelled one would be, which is the synonymy claim exercised behaviourally.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.2.3-4",
+ "section": "14.9.2.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "ADD statement",
+ "rule-digest": "bd1d55785a2c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ScreenResultant; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreArith",
+ "test-ref": "conformance:cases/14.9.2-ADD/ca4_giving_composite; conformance:cases/13.18.40-PICTURE/pb66_float_edited_picture; conformance:cases/14.9.2-ADD/pb236-add-giving-alphanumeric; conformance:cases/14.9.2-ADD/pb236-add-giving-reference-modified",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB236 (landed). RULE (cite.py --check 14.9.2.3 'Identifier-3 shall reference a numeric data item or a numeric-edited data item.' -> OK, 14.9.2.3 4). BOTH HALVES NOW HOLD, and the prohibition half was closed by a DIFFERENT landing than the one this row was waiting for. ADMITTED HALF (unchanged, and it was always right): a numeric identifier-3 stores through NumericRenderer.StoreArgs at the receiver scale (conformance:cases/14.9.2-ADD/ca4_giving_composite -- ADD A B GIVING C into PIC 9(6)V9(10) -> 0000030000000000); a numeric-edited identifier-3 is a first-class receiver with three dedicated arms, pinned by conformance:cases/13.18.40-PICTURE/pb66_float_edited_picture, whose ADD 1 0.5 GIVING E4 prints an edited image derived from the mask. PROHIBITION HALF: RE-PROBED on a build of this worktree and it NO LONGER REPRODUCES. `ADD 1 2 GIVING <PIC X(5)>` now draws, at BIND time, `error COBOL1675: the arithmetic resultant 'X-ALPHA' is of category Alphanumeric; ISO 14.9.2.3 SR4 requires an elementary numeric or numeric-edited data item`, and `ADD 1 2 GIVING N(1:2)` draws `... is a reference-modified slice (category alphanumeric, 8.4.3.3.4 GR6c) ...`. Both come from ExpressionBinder.ScreenResultant, the receiving-side category screen this row asked for, landed by kb/Work PB128 at commit 6f85040d and reachable here because ArithmeticBinder's GIVING arm calls Receivers(..., editedOk: true, '14.9.2.3 SR4'). The ref-mod arm is right for the RIGHT reason: ScreenResultant tests the PLACE (`p is not RefModPlace`), not the decorated item, so PlaceDecorator.Item's inner-item passthrough -- the exact mechanism that let the old emit-time guard through into a raw Roslyn type error -- cannot defeat it. The two negatives above are the witnesses the row was missing; ISO 4.2.2 paragraph 2's compile-time mechanism is now what answers this rule.",
+ "state": "OK"
+}

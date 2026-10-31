@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.54.3-4",
+ "section": "13.18.54.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "SUM clause",
+ "rule-digest": "20da11e6490f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenRolledAddend; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#RolledRepetitionFault; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#GroupCombinationPermitted; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenRolledChains",
+ "test-ref": "conformance:cases/13.18.53-SOURCE/pb1294_report_rolled_totals; conformance:cases/13.18.54-SUM/pb1294_report_rolled_repeating; conformance:cases/13.18.54-SUM/pb1294_report_rolled_cross_report; conformance:cases/13.18.54-SUM/pb1294-sum-data-name-not-numeric; conformance:cases/13.18.54-SUM/pb1294-sum-data-name-group; conformance:cases/13.18.54-SUM/pb1294-sum-data-name-subscripted; conformance:cases/13.18.54-SUM/pb1294-sum-data-name-with-upon; conformance:cases/13.18.54-SUM/pb1294-sum-data-name-same-group-not-repeating; conformance:cases/13.18.54-SUM/pb1294-sum-data-name-fewer-levels; conformance:cases/13.18.54-SUM/pb1294-sum-data-name-repetition-maximum; conformance:cases/13.18.54-SUM/pb1294-sum-data-name-chain-cycle; conformance:cases/13.18.54-SUM/pb1294-sum-data-name-group-types",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1294 landed. SR4 and its sub-rules are each a named screen, once per WRITTEN addend: numeric data item with a value, unsubscripted (COBOL2730), a) no UPON, b)/c)/d) the levels of repetition (RolledRepetitionFault), e) the chain of references terminates (ScreenRolledChains, over every report), f) the pairing of report types within one report (COBOL2731) and g) no restriction across reports. The negatives are one per rule; the positives are the three legal shapes (same group, different group, different report).",
+ "state": "OK"
+}

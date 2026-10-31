@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.4-5",
+ "section": "14.6.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Execution",
+ "rule-digest": "965c78e298ef",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#Read",
+ "test-ref": "conformance:cases/14.6.4-Item-identification/l1_item_ident_oo_before_refmod",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§14.6.4 step 5 before step 7: get property bumps K=1 before the refmod start function bumps K=2, so 'x' (line 2)",
+ "state": "OK"
+}

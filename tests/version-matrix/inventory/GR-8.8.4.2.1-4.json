@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.2.1-4",
+ "section": "8.8.4.2.1",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Simple relation conditions",
+ "rule-digest": "eb514dc25212",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckRelationalOperands",
+ "test-ref": "conformance:cases/8.8.4.2-Simple-relation-conditions/boolean_ops; conformance-test:RelationComparabilityTests.NullAndBoolean_OutsideTheirRelation_Rejected; conformance-test:RelationComparabilityTests.NullAndBoolean_InTheirRelation_Compile",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Closed by kb/Work PB1468's landing (wave 67 N; the relation-checkpoint finding F4 of PB1427, which keeps its NULL operand-model rows). Item 4 'Two operands of class boolean' -> §8.8.4.2.8. BoolCompatible now asks the §8.5.2.1 Table-2 lattice's CANDIDATE set: an operand is boolean-compatible iff class boolean is among the classes it may present (ZERO may, §8.3.3.6.4 GR4 cite.py OK; SPACE / QUOTE / HIGH-VALUE / LOW-VALUE may not; an index data item is class index); an empty set (a failed binding, PB960) still fails open. `IF B1 = SPACE` and `IF B1 = IDA` are COBOL0844 (were clean, answered FALSE); B1 = ZERO and B1 = B\"1010\" compile.",
+ "state": "OK"
+}

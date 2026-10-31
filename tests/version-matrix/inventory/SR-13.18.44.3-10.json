@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.44.3-10",
+ "section": "13.18.44.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "REDEFINES clause",
+ "rule-digest": "5c9e5d755778",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveRedefines; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#TemplateItems; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.RedefinesEntry.cs#ScreenRedefinesEntry",
+ "test-ref": "conformance:cases/13.18.44-REDEFINES/pb93-redefines-later-sibling; conformance-test:RedefinesTargetTests.LaterSiblingTarget_IsRejected; conformance:cases/13.18.44-REDEFINES/pb2071-template-redefines-unresolved; conformance:cases/13.18.44-REDEFINES/pb2518_redefines_only_redefinitions_between; conformance:cases/13.18.44-REDEFINES/pb2518_redefines_past_non_storage_entries; conformance:cases/13.18.44-REDEFINES/pb2518-redefines-past-intervening-storage; conformance:cases/13.18.44-REDEFINES/pb2518-redefines-past-intervening-storage-roots; conformance:cases/13.18.44-REDEFINES/pb2518-redefines-in-unused-typedef; conformance-test:RedefinesTargetTests.RedefinerInsideUnusedTypedef_IsScreenedAtTheDeclaration; conformance-test:RedefinesTargetTests.RedefinerInsideUsedTypedef_IsDiagnosedOnce",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (PB93): the redefining entries FOLLOW the entries defining the area - the lookup admits preceding siblings only, so `05 A REDEFINES B. 05 B.` is COBOL1654. LANDED 2026-10-07 (PB2518): the 'without intervening entries that define new storage areas' half is asked by ScreenRedefinesEntry/FirstInterveningStorage over the scope the pair was resolved in (the subject's siblings, or the roots of its own section): every entry between data-name-2 and the subject must itself be a redefinition, else COBOL2739. The overlay layout (ClassifyRedefinesClasses) tolerates a gap and never diagnosed one; the earlier note naming it the witness was wrong (a layout that tolerates the violation is not a diagnosis). A CONSTANT entry and a TYPEDEF template are off the scope and define no storage.",
+ "state": "OK"
+}

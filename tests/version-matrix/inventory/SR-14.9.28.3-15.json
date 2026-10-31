@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.28.3-15",
+ "section": "14.9.28.3",
+ "kind": "SR",
+ "ordinal": 15,
+ "subject": "PERFORM statement",
+ "rule-digest": "e5eb0f184026",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs",
+ "test-ref": "conformance-test:PerformFormat3Tests.DuplicateExceptionName_Rejected1600",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "Measured in both directions, including the two edges that decide the reading of \"unless done so in conjunction with different file-names\". Rejects: the same exception-name twice, bare (probe pf-sr15-dup-ec -> COBOL1600); the same name twice inside ONE WHEN phrase (pf-sr15-same-phrase -> 1600); and a BARE occurrence coexisting with a FILE-paired occurrence of the same name (pf-sr15-bare-plus-paired -> 1600) - correct, because a bare occurrence is not \"in conjunction with\" any file-name and so cannot be one of the 'different file-names' the licence requires. Accepts: the same name against two DIFFERENT files - `WHEN EC-I-O-AT-END FILE F1 / WHEN EC-I-O-AT-END FILE F2` (pf-sr15-dup-ec-ok compiles clean). ONE COVERING TEST, NOT TWO. PerformFormat3Tests.DuplicateExceptionName_Rejected1600 is genuine and spec-derived (it asserts COBOL1600 on `WHEN EC-SIZE / WHEN EC-SIZE`). Its neighbour BareAndFilePairedSameName_Rejected1600 - named for the bare-plus-paired arm and commented with the reasoning above - is NOT: its body is a verbatim copy of MultiFileDeleteInImp1_Rejected1613's, it compiles `PERFORM DELETE FILE F1 F2 WHEN EC-SIZE ... END-PERFORM` and asserts COBOL1613, and it contains no duplicated exception-name at all. It passes green and proves nothing about SR15. The compiler's behaviour on that arm is nevertheless correct (pf-sr15-bare-plus-paired), so the defect is in the test, not the compiler - see finding PF-SR15-TEST-MISLABELLED.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs:220-231 (CheckSr14Sr15's second loop: group the census by exception-name; a repeat is illegal if `files.Any(f => f is null) || files.Distinct().Count() != files.Count` -> COBOL1600. The in-code comment states the reading explicitly: 'A bare occurrence's null is NOT a licensing distinct file-name') fed by the same ResolveWhenOperands census at :185-196  || EDITIONS (verbatim from the adjudication): 2023 (Format 3 is new in 2023 - Annex E.3.3 item 36)",
+ "state": "OK"
+}

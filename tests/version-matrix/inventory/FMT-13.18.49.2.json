@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.49.2",
+ "section": "13.18.49.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "SAME AS clause",
+ "rule-digest": "a338cd45fe98",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#sameAsClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSameAsClause; src/WiseOwl.Cobol.Frontend/Cst/DataDescriptionCst.cs#SameAsTargetName",
+ "test-ref": "conformance:cases/13.18.49-SAME-AS/typedef_same_as",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Format: `SAME AS data-name-1`, both keywords underlined (cite.py --check 13.18.49.2 \"data-name-1\" -> OK §13.18.49.2 General format). Grammar: `SAME AS cobolWord ((OF | IN) cobolWord)*` - data-name-1 is an ordinary data-name reference, so qualification (§8.4.2.2.2 Format 1, incl. the file-report-qualifier) is admitted, and §8.4.2.2.1 rule 5's implicit qualifiers apply (--check 8.4.2.2.1 -> OK 5)); no subscript slot, consistent with SR1. Edition gate: p17_85 (--std 85) -> COBOL0900; p18_2002/p19_2014 compile and print [Q]; 2023 all other probes. Qualified form: q07_filequal `SAME AS X IN F` (file-name qualifier) -> [ABC]; SameAsTests.QualifiedChainedAndComposedSameAs_CompileClean covers OF-qualification. Negative at 85: conformance:cases/_unassigned/same-as-at-85. || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (the SAME AS clause is absent from COBOL-85 and is not in Annex E's 2014->2023 substantive-changes list, so the rule stands unchanged in 2014 and 2023)",
+ "state": "OK"
+}

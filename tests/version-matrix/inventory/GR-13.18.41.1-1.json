@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.41.1-1",
+ "section": "13.18.41.1",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "PRESENT WHEN clause",
+ "rule-digest": "a85a5e3510b5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#PresencePlan; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginPresentation; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginGroup",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/rw_present_when; conformance:cases/13.18.41-PRESENT-WHEN/pb1272_present_when_snapshot",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1272: the condition governs whether each report section entry (line, printable item, sum counter) is processed, evaluated once per presentation before any LINE clause (GR2); the two processing defects the refuter recorded (use-time evaluation; a present 01-level group skipped when every line is absent) are fixed.",
+ "state": "OK"
+}

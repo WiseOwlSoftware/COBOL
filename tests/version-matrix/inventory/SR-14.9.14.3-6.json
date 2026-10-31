@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.14.3-6",
+ "section": "14.9.14.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "EXIT statement",
+ "rule-digest": "304d5ee65af4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcBindRaising; src/WiseOwl.Cobol.Compiler/Binding/Procedure/EnclosingContext.cs#RefusedRaisingLastHere",
+ "test-ref": "conformance-test:ExitPlacementContextDriftTests.RaisingLastOutsideBothPositions_IsRejected; conformance-test:ExitPlacementContextDriftTests.RaisingLastInADeclarative_IsAccepted; conformance:cases/14.9.14-EXIT/pb407_goback_general_format",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB404.md landed w39. The LAST arm of the SHARED raising binder now asks PlacementRules.RefusedRaisingLastHere (EnclosingContext.InDeclarativeOrPerformWhen) and raises COBOL2103 citing 14.9.14.3 SR6 at an EXIT site and 14.9.18.3 SR5 at a GOBACK site, from the ONE EcRaiseSite value. Both admitted positions are pinned accepted and the three excluded ones (ordinary paragraph, imperative-statement-1, FINALLY) rejected.",
+ "state": "OK"
+}

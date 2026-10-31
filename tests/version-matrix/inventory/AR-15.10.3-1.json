@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.10.3-1",
+ "section": "15.10.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "ASIN function",
+ "rule-digest": "5e4a69b9f544",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+ "test-ref": "conformance:cases/15.3-Arguments/pb1-numeric-arg-trig-family",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "PB1 EXTENDED. NOTE THIS ROW DID NOT EXIST until the extractor fix: 15.10.3 is headed 'Argument*s* rules' and the literal-spelling KINDS map never recognised it, so ASIN's two rules were absent from the denominator entirely. Bare class-numeric constraint, now enforced.",
+ "state": "OK"
+}

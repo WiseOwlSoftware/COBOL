@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.11.4-4",
+ "section": "12.4.5.11.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "RECORD DELIMITER clause",
+ "rule-digest": "f12e8455dbde",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported; src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Declined; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl",
+ "test-ref": "conformance:cases/12.4.5.11-RECORD-DELIMITER/pb292_record_delimiter_witness; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterFeatureName_NamedNonSupportWarning_PinnedToSpec",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"If feature-name-1 is specified, the method used for determining the length of a variable-length record is that associated with feature-name-1 by the implementor\" has an EMPTY domain here, and that is a documented posture rather than a gap. The licence is NOT Annex A.3 — item 26 reaches only the STANDARD-1 phrase — but Annex A.1 item 150, which the standard classes as optional (\"This item is optional\"), read with A.1's preamble (\"Optional: The element may be provided at the implementor's option\") and §4.2.5 ¶1 (the clause that governs the A.1 list: its provisions reach \"optional language elements for which an implementor claims support\", cite.py --check 4.2.5 OK; §4.2.7 is scoped to the Annex A.4 list, kb/Work PB593). docs/CONFORMANCE.md §7 A.1 item 150 records the determination as \"Not provided.\", which is exactly the shape owner decision kb/Work PB280 Q1 (2026-09-02) closes as DOCUMENTED-NON-SUPPORT through the `a1-optional-not-provided` selector. The row closes on a diagnosis: a feature-name written anyway draws COBOL1778 by name at every edition.",
+ "state": "OK"
+}

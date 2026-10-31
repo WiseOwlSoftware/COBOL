@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.40.3-6",
+ "section": "14.9.40.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "SORT statement",
+ "rule-digest": "983633d179cd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortKeyAdmission.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortAddFileKeys; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#OffsetInRecord; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#KeyWindowOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortRecordOf",
+ "test-ref": "conformance:cases/14.9.24-MERGE/pb1173-sort-file-key-not-in-record; conformance:cases/14.9.40-SORT/pb1173-sort-file-key-occurs; conformance:cases/14.9.24-MERGE/pb1173-sort-file-key-boolean; conformance:cases/14.9.40-SORT/pb1173-sort-file-key-pointer; conformance:cases/14.9.24-MERGE/pb1173-sort-file-key-odo-group; conformance:cases/14.9.24-MERGE/pb1173-sort-file-key-dynamic-length; conformance:cases/14.9.24-MERGE/pb1173_sort_key_second_record; conformance:cases/14.9.24-MERGE/pb1025-sort-key-after-dynamic-beyond-minimum",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1173 + PB1052 landed: SR6 a) is SortAddFileKeys' record test; b) and f) (OCCURS on the entry or any entry above it), c) (boolean / object / pointer), and d) (dynamic-length elementary item, variable-length group, occurs-depending group) are ONE predicate, SortKeyAdmission.Violation, asked of the named item before any occurrence is resolved and before the record's image is (so a pointer record's key is the source's error, not the Tier-C deferral); e) is the key window's same-byte-positions law (golden 85/pb1173_sort_key_second_record); g) is KeyWindowOf with COBOL0874 (pb1025). RecordLayout.OffsetInRecord bails on OCCURS ahead of its REDEFINES-class branch, so a key under a table in a multi-01 SD is no longer placed at its first occurrence. SR6 d)'s \"occurs-depending-on data item\" is read as including the occurs-depending GROUP (13.18.38.4 GR8): a varying window cannot be the same byte positions of SR6 e); there is no message-tag representation to screen yet.",
+ "state": "OK"
+}

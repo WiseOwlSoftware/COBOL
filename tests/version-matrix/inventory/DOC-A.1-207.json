@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-207",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 207,
+ "subject": "USAGE BINARY-SHORT, BINARY-LONG, BINARY-DOUBLE, FLOAT-SHORT, FLOAT-LONG, FLOAT-EXTENDED (representation and length of da",
+ "rule-digest": "eb83b9e9e6f1",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-207; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ByteWidth",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1_usage_fixed_width_lengths",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR21's signed==unsigned length requirement asserted on all four fixed-width binary usages, GR13's nesting probed at the binary32 and binary64 integer boundaries, and the big-endian IEEE image of 1.5 read byte by byte. || editions 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): BINARY-SHORT/-LONG/-DOUBLE and FLOAT-SHORT/-LONG/-EXTENDED are COBOL-2002 introductions. retired-witness: src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#ByteWidth (ByteWidth is a member of DataItem (Binding/Model/DataItem.cs); PicInfo.cs names it only in comments)",
+ "state": "OK"
+}

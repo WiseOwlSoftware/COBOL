@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.4.5.2",
+ "section": "13.4.5.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "File description entry",
+ "rule-digest": "b75b09e44e69",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionClause; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Rows; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedClause",
+ "test-ref": "conformance:cases/13.4.5-File-description/pb829-fd-unrecognized-clause; conformance:cases/11.2-Identification-division-structure/pb829_closed_formats_legal; conformance:cases/8.3.2.2-User-defined-words/pb511_external_as_name; conformance:cases/13.4.5-File-description/pb1238-fd-file-control-clause; conformance:cases/13.4.5-File-description/pb1238_fd_formats_admitted",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1081 via PB1238: the five file control entry clauses the grammar superset-parses in the FD position (ORGANIZATION, ACCESS MODE, RECORD KEY, ALTERNATE RECORD KEY, FILE STATUS) are no longer silently dropped: each is refused BY NAME, COBOL2604 'a clause of the file control entry (ISO §12.4.5.1) ... write it in the SELECT entry'. Any other residue stays COBOL1970 (ClosedFormatPass). The three printed formats' clause lists (rendered, folios 342-343) are the FileDescriptionFormats table. Re-affirmed 2026-10-22 (kb/Work PB3530) against the figure regenerated from the printed page: render_figure.py's brace-group layout now keeps every alternative inside its own enclosure, so the diagram's layout changed while its words did not (sweep_figures.py's word gate); the verdict stands on the printed format. Re-affirmed 2026-10-22 (kb/Work PB3530, review R1-1) against the figure regenerated again: render_figure.py now keeps each printed line whole inside the enclosures that hold its words and starts a new row at a step wider than 3.5 pt, so the diagram's layout changed while its words did not (sweep_figures.py's word gate); the verdict stands on the printed format.",
+ "state": "OK"
+}

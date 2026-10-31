@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-6.2.3.2-3",
+ "section": "6.2.3.2",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Floating indicators",
+ "rule-digest": "73216957dbe8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#FixedFormConverter; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs#ReferenceFormatDiagnostics",
+ "test-ref": "conformance:cases/6.2.3-Floating-indicators/pb1493-floating-indicator-split; unit:ReferenceFormatLogicalConversionTests.FloatingIndicator_SplitAcrossTheJoin_IsDiagnosed",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1493: a fixed-form continuation line that completes *> or >> begun at the end of the latest logical line is COBOL2496; free form has no non-literal continuation, so a line end there is a space. The floating literal continuation indicator is recognized nowhere yet (kb/Work PB1359). retired-witness: src/Cobol.Net.Frontend/Preprocessor/ReferenceFormatProcessor.cs#HandleContinuation (moved or replaced by the ONE §6.5 logical conversion in ReferenceFormatProcessor.LogicalConversion.cs (kb/Work PB1491))",
+ "state": "OK"
+}

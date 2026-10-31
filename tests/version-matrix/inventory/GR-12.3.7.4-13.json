@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.7.4-13",
+ "section": "12.3.7.4",
+ "kind": "GR",
+ "ordinal": 13,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "9eaf42d62e6c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Materialize; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#DeEdit; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#CanonicalCurrencyMask",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb60_currency_sign_set; unit:CobolEditCurrencyStringTests.DeEdit_CollapsesTheCurrencyString",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Re-anchored 2026-09-19 (kb/Work PB491): the verdict is unchanged and the behaviour is unchanged, but the two methods this row pointed at are gone. ExpandCurrency and CollapseCurrency were a SEARCH-BASED expand/collapse pair serving the currency string alone; they are replaced by Materialize (logical -> physical, positionally, by each symbol's own GR14 width) and by DeEdit's own physical cursor (physical -> logical, the same widths in reverse), which serve the currency string and the PICTURE EDITING literal through ONE mechanism. The search was also a latent composition hazard: with an editing literal expanded first, a '$' inside a literal could be found before the mask's own currency position. Verified green by unit:CobolEditCurrencyStringTests over the whole one- and multi-character currency-string matrix.",
+ "state": "OK"
+}

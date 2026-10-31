@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.57.4-3",
+ "section": "13.18.57.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "TYPE clause",
+ "rule-digest": "2780a25373ba",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/BindPipeline.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ImpliedPicture.cs#SynthesizeImpliedPictures; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandType; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CopyEntryDescription",
+ "test-ref": "conformance:cases/13.18.49-SAME-AS/w66g_pb1300_type_same_as_composition",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1300. Rule (cite.py --check 13.18.57.4 'When the description of type-name-1 includes an implicit PICTURE clause derived from a VALUE clause, that implicit PICTURE clause becomes part of the description of the subject of the entry' -> OK §13.18.57.4 3)). SynthesizeImpliedPictures now runs BEFORE ExpandTypes over the written entries, so a template owns its SR9 PICTURE when the one description copy hands it over (with its provenance, DataItem.PicIsValueImplied): `01 U TYPEDEF VALUE \"ABCD\". 01 W TYPE U VALUE \"Q\".` gives W=[Q   ] LENGTH 4, V TYPE U gives [ABCD] 4, a group template member `05 M VALUE \"XY\"` reproduces as X(2) (R=[XY7] 3). First sentence: the subject's own literal initializes the composed item and is now screened against the composed description at ExpandType (§13.18.63.3 SR2/SR4 fire for `01 M TYPE N VALUE 12345` over PIC 9(3) and `01 Q TYPE P VALUE \"ABCD\"` over an explicit PIC X(2)). DETERMINATION: over an IMPLICIT template picture (`01 U2 TYPEDEF VALUE \"AB\". 01 W2 TYPE U2 VALUE \"QRSTUV\".`) no size rule applies - §13.18.63.3 SR4 bounds a literal by 'the size indicated by an explicit PICTURE clause' (cite.py OK §13.18.63.3 4)) - so W2 is X(2) holding [QR]; the adjudication's 'must reject' reading is rejected as ignoring the word 'explicit'.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.17.4-6",
+ "section": "7.3.17.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "LEAP-SECOND directive",
+ "rule-digest": "828ffd12a7e0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#Analyze",
+ "test-ref": "conformance:cases/7.3.17-LEAP-SECOND/pb65_leap_second_on",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'When ON ... the value contained in the seconds subfield of a formatted time value shall be greater than or equal to zero and less than 61.' (cite.py --check 7.3.17.4 OK). Analyze: Fld.Second => (0, leapSecond ? 60 : 59). pb65_leap_second_on T1/T3/T4: '235960' valid (86400), '235961' -> TEST-FORMATTED-DATETIME 6. Probe d_bare.cob (bare >>LEAP-SECOND = ON per the §7.3.17.2 figure note): '120060' valid, SFFT=43260 - the rule bounds the subfield only, not its position in the day. || editions (adjudicator): 2002, 2014, 2023 (the §7.3 directive facility is absent in 1985; the 2002 edge is DERIVED per docs/VERSION_CHANGE_REFERENCE.md row 7.21 - Annex E itemizes the 2014->2023 delta and does not list LEAP-SECOND, so it predates 2023). The time-form / formatted-time consumers the rule bounds are COBOL-2014 intrinsics (§15.3).",
+ "state": "OK"
+}

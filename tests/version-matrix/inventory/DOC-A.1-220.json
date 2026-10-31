@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-220",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 220,
+ "subject": "Variable-length data items (actual time when the resources used are freed)",
+ "rule-digest": "798117f23304",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-220; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#SetCapacity; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-DOC-A.1-220",
+ "editions": "2014,2023",
+ "notes": "Voluntary row (A.1 220 need not be documented). cite.py --check 8.5.1.11.3 'The actual time when the resources used by a variable-length data item are freed is implementor-defined' -> OK §8.5.1.11.3 7). Read CobolDynTable: GrowTo only Array.Resize upward (doubling, capped at MaxOccurrences), re-seeds occurrences _count..target with _seedAt; SetCapacity shrink sets _count only (no array shrink); ValueInitializer.cs:139 'the field is a native string' for DYNAMIC LENGTH. Probe probe/p220/vl.cob --std 2023: D=XY L=002; C(5)=7, SET CAP TO 2, SET CAP TO 5 -> C5=0 CAP=5; --std 2002 -> COBOL0900 for both. Collection timing is nondeterministic, so no test can pin it. Resource exhaustion is item 61 / kb/Work/PB1410, not this item. Owning note: kb/Work/PB1535.",
+ "state": "OK"
+}

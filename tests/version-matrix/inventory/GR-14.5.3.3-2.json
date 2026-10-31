@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.5.3.3-2",
+ "section": "14.5.3.3",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Scope of statements",
+ "rule-digest": "b7c435135bf9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#statementBlock; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#ifStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases",
+ "test-ref": "conformance:cases/14.5.3.2-Explicit-scope-termination/l1_if_nested_else_endif_match",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: a contained imperative statement is terminated by 'a) any element that terminates an imperative statement not contained within another statement, b) the termination of the scope of any containing statement, or c) the next phrase of any containing statement' (cite.py --check 14.5.3.3 -> OK §14.5.3.3 2) for the c) text). Probes: (c) 'IF FLG = 2 DISPLAY ... MOVE 5 TO N ELSE DISPLAY ... MOVE 6 TO N.' -> ELSE ends the THEN-arm MOVE (sc4 U8 -> 'U8 ELSE','U8 6'); (b) the DISPLAY inside ON SIZE ERROR ends when END-IF ends the containing IF (sc1 T3) and when the period ends the containing ADD (sc4 U5 -> both DISPLAYs inside the phrase); (a) statement-name boundaries inside phrases (sc4 U5 'DISPLAY \"U5 SE\" DISPLAY \"U5 SE2\"'). The golden's S1 pins (c) for IF (inner THEN DISPLAY ended by ELSE). probe dir out/probe/scope-of-statements (sc1/sc4/sc5, pinned cobol.exe; sc1 identical output at --std 85/2002/2014/2023, sc4 at 85 and 2023) [editions as adjudicated: 85, 2002, 2014, 2023 (explicit/implicit scope termination is COBOL-85 surface; Annex E records no change to 14.5.3)] retired-witness: src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#arithmeticOnSizeError (kb/Work PB3830: every Table 12 [NOT] phrase is the one conditionalPhrases rule now; the per-statement phrase rule no longer exists)",
+ "state": "OK"
+}

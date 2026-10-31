@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.3-1",
+ "section": "15.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "Intrinsic functions",
+ "rule-digest": "260b71f5ff3b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CobolClass",
+ "test-ref": "conformance:cases/15.3-Arguments/pb124_alphabetic_class; conformance:cases/15.3-Arguments/pb124-numval-alphabetic; conformance:cases/15.3-Arguments/pb124-formatted-alphabetic; conformance:cases/8.4.3.3-Reference-modification/pb72_table16_admitted_cells; conformance:cases/15.3-Arguments/pb59-concat-alphabetic-to-boolean",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB124 wave 5a): CobolClass gains Alphabetic - Table 2's own first row - and ClassOfPlace un-folds PIC A via PicInfo.IsAlphabetic before the category table, exactly as the Usage.Index arm un-folds the index item's storage category (the row's charge that the fold made the type-1/type-2 split 'unenforceable in principle' is closed: the fold was a STORAGE choice, and the class question now bypasses it). The old single 's' union split on each rule's own WORDING, row by row against Table 21: the CLASS-worded rows (UPPER-CASE/LOWER-CASE/TRIM/SUBSTITUTE/ORD/REVERSE/FIND-STRING/STANDARD-COMPARE/LOCALE-COMPARE - every cell prints Alph) keep 's', which gains Alphabetic; the CATEGORY-worded rows (NUMVAL family incl. the TEST- twins per the 15.94.3 r1 import, the FORMATTED-* family, SECONDS-FROM-FORMATTED-TIME, INTEGER-OF-FORMATTED-DATE, LOCALE-DATE/TIME - no cell prints Alph, Table 2's closing sentence settles the wording) move to the new 't' kind, closing the measured dozen-position over-admission. CONCAT's 'c' gains Alphabetic (its rule always named it). Cross rules treat alphabetic+alphanumeric as ONE block - 15.59.3 r2's own exception, verbatim in the CrossViolation comment; 15.87.3 r2 / 15.96.3 r2 write the same two blocks - so TRIM(PIC-A 'c') and MAX(PIC-A 'zz') stay legal (golden). Table 21's TEST-NUMVAL-C Alph2 cell contradicts the 15.68.3 r2 import it summarizes; the rule text governs (the same table-wobble class as the CONVERT Type1 note).",
+ "state": "OK"
+}

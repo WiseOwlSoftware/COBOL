@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.6.4.3-8",
+ "section": "12.4.6.4.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "SAME clause",
+ "rule-digest": "c1c0ae43e276",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#ScreenSameClauses",
+ "test-ref": "conformance:cases/12.4.6.4-SAME/pb1087-same-sort-area-without-sort-file; conformance:cases/12.4.6.4-SAME/pb1087_same_clauses_legal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1087 (wave 1011 B2). cite.py --check 12.4.6.4.3 'At least one file-name specified in a sort-merge-area format SAME clause shall represent a sort or merge file' OK SR8. A clause whose own operands did not all resolve is not asked (SR2 already spoke).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.32.2",
+ "section": "13.18.32.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "JUSTIFIED clause",
+ "rule-digest": "653b71429ad7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#justifiedClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.18.32-JUSTIFIED/l1c16_justified_spellings",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Format: {JUSTIFIED|JUST} [RIGHT] (RIGHT not underlined = optional). Grammar `justifiedClause : (JUSTIFIED | JUST) RIGHT? ;` matches all arms exactly; DataBinder.cs:3985 sets Justified=true for every arm. Probe probe/justified/P1.cob (2023) and P12.cob (--std 85): `PIC X(5) JUST`, `PIC X(5) JUSTIFIED`, `PIC A(5) JUSTIFIED RIGHT`, `PIC N(4) JUST RIGHT` all compile and right-justify ([   AB]). cite.py --check 13.18.32.2 \"JUSTIFIED\" -> OK. Existing tests exercise only the `JUSTIFIED RIGHT` spelling; no spec-derived test pins the JUST arm or the bare JUSTIFIED arm -> test-ref empty.",
+ "state": "OK"
+}

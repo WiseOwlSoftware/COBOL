@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-35",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 35,
+ "subject": "Computer's coded character set (correspondence between lowercase and uppercase letters when a locale is not in effect)",
+ "rule-digest": "df72f1b82790",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-35; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#UpperCase; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#LowerCase",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/pb64t5_case_locale_phrase",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "VOLUNTARY row (A.1 item 35 need not be documented). §15.97.4 r4 / §15.57.4 r4 (cite.py --check OK) leave the no-locale correspondence to the implementor; r5 (same length for one-to-one) and r6 (no correspondence -> unchanged) checked (cite.py OK). Code: CobolIntrinsics.Text.cs:125/128 UpperCase=ToUpperInvariant, LowerCase=ToLowerInvariant. Probe /tmp/adj/doc/doc-w1-s2/probe/i35.cob in 85/2002/2014/2023: UPPER-CASE('aéßıſz') ORDs 66 202 224 306 84 91 (A É ß ı S Z), LOWER-CASE('AÉİZ') ORDs 98 234 305 123 (a é İ z), LENGTH(UPPER-CASE('ß'))=1 - identical in all four editions. Golden pb64t5_case_locale_phrase PLAIN arm pins r4 ('i'->'I' under Turkish LC_CTYPE); pb8/pb10 dropped from Pinned by - they pin ref-modification of a function result, the ASCII casing there is incidental. Refuter re-probe r35b.cob with LC_ALL=LANG=tr_TR.UTF-8: UPPER-CASE('i') ORD 74; the non-ASCII values in the row rest on the probe. Owning note: kb/Work/PB1522 step 3 (PB1535 option c).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.2.3-1",
+ "section": "13.18.2.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "ANY LENGTH clause",
+ "rule-digest": "88d7e4baa97f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#IsSingleInstance; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.18.2-ANY-LENGTH/pb1210_any_length_count_one_spellings; conformance:cases/13.18.2-ANY-LENGTH/pb1210_dynamic_length_count_one_spellings; conformance:cases/13.18.2-ANY-LENGTH/any-length-bad-picture; conformance:cases/13.18.2-ANY-LENGTH/pb1210-any-length-constant-two-instances; unit:SingleInstancePictureDriftTests.BothLengthClauses_AskTheOnePredicate",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1210 landed (w0930g). \"A PICTURE clause shall be specified for the subject of the entry. The character-string specified in that PICTURE clause shall be one instance of the picture symbol 'N', 'X', or '1'\" (cite.py --check 13.18.2.3 -> OK 1)); a repetition factor 'indicates the number of consecutive occurrences of the symbol' (13.18.40.3 SR6), so X(01) and X(001) are one instance. ANY LENGTH SR1 and DYNAMIC LENGTH SR1 (13.18.19.3) now ask ONE predicate, PictureAnalyzer.IsSingleInstance (symbol set the caller's, count read by the one repetition-factor reader); the closed six-string list and the count-1 regex are deleted. The missing-PICTURE, multi-symbol and count-2 halves stay refused (any-length-bad-picture, pb1210-any-length-constant-two-instances).",
+ "state": "OK"
+}

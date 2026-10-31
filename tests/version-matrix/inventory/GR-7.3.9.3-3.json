@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.9.3-3",
+ "section": "7.3.9.3",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "CALL-CONVENTION directive",
+ "rule-digest": "2b4e35603fda",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveStateRegistry.cs#Entries",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-7.3.9.3-3",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'The CALL-CONVENTION directive may also be used by the implementor to determine other details needed to interact with a function, method, or program.' (cite.py OK §7.3.9.3 3)). Permissive ('may'): it grants the implementor latitude and imposes no obligation. WiseOwl COBOL uses no call-convention to select linkage details (single .NET managed calling convention, docs/CONFORMANCE.md recognized-and-ignored directives entry; DirectiveStateRegistry 'NONE HELD'). Declining an optional latitude conforms. Nothing observable to test.",
+ "state": "OK"
+}

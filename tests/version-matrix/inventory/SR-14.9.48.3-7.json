@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.48.3-7",
+ "section": "14.9.48.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "UNSTRING statement",
+ "rule-digest": "406a0691b18f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/pb88-unstring-count-without-delimited",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB88 (2026-08-18): a bind-time rejection (COBOL1651) through the ONE Reject helper — it was a BoundUnsupported run-time stage on illegal source. The DELIMITER IN and COUNT IN phrases may be specified only if the DELIMITED BY phrase is specified.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.4.4-6",
+ "section": "14.9.4.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "CALL statement",
+ "rule-digest": "e20762577782",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb46_call_format2_as_nested; conformance:cases/14.9.4-CALL/pb131_gr9_formal_mode; conformance:cases/14.9.4-CALL/pb131-as-nested-scope; conformance:cases/14.9.4-CALL/pb165_content_conformance; conformance:cases/14.9.4-CALL/pb165_dynamic_length_boundary",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED WHOLE (kb/Work PB131, completed by PB165). GR6 - the NESTED phrase makes the contained program 'used to determine the characteristics of the called program' - now holds at BOTH ends. BIND (PB131): the callee is resolved against the containment tree (SR15 sentence 2, COBOL1676) and its formals drive GR9 mode derivation. ALLOCATION, which is what kept the row PARTIAL: 14.2.3 GR9 puts a NESTED call in the SECOND regime, and PB165 MEASURED all three of its arms rather than reading the row's residue - which was half wrong. The residue claimed 'a legal nested call's BY CONTENT arguments take the prototype-less first regime'; measurement refuted that for two of the three arms. The 'otherwise' arm ('a data item with the same description and the same number of bytes as the formal parameter', the argument COMPUTEd/MOVEd in) was already realized by the caller's snapshot plus the callee's formal-described adapter: a PIC 9(4) COMP argument reaches a PIC 9(6) DISPLAY formal as 000042, and a PIC X(3) argument reaches a PIC X(6) formal as 'AB    '. The ANY LENGTH arm ('the same category, usage, and length as the argument') was already realized through the -1 full-string carrier. The DYNAMIC LENGTH arm ('a dynamic-length elementary item of the same category and described with the same dynamic-length-structure-name as the formal parameter') was GENUINELY MISSING and is PB165's fix: the formal-carrier width dispatch had an ANY LENGTH arm and a fixed arm and no third, so it took the fixed arm at the item's PICTURE length, which 13.18.19.3 SR1 pins at exactly one symbol - measured, a 7-character argument arrived as LEN=1. ProgramEmitter.FormalTextCarrier is now the ONE place the three regimes are distinguished and CobolArgAdapt.DynText carries 8.5.1.10.4's replace-and-truncate store. Citations: `cite.py --check 14.2.3 \"a dynamic-length elementary item of the same category and described with the same dynamic-length-structure-name as the formal parameter, if the formal parameter is described with the elementary format of the DYNAMIC LENGTH clause,\"` -> OK, General rules 9; `cite.py --check 13.18.19.3 \"The character-string specified in that PICTURE clause shall be one instance of the picture symbol 'N', or 'X'.\"` -> OK, Syntax rules 1.",
+ "state": "OK"
+}

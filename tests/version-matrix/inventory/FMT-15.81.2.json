@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.81.2",
+ "section": "15.81.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "SIGN function",
+ "rule-digest": "116ce7e72ba2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionName; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+ "test-ref": "conformance:cases/15.81.4-Returned-value-rule/pb9_reserved_intrinsic_names",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Citation validated: cite.py OK on §15.81.2 '( argument-1 )' — the general format is the one-line 'FUNCTION SIGN ( argument-1 )' with both words required and no optional bracket, so the historically lossy-diagram risk does not arise. Grammar: functionCall alt 1 'FUNCTION functionName (FNARG_LPAREN functionArgList? FNARG_RPAREN)? refModPart*' with SIGN listed in functionName (SIGN lexes as a reserved token and must be admitted explicitly); the parse is a deliberate superset (argument group optional) and BindIntrinsicCore enforces the exact arity from the catalog row (Fixed 1..1) with COBOL1504, so FUNCTION SIGN with zero or two arguments is rejected at bind with the §15.3 citation. The §8.4.3.2.3 SR2 keyword-omitted form (cite.py OK: 'the word FUNCTION may be omitted') is carried by the separate reservedIntrinsicArgFn alternative (PB9, kb/Work/PB9.md status landed) whose argument group is structurally REQUIRED — derived from §15.81.2 itself, which has no no-argument form — keeping the SIGN clause (§13.18.53) collision impossible; that form belongs to §8.4.3.2.3, not to this FMT rule, but the golden asserts both forms yield the same value. §8.4.3.2 SR6 paren discipline is honored via FNARG_LPAREN retyping (PB48). Test: pb9_reserved_intrinsic_names exercises FUNCTION SIGN(NEG) and SIGN(...) side by side with spec-derived expected values. Editions as for AR-15.81.3-1: introduced 2002, unchanged through 2023.",
+ "state": "OK"
+}

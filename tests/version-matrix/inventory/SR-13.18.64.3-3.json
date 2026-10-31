@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.64.3-3",
+ "section": "13.18.64.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "VARYING clause",
+ "rule-digest": "123868315a07",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportVaryingClauses; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindReportClauses",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/pb1306_varying_scope; conformance:cases/13.18.64-VARYING/pb1306-varying-from-names-its-own-counter",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1306 landed. cite.py --check 13.18.64.3 'but may be referenced in arithmetic-expression-2 of the same VARYING clause or in arithmetic-expression-1 or arithmetic-expression-2 of a VARYING clause in a subordinate entry' OK (SR3). FROM naming a counter of its own clause is refused COBOL1559 (negative); BY naming its own counter binds and runs as the recurrence (`BY M` 1, 2, 4), and a subordinate entry's FROM names the enclosing counter (`FROM J * 10 + 1`, 11 12 / 21 22): both in pb1306_varying_scope.",
+ "state": "OK"
+}

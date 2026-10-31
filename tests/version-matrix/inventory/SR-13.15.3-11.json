@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.15.3-11",
+ "section": "13.15.3",
+ "kind": "SR",
+ "ordinal": 11,
+ "subject": "Report group description entry",
+ "rule-digest": "a3961a741d10",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportEntryClausePresence",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb853-report-group-entry-picture",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB853 sibling sweep. PICTURE/COLUMN/SOURCE/VALUE/SUM/GROUP INDICATE on a group entry (one with a subordinate entry, §13.15.4 GR1) draws COBOL2247; a group entry's PICTURE and VALUE used to be discarded in silence.",
+ "state": "OK"
+}

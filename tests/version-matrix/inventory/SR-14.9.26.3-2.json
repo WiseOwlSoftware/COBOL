@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.26.3-2",
+ "section": "14.9.26.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "MULTIPLY statement",
+ "rule-digest": "1e4e7aeac870",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindMultiply; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ScreenResultant",
+ "test-ref": "conformance:cases/14.9.26-MULTIPLY/l1c19-multiply-giving-alphanumeric",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR2 'Identifier-3 shall reference a data item of category numeric or numeric-edited.' (cite --check 14.9.26.3 OK). Probes: GIVING PIC X -> COBOL1675 (N4); GIVING group -> 1675 (N13); GIVING national -> 1675 (N18); GIVING ZZ9.99- accepted and stores 8.25 (p1). No spec-derived golden/negative -> test-needed. [code-location note: (Receivers editedOk:true '§14.9.26.3 SR2')] || editions as adjudicated: 1985, 2002, 2014, 2023 (MULTIPLY formats 1 and 2 with the SIZE ERROR / NOT SIZE ERROR pair; the rounded-phrase MODE option carries 14.7.4's own edition)",
+ "state": "OK"
+}

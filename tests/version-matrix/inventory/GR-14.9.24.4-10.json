@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.24.4-10",
+ "section": "14.9.24.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "MERGE statement",
+ "rule-digest": "f340dcc8dc80",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitMerge",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-14.9.24.4-10",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'During the execution of the output procedure, no statement may be executed manipulating the file referenced by or accessing the record area associated with file-name-2 or file-name-3.' (cite.py --check 14.9.24.4 -> OK §14.9.24.4 10)). This is a constraint on the PROGRAM with no exception condition and no prescribed consequence, so it asks nothing of the implementation beyond not depending on such access; the rule names no diagnostic and the range is dynamic, so a compile-time refusal would reject legal source whose violating path never executes. Code: EmitMerge completes every USING transfer (implicit OPEN/READ/CLOSE) and the k-way merge BEFORE entering the output procedure, so a violating statement meets a closed connector (deterministic, within 'undefined'); nothing in the implementation relies on file-name-2/-3 being untouched during the procedure. No finding. (The early CLOSE is GR7 c)'s timing question - part 1, not this rule.)",
+ "state": "OK"
+}

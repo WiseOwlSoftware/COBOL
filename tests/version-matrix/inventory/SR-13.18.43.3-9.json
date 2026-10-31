@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.43.3-9",
+ "section": "13.18.43.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "RECORD clause",
+ "rule-digest": "718a5d40d7f3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Screen",
+ "test-ref": "conformance:cases/13.18.43-RECORD/pb721-record-contains-inverted-range; conformance:cases/13.18.43-RECORD/pb721_record_bytes_synonym",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "'Integer-5 shall be greater than integer-4' - SR5 one general format over, and a separate row because the table's FORMAT column is re-derived from the standard's own bare FORMAT 1 / FORMAT 2 / FORMAT 3 division lines (RecordClauseRuleDriftTests.EveryRow_IsScreenedOnTheFormatTheStandardPrintsItUnder). Format 3 deliberately gets NO SR4-analogue: 13.18.43.4 GR18 says the size of each record 'is completely defined in the record description entry', so the standard states no rule bounding the descriptions by integer-4 and integer-5, and the negative golden asserts the record draws nothing while the clause is reported. The positive witnesses the boundary where SR9 must not fire (RECORD CONTAINS 4 TO 12 BYTES).",
+ "state": "OK"
+}

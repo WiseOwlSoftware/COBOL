@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.29.3-2",
+ "section": "13.18.29.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "GROUP-USAGE clause",
+ "rule-digest": "e711f2d82424",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UsageInheritanceGroup",
+ "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb79-group-usage-explicit-usage; conformance:cases/13.18.29-GROUP-USAGE/pb79-group-usage-subordinate-conflict; conformance:cases/13.16-Data-description/pb79_group_usage_bit; conformance:cases/13.18.29-GROUP-USAGE/pb3682-typedef-group-usage-bit-over-national",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (PB79). USAGE BIT implied for the subject (the PicPending.BitUsage adjudication a group-level USAGE BIT clause rides — §13.18.60.4 GR1: every subordinate PICTURE-1 leaf without its own USAGE becomes bit-form; a non-boolean leaf is COBOL0881); an explicit USAGE on the subject is COBOL1653; every subordinate group is GROUP-USAGE BIT implicitly, a conflicting explicit one COBOL1653.",
+ "state": "OK"
+}

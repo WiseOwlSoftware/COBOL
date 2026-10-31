@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.1.4-1",
+ "section": "14.9.1.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "ACCEPT statement",
+ "rule-digest": "9c701324d81c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitAcceptDevice; src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#DeviceFloat; src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#DeviceBoolean; docs/CONFORMANCE.md#DOC-A.1-1",
+ "test-ref": "conformance-test:AcceptDifferentialTests.Device_BooleanReceiver_ConvertsToBooleanCharacters; conformance-test:AcceptDifferentialTests.Device_NumericReceiver_ConvertsAndComputes; conformance-test:AcceptDifferentialTests.Device_FloatReceiver_ReadsTheDisplayImage; conformance-test:AcceptDifferentialTests.Device_FloatReceiver_RoundTripsItsOwnDisplayImage",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB887 closes both residues PB139 left. (a) The COMP-1/COMP-2/FLOAT-* receiver was a run-time LoudStmt that aborted the run unit (rc=127, measured on the finisher's build) although 14.9.1.3 SR1 excludes only index/message-tag/object/pointer; GR1 makes the conversion the implementor's, and it is now DEFINED: exactly one 80-character record read as the inverse of the DISPLAY image (the 15.69 NUMVAL-F format, spaces ignored), correctly rounded to binary64 and narrowed to binary32, a non-conforming record converting to zero with no exception (AcceptSource.DeviceFloat). (b) The Annex A.1 item-1 documentation row now exists: docs/CONFORMANCE.md DOC-A.1-1 documents every receiver shape's conversion (character receivers as-is, fixed numeric decoded as its display image, boolean '1'/other, float as above). The StaleDeferralDriftTests pinned inventory is empty.",
+ "state": "OK"
+}

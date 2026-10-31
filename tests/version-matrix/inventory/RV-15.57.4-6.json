@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.57.4-6",
+ "section": "15.57.4",
+ "kind": "RV",
+ "ordinal": 6,
+ "subject": "LOWER-CASE function",
+ "rule-digest": "21c6152b7f2f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#LowerCase; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#LowerCase",
+ "test-ref": "unit:CobolLocaleTests.CaseMapping_FollowsTheLocalesLcCtype; conformance:cases/8.8.4.4-Simple-class-condition/pb64t5_character_classification",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB64 T5 (2026-08-19) — was PARTIAL (the locale clause absent). Both clauses hold by the same property: TextInfo.ToLower / ToLowerInvariant are TOTAL maps, the identity on every code point without a simple lowercase mapping, so an uppercase letter with no correspondent — under the implementor's map or in a locale whose LC_CTYPE gives none — is returned unchanged, character for character (the unit test's de-DE / invariant arms; the goldens' non-letter and untailored letters). Rule --check verified at 15.57.4 6).",
+ "state": "OK"
+}

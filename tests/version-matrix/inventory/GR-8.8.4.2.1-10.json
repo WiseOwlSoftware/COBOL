@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.2.1-10",
+ "section": "8.8.4.2.1",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "Simple relation conditions",
+ "rule-digest": "169c1d547150",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckFormat3Relation; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs",
+ "test-ref": "conformance:cases/8.4.3.7-NULL-object-reference/oo_universal_relation",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Item 10 'Two operands of class object' -> §8.8.4.2.15 (cite.py 'An operand of class object may be compared with another operand of class object' OK). Golden: U = NULL, U NOT = NULL, U = G same object, U NOT = G different object — all per §8.8.4.2.15. Probed: EXCEPTION-OBJECT = NULL TRUE (predefined reference allowed per the NOTE); NULL = NULL TRUE; `IS NOT EQUAL TO` correct; object vs numeric / object vs pointer / ordering refused COBOL0868. [editions as adjudicated: 2002, 2014, 2023 (object orientation enters with ISO/IEC 1989:2002)]",
+ "state": "OK"
+}

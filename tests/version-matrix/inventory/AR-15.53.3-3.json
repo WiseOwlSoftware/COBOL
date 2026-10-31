@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.53.3-3",
+ "section": "15.53.3",
+ "kind": "AR",
+ "ordinal": 3,
+ "subject": "LOCALE-TIME function",
+ "rule-digest": "89ddb2a4d2d2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#Time",
+ "test-ref": "conformance:cases/14.6.6-Locale-identification/pb64t4_locale_functions; unit:CobolLocaleTests.Time_RendersPerTheLocalesLongTimePattern_WithItsOwnRanges",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T4: THIS rule's own ranges — hours 00–24 (a), seconds 00–99 (b), minutes 00–59 — enforced by CobolLocale.Time itself (not CURRENT-DATE's narrower validator); the TIME-24 / TIME-99 lines render 24:00:00 and 23:59:99, which a DateTime could not hold.",
+ "state": "OK"
+}

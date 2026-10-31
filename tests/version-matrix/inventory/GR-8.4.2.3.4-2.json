@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.2.3.4-2",
+ "section": "8.4.2.3.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Subscripts",
+ "rule-digest": "9c3bd5247556",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#At; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#Position; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#SubscriptError",
+ "test-ref": "conformance:cases/8.4.2.3-Subscripts/ec_bound_subscript; conformance:cases/8.4.2.3-Subscripts/pb201_position_operand_carriers; unit:PositionCarrierOverloadDriftTests.NoFloatCarrier_AtEitherArity",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB201 (2026-09-04). CobolTable.At is the ONE occurrence-number to element mapping and it is edition-independent - no edition branch - so the 1..n bound holds identically at every edition; ec_bound_subscript pins the NAMED condition under >>TURN EC-BOUND-SUBSCRIPT CHECKING ON with a USE AFTER EXCEPTION CONDITION declarative and RESUME AT NEXT STATEMENT. With checking OFF the reference continues into a re-defaulted scratch slot, the implementor choice 13.18.38.4 GR7 leaves open by making out-of-bounds occurrence content undefined, and the only posture COBOL-85 can take since it has no exception conditions. PB201 added the piece that was missing on the way IN: every wide carrier (an Int128 >18-digit item, an unsigned BINARY-CAPACITY container, and an alphanumeric image FromAlphanumeric decodes to up to 38 digits) now narrows through CobolNum.Position, which SATURATES. A plain (long) cast wraps, and a wrapped position can land back inside 1..n - turning a condition this rule requires to be detected into a silent wrong answer.",
+ "state": "OK"
+}

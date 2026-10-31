@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.34.4-4",
+ "section": "14.9.34.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "RETURN statement",
+ "rule-digest": "45d8f3d62178",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitReturn; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindReturn",
+ "test-ref": "conformance-test:SortMergeDifferentialTests.Return_Into_MovesRecordToReceiver; conformance:cases/14.9.34-RETURN/pb722_return_into_unsuccessful",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "RULE (cite.py --check 14.9.34.4 'control is transferred to imperative-statement-2, if specified; otherwise, control is transferred to the end of the RETURN statement.' -> OK, 14.9.34.4 rule 4). The rule is an ORDERING: record made available, THEN any implicit INTO move, THEN imperative-statement-2. CODE (read line by line): SortEmitter.EmitReturn:165-176 emits, inside 'if (CobolSort.Return(sd, out tmp))', exactly (1) EmitImageInto(rt.RecordArea, tmp) - the record made available; (2) the 13.18.43 GR15 DEPENDING-length store; (3) 'if (rt.Into is { } into) move.Emit(...)' - the implicit move; (4) 'if (rt.NotAtEnd is { } not) Statements.EmitStatementList(not)'. When NOT AT END is unwritten nothing is emitted and control leaves the if-block - the 'otherwise' arm, observed directly in probe p1 (a phrase-less RETURN falls straight through to the following DISPLAY). VERIFIED: SortMergeDifferentialTests.Return_Into_MovesRecordToReceiver is AssertSpecPinned and its NOT AT END imperative displays BOTH the record area and the INTO receiver, asserting the spec-derived 'AREA=1ONE\\nINTO=1ONE\\nAREA=2TWO\\nINTO=2TWO' - which can only hold if the record was made available and the implicit move executed BEFORE imperative-statement-2 ran. The 'otherwise' arm has no on-disk spec-derived case; it is verified by reading and by probe p1.",
+ "state": "OK"
+}

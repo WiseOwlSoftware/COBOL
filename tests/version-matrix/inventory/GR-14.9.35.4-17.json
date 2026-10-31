@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.35.4-17",
+ "section": "14.9.35.4",
+ "kind": "GR",
+ "ordinal": 17,
+ "subject": "REWRITE statement",
+ "rule-digest": "9ca2ec27434c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#RewriteLine",
+ "test-ref": "conformance:cases/14.9.35-REWRITE/pb1168_ls_rewrite_gr17; conformance-test:SequentialFileIoSpecTests.LineSequential_Rewrite_Gr17_Equal00_Longer44; conformance-test:SequentialFileIoSpecTests.LineSequential_RewriteAfterOverLengthRead_IsPartial44",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1168 landed (w67p). GR17 a)-d) run in RewriteLine, reached only for a line sequential file (GR16's equality test is RewriteRecordSequential's), and b)/c) compare the UNTRIMMED byte count of record-name-1 (or data-name-1's content) with the replaced line - GR17 has no trailing-space rule; §14.9.51.4 GR21's is WRITE's (cite.py --check 14.9.35.4 'is greater than the number of bytes in the record being replaced' -> OK §14.9.35.4 17)). Golden: varying LS REWRITE of a 10-byte record over a 20-byte line -> 00, line = SHORT + 15 spaces (c); fixed LS 10-byte G1 over the 2-byte line AB -> 44, line unchanged (b). a) and d) unchanged (PB329). The CA18 test's derivation comment is corrected (it gave the trimmed reading).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.2.3-12",
+ "section": "8.4.3.2.3",
+ "kind": "SR",
+ "ordinal": 12,
+ "subject": "Function-identifier",
+ "rule-digest": "ac93ace43243",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#UnsignedIntegerViolation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckConcatArgs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckBaseConvertArgs; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#StrArgVisitor",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/pb1420_abs_integer_form_unsigned_position; conformance:cases/8.4.3.2-Function-identifier/pb1420-concat-integer-function-unsigned-position; conformance:cases/8.4.3.2-Function-identifier/pb1420-baseconvert-integer-function-unsigned-position",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1420 LANDED (wave 1009 C). SR12 (cite.py --check 8.4.3.2.3 \"An integer function other than the integer form of the ABS function shall not be specified where an unsigned integer is required\" -> OK, rule 12). Screen: IntrinsicArgumentRules.UnsignedIntegerViolation, type-based like SR11 (a nested integer function other than ABS, and any numeric function, is barred). Asked at the two intrinsic positions that say \"unsigned integer\" and admit a function-identifier: CONCAT 15.18.3 r3 (CheckConcatArgs) and BASECONVERT 15.12.3 r1 below base 11 (CheckBaseConvertArgs), COBOL1627 / COBOL1642. The exempt integer form of ABS is legal and its returned value renders as its digits (IntrinsicRenderer.StrArgVisitor numeric-function arm, DOC-A.1-92 text image): CONCAT(ABS(-3) \"A\") = 3A. The statement positions that print \"unsigned integer data item\" (14.9.1.3 SR5, 14.9.11.3 SR3 - ACCEPT/DISPLAY LINE and COLUMN) belong to the screen facility A.4.2, not claimed (PB260).",
+ "state": "OK"
+}

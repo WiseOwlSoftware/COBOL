@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.1.4-1",
+ "section": "8.5.1.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Computer independent data description",
+ "rule-digest": "faaebab5984f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#CobolString; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Reverse; src/WiseOwl.Cobol.Runtime/Values/Text/NationalCollation.cs#NationalCollation; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#NationalAlphabetDef",
+ "test-ref": "conformance:cases/8.5.1.4-Limitations-of-character-handling/l1c05_composite_sequence_positions",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'The non-combining character and the following combining characters of a composite sequence defined in ISO/IEC 10646 are each treated as a single character position.' (cite.py --check 8.5.1.4 -> OK §8.5.1.4 1)). The typed-native substrate stores alphanumeric and national text as .NET UTF-16 code units, one char per character position (D-N1; CONFORMANCE.md DOC-A.1-188), with no grapheme/StringInfo/normalization anywhere on the character-position path (searched src for StringInfo/TextElement/EnumerateRunes/Normalize: only the ISO 14651 collation engine and CLDR builder walk codepoints, which is the STANDARD-COMPARE algorithm, not character-position processing). PROBE (pinned cobol.exe, --std 2023, out/probe/cidd/p1.cob): N\"e\"+U+0301 -> FUNCTION LENGTH = 2; PIC N(3) VALUE that literal: (1:1) = N\"e\", (2:1) = NX\"0301\"; INSPECT TALLYING FOR CHARACTERS BEFORE N\" \" = 02. All as the rule requires (base and mark each one position). No spec-derived golden pins a combining sequence (grep of tests/conformance for 0301/combining: none) -> test-ref empty. || editions as written by the adjudicator: 2002, 2014, 2023 (the ISO/IEC 10646 / UTF-16 national facility enters with ISO 1989:2002; the 2023 Annex E lists no change to 8.5.1.4; X3.23-1985 has no ISO/IEC 10646 coded character set, so the rule is vacuous at 85)",
+ "state": "OK"
+}

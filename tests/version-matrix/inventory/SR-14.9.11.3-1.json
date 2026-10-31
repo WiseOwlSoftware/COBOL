@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.11.3-1",
+ "section": "14.9.11.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "DISPLAY statement",
+ "rule-digest": "f63ed272f0be",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindDisplay",
+ "test-ref": "conformance:cases/13.18.60-USAGE/l1-display-pointer-operand; conformance:cases/13.18.60-USAGE/l1-display-program-pointer-operand; conformance:cases/14.9.11-DISPLAY/l1-display-object-reference-operand; conformance:cases/14.9.11-DISPLAY/l1_display_admitted_classes",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "CLOSED 2026-09-09 (kb/Work PB258 golden round). ⛔ THIS IS THE ROW WHERE THE STALE VERDICT WAS THE HARMFUL DIRECTION: it published DIVERGES against a compiler that had already been fixed, so the inventory under-claimed a rule the code enforces. Citation re-validated: cite.py --check 14.9.11.3 'Identifier-1 shall not reference a data item of class message-tag, object, or pointer.' -> OK, Syntax rules 1. || DERIVED BEFORE MEASURING: 'class pointer' spans THREE categories - 8.4.3.11.4 GR1 (data-pointer), 8.4.3.12.4 GR1 (function-pointer) and 8.4.3.13.4 GR1 (program-pointer) - so USAGE POINTER, USAGE PROGRAM-POINTER and the predefined address NULL are all excluded, as is class object (USAGE OBJECT REFERENCE). The list is CLOSED, so every other 8.5.2.1 Table 2 class is admitted and 14.9.11.4 GR1 transfers its content. || THE FIX LANDED AS THE CLASS-SET SCREEN THE DIVERGENCE ARGUED FOR, not a per-usage test (kb/Work PB148): ExpressionBinder.ScreenOperandClass runs over the ONE classifier IntrinsicArgumentRules.ClassOf, and AcceptDisplayBinder.BindDisplay calls it for EVERY operand shape - literals and intrinsic results included - with DisplayExcludedClasses = [Pointer, Object, Index] and a citation naming 14.9.11.3 SR1 and 13.18.60.3 SR10. || MEASURED on this worktree's built compiler at --std 2002, 2014 and 2023, one diagnostic each: COBOL1694 'DISPLAY operand ... is of class pointer' for USAGE POINTER and USAGE PROGRAM-POINTER, 'of class object' for USAGE OBJECT REFERENCE, and the same code for the word NULL. The ADMIT side is conformance:cases/14.9.11-DISPLAY/l1_display_admitted_classes - alphanumeric, alphabetic, numeric, numeric-edited, national and a group item all display their content - which is what stops the screen over-rejecting unnoticed. || TWO ARMS ARE VACUOUS AND ARE NOT COUNTED AS PASSING: class message-tag has no Usage member at all (the MCS facility is deliberately unmodelled, so no such operand can be constructed) and category function-pointer is the PENDING construct usage-function-pointer-2014. Both are satisfied by ABSENCE, not by a check. A third shape rejects at a different stage with the same verdict: DISPLAY ADDRESS OF X is a COBOL0001 parse error rather than COBOL1694 - and since 8.4.3.11.4 GR1 makes a data-address-identifier class pointer, SR1 forbids it anyway, so no legal source is lost. Editions: batch default.",
+ "state": "OK"
+}

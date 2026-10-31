@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.3.5.3-4",
+ "section": "8.3.3.5.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "National literals",
+ "rule-digest": "82982ec04a01",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#RepertoireViolation; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#NAT_BODY; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#Screen",
+ "test-ref": "conformance:cases/8.3.3.5-National-literals/w73a-hex-national-literal-non-hex-digit; conformance:cases/8.3.3.4-Boolean-literals/w73a_prefix_literal_beside_named_item; unit:SeparatorRuleTests.OutsideRepertoire_NamesTheCharacterAndTheRule",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR4 (cite.py --check 8.3.3.5.3 \"Hex-character-sequence-1 shall be composed of hexadecimal digits\" OK 4)). kb/Work PB1441 LANDED (wave 73 group A): NAT_BODY Format 2 is 'NX' STR_BODY, so NX\"00G1\" is one NATLIT (never IDENTIFIER NX + \"00G1\"), and LiteralScreenPass reports COBOL2630 naming 'G' and SR4. Negative: MAX(NX\"00G1\") beside 01 NX -> COBOL2630 at 2002/2014/2023 (it used to print [ZZZZ], the item's value). retired-witness: src/Cobol.Net.Compiler/Validation/LiteralScreenPass.cs#Screen (kb/Work PB1616 moved LiteralScreenPass (Compiler/Validation) to LiteralScreen (Frontend/Parsing) so the directive lane asks the same body; the witness is the same code at its new path)",
+ "state": "OK"
+}

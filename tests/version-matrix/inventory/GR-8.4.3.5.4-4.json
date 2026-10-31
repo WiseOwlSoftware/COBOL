@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.5.4-4",
+ "section": "8.4.3.5.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Object-view",
+ "rule-digest": "0059aa002886",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectView; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectReferenceAtom; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.ObjectView.cs#OoBindObjectView; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoCreateObjectViewTemp; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitObjectView; src/WiseOwl.Cobol.Runtime/Control/CobolObject.cs#ObjectView",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1425_object_view; conformance:cases/8.4.3.5-Object-view/pb1425_object_view_unchecked",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1425 (w1019a). ONLY without FACTORY: exactly the class (OK 4)) - `value.GetType() == typeof(T)`. Golden: OU AS PB1425VD ONLY conforms; a PB1425VD viewed AS PB1425VA ONLY -> HANDLED=EC-OO-CONFORMANCE. With checking OFF (14.8.1 NOTE 3) nothing is set and the object, still a PB1425VA, is viewed as one (golden 2002/pb1425_object_view_unchecked: DERIVED, AFTER). [editions: the OO facility, 2002+]",
+ "state": "OK"
+}

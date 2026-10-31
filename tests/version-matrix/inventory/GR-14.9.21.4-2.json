@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.21.4-2",
+ "section": "14.9.21.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "INITIATE statement",
+ "rule-digest": "1b379aad4c5f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ReportActiveError",
+ "test-ref": "conformance:cases/14.9.16-GENERATE/pb326_ec_report_active_inactive",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB326, landed. An INITIATE of an ACTIVE report calls ExceptionState.ReportActiveError (raise gated by >>TURN) and returns; 'the execution of the INITIATE statement has no other effect' is unconditional, so GR1a-c do not re-run. The golden witnesses exactly that with a SUM counter: the refused second INITIATE does not re-zero it, so the control footing prints S=008 (4+4) rather than S=004. At COBOL-85 there is no >>TURN directive at all, so only the lenient half is observable there — and it is the half that was already correct; what this landing adds is the named condition and the chance to handle it. kb/Work PB688 (2026-09-05): the golden moved from tests/conformance/2002 to tests/conformance/2023 - it observes the report by re-reading the report file through ORGANIZATION IS LINE SEQUENTIAL, which is a COBOL-2023 introduction (12.4.5.10.3 GR2; the Foreword's main-changes list over ISO/IEC 1989:2014), so the program is not expressible at 2002. The RULE's editions are unchanged.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.2.13-2",
+ "section": "8.8.4.2.13",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Simple relation conditions",
+ "rule-digest": "bd5c553fed12",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RelationComparability.cs#IndexNameAgainstNumeric",
+ "test-ref": "conformance:wiseowl/cases/8.8.4.2-Simple-relation-conditions/pb1468_relation_defined_pairs; conformance:cases/8.8.4.2-Simple-relation-conditions/pb1468-relation-index-pair; conformance-test:RelationComparabilityTests.EveryPair_MatchesTheComparisonsDefinedList",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1468 LANDED (wave 67 N). Row 2 'an index-name and a numeric data item or numeric literal' (cite.py OK). The value half already conformed (index-name = 3 TRUE, index-name < COMP 12 TRUE — golden lines 09/10); the pairing half is now enforced: an index-name against an alphanumeric item or literal, an arithmetic expression or a function is COBOL2533 at every relation surface (EVALUATE I1 WHEN \"3\", PERFORM UNTIL I1 = XA pinned). ZERO opposite an index-name is row 2's numeric literal (§8.3.3.6.4 GR4 'the numeric value 0', cite.py OK).",
+ "state": "OK"
+}

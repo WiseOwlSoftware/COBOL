@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.52.4-6",
+ "section": "13.18.52.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "SIGN clause",
+ "rule-digest": "8c1fdb300a10",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs",
+ "test-ref": "conformance:cases/13.18.52-SIGN/pb188_table_value_image_width",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "BOTH HALVES MEASURED, IN BOTH DIRECTIONS. (a) The sign takes its own character position at the named end and is NOT a digit position: `05 A PIC S9(3) SIGN IS LEADING SEPARATE VALUE -123` -> `-123` and `SIGN IS TRAILING SEPARATE CHARACTER` -> `123-`, both 4 characters over a 3-digit picture, with FUNCTION LENGTH and FUNCTION BYTE-LENGTH agreeing at 4 and a `REDEFINES ... PIC X(4)` overlay agreeing (sg_gr6_sep, sg_redef_sep); on a scaled `S9(3)V9(2)` the width is 6 (sg_scaled); the FILE SECTION record image widens identically -- `S9(4) SIGN LEADING SEPARATE` + `X(2)` writes 7 bytes (sg_fd_elemsign, sg_fd_groupsign). (b) The operational signs are exactly '+' and '-': a positive value renders `+123`, a negative `-123` (sg_gr6_sep `J=[+123]`), and on the READING side only those two are accepted -- with a TRAILING SEPARATE item `123+` is NUMERIC=Y +123 and `123-` is NUMERIC=Y -123, while `123 `, `1234` (a digit in the sign position) and `123C` (an over-punch character) are each NUMERIC=N (sg_gr6b_class, sg_gr6a_lead_class). Test coverage: conformance:cases/13.18.52-SIGN/pb188_table_value_image_width derives GR6 a and GR6 b explicitly in its header and pins both positions (`+012` leading, `045+` trailing) for the POSITIVE sign; the NEGATIVE half rides conformance:cases/15.81.4-Returned-value-rule/pb9_reserved_intrinsic_names (`SGN-NEG=-0001` / `SGN-POS=+0001` on a PIC S9(4) SIGN IS LEADING SEPARATE item) and conformance:cases/12.3.6-OBJECT-COMPUTER/pb77_move_past_the_carrier (`NVF-S5=-01000`); the not-a-digit-position width by conformance:cases/8.1.2-Computer-s-coded-character-set/l1_usage_display_character_size (NUM=... 6) and conformance:cases/15.50.4-Returned-value-rules/v59_length_agrees. || code sites, verbatim from the adjudication: src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs:565-566 (FormatDisplaySigned Leading/TrailingSeparate) and :669-676 (ParseDisplay); src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs:597; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs:476 and :492 (the extra character position); DataItem.cs:424-425",
+ "state": "OK"
+}

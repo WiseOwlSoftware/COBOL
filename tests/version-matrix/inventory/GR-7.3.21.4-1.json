@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.21.4-1",
+ "section": "7.3.21.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "PROPAGATE directive",
+ "rule-digest": "b316551e63ab",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/PropagateDirectiveProcessor.cs#Process; src/WiseOwl.Cobol.Compiler/Binding/PropagateState.cs#IsOnAt; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#Bind",
+ "test-ref": "conformance:cases/7.3.21-PROPAGATE/w73d2_pb1119_propagate_on; unit:DirectiveStateStackTests.EachCarriedDirective_IsSavedByPushAndRestoredByPop",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1119 LANDED (wave 73 D2). cite.py --check 7.3.21.4 'automatic propagation of exception conditions becomes enabled for functions, methods, and programs that follow in the compilation group' -> OK 7.3.21.4 1). The directive stage collects ON (written or implied - ON is un-underlined) / OFF toggles into a DirectiveTimeline (PUSH/POP replayed; DirectiveStateRegistry now carries propagate-directive-2002), and the binder folds them once per source element at its first line (PropagateState -> DataBinder.AutomaticPropagation for a program/function, OoMethodSymbol.AutomaticPropagationHere for a method). The golden's W73D2PB/PC/PD follow '>>PROPAGATE ON' and propagate; its W73D2PA precedes it and does not.",
+ "state": "OK"
+}

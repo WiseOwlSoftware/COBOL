@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.38.4-2",
+ "section": "15.38.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "FORMATTED-CURRENT-DATE function",
+ "rule-digest": "53ca30c15290",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#FormattedCurrentDate",
+ "test-ref": "unit:CobolDateWindowingTests.SecondsPastMidnight_Range_StandardNumericTimeForm",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB65 (2026-08-18): the A.1 item-87 determination is DOCUMENTED (docs/CONFORMANCE.md section 7 item 87) — the returned time portion is accurate to the run unit's clock tick (100 ns, 7 fraction digits, SECONDS-PAST-MIDNIGHT's precision through the same RunUnit.Clock seam), carried at 9 fraction digits as ticks x 100 (integer arithmetic — the former double TotalSeconds conversion is gone), zeros beyond the 7th requested digit up to 15.3.3.2's 18. Note A.1's parenthetical says 'Returned value rule 1' where the obligation text is r2.",
+ "state": "OK"
+}

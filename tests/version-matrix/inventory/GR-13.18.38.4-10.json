@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.38.4-10",
+ "section": "13.18.38.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "OCCURS clause",
+ "rule-digest": "c6663d822505",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindReportEntries; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportOccursOf",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb565_report_vertical_repetition; conformance:cases/13.15-Report-group-description/pb565_report_repeating_entry; unit:ReportRepeatingEntryDriftTests.TheSubtreeReplay_IsTheOnlyRepetitionSite",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB565 (vertical axis). 'It causes the entry to define integer-2 distinct report items' is a SUBTREE REPLAY, and all four legs of 'the effect of the OCCURS clause on each repetition depends on the position of the entry containing the clause' are now measured. a) and b) - the relative COLUMN forms - are the horizontal golden's lines 2 and 3. c) 'If the entry also contains a relative LINE clause, each repetition behaves as though it had the same relative LINE clause' is the vertical golden's lines 27-29 (LINE PLUS 1 OCCURS 3 TIMES with no STEP). d) 'If the entry is a group entry having subordinate entries with relative LINE clauses, each repetition behaves as though it had the same subordinate entries with the same relative LINE clauses' is its lines 21-22 and 25-26. Which pair applies is ReportOccursSpec.Axis, fixed once per entry by whether a LINE clause appears on it or in its subtree.",
+ "state": "OK"
+}

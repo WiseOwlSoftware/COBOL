@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.57.3-7",
+ "section": "13.18.57.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "TYPE clause",
+ "rule-digest": "e03920ea1ff0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandType",
+ "test-ref": "conformance-test:TypedefReviewFixTests.WeakGroupTypeOnLevel77_Rejected1536",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "'If the subject of the entry is a level 77 item, type-name-1 shall be an elementary item.' ExpandType: Level == 77 && template.IsGroup -> COBOL1536, strength-invariant. Probes: `77 Z TYPE W` (group) -> 1536; `77 Z TYPE E` (elementary PIC 9(3) VALUE 7) compiles and DISPLAY prints '007'. cite.py --check OK. probes under out13/probe/type-clause-p1/ (pinned adj-d1 cobol.exe, --std 2023 unless noted) || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): Format 1: COBOL-2002, 2014, 2023 (the TYPEDEF/TYPE family; absent from COBOL-85; Annex E lists no 2014->2023 change to §13.18.57). Not edition-gated beyond the clause's own introduction gate. || Code-location detail (moved from the field by registrar 14e): src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandType (SR7 block, COBOL1536)",
+ "state": "OK"
+}

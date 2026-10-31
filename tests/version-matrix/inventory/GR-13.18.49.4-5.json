@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.49.4-5",
+ "section": "13.18.49.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "SAME AS clause",
+ "rule-digest": "5bd6ab75335d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ApplyEffectiveSign",
+ "test-ref": "conformance:cases/8.4.3.3-Reference-modification/pb646_national_form_numeric_2002; conformance:cases/13.18.49-SAME-AS/w66g_pb1300_type_same_as_composition",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (cite.py --check 13.18.49.4 'If an alphanumeric group item, national group item, or strongly-typed group item to which data-name-1 is subordinate contains a SIGN clause' -> OK §13.18.49.4 5)). The ExpandSameAs SIGN walk takes the clause only from a group whose ItemCategory.GroupKindsOf is Alphanumeric, National or StronglyTyped (kb/Work PB1300's sibling sweep: the walk was unfiltered, so a bit group or a variable-length group's SIGN would have been carried), applied through the shared ApplyEffectiveSign. Golden: NS SAME AS NE under `01 NG GROUP-USAGE NATIONAL SIGN LEADING SEPARATE` -> PIC S9(3) SIGN LEADING SEPARATE, BYTE-LENGTH 4; pb646_national_form_numeric pins the alphanumeric-group arm.",
+ "state": "OK"
+}

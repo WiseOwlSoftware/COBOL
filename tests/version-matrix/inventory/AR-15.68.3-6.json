@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.68.3-6",
+ "section": "15.68.3",
+ "kind": "AR",
+ "ordinal": 6,
+ "subject": "NUMVAL-C function",
+ "rule-digest": "8f78890f1c52",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalCDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalDec; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#DigitCapFlag",
+ "test-ref": "conformance:cases/15.67.3-Argument-rules/pb33_numval_family_digit_cap; conformance:cases/15.68.3-Argument-rules/l1_numval_family_cap_discriminators",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "The boundary is now measured ON NUMVAL-C, by a matched pair one digit apart in one run: a 31-digit currency-bearing argument-1 returns the represented value (the currency string is not a digit, 15.68.4 r2) and its 34-digit partner returns the 15.3 default 0. pb33 stays named for its reject line and for TEST-NUMVAL-C at the same boundary, which guards the validator/producer asymmetry that opened the row - but pb33's 31-digit control is on NUMVAL, not NUMVAL-C, so it could not close this row alone. || editions 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the 31-digit limit is stated for native arithmetic, the mode the ARITHMETIC clause (2002) names; the rule's form is the 2002 one. retired-witness: src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalC (NumvalC was replaced by NumvalCDec and NumvalCLocaleDec when NUMVAL-C moved onto the SDIDI carrier (kb/Work PB251, 823e954c8))",
+ "state": "OK"
+}

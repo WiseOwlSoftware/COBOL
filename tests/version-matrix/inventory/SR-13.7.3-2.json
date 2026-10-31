@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.7.3-2",
+ "section": "13.7.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Linkage section",
+ "rule-digest": "9a14571ce031",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PrototypeSignatures.cs#SameDescription; src/WiseOwl.Cobol.Compiler/Binding/Model/StrongTypeModel.cs#SameElementaryLayout",
+ "test-ref": "conformance:cases/10.6-COBOL-compilation-group/pb894-program-prototype-signature; conformance:cases/13.7-Linkage-section/pb1115-prototype-group-subordinates; conformance:cases/13.7-Linkage-section/pb1115_prototype_group_description",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1115 landed (wave 73 E). Rule (cite.py --check 13.7.3 \"shall match the description of the formal parameters and the returning item in the corresponding function definition or program definition\" -> OK §13.7.3 2); twin §10.6.2 2)/3) OK; §8.13 stores \"the description of the parameters\" as the signature -> OK). DETERMINATION for edge (a): a GROUP formal's description is its subordinate entries (a group entry carries no PICTURE, USAGE or length of its own), compared by §8.5.3.1's essential characteristics (cite.py --check 8.5.3.1 \"starting at the same relative byte or bit position and having the same length in bytes or bits\" -> OK): each elementary item at the same relative position, same length, same ALIGNED/BLANK WHEN ZERO/DYNAMIC LENGTH/JUSTIFIED/PICTURE/SIGN/SYNCHRONIZED/USAGE; data-names and intermediate grouping are not description. PrototypeSignatures.Same -> SameDescription = OoConformance.DescriptionMismatch (pair mode) + group-matches-only-group + StrongTypeModel.SameElementaryLayout (the structural half of EquivalentTypeDeclarations, now one predicate). Every same-signature asker shares it (COBOL1513 prototype pairs, SET SR20/SR22, restricted program-pointer CALL). Measured: sr2grp.cob (01 L-G 05 9(2) 05 X(2) vs 05 X(2) 05 9(2)) was clean, now COBOL1513; same layout under other names and grouping runs (A=07 B=XY / W-A=12 W-B=ZZ). Edge (b), a definition OUTSIDE the compilation group: the compiler sees no definition, and §12.3.8.4 GR10 c) takes the details from the external repository -- which is kb/Work PB1086 (no §8.13 repository, rows GR-12.3.8.4-10/-11) and whose run-time per-formal description check is kb/Work PB165 (GR-14.9.4.4-3); this rule's comparison is complete for every definition the compiler is given.",
+ "state": "OK"
+}

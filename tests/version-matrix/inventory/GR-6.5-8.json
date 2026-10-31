@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-6.5-8",
+ "section": "6.5",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "Reference format",
+ "rule-digest": "46e494bb7516",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ContinueFloating",
+ "test-ref": "conformance:cases/6-Reference-format/pb1359_floating_continuation_fixed; conformance:cases/6-Reference-format/pb1359_floating_continuation_free; conformance:cases/6.5-Logical-conversion/pb1359_floating_continuation_copy_replacing; unit:LogicalLineBuilderTests.FloatingContinuation_SkipsCommentAndBlankLines",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1359 landed: the next line that is not a comment or blank line after a floating-continued line is its continuation line; its content after the initial quotation symbol is appended immediately to the latest logical line, in both formats, across comment and blank lines, and a literal may be continued over any number of lines.",
+ "state": "OK"
+}

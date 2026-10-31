@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.45.3-8",
+ "section": "13.18.45.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "RENAMES clause",
+ "rule-digest": "6022b8937694",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveRedefines; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RenamesRangeFault; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CheckStrongTypeDeclarations",
+ "test-ref": "conformance:cases/13.18.45-RENAMES/pb1284-renames-odo-in-range; conformance:cases/13.18.45-RENAMES/pb1284-renames-dynamic-in-range; conformance:cases/13.18.45-RENAMES/pb1284_renames_range_fixed",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1284: the range (GR1: data-name-2 and its subordinates; GR2: data-name-2 through the last entry of data-name-3's subtree, declaration order, groups and REDEFINES views included) is screened before either RENAMES form binds: an occurs-depending table, a variable-length data item (dynamic-length elementary item or dynamic-capacity table, §8.5.1.11.1) or an item of class object/message-tag/pointer (SR14's phrase reader) is refused COBOL2561; the strongly-typed arms stay COBOL1532 (§13.18.57.3 SR3). A range ending before a trailing ODO table is legal and unchanged.",
+ "state": "OK"
+}

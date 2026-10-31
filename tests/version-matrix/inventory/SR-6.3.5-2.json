@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-6.3.5-2",
+ "section": "6.3.5",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Fixed-form reference format",
+ "rule-digest": "5cc8c58a91e2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ContinueFixed; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ContinueFloating",
+ "test-ref": "conformance:cases/6-Reference-format/pb1491_continued_literal_logical_line; unit:ReferenceFormatLogicalConversionTests.ContinuedLiteral_JoinsAcrossADiscardedLine; conformance:cases/6-Reference-format/pb1359_floating_continuation_fixed; conformance:cases/6.2.3-Floating-indicators/pb1492-continuation-no-quotation-symbol; conformance:cases/6.3.5-Continuation-of-lines/pb1492-pseudo-text-delimiter-split; unit:LogicalLineBuilderTests.MultipleCharacterToken_SplitAcrossTheJoin_IsDiagnosed",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1491 + PB1359 + PB1492 landed: spaces at the end of the fixed-form continued line are part of the literal (program-text area read space-filled to margin R, DOC-A.1-157); the continuation line is the next non-comment non-blank line, for the fixed and the floating indicator; its first nonblank character is the matching quotation symbol (COBOL2684); a join that would SPELL a multiple-character separator, invocation operator or indicator split across lines is COBOL2688 (== and ::) / COBOL2496 (*> and >>).",
+ "state": "OK"
+}

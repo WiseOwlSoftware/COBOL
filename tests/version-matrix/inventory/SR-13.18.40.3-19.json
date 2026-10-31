@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-19",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 19,
+ "subject": "PICTURE clause",
+ "rule-digest": "a547e9acd8b8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb528-picture-composition; conformance:cases/13.18.40-PICTURE/pb528_picture_composition_legal_85; unit:PictureCompositionTests.ACompositionViolation_IsCOBOL1934",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-09-09 (kb/Work PB528). 'When the symbol V and one or more symbols P are used in character-string-1, the symbol V shall either immediately precede the first symbol P or immediately follow the last symbol P' - PIC 9V9PP is COBOL1934 (golden entry PB06) and BOTH legal arms are rendered in the positive golden: PIC 99PPV (V follows the last P) and PIC VPP99 (V precedes the first), each carrying the value its 13.18.40.4 GR14 scale implies. Note that satisfying SR19's letter is not sufficient on its own: PIC 99VPP passes SR19 and is still refused, by Table 10, because GR14 puts a RIGHTMOST P string's implied point to its right, which the V contradicts (negative golden pb528-picture-precedence entry PD08, COBOL1935). retired-witness: unit:PictureCompositionTests.ACompositionViolation_IsCOBOLNET1934 (the same witness, re-spelled when the diagnostic code prefix became COBOL#### (kb/Work PB3575); the new spelling is recorded in its place)",
+ "state": "OK"
+}

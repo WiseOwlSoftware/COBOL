@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-11.9.10.2",
+ "section": "11.9.10.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "INITIALIZE clause",
+ "rule-digest": "6cb850260819",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#optionsInitializeClause; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#optionsInitializeTarget; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#optionsInitializeFill; src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#InitializeOf; src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#SectionsOf; src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#SectionOf; src/WiseOwl.Cobol.Compiler/Binding/ChoiceIndicators.cs#AtMostOnce",
+ "test-ref": "conformance:cases/11.9.10-INITIALIZE/pb1508-options-initialize-section-repeated; conformance:cases/11.9-OPTIONS/pb1508_options_printed_sequence",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1508 (landed w1032d). Format: INITIALIZE {ALL | {|LOCAL-STORAGE|SCREEN|WORKING-STORAGE|}} [SECTION] [TO] {BINARY ZEROES | HIGH-VALUES | literal-1 | LOW-VALUES | SPACES}; SECTION and TO not underlined. Verified (probes under out/probe/initialize-clause): ALL SECTION TO HIGH-VALUES -> both sections 0xFF; ALL BINARY ZEROES (SECTION and TO omitted) -> NULs; WORKING-STORAGE LOCAL-STORAGE SECTION X\"5A\" (reverse order, TO omitted) -> both ZZZZ; singular SPACE refused COBOL1727 naming the keyword spelling; ALL mixed with a section name refused (outer braces are exclusive); empty target refused; --std 85/2002/2014 refused COBOL0900 (E.3.3 item 33). SCREEN leg refused by name via ScreenFacility (declined A.4.2 module, PB260 owns). THE ONCE-ONLY HALF of the choice-indicator group (was the defect): cite.py --check 11.9.10.2 \"The storage-section group is enclosed in CHOICE INDICATORS\" -> OK; --check 5.2.6.4 \"any single alternative shall be specified only once\" -> OK. The grammar's optionsInitializeSection+ is the any-order half; OptionsBinder.SectionsOf groups the written targets by alternative and reads each through ChoiceIndicators.AtMostOnce (COBOL2104, at the repeat), binding the first - it used to fold them with a bitwise OR, so `INITIALIZE WORKING-STORAGE WORKING-STORAGE TO X\"5A\".` compiled clean and ran W=[ZZZZ]. MEASURED (w1032d build): that source -> COBOL2104 at 2023 (the negative); WORKING-STORAGE LOCAL-STORAGE in the 2023 golden compiles and runs W=[ZZZZ]. || Editions (adjudicator, verbatim): COBOL-2023 only (Annex E.3.3 item 33: OPTIONS INITIALIZE clause is a 2023 introduction); below 2023 the clause is refused Re-affirmed 2026-10-22 (kb/Work PB3530) against the figure regenerated from the printed page: render_figure.py's brace-group layout now keeps every alternative inside its own enclosure, so the diagram's layout changed while its words did not (sweep_figures.py's word gate); the verdict stands on the printed format.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.15.3-1",
+ "section": "12.4.5.15.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "SHARING clause",
+ "rule-digest": "a3d6d4c43e64",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#MapSharing; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitSharingRegistration; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#OpenShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#LocksEffective",
+ "test-ref": "conformance:cases/12.4.5.15-SHARING/pb321_table19_open_arbitration",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR1 (cite.py --check 12.4.5.15.3 OK): \"The SHARING clause specifies the sharing mode to be used for the file unless it is overridden by the SHARING phrase of the OPEN statement. This clause also specifies whether record locks have an effect. Additional details are specified in 9.1.15\". THREE halves, each verified: (a) clause sets the mode — DataBinder MapSharing -> FileModel.Sharing -> EmitSharingRegistration -> FileRegistry.RegisterSharing; SharedOpenAttempt uses `sharingOverride ?? registered meta.Sharing ?? ImplementorDefaultSharing`. Probe p1.cob: clause NO OTHER on A -> second connector's OPEN INPUT = 61; clause READ ONLY on B -> another INPUT = 00, EXTEND = 61 (§9.1.15 1)/2), cite.py OK). (b) override — OpenShared passes hasSharingOverride ? sharingOverride : null (§9.1.15 \"The SHARING phrase on an OPEN statement overrides the SHARING clause\", cite.py OK). Probe: clause NO OTHER + OPEN INPUT SHARING WITH ALL OTHER -> other INPUT open 00; clause ALL OTHER + OPEN SHARING NO OTHER -> other INPUT open 61. (c) record-lock effect — LocksEffective returns false when the EFFECTIVE (post-override) open sharing is NoOther (§9.1.15 1) \"Record locks are ignored\"; 2)/3) \"Record locks are in effect\"). Probe p2.cob: READ ONLY + LOCK MODE MANUAL, A READ WITH LOCK then B plain READ -> 51 (locks in effect under READ ONLY); ALL OTHER in-effect covered by conformance:cases/9.1.13.9-File-sharing-conflict-condition-with-unsuccessful/file_sharing (READB=51). The NO OTHER 'ignored' arm is verified by reading only — it is essentially unobservable, since exclusive access excludes any second connector that could meet the lock. Side note (not this rule's defect): FileModel.cs line 13 doc comment says the implementor default is 'WiseOwl COBOL: ALL OTHER' while the runtime's ImplementorDefaultSharing is null/undetermined (kb/Work PB321/PB322) — stale comment. No kb/Work note owns open rows here; PB319 (landed) removed a duplicated §14.9.27.3 SR8 check from the SELECT binder; re-confirmed absent (DataBinder.cs ~1110-1125) and the SR8 check fires only at OPEN (probe: COBOL1512 at the OPEN of F-D, not the SELECT).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.5.4-9",
+ "section": "14.9.5.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "CANCEL statement",
+ "rule-digest": "9e4d2f38ecbb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode",
+ "test-ref": "conformance:cases/8.5.1.11.3-Availability-and-persistence-of-variable-length/pb154_cancel_initial",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB154): the emitted CloseFiles body calls RuntimeApi.FileCloseIfOpen per internal NON-SD connector - GR9 scopes the implicit close to a connector 'that is open', so a closed connector is skipped instead of stamped '42', a name the registry does not hold is a fortiori not open (never Require-thrown), and an SD is excluded like every other registration/IO loop excludes it (a sort-merge description is not a file connector). CancelNode closes via a transient factory instance when the slot is null - a returned RECURSIVE activation restores a NULL slot while its connectors stay open in the registry, and the old instance-gated close LEAKED the OS handle (the post-CANCEL reopen answered '30') - with the container resolved TOLERANTLY (the 14.9.18 GR2 implicit cancel legitimately runs after the container's slot was restored to null; pb154_cancel_cascade pins that return, which crashed pre-fix). PB140's Close exception mapping means an error on one close cannot abandon the remaining closes. pb154_cancel_initial's REOPEN=00 pins close-at-CANCEL - NOTE it discriminates via Windows file locking ('30' on the leaked handle); kb/Work PB168 records the CALL-side re-registration that masks it on POSIX.",
+ "state": "OK"
+}

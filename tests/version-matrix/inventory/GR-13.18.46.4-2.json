@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.46.4-2",
+ "section": "13.18.46.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "REPORT clause",
+ "rule-digest": "c96f77fb34c9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs",
+ "test-ref": "conformance:cases/13.18.46-REPORT/pb1050_close_with_active_report_of_two",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "(kb/Work PB1050, wave 1005 A). 'After execution of an INITIATE statement and before the execution of a TERMINATE statement for the same report, no OPEN or CLOSE statements shall be executed that reference the report file' (cite.py --check 13.18.46.4 OK 2)) is a prohibition on the program whose consequences are specified elsewhere: CLOSE -> 14.9.6.4 GR5 (completes, EC-REPORT-NOT-TERMINATED) and OPEN of the already-open file -> status 41 with the report continuing. The multi-report reading - another report on the file still active - is witnessed by pb1050_close_with_active_report_of_two: R-A terminated, R-B active, CLOSE RPT completes 00 and sets the EC, because the emitted CLOSE asks EVERY report associated with the file.",
+ "state": "OK"
+}

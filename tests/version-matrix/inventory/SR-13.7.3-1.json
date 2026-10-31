@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.7.3-1",
+ "section": "13.7.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Linkage section",
+ "rule-digest": "978463910e71",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OoDefinitionRules.cs#RefusedBy; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoBindMethodData; src/WiseOwl.Cobol.Compiler/Oo/OoDriver.cs#BindClassData",
+ "test-ref": "conformance:cases/13.7-Linkage-section/pb1251-object-linkage; conformance:cases/13.7-Linkage-section/pb1251-factory-linkage; unit:OoDefinitionRulesDriftTests.TheVerdicts_AreTheStandards",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1251 landed (wave 1011 C). cite.py --check 13.7.3 'The linkage section may be specified in a program definition, function definition, method definition, program prototype definition, or function prototype definition' -> OK 13.7.3 1). The positive arms (program, function, method, program prototype, function prototype) were verified before; the missing arm was the class-body one: a LINKAGE SECTION written in a FACTORY or OBJECT paragraph bound silently as persistent data. OoDefinitionRules is now the one (definition kind x section) table, asked once per parsed definition by OoDriver.BindClassData (factory, instance) and DataBinder.OoBindMethodData (method), reported as COBOL1519 (DiagnosticCatalog.OoDataDivisionPlacement); negatives pb1251-object-linkage and pb1251-factory-linkage; OoDefinitionRulesDriftTests holds the table total over the grammar's dataDivision sections.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.10.4-9",
+ "section": "14.9.10.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "DELETE statement",
+ "rule-digest": "1614a750cce6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Delete; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Delete",
+ "test-ref": "conformance:cases/14.9.10-DELETE/pb144_indexed_delete_record; conformance:cases/14.9.10-DELETE/l1_delete_fpi_unaffected",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The row was CONFORMS with NO test-ref — 'The file position indicator is not affected by the execution of a DELETE RECORD statement.' Also satisfied by omission (Delete touches neither _fpiKey/_fpiArrival nor _fpiValid), so it too had never been contradicted. PROVED TO DISCRIMINATE RATHER THAN TRUSTED: with IndexedConnector.Delete mutated to set _fpiValid = false on the success path, the fixture's IXNEXTST flips '00' -> '46' and IXNEXT flips 'K03' -> 'K02'; the mutant was then reverted (verified byte-identical by an empty git diff). The leg positions on K02 with START + READ NEXT, deletes the record the FPI is sitting on, and requires the next READ NEXT to return K03.",
+ "state": "OK"
+}

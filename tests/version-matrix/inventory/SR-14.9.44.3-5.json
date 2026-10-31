@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.44.3-5",
+ "section": "14.9.44.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "SUBTRACT statement",
+ "rule-digest": "3a0f6596d08c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#BindSubtractCorresponding",
+ "test-ref": "conformance:cases/14.9.44-SUBTRACT/l1_subtract_corr_word_equivalence",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Both spellings executed on SUBTRACT over identically seeded groups; 14.9.44.4 GR3/GR5 derive 07 and 13 for each, so the two lines must match. Replaces the refuted CORR-only conformance-test ref, which cannot contradict this rule. Runs at --std 2023 only (directory-selected edition).",
+ "state": "OK"
+}

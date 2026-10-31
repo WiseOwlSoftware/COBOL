@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.3.3-8",
+ "section": "11.3.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "CLASS-ID paragraph",
+ "rule-digest": "e180fb74a81e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#AddSkeleton",
+ "test-ref": "conformance-test:ParameterizedClassTests.ClassParameterNotInRepository_2239; conformance:cases/11.3-CLASS-ID/pb759_parameterized_class",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB759.md landed w46i3. Each CLASS-ID USING parameter-name is looked up among the class-/interface-specifiers of the definition's OWN REPOSITORY paragraph; absent -> COBOL2239 (reported on the skeleton whether or not it is expanded). The golden declares every formal (CLASS ELEM / CLASS B).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.13.2-2",
+ "section": "14.6.13.2",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Exception condition handling",
+ "rule-digest": "cb4e17f150fb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.Image.cs#ParseImageSending; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.Image.cs#SendingImage; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#SendingVerbatim; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/SendingRef.cs#FixedPointChecked; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#Occ; src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#RefModPosition; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#PositionRead; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#CountRead; src/WiseOwl.Cobol.Compiler/Binding/Passes/StorageFormPass.cs#IsImagePromotable",
+ "test-ref": "conformance:cases/14.6.13.2-Incompatible-data/pb230_incompatible_sending_sweep; conformance:cases/14.6.13.2-Incompatible-data/w70c_pb1117_item_identification_incompatible; conformance:cases/14.6.13.2-Incompatible-data/w70c-pb1117-turn-below-2002",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "w70c (kb/Work PB1117 landed). cite.py --check 14.6.13.2 'When the content of a numeric sending item that is not described with a standard floating-point usage is referenced during the execution of a statement and the content of that sending operand would evaluate to false in a numeric class condition' -> OK 14.6.13.2 2). Both diverging mechanisms are closed. (A) item identification: MOVE TE(N) TO X, MOVE X(N:1) TO X and MOVE OG TO X (ODO object K = 'A') each RAISED EC-DATA-INCOMPATIBLE on the w70c build (golden legs 1, 3, 4); the numeric position read also honours the sign (S = -1 -> EC-BOUND-SUBSCRIPT, not occurrence 1) and trailing-P scaling (9P = 20 -> occurrence 20). (B) BINARY / PACKED leaves of a whole-written group are image-promoted since kb/Work PB1466 (56098c443, StorageFormPass.IsImagePromotable): re-probed on the w70c build, MOVE X'0A1F' TO GP; IF P IS NUMERIC -> notnum and ADD 1 TO P -> RAISED; the COMP leaf X'FFFF' -> notnum. || editions: 2002, 2014, 2023",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.4-2",
+ "section": "8.5.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Data description and representation",
+ "rule-digest": "7d69f98e0f8f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#MinimumLengthIsZero; src/WiseOwl.Cobol.Compiler/Binding/Bound/MoveClassifier.cs#ZeroLengthItemRoute; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#Emit; src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#CobolClass",
+ "test-ref": "unit:ZeroLengthItemDriftTests.Item2_GroupOverAZeroLengthMember_HasZeroMinimumLength",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Stem: `OK  §8.5.4` \"A zero-length item is a data item or a literal whose minimum length is zero and whose length at runtime is zero.\" The compiler holds the stem's description half as ONE recurrence (DataItem.MinimumLengthIsZero) and the runtime half as the emitted current-length test; consumers read it (MoveClassifier.ZeroLengthItemRoute / MoveEmitter for §14.9.25.4 GR1, CobolClass for §8.8.4.4.4 GR1, STRING/UNSTRING/INSPECT runtime length). Item 2 is the recurrence itself (child.MinimumLengthIsZero). Probe p1: `01 OG. 05 IG. 10 IE PIC X OCCURS 0 TO 5 DEPENDING ON N.` N=0 -> class condition false, MOVE OG TO X(5) = spaces, FUNCTION LENGTH(OG)=0. Probe p2: `01 DG. 05 DM PIC X DYNAMIC LENGTH.` -> FUNCTION LENGTH(DG)=0; DG is a variable-length group (§8.5.1.12.1), so class condition / UNSTRING / INSPECT on it are refused by their own SRs (COBOL2200/1651/1626, correct) and MOVE is GR9-governed (MoveClassifier determination). Side observation filed in dossier_gaps: STRING accepts DG/VG as identifier-1 (SR11 under-reject) and dies at run time with NotImplementedCobolFeatureException — a STRING-row defect, not this definition's. || editions as written by the adjudicator: 85, 2002, 2014, 2023 for the nested-ODO form; 2014+ where the subordinate is a DYNAMIC LENGTH / dynamic-capacity item (those facilities are post-2002). §8.5.4 is not in Annex E's 2014->2023 delta, so the concept predates 2023; the repo holds no 2002/2014 text, so the 2002-vs-2014 introduction edge is not separately derivable (VERSION_CHANGE_REFERENCE ratified decision #1).",
+ "state": "OK"
+}

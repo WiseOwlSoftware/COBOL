@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.8.3-2",
+ "section": "7.3.8.3",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Constant conditional expression",
+ "rule-digest": "aa92eb6b8d97",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#CceRelation; src/WiseOwl.Cobol.Frontend/Expressions/CtValue.cs#RelationalEquals",
+ "test-ref": "unit:CompileTimeBooleanCceTests.Cce_TrueFalse",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: non-numeric, non-boolean relation — no collating sequence, binary per-character equality, unequal length => not equal (cite.py --check 7.3.8.3 '...If the literals are of unequal length they are not equal.' OK). Code: CceRelation delegates to CtValue.RelationalEquals (binary, length-sensitive for alphanumeric/national); boolean right-zero-extends per §8.8.4.2 (GR2 excludes boolean). Probes (pinned cobol.exe, 2023): c1 '\"abc\" = \"ABC\"' FALSE; c2 '\"AB\" = \"AB \"' FALSE (no space padding); d5 'X\"41\" = \"A\"' TRUE (binary encoding); d11 '\"ab\" IS <> \"AB\"' TRUE; c19 N\"AB\" = N\"AB\" TRUE; c23 NOT = TRUE. Cce_TrueFalse pins equal / unequal-length / case-sensitivity with spec-derived values.",
+ "state": "OK"
+}

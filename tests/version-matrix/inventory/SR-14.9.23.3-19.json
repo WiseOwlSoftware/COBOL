@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.23.3-19",
+ "section": "14.9.23.3",
+ "kind": "SR",
+ "ordinal": 19,
+ "subject": "INVOKE statement",
+ "rule-digest": "e01e5b042606",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindUniversalInvoke; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitUniversalInvoke",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1021_address_identifier_operands; conformance:cases/8.4.3.7-NULL-object-reference/pb1137_invoke_argument_forms",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1137 (landed w61j). 'If identifier-3 references an address-identifier, identifier-3 is a sending operand' (cite.py --check 14.9.23.3 OK, SR19). Typed path (PB1021): the address crosses as a detached pointer value with no write-back. Universal path (PB1137): the address-identifier arm now exists, boxes the pointer value, and EmitUniversalInvoke skips its copy-out (Source is null). Golden pb1137_invoke_argument_forms checks the caller's pointer P = ADDRESS OF X after the call (ADDR OK).",
+ "state": "OK"
+}

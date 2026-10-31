@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.2.3.4-10",
+ "section": "7.2.3.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "COPY statement",
+ "rule-digest": "868f775c3b33",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy",
+ "test-ref": "unit:CopyReplacingNestedCopyTests.ReplacingOverNestedCopy_DrawsGr10; unit:TextManipulationTextWordTests.SuppressReplacingOverNestedCopy_DrawsGr10",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1354 landed (w61a): GR10 now keys on the REPLACING phrase being SPECIFIED, on the SUPPRESS path too (refute probe r4 -> COBOL1640). Spec re-derived and re-cited by the implementer; every probe of the note re-run on the fixed build.",
+ "state": "OK"
+}

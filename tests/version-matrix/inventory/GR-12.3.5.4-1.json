@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.5.4-1",
+ "section": "12.3.5.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "SOURCE-COMPUTER paragraph",
+ "rule-digest": "de1a3322ccf8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#InheritConfiguration",
+ "test-ref": "conformance:cases/12.3.5-SOURCE-COMPUTER/pb1088_dbg_contained",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1088: every SOURCE-COMPUTER clause reaches contained units through InheritConfiguration; WITH DEBUGGING MODE is now OR-ed into the inherited value in BindDeclarations instead of assigned over it (the one unconditional reassignment among the inherited fields), so a contained program's USE FOR DEBUGGING section compiles under its container's switch.",
+ "state": "OK"
+}

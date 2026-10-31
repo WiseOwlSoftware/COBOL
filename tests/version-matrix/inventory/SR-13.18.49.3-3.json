@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.49.3-3",
+ "section": "13.18.49.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "SAME AS clause",
+ "rule-digest": "0c1bcac74fa2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAsEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAs",
+ "test-ref": "conformance-test:SameAsTests.SameAsMutualCycle_Rejected1557; conformance:cases/13.18.49-SAME-AS/pb1302-same-as-cycle-through-subordinate",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1302 (wave 1019 D). SR3 is ONE order-independent test: the expansion chain carries every subject in progress, and a data-name-1 that IS or CONTAINS one of them holds a SAME AS reaching the subject (COBOL1557); the target's subtree is completed on the same chain before it is copied, so `01 G. 05 X PIC X. 05 Y SAME AS H. 01 H SAME AS G.` is 1557 whichever entry expands first (it drew only a cascade COBOL0881 before). A TYPE clause in that subtree naming a declaration in progress is 13.18.57.3 SR1 (l1c27 / l1c34 negatives keep their 1557).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.10.4-3",
+ "section": "11.10.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "PROGRAM-ID paragraph",
+ "rule-digest": "5d9f42e6c2b0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelContained",
+ "test-ref": "conformance:cases/11.10-PROGRAM-ID/l1c21_initial_program_state",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'When an initial program is activated, the data items and file connectors contained in it and any program contained within it are set to their initial states' (--check 11.10.4 -> OK §11.10.4 3)). CallProgram: freshInstance = n.Initial||n.Recursive -> new instance (initial WS), CancelContained(n) on activation, and on return (Active==0) CloseFiles + CancelContained + drop instance (§14.9.18 GR2 implicit CANCEL). Probes: probe dir out/probe/program-id-paragraph/gr3.cob (--std 85/2023) INITIAL GR3I with contained non-initial GR3K, each ADD 1 to a VALUE 0 counter, called twice -> 'I 1 / K 1 / I 1 / K 1' while ordinary GR3L shows 'L 1 / L 2' (last-used control). File-connector half: probe dir out/probe/program-id-paragraph/gr3f.cob, INITIAL program OPEN OUTPUT without CLOSE, called twice -> 'OPEN 00' both times (connector reset, not 41). Both halves verified. The only existing golden that pins this behaviour, conformance:cases/11.10-PROGRAM-ID/pb154_cancel_cascade, declares OUTER154 INITIAL directly containing INNERA154 RECURSIVE -- a §11.10.3 SR6 violation -- so it is not a conforming program and cannot close the row; test-needed. || Editions (adjudicator, verbatim): 1985, 2002, 2014, 2023",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.39.3-2",
+ "section": "13.18.39.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "PAGE clause",
+ "rule-digest": "91c585bac0ca",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportPageClause",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb1059_page_width_only",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1059: the brace group has no empty alternative, so a PAGE clause with neither integer-1 nor integer-2 is a parse error and integer-2 alone (`PAGE 8 COLS`) is legal.",
+ "state": "OK"
+}

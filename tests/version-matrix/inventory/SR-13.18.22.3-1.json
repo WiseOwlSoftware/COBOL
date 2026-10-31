@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.22.3-1",
+ "section": "13.18.22.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "EXTERNAL clause",
+ "rule-digest": "d6ad4d6abf80",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenClausePlacement; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileSection",
+ "test-ref": "unit:DataClausePlacementDriftTests.MisplacedExternalOrGlobal_IsRefused_AndNeverRegistered; unit:DataClausePlacementDriftTests.External_OutsideWorkingStorage_IsRefused; conformance:cases/13.16-Data-description/pb518_clause_placement_legal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Closed by the kb/Work PB518 landing (the same registration-scan filter was this rule's only site). The EXTERNAL Residence row: level 1 in the working-storage section, or a level-1 type declaration in any section -> else COBOL2404; the file description entry arm is the FD's own fileGlobalExternalClause (BindFileSection). MEASURED at 2023: EXTERNAL at level 05, at level 77, in LOCAL-STORAGE, in LINKAGE and on a FILE SECTION record -> COBOL2404 (were: accepted, clause silently dropped - the scan's `externalLegal` / level `continue` filters).",
+ "state": "OK"
+}

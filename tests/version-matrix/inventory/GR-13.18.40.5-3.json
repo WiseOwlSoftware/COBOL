@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.40.5-3",
+ "section": "13.18.40.5",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "PICTURE clause",
+ "rule-digest": "7d68389ca1b0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#TrySimpleInsertion; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#FormatSimpleInsertion; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#EditFormatSimpleInsertion",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb490_editing_simple_insertion; conformance:cases/13.18.40-PICTURE/pb490_simple_insertion_strings_85; conformance:cases/12.3.7-SPECIAL-NAMES/pb490_simple_insertion_comma_mode; conformance:cases/13.18.40-PICTURE/pb492_national_edited_2023; unit:CobolEditSimpleInsertionDriftTests.Pass1_PlacesTheInsertionCharacterAtTheSymbolsOwnPosition; unit:CobolEditSimpleInsertionDriftTests.NationalEdited_RendersIdenticallyToAlphanumericEdited; unit:CobolEditSimpleInsertionDriftTests.TheSetIsRule3s_AndNothingElseIsSimpleInsertion; unit:CobolEditSimpleInsertionDriftTests.Alphanumeric_InsertsTheSameCharacterTheNumericPathDoes",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB490 LANDED; kb/Work PB492 RE-POINTED the code-location 2026-09-12 and added the category rule 3 could not previously reach. The verdict is unchanged. Rule 3's SET is still written down once (CobolEdit.SimpleInsertionSymbols / IsSimpleInsertionSymbol / TrySimpleInsertion) and every consumer reads it; the consumer, FormatSimpleInsertion, serves BOTH categories Table 7 gives simple insertion, reached only through RuntimeApi.EditFormatSimpleInsertion(value, pic). PB492 also puts rule 3's 'the insertion character occupying the same character position in the edited item as the associated symbol occupies in character-string-1' on the national-edited category for the first time (PIC NNBNN -> [AB CD], PIC NNTNN EDITING \"T\" IS N\":\" -> [AB:CD]), and closes a second consumer that was going AROUND the set: MoveEmitter.ConvertSource's two whole-width-fill guards returned a plain fill for a figurative or ALL-literal source, so `MOVE ALL \"X\" TO PIC XX/XX` stored XXXXX where rule 3 requires the slant to stand (measured; now XX/XX) and the figurative guard named only the alphanumeric half, so `MOVE SPACE TO PIC NN0NN` stored five spaces where the zero must stand (now [  0  ]). retired-witness: src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.cs#FormatAlphanumeric (FormatAlphanumeric is now CobolEdit.FormatSimpleInsertion (kb/Work PB492, fafeadb8b))",
+ "state": "OK"
+}

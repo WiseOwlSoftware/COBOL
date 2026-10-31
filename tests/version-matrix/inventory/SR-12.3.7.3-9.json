@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.7.3-9",
+ "section": "12.3.7.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "90163df3235b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#OrderTableBind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindStandardCompare",
+ "test-ref": "unit:StandardCompareTests.TheClauseAndEveryReferenceShape_Compile; conformance:cases/12.3.7-SPECIAL-NAMES/pb101_standard_compare",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB101 T7: an ordering-name lives in its own SPECIAL-NAMES registry (OrderTables) that only BindStandardCompare consults; no other reference form resolves it, so a use elsewhere is an undefined word.",
+ "state": "OK"
+}

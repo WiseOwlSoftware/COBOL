@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.2.8-1",
+ "section": "8.8.4.2.8",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Simple relation conditions",
+ "rule-digest": "b96a086f67de",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderRelationalCore; src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#Compare; src/WiseOwl.Cobol.Runtime/Values/Text/CobolBool.cs#Equal; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckRelationalOperands",
+ "test-ref": "unit:CobolBoolTests.Equal_ZeroExtends",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (cite.py --check 8.8.4.2.8 \"Two zero-length operands are equal\" -> OK §8.8.4.2.8 1)): equal-length boolean operands compare position by position, leftmost first, equal iff every pair is equal; two zero-length operands are equal. Code: a relation whose collating class is Boolean renders `CobolString.Compare(l, r, pad: '0') op 0` (ConditionRenderer.RenderRelationalCore); a boolean-EXPRESSION relation renders CobolBool.Equal; the figurative arm threads the same pad. Both are positionwise first-difference loops over the D-B1 '0'/'1' substrate, so usage (DISPLAY vs BIT) does not enter. Ordering operators never reach the runtime: CheckRelationalOperands raises COBOL0844 (boolean relations are equality-only under §8.8.4.2.2 Format 2), so the 'no ordering' reading of this rule (which, unlike 8.8.4.2.10, names no greater operand) is honoured. Zero-length: Compare/Equal on two empty strings return 0/true by reading (and CobolBoolTests InlineData(\"\",\"\",true)). Probe E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2\\out\\probe\\srcp2\\bool1.cob / bool2.cob (--std 2023 and 2002): B3D(DISPLAY) = B3B(BIT) same value -> Y; B\\\"10\\\" = B\\\"101\\\" -> N; B3 NOT = B5X -> Y; BIT group (GROUP-USAGE BIT, §8.8.4.2.1 treats it as an elementary bit item) = BIT item -> Y; B-AND expression relation -> Y; >>IF cce B\\\"10\\\" = B\\\"100\\\" -> Y; EVALUATE subject/object -> correct; level-88 VALUE B\\\"11\\\" over 110 -> TRUE. Aside (not this rule): `01 G USAGE BIT.` over PIC 1 subordinates is correctly an ALPHANUMERIC group (only GROUP-USAGE BIT makes a bit group), so comparing it with a boolean draws COBOL0844. Test: CobolBoolTests.Equal_ZeroExtends asserts equal-length equality/inequality and the two-empty-operands case from the rule text; the item-vs-item carrier (CobolString.Compare pad '0') is covered by unit:CobolStringPadTests.Compare_PadZero_ZeroExtends. [editions as adjudicated: 2002, 2014, 2023 (class boolean does not exist in the 1985 standard; boolean data was introduced by ISO/IEC 1989:2002)]",
+ "state": "OK"
+}

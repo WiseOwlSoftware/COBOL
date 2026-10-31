@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.8.3-2",
+ "section": "12.4.5.8.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "FILE STATUS clause",
+ "rule-digest": "b6f4249349cf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenFileStatusItem; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#FileStatusShapeFault; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#Section",
+ "test-ref": "conformance:cases/12.4.5.8-FILE-STATUS/pb1080-file-status-item-shape; conformance:cases/_unassigned/pb1080_file_status_item_forms; conformance:cases/12.4.5.8-FILE-STATUS/pb850-file-status-alphanumeric-edited",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1080 landed (w61c). cite.py --check 12.4.5.8.3 'Data-name-1 shall reference a two-character data item of the category alphanumeric, defined in the working-storage, local-storage, or linkage section' -> OK SR2. All three conjuncts: category (ItemCategory.IsAlphanumeric — PIC 99 formerly crashed Roslyn CS0029, PIC N(2) ran), size (exactly two character positions, fixed — PIC X / X(3) and an ODO-varied group refused), section (the new DataItem.Section fact, written on each root by BindEntries and read from the root, so a GLOBAL item keeps its own section; an FD record refused). Determination: a two-character alphanumeric GROUP qualifies (13.18.29.4 GR3 makes it an alphanumeric group item) — positive golden pb1080_file_status_item_forms updates both an elementary and a group status item.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-7.3.18.2",
+ "section": "7.3.18.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "LISTING directive",
+ "rule-digest": "bf9d42b9c7e7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/WiseOwl.Cobol.Editions/DirectiveOperandSyntax.cs#DirectiveOperandSyntax",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb794_directive_operands; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_DiagnosesAMalformedOperand; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "{ ON | OFF } with ON un-underlined (rendered from the printed page, folio 78), so a bare >>LISTING selects it - which is what 7.3.18.3 GR4/GR5 call 'specifying or implying the ON phrase'. Any other operand is COBOL1911. The directive itself is a no-op under 7.3.18.3 GR1: this compiler produces no source listing.",
+ "state": "OK"
+}

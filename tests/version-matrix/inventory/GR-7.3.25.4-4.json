@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.25.4-4",
+ "section": "7.3.25.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "TURN directive",
+ "rule-digest": "b4be462de137",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionCatalog.cs#DirectiveCovers; src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs#WithImplicitEnable",
+ "test-ref": "conformance:cases/7.3.25-TURN/l1c33_turn_io_warning_explicit_only; conformance:cases/7.3.25-TURN/pb1382_successful_read_raises_io_warning_for_the_use_declarative",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "cite.py --check 7.3.25.4 \"may be turned on only by specifying it explicitly within a TURN directive\" OK. TURN half (probes via OPEN INPUT of a missing OPTIONAL file, status 05): TRNO1 EC-ALL ON -> not raised; TRNO2 EC-I-O ON -> not raised; TRNO3 EC-I-O-WARNING ON -> EC-I-O-WARNING; TRNO4 then EC-ALL OFF -> still raised; TRNO5 then EC-I-O OFF -> still raised; TRNO6 then EC-I-O-WARNING OFF -> not raised. PERFORM half: TRNQ1 'PERFORM OPEN INPUT F2 WHEN EC-I-O-WARNING ...' -> the WHEN runs with EC-I-O-WARNING; after END-PERFORM a second OPEN (status 05) does not raise it (status stays the EC-USER-X raised between); TRNQ2 WHEN EC-I-O and TRNQ3 WHEN EC-ALL do not enable it. All four halves verified. Test-ref empty: unit:TurnStateTests.EcAll_DoesNotEnableIoWarning witnesses only the TURN on/EC-ALL arm; the WHEN-phrase and end-of-PERFORM arms have no spec-derived witness. SIBLING DEFECT FOUND WHILE PROBING (not this rule's): a SUCCESSFUL READ with a nonzero status never calls the EC hook, so EC-I-O-WARNING is never raised by READ even when explicitly enabled — see findings (§9.1.13.1). || editions (adjudicator): 2023 (EC-I-O-WARNING and the exception-checking PERFORM are COBOL-2023 additions, Annex E)",
+ "state": "OK"
+}

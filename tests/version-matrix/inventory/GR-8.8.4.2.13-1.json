@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.2.13-1",
+ "section": "8.8.4.2.13",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Simple relation conditions",
+ "rule-digest": "25ee5c3b9707",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#FieldOperand; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderNumericRelational",
+ "test-ref": "conformance:cases/8.8.4.2.13-Comparisons-involving-index-names-or-index/l1c32_index_name_relation",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 8.8.4.2.13 \"two index-names. The result is the same as if the corresponding occurrence numbers were compared\" -> OK §8.8.4.2.13 1)). Code: an index-name operand binds to BoundComputedOperand(BoundIndexRef), whose value is the OCCURRENCE NUMBER, and the pair reaches RenderNumericRelational (§8.8.4.2.4 algebraic compare) — so two index-names compare by occurrence number irrespective of their tables' element sizes. Probe E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2\\out\\probe\\srcp2\\idx1.cob: I1 (table of X(4)) and I2 (table of X(8)) both SET TO 3 -> I1 = I2 TRUE (a displacement representation would say FALSE); I1 = J1 (same table) TRUE; after SET I2 TO 4: I1 < I2 TRUE, I2 > I1 TRUE; EVALUATE I1 WHEN I2 -> no match. No existing test pins two index-names of DIFFERENT element sizes (the case that distinguishes occurrence-number from displacement comparison) — test-needed. The 'only between' restriction of the clause stem is adjudicated on rows 2 and 3. [editions as adjudicated: 85, 2002, 2014, 2023 (index-names and their relation tests are in every edition)]",
+ "state": "OK"
+}

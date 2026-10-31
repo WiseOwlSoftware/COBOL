@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.71.4-1",
+ "section": "15.71.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "ORD-MAX function",
+ "rule-digest": "9b4b44748de9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#OrdMaxReal; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AnyRealArgument",
+ "test-ref": "conformance:cases/15.7.4-Returned-value-rule/pb2_float_argument_exact_family",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PB2 LANDED. The 1-based ordinal was already correct for fixed-point and string arguments; the float leg produced no value. OrdMaxReal returns the leftmost greatest position per 15.71.4 r3, and the golden pins ORD-MAX over two COMP-2 items.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.28.2",
+ "section": "13.18.28.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "GROUP INDICATE clause",
+ "rule-digest": "7c28ef9ae91f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupIndicateClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupClause",
+ "test-ref": "conformance:cases/13.18.28-GROUP-INDICATE/l1c12_group_indicate",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "General format '<u>GROUP</u> INDICATE' — only GROUP is underlined, so INDICATE is an optional word. Grammar: reportGroupIndicateClause : GROUP INDICATE? ; admitted as an alternative of reportGroupClause (any order within the entry). Probes probe/group-indicate-clause/gip1..gip6 parse 'GROUP INDICATE' in any clause position. No edition gate needed: the clause is in every edition's report writer. cite.py --check 13.18.28.3 'may be specified only within a detail report group description' OK (the clause family). No spec-derived golden exercises the clause (pb565_report_repeating_entry mentions it only in a comment; ReportWriterSpecTests.GroupIndicate_PrintsOncePerGroup is in the legacy Legacy.Tests.Integration project) — test-needed. || Editions (adjudicator): 1985 (Report Writer module), 2002, 2014, 2023",
+ "state": "OK"
+}

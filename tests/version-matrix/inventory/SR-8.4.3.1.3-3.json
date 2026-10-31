@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.1.3-3",
+ "section": "8.4.3.1.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Identifier",
+ "rule-digest": "cbe2be9f5403",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/ExpressionFormationPass.cs#VisitDataReference; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#CannotBeSubscripted",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1455-subscript-before-qualifier; conformance:cases/8.4.3.1-Identifier/pb1455_qualified_subscripted_subscript",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1426 (landed with PB1455, w1014 group S). SR3 (cite.py --check 8.4.3.1.3 3) OK) defines Format 2 by 8.4.2.3: subscripts follow the WHOLE qualified name. The refuter's under-reject (`E (1, 2) OF T` compiled at 85 and 2023) is refused COBOL2776 at every edition; the same-named-table accept side conforms, and a qualified subscripted identifier is now admitted AS a subscript (`X (E OF T OF G (2))`).",
+ "state": "OK"
+}

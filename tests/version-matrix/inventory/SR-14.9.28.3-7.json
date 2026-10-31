@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.28.3-7",
+ "section": "14.9.28.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "PERFORM statement",
+ "rule-digest": "070a7832d775",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs",
+ "test-ref": "conformance:cases/8.7.5-Relational-operators/l1_perform_until_condition_forms",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Ten 8.8.4 conditional-expression forms in UNTIL slots (condition-1 and condition-2), each value derived from that form's own rules.",
+ "state": "OK"
+}

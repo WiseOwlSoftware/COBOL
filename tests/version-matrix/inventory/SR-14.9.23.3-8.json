@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.23.3-8",
+ "section": "14.9.23.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "INVOKE statement",
+ "rule-digest": "21a4843694f8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvoke; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitUniversalInvoke",
+ "test-ref": "conformance:cases/8.3.3.5-National-literals/pb1136_invoke_selector_forms; conformance:cases/14.9.23-INVOKE/pb1136-invoke-identifier-2-boolean; conformance:cases/14.9.23-INVOKE/pb850-invoke-identifier-2-national-edited",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1136 LANDED (w1014u). cite.py --check 14.9.23.3 'Identifier-2 shall reference an alphanumeric or national data item' OK 8). The screen reads the ONE operand category (DataItem.OperandPic): elementary alphanumeric or national, an alphanumeric group (8.5.2.1) or a national group (13.18.29.4 GR2 b)) are admitted; a boolean item or bit group is refused COBOL0866 naming SR8. The emitter reads identifier-2's content through OperandText.FieldImage, so a GROUP selector no longer emits a struct into a string parameter (CS1503 - an alphanumeric group was admitted and never compiled). Golden: PIC N(5) -> HI, national group -> HI, alphanumeric group -> HI.",
+ "state": "OK"
+}
