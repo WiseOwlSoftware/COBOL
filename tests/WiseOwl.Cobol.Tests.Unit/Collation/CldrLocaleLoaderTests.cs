@@ -152,8 +152,10 @@ public sealed class CldrLocaleLoaderTests(ITestOutputHelper output)
         Assert.Equal(new[] { "de_AT", "de", "root" }, CldrLocaleLoader.Chain("de-AT"));
         Assert.Equal("no", CldrLocaleLoader.ResolveCollation("nb").Found!.Tag);                              // nb.xml is empty; no.xml has the rules
         Assert.Equal("root", CldrLocaleTag.FileName("und"));
-        var kn = CldrLocaleTag.Parse("en-u-kn-true");
-        Assert.Single(kn.Unsupported);
+        var kh = CldrLocaleTag.Parse("en-u-kh-true");                 // the one key left the engine does not implement (hiraganaQ, kb/Work PB107)
+        Assert.Single(kh.Unsupported);
+        Assert.Empty(CldrLocaleTag.Parse("en-u-kn-true-kc-true").Unsupported);
+        Assert.True(CldrLocaleTag.Parse("en-u-kn-true-kc-true").Settings.NumericOrdering);
         var sel = CldrLocaleLoader.ResolveCollation("de-AT-u-co-phonebk");
         Assert.Equal("de-AT", sel.Found!.Tag);            // de_AT.xml defines its own phonebook
         Assert.Equal("phonebook", sel.Type);
@@ -410,7 +412,7 @@ public sealed class CldrLocaleLoaderTests(ITestOutputHelper output)
         Less(FromRules("&a<ä &äx<<q"), "az", "q");
         // The discontiguous arm: a + dot below + acute walks to the tailored á (a + U+0301, the dot below unblocked
         // between them, UTS #10 S2.1.1-S2.1.3) and then the dot below; q is its secondary variant, so after b.
-        Less(FromRules("&b<á &ạ́<<q"), "bz", "q");
+        Less(FromRules("&b<á &a\u0323\u0301<<q"), "bz", "q");
         // A key led by a Hangul syllable is not a mapping the walk can meet (the engine decomposes the syllable before
         // the table, so the built table maps no jamo spelling for it): 가x reads the root's jamo then x, exactly as the
         // text 가x itself walks, so q (its secondary variant) sorts between 가x and 가y, not after a.
@@ -458,7 +460,8 @@ public sealed class CldrLocaleLoaderTests(ITestOutputHelper output)
         sw.Restart();
         var ja = L("ja");
         output.WriteLine($"ja built in {sw.ElapsedMilliseconds} ms; unsupported: {string.Join(" | ", CollationEngine.ResolveLocale("ja").Unsupported)}");
-        Assert.Contains(CollationEngine.ResolveLocale("ja").Unsupported, u => u.Contains("quaternary"));
+        Assert.Empty(CollationEngine.ResolveLocale("ja").Unsupported);   // the <<<< relations are applied (kb/Work PB107), not reported
+        Assert.True(CollationEngine.ResolveLocale("ja").Table.HasQuaternary);
         Less(ja, "あ", "い");
         Less(ja, "a", "あ");                                    // [reorder Latn Kana Hani]
         sw.Restart();
