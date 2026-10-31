@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.5.4-12",
+ "section": "14.9.5.4",
+ "kind": "GR",
+ "ordinal": 12,
+ "subject": "CANCEL statement",
+ "rule-digest": "9c2d3432f96b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Cancel",
+ "test-ref": "conformance:cases/14.9.5-CANCEL/pb154_cancel_scope",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB154): pb154_cancel_scope drives a DYNAMIC LENGTH item reduced to length zero into CANCEL - the previously-unreached GR12 guard's own case is now demonstrated (the H-counter continuity shows no effect, and since the guard precedes ResolveVisible, not even a resolution occurs). The adjudicator's Trim() breadth observation stands recorded and produces no wrong answer for GR12.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.9.10.4-5",
+ "section": "11.9.10.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "INITIALIZE clause",
+ "rule-digest": "e3c653d855ba",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/InitialStateBackground.cs#ClauseFillChar",
+ "test-ref": "conformance:cases/11.9.10-INITIALIZE/pb152_options_initialize_figurative; conformance:cases/11.9.10-INITIALIZE/pb152_options_initialize_background; conformance:cases/11.9.10-INITIALIZE/pb152_options_initialize_arm_agreement",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-09-02 (PB152). All five GR5 arms. ⛔ GR5 b/d resolve through FigurativeConstants.FillChar - the compiler's ONE definition of the alphanumeric high and low value, which 8.3.3.6.4 GR6 makes a PROGRAM-COLLATING-SEQUENCE-dependent fact rather than a constant - and NOT through a second map. This was measured wrong: PB151's landed ALLOCATE arm carried its own GR5 map spelling HIGH-VALUES as U+FFFF while every other HIGH-VALUE in the compiler is U+00FF under the native sequence. One rule, two places, two answers, and the arm with the private copy was the one that disagreed with the rest of the compiler. GR5 a is kept SEPARATE from GR5 d on purpose: 'a string of binary zeros' is the literal zero byte while 'the alphanumeric low value character' is the collating minimum - they coincide natively and diverge under a PROGRAM COLLATING SEQUENCE. pb152_options_initialize_arm_agreement asks all three consuming arms the same HIGH-VALUES question in one program.",
+ "state": "OK"
+}

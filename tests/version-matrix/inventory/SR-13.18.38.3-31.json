@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.38.3-31",
+ "section": "13.18.38.3",
+ "kind": "SR",
+ "ordinal": 31,
+ "subject": "OCCURS clause",
+ "rule-digest": "8a23ca044c6b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#CapacityRegisterName",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb885-capacity-subscripted",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB885 sibling sweep. 'Data-name-3 shall not be subscripted': the capture was GetText(), so CAPACITY IN CAP3 (1) silently defined a register spelled CAP3(1); it now goes through ClauseDataName and draws COBOL2024. OCCURS DYNAMIC is COBOL-2014.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.4.6.2",
+ "section": "13.4.6.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Sort-merge file description entry",
+ "rule-digest": "41f3cfda5605",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#sortMergeDescriptionClause; src/WiseOwl.Cobol.Frontend/Cst/ClosedFormats.cs#ByContext; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedClause",
+ "test-ref": "conformance:cases/13.4.6-Sort-merge-file-description/pb829-sd-unrecognized-clause; conformance:cases/11.2-Identification-division-structure/pb829_closed_formats_legal; unit:ClosedFormatDriftTests.EveryContextCarryingTheErrorProduction_HasAClosedFormatRow",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The format is `SD file-name-1 [ record-clause ] .` and nothing else, RENDERED from the printed page (PDF p376 / printed folio 346) rather than read off the OCR. Both halves hold: the record-clause is modelled and the file-name-only spelling parses (the positive golden writes `SD SF RECORD CONTAINS 10 CHARACTERS.`), and the residue is now DIAGNOSED. The rule used to end in a generic file-description clause (`IDENTIFIER (IDENTIFIER|literal)*`), a shared vendor-extension catch-all that made `SD SF WIBBLE WOBBLE.` compile and run in silence at every edition (kb/Work PB829); it now ends in the ONE `unrecognizedClause` error production, refused by name with COBOL1970. The COBOL-85 DATA RECORDS clause of this format is superset-parsed and removal-gated post-bind. A green witness that the legal clause parses would NOT have been evidence on its own — the row also owes the negative, because an open list can parse every legal clause and still accept anything at all.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.2.10-2",
+ "section": "8.8.4.2.10",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Simple relation conditions",
+ "rule-digest": "b4af24b9163b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#Compare; src/WiseOwl.Cobol.Runtime/Values/Text/LiteralPhraseCollation.cs#Compare; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderRelationalCore",
+ "test-ref": "conformance-test:NationalBooleanDataTests.NationalComparison_OrderingAndSpaceExtension",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (cite.py --check 8.8.4.2.10 \"extended on the right by sufficient national spaces\" -> OK §8.8.4.2.10 2)). Code: native CobolString.Compare pads the shorter operand with ' ' (U+0020, the national space of the UTF-16 national repertoire, the same character VALUE/MOVE padding uses — probe V1 `N(2) \"AB\" = N(4) VALUE N\"AB\"` is TRUE); LiteralPhraseCollation.Compare pads with ' ' and weighs the pad THROUGH the sequence. Probe E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2\\out\\probe\\srcp2\\nat1.cob: N\\\"AB\\\" = N\\\"AB  \\\" -> TRUE; N2 \\\"AB\\\" > NX\\\"004100420009\\\" -> TRUE (pad space U+0020 > U+0009); N2(1:1) < N4 -> TRUE (ref-mod slice pads at its own width). nat2.cob with the space placed ABOVE Z in the declared national alphabet: N\\\"A\\\" > N\\\"AZ\\\" -> TRUE and N\\\"A\\\" < N\\\"AB\\\" -> TRUE, i.e. the extension position is a national space weighed by the national sequence (native order would give the opposite for the first); level-88 VALUE N\\\"A\\\" over N\\\"AZ\\\" -> FALSE; EVALUATE N1 WHEN NAZ THRU NAB -> TRUE. Adjacent open note PB679 (IndexedConnector's defensive key pads use byte 0x20, which would manufacture U+2020 on a national key) is a latent file-key path, not the relation condition, and START compares at the shorter key's length rather than padding — it does not bear on this row. [editions as adjudicated: 2002, 2014, 2023 (class national introduced by ISO/IEC 1989:2002)]",
+ "state": "OK"
+}

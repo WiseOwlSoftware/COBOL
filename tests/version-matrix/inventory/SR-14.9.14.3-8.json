@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.14.3-8",
+ "section": "14.9.14.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "EXIT statement",
+ "rule-digest": "7bfa247c584e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindExit; src/WiseOwl.Cobol.Compiler/Binding/Procedure/EnclosingContext.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/BinderContext.cs#EnterConstruct",
+ "test-ref": "conformance:cases/14.9.14-EXIT/pb403_exit_placement_context_2002; conformance:cases/14.9.14-EXIT/pb403-exit-perform-outside-perform; conformance:cases/14.9.14-EXIT/pb403-exit-perform-below-2002; conformance-test:ExitPlacementContextDriftTests.ExitPerform_OutsideEveryPerform_IsRejected; conformance-test:ExitPlacementContextDriftTests.ExitPerform_InsideAPerform_IsAccepted; conformance-test:ExitPlacementContextDriftTests.ExitPerformCycle_InAnExceptionCheckingPerform_IsRejected; conformance-test:ExitPlacementContextDriftTests.ExitPerformCycle_InAnInlinePerform_IsAccepted",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB403. BOTH sentences are now enforced, at the ONE site that binds the statement, and only the second was before. Sentence 1 ('may be specified only in an inline or exception-checking PERFORM statement') was enforced NOWHERE and the accepted statement did not quietly do nothing: measured before the fix on d80cb676, EXIT PERFORM in a paragraph with no PERFORM anywhere compiled clean (exit 0, empty diagnostic stream) and HUNG - --run printed 'A' until a 10 s timeout killed it (rc 124) - because StatementEmitter's F3Region.None arm wrote a bare C# break; into the pc dispatcher's switch (__pc) WITHOUT advancing __pc, so the enclosing while re-tested the unchanged pc and re-ran the paragraph. That arm's own comment called it a 'defensive fallback (SR8: never reached for a valid bind)', an invariant the binder never established; the arm now throws, and the binder establishes it. The same hang was reachable from a paragraph that an OUT-OF-LINE PERFORM runs (probe sr8-in-outofline.cob) - an out-of-line PERFORM does not lexically contain the statements it runs, which is what SR8 excludes by saying INLINE. Sentence 2 (the CYCLE prohibition) MOVED here from EcBinder.ExceptionPerform.CheckCrossStatementBans' ExitCyclesOfThisPerform parse-subtree walk, which is deleted: one rule about one statement, written in one place, measured against the NEAREST enclosing PERFORM, so a CYCLE in an ordinary inline PERFORM nested inside a Format-3 PERFORM is still legal. The CYCLE half had NO test anywhere in the tree before this row. Editions: EXIT PERFORM is a COBOL-2002 introduction (COBOL0900 below it, pinned by the below-2002 negative), so the placement half spans 2002/2014/2023; the exception-checking PERFORM that sentence 2 is about is 2023-only, and the 2023 rows of the drift matrix cover it.",
+ "state": "OK"
+}

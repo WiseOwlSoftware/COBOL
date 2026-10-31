@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.38.3-6",
+ "section": "13.18.38.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "OCCURS clause",
+ "rule-digest": "aea825ca5dd8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#OccursKeyItemFault",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb1263-occurs-key-is-table; conformance:cases/13.18.38-OCCURS/pb1263_occurs_key_items_admitted",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1263 (wave 1015 Y). cite.py --check 13.18.38.3 \"shall not contain an OCCURS clause except when data-name-2 is the subject of the entry\" -> OK 6). A key other than the subject whose own entry is a table (IsTable: fixed, occurs-depending or dynamic) draws COBOL2787; the subject as its own key is admitted (positive golden, E DESCENDING KEY E).",
+ "state": "OK"
+}

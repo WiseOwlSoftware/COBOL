@@ -1010,7 +1010,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         var drefs = Receivers(se.setReceivingIdentifier());
         // ⛔ The words `TO ENTRY` occur nowhere in ISO/IEC 1989 (the grammar's own note; kb/Work PB549) — a Micro Focus /
         // IBM spelling this compiler accepts for its program-pointer semantics, so the §4.2.10 warning names it.
-        ctx.Edition.Extension(ExtensionIds.SetProgramPointerToEntry, "SET … TO ENTRY");
+        ctx.Edition.Extension(ExtensionIds.SetProgramPointerToEntry, $"SET {SetFormatSelection.Written(drefs)} TO ENTRY");
         // The ENTRY operand's literal, as written or spelled by a constant-name (§13.10.3 SR2, kb/Work PB780).
         ProgramNameOperand? entryLiteral = se.nonNumericLiteral() is { } nn ? ProgramNameLiteral.Of(host.Expr, nn, nn.GetText())
             : se.dataReference() is { } entryRef ? ProgramNameLiteral.Of(host.Expr, entryRef)

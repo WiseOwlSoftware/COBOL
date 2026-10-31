@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.8.2-2",
+ "section": "7.3.8.2",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Constant conditional expression",
+ "rule-digest": "3cded508a620",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateOperand; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#FormationViolation; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs",
+ "test-ref": "conformance:cases/7.3.8-Constant-conditional-expression/l1c05_cce_arith_expression; conformance:cases/7.3.8-Constant-conditional-expression/l1c05-cce-arith-exponentiation; conformance:cases/7.3.8-Constant-conditional-expression/l1c05-cce-arith-division-by-zero; conformance:cases/7.3.8-Constant-conditional-expression/l1c05-cce-arith-nonnumeric-operand",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: arithmetic expression in a cce formed per §7.3.6 (cite.py --check 7.3.8.2 OK); §7.3.6.2 SR1a no exponentiation, SR1b fixed-point literal operands, SR1c no division by zero; §7.3.6.3 GR3 truncation to integer (--check 7.3.6.2 / 7.3.6.3 OK). Probes in >>IF (2023): c9 '2 ** 2 = 4' rejected SR1a; c15 '1 / 0 = 1' rejected SR1c; e2 '1.5E1 = 15' rejected (float, §7.3.3 SR10); c8 '7 / 2 = 3' TRUE and e1 '1.5 + 0 = 1' TRUE (GR3 truncation); d1 '1.5 = 1' FALSE (a sole literal is a literal operand, not truncated); c22 '1 + 2 > 2' TRUE; c21 ZERO rejected. No cce-context test pins all three SR1 halves (Cce_TrueFalse covers only truncation; the Rejects_* tests drive the operand evaluator outside a cce), so test-ref left empty.",
+ "state": "OK"
+}

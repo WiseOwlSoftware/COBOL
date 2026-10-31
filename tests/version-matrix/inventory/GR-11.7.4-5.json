@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.7.4-5",
+ "section": "11.7.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "METHOD-ID paragraph",
+ "rule-digest": "afe013e76ebd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs",
+ "test-ref": "unit:SymbolTableTests.MethodScope_DataName_ShadowsGlobal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 11.7.4 \"The declaration in the containing object definition is inaccessible to this method.\" -> OK §11.7.4 5). The method overlay scope REPLACES (never unions with) object data for a same-named word (SymbolTable method scope; ReferenceResolver overlay-first precedence; index-names per scope). Probe p9_run_property_and_shadow (2002/2023): object WS `01 X VALUE \"OBJ\"`, method LOCAL-STORAGE `01 X VALUE \"METH\"`, DISPLAY X in the method -> X=METH (both sentences: the method's declaration is used, the object's is not reachable). Also goldens oo_method_indexed_two_methods, oo_method_odo; BasedItemScopeTests. || Editions (adjudicator, verbatim): 2002, 2014, 2023 (METHOD-ID is part of the OO facility introduced by COBOL 2002; absent at 1985)",
+ "state": "OK"
+}

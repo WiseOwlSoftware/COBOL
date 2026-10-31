@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.11.2",
+ "section": "15.11.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "ATAN function",
+ "rule-digest": "967316ef10c2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgument; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#fnArgPhraseWord; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build",
+ "test-ref": "conformance:cases/15.10.4-Returned-value-rule/pb65_bounded_returned_value_landing",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "FUNCTION ATAN(1000000000000000000) in the printed format (pb65_bounded_returned_value_landing): the returned value lies strictly below 15.11.4 r1's OPEN pi/2 bound, so the nine-place truncation is 1.570796326. pi/2 is not representable at scale 9, so the open-vs-closed distinction is not observable in this line. retired-witness: conformance:cases/15.10.4-Returned-value-rule/pb65_codomain_clamp (renamed to pb65_bounded_returned_value_landing by kb/Work PB3829)",
+ "state": "OK"
+}

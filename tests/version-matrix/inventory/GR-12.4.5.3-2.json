@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.3-2",
+ "section": "12.4.5.3",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "File control entry",
+ "rule-digest": "4ce1cb0f480d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileControlClauseGroup; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#OpenCore",
+ "test-ref": "conformance:cases/9.1.13.6-Permanent-error-condition-with-unsuccessful-completion/pb323_open_presence_arms",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'The OPTIONAL phrase applies only to files opened in the input, I-O, or extend mode. Its specification is required for physical files that are not necessarily present each time the runtime element is executed.' (cite.py --check 12.4.5.3 -> OK, see citations). Code: `SELECT OPTIONAL?` sets FileModel.Optional (BindFileControl: `Optional = grp.OPTIONAL() is not null`), passed to every Register*; the runtime OPEN presence decision reads it. Probes (probe/fce/gr2seq, gr2rel, gr2ls; sequential, relative, line sequential; --std 2023): OPTIONAL absent -> OPEN INPUT 05 then READ 10, OPEN I-O 05 (file created), OPEN EXTEND 05 (file created); NON-optional absent -> INPUT/I-O/EXTEND all 35. First half (applies ONLY to input/I-O/extend): probe/fce/gr2out OPEN OUTPUT on an OPTIONAL file answers 00 absent and present at --std 2023 and 85 - OPTIONAL has no effect on output. Both halves verified; the spec-derived golden conformance:cases/9.1.13.6-Permanent-error-condition-with-unsuccessful-completion/pb323_open_presence_arms (cites §9.1.13.6 5), §14.9.27.4 13)/17)) pins the input/I-O/extend arms across all three organizations; the OUTPUT no-effect arm is verified by probe only. [registrar 14a — editions as adjudicated: 85, 2002, 2014, 2023 (ALL FORMATS general rule; no Annex E row)]",
+ "state": "OK"
+}

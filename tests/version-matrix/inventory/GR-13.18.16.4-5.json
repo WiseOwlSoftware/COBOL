@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.16.4-5",
+ "section": "13.18.16.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "CONTROL clause",
+ "rule-digest": "9de8224bb74d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Terminate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore",
+ "test-ref": "conformance:cases/13.18.16-CONTROL/pb205_control_ref_mod; conformance:cases/13.18.16-CONTROL/rw_suppress; conformance:cases/13.18.16-CONTROL/pb1187_terminate_restore_last_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1187: at TERMINATE the prior controls stay in the control data items through every control footing and the PF/RF printed after them; the restore is §14.9.46.4 GR3 d), the last action.",
+ "state": "OK"
+}

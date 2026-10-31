@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.4.2.3-5",
+ "section": "8.8.4.2.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "Simple relation conditions",
+ "rule-digest": "d81e97c82b66",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckFormat3Relation",
+ "test-ref": "conformance:cases/8.8.4.2-Simple-relation-conditions/pb399-pointer-relation-category-mix; conformance:cases/8.8.4.2-Simple-relation-conditions/w59-relation-object-vs-pointer",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely — item 2: a rule HALF inside a declined facility takes its LIVE half's verdict; the declined half (message-tag, Annex A.3 item 4, USAGE MESSAGE-TAG refused COBOL1943) is non-support. Live halves witnessed: object vs pointer refused COBOL0868 (w59-relation-object-vs-pointer), pointer vs program-pointer refused (pb399-pointer-relation-category-mix). || kb/Work PB1198 (registrar 15c). SR5 (cite.py OK). Object and pointer halves verified: object vs numeric refused 0868 'shall be of class message-tag, object or pointer'; object vs pointer refused 0868 'not of the same category'; POINTER vs PROGRAM-POINTER refused 0869; NULL exempt (correct — it is not identifier-3/-4). The message-tag half cannot be exercised: USAGE MESSAGE-TAG is refused COBOL1943 (declined MCS, CONFORMANCE.md §5 item 1), so the rule's third class is unverified — PARTIAL by the two-halves rule, not a defect.",
+ "state": "OK"
+}

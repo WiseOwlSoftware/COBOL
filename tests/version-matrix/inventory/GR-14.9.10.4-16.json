@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.10.4-16",
+ "section": "14.9.10.4",
+ "kind": "GR",
+ "ordinal": 16,
+ "subject": "DELETE statement",
+ "rule-digest": "97d9d2d0dbc5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#DeleteFile",
+ "test-ref": "unit:FileStatusDisciplineTests.DeleteFile_AbsentPhysicalFile_Is05; conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_delete_file_gate",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED (kb/Work PB140): the presence probe is now File.GetAttributes, whose FAILURES distinguish the two states File.Exists conflated - FileNotFound/DirectoryNotFound is the genuinely-absent successful '05' (GR14), while a PRESENT file the process lacks authority to observe raises UnauthorizedAccessException into the existing GR16 '37' arm (previously classified '05 absent', telling the caller the file was gone when it was not). The absent leg is pinned at both levels (the unit fact and the golden's DF05); the unauthorized leg is the direct UAE catch - forcing a real ACL denial is host-configuration the suite does not do, and the mapping is a two-line arm verified by reading.",
+ "state": "OK"
+}

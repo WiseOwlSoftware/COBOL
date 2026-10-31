@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.18.4-4",
+ "section": "15.18.4",
+ "kind": "RV",
+ "ordinal": 4,
+ "subject": "CONCAT function",
+ "rule-digest": "9088fd5ca6db",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#StrArgList; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderString; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Concat",
+ "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.Concat_ConcatenatesArgumentImages_2023",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "'StrArgList(ic) => string.Join(\", \", ic.Args.Select(Str))' renders every argument in SOURCE ORDER into one 'Concat(params string[] parts) => string.Concat(parts)' call, a left-to-right fold — the iterated form §15.18.4 r4 prescribes (each concatenation's result becomes argument-1 of the next iteration). Concatenation is associative and no iteration truncates (the intermediate is not a fixed-size receiver anywhere in the model), so the flat n-ary call and the iterated model produce the identical value at every argument count. The TYPE consequence of the iteration was worked through explicitly and adds nothing beyond r2/r3: for every legal mix, the iterated result category (r3 applied per iteration with the intermediate as argument-1) equals the flat reading — e.g. CONCAT(alphabetic, alphabetic, alphanumeric) is alphanumeric both ways — so no r4-specific defect exists; the r2/r3 mislabelling is carried on those rows and is open there. Re-verified on the built CLI for this review: 'FUNCTION CONCAT(\"A\", \"B\", \"C\", \"D\", \"E\")' → 'ABCDE'; 8 arguments → '1234567AB'; 'FUNCTION CONCAT(\"a\" \"b\" \"c\")' → 'abc' and the explicitly nested 'FUNCTION CONCAT(FUNCTION CONCAT(\"a\" \"b\") \"c\")' → the same 'abc'; and the §15.3 variable-repetition ALL subscript 'FUNCTION CONCAT(A TE(ALL))' over '05 TE PIC X(2) OCCURS 3' → 'AB P1P2P3', i.e. one implicit argument-2 per occurrence, left to right, which is r4's trigger reached through a single written argument. The cited test resolves on disk (tests/WiseOwl.Cobol.Tests.Conformance/IntrinsicFunctionDifferentialTests.cs, method at the 'Concat_ConcatenatesArgumentImages_2023' [Fact]) and is spec-derived: AssertSpec compares against a literal expected value the test's own comment derives from r1/r4, with no oracle, and the method name carries none of the MatchesLegacy/MatchesGnuCobol/MatchesOracle suffixes. It pins 'FUNCTION CONCAT(\"X\", \"Y\", \"Z\")' = 'XYZ' — 'more than one argument-2', precisely r4's trigger, and an ordering or dropped-argument defect would fail it. tests/conformance/2023/intrinsics_string_2023.cob + .out (manifest-enabled, golden 'VAR=XYZ') pins the same case a second way. Editions from Annex E.3.3 item 23, not from the catalog row.",
+ "state": "OK"
+}

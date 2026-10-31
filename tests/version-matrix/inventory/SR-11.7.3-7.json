@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.7.3-7",
+ "section": "11.7.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "METHOD-ID paragraph",
+ "rule-digest": "ed4f3939e344",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#ScreenPropertyMethodHeader",
+ "test-ref": "conformance:cases/11.7-METHOD-ID/pb1503-set-property-two-using; conformance:cases/11.7-METHOD-ID/pb1503-set-property-active-class",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1503 LANDED (wave 1015 Z). cite.py --check 11.7.3 'then the method shall have a single USING parameter specified in the procedure division header and no RETURNING phrase' OK 7); 'The USING parameter shall not be an object reference described with the ACTIVE-CLASS phrase' OK 7). Asked of the BOUND header by DataBinder.ScreenPropertyMethodHeader, counting the USING parameters WRITTEN: SET PROPERTY BAL USING LK-A LK-B and an ACTIVE-CLASS USING parameter are COBOL2790 (both compiled clean, the first building a setter from a two-formal method).",
+ "state": "OK"
+}

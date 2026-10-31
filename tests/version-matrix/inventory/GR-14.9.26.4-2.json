@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.26.4-2",
+ "section": "14.9.26.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "MULTIPLY statement",
+ "rule-digest": "f819909da51c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Multiply",
+ "test-ref": "conformance:cases/14.9.26-MULTIPLY/pb134_giving_sending_operands; conformance:cases/14.9.26-MULTIPLY/pb1143_native_product_beyond_scaled_int128",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1143 landed. Format 2 GIVING shares the single product site (NumericRenderer.Multiply) with Format 1 and COMPUTE; MULTIPLY A BY C GIVING R over PIC 9V9(30) operands stores 3.375 for 1.5 x 2.25.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.28.3-2",
+ "section": "14.9.28.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "PERFORM statement",
+ "rule-digest": "641e31ca6f07",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#CountOperand; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#IsIntegerOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindVaryingLevel; src/WiseOwl.Cobol.Compiler/Binding/Procedure/OperandClassScreen.cs#OperandClassScreen",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/pb86_perform_times_function_count; conformance:cases/5.5-Integer-operands/pb86-perform-times-non-integer-item; conformance:cases/14.9.28-PERFORM/pb86-perform-times-non-integer-function; conformance:cases/14.9.28-PERFORM/pb212-perform-varying-alphanumeric; unit:OperandClassScreenDriftTests.EveryRow_RefusesExactlyTheShapesItsRuleExcludes; conformance:cases/13.18.60-USAGE/pb215-perform-varying-target-index-data-item; conformance:cases/14.9.28-PERFORM/pb215-perform-varying-target-alphanumeric; conformance:cases/14.9.28-PERFORM/pb215-perform-varying-index-data-item",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB86 (2026-08-18): 'Identifier-1 shall be an integer' is enforced at bind for every count shape (a scale<=0 numeric elementary item that is not USAGE INDEX; a function whose resolved type is integer, 15.2 type 5) - COBOL1646. A function-identifier count (8.4.3.2.4 GR1) is admitted and evaluated; before this it ran the body once and the FUNCTION spelling was a parse error. || kb/Work PB215 (2026-09-22): the VARYING/AFTER induction variables (identifier-2, identifier-5) were resolved through SET's receiver with no class screen - an index data item varied silently and a PIC X item compiled clean and died at run time. They now take the ONE operand-class screen (OperandClassScreen, row OperandPositions.PerformVaryingIdentifier - kb/Work PB212, composed with PB215 in train 52) under this rule - COBOL2120; FROM/BY identifiers take 8.8.1.1 (an index data item there draws COBOL0844).",
+ "state": "OK"
+}

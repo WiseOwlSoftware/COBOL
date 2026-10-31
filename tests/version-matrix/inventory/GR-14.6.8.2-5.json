@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.8.2-5",
+ "section": "14.6.8.2",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Alignment and transfer of data into data items",
+ "rule-digest": "1af337ed7017",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#Numeric; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Format",
+ "test-ref": "conformance:cases/14.6.8.2-Fixed-point-numeric-and-fixed-point/l1c01_move_edited_truncation",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'If the receiving operand is a fixed-point numeric-edited item, further alignment, zero fill or truncation, and transfer of digits take place as described in the general rules and editing rules in 13.18.40, PICTURE clause.' cite.py --check 14.6.8.2 -> OK §14.6.8.2 5). The rule is a delegation: the MOVE aligns at the mask's scale and hands the digits to CobolEdit.Format, the §13.18.40 editor. Probe out/probe/alignment/p1.cob (85 and 2023 identical) and p2.cob, each expected image derived from §13.18.40.5/.6: Z,ZZ9.99 <- 1234.567 = '1,234.56' (fraction truncation right); ---9.9 <- -12.5 = ' -12.5'; ZZZ.ZZ <- 0 = all spaces; ***9.99 <- 5.1 = '***5.10'; $$$,$$9.99 <- 12345.678 = '$12,345.67'; 999CR <- -5/+5 = '005CR'/'005  '; 99B99/99 <- 12345 = '01 23/45'; 999.99 <- 12345.678 = '345.67' (high-order truncation); +++9 <- 5 / -1234 = '  +5' / '-234'; 999DB <- -7 = '007DB'; ZZ9.99 BLANK WHEN ZERO <- 0 = spaces; 000999 <- 42 = '000042'; comma mode ZZ9,99 <- 12,345 = ' 12,34'; $$$9 <- 12345 = '$345'. All observed as derived. Individual §13.18.40 editing rules are owned by their own rows; this row's delegation (alignment at the mask's decimal point + truncation/zero fill + transfer to the editor) is verified. Covering spec-derived golden conformance:cases/13.18.40.5-Editing-rules/l1_picture_special_insertion cites §14.6.8.2 rule 5 and derives [0003.50] from the rule text. || REFUTED: CONFORMS (test-ref must be empty: l1_picture_special_insertion does not pin the truncation half of rule 5) — On behavior the verdict holds. 27 additional §13.18.40 edge images all matched, including floating and zero-suppression rule b) at zero and non-zero, '*' replacement keeping the point (commas become '*'), B/0// inside floating strings, a multi-character CURRENCY string, CR/DB/trailing '-', de-editing a numeric-edited sender, and an alphanumeric sender. The cited golden is the problem. It is a §13.18.40.5 rule-4 (special insertion) fixture: it pins alignment and zero fill (3.5 into 9(4).99 and 9.9(4)) but never truncation at either end. Rule 5 names 'alignment, zero fill or truncation, and transfer of digits', so a test covering one half of the rule cannot close the row. The row should stay CONFORMS-untested until a golden truncates at both ends, for example 999.99 <- 12345.678 -> '345.67' and ZZ9.9 <- 1.99 -> '  1.9'. [code-location note: arms (NumericRenderer.StoreExpr at the mask scale — MoveEmitter.SenderContext / RuntimeApi.ReceiverScaleOf)] || editions as adjudicated: 85, 2002, 2014, 2023 (common §14.6.8.2 rule; the §13.18.40 editing symbols it delegates to carry their own edition rules)",
+ "state": "OK"
+}

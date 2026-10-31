@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.2.2-L3.1",
+ "section": "8.3.2.2",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "COBOL words",
+ "rule-digest": "cb77acf77cbb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#externalizedNamePhrase; src/WiseOwl.Cobol.Compiler/Binding/ExternalizedName.cs#Peek; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#FindByExternalizedName; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#UserFunctionsOf; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#ProgramPrototypesOf",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb974_repository_as_phrase",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: `OK §8.3.2.2 2)` \"Externalized names shall be referenced in a source element only: 1) in the AS phrase in a repository paragraph entry,\" read with the closing sentence `OK §8.3.2.2 6)` \"In the AS phrases, only the externalized names shall be referenced.\" POSITIVE: conformance:cases/8.3.2.2-User-defined-words/pb974_repository_as_phrase (expected values derived in its header from §12.3.8.4 GR2) resolves CLASS BOXY AS \"W974-BOX\", INTERFACE TALKY AS \"W974-SPEAKER\", PROPERTY AMOUNT AS \"BAL\" and FUNCTION TWICE AS \"W974-TWICE\" to definitions DECLARED with different words, and the PROGRAM specifier is witnessed by the pb303/pb237 goldens. EDGE ('only the externalized names'): out/probe/asref/ar1.cob — `CLASS BX AS \"AR1BOX\"` and `FUNCTION TW AS \"AR1FN\"`, where AR1BOX / AR1FN are the DECLARED words of CLASS-ID. AR1BOX AS \"AR1-BOXX\" and FUNCTION-ID. AR1FN AS \"AR1-EXT\" -> COBOL0823 (BX is no class) and COBOL1505 (TW has no definition or prototype) at 2023: the AS literal matches the externalized name and never the declared word, as the sentence requires. The no-AS specifier resolution is the implementor choice documented as DOC-A.1-163. The mapping determinations (formation/mapping of these names) are PB661's, a different row. || editions as written by the adjudicator: 2002, 2014, 2023 (the REPOSITORY paragraph and its AS phrases are COBOL-2002 additions)",
+ "state": "OK"
+}

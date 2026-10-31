@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.8.4-8",
+ "section": "12.3.8.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "fca444389c2e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#Validate; src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#SubstitutedTokens",
+ "test-ref": "conformance:cases/11.3-CLASS-ID/pb759_parameterized_class; conformance-test:ParameterizedClassTests.InterfaceSpecifierExpandsAClass_2240",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB759.md landed w46i3. The interface expansion is the re-parsed skeleton with formals replaced; count/kind checks as GR5; an interface-specifier naming a parameterized CLASS -> COBOL2240.",
+ "state": "OK"
+}

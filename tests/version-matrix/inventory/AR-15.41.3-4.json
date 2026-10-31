@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.41.3-4",
+ "section": "15.41.3",
+ "kind": "AR",
+ "ordinal": 4,
+ "subject": "FORMATTED-TIME function",
+ "rule-digest": "6cee713ffae2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#EmitFormatted",
+ "test-ref": "conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). FORMATTED-TIME's Schema gives argument-3 the 'i' kind (§15.41.3 r4 'an integer representation of offset from UTC') — a scaled offset is rejected at bind (negative pb58-formatted-time-offset-fraction); the |value| ≤ 1439 bound is the runtime's (CobolDate.EmitFormatted). retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

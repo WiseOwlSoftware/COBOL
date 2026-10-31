@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.4-2",
+ "section": "14.6.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Execution",
+ "rule-digest": "a7d41fc3d413",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs",
+ "test-ref": "conformance:cases/14.6.4-Item-identification/l1c09_item_ident_func_subscript",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: step 2 'function evaluation' precedes step 7 'reference modification' in item identification (cite.py --check 14.6.4 -> OK). Probe E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d1\\out\\probe\\iid\\iid4.cob: MOVE FUNCTION STRF(FUNCTION CTR:1) TO X, where STRF and CTR each ADD 1 to an EXTERNAL counter K (0) and STRF returns 'wxyz' -> X='x', K=2: the function-identifier is evaluated (K=1) before the reference modifier's start (CTR -> 2), exactly as §14.6.4 orders it. The generated C# evaluates the function receiver before the refmod arguments. No named covering test. || editions as adjudicated: 2002, 2014, 2023 (user-defined functions and reference modification of a function-identifier; the ordered item-identification list is the §14.6.4 text)",
+ "state": "OK"
+}

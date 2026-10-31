@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.46.4-3",
+ "section": "14.9.46.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "TERMINATE statement",
+ "rule-digest": "a4dc6df17e36",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore",
+ "test-ref": "conformance:cases/13.18.16-CONTROL/pb1187_terminate_restore_last_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1187: a) priors in, b) control footings, c) the final page footing and the report footing, d) restore LAST - one bracket.",
+ "state": "OK"
+}

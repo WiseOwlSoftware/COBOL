@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-33",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 33,
+ "subject": "SET statement",
+ "rule-digest": "b5e183a3aa57",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetSize",
+ "test-ref": "conformance:cases/14.9.39-SET/pb458_set_size_qualified_bare; conformance:cases/8.5.1.11.3-Availability-and-persistence-of-variable-length/set_size",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB458. 'Data-name-3 shall reference a dynamic-length elementary data item' - the explicit arm always enforced it (COBOL1568) and the bare arm now resolves the receiver through the SAME ExpressionBinder.ResolveReceiving instead of a private peek. The peek's first line refused any receiver carrying a dataReferenceSuffix, a guard aimed at subscripts; a suffix also carries QUALIFICATION, so SET D OF G TO 2 - legal source under 8.4.2.2.3 rule 2 - fell through to the Format-1 numeric store and terminated on a raw runtime exception, while SET SIZE OF D OF G TO 2 worked. 13.16.3 SR18 leaves an OCCURS clause impossible on a DYNAMIC LENGTH entry, so the subscript half of the guard had nothing legal to exclude and the qualification half was pure loss. MEASURED: SET D OF G TO 2 now prints D=[AB] L=2, identical to the explicit arm.",
+ "state": "OK"
+}

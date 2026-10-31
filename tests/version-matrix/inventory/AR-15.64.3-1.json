@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.64.3-1",
+ "section": "15.64.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "MOD function",
+ "rule-digest": "3841c7edf4e0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation",
+ "test-ref": "conformance:cases/15.3-Arguments/pb58_argument_predicates_legal; conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). MOD's 'i' row (§15.64.3 r1 'Argument-1 and argument-2 shall be integers'): the data-item arm was PB30's; the LITERAL arm is new — a numeric literal with a nonzero fraction (MOD(7.5 2), negative pb58-mod-literal) is rejected. An arithmetic EXPRESSION is admitted unless it is a numeric function (SR11) — 'always results in an integer value' is not syntactically distinguishable in general (§4.2.2 discretion, recorded). The fractional-RESULT question is RV-15.64.4-1's. || editions corrected from '2002,2014,2023' to 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the MOD function exists from 85 (IntrinsicCatalog.cs, the COBOL1502 edition window). retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

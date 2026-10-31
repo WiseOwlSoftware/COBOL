@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.19.4-1",
+ "section": "14.9.19.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "IF statement",
+ "rule-digest": "4fc8615782e4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
+ "test-ref": "conformance:cases/14.9.19-IF/l1_if_format1_arms",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Format 1 (END-IF written), condition true: both statements of statement-1 in order, and a counter proving the ignored ELSE arm did not merely stay silent but did not run.",
+ "state": "OK"
+}

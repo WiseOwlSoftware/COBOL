@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.3.3.6.4-3",
+ "section": "8.3.3.6.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Figurative constant values",
+ "rule-digest": "0ee983e61ad4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundAllLiteral; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#StrUnstrOperand",
+ "test-ref": "conformance:cases/8.3.3.6-Figurative-constant-values/pb110_symbolic_and_class_in; conformance:cases/8.3.3.6-Figurative-constant-values/pb71_all_national_boolean_figurative",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB110 (2026-08-19): where the context does not size the string — a) in a concatenation, one character (the ConcatFolder figurative arm); b) a figurative other than ALL literal-1, one character (the golden's STRING-SC line: a bare symbolic character contributes ONE character to STRING); c) ALL literal-1, the literal's length (PB71's golden).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.4.4.3-5",
+ "section": "8.8.4.4.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "Simple class condition",
+ "rule-digest": "cf0b66506a1c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#Violates; src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#Alternatives",
+ "test-ref": "conformance:cases/8.8.4.4-Simple-class-condition/pb590-boolean-class-numeric-operand; conformance:cases/8.8.4.4-Simple-class-condition/pb590_boolean_class_condition",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB590. The rule had no site at all before the BOOLEAN alternative existed. It is one category short of SR4's list on purpose - a BOOLEAN class test over a category-boolean item is the ordinary case, and the 2002 golden's A line pins it - so the two rules are separate table entries with separate codes (COBOL2201 here, COBOL0844 for SR4). Editions are 2002+ because BOOLEAN is not a reserved word at COBOL-85, where the same spelling is governed by the user-defined-word alternative (conformance:cases/_unassigned/pb590-boolean-class-condition-below-2002).",
+ "state": "OK"
+}

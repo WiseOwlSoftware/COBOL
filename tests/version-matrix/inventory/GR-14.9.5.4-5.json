@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.5.4-5",
+ "section": "14.9.5.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "CANCEL statement",
+ "rule-digest": "bba529f11fcc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode",
+ "test-ref": "conformance:cases/14.9.5-CANCEL/pb154_cancel_active",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB154): pb154_cancel_active pins the raise (EC-PROGRAM-CANCEL-ACTIVE plus the trailing space of the (1:25) slice over a 24-char name), the not-canceled guarantee (A=1 before, A=2 after - last-used state survives), and the USE ... RESUME wiring end to end. A.1 item 18 is discharged in docs/CONFORMANCE.md section 7: when checking is NOT enabled in the target the implementor-defined arm is the SAME fatal raise, not canceled - one behavior on both arms, so CancelNode consulting no target checking state is the documented choice, not an omission. Remaining observation (recorded, within latitude): a containee's active state is tested lazily inside the GR4 cascade; whether a containee can be active while its container is not remains unmeasured.",
+ "state": "OK"
+}

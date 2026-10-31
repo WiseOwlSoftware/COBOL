@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.27.4-5",
+ "section": "14.9.27.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "OPEN statement",
+ "rule-digest": "d9b926c5983a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#CallBindExternalAndGlobal; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#CallMakeExternal; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#ForceStringCanonical; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#GateFileRecordByteSurface; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#IsExternal",
+ "test-ref": "conformance:cases/9.1.5-Sharing-file-connectors/oo_external_file_shared; conformance:cases/14.9.27-OPEN/pb327_national_fd_record",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB327 (LANDED 2026-09-05). 'The successful execution of an OPEN statement makes the associated record area available to the runtime element. If the file connector associated with file-name-1 is an external file connector, there is only one record area associated with the file connector for the run unit' -- cite.py --check 14.9.27.4 OK. CallBindExternalAndGlobal re-bases file.Records[0] onto a run-unit ExternalStore cell keyed 'FD::'+ExternalName (the multi-01 records under one FD are already one REDEFINES class, so re-basing the first re-bases the area), and FileRegistry.Register returns early when the run-unit connector already exists (13.18.22.4 GR4a). THE RESTRICTION THE RULE DOES NOT CARRY IS GONE: GR5 places no condition on the record's categories or usages, and PB231 opened the shared cell to a national leaf (ByteWindowResidueOf) while PB327 opened the RECORD CODEC to one -- AsImage()/FromImage() now ship a national position as its two UTF-16BE bytes (13.18.60.4 GR8 leaves the size to the implementor; D-N1 pins two) and the FD/SD gate became GateFileRecordByteSurface, asking that same ONE predicate. conformance:cases/14.9.27-OPEN/pb327_national_fd_record drives the shape end to end: two PROGRAMs of one run unit share an EXTERNAL FD whose record is '05 E-N PIC N(2)', the called program WRITEs through the same record area, and both records come back (E1=[PQ] E2=[RS]). Refused now: only a pointer/object-class leaf (13.18.60.3 SR14 / PB183).",
+ "state": "OK"
+}

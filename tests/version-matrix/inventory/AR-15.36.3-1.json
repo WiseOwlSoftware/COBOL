@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.36.3-1",
+ "section": "15.36.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "FACTORIAL function",
+ "rule-digest": "38fff5ffafa9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation",
+ "test-ref": "conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). FACTORIAL's 'i' row (§15.36.3 r1 'an integer greater than or equal to zero'): a scaled item is rejected at bind (negative pb58-factorial-fraction); the ≥ 0 half and the carrier bound are the runtime's EC-ARGUMENT-FUNCTION (the Int128-domain representability guard in AsInt). retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

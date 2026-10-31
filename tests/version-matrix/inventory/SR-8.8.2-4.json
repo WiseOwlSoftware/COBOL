@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.2-4",
+ "section": "8.8.2",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "Expressions",
+ "rule-digest": "2a9c5f04081c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#MakeBoolBinary; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindBoolOperandValue",
+ "test-ref": "conformance:cases/8.8.2-Boolean-expressions/l1c09-boolean-both-all-literals",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule 4 (cite.py --check 8.8.2 \"The two operands in a binary boolean operation shall not both be the figurative constant ALL literal\" -> OK §8.8.2 4)). MakeBoolBinary reports COBOL1511 when both operands are BoundBoolAll{IsAllLiteral:true}; figurative ZERO carries IsAllLiteral=false (kb/Work PB157, landed) so `ZERO B-AND ALL B\"1\"` is legal. PROBE N01 `ALL B\"1\" B-AND ALL B\"0\"` -> COBOL1511 citing rule 4; p1b `A B-XOR ALL B\"10\"` = 0110 accepted. The check is in the one resolver callback, so it rides every site (COMPUTE, conditions, arguments). No test exercises the prohibition (grep of tests for the 1511 rule-4 message: none) -> test-ref empty. || editions as written by the adjudicator: 2002, 2014, 2023 (boolean expressions and B-AND/B-OR/B-XOR/B-NOT are a COBOL-2002 introduction - the in-repo 2023 text's Annex E carries only the 2014->2023 delta, so the 2002 introduction is taken from the clause's absence in 85 and the probe gate COBOL0900 at --std 85)",
+ "state": "OK"
+}

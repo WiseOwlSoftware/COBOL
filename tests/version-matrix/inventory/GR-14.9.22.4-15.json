@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.22.4-15",
+ "section": "14.9.22.4",
+ "kind": "GR",
+ "ordinal": 15,
+ "subject": "INSPECT statement",
+ "rule-digest": "2362456ed2b4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#CheckReplacingSizes; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#RangeInspectSizeError",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/pb1126_inspect_size_ec",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1126 (landed w66k). A CHARACTERS replacement (identifier-5) that is not one character sets EC-RANGE-INSPECT-SIZE before the first cycle; SR7's literal half stays COBOL0846 at compile time. Checking off: the undefined result contributes the first character. Witness E2 (R2 PIC X(2)). 85 has no EC mechanism.",
+ "state": "OK"
+}

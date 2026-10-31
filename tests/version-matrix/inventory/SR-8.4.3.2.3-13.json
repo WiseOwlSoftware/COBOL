@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.2.3-13",
+ "section": "8.4.3.2.3",
+ "kind": "SR",
+ "ordinal": 13,
+ "subject": "Function-identifier",
+ "rule-digest": "9909ef42a60b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ParameterConformance.cs#CheckArgument; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfActivate",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/pb1418_function_argument_manner; conformance:cases/8.4.3.2-Function-identifier/pb1115_function_objref_conforming; conformance:cases/8.4.3.2-Function-identifier/pb1418-function-arg-picture-mismatch; conformance:cases/8.4.3.2-Function-identifier/pb1115-function-arg-only-mismatch; unit:ActivationConformanceDriftTests.BothActivations_AskTheSharedArgumentConformance",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1418 landed (w61h). SR13 (cite.py --check 8.4.3.2.3 'the rules for conformance specified in 14.8.2, Parameters and 14.8.3, Returning items, apply' -> OK §8.4.3.2.3 13)). UdfBinder.UdfActivate now asks ParameterConformance.CheckArgument for every argument - the SAME per-argument §14.8.2 routine the Format-2 CALL asks (§14.9.4.3 SR25): §14.8.2.3.2/§14.8.2.2 BY REFERENCE (OoConformance.DescriptionMismatch, activation mode, plus the restricted-pointer sentence) and §14.8.2.3.3 BY CONTENT/BY VALUE (ContentConformanceReason). COBOL2470. Measured: PIC X(4) identifier into a PIC 9(4) BY REFERENCE formal -> COBOL2470 (was X=0013); PIC X(4) into PIC X(2) -> 2470 (was R=AB). §14.8.3 needs no screen: the result temporary is a clone of the RETURNING item (§8.4.3.2.4 GR1). The function-pointer form shares UdfActivate.",
+ "state": "OK"
+}

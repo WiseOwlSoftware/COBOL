@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.7.4-3",
+ "section": "11.7.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "METHOD-ID paragraph",
+ "rule-digest": "196cee7dd02b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build",
+ "test-ref": "conformance-test:OoSpineTests.OverrideFinal_0838_0839_FinalBase_2791",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 11.7.4 \"The FINAL clause indicates that this method shall not be overridden in any subclasses.\" -> OK. MarkRoster reports COBOL0839 when the base method found by the chain walk IsFinal. 'any subclasses' edge probed: p6_indirect_final_override (A.M IS FINAL; B INHERITS A without M; C INHERITS B with M OVERRIDE) -> COBOL0839 at 2002 and 2023. Emission makes a FINAL root method non-virtual / sealed override (oo_override_final). || Editions (adjudicator, verbatim): 2002, 2014, 2023 (METHOD-ID is part of the OO facility introduced by COBOL 2002; absent at 1985) || Code sites (adjudicator, verbatim): src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build (MarkRoster 0839) retired-witness: conformance-test:OoSpineTests.OverrideFinal_0838_0839 (renamed: kb/Work PB1784 branch review R1-1 - the fact also asserts the FINAL-base rule, now COBOL2791, so it is OverrideFinal_0838_0839_FinalBase_2791)",
+ "state": "OK"
+}

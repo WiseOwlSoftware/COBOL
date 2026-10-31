@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-24",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 24,
+ "subject": "SET statement",
+ "rule-digest": "7bea74bc481b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#BindSetUpDown; src/WiseOwl.Cobol.Compiler/Binding/Model/StrongTypeModel.cs#IsRestrictedToStrongType",
+ "test-ref": "conformance:cases/14.9.39-SET/pb816-set-up-by-strong-restricted-pointer; conformance:cases/8.4.3.11-Data-address-identifier/pb665_restricted_pointer_conforming",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB816 (the premise 'the rule's subject cannot be declared' was stale: PB153 landed POINTER TO). Format 10's receivers each go through StrongTypeModel.IsRestrictedToStrongType (the pointer's restriction resolves to a STRONG TYPEDEF): SET P UP BY / DOWN BY over such a pointer, alone or in a list, is refused COBOL0869 naming SR24; an unrestricted pointer and a pointer restricted to a WEAK type stay legal (positive golden).",
+ "state": "OK"
+}

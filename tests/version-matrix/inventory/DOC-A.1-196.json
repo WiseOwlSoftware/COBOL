@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-196",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 196,
+ "subject": "SYNCHRONIZED clause (how records of a file are handled)",
+ "rule-digest": "19d1dab944de",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-196; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#Synchronized; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#syncClause",
+ "test-ref": "conformance:wiseowl/cases/A.1-Implementor-defined-language-element-list/l1_dns_a1_196_sync_file_record_stream",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§13.18.55.4 GR11 not provided (DOC-A.1-196): three odd-length records written through a SYNCHRONIZED description read back field-exact through an unsynchronized one, then AT END (§9.1.13.4 1) a)): no record padding or slack",
+ "state": "OK"
+}

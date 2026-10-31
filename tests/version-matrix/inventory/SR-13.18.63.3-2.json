@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-2",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "VALUE clause",
+ "rule-digest": "6ecb7044eda1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenValueLiteral; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ValidateValueCategory; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ValidateNumericValue; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenTableValueLiterals; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindCondition; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb94-value-alphanumeric-on-numeric; conformance:cases/13.18.63-VALUE/pb94-value-nonnumeric-on-numeric; conformance:cases/13.18.63-VALUE/pb208-table-value-alphanumeric-on-numeric; conformance-test:ValueFormat2Tests.Format1AndFormat2_ScreenTheSameLiteralAlike; conformance-test:ValueFormat2Tests.Format2Sr2Screen_FiresAtEveryEdition; conformance-test:ValueLiteralClassTests.ClassMismatch_IsAnErrorStrict_AndTheRepresentableValueWithAWarningPermissive; conformance:cases/13.18.63-VALUE/pb586-level88-literal-out-of-range; conformance:cases/13.18.63-VALUE/pb586-report-literal-out-of-range; conformance:wiseowl/cases/13.18.63-VALUE/pb586_level88_range_boundaries; conformance-test:ValueClauseScreenTests.Level88Literal_OutsideTheConditionalVariablesRange_IsRejected; conformance-test:ValueClauseScreenTests.ReportLiteral_OutsideThePrintableItemsRange_IsRejected",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "RE-VERDICTED 2026-09-09 (kb/Work PB505) -- SAME VERDICT, SAME MECHANISM, NEW NAME FOR THE CALL SITE. PB208's ValidateTableValues was SPLIT: its ALL-FORMATS literal screen kept its place at entry bind beside the format-1 call site and is now DataBinder.ScreenTableValueLiterals; the clause's GEOMETRY moved to the post-forest ResolveTableValues pass, because 13.18.63.3 SR18-SR23 are written against the entry's OCCURS ANCESTORS and DataItem.Parent does not exist while the entry binds. The literal screen deliberately did NOT move with it: SR2 is a property of the literal and the subject's own PICTURE, and keeping both formats on ONE timeline is what Format1AndFormat2_ScreenTheSameLiteralAlike pins. No behaviour change -- re-measured, `05 B PIC 9(4) COMP OCCURS 2 VALUE \"0012\" FROM (1) TO (2).` draws COBOL1657 at all four editions and the --permissive rewrite still reaches every occurrence.",
+ "state": "OK"
+}

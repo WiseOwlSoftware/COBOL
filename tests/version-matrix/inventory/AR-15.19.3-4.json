@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.19.3-4",
+ "section": "15.19.3",
+ "kind": "AR",
+ "ordinal": 4,
+ "subject": "CONVERT function",
+ "rule-digest": "1e77d2ddb801",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#HexDigitsToBytes",
+ "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.Convert_HexSource_LeadingSpaceIsContent_FatalWhenChecked_2023; conformance-test:IntrinsicFunctionDifferentialTests.Convert_AllSpaceHexSource_FatalWhenChecked_2023; conformance-test:IntrinsicFunctionDifferentialTests.Convert_HexSource_TrailingPadTrimmed_2023",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-08-09 (PB59), the digits half: TrimEnd(' ') only - a leading space is content and falls through HexVal to the 15.19.3 r4 non-digit raise (fatal under checking); an all-space source is DIGITLESS and raises under r4, deliberately NOT r1 (the item is not zero length - the mis-citation the triage warned against); the padded-but-valid trailing case is now positively pinned (no prior golden had a padded HEX source). Lowercase hex digits stay admitted HERE deliberately - r4 says 'hexadecimal digits' (the term the hex-literal format defines over both cases), unlike 15.12.3 r2's 'basic-letters A to F'. The USAGE half (a BINARY item as a HEX source) remains open under AR-15.19.3-5's class/usage screen (family 5).",
+ "state": "OK"
+}

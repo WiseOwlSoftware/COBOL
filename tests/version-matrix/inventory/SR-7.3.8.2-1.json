@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.8.2-1",
+ "section": "7.3.8.2",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Constant conditional expression",
+ "rule-digest": "4cd61b985ca6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#cceXor; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#cceNot; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#GateLogicalOperators",
+ "test-ref": "conformance:cases/7.3.8-Constant-conditional-expression/pb1390_abbreviated_tail_xor; conformance:cases/7.3.8-Constant-conditional-expression/pb1371-cce-not-not; conformance:cases/7.3.8-Constant-conditional-expression/pb1371-cce-xor-below-2023",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1371 landed (wave 68 s). a)-c) were verified by the registrar (row history); d) \"A complex condition as specified in 8.8.4.9, Complex conditions ... Abbreviated combined relation conditions shall not be specified.\" (cite.py --check 7.3.8.2 OK) was the divergence: XOR / EXCLUSIVE-OR were malformed (COBOL1619) at 2023 and 'NOT NOT' was accepted. Now XOR/EXCLUSIVE-OR are cce connectives at 2023 (golden K1-K5), gated COBOL0900 below 2023 (negative pb1371-cce-xor-below-2023), 'NOT NOT' is malformed at every edition (negative pb1371-cce-not-not), and abbreviated relations stay unparseable in a cce (no succeeding-tier arm: '1 = 1 OR = 2' COBOL1619).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.2.3.2-L2.5",
+ "section": "14.6.2.3.2",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Initial and last-used states of data",
+ "rule-digest": "39153d682b62",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitCallMethod; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitPointerBackings; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/RecordStructEmitter.cs#__ResetStatics; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#ActivationPointerSeeds",
+ "test-ref": "conformance:cases/13.6-Local-storage-section/w67q_pb1132_ls_activation_reseed; conformance:cases/13.6-Local-storage-section/w67q-pb1132-ls-based-at-85; unit:ActivationStorageReseedDriftTests.EveryAutomaticPointerAndCellChannelIsReseededAtTheCallEntry",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "OWNED BY kb/Work PB1132 (open). Rule (cite.py --check 14.6.2.3.2 OK, action 5): 'The address of each based item is set to null.' with 'Automatic data and initial data is placed in the initial state every time the function, method, or program in which it is described is activated.' and §13.6.4 GR1 'Data items in the local-storage section are automatic data.' (both --check OK); §8.6.5 (--check OK) ends a local-storage based association 'at the end of the life cycle of the data items defined in that section' and a linkage one 'at the end of the execution of the runtime element.' CORRECT arms: WS based of a RECURSIVE unit reset by __ResetStatics (golden pb154_cancel_initial ADDR=NULL); WS based of a non-recursive unit after CANCEL (fresh instance; probe/is2 WBNULL) and correctly HELD (last-used) between plain activations. DEFECT: a BASED entry in LOCAL-STORAGE of a non-INITIAL non-RECURSIVE (cached-singleton) program keeps its address across activations - EmitCallMethod's LS re-init loop reassigns LS root fields only, never the instance field __addr_<name> that OoEmitter.EmitPointerBackings declares for the based bridge. Repro probe/ls-based/lsb.cob (--std 2002 and 2023 identical): second CALL prints 'LB=HELD' where the spec derives 'LB=NULL'. Sibling (§8.6.5 linkage leg, same missing reset): LINKAGE BASED KB prints 'KB=HELD' on the second activation, spec derives 'KB=NULL'. RECURSIVE/INITIAL units are unaffected (fresh instance per activation). No kb/Work note owns it (searched PB450/PB467/PB516/PB956). || editions as adjudicated: 2002, 2014, 2023 (BASED clause and LOCAL-STORAGE are 2002 features) || w67q 2026-09-27 (kb/Work PB1132, landed): ProgramEmitter.EmitCallMethod's cached-singleton activation entry now re-seeds every cell-backed LOCAL-STORAGE root and non-formal LINKAGE root through OoEmitter.ActivationPointerSeeds - the ONE seed the method arm uses: a BASED item's __addr_X -> NULL (action 5), an ADDRESS-OF-taken record's StorageCell -> a fresh cell at its initial image. Re-probed lsb.cob at 2002 and 2023: LB=NULL KB=NULL on both CALLs; WS BASED stays last-used.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.42.3-6",
+ "section": "13.18.42.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "PROPERTY clause",
+ "rule-digest": "531fe0c9e438",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoBindPropertyClauses",
+ "test-ref": "conformance:cases/13.18.42-PROPERTY/pb1273-property-active-class",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1273: a PROPERTY subject whose object-reference descriptor is ACTIVE-CLASS (ObjectRefKind.ActiveClass) is refused COBOL2563.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.2.4.4-3",
+ "section": "7.2.4.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "REPLACE statement",
+ "rule-digest": "b6a20c16e2c0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands",
+ "test-ref": "conformance:cases/7.2.4-REPLACE/replace_partial_pseudo_text; unit:TextManipulationTextWordTests.LeadingPartialWord_AppliesOnEachSideOfAColon",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1350 landed (w61a): LEADING/TRAILING compare against ONE text-word; with the colon a separator, OLD-A:OLD-B holds two words and both are replaced (probe colon.cob). Spec re-derived and re-cited by the implementer; every probe of the note re-run on the fixed build. retired-witness: src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacements (the symbol was removed by kb/Work PB1350/PB1354 (one TextWordScanner + a parsed COPY/REPLACE statement); its successor is named in code-location)",
+ "state": "OK"
+}

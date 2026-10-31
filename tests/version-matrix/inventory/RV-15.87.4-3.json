@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.87.4-3",
+ "section": "15.87.4",
+ "kind": "RV",
+ "ordinal": 3,
+ "subject": "SUBSTITUTE function",
+ "rule-digest": "5303271bb1b6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Substitute",
+ "test-ref": "conformance:cases/15.87.3-Argument-rules/substitute; conformance:cases/15.87.4-Returned-value-rules/pb81_substitute_table_all",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "The left-to-right copy with argument-3 substituted at each match and the scan resuming past the matched source substring; 3a FIRST / 3b LAST substitute only the first / last occurrence (the `substitute` golden's FIRST/LAST rows; PB81's FIR row — FIRST attaching to the pair an enumeration's first element opens).",
+ "state": "OK"
+}

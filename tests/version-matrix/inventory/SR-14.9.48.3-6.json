@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.48.3-6",
+ "section": "14.9.48.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "UNSTRING statement",
+ "rule-digest": "60c5dd910fdb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/pb88-unstring-pointer-not-integer",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB88 (2026-08-18): a bind-time rejection (COBOL1651) through the ONE Reject helper — it was a BoundUnsupported run-time stage on illegal source. Identifier-7 (the UNSTRING POINTER) shall be an elementary numeric integer data item without P (StrUnstrIsInteger) — the negative writes a PIC 9V9 pointer.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.24.3-6",
+ "section": "14.9.24.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "MERGE statement",
+ "rule-digest": "7af61d2451db",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindCollating",
+ "test-ref": "conformance:cases/14.9.24-MERGE/l1c18-merge-collating-national-is-alnum",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 14.9.24.3 \"Alphabet-name-2 shall reference an alphabet that defines a national collating sequence\" -> OK §14.9.24.3 6). Alphabet-name-2 is looked up in ctx.Data.NationalAlphabets and its HasCollatingSequence is checked: an alphanumeric alphabet in the second position (msr6 `IS AA AA`) or FOR NATIONAL (msr6b) -> COBOL0898; a UTF-16 national alphabet (CCS only, Table 6) -> COBOL0898 (msr6u16); a NATIVE national alphabet accepted (mcoll2/3 at 2002/2023). || editions as adjudicated: 2002/2014/2023 (alphabet-name-2 / FOR NATIONAL is the national class; below 2002 the form is refused by COBOL0872, probe mcoll2/mcoll3 --std 85)",
+ "state": "OK"
+}

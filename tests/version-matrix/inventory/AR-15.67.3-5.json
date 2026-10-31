@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.67.3-5",
+ "section": "15.67.3",
+ "kind": "AR",
+ "ordinal": 5,
+ "subject": "NUMVAL function",
+ "rule-digest": "775de02ed70d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#InheritConfiguration; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#SwitchBindDecimalPoint; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#CommaFlag",
+ "test-ref": "conformance:cases/11.9-OPTIONS/pb60_nested_configuration_inheritance; conformance:cases/12.3-Configuration-section/nested_special_names_inheritance",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-17 (PB60 — the containment-scoping row). §15.67.3 r5 (comma as NUMVAL's decimal separator under DECIMAL-POINT IS COMMA) held in the outermost program and INVERTED in every contained one, because DataBinder.Switches#DecimalPointIsComma was per-source-unit and only the REPOSITORY sets were inherited. §12.3.4 GR1 makes the containing unit's configuration section apply to each contained unit and §12.3.3 SR1 forbids the containee its own, so the fix is the WHOLE configuration-derived state inherited through ONE DataBinder.InheritConfiguration(container) — DECIMAL-POINT, CURRENCY SIGN, CLASS names, ALPHABETs, switch mnemonics/conditions, the PROGRAM COLLATING SEQUENCE, DEBUGGING MODE, the REPOSITORY specifiers — called by BinderDriver.BindUnitData BEFORE the containee binds (its first literal/PICTURE already see the switches; units bind container-first, so one level carries the ancestry), plus §11.9.4 GR1's OPTIONS baseline (OptionsBinder.Bind(program, edition, baseline) — clause-by-clause override). Measured after (the sweep's p02b shape): inside the contained program NUMVAL(\"123,45\") = 123.45 and NUMVAL(\"123.45\") = 0 (golden legs NV/NVP), the comma numeric literal and comma-decimal PICTURE, the '#' currency, the CLASS, the reversed PCS and the switch all inherited (2023 + 85 goldens), ARITHMETIC IS STANDARD-DECIMAL inherited (2/7*7 = 2,000000) and overridden by an inner OPTIONS (1,999999). §12.3.3 SR1 is now diagnosed (COBOL1643, negative config-section-in-contained-program, all four editions). Version-invariant.",
+ "state": "OK"
+}

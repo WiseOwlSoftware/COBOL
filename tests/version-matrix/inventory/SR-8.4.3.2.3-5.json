@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.2.3-5",
+ "section": "8.4.3.2.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "Function-identifier",
+ "rule-digest": "c44c930c15fc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/pb847-function-pointer-no-parentheses; conformance:cases/8.4.3.2-Function-identifier/pb847_function_pointer_call",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB847: `FUNCTION fp` with no argument-list parentheses is COBOL2234, decided from the parse before any bind; the keyword-omitted bare `fp` is the reference to the pointer itself. (Residual, filed as a lead: the keyword-omitted EMPTY list `fp ()` is a parse error - subscriptPart requires a token - so a zero-argument pointer call must be written `FUNCTION fp ()`.)",
+ "state": "OK"
+}

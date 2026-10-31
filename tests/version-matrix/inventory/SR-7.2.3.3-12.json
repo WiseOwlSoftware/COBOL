@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.2.3.3-12",
+ "section": "7.2.3.3",
+ "kind": "SR",
+ "ordinal": 12,
+ "subject": "COPY statement",
+ "rule-digest": "7612c6b90251",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair",
+ "test-ref": "unit:TextManipulationStatementTests.CopyOperandContent_IsScreened",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1353 (w68x): 'Partial-word-2 shall consist of zero or one text-word' (cite.py OK 7.2.3.3 12)): two or more are COBOL2572 (probe r_l2multi: was spliced 'CC DD-X' then COBOL1941, now rejected at the COPY).",
+ "state": "OK"
+}

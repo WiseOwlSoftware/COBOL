@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.28.3-1",
+ "section": "14.9.28.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "PERFORM statement",
+ "rule-digest": "7de5c758bb20",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/l1_perform_test_before_default",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Omitted WITH TEST equals explicit TEST BEFORE and differs from TEST AFTER on all three carriers, on a condition already true at entry (14.9.28.4 GR10); counts 0/0/1.",
+ "state": "OK"
+}

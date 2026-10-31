@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.18.3-2",
+ "section": "15.18.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "CONCAT function",
+ "rule-digest": "88760fce2e17",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckConcatArgs; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#StaticUsageOf",
+ "test-ref": "conformance:cases/15.3-Arguments/pb58_argument_predicates_legal; conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). §15.18.3 r2 'If any argument is usage national, all arguments shall be usage national, otherwise all arguments shall be usage display' — CheckConcatArgs over the shared StaticUsageOf axis: a display+national mixture is rejected (negative pb58-concat-mixed), an all-national list binds (golden CATN), a COMP argument is neither family (pb58-concat-comp, via r3). Static shapes only; a group/figurative fails open. retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

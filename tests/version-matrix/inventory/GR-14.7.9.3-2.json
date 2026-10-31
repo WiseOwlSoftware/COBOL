@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.9.3-2",
+ "section": "14.7.9.3",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "RETRY phrase",
+ "rule-digest": "8ca5eaeaca77",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RetryLoop",
+ "test-ref": "unit:CobolFileLockTests.RetryLoop_AttemptCount_FollowsGR1AndGR4; conformance:cases/14.7.9-RETRY/pb1033_integer_operand_full_value; unit:CobolFileLockTests.RetryLoop_LandsTheConflictsOwnStatus_ByClass",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1163 landed (w73b). cite.py --check 14.7.9.3 \"The implementor shall specify the maximum meaningful value of arithmetic-expression-2\" -> OK 2). GR2 obliges the implementor to SPECIFY n, m and the maximum meaningful value and the retry frequency; DOC-A.1-166 specifies n = 1, m = 0, maximum 0, no retries in the zero-length period, and RetryLoop's Seconds arm implements exactly that. The row was PARTIAL only because DOC-A.1-166 stated a false GROUND (no holder can release during a wait), falsified by PB860's cross-run-unit detection; DOC-A.1-166 and D8 now state the value as a letter-legal determination whose ground holds only for in-run-unit holders, flagged for the owner to keep or revise, and document that FOR n SECONDS is the one form that does not wait for an outside holder.",
+ "state": "OK"
+}

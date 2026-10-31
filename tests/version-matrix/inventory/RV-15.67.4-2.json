@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.67.4-2",
+ "section": "15.67.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "NUMVAL function",
+ "rule-digest": "52cfff92b3e2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NvScan",
+ "test-ref": "conformance:cases/15.67.3-Argument-rules/pb60_numval_one_scan",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-09 (PB60): the two 15.67.3 r1 formats are ALTERNATIVES in the one scan - a leading sign consumes format A, after which a trailing sign/CR/DB is an ERROR POSITION, never a toggle. \"-12-\" (conforming to neither format) now raises EC (default 0, golden row MM; TEST-NUMVAL position 4, row TM) where the old double-strip toggled it to POSITIVE 12. On the conforming forms r2's containment reading holds by construction: \"12.5-\" and \"12.5CR\" value -12.5 (rows TS/CV).",
+ "state": "OK"
+}

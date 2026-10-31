@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.77.2",
+ "section": "15.77.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "REM function",
+ "rule-digest": "727f0ffb4507",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+ "test-ref": "nist:IF133A; conformance-test:IntrinsicFunctionDifferentialTests.Rem_TruncatedRemainder_PinnedToSpec",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Re-verified independently. TRANSCRIPTION: the canonical PDF's own text layer for printed folio 907 (PDF page 937) reads exactly 'FUNCTION REM ( argument-1  argument-2 )' -- nothing bracketed, no choice indicator, no ellipsis; the 300-dpi figure check already on record in docs/rearchitecture/spec-reconciliation/agents/compare-p933-p944.json covers 15.77.2 and found no lost delimiters, and the once-missing <u> markup (LEDGER.json systemic chapter-15 defect, REM named) is present in specs/ISO_COBOL.md today. GRAMMAR/BINDER: functionCall : FUNCTION functionName (LPAREN functionArgList? RPAREN)? literally present; the catalog Build row pins IntrinsicArity.Fixed 2..2. Verified by RUNNING the built compiler: the printed SPACE-separated form FUNCTION REM(A B), the 8.3.5 comma form, the 8.4.3.2 SR6 space-before-paren form FUNCTION REM (A B), an arithmetic-expression argument, a nested FUNCTION REM argument, and the adjacent-sign two-argument form FUNCTION REM(A -4) (= REM(11,-4) = 3, not a subtraction) all compile and give the ISO 15.77.4 values in argument order; FUNCTION REM(5) and FUNCTION REM(5 3 2) are both rejected with COBOL1504. Coverage caveat (not a downgrade -- a comma IS the 8.3.5 separator form of the printed space): both test-refs use only the comma form, so no committed test pins the printed space-separator spelling.",
+ "state": "OK"
+}

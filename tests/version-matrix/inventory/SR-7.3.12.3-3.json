@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.12.3-3",
+ "section": "7.3.12.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "DISPLAY directive",
+ "rule-digest": "32e1b116bae9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.Display.cs#ApplyDisplay; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateBoolean",
+ "test-ref": "unit:DisplayDirectiveTests.ConversionOfData_FollowsTheDeterminedImages; unit:DisplayDirectiveTests.AMalformedOperand_IsDiagnosedAndTransfersNothing",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB807 landed (w1004b). A boolean-expression operand goes through the shared compile-time boolean fold (7.3.7), the B-AND of two boolean literals included; a boolean operator over a non-boolean operand is COBOL1619.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.10.3-2",
+ "section": "7.3.10.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "COBOL-WORDS directive",
+ "rule-digest": "af30cef5f337",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CobolWordsDirectiveProcessor.cs#Literal; src/WiseOwl.Cobol.Frontend/Preprocessor/CobolWordsDirectiveProcessor.cs#ReadQuoted; src/WiseOwl.Cobol.Frontend/Preprocessor/CobolWordsDirectiveProcessor.cs#Tokenize",
+ "test-ref": "conformance:cases/7.3.10-COBOL-WORDS/pb1373-cobol-words-unterminated-literal; unit:CobolWordsDirectiveTests.MalformedLiteral_IsRejectedWithItsReason; unit:CobolWordsDirectiveTests.DoubledQuotationSymbol_IsOneCharacterOfTheLiteral",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1373 landed (w1019 G). SR2 'Each literal shall be an alphanumeric literal, shall not be specified in hexadecimal-alphanumeric format, shall not contain a space character, and shall be evaluated as case-insensitive' (cite.py OK §7.3.10.3 2)). The reader now gives a literal with no closing delimiter, or one the next character does not separate (§8.3.5 5)), as defective (COBOL1623), and reads a doubled quotation symbol as one character (§8.3.3.2.3 3)); the hexadecimal / national prefix and space-free screens are unchanged.",
+ "state": "OK"
+}

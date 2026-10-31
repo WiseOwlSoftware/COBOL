@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.43.3-5",
+ "section": "13.18.43.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "RECORD clause",
+ "rule-digest": "c9cd847797bc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Screen",
+ "test-ref": "conformance:cases/13.18.43-RECORD/pb721-record-varying-inverted-range; conformance:cases/13.18.43-RECORD/pb721-record-varying-equal-bounds; conformance:cases/8.5.4-Zero-length-items/pb721_zero_length_record",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "'Integer-3 shall be greater than integer-2' - GREATER, so EQUAL bounds violate it too, and that arm has its own negative because it is where an off-by-one screen passes its inverted-range test and still ships wrong (the standard writes the weaker relation explicitly two rules later, in SR7's 'greater than or equal to zero'). Before kb/Work PB721 `RECORD IS VARYING IN SIZE FROM 20 TO 5` compiled clean at every edition and the program learned about it only as an I-O status '44' on the first WRITE - 13.18.43.4 GR14 a)'s runtime CONSEQUENCE, never the clause's diagnosis.",
+ "state": "OK"
+}

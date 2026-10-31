@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.28.4-9",
+ "section": "14.9.28.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "PERFORM statement",
+ "rule-digest": "6fac5fb893e4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitPerformLoop; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#CountOperand; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitOutOfLinePerform",
+ "test-ref": "conformance-test:ControlFlowDifferentialTests.Perform_Thru_Times_RunsRangeNTimes; conformance:cases/14.9.28-PERFORM/pb440_perform_empty_range_2023; conformance:cases/14.9.28-PERFORM/pb440_perform_range_composition; conformance:cases/14.9.28-PERFORM/pb440_perform_empty_range_85; conformance:cases/14.9.28-PERFORM/pb440_perform_empty_range_2002; conformance:cases/14.9.28-PERFORM/pb440_perform_empty_range_2014",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB440.md - LANDED. The two arms the row's previous verdict rested on are fixed at the ROOT: a resolved procedure range is now a PcRange that CARRIES its emptiness (it cannot be derived - a zero-paragraph section, 14.4.2, and an ADJACENT inverted THRU range, GR6, are the identical pair (s, s-1)), BindPerform has ONE path that always binds the control phrase, EmitOutOfLinePerform emits the control-phrase scaffold for EVERY range and supplies an EMPTY body when the set is empty, and DispatchState.DispatchCall is the one place a range becomes __Dispatch and THROWS on an empty one. All three clauses and NOTE 3 already held on a NON-empty range (the count taken once at the start of execution; zero or negative means no transfer; control to the end afterwards) and stay pinned by Perform_Thru_Times_RunsRangeNTimes. What the recorded test could not see is that the rule names the SPECIFIED SET: over the empty THRU composition a DIFFERENT, non-empty set was performed integer-1 times (THRUTIMES read N=3 - three executions of the following section). pb440_perform_empty_range now measures THRUTIMES N=0 at all four editions, with the count still evaluated and the loop still emitted (the generated C# is `long __n = 3; for (long __i = 0; __i < __n; __i++) { }`).",
+ "state": "OK"
+}

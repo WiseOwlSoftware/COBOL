@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.37.4-4",
+ "section": "13.18.37.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "NEXT GROUP clause",
+ "rule-digest": "ccdbe2fd25e1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PlaceAfterSavedNextGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Terminate",
+ "test-ref": "conformance:cases/8.4.3.15-Report-counters/pb957_next_group_forms; conformance:cases/13.18.37-NEXT-GROUP/pb957_next_group_control; conformance:cases/8.4.3.15-Report-counters/pb1001_line_next_page",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB957, PB1001. a) absolute: LC below integer-1 -> set (C11 then A13); otherwise the save location, LC <- FOOTING, the forced advance before the next non-dummy body group and GR4a 3 relative placement at saved+1 (B07, not FIRST DETAIL 5); a TERMINATE next discards the save and restores LC ('no effect at all' - N12 J13 on the same page). GR4a 1 (absolute first line: LC <- saved, fit re-applied) is implemented. GR4a 2 (absolute first line WITH NEXT PAGE) is now reachable (kb/Work PB1001) and is processed as GR4a 1 after the ONE advance the save location forces - a DETERMINATION, docs/CONFORMANCE.md the LINE NEXT PAGE block (pb1001_line_next_page: G08 saves 4, DE-N then prints N05 on page 5, no empty page). b) relative: added below FOOTING else FOOTING (A05 -> LC 7; A13 -> LC 15); an unpaged report adds (pb951 golden). c) NEXT PAGE: LC <- FOOTING (D05 forces the next advance).",
+ "state": "OK"
+}

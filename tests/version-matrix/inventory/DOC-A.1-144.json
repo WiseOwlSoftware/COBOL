@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-144",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 144,
+ "subject": "RANDOM function (seed value when no argument on first reference)",
+ "rule-digest": "28beb34271f3",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-144; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Random",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1_random_seed_determination",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The first reference in the run unit omits argument-1 (the §15.75.3 r4 branch) and its value satisfies §15.75.4 r1; re-seeding reproduces per r3 + rv-r2. The seed VALUE is not asserted - A.1 item 144 does not require it documented. || editions 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the RANDOM function exists from 85 (IntrinsicCatalog.cs, the COBOL1502 edition window).",
+ "state": "OK"
+}

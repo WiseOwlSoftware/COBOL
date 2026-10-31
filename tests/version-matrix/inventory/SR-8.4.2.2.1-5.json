@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.2.2.1-5",
+ "section": "8.4.2.2.1",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "Qualification",
+ "rule-digest": "2057e791be0b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#EntryClauseCandidates; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UniqueOrReportAmbiguous",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/l1m7_implicit_qualifier_odo; conformance:cases/8.4.2.2-Qualification/l1m7_implicit_qualifier_same_as; conformance:cases/8.4.2.2-Qualification/l1m7-implicit-qualifier-ambiguous",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule 5 implicit qualifiers: ODO objects resolve to the shared group's CNT (group lengths 2AB/3VWX/14ABCD/31A via §13.18.38.4 GR8b); SAME AS U takes its record's S (ABC/ABCDE); a within-group ambiguity is rejected with COBOL1639",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.1.2-6",
+ "section": "8.8.1.2",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "Arithmetic expressions",
+ "rule-digest": "b0a598051024",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#CheckPowRule6; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Power; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolDec.cs#Pow",
+ "test-ref": "conformance:cases/8.8.1.2-Native-standard-binary-and-standard-decimal/pb18_native_power_exact_and_rule6",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "CONFORMS as of 2026-08-03 (fix-queue PB28, landed this session). Rule 6 has three parts. r6a (zero base requires exponent > 0) and r6c (negative base requires an integer exponent) are mandatory 'shall' requirements setting EC-SIZE-EXPONENTIATION, Fatal in Table 14. BEFORE the fix the STANDARD-DECIMAL arm enforced both (CobolDec.Pow) and EVERY NATIVE arm enforced neither, so the same program answered differently depending only on whether an ARITHMETIC clause was present: 0 ** 0 returned 1 (IEEE's convention, not COBOL's) and -2 ** 0.5 returned 0 (Math.Pow yields NaN and the quantizer made it zero), both with an ON SIZE ERROR phrase present and NOT taken. CheckPowRule6 now screens every native arm. MEASURED ACROSS EVERY REACHABLE COMBINATION, not sampled: native at --std 85, 2002, 2014 and 2023, and ARITHMETIC IS STANDARD-DECIMAL at 2023 - all five raise both legs and leave the receiver unmodified per SS14.7.5. ARITHMETIC IS STANDARD-BINARY is loudly refused (COBOL0806), so that arm is unreachable rather than unverified. r6b ('if the evaluation yields both a positive and a negative real number, the value returned is the positive number') is a SELECTION rule, not a screen, and cannot arise here: both bodies (CobolIntrinsics.PowNativeInt / PowNativeReal and CobolDec.Pow) yield a single value. Checked in the same pass rather than left to be discovered as a fourth leg.",
+ "state": "OK"
+}

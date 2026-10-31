@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.63.4-15",
+ "section": "13.18.63.4",
+ "kind": "GR",
+ "ordinal": 15,
+ "subject": "VALUE clause",
+ "rule-digest": "c1a458656ffa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/TableValuePlan.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/Model/TableValuePlan.cs#LiteralAt",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb505_table_value_geometry; conformance:cases/13.18.63-VALUE/pb208_table_value_image_seed; conformance-test:ValueFormat2Tests.FixedTable_LastFromWins; conformance:cases/13.18.63-VALUE/pb1722_table_value_runs; unit:TableValueElementCountTests.LiteralAt_AgreesWithTheOdometerFill",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "RE-VERDICTED 2026-09-09 (kb/Work PB505) -- unchanged rule, now exercised across DIMENSIONS. \"If multiple specifications of the FROM phrase reference the same table element, the value defined by the last specified FROM phrase in the VALUE clause is assigned to the table element\": TableValueOdometer.Resolve walks the phrases in source order (OrderBy Ordinal) and a later phrase overwrites the map entry an earlier one made. MEASURED on a 2x2 table (golden line 3): \"A\" FROM (1 1) TO (2 2) keys all four elements, then \"Z\" FROM (1 2) TO (2 1) keys the two BETWEEN them in odometer order and wins on both -> A Z / Z A. The single-dimension case is unchanged (FixedTable_LastFromWins). kb/Work PB1722 (w1042a): the plan is its well-formed PHRASES (TableValueOdometer.Resolve), never an element map. LiteralAt scans the phrases last to first (GR15) and takes the literal at the element's run position modulo the list (GR13); the emitters compose one element per run of occurrences that initialize alike (TableValueRuns.Of, OccurrenceRunEmit), and INITIALIZE ... TO VALUE tests one rank range per phrase residue (TableValuePlan.RankForm, CobolTable.InSpan). The 10000 x 10000 filed table compiles in 1.7 s / 223 MB / 3.6 KB of C#. Golden pb1722_table_value_runs: [ ABCAZZBA ], [ XYXYXYXYXY ], [BABA], 01030404, [*ABCAZZBA*] (13.18.63.4 GR12/GR13/GR14/GR15, 14.9.20.4 GR5 c) 1. c). retired-witness: src/Cobol.Net.Compiler/Binding/Model/TableValuePlan.cs#TableValuePlan.LiteralAt (train 1042 lander: the type-qualified spelling is not in the file; re-sited to the member) || editions 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a format 2 (table) VALUE rule; the table form is a COBOL-2002 addition (constructs value-table-format-2002).",
+ "state": "OK"
+}

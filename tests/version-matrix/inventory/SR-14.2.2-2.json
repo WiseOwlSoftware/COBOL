@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.2.2-2",
+ "section": "14.2.2",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Procedure division structure",
+ "rule-digest": "52b5403336d4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoBindMethodData; src/WiseOwl.Cobol.Compiler/Binding/ProcedureHeaderScreen.cs#ByValueClass",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/by-value-formal-class; conformance:cases/8.4.3.4-Inline-method-invocation/pb1051_method_by_value; conformance:cases/14.2-Procedure-division-structure/pb1051-method-by-value-formal-alphanumeric; unit:ByValueFormalScreenDriftTests.EveryHeaderArm_AsksTheOneByValueClassScreen_AndSpellsNoClassSetOfItsOwn",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1051 landed (wave 1011 C): a METHOD formal declared BY VALUE is carried (OoFormal.ByValue). cite.py --check 14.2.2 'Each data-name-1 specified in a BY VALUE phrase shall be defined as a data item of class numeric, message-tag, object, or pointer' -> OK 14.2.2 2). The class screen is ProcedureHeaderScreen.ByValueClass, asked by the program/function arm and the method arm alike (COBOL1553); golden pb1051_method_by_value carries numeric, pointer and object-reference BY VALUE method formals, negative pb1051-method-by-value-formal-alphanumeric refuses an alphanumeric one. Class message-tag is the MCS module (not modeled, undeclarable).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.52.3-1",
+ "section": "13.18.52.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "SIGN clause",
+ "rule-digest": "0439a5039410",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SignClause.cs#CheckSignClauses; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SignClause.cs#SignClauseElementaryDefect; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindReportEntry",
+ "test-ref": "conformance:cases/13.18.52-SIGN/pb537_sign_clause_subjects; conformance:cases/13.18.52-SIGN/pb537-sign-clause-subject; conformance-test:ReportClauseFormatScreenTests.SignClause_IllegalSubject_2422_AllEditions; conformance-test:ReportClauseFormatScreenTests.SignClause_IllegalSubject_2422_2023; conformance-test:ReportClauseFormatScreenTests.SignClause_LegalSubject_Accepted; conformance-test:ReportClauseFormatScreenTests.SignClause_ReportEntryWithoutS_2422",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB537 LANDED (wave 58). ONE subject screen, COBOL2422: an elementary entry (data description OR report group description - SR1's first two bullets are one test, DataBinder.SignClauseElementaryDefect) must be category numeric with an 'S' in its WRITTEN picture character-string; a group must be an alphanumeric, national or strongly-typed group item (ItemCategory.GroupKindsOf - a GROUP-USAGE BIT group, declared or inherited by 13.16.4 GR1, and a variable-length group are refused). The data-description arm is the post-forest CheckSignClauses pass (after UsageInheritancePass, before InheritSignClauses) over the entries that WROTE the clause - a TYPE copy or a SAME AS ancestor clause (13.18.49.4 GR5) is not re-screened. The former float-edited special case (COBOL1658) is this rule's numeric-edited arm and was deleted. The SCREEN description entry bullet is owner-declined A.4.2 non-support (COBOL1560, kb/Work PB260). Refused before: PIC 9(3), PIC X(3), PIC N(3), PIC ZZ9, USAGE INDEX, FLOAT-LONG, a bit group, a nested bit group, a report entry PIC 9(3) - each compiled clean at every edition.",
+ "state": "OK"
+}

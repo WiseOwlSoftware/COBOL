@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.3.4-5",
+ "section": "14.9.3.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "ALLOCATE statement",
+ "rule-digest": "7634811320c8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/CobolPtr.cs#Allocate; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/PtrEmitter.cs#EmitStorageNotAvail",
+ "test-ref": "conformance:cases/14.9.3-ALLOCATE/pb151_allocate; unit:CobolPtrTests.Allocate_NotAvailable_IsNullPlusFlag_NeverAThrow",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB151): the not-available leg EXISTS - CobolPtr.Allocate carries the Free-twin out-flag (GR5a/b: NULL into every address the statement assigns; GR5c: the nonfatal EC-STORAGE-NOT-AVAIL reports through the checking-gated block, the EmitFree pattern, with RESUME honored). The two old failure shapes are both dead: checked((int)size) no longer throws an unhandled OverflowException (past-int.MaxValue is notAvail), and the emitter-side (long) narrowing is GONE - the size travels as the FULL Int128, so a 20-digit request can no longer WRAP into a small VALID allocation (the PB22 cast family's unswept sibling, swept). An OutOfMemory landing is the same notAvail. pb151_allocate pins HUGE=NULL + EC-STORAGE-NOT-AVAIL under >>TURN; the ambient EcBinder gate that was armed with no raise site now has one.",
+ "state": "OK"
+}

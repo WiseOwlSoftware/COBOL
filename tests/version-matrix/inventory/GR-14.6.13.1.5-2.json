@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.13.1.5-2",
+ "section": "14.6.13.1.5",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Exception conditions",
+ "rule-digest": "c8c748aabb31",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#SetObject; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitRaiseObject; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitObjDispatchSelector",
+ "test-ref": "conformance:cases/14.6.13.1.5-Exception-objects/oo_ec_raise_object",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: §14.6.13.1.5 2) plus the RAISE paragraph (cite.py --check 14.6.13.1.5 \"The last exception status is set to indicate that an exception object has been raised\" -> OK 2); \"execution continues with the statement following the RAISE statement\" -> OK). SetObject sets LastName to the object sentinel (EXCEPTION-STATUS answers 'EXCEPTION-OBJECT'); EmitRaiseObject runs __EcObjDispatch and on -1/-2/-3 continues after the RAISE, never throwing (an object is nonfatal, §14.6.13.1.1 cite.py OK). Golden oo_ec_raise_object: F4 USE AFTER EO CERR1 selected for a CSUB1 object (subclass), 'BASE-HANDLER EXCEPTION-OBJECT / REGISTER-SET / AFTER-RAISE' - status, declarative and continuation-after-RAISE; the no-declarative half is conformance-test:OoSpineTests.RaiseObject_NoDeclarative_ContinuesNextStatement ('CONTINUED'). The trailing lead-in 'If an exception object is raised by an EXIT or GOBACK statement, one of the following occurs' is adjudicated on the four L2 rows. || editions as adjudicated: 2002, 2014, 2023 (ISO 2002 OO/EC model)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-13",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 13,
+ "subject": "VALUE clause",
+ "rule-digest": "c691ab6ba99d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.GroupValue.cs#CheckGroupValueDeclarations; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ValidateValueCategory",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb206-group-value-numeric-literal; conformance:cases/13.18.63-VALUE/pb206-group-value-national-literal; conformance:cases/13.18.63-VALUE/pb184-group-value-subordinate-value; conformance:cases/13.18.63-VALUE/pb206_value_size_alphanumeric",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "COMPLETE 2026-09-04 (kb/Work PB206; sentence 2 landed 2026-08-31 with PB184). SENTENCE 1 - 'literal-1 shall be of the same category as the group item or shall be a figurative constant that is permitted in a MOVE statement to a receiving item of that category' - was enforced NOWHERE: the elementary category funnel is guarded `pic is not null` and a group has no PICTURE, so the whole category axis was unscreened for group subjects. Measured on 1d949007, all compiling CLEAN: `01 GN VALUE 1234.` seeded SPACES (the literal lost entirely), `01 GE VALUE N\"AB\".` deposited national characters into an alphanumeric area, `01 GF VALUE B\"1010\".` stored the literal's text. It is now the SAME screen every elementary subject uses, entered with the subject's 8.5.2.1 category picture, because SR4/SR5/SR10's first sentences say 'the item' / 'the subject of the entry' and 8.5.2.1 gives a group a category outright - SR13 sentence 1 is those rules restated for a group subject. The figurative-constant allowance is already in that screen per category and the 85 golden pins it (ALL \"XYZ\" and ZEROS over a group are conforming). ONE deliberate asymmetry: the SR4-sentence-1 --permissive leniency that stores a numeric literal's digits is withheld from a group subject, because 13.18.63.4 GR5's deposit is over the operand's CHARACTERS and a numeric literal has none. FORMAT 1 only - SR16 carries SR13 to the format 2 table VALUE, whose per-occurrence literals reach no literal screen at all (kb/Work PB208).",
+ "state": "OK"
+}

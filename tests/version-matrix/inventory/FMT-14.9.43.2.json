@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.43.2",
+ "section": "14.9.43.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "STRING statement",
+ "rule-digest": "bd9fa147cfd8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#stringStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#delimitedByPhrase; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/phrase_order_overflow",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "General format: STRING {{identifier-1|literal-1}... [DELIMITED BY {identifier-2|literal-2|SIZE}]}... INTO identifier-3 [WITH POINTER identifier-4] [choice-indicator ON OVERFLOW / NOT ON OVERFLOW] [END-STRING]. Grammar: stringStatement : STRING stringSendingPhrase+ stringIntoPhrase stringWithPointer? conditionalPhrases END_STRING?; stringSendingPhrase : strUnstrOperand delimitedByPhrase?; delimitedByPhrase : DELIMITED BY? (ALL)? (strUnstrOperand|SIZE) (the non-ISO ALL token is parsed only to be rejected at bind under SR2 - verified: sr2b.cob 'DELIMITED BY ALL SPACE' -> COBOL1757); the shared conditionalPhrases rule (kb/Work PB3830) carries both orders of the choice-indicator pair (5.2.6.4). Underlined/optional words verified by probe gr2.cob ('DELIMITED SIZE' with BY omitted, 'NOT OVERFLOW' with ON omitted, 'DELIMITED BY SPACES') -> C[ABX.......] NOV. identifier-1 admits a function-identifier (§8.4.3.1.2 Format 1) via strUnstrSender; INTO/POINTER are dataReference only (receivers). phrase_order_overflow golden pins the reversed NOT/ON order with DELIMITED BY SIZE runs. SR9 (omission only before INTO) is structurally unviolable by this grammar: any phraseless run merges into the next run. Edition note: whether COBOL-85 already allowed the DELIMITED phrase to be omitted is NOT derivable in-repo (see dossier_gaps); the binder applies it at every edition. [editions as adjudicated: 2023 text (ISO/IEC 1989:2023 §14.9.43); Annex E lists no STRING change 2014->2023; the earlier-edition edge is not derivable in-repo (no 2002/2014 text)] Re-affirmed 2026-10-22 (kb/Work PB3530) against the figure regenerated from the printed page: render_figure.py's brace-group layout now keeps every alternative inside its own enclosure, so the diagram's layout changed while its words did not (sweep_figures.py's word gate); the verdict stands on the printed format. retired-witness: src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#stringOnOverflow (kb/Work PB3830: every Table 12 [NOT] phrase is the one conditionalPhrases rule now; the per-statement phrase rule no longer exists)",
+ "state": "OK"
+}

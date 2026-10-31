@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.9.10.4-7",
+ "section": "11.9.10.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "INITIALIZE clause",
+ "rule-digest": "c636ebc532ab",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/InitialStateBackground.cs#FillFor",
+ "test-ref": "conformance:cases/11.9.10-INITIALIZE/pb152_options_initialize_external",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-09-02 (PB152). The exclusion AND its stated exception: an EXTERNAL working-storage record is not filled (its storage is shared across the run unit and outlives any one element's initial state), except one carrying the CONSTANT RECORD clause, whose content IS its initialization (13.18.15.4 GR1). The golden writes the exception as the POSITIVE half so the rule cannot be implemented as a blanket skip-everything-EXTERNAL, and includes an ordinary working-storage item alongside so the exclusion cannot be implemented as skip-everything.",
+ "state": "OK"
+}

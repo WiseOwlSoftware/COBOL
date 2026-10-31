@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.10.3-1",
+ "section": "13.10.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Constant entry",
+ "rule-digest": "5dc8f01810ff",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/SoleOperand.cs#NumericLiteral; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateArithmeticOperand; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#BindConstantArithmetic",
+ "test-ref": "conformance:cases/13.10-Constant/constant_entry; conformance:cases/13.10-Constant/pb1230_constant_literal_as_written; unit:CompileTimeExpressionEvaluatorTests.Evaluates_ArithmeticAndReclassification; unit:CompileTimeExpressionEvaluatorTests.IsInteger_FollowsTheLiteralsForm_NotItsValue",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "(kb/Work PB1230 landed, w65f). SR1 (cite.py --check 13.10.3 'If the operand of the constant entry consists of a single numeric literal, that operand is treated as a literal' -> OK 13.10.3 1)). A single (possibly adjacent-signed) numeric literal is classified by SoleOperand.NumericLiteral and kept as a LITERAL, not truncated (AS 0.25, AS -2.5, AS 1.5E2 kept; '- 2.5' and '(0.5)' are expressions). The refuter's residue is closed: the constant now carries literal-1 AS WRITTEN (CtNumber.Literal; the evaluator no longer strips '+', and the comma decimal separator is no longer rewritten to '.'), so under DECIMAL-POINT IS COMMA 'AS 1,5' substitutes cleanly at DISPLAY/MOVE/COMPUTE/relation/VALUE positions and 'AS +5' displays '+5' as the literal +5 does (13.10.4 GR1). Its value is derived from the written text through the ONE normalizer + literal parser (NumericLiteral.Normalize / CtNumeric.TryParseLiteral); the integer positions read ConstantDef.IntegerText. Golden pb1230_constant_literal_as_written runs at 2002/2014/2023.",
+ "state": "OK"
+}

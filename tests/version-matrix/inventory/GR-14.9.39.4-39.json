@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-39",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 39,
+ "subject": "SET statement",
+ "rule-digest": "97867650b635",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/CobolDynString.cs#SetSize; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetSize",
+ "test-ref": "conformance:cases/8.5.1.11.3-Availability-and-persistence-of-variable-length/set_size; conformance:cases/14.9.39-SET/pb458_set_size_qualified_bare",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB458. 'the characters that were added to data-name-3 are initialized to alphanumeric or national spaces.' The fill itself was correct and golden-pinned in its hardest form (set_size is shrink-then-grow 5->3->6, pinning that truncated characters are NOT restored); the row was PARTIAL for two shapes that never reached SetSize. Both are now closed: the QUALIFIED bare form reaches it (this change set - see SR-14.9.39.3-33), and the (int) narrowing named as the second residual was already made exact by construction when kb/Work PB463 landed CobolDynString.MaxSizeOf, which gives every dynamic-length item a real bound in [0, MaxLength] and removed the -1 'no LIMIT' sentinel that skipped the clamp. pb458_set_size_qualified_bare grows back to 4 through the bare arm and pins the fresh spaces.",
+ "state": "OK"
+}

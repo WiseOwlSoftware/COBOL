@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.2-11",
+ "section": "12.4.5.2",
+ "kind": "SR",
+ "ordinal": 11,
+ "subject": "File control entry",
+ "rule-digest": "cb117217f6dd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Rules",
+ "test-ref": "conformance:cases/12.4.5-File-control/pb773-sd-record-delimiter-clause; conformance:cases/12.4.5-File-control/pb773-record-delimiter-on-indexed-file; conformance:cases/12.4.5-File-control/pb773_legal_file_control_entries_85; conformance-test:FileControlKeyRuleSpecTests.AClauseBeyondFormat4_OnASortMergeEntry_IsRefusedByTheRuleThatFitsIt; conformance-test:FileControlKeyRuleSpecTests.Format3Clause_OnAKeyedFile_IsRefusedAtEveryEdition; unit:FileControlKeyRuleDriftTests.EveryEntryClause_IsCarriedByExactlyTheFormatsThatPrintIt; unit:FileControlKeyRuleDriftTests.ARuleWithTwoObligations_HasARowForEachArm",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-10-05 (kb/Work PB773). RULE (--check 12.4.5.2 11): \"Format 3 shall be specified only for a sequential file or a report file. The associated file description entry shall not be a sort-merge file description entry.\" TWO OBLIGATIONS, TWO ROWS with one rule-id, exactly as SR8/SR9. Sentence 2 (the SD arm): FileControlKeyRules.Rules, Entry role, ScreenedOn SortMerge, reports COBOL1900 when the SD's entry writes a clause only Format 3 prints (ORGANIZATION IS LINE SEQUENTIAL, a RECORD DELIMITER clause). Sentence 1 (the organization arm): Entry role, ScreenedOn Indexed|Relative, reports the new COBOL2912 when an indexed or relative file's entry writes the RECORD DELIMITER clause (a report file is exempt: Format 3 is stated for it). WHICH FORMAT A CLAUSE SPECIFIES is now ONE table, FileControlKeyRules.EntryClauses, which carries per clause the SET of §12.4.5.1 formats printing it; SR8, SR9, SR11 and SR13 all read it, and FileControlKeyRuleDriftTests.EveryEntryClause_IsCarriedByExactlyTheFormatsThatPrintIt re-derives every row's set from the four printed diagrams on every run. The pre-PB773 note's premise ('one table row each') was wrong and the table gained an entry-level formats column instead (rule 5).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.3-12",
+ "section": "15.3",
+ "kind": "AR",
+ "ordinal": 12,
+ "subject": "Intrinsic functions",
+ "rule-digest": "adc1de8d2289",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindStandardCompare",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb101_standard_compare; conformance:cases/15.3-Arguments/standard-compare-unknown-ordering-name",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 15.3 'Ordering-name. An ordering-name defined in the SPECIAL-NAMES paragraph shall be specified' => OK §15.3 12). Table 21 gives type 12 to exactly one function, STANDARD-COMPARE ('Ord3'). READ IntrinsicBinder.cs#BindStandardCompare (dispatched at line 520, before the generic operand path): it walks §15.85.2's format POSITIONALLY, resolves position 3 against ctx.Data.OrderTables (the SPECIAL-NAMES ORDER TABLE clause, §12.3.7.4 GR17) into the literal-9 table identifier carried on BoundIntrinsicCall.OrderingTable, and — the discriminating detail — decides the ambiguous THREE-argument form on whether the word is a DECLARED ordering-name rather than on 'is a bare word', so FUNCTION STANDARD-COMPARE(A B WS-LEVEL) with a data-name level still binds (§15.3 type 6 admits an integer data item). With four arguments written, position 3 MUST be an ordering-name and anything else is DiagnosticCatalog.StandardCompareArgument, whose message lists the declared names and cites §15.85.3 r5 + §15.3 argument type 12; a SECOND ordering-name in the argument-4 slot gets its own message. The name never reaches the operand list, so no class screen applies — the disposition is recorded in IntrinsicArgumentRules.NonOperandArgumentKinds['o'] and held by IntrinsicArgumentClassDriftTests. A call with no ordering-name leaves it null, which §15.85.3 r5 defines as ISO 14651_2020_TABLE1. TESTS: 2002/pb101_standard_compare (positive), negative/standard-compare-unknown-ordering-name (the undeclared-name refusal).",
+ "state": "OK"
+}

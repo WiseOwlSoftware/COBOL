@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.55.4-9",
+ "section": "13.18.55.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "SYNCHRONIZED clause",
+ "rule-digest": "00b533633b20",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-195",
+ "test-ref": "conformance:cases/8.5.1.6.4-Item-alignment-for-increased-object-code/l1_byte_length_implicit_filler",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR9 hands the effect to the implementor and requires the implementor to specify two things; both are specified, and both are measured rather than merely asserted. b) IMPLICIT FILLER - the shipped golden's SYNC leg: `01 SYG. 05 SYA PIC X. 05 SYN PIC 9(4) COMP SYNCHRONIZED.` -> FUNCTION BYTE-LENGTH 3, where a 2-byte-aligning implementation answers 4, and the golden's SBIT leg does the same job for 8.5.1.6.3's source (c) (a USAGE BIT item carrying the clause -> 1 byte, not 2). GR9 b)1. and b)2. follow: with no filler, the containing group's size and its REDEFINES allocation are the unsynchronized numbers - measured here at probe sy_redef (GR=0004 over a group whose middle item is SYNCHRONIZED). a) EXTERNAL MEDIA FORMAT - not covered by any shipped witness, so it was measured directly: probe syq_gr9a_media writes one record through each of two SEQUENTIAL files whose FD records differ only in the SYNCHRONIZED clause on the `PIC 9(4) COMP` member, and the two files are BYTE-IDENTICAL - sync.dat = 41 00 01 5a (4 bytes), plain.dat = 41 00 01 5a (4 bytes), with SLEN=0004 = PLEN=0004. That is exactly the row's claim ('byte-identical to the same record written without the clause'). Worth a shipped leg: the determination for a) currently has no regression net at all. || code sites, verbatim from the adjudication: docs/CONFORMANCE.md DOC-A.1-195 - the Annex A.1 item 195 determination, required + documented, answering GR9 a) and b) by name; the compiler side is the absence of any alignment/filler generator (DataItem.Synchronized has four readers, none of them layout: DataBinder.cs:725, 1705, 3318, DataBinder.GroupValue.cs:136) || editions, verbatim from the adjudication: 85, 2002, 2014, 2023",
+ "state": "OK"
+}

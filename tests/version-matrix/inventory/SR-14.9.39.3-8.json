@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-8",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "SET statement",
+ "rule-digest": "e4756a83ed1c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetFormatSelection.cs#Select; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetFormatSelection.cs#SelectForTo; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindSetObjectRef",
+ "test-ref": "conformance:cases/14.9.39-SET/pb456-set-object-ref-literal-sender; conformance:cases/14.9.39-SET/pb456-set-object-sender-numeric-receiver; conformance:cases/14.9.39-SET/pb456_set_sender_selected_formats; conformance-test:OoSpineTests.SetObjectRef_Violations_0867",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB456. The receiver screen ('Identifier-3 shall be any item of class object that is permitted as a receiving item', with EXCEPTION-OBJECT refused per 8.4.3.6 SR1) was always complete and self-citing; the verdict rested on the statement never REACHING it. Format 5 used to be entered only when the sender was exactly one bare dataReference (OoExtractBareReference), so a literal or expression sender declined the re-route and dropped an object-reference receiver onto the Format-1 arithmetic path where no SET operand rule applied at all. Format 5 is now selected from the RECEIVING list, so every statement with an object-reference receiver reaches this screen whatever the sender looks like. WAVE-41 FINISHER: two more arms of the same rule. (a) The SENDER can now identify Format 5 where the receiving list could not: Format 1's identifier-1 brace admits any identifier, so SET N4 TO U selected Format 1 and the object sender reached the ARITHMETIC screen (COBOL0844, \"'U' ... is not a numeric operand\") while the rule the program broke was SR8. 8.8.1.1 admits only numeric operands in arithmetic-expression-1 and SR2 makes identifier-2 class index, so an item of class object is admissible in NO Format-1 sending position and is named by exactly one format's sending brace - SelectForTo picks it and SR8 refuses the receiver by name. (b) The receiver screen was ONE arm testing Resolve-or-category, so it stacked SR8 on top of the resolver's own COBOL1639 for an undefined name, and reported a FALSE 'not defined' for an INDEX-NAME receiver, which 13.18.38.3 SR7 permits in a SET statement and which is not a data reference at all; it is now three arms, one rule each. MEASURED at 2002/2014/2023: SET N4 TO U and SET IX TO U each draw exactly one COBOL0867.",
+ "state": "OK"
+}

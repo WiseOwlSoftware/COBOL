@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.4.2",
+ "section": "13.4.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "File section",
+ "rule-digest": "30cd0a649abb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileSection; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#sortMergeDescriptionEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileSection",
+ "test-ref": "conformance:cases/13.4-File-section/l1c11_file_section_constant_typedef; conformance:cases/13.4-File-section/l1c11-file-section-entry-before-fd",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 13.4.2 'constant-entry' -> OK §13.4.2 (General format). Format: FILE SECTION. [ { file-description-entry [constant-entry | record-description-entry | type-declaration-entry] ... } | { sort-merge-file-description-entry { constant-entry | record-description-entry | type-declaration-entry } ... } ] ... Grammar: `fileSection : FILE SECTION DOT (fileDescriptionEntry | sortMergeDescriptionEntry)*`, each entry `FD|SD fileName clauses? DOT dataDescriptionEntry*` where dataDescriptionEntry carries record, constant (01 ... CONSTANT) and TYPEDEF entries. Verified by probe: p1.cob FD with 01 K1 CONSTANT AS 7, 01 T1 TYPEDEF PIC X(3), a record, a trailing constant, then SD with a constant + record, WS item TYPE T1 -> runs K1=7 K2=9 K3=11 W1=ABC at 2002/2014/2023; at 85 the constant and TYPEDEF entries draw COBOL0900 (edition gate, correct). p2.cob empty FILE SECTION (outer brackets = optional) compiles and runs at 2023 and 85. p3.cob a level-01 before any FD/SD -> COBOL0001 (not admitted by the format; rejected). FD with zero entries is admitted by the bracket (subject to §13.4.5.3 SR3, a different row; PB345 landed). SD braces (at least one entry) are enforced through §13.4.6.3 SR2 COBOL1837 (conformance:cases/13.4.6-Sort-merge-file-description/pb345-sd-no-record), which is stricter (a record is required) and is SR2's row, not this one. No spec-derived golden writes a constant or type-declaration entry inside the FILE SECTION, so test-ref empty (test-needed). || Editions (adjudicator): FILE SECTION header with FD/SD + record-description entries at 85, 2002, 2014, 2023; the constant-entry and type-declaration-entry alternatives 2002, 2014, 2023 (introduced with the constant entry / TYPEDEF at 2002)",
+ "state": "OK"
+}

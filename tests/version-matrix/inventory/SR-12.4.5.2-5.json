@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.2-5",
+ "section": "12.4.5.2",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "File control entry",
+ "rule-digest": "9f65daeef717",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs#Resolve; src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs#ResolveHostPath",
+ "test-ref": "conformance:cases/12.4.5-File-control/pb829_assign_device_class",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'The meaning and rules for the allowable specification of device-name-1 and the value of literal-1 are defined by the implementor.' (cite.py --check 12.4.5.2 -> OK §12.4.5.2 5)). Annex A.1 item 71 makes it required + documented. Determination: docs/CONFORMANCE.md §7 DOC-A.1-71 (one operand naming the file, or DISK/PRINTER device class followed by one operand; anything else COBOL2256; target mapped by ResolveHostPath: '.', '/', '\\\\' verbatim, else lowercase + '.txt'). Code matches the determination: AssignTargetRule.Resolve (DeviceClasses = {DISK, PRINTER}, 2-operand device-led form returns the second operand, else COBOL2256) and CobolFile.ResolveHostPath. Probe probe/fce/sr56: `ASSIGN TO DISK \"dev.dat\"` -> dev.dat, `ASSIGN TO MYNAME` -> myname.txt, as documented. The literal-SHAPE defects (zero-length accepted, hex-alphanumeric refused) are SR4's, not this row's (finding assign-literal-1-shape). Test conformance:cases/12.4.5-File-control/pb829_assign_device_class and conformance:cases/12.4.5-File-control/pb829-assign-target-list pin the determination. [registrar 14a — editions as adjudicated: 85, 2002, 2014, 2023 (ALL FORMATS syntax rule; Annex A.1 item 71 routes to '12.4.5, File control entry, Syntax rules 5 and 6')]",
+ "state": "OK"
+}

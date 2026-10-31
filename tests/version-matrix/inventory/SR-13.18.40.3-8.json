@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-8",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "PICTURE clause",
+ "rule-digest": "0a419bb53cc3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ValidateEditing; src/WiseOwl.Cobol.Editions/CobolCharacterRepertoire.cs#IsBasicLetter",
+ "test-ref": "conformance-test:PictureEditingTests.ReservedLetterChar1_Rejected1591; conformance:cases/13.18.40-PICTURE/pb533-picture-editing-extended-letter; conformance:cases/13.18.40-PICTURE/pb533_editing_char1_basic_letters; unit:BasicLetterDriftTests.IsBasicLetter_IsTable1sLatinRowAndNothingElse; unit:BasicLetterDriftTests.TheCompiler_AsksNoUnicodeLetterQuestion_OfASourceCharacter",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB533 landed (wave 1019 E): all three constraints of SR8 now hold. (a) the A B C D E N P R S V X Z exclusion and (b) the CURRENCY-SIGN exclusion were already enforced (COBOL1591). (c) 'any BASIC letter in the COBOL character set' was char.IsLetter, which admits every Unicode letter; it is now CobolCharacterRepertoire.IsBasicLetter - the Latin A-Z / a-z of 8.1.3.1 Table 1 - the ONE basic-letter predicate (the word-character question, IsLetter, is its documented superset), pinned by BasicLetterDriftTests which also fails on any char.IsLetter / char.IsLetterOrDigit call in the compiler assembly. MEASURED on this build: `01 W1 PIC 99<U+00C9>99 EDITING <U+00C9> IS \":\".` and the lowercase Greek alpha twin were accepted and rendered [12:30]; both are now one COBOL1591 each (the character is recorded as DECLARED so the SR2 symbol whitelist does not add a second 'not an allowable picture symbol' for the same fault). Controls: `EDITING T IS \":\"` and the lowercase `g` still compile and render.",
+ "state": "OK"
+}

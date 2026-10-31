@@ -48,6 +48,34 @@ public sealed class DiagnosticBag
     public void Add(Diagnostic diagnostic) => _diagnostics.Add(diagnostic);
 
     /// <summary>
+    /// Add <paramref name="causes"/> (in the order given) so that each reads BEFORE the first effect it can explain: the first
+    /// diagnostic at index <paramref name="from"/> or later that sits in the same file at or after the cause's own position.
+    /// A cause with no such effect is appended. Reports are otherwise kept in the order they were made; this is the one place a
+    /// diagnosis found AFTER the stage whose failure it explains (a word-character screen that needs the partial parse tree to
+    /// know which tokens are words, kb/Work PB4131) is put where a reader meets it first. A tie in position puts the cause
+    /// first: the cause outranks its effect. Diagnostics of another file are never compared (the positions of two files do not
+    /// order), and those before <paramref name="from"/> are never moved past.
+    /// </summary>
+    public void AddBeforeEffects(IEnumerable<Diagnostic> causes, int from)
+    {
+        foreach (var cause in causes)
+        {
+            int at = _diagnostics.Count;
+            for (int i = from; i < _diagnostics.Count; i++)
+            {
+                var effect = _diagnostics[i].Location;
+                if (effect.FileName == cause.Location.FileName
+                    && (effect.Line, effect.Column).CompareTo((cause.Location.Line, cause.Location.Column)) >= 0)
+                {
+                    at = i;
+                    break;
+                }
+            }
+            _diagnostics.Insert(at, cause);
+        }
+    }
+
+    /// <summary>
     /// Report a diagnostic using a descriptor and format arguments.
     /// </summary>
     public void Report(DiagnosticDescriptor descriptor, SourceLocation location, TextSpan span,

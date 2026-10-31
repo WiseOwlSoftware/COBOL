@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.5-2",
+ "section": "9.1.13.5",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "I-O status",
+ "rule-digest": "49a096fddbb8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#DuplicateKey",
+ "test-ref": "conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb344_use_mode_invalid_key_2023",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 9.1.13.5 \"to write or rewrite a record that would create a duplicate alternate record key when the DUPLICATES phrase is not specified\" -> OK §9.1.13.5 2) c)). a) relative random/dynamic WRITE into an occupied slot -> '22' (RelativeConnector.Write, §14.9.51.4 GR29 b/GR33 a); probe iostat-rel RDY-DUP5=22. b) indexed duplicate prime -> '22' (IndexedConnector.Write); probe W3-DUPPRIME=22. c) no-DUPLICATES alternate on WRITE and on REWRITE (the REWRITE compares against records OTHER than the one replaced; suppressed keys never duplicate, §14.9.51.4 GR41); probes W4-DUPUNQ=22, RW-DUPUNQ=22. The REWRITE '22' is validated before any GR24 repositioning, so the file is unaffected. pb344_use_mode_invalid_key pins C1/C2/C3=22 (spec-derived).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.8.4.10.2",
+ "section": "8.8.4.10.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Complex negated conditions",
+ "rule-digest": "3afc98dde99c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#unaryLogicalExpression; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#primaryCondition; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindCondition; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#Visit",
+ "test-ref": "conformance:cases/8.7.5-Relational-operators/l1_perform_until_condition_forms",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: §8.8.4.10.2 general format `NOT condition-1`; §8.8.4.10.1 'A condition is negated by use of the logical operator 'NOT', which reverses the truth value of the condition to which it is applied. Including a negated condition in parentheses does not change its truth value.' (cite.py --check 8.8.4.10.1 OK). Code: grammar unaryLogicalExpression : NOT primaryCondition | primaryCondition, where primaryCondition includes LPAREN condition RPAREN, so NOT applies to a simple condition or a parenthesized complex condition; NOT sits below AND/XOR/OR tiers, giving §8.8.4.11.3 precedence NOT>AND>XOR>OR. Binder wraps BoundNot; ConditionRenderer emits !(operand). Table 5 / §8.8.4.11.3 NOTE 'the pair 'NOT (' is permissible while the pair 'NOT NOT' is not permissible' (cite.py --check 8.8.4.11.3 OK) is realized structurally (NOT primaryCondition cannot recurse) — probe `IF NOT NOT A = 1` -> COBOL0001 unexpected 'NOT'. Abbreviation interplay §8.8.4.12.4 GR1 'NOT a = b OR c' => '(NOT (a = b)) OR (a = c)' (cite.py --find -> §8.8.4.12.4 1)). Probe (pinned cobol.exe, probe/complex-negated-conditions/negc.cob, --std 2023; negc85.cob at 85/2002/2014) A=1,B=2,C=3,X='Z',88 F-ON false: NOT A=B ->T1; NOT(A=B OR B=C)->T2; NOT(A=1 OR B=C)->F3; NOT cond-name->T4; NOT (X NUMERIC)->T5; NOT A POSITIVE->F6; A=9 OR NOT B=2 AND C=3 ->F7 (precedence); NOT (NOT A=1)->T8; NOT A=2 OR 1 ->T9; NOT A=1 OR 2 ->F10 (NOT scopes only the first relation per §8.8.4.12.4); NOT(A=1 AND B=2) AND C=3 ->F11; A=1 XOR NOT B=2 ->T12 (2023; XOR correctly 0900 below 2023); PERFORM UNTIL NOT A<3 -> A=3; NOT (((A=3)))->F13. All outputs equal the spec-derived expectations at every edition. Covering spec-derived golden: 2023/l1_perform_until_condition_forms (`PERFORM UNTIL NOT (CX IS NUMERIC)`, expected count derived from §8.8.4.4); sibling 2023/l1_search_when_condition_forms (`WHEN NOT (WS-K(IX) < 7)`). No clause-citing source (dossier) — code implements the rule without citing §8.8.4.10; not a defect. || editions as written by the adjudicator: 85, 2002, 2014, 2023 (the clause carries no edition qualification; negated conditions are base COBOL; the XOR operand context is 2023-only per §8.8.4.9)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.12.3-3",
+ "section": "13.18.12.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "CODE clause",
+ "rule-digest": "71dec7dba021",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportCodeAgreement; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ReportCodeClauseRule",
+ "test-ref": "conformance:cases/13.18.12-CODE/pb1129-code-not-on-every-report; conformance:cases/13.18.12-CODE/pb1050_reports_share_file",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "(kb/Work PB1129, wave 1005 A). 'If the CODE clause is specified for any report, it shall be specified for each report associated with the same report file' (cite.py --check 13.18.12.3 OK 3)): ScreenReportCodeAgreement asks each FD's REPORT clause names (the clause can only matter once several reports share a file, kb/Work PB1050) over what was WRITTEN, and names the reports with and without the clause (COBOL2713). retired-witness: src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#ReportCodeClause (the descriptor was deleted: the CODE clause is implemented and its syntax rules are COBOL2713 (ReportCodeClauseRule))",
+ "state": "OK"
+}

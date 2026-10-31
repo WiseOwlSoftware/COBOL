@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.52.4-4",
+ "section": "13.18.52.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "SIGN clause",
+ "rule-digest": "3e8fb4513ae3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/ZonedSign.cs#Punch; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#FormatDisplaySigned; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#SignKindFor; docs/CONFORMANCE.md#DOC-A.1-177; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs",
+ "test-ref": "conformance:cases/13.18.52-SIGN/pb803_sign_default_representation; conformance:wiseowl/cases/13.18.52-SIGN/pb803_sign_encoding_ascii; conformance:cases/13.18.52-SIGN/pb803_sign_default_representation_85; unit:ZonedSignTableDriftTests.PunchAndUnpunch_RoundTrip",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "WITNESSED (kb/Work PB803, owner decision 2026-09-09 questions 28+29). GR4's obligation has TWO halves and both are now pinned by a golden rather than only by a probe. POSITION: a signed item with no SIGN clause takes the TRAILING fused sign -- `12L` for -123 -- and conformance:cases/13.18.52-SIGN/pb803_sign_default_representation makes that claim REFUTABLE by comparing it against an item that writes SIGN IS TRAILING (must be equal) and one that writes SIGN IS LEADING (must differ, `J23`). REPRESENTATION: the characters are now the compile option --sign-encoding, whose default `ibm` is the previous fixed table (positive {ABCDEFGHI / negative }JKLMNOPQR) and whose `ascii` value is GnuCOBOL's -fsign=ascii (positive digits untouched / negative p-y); conformance:wiseowl/cases/13.18.52-SIGN/pb803_sign_encoding_ascii compiles under `*> options: sign-encoding=ascii` and pins `123t` / `q234`, so the LATITUDE ITSELF is exercised and not merely one choice within it. WIDTH: a one-byte sentinel immediately after the signed item inside the same group answers `12L|` only for a 3-character item, so GR5 a)'s no-extra-position consequence cannot drift unobserved. EDITION INDEPENDENCE is now a claim with a witness rather than an assumption: conformance:cases/13.18.52-SIGN/pb803_sign_default_representation_85 repeats the representation, the position and the valid-set legs at COBOL-85 (no intrinsic, so the width rides entirely on the sentinel). The A.1 item 177 documentation obligation this rule creates is the separate row DOC-A.1-177, now filed in docs/CONFORMANCE.md section 7.",
+ "state": "OK"
+}

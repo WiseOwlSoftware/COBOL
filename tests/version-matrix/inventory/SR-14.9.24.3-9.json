@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.24.3-9",
+ "section": "14.9.24.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "MERGE statement",
+ "rule-digest": "1a8a5fcba024",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortMapIoFiles; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveFile",
+ "test-ref": "conformance:cases/13.4.5-File-description/pb1171-sort-merge-report-file",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1035 / PB1171 (landed wave 68 Y). MERGE SR9 'File-name-2, file-name-3, and file-name-4 shall be described in a file description entry that is not for a report file and is not a sort-merge file description entry.' (cite.py OK 14.9.24.3 9)). MERGE shares SortMapIoFiles with SORT and passes its own sentence: `MERGE SW … USING IN1 RPF GIVING IN2` is COBOL2577 (was clean); an SD among them is COBOL1757 citing SR9 (was cited as the SORT rule).",
+ "state": "OK"
+}

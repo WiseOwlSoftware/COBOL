@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.2.1-2",
+ "section": "8.8.4.2.1",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Simple relation conditions",
+ "rule-digest": "3649aad2760a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#ForComparison; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs",
+ "test-ref": "conformance:cases/8.8.4.2-Simple-relation-conditions/l1c32_relation_alphabetic_alphanumeric",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Item 2 'Two operands of class alphabetic' with §8.8.4.2.1 'A class alphabetic operand shall be treated as though it were an operand of class alphanumeric' (cite.py OK). ForComparison routes alphabetic to the alphanumeric arm (§8.8.4.2.7). Measured: PIC A(3) 'ABC' < 'ABD' TRUE; = PIC X(5) 'ABC' TRUE (space extension). No spec-derived test isolating two alphabetic operands located. [editions as adjudicated: 85, 2002, 2014, 2023 (general-relation text carried unchanged into ISO/IEC 1989:2023; no Annex E entry — Annex E scopes only 2014->2023)]",
+ "state": "OK"
+}

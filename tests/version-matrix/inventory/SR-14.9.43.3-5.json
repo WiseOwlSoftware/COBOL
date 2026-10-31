@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.43.3-5",
+ "section": "14.9.43.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "STRING statement",
+ "rule-digest": "c7b72f4775ed",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
+ "test-ref": "conformance:cases/14.9.43-STRING/pb88-string-into-edited",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB88 (2026-08-18): a bind-time rejection (COBOL1651) through the ONE Reject helper — it was a BoundUnsupported run-time stage on illegal source. Identifier-3 shall not reference an edited data item and shall not be described with the JUSTIFIED clause — both halves (the JUSTIFIED half was unchecked before).",
+ "state": "OK"
+}

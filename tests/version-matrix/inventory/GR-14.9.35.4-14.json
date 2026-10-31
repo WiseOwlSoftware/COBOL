@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.35.4-14",
+ "section": "14.9.35.4",
+ "kind": "GR",
+ "ordinal": 14,
+ "subject": "REWRITE statement",
+ "rule-digest": "3ed6451c3be2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#RewriteRecordSequential; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#RewriteLine",
+ "test-ref": "conformance:cases/14.9.35-REWRITE/l1m8_rewrite_unsuccessful_no_update; conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb1168_rs_rewrite_size_gr16; conformance:cases/14.9.35-REWRITE/pb1168_ls_rewrite_gr17",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1168 landed (w67p): the two unsuccessful REWRITEs that used to update the record - GR16's fixed-length size mismatch and GR17 b)'s longer line sequential record - are now '44' with the record on the medium unchanged (both goldens read it back). The six other unsuccessful arms were verified by golden lane 2.",
+ "state": "OK"
+}

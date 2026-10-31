@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.14.4-6",
+ "section": "14.9.14.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "EXIT statement",
+ "rule-digest": "bd7175dcc74b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#TransferOut; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod",
+ "test-ref": "conformance:cases/14.9.14-EXIT/pb405_exit_paragraph_section_in_inline_perform; conformance:cases/14.9.14-EXIT/pb405-exit-paragraph-in-inline-perform-85; unit:DispatcherTransferIdiomDriftTests.NoDispatcherTransferIsCapturedByALoweredContainer",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB405.md - LANDED. GR6 requires control to pass to 'an implicit CONTINUE statement immediately following the last explicit statement of the current paragraph, preceding any return mechanisms for that paragraph', and the NOTE names those return mechanisms as the ones associated with PERFORM, SORT and USE - an INLINE PERFORM is none of them, so an enclosing inline PERFORM has no standing to intercept the transfer. The statement-level and PERFORM-return halves were already right; the third arm - written INSIDE an inline PERFORM - emitted a bare C# `break`, which C# binds to the innermost breakable statement, so it left the PERFORM's lowered loop instead of the dispatcher's `switch (__pc)` and the paragraph then ran to its end (measured on this worktree's build: `IT 1 / IT 2 / TAIL-MAIN / NEXT` where GR6 requires `IT 1 / IT 2 / NEXT`). Repaired STRUCTURALLY rather than per statement: DispatchState.TransferOut/TransferJump is now the ONE renderer of a paragraph-leaving transfer (`__pc = t; goto __xfer;`) and EmitDispatchMethod plants the `__xfer:` landing between the switch and the at-exit tail-check, so no lowered container can capture any transfer and the fall-through epilogue - which is inside the case, before the label - can no longer overwrite a deliberately set target. Design doc D1a records the idiom; the drift test re-measures it over the GENERATED C# and is proved to flag the pre-fix emission. Positive witness: the 2002 golden measures GR6 inside an inline PERFORM at three placements (top level, under an out-of-line PERFORM, and with the section arm of GR7 alongside); the 85 negative pins the COBOL-2002 introduction (COBOL0900).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.1.4-19",
+ "section": "14.9.1.4",
+ "kind": "GR",
+ "ordinal": 19,
+ "subject": "ACCEPT statement",
+ "rule-digest": "a3d93a38739f",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "",
+ "test-ref": "conformance:wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-minimal; conformance:wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-positioned",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set. Witnessed by conformance:wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-minimal (the minimal Format-3 shape, token-identical to a Format-1 device ACCEPT, refused COBOL1707 at 2002/2014/2023) and conformance:wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-positioned (AT LINE/COLUMN + ON EXCEPTION, the same refusal): A.4.1 admits an optional element's syntax only when support is claimed, so the general rule this row names can never execute here — the rows entered the inventory through PB284's denominator repair after PB260's witness wave and were stamped in the 2026-09-09 batch.",
+ "state": "OK"
+}

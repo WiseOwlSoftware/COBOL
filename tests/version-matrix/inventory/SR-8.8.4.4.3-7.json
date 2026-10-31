@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.4.4.3-7",
+ "section": "8.8.4.4.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "Simple class condition",
+ "rule-digest": "69664c036f7b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#Violates; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#CheckClassConditionOperand",
+ "test-ref": "conformance:cases/8.8.4.4-Simple-class-condition/pb225-float-class-not-standard-float; conformance:cases/8.8.4.4-Simple-class-condition/pb225_float_class_conditions",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB225: the four FLOAT-INFINITY / FLOAT-NOT-A-NUMBER[-QUIET|-SIGNALING] alternatives carry ClassOperandRule.StandardFloatUsage, read from UsageFamilies (3.166 FLOAT-BINARY-32/-64/-128, 3.167 FLOAT-DECIMAL-16/-34) - the same line SET format 15's twin 14.9.39.3 SR32 draws (COBOL1940) - so FLOAT-LONG, FLOAT-SHORT, FLOAT-EXTENDED, COMP-1 and COMP-2 break it. COBOL2215.",
+ "state": "OK"
+}

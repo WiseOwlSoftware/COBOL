@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-10",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "VALUE clause",
+ "rule-digest": "49bf983bad24",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenValueLiteral; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ValidateValueCategory; src/WiseOwl.Cobol.Compiler/Binding/ValueSubject.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.GroupValue.cs#CheckGroupValueDeclarations; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenTableValueLiterals",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb206-bit-group-value-oversize; conformance:cases/13.18.63-VALUE/pb206_value_size_categories; conformance:cases/13.18.63-VALUE/pb598_condition_name_value_size_national_bit; conformance-test:NationalBooleanDataTests.IllegalValueShape_Rejects0898; conformance-test:ValueFormat2Tests.Format1AndFormat2_ScreenTheSameLiteralAlike; conformance-test:ValueFormat2Tests.AllStorageLanes_SeedTheSameOccurrences; conformance-test:ConditionNameValueSizeTests.AnOversizeNationalOrBooleanConditionNameLiteral_IsLegalFrom2002; conformance-test:ConditionNameValueSizeTests.TheNationalAndBooleanSizeSentencesStillBindAnElementarySubject; conformance:cases/13.18.63-VALUE/level88-alnum-value-boolean",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "RE-VERDICTED 2026-09-09 (kb/Work PB505) -- the row was already CONFORMS on PB206's elementary/group size evidence, and this records the FORMAT 2 half on its own evidence rather than leaving it inherited. SR10 is a FORMAT 1 rule that 13.18.63.3 SR16 carries into format 2, and the format-2 carrier used to bypass the screen entirely: MEASURED before PB208, `01 B PIC 1(4) USAGE BIT OCCURS 3 VALUE \"AB\" FROM (1) TO (3).` compiled CLEAN at strict --std 2023 and seeded a BOOLEAN item with \"AB00\", while its format-1 twin drew COBOL0898. Both formats now ride ONE funnel (ScreenValueLiteral) from ONE call each -- the format-1 literal from BindEntry, the format-2 occurrence-literals from ScreenTableValueLiterals, both at entry bind and both carrying the ELEMENT's ValueSubject so SR10's size sentence measures a format-2 occurrence literal too. Format1AndFormat2_ScreenTheSameLiteralAlike compares the two formats' VERDICT SETS over nine literal/picture pairs on both the strict and the permissive axis, so a rule wired into only one lane reds there instead of shipping. RE-MEASURED on this tree: the boolean table VALUE draws COBOL0898 naming SR10; the conforming B\"1010\" spelling seeds [1010|1010|1010]; and a CONFORMING boolean table VALUE is now seeded identically on the record-struct lane and on the packed bit-carrier lane (AllStorageLanes_SeedTheSameOccurrences), which it was not -- the bit carrier read RawValue alone and returned all-zero boolean positions.",
+ "state": "OK"
+}

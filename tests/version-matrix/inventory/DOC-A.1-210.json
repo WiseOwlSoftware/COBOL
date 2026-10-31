@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-210",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 210,
+ "subject": "USAGE FUNCTION-POINTER clause (alignment, size, and representation of data; and allowable languages)",
+ "rule-digest": "cfaad353b48b",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-210; src/WiseOwl.Cobol.Runtime/Control/FunctionPointer.cs; src/WiseOwl.Cobol.Compiler/Binding/Model/StorageForm.cs; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs",
+ "test-ref": "conformance:cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb452_set_function_pointer; conformance:cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb452_function_address_runtime; conformance:cases/13.18.60-USAGE/pb452-function-pointer-without-to",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "DOCUMENTED IN THE SAME CHANGE SET AS 13.18.60.4 GR26 (kb/Work PB452 + PB817). A.1 item 210 is REQUIRED and names FOUR things, and the section 7 row answers all four. ALIGNMENT: none - a function-pointer occupies no character positions and rides a managed slot (StorageForm.FunctionPointerRef, image width 0), so there is no boundary to align on, and 13.18.60.3 SR14 confines it to a level-1/77 elementary item or a STRONG type declaration where no sibling can be displaced. SIZE: 8 character positions, the 64-bit managed reference width shared with POINTER / PROGRAM-POINTER / OBJECT REFERENCE / INDEX so the five cannot drift. REPRESENTATION: the externalized function-name, in the readonly record struct FunctionPointer(string? Name) - deliberately SEPARATE from ProgramPointer, because 8.4.3.10.4 gives each category its own NULL and 14.9.39.3 SR20/SR21 forbid mixing them, so one shared struct would make the two assignment-compatible in the GENERATED C#, the one place a binder screen cannot reach. ALLOWABLE LANGUAGES: COBOL only - GR26's second paragraph admits other languages 'for which the implementor has declared support' and this implementation declares none, so 8.4.3.12.4 GR4 (EC-FUNCTION-NOT-FOUND, value NULL) is the DEFINED answer for a non-COBOL function rather than an undefined outcome, which the 2023 golden's NF-RAISED/B-NULL pair measures.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.40.4-19",
+ "section": "14.9.40.4",
+ "kind": "GR",
+ "ordinal": 19,
+ "subject": "SORT statement",
+ "rule-digest": "272618151ad9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitTableSort; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#TableCompare",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb846_sort_table_occurs_keys",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'To determine the relative order in which the table elements are stored after sorting, the contents of corresponding key data items are compared according to the rules for comparison of operands in a relation condition, starting with the most significant key data item.' a) ASC -> lower value has the lower occurrence number; b) DESC -> higher value lower occurrence number; c) equal -> next key (cite.py --check 14.9.40.4 OK, GR19). The emitted Comparison walks ts.Keys in order, `if (__c != 0) return key.Descending ? -__c : __c`, return 0 on all-equal; TableCompare dispatches by class (numeric by value incl. windowed/unsigned, national AsNat under GR5 national, boolean with 8.8.4.2.8 zero pad, group AsImage alphanumeric). pb846 legs M/X exercise a, b and c (DESC KA major, ASC KB minor); class arms by conformance:cases/12.3.6-OBJECT-COMPUTER/pb678_table_sort_key_class and conformance:cases/_unassigned/da5_table_sort_group_key. The OCCURS DEPENDING ON population defect is GR-14.9.40.4-20's, not this comparison rule's.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.6.4-1",
+ "section": "12.3.6.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "OBJECT-COMPUTER paragraph",
+ "rule-digest": "ebf3bc7cf8f4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#SwitchBindSpecialNames",
+ "test-ref": "conformance:cases/11.9-OPTIONS/pb60_nested_configuration_inheritance",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB60 (2026-08-18): the OBJECT-COMPUTER clauses apply to the source unit and to every contained source unit — the golden's contained program inherits the PROGRAM COLLATING SEQUENCE (its PCS leg).",
+ "state": "OK"
+}

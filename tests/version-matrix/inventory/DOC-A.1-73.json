@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-73",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 73,
+ "subject": "FILE-CONTROL entry, ASSIGN clause (USING phrase meaning and rules)",
+ "rule-digest": "87c72aaa4236",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-73; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Associate; src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs#ResolveHostPath",
+ "test-ref": "conformance:cases/9.1.13.6-Permanent-error-condition-with-unsuccessful-completion/pb324_assign_using_dynamic; conformance:cases/12.4.5-File-control/pb746_assign_using_2002",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB324. A.1 item 73 -- 'FILE-CONTROL entry, ASSIGN clause (USING phrase meaning and rules). This item is required. This item shall be documented in the implementor's user documentation. (12.4.5, File control entry, General rule 4)'. The determination is filed in docs/CONFORMANCE.md section 7 and STATES THE VALUE (PB280 Q3): the content of data-name-1 with leading and trailing spaces removed IS the assign target, mapped to a host path by exactly the literal-1 rule (CobolFile.ResolveHostPath); the association is made at every OPEN/SORT/MERGE and at no other statement; content empty after the space removal, or carrying a character below U+0020, names no physical file and the statement is unsuccessful with 9.1.13.6 item 2's '31'. Pinned by the 2023 golden (BLANK=31 for an all-space content; '  pad.dat  '-style trimming and the two-file re-association) and the 85 golden (the same determination at the oldest edition). retired-witness: conformance:85/pb324_assign_using_85 (moved to conformance:cases/12.4.5-File-control/pb746_assign_using_2002: the USING phrase is a 2002 introduction (kb/Work PB746), so the golden runs at its introducing edition)",
+ "state": "OK"
+}

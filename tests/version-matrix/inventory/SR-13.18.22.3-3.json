@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.22.3-3",
+ "section": "13.18.22.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "EXTERNAL clause",
+ "rule-digest": "46c8253001c8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ExternalizedName.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
+ "test-ref": "conformance:cases/13.18.22-EXTERNAL/pb511-external-as-figurative",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§13.18.22.3 SR3: \"Literal-1 shall be an alphanumeric or national literal and shall be neither a figurative constant nor a zero-length literal.\" (cite.py OK §13.18.22.3 3)). Both the data-description arm and the FD arm call the ONE ExternalizedName.Screen with rejectZeroLength:true (COBOL2156). Probes: AS SPACES -> 2156 figurative; AS ALL \"A\" -> 2156 figurative; AS \"\" -> 2156 zero-length; AS 12 -> 2156 numeric; AS B\"1\" -> 2156 boolean; accepted: AS N\"ABC\", AS NX\"00410042\", AS X\"414243\" (hex is §8.3.3.2 format 2 of an alphanumeric literal), AS \"AB\" & \"C\" (a concatenation expression is equivalent to a literal, §8.8.3.3 GR3, folded then class-checked). The negative fixture pins the figurative edge; the other edges are unpinned but verified by probe. || Editions (adjudicator): 2002, 2014, 2023 (the AS phrase does not exist at 1985) || Code sites (adjudicator detail): src/WiseOwl.Cobol.Compiler/Binding/ExternalizedName.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry (externalizedAs); src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs (FD fileGlobalExternalClause arm)",
+ "state": "OK"
+}

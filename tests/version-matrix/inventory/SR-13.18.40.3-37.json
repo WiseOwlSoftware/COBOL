@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-37",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 37,
+ "subject": "PICTURE clause",
+ "rule-digest": "d9ab8b7a4b9d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveLocaleName",
+ "test-ref": "unit:LocaleModuleNonSupportTests.TheNumvalCLocaleKeyword_IsEditionGated_NowThatItIsLive",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "",
+ "state": "OK"
+}

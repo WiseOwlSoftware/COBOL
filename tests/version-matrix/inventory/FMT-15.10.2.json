@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.10.2",
+ "section": "15.10.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "ASIN function",
+ "rule-digest": "974e89ea77ce",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#evaluateWhenItem; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BindWhenItem; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sendingOperand",
+ "test-ref": "conformance:cases/15.10.4-Returned-value-rule/pb65_bounded_returned_value_landing",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "FUNCTION ASIN(1)/(-1)/(0.5) in the printed format (pb65_bounded_returned_value_landing): truncated into nine places +/-1.570796326 and 0.523598775, ROUNDED +/-1.570796327 and 0.523598776 (14.7.4.3; kb/Work PB3829 retired the clamp that held the ROUNDED legs at the truncated values). retired-witness: src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#addOperand (kb/Work PB2114 collapsed the four arithmetic sending operand rules into the one sendingOperand rule) retired-witness: src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#divideOperand (kb/Work PB2114 collapsed the four arithmetic sending operand rules into the one sendingOperand rule) retired-witness: src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#multiplyOperand (kb/Work PB2114 collapsed the four arithmetic sending operand rules into the one sendingOperand rule) retired-witness: src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#subtractOperand (kb/Work PB2114 collapsed the four arithmetic sending operand rules into the one sendingOperand rule) retired-witness: conformance:cases/15.10.4-Returned-value-rule/pb65_codomain_clamp (renamed to pb65_bounded_returned_value_landing by kb/Work PB3829)",
+ "state": "OK"
+}

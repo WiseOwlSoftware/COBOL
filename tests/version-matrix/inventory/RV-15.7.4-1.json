@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.7.4-1",
+ "section": "15.7.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "ABS function",
+ "rule-digest": "59f6df92195d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#AbsReal; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AnyRealArgument",
+ "test-ref": "conformance:cases/15.7.4-Returned-value-rule/pb2_float_argument_exact_family",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "PB2 LANDED. The exact path already realized the 15.7.4 equivalent arithmetic expression; the residue was that a FLOATING-POINT argument had no path at all and emitted a raw CS1503. The renderer now routes on the ARGUMENT's type and AbsReal computes the same EAE in binary64, which is what 15.4.1 licenses under native arithmetic once the operand is already a float. || editions corrected from '2002,2014,2023' to 2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the ABS function exists from 2014 (IntrinsicCatalog.cs, the COBOL1502 edition window).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.23.3-1",
+ "section": "14.9.23.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "INVOKE statement",
+ "rule-digest": "2eaf193034d8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInstanceInvoke; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindByReceiver; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectReference; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindNullInvoke",
+ "test-ref": "conformance:cases/14.9.23-INVOKE/pb1136-invoke-receiver-not-object-reference; conformance:cases/14.9.23-INVOKE/pb1136_invoke_null_receiver; conformance:cases/14.9.23-INVOKE/pb1136-invoke-null-identifier-2",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 14.9.23.3 'Identifier-1 shall be an object reference' OK 1). Every identifier format that IS an object reference is a receiver: a data item (a non-object identifier-1 is COBOL0824 naming SR1, negative pb1136-invoke-receiver-not-object-reference), an object-view and an inline invocation (kb/Work PB1425, golden pb1425_computed_object_reference_operands), SELF / [x OF] SUPER, and since w1112b the predefined NULL: INVOKE NULL compiles (OoBinder.OoBindNullInvoke screens the operand-only syntax rules SR9-SR17 with no method to read) and raises EC-OO-NULL by 14.9.23.4 GR5 (golden pb1136_invoke_null_receiver: HANDLED=EC-OO-NULL twice, W and X unchanged). It was the deferral COBOL1756 and a run-time NotImplemented abort. kb/Work PB1136 landed.",
+ "state": "OK"
+}

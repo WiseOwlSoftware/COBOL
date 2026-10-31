@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.1.9.6-1",
+ "section": "8.5.1.9.6",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Dynamic-capacity tables",
+ "rule-digest": "d97ad919c81e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#RaiseImplicitOverflow; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#FromCurrentImage; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#NonfatalIfEnabled",
+ "test-ref": "conformance:cases/8.5.1.9.6-Exceeding-capacity/pb1269_dyn_overflow_resume_next; conformance:cases/8.5.1.9.6-Exceeding-capacity/pb1144_dyn_move_recreate; conformance:cases/8.5.1.9.6-Exceeding-capacity/ec_bound_overflow",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1269 + PB1144 (landed w67o). 8.5.1.9.6 1): EC-BOUND-OVERFLOW exists when an operation causes the expected capacity to be exceeded; an implicit change to a table already past it raises nothing; RESUME AT NEXT STATEMENT lets the operation continue. Every IMPLICIT change now raises through ONE site, CobolDynTable.RaiseImplicitOverflow (first-crossing guard), BEFORE the change: the receiving-subscript growth (RefReceiving) and the 14.6.9.2 recreation (FromCurrentImage, which used to route through SetCapacity and raise the SET's EC-BOUND-SET instead). ExceptionEngine.BoundOverflowError passes nextStatementContinues, so a RESUME AT NEXT STATEMENT returns to the raise site and the growth and the store complete (was: RaiseResumeSignal unwound before GrowTo, capacity stayed 2). Witnesses: pb1269 (DECL once, CAP 6, E6=022, then CAP 7 with no second call); pb1144 C1-C3 (MOVE S TO R to capacity 6 raises EC-BOUND-OVERFLOW, the second MOVE nothing).",
+ "state": "OK"
+}

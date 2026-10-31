@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.3.4-1",
+ "section": "11.3.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "CLASS-ID paragraph",
+ "rule-digest": "1ac2304b802a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build",
+ "test-ref": "conformance:cases/11.3-CLASS-ID/pb303_as_class_id_zero_length_accepted",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Object-class-name-1 names the class and literal-1 externalizes it. The observable half is that the WORD keeps naming the class while an AS phrase is written - the golden's REPOSITORY CLASS entry and its USAGE OBJECT REFERENCE clause both resolve on the declared word - which is also why OoClassSymbol.CsName is deliberately NOT derived from the externalized name (the emitted type name is a wire contract with PicInfo.ClrType). 8.3.2.2 lists no reference form that takes a class's externalized name. kb/Work PB303.",
+ "state": "OK"
+}

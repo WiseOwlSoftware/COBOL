@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.8.3-13",
+ "section": "12.3.8.3",
+ "kind": "SR",
+ "ordinal": 13,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "9a4af3f24229",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#DeclareUserWord; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RepositoryIntrinsicSpecifier; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#TryIntrinsicOfThisCompilation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IsDefinedAt; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#DeclareParameterNames; src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#Expand",
+ "test-ref": "conformance:cases/12.3.8-REPOSITORY/pb1083-all-intrinsic-2023-names; conformance:cases/12.3.8-REPOSITORY/pb1083-cobol-words-synonym-as-user-word; conformance:cases/12.3.8-REPOSITORY/pb1083_all_intrinsic_edition_names; unit:UserWordDeclarationDriftTests.EveryType_IsDeclared_OrExemptWithItsReason; conformance:cases/12.3.8-REPOSITORY/pb1744-parameter-name-intrinsic; conformance:cases/12.3.8-REPOSITORY/pb1744_parameter_name_all_intrinsic",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1744 (wave 1019 D2) restates PB1083's CONFORMS with the parameter-name witness: under FUNCTION ALL INTRINSIC ('none of the names of the intrinsic functions may be specified as a user-defined word within the scope of this REPOSITORY paragraph', cite.py OK 13)) `CLASS-ID. C USING SQRT.` is COBOL1649, while the legal parameter-name ELT compiles and its expansion runs (pb1744_parameter_name_all_intrinsic).",
+ "state": "OK"
+}

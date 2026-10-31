@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.6.4-8",
+ "section": "12.3.6.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "OBJECT-COMPUTER paragraph",
+ "rule-digest": "b748453c303e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#DispatchEmitter; src/WiseOwl.Cobol.Runtime/Globalization/CharacterClassification.cs#Resolve; src/WiseOwl.Cobol.Runtime/Globalization/LocaleFacts.cs#For; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/ObjectComputerEmit.cs#ObjectComputerEmit",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/pb64t5_case_locale_phrase; unit:CobolLocaleTests.Classification_ResolvesAtActivation_AndDrivesTheClassTests; conformance:cases/12.3.6-OBJECT-COMPUTER/pb111_class_object_computer",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T5 (2026-08-19): the classification is established with the module's INITIAL state — resolved in the activation prologue and held in the module's __CLASSIFY field — so a later SET LOCALE LC_CTYPE does not move it (golden: OUTER-2 = 74 after the SET; the unit test's de-DE classification stays after SET … fr-FR); a named locale's classification IS that locale's LC_CTYPE (LocaleFacts.For(tag).TextInfo). Rule --check verified at 12.3.6.4 8). kb/Work PB111 (2026-08-19): a CLASS-ID's classification applies to its METHODS — each method activation resolves it (an activation local; the golden's CLS-UP = 305 under the class's Turkish classification); the class used to be a CS0103 on its emitted methods.",
+ "state": "OK"
+}

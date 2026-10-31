@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.2-2",
+ "section": "8.8.2",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Expressions",
+ "rule-digest": "9de704c83d93",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#booleanShiftSuffix; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#booleanFactor; src/WiseOwl.Cobol.Frontend/Expressions/ArithmeticFormationRules.cs#ShiftCountNotSoleOperand; src/WiseOwl.Cobol.Compiler/Validation/ExpressionFormationPass.cs#VisitBooleanShiftSuffix",
+ "test-ref": "conformance:cases/8.8.2-Boolean-expressions/pb1413-shift-count-compound; unit:BooleanExpressionFormationTests.ShiftCount_NotASingleIdentifierOrLiteral_IsATable4Violation",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1413 landed (wave 66 h). Rule (cite.py --check 8.8.2 'A boolean expression where the preceding operator is a boolean shift operator shall end with one of the following' -> OK §8.8.2 2)). The refuted escape - A B-SHIFT-L 1 + 1 ending in an arithmetic operand after '+' - is closed: the count is screened to Table 4's single identifier or literal, so any arithmetic operator after it is COBOL1719 (runtime) / COBOL1619 (directive). The trailing-operator halves (A B-AND., A B-SHIFT-L.) remain parse errors as the adjudicator measured.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.37.3-10",
+ "section": "14.9.37.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "SEARCH statement",
+ "rule-digest": "8d95256b6c5b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/SearchAllFormat2Rules.cs#CheckSendingSide; src/WiseOwl.Cobol.Compiler/Binding/Validation/SearchAllFormat2Rules.cs#CheckSendingIdentifier",
+ "test-ref": "conformance:cases/14.9.37-SEARCH/pb445-search-all-sending-is-key; conformance:cases/14.9.37-SEARCH/pb445-search-all-sending-uses-index; conformance:cases/14.9.37-SEARCH/pb445_search_all_format2_legal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB445.md LANDED. Both prohibitions, each isolated by its own negative golden at all four editions (cite.py --check 14.9.37.3 \"Identifier-3, identifier-4, identifiers specified in arithmetic-expression-1, and identifiers specified in arithmetic-expression-2 shall be neither referenced in the KEY phrase of the OCCURS clause associated with identifier-1 nor subscripted by the first index-name associated with identifier-1\" -> OK, Syntax rules 10). (a) 'referenced in the KEY phrase' -- pb445-search-all-sending-is-key writes `K (IX) = K2 (1)` so the subscript is NOT the search index and only this half fires. (b) 'subscripted by the first index-name' -- pb445-search-all-sending-uses-index writes `K (IX) = V (IX)` where V is not a key, so only this half fires. The rule reaches BOTH a sole identifier-3/-4 and every identifier inside arithmetic-expression-1/-2, and the implementation walks the whole expression subtree for the latter; the positive golden's cases B and C are the legal identifier-3 and arithmetic-expression-1 spellings. COBOL1966.",
+ "state": "OK"
+}

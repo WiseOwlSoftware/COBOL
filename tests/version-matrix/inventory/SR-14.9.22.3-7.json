@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.22.3-7",
+ "section": "14.9.22.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "INSPECT statement",
+ "rule-digest": "d4a73c5fc3d3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckInspectCharactersReplacement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhraseOperands",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/pb1127-inspect-constant-name-characters-by",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED kb/Work PB1127. CHARACTERS BY a two-character constant-name draws SR7's COBOL0846 (it drew COBOL1639 'not defined'); a spelled two-character literal was already refused.",
+ "state": "OK"
+}

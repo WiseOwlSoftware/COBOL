@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-117",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 117,
+ "subject": "Listings (whether and when produced by the compiler, effect of logical conversion)",
+ "rule-digest": "f22d219deb41",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-117; src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveStateRegistry.cs#ListingDirective2002; src/WiseOwl.Cobol.Cli/Program.cs",
+ "test-ref": "conformance:cases/7.3.18-LISTING/pb725_directive_facility",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§7.3.18.3 GR1 (cite.py OK 'Whether the compiler produces a source listing is implementor-defined' and 'If the compiler does not produce a source listing, the LISTING directive shall be ignored') and §6.5 (cite.py OK §6.5 9) 'The implementor shall define the effect on the source listing, if any, of logical conversion'). Verified: cobol --help lists no listing option (options -o, --nist, --std, --permissive, --copy, --run, --sign-encoding); grep -i listing src/WiseOwl.Cobol.Cli finds nothing; DirectiveStateRegistry holds NONE for ListingDirective2002 citing GR1. Probe /tmp/adj/doc/doc-w1-s4/probe/p117.cob (>>LISTING OFF / >>PAGE / >>LISTING ON): 2002 and 2023 compile and print HI, producing p117.dll, p117.g.cs, p117.runtimeconfig.json only; 85 -> COBOL0900 on the directives. Golden 2002/pb725_directive_facility compiles >>LISTING ON and >>PAGE with no effect on the run. kb/Work PB1496 (open) asked for this row; its free-form 255-column defect is a separate edge.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.1.11.3-6",
+ "section": "8.5.1.11.3",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "Variable-length data items",
+ "rule-digest": "01b8d874f7d0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/CobolDynString.cs#SetSize; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#SetCapacity; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#FromCurrentImage; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#RefReceiving",
+ "test-ref": "conformance:cases/8.5.1.11.3-Availability-and-persistence-of-variable-length/l1_vldi_reduce_regrow; conformance:cases/8.5.1.11.3-Availability-and-persistence-of-variable-length/set_size",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "§8.5.1.9.4 + §14.9.39.4 GR30 + §8.5.1.9.5 (INITIALIZED): explicit SET reduction then regrowth reads 000; implicit reduction by a variable-length group MOVE (§14.6.9.2) gives G=01 888, then H=03 888000999 (never the freed 666); MOVE 'XY' gives length 2; set_size pins SET SIZE (GR39 spaces).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.6.4.4-4",
+ "section": "12.4.6.4.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "SAME clause",
+ "rule-digest": "4c20aa6df4b1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#BindIoControl",
+ "test-ref": "conformance:cases/12.4.6.4-SAME/l1c28_same_sort_merge_area",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 12.4.6.4.4 \"The extent of such allocation shall be specified by the implementor\" -> OK GR4 b). GR4 a)/b) are storage-reuse PERMISSIONS (sort work storage 'is available for reuse'; non-sort file areas 'may be allocated as needed'), c) says non-sort files' areas do NOT share with each other. BindIoControl binds Format 3 as a no-op: nothing is shared or reused, which satisfies a) and b) (permissions not exercised; the b) extent is zero) and c) (every file keeps its own area). Annex A.1 item 169 (extent of allocation) is 'required' but its procedure 'does not have to be documented in the implementor's user documentation', so no CONFORMANCE.md row is owed by this rule. Probe gr4_sortarea (`SAME SORT AREA FOR S1 F3`, SORT S1 USING F1 GIVING F2) -> AAAAAA then CCCCCC, correct. No spec-derived test. [registrar 14a — editions as adjudicated: 85, 2002, 2014, 2023 (the SAME clause is base I-O-CONTROL language in every edition; no Annex E change entry names it)]",
+ "state": "OK"
+}

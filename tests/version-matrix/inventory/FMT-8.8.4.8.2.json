@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.8.4.8.2",
+ "section": "8.8.4.8.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Simple omitted argument condition",
+ "rule-digest": "c5c75da053a5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#comparisonExpression; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindComparison; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitComparisonExpression; src/WiseOwl.Cobol.Compiler/Binding/Model/OmittedProbe.cs#OmittedProbe",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/pb133_omitted_args",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: §8.8.4.8.2 general format 'data-name-1 IS [ NOT ] OMITTED' with NOT and OMITTED underlined and IS not underlined (cite.py --check 8.8.4.8.2 \"data-name-1 IS\" -> OK; the Markdown form carries the <u> marks), so IS is optional, NOT is an optional bracketed word, OMITTED required. Grammar comparisonExpression alt 1 'comparisonOperand IS? NOT? OMITTED' spells exactly that (superset operand; ConditionBinder.BindComparison then requires the operand text to name a formal of the current element, method formals inside a method, else LinkageFormals, COBOL1686 per SR1 -- cite.py --check 8.8.4.8.3 'Data-name-1 shall be a formal parameter defined in the source element in which this condition is specified' OK -- so a subscripted/expression/non-formal operand is refused). NOT yields BoundOmittedCondition(formal, not) -- one condition per GR2 (cite.py --check 8.8.4.8.4 'When used, NOT and the keyword OMITTED specify one condition' OK). Edition gate: VersionConformancePass.VisitComparisonExpression Check(OmittedArguments2002). PROBE (pinned cobol.exe, out/probe/simple-omitted/p1.cob): 'l-a OMITTED' (no IS, lower case), 'L-B NOT OMITTED' (no IS), 'L-C IS NOT OMITTED AND L-A IS OMITTED', 'NOT L-C IS OMITTED' against CALL USING W-A OMITTED (+trailing) and USING OMITTED W-A W-A -> A-PRESENT/B-OM then A-OM/B-PRESENT/C-PRES-A-OM/C-PRESENT2, exactly the GR1a/GR1b truth values, at --std 2023 and 2002; --std 85 -> COBOL0900 on every condition; p2.cob: working-storage item and a linkage item not in USING -> COBOL1686. Covering golden pb133_omitted_args spells IS OMITTED and IS NOT OMITTED (IS-less spellings verified by probe only). [editions as adjudicated: 2002, 2014, 2023 (the omitted-argument condition is a COBOL-2002 introduction; absent from 1985)]",
+ "state": "OK"
+}

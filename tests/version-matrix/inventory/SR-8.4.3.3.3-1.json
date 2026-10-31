@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.3.3-1",
+ "section": "8.4.3.3.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Reference-modification",
+ "rule-digest": "ed9cdbae5482",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#RefModExclusion; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#GroupImagePlace",
+ "test-ref": "conformance:cases/8.4.3.3-Reference-modification/pb70_group_reference_modification; conformance:cases/8.4.3.3-Reference-modification/pb70-refmod-strong-group; conformance:cases/8.4.3.3-Reference-modification/pb70-refmod-binary-item; conformance:cases/8.4.3.3-Reference-modification/pb70-refmod-index-item; conformance:cases/8.4.3.3-Reference-modification/pb70-refmod-leaf-under-strong-group; conformance:cases/8.4.3.3-Reference-modification/pb1380-renames-alias-binary-ref-mod",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB70 (2026-08-18): the SR1 list is ONE exclusion rule (RefModExclusion) at bind - COBOL1647 for a strongly-typed or variable-length (8.5.1.12) group, a numeric item of a non-DISPLAY/NATIONAL usage, an edited/numeric leaf subordinate to a strongly-typed group, an index item, a pointer, an object reference; an admitted GROUP is viewed through its character image (GroupImagePlace). Residues: a numeric item of usage NATIONAL (admitted by SR1) has no national image channel yet (loud stage); bit and national GROUPS read as ordinary groups until GROUP-USAGE is modelled (PB79).",
+ "state": "OK"
+}

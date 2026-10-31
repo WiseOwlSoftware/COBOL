@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.44.4-1",
+ "section": "15.44.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "INTEGER function",
+ "rule-digest": "02b5db4a92b2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
+ "test-ref": "conformance:cases/15.42.3-Argument-rule/l1_integer_family_notes; conformance:cases/15.44.3-Argument-rule/l1_integer_floor_85; conformance:cases/15.7.4-Returned-value-rule/pb2_float_argument_exact_family",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§15.44.4 r1 (greatest integer <= a) over the NOTE's three cases plus the exact-negative-integer branch (-1.0 -> -1, not -2); normative in every mode because INTEGER has no EAE (§15.4.1 closing sentence), hence the 85 witness.",
+ "state": "OK"
+}

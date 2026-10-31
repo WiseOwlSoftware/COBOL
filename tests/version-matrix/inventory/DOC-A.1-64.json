@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-64",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 64,
+ "subject": "ENTRY-CONVENTION clause (entry-convention-names, their meanings and the default when not specified)",
+ "rule-digest": "d54ce33f0ee7",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-64; src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#ScreenEntryConvention",
+ "test-ref": "conformance:cases/11.9.7-ENTRY-CONVENTION/pb232-entry-convention-name; conformance:cases/11.9.7-ENTRY-CONVENTION/pb232_entry_convention_cobol",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB232 (wave 56): optional item, Not provided - no entry-convention-name is defined; COBOL is the one convention and the default (GR4 c). A named convention is COBOL2385. retired-witness: src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#EntryConventionOf (kb/Work PB298: the ENTRY-CONVENTION screen returns nothing now that the clause has no model field, so EntryConventionOf became ScreenEntryConvention (the same SR1 + GR3 checks, COBOL2385)) || editions 2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the ENTRY-CONVENTION clause is a COBOL-2014 introduction.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.5.4-11",
+ "section": "14.9.5.4",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "CANCEL statement",
+ "rule-digest": "fbc7475f9059",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallPointer",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-14.9.5.4-11",
+ "editions": "85,2002,2014,2023",
+ "notes": "The rule makes the result UNDEFINED - Annex A.2 undefined-item 4 repeats it verbatim (spec line 34695) - so every behavior conforms and the only thing worth verifying is that the implementation does not do something unpredictable. READ: EntryOf (lines 242-252) returns `new ProgramPointer(n.Name)` carrying the CANONICAL registered name, not an instance or an address; CancelNode drops only `Node.Instance` and leaves the node in `_byPath` / `_order`; CallPointer (lines 260-275) rejects only the NULL pointer (EC-PROGRAM-PTR-NULL, 14.9.4.4 GR3b) and otherwise re-enters CallProgram, which re-resolves the held name through the same rule-4 scope arm and re-instantiates via `n.Instance ??= n.Factory(...)`. MATCHED: a CALL through a program-pointer whose target was canceled is therefore DEFINED here as an ordinary call that finds the program in its initial state - stricter than the rule requires, and specifically not a dangling reference. No test is needed or possible to 'close' this row, because the rule imposes no observable obligation; recording CONFORMS on the strength of the read, not on a probe. || UPHELD: re-read EntryOf, CancelNode and CallPointer. The load-bearing fact is that CancelNode removes nothing from `_byPath` or `_order` (it assigns `n.Instance = null` and nothing else structural), so the name the ProgramPointer holds still resolves - confirmed. Noted but NOT charged here: EntryOf's scan (lines 245-249) shares the missing program-vs-function discriminator reported on GR-14.9.5.4-2, so a program-pointer can be SET to a user-defined function's name; that is 8.4.3.13's obligation, not GR11's, and it does not disturb this row's conclusion because GR11's result is undefined either way.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.8-1",
+ "section": "9.1.13.8",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "I-O status",
+ "rule-digest": "e5be81b1e65b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#LockRecord; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ExhaustionStatus; src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#HolderOf; src/WiseOwl.Cobol.Runtime/IO/Sharing/HostRegionLocks.cs#RecordLockByte",
+ "test-ref": "conformance:cases/9.1.13.8-Record-operation-conflict-condition-with-unsuccessful/file_sharing_mutate; unit:CrossRunUnitKeyedStoreDriftTests.AnotherRunUnitsRecordLock_Answers51_AndItsUpdatesSurviveTheFirstClose",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§9.1.13.8 1) '51' for access to a record locked by another file connector (cite.py --check OK §9.1.13.8 1)). PhysicalFileTable.LockRecord / IsLockedByOther answer RecordLocked when the owner is a different connector name and self-access is idempotent (§12.4.5.9 GR8). conformance:cases/9.1.13.8-Record-operation-conflict-condition-with-unsuccessful/file_sharing_mutate pins REWRITE and DELETE of another connector's locked record -> 51 (REWQ51, DELQ51, REWP51 after WRITE WITH LOCK); conformance:cases/12.4.5.9-LOCK-MODE/l1_read_lock_mode_governs pins READ -> 51 (R4=51); pb346_read_retry_record_conflict pins every RETRY n form exhausting to 51. || Editions (adjudicator, verbatim): 2002/2014/2023 (record locking facility) retired-witness: src/Cobol.Net.Runtime/IO/Sharing/PhysicalFileTable.cs#IsLockedByOther (kb/Work PB2660 replaced the in-run-unit IsLockedByOther with HolderOf, which also asks the host for a holder in another run unit)",
+ "state": "OK"
+}

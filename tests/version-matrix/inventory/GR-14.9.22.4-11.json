@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.22.4-11",
+ "section": "14.9.22.4",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "INSPECT statement",
+ "rule-digest": "92494d7b3b23",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/l1p5_inspect_general_rules",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR11: counter VALUE 5 plus 2 matches = 07 (C1)",
+ "state": "OK"
+}

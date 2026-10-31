@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.2.3-12",
+ "section": "14.2.3",
+ "kind": "GR",
+ "ordinal": 12,
+ "subject": "Procedure division structure",
+ "rule-digest": "a7121f37b076",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RaisingPhrase.cs#Partition; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs; src/WiseOwl.Cobol.Compiler/Oo/OoMethodSymbol.cs",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/pb815_raising_factory_interface; conformance:cases/14.2-Procedure-division-structure/oo_ec_goback_raising",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§14.2.3 GR12 (cite.py --check 14.2.3 \"may be raised by EXIT or GOBACK statements within this runtime element\" -> OK §14.2.3 12)). Three permission arms: exception-name (level-3 EC incl. user-defined EC-USER) - l1_exit_raising_ecuser_listed / oo_ec_goback_raising; object-class-name incl. a SUBCLASS object - probed b5/gr12_sub.cob: header `RAISING GE0`, `GOBACK RAISING W` with W typed GE1 INHERITS GE0 -> caller's USE AFTER EXCEPTION OBJECT GE0 prints HANDLED GE0 then AFTER G12S; interface-name (an object implementing it) and FACTORY OF - pb815 golden (spec-derived output). The complementary EXIT SR5 / GOBACK SR4 refusals are those clauses' rows. || editions as adjudicated: 2002, 2014, 2023 (the RAISING phrase is a COBOL-2002 introduction; negative/raising_below_2002)",
+ "state": "OK"
+}

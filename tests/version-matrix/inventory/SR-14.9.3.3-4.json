@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.3.3-4",
+ "section": "14.9.3.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "ALLOCATE statement",
+ "rule-digest": "cfad9d38dda8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#BindAllocate; src/WiseOwl.Cobol.Compiler/Binding/Model/StrongTypeModel.cs#PointerRestriction",
+ "test-ref": "conformance:cases/14.9.3-ALLOCATE/pb153-allocate-restricted-returning-untyped; conformance:cases/13.18.60-USAGE/pb153_restricted_pointer",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "NOT-IMPLEMENTED -> CONFORMS (kb/Work PB153, landed 2026-09-02). The restricted data-pointer now EXISTS as a model value: the grammar's dataPointerUsage parses `USAGE POINTER TO type-name-1` (SS13.18.60.2 general format, verified against the printed page - PDF p.533), PicInfo.RestrictedTypeName carries it, and StrongTypeModel.PointerRestriction reads it. SR4 is screened in BOTH ALLOCATE forms: the based form rejects a restricted RETURNING whose data-name-1 is not a strongly-typed group of that type, and the CHARACTERS form rejects a restricted RETURNING outright, since Format 1 specifies no data-name-1 to supply the type. SS13.18.60.3 SR18 is enforced with it ('If type-name-1 is specified, the TYPEDEF clause shall be specified for the subject of the entry'), so the only legal declaration shape - a GROUP strong typedef, a TYPEDEF'd pointer entry, and a TYPE item of it - is the one the positive golden uses. The old code-location pointed at the grammar because the tail did not parse; it is now the binder, where the rule lives.",
+ "state": "OK"
+}

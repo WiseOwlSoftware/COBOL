@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.14.3-2",
+ "section": "14.9.14.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "EXIT statement",
+ "rule-digest": "1e057bdbafd0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindExit; src/WiseOwl.Cobol.Compiler/Binding/Procedure/EnclosingContext.cs#RefusedInGlobalDeclarative",
+ "test-ref": "conformance:cases/14.9.14-EXIT/pb404-exit-program-in-global-declarative; conformance-test:ExitPlacementContextDriftTests.ReturnStatementInADeclarative_FollowsTheGlobalPhrase",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB404.md landed w39. The PROGRAM arm of BindExit now asks the ONE placement screen (PlacementRules.RefusedInGlobalDeclarative over EnclosingContext.InGlobalDeclarative) and raises COBOL2102 citing this rule's own ordinal. A FLAT prohibition: 14.9.14.4 states no counterpart to RESUME's 14.9.33.4 GR1 dynamic-scope CONTINUE, so no dynamic arm was imported. The non-GLOBAL declarative control is the same theory's accepted row (PBGD03).",
+ "state": "OK"
+}

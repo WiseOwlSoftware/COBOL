@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.44.4-3",
+ "section": "14.9.44.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "SUBTRACT statement",
+ "rule-digest": "600f90412032",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CorrespondingEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs",
+ "test-ref": "conformance-test:CorrespondingDifferentialTests.SubtractCorr_TargetMinusSource_CorrToken",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The stored value is target - source, i.e. identifier-5's item minus identifier-4's item, which is what this rule's FIRST sentence (`data items in identifier-4 are subtracted from and stored in corresponding items in identifier-5`) and GR5's reduction to separate `SUBTRACT a FROM b` statements both require. Measured: p3/p4/m3 give DST.P = 7 from 10 - 3 and DST.Q = 13 from 20 - 7; k4 over nested groups gives 99/198/297 from 100-1/200-2/300-3; k1 the same under STANDARD-DECIMAL. SPEC CONTRADICTION, RESOLVED AND VERIFIED AGAINST THE PRINTED STANDARD: this rule's SECOND paragraph prints the standard-arithmetic equivalence as `(operand-1 - operand-2)` with operand-1 = the identifier-4 item and operand-2 = the corresponding identifier-5 item - the INVERSE of its own first sentence and of GR5. I extracted the licensed PDF's text layer for printed page 764 and the transcription in specs/ISO_COBOL.md is FAITHFUL: the inversion is in ISO/IEC 1989:2023 itself, and it is an editorial artefact of deriving the SUBTRACT rule from ADD GR3 (14.9.2.4 GR3 is the same sentence with `added` for `subtracted`, where + is commutative and the inversion is invisible). Two normative statements against one, so the compiler follows the first sentence + GR5; CorrespondingEmitter.cs:30-33 already records exactly this reading in a comment. Nothing here is an owner decision - the standard decides it 2-to-1. The named test is spec-derived (AssertOutput \"07\" computed from GR3/GR5, not a legacy differential).  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CorrespondingEmitter.cs:30-46 Emit (`string op = c.Verb is CorrVerb.Add ? \"+\" : \"-\";` then `StoreArith(p.Target, Combine(FieldNum(p.Target), op, FieldNum(p.Source), rcv), c.Rounding)`); src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs:33-37,49-81",
+ "state": "OK"
+}

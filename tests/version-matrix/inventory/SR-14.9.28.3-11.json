@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.28.3-11",
+ "section": "14.9.28.3",
+ "kind": "SR",
+ "ordinal": 11,
+ "subject": "PERFORM statement",
+ "rule-digest": "b3c280e37035",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckDeclarativesRange; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureResolution.cs#ResolvedProcedure",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/pb433_perform_range_one_declarative_section; conformance:cases/14.9.28-PERFORM/pb433-perform-range-straddles-declaratives; conformance:cases/14.9.28-PERFORM/pb433-perform-range-two-declarative-sections; unit:ProcedureRangeDeclarativesDriftTests.ARangeStraddlingTheDeclarativesBoundary_IsRefused; unit:ProcedureRangeDeclarativesDriftTests.ARangeSpanningTwoDeclarativeSections_IsRefused; unit:ProcedureRangeDeclarativesDriftTests.LegalRanges_AreAccepted",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB433.md - LANDED. Both halves of SR11 are enforced by ONE predicate at the range composition, where both ends are still resolutions carrying their owning SectionInfo: neither end declarative -> the rule's antecedent is false; either end declarative -> the two sections shall be the SAME object. COBOL2186, an error at every edition (the rule is X3.23-1985's, carried unchanged). The structural repair is that ResolveProcedureOperand now returns a ResolvedProcedure (range + owning section) instead of a naked pc pair, so the question SR11 asks is answerable at every procedure-name reference rather than re-derived from pc arithmetic; RESUME AT's nondeclarative test (SR-14.9.33.3-3) was converted from `Start < EntryPc` to the same field in the same change set. Witnesses: the two negatives are the loud half (one end in the declaratives, one outside - it used to compile clean and die of a stack overflow) and the quiet half (both ends declarative in DIFFERENT sections - it used to run and print a wrong answer); the 85 positive golden pins the three shapes the rule does NOT forbid (same declarative section, a one-name PERFORM of a declarative section, a wholly nondeclarative range), so the screen cannot widen into 'any PERFORM that touches the declaratives'.",
+ "state": "OK"
+}

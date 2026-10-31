@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.60.3-1",
+ "section": "15.60.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "MEAN function",
+ "rule-digest": "5e4a69b9f544",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build",
+ "test-ref": "conformance:cases/15.60.3-Argument-rule/stat-mean-arg-class-numeric",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "New negative: PIC X(3) at argument-1 of FUNCTION MEAN. Sec 8.5.2.1 Table 2 puts category alphanumeric in class ALPHANUMERIC, and 15.60.3 r1 is the clause's ONLY argument rule, so the diagnostic can be no other rule. Fixture rejects at 2014 2023 -- the row's adjudicated editions; the wider window was refuted on this row because it was taken from IntrinsicCatalog's own row rather than from the standard.",
+ "state": "OK"
+}

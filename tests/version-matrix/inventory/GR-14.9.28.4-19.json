@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.28.4-19",
+ "section": "14.9.28.4",
+ "kind": "GR",
+ "ordinal": 19,
+ "subject": "PERFORM statement",
+ "rule-digest": "3d6fd97efe99",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitRunF3; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitMatcherArms",
+ "test-ref": "conformance-test:PerformFormat3BehaviorTests.WhenCommon_RunsAfterWhen_ThenResumes",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "imp-4 is composed into every handler path (`__RunF3(u, pc, cu, cpc)` runs the selected imp-2/imp-3 and then imp-4 when the handler completed normally), and control then returns the GR20 action to the raise site - the rule's 'control is passed as indicated in General rule 20'. Read in isolation GR19's first sentence ('If WHEN COMMON is specified, imperative-statement-4 is executed') would run imp-4 on a PERFORM that raised nothing; the implementation takes the only coherent reading, imp-4 as the common tail of GR17/GR18 - MEASURED (probe gr19_common_no_exception: an F3 PERFORM with WHEN COMMON and no exception prints IMP1/DONE and never COMMON). The one further gap the spec leaves - a WHEN that executes RESUME NEXT STATEMENT does not complete, so imp-4 is skipped - is the published determination in docs/CONFORMANCE.md :242 and is pinned by ResumeNext_SkipsWhenCommon.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitRunF3 (:552-554); src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitMatcherArms",
+ "state": "OK"
+}
