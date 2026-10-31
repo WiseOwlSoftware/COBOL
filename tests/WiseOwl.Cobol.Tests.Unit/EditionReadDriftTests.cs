@@ -162,9 +162,10 @@ public sealed class EditionReadDriftTests
         // a LATER edition introduced. Every other word is named, the §8.10 context-sensitive words and the words a format
         // spells where §8.9 leaves them free (IsKeywordWhereFree) included. It refuses nothing itself and gates no construct.
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.GuessCobolIntent | PrintsKeyword"] = (1, Verdict.WordStatus),
-        // The error strategy's recovery asks the same question of the token the last report named: a reference the
-        // listener re-codes to COBOL0901 is consumed as the operand it stood for, never resumed at (kb/Work PB3248).
-        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.IsReportedReservedOperand | ReservedUserWordViolation"] = (1, Verdict.WordStatus),
+        // The error strategy's recovery asks the same question of a reserved word it recovers at: a reference the
+        // listener re-codes to COBOL0901 is consumed (or deleted) as the operand it stood for, never resumed at (kb/Work
+        // PB3248; review R3-1 of the PB4133 branch: the single-token deletion asks it too).
+        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.IsReservedOperand | ReservedUserWordViolation"] = (1, Verdict.WordStatus),
         ["src/WiseOwl.Cobol.Frontend/Parsing/ReservationGateRewriter.cs | OffenderWitness.SyntaxError | NoteGatedOffender"] = (1, Verdict.WordStatus),
         // The front end's driver decides whether a re-parse lexes differently because a word the program declared is
         // reserved at the edition.

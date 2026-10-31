@@ -70,3 +70,15 @@ copy of the compile is gone); R1-3, PB4134's `closes_rows_reason` now says the l
 R1-1 (an entry without its period discards the next named entry) stays open as a lead. A pair test over the entry's ATN
 cannot tell the next entry's level-number and data-name from the entry's own tail: `OCCURS 5 STEP 2` (STEP is a
 predicated `cobolWord`) and `EDITING literal valueClauseOperand` both hold an integer then a word.
+
+**Review R3-1 (finisher): PB4133's deletion decline met PB3248's reserved operand.** On main,
+`PERFORM UNTIL RECEIVE W-X = 1 DISPLAY "X" END-PERFORM.` drew one COBOL0901, because ANTLR's single-token deletion
+dropped RECEIVE and W-X stood in the condition. The branch declines to delete a token that may follow the missing
+element (PB4133), and a reserved verb may follow a missing condition, as an inline PERFORM's first statement. So the
+branch kept RECEIVE and lost the PERFORM's reading, which drew a false COBOL5506 "expected TIMES" at DISPLAY. The same
+happened with SEND and VALIDATE, after OR, and with WITH TEST AFTER. I bisected it with environment toggles on a
+scratch build: neither the unit-tail discard nor its `Resumes` stop matters, only the decline. The decline now yields
+where the token is a reserved word written as an operand. `IsReservedOperand` is the one predicate PB3248's
+resynchronization and the deletion share: a §8.9 violation whose statement reading does not parse. Five rows in
+`ReservedWordPositionConformanceTests.AReservedVerbWrittenAsAnOperand_DrawsOneDiagnostic` pin the case, and
+`EditionReadDriftTests` records the moved read.

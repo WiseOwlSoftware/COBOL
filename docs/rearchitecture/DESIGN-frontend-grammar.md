@@ -418,7 +418,12 @@ verb that correctly begins the NEXT statement after an incomplete one (`MOVE W-X
 W-N`), so the grammar tells the two apart: the word is consumed only when the statement it would begin does not parse
 (`CobolParserCoreBase.LookaheadBeginsAStatementThatParses`, a speculative `ParserInterpreter` parse of `statement` up to the
 separator period — the one helper, `ReadingParses`, that also answers `entryNameHere`'s clause reading); where it parses,
-the recovery resumes at it and the statement is read as written.
+the recovery resumes at it and the statement is read as written. The single-token deletion asks the same question
+(`IsReservedOperand`, the one predicate both recoveries share). It declines to delete a token that may follow the
+missing element (kb/Work PB4133, §3.11), and a reserved verb may follow a missing condition, as an inline PERFORM's first
+statement. So `PERFORM UNTIL RECEIVE W-X = 1 DISPLAY "X" END-PERFORM` kept the word and lost the PERFORM's reading, which
+drew a false COBOL5506 "expected TIMES" at DISPLAY. The decline therefore yields where the word is the operand: the
+deletion drops it, W-X stands in the condition, and the fault is the one COBOL0901.
 
 The same loop settles the one other token decision only the parse can make — is this figurative ZERO an arithmetic
 operand? (kb/Work PB3981, PB4120). A BARE figurative ZERO in a slot the grammar types arithmetic-expression alone

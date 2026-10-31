@@ -407,8 +407,15 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// COBOL0901, and only when it is a resynchronization point at all (the caller asks the set first, so the speculative
     /// parse runs only where its answer decides something): every other refused token keeps the base recovery.</summary>
     private bool IsReportedReservedOperand(Parser recognizer, IToken token)
-        => token.TokenIndex == _lastReported.Through && recognizer is CobolParserCoreBase parser
-           && parser.ReservedUserWordViolation(token) is not null
+        => token.TokenIndex == _lastReported.Through && IsReservedOperand(recognizer, token);
+
+    /// <summary>Is <paramref name="token"/>, the lookahead, a reservation-gated word §8.9 reserves at this edition that
+    /// stands for an operand: the statement it would begin is not a complete reading
+    /// (<see cref="CobolParserCoreBase.LookaheadBeginsAStatementThatParses"/>)? The one grammar question both recoveries of
+    /// such a word ask: the resynchronization (<see cref="IsReportedReservedOperand"/>) and the single-token deletion
+    /// (<see cref="SingleTokenDeletion"/>).</summary>
+    private static bool IsReservedOperand(Parser recognizer, IToken token)
+        => recognizer is CobolParserCoreBase parser && parser.ReservedUserWordViolation(token) is not null
            && !parser.LookaheadBeginsAStatementThatParses();
 
     /// <summary><para>The other half of the same rule: single-token deletion never deletes a '(' (kb/Work PB2152). Deleting
@@ -431,11 +438,19 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// write. <c>IF DISPLAY "X" END-IF</c> lost the DISPLAY, took <c>"X"</c> for the condition and left the IF with the
     /// empty block of a false COBOL2072; <c>MERGE SW ON ASCENDING KEY USING F1 F2 GIVING F3</c> took F1 for the key and
     /// met the GIVING where USING was due. Declining leaves the token for the rule that follows the element, once the
-    /// missing element is reported.</para></summary>
+    /// missing element is reported.</para>
+    /// <para>⛔ BUT A RESERVED WORD WRITTEN AS THE OPERAND IS NOT THE NEXT STATEMENT (kb/Work PB3248; review R3-1 of the
+    /// PB4133 branch). A verb such as RECEIVE, SEND or VALIDATE may follow a missing condition, as the first statement of
+    /// an inline PERFORM, so the decline above kept it in <c>PERFORM UNTIL RECEIVE W-X = 1 DISPLAY "X" END-PERFORM</c>, and
+    /// the recovery then lost the PERFORM's reading: a false COBOL5506 "expected TIMES" at DISPLAY followed the COBOL0901.
+    /// Where the statement it would begin is not a complete reading (<see cref="IsReservedOperand"/>, the question
+    /// PB3248's resynchronization asks), the word is the operand the user wrote, refused as a name: deleting it lets the
+    /// operand after it stand in the element's place, and the fault is the one COBOL0901.</para></summary>
     protected override IToken? SingleTokenDeletion(Parser recognizer)
     {
         var stream = (ITokenStream)recognizer.InputStream;
-        if (IsOpenParen(stream.LA(1)) || TheMissingElementLetsItFollow(recognizer)) return null;
+        if (IsOpenParen(stream.LA(1))) return null;
+        if (TheMissingElementLetsItFollow(recognizer) && !IsReservedOperand(recognizer, stream.LT(1))) return null;
         if (new OffendingPosition(recognizer, recognizer.CurrentToken).EmptyBlockOwner() is not null) return null;
         return base.SingleTokenDeletion(recognizer);
     }
