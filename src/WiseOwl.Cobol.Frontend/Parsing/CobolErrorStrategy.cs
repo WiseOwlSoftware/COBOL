@@ -74,7 +74,46 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         }
         _lastReported = (Math.Min(at.ParserTokenIndex, at.Token.TokenIndex), at.Token.TokenIndex);
         _constructEndedEarly = EndsAConstructEarly(hints);
-        recognizer.NotifyErrorListeners(at.Token, BuildMessage(at.Token, kind, hints), e);
+        string? violation = ReservedWordUse(recognizer, at, hints);
+        _reportedReservedWordUse = violation is not null;
+        recognizer.NotifyErrorListeners(at.Token,
+            violation is not null ? $"[{EditionCodes.ReservedWord}] {violation}" : BuildMessage(at.Token, kind, hints), e);
+    }
+
+    /// <summary>Did the last report name its token's §8.9 violation (<see cref="ReservedWordUse"/>)? The recovery that
+    /// follows it consumes that token as the operand it stood for (<see cref="IsReportedReservedOperand"/>).</summary>
+    private bool _reportedReservedWordUse;
+
+    /// <summary>⛔ A RESERVED WORD IS REFUSED AS A USER-DEFINED WORD ONLY WHERE IT IS USED AS ONE (kb/Work PB693, PB4132).
+    /// The §8.9 message for a syntax error on a reservation-gated word §8.9 reserves at this edition
+    /// (<see cref="CobolParserCoreBase.ReservedUserWordViolation"/>), or null where the report is the strategy's own. A
+    /// gated word is never a <c>cobolWord</c>, so a REFERENCE to it cannot parse and never reaches the bound-tree funnel:
+    /// naming ISO §8.3.2.1 1) ("Reserved words shall not be used as user-defined words or system-names") is what keeps
+    /// <c>DISPLAY CONSTANT.</c> at --std 2002 from degrading to "unexpected 'CONSTANT'".
+    /// <para>But where §8.9 reserves the word the token IS its keyword, and the rule is broken only by a USE of it as a
+    /// user-defined word. Two readings of the grammar say the source does not use it so:
+    /// <list type="bullet">
+    /// <item>the token is an explicit scope terminator no open statement owns (hint 13, COBOL0306, read from the ATN),
+    /// written where a statement may end (<see cref="OffendingPosition.AStatementMayEndBefore"/>). ISO §14.5.3.2: "The
+    /// scope of a statement may be explicitly terminated by using its associated scope terminator as specified in Table
+    /// 12": END-DISPLAY after a complete MOVE is that terminator with no DISPLAY to end, exactly as END-ADD there is,
+    /// even where the MOVE's receiving list would take another operand. Where the open statement still requires an
+    /// operand (<c>DISPLAY END-RECEIVE.</c>, a reference to a data item the program named so) no terminator can stand,
+    /// and the word is the operand written there;</item>
+    /// <item>no user-defined word could stand at the token (<see cref="OffendingPosition.TakesAUserWord"/>): a misplaced
+    /// phrase word (<c>READ F ADVANCING ON LOCK RETRY 3 TIMES</c>: the READ has ended, and no statement begins with a
+    /// user word) is the keyword out of place, which the strategy's own diagnosis names (hint 0h, COBOL2269).</item>
+    /// </list>
+    /// So END-ACCEPT, END-DISPLAY, END-RECEIVE and END-SEND, gated because some edition leaves them free, draw at an edition
+    /// that reserves them what every other terminator draws. Derived from the grammar (the expected set and the
+    /// terminator map), so a gated word a format gains tomorrow is decided the same way.</para></summary>
+    private static string? ReservedWordUse(Parser recognizer, OffendingPosition at, List<DiagnosticHint> hints)
+    {
+        if (recognizer is not CobolParserCoreBase parser || parser.ReservedUserWordViolation(at.Token) is not { } violation)
+            return null;
+        if (hints.Exists(h => h.Code == Diagnostics.DiagnosticDescriptors.COBOL0306.Code) && at.AStatementMayEndBefore())
+            return null;
+        return at.TakesAUserWord() ? violation : null;
     }
 
     /// <summary>Did the last report name a fault that left the parser with a construct it had CLOSED EARLY
@@ -247,8 +286,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     }
 
     /// <summary>⛔ A REFERENCE REFUSED AS A RESERVED WORD IS CONSUMED AS THE NAME IT WAS WRITTEN AS (kb/Work PB3248). A
-    /// syntax error on a reservation-gated word §8.9 reserves at this edition is reported as that word's §8.9 violation
-    /// (COBOL0901, <see cref="CobolParserCoreBase.ReservedUserWordViolation"/>), and ISO §8.3.2.1 1) ("Reserved words
+    /// syntax error on a reservation-gated word §8.9 reserves at this edition, written where a user-defined word stands, is
+    /// reported as that word's §8.9 violation (COBOL0901, <see cref="ReservedWordUse"/>), and ISO §8.3.2.1 1) ("Reserved words
     /// shall not be used as user-defined words") is broken once, by that occurrence. A verb such as RECEIVE or SEND
     /// begins a statement, so it is in every statement-level recovery set, and the base recovery resumed AT it:
     /// <c>DISPLAY RECEIVE.</c> then parsed RECEIVE as a RECEIVE statement and refused the period, a second diagnostic
@@ -256,19 +295,18 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// first, as the operand it stood for, and the resynchronization goes on from the token after it.
     /// <para>⛔ BUT THE SAME REPORT FIRES AT A VERB THAT CORRECTLY BEGINS THE NEXT STATEMENT (review R1-1). After an
     /// incomplete statement (<c>MOVE W-X TO</c>, its receiver missing) the error token is the next statement's verb,
-    /// and the listener re-codes it to COBOL0901 just the same. Consuming it there resumed inside that correct
+    /// and the report names it COBOL0901 just the same. Consuming it there resumed inside that correct
     /// statement's operands (<c>RECEIVE FROM W-X GIVING W-Y W-N</c> drew "unexpected 'GIVING'"; <c>RESUME AT NEXT
     /// STATEMENT</c> was told to write SENTENCE). The two are told apart by the grammar, never by a list: the word is
     /// the operand the report named exactly when the statement it would begin is NOT a complete reading
     /// (<see cref="CobolParserCoreBase.LookaheadBeginsAStatementThatParses"/>); where it is, the recovery resumes
     /// at it and the statement is read as written. A statement that parses only as a prefix, stopping at a token no
     /// statement is followed by (<c>GOBACK</c> in <c>MOVE GOBACK TO W-X</c>, review R2-1), is an operand.</para>
-    /// Only the token the last report named (<see cref="_lastReported"/>), only where the listener re-codes it to
-    /// COBOL0901, and only when it is a resynchronization point at all (the caller asks the set first, so the speculative
+    /// Only the token the last report named (<see cref="_lastReported"/>), only where that report named it COBOL0901
+    /// (<see cref="_reportedReservedWordUse"/>: the one decision, so the report and its recovery cannot disagree), and only when it is a resynchronization point at all (the caller asks the set first, so the speculative
     /// parse runs only where its answer decides something): every other refused token keeps the base recovery.</summary>
     private bool IsReportedReservedOperand(Parser recognizer, IToken token)
-        => token.TokenIndex == _lastReported.Through && recognizer is CobolParserCoreBase parser
-           && parser.ReservedUserWordViolation(token) is not null
+        => token.TokenIndex == _lastReported.Through && _reportedReservedWordUse && recognizer is CobolParserCoreBase parser
            && !parser.LookaheadBeginsAStatementThatParses();
 
     /// <summary><para>The other half of the same rule: single-token deletion never deletes a '(' (kb/Work PB2152). Deleting
@@ -1551,6 +1589,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         return [.. _scopeTerminators.Values.Select(t => t.Word).Order(StringComparer.Ordinal)];
     }
 
+    /// <summary>The token types of every explicit scope terminator the grammar spells, from the same map.</summary>
+    private static IEnumerable<int> ScopeTerminatorTypes(Parser recognizer)
+    {
+        _scopeTerminators ??= BuildScopeTerminators(recognizer);
+        return _scopeTerminators.Keys;
+    }
+
     private static Dictionary<int, ScopeTerminatorInfo> BuildScopeTerminators(Parser recognizer)
     {
         const string prefix = "END-";
@@ -1756,19 +1801,57 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         private OffendingPosition? CarryForward()
         {
             var stream = (ITokenStream)_recognizer.InputStream;
-            if (!ParserIsThere || Token.Type == TokenConstants.EOF || PredictionFailedAt) return null;
-            int i = Token.TokenIndex;
-            if (PreviousDefault(stream, ref i) is not { } previous
-                || LastClosedConstruct(_recognizer.Context as ParserRuleContext, previous.TokenIndex) is not { } closed
-                || ResimulationWalk.Over(_recognizer, closed) is not { } walk
-                || !walk.Consume(Token.Type))
-                return null;
+            if (ClosedJustBefore() is not var (closed, _, walk) || !walk.Consume(Token.Type)) return null;
             for (int next = Token.TokenIndex; NextDefault(stream, ref next) is { } t; )
             {
                 if (!walk.Takes(t.Type)) return new(_recognizer, t, walk, closed);
                 if (t.Type == CobolLexer.DOT || !walk.Consume(t.Type)) break;
             }
             return null;
+        }
+
+        /// <summary>The construct the parser completed at the token before the one it stands at
+        /// (<see cref="LastClosedConstruct"/>), that token's index, and a FRESH full-context re-simulation of the
+        /// construct from its own start (<see cref="ResimulationWalk.Over"/>); null where the parser does not stand at
+        /// the token, a prediction failed AT it (a semantic predicate refused it, and the walk evaluates none), or
+        /// nothing was closed. Fresh on every call, because each caller consumes its walk.</summary>
+        private (ParserRuleContext Closed, int Previous, ResimulationWalk Walk)? ClosedJustBefore()
+        {
+            if (!ParserIsThere || PredictionFailedAt || Token.Type == TokenConstants.EOF) return null;
+            int i = Token.TokenIndex;
+            return PreviousDefault((ITokenStream)_recognizer.InputStream, ref i) is { } previous
+                   && LastClosedConstruct(_recognizer.Context as ParserRuleContext, previous.TokenIndex) is { } closed
+                   && ResimulationWalk.Over(_recognizer, closed) is { } walk
+                ? (closed, previous.TokenIndex, walk)
+                : null;
+        }
+
+        /// <summary>Could a statement end before the token: does the parse where it stands take a token that only a
+        /// complete statement is followed by, a separator period, a token that begins the next statement
+        /// (<see cref="StatementBlockStart"/>) or an explicit scope terminator (<see cref="ScopeTerminatorTypes"/>: the
+        /// END-PERFORM an inline PERFORM's body is waiting for once its last statement is complete)? False where the open
+        /// statement still requires something (<c>DISPLAY</c> before its first operand), and where the expected set
+        /// cannot be computed (kb/Work PB4132).</summary>
+        public bool AStatementMayEndBefore()
+            => Expected() is { } expected
+               && (expected.Contains(CobolLexer.DOT) || !expected.And(StatementBlockStart(_recognizer)).IsNil
+                   || ScopeTerminatorTypes(_recognizer).Any(expected.Contains));
+
+        /// <summary>⛔ COULD A USER-DEFINED WORD STAND AT THE TOKEN (kb/Work PB4132)? The three readings the strategy
+        /// already makes of a refused token, each asked of the token read as a user-defined word (<c>IDENTIFIER</c>, the
+        /// type the reservation gate retypes a word §8.9 leaves free to): the parse where it stands takes one (an
+        /// operand of the statement still open); the construct the parser closed just before it does
+        /// (<see cref="ClosedJustBefore"/>: <c>MOVE 1 TO W-N CONSTANT W-K</c>, whose receiving list would go on); or a
+        /// separator period would let the sentence that starts at the token follow
+        /// (<see cref="APeriodLetsTheSentenceFollow"/>: a paragraph header, <c>STOP RUN CONSTANT.</c>). True where
+        /// the expected set cannot be computed, so a report the parse cannot read keeps the §8.9 diagnosis.</summary>
+        public bool TakesAUserWord()
+        {
+            int word = CobolKeywordTokens.IdentifierType;
+            if (Expected() is not { } expected) return true;
+            return expected.Contains(word)
+                   || ClosedJustBefore() is var (_, _, walk) && walk.Takes(word)
+                   || APeriodLetsTheSentenceFollow();
         }
 
         /// <summary>The construct the parser completed at token <paramref name="previous"/>, the last token before the
@@ -1905,13 +1988,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         /// IF's condition, which the MOVE follows, so the IF has not ended and the MOVE has (review R1-1).</para></summary>
         public string? StatementThatEndedBefore()
         {
-            if (!ParserIsThere || PredictionFailedAt || Token.Type == TokenConstants.EOF) return null;
-            var stream = (ITokenStream)_recognizer.InputStream;
-            int i = Token.TokenIndex;
-            if (PreviousDefault(stream, ref i) is not { } previous
-                || LastClosedConstruct(_recognizer.Context as ParserRuleContext, previous.TokenIndex) is not { } closed
-                || StatementEndingAt(closed, previous.TokenIndex) is not { } ended
-                || ResimulationWalk.Over(_recognizer, closed) is not { } walk
+            if (ClosedJustBefore() is not var (closed, previous, walk)
+                || StatementEndingAt(closed, previous) is not { } ended
                 || walk.Consume(Token.Type))
                 return null;
             for (ParserRuleContext? c = ended; c is not null; c = c.Parent as ParserRuleContext)

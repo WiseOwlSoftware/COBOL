@@ -27,8 +27,9 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// reading §8.9 leaves it is a user-defined word — which is how a name introduced in a slot that does not offer
 /// <c>reservedGatedWord</c> (an index-name, a SPECIAL-NAMES class-name) is reached. Where §8.9 RESERVES the word
 /// nothing is retyped: no name slot can take the
-/// keyword token, a reference fails with the targeted COBOL0901 (<see cref="CobolParserCoreBase.ReservedUserWordViolation"/>)
-/// and a declaration draws it from the funnel.</para>
+/// keyword token, a reference fails with the targeted COBOL0901 (<see cref="CobolParserCoreBase.ReservedUserWordViolation"/>,
+/// reported by <c>CobolErrorStrategy.ReservedWordUse</c> only where a user-defined word could stand, so a stray END-DISPLAY
+/// is the misplaced terminator it is, kb/Work PB4132) and a declaration draws it from the funnel.</para>
 /// <para><b>Its keyword occurrences are retyped too.</b> The retype is by word, so where a format still spells the
 /// declared free word as a keyword (MESSAGE in the 2023 RECEIVE's CONTINUE phrase, METHOD in END METHOD), that keyword
 /// arrives as <c>IDENTIFIER</c> as well. Such a word's row carries the <c>keywordWhereFree</c> determination and the
