@@ -2050,6 +2050,32 @@ of an unsupported facility.
   `conformance:cases/6.5-Logical-conversion/pb3245_free_segment_hands_on_its_division` and
   `unit:ReferenceFormatLogicalConversionTests.FreeFormCommentEntry_IsTheRestOfItsHeaderLine_AndIsDiscarded`.
 
+- **D-CE2 — which division a comment-entry stands in when the logical conversion cannot know** (kb/Work PB4241).
+  §6.5: "Source text and library text in fixed-form reference format are logically converted to free-form reference
+  format before the application of replacing and conditional compilation actions" (cite-checked). The converter
+  decides whether a line opens a COBOL-85 comment-entry paragraph (D-CE1) from the division the text stands in
+  (`DivisionCursor`), and at that point it has not seen the text conditional compilation will omit. No edition of the
+  standard has both a comment-entry (removed by COBOL-2002) and a `>>IF` (introduced by COBOL-2002 together with the
+  comment-entry's removal), so the standard is silent on the mixed text. **Determination (CLAUDE.md rule 1: the standard is
+  silent, so the implementor chooses; the ideal is to read only the compiled branches, as a compiler whose preprocessor
+  selects the lines before its scanner reads the comment paragraphs does, and this change did not measure GnuCOBOL on
+  it).** The converter cannot see the compiled branches, so it reads a `>>IF … >>END-IF` or `>>EVALUATE … >>END-EVALUATE`
+  group as evidence of the division after it only when every branch ends in the same division (the branch no condition
+  selects counted when there is no `>>ELSE` or `>>WHEN OTHER`); when the branches disagree the text stays in the
+  division it was in before the group. A division word in a branch no condition selects therefore moves nothing (the
+  text after `>>IF NEVER IS DEFINED / IDENTIFICATION DIVISION. / >>END-IF` stays in the PROCEDURE DIVISION and a
+  paragraph named REMARKS there is an ordinary paragraph), and the one reading the rule cannot reach is a SELECTED
+  branch that alone changes the division, where the converter keeps the earlier division. The COPY driver reads the text
+  the conditional-compilation stage has already cut, so a COPY's library text starts in the true division. The
+  same change fixed two readings of the text that were not about conditional compilation: the cursor reads the LOGICAL
+  lines (a header continued onto a second line, `PROCEDURE DIVI` / `-SION.`, is one word, §6.5 6) b)), and skips a COPY
+  or REPLACE statement from its COPY / REPLACE word to its separator period outside pseudo-text, so a `REPLACING
+  ==PROCEDURE DIVISION== BY …` operand leaves no division. Pinned by
+  `conformance:cases/6.5-Logical-conversion/pb4241_omitted_branch_division_header`,
+  `conformance:cases/6.5-Logical-conversion/pb4241_continued_division_header`,
+  `conformance:cases/6.5-Logical-conversion/pb4241_copy_operand_names_division` and
+  `unit:DivisionCursorTests`.
+
 - **D-OOCIRC — the reach of "directly or indirectly references" in §9.3.8.2.3's closing sentence** (kb/Work PB1498;
   owner decision R63). §9.3.8.2.3: "If the description of the returning item of a method in interface-1 directly or
   indirectly references interface-2, the description of the returning item of the corresponding method in interface-2
