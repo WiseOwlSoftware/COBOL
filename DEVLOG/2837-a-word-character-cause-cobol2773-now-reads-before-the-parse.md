@@ -1,4 +1,4 @@
-## A word-character cause (COBOL2773) now reads before the parse error (COBOL0001) it explains
+## Entry 2837 — 2026-10-30 21:45 PDT — A word-character cause (COBOL2773) now reads before the parse error (COBOL0001) it explains
 
 PB4131 (group C of wave 20261783). Re-probe on a fresh Debug build: golden `pb3845-nbsp-word-unparseable` printed
 `(17,12) COBOL0001 cannot parse construct near 'STOP'` and then `(16,8) COBOL2773 ... U+00A0`, the effect before its cause
@@ -23,3 +23,4 @@ golden's shape). The refusal goldens compare a code, not an order, so the unit t
 `DESIGN-frontend-grammar.md` (where the legality is asked) records the order.
 
 Rows re-verdicted: none (`closes_rows: []`; a diagnostic-quality fix).
+
