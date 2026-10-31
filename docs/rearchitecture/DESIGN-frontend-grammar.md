@@ -391,8 +391,18 @@ system-names."* A lexer token that §8.9 reserves at SOME editions is a keyword 
 word at the others (GOBACK and NULL at COBOL-85, ALTER and AUTHOR from 2002, CONSTANT at 85, …). Step 4b of
 `gen-cobol-words.ps1` computes that set from `reserved-words.json`: a `nameSlot` row whose word is reserved at
 >=1 edition is gated, full stop. A gated word is **never a `cobolWord` alternative**; its only grammar home is
-the generated `reservedGatedWord` rule — an alternative of every DEFINITION slot (`dataName`, `programName`,
-`sectionName`, `paragraphName`, the SELECT file-name) with no predicate and one action, `gatedDeclaration`.
+the generated `reservedGatedWord` rule — an alternative of every DEFINITION slot (`dataName`, `programName`, the
+SELECT file-name) and of `procedureName`, the one rule of every procedure-name slot, definitions (`sectionName`,
+`paragraphName`) and REFERENCES (PERFORM, GO TO, ALTER, RESUME AT, the SORT / MERGE procedures) alike — with no
+predicate and one action, `gatedDeclaration`. The procedure-name references are the one reference slot that has it
+(kb/Work PB4206) because they are the slot a statement reading competes for: RECEIVE, SEND and VALIDATE begin
+statements, so without the arm `PERFORM RECEIVE.` parsed as an inline PERFORM whose RECEIVE statement refused the
+period and `GO TO SEND.` as the 1985 target-less GO TO followed by a SEND statement, a COBOL0001 at the period that
+never named the word. The full-context prediction still prefers every reading that parses (the inline PERFORM is the
+earlier alternative), and the only procedure-name lists — GO TO … DEPENDING's, ALTER's entries — end at a keyword
+(DEPENDING, TO) no statement's verb can supply, so neither list can absorb the next statement's leading verb, the
+risk PB693 kept the arm off the reference slots for. A data or file REFERENCE keeps no arm: its error falls AT the
+word and is re-coded (below).
 
 The user-word reading is decided on the TOKEN, before the parse that counts (`Parsing/ReservationGateRewriter`;
 its `ParseToFixpoint` is THE gate loop, and EVERY whole-group parse calls it — the greenfield
@@ -400,17 +410,18 @@ its `ParseToFixpoint` is THE gate loop, and EVERY whole-group parse calls it —
 this grammar and a front end that skips the loop can never read a gated word as a name; train 49 dropped PB655
 over exactly that third arm, and `ReservationGateParseEntryDriftTests` now fails on any source file that calls
 `compilationUnit()` without the loop). A parse pass that meets a gated word the compile edition leaves free
-(`userWordHere`) either in a `reservedGatedWord` definition slot, or as the offending token of a syntax error
+(`userWordHere`) either in a `reservedGatedWord` user-word slot, or as the offending token of a syntax error
 (the keyword reading failed, and the only other reading §8.9 leaves is a user-defined word — this is how a name
 introduced in a slot that does not offer `reservedGatedWord`, an index-name or a SPECIAL-NAMES class-name,
 is reached), has found a user-defined word: every occurrence of that word is retyped to `IDENTIFIER` and the
 source is parsed again. Each round frees at least one more word and a retyped token can never be declared again,
 so the loop ends; a program that declares no such word parses exactly once, and only the last pass's diagnostics
-are reported. Where §8.9 RESERVES the word nothing is retyped: a declaration matches `reservedGatedWord` and
-`VersionConformancePass`'s funnel answers with the targeted COBOL0901 (`VisitReservedGatedWord`, which hangs on
-the RULE — a new definition slot needs no C#), and a reference fails to parse and is re-coded to COBOL0901 by
-`CobolErrorListener` (below). The recovery from that report reads the word the same way: `CobolErrorStrategy.ConsumeUntil`
-consumes the token the report named (`IsReportedReservedOperand`) as the operand it stood for before resynchronizing,
+are reported. Where §8.9 RESERVES the word nothing is retyped: a declaration or a procedure-name matches
+`reservedGatedWord` and `VersionConformancePass`'s funnel answers with the targeted COBOL0901 (`VisitReservedGatedWord`,
+which hangs on the RULE — a new user-defined-word slot needs no C#), and any other reference fails to parse and its
+syntax error is reported as COBOL0901 by `CobolErrorStrategy.ReservedWordUse` (below). The recovery from that report
+reads the same decision: `CobolErrorStrategy.ConsumeUntil` consumes the token the report named
+(`IsReportedReservedOperand`) as the operand it stood for before resynchronizing,
 because a reserved VERB (RECEIVE, SEND, VALIDATE) is in every statement-level recovery set and the base recovery resumed
 AT it, parsed it as its statement and refused the next token — `DISPLAY RECEIVE.` drew COBOL0901 and a second
 `unexpected '.'` (kb/Work PB3248; one occurrence, one §8.3.2.1 1) violation, one diagnostic). The same report fires at a
@@ -419,7 +430,11 @@ W-N`), so the grammar tells the two apart: the word is consumed only when the st
 (`CobolParserCoreBase.LookaheadBeginsAStatementThatParses`, a speculative `ParserInterpreter` parse of `statement` up to the
 separator period — the one helper, `ReadingParses`, that also answers `entryNameHere`'s clause reading); where it parses,
 the recovery resumes at it and the statement is read as written. The single-token deletion asks the same question
-(`IsReservedOperand`, the one predicate both recoveries share). It declines to delete a token that may follow the
+(`IsReservedOperand`): it decides before its report is made, so it asks `ReservedWordUse` of the token's own position,
+which reads only the position (hint 13's test is `UnownedScopeTerminator`, shared, not read off the hints), and then the
+same statement test (`BeginsNoStatementThatParses`). A word the report will call a misplaced keyword (a stray scope
+terminator, a phrase word where no user-defined word can stand, kb/Work PB4132) is therefore never deleted as a refused
+name. It declines to delete a token that may follow the
 missing element (kb/Work PB4133, §3.11), and a reserved verb may follow a missing condition, as an inline PERFORM's first
 statement. So `PERFORM UNTIL RECEIVE W-X = 1 DISPLAY "X" END-PERFORM` kept the word and lost the PERFORM's reading, which
 drew a false COBOL5506 "expected TIMES" at DISPLAY. The decline therefore yields where the word is the operand: the
@@ -614,14 +629,38 @@ now `indexNameList : cobolWord (COMMA? cobolWord)*`, and a qualifier or subscrip
 outside the argued keyword, system-name and word-run sites (`formatWord`, `enterOperand`, `residueOpening`, a
 predicate-led keyword, the tokenless-keyword alternatives it names with their reason).
 **A REFERENCE to a gated word is answered by the parse-error path.** The gate leaves no name-slot alternative for
-`DISPLAY CONSTANT.` at `--std 2002`, and a source that fails to parse never reaches the bound-tree funnel. So
-`CobolErrorListener` asks the parser whether the offending token is reservation-gated (the generated
-`CobolLexer.IsReservationGated` set) and still rejects at this edition, and re-codes the diagnostic to
-COBOL0901 with the ONE message `ReservedWordSet.UserWordViolationMessage` owns. The cause is named in every
-position — reference slots included, which the funnel deliberately never screened. It is named ONCE per
-occurrence of the word: ANTLR raises TWO syntax errors on one offending token (the prediction failure and
-`CobolErrorStrategy`'s recovery message), which read as two different sentences before the re-code and as the
-same sentence twice after it — and §8.3.2.1 rule 1 is broken once by one occurrence.
+`DISPLAY CONSTANT.` at `--std 2002`, and a source that fails to parse never reaches the bound-tree funnel. So the
+error strategy's one report path (`CobolErrorStrategy.Report`, through `ReservedWordUse`) asks the parser whether the
+offending token is reservation-gated (the generated `CobolLexer.IsReservationGated` set) and still rejects at this
+edition (`CobolParserCoreBase.ReservedUserWordViolation`), and reports COBOL0901 with the ONE message
+`ReservedWordSet.UserWordViolationMessage` owns, in place of its own diagnosis of the token. The cause is named in
+reference slots too, which the funnel deliberately never screened. It is named ONCE per occurrence of the word: ANTLR
+can raise TWO syntax errors on one offending token (the prediction failure and the strategy's recovery message), and
+`CobolErrorListener` drops a second COBOL0901 at the same token, because §8.3.2.1 rule 1 is broken once by one
+occurrence.
+⛔ **But only a USE as a user-defined word breaks §8.3.2.1 1) (kb/Work PB4132).** Where §8.9 reserves the word the token
+IS its keyword, so COBOL0901 is the report only where a user-defined word could stand at the token
+(`OffendingPosition.TakesAUserWord`: the parse where it stands takes an `IDENTIFIER`, the type the gate retypes a free
+word to; or the construct the parser closed just before it would, `MOVE 1 TO W-N CONSTANT W-K`; or a separator period
+would let the sentence starting at it follow, a paragraph header), and not where the token is an explicit scope
+terminator no open statement owns (hint 13, COBOL0306) written where a statement may end
+(`OffendingPosition.AStatementMayEndBefore`: the position takes a period, a statement start or a scope terminator).
+END-ACCEPT, END-DISPLAY, END-RECEIVE and END-SEND are gated, because §8.9 leaves each free at some edition, and the
+syntax-error listener used to re-code every error on them to COBOL0901 after the strategy had named the terminator, so
+`MOVE 1 TO W-N END-DISPLAY.` was told the word "cannot be used as a user-defined word"; it now draws the COBOL0306 a
+stray END-ADD draws (§14.5.3.2), while `DISPLAY END-RECEIVE.` (a DISPLAY still waiting for its operand, no terminator
+can stand) keeps COBOL0901. A misplaced phrase word where no user word can stand (`READ F ADVANCING ON LOCK RETRY 3
+TIMES`: the READ has ended) keeps the strategy's own refusal, COBOL2269. At the start of a sentence a reserved word could
+also be read as the name of a paragraph or section header, the two definition slots `reservedGatedWord` reaches through
+`procedureName`, and for a gated word that was the only reading the prediction had: `END-DISPLAY MOVE 2 TO W-K.` became
+a header missing its period, refused at MOVE ("A period may be missing"), and the period that advice adds made it a
+reserved paragraph-name. So `paragraphName` and `sectionName` carry `{procedureHeaderHere(DOT|SECTION)}?`: a word §8.9
+reserves here is the header's name only where the header's period (§14.4.3) or SECTION follows it. A written header
+(`END-DISPLAY.`, `RECEIVE SECTION.`) still parses and draws the funnel's COBOL0901 for its name (a COBOL-85 paragraph
+so named, compiled where the word is reserved); anywhere else the word fails AT itself and the decision above names it,
+COBOL0306 for a stray terminator and COBOL0901 for a word whose header's user word stands there (`CONSTANT MOVE 1 TO
+W-N.` at 2002). `ParseRecoveryTailTests` sweeps every terminator after a statement and at both sentence starts, and
+every gated terminator in the same places at every other edition that reserves it, read from the ATN.
 
 ⛔ **AN OPERAND WHOSE INTRODUCING WORD IS OPTIONAL MAY NOT SWALLOW THE NEXT CLAUSE (kb/Work PB848).** §13.18.60.2
 prints `POINTER [ TO type-name-1 ]`, `FUNCTION-POINTER TO function-prototype-name-1` and
@@ -1560,19 +1599,23 @@ joined the table the same way, which is the table doing its job: a tenth format 
   (a negated predicate, or MEMORY without SIZE, matched a word and contributes none). `AdmittedKinds` names the
   result in the standard's terms (keywords and context words, the §8.3.3.1 literal categories through
   `LiteralTokens.CategoryOf`, literal families read from the grammar's literal rules, figurative constants) in three
-  shapes: a CLOSED position (no user-defined word, period, end of input or statement start) names everything; a
+  shapes: a CLOSED position (no user-defined word, period, end of input or statement start — a statement start is
+  every statement's opening word expected, `AdmittedKinds.BeginsAStatement`, never one verb another clause shares:
+  DISPLAY is a USAGE keyword, so `USAGE 5` is closed and names the usages, kb/Work PB4201) names everything; a
   literal at an open position that takes an operand names the literal categories taken, or none; a user-defined word
   where only literals are taken says both. An open position that takes a period yields to the missing-period reading
   where a period would let the sentence or entry starting at the token follow (`01 W-X PIC X` then `05 W-Y`). The
   sentence says "expected", the parser's word: the grammar parses a superset of each format wherever a later check
   names the departure (INSPECT tallying FIRST/TRAILING for COBOL2269). **The keywords are the compile edition's own
   (kb/Work PB4174):** the parse holds a later edition's words at every edition, so `AdmittedKinds.Refusal` takes a
-  `theEditionPrints` test, `CobolParserCoreBase.PrintsKeyword`, and names a keyword unless the §8.9 table
-  (`ReservedWords.AdmitsAsKeyword`) shows a LATER edition introduced it (§8.3.2.1 1: a word not yet reserved is a
-  user-defined word) — `(1 + 2.` expects B-AND, B-OR and B-XOR from 2002 and the shift operators from 2023, none at
-  85. An older edition's dropped word, a `keywordWhereFree` word (generated into `CobolLexer.IsKeywordWhereFree` by
-  `gen-cobol-words.ps1`) and a §8.10 context-sensitive word are named whatever the table says; §8.10 has no
-  per-edition flag, so the ROUNDED MODE names are still named at 85 (residue recorded in CONFORMANCE.md D-EXPECT). The
+  `theEditionPrints` test, `CobolParserCoreBase.PrintsKeyword`, and names a keyword unless a table shows a LATER
+  edition introduced it (`ReservedWords.AdmitsAsKeyword`: the §8.9 flags, or a §8.10 row's `Introduced` edition; §8.3.2.1
+  1: a word not yet reserved or listed is a user-defined word) — `(1 + 2.` expects B-AND, B-OR and B-XOR from 2002 and
+  the shift operators from 2023, none at 85, and `ROUNDED MODE IS FOO` names the eight mode names from 2014 only. An
+  older edition's dropped word and a `keywordWhereFree` word (generated into `CobolLexer.IsKeywordWhereFree` by
+  `gen-cobol-words.ps1`) are named whatever the table says. A §8.10 word's `Introduced` edition is generated
+  (`gen-reserved-words.ps1` step 7c) from the 2002 list (`tests/version-matrix/context-sensitive-words-2002.json`) and
+  Annex E.3.3 item 13, and held to that derivation by `ContextSensitiveWordsDriftTests` (CONFORMANCE.md D-EXPECT). The
   arm stands after 0h and behind `HasStructuralHint`, so a residue, an empty block or a statement that ended keeps its
   own code; it replaced the two guesses that named a kind in two shapes (COBOL0308 "a data-name is expected here",
   COBOL0309 its converse). `WrittenKindRefusalTests` pins the shapes and the controls.

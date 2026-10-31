@@ -344,17 +344,16 @@ public abstract class CobolParserCoreBase : Parser
     /// <summary>⛔ WHETHER A GENERAL FORMAT OF THIS EDITION CAN PRINT <paramref name="keyword"/> — what a syntax
     /// diagnostic may name as EXPECTED (kb/Work PB4174; <c>AdmittedKinds</c>). The parse is the superset of the four
     /// editions, so its expected set holds words the compile edition does not have (B-SHIFT-L at COBOL-2014, PROTOTYPE
-    /// at COBOL-85); ISO §8.9 has not reserved them there and §8.3.2.1 makes them user-defined words. A word is refused
-    /// only when the §8.9 table proves a LATER edition introduced it (<see cref="ReservedWords.AdmitsAsKeyword"/>); a
-    /// §8.10 context-sensitive word ("If a context-sensitive word is used where … permitted in the general format, the
-    /// word is treated as a keyword") and a word a format spells where §8.9 leaves it free
-    /// (<see cref="CobolLexer.IsKeywordWhereFree"/>: ORDER in COBOL-85's SORT) are printed whatever the table says.
+    /// and the ROUNDED MODE words at COBOL-85); ISO §8.9 has not reserved them there, §8.10 has not listed them, and
+    /// §8.3.2.1 makes them user-defined words. A word is refused only when a table proves a LATER edition introduced it
+    /// (<see cref="ReservedWords.AdmitsAsKeyword"/>: the §8.9 flags, or the §8.10 row's introduction edition); a word a
+    /// format spells where §8.9 leaves it free (<see cref="CobolLexer.IsKeywordWhereFree"/>: ORDER in COBOL-85's SORT)
+    /// is printed whatever the table says.
     /// Through the &gt;&gt;COBOL-WORDS resolution as <see cref="reservedHere"/> is: a de-reserved word is no keyword.
     /// Diagnosis only (<c>CobolErrorStrategy</c>); never called while parsing.</summary>
     internal bool PrintsKeyword(string keyword)
         => Canonical(keyword) is { } written && CobolNames.UpperFold(written) is var w
-           && (ReservedWords.AdmitsAsKeyword(w, Edition.Year) || ContextSensitiveWords.Contains(w)
-               || CobolLexer.IsKeywordWhereFree(w));
+           && (ReservedWords.AdmitsAsKeyword(w, Edition.Year) || CobolLexer.IsKeywordWhereFree(w));
 
     /// <summary>⛔ THE RESERVATION GATE ON THE USER-DEFINED-WORD SLOT (kb/Work PB693) — true when this compile
     /// ADMITS <paramref name="keyword"/> to <c>cobolWord</c>. The generated <c>cobolWord</c> alternatives carry
@@ -386,7 +385,7 @@ public abstract class CobolParserCoreBase : Parser
         // exactly as reservedHere does, so composing the overlay twice would double-count it.
         => Canonical(keyword) is not { } w || ReservedWordSet.Default.AdmitsAsUserWord(w, Edition);
 
-    /// <summary>The reservation-gated words this parse matched in a DEFINITION slot (the generated
+    /// <summary>The reservation-gated words this parse matched in a user-defined-word slot (the generated
     /// <c>reservedGatedWord</c> rule's action, <see cref="gatedDeclaration"/>) that this compile ADMITS as user-defined
     /// words (<see cref="userWordHere"/>) — the input of the token-level §8.9 gate, <see cref="ReservationGateRewriter"/>
     /// (kb/Work PB655). Upper-case, canonical spelling. Cleared by <see cref="Reset"/>, so each parse pass reports its own.</summary>
@@ -394,10 +393,12 @@ public abstract class CobolParserCoreBase : Parser
 
     private HashSet<string>? _freeGatedDeclarations;
 
-    /// <summary>The <c>reservedGatedWord</c> action: <paramref name="word"/> was DECLARED — every use of that rule is a
-    /// definition slot (VersionConformancePass.VisitReservedGatedWord relies on the same fact). Recorded only when
-    /// §8.9 leaves it free here; where §8.9 reserves it the match stands and the funnel answers COBOL0901.
-    /// Actions never run during prediction.</summary>
+    /// <summary>The <c>reservedGatedWord</c> action: <paramref name="word"/> was read as a USER-DEFINED WORD — every use
+    /// of that rule is a user-defined-word slot (VersionConformancePass.VisitReservedGatedWord relies on the same fact):
+    /// a definition slot, or <c>procedureName</c>, whose REFERENCES match the word only where the full-context parse
+    /// found no keyword reading of it that parses — the evidence <see cref="NoteGatedOffender"/> takes from a syntax
+    /// error (kb/Work PB4206). Recorded only when §8.9 leaves it free here; where §8.9 reserves it the match stands and
+    /// the funnel answers COBOL0901. Actions never run during prediction.</summary>
     protected void gatedDeclaration(IToken? word)
     {
         if (word?.Text is { Length: > 0 } t && userWordHere(t))
@@ -441,6 +442,25 @@ public abstract class CobolParserCoreBase : Parser
     }
 
     private (int Index, bool Parses)? _entryClauseProbe;
+
+    /// <summary>⛔ A RESERVED WORD IS READ AS A PROCEDURE HEADER'S NAME ONLY WHERE THE HEADER IT WOULD BEGIN IS WRITTEN
+    /// (kb/Work PB4132) — the predicate on the two definition slots, <c>paragraphName</c> (<paramref name="follower"/>
+    /// the separator period) and <c>sectionName</c> (the word SECTION). ISO §14.4.3: "A paragraph consists of a
+    /// paragraph-name followed by a separator period"; the general formats of §14.2.1 write a section header as
+    /// <c>section-name-1 SECTION.</c> A procedure-name is a user-defined word, so a word §8.9 reserves at this edition stands there only as
+    /// the §8.3.2.1 1) violation ("Reserved words shall not be used as user-defined words or system-names") the funnel
+    /// names with COBOL0901, and the source writes that use only where the header follows: <c>END-DISPLAY.</c> and
+    /// <c>RECEIVE SECTION.</c> are headers naming a reserved word. Where the header does not follow, the word is its
+    /// keyword: <c>END-DISPLAY MOVE 2 TO W-K.</c> at the start of a sentence is a scope terminator no statement owns
+    /// (§14.5.3.2, COBOL0306), exactly as <c>END-ADD</c> there is, and <c>CONSTANT MOVE 1 TO W-N.</c> at --std 2002 a
+    /// reserved word where the header's user word stands (COBOL0901 at the word). Without this the gated word was the
+    /// only reading the prediction had left, so the header was taken and the parse died at the next token with
+    /// "a period may be missing" — and the period it advised turned the terminator into a paragraph-name.
+    /// <para>Only a reservation-gated word §8.9 reserves here (<see cref="ReservedGatedWord"/>): a free gated word is the
+    /// user-defined word the reservation gate retypes, and every other word's header reading is untouched. Read-only,
+    /// so safe in prediction.</para></summary>
+    protected bool procedureHeaderHere(int follower)
+        => TokenStream.LT(1) is not { } word || ReservedGatedWord(word) is null || TokenStream.LA(2) == follower;
 
     /// <summary>Whether the lookahead word begins a <c>statement</c> that parses — the question the error recovery
     /// asks of a reserved verb it has just reported as a reference (kb/Work PB3248, reviews R1-1 and R2-1;

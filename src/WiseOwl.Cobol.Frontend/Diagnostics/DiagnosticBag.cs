@@ -48,20 +48,25 @@ public sealed class DiagnosticBag
     public void Add(Diagnostic diagnostic) => _diagnostics.Add(diagnostic);
 
     /// <summary>
-    /// Add <paramref name="causes"/> (in the order given) so that each reads BEFORE the first effect it can explain: the first
-    /// diagnostic at index <paramref name="from"/> or later that sits in the same file at or after the cause's own position.
-    /// A cause with no such effect is appended. Reports are otherwise kept in the order they were made; this is the one place a
-    /// diagnosis found AFTER the stage whose failure it explains (a word-character screen that needs the partial parse tree to
-    /// know which tokens are words, kb/Work PB4131) is put where a reader meets it first. A tie in position puts the cause
-    /// first: the cause outranks its effect. Diagnostics of another file are never compared (the positions of two files do not
-    /// order), and those before <paramref name="from"/> are never moved past.
+    /// Add <paramref name="causes"/> so that each reads BEFORE the first effect it can explain: the first diagnostic that stood
+    /// at index <paramref name="from"/> or later when the call began and sits in the same file at or after the cause's own
+    /// position. A cause with no such effect is appended. Reports are otherwise kept in the order they were made; this is the
+    /// one place a diagnosis found AFTER the stage whose failure it explains (a word-character screen that needs the partial
+    /// parse tree to know which tokens are words, kb/Work PB4131) is put where a reader meets it first. A tie in position puts
+    /// the cause first: the cause outranks its effect. Causes that share an effect keep the order given (kb/Work PB4200): a
+    /// cause is never an effect of another cause of the same call, so its place is decided against the diagnostics the bag held
+    /// on entry, never against one this call inserted. Diagnostics of another file are never compared (the positions of two
+    /// files do not order), and those before <paramref name="from"/> are never moved past.
     /// </summary>
     public void AddBeforeEffects(IEnumerable<Diagnostic> causes, int from)
     {
+        int effectCount = _diagnostics.Count;
+        // Each cause's place is an index into the bag as it stood on entry; effectCount means "after every effect".
+        var placed = new List<(int At, Diagnostic Cause)>();
         foreach (var cause in causes)
         {
-            int at = _diagnostics.Count;
-            for (int i = from; i < _diagnostics.Count; i++)
+            int at = effectCount;
+            for (int i = from; i < effectCount; i++)
             {
                 var effect = _diagnostics[i].Location;
                 if (effect.FileName == cause.Location.FileName
@@ -71,8 +76,23 @@ public sealed class DiagnosticBag
                     break;
                 }
             }
-            _diagnostics.Insert(at, cause);
+            placed.Add((at, cause));
         }
+        if (placed.Count == 0) return;
+
+        // OrderBy is stable: causes that share a place stay in the order given.
+        var byPlace = placed.OrderBy(p => p.At).ToList();
+        var merged = new List<Diagnostic>(effectCount + byPlace.Count);
+        for (int i = 0; i < from; i++) merged.Add(_diagnostics[i]);
+        int next = 0;
+        for (int i = from; i < effectCount; i++)
+        {
+            while (next < byPlace.Count && byPlace[next].At == i) merged.Add(byPlace[next++].Cause);
+            merged.Add(_diagnostics[i]);
+        }
+        while (next < byPlace.Count) merged.Add(byPlace[next++].Cause);
+        _diagnostics.Clear();
+        _diagnostics.AddRange(merged);
     }
 
     /// <summary>

@@ -1,0 +1,1 @@
+{"refuse-at": ["2014", "2023"], "expect": "COBOL5506: missing token before 'FOO'. The word 'FOO' is not expected here: expected AWAY-FROM-ZERO, NEAREST-AWAY-FROM-ZERO, NEAREST-EVEN, NEAREST-TOWARD-ZERO, PROHIBITED, TOWARD-GREATER, TOWARD-LESSER or TRUNCATION (ISO §5.2.1)."}

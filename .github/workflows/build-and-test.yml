@@ -20,8 +20,8 @@ on:
     # is the merge-queue commit main advances to, which its `merge_group` run below already tested.
     branches: [ main ]
   # ── THE MERGE QUEUE (kb/Work PB3024; DESIGN-test-build-ci.md §3.17.2 steps 4–5, §3.17.6). A pull request runs the
-  # CHEAP jobs only (`changes`, `audits`, `ci-gate`), so twenty queued PRs never put eighty matrix jobs behind a public
-  # repository's 20-concurrent-job limit; the MERGE GROUP (several queued PRs on top of main) runs the matrix and is the
+  # CHEAP jobs only (`changes`, `audits`, `ci-gate`), so twenty queued PRs never put twenty full matrices behind the
+  # organization's 60-concurrent-job limit (GitHub Team, 2026-10-25; the Free plan's was 20); the MERGE GROUP (several queued PRs on top of main) runs the matrix and is the
   # one whole-population run each change gets. `ci-gate` is the required check on both; on the group it is the full
   # verdict. The merge-queue commit IS the commit main advances to, so its `push` run takes the already-verified
   # short-circuit in `changes`. ⛔ A pull request's green `ci-gate` is therefore NOT a verdict on the matrix: nothing

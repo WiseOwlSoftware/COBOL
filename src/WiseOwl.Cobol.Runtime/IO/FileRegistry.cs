@@ -370,7 +370,7 @@ public sealed class FileRegistry
         var c = Require(name);
         if (c.Category is not PhysicalFileCategory.NonUnit)
             throw new InvalidOperationException(
-                $"OPEN … WITH NO REWIND reached a {c.Category} connector '{name}' — §14.9.27.4 GR11 answers only "
+                $"OPEN WITH NO REWIND reached a {c.Category} connector '{name}' — §14.9.27.4 GR11 answers only "
                 + "for a non-reel/unit medium (§9.1.13.2 item 6) and §14.9.27.4 GR12 b)'s suppress-the-repositioning arm is "
                 + "unimplemented because no supported medium permits rewinding (docs/CONFORMANCE.md §7, A.1 "
                 + "item 24); a new medium must implement it here (kb/Work PB317)");
@@ -404,7 +404,7 @@ public sealed class FileRegistry
         var c = Require(name);
         if (c.Status[0] != '0') return;   // §14.9.27.4 GR25 a) — the file is not affected
         if (c is not SequentialConnector f)
-            throw MisroutedVerb("OPEN … REVERSED", name, c);
+            throw MisroutedVerb("OPEN REVERSED", name, c);
         f.PositionReversed();
     }
 
