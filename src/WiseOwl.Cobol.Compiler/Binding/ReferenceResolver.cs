@@ -261,10 +261,10 @@ public sealed partial class ReferenceResolver(DataBinder data)
         // SEVERAL data items, §8.4.2.2.3 SR1 ("uniqueness shall be established through a sequence of qualifiers that precludes
         // any ambiguity of reference") is the rule the reference breaks whether or not a report entry spells the same, and the data-name candidates are the ones the programmer
         // can write more qualifiers to single out. The report entry is the verdict only when no ambiguity among data items
-        // stands in its way: the refusal takes the candidates (QualifiedCandidates) and applies the one order itself
-        // (DataBinder.DataItemsAmbiguousBeforeReportEntry), as it does for every data division arm. A report entry of a
-        // NEARER source element than the ambiguous data items is the referenced item (§8.4.6.2.1 3) a)), so the refusal
-        // still stands (review R1-1).
+        // stands in its way: the candidates (QualifiedCandidates) are the ones that rank with the report entries, because
+        // the lookup leaves none that a report entry of a NEARER source element hides (§8.4.6.2.1 3) a), kb/Work PB4196,
+        // DataBinder.NearerReportEntryHides), so the refusal still stands when the data items are ambiguous GLOBAL ones of
+        // a farther element (review R1-1) and when there is only one.
         var dataItems = data.QualifiedCandidates(name, qualifiers, data.ActiveScope);
         if (data.ReportEntryReferenceRefused(dataItems, $"'{text}'", name, qualifiers)) return;
         // A report entry of the data items' own source element is a data-name §8.4.2.2.3 SR1 counts with them, so the

@@ -1705,9 +1705,14 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     {
         string name = dref.cobolWord()?.GetText() ?? dref.GetText();
         if (!ctx.Symbols.TryResolveCondition(name, ctx.ActiveScope, out _)) return false;
-        if (_condDiagnosed.Add(dref))
-            ctx.Edition.Error(DiagnosticCatalog.UndefinedReference,
-                ReferenceResolver.MisqualifiedConditionText(DataBinder.WrittenText(dref), name, QualifiersOf(dref)));
+        if (!_condDiagnosed.Add(dref)) return true;
+        // A report entry of a NEARER source element than the condition-name is the referenced item (ISO §8.4.6.2.1 3) a),
+        // kb/Work PB4196: the condition lookup leaves the container's GLOBAL condition-name no survivor), and the
+        // report-item refusal names it; the word is not a misqualified condition-name.
+        var qualifiers = QualifiersOf(dref);
+        if (ctx.Data.ReportEntryReferenceRefused(default, $"'{DataBinder.WrittenText(dref)}'", name, qualifiers)) return true;
+        ctx.Edition.Error(DiagnosticCatalog.UndefinedReference,
+            ReferenceResolver.MisqualifiedConditionText(DataBinder.WrittenText(dref), name, qualifiers));
         return true;
     }
 
