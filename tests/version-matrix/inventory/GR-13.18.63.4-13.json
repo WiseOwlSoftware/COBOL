@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.63.4-13",
+ "section": "13.18.63.4",
+ "kind": "GR",
+ "ordinal": 13,
+ "subject": "VALUE clause",
+ "rule-digest": "cdd15e853715",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/TableValuePlan.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/Model/TableValuePlan.cs#LiteralAt",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb505_table_value_geometry; conformance:cases/13.18.63-VALUE/pb505_table_value_subordinate_odometer; conformance:cases/13.18.63-VALUE/pb208_table_value_image_seed; conformance-test:ValueFormat2Tests.FixedTable_ExplicitRange; conformance-test:ValueFormat2Tests.MultiDimension_CyclicReuseAcrossTheCarry; conformance-test:ValueFormat2Tests.FixedTable_NoTo_CyclicFill; conformance:cases/13.18.52-SIGN/pb188_table_value_image_width; conformance:cases/13.18.63-VALUE/pb1722_table_value_runs; unit:TableValueElementCountTests.LiteralAt_AgreesWithTheOdometerFill",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "RE-VERDICTED 2026-09-09 (kb/Work PB505) -- the cyclic reuse now runs over the ODOMETER, so it reuses literals ACROSS a dimension carry rather than along one subscript. \"If the TO phrase is specified, all occurrences of literal-1 are reused, in the order specified, as a source during the initialization described in General rule 12. This repetition is done until the table element identified by subscript-2 is initialized.\" MEASURED: two literals FROM (1 2) TO (2 2) on a 2x3 table visit (1 2) (1 3) (2 1) (2 2) and give A B A B -- a per-dimension rectangle reading would have visited a different four elements. The single-dimension behaviour is unchanged (FixedTable_ExplicitRange). kb/Work PB1722 (w1042a): the plan is its well-formed PHRASES (TableValueOdometer.Resolve), never an element map. LiteralAt scans the phrases last to first (GR15) and takes the literal at the element's run position modulo the list (GR13); the emitters compose one element per run of occurrences that initialize alike (TableValueRuns.Of, OccurrenceRunEmit), and INITIALIZE ... TO VALUE tests one rank range per phrase residue (TableValuePlan.RankForm, CobolTable.InSpan). The 10000 x 10000 filed table compiles in 1.7 s / 223 MB / 3.6 KB of C#. Golden pb1722_table_value_runs: [ ABCAZZBA ], [ XYXYXYXYXY ], [BABA], 01030404, [*ABCAZZBA*] (13.18.63.4 GR12/GR13/GR14/GR15, 14.9.20.4 GR5 c) 1. c). retired-witness: src/Cobol.Net.Compiler/Binding/Model/TableValuePlan.cs#TableValuePlan.LiteralAt (train 1042 lander: the type-qualified spelling is not in the file; re-sited to the member) || editions 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a format 2 (table) VALUE rule; the table form is a COBOL-2002 addition (constructs value-table-format-2002).",
+ "state": "OK"
+}

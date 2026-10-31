@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.2.3.3-3",
+ "section": "7.2.3.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "COPY statement",
+ "rule-digest": "7641637cf7a4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#LocateInLibrary; docs/CONFORMANCE.md#DOC-A.1-40",
+ "test-ref": "conformance:wiseowl/cases/7.2.3-COPY/pb1355_library_text_located",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1355 (w68x): 'Within one COBOL library, each text-name shall be unique' (cite.py OK 7.2.3.3 SR3). The locating rule makes the mapping one-to-one and documented (DOC-A.1-40): the name as spelled, then .CPY .CBL .COB .cpy .cbl .cob in that order, a dotted name only as spelled; the FIRST regular file IS the library text. Golden leg [CBL]: pb1355d.cbl + pb1355d.cob in one library -> CBL (the old '' .cpy .cob .cbl order took .cob); [CPY]: .cpy beats .cbl.",
+ "state": "OK"
+}

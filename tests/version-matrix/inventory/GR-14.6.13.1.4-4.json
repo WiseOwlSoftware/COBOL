@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.13.1.4-4",
+ "section": "14.6.13.1.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Exception conditions",
+ "rule-digest": "7cb7ee44378b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitRaise; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitOverflow; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc",
+ "test-ref": "conformance:cases/14.6.13.1.4-Nonfatal-exception-conditions/l1c08_nonfatal_enabled_no_handler",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: §14.6.13.1.4 4) (cite.py --check 14.6.13.1.4 \"Execution of the statement continues as specified in the rules for that statement\" -> OK 4)). With checking enabled and no phrase / WHEN / USE applying, a nonfatal condition continues per the statement's rules: EmitRaise (nonfatal: no throw after a -3 dispatch), EmitOverflow (no throw), __IoCheckEc (successful arm returns -1; nonfatal unsuccessful families fall through without the fatal throw). Probe out/probe/exc-nonfatal/g4: >>TURN EC-I-O-WARNING ON, no handler, indexed WRITE yielding '02' with NOT INVALID KEY -> 'NOTINV2 02 / AFTER 02' (the WRITE's own §9.1.14 successful-completion rule applies), exit 0. No existing test asserts the enabled-no-handler continuation specifically (test-needed). || editions as adjudicated: 2002, 2014, 2023 (EC model introduced by ISO 2002)",
+ "state": "OK"
+}

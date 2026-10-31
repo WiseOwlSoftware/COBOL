@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.48.4-10",
+ "section": "14.9.48.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "UNSTRING statement",
+ "rule-digest": "bc53c66e242b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringExtract",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/l1c35_unstring_or_delimiter_sequence",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR10: OR condition; 'No character(s) in the sending field shall be considered a part of more than one delimiter' and 'Each delimiter is applied to the sending field in the sequence specified' (cite.py --check 14.9.48.4 -> OK 10)). Kernel: for each non-empty delimiter IndexOf(del, pos); the earliest position wins, a same-position tie keeps the first listed (strict <); the matched characters are consumed once (pointer = pos+extractLen+consumed+1), so no character belongs to two delimiters. Probe p2 over 'XABYAAAZ,,Q ': DELIMITED BY \"A\" OR \"AB\" -> A1 [X] D1 [A] C1 01, A2 [BY] D2 [A] C2 02; DELIMITED BY \"AB\" OR \"A\" -> [X][AB]01 [Y][A]01 - both the spec-derived values. Existing StringUnstringDifferentialTests.Unstring_OrDelimiters_EarliestWins_TieGoesToFirstListed is AssertSameAsLegacy (legacy differential) so it does NOT close the row; test-ref empty.",
+ "state": "OK"
+}

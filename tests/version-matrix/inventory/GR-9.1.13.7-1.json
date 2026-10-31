@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.7-1",
+ "section": "9.1.13.7",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "I-O status",
+ "rule-digest": "7ba098ac3665",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#DeleteFile",
+ "test-ref": "conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_delete_file_gate",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§9.1.13.7 1) '41' for OPEN or DELETE FILE on a connector in an open mode (cite.py --check 9.1.13.7 \"An OPEN statement or a DELETE FILE statement that is attempted for a file connector in an open mode\" -> OK §9.1.13.7 1)). OPEN: FileConnector.Open's first line `if (IsOpen) return Status = FileStatusCode.FileAlreadyOpen`, shared by all three organizations. DELETE FILE: FileRegistry DeleteFile `if (c.IsOpen) status = FileStatusCode.FileAlreadyOpen; // '41' GR13`. Probe logic4x/p1.cob: OPEN OUTPUT twice -> 41, DELETE FILE while open -> 41. Covering tests: conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_delete_file_gate (DF41=41, DELETE FILE arm) and conformance:cases/14.9.27-OPEN/l1_open_status_updated (A-AGAIN=41, OPEN arm). || Editions (adjudicator, verbatim): 1985/2002/2014/2023 for OPEN; the DELETE FILE arm 2023 only (DELETE FILE is new in 2023; Annex E.3.3 item 35 lists '41' among the statuses DELETE FILE may set)",
+ "state": "OK"
+}

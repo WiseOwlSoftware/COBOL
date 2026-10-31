@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-29",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 29,
+ "subject": "SET statement",
+ "rule-digest": "d8db1af74d28",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSetCapacity; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolIndex.cs#TryAmount; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#SetCapacity",
+ "test-ref": "conformance:cases/14.9.39-SET/pb459_set_capacity_amount_guards; unit:SetIndexAmountLandingDriftTests.EverySetFamilyAmountSite_LandsThroughCobolIndex",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work/PB459.md LANDED. FORMAT 14 GR29 - 'If arithmetic-expression-4 does not evaluate to a nonnegative integer, the EC-BOUND-SUBSCRIPT exception condition is set to exist and the execution of the SET statement is unsuccessful' (cite.py --check 14.9.39.4 PASS). Both consequents now happen, for all three of GR30's forms, because the test is on the AMOUNT and GR30 a/b/c compute the new capacity from it afterwards. EmitSetCapacity lands the amount through the same CobolIndex.TryAmount the two index formats use, with SetAmountRule.Capacity adding GR29's own sign test; the table call sits inside the success leg, so an unsuccessful SET computes no new capacity at all. GR30's minimum-capacity clamp deliberately still stands and is NOT the implementation of GR29 - the clamp is the rule for a legal new capacity below the OCCURS minimum, and GR29 rejects the operand before any new capacity exists. MEASURED before, at --std 2014 with checking ON: 'SET CAP TO 5' then 'SET CAP TO A' (A PIC S9(4) VALUE -3) printed CAP2=0 - the negative was carried in and clamped to the minimum, DESTROYING five live occurrences - and 'SET CAP TO B' (B PIC 9V9 VALUE 3.5) printed CAP3=3, truncating and shrinking. MEASURED after: SUB=EC-BOUND-SUBSCRIPT for each, CAP2=0000000005 and CAP3=0000000005, and the control 'SET CAP DOWN BY 2' still reaches GR30 c) and gives CAP4=0000000003. A sibling narrowing one frame below was repaired in the same change (CobolDynTable now computes the new capacity in Int128 and tests it against the implementor maximum BEFORE narrowing - a request of 5000000000 used to WRAP through an (int) cast into a small valid capacity instead of raising GR30's EC-BOUND-TABLE-LIMIT).",
+ "state": "OK"
+}

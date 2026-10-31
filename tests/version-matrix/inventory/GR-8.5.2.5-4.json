@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.2.5-4",
+ "section": "8.5.2.5",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Class and category of data items and literals",
+ "rule-digest": "d46c37d2c052",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#FunctionResultLength",
+ "test-ref": "conformance:cases/8.5.2.3-Alphanumeric-category/pb1398_length_of_function_result",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1398 landed (wave 1004 D). A boolean function result is the data item of category boolean with an implicit usage bit (cite.py --check 8.5.2.5 'an item is referred to as a boolean' OK; 15.2 item 2), admitted by 15.50.3 r1 / 15.14.3 r1 through 8.4.3.2.1. LENGTH counts boolean positions (15.50.4 r1): BOOLEAN-OF-INTEGER(5, 16) is 16. BYTE-LENGTH packs 8 positions to the byte and rounds up (15.14.4 r4): 16 -> 2, 9 -> 2, 8 -> 1 (IntrinsicRenderer ByteLength arm over CobolIntrinsics.ByteLengthBoolean).",
+ "state": "OK"
+}

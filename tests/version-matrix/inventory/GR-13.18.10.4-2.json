@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.10.4-2",
+ "section": "13.18.10.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "BLOCK CONTAINS clause",
+ "rule-digest": "8a1abfbe0c53",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#blockContainsClause",
+ "test-ref": "conformance:cases/13.18.10-BLOCK-CONTAINS/l1c02_block_contains_forms",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 13.18.10.4 \"in which case the RECORDS phrase shall not be used\" -> OK GR2. The three situations (records spanning physical records in mass storage, padding in the physical record, grouping implying an inaccurate size) describe the implementation's physical layout; with no blocking none arises, so RECORDS is always usable and accepting it (probe 'BLOCK CONTAINS 2 RECORDS' at 85/2023 compiles and runs) is correct. docs/CONFORMANCE.md A.3 row 5 = Claimed (inert): 'Accepted; no effect on the managed I-O model'. cite.py --check A.3 \"The BLOCK CONTAINS clause has no effect if the operating environment does not support the required features\" -> OK §A.3 5). No binder/emitter/runtime site reads blockContainsClause (grep of src: only CobolData.g4 and IntegerOperandPass.Slots reference it); the managed I-O model does no blocking. || Editions (adjudicator): 1985, 2002, 2014, 2023 (clause present unchanged in every edition; Annex E records no change to 13.18.10)",
+ "state": "OK"
+}

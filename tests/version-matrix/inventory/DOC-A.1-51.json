@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-51",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 51,
+ "subject": "DELETE FILE statement (effects of the DELETE file statement)",
+ "rule-digest": "759c12427020",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-51; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#DeleteFile; src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#IsHeldByAnother",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/delete_file; conformance:cases/9.1.13.2-Successful-completion/delete_file_absent; conformance:cases/9.1.13.9-File-sharing-conflict-condition-with-unsuccessful/delete_file_sharing",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "§14.9.10.4 GR20 (cite.py --check 14.9.10.4 'If the execution of the DELETE FILE statement is successful, the file is deleted if it exists' -> OK §14.9.10.4 20)). Code: FileRegistry.cs:689-757 DeleteFile - HostPath empty -> 05; RetryLoop(OpenByAnotherConnector || HostFile.IsHeldByAnother) -> 62; IsOpen -> 41; ValidateFixedFileAttributes -> 39 (empty set, item 50); HostFile.Probe Absent 05 / Unauthorized 37; else File.Delete with FileNotFound/DirectoryNotFound -> 05, UnauthorizedAccess -> 37, IOException -> ForDeleteFileFailure 37/30; 'NOTHING ELSE IS DELETED' (PB802). FileSupport.cs:294 IsHeldByAnother opens FileShare.None. Probes /tmp/adj/doc/doc-w1-s2/probe/df1/df.cob (2023): open connector 41, delete 00, again 05, indexed 00, directory left with no data files; df2/mk.cob shows sequential and indexed each create exactly one host file (seq.dat, idx.dat); df3/d3.cob two SELECTs on one path, delete via the unopened one while the other is open -> 62, after CLOSE -> 00; --std 2014 -> COBOL0900. Goldens: delete_file (deleted -> OPEN 35), delete_file_absent (05), delete_file_sharing (62 in-run-unit, every RETRY form). Cross-process RETRY FOREVER is the open defect PB1163 (item 109 territory) - the row deliberately assigns retry to item 109 and states no retry behaviour. Owning note: PB1534. Refuter correction: 'or by any handle another process holds' overclaimed on POSIX - IsHeldByAnother's FileShare.None is .NET flock(LOCK_EX), refused only by flock holders; refute probe /tmp/adj/doc/doc-w1-s2/refute-probe/r51.cob with the file held open by a shell fd (exec 3<r51.dat) -> DEL=00 and the file is unlinked. Not a spec defect (GR15 concerns another FILE CONNECTOR), but the row now says which handles block. Added FileStatus.ForDeleteFileFailure's sharing-refusal -> 62 arm.",
+ "state": "OK"
+}

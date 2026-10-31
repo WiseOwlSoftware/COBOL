@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.5.4-7",
+ "section": "8.4.3.5.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "Object-view",
+ "rule-digest": "82095da4c5b4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectView; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectReferenceAtom; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.ObjectView.cs#OoBindObjectView; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoCreateObjectViewTemp; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitObjectView; src/WiseOwl.Cobol.Runtime/Control/CobolObject.cs#ObjectView",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1425_object_view",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1425 (w1019a). UNIVERSAL: USAGE OBJECT REFERENCE with no phrase; EC-OO-CONFORMANCE is not set (OK 7)). OoEmitter.EmitObjectView emits a plain reference conversion, and EcBinder binds no EC-OO-CONFORMANCE guard for a universal view. Golden: `SET OU2 TO OD AS UNIVERSAL`, `INVOKE OU AS UNIVERSAL \"SPEAK\"` (the dynamic path) and a view of a view. [editions: the OO facility, 2002+]",
+ "state": "OK"
+}

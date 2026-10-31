@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.2.2.5-2",
+ "section": "7.2.2.5",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Text manipulation elements",
+ "rule-digest": "43a1488e42b7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#LiteralEnd; src/WiseOwl.Cobol.Editions/CobolSourceText.cs#TryOpeningDelimiterAt; src/WiseOwl.Cobol.Editions/CobolSourceText.cs#LiteralEnd",
+ "test-ref": "unit:TextManipulationTextWordTests.Literals_WithPrefixOrDoubledQuote_AreSingleTextWords; conformance:cases/7.2.2.5-Text-words/pb1354_copy_header_2002; conformance:cases/7.2.2.5-Text-words/pb1350_text_words_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1350 landed (w61a): A literal is ONE text-word from its 8.3.5 5) opening delimiter (X\" N\" NX\" B\" BX\", either quote, any case) through its closing delimiter, doubled quotes inside. Probe tw3: [A] [PQ] [P\"Q]. Spec re-derived and re-cited by the implementer; every probe of the note re-run on the fixed build. retired-witness: src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#TokenizeTextWords (the symbol was removed by kb/Work PB1350/PB1354 (one TextWordScanner + a parsed COPY/REPLACE statement); its successor is named in code-location) retired-witness: src/Cobol.Net.Frontend/Preprocessor/TextWord.cs#LiteralPrefixLength (kb/Work PB2621: the opening-delimiter reading moved to the one literal reader, CobolSourceText.TryOpeningDelimiterAt, which TextWordScanner.TryNext asks)",
+ "state": "OK"
+}

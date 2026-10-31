@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.5.3-2",
+ "section": "8.8.4.5.3",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Simple condition-name condition (conditional variable)",
+ "rule-digest": "9cf85c1c57c7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderCondition88; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderMembershipTest; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#StringMembershipOperand; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderStringRange",
+ "test-ref": "conformance:cases/8.8.4.5-Simple-condition-name-condition/pb728_condition_name_group_subject_class; conformance:cases/8.8.4.5-Simple-condition-name-condition/pb1477_cond88_odo_figurative",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1477 LANDED (wave 68 T). Rule: cite.py --check 8.8.4.5.3 \"The rules for comparing a conditional variable with a condition-name value are the same as those specified for relation conditions\" -> OK 8.8.4.5.3 2); 13.18.38.4 GR8 a) (an occurs-depending group item referenced as an operand uses only the part of the table area the DEPENDING object's value specifies) -> OK; 8.3.3.6.4 GR2 (a figurative is repeated to the number of character positions in the associated data item) -> OK. The level-88 figurative VALUE (ALL literal, SPACE, ZERO, QUOTE, HIGH-/LOW-VALUE) was folded at compile time to the conditional variable's DECLARED width (ImageWidth = an occurs-depending group's MAXIMUM extent) while the variable was read at its CURRENT extent, so `88 GV-ALLX VALUE ALL \"X\"` answered FALSE where `IF GV = ALL \"X\"` answered TRUE. It is now a SEED sized at run time against the variable as read (CobolString.CompareFig / ThruMemberFig), the relation condition's own sizing, and the 88 THRU range and the EVALUATE WHEN range share ONE renderer (ConditionRenderer.RenderStringRange). Measured before/after on 85/pb1477_cond88_odo_figurative: 88 ALL X, ALL XX, ALL X THRU Z, HIGH-VALUE, EVALUATE WHEN 88 at N=2 F -> T; the N=3 control stays F. retired-witness: src/Cobol.Net.Compiler/CodeGen/Emit/ConditionRenderer.cs#StringMembershipValue (kb/Work PB1477 replaced the compile-time width fold (StringMembershipValue) with StringMembershipOperand, whose figurative result is a run-time-sized seed; the method no longer exists)",
+ "state": "OK"
+}

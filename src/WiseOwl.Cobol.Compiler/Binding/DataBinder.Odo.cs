@@ -45,7 +45,7 @@ public sealed partial class DataBinder
             // refusal is the verdict, and a key named by its written spelling would only draw a second one.
             foreach (var k in kc.dataReference())
             {
-                var (keyName, keyQuals) = ClauseDataName(k, $"{where}: OCCURS … KEY IS");
+                var (keyName, keyQuals) = ClauseDataName(k, $"{where}: OCCURS KEY IS");
                 if (!_refusedClauseOperands.Contains(keyName)) keys.Add(new OccursKey(keyName, keyQuals, descending));
             }
         }
@@ -102,7 +102,7 @@ public sealed partial class DataBinder
         string? depName = null;
         IReadOnlyList<string> depQuals = [];
         if (depending && occ.dataReference() is { } depRef)
-            (depName, depQuals) = ClauseDataName(depRef, $"{where}: OCCURS … DEPENDING ON");
+            (depName, depQuals) = ClauseDataName(depRef, $"{where}: OCCURS DEPENDING ON");
         var spec = new OccursSpec
         {
             Min = min,
@@ -235,12 +235,15 @@ public sealed partial class DataBinder
             {
                 var key = spec.Keys[i];
                 string written = WrittenQualified(key.Name, key.Qualifiers);
+                // The phrase as the program wrote it: ASCENDING or DESCENDING names the KEY phrase of ISO
+                // §13.18.38.2, so a diagnostic about the key never opens with an elided OCCURS (kb/Work PB4160).
+                string keyPhrase = $"OCCURS {(key.Descending ? "DESCENDING" : "ASCENDING")} KEY IS";
                 var within = SubtreeCandidates(table, key.Name, key.Qualifiers);
-                DataItem? item = UniqueOrReportAmbiguous(within, $"OCCURS … KEY IS data-name-2 of '{subject}'", written,
+                DataItem? item = UniqueOrReportAmbiguous(within, $"{keyPhrase} data-name-2 of '{subject}'", written,
                     out bool ambiguous);
                 if (item is null && !ambiguous)
                     Edition.Error(DiagnosticCatalog.OccursKeyNotWithinTable,
-                        $"OCCURS … KEY IS '{written}' on '{subject}': no data item so named "
+                        $"{keyPhrase} '{written}' on '{subject}': no data item so named "
                         + (key.Qualifiers.Count > 0 ? "under the written qualifiers " : "")
                         + $"is '{subject}' itself or subordinate to it — \"The first specification of data-name-2 "
                         + "shall be the name of either the entry containing the OCCURS clause or an entry subordinate "
@@ -248,7 +251,7 @@ public sealed partial class DataBinder
                 else if (i > 0 && ReferenceEquals(item, table))
                 {
                     Edition.Error(DiagnosticCatalog.OccursKeyNotWithinTable,
-                        $"OCCURS … KEY IS '{written}' on '{subject}': only the FIRST key data-name may name the "
+                        $"{keyPhrase} '{written}' on '{subject}': only the FIRST key data-name may name the "
                         + "table entry itself — \"Subsequent specification of data-name-2 shall be subordinate to the "
                         + "entry containing the OCCURS clause\" (ISO §13.18.38.3 SR3)");
                     item = null;
@@ -256,7 +259,7 @@ public sealed partial class DataBinder
                 else if (item is not null && OccursKeyItemFault(table, item) is { } fault)
                 {
                     Edition.Error(DiagnosticCatalog.OccursKeyItemNotAdmitted,
-                        $"OCCURS … KEY IS '{written}' on '{subject}': {fault}");
+                        $"{keyPhrase} '{written}' on '{subject}': {fault}");
                     item = null;
                 }
                 spec.ResolvedKeys.Add(item);
@@ -377,7 +380,7 @@ public sealed partial class DataBinder
             // verdict; never the first declared, which the unqualified fallback here used to take (`cands[0]`): with
             // CNT declared under two groups `OCCURS 1 TO 9 DEPENDING ON CNT` compiled clean and ran on the first.
             string writtenDep = WrittenQualified(depName, spec.DependingQualifiers);
-            string depFace = $"OCCURS … DEPENDING ON data-name-1 of '{subject}'";
+            string depFace = $"OCCURS DEPENDING ON data-name-1 of '{subject}'";
             var tier = EntryClauseCandidates(item, depName, spec.DependingQualifiers, ScopeOf(item.Root));
             // A declaration's counter is judged here only when the DECLARATION defines it: an item of the same name
             // elsewhere in the program is not where a use site will find it (§8.4.2.2.1 rule 5 qualifies from the
@@ -400,17 +403,22 @@ public sealed partial class DataBinder
             // involves the reference's own entry, or anything outside the copy, is the PLACEMENT's and is reported here.
             bool DeclarationFact(params DataItem[] involved) =>
                 item.IsCopiedUnder(placedAt) && Array.TrueForAll(involved, i => i.IsCopiedUnder(placedAt));
+            // A name the report section declares is not undefined (kb/Work PB1046): §13.8.6.2.3 bars this clause, of a
+            // section other than the report section, from referring to a report item. Asked for a reference that reaches no
+            // data item or several (a declaration's is asked by each clone, below), before the ambiguity, which it leaves
+            // standing unless a report entry of a NEARER source element hides the data items (kb/Work PB3767's one order,
+            // ISO §8.4.6.2.1 3) a)).
+            if (!declaration && tier.Count != 1
+                && ReportEntryReferenceRefused(tier, $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}'", depName, spec.DependingQualifiers))
+                continue;
             if (tier.Count == 0)
             {
                 if (declaration) continue;   // placed, and so checked, by each clone (above)
-                // A name the report section declares is not undefined (kb/Work PB1046): §13.8.6.2.3 bars this clause, of a
-                // section other than the report section, from referring to a report item.
-                if (ReportEntryReferenceRefused($"OCCURS … DEPENDING ON '{writtenDep}' on '{subject}'", depName, spec.DependingQualifiers)) continue;
                 // Nor is a name declared as something other than a data item (kb/Work PB1906): the one query of what it is.
                 // A refused declaration was reported at its entry.
                 var nonData = NonDataDeclarationOf(depName, spec.DependingQualifiers, ScopeOf(item.Root));
                 if (nonData is { DeclarationRefused: true }) continue;
-                Edition.Error("COBOL0851", $"OCCURS … DEPENDING ON '{writtenDep}' on '{subject}': data-name-1 "
+                Edition.Error("COBOL0851", $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}': data-name-1 "
                     + (nonData is { } declared
                         ? $"'{writtenDep}' {declared.DeclaredAs(writtenDep, depName)} (ISO §8.4.2.1: \"a statement "
                           + "shall contain a reference that uniquely identifies that resource\")"
@@ -446,7 +454,7 @@ public sealed partial class DataBinder
             // SR17: data-name-1 shall describe an integer — §5.5 2) b) 2., so a trailing-P PIC 99P is one (an index
             // item is NOT an integer data item).
             if (notInteger && !DeclarationFact(dep))
-                Edition.Error("COBOL0852", $"OCCURS … DEPENDING ON '{depName}' on '{subject}': data-name-1 "
+                Edition.Error("COBOL0852", $"OCCURS DEPENDING ON '{depName}' on '{subject}': data-name-1 "
                     + "shall describe an integer (ISO §13.18.38.3 SR17)" + via);
 
             // SR18 / SR21 (kb/Work PB1261): data-name-1 must share the table record's SCOPE and RESIDENCE attributes,
@@ -457,7 +465,7 @@ public sealed partial class DataBinder
             // element's own items.
             if (!declaration && DependingAttributeFault(item, dep) is { } attributeFault)
                 Edition.Error(DiagnosticCatalog.OccursDependingAttributeMismatch,
-                    $"OCCURS … DEPENDING ON '{writtenDep}' on '{subject}': {attributeFault}{via}");
+                    $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}': {attributeFault}{via}");
 
             // SR2: data-name-1 shall not be subscripted (it cannot lie within any table, nor BE one: a table's own
             // entry is referenced with a subscript too, kb/Work PB3510). A TABLE is any OCCURS — a Format-4 DYNAMIC one
@@ -465,7 +473,7 @@ public sealed partial class DataBinder
             // DataItem.SubscriptArity (a walk written nowhere else: SubscriptAdmissionDriftTests); the fault involves
             // data-name-1 and the innermost table that makes it subscripted.
             if (subscripted && !DeclarationFact(dep, dep.SubscriptLevels()[^1]))
-                Edition.Error("COBOL0853", $"OCCURS … DEPENDING ON '{depName}' on '{subject}': "
+                Edition.Error("COBOL0853", $"OCCURS DEPENDING ON '{depName}' on '{subject}': "
                     + "data-name-1 shall not be subscripted (ISO §13.18.38.3 SR2)" + via);
 
             // SR1(b)/SR10: "complex ODO" is illegal at every edition — tables may be nested only when the
@@ -519,7 +527,7 @@ public sealed partial class DataBinder
             // first byte position defined by the data description entry containing the OCCURS clause and the last
             // byte position defined by the record description entry containing that OCCURS clause."
             if (inTableRange && !DeclarationFact(dep))
-                Edition.Error("COBOL0857", $"OCCURS … DEPENDING ON '{depName}' on '{subject}': "
+                Edition.Error("COBOL0857", $"OCCURS DEPENDING ON '{depName}' on '{subject}': "
                     + "data-name-1 shall not occupy a byte position within the range from the table's first byte "
                     + "position to the last byte position of its record (ISO §13.18.38.3 SR20)"
                     + (ReferenceEquals(dep.Root, item.Root) ? ""
@@ -743,8 +751,11 @@ public sealed partial class DataBinder
 
             // SR30 — data-name-3 is implicitly defined at the OCCURS entry, so it must not also be an explicit
             // data-name (a duplicate definition) nor the CAPACITY register of another dynamic table.
-            // (This pass runs inside Bind, before a contained program inherits its containers' globals, so the
-            // map holds only this element's own registers here — the "elsewhere in the source element" SR30 means.)
+            // ⛔ "ELSEWHERE IN THE SOURCE ELEMENT" IS THIS ELEMENT'S OWN NAMES (kb/Work PB3766 review R2-1): a contained
+            // program inherits its containers' GLOBAL data-names and CAPACITY registers before this pass runs
+            // (InheritContainerGlobalData), and those are defined in ANOTHER source element — this element's own
+            // declaration of the spelling hides them (§8.4.6.2.1 3) — so only the depth-0 names and registers are the
+            // duplicates SR30 forbids (DeclaresOwnDataName; DeclaringDepth).
             // ⛔ "DEFINED ELSEWHERE" COMPARES DEFINITIONS, NOT EXPANSIONS (kb/Work PB2988): data-name-3 written once in a
             // type declaration (or under a SAME AS operand) is reproduced by every TYPE / SAME AS copy of its entry,
             // exactly as the table's own data-name is, and SR30's second sentence — "If qualifiers are required for
@@ -758,9 +769,10 @@ public sealed partial class DataBinder
             // word is declared in both, and never against a sibling method's. The name lands in the same scope.
             var methodScope = ScopeOf(item.Root).Method;
             var registers = methodScope?.CapacityRegisters ?? _capacityRegisters;
-            if ((methodScope is null ? ByName : methodScope.ByName).ContainsKey(capName)
+            if ((methodScope is null ? DeclaresOwnDataName(capName) : methodScope.ByName.ContainsKey(capName))
                 || (registers.TryGetValue(capName, out var sameName)
-                    && !sameName.TrueForAll(t => ReferenceEquals(t.WrittenDefinition, item.WrittenDefinition))))
+                    && !sameName.TrueForAll(t => DeclaringDepth(t) != 0
+                                                 || ReferenceEquals(t.WrittenDefinition, item.WrittenDefinition))))
             {
                 Edition.Error("COBOL1523", $"CAPACITY IN '{capName}' on '{subject}': data-name-3 is implicitly "
                     + "defined by the OCCURS DYNAMIC entry and shall not duplicate another data-name or "
@@ -781,13 +793,18 @@ public sealed partial class DataBinder
     }
 
     /// <summary>The ONE insert into <see cref="CapacityRegisters"/>: this element's own register (from
-    /// <see cref="DynamicResolve"/>, first) and each container's GLOBAL one (from <see cref="InheritGlobalSubtree"/>,
-    /// nearest container first) — appended, so each name's list stays in nearest-declaring-element order (kb/Work
-    /// PB1674).</summary>
-    private static void AddCapacityRegister(Dictionary<string, List<DataItem>> registers, string name, DataItem table)
+    /// <see cref="DynamicResolve"/>) and each container's GLOBAL one (from <see cref="InheritGlobalSubtree"/>, nearest
+    /// container first). ⛔ THE LIST IS KEPT IN NEAREST-DECLARING-ELEMENT ORDER BY THE INSERT, NOT BY THE ORDER OF THE
+    /// CALLS (kb/Work PB1674; PB3766 review R2-1): the containers' names are inherited before this element's registers
+    /// are minted, so a register goes after the last one at its own depth or nearer — the order
+    /// <c>ReferenceResolver.CapacityRegisterFor</c> reads (<c>tables[0]</c> is the nearest).</summary>
+    private void AddCapacityRegister(Dictionary<string, List<DataItem>> registers, string name, DataItem table)
     {
         if (!registers.TryGetValue(name, out var tables)) registers[name] = tables = [];
-        tables.Add(table);
+        int depth = DeclaringDepth(table);
+        int at = tables.Count;
+        while (at > 0 && DeclaringDepth(tables[at - 1]) > depth) at--;
+        tables.Insert(at, table);
     }
 }
 

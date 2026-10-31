@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.6.4-5",
+ "section": "12.3.6.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "OBJECT-COMPUTER paragraph",
+ "rule-digest": "3832c6395052",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Globalization/CharacterClassification.cs#Resolve; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#DispatchEmitter; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#ResolveClassification; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/ObjectComputerEmit.cs#ClassificationArg",
+ "test-ref": "conformance:cases/8.8.4.4-Simple-class-condition/pb64t5_character_classification; conformance:cases/12.3.6-OBJECT-COMPUTER/pb64t5_case_locale_phrase; unit:CobolLocaleTests.Classification_ResolvesAtActivation_AndDrivesTheClassTests; conformance:cases/8.8.4.4-Simple-class-condition/pb760_classification_national_group",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB760 (wave 45 A) re-verdicted this row with the witness it lacked. GR5 a)-e) establish the initial ALPHANUMERIC classification and f)-j) the initial NATIONAL one, and the OPERAND's class selects between them. The runtime resolution (CharacterClassification.Resolve, PB64 T5) was always right; the compiler's choice of which to ask was not: two private two-case copies read the raw Pic, null for every group, so a GROUP-USAGE NATIONAL operand (13.18.29.4 GR2 b) took the ALPHANUMERIC table. Both copies are deleted; ObjectComputerEmit.ClassificationArg asks THE ONE operand-category reader, which also covers a national ref-mod slice and a national function result. The new golden runs under en-US alphanumeric / tr-TR national - two classifications that genuinely DIFFER - so the wrong table gives a different ANSWER (UPPER-CASE of a national group 'ii' was ORD 74, is 305).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.2-6",
+ "section": "8.8.2",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "Expressions",
+ "rule-digest": "ea02e8512fab",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#PreviousTokenCouldBeDataName; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#booleanFactor",
+ "test-ref": "conformance:cases/8.8.2-Boolean-expressions/pb1465_boolean_paren_after_operator; conformance:cases/7.3.7-Compile-time-boolean-expressions/boolean_expression_formation",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule 6 (cite.py --check 8.8.2 \"The permissible combinations of operands, operators, and parentheses in a boolean expression are specified\" OK 6)). kb/Work PB1162 re-verdicted (wave 73 group A): Table 4's (B-AND/B-OR/B-XOR, '(') and (B-NOT, '(') pairs were refused by the lexer's edition-blind subscript trigger; kb/Work PB1465 (56098c443) fixed the trigger and its golden pins every operator. Re-probed on the w73a build at 2002/2014/2023: COMPUTE R = A B-AND (B B-OR C) -> 0100, COMPUTE R = B-NOT (A B-AND B) -> 1011.",
+ "state": "OK"
+}

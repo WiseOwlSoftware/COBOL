@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.4.3.6.2",
+ "section": "8.4.3.6.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "EXCEPTION-OBJECT",
+ "rule-digest": "3e2f6c177dd4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#IsExceptionObjectRegister; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#Resolve; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#Read",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb922_exception_object_reference",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Format: the bare word <u>EXCEPTION-OBJECT</u> (cite.py --check 8.4.3.6.2 \"EXCEPTION-OBJECT\" OK). IsExceptionObjectRegister = edition>=2002 AND no dataReferenceSuffix AND spelling EXCEPTION-OBJECT, so only the bare form is the register; resolver returns ExceptionObjectPlace, rendered as WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.ExceptionObject from every sending position (relation condition, SET source). At --std 85 the word stays a user word (conformance:cases/_unassigned/pb922_exception_object_user_word_85). Probe out/probe/exception-object/p1.cob compiles and runs at 2002/2014/2023 with the bare word in IF relations, in a declarative and in a separately compiled program. The spec-derived golden pb922_exception_object_reference exercises the bare word in sending positions at the introducing edition. [code-location note: (ExceptionObjectPlace arm, ~l.460); code-location note: (ExceptionObjectPlace => RuntimeApi.ExceptionObjectRead)] || editions as written by the adjudicator: 2002, 2014, 2023 (object-orientation facility introduced in ISO/IEC 1989:2002; at 85 the spelling is an ordinary user-defined word)",
+ "state": "OK"
+}

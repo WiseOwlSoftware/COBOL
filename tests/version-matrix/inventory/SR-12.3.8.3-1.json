@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.8.3-1",
+ "section": "12.3.8.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "8daf581f964c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#CheckRepositorySpecification; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#BindSpecifierExternalizedName; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RepositoryIntrinsics",
+ "test-ref": "conformance:cases/12.3.8-REPOSITORY/pb1017_repository_identical_repeats; conformance:cases/12.3.8-REPOSITORY/pb1017-repository-specification-not-identical; conformance:cases/8.3.2.2-User-defined-words/pb974_repository_as_phrase",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB1017): ONE check (DataBinder.CheckRepositorySpecification) keyed on the NAME across every specifier kind the rule lists - object-class-name-1, interface-name-2, program-prototype-name-1, function-prototype-name-1, intrinsic-function-name-1, property-name-1 - comparing the WHOLE specification: kind, AS literal (ordinal; absent = the user-defined word, case-folded per 8.3.2) and the canonical EXPANDS target + USING list. A different EXPANDS list, a name specified as CLASS and as INTERFACE, and FUNCTION F INTRINSIC beside FUNCTION F draw COBOL1761; identical repeats in any case spelling are admitted. It used to compare the externalized name alone, per kind. cite.py --check 12.3.8.3 \"all the specifications for that name shall be identical\" -> OK 1).",
+ "state": "OK"
+}

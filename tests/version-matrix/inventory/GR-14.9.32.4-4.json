@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.32.4-4",
+ "section": "14.9.32.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "RELEASE statement",
+ "rule-digest": "9e956179f78b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFromPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindMoveOf; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelease",
+ "test-ref": "conformance:cases/14.9.32-RELEASE/pb348_from_into_move_rules_85; conformance:cases/14.9.32-RELEASE/pb348_from_into_move_rules_2002; conformance:cases/14.9.32-RELEASE/pb348_from_into_move_rules_2014; conformance:cases/14.9.32-RELEASE/pb348_from_into_move_rules_2023; conformance:cases/14.9.32-RELEASE/pb348_release_from_figurative_image_2002; conformance:cases/14.9.32-RELEASE/pb348_release_from_figurative_image_2014; conformance:cases/14.9.32-RELEASE/pb348-release-from-quote-numeric-removed-2023; conformance-test:SortMergeDifferentialTests.Release_From_EquivalentToMoveThenRelease",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB348 LANDED. RULE (`--check 14.9.32.4 \"The result of the execution of a RELEASE statement with the FROM phrase is equivalent to the execution of the following statements in the order specified\"` => OK): a) the MOVE, 'according to the rules specified for the MOVE statement', then b) the same RELEASE without FROM. ORDER AND PLACEMENT were already conforming and stay so -- EmitRelease renders the move first and CobolSort.Release second, through the same MoveEmitter an explicit MOVE uses. WHAT DIVERGED was 'according to the rules specified for the MOVE statement', which was applied at NO EDITION because the move was built after binding. Two measured consequences: (1) `RELEASE SRT-NUM FROM QUOTE` ABORTED THE RUN with an unhandled NotImplementedCobolFeatureException before the record was released, while `MOVE QUOTE TO SRT-NUM` + `RELEASE SRT-NUM` ran -- the cause was a missing FACT, not a missing rule: MoveBinder marks a numeric-DISPLAY receiver image-forced and StorageFormPass consumes that mark, and the emitter-built move never passed through the binder. With an OUTPUT PROCEDURE instead of GIVING the same divergence made the program UNCOMPILABLE, CS0029 in the generated C#. (2) At 2023 the explicit MOVE errored COBOL0902 (14.9.25.3 SR5, removed) while the FROM form compiled with no diagnostic at all. WHAT IS THERE NOW: SortBinder.BindRelease binds the phrase through MoveBinder.BindFromPhrase / BindMoveOf, so the equivalence holds for the MOVE's GENERAL rules by construction as before AND for its syntax rules and edition gates. PINNED both ways: the positive goldens write each phrase beside the explicit pair it is equivalent to, pb348_release_from_figurative_image is the abort repro running at 2002 and 2014, and the 2023 negative is the same statement removed. || EDITIONS AS ADJUDICATED: 1985 . 2002 . 2014 . 2023",
+ "state": "OK"
+}

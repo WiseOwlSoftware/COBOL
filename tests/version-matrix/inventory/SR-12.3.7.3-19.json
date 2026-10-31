@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.7.3-19",
+ "section": "12.3.7.3",
+ "kind": "SR",
+ "ordinal": 19,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "09224f503f1c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#SwitchBindCurrency",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb791_currency_literal_forms; conformance:cases/12.3.7-SPECIAL-NAMES/pb791-currency-hexadecimal-literal-7-without-picture-symbol",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB791 LANDED. SR19 + NOTE 1 (cite.py --check 12.3.7.3 \"If literal-7 is an alphanumeric or national literal in hexadecimal format, the PICTURE SYMBOL phrase shall be present in the CURRENCY SIGN clause\" -> OK 12.3.7.3 19)). A hexadecimal literal-7 without PICTURE SYMBOL is refused (the form is asked of the parsed prefix by the ONE CobolLiteral.IsHexadecimalFormat, never of a second text[0] test); with PICTURE SYMBOL it is accepted and its decoded characters are EXEMPT from SR23 b (NOTE 1: the compile-time currency-string limitations do not apply to hexadecimal literals - NOTE 1 is informative, so the reading is recorded): CURRENCY SIGN IS X\"2B\" PICTURE SYMBOL \"#\" edits 1.5 as +1.50 (2002/pb791_currency_literal_forms).",
+ "state": "OK"
+}

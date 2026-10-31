@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.7.2",
+ "section": "13.7.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Linkage section",
+ "rule-digest": "e90f6e9c6e4f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#linkageSection; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#CallBindLinkage",
+ "test-ref": "conformance:cases/13.7-Linkage-section/pb1252_linkage_section_four_entry_kinds; conformance:cases/13.7-Linkage-section/pb1252-linkage-entry-using-phrase",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1252 (wave 1020 H). §13.7.2 (cite.py --check 13.7.2 \"type-declaration-entry\" OK, General format): LINKAGE SECTION. followed by any number, in any order, of 77-level-description-entry, constant-entry, record-description-entry and type-declaration-entry, all of which ride dataDescriptionEntry. The non-ISO fifth alternative, a USING-phrase linkage entry (`level dataName? USING [BY] {REFERENCE|VALUE|CONTENT} data-ref clauses.`), which parsed at 2002+ and which every binder silently dropped, is DELETED: `01 L-X USING BY VALUE W-A PIC 9(4).` is now COBOL0001 at every edition (negative pb1252-linkage-entry-using-phrase). The four kinds interleaved in a called program's linkage section, with an empty linkage section in the caller, are pinned by 2002/pb1252_linkage_section_four_entry_kinds (A=019 B=WORLD: the constant added to the 77 formal and WORLD moved into the record typed by the linkage TYPEDEF, both BY REFERENCE). At 85 the constant and type entries draw COBOL0900 (2002 introduction). retired-witness: src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#linkageEntry (kb/Work PB1252 deleted both grammar rules: linkageEntry was only the wrapper for the non-ISO linkageProcedureParameter alternative, and linkageSection now reads dataDescriptionEntry* directly) retired-witness: src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#linkageProcedureParameter (kb/Work PB1252 deleted both grammar rules: linkageEntry was only the wrapper for the non-ISO linkageProcedureParameter alternative, and linkageSection now reads dataDescriptionEntry* directly)",
+ "state": "OK"
+}

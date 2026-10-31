@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.51.3-20",
+ "section": "14.9.51.3",
+ "kind": "SR",
+ "ordinal": 20,
+ "subject": "WRITE statement",
+ "rule-digest": "d65a807b027c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhraseHead",
+ "test-ref": "conformance:cases/14.9.51-WRITE/l1c37_write_eop_spelling",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR20: 'The words END-OF-PAGE and EOP are equivalent.' (--check OK). conditionalPhraseHead accepts (END_OF_PAGE | EOP) in both the AT and the NOT AT phrase, and the binder never reads which token was used (ConditionalPhrases.KindOf maps both to the one END-OF-PAGE family; kb/Work PB3830). Probe ws1eop mixes `NOT AT EOP ... END-OF-PAGE ...` and `AT END-OF-PAGE ... NOT EOP ...` and both run with the same semantics; SR18/SR19 fire identically for either spelling (ws1pgeop uses EOP, ws1nolinn END-OF-PAGE). No golden writes the EOP spelling in code (only END-OF-PAGE), so test-ref is empty. [editions as adjudicated: 1985, 2002, 2014, 2023 (base WRITE statement; the 2023 text records no change to this rule in Annex E)] retired-witness: src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#writeAtEndOfPage (kb/Work PB3830: every Table 12 [NOT] phrase is the one conditionalPhrases rule now; the per-statement phrase rule no longer exists)",
+ "state": "OK"
+}

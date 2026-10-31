@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.6.2.1-2",
+ "section": "8.4.6.2.1",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Local and global names",
+ "rule-digest": "80c205587275",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData; src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs#TryResolve; src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs#TryResolveCondition; src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs#IndexCandidates; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#NearestInScope; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#InheritGlobalSubtree",
+ "test-ref": "conformance:cases/8.4.6.2-Local-and-global-names/pb163_global_local_storage",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'If only one item is identified, it is the referenced item.' (cite.py --check 8.4.6.2.1 -> OK §8.4.6.2.1 2)). Code: ReferenceResolver consumes SymbolTable.TryResolve's candidate list and UniqueOrReportAmbiguous binds the sole candidate. Probes: lg10 (single outer global, X=OUT), lg3 (single visible global despite a middle non-global homonym, X=OUT), lg6 (qualification narrows to one, X=G2X), lg1b/lg2 (01-level homonyms resolved to one item by root shadowing, X=LOC / X=MID). Where the SET itself is wrong (GR-1 lg11/lg12) the failure is the set, not this rule. pb163_global_local_storage golden derives SEES=0007 from the spec for a single inherited global reference. [editions as adjudicated: 85, 2002, 2014, 2023 (nested source elements and the GLOBAL clause are in the 1985 Inter-program communication module; the clause text is unchanged in 2023; COBOL-85 probe of lg1/lg11 reproduces the same COBOL1639)] retired-witness: src/Cobol.Net.Compiler/Binding/BinderDriver.cs#RegisterSubtree (kb/Work PB1047 (w68z) moved the inherited-global registration into DataBinder.InheritGlobalSubtree, which now also records each item nesting depth; BinderDriver.RegisterSubtree no longer exists)",
+ "state": "OK"
+}

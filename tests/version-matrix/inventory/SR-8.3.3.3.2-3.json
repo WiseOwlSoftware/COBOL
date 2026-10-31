@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.3.3.2-3",
+ "section": "8.3.3.3.2",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Numeric literals",
+ "rule-digest": "8a917fe23278",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#numericLiteralCore; src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#tokensAreContiguous; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#DEC_BODY; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/EmitCore.cs#TryUnscaledParts",
+ "test-ref": "conformance:cases/8.3.3.3.2-Fixed-point-numeric-literals/pb1446_comma_decimal_leftmost_literal_stands_alone; conformance:cases/8.3.3.3.2-Fixed-point-numeric-literals/pb1446-comma-literal-after-space-is-not-fused; conformance:cases/8.3.3.3.2-Fixed-point-numeric-literals/pb1446_comma_point_literal_value_and_size",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1446 landed (w1018d re-probe). \"A literal shall not contain more than one decimal point. The decimal point is treated as an assumed decimal point, and may appear anywhere within the literal except as the rightmost character.\" (cite.py --check 8.3.3.3.2 -> OK §8.3.3.3.2 3)). The refuter's one gap -- `1 ,5` fused into the interior-point literal 1,5 under DECIMAL-POINT IS COMMA -- is closed by the contiguity predicate on numericLiteralCore's comma alternatives: `COMPUTE R3 = 1 ,5` is refused (COBOL0307), `,5`, `-,5`, `1 + ,5` keep their leftmost-comma value, and the condition-name VALUE `1 ,5` is the two-value list {1, 0.5} (1,5 is not in it). The one-point and not-rightmost halves held at the refutation and were re-probed. Witnesses: the 2023 positive and negative of the landing and the COBOL-85 value/size golden.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-4",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "SET statement",
+ "rule-digest": "8b02fd6fc731",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#ScreenIndexAssignmentReceiver",
+ "test-ref": "conformance:cases/14.9.17-GO-TO/pb212_operand_class_screens; conformance:cases/14.9.39-SET/pb212-set-numeric-from-literal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB212 (landed): a numeric receiver admits only index-name-2 -- arithmetic-expression-1 and an index-data-item identifier-2 are refused (COBOL2326; Removed seam: strict error, --permissive warning + store). FlagDirectiveTests' plain-numeric-receiver fixture re-pointed from SET N TO 3 to SET N TO IDX.",
+ "state": "OK"
+}

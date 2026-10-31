@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-155",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 155,
+ "subject": "Record locks (maximum number allowed for a file connector)",
+ "rule-digest": "11d9a1f6297e",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-155; src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#ConnectorLockMax; src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#LockRecord; src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#PreflightNewLock",
+ "test-ref": "conformance:cases/9.1.13.8-Record-operation-conflict-condition-with-unsuccessful/pb338_read_lock_limit_position; unit:CobolFileLockTests.ConnectorLockLimit_16thRecord_Is54",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§12.4.5.9.4 GR7 (cite.py OK 7)) - connector maximum at least 15; §9.1.13.8 item 4 (cite OK) is '54'. Code: PhysicalFileTable.ConnectorLockMax = 15 (L69), enforced in LockRecord and PreflightNewLock. Golden 2023/pb338_read_lock_limit_position: READ 16 under LOCK ON MULTIPLE = 54 on relative, indexed and random legs, then UNLOCK 00 and the next READ NEXT is 46 (§14.9.30.4 GR18: no valid record position after an unsuccessful READ) - pins the value and the status; unit ConnectorLockLimit_16thRecord_Is54 pins the ceiling directly. SR2 (MULTIPLE not for sequential) per the golden's own citation.",
+ "state": "OK"
+}

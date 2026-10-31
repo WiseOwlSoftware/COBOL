@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.2.3-6",
+ "section": "8.4.3.2.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "Function-identifier",
+ "rule-digest": "e385b2b0e5c9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#DefinitionPermitsArguments; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#Sr6ArgumentListError; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic",
+ "test-ref": "conformance-test:FunctionRefModSr6SweepTests.KeywordForm_BareRefModAfterArgumentPermittingFunction_IsAnArgumentListError; conformance-test:FunctionRefModSr6SweepTests.KeywordOmittedForm_BareRefModAfterArgumentPermittingFunction_IsAnArgumentListError; conformance-test:FunctionRefModSr6SweepTests.ZeroArgumentFunction_RefModIsNotAnArgumentList; conformance:cases/8.4.3.2-Function-identifier/pb8-refmod-arg-permitting-function; conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB61 — the LENGTH/BYTE-LENGTH folds enumerated from the rule branches; one builder for a runtime-length group; SR6 decided from the definition before binding). SR6 'if a function's definition permits arguments and a left parenthesis immediately follows … the left parenthesis is always treated as the left parenthesis of that function's arguments' — decided ONCE, from the DEFINITION (the catalog signature, or a REPOSITORY user function's USING formals — SR6 names function-prototype-name-1 too) and BEFORE any argument binds, on every route: FUNCTION UPPER-CASE (1:4) drew the §15.3 arity error (the empty list bound first; only RANDOM, MinArgs 0, reached the SR6 arm) and keyword-omitted UPPER-CASE (1:4) under FUNCTION ALL INTRINSIC died as 'not defined' (the MinArgs guard sent it to the data path). Now COBOL1543 (SR6/SR8) on all of them; ResultRefMod no longer carries an SR6 arm. Negatives pb61-sr6-function-keyword-refmod (85+), pb61-sr6-keyword-omitted-refmod and pb61-sr6-udf-prototype-refmod (2002+); FunctionRefModSr6SweepTests sweeps the CATALOG — every argument-permitting row in both forms draws 1543 (never 1504/1639), every zero-argument row (CURRENT-DATE (1:8), the standard's own D.14.3.6 shape) does not. retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

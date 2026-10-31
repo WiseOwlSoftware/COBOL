@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.43.3-1",
+ "section": "15.43.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "HIGHEST-ALGEBRAIC function",
+ "rule-digest": "95d86c4e7dec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindAlgebraicFold",
+ "test-ref": "conformance:cases/15.43.3-Argument-rules/l1-highest-algebraic-category; conformance:cases/15.43.3-Argument-rules/l1-highest-algebraic-literal; conformance:cases/15.43.3-Argument-rules/l1-highest-algebraic-intrinsic-arg; conformance:cases/15.43.3-Argument-rules/algebraic-udf-argument",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "One fixture per conjunct of §15.43.3 r1 — category (PIC X item), data-item (numeric literal), function exclusion for an intrinsic (FUNCTION INTEGER) — beside the pre-existing user-defined-function case; all four expect COBOL1516.",
+ "state": "OK"
+}

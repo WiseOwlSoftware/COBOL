@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.2.4-2",
+ "section": "8.4.3.2.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Function-identifier",
+ "rule-digest": "2b4feebb414b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ArgumentOrder.cs#Freeze; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfActivate; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#DrainPending; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindArgOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ArgumentOrder.cs#Record",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/udf_arg_order; unit:ArgumentOrderDriftTests.TheIntrinsicCallPoint_OpensAndSettlesTheWindow; conformance:cases/8.4.3.2-Function-identifier/pb1932_property_argument_order",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1423 (wave 1005 C). GR2 (cite.py --check 8.4.3.2.4 'its arguments are evaluated individually in the order specified in the list of arguments, from left to right' -> OK 8.4.3.2.4 2)). One ArgumentOrder window per function argument list (intrinsic: BindIntrinsicCore; user-defined: UdfActivate) stores every earlier argument that a later argument's activation would overtake into the SendingValueTemp intermediate at its own position. Golden udf_arg_order legs EXPR/INTR/NEST/REF/VAL/SUB/ORD/BOOL. Residual (not a divergence of the printed rule): a boolean expression of run-time length is left in place; object-property GET order against argument order is a separate mechanism (lead).",
+ "state": "OK"
+}

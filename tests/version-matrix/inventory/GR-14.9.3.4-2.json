@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.3.4-2",
+ "section": "14.9.3.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "ALLOCATE statement",
+ "rule-digest": "52785734dd6c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/CobolPtr.cs#Allocate",
+ "test-ref": "conformance:cases/14.9.3-ALLOCATE/pb151_allocate; unit:CobolPtrTests.Allocate_SizeRules_And_InitializedFill",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "PB151 adds the missing VALUE observation the adjudicator asked for: pb151_allocate ALLOCATEs 0 CHARACTERS and displays the IF P = NULL verdict (ZERO=NULL) with no exception condition. The cross-rule feeders the refuter recorded are closed at their homes: the COMP-2 0.4 truncation (GR1 - AllocateReal ceilings) and the 19-digit negative wrap (GR5 - the size travels as the full Int128).",
+ "state": "OK"
+}

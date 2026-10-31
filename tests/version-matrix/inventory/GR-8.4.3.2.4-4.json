@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.2.4-4",
+ "section": "8.4.3.2.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Function-identifier",
+ "rule-digest": "a794c9167df5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfBindPointerCall",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/pb847_function_pointer_call; conformance-test:ExceptionConditionConformanceTests.FunctionPointerNull_Enabled_NoHandler_FatalTerminates",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB847: the prototype named by the pointer's USAGE TO phrase supplies the activated element's characteristics - the call binds through UdfActivate, the SAME prototype activation a function-prototype reference takes - and the activation targets the function the pointer HOLDS (GR6c; ProgramRegistry.CallFunctionPointer), NULL raising EC-FUNCTION-PTR-NULL. The golden re-points the pointer to a same-signature function and observes that one run.",
+ "state": "OK"
+}

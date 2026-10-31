@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.39.3-1",
+ "section": "15.39.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "FORMATTED-DATE function",
+ "rule-digest": "264922500198",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
+ "test-ref": "conformance:cases/15.39.3-Argument-rules/pb15_result_type_follows_argument; conformance:cases/15.39.3-Argument-rules/l1-formatted-date-format-not-literal; conformance:cases/15.39.3-Argument-rules/l1-formatted-date-format-wrong-class",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "The sentence carries TWO constraints and each now has a reject witness on FORMATTED-DATE's OWN row, because the class screen is per function (IntrinsicArgumentRules.cs:754, Schema(\"§15.39.3 r1/r3\", ['t','i'])) and pb124's FORMATTED-CURRENT-DATE witness cannot see it. Accept side of both permitted arms already exact at pb15 (FMTDATE-N / FMTDATE-X = 18741016, re-derived from §15.5.2's epoch). LITERAL-ness: a PIC X(8) data item with §15.39.3 r2's content rule satisfied → COBOL1517, so it cannot be confused with the r2 format-kind screen. CLASS: B\"1010\" is a literal (so the 1517 screen, which tests for a BoundStringLiteral, cannot fire) of class boolean per §8.3.3.4.1, which kind 't' ([Alphanumeric, NumericEditedDeEditing, National]) rejects → COBOL1627.",
+ "state": "OK"
+}

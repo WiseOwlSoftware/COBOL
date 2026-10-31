@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.16.3-1",
+ "section": "14.9.16.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "GENERATE statement",
+ "rule-digest": "50f64bd1a05f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate; src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs#Resolve",
+ "test-ref": "unit:BoundDeferralDriftTests.ReportWriterOperand_NamingNoReport_IsARefusal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GAP -> CONFORMS (kb/Work PB909). Rule text validated: cite.py --check 14.9.16.3 \"Data-name-1 shall name a detail report group\" -> OK 1). A found group that is not DETAIL is ReportGenerateNotDetail (emitted under the shared COBOL0899 code — a wave-48 T lead); an ambiguous one is COBOL1920 (ReportGroupResolution, the qualification half 'It may be qualified by a report-name'); a name that is neither a detail group nor a report (Match.None, undiagnosed by contract) is now COBOL1757 at bind instead of a COBOL1756 deferral.",
+ "state": "OK"
+}

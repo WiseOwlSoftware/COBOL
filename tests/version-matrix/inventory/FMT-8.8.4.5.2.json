@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.8.4.5.2",
+ "section": "8.8.4.5.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Simple condition-name condition (conditional variable)",
+ "rule-digest": "43f36a811b71",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderCondition88; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ConditionName.cs",
+ "test-ref": "conformance:cases/8.7.5-Relational-operators/l1_perform_until_condition_forms",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Format: 'condition-name-1' (cite.py --check 8.8.4.5.2 \"condition-name-1\" -> OK §8.8.4.5.2 General format). A bare level-88 name binds as BoundCondition88 and renders through ConditionRenderer.RenderCondition88 in every condition context. Probed: bare, NOT-prefixed, subscripted (TE-ODD (1..3) -> T F T), and qualified (R-ONE OF R1V OF R1 -> T; R-ONE OF R2 -> F with a same-named 88 elsewhere) all compile and answer per the spec under --std 2023 and --std 85. l1_perform_until_condition_forms (d) derives the PERFORM UNTIL ST-DONE pass count from §8.8.4.5. [editions as adjudicated: 85, 2002, 2014, 2023 (§8.8.4.5 carries no edition marking; the simple condition-name condition is base COBOL in every edition)]",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.40.4-24",
+ "section": "14.9.40.4",
+ "kind": "GR",
+ "ordinal": 24,
+ "subject": "SORT statement",
+ "rule-digest": "d11a759d8105",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitTableSort; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSharedAreaTableSort; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#SortInPlace",
+ "test-ref": "conformance:cases/14.9.40-SORT/sort_table_format2; conformance:cases/14.9.40-SORT/w70c_pb1174_table_sort_odo_count; conformance:cases/14.9.40-SORT/pb1175_table_sort_shared_storage; conformance:cases/8.4.2.3-Subscripts/pb1055_table_sort_nested_subject; conformance:cases/14.9.40-SORT/pb1055_table_sort_nested_dynamic",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1175 + PB1055 landed: the sorted elements are placed back in data-name-2 for every storage form: the typed array in place, a shared-storage table through the class's element windows (every element image read before the first is written), a nested table at its enclosing occurrences.",
+ "state": "OK"
+}

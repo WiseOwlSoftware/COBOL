@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.19.3-2",
+ "section": "15.19.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "CONVERT function",
+ "rule-digest": "ca476eef91e0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindConvert; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#IsConvertFormatWord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordWordOf; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#fnArgPhraseWord",
+ "test-ref": "conformance:cases/15.19.3-Argument-rules/argument_rule_equivalences_batch1",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "Verdict unchanged; supplies the missing spec-derived test. The rule states an EQUIVALENCE, so the test asserts it directly - the long and short spellings must give identical results - rather than pinning one answer, and it does so in BOTH positions the words appear in per 15.19.2 (source-format AND destination-format), plus the NATIONAL/NAT half. Each line prints the shared value so the equality cannot pass vacuously. 2026-08-09 (PB59 family 5a): the NATIONAL/NAT source legs' item corrected from PIC X(2) to PIC NN - a NAT source argument shall hold national characters (AR-15.19.3-6), so the original declaration was a card error of this golden; the printed value is unchanged (00410042).",
+ "state": "OK"
+}

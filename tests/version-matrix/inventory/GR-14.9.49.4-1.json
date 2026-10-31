@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.49.4-1",
+ "section": "14.9.49.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "USE statement",
+ "rule-digest": "5fa8a62bd318",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUseF3; src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs#Resolve; src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Resolve; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery",
+ "test-ref": "conformance:cases/14.9.49-USE/pb365_use_eo_interface_two_pass; conformance:cases/14.9.49-USE/pb365_report_group_qualified; conformance:cases/14.9.49-USE/pb365_report_group_qualified_85; conformance:cases/14.9.49-USE/pb326_flow_report_cross_report",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB365, LANDED. The umbrella rule: every USE statement's trigger scope shall be bound and shall drive the dispatch. It was PARTIAL for exactly one reason -- the Format 4 arm bound only a CLASS operand, so a legal `USE AFTER EXCEPTION OBJECT interface-name-1` could not define its condition at all (measured: COBOL0859 on probe iface.cob). All four formats now bind their operand completely: Format 1's file list or open-mode index plus GLOBAL, Format 2's report group through ReportGroupResolution (the qualified spelling and the 8.4.2.2 ambiguity rule included), Format 3's (exception-name, file) pairs through EcNameResolution, and Format 4's class OR interface through OoNameResolution. DeclCollectSection records each as a BoundDeclarative and EmitUseMachinery renders the machinery only when declaratives exist. Editions as adjudicated: 1985/2002/2014/2023 for the Format 1 and Format 2 content; the Format 3 and Format 4 content belongs to the 2002+ common-exception-processing / OO facilities. No Annex E entry touches this rule.",
+ "state": "OK"
+}

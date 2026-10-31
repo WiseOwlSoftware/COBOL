@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-7",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "VALUE clause",
+ "rule-digest": "2fc8cdd54f76",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CheckValueLiteralClasses; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenNumericEditedLiteralClass",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb646_national_form_numeric_2023; conformance:cases/13.18.63-VALUE/pb646-national-numeric-edited-value-class; conformance:cases/13.18.63-VALUE/pb646-numeric-edited-value-national-class; conformance:cases/13.18.63-VALUE/pb1722-table-value-overwritten-literal-class",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB646 LANDED this row 2026-09-13. SR7 now has a site of its own and both of its directions are measured. 8.5.2.1 Table 2 makes a numeric-edited item's CLASS its usage ('Numeric-edited (if usage is display)' under class Alphanumeric, 'Numeric-edited (if usage is national)' under class National), so 'the class of the literal shall conform to that of the data item' is a usage test: `01 W-NE PIC ZZ9 USAGE NATIONAL VALUE \"  1\".` and `01 W-DE PIC ZZ9 VALUE N\"  1\".` are both COBOL0898 and both conforming spellings bind (conformance:cases/13.18.40-PICTURE/pb646_national_form_numeric_2023's NED). The over-broadness this row recorded is GONE: the cross-category arm that refused any national literal on a non-national subject no longer fires on a numeric-edited one. ⛔ THE SCREEN IS A PASS, NOT AN ENTRY-BIND CHECK, and that is the rule's own doing: 13.18.60.4 GR1 lets a group's USAGE clause supply the usage after the entry has bound, so asking at entry bind gave the inherited spelling the OPPOSITE verdict from its written twin in both directions (measured: `01 G USAGE NATIONAL. 05 GZ PIC ZZ9 VALUE N\"  1\".` was rejected as a class mismatch against a DISPLAY item). CheckValueLiteralClasses runs after UsageInheritancePass and ResolveTableValues and covers formats 1, 2 and 3/5 alike. SR7's THIRD clause - 'if the class is otherwise undefined, then the class of the data item shall be that of the literal' - has no site and cannot acquire one, which is a derivation and not an omission: 13.18.60.3 SR13 implies a usage for every item given none (NATIONAL for an N-bearing picture character-string, else DISPLAY), so a numeric-edited item's usage, and with it its Table 2 class, is always defined. kb/Work PB1722 (w1042a): the SR7 pass screens each literal the Format 2 clause WRITES, once, including a literal a later phrase overwrites (negative pb1722-table-value-overwritten-literal-class, COBOL0898 at 2002/2014/2023); it used to read the resolved element map, once per element, and miss an overwritten one. || editions 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a VALUE-clause rule on a construct that exists at COBOL-85 (a numeric-edited item's nonnumeric VALUE literal; a level-88 THROUGH range); national literals are its 2002 extension, not its origin.",
+ "state": "OK"
+}

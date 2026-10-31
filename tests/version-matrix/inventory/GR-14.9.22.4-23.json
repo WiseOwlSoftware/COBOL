@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.22.4-23",
+ "section": "14.9.22.4",
+ "kind": "GR",
+ "ordinal": 23,
+ "subject": "INSPECT statement",
+ "rule-digest": "cf0d2effc8a1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Convert",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/l1c15_inspect_converting_duplicate_first",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 14.9.22.4 \"the first occurrence of the character is used for replacement\" -> OK GR23. Convert maps via fromSet.IndexOf(ch) — the first occurrence wins. Probe misc.cob: V='abcabc' CONVERTING \"aab\" TO \"XYZ\" -> XZcXZc (a->X by first occurrence, b->Z). InspectDifferentialTests.Convert_DuplicateFromCharacter_FirstOccurrenceWins is AssertSameAsLegacy (legacy differential) and does not close the row. || editions as adjudicated: 1985, 2002, 2014, 2023",
+ "state": "OK"
+}

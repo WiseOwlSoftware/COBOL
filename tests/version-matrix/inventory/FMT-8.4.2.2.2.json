@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.4.2.2.2",
+ "section": "8.4.2.2.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Qualification",
+ "rule-digest": "3f817a52f31f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/ExpressionFormationPass.cs#VisitDataReference; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#CannotBeSubscripted; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenFileNameOperand",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/qualified_unique_match; conformance:cases/8.4.2.2-Qualification/pb567_condition_name_qualification; conformance:cases/8.4.2.2-Qualification/pb919_index_name_qualified; conformance:cases/14.9.49-USE/pb365_report_group_qualified_85; conformance-test:LinageConformanceTests.QualifiedCounter_TwoLinageFiles; conformance:cases/8.4.3.1-Identifier/pb1455-subscript-before-qualifier; conformance:cases/8.4.3.1-Identifier/pb1455_qualified_subscripted_subscript; conformance:cases/8.4.2.2-Qualification/pb2040-open-qualified-file-name; conformance:cases/8.4.2.2-Qualification/pb2040-sort-using-qualified-file-name",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1455 (landed w1014 group S). The misordered spelling (a subscript or reference modifier BEFORE a qualifier, `E (1) OF T`, `S (2:2) OF G`, and the same inside a SUBSCRIPT-mode capture, `X (E (1) OF T)`) is refused COBOL2776 at every edition by ExpressionFormationPass, once per parse tree; the grammar keeps the superset parse so the refusal names the rule (8.4.2.3.2 Format 1 `qualified-data-name-1 [ ( subscript ... ) ]`, 8.4.3.1.2 Format 3 `identifier-1 reference-modifier-1`, both cite.py --check OK). Sibling fixed: the subscript splitter asked SR2's '(' question of the LAST qualifier, so `X (E OF T OF G (2))` was split into two subscripts and refused COBOL2270; CannotBeSubscripted now takes the whole qualified name. retired-witness: src/Cobol.Net.Compiler/Validation/ExpressionFormationPass.cs#VisitSubscriptOrRefMod (kb/Work PB2113: a subscript's own identifier is a nested dataReference, so the one VisitDataReference screens its qualifier order) kb/Work PB2040 (w1031 group G): the format's other half - a file-name has NO qualified format; it appears only as the file-report-qualifier - was unenforced at the procedure-division file-name positions that share the dataReference production (OPEN, the SORT and MERGE subjects, SORT/MERGE USING and GIVING, FUNCTION EXCEPTION-FILE / EXCEPTION-FILE-N): they resolved the GLUED text, so `OPEN OUTPUT A OF B` opened a file named AOFB and `SORT S OF X` dropped the qualifier, both silently. StatementValidation.ResolveFile now takes the parse node and ScreenFileNameOperand refuses a qualified, subscripted, reference-modified or special-register operand (COBOL2972) at every edition. cite.py --check 8.4.2.2.2 'file-report-qualifier' OK.",
+ "state": "OK"
+}

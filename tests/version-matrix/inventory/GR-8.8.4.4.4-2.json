@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.4.4-2",
+ "section": "8.8.4.4.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Simple class condition",
+ "rule-digest": "48ff61fc49e2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderClass; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#Visit",
+ "test-ref": "conformance:cases/8.8.4.4-Simple-class-condition/pb590_boolean_class_condition",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'If the word NOT is specified, the truth value is reversed.' (cite.py --check 8.8.4.4.4 -> OK §8.8.4.4.4 2)). All three class-condition bound shapes render `c.Negated ? !(test) : (test)` over the GR1/GR3 test, so the reversal applies after the zero-length FALSE as the rule order requires. Probed: ZL NOT NUMERIC -> T, ZL NOT ALPHABETIC-UPPER -> T, AX(1:0) NOT HEXC -> T, READ '12A' NOT NUMERIC -> T, 'ABC' NOT ALPHABETIC -> F. pb590 case D asserts the NOT reversal derived from GR2; ca7_class_zero_length asserts it at zero length.",
+ "state": "OK"
+}

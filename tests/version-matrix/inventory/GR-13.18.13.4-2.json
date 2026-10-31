@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.13.4-2",
+ "section": "13.18.13.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "CODE-SET clause",
+ "rule-digest": "9e21e4b11a6e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindCodeSetClause; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitCodeSetRegistration; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#CodeSet",
+ "test-ref": "conformance:cases/13.18.13-CODE-SET/pb793_code_set_ebcdic; conformance:cases/12.3.7-SPECIAL-NAMES/pb110_code_set_identity",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR2 - on successful OPEN the coded character set used to represent alphanumeric data on the storage medium is alphabet-name-1's. The set is established for the CONNECTOR and constant thereafter, so it is registered once beside the connector (FileConnector.CodeSet, the FileConnector.NationalRecordArea pattern) rather than re-derived per record; for an identity set nothing is registered at all and the record channel is unchanged byte for byte. The EBCDIC golden observes it in both directions: the same physical file read back through a description carrying NO CODE-SET clause yields the medium's own code units (GR7's default), which is what shows the clause established a DIFFERENT set for the first connector.",
+ "state": "OK"
+}

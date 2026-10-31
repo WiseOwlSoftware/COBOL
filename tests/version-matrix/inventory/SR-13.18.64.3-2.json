@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.64.3-2",
+ "section": "13.18.64.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "VARYING clause",
+ "rule-digest": "2d4b66c4541f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportVaryingClauses; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ResolveReports",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/pb1306_varying_scope; conformance:cases/13.18.64-VARYING/pb1306-varying-name-reused-in-subordinate; conformance:cases/13.18.64-VARYING/pb1306-varying-name-defined-twice-in-entry; conformance:cases/13.18.64-VARYING/pb1306-varying-counter-referenced-outside-its-entry",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1306 landed. cite.py --check 13.18.64.3 'Data-name-1 shall not be defined elsewhere in the source element, except as data-name-1 in another VARYING clause of an entry not subordinate to the subject of the' OK (SR2); 'This definition of data-name-1 may be referenced only within the current entry or a subordinate entry' OK. Three arms of 'defined elsewhere' - a name twice in one entry, a name an enclosing entry's VARYING defines, a name defined by a data item or report section entry - each COBOL1559, once per written entry; a reference outside the entry resolves nowhere (COBOL1639); a reuse in a non-subordinate entry is legal and independent (golden lines 4-5).",
+ "state": "OK"
+}

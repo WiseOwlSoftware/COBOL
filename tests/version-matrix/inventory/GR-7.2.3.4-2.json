@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.2.3.4-2",
+ "section": "7.2.3.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "COPY statement",
+ "rule-digest": "bd25a2a77b39",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#FindCopybook",
+ "test-ref": "conformance:wiseowl/cases/7.2.3-COPY/pb1355_library_text_located; conformance:cases/7.2.3-COPY/pb1355-library-not-available",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1355 (w68x): 'Library-name-1 names a resource that shall be available to the compiler and shall provide access to the library text' (cite.py OK 7.2.3.4 2)). OF/IN names a subdirectory; the first place holding it IS the library and the text is located there alone - no fallback to the default library (probe p8b.cob: was DFLT, now CBL3620). Golden [LIB]: pb1355b OF pb1355lib -> LIB although a pb1355b.cpy (DFLT) sits in the default library.",
+ "state": "OK"
+}

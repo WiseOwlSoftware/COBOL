@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.52.3-2",
+ "section": "13.18.52.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "SIGN clause",
+ "rule-digest": "4f1ee00b521e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SignClause.cs#SignClauseElementaryDefect",
+ "test-ref": "conformance:cases/13.18.52-SIGN/pb537-sign-clause-subject; conformance-test:ReportClauseFormatScreenTests.SignClause_IllegalSubject_2422_AllEditions; conformance-test:ReportClauseFormatScreenTests.SignClause_LegalSubject_Accepted",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB537 LANDED (wave 58). COBOL2422 when the usage of an elementary item whose entry WRITES the SIGN clause is other than display or national - its own USAGE clause or one inherited from a group (13.18.60.4 GR1: 01 G USAGE COMP. 05 A PIC S9(4) SIGN LEADING. is refused). A SIGN clause on a GROUP is not SR2's subject (it names 'an elementary item for which the SIGN clause is specified'), so 01 G USAGE COMP SIGN LEADING. is legal and GR1 applies the clause only to display/national subordinates (ApplyEffectiveSign). PIC S9(4) COMP / COMP-3 / COMP-5 / PACKED-DECIMAL / BINARY with SIGN each compiled clean before.",
+ "state": "OK"
+}

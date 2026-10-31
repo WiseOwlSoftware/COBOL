@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.2.13-2",
+ "section": "8.5.2.13",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Class and category of data items and literals",
+ "rule-digest": "d498b7d69cc3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#Analyze; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#CheckClauseSubjects",
+ "test-ref": "conformance:cases/8.5.2.13-Numeric-edited-category/pb509_blank_when_zero_relation",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 8.5.2.13 OK 2)): 'A data item described as numeric by its PICTURE character-string and described with a BLANK WHEN ZERO clause.' PictureAnalyzer.Analyze line ~429: `blankWhenZero && digits > 0 && !signed && usage is Display or National` -> PicCategory.NumericEdited (both SR2 usages since PB646). The `!signed` conjunct is not a gap: §13.18.8.3 SR1 forbids 'S' with BWZ and BlankWhenZeroViolation/PictureComposition refuse it. Probes: p1.cob MOVE 0 TO PIC 9(3) BWZ and PIC 9(3) USAGE NATIONAL BWZ -> '[   ]' (spaces); n3/n4/n5 refuse them as arithmetic operands (COBOL0844 'of category numeric-edited'); n6 FUNCTION HIGHEST-ALGEBRAIC(PIC 9(3)V9 BWZ) accepted, correct because §15.43.3 r1 (cite.py OK) admits 'category numeric or numeric-edited'; same at --std 85 (g85b.cob). Covering test pb509 derives from the spec a character (not algebraic) comparison for a BWZ item holding '   12' vs '00012' (NE) — which holds only if the item is category numeric-edited — plus the GR3 blank-equals-zero cases. || editions as written by the adjudicator: 85, 2002, 2014, 2023 (usage national subject 2002+)",
+ "state": "OK"
+}

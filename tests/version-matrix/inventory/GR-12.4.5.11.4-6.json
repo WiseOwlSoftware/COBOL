@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.11.4-6",
+ "section": "12.4.5.11.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "RECORD DELIMITER clause",
+ "rule-digest": "b543658e2e3b",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported; src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Declined; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl",
+ "test-ref": "conformance:cases/12.4.5.11-RECORD-DELIMITER/pb292_record_delimiter_witness; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterStandard1_NamedNonSupportWarning_PinnedToSpec; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterFeatureName_NamedNonSupportWarning_PinnedToSpec",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"At the time of a successful execution of an OPEN statement, the record delimiter is the one specified in the RECORD DELIMITER clause in the file control entry associated with the file-name specified in the OPEN statement\" — no delimiter is established at OPEN, because neither alternative of the clause is supported (GR2/GR3 by Annex A.3 item 26 and §4.2.6; GR4 by Annex A.1 item 150 and §4.2.5, not §4.2.7, which is scoped to the Annex A.4 list - kb/Work PB593). §4.2.6's \"Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented\" carries the decline to this rule. What the OPEN does establish is §12.4.5.11.4 GR5's implementor method, and the golden shows it holding across an OPEN OUTPUT / CLOSE / OPEN INPUT round trip on all four files — identically whether the clause was written or not, which is what §12.4.5.11.4 GR1 guarantees a program can see. Nothing is captured on FileModel for this clause, deliberately: a stored delimiter nothing reads would be a lookup no test could ever contradict.",
+ "state": "OK"
+}

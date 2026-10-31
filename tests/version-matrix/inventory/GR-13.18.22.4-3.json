@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.22.4-3",
+ "section": "13.18.22.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "EXTERNAL clause",
+ "rule-digest": "2fa1b376993e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandType; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#CallBindExternalAndGlobal",
+ "test-ref": "conformance:cases/13.18.22-EXTERNAL/typedef_external",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§13.18.22.4 GR3: \"If a type declaration is specified with the EXTERNAL phrase, the record descriptions in which it is specified are also external and subject to the same rules.\" (cite.py OK §13.18.22.4 3)). ExpandType marks a level-1 record of an external type ExternalFromType, and CallBindExternalAndGlobal re-bases it onto the run-unit cell keyed by the record's own name (GR5). Probe GR1 (TR TYPE TT, TT TYPEDEF EXTERNAL, in two source elements): sub reads caller's `TYPE`, caller reads sub's `SUBT` - one shared storage. 'Subject to the same rules': GR2 verified (above), SR4 through an external POINTER typedef verified rejected (probe SR4TYE). The golden typedef_external (2002) is spec-derived with both directions of sharing. || Editions (adjudicator): 2002, 2014, 2023 (strongly-typed external type declarations 2023, Annex E.3.3 20)) || Code sites (adjudicator detail): src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandType (item.ExternalFromType = true); src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#CallBindExternalAndGlobal (ExternalFromType loop)",
+ "state": "OK"
+}

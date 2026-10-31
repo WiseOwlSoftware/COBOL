@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.50.4-9",
+ "section": "15.50.4",
+ "kind": "RV",
+ "ordinal": 9,
+ "subject": "LENGTH function",
+ "rule-digest": "0088797b3c1f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#Characters; src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#ExtentBits; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLengthFold",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-RV-15.50.4-9",
+ "editions": "85,2002,2014,2023",
+ "notes": "⛔ NO TEST-REF ON PURPOSE — THE ROW STAYS TEST-NEEDED. The proposed golden was withdrawn from this row: it rested on reading §8.5.1.6.3's filler LEVEL NUMBER as deciding CONTAINMENT, which §D.10 2) refutes ('The generated filler ... is part of any groups that contain the item ... the filler generated after item-6 is included in group-2 and group-1' — that filler is annotated at level 02 and group-2 IS level 02). The 05-level filler is therefore inside the 05 group, the group is byte-integral, and r9's antecedent is FALSE. Confirmed in code: BitLayout.ExtentBits already returns RoundUpToByte for every group without GROUP-USAGE BIT, so removing the ceiling would change none of the golden's values. r9's antecedent cannot be made true by any FUNCTION LENGTH fixture (§8.5.1.6.3's boundary-advance and record-end bullets byte-round every bit-bearing alphanumeric group; the NOTE's three exemptions are r1 boolean-position cases). CLOSING THIS ROW NEEDS AN OWNER ADJUDICATION per §4.2.16 — r9 vacuous under WiseOwl COBOL's 8-bits-per-byte determination plus the filler rules — and note that the interpretive step making it vacuous rests on INFORMATIVE Annex D text. 2023/l1_length_bit_group_positions ships as a bit-layout regression golden carrying this finding in its header. || CLOSED 2026-09-04 ON AN OWNER-SIGNED DERIVATION. The owner adjudication this note asks for is kb/Work PB386, and the determination is filed at docs/CONFORMANCE.md#DRV-RV-15.50.4-9 under the indistinguishable-consequent arm: rule 5 already requires the implicit FILLER positions to be counted, so it returns the integer rule 9 would round up to and rule 9's consequent cannot be told apart from it. That arm was taken over the unpopulatable-antecedent reading recorded above precisely because it does not rest on the INFORMATIVE Annex D text this note flags. The row therefore no longer STAYS TEST-NEEDED: it closes on the determination, in place of a test the rule imposes no obligation to write.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.19.3-3",
+ "section": "14.9.19.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "IF statement",
+ "rule-digest": "c668ff1394dc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs",
+ "test-ref": "conformance:cases/14.9.19-IF/l1_if_else_next_sentence_omissible",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR3 is a permission, so the golden pins the EQUIVALENCE: written and omitted ELSE NEXT SENTENCE at both truth values, meanings computed separately from 14.9.19.4 GR3/GR6/GR7.",
+ "state": "OK"
+}

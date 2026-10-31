@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.6.3.3-11",
+ "section": "12.4.6.3.3",
+ "kind": "SR",
+ "ordinal": 11,
+ "subject": "APPLY COMMIT clause",
+ "rule-digest": "8ba50426b34a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#BindApplyCommitClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#ResolveApplyCommit; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#ScreenEnclosingFileOperand; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritedGlobalRecordAreaOwner",
+ "test-ref": "conformance:cases/12.4.6-I-O-CONTROL/pb3338_apply_commit_sr11_global_file; conformance:cases/12.4.6-I-O-CONTROL/pb3557_apply_commit_sr11_global_record_area; conformance-test:ApplyCommitEnclosingFileTests.AContainersGlobalFile_IsRefusedUnderSr11; conformance-test:ApplyCommitEnclosingFileTests.AContainersGlobalRecordArea_IsRefusedUnderSr11; conformance:cases/12.4.6-I-O-CONTROL/pb3557_apply_commit_sr11_qualified_global_record_area; conformance-test:ApplyCommitEnclosingFileTests.AContainersGlobalRecordArea_QualifiedByItsFile_IsRefusedUnderSr11",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB3338 (wave 1154): Annex A.4.3 is now PARTIAL (docs/CONFORMANCE.md §5, §4 item 2): the APPLY COMMIT clause, COMMIT and ROLLBACK are provided for RELATIVE and INDEXED files, whose keyed store engine keeps the transaction (kb/Work PB3337); a SEQUENTIAL or LINE SEQUENTIAL file named in the clause is under commit control too, its transaction journal being kb/Work PB3340 (COBOL1709, which refused it, is retired). The derived verdict commit-and-rollback-only that stamped the module DOCUMENTED-NON-SUPPORT is retired. §12.4.6.3.3 SR11: A GLOBAL file or record area of a containing program is visible in a contained one (§13.18.27.4 GR1) and may not be named in the contained element's clause: it is refused under SR11 (COBOL4709, DataBinder.ScreenEnclosingFileOperand, kb/Work PB3557; a GLOBAL file's report also names the SR1 violation it carries); COBOL1639 'no declaration in this source element' was false for both. retired-witness: conformance:wiseowl/cases/12.4.6.3-APPLY-COMMIT/declined-apply-commit (the commit and rollback facility is provided for the keyed organizations (kb/Work PB3338): the decline these witnessed is gone, and the rule is now witnessed by its own implementation) retired-witness: src/Cobol.Net.Compiler/Validation/DeclinedFacilityPass.cs#VisitApplyCommitClause (the commit and rollback facility is provided for the keyed organizations (kb/Work PB3338): the decline these witnessed is gone, and the rule is now witnessed by its own implementation)",
+ "state": "OK"
+}

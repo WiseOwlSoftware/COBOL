@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.2.2-L3.2",
+ "section": "8.3.2.2",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "COBOL words",
+ "rule-digest": "47718974268e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#externalClause; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#externalizedNamePhrase; src/WiseOwl.Cobol.Compiler/Binding/ExternalizedName.cs#Screen",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb511_external_as_name",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: `OK §8.3.2.2 2)` \"Externalized names shall be referenced in a source element only: ... 2) in the AS phrase in an EXTERNAL clause,\" with `OK §8.3.2.2 6)` \"In the AS phrases, only the externalized names shall be referenced.\" POSITIVE: conformance:cases/8.3.2.2-User-defined-words/pb511_external_as_name (expected output derived in its header from §13.18.22.4 GR5) shares a WS record and an FD record area between two programs whose data-names and file-names differ, through a common AS literal, on both the data-description and the file-description arm. Cross-unit: out/probe/ext2 (EXTSUB.dll `OTHER-Y ... EXTERNAL AS \"SHARED-Z\"` and extmain `MY-Z ... EXTERNAL AS \"SHARED-Z\"` share ZZZ). EDGE ('only the externalized names'): out/probe/asref/ar2.cob at 2002, 2014 and 2023 — AR2A `01 AAA PIC X(4) EXTERNAL AS \"ZNAME\"`, AR2B `01 BBB PIC X(4) EXTERNAL AS \"AAA\"` (naming A's DECLARED word), AR2C `01 ZNAME PIC X(4) EXTERNAL` -> prints `B:    :` (AS \"AAA\" does not reach A's item, whose externalized name is ZNAME) and `C:AAAA:` (the no-AS word ZNAME maps to the same externalized name). Exactly the spec's split between the literal (externalized name) and the word. || editions as written by the adjudicator: 2002, 2014, 2023 (the EXTERNAL clause's AS literal-1 is a COBOL-2002 addition; 85 has EXTERNAL without AS)",
+ "state": "OK"
+}

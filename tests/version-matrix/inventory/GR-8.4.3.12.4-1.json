@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.12.4-1",
+ "section": "8.4.3.12.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Function-address-identifier",
+ "rule-digest": "a5e935ae71b2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetFunctionAddress; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/PtrEmitter.cs#EmitSetFunctionAddress; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#FunctionAddressOf",
+ "test-ref": "conformance:cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb452_set_function_pointer; conformance:cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb452_function_address_runtime",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "'Function-address-identifier creates a unique data item of class pointer and category function-pointer that contains the address of a function identified by one of the following: a) the content of the data item referenced by identifier-1 b) function-prototype-name-1.' BOTH arms are live and both are witnessed: the 2014 golden takes the PROTOTYPE arm and the 2023 golden drives the IDENTIFIER arm three times. The 'unique data item of class pointer and category function-pointer' is the resolved FunctionPointer value the emitted site computes once and stores into every receiver - it is a value, never a declared item, which is why it has no PicInfo and why SR3 keeps it out of receiving positions. GR1's trailing sentence ('Identifier-1 shall reference a function prototype specified in the REPOSITORY paragraph') is a RUN-TIME fact about the identifier's CONTENT, not a compile-time screen on the identifier, and it is exactly what GR4 answers when the content names nothing.",
+ "state": "OK"
+}

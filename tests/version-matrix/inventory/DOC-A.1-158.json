@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-158",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 158,
+ "subject": "Reference format (rightmost character position of program-text area)",
+ "rule-digest": "891fc209d05f",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-158; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs#IsFixedForm",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1_margin_r_program_text_area",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Margin R pinned from both sides in a forced fixed-form file: an output-producing statement at column 73 is ignored, and a statement whose period is the 72nd character compiles (§6.3.1). || editions 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a facility that exists at every edition (the COBOL-85 nucleus, I-O, inter-program and SPECIAL-NAMES implementor-names; its arithmetic, the only arithmetic of COBOL-85, is what later editions name native).",
+ "state": "OK"
+}

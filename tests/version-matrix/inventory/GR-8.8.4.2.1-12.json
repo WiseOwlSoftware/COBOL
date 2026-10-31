@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.2.1-12",
+ "section": "8.8.4.2.1",
+ "kind": "GR",
+ "ordinal": 12,
+ "subject": "Simple relation conditions",
+ "rule-digest": "1ec5906eb630",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StrongGroupComparison.cs#Lower; src/WiseOwl.Cobol.Compiler/Binding/RelationPairShape.cs#Classify; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#CheckedRelational",
+ "test-ref": "conformance:cases/8.8.4.2-Simple-relation-conditions/strong_group_element_order; conformance-test:TypedefResidueTests.StrongSignedGroupOrderingCompare_CompilesClean",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1469 LANDED (wave 65 A). Item 12 'Two strongly-typed operands of the same type' -> §8.8.4.2.12 (cite.py OK: 'each elementary item of the first operand is compared with the corresponding elementary item of the second operand'). ConditionBinder.CheckedRelational asks RelationPair.Classify and lowers a same-type strong pair (StrongGroupComparison) to BoundRelationals between corresponding leaves (by position, §8.5.3.1), composed lexicographically (strict ∨ (equal ∧ rest), ending FALSE for </>, TRUE for <=/>=; equality = conjunction); every leaf renders by its own elementary rule. Measured on the golden: FLOAT-LONG -5 < 3 LT, -2 > -300 GT; S9(3) -5 < 3 LT (was COBOL0899); SIGN SEPARATE / FLOAT-SHORT / national / PACKED-DECIMAL OCCURS leaves in order; program-pointer leaf equality EQ/NE (was a run-time abort); an OCCURS DEPENDING table over its current occurrences (§13.18.38.4 GR8). Residue staged COBOL0899 strong-group-comparison-member: a dynamic-capacity table member, an ODO object under an OCCURS inside the group, an unreachable REDEFINES tier. [editions as adjudicated: 2002, 2014, 2023 (TYPEDEF STRONG enters with ISO/IEC 1989:2002)] retired-witness: src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs#ContainsSignedNumericLeaf (kb/Work PB1469 deleted the signed-leaf COBOL0899 stage; the relation is no longer a whole-group image, so no leaf kind is screened)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.73.2",
+ "section": "15.73.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "PI function",
+ "rule-digest": "056b0c0ec122",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction",
+ "test-ref": "conformance:cases/15.73.3-Returned-value-rules/l1_pi_format_native; conformance:cases/15.73-PI/l1-pi-argument-list; conformance-test:IntrinsicFunctionDifferentialTests.EmptyParens_NoArgFunction_2014",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "15.73.2 'FUNCTION PI' -- the bare two-word shape bound in four statement positions (COMPUTE operand, the subject and the object of a relation, a nested argument, a MOVE sender); the complement FUNCTION PI(1) rejects with COBOL1504 because 15.3 fixes PI's argument count at zero (85 omitted: the edition gate fires there instead).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.13.3-4",
+ "section": "7.3.13.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "EVALUATE directive",
+ "rule-digest": "6d311a146838",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/pb1364-when-after-match-text-on-line",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1364. Every >>WHEN operand is parsed whenever the EVALUATE's parent is compiled, independent of an earlier match; text on the WHEN line is COBOL1619.",
+ "state": "OK"
+}

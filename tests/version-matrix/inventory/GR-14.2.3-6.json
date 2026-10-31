@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.2.3-6",
+ "section": "14.2.3",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "Procedure division structure",
+ "rule-digest": "d8bc0b19386d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#CallBindLinkage; src/WiseOwl.Cobol.Compiler/Oo/OoMethodBinding.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb237_program_prototype",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§14.2.3 GR6: data-name-2 names the result returned per 14.6.5. Probes: program RETURNING -> CALL ... RETURNING R shows R=123 (sr4_prog.cob); function RETURNING -> DISPLAY FUNCTION FR6(A) shows HELLO (gr6_func.cob); method RETURNING via INVOKE and inline invocation (gr2_oo.cob). pb237 golden: SCALED=0004 from the prototype-called program's RETURNING. ⚠ Citation defect in comments: DataBinder.Linkage.cs CallBindLinkage says '§14.2.3 GR6: the returning item's storage is allocated IN THE ACTIVATED element' and OoMethodBinding.cs says 'callee-allocated', but GR6's NOTE 1 says 'the storage for the returning item is allocated in the activating source unit' - a NOTE, so not observable by conforming code (GR7 leaves the initial value undefined), but the comment attributes the opposite claim to GR6.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.15.3-1",
+ "section": "13.15.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Report group description entry",
+ "rule-digest": "35756f452b14",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportSection; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportDescriptionEntry",
+ "test-ref": "conformance:cases/13.15-Report-group-description/l1c27-report-group-in-working-storage",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "'Report group description entries may appear only in the report section.' Structural: `reportGroupEntry` is referenced only from `reportDescriptionEntry : RD reportName reportDescriptionClause* DOT reportGroupEntry*`, and that is referenced only from `reportSection`. Report-group clauses written in WORKING-STORAGE (probe sr1ws: `01 WX TYPE DE. 03 LINE 1. 05 COLUMN 1 PIC X SOURCE WA.`) are refused at parse (COBOL0001 unexpected 'DE', COBOL0307 at LINE/SOURCE). cite.py --check 13.15.3 'Report group description entries may appear only in the report section' -> OK. || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): 85, 2002, 2014, 2023 (the report group description entry is Report Writer nucleus syntax at every edition; no Annex E item changes §13.15 between 2014 and 2023)",
+ "state": "OK"
+}

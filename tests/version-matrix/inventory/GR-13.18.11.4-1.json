@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.11.4-1",
+ "section": "13.18.11.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "CLASS clause",
+ "rule-digest": "79f38dc4b7d7",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause",
+ "test-ref": "conformance:wiseowl/cases/13.18.11-CLASS/declined-validate-class; conformance-test:DeclinedFacilityTests.ClassClause_IsNamedByItsClauseWord_NotByItsOperand",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "docs/CONFORMANCE.md §5 row A.4.14 (VALIDATE — Not claimed) + §4 item 3. Licence: Annex A.4.1 and its second sentence. OWNER DECISION kb/Work PB375, 2026-09-02 — the CLASS clause is DECLINED WITH VALIDATE. This rule is the clause's own statement of that confinement: \"The CLASS clause takes effect during the content validation stage of the execution of a VALIDATE statement. The CLASS clause is ignored during the execution of any statement other than a VALIDATE statement.\" With no VALIDATE statement implemented there is no stage for it to take effect in, and the clause is refused by name (COBOL1708) rather than accepted and ignored.",
+ "state": "OK"
+}

@@ -350,17 +350,23 @@ internal sealed class BinderDriver
             var conns = group.ToList();
             // Conjunct 1 (externality) is enforced for EVERY external connector, regardless of describer count — a
             // lone-program external file whose file-referencing item is non-external is a §14.8.4.2 violation.
+            // ⛔ EVERY REPORT HERE IS POSITIONED (kb/Work PB2034): this is a group-level pass, so no walker has set the
+            // diagnostic cursor, and an EditionDiagnostic carries none of its own (the Editions assembly sits below the
+            // frontend's SourceLocation). The cursor is the position, and each report is made at the clause it is about.
             foreach (var f in conns)
             {
                 if (f.FileStatusName is not null && ExternalItemIdentity(f.FileStatusItem) is null)
-                    edition.Report(Externality(externalName, "FILE STATUS", f.FileStatusName));
+                    using (edition.At(f.ClauseOrEntryAt(f.FileStatusAt)))
+                        edition.Report(Externality(externalName, "FILE STATUS", f.FileStatusName));
                 if (f.Organization == FileOrganization.Relative && f.RelativeKeyName is not null
                     && ExternalItemIdentity(f.RelativeKeyItem) is null)
-                    edition.Report(Externality(externalName, "RELATIVE KEY", f.RelativeKeyName));
+                    using (edition.At(f.ClauseOrEntryAt(f.RelativeKeyAt)))
+                        edition.Report(Externality(externalName, "RELATIVE KEY", f.RelativeKeyName));
                 if (f.Linage is { } lin)
                     foreach (var op in lin.Operands)
-                        if (op.DataName is not null && ExternalItemIdentity(op.Item) is null)
-                            edition.Report(Externality(externalName, "LINAGE", op.DataName));   // literal operands are exempt
+                        if (op.DataName is not null && ExternalItemIdentity(op.Item) is null)   // literal operands are exempt
+                            using (edition.At(f.ClauseOrEntryAt(op.At)))
+                                edition.Report(Externality(externalName, "LINAGE", op.DataName));
             }
             // Conjunct 2 (cross-unit CONSISTENCY, §12.4.5.3 GR1(h)/(i)) needs ≥2 in-group describers to reconcile; the
             // single-describer externality face is enforced above, and cross-compilation sameness stays with the
@@ -373,11 +379,15 @@ internal sealed class BinderDriver
             {
                 var ids = conns.Select(f => ExternalItemIdentity(f.FileStatusItem)).ToList();
                 if (ids.Any(id => id is null) || ids.Distinct(StringComparer.Ordinal).Count() > 1)
-                    edition.Report(new EditionDiagnostic("COBOL1573", severity, "external-file-status-consistency",
-                        $"external file '{externalName}': all corresponding SELECT statements in the run unit shall "
-                        + "specify FILE STATUS naming the same corresponding external data item "
-                        + "(ISO §12.4.5.3 GR1(i); Annex E.2 item 12)",
-                        $"external file '{externalName}'", "ISO §12.4.5.3 GR1(i) / §14.8.4.2 / Annex E.2 item 12"));
+                {
+                    var odd = conns[DeviatingDescriber(ids)];
+                    using (edition.At(odd.ClauseOrEntryAt(odd.FileStatusAt)))
+                        edition.Report(new EditionDiagnostic("COBOL1573", severity, "external-file-status-consistency",
+                            $"external file '{externalName}': all corresponding SELECT statements in the run unit shall "
+                            + "specify FILE STATUS naming the same corresponding external data item "
+                            + "(ISO §12.4.5.3 GR1(i); Annex E.2 item 12)",
+                            $"external file '{externalName}'", "ISO §12.4.5.3 GR1(i) / §14.8.4.2 / Annex E.2 item 12"));
+                }
             }
 
             // VCR 31 — RELATIVE KEY: for an external RELATIVE file, if ANY corresponding SELECT specifies RELATIVE
@@ -387,13 +397,29 @@ internal sealed class BinderDriver
             {
                 var ids = conns.Select(f => ExternalItemIdentity(f.RelativeKeyItem)).ToList();
                 if (ids.Any(id => id is null) || ids.Distinct(StringComparer.Ordinal).Count() > 1)
-                    edition.Report(new EditionDiagnostic("COBOL1575", severity, "external-relative-key-consistency",
-                        $"external relative file '{externalName}': all corresponding SELECT statements in the run unit "
-                        + "shall specify RELATIVE KEY naming the same corresponding external data item "
-                        + "(ISO §12.4.5.3 GR1(h); Annex E.2 item 24)",
-                        $"external relative file '{externalName}'", "ISO §12.4.5.3 GR1(h) / §14.8.4.2 / Annex E.2 item 24"));
+                {
+                    var odd = conns[DeviatingDescriber(ids)];
+                    using (edition.At(odd.ClauseOrEntryAt(odd.RelativeKeyAt)))
+                        edition.Report(new EditionDiagnostic("COBOL1575", severity, "external-relative-key-consistency",
+                            $"external relative file '{externalName}': all corresponding SELECT statements in the run unit "
+                            + "shall specify RELATIVE KEY naming the same corresponding external data item "
+                            + "(ISO §12.4.5.3 GR1(h); Annex E.2 item 24)",
+                            $"external relative file '{externalName}'", "ISO §12.4.5.3 GR1(h) / §14.8.4.2 / Annex E.2 item 24"));
+                }
             }
         }
+    }
+
+    /// <summary>The describer a "if any specifies it, all shall, naming the same item" diagnostic is about: the first
+    /// that names no external item, else the first whose item differs from the first describer's. Callers have
+    /// already established that one exists (<paramref name="identities"/> has a null or two distinct values).</summary>
+    private static int DeviatingDescriber(IReadOnlyList<string?> identities)
+    {
+        for (int i = 0; i < identities.Count; i++)
+            if (identities[i] is null) return i;
+        for (int i = 1; i < identities.Count; i++)
+            if (!string.Equals(identities[i], identities[0], StringComparison.Ordinal)) return i;
+        return 0;
     }
 
     /// <summary>The "corresponding external data item" identity of <paramref name="item"/> (ISO §14.8.4.2): the
@@ -676,6 +702,16 @@ internal sealed class BinderDriver
             // registries read too (ContainingDefinitions; kb/Work PB452/PB817, PB3121).
             ContainingDefinitionNames = new HashSet<string>(ContainingDefinitions(unit).Select(u => u.Name), CobolNames.Comparer),
             UnitStaticWs = unit.Recursive && !unit.Initial,
+            // GLOBAL RD inheritance (ISO §13.18.27.3 SR1 e) / §13.18.27.4 GR1–GR2; kb/Work PB369): the containers'
+            // GLOBAL reports, nearest container first. They are OFFERED here and inherited by the unit's own data
+            // division at the end of its declaration half (DataBinder.InheritContainerReports), so the unit's own
+            // clauses that name a report item (FILE STATUS, ODO, ASSIGN USING) see them (kb/Work PB3766).
+            ContainerGlobalReports = ContainerGlobalReportsOf(unit),
+            // …and the containers' GLOBAL data roots, offered the same way and inherited at the same point
+            // (DataBinder.InheritContainerGlobalData): FILE STATUS, RECORD / RELATIVE KEY, OCCURS … DEPENDING ON and
+            // ASSIGN … USING of the unit's own data division resolve inside data.Bind, so a container's GLOBAL item
+            // they name (§13.18.27.4 GR1/GR2) must already be visible (kb/Work PB3766, review finding R1-1).
+            ContainerGlobalRoots = ContainerGlobalRootsOf(unit).Select(r => (r.Root, r.Depth)).ToList(),
         };
         data.CallSeedUids(session.TakeUidBand());
 
@@ -755,57 +791,73 @@ internal sealed class BinderDriver
         foreach (var (name, f) in data.InheritedGlobalFiles)
             data.FilesByName.TryAdd(name, f);
 
-        // GLOBAL RD inheritance (ISO §13.18.27.3 SR1 e) / §13.18.27.4 GR1–GR2; kb/Work PB369) — the report-name,
-        // its groups and its sum counters, nearest container first so the nearer declaration hides. Like a GLOBAL
-        // FD, the report is SHARED, never re-declared: the child's verbs hold the container's ReportModel and
-        // reach its engine through the __outer chain (DataBinder.ReportDepth).
-        int reportDepth = 0;
-        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
-        {
-            reportDepth++;
-            foreach (var r in anc.Data.Reports)
-                if (r.IsGlobal)
-                    data.InheritGlobalReport(r, reportDepth);
-        }
-
         // kb/Work PB971 — the formals' *-ARG-OMITTED guards, set BEFORE any contained program binds (a parent
         // binds before its children), so the GLOBAL bridge below can carry a guarded root's presence member.
         Procedure.EcBinder.MarkFormals(data.LinkageFormals, SourceElementKindOf(unit), session.Turn);
 
-        int depth = 0;
         var bridgedMembers = new HashSet<string>(StringComparer.Ordinal);
-        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
+        foreach (var (anc, g, depth) in ContainerGlobalRootsOf(unit))
         {
-            depth++;
-            foreach (var g in anc.Data.CallGlobalRoots)
-            {
-                if (g.CobolName is null) continue;
-                // EVERY global root joins, shadowed spelling or not (kb/Work PB1047 / PB1243): §8.4.6.2.1 1) puts
-                // "all global names that are defined in source element A and in any source elements that directly
-                // or indirectly contain source element A" in the set, and §8.4.6.2.2 makes every data-name
-                // subordinate to a global name a global name in its own right — so a local 01 G hides the
-                // container's G, never its subordinate Y. WHICH candidate a reference names is §8.4.6.2.1 3)'s
-                // nearest-declaring-element rule, applied after qualification (SymbolTable.NearestDeclaring); the
-                // depth recorded here is what it reads. (This loop used to skip a root whose SPELLING was already
-                // present, dropping its whole subtree, and to merge the rest into one flat tier.)
-                data.InheritGlobalSubtree(g, depth);
-                // Every container member a reference to the root can render, from the ONE list the container's
-                // binder owns (kb/Work PB1009 — the per-residence arms used to be spelled here, and the
-                // carrier-resident formal and the BASED item's address pointer were missing from them). A local
-                // root never collides with a bridge's member name: ReserveInheritedMemberNames ran before Bind.
-                // A SET keyed on the emitted member (kb/Work PB1523): two global roots can name ONE member — the records of
-                // a GLOBAL FD share a Tier-B class's backing, a GLOBAL redefiner and its anchor share one field — and a
-                // member declared twice is CS0102. The member names are unique along the container chain
-                // (ReserveInheritedMemberNames), so equal names are the same member.
-                foreach (var bridge in anc.Data.GlobalBridgesOf(g, member => anc.AnchorOf(member, depth)))   // consumed here, within this iteration
-                    if (bridgedMembers.Add(bridge.Field)) unit.Bridges.Add(bridge);
-            }
+            // The root's NAMES are inherited already, at the end of the unit's declaration half
+            // (DataBinder.InheritContainerGlobalData, offered through ContainerGlobalRoots above); what is left here
+            // is the C# half. Every container member a reference to the root can render, from the ONE list the
+            // container's binder owns (kb/Work PB1009 — the per-residence arms used to be spelled here, and the
+            // carrier-resident formal and the BASED item's address pointer were missing from them). A local
+            // root never collides with a bridge's member name: ReserveInheritedMemberNames ran before Bind.
+            // A SET keyed on the emitted member (kb/Work PB1523): two global roots can name ONE member — the records of
+            // a GLOBAL FD share a Tier-B class's backing, a GLOBAL redefiner and its anchor share one field — and a
+            // member declared twice is CS0102. The member names are unique along the container chain
+            // (ReserveInheritedMemberNames), so equal names are the same member.
+            foreach (var bridge in anc.Data.GlobalBridgesOf(g, member => anc.AnchorOf(member, depth)))   // consumed here, within this iteration
+                if (bridgedMembers.Add(bridge.Field)) unit.Bridges.Add(bridge);
         }
 
         // Every tier is in place now — this unit's own names and every container's globals — so an inherited
         // constant a NEARER data-name hides can leave (§8.4.6.2.1 3); kb/Work PB1009 / PB1047).
         data.DropShadowedConstants();
         unit.Refs = new ReferenceResolver(data);
+    }
+
+    /// <summary>⛔ THE ONE LIST OF A UNIT'S INHERITED GLOBAL DATA ROOTS: every named GLOBAL root of every container of
+    /// <paramref name="unit"/>, nearest container first, each with its container and how many containment levels out
+    /// it lives (the nesting distance ISO §8.4.6.2.1 3) selects on). EVERY global root joins, shadowed spelling or not
+    /// (kb/Work PB1047 / PB1243): §8.4.6.2.1 1) puts "all global names that are defined in source element A and in
+    /// any source elements that directly or indirectly contain source element A" in the set, and §8.4.6.2.2 makes
+    /// every data-name subordinate to a global name a global name in its own right — so a local 01 G hides the
+    /// container's G, never its subordinate Y. WHICH candidate a reference names is §8.4.6.2.1 3)'s
+    /// nearest-declaring-element rule, applied after qualification (SymbolTable.NearestDeclaring); the depth is what
+    /// it reads. The names are inherited from it by <c>DataBinder.InheritContainerGlobalData</c>, the C# bridges
+    /// are built from it in <see cref="BindUnitData"/>.</summary>
+    private static List<(BoundUnit Container, DataItem Root, int Depth)> ContainerGlobalRootsOf(BoundUnit unit)
+    {
+        var roots = new List<(BoundUnit Container, DataItem Root, int Depth)>();
+        int depth = 0;
+        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
+        {
+            depth++;
+            foreach (var g in anc.Data.CallGlobalRoots)
+                if (g.CobolName is not null)
+                    roots.Add((anc, g, depth));
+        }
+        return roots;
+    }
+
+    /// <summary>The GLOBAL report description entries of every container of <paramref name="unit"/>, nearest container
+    /// first, each with how many containment levels out it lives (the <c>__outer</c> chain length a reference to its
+    /// storage renders through, <see cref="DataBinder.ReportDepth"/>). Like a GLOBAL FD, the report is SHARED, never
+    /// re-declared: the child's verbs hold the container's <see cref="ReportModel"/> (ISO §13.18.27.4 GR1–GR2).</summary>
+    private static List<(ReportModel Report, int Depth)> ContainerGlobalReportsOf(BoundUnit unit)
+    {
+        var reports = new List<(ReportModel Report, int Depth)>();
+        int depth = 0;
+        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
+        {
+            depth++;
+            foreach (var r in anc.Data.Reports)
+                if (r.IsGlobal)
+                    reports.Add((r, depth));
+        }
+        return reports;
     }
 
     /// <summary>ALWAYS-ON (P6 Step 6): assert <paramref name="pass"/>'s declared prerequisite phase has been
@@ -1044,17 +1096,6 @@ internal sealed class BinderDriver
                 }
         }
 
-        // The unit's own program-name token, for the diagnostic position. A CONTAINED unit's `Ctx` is the
-        // SYNTHETIC programUnit context Reparent builds (`new ProgramUnitContext(null!, -1)`), whose Start
-        // is null — so positioning on it silently produced a diagnostic with NO source location at all,
-        // while the outermost arm of the same message carried one. One accessor, both arms.
-        static ParserRuleContext? NameCtx(BoundUnit u)
-        {
-            var body = u.Ctx.identificationDivision()?.identificationBody();
-            return (ParserRuleContext?)(body?.programIdParagraph()?.programName()
-                ?? body?.functionIdParagraph()?.programName()) ?? u.Ctx;
-        }
-
         // Every program contained directly or indirectly in `root` — §8.4.6.3's own scope words.
         static IEnumerable<BoundUnit> Containees(BoundUnit root)
         {
@@ -1282,6 +1323,17 @@ internal sealed class BinderDriver
         return own ?? group;
     }
 
+    /// <summary>The unit's own program-name token, for the diagnostic position. A CONTAINED unit's <c>Ctx</c> is the
+    /// SYNTHETIC programUnit context Reparent builds (<c>new ProgramUnitContext(null!, -1)</c>), whose Start
+    /// is null — so positioning on it silently produced a diagnostic with NO source location at all,
+    /// while the outermost arm of the same message carried one. One accessor, every arm.</summary>
+    private static ParserRuleContext? NameCtx(BoundUnit u)
+    {
+        var body = u.Ctx.identificationDivision()?.identificationBody();
+        return (ParserRuleContext?)(body?.programIdParagraph()?.programName()
+            ?? body?.functionIdParagraph()?.programName()) ?? u.Ctx;
+    }
+
     /// <summary>The per-unit screens of the group's FUNCTION-ID units, run once before any source element searches the
     /// group (<see cref="GroupRepository"/> is the search; the table this method used to build is its
     /// <see cref="GroupRepository.FunctionsAt"/>). The §14.2 procedure-division-header rule "The RETURNING phrase
@@ -1298,6 +1350,7 @@ internal sealed class BinderDriver
         foreach (var u in units)
         {
             if (!u.IsFunction) continue;
+            using var functionAt = edition.At(NameCtx(u));   // the FUNCTION-ID word: a group-level pass has no walker cursor (kb/Work PB2034)
             if (u.Data.LinkageReturning is null)
                 edition.Error("COBOL1507",
                     $"FUNCTION-ID '{u.Name}': the RETURNING phrase shall be specified in a function {(u.IsPrototype ? "prototype" : "definition")} "

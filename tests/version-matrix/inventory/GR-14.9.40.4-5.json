@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.40.4-5",
+ "section": "14.9.40.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "SORT statement",
+ "rule-digest": "482464f5c7c8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindCollating; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#CollatingSelection; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#TableWeightsArg; src/WiseOwl.Cobol.Runtime/IO/SortKeyColumns.cs#SequenceFor",
+ "test-ref": "conformance:cases/14.9.24-MERGE/pb678_sort_national_key_collating; conformance:cases/12.3.6-OBJECT-COMPUTER/pb678_table_sort_key_class; conformance:cases/14.9.24-MERGE/pb678-sort-collating-for-forms-at-85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB678 (2026-09-05): the TWO sequences GR5 determines separately are now resolved as a pair (SortCollation) and selected per key by the key's CLASS through the one classifier CollatingSelection.Of - alphabet-name-1 (GR5a) or the alphanumeric program collating sequence (GR5b) for keys of class alphabetic and alphanumeric, alphabet-name-2 (GR5a) or the national program collating sequence (GR5b) for keys of class national, and NO sequence for the two classes GR5 names neither of (numeric, boolean). Both formats take the same selection: the Format-1 file sort carries the class on its runtime key descriptor (CobolSort.KeyClass) and the Format-2 table sort chooses the comparer's carrier argument. Before this the statement carried ONE sequence, the alphanumeric weights were applied to a national key's UTF-16BE record bytes, and the table-sort form staged loud on recognition. Below 2002 the national half is unreachable (alphabet-name-2 and the FOR forms draw COBOL0872 - the negative case), so the alphanumeric half is what conforms at 85. retired-witness: src/Cobol.Net.Runtime/IO/CobolSort.cs#SequenceFor (kb/Work PB3339 moved the GR5 class-to-sequence selection, unchanged, out of CobolSort into SortKeyColumns)",
+ "state": "OK"
+}

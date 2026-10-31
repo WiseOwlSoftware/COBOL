@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-4.2.10-2",
+ "section": "4.2.10",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "A conforming implementation",
+ "rule-digest": "ed79131aaa70",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#DeclineFloatDecimal; src/WiseOwl.Cobol.Compiler/Binding/EcNameResolution.cs#Advise; src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Declined",
+ "test-ref": "conformance-test:DocumentedNonSupportWitnessTests.ValidateFacility_NamedNonSupportWarning_PinnedToSpec; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterStandard1_NamedNonSupportWarning_PinnedToSpec; conformance:cases/4.2.10-Nonstandard-extensions/w59_float_decimal_clause_witness; conformance:cases/4.2.10-Nonstandard-extensions/pb374_ec_mcs_names_accept_inert; conformance-test:DocumentedNonSupportWitnessTests.FloatDecimalClause_NamedNonSupportWarning_PinnedToSpec; conformance-test:DocumentedNonSupportWitnessTests.McsExceptionNames_NamedNonSupportWarning_AtEverySite_AndAccepted",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'language elements defined in this Working Draft International Standard for which different functionality is implemented, where that language element is not required for conformance to this Working Draft International Standard, and standard support for that element is not claimed by the implementor;' (cite.py --check 4.2.10 'and standard support for that element is not claimed by the implementor' -> OK 4.2.10 2)). Definitional class; its obligations are 4.2.10's documentation + warning paragraphs (GR-4.2.10-3). Members in this implementation = the ACCEPT-INERT declined elements (docs/CONFORMANCE.md sections 2/4/5): SEND/RECEIVE (COBOL1578), VALIDATE statement (1580), RECORD DELIMITER (1778), the OPTIONS FLOAT-DECIMAL clause (COBOL2424, OptionsBinder.DeclineFloatDecimal; A.3 item 13) and the EC-MCS-* exception-names (COBOL1578 wherever written, EcNameResolution.Advise; kb/Work PB374). COMMIT and ROLLBACK left the class with kb/Work PB3338: they are provided for the keyed organizations and their warning, COBOL1579, is retired. Every member is documented in CONFORMANCE.md and flagged at compile time by a NAMED diagnostic through the one seam EditionContext.Declined. Owning note: kb/Work/PB298 (closed by its landing). retired-witness: conformance-test:DocumentedNonSupportWitnessTests.CommitRollbackFacility_NamedNonSupportWarning_PinnedToSpec (COMMIT and ROLLBACK are no longer accept-inert declined elements (kb/Work PB3338)) retired-witness: src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindCommitRollback (COMMIT and ROLLBACK are no longer accept-inert declined elements (kb/Work PB3338))",
+ "state": "OK"
+}

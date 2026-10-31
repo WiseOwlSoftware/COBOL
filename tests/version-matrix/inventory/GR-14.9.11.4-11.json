@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.11.4-11",
+ "section": "14.9.11.4",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "DISPLAY statement",
+ "rule-digest": "e96eb2b59082",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitDisplay",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-14.9.11.4-11",
+ "editions": "85,2002,2014,2023",
+ "notes": "CONFORMS BY VACUITY, and the vacuity is a documented determination rather than an accident. READ EmitDisplay: the only two devices this compiler can emit to are System.Console and System.Console.Error -- the 14.9.11.4 GR8 standard display device and the SYSERR routing established by AcceptDisplayBinder.DisplayOutputDevices / BindDisplayUpon and written up in docs/CONFORMANCE.md A.1 item 59. Both are line-structured streams on which vertical positioning IS applicable (WriteLine performs it), so GR11's antecedent -- 'vertical positioning is not applicable on the device' -- is FALSE for every device the implementation offers, and there is no positioning to ignore. The claim is recorded at docs/CONFORMANCE.md A.3 row 24 ('DISPLAY positioning ignored when N/A | 14.9.11 | Claimed | Console device; positioning is a no-op where inapplicable'), which matches spec A.3 item 24 -- 'If positioning is not applicable on the hardware device, the operating system will ignore the positioning specified or implied by the DISPLAY statement' (cite.py --check A.3 OK). NO TEST-REF, deliberately: the antecedent is unpopulatable by declaration, so no spec-derived test can exist for this row; it is CONFORMS-but-untestable, not CONFORMS-but-untested. What would change the verdict is the arrival of a device (a printer / reel mnemonic) for which vertical positioning is inapplicable -- at that point GR11 needs real code and this row must be re-adjudicated. || UPHELD with my own reads. I re-located A.3 item 24 in the spec independently (specs/ISO_COBOL.md, Annex A.3 'Processor-dependent language element list' begins at the section-a-3 anchor; item 24 is the DISPLAY positioning row, text verbatim as quoted) and confirmed it is the A.3 counterpart of GR11 rather than of GR9. I re-derived the device closure from the code rather than from the doc: AcceptDisplayBinder.BindDisplayUpon admits ONLY names in DisplayOutputDevices and errors COBOL0817 otherwise, and EmitDisplay's sink expression is a two-valued ternary over System.Console / System.Console.Error -- there is no third sink expression anywhere in the emitter, so no unread arm can reach a non-line-structured device. This is the one row where a CONFORMS legitimately costs nothing further, because the antecedent is closed by the implementation's own device set, and the note already names the single event that would reopen it. NOTE the vacuity is contingent, not permanent: it is voided the moment DisplayOutputDevices grows a name, so the eventual Format-2 / printer work must re-adjudicate this row rather than inherit the Claimed.",
+ "state": "OK"
+}

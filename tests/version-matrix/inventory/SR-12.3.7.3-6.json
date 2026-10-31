@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.7.3-6",
+ "section": "12.3.7.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "c04414eae691",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/MnemonicRegistry.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#MnemonicDevice; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#FeatureAdvancing",
+ "test-ref": "unit:ImplementorNamesDriftTests.MnemonicUse_IsKeyedOnTheNamesKind; conformance-test:FileIoDifferentialTests.WriteAdvancingC01_IsThePageAdvance",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR6 - mnemonic-name-2 (a feature's) only in WRITE: the mnemonic registry carries the name's KIND, DISPLAY/ACCEPT refuse a feature's mnemonic (COBOL0817), SET cannot resolve one (COBOL1757). kb/Work PB862.",
+ "state": "OK"
+}

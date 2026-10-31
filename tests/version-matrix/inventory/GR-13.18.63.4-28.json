@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.63.4-28",
+ "section": "13.18.63.4",
+ "kind": "GR",
+ "ordinal": 28,
+ "subject": "VALUE clause",
+ "rule-digest": "69a970c20d6d",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidateValidPhrase",
+ "test-ref": "conformance:wiseowl/cases/13.18.63-VALUE/declined-validate-value-format5",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "docs/CONFORMANCE.md §5 row A.4.14 (VALIDATE — Not claimed) + §4 item 3. Licence: Annex A.4.1, \"An implementation shall accept the syntax and provide the functionality for an optional element only when support for that language element is claimed by the implementor\", and its second sentence carrying the licence to the module's unlisted rules. Obsolescence (F.2 item 5) is corroboration, never the licence (kb/Work PB198). The format-5 VALID/INVALID phrase only; the VALUE clause's formats 1-4 are fully supported and untouched.",
+ "state": "OK"
+}

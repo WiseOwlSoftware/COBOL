@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.38.3-7",
+ "section": "13.18.38.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "OCCURS clause",
+ "rule-digest": "fec60590b72b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ReportUnidentified",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/display-index-name; conformance:cases/13.18.38-OCCURS/pb1266-index-name-in-add-and-call",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1266: an index-name written where an identifier is required (ADD receiver, CALL USING) is COBOL1637 for the category, never COBOL1639 \"not defined\".",
+ "state": "OK"
+}

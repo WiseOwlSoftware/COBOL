@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.24.3-1",
+ "section": "7.3.24.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "SOURCE FORMAT directive",
+ "rule-digest": "9f2be44ddc14",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs#NormalizeToFreeFormMapped; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#NormalizeCopybookMapped",
+ "test-ref": "conformance:cases/6.5-Logical-conversion/pb1067_library_text_source_format; unit:LibraryTextReferenceFormatTests.StatedFormat_IsHandedOnFromTheLineAfterTheDirective",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1067 (w67m): library text now goes through the ONE 6.5 walker (NormalizeToFreeFormMapped) instead of a sequence-number heuristic that sent a numbered member straight to the fixed converter with no >>SOURCE handling; a >>SOURCE FORMAT FREE inside a fixed copybook switches the lines that follow (golden legs [CPY-FIXED]/[CPY-FREE]; before, the free line was silently dropped).",
+ "state": "OK"
+}

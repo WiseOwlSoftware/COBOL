@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-11",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 11,
+ "subject": "SET statement",
+ "rule-digest": "ed0933abd92b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindSetObjectRef; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ClassNameSenderRule; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ObjectRefAssignmentMismatch",
+ "test-ref": "conformance:cases/13.18.60-USAGE/pb451_set_format5_class_name_sender; conformance:cases/14.9.39-SET/pb451-classname-sender-factory-not-implements; conformance-test:ObjectRefDescriptorDriftTests.EveryObjectRefKind_HasItsOwnClassNameSenderRule",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB451 — WAS DIVERGES (legal source refused, with a citation to the wrong rule); CLOSED. Rule, re-derived: `cite.py --check 14.9.39.3 \"the factory object of object-class-name-1 shall be described with an IMPLEMENTS clause that references int-1\"` -> OK 11). DERIVED: `SET <interface-name receiver> TO <class-name>` is LEGAL exactly when the factory object of that class implements int-1 - the relation SS11.4.4 GR2 defines (a) a direct IMPLEMENTS clause, b) an implemented interface that INHERITS int-1, c) an inherited class whose factory object implements it), which SS11.4.4 GR1 is what an IMPLEMENTS clause names ('the names of the interfaces that are implemented by the factory object of the containing class according to 9.3.11'). OBSERVED: `SET IR TO PB451B` (direct IMPLEMENTS) -> PING-B and `SET IR TO PB451D` (PB451D's FACTORY carries NO IMPLEMENTS; only its base's does - the GR2 c) leg) -> PING-D, both resolving the FACTORY roster. The refusing arm is measured too and its DISCRIMINATOR is the factory/instance axis: in pb451-classname-sender-factory-not-implements the INSTANCE definition implements the interface and the FACTORY definition does not, and the program is refused COBOL0867. THE WRONG-RULE CITATION IS ALSO FIXED IN THIS CHANGE SET: the class-name-sender arm hard-coded '(ISO SS14.9.39.3 SR13)' for every receiver kind, so a program refused under SR11 was told it had broken SR13, whose own precondition ('identifier-3 is described with an object-class-name') is false for it. The sender's identity is now attributed to SS14.9.39.4 GR10 and the governing syntax rule is READ OFF THE RECEIVER by OoConformance.ClassNameSenderRule, pinned by a drift theory that fails if a new ObjectRefKind falls through to the discard. || CODE SITES: OoBinder.OoBindSetObjectRef (the object-class-name-sender arm) -> OoConformance.ObjectRefAssignmentMismatch, SR10 b)1. leg (`table.ImplementsClosure(sc, send.Factory).Contains(int1)`).",
+ "state": "OK"
+}

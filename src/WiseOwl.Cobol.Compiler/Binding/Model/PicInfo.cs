@@ -133,8 +133,8 @@ public enum Usage
     FunctionPointer,
     /// <summary>USAGE MESSAGE-TAG (ISO §13.18.60.4 GR9; COBOL-2023, Annex E.2 item 25) — DECLINED
     /// NON-SUPPORT: the data-item half of the asynchronous messaging facility (Annex A.3 item 4,
-    /// docs/CONFORMANCE.md §4 item 1), refused BY NAME at every edition with COBOL1943, the
-    /// FLOAT-BINARY-128 posture. The member exists for exactly the reason that one does: <c>ParseUsage</c> must
+    /// docs/CONFORMANCE.md §4 item 1), refused BY NAME with COBOL1943 at 2023 and, below it, answered by the
+    /// COBOL0900 introduction gate alone (usage-message-tag-2023, kb/Work PB916). The member exists for exactly the reason that one does: <c>ParseUsage</c> must
     /// return SOMETHING, and the entry is PICTURE-less (§13.16.3 SR8 exempts message-tag), so without a member
     /// of its own the recovery Pic could not be synthesized and the errored compile would carry a null
     /// <c>Pic</c> into the emitter — which is precisely the unhandled NullReferenceException kb/Work PB487

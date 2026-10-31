@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.14.4-5",
+ "section": "7.3.14.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "FLAG-02 directive",
+ "rule-digest": "d683fa6c02ca",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FlagState.cs#Empty; src/WiseOwl.Cobol.Compiler/Validation/FlagConformancePass.cs#Run",
+ "test-ref": "unit:Flag02DirectiveScopeTests.Gr5_NoDirective_NoOptionIsOn",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "§7.3.14.4 5): no directive, no COBOL1620 for any of the five options (c, d; and b, e, f with their >>TURN state present); control: >>FLAG-02 ALL flags all five",
+ "state": "OK"
+}

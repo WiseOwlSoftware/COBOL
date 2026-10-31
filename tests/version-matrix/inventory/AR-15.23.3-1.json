@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.23.3-1",
+ "section": "15.23.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "DATE-TO-YYYYMMDD function",
+ "rule-digest": "712fdf68d9b3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#DateToYyyymmdd",
+ "test-ref": "conformance:cases/15.3-Arguments/pb58_argument_predicates_legal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). DATE-TO-YYYYMMDD's new Schema(['i','i','i']) (§15.23.3 r1/r2/r4): the integer half of r1 is the 'i' kind (a scaled/alphanumeric argument-1 rejected at bind), the 'positive … less than 1000000' value half the runtime's (CobolDate.DateToYyyymmdd, EC-ARGUMENT-FUNCTION); golden DTY binds.",
+ "state": "OK"
+}

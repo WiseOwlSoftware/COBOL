@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.49.3-5",
+ "section": "14.9.49.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "USE statement",
+ "rule-digest": "7f33710f23a7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUseF3; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitDispatchSelector",
+ "test-ref": "conformance:cases/14.9.49-USE/l1_use_mixed_org_access; conformance:cases/14.9.49-USE/l1_use_mixed_org_format3",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "All FOUR arms of 'implicitly or explicitly ... FORMATS 1 AND 3': a Format 1 file list, a Format 1 mode scope, a Format 3 FILE list (GR3 d)), and a Format 3 bare exception-name (GR3 f)) serving the same mixed pair - each declarative serving a SEQUENTIAL/SEQUENTIAL and an INDEXED/DYNAMIC file.",
+ "state": "OK"
+}

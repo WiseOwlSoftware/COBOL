@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.11.3-4",
+ "section": "8.4.3.11.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "Data-address-identifier",
+ "rule-digest": "aeee6725503c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AddressOfOperandScreen.cs#Admit; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ParameterConformance.cs#BitStartOf; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveForAddressOf",
+ "test-ref": "conformance:cases/8.4.3.11-Data-address-identifier/pb1407-address-of-bit-alignment; conformance:cases/8.4.3.1-Identifier/pb1407_address_of_reference_modified",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1407. A bit item's subscripts and reference-modification leftmost position shall be literal (a: a data-name and an exponentiation are refused COBOL2786) and the item byte-aligned (b: a bit item starting at bit 3 is refused), through ParameterConformance.BitStartOf, the one static-start walk CALL SR6/SR8, INVOKE SR12 and the function-identifier SR14 already spend. A reference-modified operand is admitted (the wholesale refusal over-covered the ref-mod half of a): the golden takes ADDRESS OF BV(9:8), byte 1 of a 16-bit item.",
+ "state": "OK"
+}

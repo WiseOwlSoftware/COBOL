@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-10",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "SET statement",
+ "rule-digest": "2ddc062586b3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindSetObjectRef; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitSetObjectRef",
+ "test-ref": "conformance:cases/13.18.60-USAGE/pb451_set_format5_class_name_sender; conformance:cases/9.3.6-Method-invocation/pb389_object_reference_descriptor",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB451 — CLOSED by the golden round after [[PB389]]'s descriptor tuple landed. Rule, re-derived and validated: `cite.py --check 14.9.39.4 \"If object-class-name-1 is specified, a reference to the factory object of the class identified by object-class-name-1 is placed into each data item referenced by identifier-3 in the order specified\"` -> OK 10). DERIVED, BEFORE THE RUN: (a) the object placed is the class's FACTORY object, so a method that exists only on the factory interface (SS9.3.6 gives a class two separate interfaces) shall resolve through the receiver; (b) with more than one identifier-3 the reference reaches EACH receiver; (c) the receiver spelling SR13 mandates - `USAGE OBJECT REFERENCE FACTORY OF cls` - shall be writable, which is what made this rule unreachable before PB389. OBSERVED, exactly: `01 FO ... FACTORY OF PB451B ONLY.` + `SET FO TO PB451B.` + `INVOKE FO \"TAG\"` -> FTAG-B; `01 F1/F2 ... FACTORY OF PB451B.` + `SET F1 F2 TO PB451D.` + INVOKE on each -> FTAG-D twice (the subclass factory object, GR22 d)1.a., in BOTH receivers). PB389's golden adds the single-receiver subclass form (`SET F TO PB389D` -> FTAG-D). DISCRIMINATORS stated in the golden: resolving the INSTANCE roster never finds TAG; placing into only the first receiver leaves F2 null (EC-OO-NULL); ignoring the subclass prints FTAG-B. The former GAP reason - `USAGE OBJECT REFERENCE FACTORY OF` staged loud COBOL0899, so only the universal receiver could exercise the rule - is falsified: COBOL0899 no longer exists. || CODE SITES: OoBinder.OoBindSetObjectRef's object-class-name-sender arm (the synthetic sender descriptor `ObjectClass(name, factory: true, only: true)` fed to OoConformance.ObjectRefAssignmentMismatch) + OoEmitter.EmitSetObjectRef (`SourceFactoryCs is { } fac ? $\"{fac}.__Instance\"`, written into each target in loop order).",
+ "state": "OK"
+}

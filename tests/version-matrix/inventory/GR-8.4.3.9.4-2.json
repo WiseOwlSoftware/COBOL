@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.9.4-2",
+ "section": "8.4.3.9.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Object property",
+ "rule-digest": "5619c4046135",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ValidatePropertyAccessorPairs; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.ObjectProperty.cs#ResolveObjectProperty",
+ "test-ref": "conformance:cases/8.4.3.9-Object-property/pb1448_group_valued_property; conformance:cases/8.4.3.9-Object-property/pb1450-property-accessor-descriptions-differ; conformance:cases/8.4.3.9-Object-property/pb1450-property-accessors-split-across-inheritance",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1448 + PB1450 landed (w1005e): temp-2 over a group USING parameter binds (the golden's MOVE of a literal to the group property runs only the SET). The temp is modelled on the GET's description where GR2 names the SET's USING parameter, and the two are identical because SR7 is enforced (COBOL2727) for every pair a class sees, inherited accessors included. retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#OoTryBindPropertyReference (the one-word property binder ReferenceResolver.OoTryBindPropertyReference is deleted by kb/Work PB1425 (w1021a): a property reference is resolved by ReferenceResolver.ResolveObjectProperty, which splits the chain and resolves identifier-3 through the ordinary resolver)",
+ "state": "OK"
+}

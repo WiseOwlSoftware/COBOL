@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.10.3-2",
+ "section": "14.9.10.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "DELETE statement",
+ "rule-digest": "dcbcc81227ba",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenForbiddenPhrase",
+ "test-ref": "conformance:cases/14.9.10-DELETE/delete-record-invalid-key-sequential-access; conformance:cases/14.9.10-DELETE/pb144_indexed_delete_record",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "NOT-IMPLEMENTED -> CONFORMS (kb/Work PB144). The INVALID KEY / NOT INVALID KEY phrases were bound UNCONDITIONALLY in sequential access mode with a 'tolerated in the default (CCVS-lenient) mode' comment and NO strict arm, so at --std 2023 strict the compiler accepted source the standard forbids and said nothing — measured with a CLI probe, not inferred. The severity decision now routes through EditionContext.Removed, THE policy seam (which already carries documented-dialect-leniency gating as well as removed-construct gating): ERROR under strict, WARNING with an UNCHANGED bind under --permissive, so the CCVS-85 corpus that motivated the leniency keeps compiling with its existing semantics. ONE reusable descriptor (COBOL1720) serves this rule and its two siblings, on the COBOL1694 precedent, because the SHAPE is one rule and each site quotes its own SR. EDITION-GATE SWEEP RUN, not assumed: all 459 NIST programs check-batched at strict --std 85 produce the SAME 17 pre-existing failures (all CM* COMMUNICATION-SECTION parse errors and DB* COBOL1571 debug-module rejections, each read individually) and ZERO new ones; the harness was proved able to surface COBOL1720 as FAIL before that zero was trusted. The gate is edition-invariant by construction (Removed keys on Permissive, never on edition) and measured identical at 85/2002/2014/2023.",
+ "state": "OK"
+}

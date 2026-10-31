@@ -401,8 +401,13 @@ public static class DiagnosticCatalog
         + "names the three), and otherwise the literal categories expected (SET W-N TO \"A\" writes an alphanumeric "
         + "literal where §14.9.39.2 Format 1 prints integer-1 as its one literal). What is expected is what the "
         + "compiler's parse takes, which is a superset of the general format wherever a later check names the departure "
-        + "better (INSPECT's tallying phrase is parsed with FIRST and TRAILING so COBOL2269 can refuse them by name).",
-        "ISO §5.2.1 · §8.3.3.1 · §8.3.3.3.2");
+        + "better (INSPECT's tallying phrase is parsed with FIRST and TRAILING so COBOL2269 can refuse them by name). "
+        + "A keyword is named only if the targeted edition has it: a word the §8.9 table shows a LATER edition "
+        + "introduced is a user-defined word at this one (§8.3.2.1 1: \"Reserved words shall not be used as "
+        + "user-defined words or system-names\"), so the boolean operators B-AND, B-OR and B-XOR are named from COBOL-2002 "
+        + "and the shift operators B-SHIFT-L, B-SHIFT-LC, B-SHIFT-R and B-SHIFT-RC from COBOL-2023. The §8.10 "
+        + "context-sensitive words carry no per-edition flag and are named at every edition.",
+        "ISO §5.2.1 · §8.3.3.1 · §8.3.3.3.2 · §8.3.2.1 · §8.9");
 
     public static readonly DiagnosticDescriptor RedefinesPointerObject = new(
         "COBOL1697", "redefines-pointer-object", EditionSeverity.Error,

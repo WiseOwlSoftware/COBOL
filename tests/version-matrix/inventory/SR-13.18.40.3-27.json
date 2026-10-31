@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-27",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 27,
+ "subject": "PICTURE clause",
+ "rule-digest": "70112cb28d6a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Precedence; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#MarkFloating",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb528-picture-precedence; conformance:cases/13.18.40-PICTURE/pb530-picture-precedence-residue; conformance:cases/13.18.40-PICTURE/pb530_picture_floating_anchor_85; unit:PictureCompositionTests.APrecedenceViolation_IsCOBOL1935",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-09-13 (kb/Work PB530), RE-DERIVED on the tree at all four editions. 'No more than one of the following may be specified in character-string-1: a string of two or more symbols +; ... two or more symbols -; ... two or more currency symbols; ... one or more symbols *; ... one or more symbols Z' needs no rule of its own - Table 10's floating rows carry it, e.g. row floating-currency-left has a BLANK floating-sign-left column and a blank zero-suppression-left column - once floating-ness is the ADJACENCY property 13.18.40.5 rule 6 defines (PictureComposition.MarkFloating / FloatingString, PB528). THE RULE'S OWN NOTE 5 GIVES BOTH CONTROLS AND BOTH ARE NOW RIGHT: '+++$$$', which NOTE 5 declares invalid by name, is COBOL1935 at --std 85 / 2002 / 2014 / 2023 (negative/pb530-picture-precedence-residue PR01) where it used to bind and render MOVE 12 as [  +$12]; '+$$$', which NOTE 5 declares valid, binds and renders [+$12] (golden 85/pb530_picture_floating_anchor_85 A09). 'ZZZ$$$' is likewise 1935 (PR02). The harm the missing diagnostic understated is closed with it: the analyzer reported the digit positions of the FIRST run only and ignored the second, so DigitPositions - and every consumer of it (the SR14 capacity gate, MOVE geometry, FUNCTION LENGTH) - was computed from a shape the standard does not define. || Two of the four illegal strings this row was adjudicated on are refused by a DIFFERENT rule and that is correct, not a miss: 'ZZZ***' is SR21 ('Z' and '*' are mutually exclusive) and '---++9' is SR23 (the editing sign control symbols are mutually exclusive), both COBOL1934, both measured at all four editions. || editions: 85, 2002, 2014, 2023 (FORMAT 1, no edition-varying element). retired-witness: unit:PictureCompositionTests.APrecedenceViolation_IsCOBOLNET1935 (the same witness, re-spelled when the diagnostic code prefix became COBOL#### (kb/Work PB3575); the new spelling is recorded in its place)",
+ "state": "OK"
+}

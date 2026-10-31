@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.38.4-8",
+ "section": "13.18.38.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "OCCURS clause",
+ "rule-digest": "ec2f8b1a65ab",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#WrapIfOdoGroup; src/WiseOwl.Cobol.Compiler/Binding/Model/OdoModel.cs#WrapGroup; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#SendingImage; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#ReceiveInto; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#GroupImage; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#PhysicalOccurrenceWidth; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#UsesCurrentExtent; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#SpliceBase",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb80_based_odo_group; conformance:cases/8.4.3.3-Reference-modification/pb70_group_reference_modification; conformance:cases/13.18.38-OCCURS/pb943_group_sender_conversions; conformance:cases/13.18.38-OCCURS/pb202_odo_refmod_group_direction; conformance:cases/13.18.38-OCCURS/pb202_odo_refmod_national_group",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB80 (2026-08-18) + PB202 (2026-09-22). The DIRECTION LAW is written once, PlaceRenderer.UsesCurrentExtent: GR8a (data-name-1 outside the group) uses the current-count part in BOTH directions (a receiving store touches only it - ReceiveInto); GR8b (inside) uses the current-count part when the group is a SENDING operand and the MAXIMUM length only when it is a RECEIVING operand. Every channel (AsImage, AsBits, AsNat) and every storage shape (record-struct member, Tier-B / BASED class-tier window) asks it. PB202 corrected the ref-mod READ arm, which gated the slice on DependingInside: false and read the MAXIMUM image of a depending-inside group (G(4:) at count 2 gave cdddeee; 8.4.3.3.4 GR5 makes the ref-mod a subset of the group referenced as a sending operand), and its receiving twin: the ref-mod splice BASE is now read in the receiving direction (SpliceBase), so a depending-inside national group keeps positions past the current extent under a maximum-length store. The national ODO extent was also counted in mixed units (byte prefix + carrier element width: 11 positions for 1 + 2 x 3 = 7) - OdoModel.WrapGroup now takes the element stride on the PhysicalWidth byte basis. A BASED ODO record sent its MAXIMUM before PB80; the WORKING-STORAGE twin is the control on every golden row; a REDEFINES-class ODO group cannot be declared (13.18.44 SR forbids redefining a variable-size item), so BASED is the only class-tier shape.",
+ "state": "OK"
+}

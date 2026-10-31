@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.10.3-7",
+ "section": "13.10.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "Constant entry",
+ "rule-digest": "52b7ee228fc4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvalArith; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#BindConstantArithmetic",
+ "test-ref": "conformance:cases/7.3.6-Compile-time-arithmetic-expressions/constant-figurative-arith-operand; unit:CompileTimeExpressionEvaluatorTests.Rejects_FigurativeZeroOperand; unit:CompileTimeExpressionEvaluatorTests.Rejects_UndefinedName",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1229 (wave 1031 D). SR7 makes every operand of arithmetic-expression-1 a literal formed per 7.3.6. The last hole, the figurative ZERO operand (F-ZERO-OPERAND), is closed in EvalArith; the other operand screens (data-name, floating-point literal, exponentiation, division by zero, alphanumeric constant, compilation-variable-name) were already enforced and are re-probed on this build. Re-probed on this build (probe p6): DN + 1, 1.5E2 + 1, 2 ** 3, 1 / 0 and AC + 1 (AC an alphanumeric constant) each draw COBOL1547, while 1 + (2 * 3) compiles. The forward constant-name operand (F-FORWARD-REF) is unchanged by this landing.",
+ "state": "OK"
+}

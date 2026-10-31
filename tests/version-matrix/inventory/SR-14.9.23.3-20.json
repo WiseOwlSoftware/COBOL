@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.23.3-20",
+ "section": "14.9.23.3",
+ "kind": "SR",
+ "ordinal": 20,
+ "subject": "INVOKE statement",
+ "rule-digest": "f4d6eb03a5db",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#invokeArgument; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvoke",
+ "test-ref": "conformance:cases/14.9.23-INVOKE/l1-invoke-byref-constant-record; conformance:cases/14.9.23-INVOKE/l1-invoke-byref-constant-record-universal; conformance:cases/8.4.3.5-Object-view/pb1551-invoke-by-reference-view; conformance:cases/8.4.3.8-SELF-and-SUPER/pb1551-invoke-universal-self",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR20 makes identifier-3 a receiving operand (cite.py --check 14.9.23.3 -> OK 20)), and every rule that forbids a receiving operand then applies: §13.18.15.3 SR2 bars a CONSTANT RECORD item (BY REFERENCE KA is rejected with COBOL1548 on the resolved and universal arms), and since kb/Work PB1551 review R1-1 the BY REFERENCE slot is a receivingIdentifier, so an object-view (COBOL2871), SELF or SUPER (COBOL3978) written there is refused by its own §8.4.3 rule instead of a parse error re-coded to §8.9; a keyword-less SELF or view through a universal object reference (SR6: BY REFERENCE assumed) is refused the same way.",
+ "state": "OK"
+}

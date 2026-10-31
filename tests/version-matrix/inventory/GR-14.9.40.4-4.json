@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.40.4-4",
+ "section": "14.9.40.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "SORT statement",
+ "rule-digest": "e70c93bd6224",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Sort; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#SortInPlace; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#SortedOrder; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#SortMergeCursor",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-14.9.40.4-4",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'If the DUPLICATES phrase is not specified and the contents of all the key data items ... are equal ..., the order of return of these records or the relative order of the contents of these table elements is undefined.' (cite.py --check 14.9.40.4 OK, GR4; also listed as undefined item 52 in Annex B). CobolSort.Sort's store (SortWork, kb/Work PB3339) breaks ties by release order whatever the phrase (SortedOrder within a chunk, SortMergeCursor.Next's earliest-run tie-break across runs) and CobolTable.Sorted uses stable OrderBy regardless of the phrase; any order satisfies 'undefined', so the stable refinement conforms. Nothing observable to pin with a spec-derived expected value (the rule defines no result), hence no test-ref. [editions as adjudicated: 1985, 2002, 2014, 2023 (records); 2002, 2014, 2023 (table elements)] retired-witness: src/Cobol.Net.Runtime/Values/Tables/CobolTable.cs#Sorted (w70c (kb/Work PB1174): CobolTable.Sorted (a copy of the whole physical array) was replaced by CobolTable.SortInPlace over the table's current occurrences; the comparer-exception unwrap this row witnesses moved with it unchanged)",
+ "state": "OK"
+}

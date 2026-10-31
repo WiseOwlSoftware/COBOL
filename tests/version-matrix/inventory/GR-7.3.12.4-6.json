@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.12.4-6",
+ "section": "7.3.12.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "DISPLAY directive",
+ "rule-digest": "0dc31792047a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#CompilerDirectiveLine; src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#display-directive-2023; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.Display.cs#DisplayDestinations",
+ "test-ref": "unit:DisplayDirectiveTests.NoUponPhrase_IsAsIfUponListing_WhichIsStandardOutput",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1538 landed (w1004b). Without an UPON phrase the directive behaves as UPON LISTING and, with no listing produced, writes to the compiler's standard output; nothing goes to standard error.",
+ "state": "OK"
+}

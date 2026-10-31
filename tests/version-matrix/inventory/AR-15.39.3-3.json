@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.39.3-3",
+ "section": "15.39.3",
+ "kind": "AR",
+ "ordinal": 3,
+ "subject": "FORMATTED-DATE function",
+ "rule-digest": "f185491aaae3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AsInt",
+ "test-ref": "conformance:cases/15.39.3-Argument-rules/l1_formatted_date_integer_date_form; conformance:cases/15.38.3-Argument-rules/l1_datetime_general_formats",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "§15.5.2's interval in full: both in-range endpoints render (16010101 / 99991231) and zero, 3067672, -5 and 2^64+143,951 each set EC-ARGUMENT-FUNCTION per §15.3 (the unnumbered paragraph following the argument-type list 1)-14): 'If the evaluation of an argument results in an incorrect value for that argument ... the EC-ARGUMENT-FUNCTION exception condition is set to exist') under >>TURN checking ON — the exception, not an unchecked default, because that same paragraph's other arm ('the implementor defines the result of the function reference') makes the default implementor-defined. Step 7 proves no raising call stored anything, which is what discriminates the AsInt narrowing from a wrapping cast.",
+ "state": "OK"
+}

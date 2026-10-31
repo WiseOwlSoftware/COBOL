@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.16.3-8",
+ "section": "13.16.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "Data description entry",
+ "rule-digest": "673abcd97a8c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.PictureRequired.cs#CheckPictureRequired; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.16-Data-description/pb487-picture-required-elementary; conformance:cases/13.16-Data-description/program-pointer-with-picture; unit:ImpliedPictureTests.Sr9_GrantsNothingHere_SoSr8StillRequiresThePicture; conformance:cases/13.16-Data-description/pb3682-typedef-usage-national-without-picture; conformance:cases/13.16-Data-description/pb3682-typedef-usage-fixed-binary-with-picture",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Both halves hold. The prohibition half (no PICTURE on the eleven picture-less usages) is enforced at BindEntry. The REQUIREMENT half - 'For any other entry describing an elementary item, a PICTURE clause shall be specified except as indicated in Syntax rule 9' - is the CheckPictureRequired closing guard: COBOL0881 over the conformance forest, a recovery PicInfo over the composition forest, so no elementary item reaches the emitter without one (before it, every picture-less elementary entry escaped with a null PicInfo and CRASHED the compiler with an unhandled NullReferenceException in MoveEmitter.ConvertSource). An unexpanded TYPE / SAME AS reference is excluded by the rule's own words - it describes nothing. kb/Work PB487. || UPDATED BY kb/Work PB504: the guard now has NO CARVE-OUT AT ALL. SR8's deferral to SR9 is honoured by APPLYING SR9 rather than by excusing it - SynthesizeImpliedPictures gives every entry inside SR9's grant the implied PICTURE two passes earlier, so such an entry is no longer a picture-less leaf and this guard never sees it. The former figurative-VALUE exemption is therefore GONE rather than widened; it had also silently admitted `01 G VALUE ALL \"AB\".` to the ONE-CHARACTER recovery item, which stored A (kb/Work PB831). What the guard still reports is exactly SR8's own population: a numeric literal VALUE, the class-pointer figurative NULL, a zero-length literal (SR9 excludes it by name), a Format-2 table VALUE (SR9 grants only the data-item format), and an entry with no VALUE clause at all.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.4.3-1",
+ "section": "8.4.4.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Condition-name",
+ "rule-digest": "edc1938682d5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#BindImplementorNameEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#SwitchConditions; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#SwitchCondOf",
+ "test-ref": "conformance:cases/8.4.4-Condition-name/pb390_procedure_and_condition_operands",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 8.4.4.3 'Condition-name-1 shall be associated with a switch-name in the SPECIAL-NAMES paragraph.' OK, SR1). The only names SwitchCondOf admits as Format 1 are those registered in SwitchConditions, which is populated solely by BindImplementorNameEntry from a SPECIAL-NAMES switch-name entry whose implementor row is a Switch (a non-switch row with ON/OFF STATUS is COBOL2241, an unknown name registers nothing), plus InheritConfiguration from a containing program's SPECIAL-NAMES. A bare word that is neither a level-88 nor so associated is not a condition (probe n3: the switch's mnemonic-name SW1 used as a condition -> COBOL2318 naming §8.8.4.6). Positive runtime evidence in p1.cob at 85 and 2023 (see FMT-8.4.4.2). Resolution order level-88 before switch (NC211A) only matters for a name that is both, which is already non-conforming source under §8.3.2.2 uniqueness — not this rule's question.",
+ "state": "OK"
+}

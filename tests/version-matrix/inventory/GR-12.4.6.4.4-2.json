@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.6.4.4-2",
+ "section": "12.4.6.4.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "SAME clause",
+ "rule-digest": "3c2944735909",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#SameRecordAreaPeers; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#BindIoControl",
+ "test-ref": "conformance:cases/12.4.6.4-SAME/pb235_same_record_area_close",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 12.4.6.4.4 \"A logical record in the shared memory area is a logical record of each file open in the output mode and of the most recently-read file open in the input mode\" -> OK GR2; cite.py --check 12.4.6.4.4 \"This is equivalent to an implicit redefinition of the area with records aligned on the leftmost byte position\" -> OK GR2. BindIoControl chains each listed file's first record as an implicit RedefinitionKind.SameRecordArea redefinition of the first listed file's record (the multi-01 FD mechanism) and records SameRecordAreaPeers for out-of-line records (D-FRA). Probe gr2_mixed (SEQUENTIAL X(4) / RELATIVE X(2)+X(6) / LINE SEQUENTIAL X(10)): MOVE to F3-REC shows F1=ABCD F2A=AB F2B=CDEFGH (leftmost alignment across unequal lengths); MOVE to F1-REC shows F3=WXYZEFGHIJ; after READ F2 F1-REC=1234, after READ F1 F2-A=WX (most-recently-read file's record occupies the area). Availability sentence (area available while any member open) and the most-recently-read sentence pinned by conformance:cases/12.4.6.4-SAME/pb235_same_record_area_close (spec-derived, CLOSE GR7 + this GR2); RELEASE interplay by conformance:cases/14.9.32-RELEASE/l1_release_same_record_area. The 'only one file also in a file-area SAME clause may be open' sentence is a program constraint (no specified check). Residual: a record shape with a byte-window residue is still refused loud COBOL0899 (DataBinder ByteWindowResidueOf; since PB981 pointer/dynamic-length/national shapes ride, so no conforming shape is known to reach it) - noted, not a measured defect. [registrar 14a — editions as adjudicated: 85, 2002, 2014, 2023 (the SAME clause is base I-O-CONTROL language in every edition; no Annex E change entry names it)]",
+ "state": "OK"
+}

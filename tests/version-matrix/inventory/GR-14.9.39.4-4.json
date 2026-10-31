@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-4",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "SET statement",
+ "rule-digest": "137e5f7bdcf5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#AugmentSetTarget; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolIndex.cs#Augment; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#IndexAugment; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#RangeIndexError",
+ "test-ref": "conformance:cases/14.9.39-SET/pb459_set_index_amount_ec; conformance:cases/14.9.39-SET/pb459_set_index_amount_guards; conformance:cases/13.18.38-OCCURS/pb459_set_index_range_ec; conformance:cases/14.9.39-SET/pb459_set_index_overflow_unchanged; unit:SetIndexAmountLandingDriftTests.TheIndexAugmentIsGuarded_NotFormedInTheCarrier",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB459.md LANDED. FORMAT 2 GR4 - arm b) was already correct (the per-occurrence loop, one amount evaluated once, and 'even if that occurrence is not a valid occurrence within this table' - an index legitimately points past its own table). Arm a) was the gap and is now closed: 'If the value that corresponds to the occurrence number represented by the content of index-name-3 incremented (UP BY) or decremented (DOWN BY) by the result of the evaluation of arithmetic-expression-2 is outside the limit specified in General rule 2 of 13.18.38, OCCURS clause' then EC-RANGE-INDEX, unsuccessful, receiving operand unchanged (cite.py --check 14.9.39.4 PASS). EC-RANGE-INDEX had NO raise site anywhere in the compiler before this landing - the catalog carried its Table 13 row and FlagConformancePass asked whether it was enabled in order to FLAG a SET, so a grep for the name returned four hits and none of them was a raise. It now has a CheckingFlags field, an ExceptionEngine property and helper, an EcEmitter.FatalAmbientGates row, and an ambient EcWrap gate so a >>TURN reaches it. The augment itself moved from an in-carrier '{ix} += (long)(...)' - where crossing the 64-bit boundary was a silent wrap - into CobolIndex.Augment, which forms the sum in Int128 and returns the index UNCHANGED on the out-of-range leg. The amount stays Int128 into the runtime because a PERFORM VARYING BY operand is an integer data item of up to 31 digits (14.9.28.3 SR4 a). MEASURED before: 'SET IDX TO 1. SET IDX UP BY 9223372036854775800. SET IDX UP BY 100.' left IDX holding a NEGATIVE occurrence number and the program carried on with EXCEPTION-STATUS blank. MEASURED after: checking ON gives RANGE=EC-RANGE-INDEX and AFTER=+9223372036854775801 at both 2023 and 2002; checking OFF (and at --std 85, where there is no exception-condition mechanism at all) the index is simply unchanged. The limit is the implementor range of 13.18.38.4 GR2, documented as CONFORMANCE.md section 7 row DOC-A.1-128.",
+ "state": "OK"
+}

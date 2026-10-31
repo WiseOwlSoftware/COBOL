@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.10.4-6",
+ "section": "7.3.10.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "COBOL-WORDS directive",
+ "rule-digest": "f782200a0dd7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CobolWordsDirectiveProcessor.cs#Process; src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs",
+ "test-ref": "conformance:cases/7.3.10-COBOL-WORDS/l1c03_cobol_words_directing_unaffected",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "GR6 'A COBOL-WORDS directive does not affect any Compiler directing statements or Compiler directives' (cite.py OK §7.3.10.4 6)). Structural: the map is built from the FINAL preprocessed text (after COPY/REPLACE and directive processing) and applied only by the post-lex token rewriter and binder, so text-manipulation constructs never see it. Probed: UNDEFINE \"COPY\" then COPY CWBOOK still copies; SUBSTITUTE \"REPLACE\" BY \"SWAPIT\" -> REPLACE still works and REPLACE usable as data-name; EQUATE \"REPLACE\" WITH \"SWAPIT\" -> SWAPIT ==A== BY ==B== is NOT a REPLACE (rejected); SUBSTITUTE \"IF\" BY \"WHENIF\" -> >>IF/>>END-IF still work while the IF statement is WHENIF; UNDEFINE \"SOURCE\" -> >>SOURCE FORMAT FREE still works. No spec-derived test pins GR6: test-needed. || editions (adjudicator): 2023 only (new in COBOL-2023: Foreword list 'Additional compiler directives were added: COBOL-WORDS directive'; Annex E.3.3 item 12, cite.py OK §E.3.3 12)); below 2023 the directive word is COBOL0900",
+ "state": "OK"
+}

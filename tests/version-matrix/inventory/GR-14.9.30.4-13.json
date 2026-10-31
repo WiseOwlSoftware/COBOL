@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.30.4-13",
+ "section": "14.9.30.4",
+ "kind": "GR",
+ "ordinal": 13,
+ "subject": "READ statement",
+ "rule-digest": "5f193b8f8cb6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReadShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReadKeyedShared",
+ "test-ref": "conformance:cases/14.9.30-READ/pb338_read_conflict_position; conformance-test:SequentialFileIoSpecTests.LineSequential_OverLengthRecord_TruncatesWith06_AndContinuesRemainder; conformance-test:FileIoDifferentialTests.ReadNotOpen_Status47_AtEndNotTaken_RecordAreaUnchanged; conformance:cases/12.4.5.7-COLLATING-SEQUENCE/file_collating_seq",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB338 - LANDED 2026-09-06. RULE items a-c. cite.py --check 14.9.30.4 'The I-O status associated with file-name-1 is updated and, if the record operation conflict condition did not occur, the file position indicator is set' -> OK 14.9.30.4 13) a). ITEM a WAS THE DEFECT, and it was the CONDITIONAL half that was missing: the rule is not 'the FPI is set', it is 'the status is updated AND, IF the record operation conflict condition did not occur, the FPI is set' - the same requirement GR10 a) states affirmatively. On the keyed arm the governance ran AFTER the connector had already committed its position. It now runs before, on every organization and both formats (FileRegistry.ReadShared and ReadKeyedShared take the connector's own pre-read record identity), so a conflicted READ sets the status and nothing else. Pinned by conformance:cases/14.9.30-READ/pb338_read_conflict_position, whose relative and indexed legs fail on the pre-fix tree. ITEM b unchanged and still right: EmitUseHook emits __IoCheck/__IoCheckEc after the status store, the AT END imperative is guarded by a '1' status family so a 3x/4x/5x exception cannot take it, and control returns to the end of the READ (verified by a USE AFTER STANDARD ERROR probe: 'DECLARATIVE FS=47' then 'AFTER-READ FS=47'). ITEM c unchanged and still right: on success the emitters store the image into the record area (FileModel.AreaRecord, the largest record description per 13.4.2), then the INTO move, then NOT AT END / NOT INVALID KEY - GR13 c)'s own order; the keyed emitter's INVALID KEY branch tests '2' and its NOT-branch '0', so on success only the NOT-phrases run.",
+ "state": "OK"
+}

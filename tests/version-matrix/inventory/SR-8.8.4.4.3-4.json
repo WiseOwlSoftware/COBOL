@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.4.4.3-4",
+ "section": "8.8.4.4.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "Simple class condition",
+ "rule-digest": "520a81fdb703",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#Violates; src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#Alternatives",
+ "test-ref": "conformance:cases/8.8.4.4-Simple-class-condition/pb571-class-alphabetic-on-numeric; conformance:cases/8.8.4.4-Simple-class-condition/class-alphabetic-on-boolean; conformance:cases/8.8.4.4-Simple-class-condition/pb571_class_condition_one_table",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB571. SR4 names THREE categories and only the BOOLEAN one was screened, so `IF <numeric item> IS ALPHABETIC` compiled and ran. All three are now one predicate. SR4 names class-name-1 and NOT alphabet-name-1, which is why the two user-defined-word alternatives carry DISTINCT kind tags: sharing one tag would have made this rule reject `IF <numeric item> IS <alphabet-name>`, which the standard admits and the 85 golden's F line pins.",
+ "state": "OK"
+}

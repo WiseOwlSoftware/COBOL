@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.48.3-1",
+ "section": "15.48.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "INTEGER-OF-FORMATTED-DATE function",
+ "rule-digest": "264922500198",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindArgOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BindFunctionArgumentExpr; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#RefExpr; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#FieldOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#AliasOperand",
+ "test-ref": "conformance:cases/15.48.3-Argument-rules/l1_iofd_national_literal_arg1; conformance:cases/15.48.3-Argument-rules/l1-iofd-arg1-data-item; conformance:cases/15.48.3-Argument-rules/l1-iofd-arg1-numeric-literal",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "r1 closes a SHAPE and a CLASS LIST. Accept: both admitted classes written as literals side by side — \"YYYYMMDD\" with a PIC X(8) argument-2 and N\"YYYYMMDD\" with a PIC N(8) argument-2 (the pairing forced by r3) — both required to return 143951, the national alternative being the branch nothing in the corpus had ever exercised, in either direction. Reject: l1-iofd-arg1-data-item isolates the SHAPE half (an admitted class that is not a literal; the class screen is clean and only COBOL1517 fires). l1-iofd-arg1-numeric-literal is a correct rejection under r1 but NOT an isolating witness for the class half — three screens reject that program (position-0 class, r3's cross-argument rule, and the literal-shape screen), two of them emitting the recorded COBOL1627, and no source shape can separate r1's class list from r3's cross rule in this implementation, since an argument-2 matching a numeric argument-1 is itself numeric. Evidence for the position-0 screen alone would have to assert its message text in a unit test; that is recorded as an open follow-up, not as part of this closure. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#NonNumericConstantExpr (kb/Work PB1544 deleted NonNumericConstantExpr: a constant-name argument is bound through ExpressionBinder.AliasOperand (the written-literal shape), which now witnesses the rule)",
+ "state": "OK"
+}

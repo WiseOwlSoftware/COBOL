@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.68.4-3",
+ "section": "15.68.4",
+ "kind": "RV",
+ "ordinal": 3,
+ "subject": "NUMVAL-C function",
+ "rule-digest": "d4ba022351ea",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.NumvalLocale.cs#NvScanLocale; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NvScan",
+ "test-ref": "conformance:cases/15.68.3-Argument-rules/pb64t6_numvalc_locale; unit:NumvalCLocaleScanTests.Value_And_Sign_FollowTheMatchedConvention; conformance:cases/15.67.3-Argument-rules/pb60_numval_one_scan",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "BOTH legs now exercised: the non-LOCALE CR/DB/minus leg (pb60_numval_one_scan) and the LOCALE leg (negative iff the negative CONVENTION matched - parentheses under n_sign_posn 0; a bare '-' has no privileged meaning). retired-witness: src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalC (NumvalC was replaced by NumvalCDec and NumvalCLocaleDec when NUMVAL-C moved onto the SDIDI carrier (kb/Work PB251, 823e954c8))",
+ "state": "OK"
+}

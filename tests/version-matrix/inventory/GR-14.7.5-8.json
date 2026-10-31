@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.5-8",
+ "section": "14.7.5",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "Common phrases and features for statements",
+ "rule-digest": "7fd11ab67954",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolSizeError.cs#CobolSizeError; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolSizeError.cs#ProhibitedInexact; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#Divide",
+ "test-ref": "conformance:cases/8.8.1.5.2-Standard-decimal-intermediate-data-item/pb74_sdidi_intermediate_prohibited_ec; conformance:cases/14.7.4-ROUNDED/pb1196_float_resultant_rounded_mode; unit:EcSizeGuardDriftTests.CobolSizeError_IsACobolFatalException_WithItsLevel3Name",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1147 LANDED (w61e), re-sited by PB3990. Case 8 delegates to rules that name their condition; §14.7.4.3 r7 names EC-SIZE-TRUNCATION (cite.py OK §14.7.4.3 7)). The outermost-quotient PROHIBITED raise carried no EC name and defaulted to EC-SIZE-OVERFLOW; every rule-7 raise is now the one CobolSizeError.ProhibitedInexact (EC-SIZE-TRUNCATION), and CobolSizeError's ecName is REQUIRED (no default) so no raise site can latch a defaulted name again. Re-probed: DIVIDE 1 BY 30 GIVING D ROUNDED MODE IS PROHIBITED / COMPUTE D ROUNDED MODE IS PROHIBITED = 1 / 30 under >>TURN EC-SIZE: EXCEPTION-STATUS EC-SIZE-TRUNCATION (was EC-SIZE-OVERFLOW). retired-witness: src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#DivideOrThrow (kb/Work PB3990 deleted DivideOrThrow: the one rule-7 raise is CobolSizeError.ProhibitedInexact, from CobolNum.Divide's rounding among others)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.13.4-2",
+ "section": "12.4.5.13.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "RELATIVE KEY clause",
+ "rule-digest": "c511b1fb016c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RelativeKeyName; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs",
+ "test-ref": "conformance:cases/12.4.5.13-RELATIVE-KEY/l1_read_relative_key_moved",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR2: 'data-name-1 is used to communicate a relative record number between the user and the mass storage control system' (cite.py --check 12.4.5.13.4 \"data-name-1 is used to communicate a relative record number between the user and the mass storage control system\" -> OK). Both directions verified: user->system (random/dynamic READ/WRITE/START take the RRN from the key item: rk4 READ key 3 -> CCCC, WRITE key 7 then START >= 4 finds it; qualified key rk1/ClauseOperandQualificationSpecTests) and system->user (sequential WRITE stores 1,2,3; sequential READ stores the RRN of the record made available; golden l1_read_relative_key_moved clobbers the key to 9999 before each READ NEXT and expects 0001/0002/0003 and 9999 at end). The key item resolved is the data-name-1 item (qualifiers kept, FileModel.RelativeKeyQualifiers); a reference-modified slice cannot stand in for it (landed PB602 for START, ScreenClauseOperandShape for the clause). [registrar 14a — editions as adjudicated: 1985, 2002, 2014, 2023]",
+ "state": "OK"
+}

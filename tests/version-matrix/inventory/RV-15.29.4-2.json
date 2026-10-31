@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.29.4-2",
+ "section": "15.29.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "EXCEPTION-FILE-N function",
+ "rule-digest": "b64d4da08245",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Status; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ExceptionFile",
+ "test-ref": "conformance:cases/15.3-Arguments/pb63_exception_file_select_names",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB63 — the exception surface: the FD screen, the SELECT-spelled name on the connector, the one access-recording path, the r2b procedure field and element name, the MODULE-NAME determinations). §15.29.4 r2a/r2b — the -N argument form on the same access rule: golden NFC=[42Closed], NFU=[  ].",
+ "state": "OK"
+}

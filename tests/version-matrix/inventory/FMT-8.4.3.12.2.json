@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.4.3.12.2",
+ "section": "8.4.3.12.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Function-address-identifier",
+ "rule-digest": "bda993a3470a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#PreviousIsFunctionName; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#functionAddressIdentifier; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetFunctionAddress",
+ "test-ref": "conformance:cases/8.4.3.12-Function-address-identifier/pb1416_function_address_subscripted_identifier; conformance:cases/8.4.3.12-Function-address-identifier/pb1417_function_address_identifier_operands",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1416 (landed w1014 group S). 8.4.3.12.2 `ADDRESS OF FUNCTION { function-prototype-name-1 | identifier-1 }` (OF not underlined); identifier-1 is any identifier format (8.4.3.1.3 SR1). The lexer no longer types the '(' after `ADDRESS [OF] FUNCTION word` as the 8.4.3.2.3 SR6 argument paren (a prototype name takes no argument list), so a subscripted (`WS-NAME(2)`, `WS-NAME (N)`, OF omitted) and a reference-modified identifier-1 parse and resolve to the function their content names (golden: SUBSCRIPT-OK, NO-OF-OK, REFMOD-OK).",
+ "state": "OK"
+}

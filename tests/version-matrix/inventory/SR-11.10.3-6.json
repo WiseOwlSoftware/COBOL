@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.10.3-6",
+ "section": "11.10.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "PROGRAM-ID paragraph",
+ "rule-digest": "8edbef759fb9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit",
+ "test-ref": "conformance:cases/11.10-PROGRAM-ID/pb1507-recursive-in-initial-program; conformance:cases/11.10-PROGRAM-ID/pb154_cancel_cascade",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1507 (wave 1012 J). cite.py --check 11.10.3 'The RECURSIVE clause shall not be specified if any program that directly or indirectly contains this program is an initial program' OK. MakeUnit walks the container chain for a container's INITIAL clause (never inherited): COBOL2755 at the RECURSIVE clause. The golden pb154_cancel_cascade, which nested a RECURSIVE program in an INITIAL one and so pinned nonconforming source as valid, is reshaped to a conforming containee with the same output.",
+ "state": "OK"
+}

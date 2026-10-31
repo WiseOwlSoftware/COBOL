@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-22",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 22,
+ "subject": "SET statement",
+ "rule-digest": "7d1176bbbfda",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetProgramPointer; src/WiseOwl.Cobol.Compiler/Binding/PrototypeSignatures.cs#Same; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#ScreenImplicitSet; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ElementaryAction",
+ "test-ref": "conformance:cases/13.18.60-USAGE/pb817_restricted_program_pointer; conformance:cases/13.18.60-USAGE/pb817-set-program-pointer-signature; conformance:cases/13.18.60-USAGE/pb452-program-pointer-to-without-typedef; conformance:cases/14.9.20-INITIALIZE/pb3817-initialize-replacing-restricted-program-pointer; conformance:cases/14.9.20-INITIALIZE/pb3817_initialize_replacing_restricted_program_pointer",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR22's condition is met only when identifier-7 references a RESTRICTED program-pointer, which is the one asymmetry with SR20 (every function-pointer is restricted; a program-pointer may or may not be). Landing it needed the DECLARATION, which was staged loud with COBOL0899 until this change set: PicInfo.RestrictedPrototypeName now carries the TO operand for BOTH prototype carriers and 13.18.60.3 SR19's TYPEDEF requirement is enforced beside its SR18 twin. Both failure directions are pinned: a differently-signed prototype AND an UNRESTRICTED sender, which is a violation in its own right rather than a vacuous pass - SR22 requires prototypes 'associated with identifier-7 and identifier-8' and an unrestricted program-pointer is associated with none (14.8.2.3.2 says the same thing explicitly in the argument-passing direction). A prototype that names no COMPILE-TIME signature - 12.3.8.4 GR10 c), the external repository - deliberately conforms, because rejecting it would refuse a legal separately-compiled target.",
+ "state": "OK"
+}

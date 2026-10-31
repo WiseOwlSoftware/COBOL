@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.1.4-12",
+ "section": "14.9.1.4",
+ "kind": "GR",
+ "ordinal": 12,
+ "subject": "ACCEPT statement",
+ "rule-digest": "5919457d09d2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#DayOfWeek",
+ "test-ref": "conformance-test:AcceptDifferentialTests.DayOfWeek_MondayIs1_SundayIs7",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "'DAY-OF-WEEK ... unsigned elementary numeric integer ONE digit ... usage display. 1 represents Monday ... 7 represents Sunday.' AcceptSource.DayOfWeek() returns `((int)Now().DayOfWeek + 6) % 7 + 1`. Checked the remap against .NET's DayOfWeek (Sunday=0 .. Saturday=6) for every value: Sunday 0 -> (6%7)+1 = 7; Monday 1 -> (7%7)+1 = 1; Tuesday 2 -> 2; Wednesday 3 -> 3; Thursday 4 -> 4; Friday 5 -> 5; Saturday 6 -> (12%7)+1 = 6. That is exactly the standard's Monday=1 .. Sunday=7 numbering, and the result is always 1..7 so the one-digit unsigned width holds. EmitAcceptTemporal maps the kind to width 1 (`_ => (\"AcceptSource.DayOfWeek()\", 1)` -- the default arm, which is safe because AcceptKind.Device is dispatched away by EmitAccept before EmitAcceptTemporal is reached). Both endpoints of the remap -- the two values a naive Sunday=0 mapping would get wrong -- are pinned by the theory AcceptDifferentialTests.DayOfWeek_MondayIs1_SundayIs7 (2026-06-08 -> '1', 2026-06-14 -> '7'). || UPHELD: I recomputed all seven remap values independently and they match; and I verified the safety claim about the `_ =>` default arm by reading EmitAccept (AcceptDisplayEmitter.cs:37-41), which is `if (a.Kind == AcceptKind.Device) EmitAcceptDevice(a.Target); else EmitAcceptTemporal(...)`, so AcceptKind.Device genuinely cannot reach the ternary's default -- the arm receives DayOfWeek only. The test is a spec-derived theory pinning exactly the two boundary values a Sunday=0 error would corrupt. CONFORMS with qualifying closing evidence.",
+ "state": "OK"
+}

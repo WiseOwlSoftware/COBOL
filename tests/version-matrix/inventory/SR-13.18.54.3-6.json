@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.54.3-6",
+ "section": "13.18.54.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "SUM clause",
+ "rule-digest": "3cabf02c8d46",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ResolveSumAddend; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportSectionNameIn; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#SubscriptWordsOfReference; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportSubscripts",
+ "test-ref": "conformance:cases/13.18.54-SUM/pb883-sum-expression-report-section; conformance:cases/13.18.54-SUM/pb1295-sum-expression-subscripted-by-sum-counter; conformance:cases/13.18.54-SUM/pb1295-sum-expression-subscripted-by-report-item; conformance:cases/13.18.54-SUM/pb883_report_sum_expression",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1295 landed 2026-10-04 (wave 1012 G): the words of a subscript are read (they are SUBSCRIPT-mode tokens, not a nested dataReference), so a report section item in a subscript of an expression addend is refused: a sum counter or register by SR8 (COBOL2751), any other report section item by SR6 (COBOL2144). The unprintable NAMED entry is refused with COBOL2144 on this build.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-17",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 17,
+ "subject": "VALUE clause",
+ "rule-digest": "0966274fc4b6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
+ "test-ref": "conformance:cases/8.8.4.5-Simple-condition-name-condition/l1_value_values_equivalent; conformance:cases/13.18.63-VALUE/l1_value_values_equivalent_2002",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "VALUE and VALUES asserted EQUAL on one entry shape - Format 2 single literal and reused two-literal list, plus Format 3 via SR24; values derived from 13.18.63.4 GR12/GR13 and 8.8.4.5.3 GR3, both spellings printing the shared result.",
+ "state": "OK"
+}

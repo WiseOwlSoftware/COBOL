@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.22.4-5",
+ "section": "14.9.22.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "INSPECT statement",
+ "rule-digest": "1f1ce509573b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#OperandTextOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#InspectCharOperandOf",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/l1p5_inspect_general_rules",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR5: identifier-3..7 act as literals with full content incl. trailing space (I1-I4)",
+ "state": "OK"
+}

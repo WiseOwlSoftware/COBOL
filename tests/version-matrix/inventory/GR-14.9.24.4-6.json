@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.24.4-6",
+ "section": "14.9.24.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "MERGE statement",
+ "rule-digest": "dfe2634e832e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Merge; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionCatalog.cs; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#CheckOrder; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#OrderViolations",
+ "test-ref": "conformance:cases/13.18.43-RECORD/pb1036_sort_merge_statement_ec; unit:SortMergeStatementEcTests.Merge_AnOutOfOrderStream_RaisesSequence_OnlyWhenChecked; unit:SortWorkBoundTests.AnOutOfOrderStreamOnDisk_RaisesSequence_NamingTheRecord",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 14.9.24.4 \"the EC-SORT-MERGE-SEQUENCE exception condition is set to exist, all files associated with the MERGE statement are closed\" -> OK 6). SortWork.CheckOrder compares each record, as it is released, with its USING stream's previous record by the SAME SortKeyColumns comparison the merge uses and remembers the stream's first out-of-order record (so a stream already written to its run file is checked too, kb/Work PB3339); CobolSort.Merge raises EC-SORT-MERGE-SEQUENCE from SortWork.OrderViolations before SortWork.Sequence merges; every USING file was closed by its implicit CLOSE and no GIVING file is open yet, so \"all files ... are closed\" holds. Golden case C (M-A = BBB, AAA) -> SM=EC-SORT-MERGE-SEQUENCE, the output procedure never runs; re-probe of merge-p2/m4 shape (w59c/p/mseq.cob) -> DECL EC-SORT-MERGE-SEQUENCE. Wired by kb/Work PB1036 (w59c): FatalAmbientGates row + CheckingFlags field + ExceptionEngine helper; EcBinder.QueryFor asks the name at the SORT/MERGE/RELEASE/RETURN node; the golden raises it under >>TURN ... CHECKING ON with a USE AFTER EXCEPTION CONDITION declarative; checking off keeps the pre-PB1036 lenient behaviour (docs/CONFORMANCE.md §3 D-SMA (c)).",
+ "state": "OK"
+}

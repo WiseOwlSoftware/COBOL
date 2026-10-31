@@ -610,10 +610,30 @@ over them (`ReadsArgumentDescriptions` names every `FunctionDeviceForm`, so a ne
 DAY-OF-INTEGER (`FixedDigits`) are described by digits no argument decides, so they ARE held as a value, at their place (a fatal
 EC-ARGUMENT-FUNCTION of an earlier argument is raised before a later activation, GR2), and the held temporary carries the digits
 (`DataItem.FunctionDeviceDigits`, read by `FunctionDeviceText.Field`). A user-defined function's argument
-is read for its value alone and is still held as a value. A nested call that names a table(ALL) argument (no recorded operand, enumerated
-where the call renders) is still held as a value, and its description is the value's: `HeldFunctionArgumentDescriptionTests` pins the
-agreement over 22 argument shapes and the conformance golden `pb4124_held_function_argument_keeps_description` over six measurements and
-GR2's own order.
+is read for its value alone and is still held as a value. A nested call that names a table(ALL) argument is held like any other
+(next paragraph): `HeldFunctionArgumentDescriptionTests` pins the agreement over 28 argument shapes (six of them table(ALL)) and the
+conformance golden `pb4124_held_function_argument_keeps_description` over six measurements and GR2's own order.
+
+**A table(ALL) argument is an argument of the list, and has a held form (PB4162).** §15.3 14) makes `T (ALL)` "as if each table element
+associated with that subscript position were specified", each evaluated at its place in the list (§8.4.3.2.4 GR2). The operand used to be
+enumerated where the call renders and was no recorded operand of the `ArgumentOrder` window, so `MAX (T (ALL), UDF (X))` read T AFTER the
+activation and a nested call naming the ALL could not be held (`LENGTH (MAX (MAX (T (ALL), 1), UDF (X)))` answered 4 where the unheld form
+answered 8). `IntrinsicBinder.TryBindAllArgument` now records the operand it builds, and when a later argument registered pre-ops
+`ArgumentOrder.StoreAt` holds it with `SendingValueTemp.MaterializeTableAll`: a PRE-op `BoundHoldTableAll` copies the elements the
+enumeration yields, in §15.3's order and by the ordinary identity MOVE, into a compiler-temporary TABLE of the element's own description
+(`DataBinder.CreateCompilerTempTable`), and the call's operand becomes a `TableAllPlace` over that table. Everything downstream is therefore
+what it was for the source table: the lane an element is read in (`AllArgs<CobolDec>`, `<double>`, `<string>`, the Int128 alignment), the
+description `FunctionDeviceText.Field` gives a selecting function's result, and the `ArgumentOrder.Hold` recursion into a nested selecting
+call. The held table is ONE flat level in enumeration order whatever the number of ALL levels: a fixed table when every range is fixed
+(`TableAllPlace.StaticCount` elements); a fixed table at the product of the levels' maxima, with the counted number of elements in a numeric
+temporary the held enumeration ranges over (`AllCount.Odo`, minimum 0), when a level is OCCURS DEPENDING (it never allocates more than the
+table it copies); a dynamic-capacity table whose capacity the copy sets to the counted number (`TableHoldEmitter`: the walk runs twice) when a
+level is a dynamic-capacity table, which has no allocated maximum (or the product of the maxima passes one fixed table). A held ALL that found
+no occurrence raises the same fatal EC-ARGUMENT-FUNCTION as the enumeration does (`CobolTable.RequireOccurrences`, the one raise `AllArgs` also
+calls), at its own place in the list and so before a later activation. An element `SendingValueTemp.Model` cannot describe (a variable-length
+group, the one shape the MOVE intermediate also leaves un-held) is not held. `ArgumentOrderDriftTests` pins the record and the one holder; the
+conformance goldens `pb4162_table_all_argument_held_for_order` and `pb4162_table_all_dynamic_capacity_held_for_order` pin the order over
+fixed, two-level, partly subscripted, OCCURS DEPENDING, text, nested and nested-dynamic-capacity tables.
 
 **The same temporary is what LENGTH and BYTE-LENGTH measure (PB3951).** `FunctionValueField.Length` (positions, §15.50.4) and
 `FunctionValueField.ByteLength` (bytes, §15.14.4 r1) are the size of the item the field describes: `OfItem` and `OfFloatItem` take the argument

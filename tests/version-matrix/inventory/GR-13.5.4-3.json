@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.5.4-3",
+ "section": "13.5.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Working-storage section",
+ "rule-digest": "08b8f41e3655",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/RecordStructEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/InitialStateBackground.cs#InitialStateBackground; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RouteStaticUnitStorage",
+ "test-ref": "conformance:cases/11.9.10-INITIALIZE/pb152_options_initialize_sections",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: WS items \"are initialized as indicated in 11.9.10, INITIALIZE clause, 13.18.63, VALUE clause, and 14.6.2.3.2, Initial state\" (cite.py --check 13.5.4 OK). This is a routing rule, and each target's detail is its own inventory row. VERIFIED routing: (a) the §11.9.10 WORKING-STORAGE background is applied section-selectively; the pinned compiler's run of conformance:cases/11.9.10-INITIALIZE/pb152_options_initialize_sections is byte-identical to its .out, and that golden probes both directions (WS filled, other sections not, and the reverse). (b) VALUE seeds WS; probes p1fmt and p2gr12 show the VALUE results. (c) The §14.6.2.3.2 initial-state actions on WS are applied at first activation, after CANCEL and per INITIAL activation, each with evidence: action 2 by conformance:cases/13.5-Working-storage-section/recursive_ws; actions 3/5/6/7 by the PB154/PB234 goldens (pb154_cancel_initial, pb234_recursive_address_of_static); per-activation initial data by pb154_cancel_cascade. §14.6.2.4 (OK) sends object WS through the same initial state, and probe p3oo's VALUE 10 seed confirms it. No wrong answer was found on any of the three routes. || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): 85/2002/2014/2023 (VALUE and initial state); Annex E does not state the edition of the OPTIONS INITIALIZE clause (its goldens sit at 2023) retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.Oo.cs#RouteStaticUnitStorage (InitialStateBackground is a class of CodeGen/DataDivision/InitialStateBackground.cs; OptionsModel.cs names it only in comments | RouteStaticUnitStorage is declared in DataBinder.cs; DataBinder.Oo.cs names it only in comments) retired-witness: src/Cobol.Net.Compiler/Binding/OptionsModel.cs#InitialStateBackground (InitialStateBackground is a class of CodeGen/DataDivision/InitialStateBackground.cs; OptionsModel.cs names it only in comments | RouteStaticUnitStorage is declared in DataBinder.cs; DataBinder.Oo.cs names it only in comments)",
+ "state": "OK"
+}

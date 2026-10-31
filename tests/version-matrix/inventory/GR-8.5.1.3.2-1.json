@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.1.3.2-1",
+ "section": "8.5.1.3.2",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Levels",
+ "rule-digest": "dff05847ffdd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.RenamesEntry.cs#ScreenRenamesPlacement",
+ "test-ref": "conformance:cases/8.5.1.3.2-Level-numbers/pb485_level_number_legal_forms; conformance:cases/8.5.1.3.2-Level-numbers/pb1283-renames-after-77; conformance:cases/8.5.1.3.2-Level-numbers/pb1283-renames-entry-mid-record",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "(kb/Work PB1246, PB1283) The level-less 66 is a trailing alias of the preceding record; a mid-record 66 followed by a data entry and a 66 after a 77 are refused COBOL2740 (PB1283), re-probed on this build. retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.Renames.cs (the file name was mistyped in this wave's own first batch; the placement screen lives in DataBinder.RenamesEntry.cs)",
+ "state": "OK"
+}

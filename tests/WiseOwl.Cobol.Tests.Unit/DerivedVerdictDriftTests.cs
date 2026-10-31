@@ -128,10 +128,9 @@ public sealed class DerivedVerdictDriftTests
 
     private static Dictionary<string, JsonElement> Inventory()
     {
-        using var doc = JsonDocument.Parse(File.ReadAllText(TestRepo.VersionMatrix("traceability-inventory.json")));
         var map = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
-        foreach (var row in doc.RootElement.EnumerateArray())
-            map[row.GetProperty("rule-id").GetString()!] = row.Clone();
+        foreach (var row in TraceabilityInventory.Rows)
+            map[row.GetProperty("rule-id").GetString()!] = row;
         return map;
     }
 

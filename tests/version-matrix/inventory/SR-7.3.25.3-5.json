@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.25.3-5",
+ "section": "7.3.25.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "TURN directive",
+ "rule-digest": "3f90ac2aa841",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs#CheckDirectiveBans; src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveSiteProcessor.cs",
+ "test-ref": "conformance:cases/7.3.25-TURN/pb595_turn_inside_format3_perform; unit:ExceptionCheckingPerformDirectiveBanDriftTests.ATurnInsideAnExceptionCheckingPerform_WarnsCitingSr5_AndStillCompiles; unit:ExceptionCheckingPerformDirectiveBanDriftTests.TheSameDirectivesOutsideTheStatement_DrawNothing",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work/PB595.md - LANDED. A >>TURN written lexically anywhere within an exception-checking (Format-3) PERFORM draws COBOL2187, a suppressible conformance warning quoting SR5 and naming the clause; the program still compiles and still runs, which is owner decision D20 (2026-07-19: FLAT BAN - imperative-statement-1 included - SUPPRESSIBLE WARNING, since ISO 4.2.2 requires for a syntax-rule violation only an optionally-invoked compile-time warning mechanism). A compiler directive is removed by the preprocessor and is in no parse tree, so containment is decided over POSITIONS: DirectiveSiteProcessor records each position-ruled directive's site on the FINAL text, the one frame in which a directive line and a parser token line are the same number, and the binder tests it against the PERFORM's own [Start.Line, Stop.Line] span. Editions: Format 3 is a 2023 introduction (Annex E.3.3 item 36), so the rule has no edition below it; the below-2023 gate is witnessed by conformance:cases/14.9.28-PERFORM/pb441-f3-perform-below-2023.",
+ "state": "OK"
+}

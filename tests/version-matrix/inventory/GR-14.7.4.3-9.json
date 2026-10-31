@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.4.3-9",
+ "section": "14.7.4.3",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "ROUNDED phrase",
+ "rule-digest": "fcc143fd02d9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/FloatResultant.cs#FloatResultant; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreArith",
+ "test-ref": "conformance-test:RoundedDifferentialTests.ComputeRounded_Half_Negative; conformance:cases/14.7.4-ROUNDED/pb1196_float_resultant_rounded_mode; unit:FloatResultantTests.Binary32_TenthTakesTheModesNeighbor; conformance:cases/14.6.8.4-Floating-point-numeric-edited-receiving-data/pb2638_float_edited_rounded_store; unit:CobolEditFloatRoundingTests.TryFormatFloat_RoundsTheSignificandByTheMode; conformance:cases/14.7.4-ROUNDED/pb3829_rounded_bounded_function_modes",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1196 LANDED (w61e). The floating-point arm of the arithmetic store (ArithmeticEmitter.StoreArith) now lands through FloatResultant: the value is rounded ONCE into binary32/binary64 under the receiver's §14.7.4.3 mode (cite.py OK §14.7.4.3 9)). Re-probed on the w61e build: TOWARD-LESSER 0.1 -> 0.0999999940 (was 0.10000000149, larger); -0.1 -> -0.10000000149. ⚠ DETERMINATION (CONFORMANCE.md DOC-A.1-123): under native arithmetic an expression whose resultants are all floating-point evaluates in binary64, and that binary64 intermediate IS the arithmetic value the mode rounds; a binary64 resultant therefore holds it unchanged (COMPUTE D1 ROUNDED MODE IS TOWARD-GREATER = 1 / 3 equals the TOWARD-LESSER result), while an exact scaled/SDIDI value is rounded into either format once.",
+ "state": "OK"
+}

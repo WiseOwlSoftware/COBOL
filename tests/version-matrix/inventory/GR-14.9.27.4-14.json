@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.27.4-14",
+ "section": "14.9.27.4",
+ "kind": "GR",
+ "ordinal": 14,
+ "subject": "OPEN statement",
+ "rule-digest": "11889f8cf457",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ResetPosition",
+ "test-ref": "conformance:cases/14.9.27-OPEN/l1_open_position_input_io",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Sequential and relative INPUT and I-O reposition to record 1 on every OPEN (14.9.30.4 GR21b/GR25); indexed OPEN INPUT delivers the LOWEST prime key though the write order was K005/K003/K007, and re-establishes the PRIME key as key of reference after a START had made an alternate the key of reference. retired-witness: src/Cobol.Net.Runtime/IO/IndexedConnector.cs#OpenCore (the keyed OPEN arms are written once, in KeyedConnector.OpenCore, since both organizations drive the keyed store engine (kb/Work PB3334, PB2753)) retired-witness: src/Cobol.Net.Runtime/IO/RelativeConnector.cs#OpenCore (the keyed OPEN arms are written once, in KeyedConnector.OpenCore, since both organizations drive the keyed store engine (kb/Work PB3334, PB2753))",
+ "state": "OK"
+}

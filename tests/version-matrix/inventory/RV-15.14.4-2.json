@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.14.4-2",
+ "section": "15.14.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "BYTE-LENGTH function",
+ "rule-digest": "1a7a46f4a07d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#VariableLengthGroupSum; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#WrapIfOdoGroup",
+ "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb61_length_byte_length_rule_branches; conformance:cases/13.18.38-OCCURS/pb80_based_odo_group",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB80 (2026-08-18) closes the PB61 residue: r2a's BASED-entry half rides the same builder as LENGTH's r4a (BYTE-LENGTH is the bytes projection of the ONE VariableLengthGroupSum) — the unassociated maximum vs the associated current extent, guarded by BoundOdoExtent.BasedAddress.",
+ "state": "OK"
+}

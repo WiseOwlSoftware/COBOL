@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.83.3-2",
+ "section": "15.83.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "SMALLEST-ALGEBRAIC function",
+ "rule-digest": "7829588b442e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindAlgebraicFold",
+ "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.Algebraic_SmallestStandardDecimalBarsStandardBinaryFloat_1516",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED (kb/Work PB122): the rejection is no longer incidental to a blanket guard - SMALLEST rides the SAME mode-aware r2 bar as HIGHEST/LOWEST (one path, three functions), the message cites 15.83.3 rule 2 for SMALLEST (fsec3 per function), and the new conformance test pins FLOAT-BINARY-32 under STANDARD-DECIMAL drawing COBOL1516 with the 15.83.3 citation.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.33.3-4",
+ "section": "13.18.33.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "Level-number",
+ "rule-digest": "5cf748fa2f8b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#Classify",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb485-level-66-report-group; unit:LevelNumberArmDriftTests.EveryLevelNumberBearingRule_IsClassifiedByThePass",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The ReportGroup arm: a report group description entry subordinate to an RD takes 1-49 and no special level at all. reportGroupEntry is a distinct grammar rule reaching a distinct binder, which is why the screen sits on the shared levelNumber node instead of in each binder. kb/Work PB485.",
+ "state": "OK"
+}

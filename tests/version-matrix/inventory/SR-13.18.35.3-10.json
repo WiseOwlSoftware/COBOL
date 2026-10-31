@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.35.3-10",
+ "section": "13.18.35.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "LINE clause",
+ "rule-digest": "e9a555272e3e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#MultipleLineOperands",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb565_report_vertical_repetition; conformance:cases/13.18.35-LINE/pb565-multiple-line-with-occurs; conformance:cases/13.18.35-LINE/pb565-report-multiple-line-at-85",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB565 (vertical axis). All four sub-rules of the multiple LINE clause are enforced on COBOL2199: a) the NEXT PAGE phrase only with the first operand, b) all absolute operands before all relative ones, c) the occurrences of integer-1 ascending, d) no OCCURS clause in the same entry (the negative golden). The clause itself is LIVE - 13.18.35.4 GR9's equivalence is how the binder builds it - and the positive golden prints its three operands at page lines 2, 4 and 7 and, on a second entry, drives a VARYING counter over them. The form is a COBOL-2002 introduction (report-multi-line-2002, COBOL0900 below it), witnessed by pb565-report-multiple-line-at-85.",
+ "state": "OK"
+}

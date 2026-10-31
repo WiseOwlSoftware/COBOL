@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.18.4-3",
+ "section": "14.9.18.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "GOBACK statement",
+ "rule-digest": "550242c38483",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitGoback; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#RunMain",
+ "test-ref": "conformance:cases/14.9.18-GOBACK/goback_raising_main; conformance-test:StopGobackExitCodeTests.TerminationStatus_SetsProcessExitCode; conformance-test:ExceptionConditionConformanceTests.GobackRaisingFatal_InMainProgram_IsIgnored_NormalTermination",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Both halves located and measured. 'Operates as if executing a STOP statement': a main-program GOBACK raises ProgramReturn, which is caught at the program's own activation entry, so __Activate returns and RunMain's finally runs the 14.6.11 implicit CLOSE of every run-unit connector on exactly the path StopRun takes - i.e. the run unit ends, not merely the paragraph. Measured through a nested dispatch frame: probe gr3/inperform (the GOBACK sits in an out-of-line PERFORM) prints BEFORE / IN-PERFORM, never AFTER-PERFORM, and exits 4; probe gr6/globaldecl reaches it from inside a USE declarative and never returns to the OPEN's successor. 'With a status phrase, if any' - the !__asCalled guard passes the status to the OS in a main program only (the 2023 half of the rule; the STATUS phrase is a COBOL-2023 introduction). 'A RAISING phrase, if specified, is ignored' - the __asCalled block skips the whole staging, including the checking-off fatal arm, pinned by conformance:cases/14.9.18-GOBACK/goback_raising_main and the ECT031 conformance test with a FATAL name.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitGoback (the __asCalled guards); src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs (catch (ProgramReturn) at the activation entry); src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#RunMain",
+ "state": "OK"
+}

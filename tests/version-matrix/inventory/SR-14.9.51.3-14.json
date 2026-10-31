@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.51.3-14",
+ "section": "14.9.51.3",
+ "kind": "SR",
+ "ordinal": 14,
+ "subject": "WRITE statement",
+ "rule-digest": "7c5afb0c06f7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/OperandClassScreen.cs#WriteAdvancingIdentifier; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#ScreenAdvancingCount",
+ "test-ref": "conformance:cases/14.9.51-WRITE/pb1023_write_advancing_count; conformance:cases/14.9.51-WRITE/pb1023-write-advancing-count; unit:OperandClassScreenDriftTests.EveryRow_RefusesExactlyTheShapesItsRuleExcludes; conformance:cases/14.9.17-GO-TO/pb1421_goto_depending_function_identifier; unit:OperandClassScreenDriftTests.SendingRow_ClassesAFunctionIdentifierByItsResult",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB1023): identifier-2 is the OperandPositions.WriteAdvancingIdentifier row of the ONE operand-class screen (IntegerItem), refused with COBOL2365 in both lanes - alphanumeric, numeric-edited, group, index, floating-point and scaled items (the PIC X holding \"2\" that advanced two lines and the PIC 9V9 holding 1.5 that advanced one). The screen keys on the BOUND shape, so a constant-name standing for an integer literal is integer-1 (13.10.4 GR1). cite.py --check 14.9.51.3 \"Identifier-2 shall reference an integer data item\" -> OK 14).",
+ "state": "OK"
+}

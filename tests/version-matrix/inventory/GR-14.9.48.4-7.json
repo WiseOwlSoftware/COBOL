@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.48.4-7",
+ "section": "14.9.48.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "UNSTRING statement",
+ "rule-digest": "e898774924cd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsString; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/pb1185_figurative_delimiter_national_pcs; conformance:cases/14.9.48-UNSTRING/pb1185-national-unstring-delimiter-at-85; conformance:cases/14.9.48-UNSTRING/pb3226_unstring_symbolic_delimiter",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1185 LANDED (wave 73 group C). GR7 (cite.py --check 14.9.48.4 OK 7): a figurative delimiter stands for a single-character NATIONAL literal when identifier-1 is national, otherwise an alphanumeric one; 8.3.3.6.4 GR6 (cite.py --check OK 6) then takes its HIGH-/LOW-VALUE from the program collating sequence of that category. Half 1: the binder records the statement's character category ONCE (BoundUnstringStmt.CharacterCategory - the same fact GR11 c)/d) mint the conceptual items from) and StringEmitter.EmitUnstring renders every delimiter through OperandText.AsString(characterCategory:), whose figurative arm passes it to FigurativeConstants.Fill; it used to pass null for every caller, so a national sender under an alphanumeric or national PCS was split on the ALPHANUMERIC sequence's extreme. Half 2 (ALL) unchanged and conforming: the kernel collapses contiguous occurrences and returns one for DELIMITER IN (GR11d). Golden: PCS FOR ALPHANUMERIC \"ZY\" + FOR NATIONAL N\"CBA\" - a national sender splits at the national LOW-VALUE C, an alphanumeric one at Z, a national HIGH-VALUE delimiter matches the national HIGH-VALUE MOVE stores; the STRING GR2 twin (identifier-3 usage) is covered in the same golden. Negative: the national statement at --std 85 (COBOL0900).",
+ "state": "OK"
+}

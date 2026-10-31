@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.46.3-1",
+ "section": "13.18.46.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "REPORT clause",
+ "rule-digest": "4e322e825282",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportClauseNames; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ReportClauseNameRule",
+ "test-ref": "conformance:cases/13.18.46-REPORT/pb1285-report-clause-undefined-name",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "(kb/Work PB1285, wave 1005 A). 'Each report-name-1 shall be the subject of a report description entry in the report section of the same source element' (cite.py --check 13.18.46.3 OK 1)): ScreenReportClauseNames walks every FD's REPORT clause names against the RDs (the walk ResolveReports never made), COBOL2714.",
+ "state": "OK"
+}

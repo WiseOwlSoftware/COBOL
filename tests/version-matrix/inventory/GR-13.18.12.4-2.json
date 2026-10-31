@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.12.4-2",
+ "section": "13.18.12.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "CODE clause",
+ "rule-digest": "4e7b136c18ad",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ResolveReports; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ResolveReportCode",
+ "test-ref": "conformance:cases/13.18.12-CODE/pb1129_rd_code_literal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "(kb/Work PB1129, wave 1005 A). The code is outside the line description (COLUMN 1 is the first character after it) but inside the logical record size: ReportModel.LineWidth is RECORD CONTAINS minus the code's length (ResolveReports). Witness: with RECORD CONTAINS 10 CHARACTERS and CODE \"A1\", an item at line columns 9-10 lies past the record and does not print (A1HELLO 1, not A1HELLO 1 ZZ). cite.py --check 13.18.12.4 OK 2). retired-witness: src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#ReportCodeClause (the descriptor was deleted: the CODE clause is implemented and its syntax rules are COBOL2713 (ReportCodeClauseRule))",
+ "state": "OK"
+}

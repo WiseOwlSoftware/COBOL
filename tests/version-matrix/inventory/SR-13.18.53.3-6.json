@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.53.3-6",
+ "section": "13.18.53.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "SOURCE clause",
+ "rule-digest": "84b61b2ca5d3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenRepeatingOperandCount; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#RepetitionChain",
+ "test-ref": "conformance:cases/13.18.53-SOURCE/pb506-report-source-operand-count",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"If the SOURCE clause has more than one operand, the entry shall be a repeating entry or shall be subordinate to a repeating entry, and the number of operands of the SOURCE clause shall be equal to the number of repetitions of the repeating entry or the same number multiplied by the number of repetitions of any number of successive repeating entries at higher levels than the repeating entry.\" (cite.py --check 13.18.53.3 OK SR6). The admissible counts are the prefix products of the repetition chain. Probes: 6 = 3x2 and 3 = 3 accepted (p1); 4 operands against 3 / 6 refused COBOL2013 (pa, twice); 2 operands on a non-repeating entry refused COBOL2013 'requires the entry to be a repeating entry' (pb). The cited negative covers the count half; the non-repeating half is exercised by the shared reader and the VALUE twin conformance:cases/13.18.63-VALUE/pb506-report-value-not-repeating. || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): 1985, 2002, 2014, 2023 (Report Writer: 85 optional module, 2023 optional element A.4.11; the 2023 Annex E lists no SOURCE-clause change; the multi-operand / SOURCES / arithmetic-expression forms are 2002 introductions per docs/VERSION_CHANGE_REFERENCE - not derivable from the 2023 text itself)",
+ "state": "OK"
+}

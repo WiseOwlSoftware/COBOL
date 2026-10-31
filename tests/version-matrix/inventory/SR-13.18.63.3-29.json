@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-29",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 29,
+ "subject": "VALUE clause",
+ "rule-digest": "73c4a76a1221",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindCondition",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb728-cond-name-bit-group-through; conformance-test:NationalBooleanDataTests.IllegalValueShape_Rejects0898; unit:ConditionNameSubjectClassDriftTests.GroupAndElementaryConditionName_DrawTheSameScreens",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB575 + PB728 (landed 2026-09-06) - the third way to make the subject boolean, a GROUP-USAGE BIT conditional variable, is now enforced. The refuter was right that the adjudicator's shape (c) never measured it: its probe wrote the 88 AFTER `05 B1 PIC 1(4).`, so the conditional variable was the ELEMENTARY item. Written correctly - the 88 immediately under the 01, before the subordinate - the group leg drew NOTHING (MEASURED: `01 GB GROUP-USAGE BIT. 88 GB-RANGE VALUE B\"000\" THRU B\"111\". 05 GB-A PIC 1(3) USAGE BIT.` compiled clean while the elementary twin in the same program drew COBOL0898). The guard now reads DataItem.OperandPic, which answers 13.18.29.4 GR1 b) - 'a bit group is treated as though it were an elementary data item of usage bit and class and category boolean described with PICTURE 1(m)' - so 'the category of the subject of the entry is boolean' is true of the group and SR29 bars THROUGH on it: MEASURED after, BOTH legs of that program draw COBOL0898 citing SR29. Pinned by the new negative pb728-cond-name-bit-group-through.cob, and by the drift fact that asserts the group and elementary shapes draw the SAME screens (which cannot be satisfied by an over-rejection either: its national and class siblings hold the other two classes). The legal control still passes - a boolean VALUE LIST with no THROUGH compiles and evaluates, in the new positive golden pb728_condition_name_group_subject_class.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.30.3-3",
+ "section": "14.9.30.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "READ statement",
+ "rule-digest": "a07e552e4831",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/FileLockBinder.cs#CheckIgnoringLock",
+ "test-ref": "conformance:cases/14.9.30-READ/pb331-read-ignoring-with-lock; conformance:cases/14.9.30-READ/pb331_read_lock_brackets",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB331 LANDED. RULE: 'The LOCK phrase shall not be specified in the same READ statement as the IGNORING LOCK phrase.' (cite.py --check 14.9.30.3 OK.) 'The LOCK phrase' means WITH LOCK and NOT WITH NO LOCK: the standard names them apart in this very statement - GR11 b) 'except when the NO LOCK phrase is specified' and GR11 d) 'the record lock ... is set only if the LOCK phrase is specified on the READ statement' (both cite.py --check 14.9.30.4 OK).\nTHE RULE NOW HAS A CHECK, AND IT IS THE RULE'S OWN SHAPE. `FileLockBinder.CheckIgnoringLock` raises COBOL1818 when the IGNORING LOCK alternative of 14.9.30.2's contention bracket is written together with WITH LOCK from the retention bracket, and NOT when it is written with WITH NO LOCK. Both READ arms reach it: SequentialIoBinder.BindRead and KeyedIoBinder.BindRead each bind the retention bracket first and pass it in, so the two-arm shape cannot be half-fixed. MEASURED at --std 85, 2002, 2014 and 2023: `READ SQF NEXT RECORD IGNORING LOCK WITH LOCK ...` -> `error COBOL1818: READ on file 'SQF': the LOCK phrase shall not be specified in the same READ statement as the IGNORING LOCK phrase (ISO 14.9.30.3 SR3)`, exit 70, at every edition.\nWHAT THE PREVIOUS RECORD SAID, AND WHY IT WAS RIGHT TO CALL IT PARTIAL. The forbidden pair WAS rejected before, but by the grammar's collapse of the two printed brackets into one slot rather than by SR3 - and that collapse also rejected the LEGAL pair IGNORING LOCK WITH NO LOCK. `FileLockBinder.CheckRecordLockPhrase`'s doc comment claimed to enforce 'IGNORING LOCK and WITH LOCK are mutually exclusive' while its body tested only `file.LockMode is { Kind: LockKind.Automatic }`, which is SR4; that false traceability claim is gone from the source. Repairing FMT-14.9.30.2 would have deleted the accidental enforcement, which is why the check landed in the same change set. WITNESSES: conformance:cases/14.9.30-READ/pb331-read-ignoring-with-lock pins the rejection (`*> reject-at: 85 2002 2014 2023`, .err COBOL1818), and conformance:cases/14.9.30-READ/pb331_read_lock_brackets line S1 pins the PERMITTED pair - without that arm a compiler that simply rejected any two lock phrases would pass the negative. || EDITIONS AS ADJUDICATED: 2002 / 2014 / 2023 - the lock phrases are Annex A.4.7 2002 introductions, COBOL0900-gated at 85 (the SR3 diagnostic fires there too, alongside the introduction gate). The 2023 text carries no edition marker on this clause and Annex E is a 2014-to-2023 delta only.",
+ "state": "OK"
+}

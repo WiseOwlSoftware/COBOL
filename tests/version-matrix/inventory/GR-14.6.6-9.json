@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.6-9",
+ "section": "14.6.6",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "Execution",
+ "rule-digest": "c9b54c882d82",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#Locale",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb64t1_locale_scope_and_return",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T1 (2026-08-19): the locale state hangs off the RUN UNIT, not the activation stack, so a callee's SET LOCALE stands after it returns (the OUTER-2 line of the golden); restoring is the callee's responsibility (the §14.6.6 NOTE), for which SET format 12 exists.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.33.3-3",
+ "section": "14.9.33.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "RESUME statement",
+ "rule-digest": "a9d3e14fed35",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#BindResume",
+ "test-ref": "conformance:cases/14.9.33-RESUME/l1c24-resume-at-declarative-paragraph; conformance:cases/14.9.33-RESUME/l1c24-resume-at-declarative-section",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'Procedure-name-1 shall be a procedure-name in the nondeclarative portion of the function, method, or program.' (cite.py --check 14.9.33.3 -> OK §14.9.33.3 3)). BindResume resolves procedure-name-1 through the ONE procedure-operand resolution (scoped to the source element, so a name of another program does not resolve) and refuses a target whose SECTION is declarative (target.IsDeclarative, PB433) with COBOL0714. PROBED with the pinned cobol.exe: RESUME AT a declarative paragraph (sr3_D2.cob) and RESUME AT the declarative section itself (sr3_D.cob) -> COBOL0714; RESUME AT an undeclared name (sr3_X9.cob) -> COBOL1639; RESUME AT a nondeclarative paragraph compiles and transfers (gr3b.cob). pb1010_method_declaratives exercises the method arm. No test asserts COBOL0714 (searched tests/ for 0714: none), so the row is CONFORMS-but-untested; the needed negative is a declarative RESUME AT one of its own paragraphs.",
+ "state": "OK"
+}

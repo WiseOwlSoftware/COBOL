@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-52",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 52,
+ "subject": "Devices that allow concurrent access",
+ "rule-digest": "773acf4a096d",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-52; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs",
+ "test-ref": "conformance:cases/14.9.27-OPEN/l1c11_sharing_every_device_shareable",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "A.1 item 52 (9.1.15): required, documented. cite.py --check 9.1.15 'The implementor shall specify which devices allow concurrent access to a physical file' -> OK §9.1.15 (Sharing mode), re-run this session. Item 52 and item 76 ('File sharing (which devices allow concurrent access to the file)', §9.1.15) are the SAME obligation stated twice in Annex A.1; item 76's row ('All of them.') is registered and its inventory row is CONFORMS on conformance:cases/14.9.27-OPEN/l1c11_sharing_every_device_shareable. This row repeats that determination so the two can never give different answers. doc-rows-1 OMITTED 52 on PB833 (cross-run-unit lock strength on POSIX) and PB322 (default sharing mode, item 77); neither governs WHICH devices allow concurrent access — row 76 already scopes both out, and this row does the same, so no defect is documented. Witness re-run on pin 80de60472 --std 2002: output identical to l1c11_sharing_every_device_shareable.out (PR-OPEN=00 DK-OPEN=00 EX-OPEN=61 ...). Owning note for the adjacent open work: PB322 (claims 52 today — on landing, PB322's inventory_rows should drop DOC-A.1-52) and PB833.",
+ "state": "OK"
+}

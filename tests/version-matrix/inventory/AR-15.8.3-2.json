@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.8.3-2",
+ "section": "15.8.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "ACOS function",
+ "rule-digest": "d64c8a472e1d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Acos; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.cs#FromDouble; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#DomainScaled; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#DomainArg; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build",
+ "test-ref": "conformance:cases/15.8.3-Argument-rules/l1_acos_argument_domain; conformance:cases/15.8.3-Argument-rules/l1_acos_domain_accept; conformance:cases/15.8.3-Argument-rules/pb952_argument_domain_bound_adjacent; conformance:cases/15.8.3-Argument-rules/pb952-argument-domain-checking-at-85; unit:IntrinsicArgumentDomainDriftTests.TheScaledScreen_DecidesOnTheExactValue_NotItsDouble; unit:IntrinsicArgumentDomainDriftTests.EveryBinary64RowsArgumentDomain_IsExactlyItsSection15ValueRule",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Closed interval measured both ways under >>TURN EC-ARGUMENT-FUNCTION CHECKING ON: -1/+1/0 admitted with S15.8.4 r1 codomain windows, +/-2 and +/-1.000000001 set EC-ARGUMENT-FUNCTION per S15.3. At edition 85 only S15.8.3 r2's ACCEPT arm is observable -- S15.3's consequence requires the 2002+ EC model (>>TURN is COBOL0900 (kb/Work PB725 retired the bespoke COBOL0875: every ISO 7.3 compiler directive now shares the ONE registry introduction band) below 2002) -- so 85/l1_acos_domain_accept carries the endpoints there. kb/Work/PB952 (2026-09-22): RE-ADJUDICATED ON A BOUND-ADJACENT WITNESS. The prior CONFORMS rested on a witness nine decimals out (+/-1.000000001), which binary64 still distinguishes from 1.0; the closest fixed-point argument outside the interval, 1 + 10**-30 in a PIC S9V9(30) item (13.18.40.3 SR14), rounds to 1.0 and the NaN artifact that was the only screen never fired, so ACOS/ASIN answered 0 / pi/2 under ARMED checking with no condition (DIVERGES until this landing). The rule is now decided on the EXACT operand before the binary64 conversion: IntrinsicSig.Domain (ClosedUnit, DomainRule the rule-2 cite) -> IntrinsicRenderer.DomainArg -> CobolIntrinsics.DomainScaled/DomainDec/DomainReal; the bodies carry no test. conformance:cases/15.8.3-Argument-rules/pb952_argument_domain_bound_adjacent raises for +/-(1 + 10**-30) and admits the bound itself; IntrinsicArgumentDomainDriftTests holds the catalog column to the 15.x.3 rule text.",
+ "state": "OK"
+}

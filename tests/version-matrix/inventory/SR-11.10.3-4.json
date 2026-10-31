@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.10.3-4",
+ "section": "11.10.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "PROGRAM-ID paragraph",
+ "rule-digest": "d60f7416eee3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit",
+ "test-ref": "conformance:cases/11.10-PROGRAM-ID/l1c21-common-outermost-program",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'The COMMON clause may be specified only if the program is contained within another program' (--check 11.10.3 -> OK §11.10.3 4)). MakeUnit: `if (common && parent is null) edition.Error(\"COBOL0887\", ... (ISO §11.10.3 SR4))`. Probe probe dir out/probe/program-id-paragraph/sr4.cob (outermost `PROGRAM-ID. SR4OUT IS COMMON.`) -> COBOL0887 at --std 85, 2002, 2023; contained COMMON programs compile (gr2 probe). FUNCTION-ID has no COMMON arm in its grammar. No golden/unit test pins COBOL0887 (grep of tests/ finds none) -> test-needed. || Editions (adjudicator, verbatim): 1985, 2002, 2014, 2023",
+ "state": "OK"
+}

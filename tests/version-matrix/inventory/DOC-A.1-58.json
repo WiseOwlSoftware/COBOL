@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-58",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 58,
+ "subject": "DISPLAY statement (size of data transfer)",
+ "rule-digest": "02b86d5056fd",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-58; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitDisplay",
+ "test-ref": "conformance:cases/14.9.11-DISPLAY/l1_display_transfer_size; conformance-test:DisplayUponTests.Upon_EachOutputDevice_TransfersALongOperandAsOneLine",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§14.9.11.4 GR2's transfer size is determined UNBOUNDED for EVERY output device (docs/CONFORMANCE.md DOC-A.1-58, restated by kb/Work PB243 to name each device: the standard display device, CONSOLE and SYSOUT on standard output, SYSERR on standard error) and measured on each: conformance:cases/14.9.11-DISPLAY/l1_display_transfer_size emits a 2,000-position operand (an ALL-literal fill under §8.3.3.6.4 GR2, the fixed-length-association arm) as ONE line on the standard device - GR5 a) would fold it - plus GR6's five-operand sending item on one line; DisplayUponTests.Upon_EachOutputDevice_TransfersALongOperandAsOneLine emits the same operand as one line on SYSOUT, CONSOLE and SYSERR. The earlier residue (only the no-UPON device measured) and the row-58 cell's 'GR3' slip (it names GR4, the device-accommodates arm) are both discharged. || editions 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a facility that exists at every edition (the COBOL-85 nucleus, I-O, inter-program and SPECIAL-NAMES implementor-names; its arithmetic, the only arithmetic of COBOL-85, is what later editions name native).",
+ "state": "OK"
+}

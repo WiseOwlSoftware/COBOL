@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.19.4-1",
+ "section": "7.3.19.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "PAGE directive",
+ "rule-digest": "5d62b6f908cf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb794_directive_operands; unit:TextManipulationDirectiveLineTests.CopyInPageCommentText_IsNotACopyStatement; conformance:cases/7.2.3-COPY/pb1352_directive_lines_not_replaced",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1352 (w67m): the refuted half is closed — the 7.2.3.4 GR10 scan (FindCopyKeyword over TextWordScanner) no longer sees a COPY inside >>PAGE comment-text in library text copied with REPLACING, because the >>PAGE line is one DirectiveLine element (golden leg [PG]). Main-source comment-text was already inert.",
+ "state": "OK"
+}

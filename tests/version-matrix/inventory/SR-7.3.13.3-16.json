@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.13.3-16",
+ "section": "7.3.13.3",
+ "kind": "SR",
+ "ordinal": 16,
+ "subject": "EVALUATE directive",
+ "rule-digest": "444bcb35db93",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/pb1364-when-format2-after-match-malformed",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1364. A Format-2 constant-conditional-expression is formed per 7.3.8 on every WHEN, matched or not.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.14.4-6",
+ "section": "15.14.4",
+ "kind": "RV",
+ "ordinal": 6,
+ "subject": "BYTE-LENGTH function",
+ "rule-digest": "1e07827ef644",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#VariableLengthGroupSum; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#DynamicResolve",
+ "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb61_length_byte_length_rule_branches",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB61 — the LENGTH/BYTE-LENGTH folds enumerated from the rule branches; one builder for a runtime-length group; SR6 decided from the definition before binding). §15.14.4 r6 — a variable-length group (§8.5.1.12.1) without PHYSICAL is (a) the fixed subordinates + (b) each dynamic-length item's current bytes + (c) each dynamic-capacity table's current capacity × its element bytes, ONE expression from VariableLengthGroupSum: golden VLG 4 + 5 = 9, VLN 4 + 6 = 10, DCG 2 + 0 = 2 then SET CAP TO 4 → 14, DCN (no CAPACITY IN — the register is now minted for every dynamic table) 2 → 11 after a receiving reference grew the table to 3, MIX 4 + 8 + 2×4 = 20, and ODOD — an ODO table AND a dynamic leaf in one group — 2 + 5 + 9 = 16 (the ODO-only arm had silently dropped the leaf). (c) staged loud before. The one un-summed shape is NAMED, never miscounted: a runtime-length item INSIDE a table element (a per-occurrence loop; r6c's 'based on their current capacity' defines only the fixed-element case) and a bit-bearing group — a loud stage with the shape in its message.",
+ "state": "OK"
+}

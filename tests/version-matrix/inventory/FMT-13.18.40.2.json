@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.40.2",
+ "section": "13.18.40.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "PICTURE clause",
+ "rule-digest": "2b76e79719eb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeLocaleEdited",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb64t6_picture_locale_smoke; unit:CobolLocaleEditTests.Format_InvariantLocale_EditsPerTheRules",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Format 1 was long implemented; format 2 (LOCALE) landed at PB64 T6 - the picture-locale-format2-2002 construct row gates the 2002 introduction (COBOL0900 below). Re-affirmed 2026-10-22 (kb/Work PB3530) against the figure regenerated from the printed page: render_figure.py's brace-group layout now keeps every alternative inside its own enclosure, so the diagram's layout changed while its words did not (sweep_figures.py's word gate); the verdict stands on the printed format. Re-affirmed 2026-10-22 (kb/Work PB3530, review R1-1) against the figure regenerated again: render_figure.py now keeps each printed line whole inside the enclosures that hold its words and starts a new row at a step wider than 3.5 pt, so the diagram's layout changed while its words did not (sweep_figures.py's word gate); the verdict stands on the printed format.",
+ "state": "OK"
+}

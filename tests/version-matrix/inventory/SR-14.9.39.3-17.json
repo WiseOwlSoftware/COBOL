@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-17",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 17,
+ "subject": "SET statement",
+ "rule-digest": "80622d9410b0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetFormatSelection.cs#SelectForTo; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetPointer; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#PtrResolvePointer; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#BindSetAddress",
+ "test-ref": "conformance:cases/14.9.39-SET/pb456-set-pointer-sender-numeric-receiver; conformance:cases/14.9.39-SET/pb456-set-pointer-sender-not-a-pointer; conformance:cases/14.9.39-SET/pb449-set-mixed-pointer-receivers; conformance:cases/14.9.39-SET/pb456_set_sender_selected_formats; conformance:cases/14.9.39-SET/pb450-set-format7-second-receiver-not-pointer; conformance:cases/14.9.39-SET/pb450_set_format7_receiving_list",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB449 + PB456 (wave-41 finisher), then kb/Work PB450 half 2. SR17 is TWO sentences - 'Identifier-5 shall reference a data item of category data-pointer. Identifier-6 shall be of category data-pointer.' (cite.py --check 14.9.39.3 OK) - and both halves are enforced over EVERY operand now that Format 7 is selected from the whole receiving list rather than from receivers[0]; each half ships its own witness. ### PB450 half 2 adds the evidence PB450 6) said the row lacked, namely that SR17 is asked about the operands the grammar could not express at all: it is asked per receiving operand over the printed list, so a non-pointer SECOND receiver is refused by name (negative/pb450-set-format7-second-receiver-not-pointer: `SET ADDRESS OF B1 WS-N TO P1` -> COBOL0869 against WS-N, where the same statement was `COBOL0001: unexpected 'WS-N'` before). The diagnostic text was corrected with it: it named the SENDER's spelling ('the receiver of SET ... TO ADDRESS OF') and carried a U+2026 the renderer transliterates to ASCII (kb/Work PB388), which is false for every Format-7 sender that is a plain pointer or NULL - and those reach this screen now, because the receiving list may mix the two spellings. It reads 'identifier-5, a receiving operand of SET Format 7 (ISO 14.9.39.2; 14.9.39.3 SR17)'. ### EVIDENCE-UNION REPAIR (wave 43 group E): batch-01 re-recorded this row with the two PB450 witnesses ALONE, dropping the three PB449/PB456 witnesses and the three PB449/PB456 code-locations that the row's own note said it was only ADDING to. record_verdicts.py REPLACES evidence fields rather than merging them. This record restores the union: SR17's two sentences are witnessed at arity one (PB456) and over the printed receiving list (PB450).",
+ "state": "OK"
+}

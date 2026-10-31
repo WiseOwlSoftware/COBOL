@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.14.4-1",
+ "section": "13.14.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Report description entry",
+ "rule-digest": "50924f39dcbd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindReportDescriptionClauses; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#InheritGlobalReport",
+ "test-ref": "conformance:cases/13.14-Report-description/l1c27_global_report_counters",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 13.14.4 OK): 'If GLOBAL is specified, report-name-1 and all its constituent report groups, its PAGE-COUNTER and LINE-COUNTER, and any sum counters defined in report-name-1 are global.' Code: reportGlobalClause sets ReportModel.IsGlobal; InheritGlobalReport adds the report (and through it its groups and counters) to a contained program's VisibleReports and registers its sum counters, hideable by a local declaration (§8.4.6). Probe g1.cob (2023 and --std 85): contained program reads unqualified PAGE-COUNTER (=01), LINE-COUNTER OF R-1 (=02) and GENERATEs DET-1 IN R-1 of the container's GLOBAL report; output correct. Sum-counter half read in InheritGlobalReport and covered by unit GlobalReportScopeTests.AGlobalReportsSumCounter_IsVisibleInAContainedProgram_UnlessHidden (emit-shape only). conformance:cases/13.18.27-GLOBAL/pb369_global_report_use_selection covers report-name, groups and PAGE-COUNTER OF R-1 but not LINE-COUNTER or a sum-counter value, so no single spec-derived test covers the whole rule -> test-ref left empty (test-needed).",
+ "state": "OK"
+}
