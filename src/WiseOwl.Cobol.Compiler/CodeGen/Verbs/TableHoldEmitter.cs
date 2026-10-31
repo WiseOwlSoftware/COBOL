@@ -45,6 +45,8 @@ internal sealed class TableHoldEmitter(EmitContext ctx, SetEmitter set)
             });
             if (hold.Count is { } count)
                 set.StoreSetTarget(new SetPlaceTarget(count), new NumX(stored, 0));
+            // §15.3 14): an ALL that yields no argument is EC-ARGUMENT-FUNCTION, raised where the argument is evaluated (GR2).
+            w.Line(RuntimeApi.TableRequireOccurrences(stored));
         }
     }
 

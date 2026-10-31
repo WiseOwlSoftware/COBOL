@@ -628,7 +628,9 @@ call. The held table is ONE flat level in enumeration order whatever the number 
 (`TableAllPlace.StaticCount` elements); a fixed table at the product of the levels' maxima, with the counted number of elements in a numeric
 temporary the held enumeration ranges over (`AllCount.Odo`, minimum 0), when a level is OCCURS DEPENDING (it never allocates more than the
 table it copies); a dynamic-capacity table whose capacity the copy sets to the counted number (`TableHoldEmitter`: the walk runs twice) when a
-level is a dynamic-capacity table, which has no allocated maximum. An element `SendingValueTemp.Model` cannot describe (a variable-length
+level is a dynamic-capacity table, which has no allocated maximum (or the product of the maxima passes one fixed table). A held ALL that found
+no occurrence raises the same fatal EC-ARGUMENT-FUNCTION as the enumeration does (`CobolTable.RequireOccurrences`, the one raise `AllArgs` also
+calls), at its own place in the list and so before a later activation. An element `SendingValueTemp.Model` cannot describe (a variable-length
 group, the one shape the MOVE intermediate also leaves un-held) is not held. `ArgumentOrderDriftTests` pins the record and the one holder; the
 conformance goldens `pb4162_table_all_argument_held_for_order` and `pb4162_table_all_dynamic_capacity_held_for_order` pin the order over
 fixed, two-level, partly subscripted, OCCURS DEPENDING, text, nested and nested-dynamic-capacity tables.

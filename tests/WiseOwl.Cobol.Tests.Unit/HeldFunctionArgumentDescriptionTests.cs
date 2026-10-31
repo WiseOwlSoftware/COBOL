@@ -177,6 +177,58 @@ public sealed class HeldFunctionArgumentDescriptionTests : WiseOwlCobolTestBase
         Assert.Equal("START", stdout);   // neither the activation ("UDF RAN") nor the DISPLAY after it ran
     }
 
+    /// <summary>⛔ A table(ALL) THAT RANGES OVER NOTHING ENDS THE REFERENCE AT ITS PLACE IN THE LIST, BEFORE A LATER ACTIVATION (kb/Work
+    /// PB4162). §15.3 14) leaves the reference undefined when "the evaluation of an ALL subscript" yields no argument, and WiseOwl COBOL
+    /// defines that as a fatal EC-ARGUMENT-FUNCTION, checking or not (<c>CobolTable.RequireOccurrences</c>). The held form of the argument
+    /// is that evaluation (§8.4.3.2.4 GR2), so the user-defined function in argument-2 must never run. Both range kinds that can be
+    /// empty: an OCCURS DEPENDING table whose object is 0, and a dynamic-capacity table at capacity 0.</summary>
+    [Theory]
+    [InlineData("OCCURS 0 TO 5 TIMES DEPENDING ON WS-CNT PIC 9(3)", true)]
+    [InlineData("OCCURS 0 TO 5 TIMES DEPENDING ON WS-CNT PIC 9(3)", false)]
+    [InlineData("OCCURS DYNAMIC PIC 9(3)", true)]
+    [InlineData("OCCURS DYNAMIC PIC 9(3)", false)]
+    public void AnEmptyTableAllArgumentIsRaisedBeforeALaterActivation(string occurs, bool checking)
+    {
+        string source = $$"""
+            {{(checking ? ">>TURN EC-ARGUMENT-FUNCTION CHECKING ON" : "")}}
+            IDENTIFICATION DIVISION.
+            FUNCTION-ID. HFADEMP.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 L-X PIC 9(8).
+            01 L-R PIC 9(8).
+            PROCEDURE DIVISION USING L-X RETURNING L-R.
+            P.
+                DISPLAY "UDF RAN"
+                MOVE L-X TO L-R.
+                GOBACK.
+            END FUNCTION HFADEMP.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. HFADEMPTY.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                FUNCTION HFADEMP
+                FUNCTION ALL INTRINSIC.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-CNT PIC 9 VALUE 0.
+            01 WS-C PIC 9(8) VALUE 5.
+            01 WS-G.
+               05 WS-T {{occurs}}.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY "START"
+                DISPLAY FUNCTION SUM(WS-T (ALL), FUNCTION HFADEMP(WS-C))
+                DISPLAY "END"
+                STOP RUN.
+            END PROGRAM HFADEMPTY.
+            """;
+        var (ok, stdout, _) = CompileAndRun(source, dialectLevel: 2023);
+        Assert.False(ok);   // the fatal exception ended the run
+        Assert.Equal("START", stdout);   // neither the activation ("UDF RAN") nor the DISPLAY after it ran
+    }
+
     [Fact]
     public void AHeldArgumentIsDescribedAsTheUnheldArgumentIs()
     {

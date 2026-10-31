@@ -608,9 +608,9 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// <see cref="BoundHoldTableAll"/>: one flat level in enumeration order, whatever the number of ALL levels, of the product of
     /// the levels' maxima (an OCCURS DEPENDING level counts at most its maximum, so no allocation exceeds the table it copies),
     /// and, when a range is a run-time value, the number of elements the copy counted in a numeric temporary the held enumeration
-    /// ranges over (<see cref="AllCount.Odo"/>). A dynamic-capacity level has no allocated maximum, so it makes the held table a
-    /// dynamic-capacity one whose capacity the copy sets (§8.5.1.9). Null - nothing held - for an element <see cref="Model"/> cannot
-    /// describe (a variable-length group).</summary>
+    /// ranges over (<see cref="AllCount.Odo"/>). A dynamic-capacity level has no allocated maximum (and a product of maxima may pass what one
+    /// fixed table holds), so either makes the held table a dynamic-capacity one whose capacity the copy sets (§8.5.1.9). Null - nothing
+    /// held - for an element <see cref="Model"/> cannot describe (a variable-length group, which a function argument cannot be: COBOL1627).</summary>
     internal Place? MaterializeTableAll(TableAllPlace all, string tag, int? at = null) =>
         Positioned(at, () => FreezeTableAll(all, tag));
 
@@ -627,8 +627,8 @@ internal sealed class SendingValueTemp(BinderContext ctx)
                 AllCount.ReportDepending d => d.MaxOccurs,
                 _ => 0,   // a dynamic-capacity level has no allocated maximum
             };
-            if (max < 1) dynamic = true;
-            else if ((capacity *= max) > int.MaxValue) return null;
+            // A level with no allocated maximum, or a product past what one fixed table holds, is held in a dynamic-capacity table.
+            if (max < 1 || (capacity *= max) > int.MaxValue) { dynamic = true; break; }
         }
         var element = new BoundFieldOperand(all.Element);
         if (Model(element, default) is not { } model) return null;
@@ -636,13 +636,16 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         cell.IsDynamicLength = model.DynLimit > 0;   // the run-time-length attributes are no part of the cloned description (Freeze)
         if (cell.IsDynamicLength) cell.DynMaxSize = model.DynLimit;
         var held = new LocalVector($"__hold{table.Uid}");
-        if (ctx.Refs.ResolveItemAt(cell, [new PositionLocalElement(held, 0)]) is not { } heldElement) return null;
+        // A compiler temporary always resolves; a refusal here would quietly leave the argument un-held, the defect this exists to remove.
+        if (ctx.Refs.ResolveItemAt(cell, [new PositionLocalElement(held, 0)]) is not { } heldElement)
+            throw new InvalidOperationException($"SendingValueTemp: the held table(ALL) cell '{cell.CobolName}' did not resolve to a place");
         Place? count = null;
         AllCount heldCount;
         if (dynamic)
         {
             // A dynamic-capacity table's count IS its current capacity, which the holder sets to the number of elements it counted.
-            if (ctx.Refs.CurrentOccurrenceCount(cell, []) is not { } capacityCount) return null;
+            if (ctx.Refs.CurrentOccurrenceCount(cell, []) is not { } capacityCount)
+                throw new InvalidOperationException($"SendingValueTemp: the held dynamic-capacity table '{cell.CobolName}' has no current-capacity count");
             heldCount = capacityCount;
         }
         else if (all.StaticCount is { } fixedCount) heldCount = new AllCount.Fixed((int)fixedCount);
@@ -654,7 +657,8 @@ internal sealed class SendingValueTemp(BinderContext ctx)
                 Pic = new PicInfo(PicCategory.Numeric, Usage.Display, Length: 10, Digits: 10, Scale: 0, Signed: false),
             };
             var number = ctx.Data.CreateCompilerTemp(numberModel, "__HELDALLN-", "__heldalln", tag);
-            if (ctx.Refs.ResolveItem(number) is not { } numberPlace) return null;
+            if (ctx.Refs.ResolveItem(number) is not { } numberPlace)
+                throw new InvalidOperationException($"SendingValueTemp: the held table(ALL) count '{number.CobolName}' did not resolve to a place");
             (count, heldCount) = (numberPlace, new AllCount.Odo(numberPlace, 0, (int)capacity));
         }
         var heldAll = new TableAllPlace(heldElement, held, [heldCount]);
