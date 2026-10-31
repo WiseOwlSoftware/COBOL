@@ -60,7 +60,7 @@ internal sealed record SetSender(string Text, Core.DataReferenceContext? Ref, Bo
     public static SetSender OfExpression(string text) => new(text, null, null, null);
 
     /// <summary>A bare data reference sender, still to be resolved by the format that takes it.</summary>
-    public static SetSender OfReference(Core.DataReferenceContext dref) => new(dref.GetText(), dref, null, null);
+    public static SetSender OfReference(Core.DataReferenceContext dref) => new(DataBinder.WrittenText(dref), dref, null, null);
 }
 
 /// <summary>⛔ THE ONE CLASSIFIER OF A SET SENDER (kb/Work PB1399 + PB1929 — "fix both through one sender
@@ -79,7 +79,8 @@ internal sealed class SetSenders(StatementBinder host)
     /// stops on through <see cref="IsRefused"/>.</summary>
     public SetSender Classify(Core.ArithmeticExpressionContext amount)
     {
-        string text = amount.GetText();
+        // As written: GetText() prints a bare ZERO as its rewritten ZERO_ARITH token "0" (kb/Work PB4209, PB3961).
+        string text = DataBinder.WrittenText(amount);
         if (ConditionBinder.SoleFunctionCall(amount) is { } fc)
             return Identified(fc, host.Intrinsic.BindIntrinsic(fc));
         // SELF / SUPER (Format 6) are carried by NAME: the SET rules speak of them as such (kb/Work PB1425). They parse

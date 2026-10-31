@@ -1306,7 +1306,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         var recvs = Receivers(tv.setReceivingIdentifier());
         var kinds = _fmt.KindsOf(recvs);
         var amount = tv.arithmeticExpression();
-        string senderText = amount.GetText();
+        // As written: GetText() prints a bare ZERO as its rewritten ZERO_ARITH token "0" (kb/Work PB4209, PB3961).
+        string senderText = DataBinder.WrittenText(amount);
         // ⛔ THE FORMATS THAT TAKE THE AMOUNT AS AN EXPRESSION OF THEIR OWN are decided from the receiving list alone,
         // BEFORE the sender is classified: classifying binds a sole function-identifier (and registers its
         // activation), and F14/F16 bind the same expression themselves — binding it here as well would run a user
@@ -1489,7 +1490,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             case SetFormat.F2:
                 break;
             default:
-                _fmt.ReportNoFormat(recvs, kinds, SetDirections.UpDown, amount.GetText());
+                _fmt.ReportNoFormat(recvs, kinds, SetDirections.UpDown, DataBinder.WrittenText(amount));
                 return BoundRejected.Reported(ctx.Edition);
         }
         var targets = new List<BoundSetTarget>();
