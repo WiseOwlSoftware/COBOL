@@ -13,11 +13,12 @@ namespace WiseOwl.Cobol.Tests.Unit.Collation;
 /// </summary>
 public sealed class ImplicitSecondDriftTests
 {
+    private static readonly TreeScope CollationSources = new(Under: ["src/WiseOwl.Cobol.Runtime/Collation/"], Kinds: [".cs"]);
+
     [Fact]
     public void TheImplicitSecondFloor_IsWrittenOnlyInTheTable()
     {
-        var scope = new TreeScope(Under: ["src/WiseOwl.Cobol.Runtime/Collation/"], Kinds: [".cs"]);
-        var offenders = TrackedTree.Files(scope)
+        var offenders = TrackedTree.Files(CollationSources)
             .Where(rel => Path.GetFileName(rel) != "CollationTable.cs")
             .Where(rel => File.ReadAllText(TestRepo.At(rel.Split('/'))).Contains("0x8000", StringComparison.OrdinalIgnoreCase))
             .ToList();
