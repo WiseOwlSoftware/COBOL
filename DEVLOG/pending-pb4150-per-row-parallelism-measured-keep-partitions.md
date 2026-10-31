@@ -1,4 +1,4 @@
-## PB4150 measured: per-row test parallelism does not beat the partition classes after M6, so the partitions stay
+## PB4150 measured: per-row test parallelism's 12 % lead over the partition classes does not clear the shared host's noise, so the partitions stay until a reserved-host measurement
 
 kb/Work PB4150 asked whether a framework that runs a test class's rows in parallel (Meziantou.Xunit.ParallelTestFramework)
 now beats the hand-written partition classes, since DESIGN-test-build-ci.md section 3.11's verdict that the class-split
@@ -29,10 +29,24 @@ cannot coexist with `GateTestFramework`. A mid-run stack sample showed 26 of the
 process: the leg is bound by its threads waiting on compiled programs and by the host's load, not by the class
 structure.
 
-**Determination.** Keep the partition classes. DESIGN-test-build-ci.md section 3.11.1 now carries the post-M6
+**Determination (first series; revised after review, below).** Keep the partition classes. DESIGN-test-build-ci.md section 3.11.1 now carries the post-M6
 measurements in place of the pre-M6 "exhausted" verdict, section 3.11 names the rejected third lever, and section
 3.14.5's M6 paragraph points to the result. PB4150 is landed with `closes_rows: []` (process only). The Unit assembly
 was not measured, since B did not clear the bar.
+
+**Review round 1 and the second series.** The branch review (finding R1-1, blocking) held that the first determination
+rested on a host PB4150's protocol forbade (step 3 asks for an idle host; every arm-A run had 0–4 other gates beside
+it), stated no deviation, and left out B2's paired rounds, in which B2 beat A 5 times in 6. The review finisher rebuilt
+A, B2 and Ag at `773f18466` and ran eight more alternating rounds, sampling the gate slots every 5 s through each run.
+Only two rounds were free of other gates (and other sessions' builds still ran), and the fleet's next wave filled every
+slot from round 6, so the series stopped after round 8 rather than hold a slot four implementer gates were queued
+behind. Pooled over 14 pairs, B2 was faster than A in 10, slower in 3 and tied in 1: about 12 % faster (geometric mean
+of the ratios 0.877), p = 0.070 by a paired t-test on the log ratio and 0.092 by an exact sign test. Ag against A is
+noise (p = 0.70). So the determination now reads: keep the partition classes until a measurement on a reserved host
+decides, per-row parallelism neither adopted nor rejected, the four costs as what an adoption must answer, and the
+reserved-host measurement left to the registrar as a new note. Section 3.11.1 carries the second series' table and the
+stated deviation, and sections 3.11, 3.12 and 3.14.5 no longer call per-row parallelism rejected; section 3.14.5's
+bullet no longer quotes the retired "the class-split lever is exhausted" sentence (lead R1-2).
 
 **Self-review.** Every number in the design doc and the note was re-read against the run records (the walls table, the
 pole start and end times, the paired differences and the thread counts). One claim was corrected before commit: the
