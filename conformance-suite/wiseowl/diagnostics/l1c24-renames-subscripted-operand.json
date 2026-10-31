@@ -1,0 +1,1 @@
+{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "COBOL2024: 'X1' RENAMES 'R-A(1)' is written with a subscript"}
