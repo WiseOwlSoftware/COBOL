@@ -24160,6 +24160,19 @@
   ],
   "expect": "COBOL0900: a FUNCTION-ID paragraph (user-defined function definition) requires COBOL-2002"
  },
+ "pb4162_table_all_argument_held_below_2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0900: a FUNCTION-ID paragraph (user-defined function definition) requires COBOL-2002"
+ },
+ "pb4162_table_all_dynamic_capacity_held_below_2014": {
+  "refuse-at": [
+   "85",
+   "2002"
+  ],
+  "expect": "COBOL0900"
+ },
  "pb3953_function_argument_below_2014": {
   "refuse-at": [
    "85",
