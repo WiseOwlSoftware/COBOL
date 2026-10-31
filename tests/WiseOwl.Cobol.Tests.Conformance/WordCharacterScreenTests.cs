@@ -182,6 +182,30 @@ public sealed class WordCharacterScreenTests
         Assert.Equal(!parses, all.Contains("COBOL0001"));
     }
 
+    /// <summary>The 2002 gate is decided per CHARACTER (kb/Work PB4156): <c>CAFÉ€</c> holds an extended letter (É, Annex B) AND a
+    /// character no edition's Annex B holds (€). At COBOL-85 the word draws both the introduction gate COBOL0900 (for the É) and
+    /// the word-character error COBOL2773 (for the €); from 2002 the gate does not apply, so only COBOL2773 remains. Both word
+    /// sources (a failed parse's token stream and a parsed source's tree) answer alike.</summary>
+    [Theory]
+    [InlineData(85, false)]
+    [InlineData(85, true)]
+    [InlineData(2002, false)]
+    [InlineData(2002, true)]
+    [InlineData(2014, true)]
+    [InlineData(2023, true)]
+    public void AnExtendedLetterBesideACharacterInNoAnnexB_IsGatedAt85AndRefusedAtEveryTarget(int edition, bool parses)
+    {
+        string word = "CAFÉ" + Euro;
+        string source = Unparseable(word, word);
+        if (parses) source = source.Replace(" MOVE MOVE", "");
+        var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition);
+        Assert.False(ok);
+        Assert.Contains(errors, e => e.Contains("COBOL2773") && e.Contains("U+20AC"));
+        string all = string.Join('\n', errors.Concat(warnings));
+        Assert.Equal(edition == 85, all.Contains("COBOL0900"));
+        if (edition == 85) Assert.Contains(errors, e => e.Contains("COBOL0900") && e.Contains(word));
+    }
+
     /// <summary>A CAUSE READS BEFORE ITS EFFECT (kb/Work PB4131): the word the screen names is why the parser died at the NEXT
     /// token, so COBOL2773 precedes the COBOL0001 it explains although the screen needs the failed parse and reports last. Placement
     /// is by source position among the parse's own reports: a parse error that sits BEFORE the word (unrelated to it) stays before,

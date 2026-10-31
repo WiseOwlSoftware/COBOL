@@ -109,9 +109,10 @@ public static class WordCharacterScreen
                     $"the underscore in the COBOL word '{word}'");
             if (!CobolCharacterRepertoire.HasExtendedCharacter(word)) continue;
             string? character = CobolWordRule.CharacterViolation(word, edition.Year);
-            // Below 2002 a character in no edition's Annex B is no EXTENDED LETTER, so the 2002 gate would name the
-            // wrong fault: CharacterViolation answers it as COBOL2773 at every target (kb/Work PB4130).
-            if (character is null || edition.Year >= 2002)
+            // The 2002 gate names an EXTENDED LETTER, decided per CHARACTER: a character in no edition's Annex B is none
+            // (CharacterViolation answers it as COBOL2773 at every target, kb/Work PB4130), but the same word may also hold
+            // a real one, which COBOL-85 lacks and the gate must still name (kb/Work PB4156). From 2002 the gate is a no-op.
+            if (CobolCharacterRepertoire.HasExtendedLetter(word))
                 ConstructRegistry.Check(edition, sink, Constructs.UserWordExtendedLetter2002,
                     $"the extended letter in the COBOL word '{word}'");
             if (character is null) continue;
