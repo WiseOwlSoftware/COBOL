@@ -153,23 +153,47 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         {
             using var _ = ctx.Edition.At(unit);   // the paragraph / section header's position (kb/Work PB82)
             if (unit.paragraphDefinition() is { } para)
-                AddParagraph(para.paragraphName().GetText(), para.sentence(), null, used);
+                AddParagraph(HeaderName(para.paragraphName().procedureName(), "paragraph"), para.sentence(), null, used);
             else if (unit.sectionDefinition() is { } section)
             {
                 // A section's paragraphs are contiguous in the pc sequence, so the section IS a pc range:
                 // GO TO section transfers to its first paragraph (ISO §14.9.17), PERFORM section runs first
                 // statement of its first paragraph through last statement of its last (ISO §14.9.28).
-                ctx.Data.DeclareUserWord(section.sectionName().GetText(), UserWordKind.SectionName);   // §8.3.2.2 — the one declaration funnel (kb/Work PB65, PB1083)
-                var info = new SectionInfo(section.sectionName().GetText(), _paras.Count);
+                string sectionName = HeaderName(section.sectionName().procedureName(), "section");
+                ctx.Data.DeclareUserWord(sectionName, UserWordKind.SectionName);   // §8.3.2.2 — the one declaration funnel (kb/Work PB65, PB1083)
+                var info = new SectionInfo(sectionName, _paras.Count);
                 // §14.4.3 — a section header may likewise be followed directly by unnamed sentences; they are
                 // the section's first paragraph, so GO TO / PERFORM <section> enters them (§14.9.17/§14.9.28).
                 AddAnonymousParagraph(section.sentence(), info, used);
                 foreach (var p in section.paragraphDefinition())
-                    AddParagraph(p.paragraphName().GetText(), p.sentence(), info, used);
+                    AddParagraph(HeaderName(p.paragraphName().procedureName(), "paragraph"), p.sentence(), info, used);
                 info.CloseAt(_paras.Count - 1);   // zero paragraphs ⇒ the range stays EMPTY (§14.4.2)
                 (ctx.CurrentMethodScope?.Sections ?? _sections).Declare(info.Name, info);
             }
         }
+    }
+
+    /// <summary>⛔ THE ONE READER OF A PROCEDURE HEADER'S NAME (kb/Work PB4238): the bare paragraph-name or section-name
+    /// every header declaration and every pc-space entry is keyed on. The grammar's <c>paragraphName</c> /
+    /// <c>sectionName</c> share <c>procedureName</c> with the references, so the parse admits <c>P1 OF S1.</c> and
+    /// <c>S1 OF X SECTION.</c>; ISO §14.2.1's general formats print <c>section-name-1 SECTION.</c> and
+    /// <c>paragraph-name-1.</c>, and §14.4.1 gives qualification ("a paragraph-name (that may be qualified)") to the
+    /// procedure-name that REFERS to a procedure. A qualified header is refused here (COBOL5716), by name and as
+    /// written; the head word is still returned and declared so the one error is not followed by a "not defined" for
+    /// every reference to the procedure. Reading the node's text instead glued the words into one name
+    /// (<c>P1OFS1</c>) that <c>PERFORM P1OFS1</c> then ran (the shape that PB2040 closed for the file-name operand).</summary>
+    /// <param name="kind">"paragraph" or "section", for the message.</param>
+    private string HeaderName(Core.ProcedureNameContext pn, string kind)
+    {
+        if (!ProcedureNameShape.IsQualified(pn)) return ProcedureNameShape.Head(pn);
+        using (ctx.Edition.At(pn))   // the HEADER's position — a paragraph in a section is collected under its section's At
+            ctx.Edition.Error(DiagnosticCatalog.QualifiedProcedureHeader,
+                $"{kind}-name '{pn.GetChild(0).GetText()}{ProcedureNameShape.QualifierAsWritten(pn)}' is written qualified in its "
+                + $"{kind} header — a {kind}-name that is being defined is written alone (ISO §14.2.1: "
+                + "\"section-name-1 SECTION.\", \"paragraph-name-1.\"); qualification (§8.4.2.2.2) belongs to a "
+                + "reference, and §14.4.1 gives it to the procedure-name that refers to a paragraph. Write "
+                + $"'{ProcedureNameShape.Head(pn)}' in the header and qualify the references.");
+        return ProcedureNameShape.Head(pn);
     }
 
     public void CollectParagraphs(Core.ProcedureDivisionContext pd)
@@ -226,7 +250,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         if (resolved.Procedure is { } procedure)
             return ctx.Validation.CheckDeclarativesBoundary(procedure, ctx.CurrentSection, pn.GetText(), verb, kind)
                 ? procedure : null;
-        string head = pn.GetChild(0).GetText();
+        string head = ProcedureNameShape.Head(pn);
         // ⛔ "IDENTIFIES MORE THAN ONE" IS NOT "IDENTIFIES NONE" (kb/Work PB466). Both fail §8.4.2.1's "a
         // reference that uniquely identifies that resource", but they are different rules with different
         // repairs, so the ambiguous case gets its own message and its own code rather than being folded into
@@ -237,8 +261,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             ctx.Validation.RejectAmbiguousProcedureName(ambiguity, verb);
             return null;
         }
-        string qualifier = pn.ChildCount >= 3 ? " " + pn.GetChild(1).GetText() + " " + pn.GetChild(2).GetText() : "";
-        ctx.Validation.RejectProcedureName(head + qualifier, head, verb, rule, ctx.CurrentMethodScope is not null);
+        ctx.Validation.RejectProcedureName(head + ProcedureNameShape.QualifierAsWritten(pn), head, verb, rule, ctx.CurrentMethodScope is not null);
         return null;
     }
 
@@ -281,9 +304,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// <para>The head/qualifier are taken from the context's CHILDREN — never <c>GetText()</c> of the whole
     /// context, which concatenates <c>PAR-1A OF SEC-1</c> into an unmatchable key.</para></summary>
     private ProcedureResolution Resolve(Core.ProcedureNameContext pn) =>
-        ResolveProcedureWord(pn.GetChild(0).GetText(),
-            pn.ChildCount >= 3 ? pn.GetChild(2).GetText() : null,
-            ctx.CurrentSection);
+        ResolveProcedureWord(ProcedureNameShape.Head(pn), ProcedureNameShape.Qualifier(pn), ctx.CurrentSection);
 
     /// <summary>The resolution algorithm over WORDS, so the one reference site that has no
     /// <c>procedureName</c> parse context — USE FOR DEBUGGING's <c>ON procedure-name</c> subject, which the
@@ -456,7 +477,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// paragraph shape, e.g. SQ103A), then the named paragraphs.</summary>
     private void DeclCollectSection(Core.DeclarativeSectionContext sec, HashSet<string> used)
     {
-        string name = sec.sectionName().GetText();
+        string name = HeaderName(sec.sectionName().procedureName(), "section");
         ctx.Data.DeclareUserWord(name, UserWordKind.SectionName);   // §8.3.2.2 — the one declaration funnel (kb/Work PB65, PB1083)
         // isDeclarative: THE fact §14.9.28.3 SR11 (and GO TO's / ALTER's analogous constraints) asks about,
         // recorded where it is known rather than re-derived from pc arithmetic later.
@@ -502,7 +523,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         // name used as a paragraph-name.
         AddAnonymousParagraph(leading.Skip(1).ToArray(), info, used);
         foreach (var p in sec.declarativeParagraph())
-            AddParagraph(p.paragraphName().GetText(), p.sentence(), info, used);
+            AddParagraph(HeaderName(p.paragraphName().procedureName(), "paragraph"), p.sentence(), info, used);
         // A declarative section with ZERO paragraphs is legal (§14.9.49.3 SR1 — "zero, one, or more procedural
         // paragraphs"; §14.4.2), and it is still SELECTED: §14.9.49.4 GR3 says "the first declarative that
         // satisfies the selection criteria is executed and no other declaratives are executed", so the search
