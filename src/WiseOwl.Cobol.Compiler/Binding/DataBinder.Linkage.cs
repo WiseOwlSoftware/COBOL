@@ -851,6 +851,13 @@ public sealed partial class DataBinder
     /// carriage gate, shared with the REDEFINES classifier (kb/Work PB231).</para></summary>
     internal RedefinesClass? ForceStringCanonical(DataItem item, string what)
     {
+        // ⛔ ONLY THE DECLARING ELEMENT DECIDES WHERE ITS STORAGE LIVES (§13.18.27.4 GR2: a contained program references a
+        // container's GLOBAL item "without describing it again"). An inherited item's class is the container's, already
+        // classified and emitted there; re-basing it from here would re-classify the container's storage and declare its
+        // cell a second time in this unit's type (merge group 41183181188). Every caller asks with storage it owns.
+        if (DeclaringDepth(item) != 0)
+            throw new InvalidOperationException($"{what} '{item.CobolName}': a container's GLOBAL item reached the "
+                + "cell-backing forcer of a contained unit; only its declaring element may re-base its storage");
         var cls = item.Class;
         if (cls is null)
         {
