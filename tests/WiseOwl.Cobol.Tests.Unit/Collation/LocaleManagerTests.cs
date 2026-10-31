@@ -40,7 +40,7 @@ public sealed class LocaleManagerTests
         Assert.Equal("phonebook", phone.Cldr.Type);
         Assert.Equal("de-DE-u-co-phonebk", phone.Name);
         var kh = LocaleManager.GetLocale("en-u-kh-true");                 // a key the engine does not implement
-        Assert.Contains(kh.Unsupported, u => u.Contains("hiraganaQ"));
+        Assert.Single(kh.Unsupported, u => u.Contains("hiraganaQ"));      // once, not once for the tag and once for the builder
         Assert.False(kh.IsTailored);
         var kn = LocaleManager.GetLocale("en-u-kn-true");                 // numericOrdering is implemented (kb/Work PB107)
         Assert.Empty(kn.Unsupported);

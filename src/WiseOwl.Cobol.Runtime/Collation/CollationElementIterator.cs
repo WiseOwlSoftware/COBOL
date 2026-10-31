@@ -14,8 +14,9 @@ namespace WiseOwl.Cobol.Runtime.Collation;
 /// is sorted at a primary level with its numeric value") a maximal run of decimal digits is ONE mapping whose elements
 /// are the number: a lead element in the digit group, one element whose primary is the count of significant digits
 /// (leading zeros dropped) plus one, then one element per significant digit — primary the digit's value plus one. The
-/// lead stands where a digit does; the others are compared only with their own kind (two numbers both start with the
-/// lead), so they are plain small integers, not weights of the table's scale. Longer numbers sort after shorter, equal
+/// lead (<see cref="CollationTable.NumericLead"/>) stands just before the digits; no character carries its primary, so the
+/// others are compared only with their own kind (two numbers both start with the lead), and they are plain small
+/// integers, not weights of the table's scale. Longer numbers sort after shorter, equal
 /// lengths digit by digit, and the number's value is all that is left of its digits' scripts, widths and leading zeros.</para>
 /// <para>The caller normalizes first when the text holds a non-starter (<see cref="Collator"/> does); this type never
 /// normalizes.</para>

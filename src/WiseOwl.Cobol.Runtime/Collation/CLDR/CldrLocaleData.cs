@@ -132,9 +132,10 @@ public sealed class CldrCollation
     /// <summary>The <c>[import …]</c> directives, in file order.</summary>
     public IReadOnlyList<CldrImport> Imports { get; }
 
-    /// <summary>What the engine cannot honor from this collation, each a one-line description — a setting it does not
-    /// implement (caseLevel, numericOrdering, hiraganaQuaternary), a quaternary relation, … Empty for the vast
-    /// majority of locales. Applied collations still order correctly for everything else.</summary>
+    /// <summary>What the parser could not read from this collation's rules text, each a one-line description — a
+    /// setting it does not know. (A setting it knows and the engine does not implement, <c>[hiraganaQ on]</c>, is
+    /// reported by the builder from the effective settings: <see cref="CldrSettings.UnsupportedSettings"/>.) Empty for
+    /// every locale of the pack.</summary>
     public IReadOnlyList<string> Unsupported { get; }
 
     /// <summary>The number of resets + relations (imports excluded).</summary>

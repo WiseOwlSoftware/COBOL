@@ -80,12 +80,17 @@ public static class CldrTailoringBuilder
         private readonly Dictionary<int, Slot> _rootSlots = new();
         private readonly Dictionary<int, LinkedList<Slot>> _after = new();      // anchor root value → inserted slots after it, in order
         private readonly int _fixedRoom;                                        // room after an anchor that is not a root (implicit BBBB)
+        private readonly int _reservedTop;                                      // values at the top of each root's gap that no inserted slot takes
 
-        public Line(int level, int[] roots, int fixedRoom)
+        /// <param name="reservedTop">How many values just below each root stay free of inserted slots. The primary line
+        /// reserves one: <c>root − 1</c> is where <see cref="CollationTable.NumericLead"/> stands under the digit zero,
+        /// a primary no character may carry.</param>
+        public Line(int level, int[] roots, int fixedRoom, int reservedTop = 0)
         {
             Level = level;
             _roots = roots;
             _fixedRoom = fixedRoom;
+            _reservedTop = reservedTop;
         }
 
         public int Level { get; }
@@ -147,7 +152,7 @@ public static class CldrTailoringBuilder
             foreach (var (index, root, list) in anchors)
             {
                 int value = (int)(root + shift);
-                long gap = index + 1 < _roots.Length ? _roots[index + 1] - root : long.MaxValue / 4;
+                long gap = (index + 1 < _roots.Length ? _roots[index + 1] - root : long.MaxValue / 4) - _reservedTop;
                 int v = value;
                 foreach (var slot in list) slot.Value = ++v;
                 if (list.Count >= gap)
@@ -214,7 +219,7 @@ public static class CldrTailoringBuilder
         var quaternaries = new HashSet<int>();
         foreach (var e in t.Pool)
         {
-            if (e.Primary != 0 && !IsImplicitSecond(e, shift)) primaries.Add(e.Primary);
+            if (e.Primary != 0 && !CollationTable.IsImplicitSecond(e, shift)) primaries.Add(e.Primary);
             if (e.Secondary != 0) secondaries.Add(e.Secondary);
             if (e.Tertiary != 0) tertiaries.Add(e.Tertiary);
             if (e.Quaternary != 0) quaternaries.Add(e.Quaternary);
@@ -234,11 +239,6 @@ public static class CldrTailoringBuilder
             return array;
         }
     });
-
-    /// <summary>The second element of an implicit weight (or an explicit copy of one): a large primary with no
-    /// secondary/tertiary — compared only against its own kind, never renumbered.</summary>
-    private static bool IsImplicitSecond(in CollationElement e, int primaryShift) =>
-        e.Secondary == 0 && e.Tertiary == 0 && e.Primary >= 0x8000 << primaryShift;
 
     private const int ImplicitFirst = 0xFB00, ImplicitLastAaaa = 0xFBC0 + (0x10FFFF >> 15);   // FBE1
 
@@ -379,7 +379,7 @@ public static class CldrTailoringBuilder
             _name = name;
             _shift = baseTable.PrimaryShift;
             var roots = RootsOf(baseTable);
-            _p = new Line(1, roots.Primaries, fixedRoom: (1 << _shift) - 1);
+            _p = new Line(1, roots.Primaries, fixedRoom: (1 << _shift) - 1, reservedTop: 1);
             _s = new Line(2, roots.Secondaries, fixedRoom: 0);
             _t = new Line(3, roots.Tertiaries, fixedRoom: 0);
             _q = new Line(4, roots.Quaternaries, fixedRoom: 0);
@@ -549,7 +549,7 @@ public static class CldrTailoringBuilder
                 remap = new ElementRemap(
                     primaryChanged ? finalP : null,
                     LookupOf(sMap, roots.Secondaries), LookupOf(tMap, roots.Tertiaries), LookupOf(qMap, roots.Quaternaries),
-                    0x8000 << _shift);
+                    _shift);
             }
             var plan = new TailoringPlan
             {
@@ -783,13 +783,13 @@ public static class CldrTailoringBuilder
                 case CldrSpecialPosition.FirstTrailing:
                 {
                     int limit = Mapped(ImplicitLastAaaa << _shift), min = int.MaxValue;
-                    foreach (var e in pool) if (e.Primary > limit && !IsImplicitSecond(e, _shift)) min = Math.Min(min, e.Primary);
+                    foreach (var e in pool) if (e.Primary > limit && !CollationTable.IsImplicitSecond(e, _shift)) min = Math.Min(min, e.Primary);
                     return Make(min == int.MaxValue ? limit + 1 : min, CommonSecondary, CommonTertiary);
                 }
                 default:   // LastTrailing
                 {
                     int max = 0;
-                    foreach (var e in pool) if (!IsImplicitSecond(e, _shift)) max = Math.Max(max, e.Primary);
+                    foreach (var e in pool) if (!CollationTable.IsImplicitSecond(e, _shift)) max = Math.Max(max, e.Primary);
                     return Make(max, CommonSecondary, CommonTertiary);
                 }
             }

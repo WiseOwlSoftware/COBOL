@@ -153,7 +153,8 @@ public sealed class CldrLocaleLoaderTests(ITestOutputHelper output)
         Assert.Equal("no", CldrLocaleLoader.ResolveCollation("nb").Found!.Tag);                              // nb.xml is empty; no.xml has the rules
         Assert.Equal("root", CldrLocaleTag.FileName("und"));
         var kh = CldrLocaleTag.Parse("en-u-kh-true");                 // the one key left the engine does not implement (hiraganaQ, kb/Work PB107)
-        Assert.Single(kh.Unsupported);
+        Assert.True(kh.Settings.HiraganaQuaternary);
+        Assert.Empty(kh.Unsupported);                                 // reported once, by the builder, from the effective settings
         Assert.Empty(CldrLocaleTag.Parse("en-u-kn-true-kc-true").Unsupported);
         Assert.True(CldrLocaleTag.Parse("en-u-kn-true-kc-true").Settings.NumericOrdering);
         var sel = CldrLocaleLoader.ResolveCollation("de-AT-u-co-phonebk");
@@ -324,7 +325,7 @@ public sealed class CldrLocaleLoaderTests(ITestOutputHelper output)
         return new Collator(built.Table, built.Options);
     }
 
-    private static CldrBuildResult BuildRules(string rules)
+    internal static CldrBuildResult BuildRules(string rules)
     {
         string xml = "<ldml><identity><language type=\"zz\"/></identity><collations><collation type=\"standard\"><cr><![CDATA["
             + rules + "]]></cr></collation></collations></ldml>";

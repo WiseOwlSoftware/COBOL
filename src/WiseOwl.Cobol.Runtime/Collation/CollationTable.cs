@@ -79,7 +79,8 @@ public sealed class CollationTable
         _nfd = nfd;
         _groups = groups;
         _digitRuns = digitRuns;
-        NumericLead = Lookup('0');
+        var zero = Lookup('0');
+        NumericLead = zero with { Primary = zero.Primary - 1 };
         Tailoring = tailoring;
         Description = description ?? name;
         PrimaryMap = primaryMap;
@@ -168,8 +169,13 @@ public sealed class CollationTable
         return false;
     }
 
-    /// <summary>The element a NUMBER begins with under <see cref="CollationOptions.NumericOrdering"/>: the first element of
-    /// the digit zero, so a number stands where the digits do in the digit reordering group.</summary>
+    /// <summary>The element a NUMBER begins with under <see cref="CollationOptions.NumericOrdering"/>: the digit zero's
+    /// first element with its primary lowered by one, so a number stands just before the digits in the digit reordering
+    /// group and, as ICU has it, before every string that begins with a digit-like character (a superscript or circled
+    /// zero shares the digit zero's primary). That primary is the value just below a root, which no root and no tailored
+    /// primary takes (the primary line reserves it: <c>CldrTailoringBuilder.Line</c>), so only another number's lead is
+    /// equal to it, and the small-integer count and digit elements that follow the lead (<see cref="CollationElementIterator"/>)
+    /// are compared with a number's own and never with a weight of the table's scale.</summary>
     internal CollationElement NumericLead { get; }
 
     /// <summary>The value 0-9 of <paramref name="codePoint"/> when it is a DECIMAL DIGIT (General_Category Nd) in the
@@ -205,6 +211,15 @@ public sealed class CollationTable
         GetImplicit(codePoint, out var first, out _);
         return first;
     }
+
+    /// <summary>The bit every BBBB (second) weight of an implicit weight carries (UTS #10 Table 16: <c>| 0x8000</c>).</summary>
+    internal const int ImplicitSecondFlag = 0x8000;
+
+    /// <summary>True for the SECOND element of an implicit weight (or an explicit copy of one): a large primary with no
+    /// secondary or tertiary, compared only against its own kind and so never renumbered. The ONE statement of the
+    /// rule, for the tailoring builder's roots and special positions and for <see cref="ElementRemap"/>.</summary>
+    internal static bool IsImplicitSecond(in CollationElement e, int primaryShift) =>
+        e.Secondary == 0 && e.Tertiary == 0 && e.Primary >= ImplicitSecondFlag << primaryShift;
 
     /// <summary>The complete collation element sequence of one code point: its explicit mapping, else (Hangul
     /// syllable) the concatenated elements of its conjoining jamo, else the two-element UTS #10 Table 16 implicit
@@ -360,18 +375,18 @@ public sealed class CollationTable
             if (r.Kind == 0)   // siniform: AAAA = base, BBBB = (CP − start) | 0x8000
             {
                 aaaa = r.Base;
-                bbbb = (codePoint - r.Subtract) | 0x8000;
+                bbbb = (codePoint - r.Subtract) | ImplicitSecondFlag;
             }
             else               // Han core/other: AAAA = base + (CP >> 15), BBBB = (CP & 0x7FFF) | 0x8000
             {
                 aaaa = r.Base + (codePoint >> 15);
-                bbbb = (codePoint & 0x7FFF) | 0x8000;
+                bbbb = (codePoint & 0x7FFF) | ImplicitSecondFlag;
             }
         }
         else                   // "any other code point"
         {
             aaaa = 0xFBC0 + (codePoint >> 15);
-            bbbb = (codePoint & 0x7FFF) | 0x8000;
+            bbbb = (codePoint & 0x7FFF) | ImplicitSecondFlag;
         }
         int p = aaaa << _primaryShift;
         if (PrimaryMap is not null) p = PrimaryMap.Map(p);
@@ -802,21 +817,15 @@ public sealed class WeightMap
     }
 }
 
-/// <summary>
-/// The specification a derived <see cref="CollationTable"/> is built from (<see cref="CollationTable.Rebuild"/>) — the
-/// one shape both tailoring front-ends produce: a numeric <c>.tailor</c> file (entries in root scale, no remapping)
-/// and the CLDR rule builder (entries in the new scale, plus the remapping of every base element and the resulting
-/// group ranges and root-scale maps).
-/// </summary>
 /// <summary>The re-weighting of one pool element by a tailoring that renumbered a level or reordered the primaries
 /// (<see cref="TailoringPlan.Remap"/>): each level through its own map — the primaries by a function (a map over some
 /// 25,000 weights plus the group permutation), the others by a direct lookup array — and an implicit weight's second
-/// element, which is never renumbered, left as it is.</summary>
-internal sealed class ElementRemap(Func<int, int>? primary, int[]? secondary, int[]? tertiary, int[]? quaternary, int implicitSecondFloor)
+/// element (<see cref="CollationTable.IsImplicitSecond"/>), which is never renumbered, left as it is.</summary>
+internal sealed class ElementRemap(Func<int, int>? primary, int[]? secondary, int[]? tertiary, int[]? quaternary, int primaryShift)
 {
     public CollationElement Apply(in CollationElement e)
     {
-        if (e.Secondary == 0 && e.Tertiary == 0 && e.Primary >= implicitSecondFloor) return e;
+        if (CollationTable.IsImplicitSecond(e, primaryShift)) return e;
         return e with
         {
             Primary = primary is null || e.Primary == 0 ? e.Primary : primary(e.Primary),
@@ -827,6 +836,12 @@ internal sealed class ElementRemap(Func<int, int>? primary, int[]? secondary, in
     }
 }
 
+/// <summary>
+/// The specification a derived <see cref="CollationTable"/> is built from (<see cref="CollationTable.Rebuild"/>) — the
+/// one shape both tailoring front-ends produce: a numeric <c>.tailor</c> file (entries in root scale, no remapping)
+/// and the CLDR rule builder (entries in the new scale, plus the remapping of every base element and the resulting
+/// group ranges and root-scale maps).
+/// </summary>
 internal sealed class TailoringPlan
 {
     public required string Name { get; init; }

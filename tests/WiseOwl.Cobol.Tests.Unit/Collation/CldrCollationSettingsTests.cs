@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Runtime.Collation;
 using WiseOwl.Cobol.Runtime.Collation.Cldr;
+using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit.Collation;
@@ -284,7 +285,7 @@ public sealed class CldrCollationSettingsTests
     {
         var icu = System.Globalization.CultureInfo.GetCultureInfo("en-US").CompareInfo;
         if (icu.Compare("a", "A", System.Globalization.CompareOptions.None) >= 0) return;   // globalization-invariant host: ordinal
-        string[] alphabet = ["a", "b", "A", "0", "1", "2", "5", "9", "-", " ", "١", "٣", "１", "\u0301", "x", "10", "00", "007", "๑"];
+        string[] alphabet = ["a", "b", "A", "0", "1", "2", "5", "9", "-", " ", "١", "٣", "１", "\u0301", "x", "10", "00", "007", "๑", "⁰", "²", "₀", "⓪"];
         var rng = new Random(12345);
         string Make() { var sb = new System.Text.StringBuilder(); int n = rng.Next(0, 7); for (int i = 0; i < n; i++) sb.Append(alphabet[rng.Next(alphabet.Length)]); return sb.ToString(); }
         var disagreements = new List<string>();
@@ -295,6 +296,53 @@ public sealed class CldrCollationSettingsTests
             if (mine != theirs) disagreements.Add($"[{x}] vs [{y}]: ours {mine}, ICU {theirs}");
         }
         Assert.True(disagreements.Count == 0, $"{disagreements.Count} disagreement(s):\n" + string.Join("\n", disagreements.Take(20)));
+    }
+
+    /// <summary>A number's lead is a primary NO character carries, so the count and digit elements after it (small
+    /// integers) are only ever compared with a number's own: a compatibility digit (superscript, subscript, circled —
+    /// General_Category No, so not part of a number) shares a digit's primary and so a string beginning with one must
+    /// fall wholly after the numbers, as ICU orders it (kb/Work PB107 review R1-5).</summary>
+    [Theory]
+    [InlineData("⁰")]      // SUPERSCRIPT ZERO
+    [InlineData("₀")]      // SUBSCRIPT ZERO
+    [InlineData("⓪")]      // CIRCLED DIGIT ZERO
+    [InlineData("²")]      // SUPERSCRIPT TWO
+    [InlineData("⁹")]      // SUPERSCRIPT NINE
+    public void NumericOrdering_ANumberSortsBeforeAnyStringBeginningWithACompatibilityDigit(string compat)
+    {
+        foreach (string number in new[] { "0", "00", "1", "2", "42", "99999" })
+        {
+            Assert.True(Numeric.Compare(number, compat) < 0, $"[{number}] vs [{compat}]");
+            Assert.True(Numeric.Compare(compat, number) > 0, $"[{compat}] vs [{number}]");
+            Assert.True(Numeric.Compare("a" + number, "a" + compat) < 0, $"[a{number}] vs [a{compat}]");
+            Assert.True(Numeric.Compare(number, compat + compat) < 0);
+            Assert.True(Numeric.Compare(number, compat + "a") < 0);
+            Assert.True(Numeric.GetKey(number).CompareTo(Numeric.GetKey(compat)) < 0);
+        }
+        // … and they are still ordered by their own digit, exactly as without numeric ordering.
+        Assert.Equal(Math.Sign(Collator.Root.Compare(compat, compat + compat)), Math.Sign(Numeric.Compare(compat, compat + compat)));
+        Assert.True(Numeric.Compare("-", "1") < 0);
+        Assert.True(Numeric.Compare("99999", "a") < 0);
+    }
+
+    /// <summary>The lead is the value just below the digit zero's primary, which the tailoring builder keeps free: the
+    /// last value of the gap before '0' (15 inserted primaries fill a 16-wide gap up to it) must not be given away, or
+    /// the count element (a small integer) of every number would meet a real tailored weight.</summary>
+    [Fact]
+    public void NumericOrdering_TheLeadPrimaryIsNeverGivenToATailoredCharacter()
+    {
+        string[] chars = Enumerable.Range(0, 15).Select(i => ((char)(0xE000 + i)).ToString()).ToArray();   // private use: no root element
+        var built = CldrLocaleLoaderTests.BuildRules("&[before 1]0 < " + string.Join(" < ", chars));
+        Assert.Empty(built.Unsupported);
+        int lead = built.Table.NumericLead.Primary;
+        Assert.Equal(built.Table.Lookup('0').Primary - 1, lead);
+        foreach (var e in built.Table.Pool) Assert.NotEqual(lead, e.Primary);
+        var numeric = new Collator(built.Table, built.Options with { NumericOrdering = true });
+        foreach (string c in chars)
+        {
+            Assert.True(numeric.Compare(c + "a", "5") < 0, $"U+{(int)c[0]:X4} before the digits, so before a number");
+            Assert.True(numeric.Compare("5", "a") < 0);
+        }
     }
 
     [Fact]
@@ -330,7 +378,7 @@ public sealed class CldrCollationSettingsTests
         // The table's runs ARE the UCD's Nd blocks: every General_Category=Nd line of the pinned UnicodeData.txt, with its
         // decimal digit value (field 6), and no other code point.
         int digits = 0;
-        foreach (string line in File.ReadLines(Path.Combine(RepoRoot(), "data", "unicode", "UnicodeData.txt")))
+        foreach (string line in File.ReadLines(TestRepo.At("data", "unicode", "UnicodeData.txt")))
         {
             string[] f = line.Split(';');
             if (f[2] != "Nd") continue;
@@ -343,12 +391,5 @@ public sealed class CldrCollationSettingsTests
         for (int cp = 0; cp <= 0x1FFFF; cp++)
             if (t.TryGetDecimalDigit(cp, out _)) digits--;
         Assert.Equal(0, digits);
-    }
-
-    private static string RepoRoot()
-    {
-        string? dir = AppContext.BaseDirectory;
-        while (dir is not null && !File.Exists(Path.Combine(dir, "WiseOwl.Cobol.sln"))) dir = Path.GetDirectoryName(dir);
-        return dir ?? throw new DirectoryNotFoundException("repository root (WiseOwl.Cobol.sln) not found above " + AppContext.BaseDirectory);
     }
 }
