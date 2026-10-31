@@ -130,8 +130,8 @@ internal enum FileFormats
 }
 
 /// <summary>ONE clause of a file control entry that is not common to all four formats, with the formats whose
-/// printed diagram carries it and the test for "this entry wrote it". SELECT, OPTIONAL and ASSIGN are in every
-/// format and so in no row.</summary>
+/// printed diagram carries it and the test for "this entry wrote it". SELECT and OPTIONAL are in every format and so
+/// in no row; ASSIGN, in every format too, is <see cref="RequiredClause"/>'s (it is required, not merely carried).</summary>
 /// <param name="Face">The clause as a diagnostic names it — the ONLY spelling of it.</param>
 /// <param name="Carried">The §12.4.5.1 formats that print the clause. <c>FileControlKeyRuleDriftTests</c>
 /// re-derives every row's set from the printed diagrams, so the table cannot drift from the standard.</param>
@@ -140,10 +140,57 @@ internal enum FileFormats
 /// only the second).</param>
 internal readonly record struct EntryClause(string Face, FileFormats Carried, Func<FileModel, bool> Written);
 
+/// <summary>ONE clause that a §12.4.5.1 general format prints with NO bracket around it, so every entry of that
+/// format shall specify it (kb/Work PB4236). The figure notes state the reading: "No choice indicators appear
+/// anywhere in this figure — every stacked group is a plain brace (exactly one) or a plain bracket (zero or
+/// one)". ASSIGN is such a clause in all four formats; the prime RECORD KEY is one in Format 1.</summary>
+/// <param name="Face">The clause as a diagnostic names it, and as the diagram opens its line — the ONLY spelling
+/// of it. <c>FileControlKeyRuleDriftTests</c> finds every line of the four diagrams that opens with no bracket and
+/// requires exactly one row whose face the line begins with, so a clause a later edition prints unbracketed fails
+/// there until it is a row.</param>
+/// <param name="Printed">The formats whose diagram prints the clause unbracketed; the kinds of file the clause is
+/// required of follow from it (<see cref="RequiredClause.ScreenedOn"/>) and are not restated.</param>
+/// <param name="Applies">The entry-level precondition beyond the kind: a file control entry exists
+/// (<see cref="FileModel.HasSelect"/>), or the indexed file has the FD the key names a record of.</param>
+/// <param name="Written">Whether this entry wrote the clause, in either of its general-format forms.</param>
+internal readonly record struct RequiredClause(
+    string Face, FileFormats Printed, Func<FileModel, bool> Applies, Func<FileModel, bool> Written)
+{
+    /// <summary>The kinds of file whose entry is in one of the <see cref="Printed"/> formats: Format 1 is the indexed
+    /// file's, Format 2 the relative file's, Format 3 the sequential (record or line) file's, Format 4 the
+    /// sort-merge file's (§12.4.5.2 SR8, SR9, SR11, SR13).</summary>
+    public FileKinds ScreenedOn =>
+        (Printed.HasFlag(FileFormats.Format1) ? FileKinds.Indexed : 0)
+        | (Printed.HasFlag(FileFormats.Format2) ? FileKinds.Relative : 0)
+        | (Printed.HasFlag(FileFormats.Format3) ? FileKinds.Sequential | FileKinds.LineSequential : 0)
+        | (Printed.HasFlag(FileFormats.Format4) ? FileKinds.SortMerge : 0);
+
+    /// <summary>The formats a message names: the one format, or all four.</summary>
+    public string FormatsFace => Printed switch
+    {
+        FileFormats.Format1 => "Format 1",
+        FileFormats.Format2 => "Format 2",
+        FileFormats.Format3 => "Format 3",
+        FileFormats.Format4 => "Format 4",
+        _ => "Formats 1 to 4",
+    };
+
+    /// <summary>The kind of file a one-format message addresses ("indexed ", with its space), or nothing when the
+    /// clause is required of every kind.</summary>
+    public string KindFace => Printed switch
+    {
+        FileFormats.Format1 => "indexed ",
+        FileFormats.Format2 => "relative ",
+        FileFormats.Format3 => "sequential ",
+        FileFormats.Format4 => "sort-merge ",
+        _ => "",
+    };
+}
+
 /// <summary>ONE syntax rule of the file control entry stated about a key clause.</summary>
-/// <param name="RuleId">The traceability-inventory row this rule closes (<c>SR-12.4.5.12.3-1</c>), or null for a
-/// requirement carried by a GENERAL FORMAT rather than by a numbered rule (§12.4.5.1 Format 1's unbracketed
-/// RECORD KEY clause). The drift test keys on this.</param>
+/// <param name="RuleId">The traceability-inventory row this rule closes (<c>SR-12.4.5.12.3-1</c>). The drift test
+/// keys on this. A requirement a GENERAL FORMAT states rather than a numbered rule (an unbracketed clause) has
+/// no id and is a <see cref="RequiredClause"/>, not a row.</param>
 /// <param name="Clause">The clause number, exactly as <c>scripts/spec/cite.py --check</c> takes it.</param>
 /// <param name="Citation">The citation as it appears in the shipped diagnostic — clause plus printed ordinal.</param>
 /// <param name="RuleText">A verbatim span of the PRINTED rule, long enough to identify it. The drift test asserts
@@ -165,7 +212,7 @@ internal readonly record struct EntryClause(string Face, FileFormats Carried, Fu
 /// so they carry their own code (COBOL1900); SR11's FIRST sentence is about the file's organization and has
 /// COBOL2912.</param>
 internal sealed record FileControlKeyRule(
-    string? RuleId,
+    string RuleId,
     string Clause,
     string Citation,
     string RuleText,
@@ -255,26 +302,9 @@ internal static class FileControlKeyRules
     private static readonly FileControlKeyRule[] Rules =
     [
         // ── Format 1 (indexed) — the prime RECORD KEY ────────────────────────────────────────────────────────
-        // ⚠ THE ONLY ROW WHOSE RULE IS A GENERAL FORMAT, so it has no numbered ordinal and no sentence of its
-        // own: §12.4.5.1's Format 1 diagram prints `RECORD KEY IS …` with NO bracket around it, and the figure's
-        // own note says every stacked group in it is a plain brace or a plain bracket — so an unbracketed clause
-        // is a required member of the indexed entry. The quoted span is that note (a sentence the normalizer can
-        // match); the DIAGRAM half is asserted separately by
-        // FileControlKeyRuleDriftTests.IndexedFormat_PrintsTheRecordKeyClauseUnbracketed, because a markup-laden
-        // syntax diagram is not a sentence and pretending otherwise would make this row's guard vacuous.
-        new(null, "12.4.5.1", "ISO §12.4.5.1 Format 1",
-            "No choice indicators appear anywhere in this figure",
-            FileKinds.Indexed, FileKeyRole.PrimeRecordKey,
-            f => f.HasFd,
-            // ⛔ THIS RULE'S SUBJECT IS THE CLAUSE'S PRESENCE (an unbracketed member of Format 1), never what it
-            // named: an absent clause is the one operand with a null name, and either key form — data-name-1, or a
-            // SOURCE phrase's data-name-2 operands (kb/Work PB1099) — gives every operand a name, so a clause that
-            // was written is never told it is missing (the false sentence kb/Work PB358 measured).
-            (_, op) => op.Name is null,
-            (f, op) => $"indexed file '{f.CobolName}' has no {op.ClauseFace} clause (ISO §12.4.5.1 Format 1 — the "
-                + "RECORD KEY clause is unbracketed in the indexed format, so it is required for ORGANIZATION "
-                + "INDEXED)"),
-
+        // ⚠ ITS REQUIREDNESS IS NOT A ROW HERE: §12.4.5.1 prints `RECORD KEY IS …` with no bracket, which is a rule
+        // of the GENERAL FORMAT and not of a key clause that was written, so it is RequiredClauses' row beside
+        // ASSIGN's (kb/Work PB4236) and reports under COBOL5701. Every row below judges a key that IS written.
         new("SR-12.4.5.12.3-2", "12.4.5.12.3", "ISO §12.4.5.12.3 SR2",
             "within a record description entry associated with the file-name specified in this file control entry",
             FileKinds.Indexed, FileKeyRole.PrimeRecordKey,
@@ -632,6 +662,23 @@ internal static class FileControlKeyRules
         new("a SHARING clause", Formats123, f => f.Sharing is not SharingMode.None),
     ];
 
+    /// <summary>⛔ THE UNBRACKETED MEMBERS OF THE FOUR GENERAL FORMATS (ISO §12.4.5.1, kb/Work PB4236) — the clauses an
+    /// entry of the format shall specify. The old reading kept ONE of them, Format 1's RECORD KEY, as a row of the
+    /// key-operand table, and nothing screened the clause printed unbracketed in all four formats: a SELECT with no
+    /// ASSIGN compiled at every edition and bound the file to an invented <c>&lt;file-name&gt;.txt</c>. A requirement
+    /// stated by a general format has no numbered rule and no operand, so it is a row of its own table; the drift
+    /// test derives the set from the printed diagrams and refuses a line that opens unbracketed with no row.
+    /// <para>SELECT is also unbracketed, and is the entry itself. SORT-MERGE: Format 4 prints ASSIGN, and an SD's
+    /// entry is Format 4 (§12.4.5.2 SR13), so the clause is required of it too.</para></summary>
+    private static readonly RequiredClause[] RequiredClauses =
+    [
+        new("ASSIGN", FileFormats.Format1 | FileFormats.Format2 | FileFormats.Format3 | FileFormats.Format4,
+            f => f.HasSelect, f => f.AssignWritten),
+        // The prime key of the indexed entry; an indexed file without an FD is the FD's own diagnostic. Either key
+        // form (data-name-5, or record-key-name-2 SOURCE …) names the clause (kb/Work PB358, PB1099).
+        new("RECORD KEY", FileFormats.Format1, f => f.HasFd, f => f.RecordKeyName is not null),
+    ];
+
     // ⛔ THE CLAUSE LIST IS WRITTEN ONCE (EntryClauses). Each `…Marker` NAMES the first written clause of its kind — a
     // message that only said "the indexed format" would leave the writer of an `SD` + `RECORD KEY` entry with nothing
     // to edit — and returns null when none is written, which is also the "does this entry specify the format?"
@@ -724,6 +771,9 @@ internal static class FileControlKeyRules
     internal static IReadOnlyList<EntryClause> EntryClauseCatalog => EntryClauses;
 
     /// <summary>The table, for <c>FileControlKeyRuleDriftTests</c> — the only reason it is not private.</summary>
+    internal static IReadOnlyList<RequiredClause> RequiredClauseCatalog => RequiredClauses;
+
+    /// <summary>The table, for <c>FileControlKeyRuleDriftTests</c> — the only reason it is not private.</summary>
     internal static IReadOnlyList<FileControlKeyRule> Catalog => Rules;
 
     /// <summary>Screen one file control entry against every rule of its organization. Called once per file from
@@ -743,6 +793,17 @@ internal static class FileControlKeyRules
         // now, so a global veto here would silence exactly the two rows written for the case (kb/Work PB742).
         // The kind is computed ONCE per entry; every row's set is tested against it.
         var kind = KindOf(file);
+        // The entry's REQUIRED members first (§12.4.5.1: a clause printed with no bracket): an entry that lacks its
+        // ASSIGN clause is told so before any rule over the clauses it did write.
+        foreach (var required in RequiredClauses)
+        {
+            if ((required.ScreenedOn & kind) == 0 || !required.Applies(file) || required.Written(file)) continue;
+            using var at = edition.At(file.EntryAt);   // the ABSENCE of a clause has nothing but the entry to point at
+            edition.Error(DiagnosticCatalog.FileControlClauseRequired,
+                $"{required.KindFace}file '{file.CobolName}' has no {required.Face} clause (ISO §12.4.5.1 "
+                + $"{required.FormatsFace}: the {required.Face} clause is printed with no bracket around it, so the "
+                + "entry shall specify it)");
+        }
         // Role-outer: each role's operands are enumerated ONCE for all of its rules, so a file control entry
         // costs one iterator per role rather than one per rule.
         foreach (var role in Roles)
@@ -807,7 +868,7 @@ internal static class FileControlKeyRules
         {
             case FileKeyRole.PrimeRecordKey:
                 // A SOURCE-phrase clause contributes its data-name-2 operands; an absent clause, one operand with a
-                // null name (the Format 1 requiredness row's subject).
+                // null name (which every row below tests; the clause's ABSENCE is RequiredClauses' subject).
                 if (file.RecordKeySource is { } pks)
                     foreach (var op in SourceOperands(role, "RECORD KEY", pks, null, 0)) yield return op;
                 else

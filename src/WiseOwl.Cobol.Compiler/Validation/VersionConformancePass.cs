@@ -962,7 +962,7 @@ internal sealed class VersionConformancePass
         {
             if (ctx.integerLiteral() is not null)
                 _p.Check(Constructs.SegmentNumbersRemoved2002,
-                    $"the segment-number on section '{ctx.sectionName().GetText()}'");
+                    $"the segment-number on section '{ProcedureNameShape.Head(ctx.sectionName().procedureName())}'");
             return base.VisitChildren(ctx);
         }
 
@@ -975,7 +975,7 @@ internal sealed class VersionConformancePass
         {
             if (ctx.integerLiteral() is not null)
                 _p.Check(Constructs.SegmentNumbersRemoved2002,
-                    $"the segment-number on declarative section '{ctx.sectionName().GetText()}'");
+                    $"the segment-number on declarative section '{ProcedureNameShape.Head(ctx.sectionName().procedureName())}'");
             if (!_debuggingModeDeclared
                 && ctx.sentence() is { Length: > 0 } sentences
                 && sentences[0].statement() is { Length: 1 } first

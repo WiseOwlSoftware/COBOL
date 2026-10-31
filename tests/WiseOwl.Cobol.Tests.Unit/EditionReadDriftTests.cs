@@ -100,10 +100,10 @@ public sealed class EditionReadDriftTests
     {
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs"] =
         [
-            "IsKeywordReadingHere", "NoteGatedOffender", "PrintsKeyword", "ReservedGatedWord",
+            "IsKeywordReadingHere", "KeywordContinuesFrom", "NoteGatedOffender", "PrintsKeyword", "ReservedGatedWord",
             "ReservedUserWordViolation", "conditionalPhraseAssociates", "entryNameHere", "facilityWord",
             "gatedDeclaration", "is2002", "is2014",
-            "is2023", "is85", "keywordContinuesHere", "procedureHeaderHere", "reservedHere", "screenPositionAhead", "setLocaleAhead",
+            "is2023", "is85", "keywordContinuesHere", "pointerOperandHere", "procedureHeaderHere", "reservedHere", "screenPositionAhead", "setLocaleAhead",
             "userWordHere",
         ],
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4"] =
@@ -149,6 +149,11 @@ public sealed class EditionReadDriftTests
         // The generated user-word slot (single-sourced from cobol-words.json): a keyword that continues the
         // enclosing format is not a user word here, and a declared reservation-gated word is recorded.
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolWords.g4 | cobolWord | keywordContinuesHere"] = (67, Verdict.WordStatus),
+        // The TO-less pointer operand yields to a keyword of what follows the usage in THIS entry, read through the same
+        // word-status question as the generated user-word slot (kb/Work PB848, PB4235).
+        ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4 | dataPointerUsage | pointerOperandHere"] = (1, Verdict.WordStatus),
+        ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4 | functionPointerUsage | pointerOperandHere"] = (1, Verdict.WordStatus),
+        ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4 | programPointerUsage | pointerOperandHere"] = (1, Verdict.WordStatus),
         // The optional entry-name yields to the clause a word §8.9 reserves here begins (kb/Work PB845, PB2501).
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4 | dataDescriptionEntry | entryNameHere"] = (1, Verdict.WordStatus),
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolWords.g4 | reservedGatedWord | gatedDeclaration"] = (1, Verdict.WordStatus),
