@@ -1,4 +1,4 @@
-## Filed the leads of five fix-lane reports as PB4168-PB4176
+## Entry 2820 — 2026-10-30 17:05 PDT — Filed the leads of five fix-lane reports as PB4168-PB4176
 
 The lead-filing clerk (units/enqueue.md step 5) turned the new defects and the non-blocking review leads of five finished fix-lane reports into nine `kb/Work/` notes, two housekeeping edits and one witness. No code changed.
 
@@ -10,3 +10,4 @@ The lead-filing clerk (units/enqueue.md step 5) turned the new defects and the n
 - PB2624 corrected in place: COBOL0308 and COBOL0309 (deleted by PB3861) left its `r2_members` and `Moves or changes` lines.
 
 Skipped: the PB3245 report's "division cursor reads an inline comment's words" (its round-2 review refuted it); the PB3845 report's R2-1 stale comments and its COBOL0900-at-85 lead (both fixed on that branch, which lands separately) and its report-order lead (held by PB4131); the PB3845 report's lead 3 (PB4070).
+
