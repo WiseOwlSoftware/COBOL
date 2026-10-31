@@ -43,6 +43,31 @@ public static partial class ReservedWords
     /// (<see cref="CobolNames.Comparer"/>, kb/Work PB1965), so any spelling of the word finds its row.</summary>
     public static ReservedWordEntry? Find(string word) =>
         (_byWord ??= Entries.ToDictionary(e => e.Word, CobolNames.Comparer)).GetValueOrDefault(word);
+
+    /// <summary>⛔ WHETHER A GENERAL FORMAT OF <paramref name="edition"/> CAN PRINT <paramref name="word"/> AS A KEYWORD
+    /// (kb/Work PB4174) — the question a diagnostic asks before it tells the user which words are EXPECTED. The grammar
+    /// parses the superset of all editions, so at COBOL-85 its expected set holds the 2002 boolean operators and at
+    /// every edition below 2023 the 2023 shift operators (<c>B-SHIFT-L</c>…); naming them sends the user to a word the
+    /// targeted edition does not have (ISO §8.3.2.1 1: "Reserved words shall not be used as user-defined words or
+    /// system-names", so a word §8.9 has not reserved yet is a user-defined word there), and that edition-blind sentence
+    /// was the whole of the defect.
+    /// <para>False only for the one shape the table PROVES: a word the edition does not reserve, no OLDER edition
+    /// reserved, and a LATER edition does — a word introduced after <paramref name="edition"/>. Every other word is
+    /// printable: one reserved at the edition, one an older edition reserved and this one dropped (the migration
+    /// mode's removed clause, and the standard's own anomalies — COBOL and PHYSICAL are underlined in 2023 formats
+    /// that §8.9 does not list), one reserved at no edition (the §8.10 context-sensitive words carry no per-edition
+    /// flag, <see cref="ContextSensitiveWords"/>), and one whose row may not reject (anything but high confidence is
+    /// inert, the conservative policy). A word wrongly named costs the user a sentence; a word wrongly left out of
+    /// one costs them the right keyword, so the doubtful cases name.</para></summary>
+    public static bool AdmitsAsKeyword(string word, int edition)
+    {
+        if (Find(word) is not { Confidence: "high" } row || row.IsReservedAt(edition)) return true;
+        foreach (int older in EditionInfo.Before(edition))
+            if (row.IsReservedAt(older)) return true;
+        foreach (int later in EditionInfo.All)
+            if (later > edition && row.IsReservedAt(later)) return false;
+        return true;
+    }
 }
 
 /// <summary>
