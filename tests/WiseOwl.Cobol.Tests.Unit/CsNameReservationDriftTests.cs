@@ -149,8 +149,10 @@ public sealed class CsNameReservationDriftTests
                 if (CsNames.Allocate(k, scope) is var got && got != k + "_2") bad.Add($"{kind}: {k} -> {got}");
         }
         Assert.True(bad.Count == 0, "a scope allocated a C# keyword as a CLR name: " + string.Join(", ", bad));
-        foreach (string k in keywords)
-            Assert.Equal(k, DataItem.Sanitize(k));   // the base is the CLR spelling; the scope, not an '@', keeps it legal
+        // A keyword a COBOL word can spell (letters only; '__arglist' cannot be a word, §8.3.2.1) keeps its spelling as
+        // the base: the scope, not an '@', keeps the allocated name legal.
+        foreach (string k in keywords.Where(static k => k.All(char.IsAsciiLetterLower)))
+            Assert.Equal(k, DataItem.Sanitize(k));
         Assert.Equal("_redef_int_2", "_redef_" + CsNames.Allocate(DataItem.Sanitize("int"), CsNameScope.ProgramClass()));
     }
 }
