@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-32",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 32,
+ "subject": "WRITE statement",
+ "rule-digest": "ef49f2cf00dd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SetRelativeKey",
+ "test-ref": "conformance:cases/14.9.51-WRITE/l1c37_relative_io_insert",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 14.9.51.4 'the value of the relative key data item shall be initialized by the runtime element with the relative record number to be associated with the record that is to be written' -> OK 29); the same sentence is GR32's, rule 32). Code: for random or dynamic access, KeyedIoEmitter.EmitWrite stages the RELATIVE KEY item's typed value through FileSetRelativeKey. If that item cannot be resolved it emits a LOUD statement, not a silent write. RelativeConnector.Write's non-sequential arm then puts the record at _pendingKey. Probe dir: out/probe/write-statement-p3/ (pinned adj-d1 cobol.exe). rel1.cob: I-O DYNAMIC, RKD=5 gives 'OK5 00', and the record reads back as 'R 0005 R005'; RKD=9999 gives 'OK9999 00'. The KeyedIoDifferentialTests relative-random case is pinned to the legacy oracle, so it does not qualify; no spec-derived golden targets this rule, and test-ref is empty. [editions as adjudicated: 85, 2002, 2014, 2023 (the rule is in every edition's relative/indexed WRITE text; Annex E records no 2014->2023 change to it)]",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.18.4-7",
+ "section": "14.9.18.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "GOBACK statement",
+ "rule-digest": "fba9df675e34",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#ExitStatus; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitGoback; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#ExitStatus",
+ "test-ref": "conformance-test:StopGobackExitCodeTests.TerminationStatus_SetsProcessExitCode",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "'ERROR ... in a main program' maps to the single termination-indication capability .NET offers - a nonzero process exit code (Environment.ExitCode, flushed at the write site by the RunUnit.ExitStatus setter): ExitStatus() renders 'st.Error ? 1L : 0L' when no status VALUE is present, and the theory carries the GOBACK-specific row 'GOBACK WITH ERROR.' -> 1. The 2023-only edition scope is the STATUS/ERROR phrase's own introduction gate (goback-status-2023 in ConstructRegistry). NAMED, not hidden: GR7 and GR10 collide when BOTH the ERROR phrase and a value are written - 'GOBACK WITH ERROR STATUS 0.' cannot both indicate error and pass 0 through one channel. docs/CONFORMANCE.md items 192/193 publish the resolution (the VALUE wins whenever present; ERROR/NORMAL supplies 1/0 only when it is absent), it was surveyed against GnuCOBOL 3.2 before being kept (kb/Work PB169), and GR7's own 'if such a capability exists within the operating system' is the latitude it rests on. That is an implementor determination under 4.2.16, not an unrecorded divergence.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#ExitStatus; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitGoback (the !__asCalled guard); src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#ExitStatus setter",
+ "state": "OK"
+}

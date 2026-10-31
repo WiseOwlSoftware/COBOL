@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.2.3.4-11",
+ "section": "7.2.3.4",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "COPY statement",
+ "rule-digest": "cfa3b6e1e7e0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#NormalizeCopybookMapped",
+ "test-ref": "conformance:cases/7.2.3-COPY/gl2m2_copy_resultant_spacing_85; conformance:cases/7.2.3-COPY/gl2m2_copy_resultant_spacing",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR11: no space added inside X(L1G2N)->X(3) (85 twin, pseudo-text leg) or at partial-word joins (L1G2P-NAME, CNT-L1G2S; 2023); an added space breaks the PICTURE/data-name, so compile+run pins it (§7.2.2.5 1), §8.3.5 1)/4))",
+ "state": "OK"
+}

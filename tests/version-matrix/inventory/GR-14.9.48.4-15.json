@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.48.4-15",
+ "section": "14.9.48.4",
+ "kind": "GR",
+ "ordinal": 15,
+ "subject": "UNSTRING statement",
+ "rule-digest": "20d77d869df9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/pb1184_unstring_zero_length_sender_terminates",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1184: GR15 a) is judged only for a sender GR2 lets the statement examine; the zero-length sender no longer reports the initiation overflow.",
+ "state": "OK"
+}

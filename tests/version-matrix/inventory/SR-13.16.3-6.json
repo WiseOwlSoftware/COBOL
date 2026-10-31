@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.16.3-6",
+ "section": "13.16.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "Data description entry",
+ "rule-digest": "b725ba4b10bc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenClausePlacement; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.16-Data-description/constant-record-level; conformance:cases/13.16-Data-description/pb518-global-below-level-1; unit:DataClausePlacementDriftTests.MisplacedExternalOrGlobal_IsRefused_AndNeverRegistered",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB518 LANDED. The GLOBAL half is the Residence row of the clause-placement table (level 1, in the file / working-storage / local-storage / linkage section per 13.18.27.3 SR1 b)) -> COBOL2404, at the clause site; the registration scan's `continue` filter that silently annulled the clause is gone. Level 77 is refused too - SR6 says level-number 1 and 13.16.3 SR1 lists 77 as a distinct level-number. MEASURED at 85/2002/2014/2023: `01 G. 05 H IS GLOBAL ...` and `77 H IS GLOBAL ...` -> COBOL2404 (were: accepted, clause dropped). The CONSTANT RECORD half is unchanged (BindEntry's CONSTANT RECORD block, COBOL1549, conformance:cases/13.16-Data-description/constant-record-level).",
+ "state": "OK"
+}

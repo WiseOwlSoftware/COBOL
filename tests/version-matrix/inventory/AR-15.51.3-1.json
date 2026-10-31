@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.51.3-1",
+ "section": "15.51.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "LOCALE-COMPARE function",
+ "rule-digest": "2bb10003f1b8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
+ "test-ref": "conformance-test:LocaleDispositionTests.LocaleFunctions_AreLive; conformance:cases/14.6.6-Locale-identification/pb64t4_locale_functions",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T4: the Verified schema screens argument-1 as class alphabetic/alphanumeric/national ('s'); a numeric argument is COBOL1627.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-34",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 34,
+ "subject": "PICTURE clause",
+ "rule-digest": "e051c6582e28",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeLocaleEdited",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb100-picture-locale-format-2",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "",
+ "state": "OK"
+}

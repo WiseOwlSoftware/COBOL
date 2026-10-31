@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.2.1-2",
+ "section": "8.3.2.1",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "COBOL words",
+ "rule-digest": "cc59758fb83b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCobolWord; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolWords.g4#cobolWord; src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CompilerDirectiveCatalog; src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
+ "test-ref": "conformance:cases/8.3.2-COBOL-words/pb656_directive_words_as_user_words; conformance:cases/8.3.2-COBOL-words/pb656-cobol-reserved-through-2014",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB656 (w1084b). The refuter's one unverified edge - COBOL refused as a user word at 2002/2014 while its provenance read 'removed post-85' - is settled: the provenance label, not the flag, was wrong. The generator gave every word reserved at 85 and not at 2023 the same 'removed post-85' label whatever its 2002/2014 flags said (35 rows); it now names the last reserving edition from the flags it describes. The 2002/2014 flags are GnuCOBOL's per-standard lists by CLAUDE.md rule 1's precedence (no 2002/2014 text in the repository; docs/CONFORMANCE.md D-RW3), and GnuCOBOL 3.2 refuses `01 COBOL` at -std=cobol2002 and -std=cobol2014 as this compiler does, so the 8.3.2.1 2) EXCEPT half (a compiler-directive word that is also reserved) refuses COBOL through 2014 and admits it at 2023, where 8.9 does not list it. Positive: the 2023 golden uses 8.12 words as computer-names (system-names), data-names, a condition-name, a section-name and a paragraph-name in the same compilation as >>DEFINE/>>TURN/>>IF and prints CBL 3 P LS / 42 1 F / CK=7 / DEFINED (computed from the VALUE clauses and SET CHECKING TO TRUE). Negative: COBOL as a data-name is COBOL0901 at 85, 2002 and 2014.",
+ "state": "OK"
+}

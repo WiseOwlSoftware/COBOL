@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.8.4.7.2",
+ "section": "8.8.4.7.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Simple sign condition",
+ "rule-digest": "212118559708",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#comparisonExpression; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#partialComparison; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindComparison; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindSignConditionOn",
+ "test-ref": "conformance:cases/8.8.4.7-Simple-sign-condition/l1c32_sign_condition_format1; conformance:cases/8.8.4.7-Simple-sign-condition/l1c32_sign_condition_format2",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Both printed formats reduce to `operand IS? NOT? (POSITIVE|NEGATIVE|ZERO)`: comparisonExpression alt 3 (written form) and partialComparison alt 2 (EVALUATE SR5 elided operand). The keyword is ZERO only; ZEROS/ZEROES are refused (PB510 landed, COBOL2418). IS is optional, NOT is optional, and one of the three keywords is required, which matches both diagrams. Probed with the pinned cobol.exe (probe dir out/probe/sign (p1b.cob, p2.cob, p3.cob, p4.cob)): Format 1 over a signed display item and over expressions (N + 1, N * 0, - N, N * -2 under --std 85), with IS NOT; Format 2 over bare FLOAT-BINARY-64/-32 names; EVALUATE FB WHEN NEGATIVE. All parse and bind. Which FORMAT an operand selects is SR1/SR2's partition and is adjudicated there (it diverges: see SR-8.8.4.7.3-2). test-ref left empty: conformance:cases/8.8.4.7-Simple-sign-condition/pb171_sign_condition_operands covers Format 1 only. conformance:cases/8.8.4.7-Simple-sign-condition/ca8_float_sign_format2 uses FLOAT-LONG, which is not a Format 2 operand at all (§3.166/§3.167), so no golden exercises Format 2 with a standard float usage. cite.py --check 8.8.4.7.3 SR1/SR2 OK. [editions as adjudicated: Format 1: 85, 2002, 2014, 2023. Format 2 (data-name-1 of a standard floating-point usage; the §3.166/§3.167 usages were introduced in 2014): 2014, 2023.]",
+ "state": "OK"
+}

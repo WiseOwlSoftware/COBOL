@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-80",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 80,
+ "subject": "FLAG-14 directive (warning mechanism)",
+ "rule-digest": "3f730f5c3b7d",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-80; src/WiseOwl.Cobol.Compiler/Validation/FlagConformancePass.cs#FlagConformancePass; src/WiseOwl.Cobol.Frontend/Preprocessor/FlagDirective.cs#TryParse; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#Flag14Warning",
+ "test-ref": "unit:FlagDirectiveTests.Compile_Flag14ReadPreviousOff_EmitsNoFlagWarning; unit:FlagDirectiveTests.Fold_DefaultsOff_AndIsStickyForwardStrictlyAfterTheDirective; unit:FlagPopulationTests.IoStatus_FlagsEveryConditionThatTestsTheFileStatusItem; unit:FlagDirectiveTests.Compile_Flag14ReadPreviousOn_EmitsCobol1621",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "7.3.15.4 1) (cite.py OK). docs/CONFORMANCE.md section 7 DOC-A.1-80 documents the FLAG-14 warning mechanism: COBOL1621 per flagged construct, the twelve options and the population each flags, on/off semantics, defaults, edition gating, and the open defect it excludes (kb/Work PB1374 selection forms). retired-witness: unit:FlagDirectiveTests.Compile_Flag14ReadPreviousOn_EmitsCobolnet1621 (the same witness, re-spelled when the product's name retired the compiler's first name (kb/Work PB3837: a test name carrying a code spells it COBOL####, kb/Work PB3575); the new spelling is recorded in its place)",
+ "state": "OK"
+}

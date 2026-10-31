@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.7.3-8",
+ "section": "12.3.7.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "b19987de9228",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#BindImplementorNameEntry; src/WiseOwl.Cobol.Editions/ImplementorNames.cs#ImplementorNames; src/WiseOwl.Cobol.Compiler/Binding/ImplementorNameEntry.cs#ImplementorNameEntry",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb862-unavailable-device-name; conformance:cases/12.3.7-SPECIAL-NAMES/pb862_implementor_names; unit:ImplementorNamesDriftTests.EntryShapeAndName_Refused; unit:ImplementorNamesDriftTests.EveryTableName_IsAccepted_InTheArmItsKindAllows",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR8 - the implementor shall specify the names available for switch-name-1, feature-name-1 and device-name-1. Specified as ONE table (ImplementorNames; docs/CONFORMANCE.md DOC-A.1-189/190/191); a name outside it, or ON/OFF STATUS on a non-switch name, is COBOL2241 at every edition. `SPECIAL-NAMES. WIBBLE WOBBLE.` used to compile and register a mnemonic naming nothing (kb/Work PB862). retired-witness: src/Cobol.Net.Compiler/Binding/ImplementorNames.cs#ImplementorNameEntry (the pure-data implementor-name table moved to WiseOwl.Cobol.Editions so the front end's DISPLAY directive reads the same device-names as SPECIAL-NAMES (kb/Work PB807); ImplementorNameEntry stayed in the compiler as ImplementorNameEntry.cs) retired-witness: src/Cobol.Net.Compiler/Binding/ImplementorNames.cs#ImplementorNames (the pure-data implementor-name table moved to WiseOwl.Cobol.Editions so the front end's DISPLAY directive reads the same device-names as SPECIAL-NAMES (kb/Work PB807); ImplementorNameEntry stayed in the compiler as ImplementorNameEntry.cs)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.2-6",
+ "section": "12.4.5.2",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "File control entry",
+ "rule-digest": "d90efebe3b23",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#assignClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Associate",
+ "test-ref": "conformance:cases/9.1.13.6-Permanent-error-condition-with-unsuccessful-completion/pb324_assign_using_dynamic",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'The allowable and required syntactical combinations of data-name-1 with device-name-1 and of data-name-1 with literal-1 are defined by the implementor.' (cite.py --check 12.4.5.2 -> OK §12.4.5.2 6)). Determination: DOC-A.1-71 'SR6 ... all three are allowed - the TO phrase alone, ASSIGN USING data-name-1 alone, and both together, in which case §12.4.5.3 GR3 b) lets the content win'. Code: assignClause `ASSIGN TO? assignTarget+ (USING dataReference)? | ASSIGN USING dataReference`; BindFileControl captures both; FileConnector.Associate lets the USING content win. Probe probe/fce/sr56: TO-only (dev.dat, myname.txt), `ASSIGN TO \"lit.dat\" USING WS-N` -> usingwin.dat (content wins, lit.dat never created), `ASSIGN USING WS-M` -> onlyusing.dat; probe/fce/sr6using (`ASSIGN TO DISK USING WS-N`) compiles and runs. All match the determination. The edition gate of the USING phrase is NOT this row's question and is owned by open PB746 (and PB674). [registrar 14a — editions as adjudicated: 85, 2002, 2014, 2023 per the clause text (the USING phrase's own introduction edition is undecided and owned by open kb/Work PB746/PB674)]",
+ "state": "OK"
+}

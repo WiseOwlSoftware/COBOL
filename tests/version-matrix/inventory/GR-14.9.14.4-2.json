@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.14.4-2",
+ "section": "14.9.14.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "EXIT statement",
+ "rule-digest": "2f9acd927064",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitExitProgram; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs",
+ "test-ref": "conformance-test:CallDifferentialTests.ExitProgram_InMainProgram_IsContinue; conformance-test:ExceptionConditionConformanceTests.ExitProgramRaising_InMainProgram_IsContinue",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "BOTH sentences of GR2 are implemented, and both are covered by spec-derived tests. Sentence 1 (CONTINUE in a non-called program): EmitExitProgram emits `if (__asCalled) throw new ProgramReturn();` for the plain form, so with no activation nothing at all happens and control falls to the next statement - CallDifferentialTests.ExitProgram_InMainProgram_IsContinue is AssertSpecPinned (BEFORE/AFTER) and its own doc-comment records that the legacy oracle deviates here, so the expectation is computed from the rule, not from the oracle. Sentence 2 ('No exception condition is raised even if the RAISING phrase is specified'): the RAISING form puts BOTH the EmitRaisingStage call AND the ProgramReturn throw inside one `if (__asCalled)` block, so a main-program EXIT PROGRAM RAISING stages nothing - ExceptionConditionConformanceTests.ExitProgramRaising_InMainProgram_IsContinue raises EC-SIZE-OVERFLOW under >>TURN EC-SIZE CHECKING ON and asserts the sole output FELL-THROUGH. The 'not under the control of a calling runtime element' predicate is the per-activation __asCalled flag (ProgramEmitter), which is the CALL-activation state the rule names, not a static main/subprogram property.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitExitProgram; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs",
+ "state": "OK"
+}

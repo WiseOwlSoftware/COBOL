@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.5.4-2",
+ "section": "13.5.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Working-storage section",
+ "rule-digest": "4c876f33408e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UnitStaticWs; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs",
+ "test-ref": "conformance:cases/11.10-PROGRAM-ID/pb154_cancel_cascade",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: \"Data items in the working-storage section of a program that does have the initial attribute are initial data\" (cite.py --check 13.5.4 OK). §14.6.2.3.2 says \"Automatic data and initial data is placed in the initial state every time the function, method, or program in which it is described is activated\" (OK). An INITIAL program's WS is emitted as instance fields and ProgramTable builds a fresh activation (ProgramTable.cs:231). Probe p2gr12: `PROGRAM-ID. P2INI INITIAL.` prints INI=01 ABC three times even though the group is MOVEd to ZZZ before each return, and `IS INITIAL PROGRAM` prints IS=06 twice. Both results hold at --std 85 (EXIT PROGRAM variant) and at 2023. conformance:cases/11.10-PROGRAM-ID/pb154_cancel_cascade's OUTER154 INITIAL shows W=0001 on both activations. || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): 85/2002/2014/2023",
+ "state": "OK"
+}

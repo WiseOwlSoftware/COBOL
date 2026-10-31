@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.6.4-2",
+ "section": "8.4.3.6.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "EXCEPTION-OBJECT",
+ "rule-digest": "973b1b738f29",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#Current; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ExceptionState; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
+ "test-ref": "conformance:cases/8.4.3.6-EXCEPTION-OBJECT/gl2m2_exception_object_identity",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "A separately compiled program in the same run unit sees the main program's raised object (SUB-E, identity with its BY CONTENT copy; formal BY REFERENCE by §14.2.3 GR4, conformance §14.8.2.3.3) and then the null (SUB-NULL): one register per run unit",
+ "state": "OK"
+}

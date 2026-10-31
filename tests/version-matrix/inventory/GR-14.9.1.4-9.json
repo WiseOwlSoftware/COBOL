@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.1.4-9",
+ "section": "14.9.1.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "ACCEPT statement",
+ "rule-digest": "d4c3b64f0645",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#Day",
+ "test-ref": "conformance-test:AcceptDifferentialTests.Day_AlphanumericReceiver_TruncatesRight; conformance-test:AcceptDifferentialTests.Date_ExactWidthReceivers_ShowEachZeroPaddedImage",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "'DAY without the phrase YYYYDDD ... FIVE digits', positions 1-2 the two low-order year digits, 3-5 the day of the year 001-366. AcceptSource.Day() returns `n.Year % 100 * 1000L + n.DayOfYear` -- year mod 100 weighted 10^3, day-of-year 10^0. The three-position day field and its 001-366 range are both structural: DateTime.DayOfYear is 1..366 by definition (366 only in a leap year), and EmitAcceptTemporal's width 5 through CobolNum.FormatUnsignedDisplayU(value, 5) zero-pads the whole value, so day 5 of 2026 renders '26005' -- the '001' low end. Pinned by AcceptDifferentialTests.Day_AlphanumericReceiver_TruncatesRight, whose comment derives the expected conceptual image '26161' for 2026-06-10 (day 161) and asserts '2616' after the X(4) alphanumeric MOVE truncation. That test observes positions 1-4 of the image, not position 5; I record CONFORMS rather than PARTIAL because the fifth position is produced by the same single PadLeft that produced the first four and the day arithmetic is a direct read of DayOfYear, but a golden with a 9(5) receiver at a leap-year day 366 would be the ideal close. || UPHELD, and this is the ONE cited test whose mechanism the adjudicator described correctly: its X(4) receiver really does take `case { Category: PicCategory.Alphanumeric } anPic` and therefore really does evaluate `sendImage = NumFormatUnsignedDisplay(call, 5)`, so FormatUnsignedDisplayU's `value % 10^5` + PadLeft(5,'0') is the observed path. I checked the two edges the test cannot see: a year ending 00 (2000, day 161) gives 0*1000 + 161 = 161, rendered '00161' -- positions 1-2 '00', positions 3-5 '161', correct; and a leap day 366 gives ...366, still three positions, no carry into the year field. CONFORMS stands.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.16.3-3",
+ "section": "13.16.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Data description entry",
+ "rule-digest": "817bce2b3cd2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.16-Data-description/based-redefines-conflict",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "All three legs verified against the pinned compiler. `01 A PIC X(4). 01 B REDEFINES A BASED PIC X(4).` -> COBOL0881 'BASED and REDEFINES may not be specified together'. `... REDEFINES A CONSTANT RECORD ...` -> COBOL1549 quoting SR3 verbatim. `... REDEFINES A IS TYPEDEF ...` -> COBOL1529 'the TYPEDEF and REDEFINES clauses are mutually exclusive'. Editions: BASED, CONSTANT RECORD and TYPEDEF are all post-1985 clauses, so at --std 85 the rule has no reachable subject (the clauses themselves are edition-gated by VersionConformancePass ParseArm). Test coverage is partial: the named negative pins only the BASED leg; the CONSTANT-RECORD and TYPEDEF legs are probe-verified with no repo test. || code sites, verbatim from the adjudication: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry (CONSTANT RECORD arm ~2742-2765, COBOL1549 citing SR3; BASED arm ~2821-2826, COBOL0881) + DataBinder.cs#RegisterTypeDecl (~757-759, COBOL1529)",
+ "state": "OK"
+}

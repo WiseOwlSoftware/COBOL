@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.43.4-2",
+ "section": "15.43.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "HIGHEST-ALGEBRAIC function",
+ "rule-digest": "ecae6fdbba90",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindAlgebraicFold",
+ "test-ref": "conformance:cases/15.43.4-Returned-value-rules/l1_highest_algebraic_note_table; conformance:cases/15.43.4-Returned-value-rules/highest_lowest_algebraic",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§15.43.4 r2's own NOTE table, all seven rows in order, including the three the corpus never held: S9(4) BINARY -> +9999 (the PICTURE) against BINARY-CHAR SIGNED/UNSIGNED -> +127/+255 (the picture-less container). ⚠ The two BINARY-CHAR lines are a DETERMINATION pin, not a standard-fixed value: §13.18.60.4 GR21 makes a BINARY-CHAR item's representation and length implementor-defined and GR12 states only minimum ranges ('The implementor may allow a wider range', §A.1 item 206 = optional), which is what the NOTE's '(assuming an 8-bit representation)' flags — they measure docs/CONFORMANCE.md A.1 items 206/207 (1 byte, minimum range, signed and unsigned the same width) and move only if those move. The five PICTURE'd rows are fixed by r2 plus the picture character-string.",
+ "state": "OK"
+}

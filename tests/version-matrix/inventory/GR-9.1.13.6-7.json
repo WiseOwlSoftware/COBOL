@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.6-7",
+ "section": "9.1.13.6",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "I-O status",
+ "rule-digest": "5a57e7f5f853",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ValidateFixedFileAttributes; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#FixedAttributeConflict",
+ "test-ref": "conformance:cases/9.1.13.6-Permanent-error-condition-with-unsuccessful-completion/open_fixed_attribute_conflict; conformance:cases/9.1.13.6-Permanent-error-condition-with-unsuccessful-completion/open_fixed_attribute_conflict_ix; conformance:cases/9.1.13.6-Permanent-error-condition-with-unsuccessful-completion/delete_file_attribute_set_empty",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 9.1.13.6 \"The OPEN or DELETE FILE statement is unsuccessful because a conflict has been detected between the fixed file attributes\" -> OK §9.1.13.6 7)). OPEN: FileConnector.Open (non-OUTPUT, file present) asks the organization's FixedAttributeConflict - the Annex A.1 item 129 validated set = what each physical format encodes (owner decision Q24/kb/Work PB802: keyed store header organization/record type/sizes/key table; RECORD VARYING header parse; nothing for fixed and line sequential) - and returns '39'. Goldens: 85/open_fixed_attribute_conflict S2-BIGGER=39, 2023/open_fixed_attribute_conflict_ix I2-KEYLEN=39 and I3-ALTCOUNT=39. DELETE FILE: §14.9.10.4 GR19 makes the validated set the implementor's to define (cite.py --check 14.9.10.4 \"The implementor shall define which of the fixed-file attributes are validated during the execution of the DELETE FILE statement\" -> OK §14.9.10.4 19)); FileRegistry.ValidateFixedFileAttributes defines it EMPTY by the recorded A.1 item 50 determination (docs/CONFORMANCE.md '39' bullet 'DELETE FILE - CONFORMING, by definition'), so '39' is unreachable from DELETE FILE by definition and golden delete_file_attribute_set_empty DELMISMATCH=00 pins it. || Editions (adjudicator, verbatim): OPEN arm 85,2002,2014,2023; DELETE FILE arm 2023 only (E.3.3 item 35)",
+ "state": "OK"
+}

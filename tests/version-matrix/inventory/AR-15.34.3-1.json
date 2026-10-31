@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.34.3-1",
+ "section": "15.34.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "EXP function",
+ "rule-digest": "5e4a69b9f544",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
+ "test-ref": "conformance:cases/15.34.3-Argument-rules/pb12-exp-alphanumeric-argument",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). EXP's 'n' row (§15.34.3 r1) with the PB59 OperandCategory totalization — an alphanumeric argument (bare, parenthesised, or a nested alphanumeric intrinsic) is rejected; the sweep's FIXED verdict, pinned by pb12-exp-alphanumeric-argument.",
+ "state": "OK"
+}

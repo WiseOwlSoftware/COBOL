@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-6.2.3.2-5",
+ "section": "6.2.3.2",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "Floating indicators",
+ "rule-digest": "613b38a8af3f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#Scan",
+ "test-ref": "conformance:cases/6.2.3-Floating-indicators/pb1359-floating-on-fixed-continuation; unit:LogicalLineBuilderTests.FloatingIndicator_OnAFixedContinuationLine_IsDiagnosed",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1359 landed: a floating literal continuation indicator on a line that holds the fixed continuation indicator (a hyphen in column 7) is COBOL2686.",
+ "state": "OK"
+}

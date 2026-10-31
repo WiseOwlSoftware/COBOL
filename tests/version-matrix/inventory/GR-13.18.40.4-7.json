@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.40.4-7",
+ "section": "13.18.40.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "PICTURE clause",
+ "rule-digest": "16d4a8a67a50",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.Analyze; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#FormatSimpleInsertion; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#EditFormatSimpleInsertion; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#IsEditedCategorySymbol",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb490_editing_simple_insertion; conformance:cases/13.18.40-PICTURE/pb490_simple_insertion_strings_85; conformance:cases/13.18.40-PICTURE/pb490-picture-editing-at-85; unit:CobolEditSimpleInsertionDriftTests.Alphanumeric_InsertsTheSameCharacterTheNumericPathDoes; unit:CobolEditSimpleInsertionDriftTests.TheEditedCategorySetIsRule3sMinusTheGroupingSeparator",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB490 LANDED; kb/Work PB492 RE-POINTED the code-location 2026-09-12 and strengthened the classification. The verdict is unchanged: GR7's classification and the character-1 leg's image are both right. What changed: the renderer is CobolEdit.FormatSimpleInsertion, reached through RuntimeApi.EditFormatSimpleInsertion, because 13.18.40.5 Table 7 gives GR7's category and GR10's category the SAME single type of editing and ONE renderer now serves both -- the '...Alphanumeric' name was itself the reason the national twin had no renderer at all. AND the classification now reads the set instead of respelling it: GR7's 'at least one instance of character-1 or one of the symbols from the set B, 0, /' is CobolEdit.IsEditedCategorySymbol, the SAME predicate GR10's arm reads (they are the same sentence, word for word), so the alphanumeric arm's `expanded.Any(c => c is 'B' or '0' or '/') || char1Set.Count > 0` literal list is gone. retired-witness: src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.cs#FormatAlphanumeric (FormatAlphanumeric is now CobolEdit.FormatSimpleInsertion (kb/Work PB492, fafeadb8b))",
+ "state": "OK"
+}

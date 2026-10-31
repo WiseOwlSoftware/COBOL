@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.36.4-6",
+ "section": "14.9.36.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "ROLLBACK statement",
+ "rule-digest": "aa79a58bdd9b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/TransactionControl.cs#RestoreData",
+ "test-ref": "unit:TransactionControlTests.A_retired_clause_is_not_restored_and_the_next_statement_deactivates_it",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB3338 (wave 1154): Annex A.4.3 is now PARTIAL (docs/CONFORMANCE.md §5, §4 item 2): the APPLY COMMIT clause, COMMIT and ROLLBACK are provided for RELATIVE and INDEXED files, whose keyed store engine keeps the transaction (kb/Work PB3337); a SEQUENTIAL or LINE SEQUENTIAL file named in the clause is under commit control too, its transaction journal being kb/Work PB3340 (COBOL1709, which refused it, is retired). The derived verdict commit-and-rollback-only that stamped the module DOCUMENTED-NON-SUPPORT is retired. GR6: the retired clauses are deactivated by the ROLLBACK (TransactionControl.RestoreData removes them). retired-witness: conformance-test:DeclinedFacilityTests.CommitAndRollback_DrawTheNamedNonSupportWarning_OncePerSite (COBOL1579 is retired: COMMIT and ROLLBACK are no longer accept-inert (kb/Work PB3338), and the pb259/pb261 goldens declare no APPLY COMMIT clause, so they witness GR1, not this rule)",
+ "state": "OK"
+}

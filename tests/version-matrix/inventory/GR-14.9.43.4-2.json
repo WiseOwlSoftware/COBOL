@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.43.4-2",
+ "section": "14.9.43.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "STRING statement",
+ "rule-digest": "67bcb1449751",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#WriteImage",
+ "test-ref": "conformance:cases/14.9.43-STRING/pb1179_string_into_national_receiver",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1179: a figurative constant is one character of the receiver's usage - a national receiver stores it as one national space.",
+ "state": "OK"
+}

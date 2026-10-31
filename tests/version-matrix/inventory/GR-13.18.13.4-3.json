@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.13.4-3",
+ "section": "13.18.13.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "CODE-SET clause",
+ "rule-digest": "d57278e95611",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindCodeSetClause; src/WiseOwl.Cobol.Runtime/IO/CodeSetConversion.cs#CodeSetConversion",
+ "test-ref": "conformance:cases/13.18.13-CODE-SET/pb793_code_set_ebcdic",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR3 - with no SELECT WHEN clause among the record description entries (this grammar has none, so it is EVERY case here), the specified alphabet is used for code-set conversion of ALL data items in each record. The conversion is therefore applied to the whole record image at the medium boundary rather than item by item, which is the same thing for a record whose elementary items are all usage display - 13.18.13.3 SR3 a requires exactly that of a file whose CODE-SET names alphabet-name-1 and which has record description entries, and it is checked (COBOL1672). What is NOT converted is the framing this processor adds AROUND the record - the 9.1.7.2 record-length header of a VARYING or keyed file, and a line sequential file's delimiter - because that is not data of the record; the determination is published in CONFORMANCE.md section 2 row 27.",
+ "state": "OK"
+}

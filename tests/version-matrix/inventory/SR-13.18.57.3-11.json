@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.57.3-11",
+ "section": "13.18.57.3",
+ "kind": "SR",
+ "ordinal": 11,
+ "subject": "TYPE clause",
+ "rule-digest": "c81d29334946",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindGroupType; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ResolveReports",
+ "test-ref": "conformance:cases/13.18.57-TYPE/l1-type-ch-operand-omitted-two-controls; conformance:cases/13.18.57-TYPE/l1-type-cf-operand-omitted-final-plus-one; conformance:cases/13.18.16-CONTROL/rw_suppress",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "An operand-less TYPE CH under CONTROL CX CY and an operand-less TYPE CF under CONTROL FINAL CX (FINAL is an operand, SR10) are both refused; the one-operand omission prints in rw_suppress (§13.18.57.3 SR11).",
+ "state": "OK"
+}

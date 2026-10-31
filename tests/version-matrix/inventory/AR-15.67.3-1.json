@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.67.3-1",
+ "section": "15.67.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "NUMVAL function",
+ "rule-digest": "c5855a5d4c91",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#PredicateViolation",
+ "test-ref": "conformance:cases/15.3-Arguments/pb58_argument_predicates_legal; conformance:cases/15.67.3-Argument-rules/pb60_numval_one_scan; conformance:cases/15.67.3-Argument-rules/pb658-numval-numeric-edited-argument; conformance:cases/15.67.3-Argument-rules/pb658_numval_category_positions; unit:IntrinsicArgumentClassDriftTests.CategoryWordedStringArguments_CarryTheCategoryPredicate_AndClassWordedOnesDoNot; conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). NUMVAL's new 's' row (§15.67.3 r1 'an alphanumeric or national literal or … data item'): a numeric argument is rejected at bind (negative pb58-numval-numeric); the format grammar itself is the one-scan's (PB60 — the space-only ignorable character, the alternative formats). || kb/Work PB658 (2026-10-03): r1 says \"an alphanumeric or national ... data item\", which 8.5.2.1's closing sentence and 8.5.2.3 4) read as CATEGORY, so the row now carries the CharacterCategory predicate and a numeric-edited, alphanumeric-edited or national-edited data item is COBOL1627; a ref-mod view of one stays legal (GR6). retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

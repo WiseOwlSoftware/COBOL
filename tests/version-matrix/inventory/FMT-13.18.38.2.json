@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.38.2",
+ "section": "13.18.38.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "OCCURS clause",
+ "rule-digest": "362c91cc86eb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#NarrowToDataDivisionFormats; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportOccursOf",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb1265_occurs_printed_formats; conformance:cases/13.18.38-OCCURS/pb1265-occurs-depending-without-to; conformance:cases/13.18.38-OCCURS/pb1265-occurs-to-without-depending; conformance:cases/13.18.38-OCCURS/pb1265-occurs-step-in-working-storage; conformance:cases/13.18.38-OCCURS/pb1265-occurs-dynamic-phrase-repeated; conformance:cases/13.18.38-OCCURS/pb1265-occurs-dynamic-phrases-reordered",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1265 (wave 1015 Y). cite.py --check 13.18.38.2 \"integer-1 TO integer-2 TIMES DEPENDING ON data-name-1\" -> OK; 5.2.1 \"shall be written in the compilation group in the sequence given in the general format\" -> OK. The grammar's occursClause stays a superset parse; the data-description arm (OdoBindOccursSpec -> NarrowToDataDivisionFormats) narrows it to Formats 1, 2 and 4: TO without DEPENDING, DEPENDING without TO, STEP, and a Format 4 phrase repeated or out of the printed CAPACITY-FROM-TO-INITIALIZED order each draw COBOL2789. The report arm (ReportOccursOf) already narrows to Format 3 (COBOL2021, SR24 pairing). KEY before INDEXED BY is the grammar's own order.",
+ "state": "OK"
+}

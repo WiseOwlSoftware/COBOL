@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.2.2-9",
+ "section": "14.2.2",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "Procedure division structure",
+ "rule-digest": "456f49faec0b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RaisingPhrase.cs#Partition; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#raisingTarget",
+ "test-ref": "conformance-test:RaisingPhraseTupleTests.HeaderRaising_InterfaceNotInRepository_0858; conformance:cases/14.2-Procedure-division-structure/pb815_raising_factory_interface",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB814.md landed w46. The interface-name-1 alternative is partitioned by the ONE header partition (program and METHOD-ID arms alike) through OoNameResolution.Lookup's scoped set: an interface declared in this element's REPOSITORY (or a containing one, 12.3.4 GR1) is accepted (golden: program PB815S and method WORK-I); an interface defined in the group but not declared in scope is COBOL0858.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-1",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "PICTURE clause",
+ "rule-digest": "4814c7f75604",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#CheckElementaryOnlyClauses",
+ "test-ref": "conformance:cases/13.16-Data-description/pb527-picture-on-a-group; conformance:cases/13.18.40-PICTURE/pb527_picture_placement; unit:PicturePlacementInvariantDriftTests.PictureOnAnEntryWithSubordinates_IsReportedAndLeavesTheModelClassifiable; unit:PicturePlacementInvariantDriftTests.EveryBoundItem_IsAGroupOrElementary_NeverBothAndNeverNeither",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB527 LANDED. 'The PICTURE clause may be specified only at the elementary level' is ALL FORMATS and reads identically at all four editions; 8.5.1.3.1 supplies which entries are elementary ('The most basic subdivisions of a record, that is, those not further subdivided, are called elementary items'), so the test is the SUBORDINATE COUNT. It had NO enforcement site anywhere and no diagnostic named it. It is screened now by COBOL2191, in the one pass that already holds the rule's converse (13.16.3 SR8's closing guard), over the finished forest -- neither direction can be asked at entry bind, because the subordinate entries are not parsed when BindEntry runs and PictureAnalyzer has no view of the tree. MEASURED on this worktree's own build at 85/2002/2014/2023: `01 G PIC X(3). 05 A PIC X.` -> COBOL2191 naming SR1 and 8.5.1.3.1 (it compiled CLEAN at every edition before, dropped A from the record struct, and `DISPLAY A` crashed the backend with CS1061 against a generated .g.cs). The recovery CLEARS the PICTURE rather than the subordinates, so the entry becomes the group its hierarchy declares and the model's classification stays total -- DataItem.IsElementary is `Pic is not null` and IsGroup is `Pic is null && Children.Count > 0`, so an entry with both is NEITHER, which is why the shape reached Roslyn at all. PicturePlacementInvariantDriftTests asserts that totality over thirteen legal data-division shapes and asserts the repair on three illegal ones; it FAILS (3 of 16) with the recovery removed, measured. The over-rejection guard conformance:cases/13.18.40-PICTURE/pb527_picture_placement pins the populations the screen must leave alone: nested groups, a level-66 RENAMES, a level-88 over a PICTURE-bearing conditional variable, and an elementary 01. retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.PictureRequired.cs#CheckPictureAtElementaryLevel (the PICTURE row joined the clause-placement table's ElementaryOnly screen (kb/Work PB512), and the method was folded into DataBinder.ClausePlacement.cs#CheckElementaryOnlyClauses)",
+ "state": "OK"
+}

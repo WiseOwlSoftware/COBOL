@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.41.3-5",
+ "section": "15.41.3",
+ "kind": "AR",
+ "ordinal": 5,
+ "subject": "FORMATTED-TIME function",
+ "rule-digest": "28803bf46310",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+ "test-ref": "conformance:cases/15.41.3-Argument-rules/pb11-offset-arg-local-format-time",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "An offset argument against the LOCAL format of 15.3.3.4 (neither the 15.3.3.5 trailing Z nor a 15.3.3.6 offset subformat) is COBOL1633; the converse is legal and is pinned by r6.",
+ "state": "OK"
+}

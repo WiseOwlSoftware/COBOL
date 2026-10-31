@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.8.3-15",
+ "section": "12.3.8.3",
+ "kind": "SR",
+ "ordinal": 15,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "1a20c6d5df72",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#ProgramPrototypesOf; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#ContainingDefinitions",
+ "test-ref": "conformance:cases/12.3.8-REPOSITORY/l1c24_repository_self_program_specifier; conformance:cases/12.3.8-REPOSITORY/pb3121_containing_definition_scope",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (cite.py --check 12.3.8.3 'references to program-prototype-name-1 are to the named program definition and this program-specifier is ignored' -> OK §12.3.8.3 15)). Code: ProgramPrototypesOf registers every specifier, then OVERWRITES map[u.Name] with SelfPrototype(u) for every program in BinderDriver.ContainingDefinitions(unit) - the unit itself and each program containing it (kb/Work PB3121: §8.4.6.8's 'containing program definition' includes the element's own, so the self entry no longer waits on a written specifier) - so a self- or container-naming specifier (including its AS literal-3) is discarded and the reference activates the named definition by its own externalized name. Probe out/probe/repo/sr15.cob (--std 2023): PROGRAM-ID. SR15P RECURSIVE whose REPOSITORY writes 'PROGRAM SR15P AS \"SR15OTH\"', with a program SR15OTH in the group; CALL SR15P recurses into itself (DEPTH=1, DEPTH=2) and never reaches SR15OTH - correct. conformance:cases/12.3.8-REPOSITORY/l1c24_repository_self_program_specifier pins the written self specifier; conformance:cases/12.3.8-REPOSITORY/pb3121_containing_definition_scope pins the specifier-free self and container spellings the same overwrite serves.",
+ "state": "OK"
+}

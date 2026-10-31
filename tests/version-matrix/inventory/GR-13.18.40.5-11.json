@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.40.5-11",
+ "section": "13.18.40.5",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "PICTURE clause",
+ "rule-digest": "2a554c268230",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Globalization/MonetaryFacts.cs#Require",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb64t6_picture_locale_smoke",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "",
+ "state": "OK"
+}

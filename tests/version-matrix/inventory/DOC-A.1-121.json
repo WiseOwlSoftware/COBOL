@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-121",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 121,
+ "subject": "METHOD-ID paragraph (actual method-name used when PROPERTY phrase is specified)",
+ "rule-digest": "6f8f095c8722",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-121; src/WiseOwl.Cobol.Compiler/Oo/NamingConvention.cs#GetAccessorName; src/WiseOwl.Cobol.Compiler/Oo/NamingConvention.cs#SetAccessorName",
+ "test-ref": "conformance:cases/11.7-METHOD-ID/oo_property_methods; conformance:cases/A.1-Implementor-defined-language-element-list/oo_property_ref; conformance:cases/A.1-Implementor-defined-language-element-list/pb1520_property_keyword_spelled_name; unit:IdentifierInjectivityTests.PropertyAccessorNames_AreTheDocumentedPrefixPlusTheWholeWord",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 11.7.4 \"If the PROPERTY clause is specified, the name is implementor-defined\" -> OK 11.7.4 1) a). The name is latitude (a CLR member name). docs/CONFORMANCE.md DOC-A.1-121 states it: __GET_<P> / __SET_<P>, <P> the upper-cased property-name (CobolNames.UpperFold) written as a .NET identifier by DataItem.IdentifierCharacters ALONE (NamingConvention.AccessorSuffix; the prefix makes Sanitize's leading-digit underscore and keyword @ useless). Review round 1 (R1-2) found the accessor composed through DataItem.WordIdentifier -> Sanitize, so a property-name that starts with a digit (legal: ISO 8.3.2.2 3) wants only one basic or extended letter) was __GET__1LONG, not the documented __GET_1LONG; fixed at the root and pinned by IdentifierInjectivityTests.PropertyAccessorNames_AreTheDocumentedPrefixPlusTheWholeWord (six names, both accessors) and by the golden's 2ND-VAL property. kb/Work PB929 sweep (2026-10-25): the earlier PARTIAL rested on a property-name spelled like a .NET keyword failing in Roslyn (CS1002, 'long __GET_@LONG()'); on this tree it does not: pb1520_property_keyword_spelled_name declares GET/SET PROPERTY long and a PROPERTY int data item, the generated accessors are __GET_LONG / __SET_LONG / __GET_INT / __SET_INT, and the program gets and puts through them (00007, 00555, 00100, 00120). Ordinary names are pinned by oo_property_methods and oo_property_ref. kb/Work PB1520.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.28.4-11",
+ "section": "14.9.28.4",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "PERFORM statement",
+ "rule-digest": "b5cadd6a1257",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitPerformLoop; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerformControl",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/perform_until_exit",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "UNTIL EXIT binds to PerformForever and renders `while (true) { body }` - a condition-1 that never evaluates true, exactly GR11. Edition: Annex E.3.3 item 37 ('The PERFORM statement now allows the UNTIL EXIT phrase which causes an infinite loop') makes it a 2023 addition; MEASURED at --std 2014 the construct gate rejects it (COBOL0900 citing §14.9.28.2 until-phrase / §14.9.28.4 GR11), and at 2023 it compiles. NOTE 4's escapes MEASURED: gr11_inline_exit - EXIT PERFORM leaves the loop while EXIT PERFORM CYCLE only re-iterates (N=04 CYCLED=01); gr11_exit_paragraph - an out-of-line `PERFORM SUBP UNTIL EXIT` whose SUBP ends in EXIT PARAGRAPH does NOT escape (it looped to N=4 and left only via STOP RUN), which is the case NOTE 4 warns about. SR8 (no TEST/VARYING with UNTIL EXIT) is structural in the grammar (performUntil's second alternative) and belongs to §14.9.28.3, adjudicated elsewhere.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitPerformLoop (PerformForever); src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerformControl",
+ "state": "OK"
+}

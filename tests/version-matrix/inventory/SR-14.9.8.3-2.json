@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.8.3-2",
+ "section": "14.9.8.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "COMPUTE statement",
+ "rule-digest": "9af2d4012460",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BuildComputeBoolean",
+ "test-ref": "conformance-test:BooleanOperatorTests.BooleanComputeReceiver_NotBoolean_Rejected1511; conformance:cases/8.8.4.2-Simple-relation-conditions/boolean_ops; conformance:cases/14.9.8-COMPUTE/pb157_compute_bit_group; conformance:cases/13.16-Data-description/pb79_group_usage_bit",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB157): the receiver test reads OperandPic - THE ONE category reader (D20/PB79) - so a GROUP-USAGE BIT receiver IS the elementary boolean item SR2 wants (13.18.29.4 GR1b's as-if PICTURE 1(m); 8.5.2.5 item 3 puts the bit group in category boolean); raw Pic rejected it while the sending side of the same statement accepted it. The refmod arm reads rm.Category (8.4.3.3.4 GR6's slice category). The EXCEPTION this note carried - 'a ref-mod slice OF a bit group, which is staged COBOL0899' - is RETIRED by kb/Work PB173: BitImagePlace gives the bit group its own ref-mod substrate in BIT positions (8.4.3.3.4 GR5a), so the boolean channel's units and the substrate's units now agree by construction, the 0899 containment and its DiagnosticCatalog descriptor are deleted, and pb79_group_usage_bit's RM1-RM6 legs pin the COMPUTE receiver among them. pb157_compute_bit_group pins acceptance across the direct Format-2 bind, the F1->F2 reroute and multi-target stores; pb157-compute-group-receiver pins the ordinary-group rejection boundary. The adjudication's secondary observation (BuildComputeBoolean bypassing the receiving chokepoint) was STALE - PB128 routed Format-2 receivers through ResolveReceiving before batch 8 recorded it.",
+ "state": "OK"
+}

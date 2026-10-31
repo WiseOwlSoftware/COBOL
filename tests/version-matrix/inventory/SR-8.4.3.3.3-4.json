@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.3.3-4",
+ "section": "8.4.3.3.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "Reference-modification",
+ "rule-digest": "c47e83487b55",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ScreenPositionOperandClass; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#IndexNameInPositionError; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#PositionRead; src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#RefModPosition",
+ "test-ref": "conformance:cases/8.4.2.3-Subscripts/pb201_position_operand_carriers; conformance:cases/8.4.3.3-Reference-modification/pb8_refmod_function_result; conformance:cases/8.4.2.3-Subscripts/pb50_figurative_zero_position_expressions; conformance:cases/8.4.3.3-Reference-modification/pb201-refmod-group-bound; conformance:cases/8.4.3.3-Reference-modification/pb170-refmod-alphanumeric-bound; conformance:cases/8.4.3.3-Reference-modification/pb170-refmod-index-name; unit:PositionCarrierOverloadDriftTests.SubscriptAndRefModArms_AdmitTheSameNumericCarriers",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB201 (2026-09-04), completing kb/Work PB170/PB219. SR4 carries 8.8.1.1 to BOTH reference-modification bounds exactly as 8.4.2.3.2 carries it to a subscript, so the rule is enforced as one screen shared with the subscript arm rather than a second copy. ACCEPTED side: a compound arithmetic expression in either bound (pb8 - FUNCTION UPPER-CASE(...)(IX + 1:3); pb50 - (ZERO + 2:3)) and every legal numeric CARRIER in the position (pb201 - a FLOAT-LONG and a PIC 9(20) COMP leftmost-position, each of which emitted CS1503 before PB201). REJECTED side: an alphanumeric GROUP bound and an alphanumeric item bound (not an identifier referencing a numeric data item, 8.8.1.1 + 8.5.2.1) and an index-name bound (13.18.38.3 r7 does not list a reference-modification position among its five contexts), COBOL0844 for the two class rejections and COBOL1637 for the index-name one, at every edition - 8.8.1.1 has no introduction axis, so no edition gate. The two arms are held on one admission list and the drift test fails if CobolTable.Occ and CobolString.RefModPosition stop admitting the same scaled carriers. retired-witness: unit:PositionCarrierOverloadDriftTests.SubscriptAndRefModArms_AdmitTheSameScaledCarriers (w70c (kb/Work PB1117): the scaled arity was replaced by the profile arity, so the two-arm assertion now compares the profile-arity overload sets of CobolTable.Occ and CobolString.RefModPosition (renamed SubscriptAndRefModArms_AdmitTheSameNumericCarriers))",
+ "state": "OK"
+}

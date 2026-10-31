@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.2-3",
+ "section": "8.8.2",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Expressions",
+ "rule-digest": "63aa6a72049c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#PreviousTokenCouldBeDataName",
+ "test-ref": "conformance:cases/8.8.2-Boolean-expressions/pb1465_boolean_paren_after_operator",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule 3 (cite.py --check 8.8.2 \"There shall be a one-to-one correspondence between left and right parentheses\" OK 3)). kb/Work PB1162 re-verdicted (wave 73 group A): the refuter's PARTIAL was balanced parentheses refused outside the leading position (A B-AND ( B ) -> COBOL0001) by the lexer's subscript capture; PB1465 fixed it, and its golden writes balanced groups after every operator. The rejection half (unbalanced -> COBOL0001 / COBOL0307) was already sound.",
+ "state": "OK"
+}

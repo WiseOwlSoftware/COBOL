@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.37.3-2",
+ "section": "13.18.37.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "NEXT GROUP clause",
+ "rule-digest": "93b70d4af3ef",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportRelativeSign",
+ "test-ref": "conformance:cases/8.4.3.15-Report-counters/pb957_next_group_forms; conformance:cases/13.18.14-COLUMN/pb951_relative_sign_synonyms",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB957 + PB951. 'PLUS and + are synonyms' — NEXT GROUP PLUS 2 and NEXT GROUP + 2 bind to one ReportNextGroup(Relative, 2) and move LINE-COUNTER identically in the goldens.",
+ "state": "OK"
+}

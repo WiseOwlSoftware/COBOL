@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.51.4-4",
+ "section": "15.51.4",
+ "kind": "RV",
+ "ordinal": 4,
+ "subject": "LOCALE-COMPARE function",
+ "rule-digest": "1074be35694a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#Compare",
+ "test-ref": "conformance:cases/14.6.6-Locale-identification/pb64t4_locale_functions",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T4: the cultural ordering is the locale's CLDR collation over the derived engine (the CMP-ES / CMP-CUR lines — Spanish vs root on n-tilde).",
+ "state": "OK"
+}

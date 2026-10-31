@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.26.4-3",
+ "section": "14.9.26.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "MULTIPLY statement",
+ "rule-digest": "07d1b278cedc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#ArithmeticOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindMultiply",
+ "test-ref": "conformance:cases/14.9.26-MULTIPLY/l1c19_multiply_standard_decimal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR3: 'When format 1 or 2 is used and standard-decimal, or standard-binary arithmetic is in effect, the product equals the result of the arithmetic expression' (cite --check 14.9.26.4 OK). Probe SD.cob (ARITHMETIC IS STANDARD-DECIMAL): MULTIPLY A(123456789012345678.123456789) BY B(987654321.987654321) GIVING R(S9(27)V9(4)) ROUNDED -> ...800.4569 = exact product rounded (python Decimal); MULTIPLY 1.1 BY K(1.25) -> 1.37 (truncated). The native composite cap is correctly not applied under standard-decimal (CheckComposite returns early). The STANDARD-BINARY half is declined (COBOL0806) under docs/CONFORMANCE.md row 2 'Not claimed - REVISITABLE' (PB198), carried by the derived verdict standard-binary-only; no owner decision needed here. No spec-derived golden exercises MULTIPLY under STANDARD-DECIMAL -> test-needed. || editions as adjudicated: 2002, 2014, 2023 (the modes the rule names are those of the ARITHMETIC clause, 11.9.5; standard-decimal/standard-binary as named by this 2023 text)",
+ "state": "OK"
+}

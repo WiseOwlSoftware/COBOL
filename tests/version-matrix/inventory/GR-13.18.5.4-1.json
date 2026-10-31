@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.5.4-1",
+ "section": "13.18.5.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "BASED clause",
+ "rule-digest": "cacb79c18391",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#ForceStringCanonical; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitPointerBackings; src/WiseOwl.Cobol.Runtime/Control/CobolPtr.cs#Deref",
+ "test-ref": "conformance:cases/13.18.5-BASED/based_pointer",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 13.18.5.4 'The BASED clause specifies that the subject of the entry is a based entry defining a template that is dynamically associated with storage through an implicit data-address pointer.' -> OK §13.18.5.4 1). A BASED root has no storage of its own: ForceStringCanonical makes its class a cell-backed template, EmitPointerBackings emits the implicit ManagedPointer field + a deref bridge property, and every reference goes through CobolPtr.Deref(addrField,width). Probes: based_pointer golden (SET ADDRESS OF B TO P, read/write through B reaches X); E:/Temp/claude/E--COBOL/a700c052-f9e4-4942-84ff-a13c7505d6ec/scratchpad/adj-d1/out13/probe/based/gr4.cob case 3 (SET P UP BY 1 then SET ADDRESS OF B TO P shows BCDE of W=ABCDEF) - the template re-associates dynamically.",
+ "state": "OK"
+}

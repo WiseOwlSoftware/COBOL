@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-34",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 34,
+ "subject": "WRITE statement",
+ "rule-digest": "b6d57aa1dfd4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#KeyOf",
+ "test-ref": "conformance:cases/14.9.51-WRITE/l1_write_indexed_every_key",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Records written out of order are reached by the prime key (sequential and random) and by each alternate key (random, plus a sequential walk on AK1) (§14.9.30.4 21)/30)/32)).",
+ "state": "OK"
+}

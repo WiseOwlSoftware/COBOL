@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.3.3.2-2",
+ "section": "8.3.3.3.2",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Numeric literals",
+ "rule-digest": "35ef2124318d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/ArithmeticFormationRules.cs#SignAbuts; src/WiseOwl.Cobol.Frontend/Expressions/ArithmeticFormationRules.cs#SignedLiteralViolation; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#IsLiteralValueOperand; src/WiseOwl.Cobol.Frontend/Expressions/SoleOperand.cs#NumericLiteral; src/WiseOwl.Cobol.Compiler/Binding/SignedIntegerLiteral.cs#Read; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#ScreenSign",
+ "test-ref": "conformance:cases/8.3.3.3.2-Fixed-point-numeric-literals/pb1445-value-double-sign; conformance:cases/8.3.3.3.2-Fixed-point-numeric-literals/pb1445-condition-value-separated-sign; conformance:cases/8.3.3.3.2-Fixed-point-numeric-literals/pb1445-move-separated-sign; conformance:cases/8.3.3.3.2-Fixed-point-numeric-literals/pb1445_signed_literal_forms; conformance:cases/8.3.3.3.2-Fixed-point-numeric-literals/pb1445_signed_literal_leftmost_sign; conformance:cases/8.3.3.3.2-Fixed-point-numeric-literals/pb1445-add-decimal-sign-separated; conformance:cases/8.3.3.3.2-Fixed-point-numeric-literals/pb1445-display-sign-separated; conformance:cases/8.3.3.3.2-Fixed-point-numeric-literals/pb1445-value-mixed-signs; conformance:cases/8.3.3.3.2-Fixed-point-numeric-literals/pb1445-value-sign-separated; conformance:cases/8.3.3.6-Figurative-constant-values/pb3962_figurative_zero_before_a_signed_literal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1445: ONE contiguity test (ArithmeticFormationRules.SignAbuts, on the tokens' stream indices, never GetText) answers rule 2 everywhere. LiteralScreenPass screens every signed literal slot of the tree (signedNumericLiteral — MOVE/ADD/DISPLAY literal operands — and signedIntegerLiteral), so `MOVE - 5`, `ADD - 5`, `DISPLAY - 5`, `MOVE - .5` draw COBOL2155 instead of reading -5; the VALUE clause (every format writes literal-n, §13.18.63.2) accepts a signed operand only when SoleOperand.NumericLiteral calls it ONE literal, so `VALUE --5` (was CS1059 in the backend), `+-5`, `- 5`, a sign split across lines and `88 C1 VALUE - 5` draw COBOL2155 naming the broken sentence. `-5`, `+4`, `MOVE -3`, `ADD -2` stay literals and `IF A = - 5` / `COMPUTE A = - 5 * 2` stay unary operators in an expression (85/pb1445_signed_literal_forms). retired-witness: src/Cobol.Net.Compiler/Validation/LiteralScreenPass.cs#ScreenSign (kb/Work PB1616 moved LiteralScreenPass (Compiler/Validation) to LiteralScreen (Frontend/Parsing) so the directive lane asks the same body; the witness is the same code at its new path)",
+ "state": "OK"
+}

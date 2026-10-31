@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.14.4-3",
+ "section": "7.3.14.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "FLAG-02 directive",
+ "rule-digest": "ec948a7d09a0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FlagState.cs#IsOnAt",
+ "test-ref": "unit:Flag02DirectiveScopeTests.Gr3_Off_DisablesAPreviouslyEnabledOption; unit:Flag02DirectiveScopeTests.Gr3_Off_DisablesOnlyTheSelectedOptions",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "§7.3.14.4 3): ALL ON then per-option, ALL, or list OFF stops the CLOSE flag; the in-method twin without OFF is flagged (separates GR3 from the GR5 default); a single-option OFF leaves the other option on",
+ "state": "OK"
+}

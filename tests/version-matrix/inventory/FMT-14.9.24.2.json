@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.24.2",
+ "section": "14.9.24.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "MERGE statement",
+ "rule-digest": "0e03355cfa77",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#mergeStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sortCollatingPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindMerge",
+ "test-ref": "conformance:cases/14.9.24-MERGE/pb1139_sort_collating_word_optional",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1139 landed: the one defect the adjudicator recorded - COLLATING 'UNDERLINED (required)' so a COLLATING-less SEQUENCE IS phrase is an unflagged nonstandard extension (leniency L5) - was a MISREADING of the figure: the printed page (ISO/IEC 1989:2023 p.745, rendered) underlines only SEQUENCE in COLLATING SEQUENCE; COLLATING is an optional word (5.2.3), so the short form is standard and there is nothing to flag or document. The grammar and binder comments that claimed otherwise are corrected. END-MERGE stays documented under D-RW1. Every other printed form was verified conforming by the adjudicator.",
+ "state": "OK"
+}

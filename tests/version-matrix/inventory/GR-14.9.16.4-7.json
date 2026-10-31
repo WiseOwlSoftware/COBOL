@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.16.4-7",
+ "section": "14.9.16.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "GENERATE statement",
+ "rule-digest": "1870bc0492bc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Generate; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ReportInactiveError",
+ "test-ref": "conformance:cases/14.9.16-GENERATE/pb326_ec_report_active_inactive",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB326, landed. 'The report … shall be in the active state. If it is not, the EC-REPORT-INACTIVE exception condition is set to exist, if it is enabled.' CobolReport.Generate calls ExceptionState.ReportInactiveError and returns, adding no line. The golden GENERATEs after a successful TERMINATE and sees the condition handled with no further detail line in the report file. The rule's own 'if it is enabled' is the >>TURN gate, which is what the raise helper implements. kb/Work PB688 (2026-09-05): the golden moved from tests/conformance/2002 to tests/conformance/2023 - it observes the report by re-reading the report file through ORGANIZATION IS LINE SEQUENTIAL, which is a COBOL-2023 introduction (12.4.5.10.3 GR2; the Foreword's main-changes list over ISO/IEC 1989:2014), so the program is not expressible at 2002. The RULE's editions are unchanged.",
+ "state": "OK"
+}

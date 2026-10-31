@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.7.4-1",
+ "section": "8.8.4.7.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Simple sign condition",
+ "rule-digest": "af34fb2ba800",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderSign; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#IsFormat2FloatSign",
+ "test-ref": "conformance:cases/8.8.4.7-Simple-sign-condition/ca8_float_sign_format2; conformance:cases/8.8.4.7-Simple-sign-condition/pb1471_sign_condition_float_partition; conformance:cases/8.8.4.7-Simple-sign-condition/pb171_sign_condition_operands",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1471 LANDED (wave 70 A). GR1a POSITIVE 'false if the value is zero or less than zero', GR1b NEGATIVE 'false if it is zero or greater than zero', GR1c ZERO 'true if the value is zero, and false otherwise' (cite.py --check 8.8.4.7.4 1) OK). RenderSign's Format-1 arm (algebraic >0/<0/==0, CompareU for unsigned-wide, DecSign for SDIDI) was already correct; the divergence was the partition routing implementor-defined floats to the Format-2 sign-bit arm, fixed in IsFormat2FloatSign. Witness ca8_float_sign_format2 (2002): FLOAT-LONG / FLOAT-SHORT / FLOAT-EXTENDED +0.0 IS POSITIVE false, -0.0 IS NEGATIVE false, both IS ZERO true, EVALUATE WHEN POSITIVE / NEGATIVE on a zero selects OTHER, 3.5 IS POSITIVE true. That golden previously PINNED the wrong sign-bit answer on FLOAT-LONG and was rewritten from the rule.",
+ "state": "OK"
+}

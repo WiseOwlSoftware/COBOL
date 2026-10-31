@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.2.1-1",
+ "section": "8.8.4.2.1",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Simple relation conditions",
+ "rule-digest": "4e417242cce1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#ForComparison; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs",
+ "test-ref": "conformance:cases/8.8.4.2-Simple-relation-conditions/float_compare",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Item 1 'Two operands of class numeric' -> §8.8.4.2.4 (cite.py --check 8.8.4.2.4 'a comparison is made with respect to the algebraic value of the operands regardless of the manner in which their usage is described' OK). ForComparison returns CollatingClass.Numeric only when BOTH categories are numeric. Measured: S9(3)V9 -12.5 = S9(5)V99 COMP-3 -12.50 TRUE; -12.5 < 9(4) COMP 12 TRUE; N1 = -12.50 literal TRUE; arithmetic-expression both sides TRUE; COMP-3 negative zero (COMPUTE -1*0) = display zero TRUE and = -0 TRUE (probe srel1/legal.cob, srel2/ne.cob). float_compare golden (FLOAT-LONG 10.5 = S9(3)V99 10.50 EQ; > 10 GT) is spec-derived. Native/standard-arithmetic comparison modes are §8.8.4.2.4's own rows, not adjudicated here. [editions as adjudicated: 85, 2002, 2014, 2023 (general-relation text carried unchanged into ISO/IEC 1989:2023; no Annex E entry — Annex E scopes only 2014->2023)]",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.29.3-1",
+ "section": "14.9.29.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "RAISE statement",
+ "rule-digest": "2e3ba2a7b0f5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcResolveLevel3; src/WiseOwl.Cobol.Compiler/Binding/EcNameResolution.cs#TryResolve; src/WiseOwl.Cobol.Compiler/Binding/EcRaiseSite.cs#Raise",
+ "test-ref": "conformance-test:ExceptionConditionConformanceTests.Raise_Level2Name_Diagnosed",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "\"Exception-name-1 shall be a level-3 exception-name as specified in 14.6.13.1\" (cite.py --check 14.9.29.3 -> OK §14.9.29.3 1)). Probed (probe/raise/sr1.cob, one name at a time): EC-ALL -> COBOL0710 'level-1 name ... (ISO §14.9.29.3 SR1)'; EC-USER -> 0710 'level-2 name'; EC-FOO-BAR -> COBOL0711 not an exception-name; EC-USER-A- / EC-USER-A_ (suffix may not end in hyphen/underscore, §14.6.13.1.1) rejected at the parse; EC-USER-OK_1, EC-IMP-XYZ, EC-SIZE-IMP, EC-SIZE-OVERFLOW accepted as level-3. The message cites RAISE's own SR1 via EcRaiseSite.Raise (Level3Rule 1), so the PB388/PB596 per-site-clause issue does not touch the RAISE site itself (PB596, open, concerns the EXIT/GOBACK sites of the shared EcNameResolution message).",
+ "state": "OK"
+}

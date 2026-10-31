@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.4.3-18",
+ "section": "14.9.4.3",
+ "kind": "SR",
+ "ordinal": 18,
+ "subject": "CALL statement",
+ "rule-digest": "14479700afaf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ScreenCallOperand",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb132-call-anylength-content",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB132): the BY CONTENT/bare arm rejects an ANY LENGTH identifier-4 through the chokepoint with the FORMAT-CORRECT citation (the old post-USING loop cited SR11 - Format 1's rule - for every argument, and SR18 for the RETURNING item, which is SR11's identifier-3; both citations now switch on formatTwo). The BY VALUE arm the old loop could never reach (Place null by construction) is closed by SR22's class screen: an ANY LENGTH item is class alphanumeric or national, which COBOL1628 rejects - source violating both rules draws the other rule's citation, and is rejected either way at bind.",
+ "state": "OK"
+}

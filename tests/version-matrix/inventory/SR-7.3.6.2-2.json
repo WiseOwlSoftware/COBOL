@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.6.2-2",
+ "section": "7.3.6.2",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Compile-time arithmetic expressions",
+ "rule-digest": "d6deeb35bc86",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-29; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvalArith; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#ParseLiteral; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EnterOperand",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/gl2m2-ct-arith-intermediate-overflow; conformance:cases/A.1-Implementor-defined-language-element-list/gl2m2_ct_arith_mode; unit:CompileTimeArithmeticModeTests.OperandBeyondTheModesRange_IsReportedAsSr2; unit:CompileTimeArithmeticModeTests.ModeDependentValues_FollowTheEditionsMode; unit:CompileTimeArithmeticModeTests.StandardArithmetic_RoundsATieAwayFromZero",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1369 re-verdict (w20261759a), cite.py --check 7.3.6.2 -> OK 7.3.6.2 2). Both halves hold on this build. Precision/magnitude: DOC-A.1-29 documents 28-29 digits / 7.9E28 at 2023 and the 34-digit standard-decimal range at 2002/2014; 1234567890123456789012345678901 + 0 and 9999999999999999999999999999 * 10 are refused at 2023 as COBOL1547 citing 'the documented 7.3.6.2 SR2 implementor limit' (no longer SR1b), a directive operand as COBOL1619 with the same text, and both evaluate at 2014 (99999999999999999999999999990). Rounding: documented as nearest-even at 2023 (1.5E-27/2*1E28 = 8) and nearest-away-from-zero at 2002/2014 (= 7), and the evaluator produces exactly those values (CompileTimeArithmeticModeTests.ModeDependentValues_FollowTheEditionsMode, StandardArithmetic_RoundsATieAwayFromZero).",
+ "state": "OK"
+}

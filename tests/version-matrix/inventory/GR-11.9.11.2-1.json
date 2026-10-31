@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.9.11.2-1",
+ "section": "11.9.11.2",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "INTERMEDIATE ROUNDING clause",
+ "rule-digest": "148ce45cbcca",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#CombineCore; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#IntermediateMode; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#NestedQuotientScale; docs/CONFORMANCE.md#DOC-A.1-123; docs/CONFORMANCE.md#DOC-A.1-82",
+ "test-ref": "conformance:cases/8.8.1.2-Native-standard-binary-and-standard-decimal/pb3538_zero_operand_precision; conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb156_float_literal_exact_native",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB929 sweep (2026-10-25): re-verdicted PARTIAL -> CONFORMS because the reason the row carried no longer reproduces on this tree. Rule: cite.py --check 11.9.11.2 \"If native arithmetic is in effect, the rounding rules that apply to intermediate data items are defined by the implementor\" -> OK 11.9.11.2 1); companion cite.py --check 8.8.1.3 \"The implementor shall specify techniques used for native arithmetic\" -> OK. The implementor defines the rules and states them where a user looks: docs/CONFORMANCE.md DOC-A.1-123 states the native intermediate (a scaled Int128; IEEE binary64 for any floating-point operand), the nested quotient's truncation at the working scale (the larger of the receiver's scale and the operands' fraction digits, plus 14 guard digits, CobolNum.NestedQuotientScale) with ONE rounding at the final transfer; DOC-A.1-82 states that a floating-point literal routes a native statement onto the decimal128 lane, where the OPTIONS INTERMEDIATE ROUNDING mode applies, and that INTERMEDIATE ROUNDING does not reach the nested quotient (kb/Work PB274, PB3538). The earlier PARTIAL (kb/Work PB1511) rested on DOC-A.1-123 saying only 'rounds once, at the final transfer'; kb/Work PB3538 rewrote the determination and nothing re-verdicted the row. WITNESSES: pb3538_zero_operand_precision (a native nested quotient is truncated at the working scale, the larger of the operands' places and the receiver's, plus 14, and the outcome of a relation turns on those places with no rounding step between) and pb156_float_literal_exact_native (the LANE legs: INTERMEDIATE ROUNDING reaches the float-literal lane and not the fixed-point one); the truncation is also pinned in every lane by pb3538_sdidi_lane_quotients and pb3538_chained_division_native, whose editions begin below this rule's band, so they cite GR-8.8.1.2-3. Editions follow the clause (2014, 2023).",
+ "state": "OK"
+}

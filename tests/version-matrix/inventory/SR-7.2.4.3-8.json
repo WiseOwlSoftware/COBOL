@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.2.4.3-8",
+ "section": "7.2.4.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "REPLACE statement",
+ "rule-digest": "a53b5f30d57f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ContinueFloating",
+ "test-ref": "conformance:cases/6-Reference-format/pb1359_floating_continuation_fixed; conformance:cases/6-Reference-format/pb1359_floating_continuation_free",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1359 landed: a literal continued with the floating indicator inside REPLACE pseudo-text (fixed and free form) is joined before text manipulation; REPLACE ==XX1== BY ==MOVE \"HELLO-WO\"-/\"RLD\" TO W-A== sets W-A to HELLO-WORLD.",
+ "state": "OK"
+}

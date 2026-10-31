@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.38.4-2",
+ "section": "13.18.38.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "OCCURS clause",
+ "rule-digest": "de6d618b2de7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#FatalAmbientGates; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb459_set_index_range_ec",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py OK §13.18.38.4 2)): implementor-specified index range containing (1 - integer-2)..(2 * integer-2); 'An index may be modified only by a PERFORM VARYING statement, a SEARCH statement, and a SET statement'; out-of-range -> EC-RANGE-INDEX, value undefined unless the statement's rules say otherwise. Documented: docs/CONFORMANCE.md DOC-A.1-128 = the full signed 64-bit interval (an index is its 1-based occurrence number in a long). Probes (out13/probe/occurs-p2): gr2.cob — SET IX TO 1, DOWN BY 5 -> -4 (below 1 accepted, inside the required 1-5=-4 bound); SET IX TO 10 = 2*5 accepted; ten SET IX UP BY 999999999999999999 under >>TURN EC-RANGE-INDEX CHECKING ON -> EC-RANGE-INDEX exactly on the two additions that leave the long range (CNT=2); gr2c.cob PERFORM VARYING IX FROM 9e18 BY 999999999999999999 -> EC-RANGE-INDEX on the augment (CNT=1). Modifier restriction: MOVE/ADD/COMPUTE/INITIALIZE into IX refused, ACCEPT IX refused COBOL1637. ⚠ Diagnostic-quality note for the part-1 SR7 adjudication (not this rule's semantics): MOVE 1 TO IX / ADD 1 TO IX / COMPUTE IX = 1 / INITIALIZE IX are refused as COBOL1639 \"'IX' is not defined — no declaration in this source element gives the name 'IX'\", which is false about a name INDEXED BY declared (the SetBinder comment in the dossier names this exact wording as a defect it fixed for SET); ACCEPT gives the correct COBOL1637. Covering golden conformance:cases/13.18.38-OCCURS/pb459_set_index_range_ec derives RANGE=EC-RANGE-INDEX / AFTER unchanged from GR2 + DOC-A.1-128; its 85/2023 twins pin the other legs. || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): 1985, 2002, 2014, 2023 (range + modifier restriction all editions; the EC-RANGE-INDEX consequence 2002+, where exception conditions arrive)",
+ "state": "OK"
+}

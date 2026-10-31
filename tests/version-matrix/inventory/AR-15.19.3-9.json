@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.19.3-9",
+ "section": "15.19.3",
+ "kind": "AR",
+ "ordinal": 9,
+ "subject": "CONVERT function",
+ "rule-digest": "3e2f7b241254",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindConvert",
+ "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.Convert_SyntaxRuleViolations_1514",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "SUSTAINED - confirmed by exhaustive execution over the source space. Citation validated (--check 15.19.3 \"the source-format shall be HEX\" -> OK, rule 9). `if (dst == 4 && src != 2)`: I ran all three non-HEX sources with a BYTE destination - ANUM BYTE, NAT BYTE, ANY BYTE - and each emits the SR9 message (ANY BYTE correctly emits SR8 as well, both rules being violated), while CONVERT(WS-HX HEX BYTE) is accepted and returns \"A\" (corpus golden HB=A). 'BYTE HEX' and any bare-HEX destination are rejected earlier by the pair check, so dst == 4 is reachable only from a literal BYTE word. Single clause, no second half; the guard is unreachable-by-construction from any other path.\nTest-ref audited and KEPT: the CONVERT(A ANUM BYTE) row trips SR9 and nothing else (confirmed from the emitted message).\nEditions: 2023 only, from Annex E item 24; NOT the IntrinsicCatalog row.",
+ "state": "OK"
+}

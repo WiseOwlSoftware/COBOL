@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.40.3-3",
+ "section": "15.40.3",
+ "kind": "AR",
+ "ordinal": 3,
+ "subject": "FORMATTED-DATETIME function",
+ "rule-digest": "f185491aaae3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFormattedDatetime",
+ "test-ref": "conformance:cases/15.40.3-Argument-rules/l1_fdt_argument2_integer_date_form",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "15.5.2's interval [1, 3067671]: both ends legal (16010101 / 99991231), and 0, -1 and 3067672 each set EC-ARGUMENT-FUNCTION per 15.3 rule 14, over a LOCAL format so the 15.40.4 r2 roll cannot confound the screen.",
+ "state": "OK"
+}

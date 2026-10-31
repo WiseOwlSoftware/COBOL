@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.8.3-14",
+ "section": "12.3.8.3",
+ "kind": "SR",
+ "ordinal": 14,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "2c66e3d666fa",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#ProgramPrototypesOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#BindProgramSpecifier",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb237_program_prototype; conformance:cases/10.6-COBOL-compilation-group/pb894_program_prototype_2002",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1086: Rule (cite.py --check 12.3.8.3 'the name of a program for which information exists in the external repository' -> OK §12.3.8.3 14)). Code: BindProgramSpecifier records the specifier (SR1/SR2 screened); ProgramPrototypesOf resolves it against the group definitions/prototype definitions and otherwise leaves the signature null, meaning 'external repository = the run-unit program registry' (an undocumented determination - Annex A.1 item 66 has no CONFORMANCE.md row). Alternatives 1 and 2 are exercised by pb894_program_prototype_2002 and pb237_program_prototype. The third alternative cannot be checked: out/probe/repo/sr10.cob 'PROGRAM NOSUCHPG' with no program anywhere compiles clean, and sr6.cob's CALL NOSUCHPG fails only at run time (EC-PROGRAM-NOT-FOUND -> ON EXCEPTION). Whether that is conforming depends on what the external repository IS, which §8.13 makes the implementor's documented mechanism and this implementation has not provided. 'Previously' (bullet 2) is likewise not enforced (PB989 shape). retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.Linkage.cs#BindProgramSpecifier (BindProgramSpecifier is declared in DataBinder.Switches.cs; DataBinder.Linkage.cs names it only in a comment)",
+ "state": "GAP"
+}

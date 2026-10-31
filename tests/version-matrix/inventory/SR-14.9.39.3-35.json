@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-35",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 35,
+ "subject": "SET statement",
+ "rule-digest": "0a5b6c6ff171",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindMessageTagSet",
+ "test-ref": "conformance:wiseowl/cases/14.9.39-SET/pb453-set-message-tag-format17; conformance:wiseowl/cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb487-message-tag-usage",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB453 - the STATEMENT arm of the declined Annex A.3 item-4 asynchronous messaging facility. SR35 - \"Data-name-4 and data-name-5 shall be message-tag data items\" (cite.py --check 14.9.39.3 OK) - is a screen over operands whose own USAGE MESSAGE-TAG entries this implementation refuses by name (COBOL1943; docs/CONFORMANCE.md section 4 item 1), so the rule has no domain and the conforming posture is 4.2.6 paragraph 3's mandatory compile-time warning mechanism NAMING the facility. It did not: SetFormatSelection's own comment asserted Format 17 \"cannot be reached\", and it WAS reached - MEASURED on this worktree's own build before the fix, `SET MT1 TO NULL` drew `COBOL0867: SET 'MT1': the receiving operand of an object-reference SET shall be a USAGE OBJECT REFERENCE data item (ISO 14.9.39.3 SR8)` and `SET MT1 TO MT2` drew `COBOL0844: item 'MT2' of category alphanumeric is not a numeric operand`. Both are rules from formats the program is not, and both name a repair that is not one. Format 17 is a ROW in the selection table now and both dispatch arms answer it (setObjectReferenceStatement for the TO NULL sender, setToValueStatement for the rest), so the statement draws COBOL2205 naming the facility. The operand kind is asked through the USAGE rather than the CATEGORY, because the declined entry's PicInfo is a recovery placeholder - it now carries Usage.MessageTag (PicInfo.MessageTagRecovery), which is the fact the source states, while its category stays the non-analysis IsRecovery says it is.",
+ "state": "OK"
+}

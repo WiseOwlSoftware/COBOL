@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.18.4-2",
+ "section": "14.9.18.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "GOBACK statement",
+ "rule-digest": "de14422ab9a7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitGoback; src/WiseOwl.Cobol.Runtime/Control/Signals/ProgramReturn.cs; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#__asCalled; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram",
+ "test-ref": "conformance:cases/14.9.4-CALL/goback_returning; conformance-test:StopGobackExitCodeTests.CalledSubprogramGobackStatus_IsInert",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Every clause of GR2 located and measured on the pinned compiler at --std 2023. Terminate + return to the calling statement: EmitGoback throws ProgramReturn, caught at the callee's own activation entry, so the activator resumes after the CALL (probe gr2ret/ret prints R=0042 and the statement AFTER the GOBACK in the callee never runs). The PD-header RETURNING item as the activation result: the CALL ... RETURNING receiver takes it (same probe; conformance:cases/14.9.4-CALL/goback_returning derives the same expectation from the rule). The INITIAL-program implicit CANCEL: ProgramTable.CallProgram runs CloseFiles + CancelContained + drop-instance on return when n.Initial, guarded on Active == 0 for the recursive-container case - probe gr2init/initial prints N=1 twice against the non-INITIAL control gr2init/noninitial printing N=1 then N=2. 'That implicit CANCEL will not raise any exception conditions in the calling runtime element': the emitted CloseFiles maps a close failure to I-O status '30' inside FileConnector.Close and never enters the EC machinery. The final sentence's ORDERING (the RAISING condition exists AFTER the implicit CANCEL) holds by construction and by measurement - the cancel block precedes ApplyPropagationDefault, and the in-group CALL-site pickup runs after ProgramRegistry.Call returns; probe gr2initraise/initraise prints N=1, then CAUGHT: EC-USER-I, then AFTER-CALL. NOT PINNED BY ANY TEST: the INITIAL implicit-CANCEL half - the only INITIAL fixtures (CallDifferentialTests PIDNW1, conformance:cases/11.10-PROGRAM-ID/pb154_cancel_cascade) exercise 14.9.5 CANCEL, not the 14.9.18.4 GR2 return path.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitGoback; src/WiseOwl.Cobol.Runtime/Control/Signals/ProgramReturn.cs; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#__asCalled entry wrapper; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram (the n.Initial && n.Active == 0 implicit-CANCEL block)",
+ "state": "OK"
+}

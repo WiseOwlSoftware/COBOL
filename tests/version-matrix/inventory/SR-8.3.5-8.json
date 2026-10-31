@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.5-8",
+ "section": "8.3.5",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "Lexical elements",
+ "rule-digest": "17894f6f67b2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#WS; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#PIC_STRING; src/WiseOwl.Cobol.Frontend/Parsing/PictureSeparatorPeriodRule.cs#PictureSeparatorPeriodRule; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadOperand",
+ "test-ref": "unit:TextManipulationStatementTests.PseudoTextDelimiters_AreSeparated",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1353 (w68x): the adjudicator found b) and d) CONFORMING and the optional-space half conforming (probes subsp, lgsep, litspaces, picsp, piccomma); a) defers to Clause 6. The one divergence, c) 'The opening pseudo-text delimiter, where the preceding space is required' (cite.py OK 8.3.5 8)), is now COBOL2573: REPLACE ==XX== BY==DISPLAY==. is rejected (probe repl_opennosp shape).",
+ "state": "OK"
+}

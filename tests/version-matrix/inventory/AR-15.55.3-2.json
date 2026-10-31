@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.55.3-2",
+ "section": "15.55.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "LOG function",
+ "rule-digest": "380284c38c52",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Log; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.cs#FromDouble; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ArgumentError",
+ "test-ref": "conformance:cases/15.55.3-Argument-rules/l1_log_domain_ec; conformance-test:ExceptionConditionConformanceTests.ArgumentFunction_CheckingOff_DefaultResultZero; conformance-test:ExceptionConditionConformanceTests.ArgumentFunction_Enabled_NoHandler_FatalTerminates",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "15.55.3 r2 'greater than zero' via 15.3's EC-ARGUMENT-FUNCTION consequence under >>TURN CHECKING ON: LOG(0) at the rule's boundary and LOG(-2.5) each CAUGHT, while LOG(1)=0 and LOG(0.0001)<0 raise nothing.",
+ "state": "OK"
+}

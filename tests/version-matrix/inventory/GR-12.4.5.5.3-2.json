@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.5.3-2",
+ "section": "12.4.5.5.3",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "General",
+ "rule-digest": "762981f4f2a5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs",
+ "test-ref": "conformance:cases/12.4.5-File-control/l1c12_access_mode_sequential_default",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule has three parts (cite.py --check 12.4.5.5.3 OK for 2) a), 2) b), 2) c)). All three verified by probe at --std 85 and 2023: a) sequential file written S2,S1 then OPEN EXTEND S0 reads back S2,S1,S0 -- predecessor-successor order of the WRITEs at creation and extension (gB.cob); b) relative file written RANDOM at RRN 5,2,9 reads back sequentially R2,R5,R9 -- ascending RRN of existing records, gaps skipped (gB.cob); c) indexed file written DYNAMIC C1,A3,B2 reads back sequentially A3,B2,C1 on the prime key, and after START on the alternate key C1,B2,A3 -- ascending within the key of reference (gA.cob); the collating-sequence half of c) is covered by conformance:cases/12.4.5.7-COLLATING-SEQUENCE/pb703_collating_key_named_twice and conformance:cases/12.4.5.7-COLLATING-SEQUENCE/file_collating_seq (both derive expected output from §12.4.5.5.3 GR2 c) and §12.4.5.7.4), IndexedConnector.cs:755 cites GR2c. test-ref left empty because no single spec-derived golden covers a) and b) as well as c). [registrar 14a — editions as adjudicated: 1985, 2002, 2014, 2023 (Annex E lists no substantive change to the ACCESS MODE clause)]",
+ "state": "OK"
+}

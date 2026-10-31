@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.63.4-3",
+ "section": "15.63.4",
+ "kind": "RV",
+ "ordinal": 3,
+ "subject": "MIN function",
+ "rule-digest": "3dbb65e90802",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#OperandCategory; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
+ "test-ref": "conformance:cases/15.26.3-Argument-rules/pb59_operand_category_total",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). §15.63.4 r3 — a figurative argument classifies alphanumeric (§8.3.3.6.3 SR1 / §15.3 type 2) through the totalized OperandCategory, so MIN/MAX over SPACE and an identifier reach the string body with a sized result; the §15.63.3 r1 class screen removes the boolean over-width first. The pb59 golden's figurative legs are the pin (the sweep's FIXED).",
+ "state": "OK"
+}

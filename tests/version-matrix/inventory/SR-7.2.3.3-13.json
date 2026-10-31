@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.2.3.3-13",
+ "section": "7.2.3.3",
+ "kind": "SR",
+ "ordinal": 13,
+ "subject": "COPY statement",
+ "rule-digest": "5769f9c02112",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair",
+ "test-ref": "unit:TextManipulationStatementTests.CopyOperandContent_IsScreened",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1353 (w68x): 'An alphanumeric, boolean, or national literal shall not be specified as partial-word-1 or partial-word-2' (cite.py OK 7.2.3.3 13)): a literal text-word in either partial-word is COBOL2572 (probe r_llit: RAN, now rejected).",
+ "state": "OK"
+}

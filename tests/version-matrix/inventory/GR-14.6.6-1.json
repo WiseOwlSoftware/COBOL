@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.6-1",
+ "section": "14.6.6",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Execution",
+ "rule-digest": "932d84091f3a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/LocaleState.cs#LocaleState",
+ "test-ref": "conformance:cases/14.6.6-Locale-identification/pb64t1_set_locale_categories; unit:LocaleStateTests.Activation_CopiesTheUserDefault_IntoEveryCategory_AndALaterUserDefaultChangeDoesNotMoveThem; unit:CobolCollationTests.LocaleState_DeterminesTheDefaultsFromTheEnvironment",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T1 (2026-08-19): at run-unit activation the user default (DETERMINATION L2 — COBOL_USER_LOCALE, else the process culture, else the root) becomes the current locale for every category. The implementor half (L3): a locale set by a non-COBOL module is NOT observed (the state is read from CultureInfo ONCE, at activation); a SET … TO USER-DEFAULT is how a program takes the user default.",
+ "state": "OK"
+}

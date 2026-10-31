@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-150",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 150,
+ "subject": "RECORD DELIMITER clause (feature-name and associated method for determining length of variable-length records)",
+ "rule-digest": "e7f533ba96ad",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-150; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported",
+ "test-ref": "conformance:cases/12.4.5.11-RECORD-DELIMITER/pb292_record_delimiter_witness; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterFeatureName_NamedNonSupportWarning_PinnedToSpec",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "A.1 item 150 — \"RECORD DELIMITER clause (feature-name and associated method for determining length of variable-length records). This item is optional. This item, if provided by the implementor, shall be documented in the implementor's user documentation. (12.4.5.11, RECORD DELIMITER clause, Syntax rule 2 and General rule 4)\" (cite.py --check A.1 OK). docs/CONFORMANCE.md §7's determination opens \"Not provided.\" — no name is available for use as feature-name-1 — which is precisely the class owner decision kb/Work PB280 Q1 (2026-09-02) answers once for every A.1-OPTIONAL item, applied through the `a1-optional-not-provided` derived selector: A.1's preamble conditions the documentation duty on provision and defines the optional class as \"The element may be provided at the implementor's option\", read with §4.2.5 ¶1, the clause that governs the A.1 list (\"The provisions of this clause apply to required normative elements of this Working Draft International Standard and to optional language elements for which an implementor claims support\", cite.py --check 4.2.5 OK) - none is claimed here, so the duty is not incurred. §4.2.7 is NOT this row's ground: its first sentence scopes it to the Annex A.4 list (kb/Work PB593). The posture is observable rather than merely asserted: a feature-name written anyway compiles, runs unchanged, and draws COBOL1778 naming the clause at 85/2002/2014/2023.",
+ "state": "OK"
+}

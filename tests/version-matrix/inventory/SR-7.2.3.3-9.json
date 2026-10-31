@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.2.3.3-9",
+ "section": "7.2.3.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "COPY statement",
+ "rule-digest": "db08aa2a5728",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy",
+ "test-ref": "unit:TextManipulationStatementTests.OverlongTextWord_IsScreened_InPseudoTextAndLibraryText",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1353 (w68x): 'The length of a text-word within pseudo-text and within library text shall be from 1 through 65,535 character positions' (cite.py OK 7.2.3.3 9)): a longer text-word in pseudo-text (ScreenOperandPair) and in library text (ResolveOneCopy's scan of the normalized text) is COBOL2572; a text-word is never empty by construction (TextWordScanner).",
+ "state": "OK"
+}

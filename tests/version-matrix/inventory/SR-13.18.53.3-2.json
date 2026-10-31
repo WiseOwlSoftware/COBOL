@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.53.3-2",
+ "section": "13.18.53.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "SOURCE clause",
+ "rule-digest": "2b578ec97a81",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#ScreenSourceIdentifier; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#Validity",
+ "test-ref": "conformance:cases/13.18.53-SOURCE/pb1293-source-numeric-to-alphabetic; conformance:cases/13.18.53-SOURCE/pb1293-source-alphabetic-to-numeric; conformance:cases/13.18.53-SOURCE/pb1293_report_source_move_valid",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "(kb/Work PB1293) A SOURCE identifier-1 written without ROUNDED is asked of the ONE MOVE validity chain (MoveTable16.Validity: SR2, SR6-SR9, Table 16) with the entry's printable item as the receiver, COBOL2770; an entry with no COLUMN clause has no printable item and no receiving operand (GR3).",
+ "state": "OK"
+}

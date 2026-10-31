@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.43.3-8",
+ "section": "14.9.43.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "STRING statement",
+ "rule-digest": "3e4ec62d9660",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Sr8Offence; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#HasPScaling",
+ "test-ref": "conformance:cases/14.9.43-STRING/pb1182-string-non-integer-sender; conformance:cases/14.9.43-STRING/pb1181_string_unstring_screen_controls; conformance-test:StringUnstringOperandScreenTests.String_NonIntegerOrPScaledNumericIdentifier_IsSR8",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1182 (wave 1011 A). SR8 'Where identifier-1 or identifier-2 is an elementary numeric data item, it shall be described as an integer without the symbol P' (cite.py --check 14.9.43.3 -> OK 8)). Sr8Offence refuses PIC 9V9, 99P and PP99 at identifier-1 and identifier-2 (COBOL1651); PIC 9(3) / PIC 9 stay legal (the positive control). The P positions come from PicInfo.TrailingPScaling / LeadingPScaling, the reader OperandText.PExpand also uses.",
+ "state": "OK"
+}

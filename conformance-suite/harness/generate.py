@@ -65,6 +65,7 @@ import cobol_source as cobol  # noqa: E402  (this directory's: the program-text 
 import config  # noqa: E402  (this directory's: the harness's adapter, profile and baseline formats)
 import generated_output  # noqa: E402  (the one way a generator clears the directory it writes: never wholesale)
 import inventory_schema  # noqa: E402  (the inventory's one schema: its editions, its evidence predicates)
+import inventory_store  # noqa: E402  (the inventory's one reader, kb/Work PB4148)
 sys.path.append(str(Path(__file__).resolve().parents[2] / "scripts"))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -1160,7 +1161,7 @@ def suite_ids(cases: list[Case], editions: list[str]) -> dict[str, set[str]]:
 
 def repository_inputs() -> tuple[Inputs, list[str]]:
     schema = inventory_schema.load_schema()
-    rows = {r["rule-id"]: r for r in inventory_schema.load_inventory()}
+    rows = {r["rule-id"]: r for r in inventory_store.load_inventory()}
     constructs = {c["id"]: (int(c["introducedIn"]), int(c["removedIn"]) if c.get("removedIn") else None)
                   for c in json.loads(CONSTRUCTS_PATH.read_text(encoding="utf-8"))["constructs"]}
     a1, problems = load_implementor_defined(IMPLEMENTOR_DEFINED_PATH, rows)

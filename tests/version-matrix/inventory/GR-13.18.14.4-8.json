@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.14.4-8",
+ "section": "13.18.14.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "COLUMN clause",
+ "rule-digest": "0b8251a51d24",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb951_relative_sign_synonyms",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: integer-2 on the first printable item is its leftmost column; otherwise leftmost = horizontal counter + integer-2 (cite.py --check 13.18.14.4 'The position of the item's leftmost character is obtained by adding integer-' -> OK 8)). Emitter: `__hc += integer-2; Place(__hc)`. Probes: p1 line 1 'ABC' 3-5 then PLUS 2 -> 7; line 3 first item PLUS 3 -> 3; line 5 AA at 2-3 then PLUS 1 -> 4, and after absolute C at 12, PLUS 1 -> 13 (' AABB      CD'); p6 `COLUMN PLUS 1 PLUS 2 PLUS 1 PIC 9` -> '3 33'. All match GR8 arithmetic. NOTE 2 informative. || Editions (adjudicator): 2002, 2014, 2023 (Format 1 multiple/relative/alignment forms); the absolute single-operand COLUMN NUMBER IS integer-1 form also 85. Annex E records no 2023 change to the clause. || Code sites (adjudicator detail): src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements (Relative arm); src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs (bind-time width loop, Relative => hc + spec.Value)",
+ "state": "OK"
+}

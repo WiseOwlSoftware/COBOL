@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.79.3-4",
+ "section": "15.79.3",
+ "kind": "AR",
+ "ordinal": 4,
+ "subject": "SECONDS-FROM-FORMATTED-TIME function",
+ "rule-digest": "dfd7d8d08249",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/LeapSecondDirectiveProcessor.cs#Process; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#Analyze; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#SecondsOutOfStandardForm; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#LeapSecondFlag",
+ "test-ref": "conformance:cases/7.3.17-LEAP-SECOND/pb65_leap_second_on; conformance:cases/7.3.17-LEAP-SECOND/pb65_leap_second_off; conformance:cases/7.3.17-LEAP-SECOND/pb65-leap-second-within-unit; conformance:cases/15.79.3-Argument-rules/pb65-leap-second-below-2002",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB65 (2026-08-18): the >>LEAP-SECOND directive is a real compilation-group fact (LeapSecondDirectiveProcessor -> Frontend.LeapSecondOn -> DirectiveResults -> BindSession/DataBinder.LeapSecond -> the renderer's trailing `leapSecond: true` argument to every seconds-reading date function). Under ON a formatted-time argument's seconds subfield admits 60 (15.3.3.3) and standard numeric time form is bounded at 86,401 (7.3.17.4 GR4): SECONDS-FROM-FORMATTED-TIME(\"hhmmss\", \"235960\") = 86400, TEST-FORMATTED-DATETIME accepts it, FORMATTED-TIME/-DATETIME present 86400 as 23:59:60, COMBINED-DATETIME accepts 86400; OFF (the implied default) keeps [0, 86,400) and 00..59. Before this the directive was consumed and discarded and the argument raised EC-ARGUMENT-FUNCTION. The reported side (a 60 from the clock functions, SECONDS-PAST-MIDNIGHT >= 86,400) is implementor-defined and stays never (A.1 item 112). || editions corrected from '2002,2014,2023' to 2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the SECONDS-FROM-FORMATTED-TIME function exists from 2014 (IntrinsicCatalog.cs, the COBOL1502 edition window).",
+ "state": "OK"
+}

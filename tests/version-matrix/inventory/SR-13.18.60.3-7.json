@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.60.3-7",
+ "section": "13.18.60.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "USAGE clause",
+ "rule-digest": "101e1c040055",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportUsage",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb541_report_national_item; conformance:cases/13.15-Report-group-description/pb541-report-usage-comp; conformance:cases/13.18.60-USAGE/pb541-report-national-at-85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "'Only the DISPLAY or NATIONAL phrase may be specified in any USAGE clause associated with a report group item.' ONE screen, ScreenReportUsage, asked at the two points a usage becomes known and nowhere else: of the USAGE CLAUSE as it is captured - which is the rule's own subject, and the only place a GROUP entry's clause is visible - and of the usage a printable item SETTLES on when no clause stated one, which is 13.18.60.4 GR7/GR8's implied usage. The gate this replaced tested `Usage is not Display`, one alternative narrower than the rule, so every NATIONAL report item was refused at 2002/2014/2023 under a 13.15 citation that says nothing of the kind; and a USAGE clause on a report GROUP entry was captured and then DISCARDED, so `03 USAGE COMP.` over a printable item compiled and ran. Both are now answered by the rule itself (COBOL2198), and the entry scope stack carries the effective usage down, which is 13.18.60.4 GR1's 'applies only to each elementary item in the group'; 13.18.60.3 SR2's 'the same usage shall be specified in both entries' rides the same code so the inheritance cannot be ambiguous. Positive: an own-clause NATIONAL item beside a DISPLAY item, a group-inherited NATIONAL item, and a picture-implied NATIONAL item, read back byte for byte. Negatives: USAGE COMP on a group entry at every edition, and the NATIONAL item below its introducing edition (national data is a COBOL-2002 introduction, 8.5.2), which is the edition-gate sweep the widened screen owes.",
+ "state": "OK"
+}

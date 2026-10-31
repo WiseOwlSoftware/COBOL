@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.2.2-13",
+ "section": "14.2.2",
+ "kind": "SR",
+ "ordinal": 13,
+ "subject": "Procedure division structure",
+ "rule-digest": "25de5e1a2963",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/l1c22-object-pd-not-format3; conformance:cases/14.2-Procedure-division-structure/l1c22-factory-pd-not-format3; conformance:cases/14.2-Procedure-division-structure/l1c22-interface-pd-not-format3",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§14.2.2 SR13 (A procedure division in an interface/instance/factory definition not in a method definition shall be object-oriented format). The CobolOO.g4 productions for FACTORY, OBJECT and INTERFACE admit only `PROCEDURE DIVISION DOT methodDefinition*`. Probes: OBJECT PD with a DISPLAY statement (b2/sr13_objstmts.cob), OBJECT `PROCEDURE DIVISION USING A.` (sr13_objusing.cob) and FACTORY `PROCEDURE DIVISION RETURNING A.` (sr13_factreturning.cob) all refused at parse (COBOL0001/0307 - loud, parse-level wording).",
+ "state": "OK"
+}

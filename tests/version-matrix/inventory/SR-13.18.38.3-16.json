@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.38.3-16",
+ "section": "13.18.38.3",
+ "kind": "SR",
+ "ordinal": 16,
+ "subject": "OCCURS clause",
+ "rule-digest": "546f82a9c692",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportOccursOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#OdoResolve",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb565_report_repeating_entry; conformance:cases/13.18.38-OCCURS/pb565-report-occurs-step-required",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB565 (2026-09-13). Rule 16 is stated for FORMATS 2 AND 3 and both arms now enforce it: the data-division occurs-depending table in DataBinder.Odo (COBOL0852, long-standing) and the report-writer repeating entry in ReportOccursOf, which rejects integer-1 < 0 or integer-2 <= integer-1 with COBOL2021 before the entry is replayed. The report arm could not exist before this landing because an OCCURS clause in a report group description entry was refused by name (COBOL0899), so rule 16 had no report-section population at all: the format-3 half of the rule was unimplemented, not merely untested.",
+ "state": "OK"
+}

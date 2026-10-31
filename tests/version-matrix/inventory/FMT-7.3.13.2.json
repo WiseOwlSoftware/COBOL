@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-7.3.13.2",
+ "section": "7.3.13.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "EVALUATE directive",
+ "rule-digest": "413c98f08078",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#PhraseFrame; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#MatchWhen; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#CheckOperandSyntax; src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand",
+ "test-ref": "conformance:cases/7.3.16-IF/pb1363_conditional_compilation_structure_legal; conformance:cases/7.3.13-EVALUATE/pb1363_omitted_branch_directives_legal; conformance:cases/7.3.13-EVALUATE/pb1363-evaluate-without-when; conformance:cases/7.3.13-EVALUATE/pb1363-evaluate-when-other-twice; conformance:cases/7.3.13-EVALUATE/pb1363-evaluate-when-after-when-other; conformance:cases/7.3.13-EVALUATE/pb1363-evaluate-not-closed; conformance:cases/7.3.13-EVALUATE/pb1363-evaluate-closed-in-library-text; conformance:cases/7.3.13-EVALUATE/pb1363-when-without-evaluate; conformance:cases/7.3.13-EVALUATE/pb1363-end-evaluate-without-evaluate; conformance:cases/7.3.13-EVALUATE/pb1363-text-before-first-when; conformance:cases/7.3.13-EVALUATE/pb1363-omitted-evaluate-subject-malformed; conformance:cases/7.3.13-EVALUATE/pb1363-omitted-when-object-malformed; conformance:cases/7.3.13-EVALUATE/pb1363-omitted-when-through-malformed; conformance:cases/7.3.13-EVALUATE/pb1363-omitted-when-truth-malformed; conformance:cases/7.3.13-EVALUATE/pb1364-when-format2-after-match-malformed; conformance:cases/7.3.13-EVALUATE/pb1364-when-other-trailing-text-after-match; conformance:cases/7.3-Compiler-directives/pb806-end-evaluate-trailing-word; unit:CompilerDirectiveCatalogDriftTests.EveryNoOperandWord_RejectsAnOperandAndAcceptsTheBareWord",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1363 + PB1364 + PB806. cite.py --check 7.3.13.2 'shall be specified one or more times' OK (figure notes: the >>WHEN group is required and repeatable, one optional >>WHEN OTHER follows it, >>END-EVALUATE is required). The phrase structure is the Frame's (kind, phase, library text; COBOL2649) in every branch; the subject, every WHEN object and THROUGH operand of Format 1 and every WHEN constant-conditional-expression of Format 2 are parsed whether or not the WHEN is selected and whether or not the directive is in a compiled branch (COBOL1619); >>WHEN OTHER and >>END-EVALUATE take no operand. Re-affirmed 2026-10-22 (kb/Work PB3530) against the figure regenerated from the printed page: render_figure.py's brace-group layout now keeps every alternative inside its own enclosure, so the diagram's layout changed while its words did not (sweep_figures.py's word gate); the verdict stands on the printed format.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.40.3-1",
+ "section": "14.9.40.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "SORT statement",
+ "rule-digest": "ce36947e08d3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindCollating",
+ "test-ref": "conformance:cases/14.9.40-SORT/l1c29-sort-collating-slot1-national; conformance:cases/14.9.40-SORT/l1c29-sort-collating-for-alnum-national",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 14.9.40.3 \"Alphabet-name-1 shall reference an alphabet that defines an alphanumeric collating sequence\" OK (SR1). Per §12.3.7.4 GR7 Table 6 (cite.py --check 12.3.7.4 \"Relationship of alphabet-name to coded character set and collating sequence\" OK) EVERY alphanumeric-branch operand (LOCALE, NATIVE, STANDARD-1, STANDARD-2, code-name-1, literal phrase) references a collating sequence, so SR1 reduces to 'alphabet-name-1 is an alphanumeric alphabet'. SortBindCollating: alnumName not in ctx.Data.Alphabets -> COBOL0898 (national alphabet named -> 'shall reference ... ALPHANUMERIC'; undeclared -> 'not an alphabet-name'). PROBES --std 2023: c_ok1 (IS A-AN STANDARD-1) rc 0; c_ok2 (IS A-LOC LOCALE + N-NAT) rc 0; c_nat1 (IS N-NAT, a FOR NATIONAL alphabet in slot 1) rc 70 COBOL0898; c_nat1f (FOR ALPHANUMERIC IS N-NAT) rc 70 COBOL0898; c_unk1 (IS NOTALPHA, a data-name) rc 70 COBOL0898. Both spellings of the slot are screened by one path. Cosmetic: the national-in-slot-1 message cites '§14.9.40.3 SR2' where the violated rule is SR1 (SortBinder.cs line 587) — a wrong-clause cite of the PB996 family, reported in findings. No spec-derived negative golden pins SR1. [editions as adjudicated: 85, 2002, 2014, 2023 (the IS alphabet-name-1 form exists at 85; the FOR ALPHANUMERIC form is 2002+).]",
+ "state": "OK"
+}

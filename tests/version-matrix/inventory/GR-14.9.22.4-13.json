@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.22.4-13",
+ "section": "14.9.22.4",
+ "kind": "GR",
+ "ordinal": 13,
+ "subject": "INSPECT statement",
+ "rule-digest": "3421e0c42d37",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#EmitBody; src/WiseOwl.Cobol.Compiler/Binding/Model/StorageOverlap.cs#MayShareStorage",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/pb1907_inspect_tally_overlap; conformance:cases/14.9.22-INSPECT/pb1907_inspect_format3_counter_overlap",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§14.9.22.4 GR13 (identifier-1/3/4 in the storage of the TALLYING counter: result undefined, Annex A.2 item 21 d)); §4.4 2) makes the run unit conforming. WiseOwl COBOL documents and pins its behavior (docs/CONFORMANCE.md D-INS1, D-INS2; kb/Work PB1907; owner 2026-10-01, GnuCOBOL 3.2 measured): each TALLYING operand counts from the state after the earlier operands stored their counters, and a format 3 replacing half (GR19) reads identifier-1 as the tallying half left it; a statement whose counters overlap nothing it reads stays the one shared GR8 cycle.",
+ "state": "OK"
+}

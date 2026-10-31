@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.7.7-2",
+ "section": "14.7.7",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Common phrases and features for statements",
+ "rule-digest": "114856788742",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrMatch",
+ "test-ref": "conformance:cases/8.8.1.2-Native-standard-binary-and-standard-decimal/l1-add-composite-over-31",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR2 a)/b) (--check 14.7.7 'the composite of operands shall not contain more than 31 digits' -> OK §14.7.7 2) a)). CheckComposite runs only when Arithmetic == Native, only from ADD/SUBTRACT/MULTIPLY/DIVIDE (COMPUTE exempt, §8.8.1.2 r7), excludes float usages (IsFloat), BINARY-CHAR/-SHORT/-LONG/-DOUBLE, floating-point literals, and intrinsic function operands (not BoundNumRef/BoundNumLiteral). PROBE out/probe/arith/a1.cob: A PIC 9(31) with a FUNCTION NUMVAL operand, FLOAT-BINARY-64, BINARY-DOUBLE and 2.0E+0 all compile (composite of the others = 31); ADD C TO A with C 9(20)V9(11) -> COBOL0805 '42 digits (31 integer + 11 fraction)'. FLOAT-DECIMAL-16/34 are declined (COBOL1564, A.3 item 19) so the standard-decimal-float exclusion is unreachable. Per-pair composite for ADD/SUBTRACT CORRESPONDING is checked in CorrMatch. Also conformance:cases/14.9.2-ADD/pb155_composite_edges, 2002/ca6_binary_operand_composite, conformance-test:StandardDecimalTests.CompositeOverThirtyOne_RejectedEverywhere. || editions as adjudicated: 2002, 2014, 2023 (COBOL-85 capped the composite at 18 digits - a different rule; the code applies 31 at --std 85 too, a documented choice in CheckComposite's comment citing CCVS NC101A, outside this row)",
+ "state": "OK"
+}

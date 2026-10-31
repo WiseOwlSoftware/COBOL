@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.4-5",
+ "section": "7.3.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Compiler directives",
+ "rule-digest": "c8fd46e31bb1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TurnDirectiveProcessor.cs; src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#NormalizeCopybookMapped",
+ "test-ref": "conformance:cases/6.5-Logical-conversion/pb1067_library_text_source_format",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1067 (w67m): the PARTIAL half was the SOURCE FORMAT directive in library text, which a sequence-numbered copybook skipped; library text now runs through the directive-aware walker, so a SOURCE FORMAT directive applies to all the library text that follows it (and its text-manipulation siblings already applied to source and library text alike).",
+ "state": "OK"
+}

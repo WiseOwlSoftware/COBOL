@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.7-6",
+ "section": "9.1.13.7",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "I-O status",
+ "rule-digest": "31e6a5079953",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#StartOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#InvalidateFilePosition; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadSequential",
+ "test-ref": "conformance:cases/9.1.11-File-position-indicator/pb336_optional_absent_read_46; conformance:cases/14.9.41-START/pb870_start_first_last_relative_exceptions",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§9.1.13.7 6) '46' sequential READ with no valid next record because a) the preceding START or b) the preceding READ was unsuccessful (cite.py --check OK §9.1.13.7 6)). SequentialReadGuard returns '46' on LastReadUnsuccessful after the '47' open-mode test (so '46' needs a connector open input/I-O, as the rule states); every unsuccessful START (including the '47' START via StartOpenModeGuard) calls InvalidateFilePosition; keyed connectors also clear _fpiValid. Probe logic4x/p1.cob: READ at EOF -> 10, next READ -> 46; relative START with invalid key -> 23, then READ NEXT -> 46. conformance:cases/9.1.11-File-position-indicator/pb336_optional_absent_read_46 pins both arms across all three organizations (REL-AFTER-START=46, IDX-AFTER-START=46, SEQ R2=46); PB810 landed covers the '46' transfer. || Editions (adjudicator, verbatim): 1985/2002/2014/2023",
+ "state": "OK"
+}

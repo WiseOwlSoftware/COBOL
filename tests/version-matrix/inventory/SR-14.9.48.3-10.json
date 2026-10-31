@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.48.3-10",
+ "section": "14.9.48.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "UNSTRING statement",
+ "rule-digest": "3af2f8c10537",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
+ "test-ref": "conformance:cases/14.9.43-STRING/pb88-string-into-variable-length-group; conformance:cases/14.9.48-UNSTRING/pb88-unstring-sender-numeric",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB88 (2026-08-18): a bind-time rejection (COBOL1651) through the ONE Reject helper. Identifier-1..5 shall not reference a variable-length group — HasVariableLengthSubordinate on the sender and each INTO receiver (the STRING twin negative pins the predicate on a group with a DYNAMIC LENGTH leaf).",
+ "state": "OK"
+}

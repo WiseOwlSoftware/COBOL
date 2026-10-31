@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.34.4-2",
+ "section": "13.18.34.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "LINAGE clause",
+ "rule-digest": "56d8fe8559b5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveLinage; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifiedCandidates; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs",
+ "test-ref": "conformance:cases/13.18.34-LINAGE/pb489_linage_qualified_operands; conformance-test:ClauseOperandQualificationSpecTests.LinageOperand_QualifiedByItsGroup_UsesThatGroupsItem; conformance:cases/13.18.34-LINAGE/pb489-linage-operand-ambiguous; conformance:cases/13.18.34-LINAGE/pb686_linage_gr26_boundary; conformance-test:LinageConformanceTests.Gr7c4_OverflowCrossing_ResetsToOneNotModulo; conformance-test:LinageConformanceTests.Gr26ab_CounterEqualsBody_IsFootingEopNotOverflow; conformance:cases/13.18.34-LINAGE/pb686_linage_gr26_boundary_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB489 LANDED - THE REFUTATION IS REPAIRED. The row was held at PARTIAL by one operand spelling: when data-name-1 was QUALIFIED the compiler used the value of a DIFFERENT data item, silently, so GR2's 'the value of the data item referenced by data-name-1' was the page size of whatever item of that name happened to be declared first. The mechanism was in the binder, and the row's code-location now names it: BindLinageClause kept only the first word of the operand's dataReference and ResolveFiles resolved that bare word with `ByName.TryGetValue(n) -> list[0]`. Both are gone. The operand keeps its IN/OF qualifiers and resolves through DataBinder.QualifiedCandidates - the ONE 8.4.2.2 candidate-set matcher, shared with the procedure division's ReferenceResolver, which knows the file-name qualifier of 8.4.2.2.2 Format 1 and returns the SET so that the NUMBER of survivors is the answer 8.4.2.2.1 demands. MEASURED, on the probe the refutation named: `LINAGE IS SZ OF GRP-B LINES` over GRP-A.SZ=3 and GRP-B.SZ=9 with `WRITE ... AFTER ADVANCING 4 LINES` reported EOP / LINAGE-COUNTER 1 (a 3-line page) before and reports NO-EOP / LINAGE-COUNTER 5 (the correct 9-line page) now, at every edition. The third spelling - an AMBIGUOUS unqualified operand - is now REJECTED (COBOL1639) instead of resolved by declaration order. The row's cost disclosure about the page body's POSITION under a top margin is GR4's obligation and is recorded there; GR2's own sentence is clean.",
+ "state": "OK"
+}

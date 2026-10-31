@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.54.3-7",
+ "section": "13.18.54.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "SUM clause",
+ "rule-digest": "02084a40ed05",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#UponDetailRef; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ResolveUponDetail; src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs#Resolve",
+ "test-ref": "conformance:cases/13.18.54-SUM/pb482_sum_addend_written_reference_85; conformance:cases/13.18.54-SUM/pb482-sum-upon-not-detail; conformance:cases/13.18.54-SUM/pb482-sum-upon-subscripted; unit:ReportGroupResolutionDriftTests.EveryConsumer_CallsTheFunnel",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB482. Both sentences are screened. 'shall be the name of a detail' - ResolveUponDetail resolves the operand through the ONE report-group funnel (kb/Work PB365, which also owns the 8.4.2.2.3 SR1 ambiguity rule) and refuses a name that resolves to no report group, or to a group whose TYPE is not DETAIL, under COBOL2046; the rule bites because GR7 c) 2) accumulates on a GENERATE of the named detail and 14.9.16.3 SR1 makes only a detail a GENERATE operand. 'may be qualified only by a report-name' - the capture keeps the whole written reference and refuses more than one qualifier, a subscript (8.4.2.3.3 SR2 admits one only for an item with an OCCURS clause) and a reference modifier (8.4.3.3.3 SR5's NOTE, which bars it wherever a general format writes data-name-n); the single qualifier is 8.4.2.2.2 Format 1's file-report-qualifier and is passed to the funnel as the report-name. A detail of ANOTHER report resolves but stages loud, since GR7 c) 2)'s accumulation fires on that report's engine. Measured before the fix on 359a2ebc: the operand was reduced to its first word (up.cobolWord()?.GetText()), so UPON CFT (a control footing) and UPON NOSUCH (no declaration at all) both compiled clean and totalled 0000, and a report-name qualifier was dropped. The golden witnesses the positive side: two SUM groups with different UPON details total 055 into the ONE counter of the entry.",
+ "state": "OK"
+}

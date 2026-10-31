@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.16.3-4",
+ "section": "14.9.16.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "GENERATE statement",
+ "rule-digest": "721526fd0771",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#RejectContainedReportFile; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate",
+ "test-ref": "unit:GlobalReportScopeTests.AContainedReportVerbOnAGlobalReportWhoseFileIsNotGlobal_IsRefused; unit:GlobalReportScopeTests.AContainedReportVerbOnAGlobalReportWithAGlobalFile_Binds",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB369. Rule text (cite.py --check 14.9.16.3 \"If report-name-1 is defined in a containing program\" -> OK, SR 4). The summary-reporting GENERATE report-name-1 of a container's GLOBAL report is refused COBOL2392 when the report's FD is not GLOBAL, and binds when it is; one check (RejectContainedReportFile) with INITIATE/TERMINATE and the file half of SR3.",
+ "state": "OK"
+}

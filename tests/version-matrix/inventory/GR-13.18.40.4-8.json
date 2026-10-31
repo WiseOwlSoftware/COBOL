@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.40.4-8",
+ "section": "13.18.40.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "PICTURE clause",
+ "rule-digest": "88ba4f79dd24",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.Analyze; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ScreenUsageAgainstPicture",
+ "test-ref": "conformance:cases/8.4.3.3-Reference-modification/pb646_national_form_numeric_2002; conformance:cases/13.18.40-PICTURE/pb646_national_form_numeric_2014; conformance:cases/13.18.40-PICTURE/pb646_national_form_numeric_2023; conformance:cases/13.18.40-PICTURE/pb646-national-form-numeric-at-85; conformance:cases/13.18.32-JUSTIFIED/boolean_data; conformance-test:DataSkeletonEditionTests.BooleanData_CompilesAt2002Plus_RejectedAt85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB646 LANDED the leg this row was held open on, 2026-09-13. GR8 - 'To define an item as boolean, character-string-1 shall contain only one or more occurrences of the symbol 1' - defines the category without saying anything about usage, and one of its legal forms did not compile: `01 NB1 PIC 1(4) USAGE NATIONAL.` was COBOL0899 'national-form boolean data (PIC 1 with USAGE NATIONAL) is recognized but not yet implemented (Phase 4a residue)'. 13.18.60.3 SR12 admits a boolean picture under usage national by name, so that was a refusal of legal source; the arm is gone. MEASURED at --std 2023: `01 NBOOL PIC 1(4) USAGE NATIONAL VALUE B\"1010\".` binds and DISPLAYs [1010], FUNCTION LENGTH answers 4 (15.50.4 r1's boolean positions) and FUNCTION BYTE-LENGTH answers 8 (four NATIONAL character positions at 13.18.60.4 GR8's pinned two bytes). The display-form and bit-form legs are unchanged and still verified, and the 2002 introduction gate still rejects all three forms at 85.",
+ "state": "OK"
+}

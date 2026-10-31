@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.63.3-1",
+ "section": "15.63.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "MIN function",
+ "rule-digest": "4064ba8a0d25",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#PredicateViolation",
+ "test-ref": "conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). MIN's row carries §15.63.3 r1's 'nor shall it be a strongly-typed group item' as the NotStrongGroup predicate (StrongTypeModel.IsStrongGroup on the operand's item): negative pb58-min-strong. The negative class list ('p') was already the row's; the strong-type leg was the residue. retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

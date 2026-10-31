@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.23.4-3",
+ "section": "14.9.23.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "INVOKE statement",
+ "rule-digest": "e87803c5fe11",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindResolvedInvoke; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitInstanceInvoke",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/l1c22_positional_formals_oo_func",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "INVOKE CAT USING Y X against formals named X Y prints I=BBBAAA: positional binding, not by name (§14.9.23.4 GR3)",
+ "state": "OK"
+}

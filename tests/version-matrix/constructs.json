@@ -136,6 +136,18 @@
    "vcr": "VCR Table 2 row 38 (Annex E.3.2 item 1)",
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. AMG.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 WS-TAG PIC X(8).\n01 WS-MSG PIC X(20).\n01 WS-LEN PIC 9(4).\n01 WS-REPLY PIC X(8).\nPROCEDURE DIVISION.\nMAIN.\n    RECEIVE FROM WS-TAG GIVING WS-MSG WS-LEN.\n    SEND TO WS-SRV FROM WS-MSG RETURNING WS-REPLY END-SEND.\n    STOP RUN.\n"
   },
+ {
+  "id": "validate-statement-2002",
+  "description": "The VALIDATE statement (ISO §14.9.50) - a COBOL-2002 introduction: §8.9 reserves VALIDATE from 2002 and COBOL-85 has no such statement. The facility is declined (Annex A.4.14; docs/CONFORMANCE.md §4 item 3): from 2002 the statement is accepted inert under COBOL1580. The grammar arm is the UNION grammar, predicated only on the verb's spelling, and the VersionConformancePass parse arm (VisitValidateFacilityStatement) names the edition on RECOGNITION, so a VALIDATE statement at --std 85 answers COBOL0900 (kb/Work PB3148: a reservation predicate had made it a bare parse error at its operand). A COBOL-85 program that declares a data item VALIDATE keeps it: the reservation gate retypes every occurrence of the declared word to a user-defined word (kb/Work PB655).",
+  "display": "the VALIDATE statement",
+  "diagnosticCode": "COBOL0900",
+  "citation": "ISO §14.9.50 (VALIDATE statement; Annex A.4.14, declined)",
+  "introducedIn": 2002,
+  "removedIn": null,
+  "expectDiagnostic": "COBOL0900",
+  "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014->2023 only; §8.9 reserves VALIDATE from 2002)",
+  "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ROWVAL.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 WS-REC PIC X(8).\n       PROCEDURE DIVISION.\n       MAIN-P.\n           VALIDATE WS-REC.\n           STOP RUN.\n"
+ },
   {
    "id": "apply-commit-clause-2023",
    "status": "active",

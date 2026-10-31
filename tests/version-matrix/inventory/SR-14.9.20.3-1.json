@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.20.3-1",
+ "section": "14.9.20.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "INITIALIZE statement",
+ "rule-digest": "f0714e834b97",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#BindInitializeTarget; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfPlace",
+ "test-ref": "conformance:cases/13.18.60-USAGE/pb416-initialize-target-class-index; conformance:cases/14.9.20-INITIALIZE/pb416_initialize_operand_screens_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB416.md LANDED. identifier-1's class is screened at the one place it is resolved: BindInitializeTarget asks IntrinsicArgumentRules.ClassOfPlace -- the ONE §8.5.2.1 Table-2 classifier -- and reports COBOL2030 when the answer is class INDEX. Of the nine classes Table 2 lists, SR1's list admits eight and excludes exactly that one (§8.5.2.8: 'an elementary data item explicitly or implicitly described as usage index'), so the whole rule is one predicate. It is written as its OWN screen and not as a widening of §14.9.20.4 GR5a1's receiver exclusion, because the two rules answer different questions about different items: GR5a1 excludes an index item CONTAINED IN identifier-1 and must keep its SILENCE, which the positive golden pins (G carries a subordinate USAGE INDEX item and INITIALIZE G skips it without a word while initializing its siblings). The eight admitted classes are exercised by the same golden -- an alphanumeric group, an elementary numeric item, an elementary alphabetic item -- and a strongly-typed group and a USAGE POINTER target were probed directly. Version-invariant: SR1 and its class list are COBOL-85, and the negative rejects at all four editions.",
+ "state": "OK"
+}

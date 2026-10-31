@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-12.4.5.15.2",
+ "section": "12.4.5.15.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "SHARING clause",
+ "rule-digest": "4e2e57a5f46c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sharingClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sharingMode; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#MapSharing; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSharingClause",
+ "test-ref": "conformance:cases/12.4.5.15-SHARING/pb321_table19_open_arbitration",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Format: SHARING [WITH] { ALL [OTHER] | NO [OTHER] | READ ONLY } — SHARING/ALL/NO/READ/ONLY underlined, WITH/OTHER optional (cite.py --check 12.4.5.15.2 \"SHARING\" OK). Grammar sharingClause = SHARING WITH? sharingMode; sharingMode = ALL OTHER? | NO OTHER? | READ ONLY — exact match, one of three required. Probe (pinned cobol.exe, out/probe/sharing-clause/p1.cob, --std 2023 and 2002): `SHARING NO.`, `SHARING READ ONLY`, `SHARING WITH ALL`, `SHARING WITH NO OTHER` all accepted and bound to the right modes (runtime statuses per Table 19: 61/00/61/...). n1.cob: `SHARING WITH READ.` (no ONLY) rejected COBOL0312; `SHARING WITH OTHER.` rejected (COBOL2072 — correct rejection, but its message text talks about WHEN OTHER/§5.2.6.2, a misleading diagnostic, not a conformance defect). --std 85: COBOL0900 on every SHARING clause (edition gate, VersionConformancePass ParseArm.VisitSharingClause; also conformance:cases/_unassigned/sharing_below_2002). Covering golden pb321_table19_open_arbitration writes all three alternatives (with WITH/OTHER spelled); the optional-word omissions are verified by probe only. [registrar 14a — editions as adjudicated: 2002, 2014, 2023 (a COBOL-2002 introduction; absent from COBOL-85 — rejected there)]",
+ "state": "OK"
+}

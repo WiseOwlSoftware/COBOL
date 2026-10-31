@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.13.3-9",
+ "section": "7.3.13.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "EVALUATE directive",
+ "rule-digest": "682f31dbfe06",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#PhraseFrame",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/pb1363-evaluate-closed-in-library-text; conformance:cases/7.3.13-EVALUATE/pb1363-evaluate-not-closed; conformance:cases/7.3.13-EVALUATE/pb1363-evaluate-when-other-twice; conformance:cases/7.3.13-EVALUATE/pb1363-evaluate-when-after-when-other; conformance:cases/7.3.13-EVALUATE/pb1363-evaluate-without-when",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1363. cite.py --check 7.3.13.3 'the phrases of a given EVALUATE directive shall all be specified in the same library text or all in source-text' OK 9).",
+ "state": "OK"
+}

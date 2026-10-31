@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.45.4-2",
+ "section": "14.9.45.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "SUPPRESS statement",
+ "rule-digest": "7fb1c9dea00b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SuppressPrinting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#RunBeforeReporting",
+ "test-ref": "conformance:cases/14.9.45-SUPPRESS/pb1186_suppress_named_group_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1186: the suppression state is scoped to the hook of the current instance (cleared on entry, restored on exit), so a later instance is never inhibited.",
+ "state": "OK"
+}

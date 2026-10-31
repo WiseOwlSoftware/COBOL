@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.2-8",
+ "section": "8.8.2",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "Expressions",
+ "rule-digest": "20010299cf86",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/CobolBool.cs#Shift; src/WiseOwl.Cobol.Runtime/Values/Text/CobolBool.cs#ShiftLeft; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindBoolShiftSuffix; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#HasBoolOp; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateBooleanOperators; src/WiseOwl.Cobol.Frontend/Expressions/BooleanOperatorTokens.cs#BooleanOperatorTokens; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#AnalyzeBooleanExpression; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#evaluateSubject",
+ "test-ref": "conformance:cases/8.8.2-Boolean-expressions/boolean_shift; conformance:cases/8.8.2-Boolean-expressions/pb1412_shift_only_boolean_conditions; conformance:cases/8.8.2-Boolean-expressions/pb1412-shift-only-condition-below-2023; conformance:cases/8.8.2-Boolean-expressions/pb1412_evaluate_boolean_expression_subject; conformance:cases/8.8.2-Boolean-expressions/pb1412_evaluate_boolean_expression_operands; conformance:cases/8.8.2-Boolean-expressions/pb1412-evaluate-shift-subject-below-2023; conformance:cases/8.8.2-Boolean-expressions/pb1412-evaluate-shift-object-below-2023; conformance:cases/8.8.2-Boolean-expressions/pb1412-evaluate-wide-expression-subject-true-object; conformance:cases/8.8.2-Boolean-expressions/pb1412-evaluate-true-subject-wide-expression-object; conformance:cases/8.8.2-Boolean-expressions/pb1412-evaluate-boolean-expression-sign-partial",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1412 LANDED (waves 1005 D and 1010 B). Rule 8 (cite.py --check 8.8.2 \"Boolean shift operations shall be performed without regard for the usage of the first operand\" -> OK 8)). Wave 1005 D landed the IF, relation and COMPUTE forms (HasBoolOp reads the one BooleanOperatorTokens list). Wave 1010 B landed the EVALUATE arm, which was a different mechanism: evaluateSubject and evaluateWhenItem gained the {boolExprAhead()}? booleanExpression alternative (boolean-expression-1 / boolean-expression-2 of 14.9.13.2), EvaluateBinder classifies it into Table 15 column/row Boolean expression through the ONE bare-operand analysis (ConditionBinder.AnalyzeBooleanExpression), holds the subject value in a boolean intermediate (SendingValueTemp.MaterializeBoolean), and 14.9.13.4 GR4 a) 6. builds the pair through the one relation checkpoint. EVALUATE A B-SHIFT-L 1 WHEN B\"1000\" and EVALUATE A B-AND C WHEN B\"1000\" answer EV-Y (pb1412_evaluate_boolean_expression_subject at 2023); the shift forms below 2023 name COBOL0900 at both sites (pb1412-evaluate-shift-subject/-object-below-2023). [editions: the shift half 2023 only (Annex E.2 item 3); gated COBOL0900 at 2002/2014]",
+ "state": "OK"
+}

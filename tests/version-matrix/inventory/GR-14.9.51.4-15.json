@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-15",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 15,
+ "subject": "WRITE statement",
+ "rule-digest": "a8b0bec83863",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#WriteAdvancing; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OutsideVaryingBounds",
+ "test-ref": "conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb1190_varying_advancing_bounds",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1190 landed (w67p): the print-control arm's GR14 '44' now precedes any presentation, so the write does not take place (the golden reads the file back: only the in-bounds record is on the medium). The other unsuccessful arms (48/44 plain/24/22/21/71/53-54) were verified by the refuter.",
+ "state": "OK"
+}

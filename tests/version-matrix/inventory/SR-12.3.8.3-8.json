@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.8.3-8",
+ "section": "12.3.8.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "56ff5f42c510",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Build; src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Lookup",
+ "test-ref": "conformance:cases/12.3.8-REPOSITORY/l1c24_repository_self_interface_specifier",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (cite.py --check 12.3.8.3 'If the specified interface-name-2 is the name of the interface definition in which this REPOSITORY paragraph is specified' -> OK §12.3.8.3 8)). Code: the interface twin of SR5 in the same loop - at InterfaceDefinitionContext Build ASSIGNS interfaces[ownName] = null before the definition's own REPOSITORY entries are TryAdd-ed, so a self-named interface-specifier is ignored. Probe out/probe/repo/sr8.cob (--std 2023): INTERFACE-ID. S8IF whose REPOSITORY writes 'INTERFACE S8IF AS \"S8OTH\"', a method prototype PEER USING an OBJECT REFERENCE S8IF, implemented by class S8CLS; main invokes PEER -> S8-SPOKE, compile clean. The probe is weakly discriminating (a mis-resolution to S8OTH may not have been observable), so the verdict rests on the code read of the SAME loop whose class arm sr5.cob discriminated. No spec-derived test -> test-ref empty.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.8.3-6",
+ "section": "12.3.8.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "84b528d40dab",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#BindSpecifierExternalizedName; src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Resolve",
+ "test-ref": "",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1086: Rule (cite.py --check 12.3.8.3 'there shall be information in the external repository for the class object-class-name-1' -> OK §12.3.8.3 6)): without EXPANDS, a) literal-1 / b) object-class-name-1 shall have external-repository information. Code: the class-specifier is only screened for SR1/SR2 (BindSpecifierExternalizedName); the only information source is the compilation group's OoClassTable, consulted at REFERENCE sites (OoNameResolution.Resolve -> COBOL0813/0859 'no such class is defined in this compilation group'). Probe out/probe/repo/sr10.cob (--std 2023): 'CLASS NOSUCHCL' naming no class anywhere -> compiles clean and runs; sr6.cob adds 'USAGE OBJECT REFERENCE NOSUCHCL' -> COBOL0813 only then. Expected: the specifier itself violates SR6 (no information exists - there is no external repository, §8.13). Under-rejects for an unreferenced specifier; and a class that DOES exist outside the group can never be declared usefully (no external repository).",
+ "state": "GAP"
+}

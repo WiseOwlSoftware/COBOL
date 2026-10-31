@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.13.2-3",
+ "section": "14.6.13.2",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Exception condition handling",
+ "rule-digest": "e34b803d0e81",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolFloat.cs#Sending; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/SendingRef.cs#FloatChecked; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs",
+ "test-ref": "conformance:cases/14.6.13.2-Incompatible-data/l1c08_data_not_finite_standard_float",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Rule text: cite.py --check 14.6.13.2 'the sending and receiving items in a MOVE statement are defined with the same standard floating-point usage specification, with the exception of endianness' -> OK §14.6.13.2 3). Four exemptions: class condition, sign condition, same-usage MOVE (endianness aside), VALIDATE. MEASURED (probe out/probe/ecinc/r3.cob, FLOAT-BINARY-64 HIGH-ORDER-LEFT leaf planted with NaN bytes X\"7FF8000000000000\" via REDEFINES, >>TURN EC-DATA-NOT-FINITE CHECKING ON, at 2023 and 2014): DISPLAY F, ADD 1 TO F, MOVE F TO S9(5), IF F > 0, MOVE F TO FLOAT-BINARY-32, MOVE F TO FLOAT-LONG (a different usage), COMPUTE N = F * 0 with +Inf -> all RAISED; IF F POSITIVE (sign) exempt; IF F IS FLOAT-NOT-A-NUMBER (class) exempt, true; MOVE F TO FLOAT-BINARY-64 HIGH-ORDER-LEFT (same usage) and MOVE F TO FLOAT-BINARY-64 HIGH-ORDER-RIGHT (same usage, other endianness) exempt, and both receivers then test NaN (verbatim transfer). SendingRefRules.FloatChecked is the four-entry exclusion list. FLOAT-DECIMAL-16/34 are refused at compile time (COBOL1564, Annex A.3 item 19 processor-dependent, documented) so that half is unreachable by any accepted program; VALIDATE is A.4.14 Not claimed (PB283), its exemption vacuous. CONFORMANCE.md's documented extension of the raise to every float usage (COMP-1/COMP-2/FLOAT-SHORT/LONG) is implementor latitude outside this rule. No spec-derived golden covers a STANDARD float usage: conformance:cases/14.6.13.1.3-Fatal-exception-conditions/ec_data_not_finite uses COMP-2/COMP-1 (the extension), so test-ref is left empty (test-needed). [code-location note: (FloatSending chokepoints); code-location note: (FloatDisplay/FloatSending); code-location note: (sign-condition exemption); code-location note: (ambient EC-DATA-NOT-FINITE gate)] || editions as adjudicated: 2014, 2023 (standard floating-point usages FLOAT-BINARY-32/64/128 and FLOAT-DECIMAL-16/34 are 2014 introductions)",
+ "state": "OK"
+}

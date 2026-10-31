@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.51.3-15",
+ "section": "14.9.51.3",
+ "kind": "SR",
+ "ordinal": 15,
+ "subject": "WRITE statement",
+ "rule-digest": "2d0cc4add537",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#ScreenAdvancingCount",
+ "test-ref": "conformance:cases/14.9.51-WRITE/pb1023_write_advancing_count; conformance:cases/14.9.51-WRITE/pb1023-write-advancing-count",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB1023, the sibling arm of SR14's position): integer-1 is screened beside the identifier-2 row in SequentialIoBinder.ScreenAdvancingCount through the ONE integer classifier (IntrinsicResultType.IsIntegerOperand - 8.3.3.3.2 'An integer literal is a fixed-point numeric literal that contains no decimal point') plus the sign test SR15 names; 1.5, \"2\", -1 and a constant-name standing for 1.5 draw COBOL2365; ZERO and 0 are admitted. cite.py --check 14.9.51.3 \"Integer-1 shall be positive or zero\" -> OK 15).",
+ "state": "OK"
+}

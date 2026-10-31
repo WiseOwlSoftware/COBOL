@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.4.3-1",
+ "section": "8.4.3.4.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Inline method invocation",
+ "rule-digest": "16994cd24e32",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#primaryExpression; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticOperandRole.cs#IsReceiver; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#Format1Receivers",
+ "test-ref": "unit:InlineMethodInvocationOperandDriftTests.ReceivingOperandRules_DoNotAdmitAnInlineMethodInvocation; conformance:cases/8.4.3.4-Inline-method-invocation/pb1142-divide-into-inline-receiver; conformance-test:ArithmeticIdentifierOperandTests.Format1_NonReceiverOperand_IsRejected_NotDroppedOrCrashed; unit:ArithmeticOperandRoleDriftTests.MixedRules_AreExactlyTheGrammarRulesOfferingBothRoles",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1142 landed (w65c). cite.py --check 8.4.3.4.3 'Inline method invocation shall not be specified as a receiving operand.' OK. Holds STRUCTURALLY for every purely receiving rule (InlineMethodInvocationOperandDriftTests), and by the bind-time Format-1 screen for the two MIXED-ROLE arithmetic rules (receiversOrSendingOperand, the TO / FROM / INTO operand of ADD, SUBTRACT and DIVIDE, and multiplyByOperand, MULTIPLY's BY operand): ADD/SUBTRACT/MULTIPLY/DIVIDE ... TO/FROM/BY/INTO OB::\"M\" without GIVING are each COBOL1689 naming SR1 - before, ADD/SUBTRACT/MULTIPLY compiled clean with the receiver dropped and DIVIDE crashed the compiler (InvalidOperationException in ArithmeticEmitter.EmitDivide). MOVE ... TO and INSPECT receivers are refused by the grammar / COBOL1632 as before. The rule's subject is a 2002 construct (8.4.3.4, introduced by COBOL 2002), so the editions are 2002+.",
+ "state": "OK"
+}

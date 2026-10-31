@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.6.4-12",
+ "section": "12.3.6.4",
+ "kind": "GR",
+ "ordinal": 12,
+ "subject": "OBJECT-COMPUTER paragraph",
+ "rule-digest": "d81749d55b46",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/ObjectComputerEmit.cs#EmitMembers; src/WiseOwl.Cobol.Runtime/Values/Text/LocaleCollation.cs#Resolve; src/WiseOwl.Cobol.Runtime/Values/Text/LocaleCollation.cs#Snapshot",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/pb64t1_locale_declare",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR12 (cite.py --check 12.3.6.4 \"are effective with the initial state of the runtime modules to which they apply\" -> OK §12.3.6.4 12); \"in the locale current at the time the collating sequence is used at runtime\" -> OK §12.3.6.4 12)). The PCS pair is a per-type static readonly CobolCollation (__COLLATE / __COLLATE_NAT) — established for the module's initial state and never reassigned (no SET format changes the PCS itself; §14.9.39 Format 11 set-locale changes only the current locale). A LOCALE alphabet with a locale-name binds that locale (LocaleCollation(tag)); without one, Resolve() reads RunUnit.Current.Locale LC_COLLATE at EACH use. Probe gr12.cob: PCS IS SVA CUR (SVA = LOCALE sv-SE named; CUR FOR NATIONAL IS LOCALE): alphanumeric \"oz\" < \"öa\" (Swedish, ö after z) both before and after SET LOCALE LC_COLLATE TO en-US (named arm fixed); national compare gives root order under en-US and Swedish after SET LOCALE LC_COLLATE TO SV (current-locale arm follows). pb64t1_locale_declare pins the current-locale PCS following SET LOCALE (and the named-locale alphabet via SORT); pb101_alphabet_locale_pcs pins the current-locale PCS in relations/SORT/MAX/ORD/CHAR. [registrar 14a — editions as adjudicated: 2002, 2014, 2023 (the national program collating sequence and locale-based alphabets arrive in 2002; Annex E records no 2014->2023 change)]",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-15",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 15,
+ "subject": "SET statement",
+ "rule-digest": "bb4904232c99",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ScreenFacility.cs#ReportSetAttribute",
+ "test-ref": "conformance:wiseowl/cases/14.9.39-SET/a42-set-attribute; unit:ScreenFacilityConstructDriftTests.ScreenNameReference_IsRefusedByFacility_NeverAsUndefined",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Annex A.4.2 (ACCEPT and DISPLAY screen handling) is an OPTIONAL module for which no support is claimed - docs/CONFORMANCE.md section 5 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' and section 4 item 4. A.4.1: an implementation shall accept an optional element's syntax ONLY when support is claimed, so the construct is REFUSED by name (COBOL1560 data/environment surface, COBOL1707 procedure surface); A.4.1 paragraph 2 extends the licence from the 27 printed items to the syntax and general rules hanging off them. Witnessed by conformance:wiseowl/cases/14.9.39-SET/a42-set-attribute. kb/Work PB260.",
+ "state": "OK"
+}

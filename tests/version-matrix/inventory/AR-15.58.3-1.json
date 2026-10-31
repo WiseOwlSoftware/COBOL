@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.58.3-1",
+ "section": "15.58.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "LOWEST-ALGEBRAIC function",
+ "rule-digest": "95d86c4e7dec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindAlgebraicFold; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#AlgebraicArgError; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#OperandOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfBindCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#DeliberatelyUnscreened",
+ "test-ref": "conformance:cases/15.58.3-Argument-rules/l1-lowest-algebraic-argument-1-shape; conformance:cases/15.58.3-Argument-rules/l1_lowest_algebraic_value_rule",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Both halves of r1 witnessed on LOWEST-ALGEBRAIC itself: category (PIC X(5), class alphanumeric per 8.5.2.1 Table 2) and the function exclusion (LENGTH = integer per 15.50.1, ABS over a non-integer numeric = numeric per 15.7.1, plus a UDF result) - the exclusion needed because 8.5.2.12 items 6/7 put functions in category numeric. The paired positive golden carries the ADMIT side, so a blanket refusal cannot pass both. Previously pinned only for the HIGHEST twin (negative/algebraic-udf-argument, 15.43.3 r1). || editions 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the LOWEST-ALGEBRAIC function exists from 2002 (IntrinsicCatalog.cs, the COBOL1502 edition window).",
+ "state": "OK"
+}

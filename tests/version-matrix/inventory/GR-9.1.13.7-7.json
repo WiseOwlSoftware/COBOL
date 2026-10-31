@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.7-7",
+ "section": "9.1.13.7",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "I-O status",
+ "rule-digest": "33e8e795f04b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ReadOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#StartOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Start",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/l1_table20_seq_relative; conformance:cases/14.9.41-START/pb870_start_first_last_relative_exceptions; conformance:cases/14.9.41-START/pb870_start_first_last_relative_ecio_checked; conformance:cases/14.9.41-START/pb870_start_first_last_relative_nofs_nouse",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§9.1.13.7 7) '47' for READ or START on a connector not open input or I-O (cite.py --check OK §9.1.13.7 7)). ReadOpenModeGuard `!IsOpen || Mode is Output or Extend -> '47'`, used by all sequential and random READ paths; StartOpenModeGuard is the one START copy for all three organizations and also applies §14.9.41.4 GR7 (so kb/Work PB359, still status open, describes a shape the pinned tree no longer has; its rows are §14.9.41.4, not this one). Probe logic4x/p1.cob: READ on a never-opened file, READ open OUTPUT, READ open EXTEND -> 47; START on a closed indexed file -> 47. conformance:cases/9.1.13.2-Successful-completion/l1_table20_seq_relative and l1_table20_indexed pin the READ/START cells in output and extend. || Editions (adjudicator, verbatim): 1985/2002/2014/2023",
+ "state": "OK"
+}

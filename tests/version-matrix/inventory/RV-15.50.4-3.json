@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.50.4-3",
+ "section": "15.50.4",
+ "kind": "RV",
+ "ordinal": 3,
+ "subject": "LENGTH function",
+ "rule-digest": "d7db5e4003c7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLengthFold; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemLength.cs#Positions",
+ "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb61_length_byte_length_rule_branches; conformance:cases/15.50.4-Returned-value-rules/v59_length_agrees",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB61 — the LENGTH/BYTE-LENGTH folds enumerated from the rule branches; one builder for a runtime-length group; SR6 decided from the definition before binding). §15.50.4 r3 'the length of argument-1 in alphanumeric character positions' for everything other than category boolean or usage national — under the 1-byte-per-position model the byte width (ItemLength.Positions → DataItem.ByteWidth): golden CARR COMP-1 4, COMP-2 8, INDEX 8, POINTER 8 (each folded to 1 before — ElementaryImageWidth is 0 for a carrier and Math.Max(1, …) republished it); GG = X(3)+N(2) = 7 and GH = X(3)+COMP 9(4)+POINTER = 13 (a national/carrier child under-counted before); LENGTH(\"\") = 0. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LengthPositions (LengthPositions moved out of IntrinsicBinder and is ItemLength.Positions (kb/Work PB1213, 7d4f0a4a4))",
+ "state": "OK"
+}

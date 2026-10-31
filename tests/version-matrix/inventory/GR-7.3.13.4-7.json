@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.13.4-7",
+ "section": "7.3.13.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "EVALUATE directive",
+ "rule-digest": "2b22c006b3a2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CtValue.cs#RelationalEquals; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#NonNumericOperand",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/l1c07_evaldir_alnum_equality",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR7 (cite.py --check 7.3.13.4 7) OK; same rule as 7.3.8.3 GR2, cite OK): alphanumeric/national literal subject -> binary per-character equality, unequal lengths unequal. RelationalEquals is string.Equals(Ordinal) on CobolLiteral.Decode'd text. Probes: \"ABC\" vs \"ABC \" FALSE, vs \"abc\" FALSE, vs \"ABC\" TRUE; N\"XY\" vs N\"XY \" FALSE, vs N\"XY\" TRUE; X\"41\" vs \"A\" TRUE (same encoding). Both halves verified for both classes. No spec-derived golden. Probe dir out/probe/evaldir2 (pinned cobol.exe, --std 2023; p1 re-run at --std 2002 and 2014 with identical output; --std 85 rejects >>EVALUATE with COBOL0900). || editions (adjudicator): 2002, 2014, 2023 (the 7.3 directive facility is absent from 1985; Annex E.2 item 8 records the 2023 rewording of GR6/GR10 only)",
+ "state": "OK"
+}

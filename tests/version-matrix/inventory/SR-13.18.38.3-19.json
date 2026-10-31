@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.38.3-19",
+ "section": "13.18.38.3",
+ "kind": "SR",
+ "ordinal": 19,
+ "subject": "OCCURS clause",
+ "rule-digest": "56b47bd12eb3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ConstantRecord.cs#CheckConstantRecordSubtrees",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb1262-constant-record-occurs-depending; conformance:cases/13.18.38-OCCURS/pb1262-constant-record-type-clone-depending; conformance:cases/_unassigned/pb1262_constant_record_fixed_table",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1262 (wave 1011 B2). cite.py --check 13.18.38.3 'A format 2 OCCURS clause shall not be specified in any data item subordinate to a data item described with the CONSTANT RECORD clause' OK SR19. CheckConstantRecordSubtrees (a BindPipeline pass right after ExpandTypes, over CompositionForest) asks every item subordinate to a CONSTANT RECORD, written or brought in by TYPE / SAME AS; an OccursSpec with a DEPENDING ON is COBOL1549. The fixed Format 1 table stays legal (positive golden).",
+ "state": "OK"
+}

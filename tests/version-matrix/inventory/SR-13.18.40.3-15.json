@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-15",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 15,
+ "subject": "PICTURE clause",
+ "rule-digest": "2a9a84474d2d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeFloatEdited",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb66-float-edited-picture-symbols; unit:LoudGuardTests.Analyze_FloatEdited_LegalShape_ClassifiesNumericEdited",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (PB66). The significand holds 1..36 digit positions: PIC 9(37)E+99 and PIC E+99 are COBOL1658 (the negative's BG / BH entries); SR14's 31-position cap is NOT applied to the form (DataBinder's capacity guard excludes IsFloatEdited — Annex A.3 item 1 c/d's 31-digit latitude is unavailable to a processor supporting the standard float usages, so the full 36 is mandatory).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.8.4-9",
+ "section": "12.3.8.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "70b6c8456d0c",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Lookup; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#FindInterfaceByExternalizedName",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb974_repository_as_phrase",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1086: Rule (cite.py --check 12.3.8.4 'It is implementor-defined how the information in the interface specifier and the external repository are used' -> OK §12.3.8.4 9)); Annex A.1 item 162 (required + documented). The interface twin of GR6: Lookup resolves interface-name-2 against the group table only, by AS literal-2 (FindInterfaceByExternalizedName) or declared word; pb974_repository_as_phrase pins INTERFACE TALKY AS \"W974-SPEAKER\" / INTERFACE TALKER AS \"W974-SPEAKER\" (SPOKEN). Same residue as GR6: no external repository (§8.13) - an interface from another compilation group is unreachable - and no A.1 item 162 determination row (DOC-A.1-162 empty).",
+ "state": "GAP"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.6.4-6",
+ "section": "12.4.5.6.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "ALTERNATE RECORD KEY clause",
+ "rule-digest": "5d0130576e23",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#KeySuppressionOf; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#AlternateValue",
+ "test-ref": "conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1072_suppress_when_forms",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1072 landed (w61c). cite.py --check 12.4.5.6.4 'shall not be provided when the value of data-name-1 or record-key-name-1 in that record is equal to literal-1' -> OK GR6. The suppression value is built at bind time in the key's own positions (DataBinder.KeySuppressionOf): a figurative repeated to the key size in the key's category via FigurativeConstants.FillChar (8.3.3.6.4 GR2), ALL literal-1 repeated, a shorter literal space-extended (8.8.4.2.7 2)), a longer one cut back when its excess is spaces and otherwise never equal; a national key's value is encoded through CobolBits.NatBytes. Golden pb1072_suppress_when_forms: SPACES/SPACE/short/ALL/N/constant-name/symbolic/concatenation/HIGH-VALUES/long-with-spaces suppress, long-non-space does not; READ KEY by the suppression value -> 23; walks omit suppressed records. retired-witness: src/Cobol.Net.Frontend/Common/CobolLiteral.cs#Decode (the SUPPRESS WHEN operand is no longer decoded raw; it is read by DataBinder.ReadSuppressWhen and sized by KeySuppressionOf (kb/Work PB1072)) retired-witness: src/Cobol.Net.Runtime/IO/IndexedConnector.cs#IsSuppressed (the INDEXED organization moved to the keyed store engine (kb/Work PB3334; DESIGN-runtime-library 2.2.1.4): a record whose alternate key equals its SUPPRESS WHEN value has no entry in that key's tree (IndexedConnector.AlternateValue))",
+ "state": "OK"
+}

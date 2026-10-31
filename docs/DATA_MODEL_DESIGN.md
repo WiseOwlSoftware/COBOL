@@ -295,7 +295,7 @@ LINAGE prints "data-name-1 or integer-1", so a constant-name parses as the data-
 `ConstantOf` first (`ConstantOperandValue`, the same reader); and SYMBOLIC CHARACTERS writes its names and its ordinals
 as WORDS side by side, so `symbolicCharacterEntry` has three ordered alternatives — literal ordinals first (a program
 without constants parses exactly as it always did), `IS|ARE` then `integerOperand`s, and words only; whichever parsed,
-`DataBinder.SymbolicEntryGroups` re-reads the entry's tokens in source order and calls each word a name or an ordinal by
+`DataBinder.SymbolicClauseOperands` re-reads the tokens of ALL the clause's entries as one stream in source order (the entry is no unit of the rule: SR16 b pairs by position in the clause, PB4108) and calls each word a name or an ordinal by
 whether the unit defines it as a constant, because only the constant table tells them apart. BLOCK CONTAINS models nothing, so `BindBlockContainsClause` only reads its
 integers (a refused constant is the program's error whether or not the clause changes the I-O). Goldens
 `2002/pb1948_integer_n_constants`, `2002/pb1948_locale_size_constant`, `2014/pb1948_dynamic_length_limit_constant`

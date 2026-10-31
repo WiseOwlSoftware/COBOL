@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.38.3-29",
+ "section": "13.18.38.3",
+ "kind": "SR",
+ "ordinal": 29,
+ "subject": "OCCURS clause",
+ "rule-digest": "0f74af4706f9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#DynamicBoundWithinMaximum",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb1264-occurs-dynamic-from-above-maximum; conformance:cases/13.18.38-OCCURS/pb1264_occurs_dynamic_maximum_is_legal",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1264: the implementor maximum of integer-4/integer-5 (1,073,741,823, docs/CONFORMANCE.md DOC-A.1-60) is enforced at compile time (COBOL2647); the maximum itself is legal.",
+ "state": "OK"
+}

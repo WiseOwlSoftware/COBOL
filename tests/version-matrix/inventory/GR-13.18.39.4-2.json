@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.39.4-2",
+ "section": "13.18.39.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "PAGE clause",
+ "rule-digest": "e848559fd8d9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportPageIntegers; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#RelativeFirstLineFloor",
+ "test-ref": "conformance:cases/13.18.35-LINE/pb484_report_line_placement; conformance:cases/13.18.39-PAGE/pb1270-page-heading-after-first-detail; conformance:cases/13.18.39-PAGE/pb1270-report-heading-above-heading; conformance:cases/13.18.39-PAGE/pb1270-page-heading-relative-past-first-detail; conformance:cases/13.18.14-COLUMN/pb1059_page_columns_width; conformance:cases/13.18.39-PAGE/pb1270-page-footing-relative-zero-on-footing; conformance:cases/13.18.39-PAGE/pb1270-report-footing-relative-zero-on-footing; conformance:cases/13.18.39-PAGE/pb1270_report_relative_first_boundaries",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1270 landed 2026-10-04 (wave 1012 G): the last open part of g), a page or report footing whose RELATIVE first line begins ON the FOOTING integer (integer-2 zero), is refused beside the absolute-line screens.",
+ "state": "OK"
+}

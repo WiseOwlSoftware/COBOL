@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.1.3.2-2",
+ "section": "8.1.3.2",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "COBOL character repertoire",
+ "rule-digest": "4d3f702a3823",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Pipeline/CompilationInputs.cs#ReadSourceText; src/WiseOwl.Cobol.Frontend/Pipeline/SourceTextDecoder.cs#Decode",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1_encoding_per_file_bom; conformance:cases/A.1-Implementor-defined-language-element-list/l1_encoding_marked_malformed_is_refused; unit:SourceTextDecoderTests.Utf8Mark_WithInvalidContent_IsMalformed",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'If more than one encoding is permitted in a single compilation group, the implementor shall specify the control functions or other methods used for distinguishing between encodings.' (cite.py --check 8.1.3.2 -> OK 8.1.3.2 2)). Sentence 1 (mixed alphanumeric/national coded character sets) is vacuous: one coded character set (UTF-16). Sentence 2 is live and now specified: each file of the group, the source and every library text, is decoded independently by its own byte-order mark (SourceTextDecoder.Decode), UTF-8 or ISO/IEC 8859-1 when it has none; there are no control functions and the encoding cannot change inside a file (docs/CONFORMANCE.md DOC-A.1-26). A UTF-8 main source that COPYs UTF-16 and UTF-32 library texts is pinned by l1_encoding_per_file_bom; a marked file whose content is not well-formed in the mark's encoding is refused (l1_encoding_marked_malformed_is_refused). kb/Work PB1397. retired-witness: src/WiseOwl.Cobol.Frontend/Pipeline/CompilationInputs.cs#ReadAllText (CompilationInputs.ReadAllText no longer exists: the bytes of a source or library text become characters in SourceTextDecoder.Decode, read through CompilationInputs.ReadSourceText (kb/Work PB1397))",
+ "state": "OK"
+}

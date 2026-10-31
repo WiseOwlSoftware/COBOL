@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.27.3-3",
+ "section": "14.9.27.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "OPEN statement",
+ "rule-digest": "5171773741de",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs#CheckCrossStatementBans",
+ "test-ref": "conformance-test:PerformFormat3Tests.OpenDupInImp1_Rejected1616; conformance:cases/14.9.27-OPEN/pb330-open-multi-file-imp1; conformance:cases/14.9.20-INITIALIZE/pb330_open_single_file_imp1; conformance-test:PerformFormat3Tests.MultiFileOpenInImp1_Rejected1616; conformance-test:PerformFormat3Tests.MultiGroupOpenInImp1_Rejected1616; conformance-test:PerformFormat3Tests.SingleOperandInImp1_MultiInWhenBody_Accepted",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB330 LANDED (wave 56). RULE (cite.py --check 14.9.27.3 'An OPEN statement that specifies file-name-1 more than once shall not be specified in imperative-statement-1 of an exception-checking PERFORM statement' -> OK 14.9.27.3 3)). DETERMINATION (the standard's own words settle it, no owner question): 'file-name-1' is the FORMAT TERM the ellipsis repeats, and the statement's general rule 14.9.27.4 GR20 (cite.py --find -> 14.9.27.4 20)) names that form 'If more than one file-name is specified in an OPEN statement'; the family (CLOSE 14.9.6.3 SR3, DELETE FILE 14.9.10.3 SR4, INITIATE, TERMINATE, VALIDATE) bans the multi-operand statement. COBOL1616 now fires when the statement's file-names, summed over every open-mode group, number more than one; a duplicate is one case of that. MEASURED (w56a/probe/ecp1.cob): BEFORE `OPEN OUTPUT F1 F2` in imp-1 compiled clean while `CLOSE F1 F2` drew 1612; AFTER both rejected. Region A only: a multi-file OPEN in a WHEN body compiles (positive golden + SingleOperandInImp1_MultiInWhenBody_Accepted). 2023 only: the exception-checking PERFORM is a COBOL-2023 introduction (COBOL0900 below).",
+ "state": "OK"
+}

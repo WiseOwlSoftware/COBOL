@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.9.3-4",
+ "section": "14.7.9.3",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "RETRY phrase",
+ "rule-digest": "f45c799e764c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RetryLoop; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#IsConflict; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ExhaustionStatus",
+ "test-ref": "unit:CobolFileLockTests.RetryLoop_AttemptCount_FollowsGR1AndGR4; unit:CobolFileLockTests.RetryForever_AgainstAHolderOutsideTheRunUnit_WaitsUntilTheOperationCompletes; conformance:cases/14.7.9-RETRY/pb3340_sequential_holding_exception_paths; unit:SequentialCommitControlTests.A_statement_meeting_another_run_units_journal_holding_retries_under_its_retry_phrase; unit:SequentialCommitControlTests.An_open_or_delete_file_refused_by_what_this_run_unit_holds_is_not_waited_for",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1163 landed (w73b). cite.py --check 14.7.9.3 \"If the RETRY phrase is not specified or the result of the evaluation of arithmetic-expression-1 or arithmetic-expression-2 is negative or zero\" -> OK 4) a). a) was fixed by PB1033; b)'s 'attempts to complete the input-output operation as specified in General rules 1, 2, or 3' now holds because GR3's FOREVER waits for an outside holder (row GR-14.7.9.3-3). WRITE's '53'/'54' bypass remains behaviour-identical (kb/Work PB707).",
+ "state": "OK"
+}

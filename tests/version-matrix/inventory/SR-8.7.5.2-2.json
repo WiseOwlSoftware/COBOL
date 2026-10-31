@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.7.5.2-2",
+ "section": "8.7.5.2",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Relational operators",
+ "rule-digest": "7ad72fc55013",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#comparisonOperator; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#MapOperator",
+ "test-ref": "conformance:cases/8.7.5-Relational-operators/l1_perform_until_condition_forms; conformance:cases/8.7.5-Relational-operators/pb1034_printed_relational_operator_set; conformance:cases/8.7.5-Relational-operators/pb1034-not-gteq; conformance:cases/8.7.5-Relational-operators/pb1034-not-greater-or-equal-words; conformance:cases/8.7.5-Relational-operators/pb1034-equal-than; unit:RelationalOperatorFormatDriftTests.ComparisonOperator_IsTheSpellingsOfThePrintedFormat1_AndNoOther",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1034 LANDED (wave 1005 D). Rule 8.7.5.2 SR2 (Format 2 specifies extended relational operators); the observable consequence is that the extended set is the printed one and no more. comparisonOperator used to admit NOT >=, NOT <=, NOT ... OR EQUAL and EQUAL THAN as extended operators. It now holds exactly 8.8.4.2.2 Format 1's alternatives (rendered page PDF p217): [NOT] on GREATER THAN, >, LESS THAN, <, EQUAL TO and = only, EQUAL's optional word TO. The five extra spellings are parse errors in every consumer (IF, EVALUATE, PERFORM UNTIL, SEARCH WHEN, abbreviated tails, >>IF). The 8.8.4.12.4 NOTE spellings (NOT < / NOT > in abbreviated position) are printed extended operators and still evaluate by the NOTE table (l1_perform_until_condition_forms). Witnesses: pb1034_printed_relational_operator_set (every printed spelling, values from 8.8.4.2.4), the pb1034-* negatives, and RelationalOperatorFormatDriftTests, which expands the grammar rule into spellings and requires them to equal the printed set. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#InGeneralRelationFormat (kb/Work PB1034 deleted InGeneralRelationFormat: comparisonOperator now IS the printed set, so the START-only membership screen has nothing left to screen)",
+ "state": "OK"
+}

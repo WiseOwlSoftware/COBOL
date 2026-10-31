@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-6.5-4",
+ "section": "6.5",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Reference format",
+ "rule-digest": "01f1b4b2b883",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#Scan; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ScanProgramText",
+ "test-ref": "conformance:cases/6-Reference-format/pb1359_floating_continuation_fixed; conformance:cases/6-Reference-format/pb1359_floating_continuation_free; unit:LogicalLineBuilderTests.FloatingContinuation_JoinsTheLiteral; unit:LogicalLineBuilderTests.FloatingContinuation_KeepsSpacesBeforeTheIndicator_AndIgnoresSpacesAfterIt",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1359 landed: a line that ends in a floating literal continuation indicator ends its program text before the indicator (the literal stays open; the spaces before the indicator are literal content), in fixed and free form; the indicator is recognized only when nothing but spaces (and, diagnosed, an inline comment) follow it.",
+ "state": "OK"
+}

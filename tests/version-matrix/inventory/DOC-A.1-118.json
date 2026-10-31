@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-118",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 118,
+ "subject": "Locale specification (how user and system defaults defined; at least one user and one system default)",
+ "rule-digest": "e021d581455e",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-118; src/WiseOwl.Cobol.Runtime/Control/LocaleState.cs#Determine; src/WiseOwl.Cobol.Runtime/Control/LocaleState.cs#SystemDefault; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#Locale",
+ "test-ref": "conformance-test:DefaultLocaleDeterminationTests.TheUserAndSystemDefaults_AreDefinedByTheirEnvironmentVariables; conformance-test:DefaultLocaleDeterminationTests.AHostCultureSwitchDuringARunUnit_IsNotUtilized_ButTheNextRunUnitStartsFromIt",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "(kb/Work PB2671, wave 1040 group S.) cite.py --check A.1 \"Locale specification\" -> OK §A.1 118); --check 8.2.1 \"The implementor shall specify the manner in which the user default locale is defined\" -> OK; --check 8.2.1 \"The implementor shall specify the manner in which the system default locale is defined and shall provide at least one system default locale\" -> OK; --check 14.6.6 \"At run unit activation, the user default locale becomes the current locale for the run unit for all locale categories\" -> OK 1). A.1-118 need not be documented; §7 documents it voluntarily. The witness asserts a COLLATION ORDER, never a date or number format, so CLDR format drift cannot break it: under ALPHABET ... IS LOCALE with no locale-name (--check 12.3.7.4 \"otherwise by the locale that is current\" -> OK 7) e)) Spanish sorts nz before ñu and German and the root sort ñu first. Four environments, each run printing the order for the current locale at start, after SET LOCALE LC_ALL TO SYSTEM-DEFAULT and after SET LOCALE LC_ALL TO USER-DEFAULT: COBOL_USER_LOCALE=es-ES COBOL_SYSTEM_LOCALE=de-DE; the two swapped (the orders swap); COBOL_USER_LOCALE=C (the root) with COBOL_SYSTEM_LOCALE=' es_ES.UTF-8 ' (trimmed, POSIX spelling); and neither variable set under DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 (both defaults exist, as the root, and the run ends normally). CutRunner.RunExit now removes a variable whose env value is null, which is what reaches the unset arm. The process-culture fallback of the user default is witnessed by the A120 host test (CurrentCulture es-ES at run-unit start makes the user default Spanish).",
+ "state": "OK"
+}

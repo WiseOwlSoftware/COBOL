@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.24.3-7",
+ "section": "14.9.24.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "MERGE statement",
+ "rule-digest": "a2d17decfa92",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindMerge",
+ "test-ref": "conformance:cases/14.9.24-MERGE/pb1139-merge-file-repeated; conformance:cases/14.9.24-MERGE/pb1139-merge-file-in-using-and-giving",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1139 landed: BindMerge keeps the set of file-name-2/3/4 FileModels (file-name-1, an SD, is already barred from USING/GIVING) and refuses a repeat by file with COBOL1757 naming SR7 - USING F1 F1, USING F1 F2 GIVING F1 and GIVING F3 F3 alike.",
+ "state": "OK"
+}
