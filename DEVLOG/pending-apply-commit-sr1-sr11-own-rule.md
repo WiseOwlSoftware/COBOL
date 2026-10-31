@@ -32,7 +32,20 @@ division binds (`BinderDriver.BindUnitData`, `InheritGlobalSubtree`) — PB3766'
 edited it. The merge takes the deletion and writes the branch's three entries (the two PB3338 negatives now COBOL4709, the new
 record-area golden) as `wiseowl/diagnostics/<id>.json`. The finisher also answered the review's three leads. A container's GLOBAL
 record area written with its file-report-qualifier (`RREC IN RELF`, §8.4.2.2.2 Format 1) still drew COBOL1639, because the screen
-returned at any qualifier. It now meets SR11 like the bare word, through `DataBinder.InheritedGlobalRecordAreaOwner`, and
-`InheritedGlobalRecordAreas` became a list so the qualifier can pick between two files' records of one name. New golden
+returned at any qualifier. It now meets SR11 like the bare word. New golden
 `pb3557_apply_commit_sr11_qualified_global_record_area`. The local-hides rule is now cited as §8.4.6.2.1 3) a)-b), which
 replaces the inherited §13.18.27 GR1-GR2, here and in `BinderDriver.BindUnitData`. The COBOL4709 descriptor names SR11's record area.
+
+**Second finisher (CONFLICT, and a collision with PB3766).** Main's PB4148 split the traceability inventory into one file per
+row, and `carry_retired_registers.py` carried the branch's two rows. Main's PB3766 inherits a container's GLOBAL data roots into
+the contained unit's name index, with their depth, before the APPLY COMMIT clause resolves. The screen had read "the lookup found
+it" as "declared here", so on the merged head a container's GLOBAL record area would have drawn SR3. It now decides by the
+DECLARING element (§8.4.6.2.1 3) a)-b)). It compares the depth of the nearest data items, of a report entry and of a GLOBAL file
+(the new `InheritedFileDepth`), and the nearest is the referenced item. A contained program's own report entry therefore outranks
+the container's GLOBAL record and draws COBOL5092 (§13.8.6.2.3). `InheritedGlobalRecordAreas` now maps the record itself to its
+file, and the data-name lookup chooses the record: two GLOBAL files' records of one name are told apart by the file qualifier, and
+the bare word is an ambiguity. The second name matcher, `InheritedGlobalRecordAreaOwner`, is gone. A sibling PB3766 left was fixed
+on the way: the qualifier walk's file-name arm read only `FilesByName`, which gains a container's GLOBAL files after the unit
+binds, so a contained program's own `OCCURS ... DEPENDING ON CNT IN RREC IN RELF` was refused (COBOL0851, legal source rejected);
+the walk now asks `TryGetVisibleFile`. New golden `13.18.27-GLOBAL/pb3557-contained-clause-qualifies-by-global-file` and three
+`ApplyCommitEnclosingFileTests` cases.
