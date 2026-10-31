@@ -458,14 +458,21 @@ off-by-one through every later counter check.
   described"); `ReportItemReferenceTests.EveryUndefinedNameArm_AsksTheOneRefusal` names each arm by member. The report
   section's own clauses are not refused here: their operand rules are theirs (`ReportSectionNameIn`, COBOL2144).
   **The ambiguity among data items is told first** (kb/Work PB3767): a reference that reaches SEVERAL data items breaks
-  §8.4.2.2.3 SR1 whether or not a report entry spells the same, so `DataBinder.DataItemsAmbiguousBeforeReportEntry` is
-  the ONE order, and `ReportEntryReferenceRefused` reads it itself: every arm passes the data items its reference
-  reaches, so no arm can ask the refusal without the order. Several data items leave the ambiguity standing (COBOL1639;
-  in the procedure division its text counts the report entries of the data items' source element,
-  `ReportEntriesInTierOf`) — except that a report entry of a NEARER source element than the ambiguous GLOBAL data items
-  is the referenced item (§8.4.6.2.1 3) a)) and keeps COBOL5092, in all five arms (a contained program's own FILE
+  §8.4.2.2.3 SR1 whether or not a report entry spells the same. **A report entry takes part in §8.4.6.2.1 3) with the
+  data items, in the lookup itself** (kb/Work PB4196): `SymbolTable.NearestDeclaringNamed`, the ONE narrowing of a
+  qualified data-name or condition-name set (asked by `TryResolveUnqualified`, `DataBinder.QualifiedCandidates` and
+  `QualifiedConditionCandidates`; `NearerDataNameHides` and `DeclaredNearerThan` ask it for the index-name, capacity
+  register and constant classes), keeps the survivors of the nearest declaring source element and leaves NONE when
+  `DataBinder.NearerReportEntryHides` finds a report entry of a nearer one that the written qualifiers reach — "if the name
+  is declared in source element B, the item in source element B is the referenced item" (3) a)), however many farther
+  GLOBAL data items spell the same, and whether there is one of them (`FILE STATUS IS PV`, `MOVE PV TO W`) or several.
+  The callers then meet an unidentified reference, and `ReportEntryReferenceRefused` names the entry (COBOL5092). The
+  data items an arm passes it are therefore already the ones that rank with the report entries, and several of them
+  (`dataItems.Count > 1`) are the ambiguity (COBOL1639; in the procedure division its text counts the report entries of
+  the data items' source element, `ReportEntriesInTierOf`); this holds in all five arms (a contained program's own FILE
   STATUS, ASSIGN USING, RECORD KEY and OCCURS DEPENDING ON reach a container's GLOBAL data items since kb/Work PB3766;
-  `pb3766-contained-*-nearer-report-entry-hides-global-data-items`).
+  `pb3766-contained-*-nearer-report-entry-hides-global-data-items`, `pb4196-contained-*`). A qualifier that reaches only
+  the container's item (`PV OF G1`) and a nearer data item against a farther GLOBAL report entry keep their answers.
   **A contained program sees its containers' GLOBAL reports from the end of its own declaration half** (kb/Work
   PB3766): `BinderDriver.BindUnitData` OFFERS them (`DataBinder.ContainerGlobalReports`, nearest container first) and
   `DataBinder.InheritContainerReports` inherits them at the end of `BindDeclarations`, before `BindResolve`, so the

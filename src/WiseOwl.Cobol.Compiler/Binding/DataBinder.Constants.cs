@@ -260,6 +260,7 @@ public sealed partial class DataBinder
         if (Conditions.TryGetValue(name, out var conds) && conds.Any(c => DeclaringDepth(c.Parent) < depth)) return true;
         if (_capacityRegisters.TryGetValue(name, out var tables) && tables.Any(t => DeclaringDepth(t) < depth)) return true;
         if (_sumCounters.TryGetValue(name, out var counters) && counters.Any(c => ReportDepth(c.Report) < depth)) return true;
+        if (NearerReportEntryHides(name, [], depth)) return true;   // every other named report entry (kb/Work PB4196)
         if (!IndexNames.Declares(name)) return false;
         IndexNames.Candidates(name, static _ => true, out int indexDepth);   // int.MaxValue when none survives
         return indexDepth < depth;
