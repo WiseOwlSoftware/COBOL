@@ -462,37 +462,54 @@ public abstract class CobolParserCoreBase : Parser
     protected bool procedureHeaderHere(int follower)
         => TokenStream.LT(1) is not { } word || ReservedGatedWord(word) is null || TokenStream.LA(2) == follower;
 
-    /// <summary>Whether the lookahead word begins a <c>statement</c> that parses — the question the error recovery
-    /// asks of a reserved verb it has just reported as a reference (kb/Work PB3248, reviews R1-1 and R2-1;
-    /// <see cref="CobolErrorStrategy"/>). A syntax error AT a reservation-gated word is reported as its §8.9 violation
-    /// (COBOL0901) whether the word was written as an operand (<c>DISPLAY RECEIVE.</c>) or correctly begins the next
-    /// statement after an incomplete one (<c>MOVE W-X TO</c> then <c>RECEIVE FROM W-X GIVING W-Y W-N</c>). Only the
-    /// statement reading tells them apart: where it is a complete reading (<see cref="ReadingParses"/>), the recovery
-    /// resumes AT the word and the statement is read as written; where it is not, the word stood for the operand the
-    /// report named. A statement that merely parses as a PREFIX is not enough (R2-1): GOBACK alone, or VALIDATE, RAISE
-    /// and FREE with one operand, parse in <c>MOVE GOBACK TO W-X</c> and <c>ADD VALIDATE W-N TO W-N</c>, and only the
-    /// token after them (TO, which no statement is ever followed by) shows the word was an operand. Read-only.</summary>
-    internal bool LookaheadBeginsAStatementThatParses()
-        => ReadingParses(CobolParserCore.RULE_statement);
+    /// <summary>⛔ DOES THE WORD <paramref name="from"/> BEGIN A <c>statement</c> THAT PARSES (kb/Work PB3248, PB4207;
+    /// <see cref="CobolErrorStrategy"/>)? The question that tells a reserved verb written as an OPERAND from one that
+    /// correctly begins the NEXT statement after an incomplete one (<c>MOVE W-X TO</c> then <c>RECEIVE FROM W-X GIVING W-Y
+    /// W-N</c>): the syntax error falls AT the verb either way, and only the statement reading tells them apart. Where it is
+    /// a complete reading (<see cref="ReadingParses"/>) the verb is the next statement, read as written, and the error is
+    /// the missing receiver; where it is not, the word stood for the operand the report names. A statement that merely
+    /// parses as a PREFIX is not enough (review R2-1 of PB3248): GOBACK alone, or VALIDATE, RAISE and FREE with one
+    /// operand, parse in <c>MOVE GOBACK TO W-X</c> and <c>ADD VALIDATE W-N TO W-N</c>, and only the token after them (TO,
+    /// which no statement is ever followed by) shows the word was an operand. <paramref name="from"/> is the OFFENDING
+    /// token, never the parser's lookahead: a failed prediction reports a token the parser has not reached
+    /// (<c>MOVE CONTINUE TO W-X</c> fails at CONTINUE while the parser stands at MOVE). A token no statement begins with
+    /// answers false without a parse. Read-only.</summary>
+    internal bool BeginsAStatementThatParses(IToken from)
+        => StatementOpeners(Atn).Contains(from.Type) && ReadingParses(CobolParserCore.RULE_statement, from);
 
-    /// <summary>Whether the tokens from the lookahead begin a COMPLETE reading of the rule <paramref name="rule"/>
+    /// <summary>⛔ THE TOKEN TYPES A <c>statement</c> CAN BEGIN WITH — THE VERBS — read off the generated ATN (kb/Work
+    /// PB4208), once per process: a statement the grammar gains tomorrow is in it.</summary>
+    internal static Antlr4.Runtime.Misc.IntervalSet StatementOpeners(Antlr4.Runtime.Atn.ATN atn)
+        => s_statementOpeners ??= OpenersOf(atn, CobolParserCore.RULE_statement);
+
+    private static Antlr4.Runtime.Misc.IntervalSet? s_statementOpeners;
+
+    private static Antlr4.Runtime.Misc.IntervalSet OpenersOf(Antlr4.Runtime.Atn.ATN atn, int rule)
+    {
+        var openers = new Antlr4.Runtime.Misc.IntervalSet(atn.NextTokens(atn.ruleToStartState[rule]));
+        openers.Remove(TokenConstants.EPSILON);
+        openers.SetReadonly(true);
+        return openers;
+    }
+
+    /// <summary>Whether the tokens from <paramref name="from"/> (the lookahead when null) begin a COMPLETE reading of the rule <paramref name="rule"/>
     /// within the sentence: they parse as the rule, and the reading ends at the separator period or at a token that can
     /// follow the rule somewhere in the grammar (its context-free FOLLOW set, <see cref="FollowSet"/>, read off the
     /// generated ATN, so a construct the grammar gains is covered by construction). A reading that stops at any other
     /// token parsed only a prefix of what is written, and the token it stopped at is the one the outer parse would
     /// refuse next. For the no-entry-name reading of <see cref="entryNameHere"/> (<c>dataDescriptionBody</c>, whose one
     /// call site is followed by the period alone) that is every token up to the period; for one statement of a sentence
-    /// (<see cref="LookaheadBeginsAStatementThatParses"/>) it is the statement up to the next statement, a scope
+    /// (<see cref="BeginsAStatementThatParses"/>) it is the statement up to the next statement, a scope
     /// terminator, a phrase of the enclosing statement or the period. A speculative parse by a
     /// <see cref="ParserInterpreter"/> over THIS grammar's ATN on a copy of the tokens up to the period, so the outer
     /// parse's stream, prediction and actions are untouched. The interpreter evaluates every semantic predicate as
     /// true, which only ever widens the reading — the authoritative parse that follows still applies them.
     /// Read-only.</summary>
-    private bool ReadingParses(int rule)
+    private bool ReadingParses(int rule, IToken? from = null)
     {
         var tokens = new List<IToken>();
-        for (int i = 1; TokenStream.LT(i) is { } t && t.Type != TokenConstants.EOF && t.Type != CobolLexer.DOT; i++)
-            tokens.Add(new CommonToken(t));
+        for (int i = (from ?? TokenStream.LT(1)).TokenIndex; TokenStream.Get(i) is { } t && t.Type != TokenConstants.EOF && t.Type != CobolLexer.DOT; i++)
+            if (t.Channel == Lexer.DefaultTokenChannel) tokens.Add(new CommonToken(t));
         var stream = new CommonTokenStream(new ListTokenSource(tokens));
         var probe = new ParserInterpreter(GrammarFileName, Vocabulary, RuleNames, Atn, stream)
         {
@@ -514,6 +531,7 @@ public abstract class CobolParserCoreBase : Parser
     public override void Reset()
     {
         base.Reset();
+        RestoreWordsReadAsNames();   // a new pass reads the source as written
         _freeGatedDeclarations = null;
         _declaredNames = null;
         _entryClauseProbe = null;
@@ -688,30 +706,45 @@ public abstract class CobolParserCoreBase : Parser
     /// frame identity.</summary>
     private sealed record ReturnFrame(Antlr4.Runtime.Atn.ATNState Follow, int RuleIndex, ReturnFrame? Next);
 
-    /// <summary>The §8.9 message for a syntax error whose offending token is a RESERVATION-GATED word, or null
-    /// when the error is about something else (kb/Work PB693).
-    /// <para>The gate removes such a word from <c>cobolWord</c> at the editions §8.9 reserves it, which is right —
-    /// nothing may absorb it into an operand list — but it also means a REFERENCE to the word has no alternative
-    /// left to match, and the bound-tree funnel never runs on a source that failed to parse. Without this the
-    /// user's answer to <c>DISPLAY CONSTANT.</c> at <c>--std 2002</c> degrades from "'CONSTANT' is a reserved word
-    /// in COBOL-2002" to "no viable alternative at input 'CONSTANT'" — the cause named, then unnamed.</para>
-    /// <para>Narrow by construction: the token type must be in the GENERATED gate set (so an ordinary syntax error
-    /// on any other reserved keyword keeps its own message), and the word must still <c>RejectsAt</c> the compile
-    /// edition — the same conservative high-confidence predicate the funnel reports on, composed with this
-    /// group's <c>&gt;&gt;COBOL-WORDS</c> overlay. A PERMISSIVE compile reaches here exactly where the migration
-    /// mode has nothing to restore — a word §8.9 reserves at this edition and at every older one (kb/Work PB792,
-    /// <see cref="ReservedWordSet.AdmitsAsUserWord"/>); for a word an edition merely ADDED the gate still stands
-    /// down and this is unreachable.</para></summary>
+    /// <summary>The §8.9 message for a syntax error whose offending token is a RESERVED WORD written where a user-defined
+    /// word stands, or null when the error is about something else (kb/Work PB693, PB4208). Two kinds of word, one rule
+    /// (ISO §8.3.2.1 1): "Reserved words shall not be used as user-defined words or system-names"):
+    /// <list type="bullet">
+    /// <item>a RESERVATION-GATED word §8.9 reserves at this edition. The gate removes it from <c>cobolWord</c>, which is
+    /// right — nothing may absorb it into an operand list — but it also means a REFERENCE to the word has no alternative
+    /// left to match, and the bound-tree funnel never runs on a source that failed to parse. Without this the user's
+    /// answer to <c>DISPLAY CONSTANT.</c> at <c>--std 2002</c> degrades from "'CONSTANT' is a reserved word in
+    /// COBOL-2002" to "no viable alternative at input 'CONSTANT'" — the cause named, then unnamed;</item>
+    /// <item>a VERB, a word a statement begins with (<see cref="StatementOpeners"/>), reserved at every edition or at
+    /// this one. It cannot parse as an operand either, and the cascade is its own: a verb is in every statement-level
+    /// recovery set, so the recovery resumed AT it and read it as a statement of its own, refusing the token after it
+    /// (<c>MOVE CONTINUE TO W-X.</c> drew COBOL0001 and then COBOL2269 at TO, <c>MOVE EVALUATE TO W-X.</c> three).</item>
+    /// </list>
+    /// <para>Narrow by construction: the token type must be a gated word's or a verb's (so an ordinary syntax error
+    /// on any other reserved keyword keeps its own message — <c>MOVE TO W-X.</c> misses its sender, it does not name TO),
+    /// and the word must still <c>RejectsAt</c> the compile edition — the same conservative high-confidence predicate the
+    /// funnel reports on, composed with this group's <c>&gt;&gt;COBOL-WORDS</c> overlay. A PERMISSIVE compile reaches here
+    /// exactly where the migration mode has nothing to restore — a word §8.9 reserves at this edition and at every older
+    /// one (kb/Work PB792, <see cref="ReservedWordSet.AdmitsAsUserWord"/>); for a word an edition merely ADDED the gate
+    /// still stands down and this is unreachable. WHETHER the word stands for a user-defined word, rather than being a
+    /// verb written correctly, is the strategy's decision (<c>CobolErrorStrategy.ReservedWordUse</c>), which asks
+    /// <see cref="BeginsAStatementThatParses"/>.</para></summary>
     internal string? ReservedUserWordViolation(IToken? offendingSymbol)
-        => ReservedGatedWord(offendingSymbol) is { } w ? ReservedWordSet.UserWordViolationMessage(w, Edition.Year) : null;
+        => ReservedWord(offendingSymbol, includeVerbs: true) is { } w ? ReservedWordSet.UserWordViolationMessage(w, Edition.Year) : null;
 
     /// <summary>The canonical upper-case word of <paramref name="token"/> when it is a reservation-gated word that §8.9
     /// RESERVES at this edition (the funnel's high-confidence <see cref="ReservedWordSet.RejectsAt"/>), else null — the
-    /// one question <see cref="ReservedUserWordViolation"/> and <see cref="entryNameHere"/> both ask. Migration-blind on
+    /// one question <see cref="entryNameHere"/> and <see cref="procedureHeaderHere"/> ask. Migration-blind on
     /// purpose: it asks what the targeted edition reserves, not what <c>--permissive</c> admits.</summary>
-    private string? ReservedGatedWord(IToken? token)
+    private string? ReservedGatedWord(IToken? token) => ReservedWord(token, includeVerbs: false);
+
+    /// <summary>The one decision under <see cref="ReservedUserWordViolation"/> and <see cref="ReservedGatedWord"/>:
+    /// <paramref name="token"/> is a reservation-gated word, or (<paramref name="includeVerbs"/>) a verb that is not a
+    /// user-defined word's token, and §8.9 reserves its word at this edition.</summary>
+    private string? ReservedWord(IToken? token, bool includeVerbs)
     {
-        if (token is null || !CobolLexer.IsReservationGated(token.Type)) return null;
+        if (token is null || token.Type == CobolLexer.IDENTIFIER) return null;
+        if (!CobolLexer.IsReservationGated(token.Type) && !(includeVerbs && StatementOpeners(Atn).Contains(token.Type))) return null;
         // ReservedWordSet.Default is the generated §8.9 table with no >>COBOL-WORDS overlay — the right set here:
         // Canonical() has ALREADY applied this group's directive (an UNDEFINE'd word returns null, an EQUATEd
         // synonym its canonical spelling), so composing the overlay twice would double-count it. The table is keyed
@@ -721,7 +754,32 @@ public abstract class CobolParserCoreBase : Parser
             : null;
     }
 
-    /// <summary>True when the current token spells <paramref name="keyword"/> AND §8.9 reserves it at the targeted
+    /// <summary>⛔ A RESERVED WORD THE REPORT REFUSED AS A USER-DEFINED WORD IS READ AS ONE FROM HERE ON (kb/Work PB4218):
+    /// the word is retyped <c>IDENTIFIER</c> in the token stream, exactly as the reservation gate retypes a word §8.9 leaves
+    /// free (<see cref="ReservationGateRewriter.Retype"/>), so the parse goes on with the name the user wrote there. One
+    /// fault, one diagnostic: the report has named the word; what the source goes on to say (<c>RECEIVE = 1</c>, a condition
+    /// whose whole left operand the word is) is parsed as written, and deleting the word could not repair it. The repair
+    /// belongs to the PASS that made it: the original type is kept and put back when the pass ends
+    /// (<see cref="RestoreWordsReadAsNames"/>), so the decision of the pass that follows (the gate's retype of a word the
+    /// program declares, which looks for a keyword token) sees the source as written. False where the token cannot be retyped.</summary>
+    internal bool ReadAsUserWord(IToken word)
+    {
+        if (word is not IWritableToken writable) return false;
+        (_readAsUserWord ??= []).Add((writable, word.Type));
+        writable.Type = CobolLexer.IDENTIFIER;
+        return true;
+    }
+
+    /// <summary>Put back the type of every word <see cref="ReadAsUserWord"/> retyped. Called when a pass ends
+    /// (<see cref="ReservationGateRewriter.ParseToFixpoint"/>) and when the parser is reset.</summary>
+    internal void RestoreWordsReadAsNames()
+    {
+        if (_readAsUserWord is not { } repaired) return;
+        foreach (var (token, type) in repaired) token.Type = type;
+        _readAsUserWord = null;
+    }
+
+    private List<(IWritableToken Token, int Type)>? _readAsUserWord;
     /// edition — the predicate on the recognize-and-name statement arms of COMMIT / ROLLBACK (§14.9.7 / §14.9.36,
     /// Annex A.3 items 6–7). For these verbs the reservation begins at the statement's introduction (2023) and never
     /// lapses, so "reserved here" is exactly "the statement exists here", and where the word is a user word the arm
