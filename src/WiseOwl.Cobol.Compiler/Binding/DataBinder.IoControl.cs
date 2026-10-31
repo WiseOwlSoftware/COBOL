@@ -247,27 +247,31 @@ public sealed partial class DataBinder
     /// the FILE-CONTROL paragraph of the source element that contains this clause"</i>.</item>
     /// </list>
     /// A word that is a data item here, or is declared as another kind of name (a constant, an alphabet, an index), is a
-    /// LOCAL declaration hiding the container's file: identifier-1 as written.</summary>
+    /// LOCAL declaration hiding the container's file: identifier-1 as written. A QUALIFIED operand is never a file-name
+    /// (a file-name takes no qualifier); it is a record area only as <c>record-name IN|OF file-name</c>, the one
+    /// qualifier a level-1 entry takes (§8.4.2.2.2 Format 1's file-report-qualifier;
+    /// <see cref="InheritedGlobalRecordAreaOwner"/>), and every other qualified operand resolves as written.</summary>
     /// <returns>true after reporting — the operand is refused and goes no further.</returns>
     private bool ScreenEnclosingFileOperand(string name, IReadOnlyList<string> quals, Editions.DiagnosticCursor at)
     {
-        if (quals.Count != 0 || Symbols.TryResolve(name, Model.Scope.Program, out _)) return false;
+        if (quals.Count == 0 ? Symbols.TryResolve(name, Model.Scope.Program, out _)
+                : QualifiedCandidates(name, quals, Model.Scope.Program).Count != 0) return false;
         if (NonDataDeclarationOf(name, quals, Model.Scope.Program) is { } declared
             && declared.Kind != NonDataDeclarationKind.FileName) return false;
         using var reportAt = Edition.At(at);
-        if (InheritedGlobalFiles.TryGetValue(name, out var global))
+        if (quals.Count == 0 && InheritedGlobalFiles.TryGetValue(name, out var global))
         {
             ApplyCommitRule($"'{global.CobolName}' is a file of a containing source element declared with the GLOBAL clause, "
                 + "and it is not specified in the FILE-CONTROL paragraph of this source element either (SR1)", "SR11", Sr11Text);
             return true;
         }
-        if (InheritedGlobalRecordAreas.TryGetValue(name, out var owner))
+        if (InheritedGlobalRecordAreaOwner(name, quals) is { } owner)
         {
-            ApplyCommitRule($"'{name}' is a record area of file '{owner.CobolName}' declared with the GLOBAL clause in a "
-                + "containing source element", "SR11", Sr11Text);
+            ApplyCommitRule($"'{WrittenQualified(name, quals)}' is a record area of file '{owner.CobolName}' declared with "
+                + "the GLOBAL clause in a containing source element", "SR11", Sr11Text);
             return true;
         }
-        if (ContainerLocalFiles.Find(f => CobolNames.Same(f.CobolName, name)) is { } local)
+        if (quals.Count == 0 && ContainerLocalFiles.Find(f => CobolNames.Same(f.CobolName, name)) is { } local)
         {
             ApplyCommitRule($"'{local.CobolName}' is a file of a containing source element, not specified in the "
                 + "FILE-CONTROL paragraph of this one (it has no GLOBAL clause, so it is not visible here)", "SR1",

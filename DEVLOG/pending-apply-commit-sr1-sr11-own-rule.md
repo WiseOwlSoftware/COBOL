@@ -16,7 +16,7 @@ a containing GLOBAL FD (SR11's second noun) named in the clause drew it too.
 are recorded before the unit binds by the new `DataBinder.InheritFileNames` (the file twin of `InheritGlobalTypeDecls`), so the
 data division's own resolutions can ask; the merge into `FilesByName` stays after the bind, so an FD still finds only the unit's
 own SELECT. `ResolveApplyCommit` asks `ScreenEnclosingFileOperand` of every identifier-1 that resolves to no data item (a local
-declaration hides the container's name, §13.18.27 GR1-GR2): a GLOBAL file or record area is SR11, a container's file without a
+declaration hides the container's name, §8.4.6.2.1 3) a)): a GLOBAL file or record area is SR11, a container's file without a
 GLOBAL clause is SR1; one COBOL4709 each. The descriptor now names SR1-SR11. No new code.
 
 **Goldens.** The two PB3338 negatives now expect COBOL4709; new `pb3557_apply_commit_sr11_global_record_area`;
@@ -27,3 +27,12 @@ program's GLOBAL versus non-GLOBAL file). Inventory rows SR-12.4.6.3.3-1 and -11
 **Found, not fixed.** A contained program's FILE STATUS, RELATIVE KEY or OCCURS DEPENDING ON naming a container's GLOBAL data item
 is refused as undefined (COBOL1639 / COBOL0851), on main too: the GLOBAL data subtrees are inherited after the contained data
 division binds (`BinderDriver.BindUnitData`, `InheritGlobalSubtree`) — PB3766's timing, for data items. Reported as a lead.
+
+**Finisher (CONFLICT at the landing).** Main's PB4147 deleted `conformance-suite/wiseowl/diagnostics.json` while this branch
+edited it. The merge takes the deletion and writes the branch's three entries (the two PB3338 negatives now COBOL4709, the new
+record-area golden) as `wiseowl/diagnostics/<id>.json`. The finisher also answered the review's three leads. A container's GLOBAL
+record area written with its file-report-qualifier (`RREC IN RELF`, §8.4.2.2.2 Format 1) still drew COBOL1639, because the screen
+returned at any qualifier. It now meets SR11 like the bare word, through `DataBinder.InheritedGlobalRecordAreaOwner`, and
+`InheritedGlobalRecordAreas` became a list so the qualifier can pick between two files' records of one name. New golden
+`pb3557_apply_commit_sr11_qualified_global_record_area`. The local-hides rule is now cited as §8.4.6.2.1 3) a)-b), which
+replaces the inherited §13.18.27 GR1-GR2, here and in `BinderDriver.BindUnitData`. The COBOL4709 descriptor names SR11's record area.

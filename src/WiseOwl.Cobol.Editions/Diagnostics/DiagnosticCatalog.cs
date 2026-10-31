@@ -789,8 +789,8 @@ public static class DiagnosticCatalog
         + "recursive source element (SR5; a function is always one, §8.6.6) or in a class, factory or interface "
         + "definition (SR6), a data item containing an object reference (SR7), only one of two 01/77 "
         + "items one of which depends on the other (SR8), a FILE STATUS, LINAGE or RECORD DEPENDING item outside "
-        + "those sections (SR9), any of them subject to a BASED clause (SR10), or a GLOBAL file named in the clause of a source element "
-        + "other than the one that declares it (SR11).",
+        + "those sections (SR9), any of them subject to a BASED clause (SR10), or a file or record area declared with the GLOBAL "
+        + "clause named in the clause of a source element other than the one that declares it (SR11).",
         "ISO §12.4.6.3.3 SR1-SR11 / §9.1.18.6");
     public static readonly DiagnosticDescriptor AcceptVariableLengthGroup = new(
         "COBOL1691", "accept-variable-length-group", EditionSeverity.Error,

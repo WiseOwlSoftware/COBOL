@@ -740,8 +740,8 @@ internal sealed class BinderDriver
         data.AutomaticPropagation = session.Propagate.IsOnAt(unit.Ctx.identificationDivision().Start.Line);
 
         // GLOBAL FD inheritance (ISO §13.18.27.4 GR1: the file-name of a GLOBAL FD is a GLOBAL name, visible in every
-        // directly/indirectly contained program; §13.18.27 GR1–2 — nearest container first, a local declaration
-        // shadows, which TryAdd realizes since local files are already present). Merge into FilesByName ONLY —
+        // directly/indirectly contained program; §8.4.6.2.1 3) a)-b) — a local declaration shadows, then the nearest
+        // container's, which TryAdd realizes: local files are already present, and InheritedGlobalFiles is nearest first). Merge into FilesByName ONLY —
         // never Files: the child must not re-register, re-qualify, or CANCEL-close the owner's connector; its
         // bound verbs hold the SHARED FileModel reference, so the owner's one-time PROG::FILE qualification
         // automatically keys the child's verbs to the owner's connector. (EXTERNAL is NOT global — §13.18.22

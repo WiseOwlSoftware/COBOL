@@ -67,6 +67,33 @@ public sealed class ApplyCommitEnclosingFileTests
         Assert.Contains("record area", only, StringComparison.Ordinal);
     }
 
+    /// <summary>SR11's record area written with its file-report-qualifier (§8.4.2.2.2 Format 1: <i>"data-name-1 [
+    /// data-qualifier ] … [ file-report-qualifier ]"</i>): <c>RREC IN RELF</c> names the same GLOBAL record area as the
+    /// bare word, so it meets the same SR11 report, never the undefined-name verdict (kb/Work PB3557 review R1-1: the
+    /// screen returned at any qualifier, so the qualified spelling drew COBOL1639).</summary>
+    [Fact]
+    public void AContainersGlobalRecordArea_QualifiedByItsFile_IsRefusedUnderSr11()
+    {
+        var (ok, errors) = EditionHarness.Compile(Nested(globalFile: true, "RREC IN RELF"), 2023);
+        Assert.False(ok);
+        var only = Assert.Single(errors);
+        Assert.Contains("COBOL4709", only, StringComparison.Ordinal);
+        Assert.Contains("ISO §12.4.6.3.3 SR11", only, StringComparison.Ordinal);
+        Assert.Contains("'RREC OF RELF' is a record area of file 'RELF'", only, StringComparison.Ordinal);
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL1639");
+    }
+
+    /// <summary>THE QUALIFIED ARM THAT CAN FAIL: a qualified word whose name is no GLOBAL record area of the file it
+    /// names is no record area at all, and stays an undefined data-name (§8.4.2.1); a qualifier alone never makes SR11.</summary>
+    [Fact]
+    public void AQualifiedWordNamingNoGlobalRecordArea_IsStillAnUndefinedDataName()
+    {
+        var (ok, errors) = EditionHarness.Compile(Nested(globalFile: true, "NOPE IN RELF"), 2023);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1639");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL4709");
+    }
+
     /// <summary>SR1: a file with no GLOBAL clause is not visible in the contained program, and is not in its FILE-CONTROL
     /// paragraph either: the clause's own rule, not an undefined name.</summary>
     [Fact]
@@ -91,8 +118,9 @@ public sealed class ApplyCommitEnclosingFileTests
         EditionHarness.AssertNoDiagnostic(errors, "COBOL4709");
     }
 
-    /// <summary>A contained program's own data item spelled like the container's file hides the file-name (§13.18.27
-    /// GR1-GR2: the nearest declaration wins), so the word is identifier-1 as written — no SR1 or SR11 report.</summary>
+    /// <summary>A contained program's own data item spelled like the container's file hides the file-name (§8.4.6.2.1
+    /// 3) a): "If the name is declared in source element B, the item in source element B is the referenced item"), so
+    /// the word is identifier-1 as written — no SR1 or SR11 report.</summary>
     [Fact]
     public void ALocalDataItemSpelledLikeTheContainersFile_IsIdentifierOne()
     {
