@@ -471,7 +471,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             // where BOTH ends are resolved and both still carry their owning sections, because the composition
             // below throws the sections away and leaves a pc pair no later pass can ask the question of.
             if (!ctx.Validation.CheckDeclarativesRange(
-                    first, thru, names[0].GetChild(0).GetText(), names[1].GetChild(0).GetText(), "PERFORM"))
+                    first, thru, ProcedureNameShape.Head(names[0]), ProcedureNameShape.Head(names[1]), "PERFORM"))
                 return BoundRejected.Reported(ctx.Edition);
             // An INVERTED range (the THRU procedure physically precedes the first, reached by GO TO — GR6
             // "there is no necessary relationship between procedure-name-1 and procedure-name-2"; NIST NC102A
