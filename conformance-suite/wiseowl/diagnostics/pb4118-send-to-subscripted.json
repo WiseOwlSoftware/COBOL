@@ -1,0 +1,1 @@
+{"refuse-at": ["2023"], "expect": "COBOL2024: SEND TO operand 'TBL(1)' is written with a subscript"}

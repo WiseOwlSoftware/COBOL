@@ -1,0 +1,1 @@
+{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "error COBOL2031: INITIALIZE REPLACING NUMERIC … BY SPACE: ISO §14.9.20.3 SR4 requires that `MOVE SPACE TO <an item of category NUMERIC>` be valid, and the figurative constant SPACE shall not be moved to a numeric or numeric-edited item (ISO §14.9.25.3 SR5)"}

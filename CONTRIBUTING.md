@@ -88,8 +88,8 @@ Linux for every pull request.
    implements it.
 3. **Tests that ship with the change.** A behavior change adds a test to the conformance suite (`conformance-suite/cases/`,
    `conformance-suite/README.md`): one program accepted from the edition that introduced the construct, with its
-   expected output, and — for anything an earlier edition forbids — one program refused there, with its entry in
-   `conformance-suite/wiseowl/diagnostics.json`. Each test's metadata header is its registration.
+   expected output, and — for anything an earlier edition forbids — one program refused there, with its file
+   `conformance-suite/wiseowl/diagnostics/<test id>.json`. Each test's metadata header is its registration.
 4. **A root-cause fix.** Do not work around a compiler bug in the test program, and do not special-case the test.
    Every bug is usually a pattern: look for the same mistake in its siblings.
 5. **Typed-native code.** A COBOL record is a .NET `record struct` and an elementary item is a native field; do not

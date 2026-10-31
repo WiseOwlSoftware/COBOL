@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ A REFUSED PROGRAM'S HEADER THAT STATES ITS EXPECTED DIAGNOSTIC NAMES A CODE ITS REFUSAL PINS (kb/Work PB1784,
 /// branch review R1-1): the leading comments of every conformance-suite program WiseOwl refuses, against the
-/// <c>expect</c> of its entry in <c>conformance-suite/wiseowl/diagnostics.json</c>.
+/// <c>expect</c> of its entry in <c>conformance-suite/wiseowl/diagnostics/</c>.
 /// <para><b>What happened.</b> kb/Work PB1784 gave each OO definition rule its own descriptor: the OVERRIDE / FINAL
 /// prototype rules left COBOL0840 for COBOL4212, the interface INHERITS cycle left it for COBOL2791, and the
 /// GOBACK / EXIT RAISING operand rule left COBOL0849 for COBOL4211. The <c>.err</c> files were re-pinned, and the
@@ -74,7 +74,7 @@ public sealed class NegativeGoldenHeaderCodeDriftTests
     }
 
     /// <summary>Every refused program whose expectation pins a code states only pinned codes in its header. The
-    /// refusals are the conformance suite's (<c>conformance-suite/wiseowl/diagnostics.json</c>, read through the
+    /// refusals are the conformance suite's (<c>conformance-suite/wiseowl/diagnostics/</c>, read through the
     /// generator's manifest, <see cref="SuiteManifest"/>; kb/Work PB3177 moved the former
     /// <c>tests/conformance/negative</c> goldens there, each <c>.err</c> becoming its refusal's <c>expect</c>).</summary>
     [Fact]
