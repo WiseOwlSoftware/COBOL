@@ -22,3 +22,11 @@ it; the ISO text controls (CLAUDE.md rule 1).
 Goldens: `12.3.7-SPECIAL-NAMES/pb4108-symbolic-literal-then-constant-ordinals` (accept 2002, where the CONSTANT entry begins;
 expected `AB / CDF / GHI / JK` computed from the UTF-16 native order, ordinal n is code n-1) and the refused
 `pb4108-symbolic-clause-count-mismatch` (COBOL1670 at 2002, 2014, 2023). No inventory row claimed or closed.
+
+Review round 1 found that the one-stream pairing checked only the totals: a clause whose operand kinds do not form the
+format's repeated group `{symbolic-character-1}... [IS|ARE] {integer-1}...` (ISO §12.3.7.2) but whose counts balance, such as
+`SC1 66 67 SC2` or `K1 SC1 SC2 66`, compiled and paired SC2 with 67. `SymbolicClauseOperands` now also reports whether the
+stream opens with a name and closes with an ordinal (the only condition for (name+ ordinal+)+), and `SwitchBindSymbolic`
+refuses otherwise with one COBOL1670 and the names still declared. Goldens `pb4108-symbolic-trailing-name-without-ordinal` and
+`pb4108-symbolic-leading-constant-before-names` (COBOL1670 at 2002, 2014, 2023). The PB4110 note's reference to the renamed
+member was updated.
