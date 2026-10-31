@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.23.4-10",
+ "section": "14.9.23.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "INVOKE statement",
+ "rule-digest": "77039bedbc09",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/OmittedFormal.cs#Ref; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#OoArgOmittedError; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.ArgOmitted.cs#MarkFormals",
+ "test-ref": "conformance-test:ArgOmittedConditionTests.ElementaryReference_RaisesEcOoArgOmitted_AfterTheExemptions; conformance-test:ArgOmittedConditionTests.GroupSubordinateStore_RaisesEcOoArgOmitted; conformance-test:ArgOmittedConditionTests.CheckingOff_IsLenient; unit:OmittedFormalGuardDriftTests.Guard_RaisesItsKindsName_UnderTheEmittersFlag",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB971. `cite.py --check 14.9.23.4 \"the EC-OO-ARG-OMITTED exception condition is set to exist\"` -> OK §14.9.23.4 10). A reference in an invoked METHOD to an omitted formal (the method's copy-in local, or a subordinate of a group formal) raises EC-OO-ARG-OMITTED through OmittedFormal.Ref(ref local, __omittedN, Method, ...); the omitted-argument condition and forwarding the whole formal as an argument raise nothing. Observed as abnormal termination (Table 13 Fatal, no USE in the source unit, §14.6.13.1.3 item 7) because a method's own DECLARATIVES are not yet implemented (COBOL0899 - a separate facility).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.6.4-2",
+ "section": "11.6.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "INTERFACE-ID paragraph",
+ "rule-digest": "94bb97b2909c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build; src/WiseOwl.Cobol.Compiler/Oo/OoInterfaceSymbol.cs#AllPrototypes; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitInterfaceUnit",
+ "test-ref": "conformance:cases/11.6-INTERFACE-ID/l1p5_interface_inherits_multiple",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR2 plus 9.3.10: two-base INHERITS and transitive inheritance; SR4e INVOKE through derived-typed reference (SPEAK/STEPS=42/JUMP)",
+ "state": "OK"
+}

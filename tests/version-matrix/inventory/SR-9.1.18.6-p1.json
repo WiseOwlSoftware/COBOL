@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-9.1.18.6-p1",
+ "section": "9.1.18.6",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Commit and Rollback",
+ "rule-digest": "8d6217c348c1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OoEnvironmentRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#ScreenApplyCommitItem; src/WiseOwl.Cobol.Runtime/Control/ModuleStack.cs#AnyRecursive; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitMethod; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindCommitRollback",
+ "test-ref": "conformance:cases/12.4.6-I-O-CONTROL/pb3338_apply_commit_sr6_factory; conformance:cases/12.4.6-I-O-CONTROL/pb3338_apply_commit_sr7_object_reference; conformance:cases/14.9.7-COMMIT/pb3540_commit_in_object_method; conformance:cases/14.9.36-ROLLBACK/pb3540_rollback_in_factory_method; conformance:cases/14.9.7-COMMIT/pb3540_commit_rollback_under_method; conformance:cases/12.4.6-I-O-CONTROL/pb3540_ec_flow_apply_commit_under_method",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB3338 (wave 1154) and PB3540 (wave 1157): the APPLY COMMIT clause, COMMIT and ROLLBACK are provided for RELATIVE and INDEXED files, whose keyed store engine keeps the transaction (kb/Work PB3337); a SEQUENTIAL or LINE SEQUENTIAL file named in the clause is under commit control too, its transaction journal being kb/Work PB3340 (COBOL1709, which refused it, is retired) (Annex A.4.3 stays PARTIAL, docs/CONFORMANCE.md 5; this rule's obligations are met for every file the clause admits). The clause in a class, factory or interface definition is refused (12.4.6.3.3 SR6, OoEnvironmentRules), a COMMIT or ROLLBACK written in a method of an object or factory definition by 14.9.7.3 SR1 / 14.9.36.3 SR1 (a method is recursive, 8.6.6; COBOL1690; pb3540_commit_in_object_method and pb3540_rollback_in_factory_method), and an item containing an object reference by SR7. The dynamic half, 'any runtime elements that they invoke': a program a method CALLs that executes COMMIT or ROLLBACK, or whose APPLY COMMIT clause is activated, runs under the control of a recursive runtime element, so it raises EC-FLOW-COMMIT, EC-FLOW-ROLLBACK or EC-FLOW-APPLY-COMMIT (or with checking off does nothing): the method body's frame is marked recursive on the module stack and TransactionControl asks ModuleStack.AnyRecursive (pb3540_commit_rollback_under_method, pb3540_ec_flow_apply_commit_under_method). (the dynamic half: a runtime element a method invokes)",
+ "state": "OK"
+}

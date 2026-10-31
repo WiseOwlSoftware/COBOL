@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.45.4-1",
+ "section": "13.18.45.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "RENAMES clause",
+ "rule-digest": "f6a3cc687bd6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveRedefines; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#PlaceForItem",
+ "test-ref": "conformance:cases/13.18.45-RENAMES/pb96_renames_span_over_redefines; conformance-test:RedefinesTargetTests.LegalRedefinesAndRenames_StillBind",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB96). The no-THRU alias inherits data-name-2's description and storage: ren.Pic = From.Pic and the resolver forwards to the FROM item's place outright (numeric stays numeric — NC252A's ADD 3500 TO RENAME-12).",
+ "state": "OK"
+}

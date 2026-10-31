@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.1.3.2-2",
+ "section": "8.5.1.3.2",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Levels",
+ "rule-digest": "6a67bde495c0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenImmediateMemberLevel; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportLevelNumbers",
+ "test-ref": "conformance:cases/8.5.1.3.2-Level-numbers/pb485-level-77-file-section; conformance:cases/8.5.1.3.2-Level-numbers/pb1246-subdivided-level-77; conformance:cases/8.5.1.3.2-Level-numbers/pb1246-unequal-sibling-levels; conformance:cases/8.5.1.3.2-Level-numbers/pb1954-report-unequal-sibling-levels; conformance:cases/8.5.1.3.2-Level-numbers/pb1954-report-unequal-line-levels; conformance:cases/8.5.1.3.2-Level-numbers/pb1954_report_level_hierarchy_legal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "(kb/Work PB1246) The 77 is never subordinate (nestLevel 1) and nothing is subordinate to it (COBOL2771); the immediate members of a group carry numerically equal level-numbers (8.5.1.3.2), COBOL2771. (kb/Work PB1954) The equal-sibling half governs report group description entries too (13.18.33.1 gives level-numbers 1-49 the same hierarchy in a data description entry and a report group description entry): ScreenReportLevelNumbers asks it once per written entry over each constant-delimited run of the RD (ReportEntryRuns), through the one comparison ScreenImmediateMemberLevel that BindEntries also asks.",
+ "state": "OK"
+}

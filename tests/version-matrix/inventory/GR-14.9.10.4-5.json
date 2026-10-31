@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.10.4-5",
+ "section": "14.9.10.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "DELETE statement",
+ "rule-digest": "18d7b4fb72c2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Attach; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Attach; src/WiseOwl.Cobol.Runtime/IO/StoreTable.cs; src/WiseOwl.Cobol.Runtime/IO/KeyedStore.cs",
+ "test-ref": "unit:SharedRecordStoreTests.Delete_ThroughOneConnector_IsGoneForTheOther; unit:SharedRecordStoreTests.CloseOrder_CannotResurrectADeleteOrDropAWrite; unit:SharedRecordStoreTests.Write_ThroughOneConnector_IsVisibleToTheOther; unit:SharedRecordStoreTests.Indexed_SharedStore_WritesInterleaveAndPersist; conformance:cases/14.9.10-DELETE/pb143_shared_visibility",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB143) at the ARCHITECTURE the refuter asked for: keyed record images now live in ONE store per resolved host path (KeyedStoreTable, registry-owned - the same key PhysicalFileTable arbitrates sharing/locks by), attached by every relative/indexed connector over that path. The FIRST opener loads from disk; later openers attach to the LIVE store (never reload); every DELETE/WRITE/REWRITE is instantly visible to every attached connector ('the physical file', not a private snapshot); any CLOSE persists the one shared state, so the close ORDER can no longer resurrect a deleted record or drop another connector's write; the LAST detach drops the entry so a later OPEN re-reads the disk; OPEN OUTPUT empties the shared view; the IndexedStore shares the arrival mint so cross-connector writes keep ONE 14.9.30 GR26 retrieval order. Position/key state (FPI, key of reference, GR29a slot, GR38 high-key) stays per-connector. The store is UNCONDITIONAL - two SELECTs to one ASSIGN target reach it with no SHARING clause. pb143_shared_visibility runs the row's exact demanded trace: Q deletes, P reads '23', P writes, Q reads it back, then the CLOSE-order-reversed durability legs. DeleteShared's missing LocksEffective consult was VERIFIED A NON-DEFECT and documented at the site: the siblings gate lock ACQUISITIONS, DELETE acquires none, and GR7's releases are correct by vacuity for a connector holding no locks. retired-witness: conformance:85/pb143_shared_visibility (the golden moved from 85/ to 2002/ (kb/Work PB322): two connectors on one file are open together only when both declare SHARING WITH ALL OTHER, a COBOL-2002 clause) retired-witness: src/Cobol.Net.Runtime/IO/KeyedStoreTable.cs (the whole-store model's remains are deleted (kb/Work PB3335; DESIGN-runtime-library 2.2.1.13): KeyedStoreTable.cs is split: the store table is StoreTable.cs and the engine handle with its two views is KeyedStore.cs)",
+ "state": "OK"
+}

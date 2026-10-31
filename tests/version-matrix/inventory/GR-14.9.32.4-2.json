@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.32.4-2",
+ "section": "14.9.32.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "RELEASE statement",
+ "rule-digest": "c14b4dfa4dee",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelease; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Release; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease",
+ "test-ref": "conformance-test:MixedUsageRecordImageDifferentialTests.ReleaseReturn_SignedCompLeaves_RoundTripZeroAndMax",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "RULE (`--check 14.9.32.4 \"The execution of a RELEASE statement causes the record named by record-name-1 to be released to the initial phase of a sort operation.\"` => OK 14.9.32.4 2). WHAT THE CODE DOES: SortEmitter.EmitRelease renders record-name-1's own character image and calls `CobolSort.Release(sd, image)`, which appends it to that SD's per-file image buffer in release order (CobolSort.cs:77) -- the buffer the SORT's sequence phase then orders and the RETURN phase drains, i.e. exactly the initial phase. The image is a C# string, so the store holds a snapshot: a later mutation of the record area cannot alter an already-released record. THREE LENGTH SHAPES READ AND VERIFIED, all three per 13.18.43.4 GR13 (`--check 13.18.43.4 \"During the execution of a RELEASE, REWRITE, or WRITE statement, the number of bytes in the record is determined by the following conditions\"` => OK 13.18.43.4 13): (a) fixed SD -- the named record's own width (probe out-b1/probe/base/base.cob returns AAAaaaaa / BBBbbbbb / CCCccccc in key order); (b) RECORD VARYING ... DEPENDING ON -- GR13a's length, emitted as `StrRefMod(image, 1, (int)dep)` (`--check 13.18.43.4 \"If data-name-1 is specified, by the content of the data item referenced by data-name-1.\"` => OK 13.18.43.4 13) a)); (c) GR13c, a variable-occurrence record with no DEPENDING ON in the RECORD clause -- probe out-b1/probe/odo/odo.cob generates `CobolSort.Release(\"RELODO::SRTF\", SRT_REC.AsImage().Substring(0, CobolTable.OdoExtentChars(CobolTable.Occ(WS_OCC), 1, 9, 6, 2, 1)))`, i.e. fixed portion 6 + 2 occurrences x 2 = 10 bytes, not the maximum. COVERING TEST is spec-derived (AssertSpec with expectations computed from the standard, not from the legacy oracle) and cites 14.9.32 GR2 in its own section header. EDITIONS: Annex E lists no substantive change to 14.9.32; the rule is edition-neutral in its own text.",
+ "state": "OK"
+}

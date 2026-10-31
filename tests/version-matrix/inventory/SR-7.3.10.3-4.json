@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.10.3-4",
+ "section": "7.3.10.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "COBOL-WORDS directive",
+ "rule-digest": "d3e253741e7e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CobolWordsDirectiveProcessor.cs#UserWord; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#IsReservedContextOrIntrinsic",
+ "test-ref": "conformance:cases/7.3.10-COBOL-WORDS/pb1373-cobol-words-fresh-word-too-long; conformance:cases/7.3.10-COBOL-WORDS/pb1373_cobol_words_separators_header_populations; unit:CobolWordsDirectiveTests.FreshWord_IsHeldToTheSixtyThreeCharacterCeiling; unit:CobolWordsDirectiveTests.FreshWord_Shape; unit:CobolWordsDirectiveTests.Sr4_AWordNo2023ListHolds_IsAFreshWord; unit:CobolWordsDirectiveTests.Sr4_EachOfTheThreeLists_IsNotAFreshWord; unit:CobolWordsDirectiveTests.Sr4_NewWordReserved_Rejected1623",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1373 landed (w1019 G). SR4 'The content of literal-2, literal-5, and literal-6 shall not be a reserved word, a context-sensitive word, nor an intrinsic function-name. The content of each of these literals shall be a COBOL word that meets the requirements for a user-defined data-name as specified in 8.3.2.2' (cite.py OK §7.3.10.3 4)). Population: the same 2023 one as SR3, so RESERVE AUTHOR (a fresh word) is accepted (was COBOL1623). Form: the §8.3.2.1 word shape (underscore a word character, neither hyphen nor underscore first or last), §8.3.2.2 at least one letter, and CobolWordRule's 63-character ceiling and Annex B placement (a 64-character fresh word is COBOL1623); MY_SHOW is legal. retired-witness: src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#IsReservedCategory (IsReservedCategory was replaced by IsReservedContextOrIntrinsic, the one 2023 population that SR3 and SR4 share)",
+ "state": "OK"
+}

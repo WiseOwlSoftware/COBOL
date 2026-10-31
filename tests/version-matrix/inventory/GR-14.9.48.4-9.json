@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.48.4-9",
+ "section": "14.9.48.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "UNSTRING statement",
+ "rule-digest": "6f5e0c0e7853",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringExtract; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/l1c35_unstring_multichar_delimiter; conformance:cases/14.9.48-UNSTRING/l1c35_unstring_zero_length_delimiter",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR9 four sentences (cite.py --check -> OK 14.9.48.4 9)). (1) each operand one delimiter - one array entry each. (2) multi-character delimiter only contiguous and in order - IndexOf(del, pos, Ordinal); probe p2 T2 \"AB\" matched only at 'AB'. (3) 'If the data item referenced by identifier-2 or identifier-3 is a zero-length item, that delimiter is ignored' - kernel 'if (del.Length == 0) continue'; probe p1 GR9A DELIMITED BY WS-Z (dynamic-length, \"\") OR \",\" over 'AB,,CD;EF' -> [AB  ][    ][CD;E] P=10 T=03 (the \",\" delimiter alone). (4) all identifiers zero-length and no literal -> as if DELIMITED absent: kernel anyDelim=false uses receiverSize, and the emitter supplies the real size (sizeCanGovern when every delimiter is a field/computed operand); probe p1 GR9B DELIMITED BY WS-Z INTO A1 A2 -> [AB,,][CD;E] P=09 + OVF (F unexamined), exactly the no-DELIMITED result. No spec-derived test pins sentences 3/4 -> test-ref empty. [editions as adjudicated: 85, 2002, 2014, 2023 (the two zero-length sentences are 2014+: zero-length items are post-2002)]",
+ "state": "OK"
+}

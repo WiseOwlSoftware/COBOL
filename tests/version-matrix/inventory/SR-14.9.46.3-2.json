@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.46.3-2",
+ "section": "14.9.46.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "TERMINATE statement",
+ "rule-digest": "721526fd0771",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#RejectContainedReportFile; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindTerminate",
+ "test-ref": "unit:GlobalReportScopeTests.AContainedReportVerbOnAGlobalReportWhoseFileIsNotGlobal_IsRefused; unit:GlobalReportScopeTests.AContainedReportVerbOnAGlobalReportWithAGlobalFile_Binds; conformance:cases/13.18.27-GLOBAL/pb369_global_report_use_selection",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB369. Rule text (cite.py --check 14.9.46.3 \"the file description entry associated with report-name-1 shall contain a GLOBAL clause\" -> OK, SR 2). Refused COBOL2392 by the shared RejectContainedReportFile when the FD is not GLOBAL; the legal shape (GLOBAL RD on a GLOBAL FD, TERMINATE in a grandchild) runs in conformance:cases/13.18.27-GLOBAL/pb369_global_report_use_selection.",
+ "state": "OK"
+}

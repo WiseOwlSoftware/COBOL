@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.16.2",
+ "section": "13.18.16.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "CONTROL clause",
+ "rule-digest": "153fc8c423fc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportControlClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindReportDescriptionClauses",
+ "test-ref": "conformance:cases/13.14-Report-description/pb483_control_final_first; conformance:cases/13.18.16-CONTROL/pb483-control-final-placement; conformance-test:ReportClauseFormatScreenTests.ControlFinal_Twice_2421; conformance-test:ReportClauseFormatScreenTests.ControlFinal_AfterDataName_2421; conformance-test:ReportClauseFormatScreenTests.ControlFinal_FirstThenDataNames_Accepted",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB483 LANDED (wave 58). The rendered figure (PDF p422) prints {CONTROL IS | CONTROLS ARE} { {data-name-1}... | FINAL [data-name-1]... }: FINAL once, FIRST, the ellipsis on the data-name bracket alone (5.2.7). The grammar parses the superset (FINAL | dataReference)+ and BindReportDescriptionClauses refuses a FINAL written twice or after a data-name, COBOL2421. Before: CONTROLS ARE FINAL FINAL CX built a second FINAL level that could never break, and CONTROL CX FINAL made FINAL the MINOR level (TERMINATE printed CF FINAL before CF CX).",
+ "state": "OK"
+}

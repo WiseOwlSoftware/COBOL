@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.3.3.4.4-4",
+ "section": "8.3.3.4.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Boolean literals",
+ "rule-digest": "845bc2953efb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#BOOL_BODY; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#IsZeroLength",
+ "test-ref": "conformance:cases/8.3.3.2-Alphanumeric-literals/pb425_zero_length_literal_move",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "'If boolean-character-1 is not specified, the literal is a zero-length literal' (cite.py --check 8.3.3.4.4 GR4 OK). Lexer [01]* admits B\"\"/B''; IsZeroLength answers true on an empty body. Probe bl12: FUNCTION LENGTH(B\"\")=0, LENGTH(B'')=0. pb425 golden moves B\"\" under the zero-length-sender rules. || editions as written by the adjudicator: 2002, 2014, 2023 (boolean literals are a COBOL-2002 introduction, gated COBOL0900 at --std 85 - probe bl7; the zero-length-literal introduction edge is not derivable from the in-repo 2023 text, whose Annex E lists only the 2014->2023 delta) retired-witness: conformance:2002/pb425_zero_length_literal_move (the golden moved to the 2014 corpus: it writes a zero-length literal, a COBOL-2014 introduction gated by kb/Work PB895 (same program, same expected output))",
+ "state": "OK"
+}

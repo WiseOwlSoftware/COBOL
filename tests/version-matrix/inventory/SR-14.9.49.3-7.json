@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.49.3-7",
+ "section": "14.9.49.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "USE statement",
+ "rule-digest": "1e513aa6367f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse",
+ "test-ref": "conformance:cases/14.9.49-USE/l1-use-input-phrase-twice; conformance:cases/14.9.49-USE/l1_use_four_mode_phrases",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Both directions of 'each ... only once': a duplicated INPUT phrase is rejected at all four editions, and all four phrases each written once are accepted with each firing its own handler - the drift test for the four distinct open-mode scopes.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.30.4-24",
+ "section": "14.9.30.4",
+ "kind": "GR",
+ "ordinal": 24,
+ "subject": "READ statement",
+ "rule-digest": "fc6732e2c178",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadSequential; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/IoStatusClass.cs#IoStatusClass",
+ "test-ref": "conformance:cases/14.9.30-READ/l1_read_at_end_transfer; conformance:cases/14.9.30-READ/l1_read_at_end_ec; conformance:cases/14.9.30-READ/pb810_read_46_takes_no_at_end; unit:IoStatusClassDriftTests.OnlyIoStatusClass_ClassifiesAnIoStatus",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Two goldens, each pinning a different half of GR24. l1_read_at_end_transfer pins a)'s STATUS conjunct ('10' on every at-end line), c) (the AT END phrase suppresses the USE AFTER STANDARD ERROR declarative — A2-ATEND=10 with no DF= line) and d) (with no AT END phrase the declarative runs — DG=10), with the '46' read as the live-declarative positive control. l1_read_at_end_ec pins a)'s EC conjunct ('and, if enabled, the EC-I-O-AT-END exception condition is set to exist') by reading FUNCTION EXCEPTION-STATUS (§15.33.1) inside the AT END imperative — the ONLY evidence for that conjunct anywhere, which is why it is named here rather than left as an unattached manifest entry. kb/Work PB810: GR24's actions apply only 'if the at end condition exists' - the '1x' class of 9.1.13.4, stated once in IoStatusClass.AtEnd; a '46' reached through GR21's pointer takes no AT END branch (pb810_read_46_takes_no_at_end).",
+ "state": "OK"
+}

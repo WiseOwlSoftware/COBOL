@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-74",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 74,
+ "subject": "Figurative constant values (representation of zero, space, and quote)",
+ "rule-digest": "9ceca48254f9",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-74; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#FillChar",
+ "test-ref": "conformance:cases/8.3.3.6-Figurative-constant-values/l1c10_figurative_space_quote_zero_chars; conformance:cases/8.3.3.6-Figurative-constant-values/l1c10_figurative_code_values",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Row states the representation of ZERO/SPACE/QUOTE (§8.3.3.6.4 1), cite.py OK). Probe /tmp/adj/doc/doc-w1-s3/probe/p74.cob at --std 2014 and 2023: ORD of SPACE/ZERO/QUOTE in PIC X = 33/49/35, in PIC N = 33/49/35; SPACE=X\"20\", QUOTE=X\"22\", ZERO=X\"30\", national QUOTE = NX\"0022\" all true. At --std 85 the alphanumeric half holds and national data is gated (COBOL0900). FigurativeConstants.FillChar: 'Z'->'0', 'S'->' ', 'Q'->'\"'. No spec-derived test pins the code values, so test-ref is empty. Row closes the documentation gap owned by kb/Work/PB1397 (item 74).",
+ "state": "OK"
+}

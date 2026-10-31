@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.55.4-4",
+ "section": "13.18.55.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "SYNCHRONIZED clause",
+ "rule-digest": "e5074a0e8bb0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/SynchronizedPhrase.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/Model/StrongTypeModel.cs#SameEssentialCharacteristics; docs/CONFORMANCE.md#DOC-A.1-197",
+ "test-ref": "conformance:cases/8.5.1.6.4-Item-alignment-for-increased-object-code/l1_byte_length_implicit_filler; conformance:cases/13.18.55-SYNCHRONIZED/pb538-sync-left-right-differ",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB538 (landed, wave 20261032). The premise is documented: DOC-A.1-197 states the one-byte natural boundary, under which an item always begins at the left byte of the boundary it occupies, so SYNC LEFT needs no adjustment (l1_byte_length_implicit_filler measures the layout). The phrase is no longer discarded: DataItem.Synchronized is a SynchronizedPhrase? (Unqualified/Left/Right) set from the syncClause token, carried by the description copy, compared and keyed by StrongTypeModel, so declarations differing only in SYNC LEFT vs SYNC RIGHT are not equivalent under 8.5.3.1 (golden pb538-sync-left-right-differ, COBOL1688 at 2002/2014/2023; it compiled clean before).",
+ "state": "OK"
+}

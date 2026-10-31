@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.7.3-1",
+ "section": "15.7.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "ABS function",
+ "rule-digest": "5e4a69b9f544",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+ "test-ref": "conformance:cases/15.3-Arguments/pb1-numeric-arg-alphanumeric; conformance:cases/15.3-Arguments/pb1-numeric-arg-numeric-edited",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "PB1 LANDED. The whole rule is one class constraint and it is now enforced (COBOL1627, strict; --permissive warns). Both fixtures reject: an alphanumeric item AND a numeric-edited one, the second because 8.5.2.1 Table 2 puts numeric-edited-when-display under class ALPHANUMERIC. Editions left 2002,2014,2023 per the adversarial pass - 85 excluded on evidence (the 1989 Intrinsic Function Module is NIST IF101A..IF142A and ABS is not in it); 2002-vs-2014 stays an open question recorded on FMT-15.7.2. || editions corrected from '2002,2014,2023' to 2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the ABS function exists from 2014 (IntrinsicCatalog.cs, the COBOL1502 edition window).",
+ "state": "OK"
+}

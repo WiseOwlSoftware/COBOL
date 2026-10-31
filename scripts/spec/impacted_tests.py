@@ -1166,7 +1166,7 @@ def self_test() -> int:
     # Tier 0d with NO impact map (kb/Work PB3247): each changed file names the drift test the landing's Linux leg found
     # red on it — a test naming the file, and tests reading it only through a shared helper class (SuiteManifest) or a
     # TestRepo helper the index once lacked.
-    for f, want in [("tests/version-matrix/traceability-inventory.json", {"SpecTraceabilityInventoryDriftTests"}),
+    for f, want in [("tests/version-matrix/inventory/GR-4.4-1.json", {"SpecTraceabilityInventoryDriftTests"}),
                     ("docs/CONFORMANCE.md", {"AnnexA1RegisterDriftTests"}),
                     (copy + "copy-library-text.cob", {"ConstantNameLiteralPositionDriftTests"}),
                     # kb/Work PB3112: the reads a test spells with a nested call, a constant or a wrapper's callers.
@@ -1276,8 +1276,8 @@ def self_test() -> int:
         drift_rules.data_files = real_files
     # ... and the REAL index: the traceability inventory's first unit test-ref, its method renamed, names
     # SpecTraceabilityInventoryDriftTests (the class four landings found only in CI's Linux unit leg).
-    inventory = drift_rules.ROOT / "tests" / "version-matrix" / "traceability-inventory.json"
-    ref = re.search(r"unit:([A-Z]\w*)\.([A-Za-z_]\w*)", text_of(inventory))
+    inventory = sorted((drift_rules.ROOT / "tests" / "version-matrix" / "inventory").glob("*.json"))
+    ref = next(filter(None, (re.search(r"unit:([A-Z]\w*)\.([A-Za-z_]\w*)", text_of(row)) for row in inventory)), None)
     got = drift_rules.citing(drift_rules.index(), [drift_rules.Removal(
         f"tests/WiseOwl.Cobol.Tests.Unit/{ref.group(1)}.cs", False, frozenset({ref.group(2)}),
         frozenset({ref.group(1)}))]) if ref else {}

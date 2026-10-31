@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-15.2-2",
+ "section": "15.2",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Intrinsic functions",
+ "rule-digest": "d1ae76e63696",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#StaticUsageOf",
+ "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.Concat_BooleanFunctionArgument_ImplicitUsageBit; conformance:cases/15.2-Types-of-functions/intrinsics_boolean_conv; conformance:cases/15.2-Types-of-functions/pb65_boolean_expression_argument",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB124 wave 5c): the usage half is modelled - StaticUsageOf answers Usage.Bit for a Boolean-result nested call, per 15.2 item 2's own sentence ('Boolean functions ... have an implicit usage bit'), so CONCAT's 15.18.3 r2 usage screen rejects a boolean FUNCTION argument (usage bit satisfies neither of r2's families, exactly as 15.18.1's result table - which enumerates only display and national boolean rows - implies). A PIC 1 display boolean ITEM stays a legal display argument (its item usage answers, unchanged). The class/category half was already verified on this row.",
+ "state": "OK"
+}

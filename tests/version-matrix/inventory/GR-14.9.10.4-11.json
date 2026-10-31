@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.10.4-11",
+ "section": "14.9.10.4",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "DELETE statement",
+ "rule-digest": "6dad89c30e45",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitDelete; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitInvalid",
+ "test-ref": "conformance:cases/14.9.10-DELETE/pb144_indexed_delete_record; conformance:cases/9.1.14-Invalid-key-condition/l1_delete_invalid_key_transfer",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The row was CONFORMS with NO test-ref — GR11 routes transfer of control on the presence or absence of the INVALID KEY and NOT INVALID KEY phrases per 9.1.14. Both directions are now pinned on an INDEXED file, which is where neither had ever been exercised: IXNIK proves a SUCCESSFUL delete takes the NOT INVALID KEY branch, and IXIKFIRED proves an absent key takes the INVALID KEY branch and NOT the other one. Each leg's wrong branch prints a distinct WRONG-BRANCH marker, so a mis-route fails the golden by name rather than by absence.",
+ "state": "OK"
+}

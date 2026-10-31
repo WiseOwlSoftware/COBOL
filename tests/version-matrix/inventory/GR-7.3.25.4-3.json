@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.25.4-3",
+ "section": "7.3.25.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "TURN directive",
+ "rule-digest": "7b69221fe585",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionCatalog.cs#DirectiveCovers; src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs#Fold",
+ "test-ref": "conformance:cases/7.3.25-TURN/l1c33_turn_level2_file_name; conformance:cases/7.3.25-TURN/l1c33_turn_io_warning_explicit_only; conformance:cases/7.3.25-TURN/pb963_turn_file_name_arms",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 7.3.25.4 \"the effect is as if file-name-1 were specified for each of these exception-names\" OK. Level-2 half: DirectiveCovers -> TryGet(level-2) && UnderLevel2(level3); WARNING excluded. File-name half: the Fold keeps the (EC-I-O, F1) event and matches it only for a query naming F1. Probes: TRNF1 '>>TURN EC-I-O F1 CHECKING ON' -> READ F2 AT END: status spaces, READ F1 AT END: EC-I-O-AT-END (expected per GR3 second sentence); TRNO2 '>>TURN EC-I-O CHECKING ON' does not enable EC-I-O-WARNING (status 05 -> spaces). Both halves verified. The level-2 + file-name-1 sentence is witnessed by conformance:cases/7.3.25-TURN/l1c33_turn_level2_file_name (the ON arm) and conformance:cases/7.3.25-TURN/pb963_turn_file_name_arms phase 4 ('EC-I-O F2 CHECKING OFF' disables EC-I-O-AT-END for F2 only; kb/Work PB963). || editions (adjudicator): 2002, 2014, 2023 (the TURN directive is a COBOL-2002 introduction; §7.3 compiler directives)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.34.4-5",
+ "section": "13.18.34.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "LINAGE clause",
+ "rule-digest": "79dd986775f4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs",
+ "test-ref": "conformance:cases/13.18.34-LINAGE/pb523_linage_margins_on_the_medium; conformance:cases/13.18.34-LINAGE/pb523_linage_margins_on_the_medium_85; conformance-test:LinageConformanceTests.Bytes_TopAndBottomMarginsAreLinesOfTheLogicalPage; conformance-test:LinageConformanceTests.Bytes_OverflowWithBeforePhrase_PresentsThenRepositions",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB523 LANDED - THE BOTTOM MARGIN, THE SAME WAY AND IN THE SAME PLACE. _bottom is read by BeginNextLogicalPage, the ONE page transition shared by 14.9.51.4 GR25 g)'s ADVANCING PAGE and GR26 a)'s page overflow, whose first act is to travel the rest of the current page: max(0, page size - LINAGE-COUNTER) unwritten body lines plus the bottom margin. Recorded separately from GR-13.18.34.4-4 because a fix that reserved only the top margin would have left this row open; it is closed by evidence that isolates it. MEASURED on LINAGE IS 2 LINES LINES AT TOP 3 LINES AT BOTTOM 2: a record on page-1 body line 2 (the LAST writable line, so the bottom margin is the whole remaining travel) and the next record on page-2 body line 1 are five lines apart, of which two are this margin. Bytes_OverflowWithBeforePhrase_PresentsThenRepositions isolates it further by presenting ON the last body line with a BEFORE phrase and then measuring the travel out of the page. The 85 twin's byte-offset form gives the same quantity arithmetically: without the two bottom-margin lines the file would be 4 characters shorter and C@ would move.",
+ "state": "OK"
+}

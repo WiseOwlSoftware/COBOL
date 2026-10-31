@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-3",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "VALUE clause",
+ "rule-digest": "af538a1b29ec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ValidateNumericValue; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenValueLiteral",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb97-value-edited-truncation; conformance:cases/13.18.63-VALUE/pb66-value-float-edited-truncation; conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb97_value_literal_form_and_88_edited; conformance-test:ValueClauseScreenTests.Level88Literal_OutsideTheConditionalVariablesRange_IsRejected; conformance-test:ValueClauseScreenTests.ReportLiteral_OutsideThePrintableItemsRange_IsRejected; conformance:cases/13.18.63-VALUE/pb3567-value-plus-literal-unsigned-subject; conformance:cases/13.18.63-VALUE/pb3567_value_signed_literal_signed_subject; conformance:cases/13.18.63-VALUE/pb3567_value_signed_literal_numeric_edited_2023; conformance:cases/13.18.63-VALUE/pb3567-value-plus-float-literal-unsigned-subject; conformance:cases/13.18.63-VALUE/pb3567_value_signed_float_literal_signed_subject",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (PB97); RE-VERDICTED (kb/Work PB3567, wave 1157 D). A SIGNED numeric literal -- one written with EITHER sign, '+5' as well as '-5' (8.3.3.3.2 SR2: a literal that uses a sign is signed; an unsigned literal is nonnegative) -- requires a signed numeric subject or 'a numeric-edited data item with a representation of a sign' -- an editing sign symbol (+ - CR DB; for the floating-point form the significand's own sign, never the exponent's +): PIC 9(4) VALUE +5, PIC 9(4) VALUE +0, PIC ZZ9.99 VALUE -5 and PIC 9.99E+9 VALUE -1.23E+5 are COBOL1625, PIC S9(4) VALUE +5, PIC -ZZ9.99 VALUE -5 and PIC S9(5)V99 VALUE -1.5E+3 seed. The CA34 fix (kb/Work PB3) had scoped the screen to a NEGATIVE literal as 'the harmless idiom (+5 == 5, no data loss)'; that was an implementer's latitude call, not the rule, which has no sign-value carve-out, and the fuzz run fuzz-20261022-163846 found it (fz04158, PIC 9(4) VALUE +0; GnuCOBOL refuses it). One funnel asks the rule for every VALUE format (ScreenValueLiteral: the item VALUE, the table VALUE, the level-88 set and the report entry), so the one test in ValidateNumericValue is the only arm. The floating-point spelling is signed too (8.3.3.3.3 2: 'If the significand is signed, the floating-point numeric literal is considered to be signed'): NumericLiteral.ExpandFloatingPoint, which rewrites it to its exact fixed-point value before the screen, had dropped a leading '+', so PIC 9(4)V9 VALUE +1.5E+0 compiled while VALUE +1.5 was refused (review round 1, R1-1); the expansion now keeps the written sign. A MOVE of a signed literal to an unsigned item is a conversion, not this rule, and INITIALIZE ... REPLACING is a MOVE too.",
+ "state": "OK"
+}

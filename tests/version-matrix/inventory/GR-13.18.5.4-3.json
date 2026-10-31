@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.5.4-3",
+ "section": "13.18.5.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "BASED clause",
+ "rule-digest": "6b1257424563",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/CobolPtr.cs#Deref; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#DataPtrNullError; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs",
+ "test-ref": "conformance:cases/13.18.5-BASED/ec_data_ptr_null",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 13.18.5.4 'If the subject of the entry or any item subordinate to it is referenced directly or indirectly while its address is NULL, the EC-DATA-PTR-NULL exception condition is set to exist.' OK §13.18.5.4 3). Deref raises EC-DATA-PTR-NULL (sets last-exception then throws, Table 13 fatal) for a null pointer; every subordinate and every REDEFINES view goes through the same bridge. Probe E:/Temp/claude/E--COBOL/a700c052-f9e4-4942-84ff-a13c7505d6ec/scratchpad/adj-d1/out13/probe/based/gr3.cob with checking on + USE declarative + RESUME: DISPLAY of subordinate B1, MOVE to B1, ADD to B2, MOVE B (sender), DISPLAY R (a level-01 REDEFINES of B - indirect), IF B2 = 0, MOVE to B all yield HANDLED=EC-DATA-PTR-NULL, while SET P TO ADDRESS OF B (not a reference to the data) correctly yields NULL without raising. Checking-off behaviour is an unconditional fatal stop - the documented owner rule (ExceptionState.cs note, 2026-07-28), not a divergence: GR3 names no unchecked outcome. || Code sites (adjudicator detail): src/WiseOwl.Cobol.Runtime/Control/CobolPtr.cs#Deref; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#DataPtrNullError; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#(EC-DATA-PTR-NULL row)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.27.4-17",
+ "section": "14.9.27.4",
+ "kind": "GR",
+ "ordinal": 17,
+ "subject": "OPEN statement",
+ "rule-digest": "c29782e39335",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/l1_open_optional_create",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "All SIX arms (sequential/relative/indexed x EXTEND/I-O): '05' on the creating OPEN (9.1.13.2 4a), '00' on a following OPEN INPUT (so the file was created), '10' on its first READ (GR18 - created empty). retired-witness: src/Cobol.Net.Runtime/IO/IndexedConnector.cs#OpenCore (the keyed OPEN arms are written once, in KeyedConnector.OpenCore, since both organizations drive the keyed store engine (kb/Work PB3334, PB2753)) retired-witness: src/Cobol.Net.Runtime/IO/RelativeConnector.cs#OpenCore (the keyed OPEN arms are written once, in KeyedConnector.OpenCore, since both organizations drive the keyed store engine (kb/Work PB3334, PB2753))",
+ "state": "OK"
+}

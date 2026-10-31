@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.2.1",
+ "section": "13.2.1",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Data division structure",
+ "rule-digest": "dc03a1a88d48",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#constantEntry",
+ "test-ref": "conformance:cases/13.2-Data-division-structure/pb1226_report_section_constant; conformance:cases/13.2-Data-division-structure/pb1226-rd-without-report-group; conformance:cases/13.2-Data-division-structure/pb1226-rd-constant-entry-only",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1226: the REPORT SECTION is `REPORT SECTION. [ report-description-entry { constant-entry | report-group-description-entry } ... ] ...`. reportDescriptionEntry is `RD ... DOT (constantEntry | reportGroupEntry)*`; the constant entry shares constantEntryBody and DataBinder.BindConstantEntry with the data description entry and binds in source order (BindReportSectionEntries), so DISPLAY K prints 7 and K substitutes in VALUE and in PIC X(K). The brace group's one-or-more is 13.8.4's COBOL2708 at bind time (an RD with no report group entry; a constant alone does not satisfy it).",
+ "state": "OK"
+}

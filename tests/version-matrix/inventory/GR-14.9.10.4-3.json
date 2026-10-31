@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.10.4-3",
+ "section": "14.9.10.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "DELETE statement",
+ "rule-digest": "fee893518f5b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Delete",
+ "test-ref": "conformance:cases/14.9.10-DELETE/pb144_indexed_delete_record",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PARTIAL -> CONFORMS (kb/Work PB144). The INDEXED random/dynamic delete — 'the mass storage control system logically removes from the physical file the record identified by the content of the prime record key data item', and 'if the physical file does not contain the record specified by the key, the invalid key condition exists'. This is the path that had never run in the suite, including KeyedIoEmitter's key-slice emission through FileModel.AreaRecord. Legs: IXDEL00 (the delete succeeds, '00'), IXGONE (GR5 — a random re-READ of the removed key gives '23', so it really is gone), IXIK23 + IXIKFIRED (an absent key raises the invalid key condition, '23', and the INVALID KEY imperative RUNS). Every expected value was derived from the rule before the fixture was executed, and all eight legs matched on the first run — which the analysis warned to distrust, so the FPI leg was mutation-proved (below).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.48.4-11",
+ "section": "14.9.48.4",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "UNSTRING statement",
+ "rule-digest": "db4ab5d65bf0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/Binding/Procedure/SendingValueTemp.cs#ConceptualCharacterItem; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReceivingStore.cs#ExaminationSize; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringExtract",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/pb979_unstring_receiver_size; conformance:cases/14.9.48-UNSTRING/pb979_unstring_any_length_national; conformance:cases/14.9.43-STRING/pb871_dynamic_length_receivers; unit:UnstringMoveChainDriftTests.EveryUnstringStore_IsABoundMove_AndTheNodeCarriesNoStaticSize; unit:UnstringMoveChainDriftTests.TheUnstringEmitter_RendersTheBoundMoves_AndNoPrivateMoveRules",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB979 (2026-09-22). a) the POINTER start; b) the examination - with DELIMITED BY to the first delimiter (GR9/GR10), without it over 'the size of the current receiving area', one less for a SEPARATE sign - now a RUN-TIME expression per receiver (ReceivingStore.ExaminationSize: a reference modifier's evaluated length, an ANY LENGTH argument's length, a dynamic-length item's maximum per D-DL2, a numeric item's digits, a group's positions). It was a binder integer: an ANY LENGTH receiver examined ONE character (`UNSTRING S2 INTO L` over WXYZ stored 'W') and a reference-modified receiver was staged COBOL1756 (not implemented, run unit aborted). c)/d) the examined and the delimiting characters are the statement's conceptual elementary alphanumeric / national item (SendingValueTemp.ConceptualCharacterItem - a run-time-length carrier) and each receiver's store is a BoundMove bound by MoveBinder.BindMoveOf (ImplicitMovePhrase.UnstringInto / UnstringDelimiterIn) - the emitter's private per-category MoveString copy of the MOVE rules is deleted; d)'s end-of-data space fill is the MOVE rules' zero-length sender (14.9.25.4 GR1/GR2). e) COUNT IN; f) continuation after the delimiter / last character; g) not-acted-upon when the sender is exhausted. Goldens: reference-modified receivers with and without DELIMITED BY, POINTER, SEPARATE sign, JUSTIFIED, group, DELIMITER IN into slices and end-of-data (85); ANY LENGTH receivers with and without DELIMITED BY, DELIMITER IN into ANY LENGTH, national (2002); dynamic-length (2014).",
+ "state": "OK"
+}

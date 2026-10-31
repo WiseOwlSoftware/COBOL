@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-184",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 184,
+ "subject": "SPECIAL-NAMES paragraph, ALPHABET clause, code-name-1 and code-name-2 (the names supported for code-name-1 and code-name",
+ "rule-digest": "167f0a6ea4cc",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-184; src/WiseOwl.Cobol.Compiler/Binding/ImplementorCodeNames.cs#Find; src/WiseOwl.Cobol.Compiler/Binding/ImplementorCodeNames.cs#Spellings; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#AlphabetCodeName",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb793_code_name_alphabets; conformance:cases/12.3.7-SPECIAL-NAMES/pb793_code_name_alphabets_85; conformance:cases/12.3.7-SPECIAL-NAMES/pb770-alphabet-unsupported-code-name; conformance-test:AlphabetLiteralPhraseTests.NationalUnsupportedCodeName_IsSR15",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "A.1 item 184 - the names supported for code-name-1 and code-name-2 (12.3.7.3 SR15), OPTIONAL and documented-if-provided. The item flips from DOCUMENTED-NON-SUPPORT (the set was empty in both classes) to CONFORMS: owner decision kb/Work PB793 PROVIDES the element for the alphanumeric class - code-name-1 = ASCII and EBCDIC - and docs/CONFORMANCE.md section 7 states the set and, at item 183, what each name means. The national class stays empty and item 185 stays vacuous with it. The supported set is ONE table (ImplementorCodeNames), read by the binder, by the coded-character-set reference sites and by the COBOL1907 message alike, so the names, their meanings and the diagnostic cannot disagree. Witnesses, one per class plus the acceptance: the negative refuses a code-name-1 outside the set (FIELDATA), the unit test refuses code-name-2 on the empty national class, and the 2023 and 85 goldens accept both supported spellings and read their meanings back through SYMBOLIC CHARACTERS ... IN, FUNCTION CHAR / ORD and relation conditions. || editions 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a facility that exists at every edition (the COBOL-85 nucleus, I-O, inter-program and SPECIAL-NAMES implementor-names; its arithmetic, the only arithmetic of COBOL-85, is what later editions name native).",
+ "state": "OK"
+}

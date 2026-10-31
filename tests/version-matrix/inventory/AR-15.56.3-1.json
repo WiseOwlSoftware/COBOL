@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.56.3-1",
+ "section": "15.56.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "LOG10 function",
+ "rule-digest": "5e4a69b9f544",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#FieldNumCore",
+ "test-ref": "conformance:cases/15.56.3-Argument-rules/l1-log10-class-numeric; conformance:cases/15.49.3-Argument-rule/pb19_argument_class_batch5",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "15.56.3 r1 cited from LOG10's own clause, never inherited from 15.55.3's identical text -- the rejecting branch (class-alphanumeric and numeric-edited operands) draws COBOL1627 at every edition; pb19's LOG10(1000) is the accepting side.",
+ "state": "OK"
+}

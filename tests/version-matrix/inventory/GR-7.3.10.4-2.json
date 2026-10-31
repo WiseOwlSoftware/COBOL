@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.10.4-2",
+ "section": "7.3.10.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "COBOL-WORDS directive",
+ "rule-digest": "6228bff34850",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#NextToken; src/WiseOwl.Cobol.Frontend/Parsing/CobolWordsRewriter.cs#Plan; src/WiseOwl.Cobol.Compiler/Binding/FunctionWord.cs#FunctionWord",
+ "test-ref": "conformance:cases/7.3.10-COBOL-WORDS/pb1372_cobol_words_lexer_keywords; conformance:cases/7.3.10-COBOL-WORDS/pb1372_cobol_words_substitute_keyword_omitted; conformance:cases/7.3.10-COBOL-WORDS/cobol_words_equate; unit:CobolLexerWordRetypeDriftTests.ASynonymOfPic_EntersPicMode; unit:CobolLexerWordRetypeDriftTests.ASynonymOfFunction_OpensTheArgumentRegion",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1372 landed. GR2 (cite.py OK 7.3.10.4 2)): the EQUATE synonym of a keyword the lexer acts on at lex time now works wherever the keyword is required - EQUATE PIC WITH PX enters PICMODE (007), EQUATE FUNCTION WITH FN opens the argument region (ABC) - because CobolLexer.NextToken applies CobolWordsRewriter.Plan to each token before it records the previous token and before it switches mode; the intrinsic-function synonym of a tokenized name resolves once (FunctionWord), including the REPOSITORY specifier and the keyword-omitted form. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore (kb/Work PB1372 landed: the retype moved from the post-lex CobolWordsRewriter.Rewrite (deleted) into CobolLexer.NextToken via CobolWordsRewriter.Plan, PIC no longer pushes its mode as a rule command and IntrinsicBinder no longer resolves the name a second time (FunctionWord); the replacement witnesses are named in this record) retired-witness: src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4#PIC (kb/Work PB1372 landed: the retype moved from the post-lex CobolWordsRewriter.Rewrite (deleted) into CobolLexer.NextToken via CobolWordsRewriter.Plan, PIC no longer pushes its mode as a rule command and IntrinsicBinder no longer resolves the name a second time (FunctionWord); the replacement witnesses are named in this record) retired-witness: src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4#PreviousIsFunctionName (kb/Work PB1372 landed: the retype moved from the post-lex CobolWordsRewriter.Rewrite (deleted) into CobolLexer.NextToken via CobolWordsRewriter.Plan, PIC no longer pushes its mode as a rule command and IntrinsicBinder no longer resolves the name a second time (FunctionWord); the replacement witnesses are named in this record) retired-witness: src/Cobol.Net.Frontend/Parsing/CobolWordsRewriter.cs#Rewrite (kb/Work PB1372 landed: the retype moved from the post-lex CobolWordsRewriter.Rewrite (deleted) into CobolLexer.NextToken via CobolWordsRewriter.Plan, PIC no longer pushes its mode as a rule command and IntrinsicBinder no longer resolves the name a second time (FunctionWord); the replacement witnesses are named in this record)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.46.4-5",
+ "section": "14.9.46.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "TERMINATE statement",
+ "rule-digest": "b60fcbc68efc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLines; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Place; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.RaiseDeclarations.cs#TerminateNames",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb1188_report_nonfatal_raise; conformance:cases/13.18.35-LINE/pb1130_report_sum_size_line_overlap",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1188: every nonfatal report condition raised during TERMINATE resumes at the next unit in logical order - an overlapping item is not placed (COLUMN-OVERLAP), an overlapping line is abandoned (LINE-OVERLAP), a group split by the page limit is abandoned and the next group follows (PAGE-LIMIT: the golden CONTROL FOOTING FINAL loses F7/F8 and the report footing still prints); PAGE-WIDTH truncates and prints as its GR states. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#TerminateNames (the family arrays moved into EcBinder.RaiseDeclarations.cs (kb/Work PB3102))",
+ "state": "OK"
+}

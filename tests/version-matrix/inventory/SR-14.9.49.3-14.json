@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.49.3-14",
+ "section": "14.9.49.3",
+ "kind": "SR",
+ "ordinal": 14,
+ "subject": "USE statement",
+ "rule-digest": "e16a975e44ee",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUseF3; src/WiseOwl.Cobol.Compiler/Binding/ConstructOperandRegister.cs",
+ "test-ref": "conformance:cases/14.9.49-USE/l1_use_sr14_pair_twice_one_statement; conformance:cases/14.9.49-USE/l1_use_sr14_bare_name_repeated; conformance:cases/14.9.49-USE/l1-use-sr14-pair-in-two-statements; conformance-test:ExceptionConditionConformanceTests.UseF3_DuplicatePairAcrossSections_Diagnosed; conformance-test:ExceptionConditionConformanceTests.UseF3_RepeatedBareExceptionName_IsAccepted; conformance-test:ExceptionConditionConformanceTests.UseF3_SamePairTwiceInOneStatement_IsAccepted",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB364, LANDED. The DIVERGES was the rule applied outside its scope, on two axes. (a) KEY: SR14 governs 'the same pair of exception-name-2 and file-name-2', and per the 14.9.49.2 Format-3 figure (RENDERED from PDF p774) exception-name-2 exists only in the `exception-name-2 { FILE file-name-2 } ...` alternative -- 14.9.49.4 GR3 c)/d) ('file-name-2 is specified and exception-name-2') against e)/f)/g) ('file-name-2 is not specified and exception-name-1') splits on the same axis. A bare repeated exception-name-1 is not a pair and is not prohibited; GR3 supplies its OUTCOME instead ('The first declarative that satisfies the selection criteria is executed and no other declaratives are executed'). AddPair nevertheless keyed on `ec + \"|\" + \"\"` for the bare entry, so SR14BARE.cob (`USE AFTER EC EC-SIZE.` in two sections) drew COBOL0716. Bare entries no longer enter the register at all. (b) BOUNDARY: the register was per OPERAND, so RU14SAME (`USE AFTER EC EC-I-O-AT-END FILE F1 FILE F1.`) drew a diagnostic whose own text says 'another USE statement' about a program containing exactly one; the inner `{ FILE file-name-2 } ...` ellipsis permits the repetition. Both are now the ONE ConstructOperandRegister shared with SR7/SR8/SR9 (and, since kb/Work PB703, with 12.4.5.7.3 SR8), whose boundary is the STATEMENT. THE GREEN TEST THAT PINNED THE OVER-REJECTION WAS RE-DERIVED, NOT REBASELINED: ExceptionConditionConformanceTests.UseF3_DuplicatePairAcrossSections_Diagnosed asserted COBOL0716 for two BARE `USE AFTER EXCEPTION CONDITION EC-USER-D.` declaratives; it now writes the FILE-scoped pair SR14 actually names, and the shape it used to assert is a separate ACCEPTING test at 2002/2014/2023. The rule's own prohibition (the same pair in two statements) still rejects at all three editions. The corpus positive l1_use_sr14_bare_name_repeated proves GR3's contract as OUTPUT: two bare EC-I-O-AT-END declaratives, only the first runs.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.54.3-2",
+ "section": "15.54.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "LOCALE-TIME-FROM-SECONDS function",
+ "rule-digest": "54eb4443769a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLocaleFunction",
+ "test-ref": "conformance-test:LocaleDispositionTests.LocaleFunctions_AreLive",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB64 T4: COBOL1664 for an undeclared locale-name-1.",
+ "state": "OK"
+}

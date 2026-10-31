@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.4.3-3",
+ "section": "14.9.4.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "CALL statement",
+ "rule-digest": "6eab278b14a2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#addressIdentifier; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#AddressArg; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ScreenCallOperand",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb132-call-byref-object-data; conformance:cases/8.4.3.13-Program-address-identifier/pb239_call_address_identifier; conformance:cases/14.9.4-CALL/pb239-call-address-formal-category",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB239): the address-identifier alternative sentence 1 admits ('Identifier-2 shall reference an address-identifier or a data item defined in the file, working-storage, local-storage, or linkage section') is now an operand of every identifier-2/identifier-4 slot - the bare argument, BY REFERENCE, BY CONTENT and (Format 2) BY VALUE - through the ONE addressIdentifier rule (8.4.3.1.2 Format 9: dataAddressIdentifier | programAddressIdentifier) shared with the SET senders; each arm binds through its SET twin's ONE operand binder (PtrBinder.BindDataAddress / SetBinder.BindProgramAddressOperand), and the data pass forces the named record onto cell storage by walking every dataAddressIdentifier node. Sentence 2 (BY REFERENCE shall not carry factory/instance object data) stays enforced by ScreenCallOperand over the resolved mode (pb132-call-byref-object-data). Sentence 1's section rule holds by construction for every resolvable data item (unchanged). The Format-2 pairing of an address-identifier with its formal is 14.8.2.3.2's class-pointer paragraph (CallBinder.AddressConformanceReason; negative pb239-call-address-formal-category). The 85 gate: address-identifier-2002 (negative pb239-call-address-identifier-at-85).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.33.2",
+ "section": "13.18.33.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Level-number",
+ "rule-digest": "b3952c0c356a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#VisitLevelNumber",
+ "test-ref": "conformance:cases/13.18.33-Level-number/pb1246-level-number-three-digits; conformance:cases/13.18.33-Level-number/pb1246_level_hierarchy_legal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "(kb/Work PB1246) A level-number is a one-digit or two-digit number (8.3.2.2.13), 01-09 being the only leading-zero spelling (13.18.33.3 SR3): a three-or-more-digit spelling such as 001 is refused COBOL1746 at every arm.",
+ "state": "OK"
+}

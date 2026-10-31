@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.53.3-8",
+ "section": "13.18.53.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "SOURCE clause",
+ "rule-digest": "cc90a5a90e8d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#ScreenSourceIdentifier",
+ "test-ref": "conformance:cases/13.18.53-SOURCE/pb1293-source-variable-length-group",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "(kb/Work PB1293) identifier-1 referencing a variable-length group is refused COBOL2770 (it used to abort at GENERATE with NotImplementedCobolFeatureException); asked of every SOURCE identifier, printable or not.",
+ "state": "OK"
+}

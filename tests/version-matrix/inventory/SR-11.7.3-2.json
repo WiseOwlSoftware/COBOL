@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.7.3-2",
+ "section": "11.7.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "METHOD-ID paragraph",
+ "rule-digest": "7deb1760a24e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build",
+ "test-ref": "conformance:cases/11.7-METHOD-ID/l1m7-method-prototype-override",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§11.7.3 SR2 + §9.3.7: OVERRIDE on an INTERFACE-ID method (a prototype) is rejected with COBOL4212 (kb/Work PB1784)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.30.3-4",
+ "section": "14.9.30.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "READ statement",
+ "rule-digest": "f4252edf5429",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/FileLockBinder.cs#CheckRecordLockPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRead; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead",
+ "test-ref": "conformance:cases/14.9.30-READ/read-auto-with-lock",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "RULE: 'If automatic locking has been specified for file-name-1, none of the phrases IGNORING LOCK, WITH LOCK, or WITH NO LOCK shall be specified.' (cite.py --check 14.9.30.3 OK.)\nIMPLEMENTED, ARM-INDEPENDENTLY, ON BOTH DISPATCH ARMS. FileLockBinder.CheckRecordLockPhrase raises COBOL1512 on `file.LockMode is { Kind: LockKind.Automatic }` REGARDLESS of which of the three alternatives was written (the test is outside the `kind` selection), and both READ binders call it -- SequentialIoBinder.BindRead line 160 and KeyedIoBinder.BindRead's `Lock = fileLock.CheckRecordLockPhrase(...)`.\nALL THREE ARMS PROBED, plus the negative control (out-b1/probe/lockcombo/auto_*.cob, LOCK MODE IS AUTOMATIC on a sequential file): IGNORING LOCK -> COBOL1512; WITH NO LOCK -> COBOL1512; WITH LOCK -> COBOL1512; ADVANCING ON LOCK -> ACCEPTED, which is correct because SR4's list is exactly the three lock phrases and does not name ADVANCING. The AUTOMATIC lock mode itself is 12.4.5.9.4 GR4 ('If the AUTOMATIC phrase is specified, the lock mode is automatic'), which is how 'automatic locking has been specified' is read.\nONE UNREACHABLE ANTECEDENT, and it is licensed rather than missing: 12.4.5.9.3 SR1 describes an 'implicit LOCK MODE IS AUTOMATIC WITH LOCK ON MULTIPLE RECORDS' applied to a file subject to an APPLY COMMIT clause. APPLY COMMIT belongs to A.4.3 Commit and rollback, which docs/CONFORMANCE.md 5 declares Not claimed, so that arm cannot arise (see the SR-14.9.30.3-5 row). Test: tests/conformance/negative/read-auto-with-lock.cob (`*> reject-at: 2002 2014 2023`, registered in tests/conformance/negative/manifest.json:414, run by CorpusRunnerTests) exercises the WITH LOCK arm on a relative file; it is spec-derived (its expected outcome is the SR4 rejection). EDITIONS derivation: the 2023 text carries no edition marker on this clause and Annex E is a 2014-to-2023 delta only (E.2 22) 'READ PREVIOUS statement following an OPEN statement' is its single READ entry, which shows PREVIOUS pre-dates 2023 but dates nothing earlier). The column below is the construct's presence in the standard; the phrase-level introduction dates are NOT derivable from this document and are listed as a dossier gap.",
+ "state": "OK"
+}

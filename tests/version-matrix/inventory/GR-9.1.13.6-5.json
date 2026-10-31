@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.6-5",
+ "section": "9.1.13.6",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "I-O status",
+ "rule-digest": "63619007ba1d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#Probe; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#FileNotFound; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore",
+ "test-ref": "conformance:cases/9.1.13.6-Permanent-error-condition-with-unsuccessful-completion/pb323_open_presence_arms",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 9.1.13.6 \"an OPEN statement with the INPUT, I-O, or EXTEND phrase is attempted on a file that is not described as optional and the physical file is not present\" -> OK §9.1.13.6 5)). Each connector's OpenCore returns FileNotFound when HostFile.Probe answers Absent and the file is not OPTIONAL, for INPUT, I-O and EXTEND (OUTPUT creates); presence is the three-state probe so a present-but-refused file is '37', not '35' (kb/Work PB323 landed). Probe iostat-seq NA-IN=35, NA-EXT=35, NA-IO=35. Golden pb323_open_presence_arms pins 35 across sequential INPUT, relative I-O and indexed EXTEND. retired-witness: src/Cobol.Net.Runtime/IO/IndexedConnector.cs#OpenCore (the keyed OPEN arms are written once, in KeyedConnector.OpenCore, since both organizations drive the keyed store engine (kb/Work PB3334, PB2753)) retired-witness: src/Cobol.Net.Runtime/IO/RelativeConnector.cs#OpenCore (the keyed OPEN arms are written once, in KeyedConnector.OpenCore, since both organizations drive the keyed store engine (kb/Work PB3334, PB2753))",
+ "state": "OK"
+}

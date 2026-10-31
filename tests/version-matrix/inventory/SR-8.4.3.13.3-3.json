@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.13.3-3",
+ "section": "8.4.3.13.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Program-address-identifier",
+ "rule-digest": "4840adbcb7ec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindProgramAddressOperand",
+ "test-ref": "conformance:cases/8.4.3.13-Program-address-identifier/l1c23-program-address-prototype-not-in-repository",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 8.4.3.13.3 'Program-prototype-name-1 shall be a program prototype specified in the REPOSITORY paragraph.' OK. The prototype arm is taken only when host.ProgramPrototypes (the REPOSITORY program-specifier table) holds the word; otherwise the word must resolve as identifier-1. Probed: undeclared NOTDECL -> COBOL1639 + COBOL2157 naming SR3/SR1; declared PAIPA/PAIPB resolve (g3/g5). The pb549 golden covers only the positive arm; no negative golden for an undeclared prototype -> test-needed. [editions as adjudicated: 2002, 2014, 2023 (the program-pointer family; absent from COBOL-85 - Annex E covers only 2014->2023, the introduction is the 2002 address-identifier; probe: --std 85 draws COBOL0900)]",
+ "state": "OK"
+}

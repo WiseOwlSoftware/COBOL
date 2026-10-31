@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.24.3-10",
+ "section": "14.9.24.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "MERGE statement",
+ "rule-digest": "6cbcb9489667",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#ScreenIndexedGivingKey; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortMapIoFiles",
+ "test-ref": "conformance:cases/14.9.24-MERGE/pb994-merge-giving-indexed-first-key-descending",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB994 landed: MERGE's twin of SR9 is the same screen (ScreenIndexedGivingKey, merge: true), citing 14.9.24.3 SR10; the key-byte arm shares code with the SORT arm witnessed by negative/pb994-sort-giving-indexed-key-not-prime-bytes.",
+ "state": "OK"
+}

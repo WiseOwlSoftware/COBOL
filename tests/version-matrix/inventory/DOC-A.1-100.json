@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-100",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 100,
+ "subject": "Implementor-defined level-2 exception conditions, EC-level-2-IMP (specification and meaning of the specified level-2 exc",
+ "rule-digest": "476b392a20eb",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-100; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionCatalog.cs#EcFatality; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ParentInstance; src/WiseOwl.Cobol.Runtime/Control/ProgramRegistry.cs#CobolCallException",
+ "test-ref": "conformance-test:FatalRaiseSelectionTests.RaiseLevel2ImpName_Provided_TerminatesAbnormally; unit:EcImplementorNamesDocumentationDriftTests.Item100_NamesExactlyTheCatalogsImplementorDefinedLevel2Names; conformance:cases/A.1-Implementor-defined-language-element-list/l1_dns_a1_99_ec_imp_level2_valid",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "A.1 item 100 (optional; documented if provided; Table 13, 14.6.13.1.6). PROVIDED and documented: 20 of Table 13's 22 EC-level-2-IMP names are valid (EC-SCREEN-IMP and EC-VALIDATE-IMP are refused with COBOL1707/1710, the declined modules; EC-CONTINUE-IMP, EC-EXTERNAL-IMP and EC-MCS-IMP are 2023 names, COBOL0878 below), every one FATAL (EcFatality.Imp, IsFatal), and the one implementation raise site is ProgramTable.ParentInstance (EC-PROGRAM-IMP, an internal inconsistency a conforming program cannot reach: the 8.4.6.3 scope rules admit a caller of a contained program only from inside its container's subtree, whose activation keeps the container instantiated). The note's PARTIAL ('not shown whether a conforming program can reach the raise' and 'generate or drift-test the list from the catalog') is closed by the reachability argument now in the 7 row and by EcImplementorNamesDocumentationDriftTests.Item100_NamesExactlyTheCatalogsImplementorDefinedLevel2Names, which holds the row's 22 names equal to the catalog's Imp rows. RAISE EXCEPTION EC-PROGRAM-IMP under checking terminates the run unit: FatalRaiseSelectionTests.RaiseLevel2ImpName_Provided_TerminatesAbnormally. kb/Work PB1531 w1015w.",
+ "state": "OK"
+}

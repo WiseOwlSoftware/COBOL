@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.43.4-5",
+ "section": "14.9.43.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "STRING statement",
+ "rule-digest": "7c17ae70cdf8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitString",
+ "test-ref": "conformance:cases/14.9.43-STRING/pb664_string_operand_screen",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR5: no POINTER phrase => as if identifier-4 had initial value 1. Emitter: `long __strPtrN = 1;` when s.Pointer is null, and nothing is written back (there is no item). pb664 golden legs L2-L4 (no POINTER) place their first character at position 1 (L2=[123 ...]), expected values derived from the spec in the golden header. [editions as adjudicated: 2023 text (ISO/IEC 1989:2023 §14.9.43); Annex E lists no STRING change 2014->2023; the earlier-edition edge is not derivable in-repo (no 2002/2014 text)]",
+ "state": "OK"
+}

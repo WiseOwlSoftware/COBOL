@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.7-1",
+ "section": "14.7.7",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Common phrases and features for statements",
+ "rule-digest": "70b771d75a91",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreArith; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#StoredShapeOf",
+ "test-ref": "conformance:cases/14.7.7-Arithmetic-statements/l1c04_arith_mixed_descriptions",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule 1 (--check 14.7.7 -> OK §14.7.7 1)): mixed descriptions need no user conversion. PROBE out/probe/arith/a1.cob (native): PIC 9(31) receiver with a NUMVAL function result, FLOAT-BINARY-64, BINARY-DOUBLE and a floating literal operand -> 13 (5 + 1 + 2 + 3 + 2, fractional 0.5 truncated at the store); a2.cob (STANDARD-DECIMAL): ADD S9(3)V9 + 9V99 GIVING Z9.99 ROUNDED -> 12.55, MULTIPLY ... GIVING 99 ROUNDED -> 01. The rule is exercised by essentially every arithmetic golden but no golden is written against it by name - test-ref left empty. || editions as adjudicated: 1985, 2002, 2014, 2023",
+ "state": "OK"
+}

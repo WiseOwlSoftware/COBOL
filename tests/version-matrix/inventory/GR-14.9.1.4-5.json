@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.1.4-5",
+ "section": "14.9.1.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "ACCEPT statement",
+ "rule-digest": "9bd718d0d8e2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindAccept",
+ "test-ref": "conformance-test:AcceptDifferentialTests.Device_ShortLine_StoresLeftAlignedSpaceFilled;conformance-test:AcceptDifferentialTests.Device_NumericReceiver_ConvertsAndComputes",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "'The implementor shall specify the device that is used if the FROM phrase is not specified.' BindAccept: `if (ac.acceptSource() is not { } src) return new BoundAccept(target, AcceptKind.Device) ...` with the inline citation '// GR5 -- FROM omitted: the implementor default (stdin)'; the emitter then routes it to AcceptSource.Device, which reads Console.In, i.e. the process standard input. The specification is also DOCUMENTED as the rule's Annex A.1 item 2 requires (required + documented): docs/CONFORMANCE.md's A.1 determination table carries the row 'ACCEPT statement -- device used when FROM is unspecified, 14.9.1 GR5, required + documented ... the process standard input stream', and `python scripts/spec/audit_annex_a1.py --check` confirms the row matches item 2's element ('FINDINGS: none -- every section 7 row names an A.1 item whose element it matches'). This is the ONE ACCEPT A.1 obligation that is discharged (items 1 and 5 are not -- see GR-14.9.1.4-1 and -2). Verified end-to-end by every bare-`ACCEPT WS-X.` case in AcceptDifferentialTests, which pipe stdin and read back the stored value. || UPHELD: re-read AcceptDisplayBinder.cs:62-63 -- the early return really is unconditional on `ac.acceptSource()` being absent, so no source shape can reach a different default, and AcceptSource.Device's only input is `Console.In.ReadLine()` (AcceptSource.cs:89). The two cited tests both compile a bare `ACCEPT WS-X.` and pipe stdin, so they do exercise the FROM-omitted default rather than a mnemonic path. GR5 has one half (specify a device) and it is both implemented and documented; CONFORMS is correct.",
+ "state": "OK"
+}

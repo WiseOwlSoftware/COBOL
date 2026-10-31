@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.19.3-1",
+ "section": "14.9.19.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "IF statement",
+ "rule-digest": "dacd615f535e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#ifStatement",
+ "test-ref": "conformance:cases/14.9.19-IF/pb396-if-empty-consequent; unit:RequiredImperativeStatementDriftTests.AnEmptyRequiredImperative_IsRejected; unit:RequiredImperativeStatementDriftTests.TheSamePosition_WrittenWithItsImperative_StillCompilesAndRuns",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB387.md (wave 1031 A) re-verdict. \"Statement-1 and statement-2 represent either one or more imperative statements or a conditional statement optionally preceded by one or more imperative statements\" (cite.py --check 14.9.19.3 OK 1)). The CARDINALITY half (one or more) diverged through statementBlock*; PB396 made both arms statementBlock (= statement+), so an empty statement-1 or statement-2 draws COBOL2072 at every edition (re-probed at --std 2023 on this worktree). The COMPOSITION half was verified correct by the b2 adjudication against 14.5.3 and is unchanged; RequiredImperativeStatementDriftTests pins both the refusal and the admitted one-statement forms.",
+ "state": "OK"
+}

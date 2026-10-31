@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.19.3-3",
+ "section": "13.18.19.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "DYNAMIC LENGTH clause",
+ "rule-digest": "37bf730c1d12",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/StorageFormPass.cs#Classify; src/WiseOwl.Cobol.Compiler/Binding/Model/StorageForm.cs#DynamicString; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/8.5.1.11.3-Availability-and-persistence-of-variable-length/dynamic_length_item",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "cite.py --check 13.18.19.3 \"If dynamic-length-structure-name-1 is not specified, the structure of the dynamic-length elementary item is defined by the implementor.\" OK (SR3); cite.py --check 8.5.1.10.2 \"In the absence of a dynamic-length-structure-name the internal structure is defined by the implementor.\" OK. The implementor structure is the native .NET string carrier (StorageForm.DynamicString, no length prefix or delimiter, DynStructure null, max = MaxLength); every unnamed-structure golden (dynamic_length_item, dynamic_length_limit) compiles and runs. cite.py --check A.1 \"Dynamic-length elementary items (structure if dynamic-length-structure-name-1 is not specified). This item is required. This item need not be documented\" OK (A.1 item 63): the item is REQUIRED but NEED NOT BE DOCUMENTED, so kb/Work PB991 (open, claims this row) rests on a false premise where it says the row 'Needs the A.1 documentation row' - documentation is optional, and the binder path already applies the structure. Where the structure becomes byte-observable (a file record) is determination D-FRA (PB981). Recommend PB991 close this row on this adjudication; its GR-12.3.7.4-19 half is unaffected. || Editions (adjudicator): 2014, 2023 (COBOL-2014 introduction per VERSION_CHANGE_REFERENCE; the 2023 Annex E lists only the 2023 SET enhancement for dynamic-length items, E.3 item 17)",
+ "state": "OK"
+}

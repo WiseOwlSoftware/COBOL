@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.9-1",
+ "section": "9.1.13.9",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "I-O status",
+ "rule-digest": "f64fd809705f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open; src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#IsSharingRefusal; src/WiseOwl.Cobol.Runtime/IO/Sharing/OpenTable19.cs#Conflicts",
+ "test-ref": "conformance:cases/9.1.13.9-File-sharing-conflict-condition-with-unsuccessful/file_sharing; unit:FileLockPostureDriftTests.TheHostHandleNeverVetoesWhatTable19Permits; unit:SharingRefusalStatusTests.AnOpenRefusedByAnotherRunUnitsExclusiveHandle_IsTheFileSharingConflict; unit:SharingRefusalStatusTests.TheHostsOwnSharingRefusal_IsClassifiedAsOne",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "'61' on both sides of the run-unit boundary. A connector of THIS run unit is refused by the Table 19 arbiter before the OPEN body runs (sub-cases a-e; FileRegistry.Conflicts, pinned across every sharing-mode x open-mode pair by FileLockPostureDriftTests and 2002/file_sharing). A connector of ANOTHER run unit is visible only as the host's refusal, which FileConnector.Open now classifies through HostFile.IsSharingRefusal (kb/Work PB860 - every organization answered '30' before; SharingRefusalStatusTests pins all three organizations x all four open modes, with the file unaffected per 14.9.27.4 GR25). Whether a Unix host REFUSES a 9.1.15 2) read-only conflict at all is GR-9.1.15-2 / kb/Work PB833, not this row: this row is the status a refusal answers. retired-witness: src/Cobol.Net.Runtime/IO/FileRegistry.cs#Conflicts (FileRegistry.Conflicts was deleted (kb/Work PB322); Table19.Conflicts is the arbitration lookup)",
+ "state": "OK"
+}

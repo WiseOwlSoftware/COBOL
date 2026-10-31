@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.100.3-1",
+ "section": "15.100.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "YEAR-TO-YYYY function",
+ "rule-digest": "39515611b9f2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#YearToYyyyAt",
+ "test-ref": "conformance:cases/15.23.4-Returned-value-rule/intrinsics_date_window; conformance:cases/15.100.3-Arguments-rule/pb248_year_to_yyyy_arg1_domain; conformance:cases/15.90.3-Argument-rule/pb248-integer-arg-float-item; unit:IntrinsicArgumentClassDriftTests.EveryIntegerArgumentPosition_RejectsAFloatingPointItem",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "CLOSED BY kb/Work PB248 - BOTH halves the PARTIAL named. cite.py --check 15.100.3 \"Argument-1 shall be a nonnegative integer that is less than 100\" => OK (15.100.3 1); cite.py --check 15.3 \"the EC-ARGUMENT-FUNCTION exception condition is set to exist\" => OK (15.3 14). TYPE HALF: a floating-point argument-1 passed the 15.3 type-6 screen (Scale 0 on a PICTURE-less item) and was truncated by CobolIntrinsics.RealArgs#TryIntegerArg instead of being rejected. It is now rejected at bind through the ONE primitive PicInfo.IsIntegerDescription; the drift test asserts YEAR-TO-YYYY's three 'i' positions by name against every floating-point Usage member, and was proven to FAIL against the pre-fix predicate. VALUE HALF: the range logic at CobolDate.cs#YearToYyyyAt was already correct and correctly worded (the domain is [0, 99] - 0 is admitted because r1 says \"nonnegative\", 99 because it says \"less than 100\"), but the row recorded that NO fixture pinned its REJECT edge, so half the rule had a disposition and no evidence. conformance:cases/15.100.3-Arguments-rule/pb248_year_to_yyyy_arg1_domain now pins both arms under >>TURN EC-ARGUMENT-FUNCTION CHECKING ON - which is required, because 15.3 14)'s closing sentence makes the RESULT implementor-defined while checking is off, so with checking off this rule has no spec-fixed observable and a green test would prove nothing. Its accepted values are DERIVED from 15.100.4, not observed: with argument-2 = 50 and argument-3 = 2000 (written explicitly, so the window is FIXED and nothing depends on the execution year per r5), maximum-year = 2050 and MOD(2050,100) = 50, so argument-1 = 0 takes r2a to 0 + 100*INTEGER(20.5) = 2000, argument-1 = 99 takes r2b to 99 + 100*(20-1) = 1999, and argument-1 = 50 takes r2a to 2050. Both endpoints are admitted and both 100 and a negative (from a runtime item, so no constant fold can see it) raise.",
+ "state": "OK"
+}

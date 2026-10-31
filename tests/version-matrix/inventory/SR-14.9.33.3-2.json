@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.33.3-2",
+ "section": "14.9.33.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "RESUME statement",
+ "rule-digest": "c3d99945530f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#BindResume",
+ "test-ref": "conformance:cases/14.9.33-RESUME/pb1160-resume-in-when-in-global-declarative",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1160 LANDED. EcBinder.BindResume asks the GLOBAL-declarative question (COBOL0713) BEFORE the WHEN-phrase question, the order PlacementRules.RefusedInGlobalDeclarative gives GOBACK and EXIT, so a RESUME nested in a WHEN phrase inside a USE GLOBAL declarative is refused like the direct form.",
+ "state": "OK"
+}

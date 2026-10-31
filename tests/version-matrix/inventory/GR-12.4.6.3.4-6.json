@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.6.3.4-6",
+ "section": "12.4.6.3.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "APPLY COMMIT clause",
+ "rule-digest": "f47a3a7e00ad",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#ScreenApplyCommitItem",
+ "test-ref": "conformance:cases/12.4.6-I-O-CONTROL/pb3338_apply_commit_gr6_set_address",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB3338 (wave 1154): Annex A.4.3 is now PARTIAL (docs/CONFORMANCE.md §5, §4 item 2): the APPLY COMMIT clause, COMMIT and ROLLBACK are provided for RELATIVE and INDEXED files, whose keyed store engine keeps the transaction (kb/Work PB3337); a SEQUENTIAL or LINE SEQUENTIAL file named in the clause is under commit control too, its transaction journal being kb/Work PB3340 (COBOL1709, which refused it, is retired). The derived verdict commit-and-rollback-only that stamped the module DOCUMENTED-NON-SUPPORT is retired. GR6 (detection processor dependent; docs/CONFORMANCE.md §5 A.4.3 determination): no statement can change such an item's address. SET ADDRESS OF requires a BASED item (§14.9.39.3 SR18, COBOL0869) and SR10 keeps a BASED item out of the clause, so EC-FLOW-APPLY-COMMIT has no address-change cause to detect; the golden rebases an item the clause names and is refused. retired-witness: conformance:wiseowl/cases/12.4.6.3-APPLY-COMMIT/declined-apply-commit (the commit and rollback facility is provided for the keyed organizations (kb/Work PB3338): the decline these witnessed is gone, and the rule is now witnessed by its own implementation) retired-witness: src/Cobol.Net.Compiler/Validation/DeclinedFacilityPass.cs#VisitApplyCommitClause (the commit and rollback facility is provided for the keyed organizations (kb/Work PB3338): the decline these witnessed is gone, and the rule is now witnessed by its own implementation)",
+ "state": "OK"
+}

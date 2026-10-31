@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.4.3-2",
+ "section": "14.9.4.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "CALL statement",
+ "rule-digest": "6a87bff9adbd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ProgramNameLiteral",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb130_call_format2_bare; conformance:cases/14.9.4-CALL/pb130-cancel-zero-length",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB130): the ONE program-name-literal reader admits alphanumeric AND national literals (a hexadecimal literal is 8.3.3.2 Format 2 of the alphanumeric kind; concatenations fold per 8.8.3.3 GR3; the D-N1 identity repertoire makes the national name the same string), and rejects boolean/numeric/zero-length literals with the CITED clause at compile time - the old STRINGLIT-only read sent legal N/X literals to a run-time loud.",
+ "state": "OK"
+}

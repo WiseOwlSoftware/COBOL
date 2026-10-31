@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.16.3-23",
+ "section": "13.16.3",
+ "kind": "SR",
+ "ordinal": 23,
+ "subject": "Data description entry",
+ "rule-digest": "729eed24e9ed",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ConditionQualifierChainMatches; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#ReportMisqualifiedCondition; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#MisqualifiedConditionText",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/pb567_condition_name_qualification; conformance:cases/8.4.2.2-Qualification/pb567-condition-name-misqualified",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB567 — both sides of the subordination relation are now implemented and witnessed. POSITIVE: a condition-name resolves through its conditional variable and that variable's containing groups, innermost first with gaps (8.4.2.2.3 SR4/SR5), and through its record's FILE (8.4.2.2.2 Format 2's [ file-name-1 ], confirmed on the rendered PDF page 150) — the qualifier walk is now the ONE DataBinder walk (ConditionQualifierChainMatches over QualifierChainMatchesFrom); the private ConditionBinder.MatchesQualifiers copy had no file-name arm, so `FA-OK OF FR OF FA-FILE` compiled clean and aborted at run time with NotImplemented (measured before the fix). Value-asserting golden 85/pb567_condition_name_qualification pins eight truth values (full, non-immediate ancestor, the other variable, IN, three-deep, file-qualified x2, SET through a qualifier). NEGATIVE: a declared level-88 written under qualifiers its variable is not subordinate to (unrelated record, unrelated elementary item, two unrelated real names, real ancestors in reversed order, a wrong file) is reported COBOL1639 with ONE wording (ReferenceResolver.MisqualifiedConditionText) at every site — the IF/PERFORM/EVALUATE bare-operand analysis (classified as the condition-name it was written as, so EVALUATE no longer reports a Table-15 pairing error about an identifier), SET Format 4 (no longer 'is not a condition-name: no level-88 entry declares it'), the data-reference fallback and the SEARCH ALL Format-2 screen. Before, the IF arm said \"'IS-A' is not defined — no declaration gives the name\" while the 88 was declared. The refuter's measurement that these compiled clean to NotImplemented stubs no longer held on the w58 base (a later landing had routed them to the not-defined report); the file-qualified POSITIVE case still did.",
+ "state": "OK"
+}

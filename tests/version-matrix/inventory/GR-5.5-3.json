@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-5.5-3",
+ "section": "5.5",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Description techniques",
+ "rule-digest": "7a2202469ede",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitPositionValue; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#OccValue; src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#RefModValue; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.SubscriptSegments.cs#BindPositionTemporary",
+ "test-ref": "conformance:cases/5.5-Integer-operands/pb1526_integer_argument_has_integral_value; conformance:cases/5.5-Integer-operands/pb1526_integer_argument_integrality_standard_decimal; conformance:cases/5.5-Integer-operands/pb1890_position_expression_exact; conformance:cases/5.5-Integer-operands/pb1890_position_expression_standard_decimal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1890 (landed, wave 1006 B). cite.py --check 5.5 'the implementor shall define when the operand represents an integer' -> OK §5.5 3) a); cite.py --check 5.5 'whose decimal fixed-point representation contains only zeros to the right of the decimal point' -> OK §5.5 3) b). Native arm: DOC-A.1-124's exact-value definition, asked at every integer rule. Standard arm: the SDIDI's own fraction test (CobolDec.HasFraction). The last divergent site was a subscript / ref-mod bound that is an EXPRESSION or a float item: it was stored into a 9-fraction-digit truncating temporary BEFORE the test, so T(IX + 0.0000000001), T(F) with F COMP-2 2.0000000001 and W(1 + 0.0000000001:2) selected a position with checking on, in native AND standard-decimal arithmetic. Now a BoundPositionValue pre-operation evaluates the expression receiver-less and asks the integrality question on its own carrier (scaled Int128 / SDIDI / binary64, CobolTable.OccValue* / CobolString.RefModValue*) before the integer position is stored. MEASURED: both goldens draw EC-BOUND-SUBSCRIPT / EC-BOUND-REF-MOD and leave the receiver unchanged; the integral controls (COMP-2 2.0, IX + 0, 1 + 2 / 2, IX / 1, 6 / 3 + 1) select normally. retired-witness: src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.SubscriptSegments.cs#MaterializeSubscriptSegment (renamed: kb/Work PB2151 - the D18 hook binds the position's parse node only (BindPositionTemporary); its text parameter is gone)",
+ "state": "OK"
+}

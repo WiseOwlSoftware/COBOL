@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.60.4-23",
+ "section": "13.18.60.4",
+ "kind": "GR",
+ "ordinal": 23,
+ "subject": "USAGE clause",
+ "rule-digest": "62c4d6740988",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#PointerItem; src/WiseOwl.Cobol.Compiler/Binding/Model/StrongTypeModel.cs#PointerRestriction; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#BindSetAddress; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetPointer; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#ScreenPointerReceiverRestriction; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#ScreenImplicitSet; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ElementaryAction",
+ "test-ref": "conformance:cases/13.18.60-USAGE/pointer_data; conformance:cases/13.18.60-USAGE/pb153_restricted_pointer; conformance:cases/13.18.60-USAGE/pb548_set_restricted_pointer_plain; conformance:cases/13.18.60-USAGE/pb548-set-unrestricted-into-restricted; conformance:cases/13.18.60-USAGE/pb548-set-restricted-into-unrestricted; conformance:cases/14.9.20-INITIALIZE/pb3817-initialize-replacing-restricted-data-pointer",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB548 - THE LAST SENTENCE NOW HOLDS ON EVERY ARM. \"A restricted data-pointer shall contain only the predefined address NULL or the address of a data item of the specified type\" (cite.py --check 13.18.60.4 -> OK 23)). Its statement-level enforcement is 14.9.39.3 SR19 (both sentences, cite.py --check OK 19)), and SET Format 7 reaches the binder by TWO routes: setAddressStatement -> PtrBinder.BindSetAddress (an ADDRESS OF on either side; already screened) and setToValueStatement / setObjectReferenceStatement -> SetBinder.BindSetPointer (the plain `SET p TO q`), which checked only the category - so `SET P TO R` stored an unrestricted address into a TT-restricted pointer and a based item rebased through it read a PIC X(8) item as type TT (measured before: L=[1234]). Both routes now call ONE screen, PtrBinder.ScreenPointerReceiverRestriction, per receiver: the unrestricted-into-restricted direction (SR19 first sentence) and the converse (SR19's continuation paragraph) are COBOL0869 on the plain spelling too (negatives pb548-*), and the conforming restricted-to-restricted copy and TO NULL run (2002/pb548_set_restricted_pointer_plain: L=[ABCD] / P1-NULL / L2=[ABCD]). The ALLOCATE / CALL-argument / RETURNING arms were already screened (PtrBinder, same StrongTypeModel predicates). Editions narrowed to 2002+ - the TYPE TO phrase and TYPEDEF are 2002 introductions.",
+ "state": "OK"
+}

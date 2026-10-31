@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.28.3-9",
+ "section": "14.9.28.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "PERFORM statement",
+ "rule-digest": "a46721c7731b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/l1_perform_varying_six_after",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Six AFTER phrases run, asserting 14.9.28.4 GR13 e)'s sequence: 128 body executions, second tuple 1111112, final tuple 3111111.",
+ "state": "OK"
+}

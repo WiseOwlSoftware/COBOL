@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.34.2",
+ "section": "15.34.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "EXP function",
+ "rule-digest": "fd60a8176a80",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FN_SIGNED_DECIMALLIT",
+ "test-ref": "conformance:cases/15.34-EXP/l1_exp_signed_float_literal; conformance:cases/15.34-EXP/pb1041-exp-before-2002",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "The printed format plus a signed floating-point literal with a SIGNED exponent in all four sign combinations S8.3.3.3.3 r2+r3 admit, including (+ significand, - exponent) which appears nowhere else in the corpus; values from S15.34.4 r1's expression e ** argument-1, pinned by inclusive windows.",
+ "state": "OK"
+}

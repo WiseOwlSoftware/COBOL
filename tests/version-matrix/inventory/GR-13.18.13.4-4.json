@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.13.4-4",
+ "section": "13.18.13.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "CODE-SET clause",
+ "rule-digest": "75531b5c744e",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry",
+ "test-ref": "conformance:wiseowl/cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/a48-select-when-condition-name; conformance:wiseowl/cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/a48-select-when-other; conformance:cases/13.4.5-File-description/a413-rewrite-file-declined",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference. || editions 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): an A.4.8 FORMAT / SELECT WHEN file-handling rule; the FORMAT clause is post-85 (FORMAT is first reserved at 2002, so no COBOL-85 source can write it) and is not a 2023 introduction (Annex E.3 lists none), so the facility's edge is 2002 (derived). cite.py --check 13.18.24.1 \"The FORMAT clause specifies\" OK.",
+ "state": "OK"
+}

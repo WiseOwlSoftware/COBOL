@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.3.3-6",
+ "section": "11.3.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "CLASS-ID paragraph",
+ "rule-digest": "1e4c0fde27f7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#ResolveOverrides",
+ "test-ref": "conformance:cases/11.3-CLASS-ID/pb1505_final_method_through_intermediates",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1505 LANDED (wave 1015 Z). cite.py --check 11.3.3 'If the same method is inherited from one superclass through two or more intermediate superclasses, it may be specified with the FINAL clause.' OK 6). The live (second) sentence is witnessed: PB1505Z inherits PB1505W's FINAL M1 through PB1505X and PB1505Y, compiles, and INVOKE Z \"M1\" prints W-M1-FINAL. The first sentence ('two or more different methods with the same name are inherited') has a satisfiable antecedent only under multiple class inheritance, Annex A.4.10 item 1, which this implementation does not claim (COBOL0849): no accepted program can violate it. A mixed block with one live sentence takes the live verdict (owner R43 item 2, the GR-9.3.6-L3.7 precedent), which is why DerivedVerdictDriftTests keeps this row out of the oo-optional-items-only selector.",
+ "state": "OK"
+}

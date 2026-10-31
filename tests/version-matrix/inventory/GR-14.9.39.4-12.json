@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-12",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 12,
+ "subject": "SET statement",
+ "rule-digest": "2401bf7ef75a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSetPointer",
+ "test-ref": "conformance:cases/14.9.39-SET/pb450_set_format7_receiving_list; conformance:cases/14.9.39-SET/pb450-set-format7-second-receiver-not-pointer",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB450 half 2. GR12 - \"If identifier-5 is specified, the address identified by identifier-6 is stored in each data item referenced by identifier-5 in the order specified\" (cite.py --check 14.9.39.4 OK) - is a rule about a LIST, and the list could not be written: identifier-5 receivers reached Format 7 only through setToValueStatement/setObjectReferenceStatement, where the sender may not be a data-address-identifier, so `SET P1 P2 TO ADDRESS OF REC1` was `COBOL0001` while `SET P1 P2 TO P0` worked. GR12 and GR13 are now ONE loop over ONE receiver list whose elements carry their own kind (BoundSetPointer.Receivers / BoundPointerReceiver), which is how the standard writes them; the separate BoundSetAddressOfBased node that held GR13 at arity one is DELETED, so a mixed statement is expressible at all. The sender is evaluated ONCE (it is one operand OUTSIDE the printed repetition), which ctx.SendOnce already gave the plain route. MEASURED: `SET P1 P2 TO ADDRESS OF REC-A` then rebasing two based items through P1 and P2 gives T1 AAAA AAAA. DELIBERATELY NOT CLAIMED: GR12's second sentence (\"Item identification of the data item referenced by identifier-5 is done immediately before the value of that data item is changed\") is observable only through a SUBSCRIPTED identifier-5, and 13.18.60.3 SR14 makes a pointer table unwritable - a USAGE POINTER item may appear only at level 1 or under a STRONG type declaration - so there is no conforming witness and none is faked (measured: `05 PT USAGE POINTER OCCURS 3` draws COBOL1724).",
+ "state": "OK"
+}

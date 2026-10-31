@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.35.3-5",
+ "section": "13.18.35.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "LINE clause",
+ "rule-digest": "a69b149c7c18",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportLineClauses",
+ "test-ref": "conformance:cases/13.18.35-LINE/pb1002-unpaged-absolute-line; conformance:cases/13.18.35-LINE/pb1002-unpaged-next-page",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1002. An RD with no PAGE clause refuses an absolute LINE (LINE 3) and - a DETERMINATION, docs/CONFORMANCE.md the LINE NEXT PAGE block - the bare ON NEXT PAGE operand, which is not the relative FORM {PLUS|+} integer-2 (the reading 13.18.37.3 SR3 gives NEXT GROUP NEXT PAGE). COBOL2199.",
+ "state": "OK"
+}

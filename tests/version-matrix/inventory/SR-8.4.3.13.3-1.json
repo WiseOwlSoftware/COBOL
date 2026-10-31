@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.13.3-1",
+ "section": "8.4.3.13.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Program-address-identifier",
+ "rule-digest": "f8bc53d72aa8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindProgramAddressOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#ScreenAddressName; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#IsAlphanumericOrNational",
+ "test-ref": "conformance:cases/8.4.3.13-Program-address-identifier/pb1452_program_address_identifier_operands; conformance:cases/8.4.3.13-Program-address-identifier/pb1452-program-address-alphabetic-operand; conformance:cases/8.4.3.13-Program-address-identifier/pb549-program-address-operand-shape; conformance:cases/8.4.3.13-Program-address-identifier/pb850-set-program-address-alphanumeric-edited; conformance:cases/8.4.3.13-Program-address-identifier/pb850_edited_refmod_program_name",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1452 landed (wave 1009 B). Identifier-1 is screened through the ONE predicate ItemCategory.IsAlphanumericOrNational(Place) (SetBinder.ScreenAddressName, shared with the 8.4.3.12.3 SR1 twin): an alphanumeric group (G1 X(3) + G2 X(6)), a GROUP-USAGE NATIONAL group (8.5.2.1; 13.18.29.4 GR2) and a reference-modified slice of a group (8.4.3.3.4 GR6) are admitted and locate the program by their character image (PtrEmitter.NameImage); a PIC A item (category alphabetic) is refused COBOL2157; numeric stays refused. cite.py --check 8.4.3.13.3 'Identifier-1 shall be of category alphanumeric or national' OK. The edited-category posture stays kb/Work PB850's.",
+ "state": "OK"
+}

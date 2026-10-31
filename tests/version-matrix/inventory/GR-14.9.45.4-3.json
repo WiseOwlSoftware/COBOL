@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.45.4-3",
+ "section": "14.9.45.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "SUPPRESS statement",
+ "rule-digest": "1bbbcfc715c9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentPageHeading; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentPageFooting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentHeadingFooting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore",
+ "test-ref": "conformance:cases/14.9.45-SUPPRESS/l1c31_suppress_inhibits_advance_nextgroup_lc",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR3 a-e (cite.py --check 14.9.45.4 3) d) and 3) e) OK). Every presentation path returns right after RunBeforeReporting reports suppression, before page-fit/AdvancePage, PresentLine (LINE-COUNTER) and ApplyNextGroup; PresentBody keeps only EndOfGroupSumReset. Control-break detection/processing in GenerateCore precedes PresentBody(detail), so (e) holds. Probes gr3.cob/gr3b.cob (PAGE LIMIT 12, FIRST DETAIL 2, LAST DETAIL 7, FOOTING 9, DE NEXT GROUP PLUS 1, SOURCE LINE-COUNTER): suppressed details leave LINE-COUNTER unchanged (4->4, 6->6, 8->8), no NEXT GROUP applied; a suppressed detail at LINE-COUNTER 8 (fit would fail) causes no page advance (PAGE-COUNTER stays 1, CF then prints at 9); a suppressed detail that triggers a control break still prints CF-1 and CH-2 on the next page. conformance:cases/13.18.16-CONTROL/rw_suppress covers only (a) -> test-ref empty. [editions as adjudicated: 2014, 2023 (not an Annex E 2014->2023 addition, so present in 2014); 85/2002 availability not derivable from the 2023 text (VERSION_CHANGE_REFERENCE row 130d, RW accepted at every edition)]",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.44.3-5",
+ "section": "13.18.44.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "REDEFINES clause",
+ "rule-digest": "1fa599f5cf30",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RedefinesDataName2; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenDataNameShape; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenRedefinesClause",
+ "test-ref": "conformance:cases/13.18.44-REDEFINES/pb177-redefines-target-occurs; conformance:cases/13.18.44-REDEFINES/pb1281-redefines-subscripted; conformance:cases/13.18.44-REDEFINES/pb1281-redefines-odo-in-redefinition; conformance:cases/13.18.44-REDEFINES/pb1281_redefines_data_name_2_bare; conformance:cases/13.18.44-REDEFINES/pb2071-template-redefines-table; conformance:cases/13.18.44-REDEFINES/pb2071-template-redefines-typed-table",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1281 (wave 1020 H). SR5 (cite.py --check 13.18.44.3 \"the reference to data-name-2 in the REDEFINES clause shall not be subscripted\" OK §13.18.44.3 5); --check \"nor the redefinition shall include an occurs-depending table\" OK). All four sentences now hold. S1 (no OCCURS on data-name-2's own entry): COBOL1701, negative pb177-redefines-target-occurs. S2 (data-name-2 MAY be subordinate to an OCCURS item): the Tier-B shape this row recorded as refused works since kb/Work PB1279 — 85/pb1281_redefines_data_name_2_bare redefines A by a group B1/B2 inside `05 E OCCURS 3`, MOVE \"ab12\" TO A(2), ADD 1 TO B2(2) and prints `ab 13 ab13`, the spec-derived value. S3 (not subscripted): the one data-name-n shape screen ScreenDataNameShape refuses `REDEFINES A (1)` as COBOL2024 quoting SR5 itself (it used to be COBOL1654 on the glued text A(1), naming the wrong rule); a reference-modifier is refused by the same screen under §8.4.3.3.3's NOTE and a special register under §8.4.3.1. S4 (no occurs-depending table in the original or the redefinition): COBOL0855, negative pb1281-redefines-odo-in-redefinition.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.43.3-3",
+ "section": "14.9.43.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "STRING statement",
+ "rule-digest": "1df3c80f845e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#IsZeroLengthLiteral",
+ "test-ref": "conformance-test:StringUnstringOperandScreenTests.String_ZeroLengthLiteral2_IsSR3",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1181 (wave 1011 A). SR3 'Literal-2 shall not be a zero-length literal.' (cite.py --check 14.9.43.3 -> OK 3)). The ONE IsZeroLengthLiteral predicate (plain, hexadecimal, national and ALL forms) is asked of the DELIMITED BY literal and refused through Reject (COBOL1651); the run-time kernel had read a zero-length delimiter as DELIMITED BY SIZE, GR3 b)'s rule for a zero-length IDENTIFIER-2. The zero-length literal is legal at editions where the lexer admits it; the screen is edition-invariant (PB895 owns the --std 85 lexical question).",
+ "state": "OK"
+}

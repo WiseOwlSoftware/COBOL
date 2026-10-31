@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.46.2",
+ "section": "14.9.46.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "TERMINATE statement",
+ "rule-digest": "bd652ab188af",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#terminateStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindTerminate",
+ "test-ref": "conformance:cases/14.9.46-TERMINATE/l1c33_terminate_multi_order_no_close",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Format `TERMINATE { report-name-1 } ...` (cite.py --check 14.9.46.2 \"TERMINATE\" -> OK §14.9.46.2 General format). Grammar `terminateStatement : TERMINATE reportName+ ;` admits one-or-more report-names, ungated (Core grammar); BindTerminate resolves each name (SR1 COBOL1757 on an unknown one). Probed: single-report TERMINATE compiles and runs at --std 85, 2002, 2023 (out/probe/terminate-statement/q85.cob, q2002.cob, p1.cob); three-name `TERMINATE R-C R-B R-A` compiles and runs at 2023 (p2.cob). No spec-derived test targets the general format itself; Terminate_Gr2/ControlBreak tests exercise only the one-name form. [editions as adjudicated: 1985 (Report Writer module), 2002, 2014, 2023]",
+ "state": "OK"
+}

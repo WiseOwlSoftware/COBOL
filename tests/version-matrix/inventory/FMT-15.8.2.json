@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.8.2",
+ "section": "15.8.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "ACOS function",
+ "rule-digest": "165a4149b39c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+ "test-ref": "conformance:cases/15.8-ACOS/general_format_intrinsics_batch1",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Verdict unchanged; the row was CONFORMS-but-untested and this supplies the missing SPEC-DERIVED test. The golden writes the call in the form 15.8.2 prints and asserts the returned value against 15.8.4 r1 (arccos(1)=0, bounded to [0,pi]) with an inclusive range, since 15.4.1 makes the float family an implementor-defined approximation.",
+ "state": "OK"
+}

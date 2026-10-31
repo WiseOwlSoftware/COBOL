@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.10.3-2",
+ "section": "11.10.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "PROGRAM-ID paragraph",
+ "rule-digest": "c116bda999db",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit",
+ "test-ref": "conformance:cases/11.10-PROGRAM-ID/pb303_as_in_contained_program",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Literal-1 shall not be specified in a program contained within another program: MakeUnit knows the container (the unit's parent) at the point the phrase is read, so the check sits with the phrase rather than in a later pass. COBOL1795. kb/Work PB303.",
+ "state": "OK"
+}

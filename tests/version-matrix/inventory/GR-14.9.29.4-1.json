@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.29.4-1",
+ "section": "14.9.29.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "RAISE statement",
+ "rule-digest": "4c69fcecb005",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitRaise; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#Set; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#BindRaise",
+ "test-ref": "conformance-test:ExceptionConditionConformanceTests.Raise_Enabled_DeclarativeHandles_ResumeNextStatement_StatusPersists; conformance:cases/14.9.29-RAISE/pb867_raise_checking_not_enabled; conformance:cases/14.9.29-RAISE/pb867-raise-checking-below-2002; conformance:cases/8.4.3.6-EXCEPTION-OBJECT/gl2m2_exception_object_identity",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB867 (adjudication w1033 + refuter UPHELD; witnessed w1097h). GR1: \"If exception-name-1 is specified, the associated exception condition is raised, and EXCEPTION-OBJECT is set to null. Execution continues as specified in 14.6.13\" (cite.py --check 14.9.29.4 -> OK §14.9.29.4 1)). The raise is governed by §14.6.13.1.1: \"when the general rules for a statement indicate that a specific exception condition exists, it is raised only if checking for that exception condition is enabled\" and, for EC-USER, \"Checking is not enabled unless the TURN directive or WHEN phrase of the PERFORM statement is used to enable checking for the exception\" (both OK §14.6.13.1.1); a raise is one event that sets the last exception status AND nulls EXCEPTION-OBJECT (OK §14.6.13.1.1), and with checking off \"execution continues as if the exception did not occur\" (OK §14.6.13.1.4). So with checking ENABLED the RAISE sets the status, nulls EXCEPTION-OBJECT and selects the declarative (ExceptionState.Set + EmitSelection); with checking NOT enabled a nonfatal name raises nothing, keeps the status and EXCEPTION-OBJECT (EmitRaise writes only a comment; EcBinder advises COBOL3803, kb/Work PB2505). Witness conformance:cases/14.9.29-RAISE/pb867_raise_checking_not_enabled, identical at 2002/2014/2023: C1 un-TURNed RAISE -> no declarative, status spaces; C2 after RAISE E -> status EXCEPTION-OBJECT and EXCEPTION-OBJECT still E; C3 TURN ON -> DECL [EC-USER-PB867], EXCEPTION-OBJECT null; C4 TURN OFF -> status keeps EC-USER-PB867. Reading B (RAISE enables its own condition) has no normative text; Annex D.2.5's informative sample assumes it and is a candidate defect report against the standard (kb/Work PB2505). A FATAL name with checking off terminates: the §14.6.13.1.3 8) implementor arm, kb/Work PB2504, not this rule.",
+ "state": "OK"
+}

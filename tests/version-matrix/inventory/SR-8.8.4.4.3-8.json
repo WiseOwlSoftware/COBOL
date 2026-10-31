@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.4.4.3-8",
+ "section": "8.8.4.4.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "Simple class condition",
+ "rule-digest": "067799e7a341",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#Violates; src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#Alternatives",
+ "test-ref": "conformance:cases/8.8.4.4-Simple-class-condition/class-numeric-on-bit; conformance:cases/8.8.4.4-Simple-class-condition/pb571_class_condition_one_table",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB571. SR8 is SR3's rule with the category escape - 'usage is display or national OR whose category is numeric' - and it is now stated that way in one predicate instead of as a hand-written USAGE BIT special case. Its diagnostic stays COBOL0844, which has reported it since the data increment, and conformance:cases/8.8.4.4-Simple-class-condition/class-numeric-on-bit pins it unchanged; the 85 golden's A line pins the admission side (a category-numeric DISPLAY operand). An operand that also breaks SR1 is reported against SR1, which runs first.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.8.4-3",
+ "section": "8.4.3.8.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "SELF and SUPER",
+ "rule-digest": "7f91b61c5f8d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindByReceiver; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundOo.cs#InvokeForm",
+ "test-ref": "conformance:cases/8.4.3.8-SELF-and-SUPER/l1c28_self_super_invoking_object",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (--check 8.4.3.8.4 'ignores all the methods defined in the class containing the invocation' -> OK §8.4.3.8.4 3)). For SUPER, searchRoot = cur.Base and the call renders non-virtual `base.M()`, ignoring the containing class and its subclasses; SUPER in a root class -> COBOL0827. oo_super: DOG.SPEAK override INVOKE SUPER \"SPEAK\" prints ANIMAL then DOG (no recursion). Probe probe/self-and-super/PGR3.cob: C INHERITS B INHERITS A, B has no M; C.M's INVOKE SUPER \"M\" runs A.M (skips C, finds grandparent), and C.N's SUPER \"N\" runs B.N not C.N - output C.M/A.M/C.N/B.N as derived. || REFUTED: CONFORMS with test-ref emptied: oo_super pins only the 'ignore the containing class' half; the 'and all the methods defined in any subclass of that class' half and the grandparent skip are probe-verified only — The behaviour conforms. I probed the half nobody had tried. In RSUB.cob, B.X does INVOKE SUPER \"M\" on a C object while both B and C override M, and it prints A.M. The factory flavor (INVOKE SUPER \"FM\" from B's factory, run on the C factory) prints A.FM. So base.M() is non-virtual and ignores the subclass overrides, as GR3 requires. The adjudicator's PGR3 never exercised this half: no SUPER there runs from a class that has an overriding subclass. The cited golden oo_super is only two levels deep (DOG over ANIMAL, invoked on a DOG). It cannot tell a non-virtual base call apart from a virtual one, and it has no subclass. Closing the row on it over-claims what it proves. This is the same reasoning the adjudicator used to leave GR1's test-ref empty. [editions as adjudicated: 2002, 2014, 2023 (OO predefined object references; absent from COBOL-85)]",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.4.3-14",
+ "section": "14.9.4.3",
+ "kind": "SR",
+ "ordinal": 14,
+ "subject": "CALL statement",
+ "rule-digest": "1875e126ec16",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#ProgramSignatureOf; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#CallRestrictedProgramPointerSignature",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb609_call_restricted_program_pointer; conformance:cases/14.9.4-CALL/pb609-call-restricted-program-pointer-signature",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB609 landed (COBOL2936). The declaration half landed earlier with PB452/PB817. Derivation: Format 2 CALL identifier-1 AS program-prototype-name-1 with identifier-1 a restricted program-pointer: the signature of the pointer's own program-prototype (PicInfo.RestrictedPrototypeName, 13.18.60.4 GR25) shall equal the AS phrase's, compared by the one PrototypeSignatures.Same through the one name-to-signature reader. An unrestricted pointer and a prototype with no compile-time signature (12.3.8.4 GR10 c) are not decided here.",
+ "state": "OK"
+}

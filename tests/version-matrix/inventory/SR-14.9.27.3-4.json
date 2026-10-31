@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.27.3-4",
+ "section": "14.9.27.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "OPEN statement",
+ "rule-digest": "09e3ec603188",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen",
+ "test-ref": "conformance:cases/14.9.27-OPEN/l1_open_mixed_org_access",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "ONE OPEN statement over SEQUENTIAL/SEQUENTIAL + RELATIVE/RANDOM + INDEXED/DYNAMIC compiles and gives each file-name its own '00' (SR4 permissive + GR20 separate-OPEN equivalence + Table 18 + 9.1.13.2 item 1).",
+ "state": "OK"
+}

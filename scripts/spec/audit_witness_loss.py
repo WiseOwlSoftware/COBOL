@@ -45,13 +45,13 @@ import sys
 from collections import Counter
 from typing import Any, NamedTuple
 
-from inventory_schema import (INVENTORY_PATH, REPO, RETIRED_WITNESS_MARK, SCHEMA_PATH, Schema, StatementLoss,
-                              WitnessLoss, load_inventory, load_schema, statement_losses, statement_text,
+from inventory_schema import (REPO, RETIRED_WITNESS_MARK, SCHEMA_PATH, Schema, StatementLoss,
+                              WitnessLoss, load_schema, statement_losses, statement_text,
                               witness_losses, witness_shape_error)
+from inventory_store import HISTORY_PATHSPECS, INVENTORY_DIR_REL, inventory_at, load_inventory
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
-INVENTORY_REL = INVENTORY_PATH.relative_to(REPO).as_posix()
 SCHEMA_REL = SCHEMA_PATH.relative_to(REPO).as_posix()
 
 
@@ -62,12 +62,6 @@ def _git(*args: str) -> str:
 
 def _sep(field: str, schema) -> str:
     return schema.code_location_sep if field == "code-location" else schema.test_ref_sep
-
-
-def rows_at(rev: str) -> list[dict[str, Any]] | None:
-    """The inventory as committed at `rev`, or None when the file does not exist there."""
-    r = subprocess.run(["git", "show", f"{rev}:{INVENTORY_REL}"], cwd=REPO, capture_output=True)
-    return json.loads(r.stdout.decode("utf-8")) if r.returncode == 0 else None
 
 
 def schema_at(rev: str) -> Schema | None:
@@ -186,9 +180,9 @@ def default_base() -> str:
 
 
 def check(base: str, schema) -> int:
-    before = rows_at(base)
+    before = inventory_at(base)
     if before is None:
-        print(f"⛔ {INVENTORY_REL} does not exist at {base} — nothing to compare against")
+        print(f"⛔ {INVENTORY_DIR_REL} does not exist at {base} — nothing to compare against")
         return 2
     after = load_inventory()
     losses, vanished = compare_revisions(before, after, base, None, schema)
@@ -227,14 +221,14 @@ def history(since: str | None, schema) -> tuple[list[tuple[str, str, WitnessLoss
     """
     rng = [f"{since}..HEAD"] if since else []
     shas = _git("log", "--reverse", "--first-parent", "--format=%H %ad %s", "--date=short", *rng, "--",
-                INVENTORY_REL).splitlines()
+                *HISTORY_PATHSPECS).splitlines()
     found: list[tuple[str, str, WitnessLoss]] = []
     vanished: Counter[str] = Counter()
     erased: list[Erasure] = []
     for line in shas:
         sha, date, *subject = line.split(" ", 2)
-        after = rows_at(sha)
-        before = rows_at(f"{sha}^")
+        after = inventory_at(sha)
+        before = inventory_at(f"{sha}^")
         if after is None or before is None:
             continue
         losses, gone = compare_revisions(before, after, f"{sha}^", sha, schema)

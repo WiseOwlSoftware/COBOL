@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.53.3-1",
+ "section": "15.53.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "LOCALE-TIME function",
+ "rule-digest": "6284b5adf8de",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
+ "test-ref": "conformance-test:LocaleDispositionTests.LocaleDateTime_IntegerArgument_IsAClassViolation",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T4: class alphanumeric/national AND exactly 6 positions (ArgPredicate.ExactWidth(6)).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-20",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 20,
+ "subject": "SET statement",
+ "rule-digest": "6481575085e0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetFunctionPointer; src/WiseOwl.Cobol.Compiler/Binding/PrototypeSignatures.cs#Same; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#FunctionPointerItem; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#ScreenImplicitSet; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ElementaryAction",
+ "test-ref": "conformance:cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb452_set_function_pointer; conformance:cases/8.4.3.12-Function-address-identifier/pb452-set-function-pointer-signature; conformance:cases/8.4.3.12-Function-address-identifier/pb452-function-address-operand; conformance:cases/14.9.20-INITIALIZE/pb3817-initialize-replacing-restricted-function-pointer",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "All four sentences are screened (kb/Work PB817). 'Identifier-12 shall reference a data item of category function-pointer' and 'Identifier-13 shall be of category function-pointer' - DiagnosticCatalog.PointerOperandShape, the composed pointer-operand rule (kb/Work PB175), from the same re-route that selects Format 8 on the resolved category. 'Identifier-13 shall be the predefined address NULL or shall reference a function-pointer' - the NULL arm binds through setObjectReferenceStatement's NULL sender. 'The function-prototypes associated with identifier-12 and identifier-13 shall have the same signature' - COBOL1959, computed by PrototypeSignatures.Same, which is ALSO SR22's test: the two syntax rules are ONE rule over two carriers and are written once. 13.18.60.4 GR26 is what makes 'associated' a compile-time fact, because 13.18.60.2's TO phrase is unbracketed for FUNCTION-POINTER (measured on the printed folio 503) so every function-pointer carries the prototype it is restricted to. This row was NOT-IMPLEMENTED because PicCategory had no FunctionPointer member at all, so SetBinder's re-route had no arm and a declarable function-pointer would have fallen through into the Format-1 arithmetic store - a silent wrong answer waiting behind the loud one.",
+ "state": "OK"
+}

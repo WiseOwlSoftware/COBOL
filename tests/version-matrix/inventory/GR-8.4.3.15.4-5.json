@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.15.4-5",
+ "section": "8.4.3.15.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Report counters",
+ "rule-digest": "3c235b0d53d8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#RunBeforeReporting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentPageHeading; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentHeadingFooting",
+ "test-ref": "conformance:cases/8.4.3.15-Report-counters/l1m8_counters_dummy_suppressed",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "A dummy (zero-line) detail and a suppressed detail leave LC/PC unchanged, including at LC=FOOTING where a page fit would advance; printed controls do advance. Golden at the introducing edition (85).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-132",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 132,
+ "subject": "MODULE-NAME Function, (Which type of dynamic length elementary item is used as the returned value)",
+ "rule-digest": "609b635c0a70",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-132; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/WiseOwl.Cobol.Runtime/Control/CobolModule.cs#CobolModule; src/WiseOwl.Cobol.Runtime/Control/ModuleStack.cs#ModuleStack",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/doc_a1_132_module_name_stack_deep; conformance:cases/A.1-Implementor-defined-language-element-list/doc-a1-132-module-name-below-2023",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "15.65.4 r1 (cite.py OK 15.65.4 1)) requires the type to be documented when more than one type of dynamic-length elementary item is supported, and docs/CONFORMANCE.md DOC-A.1-132 documents it: alphanumeric, implementor-defined internal structure, no PREFIXED length-field bound. Witness (kb/Work PB2659 unblocked it): golden 2023/doc_a1_132_module_name_stack_deep, a RECURSIVE program 2200 activations deep, gets MODULE-NAME(STACK) of length 68201 = 2200*31+1 (r9, cite.py OK 15.65.4 9)) with EXCEPTION-STATUS spaces under EC-ALL checking - a PREFIXED structure would cap at 65535 and set EC-BOUND-FUNC-RET-VALUE (r2, cite.py OK 15.65.4 2)). Negative: COBOL1502 at 85/2002/2014. Code: IntrinsicCatalog registers MODULE-NAME with IntrinsicType.Alphanumeric; CobolModule.Name(int) returns a System.String.",
+ "state": "OK"
+}

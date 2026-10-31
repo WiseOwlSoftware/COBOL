@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-7.3.21.2",
+ "section": "7.3.21.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "PROPAGATE directive",
+ "rule-digest": "2e152a9650d8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/WiseOwl.Cobol.Editions/DirectiveOperandSyntax.cs#DirectiveOperandSyntax",
+ "test-ref": "conformance-test:PropagateDirectiveTests.MalformedOperand_Rejected1911; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_DiagnosesAMalformedOperand; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "{ ON | OFF } with ON un-underlined, so a bare >>PROPAGATE selects ON; 7.3.21.4 GR4's OFF default is about omitting the DIRECTIVE, not about which alternative the format implies. Any other operand is COBOL1911 (kb/Work PB794 retired this directive's own COBOL0883). The runtime propagation SEMANTICS are separate rows and remain PHASE-13 residue; this row is the format.",
+ "state": "OK"
+}

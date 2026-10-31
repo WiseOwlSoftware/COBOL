@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.55.4-8",
+ "section": "13.18.55.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "SYNCHRONIZED clause",
+ "rule-digest": "81cd085da90a",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-195",
+ "test-ref": "conformance:cases/8.5.1.6.4-Item-alignment-for-increased-object-code/l1_sync_occurs_and_no_auto_align",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Both GR8 entry points measured against clause-free twins (SUBORD 9, ONOCCURS 7, ONE 3 = 9/3), pinning the DOC-A.1-195 determination; the header states plainly that GR8 a) is vacuous under it and what each leg does discriminate. ROUND-4: the ONOCCURS tables gained a one-byte prefix (6 6 -> 7 7) because without it the occurrences already sat on even offsets and an aligning implementation answered 6 too.",
+ "state": "OK"
+}

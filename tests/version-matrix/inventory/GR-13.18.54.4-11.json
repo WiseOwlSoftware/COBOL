@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.54.4-11",
+ "section": "13.18.54.4",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "SUM clause",
+ "rule-digest": "ec7ae4e9b045",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyRolled; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#PlanOf",
+ "test-ref": "conformance:cases/13.18.53-SOURCE/pb1294_report_rolled_totals",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1294 landed. Every occurrence of an entry carries its full presence chain (PRESENT WHEN from the 01 entry down, and its OCCURS ... DEPENDING tests) as a slot of its group's presence snapshot, which the rolled addition reads (ReportGroup.IsPresent): DP, PRESENT WHEN WS-AMT > 5, adds nothing for the records 4 and 2 (T4 = 8 and 9).",
+ "state": "OK"
+}

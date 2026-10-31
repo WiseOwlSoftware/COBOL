@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.24.4-1",
+ "section": "15.24.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "DAY-OF-INTEGER function",
+ "rule-digest": "eef6424ab90b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#DayOfInteger; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
+ "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.IntegerDateForm_Epoch_PinnedToSpec",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SUSTAINED, re-verified rather than inherited. DayOfInteger computes 'Epoch.AddDays(integerDate - 1)' from 'Epoch = new DateTime(1601, 1, 1)', which is the §15.5.2 mapping (integer date 1 = Monday 1601-01-01); .NET's DateTime is the proleptic Gregorian calendar §15.5.1 demands over the whole 1601..9999 range. Independent sweep: generated 62 integer dates (the §D.31.3.7 worked example 143951; the endpoints 1 and 3,067,671; the 1700/1800/1900 non-leap and 2000/2400 leap century boundaries at Feb 28 / Mar 1 / Dec 31; 2000-02-29; and 25 pseudo-random in-range values), computed the expected YYYYDDD in Python's proleptic Gregorian calendar from the spec definition alone, and diffed against the compiled program: ALL 62 MATCH. Receiver axis varied too (the PB5 lesson), all correct at 1995046 for argument 143951: PIC 9(7), 9(9), 9(18), S9(9) COMP, S9(9) BINARY, 9(7)V99, 9(9)V9(5), COMP-1, COMP-2, PIC ZZZ9999 via MOVE, plus a receiver-less IF condition, an EVALUATE subject, a direct DISPLAY, and the operand of '+ 1'. Argument shapes varied: literal, arithmetic expression (143950 + 1), and the nested FUNCTION INTEGER-OF-DATE(19950215) — all 1995046. The rule is conditioned on argument-1 being in integer date form, so the int64-wrap defect is charged to AR-15.24.3-1, not here. Coverage note (not a test-need for this row): the cited test pins only DAY-OF-INTEGER(1) -> 01601001 and the INTEGER-OF-DAY round trip of 150000.",
+ "state": "OK"
+}

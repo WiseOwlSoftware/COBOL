@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.5-L3.1",
+ "section": "14.7.5",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Common phrases and features for statements",
+ "rule-digest": "505ad5ac822c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#CheckPowRule6; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolDec.cs#Pow; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolSizeError.cs#CobolSizeError",
+ "test-ref": "conformance:cases/8.8.1.5.4-Exponentiation-in-standard-decimal-arithmetic/l1_sdidi_pow_zero_exponent",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "No-phrase rule 1: exponentiation violated -> EC-SIZE-EXPONENTIATION set to exist. PROBE out/probe/sizeerr/p2.cob (>>TURN EC-SIZE CHECKING ON, USE AFTER EC-SIZE, native): COMPUTE A = N ** H (N=-2, H=0.5) -> declarative sees EXCEPTION-STATUS 'EC-SIZE-EXPONENTIATION', A unchanged 011, the NOT ON SIZE ERROR phrase ignored. The golden's R4WHEN leg covers the PERFORM WHEN path at SDIDI. With checking off (p3.cob) execution continues - §14.6.13.1.3 item 8's implementor choice (--check 14.6.13.1.3 -> OK 8)), documented as DOC-A.1-70.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.16.4-4",
+ "section": "14.9.16.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "GENERATE statement",
+ "rule-digest": "97abb095e6b6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentHeadingFooting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PageFeed",
+ "test-ref": "conformance-test:ReportWriterConformanceTests.FirstGenerate_Gr4_RhOncePhPerPage; conformance-test:ReportWriterConformanceTests.ControlBreak_Gr4a_CfSeesPriorValue_ChSeesNew; conformance:cases/13.18.37-NEXT-GROUP/pb957_next_group_control",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR4: the first GENERATE after INITIATE runs a) RH, b) PH, c) CHs major to minor, d) the detail unless summary (cite.py --check 14.9.16.4 OK, 4) a)/c)). The !_started branch presents the RH, then PresentPageHeading, then saves the priors, then presents the _controlHeadings values in ascending level order (level 0 = FINAL = most major). The detail follows at the end of GenerateCore. For a) with the RH on a page by itself, ApplyNextGroup's RH NEXT PAGE arm sets _resetPageCounterAtAdvance = ng.Reset and calls PageFeed, which sets PAGE-COUNTER to 1 or adds 1. The WITH RESET arm is covered by the pb957_next_group_control golden. probe out/probe/generate/g1.cob (pinned cobol.exe, --std 2023) printed RH, PH, CHF, CH1 11, CH2 11, DE 11 in exactly the spec's order. For d), summary reporting printed no detail (see GR2). || editions as adjudicated: 85, 2002, 2014, 2023 (Report Writer is present in every edition; the 2023 Annex E lists no change to GENERATE)",
+ "state": "OK"
+}

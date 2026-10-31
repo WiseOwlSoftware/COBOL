@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.63.4-22",
+ "section": "13.18.63.4",
+ "kind": "GR",
+ "ordinal": 22,
+ "subject": "VALUE clause",
+ "rule-digest": "4c7b688e0b96",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#LinePresent; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#RepetitionTest",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb565_report_repeating_entry; conformance:cases/13.15-Report-group-description/pb565_report_vertical_repetition",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB565 (vertical axis). 'The value of literal-1 is used for the content of the printable item whenever it is printed, except that a GROUP INDICATE, PRESENT WHEN, or OCCURS clause with the DEPENDING phrase may suppress the appearance of the item' - all three suppressors are implemented and, since this landing, on BOTH axes: GROUP INDICATE blanks the item's spans on a repeated presentation, and the PRESENT WHEN chain and the OCCURS DEPENDING count are composed into the SAME guard, per placement horizontally and per report line vertically, so they cannot drift apart. 13.18.63.4 GR23's last sentence is honoured beside it by construction - every repetition is BOUND either way, only its placement is guarded - which is why a suppressed repetition still consumes its VALUE operand.",
+ "state": "OK"
+}

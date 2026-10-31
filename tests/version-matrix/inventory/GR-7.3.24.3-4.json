@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.24.3-4",
+ "section": "7.3.24.3",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "SOURCE FORMAT directive",
+ "rule-digest": "ea453b6ec6f6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs#FormatSegments",
+ "test-ref": "conformance:cases/6.5-Logical-conversion/pb1361_directive_in_format_in_effect; unit:ReferenceFormatLogicalConversionTests.FixedFormDirective_IsRecognizedInTheProgramTextArea; unit:ReferenceFormatLogicalConversionTests.FloatingIndicatorInsideALiteral_IsContent",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1361 (w70b): '4) A SOURCE FORMAT directive that is the first line of a compilation group or library text may be in either fixed form or free form.' (cite.py --check 7.3.24.3 -> OK §7.3.24.3 4)). FormatSegments reads line 1 in the format in effect and, failing that, as a SOURCE FORMAT directive in the other format, so '>>SOURCE FORMAT FREE' in column 1 of line 1 switches a text that starts fixed, and 'SEQ001 >>SOURCE FORMAT FREE' (letters in the sequence area, §6.3.2 'may consist of any character' -> OK §6.3.2) is a fixed-form directive (probe p6d prints P6D-OK; before: COBOL0001 unexpected 'SEQ001').",
+ "state": "OK"
+}

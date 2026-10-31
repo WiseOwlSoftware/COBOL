@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.25.3-12",
+ "section": "14.9.25.3",
+ "kind": "SR",
+ "ordinal": 12,
+ "subject": "MOVE statement",
+ "rule-digest": "40b6377a2197",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckCorrespondingGroupOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#Bind",
+ "test-ref": "conformance:cases/14.9.25-MOVE/pb390-move-corr-elementary-operand; conformance:cases/14.9.25-MOVE/pb390-move-corr-reference-modified; conformance:cases/8.4.4-Condition-name/pb390_procedure_and_condition_operands; unit:DecidedRuleStageDriftTests.DecidedRule_IsACompileTimeError_NamingTheRule_AndNeverTheDeferralWarning; conformance:cases/14.7.6-CORRESPONDING/pb966_move_corresponding_through_alias",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB390.md — BOTH HALVES OF THE ONE SENTENCE ARE NOW CHECKED, AT BIND TIME. (a) 'shall specify group data items': the screen kb/Work PB236 moved into StatementValidation, reported as COBOL1757 naming §14.9.25.3 SR12 (negative pb390-move-corr-elementary-operand — MOVE's own case; the row previously had only ADD's §14.9.2.3 SR6 negative behind it). (b) 'and shall not be reference-modified': previously NOT CHECKED AT ALL. A code comment asserted the case was impossible ('reference modification resolves only over elementary character items, never a group') and that premise is false — a group item is reference-modifiable and has its own golden, tests/conformance/2023/pb70_group_reference_modification.cob. The shape had been refused only by an accident of CorrAccess.Create's default arm under a storage-shape message naming neither the rule nor reference modification, and after kb/Work PB393 made that factory switch on Place.Undecorated the accident stopped refusing it: measured on this tree before the fix, `MOVE CORRESPONDING G1(1:3) TO G2` COMPILED AND RAN, moving the whole group with the modifier silently discarded — a wrong answer. The check now reads the PLACE with its decorations intact (the RefModPlace walk ResolveRecordName uses, kb/Work PB347), because PlaceDecorator.Item answers with the INNER item and so cannot see a reference modifier. §8.4.3.3.4 GR6 ('The unique data item is considered to be an elementary data item without the JUSTIFIED clause') is why the arithmetic spellings need no separate rule for it. Negative: pb390-move-corr-reference-modified.",
+ "state": "OK"
+}

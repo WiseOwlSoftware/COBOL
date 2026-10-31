@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-57",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 57,
+ "subject": "DISPLAY statement (format for display of a variable-length group)",
+ "rule-digest": "333ab2e7471b",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-57; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#VariableLengthGroupSum",
+ "test-ref": "conformance:cases/14.9.11-DISPLAY/pb164_vlg_display",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "§14.9.11.4 GR7's implementor format measured at TWO extents (G1/G2) with the §15.50.4 r7 LENGTH sum beside it (L1/L2) and the sanctioned national divergence visible in the difference. || editions 2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a variable-length group (one with a dynamic-length elementary item or a dynamic-capacity table, 8.5.1.12.1) exists from 2014, the edition of both. cite.py --check 8.5.1.12.1 \"A variable-length group is a group item whose data description has at least one\" OK.",
+ "state": "OK"
+}

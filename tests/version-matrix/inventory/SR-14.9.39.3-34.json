@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-34",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 34,
+ "subject": "SET statement",
+ "rule-digest": "8186f5e0f427",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetSize; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetLiteralAmount.cs#Of",
+ "test-ref": "conformance:cases/14.9.39-SET/pb458-set-size-literal-over-limit; conformance:cases/14.9.39-SET/pb458-set-size-literal-over-limit-bare; conformance:cases/8.5.1.11.3-Availability-and-persistence-of-variable-length/set_size",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB458. 'Integer-2 shall be non-negative, and shall be equal to or less than the maximum size of data-name-3, as specified in 8.5.1.10' is now screened at bind time in BOTH arms of Format 16 (SIZE OF is a bracket, so the explicit and bare spellings are one format and one bind), against DataItem.DynMaxSize - the 8.5.1.10.1 maximum size, produced once by CobolDynString.MaxSizeOf. Before there was no compile-time screen in either arm and 14.9.39.4 GR37/GR38's clamp stood in for it, so SET SIZE OF D TO 99 over LIMIT IS 8 ran and answered a length of 8 and SET SIZE OF D TO -1 answered 0. GR38 is unconditional for integer-2 precisely BECAUSE SR34 has already guaranteed the literal is in range; the clamp remains the rule for arithmetic-expression-5. docs/CONFORMANCE.md's claim that 'the integer-2 literal form is compile-time bounded by SR34' was false when written and is true in this change set, and now names its code site.",
+ "state": "OK"
+}

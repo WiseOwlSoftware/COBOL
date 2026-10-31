@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.8.2.2-1",
+ "section": "14.8.2.2",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Parameters",
+ "rule-digest": "8b2a79a815ab",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#CallArgumentViolation; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#ReferenceGroupViolation; src/WiseOwl.Cobol.Compiler/Oo/ActivationDescriptions.cs#Of; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#IsAlphanumericGroupPartner",
+ "test-ref": "conformance:cases/14.8.2.2-Group-items/w61b-pb1166-group-kind-pairing; conformance:cases/9.3.6-Method-invocation/w61b_pb1166_picture_identity; conformance:cases/8.4.3.3-Reference-modification/pb546_national_leaf_one_width",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1112 leg 5, fixed by kb/Work PB1166 (a38622ede) and re-probed on this tree (wave 73 E). Rule (cite.py --check 14.8.2.2 \"shall be an alphanumeric group item or an elementary item of category alphanumeric\" -> OK 14.8.2.2 1); 14.8.2.1 NOTE \"A bit group or national group is treated as an elementary item\" -> OK). The group arms ask IsCategoryAlphanumeric and route a bit/national group through AsIfElementaryGroupMismatch before the alphanumeric-group arms. Measured with the note's probes: pe, pf, pk, pl, pg / pg2 -> all COBOL1688. kb/Work PB546's byte half (registrar 14b: 'the same number or a smaller number of bytes' measured on positions) re-probed on the w1070 A build: an 8-byte alphanumeric group holding N(2) + X(4) binds into an 8-byte and a 6-byte group formal over INVOKE and the callee reads WXYZ / WX at bytes 5-8 / 5-6, i.e. the group is measured in bytes. retired-witness: src/Cobol.Net.Compiler/Oo/OoConformance.cs#DescriptionMismatch (kb/Work PB3101 (wave 1082): the DataItem comparator family is deleted (OoConformance.DescriptionMismatch, StrongTypeMismatch, AsIfElementaryGroupMismatch, IsCategoryAlphanumeric, PictureClauseIdentity.Mismatch, ObjectRefDescriptor.SameDescriptionAs); every activation and pair-mode question describes its items through ActivationDescriptions and asks ActivationRelations (CallArgumentViolation / CallReturningViolation / MatchViolation / SignatureDifference), the PICTURE identity entering through PictureClauseIdentity.Key) retired-witness: src/Cobol.Net.Compiler/Oo/OoConformance.cs#IsCategoryAlphanumeric (kb/Work PB3101 (wave 1082): the DataItem comparator family is deleted (OoConformance.DescriptionMismatch, StrongTypeMismatch, AsIfElementaryGroupMismatch, IsCategoryAlphanumeric, PictureClauseIdentity.Mismatch, ObjectRefDescriptor.SameDescriptionAs); every activation and pair-mode question describes its items through ActivationDescriptions and asks ActivationRelations (CallArgumentViolation / CallReturningViolation / MatchViolation / SignatureDifference), the PICTURE identity entering through PictureClauseIdentity.Key)",
+ "state": "OK"
+}

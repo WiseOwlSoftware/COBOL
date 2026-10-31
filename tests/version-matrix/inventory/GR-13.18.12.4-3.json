@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.12.4-3",
+ "section": "13.18.12.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "CODE clause",
+ "rule-digest": "99163c753ad4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#EvaluateCode; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AdvancePage",
+ "test-ref": "conformance:cases/13.18.12-CODE/pb1129_rd_code_identifier",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "(kb/Work PB1129, wave 1005 A). identifier-1 is evaluated at the start of each body group - at the page advance's step c) when one is performed, else in PresentBody after the page-fit test found none (and at the first GENERATE, before its report and page headings) - and 'the resultant value is used until the next evaluation'. pb1129_rd_code_identifier derives A (first GENERATE), B (a body group that fits: no advance), C (the advance, after a footing written with B) and CPF at TERMINATE (no body group, so no re-evaluation although WS-CD holds D). cite.py --check 13.18.12.4 OK 3). retired-witness: src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#ReportCodeClause (the descriptor was deleted: the CODE clause is implemented and its syntax rules are COBOL2713 (ReportCodeClauseRule))",
+ "state": "OK"
+}

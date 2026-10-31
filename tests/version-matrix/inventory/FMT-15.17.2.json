@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.17.2",
+ "section": "15.17.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "COMBINED-DATETIME function",
+ "rule-digest": "4c3bc66ae4fc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#FieldOperand",
+ "test-ref": "conformance:cases/15.38.3-Argument-rules/l1_datetime_general_formats; conformance:cases/15.3.3.6.1-Offset-subformats/formatted_datetime; conformance:cases/15.17-COMBINED-DATETIME/l1-combined-datetime-no-function-word; conformance:cases/15.17-COMBINED-DATETIME/l1-combined-datetime-one-argument",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "The printed format accepted as printed (CDT=014395145296 = §15.17.4 r1's EAE 143951 + 45296/100000), plus both prohibitions the underlining and the unbracketed pair state: the word FUNCTION required absent a REPOSITORY declaration (§8.4.3.2.3 SR2, COBOL1543) and exactly two arguments (COBOL1504). 2014 arm: formatted_datetime CDT= line. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#RefFailure (kb/Work PB1030 deleted RefFailure: a data reference the resolver builds no place for is now answered by the resolver's closed RefResolution, read at FieldOperand/RefExpr)",
+ "state": "OK"
+}

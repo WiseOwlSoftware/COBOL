@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.10.4-5",
+ "section": "13.10.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Constant entry",
+ "rule-digest": "5ee9cacad350",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#BindConstantLength; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#constantValue; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ByteWidth; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.DescriptionCompletion.cs#CompleteDescriptionAhead",
+ "test-ref": "conformance:cases/13.10-Constant/pb1227_constant_byte_length; conformance:cases/13.10-Constant/pb2465_constant_length_completed_description",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1227 (w1006c). cite.py --check 13.10.4 \"If the BYTE-LENGTH phrase is specified, the class and category of constant-name-1 is\" -> OK GR5. The 0899 staging rested on a false premise (FUNCTION BYTE-LENGTH is live) and is deleted. The grammar now spells the phrase (constantValue: constantByteLengthWord OF dataReference, BYTE-LENGTH the 8.9 context-sensitive word recognized through wordAhead) instead of riding arithmeticExpression as a qualified reference, and BindConstantLength binds it beside LENGTH OF with DataItem.ByteWidth - the fold FUNCTION BYTE-LENGTH reads. Golden: X(4)=4, N(3)=6, S9(9) COMP-5=4, group X(2)+N(2)=6, an OCCURS 1 TO 4 DEPENDING group = its MAXIMUM 1 + 4x3 = 13 (GR5's exception), C OF R (3 2) with C PIC N(2) = 4. kb/Work PB2465 (w1045a): the operand is measured AS DESCRIBED. BindConstantLength completes the operand's subtree first (CompleteDescriptionAhead: the SR9 implied PICTURE, TYPE / SAME AS composition, 13.18.60.4 GR1 group USAGE and 13.18.52.4 GR1 group SIGN, through the pipeline passes' own bodies, with what the ancestors hand down), so a group-USAGE PACKED-DECIMAL S9(5) leaf is 3 bytes, a national group's 9(4) leaf 8, a SAME AS copy of a packed leaf 3; it used to read the half-described entry (4 for a COMP-5 PIC 9(4) leaf where it occupies 2) in silence. || editions corrected from '2002' to 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a constant-entry rule; the constant entry (level 01 CONSTANT) is a COBOL-2002 introduction. cite.py --check 13.10.3 \"The length of data-name-1 or data-name-2 shall not be dependent\" OK.",
+ "state": "OK"
+}

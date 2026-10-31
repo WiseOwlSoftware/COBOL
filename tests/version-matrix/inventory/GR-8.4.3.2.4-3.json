@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.2.4-3",
+ "section": "8.4.3.2.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Function-identifier",
+ "rule-digest": "4664ad2ffcde",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfBindCall; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#DefinitionPermitsArguments; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#UserFunctionsOf; src/WiseOwl.Cobol.Compiler/Oo/OoDriver.cs",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb974_repository_as_phrase; conformance:cases/8.4.3.2-Function-identifier/pb1100_class_repository_function_program",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1424 (wave 1012 J) - DISCHARGED: both halves of the refuter's PARTIAL were already fixed on main. (1) A function-prototype-name in a CLASS / METHOD source element is identified: OoDriver hands each class half BinderDriver.UserFunctionsOf over the class REPOSITORY (kb/Work PB1100, 63213d7f8; golden pb1100_class_repository_function_program) - re-probed on this tree, a method's COMPUTE X = FUNCTION FCLS resolves and runs. (2) A REPOSITORY entry naming a definition by its AS externalized name is identified by EXTERNALIZED name: UserFunctionsOf maps `FUNCTION name AS literal-5` to the function whose externalized name is literal-5 (12.3.8.4 GR11 NOTE 2, kb/Work PB974, ebc9c4994; golden pb974_repository_as_phrase TWICE -> W974FN AS \"W974-TWICE\"), re-probed with a differently-spelled local word. cite.py --check 8.4.3.2.4 'the function to be activated is identified by function-prototype-name-1 in accordance with the rules specified in 12.3.8' OK GR3; --check 12.3.8.4 'Literal-5, if specified, is the externalized name of the function prototype' OK.",
+ "state": "OK"
+}

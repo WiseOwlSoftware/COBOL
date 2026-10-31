@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.38.3-21",
+ "section": "13.18.38.3",
+ "kind": "SR",
+ "ordinal": 21,
+ "subject": "OCCURS clause",
+ "rule-digest": "61e7dc1f00f7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#DependingAttributeFault; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#HasExternalAttribute",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb1261-depending-not-external; conformance:cases/13.18.38-OCCURS/pb1261_depending_attributes_and_area",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1261 (wave 1015 Y). cite.py --check 13.18.38.3 \"If the OCCURS clause is specified in a data description entry included in a record description entry containing the EXTERNAL clause\" -> OK 21). A table whose record carries the EXTERNAL clause (or an EXTERNAL type, 13.18.22.4 GR3) and whose data-name-1 lacks the external attribute (8.6.3: an EXTERNAL record, or a record of an EXTERNAL FD) draws COBOL2788.",
+ "state": "OK"
+}

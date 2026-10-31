@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.1.6.4-2",
+ "section": "8.5.1.6.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Alignment of data items in storage",
+ "rule-digest": "8863bf755814",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#RecordLayout; src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#ExtentBits",
+ "test-ref": "conformance:cases/8.5.1.6.4-Item-alignment-for-increased-object-code/l1_sync_occurs_and_no_auto_align",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 8.5.1.6.4 \"Each implementor who provides for special types of alignment shall specify the precise interpretations that are to be made\" -> OK §8.5.1.6.4 2)): synchronization without the SYNCHRONIZED clause by organizing data on natural boundaries; the documentation obligations (interpretation, implicit FILLER effect, statement semantics) are CONDITIONAL on the implementor providing such special alignment. Annex A.1 item 7 (--check OK: \"Alignment of data for increased efficiency (special or automatic alignment: interpretation, implicit filler, semantics of statements). This item is optional.\") and §13.18.55.4 GR10 (\"An implementor may optionally specify automatic alignment...\", --check OK) make the facility optional. WiseOwl COBOL provides none: DOC-A.1-195 states \"GR10's optional automatic alignment is not specified, so nothing is aligned without the clause either\". Verified by PROBE: 01 G2: X, S9(9) COMP, COMP-2, INDEX (no SYNC) -> FUNCTION LENGTH(G2)=21 = 1+4+8+8 in 85/2002/2014/2023 (no implicit FILLER); golden AUTO=4 / AUTO8=10 legs (X, COMP/BINARY-DOUBLE, X) discriminate against any automatic alignment (an aligning implementation answers 6/24 or similar). No implicit FILLER exists, so no statement semantics on groups are affected — the conditional obligations are vacuous and the choice is documented. [code-location note: (sequential byte offsets, no automatic alignment)] || editions as written by the adjudicator: 1985, 2002, 2014, 2023 (the clause and the SYNCHRONIZED clause exist in every edition; SYNCHRONIZED on a GROUP item is 2023-only per Annex E.3.2 item 6, not this rule's subject)",
+ "state": "OK"
+}

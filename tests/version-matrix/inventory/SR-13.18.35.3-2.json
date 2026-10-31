@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.35.3-2",
+ "section": "13.18.35.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "LINE clause",
+ "rule-digest": "b47ec7b01604",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportLineClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportLineClause",
+ "test-ref": "conformance:cases/13.18.35-LINE/l1c16_report_lines_synonym; conformance:cases/13.18.14-COLUMN/pb1221_report_keyword_prefixes",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "cite.py --check 13.18.35.3 \"LINE and LINES are synonyms.\" OK (13.18.35.3 2)). No binder or emitter path reads which spelling was written (ScreenReportLineClauses and ReportRepetitionOf read only reportLineOperand), so the two are semantically identical by construction; conformance:cases/13.18.35-LINE/l1c16_report_lines_synonym and conformance:cases/13.18.14-COLUMN/pb1221_report_keyword_prefixes (LINES ARE PLUS 1, LINES PLUS 1) witness it. The synonymy is of MEANING: each spelling keeps the companions its 13.18.35.2 alternative prints (LINE [NUMBER] [IS], LINE [NUMBERS] [ARE], LINES [ARE]), and the parser refuses the rest (kb/Work PB1221, FMT-13.18.35.2). || Editions (adjudicator): 2023 text. The compiler gates the LINES spelling at 2002; the introducing edition is NOT derivable from the 2023 text (VERSION_CHANGE_REFERENCE row 130d), so only 2002/2014/2023 were probed. || Code sites (adjudicator detail): src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportLineClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs",
+ "state": "OK"
+}

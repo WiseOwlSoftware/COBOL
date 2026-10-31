@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.2.2-7",
+ "section": "14.2.2",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "Procedure division structure",
+ "rule-digest": "568dbaa2bd8f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RaisingPhrase.cs#Partition",
+ "test-ref": "conformance-test:OoSpineTests.MethodHeaderRaising_NonEcUser_0858; conformance-test:RaisingPhraseTupleTests.MethodRaising_EachMethodChecksItsOwnHeader",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB815.md landed w46. A catalog exception-name in the header is accepted only at level 3 under EC-USER (COBOL0858 otherwise), with the 15.33 width advisory (EcNameResolution.Advise); the accepted names feed the GOBACK/EXIT SR2/SR3 EC-USER check per source element.",
+ "state": "OK"
+}

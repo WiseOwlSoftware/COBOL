@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.2.2.5-3",
+ "section": "7.2.2.5",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Text manipulation elements",
+ "rule-digest": "1b11e27258c1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#EndsCharacterString",
+ "test-ref": "unit:TextManipulationTextWordTests.PictureStrings_AreSingleTextWords; conformance:cases/7.2.2.5-Text-words/pb1350_text_words_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1350 landed (w61a): Any other character sequence bounded by separators is one text-word: Z,ZZ9 and ZZ.ZZ are single words (probe comma.cob [   12]). The optional prohibition of non-repertoire characters is not exercised. Spec re-derived and re-cited by the implementer; every probe of the note re-run on the fixed build. retired-witness: src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#TokenizeTextWords (the symbol was removed by kb/Work PB1350/PB1354 (one TextWordScanner + a parsed COPY/REPLACE statement); its successor is named in code-location)",
+ "state": "OK"
+}

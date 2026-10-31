@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.34.4-1",
+ "section": "14.9.34.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "RETURN statement",
+ "rule-digest": "ae1edb21231b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#ReturnStatement; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#EnterProcedure; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitReturn; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#FatalAmbientGates; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcWrap",
+ "test-ref": "conformance:cases/14.9.32-RELEASE/pb349_sort_merge_flow_ec; conformance:cases/14.9.32-RELEASE/pb349-sort-flow-turn-at-85; conformance:cases/14.9.34-RETURN/pb722_return_into_flow_ec; conformance-test:ReturnIntoExceptionPathTests.FlowReturn_OutsideOutputProcedure_NoDeclarative_TerminatesAbnormally",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB349 (landed, wave 56). RULE (cite.py --check 14.9.34.4 'within the range of an output procedure being executed by a MERGE or SORT statement that references file-name-1' -> OK 14.9.34.4 1)). The RETURN STATEMENT renders CobolSort.ReturnStatement, which raises EC-FLOW-RETURN (ExceptionState.FlowReturnError) before retrieving whenever no store exists for the file or its phase is not Output; the emitter marks the OUTPUT PROCEDURE range of both SORT and MERGE with EnterProcedure(output: true). FatalAmbientGates row (EC-FLOW-RETURN, FlowReturnChecking) + QueryFor(BoundReturn). The implicit GIVING return keeps the unchecked Return primitive. Checking OFF: nothing raised; a RETURN with no statement executing takes the at end path. Golden: MAIN's RETURN outside any SORT/MERGE -> HANDLED=EC-FLOW-RETURN and the RETURN is abandoned (neither AT END nor NOT AT END runs); before the fix it returned the record a stray RELEASE had stranded (MAIN-NOT-AT-END).",
+ "state": "OK"
+}

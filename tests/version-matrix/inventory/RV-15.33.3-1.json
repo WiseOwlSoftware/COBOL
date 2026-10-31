@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.33.3-1",
+ "section": "15.33.3",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "EXCEPTION-STATUS function",
+ "rule-digest": "5614952a981d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Exceptions/EcFunctions.cs#Status; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ExceptionEngine; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ObjectSentinel; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#NAME_BODY",
+ "test-ref": "conformance:cases/13.18.63-VALUE/ec_range_invalid; conformance:cases/14.6.13.1.5-Exception-objects/oo_ec_raise_object; conformance:cases/15.32.3-Returned-value-rules/l1_exception_statement_table12; conformance-test:ExceptionConditionConformanceTests.Raise_CheckingOff_Nonfatal_ActsAsContinue; conformance-test:ExceptionConditionConformanceTests.SetLastExceptionToOff_ClearsTheStatus; conformance-test:ExceptionConditionConformanceTests.Turn_OffMidSource_ScopesBySourceOrder",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "All three arms of r1: ec_range_invalid I88/IEV give the 31-wide exception-name and V/N the no-exception all-spaces arm; oo_ec_raise_object gives the 'EXCEPTION-OBJECT' arm 31 wide; l1_exception_statement_table12 L-S adds the uppercase clause from lowercase source.",
+ "state": "OK"
+}

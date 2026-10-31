@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.37.3-3",
+ "section": "14.9.37.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "SEARCH statement",
+ "rule-digest": "6f9fcb668d06",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveSearchTable; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveTableOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#Identifier1",
+ "test-ref": "conformance:cases/14.9.37-SEARCH/pb443_search_identifier_1; unit:SearchOperandResolutionDriftTests.NestedTable_SearchesTheSuperordinateOccurrenceTheWhenNames; unit:DecidedRuleStageDriftTests.SearchIdentifier1_LegalControl; nist:NC233A; nist:NC237A",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB443 LANDED, AND THE ROW'S OWN PREMISE WAS CORRECTED IN THE LANDING. SR3 IS A PERMISSION AND A POINTER, NOT A SCREEN ON identifier-1. The note that opened this row proposed a lower bound in those words (\"exactly one per enclosing table is required\") and the first implementation shipped it; it REJECTS LEGAL SOURCE, and the standard's own validation suite is what proved it - NC233A line 516 writes `SEARCH ALL GRP2-ENTRY ... WHEN SEC (IDX-1, IDX-2) = \"(01,01)\"` over `02 GRP-ENTRY OCCURS 10 ... 03 GRP2-ENTRY OCCURS 10`, with NO subscript on identifier-1 and the outer occurrence supplied by IDX-1 in the WHEN, and the bound failed SIX NIST programs outright (NC231A NC232A NC233A NC234A NC237A NC238A). 14.9.37.4 GR1 says so directly: \"The subscript that is used to determine the occurrence of each superordinate table to search is specified by the user in the WHEN phrases. Therefore, each appropriate subscript shall be set to the desired value before the SEARCH statement is executed.\" So SR3's \"the subscripting is still required\" is required THERE, at run time in the WHEN phrases, and nothing about identifier-1's written form follows from it. BOTH SPELLINGS ARE LEGAL and the 85 golden runs the SAME nested table both ways and asserts the SAME answer: `SEARCH INNER (OX)` (SR2 bans a subscript only at the searched level, so a superordinate one is admitted) and the bare `SEARCH INNER`, each with OX at 2 and each matching in the second row - which also pins GR1's own sentence, since the occurrence searched came from the WHEN either way and OX is unchanged afterwards. The permission half was already measured working and stays so; what closes the row is that the requirement half has been located (the WHEN phrases, GR1) rather than enforced in the wrong place. The subscript arithmetic that remains is SR2's upper bound, recorded there.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.18.3-6",
+ "section": "14.9.18.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "GOBACK statement",
+ "rule-digest": "524cb6166326",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#AdmittedStatusItem; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#ScreenStatusOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#StatusOperand; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#UsageOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#DecodeGobackPhrases",
+ "test-ref": "conformance-test:StopGobackExitCodeTests.NonNumericStatusOperand_IsLegalAndInterpretedNumerically; conformance-test:StopGobackExitCodeTests.RefModAndGroupStatusOperands_AreAdmittedBySR2; conformance-test:StopGobackExitCodeTests.TheStatusPositionsOwnRules_AreEnforcedAndCited; conformance-test:GobackStatusArmParityTests.AStatusRuleBrokenInAMethod_IsRejectedExactlyAsInAProgram; conformance:cases/14.9.18-GOBACK/pb411_goback_status_operand_and_method_arm; conformance:cases/14.9.18-GOBACK/pb411-status-strongly-typed-group",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work/PB411.md - LANDED. BOTH alternatives of SR6 are read as written, and the usage alternative now asks ItemCategory.UsageOf, THE ONE 8.5.2.1 usage reader: 'An alphanumeric group item is treated as though it had a usage of display', so an alphanumeric group IS a data item with usage display and SR6 admits it. The screen previously asked DataItem.OperandPic, which is null for such a group, and read that null as 'no usage at all' - a measured REJECTS-LEGAL-SOURCE defect on both verbs (GOBACK WITH ERROR STATUS <group> -> COBOL1704 quoting the very rule the operand meets), held open by a green InlineData row and a negative fixture, both flipped this change. The rule's edge is pinned too: 3.11 defines 'alphanumeric group item' by exclusion ('group item except for a bit group item, a national group item, a strongly-typed group item, or a variable-length group item'), so a strongly-typed and a variable-length group answer null and stay rejected - negative rows for both. The METHOD arm now reaches the screen at all: CallBinder.DecodeGobackPhrases reads gobackStatement ONCE before the 14.9.18.4 GR2/GR4 fork and OoBinder.OoBindMethodGoback takes the decoded record instead of the parse node (it read only dataReference() and raisingPhrase(), dropping the status phrase in silence). GobackStatusArmParityTests compiles the same statement in a program and in a method and compares the verdicts; GobackPhraseDecodeDriftTests holds the one-decode structure. Measured after: 'STOP RUN / GOBACK WITH ERROR STATUS <alphanumeric group>' compiles and exits on the group's image (41/50 in the probes), a slice of that group likewise, and the strongly-typed group still draws COBOL1704.",
+ "state": "OK"
+}

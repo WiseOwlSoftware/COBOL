@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.4.3-4",
+ "section": "8.4.3.4.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "Inline method invocation",
+ "rule-digest": "7b79aad692d6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindStandardInvoke",
+ "test-ref": "conformance:cases/8.4.3.4-Inline-method-invocation/pb428-inline-invocation-returning-active-class; conformance:cases/8.4.3.4-Inline-method-invocation/pb1548-inline-new-active-class",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1428, LANDED (wave 59 with PB1548). Rule: 'The data item referenced in the RETURNING phrase of the invoked method's procedure division header shall not be described with the ANY LENGTH clause or with the ACTIVE-CLASS phrase.' (cite.py --check 8.4.3.4.3 -> OK §8.4.3.4.3 4)). The DIVERGES was the predefined NEW: OoBindImplicitNew synthesized an 'object-class-name ONLY' temp for `class :: \"NEW\"` and never applied SR4. New is now the standard class BASE's method with its §16.2 signature ('01 outObject usage object reference active-class', cite.py --check 16.2 OK), and every method of BASE invoked inline is refused COBOL2140 in OoBindStandardInvoke (both §16.2 returning items are ACTIVE-CLASS) - witnessed by negative pb1548-inline-new-active-class; a user method whose RETURNING is ACTIVE-CLASS stays COBOL2140 (pb428-inline-invocation-returning-active-class). The ANY LENGTH arm is checked in OoBindResolvedInvoke but an ANY LENGTH RETURNING item is refused earlier (COBOL0899 staging), so no program violating SR4 is accepted. Golden 2002/pb428_inline_method_invocation step 7 (which relied on the accepted `PB428ACC :: \"NEW\"`) now invokes a factory method. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.InlineInvocation.cs#OoBindImplicitNew (deleted by kb/Work PB1548/PB1428: the inline New no longer binds through a synthesized ONLY temp; it is refused by SR4 in OoBinder.OoBindStandardInvoke)",
+ "state": "OK"
+}

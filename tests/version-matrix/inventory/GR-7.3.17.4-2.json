@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.17.4-2",
+ "section": "7.3.17.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "LEAP-SECOND directive",
+ "rule-digest": "50447ee3cf2a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#SecondsPastMidnight; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#Format21; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#ProgramEmitter; src/WiseOwl.Cobol.Frontend/Preprocessor/LeapSecondDirectiveProcessor.cs#LeapSecondDirectiveProcessor; src/WiseOwl.Cobol.Runtime/IO/Clock.cs#SystemClock",
+ "test-ref": "conformance-test:LeapSecondReportedSecondsPinTests.ReportedSeconds_On_LastTickBeforeLeapSecond_NeverExceeds59; conformance-test:LeapSecondReportedSecondsPinTests.ReportedSeconds_ImpliedOn_BareDirective_LastTickBeforeLeapSecond_NeverExceeds59; conformance-test:LeapSecondReportedSecondsPinTests.ReportedSeconds_On_2002_LastTickBeforeLeapSecond_NeverExceeds59; unit:WhenCompiledStampTests.WhenCompiled_LeapSecondOn_LastTickBeforeLeapSecond_Bakes59; unit:WhenCompiledStampTests.WhenCompiled_LeapSecondImpliedOn_BareDirective_LastTickBeforeLeapSecond_Bakes59",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR2 (cite OK 7.3.17.4 2)): the determination per DOC-A.1-111 is never >59 (nn = 59). Both arms are pinned, ON specified and ON implied by a bare >>LEAP-SECOND (§7.3.17.2 un-underlined ON; §5.2.3 cite OK), at 2002 and 2023. Every source, the WHEN-COMPILED bake included, reports second 59 with hundredths 99, never 60, at the pinned 23:59:59.9999999. retired-witness: src/Cobol.Net.Runtime/IO/Clock.cs#Clock (Clock.cs declares IClock and SystemClock; no declaration named Clock exists in it, the witness resolved on a comment)",
+ "state": "OK"
+}

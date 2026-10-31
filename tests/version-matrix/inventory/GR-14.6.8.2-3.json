@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.8.2-3",
+ "section": "14.6.8.2",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Alignment and transfer of data into data items",
+ "rule-digest": "4fdae96a4505",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#Numeric; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Format",
+ "test-ref": "conformance:cases/14.6.8.2-Fixed-point-numeric-and-fixed-point/l1c01_move_implied_point",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'If the data description of the receiving data item does not include an explicit decimal point specification, the data item is treated as if it had an assumed decimal point immediately following its rightmost digit.' cite.py --check 14.6.8.2 -> OK §14.6.8.2 3). Code: a PICTURE with no V/'.' and no P gets scale afterV=0 (point after the rightmost digit); P-scaled pictures get the point after the P run (trailing) or before it (leading), which is the PICTURE's own decimal-point specification. Probe out/probe/alignment/p1.cob and p2.cob (pinned cobol.exe, --std 85 and 2023 identical): MOVE 123.456 TO PIC 9(5) -> 00123; MOVE 7.9 TO PIC ZZ9 -> '  7'; MOVE 0.5 TO PIC 99 -> 00; MOVE PIC 9(3)V9(3) 987.654 TO PIC 9(5) -> 00987; P scaling MOVE 12345 TO 99PPP -> 12000, MOVE 0.00789 TO PP9 -> 0.00700; DECIMAL-POINT IS COMMA receiver PIC ZZ.ZZ9 (period = insertion, no decimal point) MOVE 12345,6 -> '12.345', PIC ZZ9PP MOVE 12345 -> '123'. All match the rule. No golden cites rule 3 discriminatingly (l1_subtract_giving_resultant_categories stores the integer 19, which cannot distinguish the assumed point) -> test-needed. [code-location note: (scale = trailingP>0 ? -trailingP : leadingP>0 ? leadingP+digitPositions+floatingExtra : afterV, line 354); code-location note: arm (NumericRenderer.StoreExpr at target.OperandPic.Scale)] || editions as adjudicated: 85, 2002, 2014, 2023 (common §14.6.8.2 rule, no edition qualification in the clause)",
+ "state": "OK"
+}

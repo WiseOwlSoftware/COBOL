@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.28.4-4",
+ "section": "14.9.28.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "PERFORM statement",
+ "rule-digest": "a8c49df0ee59",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform; src/WiseOwl.Cobol.Compiler/Binding/Model/PcRange.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitOutOfLinePerform; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureQuiet",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/pb440_perform_empty_range_2023; conformance:cases/14.9.28-PERFORM/pb440_perform_range_composition; conformance:cases/14.9.28-PERFORM/pb440_perform_test_after_empty; conformance:cases/14.9.28-PERFORM/pb440_perform_empty_range_85; conformance:cases/14.9.28-PERFORM/pb440_perform_empty_range_2002; conformance:cases/14.9.28-PERFORM/pb440_perform_empty_range_2014; unit:ProcedureRangeEmptinessDriftTests.ThroughComposesTheSpecifiedSet",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB440.md - LANDED. The two arms the row's previous verdict rested on are fixed at the ROOT: a resolved procedure range is now a PcRange that CARRIES its emptiness (it cannot be derived - a zero-paragraph section, 14.4.2, and an ADJACENT inverted THRU range, GR6, are the identical pair (s, s-1)), BindPerform has ONE path that always binds the control phrase, EmitOutOfLinePerform emits the control-phrase scaffold for EVERY range and supplies an EMPTY body when the set is empty, and DispatchState.DispatchCall is the one place a range becomes __Dispatch and THROWS on an empty one. BOTH halves of GR4 are now measured, not inferred. \"Function identically\": pb440_perform_empty_range writes the SAME VARYING+AFTER phrase out-of-line over an empty section and inline, and they agree digit for digit (OUTOFLINE A=4 B=1 / INLINE C=4 D=1); pb440_perform_test_after_empty does the same for the TEST AFTER shape (A=4 B=4 / C=4 D=4, 16 iterations). Before the fix the out-of-line pair read A=7 B=7 - the VALUE the induction variables were declared with, because the whole control phrase had been deleted. The specified-set composition is measured by pb440_perform_range_composition: PA THRU PC runs 1+2+4 and not PD (GR5 b), a SECTION name runs its whole paragraph range and not the next section (GR5 a), the same section named twice is unchanged, an INVERTED range runs INV-B then INV-A (GR6), an EMPTY procedure-name-1 composes with no special case (SPAN N=1000), and an EMPTY PARAGRAPH still runs nothing and returns without falling into the following paragraph (EMPTYPARA N=0000). The empty SECTION's own answers are in pb440_perform_empty_range at all four editions.",
+ "state": "OK"
+}

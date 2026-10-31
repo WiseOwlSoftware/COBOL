@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.3.3.2.4-5",
+ "section": "8.3.3.2.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Alphanumeric literals",
+ "rule-digest": "0a2fabbba200",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#DecodeHex; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#HexGroupViolation; docs/CONFORMANCE.md#DOC-A.1-95",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1c12_hex_alphanumeric_every_group; conformance:cases/8.3.3.2-Alphanumeric-literals/pb2919_hex_literal_ff_is_the_storage_byte",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB929 sweep (2026-10-25): re-verdicted PARTIAL -> CONFORMS because the reason the row carried no longer reproduces on this tree. Rule: cite.py --check 8.3.3.2.4 \"The implementor defines the result of specifying a hex-character-sequence-1 for which no corresponding character\" -> OK 8.3.3.2.4 5). With two hex digits per alphanumeric character (SR6, HexGroupViolation) every group 00-FF maps to a character of the UTF-16 alphanumeric repertoire (DecodeHex images a group hh as U+00hh for 00-FE and FF as U+FFFF, the storage-byte law, kb/Work PB2919), so no 'no corresponding character' case arises; a character is 16 bits, a multiple of four, so the second sentence's mapping is not triggered. The definition is documented: docs/CONFORMANCE.md DOC-A.1-95 (CONFORMS; the earlier PARTIAL said Annex A.1 item 95 had no row). WITNESSES: l1c12_hex_alphanumeric_every_group (every group maps) and pb2919_hex_literal_ff_is_the_storage_byte (ORD(X\"80FF0041\") is 129 65536 1 66). Editions as adjudicated: 2014, 2023.",
+ "state": "OK"
+}

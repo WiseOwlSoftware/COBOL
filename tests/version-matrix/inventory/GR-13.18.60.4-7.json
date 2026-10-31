@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.60.4-7",
+ "section": "13.18.60.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "USAGE clause",
+ "rule-digest": "a23677df4a22",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/StorageByte.cs#StorageByte.ImageByte",
+ "test-ref": "conformance:cases/8.1.2-Computer-s-coded-character-set/l1_usage_display_character_size; conformance:cases/A.1-Implementor-defined-language-element-list/pb547_redefines_national_view_of_wide_character; conformance:cases/A.1-Implementor-defined-language-element-list/pb547_redefines_binary_and_bit_views_of_wide_character; unit:StorageImageByteTests.NatReadWindow_ReadsAWideCharacterAsTheSubstituteByte_AndSetsDataConversion; unit:StorageImageByteTests.ToByte_IsTheLaw_OverTheWholeRepertoire; unit:StorageByteLawDriftTests.NoCharacterIsReducedToAByteOutsideTheStorageByteLaw",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB547 LANDED. GR7 has three obligations. An alphanumeric coded character set is used and the item is aligned on a character boundary (probe: BYTE-LENGTH equals LENGTH for X(5), 9(5), S9(5); a DISPLAY leaf never shares a byte). The implementor specifies the size and representation (A.1 item 209, DOC-A.1-209, pinned by conformance:cases/8.1.2-Computer-s-coded-character-set/l1_usage_display_character_size). The characters are of uniform size, one byte per position: an alphanumeric item may hold any UTF-16 code unit in memory (DOC-A.1-31, -33), and a code unit with no one-byte image is never carried silently at a byte channel. At an in-memory channel (a REDEFINES or group storage image read through a national, bit, binary, packed or floating-point view, CONVERT BYTE/HEX/ANY) it reads as ? (0x3F) with EC-DATA-CONVERSION (StorageByte.ImageByte); at the file channel the WRITE is refused with I-O status 91 (owner decision R47, kb/Work PB690). Witnesses: the pb547 conformance cases and StorageImageByteTests.",
+ "state": "OK"
+}

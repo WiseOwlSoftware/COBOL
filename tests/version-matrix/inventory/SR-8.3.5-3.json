@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.5-3",
+ "section": "8.3.5",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Lexical elements",
+ "rule-digest": "b61df907a093",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Parsing/SeparatorRule.cs#Violations; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#DOT; src/WiseOwl.Cobol.Frontend/Parsing/PictureSeparatorPeriodRule.cs#PictureSeparatorPeriodRule",
+ "test-ref": "conformance:cases/8.3.5-Separators/w73a-period-not-followed-by-space; conformance:cases/8.3.5-Separators/w73a_separator_context_conforming; unit:SeparatorRuleTests.NonconformingSeparator_IsReportedOnce",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule 3 (cite.py --check 8.3.5 \"The COBOL character period, when followed by a space, is a separator\" OK 3)). kb/Work PB1394 LANDED (wave 73 group A): SeparatorRule reports a DOT token not followed by a space (or the end of the text) as COBOL2632. A period inside a numeric literal or a PICTURE character-string is part of that token (DECIMALLIT / PIC_STRING), never DOT. Negative: DISPLAY N.DISPLAY M -> COBOL2632 at all four editions (it used to compile and print 005 and 007).",
+ "state": "OK"
+}

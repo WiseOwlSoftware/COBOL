@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.49.3-9",
+ "section": "14.9.49.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "USE statement",
+ "rule-digest": "de200ff25211",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupReference",
+ "test-ref": "conformance:cases/14.9.49-USE/pb365_report_group_qualified; conformance:cases/14.9.49-USE/pb365_report_group_qualified_85; conformance:cases/14.9.49-USE/pb365-report-group-ambiguous",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB365, LANDED. SR9 has two sentences and both now hold. Sentence 1 (identifier-1 shall reference a report group): identifier-1 is an identifier in the 5.2.4 sense, so 8.4.2.2 governs it and the available qualifier is the report-name (8.4.2.2.2 Format 1's file-report-qualifier). The operand is now the shared grammar rule `reportGroupReference` (`cobolWord ((IN|OF) reportName)?`; 8.4.2.2.3 SR3 makes IN equivalent to OF) and it resolves through the ONE funnel ReportGroupResolution.Resolve, which collects EVERY candidate and raises COBOL1920 when more than one survives (8.4.2.2.1 / 8.4.2.2.3 SR1). BEFORE: DeclBindUse's Format-2 arm RETURNED INSIDE the report loop, so with the same 01-level group name in two RDs the declarative bound to whichever RD was written first, silently and with zero diagnostics -- measured on scratch amb2.cob. Sentence 2 (the same identifier-1 shall not appear in more than one USE BEFORE REPORTING statement) was already enforced through ConstructOperandRegister<ReportGroupModel> and is unchanged. Witnesses: 2023/pb365_report_group_qualified and 85/pb365_report_group_qualified_85 both write `USE BEFORE REPORTING DET-A OF R-B` over two RDs that each describe a DET-A, and prove by OUTPUT ORDER (GEN-A, GEN-B, HOOK, N=1) that only R-B's presentation runs the declarative -- a first-report-wins binder produces GEN-A, HOOK, GEN-B. negative/pb365-report-group-ambiguous is the unqualified spelling at all four editions -> COBOL1920.",
+ "state": "OK"
+}

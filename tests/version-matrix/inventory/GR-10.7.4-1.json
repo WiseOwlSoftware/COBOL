@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-10.7.4-1",
+ "section": "10.7.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "End markers",
+ "rule-digest": "dc7f88d18ec1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programUnit; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#nestedProgram; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#classDefinition",
+ "test-ref": "conformance:cases/10.7-End-markers/l1c08_end_marker_closes_unit",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py: OK §10.7.4 '1) An end marker indicates the end of the specified source unit.' The grammar closes a unit at its end marker: nestedProgram requires endProgramHeader, and classDefinition, factory, object, method and interface each end in their own END. p4 shows a unit contained in another and closed by END PROGRAM running as the nested program. In a program that breaks SR3 (p3), the marker closes the innermost open unit whatever name it gives. That is the SR3 under-reject and does not change what a conforming program means. No spec-derived test covers this directly. || Editions (adjudicator, verbatim): 1985+ (program); 2002+ (OO/function units)",
+ "state": "OK"
+}

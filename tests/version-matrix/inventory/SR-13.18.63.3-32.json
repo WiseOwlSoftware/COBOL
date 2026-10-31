@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-32",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 32,
+ "subject": "VALUE clause",
+ "rule-digest": "71ba0d6ef864",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#TryResolveRangeAlphabet; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs; src/WiseOwl.Cobol.Runtime/Values/Text/CobolCollation.cs#ThruMember",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb555_typedef_condition_clone; conformance:cases/13.18.63-VALUE/pb555-false-in-collated-range; conformance:cases/13.18.63-VALUE/pb555_value_false_phrase",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB555 - the delegation row closes: all four legs of 14.7.8 are now implemented, each MEASURED on a freshly built cobol.exe. The leg this row recorded as absent was rule 2's SECOND paragraph - 'When the IN alphabet-name phrase is specified, the collating sequence used for range evaluation is the collating sequence defined by that alphabet' with its locale and native sub-legs - and all three sub-legs measure live. (i) THE ALPHABET: `ALPHABET MYALPH IS \"Z\" \"Y\" \"X\" \"A\"` with `88 C VALUE \"Z\" THRU \"X\" IN MYALPH` and X = \"Y\" answers TRUE, the spec-derived answer (it answered FALSE when the phrase was discarded). (ii) THE NATIVE SUB-LEG: `ALPHABET NATALPH IS NATIVE` with `\"A\" THRU \"C\" IN NATALPH` and X = \"B\" answers TRUE. (iii) THE LOCALE SUB-LEG ('the range of values is determined from locale category LC_COLLATE'), measured DECISIVELY rather than by a probe every locale agrees on: `ALPHABET LOCALPH IS LOCALE` with `88 C VALUE \"A\" THRU \"Z\" IN LOCALPH` and X = U+00C4 answers INSIDE under COBOL_USER_LOCALE=en-US (CLDR root gives A-diaeresis the primary weight of A) and OUTSIDE under COBOL_USER_LOCALE=sv-SE (where it is a distinct letter collating after Z) - so LC_COLLATE is genuinely consulted and the answer cannot be the native one. Rule 1 (a numeric range is algebraic) and rule 2's LAST paragraph (literal-1 greater than literal-2 sets EC-RANGE-INVALID and the range is empty) were already measured implemented by this row's own prior adjudication and are unchanged.",
+ "state": "OK"
+}

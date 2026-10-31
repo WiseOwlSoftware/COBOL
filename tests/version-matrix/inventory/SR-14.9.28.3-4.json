@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.28.3-4",
+ "section": "14.9.28.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "PERFORM statement",
+ "rule-digest": "b3763f3ab892",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#CheckVaryingOperandRules; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#Classify; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#IsIntegerOperand",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/pb432-varying-operand-rules; conformance:cases/14.9.28-PERFORM/pb432_varying_brace_group",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB432 (landed). All three lettered sub-rules are enforced at bind under COBOL2120, whose message quotes the exact letter. The premise - an index-name in the VARYING or AFTER phrase - is the bound SET target's kind (SetIndexTarget), and the operands' kinds come from the ONE varying-operand classification, so a) reads the FROM/BY IDENTIFIER arm through the ONE integer classifier (IntrinsicResultType.IsIntegerOperand, now with an expression-side entry that REDUCES to the same primitive rather than restating it), b) reads the FROM LITERAL's value and form, and c) the BY literal's. Measured on this tree, each rejected with its own rule named: a) PERFORM VARYING IX1 FROM NI BY 1 (NI PIC 9(4)V99) -> SR4 a); b) PERFORM VARYING IX1 FROM 0 BY 1 -> SR4 b); c) a non-integer BY literal against an index-name -> SR4 c), with a ZERO BY literal reported under the unconditional and stronger SR6 instead. Before this, no arm of the level binder asked any of the three and no diagnostic code existed for them. Note the 2023 golden ec_range_perform_varying carried `PERFORM VARYING IX FROM 0` and asserted it compiled clean - that golden was the SR4 b) hole itself, and it now writes a positive literal with the reason recorded beside it.",
+ "state": "OK"
+}

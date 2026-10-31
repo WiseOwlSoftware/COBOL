@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-30",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 30,
+ "subject": "PICTURE clause",
+ "rule-digest": "1151b43503cb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
+ "test-ref": "conformance-test:NationalBooleanDataTests.IllegalUsagePictureShape_Rejects0881",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Both symbols and both usage paths measured at 2023: `01 W1 PIC X(4) USAGE NATIONAL.` -> COBOL0881 (probe sr30a); `01 W1 PIC A(4) USAGE NATIONAL.` -> COBOL0881 (sr30b); and the GROUP-inherited leg `01 G USAGE NATIONAL. 05 W1 PIC X(4).` -> COBOL0881 with the 'inherited from its group' wording (sr30c), which is the arm a two-arm-dispatch defect would have left open and did not. Every message names SR30 by number. The named test covers the 'A' half at --std 2002 (theory case NBDAT05); the 'X' half and the group-inherited arm are covered only by my probes, so a golden that adds those two cells would be worth having -- but the row's obligation is met at every applicable edition. || code sites, verbatim from the adjudication: src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs:241-249 (the entry's own USAGE NATIONAL arm -- `if (expanded.Any(c => c is 'X' or 'A'))` -> COBOL0881, message citing 13.18.60.3 SR12 and 13.18.40.3 SR30); src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs:3335-3345 (the GROUP-inherited USAGE NATIONAL arm, same code, same citation) || editions, verbatim from the adjudication: 2002, 2014, 2023 (USAGE NATIONAL is a COBOL-2002 introduction; at COBOL-85 there is no NATIONAL usage for the rule to bite on)",
+ "state": "OK"
+}

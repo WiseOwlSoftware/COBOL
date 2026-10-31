@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.8.3-1",
+ "section": "11.8.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "OBJECT paragraph",
+ "rule-digest": "5082aca9004a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build; src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Resolve; src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Lookup",
+ "test-ref": "conformance:cases/11.8-OBJECT/l1c19-object-implements-not-in-class-repository",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR1 \"Interface-name-1 shall be the name of an interface specified in the REPOSITORY paragraph of the containing class definition\" (cite.py --check 11.8.3 OK). CaptureImplements resolves each name through the §8.4.6.4 funnel with Want.Interface at the class's scope (cite.py --check 8.4.6.4 OK); a REPOSITORY in the OBJECT paragraph itself is forbidden by §12.3.3 SR3 so the class scope is the only one. Probes (probe dir out/probe/object-paragraph (gen.py)): p3 interface defined in the group and declared only in a PROGRAM's REPOSITORY -> COBOL0840 ('not declared in the REPOSITORY paragraph'); p4 declared as `CLASS IA` -> 0840; p5 IMPLEMENTS names a class -> 0840; positive p1/p8 compile. test-ref empty: unit:OoClassTablePositionTests' IMPLEMENTS NOIF2 case pins an interface that IS declared in the REPOSITORY but defined nowhere (an external-repository question, not an SR1 violation), and no golden pins the defined-but-undeclared refusal - test-needed (negative: p3 shape). Side note: the message for an undefined interface reads 'no such an interface' (OoNameResolution.Resolve kind string) - cosmetic. || Editions (adjudicator, verbatim): 2002, 2014, 2023 (the OO facility, introduced by ISO/IEC 1989:2002; absent from X3.23-1985) || Code sites (adjudicator, verbatim): src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build (CaptureImplements); src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Resolve; src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Lookup",
+ "state": "OK"
+}

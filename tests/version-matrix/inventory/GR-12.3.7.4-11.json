@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.7.4-11",
+ "section": "12.3.7.4",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "7e3ba5f1487b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#SwitchBindSymbolic; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#SymbolicOperand; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#CodedCharacterSet",
+ "test-ref": "conformance:cases/8.3.3.6-Figurative-constant-values/pb110_symbolic_and_class_in; conformance:cases/12.3.7-SPECIAL-NAMES/pb110-symbolic-sr16; conformance:cases/12.3.7-SPECIAL-NAMES/pb110-symbolic-locale-alphabet",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB110 (2026-08-19) — the SYMBOLIC CHARACTERS clause was ACCEPTED-INERT (parsed, bound by nothing; every reference then failed as an undefined name). a) symbolic-character-1 defines a figurative constant — it substitutes at the figurative seams (the bare word at FieldOperand / the VALUE capture / INSPECT's operand; ALL symbolic-character-1 as a figurativeConstant grammar arm) with the ALL-literal FILL semantics (§8.3.3.6.4 GR2/GR10 — VAL-FILL3 / MOVE-FILL in the golden) and ONE character in an unsized context (GR3 b — the STRING-SC line); b)/c) the value is the character at ordinal integer-1 in the native character set of the clause's class or, under IN, in the coded character set referenced by alphabet-name-3 (CodedCharacterSet.CharAt — ZED IS 1 IN REV = 'Z', ORD 91). Editions: the clause is 85; FOR NATIONAL rides special-names-for-national-2002.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.22.3-3",
+ "section": "7.3.22.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "PUSH directive",
+ "rule-digest": "0fe085e1d39d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveSiteProcessor.cs#Process; src/WiseOwl.Cobol.Compiler/Validation/DirectivePlacementPass.cs#Run",
+ "test-ref": "unit:PushPopAllPlacementTests.BeforeTheFirstUnit_IsOutsideEveryCompilationUnit; unit:PushPopAllPlacementTests.InsideAStatement_Warns_BetweenNestedStatements_DoesNot; unit:PushPopAllPlacementTests.InsideAClause_Warns_BetweenClauses_DoesNot; unit:PushPopAllPlacementTests.NamedForm_HasNoPositionRule; conformance:cases/7.3-Compiler-directives/pb941_push_pop_directive_state",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work/PB1005 (2026-09-22): >>PUSH ALL - the same pass and warning (COBOL2344) as SR-7.3.20.3-3, quoting the PUSH sentence in its own words. retired-witness: src/Cobol.Net.Compiler/Validation/PushPopAllPlacementPass.cs#Run (kb/Work PB1065: PushPopAllPlacementPass was renamed DirectivePlacementPass when it gained the FLAG-02/FLAG-14 and named-directive rules)",
+ "state": "OK"
+}

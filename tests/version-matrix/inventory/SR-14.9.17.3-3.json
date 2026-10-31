@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.17.3-3",
+ "section": "14.9.17.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "GO TO statement",
+ "rule-digest": "965f4f97fe0d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs#CheckCrossStatementBans",
+ "test-ref": "conformance-test:PerformFormat3Tests.GoToInWhenOther_Rejected1608",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "Enforced as COBOL1608 over 'region C' of the Format-3 PERFORM parse subtree, where region C = performWhenPhrase + performWhenOther + performWhenCommon statement blocks, matched by a full Descendants<> walk so a GO TO nested inside an IF in a WHEN phrase is caught too. All three WHEN arms verified to reject (probe p7 ordinary WHEN -> 1608; probe p14 WHEN COMMON -> 1608; the shipped test covers WHEN OTHER), and the COMPLEMENT is measured: probe p15 puts a GO TO in the FINALLY phrase and 1608 does NOT fire -- correct, FINALLY is imperative-statement-5, not a WHEN phrase. Editions: the exception-checking (Format-3) PERFORM is a COBOL-2023 introduction (COBOL0900 gate), so the rule is vacuous at 85/2002/2014 and the covering test compiles at 2023 only. Diagnostic text carries the correct clause. Probes: scratchpad/lane3/out-b2/probe/go-to/p7-when-goto.cob, p14-when-common-finally.cob, p15-finally-goto.cob.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs#CheckCrossStatementBans",
+ "state": "OK"
+}

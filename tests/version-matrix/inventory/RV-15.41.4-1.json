@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.41.4-1",
+ "section": "15.41.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "FORMATTED-TIME function",
+ "rule-digest": "f06cdaf46e6d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFormattedTime",
+ "test-ref": "conformance:cases/15.41.4-Returned-value-rules/formatted_time_seconds_channel",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "The returned value represents the VALUE contained in argument-2: the float carrier's fraction renders at the format's 's' widths with no separator (15.3.3.2), and a 9(5)V9(15) carrier passes by value rather than by unscaled digits.",
+ "state": "OK"
+}

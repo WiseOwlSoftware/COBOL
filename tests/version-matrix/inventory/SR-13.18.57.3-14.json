@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.57.3-14",
+ "section": "13.18.57.3",
+ "kind": "SR",
+ "ordinal": 14,
+ "subject": "TYPE clause",
+ "rule-digest": "dbd0684be112",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportGroupCensus; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ResolveReports",
+ "test-ref": "conformance:cases/13.18.57-TYPE/pb1299-two-control-headings-same-control; conformance:cases/13.18.57-TYPE/pb1299-two-control-footings-same-control; conformance:cases/13.18.57-TYPE/pb1299-control-footing-final-and-omitted; conformance:cases/13.18.57-TYPE/pb1299-control-heading-final-and-omitted; conformance:cases/13.18.57-TYPE/pb1299_report_group_census_legal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1299 landed 2026-10-04 (wave 1012 G): the census counts per RESOLVED control level, so an omitted operand (SR11) and a written one naming the same control collide; a control level with no CH or CF still compiles (the permissive half).",
+ "state": "OK"
+}

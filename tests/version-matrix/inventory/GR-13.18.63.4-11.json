@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.63.4-11",
+ "section": "13.18.63.4",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "VALUE clause",
+ "rule-digest": "c5b5e1319e90",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs",
+ "test-ref": "conformance:cases/13.7-Linkage-section/pb499_table_value_by_section_2002; conformance:cases/13.7-Linkage-section/pb499_table_value_linkage_and_file_2002",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB499, LANDED — RE-VERDICT ONLY. \"General rules 1, 2, 3, 4, 5, 6, 7, 8, and 10 above apply\" (§13.18.63.4 11)) is what puts a FORMAT 2 (table) VALUE under the same occasions as a format-1 one, and it was DIVERGES because the whole INITIALIZE / ALLOCATE lane read only the format-1 carrier: the table VALUE took effect ONLY through the record-struct field initializer, i.e. only at initial state — precisely the moment GR2, GR3, GR4a and GR4b say it must NOT for a file-section, linkage-section, external or based item. RE-MEASURED on this worktree's own build across ALL FIVE populations the note names, every one now giving the value the standard requires: working-storage re-initialization [AABB..], external [AABB  ] only after INITIALIZE, based [AABB  ] at ALLOCATE ... INITIALIZED, linkage [AABB..] only after INITIALIZE, file section [AABB..] only after INITIALIZE. Occurrence 3 is unspecified by the clause and is left untouched in every one, which is §14.9.20.4 GR5 c) 1. c) and GR6 a) 3. (\"If the data item is a table element, the literal in the VALUE clause that corresponds to the occurrence being initialized determines the sending-operand\", cite --check OK at §14.9.20.4). Editions 2002+ because the format-2 (table) VALUE is itself post-85.",
+ "state": "OK"
+}

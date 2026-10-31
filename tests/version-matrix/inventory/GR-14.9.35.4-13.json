@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.35.4-13",
+ "section": "14.9.35.4",
+ "kind": "GR",
+ "ordinal": 13,
+ "subject": "REWRITE statement",
+ "rule-digest": "4305c1e18500",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OverwriteInPlace; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite",
+ "test-ref": "conformance:cases/14.9.35-REWRITE/l1c25_rewrite_position_unaffected",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"The file position indicator in the rewrite file connector is not affected by the execution of a REWRITE statement.\" Sequential: OverwriteInPlace saves stream.Position, writes at the last-read anchor and seeks back, leaving the reader's position; relative: Put at _lastSlot/_pendingKey, no position change; indexed: position held as key+ordinal values, Rewrite does not touch them. Probe pa.cob: READ(rec 2) / successful REWRITE / READ delivers record 3 (CCCCCCCCCC); pd.cob: READ key 1 then READ NEXT delivers key 2 after two REWRITEs. cite.py --check 14.9.35.4 GR13 -> OK. No spec-derived test. [editions as adjudicated: 2023; ISO 1989:2023 Annex E lists no 2014->2023 change to this rule (E.3.3 item 41 touches GR10 only), so 2014 identically; the 1985/2002 wording is not derivable from the 2023 text]",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.6.4-4",
+ "section": "11.6.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "INTERFACE-ID paragraph",
+ "rule-digest": "a0ba764b5c6f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#AddSkeleton; src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#SubstitutedTokens",
+ "test-ref": "conformance:cases/11.3-CLASS-ID/pb759_parameterized_class; conformance-test:ParameterizedClassTests.ParameterNameAsADataName_2239",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB759.md landed w46i3. The formal T is substituted in the prototype's USAGE OBJECT REFERENCE T (golden); declaration-slot use is COBOL2239 through the same AddSkeleton arm as 11.3.4 GR6.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-24",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 24,
+ "subject": "CLOSE statement (closing operations)",
+ "rule-digest": "ac06b11894f3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseByFormat; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Category; src/WiseOwl.Cobol.Runtime/IO/CloseTable14.cs; docs/CONFORMANCE.md#DOC-A.1-24",
+ "test-ref": "unit:CloseTable14Tests.Category_PlacesEverySupportedConnectorKind; conformance:cases/9.1.13.2-Successful-completion/pb141_close_forms; conformance:cases/12.4.6.4-SAME/pb235_same_record_area_close; conformance:cases/14.9.6-CLOSE/pb235_close_unit_locks",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "KEEP: §7 row DOC-A.1-24 re-verified against the code at this checkout. FileConnector.Close: '42' (FileNotOpen) when not open, CloseCore under try, UnauthorizedAccessException/IOException -> PermanentError '30', _openMode=false unconditionally — matches the row's '30' + out-of-open-mode-either-way sentence; the row's category placement (sequential = Non-unit, relative/indexed = Non-sequential) matches FileConnector.Category as the staged adjudication read it, and the four Pinned-by refs equal this record's test-ref. Residual (not verdict-changing, from the wave-1 record): the '30' clause has no witness, and an exception type other than IOException/UnauthorizedAccessException from CloseCore would propagate rather than map to '30' (the OPEN twin also maps ArgumentException/NotSupportedException). cite.py --check 14.9.6.4 'Closing operations specified by the implementor are executed' OK (staged). kb/Work PB604 re-checked at its landing that this row is recorded and that audit_annex_a1.py --check reports no remaining documentation obligation.",
+ "state": "OK"
+}

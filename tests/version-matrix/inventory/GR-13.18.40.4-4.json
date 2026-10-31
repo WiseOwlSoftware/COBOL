@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.40.4-4",
+ "section": "13.18.40.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "PICTURE clause",
+ "rule-digest": "aa502bd1d2a6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#CharacterPositions; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.Analyze",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb535_picture_category_size_85; conformance:cases/13.18.40-PICTURE/pb535_picture_category_size_2023; unit:PictureCategoryDriftTests.EveryAcceptedPicture_HasTheSizeGeneralRule4Gives; unit:PictureCategoryDriftTests.TheWalk_AcceptsEveryOneOfTheEightCategories",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB535 LANDED 2026-09-13. GR4 IS NOW WRITTEN ONCE. The PARTIAL this row carried was that the ALPHANUMERIC arm did not count 'the symbols that represent character positions' but a hard-coded WHITELIST of the symbols it expected - `expanded.Count(c => c is 'X' or 'A' or '9' || CobolEdit.IsEditedCategorySymbol(c, char1Set))` - so a symbol outside that list vanished from the size instead of the picture being rejected (PIC XX,XX sized 4, PIC XXCR sized 2, PIC AAZZ 2, PIC ZZ9AA 3), leaving the item SHORTER than its picture and shifting every following member of a group image. The strings that exposed it are rejected outright since PB528 read Table 10, but the whitelist was still one of FOUR spellings of one rule: the national arm said `expanded.Length`, the numeric-edited arm `c is not ('V' or 'S' or 'P')`, the float-edited arm `expanded.Length` again, and the alphanumeric arm the whitelist. All four now call PictureAnalyzer.CharacterPositions, which states GR4 as GR14's EXCLUSION - 'P' ('not counted in the size of the item'), 'V' ('not counted in the size of the item') and the 'S' of an item with no SIGN SEPARATE phrase, every other symbol carrying GR14's 'is counted in the size of the item' - plus GR14's currency widening ('the first occurrence of the currency symbol adds the number of characters in the currency string'). Stated as an exclusion the rule cannot silently drop a symbol nobody anticipated. Measured, not asserted: PictureCategoryDriftTests.EveryAcceptedPicture_HasTheSizeGeneralRule4Gives compares the bound size against GR4's count for all 1 142 accepted strings of the walk and was proved failing once (dropping one symbol from the count put 256 strings wrong); the 85 golden measures the same rule as DISPLACEMENT inside a group - the harm the defect actually caused - for 'A', 'X', '9', the GR7 insertions '0' and '/', the uncounted 'S', 'P' and 'V', and the two character positions GR14 gives 'CR'.",
+ "state": "OK"
+}
