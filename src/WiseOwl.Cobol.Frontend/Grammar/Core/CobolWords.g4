@@ -79,11 +79,12 @@ cobolWord
     | {!keywordContinuesHere()}? YYYYMMDD
     ;
 
-// The DECLARATION home of every reservation-gated word (kb/Work PB300/PB137/PB693/PB655). A gated word
+// The USER-WORD home of every reservation-gated word (kb/Work PB300/PB137/PB693/PB655/PB4206). A gated word
 // is never a cobolWord; the TOKEN-LEVEL gate (ReservationGateRewriter) retypes it to IDENTIFIER where
-// §8.9 leaves it free AND a definition slot below matched it. Where §8.9 reserves it, the match stands
-// and VersionConformancePass.VisitReservedGatedWord — the ONE funnel arm — answers COBOL0901: every
-// use of this rule is a definition slot, so a new slot needs no new C#.
+// §8.9 leaves it free AND a user-defined-word slot below matched it. Where §8.9 reserves it, the match
+// stands and VersionConformancePass.VisitReservedGatedWord — the ONE funnel arm — answers COBOL0901: every
+// use of this rule is a user-defined-word slot (every definition slot, and procedureName, references
+// included; kb/Work PB4206), so a new slot needs no new C#.
 reservedGatedWord
     : ( ACTIVE_CLASS
       | ADDRESS

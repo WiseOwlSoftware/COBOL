@@ -1707,6 +1707,18 @@ check("PB3392: a NEW group of an existing wave takes the time of its first recor
 different = record_dispatch(HA, "1118", [{"letter": "A5", "notes": ["PB9999"], "files": ["src/Other.cs"]}], lambda i: False)
 check("PB3392: a group that shares no note with the entry under its key is a DIFFERENT dispatch and takes this recording's time",
       different[0]["at"] > 14.0, True)
+# PB4190: the dispatching lane is recorded with the group, so a stall reaches the lane that can act on it
+HX = TMP / "coord-lane"
+HX.mkdir()
+record_dispatch(HX, "1119", [{"letter": "A", "notes": ["PB3340"], "files": ["src/L.cs"]},
+                             {"letter": "B", "notes": ["PB3341"], "files": ["src/M.cs"]}], lambda i: False, lane="mythos")
+record_dispatch(HX, "1120", [{"letter": "A", "notes": ["PB3342"], "files": ["src/N.cs"]}], lambda i: False, lane="operator")
+record_dispatch(HX, "1119", [{"letter": "A", "notes": ["PB3340"], "files": ["src/L.cs"]}], lambda i: False, lane="operator")
+record_dispatch(HX, "1121", [{"letter": "A", "notes": ["PB3343"], "files": ["src/O.cs"]}], lambda i: False)
+LX = {(g["wave"], g["letter"]): g.get("lane") for g in coord.ledger_groups(HX)}
+check("PB4190: each group records the lane that dispatched it, none when unrecorded; the other lane's re-render of "
+      "a group keeps its first lane",
+      LX, {("1119", "A"): "mythos", ("1119", "B"): "mythos", ("1120", "A"): "operator", ("1121", "A"): None})
 check("a recorded group is in flight before its agent edits a file, until its notes land",
       ({f for fs in inflight_file_sets(coord_dir=HL, terminal=lambda i: False, with_git=False).values() for f in fs}
        >= {"src/Hand.cs", "src/More.cs"},

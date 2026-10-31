@@ -28,7 +28,7 @@ from inflight import Claim  # noqa: E402
 from groups import Group  # noqa: E402
 
 def record_dispatch(coord_dir: pathlib.Path, wave: str, groups: list[dict[str, Any]],
-                    terminal: Callable[[str], bool]) -> list[dict[str, Any]]:
+                    terminal: Callable[[str], bool], lane: str | None = None) -> list[dict[str, Any]]:
     """THE writer of the dispatch ledger (kb/Work PB3186): UPSERT one wave's groups, keyed on (wave, letter), each
     `{"letter", "notes": [ids], "files": [repo-relative paths], "members"?: {path: [member names]}, "slug"?}` (a file
     with no `members` entry is claimed whole, kb/Work PB3670), and return the entries written. A group
@@ -40,6 +40,10 @@ def record_dispatch(coord_dir: pathlib.Path, wave: str, groups: list[dict[str, A
     dispatch (two sessions planning one wave number) and takes the time of its own recording. Every other group of
     every wave stays, except the entries whose notes are all terminal and the entries coord.ledger_groups does not read (the retired hand entries), which are
     dropped, so the ledger holds exactly the dispatched work still in flight (inflight_file_sets, source 3).
+    `lane` is the mailbox lane that dispatched the wave (mailbox.account_lane: `operator` or `mythos`; None records
+    none): the stall reporter sends a stalled group's message to that lane's inbox (progress.post_stalls, kb/Work
+    PB4190). Like `at`, a group recorded again keeps the lane of its FIRST recording, so one lane's re-render of the
+    other's specs does not take the group over.
     make_dispatch_specs.py calls it for every wave it renders, the planner's included; nothing else writes the
     ledger but release_dispatch."""
     path = coord_dir / coord.DISPATCH_LEDGER
@@ -59,8 +63,16 @@ def record_dispatch(coord_dir: pathlib.Path, wave: str, groups: list[dict[str, A
             return was["at"]
         return at + k / 1000
 
+    def lane_of(g: dict[str, Any]) -> str | None:
+        """The group's dispatching lane: its entry's own when this is the same group recorded again, else `lane`."""
+        was = earlier.get((str(wave), str(g["letter"]).upper()))
+        if was is not None and was.get("lane") and set(was.get("notes", [])) & set(g["notes"]):
+            return was["lane"]
+        return lane
+
     new = [{"wave": str(wave), "letter": str(g["letter"]), "slug": g.get("slug") or f"w{wave}{str(g['letter']).lower()}",
-            "notes": list(g["notes"]), "files": sorted(claim.files), "members": claim.member_lists(), "at": stamp(k, g)}
+            "notes": list(g["notes"]), "files": sorted(claim.files), "members": claim.member_lists(), "at": stamp(k, g),
+            **({"lane": lg} if (lg := lane_of(g)) else {})}
            for k, g in enumerate(groups) for claim in [Claim.of(g["files"], g.get("members"))]]
     coord.write_json(path, {"groups": keep + new})
     return new
