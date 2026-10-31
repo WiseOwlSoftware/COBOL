@@ -590,10 +590,10 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             // §14.9.28.2 Format 2's `{identifier-1 | integer-1} TIMES`; kb/Work PB428.
             : t.inlineMethodInvocation() is { } imi ? host.Oo.OoInlineInvocationOperand(imi)
             : t.dataReference() is { } d ? host.Expr.FieldOperand(d)
-            : BoundOperandError.Refused(ctx.Edition, "PERFORM … TIMES count shape (ISO §14.9.28.2 Format 2)");
+            : BoundOperandError.Refused(ctx.Edition, "PERFORM TIMES count shape (ISO §14.9.28.2 Format 2)");
         if (op is not BoundOperandError && !IntrinsicResultType.IsIntegerOperand(op))
             ctx.Edition.Error(DiagnosticCatalog.PerformTimesCountNotInteger,
-                $"PERFORM ... TIMES count '{(t.functionCall() ?? (Antlr4.Runtime.ParserRuleContext?)t.dataReference())?.GetText()}' "
+                $"PERFORM TIMES count '{(t.functionCall() ?? (Antlr4.Runtime.ParserRuleContext?)t.dataReference())?.GetText()}' "
                 + "shall be an integer (ISO §14.9.28.3 SR2) — an integer data item, an integer literal, or an "
                 + "integer-type function-identifier (§15.2 type 5)");
         return op;
