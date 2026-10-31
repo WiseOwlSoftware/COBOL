@@ -3,6 +3,7 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Tests.Shared;
+using WiseOwl.Cobol.Tests.Unit.Architecture;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
@@ -53,6 +54,26 @@ public sealed class ArchCensusDriftTests
                  });
     }
 
+    /// <summary>
+    /// THE CENSUS OBSERVER OF THE LAYERING (kb/Work PB2417; DESIGN-architecture-review §8.1 "Two observers, two
+    /// ratchets, one file"): every cross-layer entry of the newest record's <c>namespaceEdges</c> is allowed by
+    /// <c>docs/rearchitecture/architecture-edges.json</c>, or tolerated by a row whose <c>uses</c> is exactly the count
+    /// that record measured — and the file is keyed to that record, so recording a census re-seeds the file in the same
+    /// change. The census sees what the walk cannot (an inlined <c>const</c>, a <c>nameof</c>), which is why it keeps
+    /// its own column; <see cref="ArchitectureEdgesDriftTests"/> is the per-gate observer over the same file.
+    /// </summary>
+    [Fact]
+    public void TheNewestRecord_CrossesNoLayerTheEdgesFileDoesNotAllowOrTolerate()
+    {
+        using JsonDocument record = CensusRecord.Newest();
+        var edges = ArchitectureEdges.Load(ArchitectureEdgesDriftTests.EdgesFile);
+        var failures = edges.CheckCensus(record.RootElement.GetProperty("commit").GetString()!,
+            CensusRecord.NamespaceEdges(record.RootElement));
+        Assert.True(failures.Count == 0,
+            $"the census record disagrees with the architecture edges file ({failures.Count}):\n  " + string.Join("\n  ", failures)
+            + "\nre-seed it: " + ArchitectureEdgesDriftTests.SeedCommand);
+    }
+
     [Fact]
     public void TheNewestRecord_CoversEveryProductProject_AndItsWholeCompiledPopulation()
     {
@@ -64,7 +85,7 @@ public sealed class ArchCensusDriftTests
             .ToList();
         Assert.NotEmpty(product);
 
-        using JsonDocument record = NewestRecord();
+        using JsonDocument record = CensusRecord.Newest();
         JsonElement root = record.RootElement;
         string commit = root.GetProperty("commit").GetString()!;
         var census = root.GetProperty("scope").GetProperty("census").EnumerateArray()
@@ -93,24 +114,5 @@ public sealed class ArchCensusDriftTests
                 $"{name}: the record counts {counted} census types and {rowsPerProject.GetValueOrDefault(name)} type rows "
                 + $"against {compiled} compiled types — a census that skipped part of a project");
         }
-    }
-
-    /// <summary>The record with the latest commit date (records are named by the commit they measured).</summary>
-    private static JsonDocument NewestRecord()
-    {
-        string dir = TestRepo.Docs("rearchitecture", "evidence", "arch-census");
-        var records = Directory.EnumerateFiles(dir, "*.json")
-            .Where(f => !f.EndsWith(".findings.json", StringComparison.Ordinal))
-            .Select(f => (Path: f, Doc: JsonDocument.Parse(File.ReadAllText(f))))
-            .ToList();
-        Assert.True(records.Count > 0, $"no census record under {dir}");
-        var newest = records.MaxBy(r => DateTimeOffset.Parse(r.Doc.RootElement.GetProperty("commitDate").GetString()!,
-            System.Globalization.CultureInfo.InvariantCulture));
-        foreach (var r in records.Where(r => r.Path != newest.Path))
-        {
-            r.Doc.Dispose();
-        }
-
-        return newest.Doc;
     }
 }
