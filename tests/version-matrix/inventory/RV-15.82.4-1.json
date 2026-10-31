@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.82.4-1",
+ "section": "15.82.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "SIN function",
+ "rule-digest": "a8dd2a8ea866",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Sin; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.cs#FromDouble; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#WholeRangeBodies; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.TwoPi.cs#ReduceQuarterTurns",
+ "test-ref": "conformance:cases/15.82.3-Argument-rule/l1_sin_format_value; conformance:cases/15.20.4-Returned-value-rule/pb999_log_trig_decimal_range; unit:WholeRangeBodiesDriftTests.Trig_ReducesTheExactArgumentModuloTwoPi; unit:InverseTwoPiDigitsDriftTests.TheDigitString_IsOneOverTwoPi; conformance:cases/15.8.4-Returned-value-rule/pb1041_trig_log_arc_exact_argument; conformance:cases/15.20.4-Returned-value-rule/pb1041_exp_and_wide_exact_argument; unit:WholeRangeBodiesDriftTests.EveryExactIntakeArm_AnswersForTheExactArgument",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "15.82.4 r1 is a conjunction and both halves are pinned: the APPROXIMATION at the sine's exact points (0, the quarter-turn +1/-1, the sixth-turn +1/2, rounded at 6 fraction digits so no implementor precision is borrowed) and the CODOMAIN measured over a 2001-point sweep from -10.00 to +10.00 (OOB=000000) plus PEAK=IN exactly at the bound. No clamp is owed because 15.82.4's bounds are CLOSED, unlike 15.75.4 RANDOM's OPEN 'less than one' -- so IntrinsicCatalog's Codomain None for SIN is correct, and QUARTER=+1000000 is the drift guard that would drop to +0999999 if a UnitOpen clamp were ever applied by analogy. retired-witness: src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.TwoPi.cs#ReduceTwoPi (ReduceTwoPi (mod-2pi reduction from 2pi up) was replaced by ReduceQuarterTurns, the quadrant-and-residue reduction that also covers arguments near every multiple of pi/2 (kb/Work PB1041); the new site is on the row)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.35.3-6",
+ "section": "13.18.35.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "LINE clause",
+ "rule-digest": "97bdf845dea0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#GroupLimits; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#MinimumLastLine",
+ "test-ref": "conformance:cases/13.18.35-LINE/pb1222-line-out-of-order; conformance:cases/13.18.35-LINE/pb1222-line-overlap; conformance:cases/13.18.35-LINE/pb1222-absolute-line-after-relative; conformance:cases/13.18.35-LINE/pb1222-relative-tail-past-lower-limit; conformance:cases/13.18.35-LINE/pb1222-relative-lines-largest-past-lower-limit; conformance:cases/13.18.35-LINE/pb1270-detail-above-first-detail; conformance:cases/13.18.35-LINE/pb1270-detail-below-last-detail; conformance:cases/13.18.35-LINE/pb1270-page-heading-below-first-detail; conformance:cases/13.15-Report-group-description/pb1222_report_arrangement_present_when; conformance:cases/13.18.35-LINE/pb1270_report_page_region_boundaries",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1222 + PB1270 landed 2026-10-04: a) b) e) over the written entries' first lines, c) against GroupLimits, d) through the one placement walk (COBOL2199).",
+ "state": "OK"
+}

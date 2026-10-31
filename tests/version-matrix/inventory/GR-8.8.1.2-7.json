@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.1.2-7",
+ "section": "8.8.1.2",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "Arithmetic expressions",
+ "rule-digest": "117f8bbe2f00",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindCompute",
+ "test-ref": "conformance:cases/8.8.1.2-Native-standard-binary-and-standard-decimal/l1_compute_composite_exempt; conformance:cases/8.8.1.2-Native-standard-binary-and-standard-decimal/l1-add-composite-over-31",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "A 35-digit composite (PIC 9(18) superimposed on PIC 9V9(17)) is legal in COMPUTE under native arithmetic and illegal in ADD — §14.7.7 2) names four verbs in sub-item a) and COMPUTE is not one of them.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.8.3-4",
+ "section": "12.4.5.8.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "FILE STATUS clause",
+ "rule-digest": "0f79ca63f955",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenFileStatusItem",
+ "test-ref": "conformance:cases/12.4.5.8-FILE-STATUS/pb1080-file-status-dynamic-based",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1080 landed (w61c). cite.py --check 12.4.5.8.3 'Data-name-1 shall not be subject to a BASED clause in its data description' -> OK SR4. The item or a group it is subordinate to carries BASED -> COBOL2455; formerly compiled and died EC-DATA-PTR-NULL at OPEN (probe p5).",
+ "state": "OK"
+}

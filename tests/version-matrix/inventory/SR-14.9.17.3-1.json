@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.17.3-1",
+ "section": "14.9.17.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "GO TO statement",
+ "rule-digest": "1dd7d1e8e34f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindGoTo; src/WiseOwl.Cobol.Compiler/Binding/Procedure/OperandClassScreen.cs#OperandClassScreen",
+ "test-ref": "conformance:cases/14.9.17-GO-TO/pb212_operand_class_screens; conformance:cases/14.9.17-GO-TO/pb210-go-to-depending-noninteger; unit:OperandClassScreenDriftTests.EveryRow_RefusesExactlyTheShapesItsRuleExcludes; conformance:cases/14.9.17-GO-TO/pb1421_goto_depending_function_identifier; conformance:cases/8.4.3.2-Function-identifier/pb1421-goto-depending-numeric-function; unit:OperandClassScreenDriftTests.SendingRow_ClassesAFunctionIdentifierByItsResult",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB210 (landed): identifier-1 is the OperandPositions.GoToDependingSelector row of the ONE operand-class screen; BOTH halves of SR1 (numeric elementary AND integer) refused with COBOL2324 in both lanes -- alphanumeric, numeric-edited, group, index, floating-point and scaled selectors. cite.py --check 14.9.17.3 \"Identifier-1 shall reference a numeric elementary data item that is an integer\" -> OK 1).",
+ "state": "OK"
+}

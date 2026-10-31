@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-24",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 24,
+ "subject": "VALUE clause",
+ "rule-digest": "951dcf46f14c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindCondition; src/WiseOwl.Cobol.Compiler/Binding/ValueSubject.cs#ForConditionName; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4",
+ "test-ref": "conformance:cases/13.18.63-VALUE/level88-alnum-value-boolean; conformance:cases/13.18.63-VALUE/pb575-cond-name-bit-group-alnum-value; conformance:cases/13.18.63-VALUE/pb575-cond-name-national-group-alnum-value; conformance-test:NationalBooleanDataTests.IllegalValueShape_Rejects0898; unit:ConditionNameSubjectClassDriftTests.GroupAndElementaryConditionName_DrawTheSameScreens",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB575 + PB728 (landed 2026-09-06) - SR24 pulls in SR10 and SR17, and BOTH now reach Format 3 for BOTH SUBJECT SHAPES. The refuter's PARTIAL rested on the group leg: every guard in BindCondition read the raw PICTURE, which is null for a group, so the SR10 class funnel never ran on a bit- or national-group conditional variable (MEASURED then: `01 BG GROUP-USAGE BIT. 88 C-ALNUM VALUE \"AB\". 05 E1 PIC 1(4) USAGE BIT.` compiled and ran clean). All four guards now read DataItem.OperandPic - an elementary item's own PICTURE, a bit / national group's 13.18.29.4 GR1b/GR2b as-if PICTURE - so the group leg funnels through the same screen: MEASURED after, that program draws COBOL0898 'shall be a boolean literal', and the national twin (`01 NG GROUP-USAGE NATIONAL. 88 N-ALNUM VALUE \"AB\".`) draws COBOL0898 SR5. Pinned by the two new negatives above. The SR17 half was already CONFORMS (`88 C VALUES ARE 1 2 3.` at 85 and 2023). WHAT REMAINS DELIBERATELY UNENFORCED, with its citation: SR10's SIZE sentences do not reach a Format-3 subject at all. Each names its bearer - 'Boolean literals in the VALUE clause of an elementary item shall not exceed the size indicated by an EXPLICIT PICTURE clause' and '... of a bit group item shall not exceed the size of the group item' - and a Format-3 entry's VALUE clause is written on the CONDITION-NAME entry, which has no PICTURE and is neither an elementary item nor a group item (13.18.63.4 GR19 gives it its conditional variable's characteristics IMPLICITLY, which is what 'explicit' excludes). That is ValueSubject.ForConditionName's landed derivation (kb/Work PB598), and 8.8.4.5.3 GR2 says what an oversize literal MEANS instead - a permanently-false condition - so an oversize B-literal on a bit group is legal source, not a wrong acceptance. The refutation's SR10-size claim is therefore mis-scoped; only its class claim was a defect, and that one is closed.",
+ "state": "OK"
+}

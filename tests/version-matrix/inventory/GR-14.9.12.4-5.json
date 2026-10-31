@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.12.4-5",
+ "section": "14.9.12.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "DIVIDE statement",
+ "rule-digest": "aa16bdb880fd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#GuardedStore",
+ "test-ref": "conformance:cases/8.8.1.2-Native-standard-binary-and-standard-decimal/pb129_store_discipline; conformance-test:ExceptionConditionConformanceTests.SizeError_ZeroDivide_DeclarativeSeesPreciseName_ReceiverUnchanged; conformance:cases/14.9.2-ADD/pb45_function_in_sending_operands",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB129): every receiver's compute+store sits in its own try (GuardedStore; the outer statement try keeps only the initial evaluation's raises), so a PROHIBITED-inexact/overflow raise at one receiver proceeds to the next resulting data item per 14.7.7 r4b and 14.7.5 storing rule 2 keeps the others' values - the golden pins E raised+unchanged while F stores 1.04. The unchecked fast path is byte-identical.",
+ "state": "OK"
+}

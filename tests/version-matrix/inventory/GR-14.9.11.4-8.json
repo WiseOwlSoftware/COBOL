@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.11.4-8",
+ "section": "14.9.11.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "DISPLAY statement",
+ "rule-digest": "e00781527a76",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitDisplay",
+ "test-ref": "conformance-test:DisplayUponTests.Upon_OutputDevices_And_Default_GoToStdout",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "READ: AcceptDisplayBinder.BindDisplay computes `bool toStdErr = display.displayUpon() is { } upon && BindDisplayUpon(upon)`, so when the UPON phrase is ABSENT the flag is false without consulting anything (short-circuit), and AcceptDisplayEmitter.EmitDisplay then selects `sink = \"System.Console\"` - the process standard output stream. The rule's 'implementor's standard display device' is therefore both DEFINED and DOCUMENTED: docs/CONFORMANCE.md carries the A.1 item-59 row, which states 'When the UPON phrase is omitted the standard display device is the process standard output stream' and names the same routing the code implements (CONSOLE / SYSOUT -> stdout, SYSERR -> stderr, an input-only mnemonic rejected under 14.9.11.3 SR2 with COBOL0817). ProgramTable.RunMain additionally sets that stream's encoding to BOM-less UTF-8 so the 8.1.2 repertoire survives the device boundary. TEST: conformance-test:DisplayUponTests.Upon_OutputDevices_And_Default_GoToStdout is spec-derived (its [Fact] comment cites '14.9.11.4 GR8 default') and runs through WiseOwl.Cobol.CompileAndRun - the greenfield, not the legacy oracle - asserting that `DISPLAY 'A-DEFAULT'` with no UPON lands on stdout alongside the explicit SYSOUT and CONSOLE displays, in order. It is not vacuously green: its sibling Upon_Syserr_GoesToStderr_NotStdout proves stderr is genuinely reachable, so the default really is a choice rather than the only sink. || UPHELD: this is the one row on which CONFORMS survived my attempt to break it. `cite.py --check 14.9.11.4 \"If the UPON phrase is not specified, the implementor's standard display device is used.\"` OK and `cite.py --check A.1 'DISPLAY statement (standard display device)'` OK, both run by me. I opened tests/WiseOwl.Cobol.Tests.Conformance/DisplayUponTests.cs and read all four facts rather than trusting the summary: the harness is `WiseOwl.Cobol.CompileAndRun` (greenfield) and the assertion is the exact three-line stdout `A-DEFAULT\\nB-SYSOUT\\nC-CONSOLE`, so the default arm is separated from the explicit arms by evidence, and Upon_Syserr_GoesToStderr_NotStdout asserts BOTH `Assert.Contains` on stderr AND `Assert.DoesNotContain` on stdout - the falsifying branch really can fail. I read the item-59 row in docs/CONFORMANCE.md (line 565) and it matches DisplayOutputDevices / BindDisplayUpon exactly, including the SYSIN rejection. I also checked the default is not reached by accident on the error paths: BindDisplayUpon returns false for an undeclared mnemonic and for a non-output device, but both of those first raise COBOL0817, so no silently-defaulted DISPLAY survives compilation.",
+ "state": "OK"
+}

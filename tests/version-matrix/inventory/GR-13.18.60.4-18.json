@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.60.4-18",
+ "section": "13.18.60.4",
+ "kind": "GR",
+ "ordinal": 18,
+ "subject": "USAGE clause",
+ "rule-digest": "09467bff62f5",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage",
+ "test-ref": "conformance-test:FloatFamilyTests.ProcessorDependent_Rejected1564; conformance:cases/13.18.60-USAGE/pb174-float-decimal-encoding-nonsupport",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely — the owner answered kb/Work PB579 Q1 for the whole class: a rule wholly inside a declined processor-dependent element closes as DOCUMENTED-NON-SUPPORT once the compiler correctly refuses it. Refused by name, COBOL1564 (Annex A.3 items 17/19/20, §4.2.6). Held by derived-verdicts.float-formats-not-provided. || kb/Work PB579 — USAGE FLOAT-DECIMAL-34 is NOT PROVIDED - the decimal128 twin of GR17. ParseUsage rejects LOUD with COBOL1564 naming Annex A.3 item 19 (probe p17 at --std 2023, and probe p21 shows the same reject for `FLOAT-DECIMAL-34 HIGH-ORDER-RIGHT DECIMAL-ENCODING`, i.e. the tail parses and the usage is what is refused). Licence: A.3 item 19 plus §4.2.6, documented at docs/CONFORMANCE.md §2 row 19. ⛔ DOCUMENTED-NON-SUPPORT is the owner's verdict (D13); recorded NOT-IMPLEMENTED here, with the witness already on disk. || code sites, verbatim from the adjudication: src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.ParseUsage",
+ "state": "OK"
+}

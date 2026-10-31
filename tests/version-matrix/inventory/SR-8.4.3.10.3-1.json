@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.10.3-1",
+ "section": "8.4.3.10.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "NULL address pointer and message tag content",
+ "rule-digest": "695b4cd6d616",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NullAdmittingOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#RefusePredefinedNull; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckFormat3Relation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindArgOperand",
+ "test-ref": "conformance:cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb1427-null-string-inspect-length; conformance:cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb148-display-null; conformance:cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb216-status-null; conformance:cases/8.4.3.1-Identifier/pb1427_null_operand_model; conformance:cases/8.4.3.1-Identifier/pb1630_null_argument_crossing; unit:PredefinedNullContextDriftTests.BoundPredefinedNull_HasOneProducer_AndEveryCallerIsAnSr1Context",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1427 LANDED (wave 68 Y). SR1 'This item may be used only in the following cases, depending upon the associated data item's class' (cite.py OK 1)); a) 'it may be used only as a sending operand in an INITIALIZE or a SET statement; as an argument in a program-prototype format CALL statement, a function-prototype format function activation, or a method invocation; or in a pointer-or-object-reference relation condition' (cite.py OK 1) a)). ONE screen: every operand slot binds NULL through NonNumericLiteralOperand, which refuses it (COBOL2576), except the SR1 contexts, which bind through NullAdmittingOperand (INITIALIZE REPLACING, CALL / function-prototype / INVOKE arguments, relation and EVALUATE operands; SET through its own grammar senders). Measured on the w68y build: STRING NULL, INSPECT ... FOR ALL NULL, INSPECT REPLACING, UNSTRING DELIMITED BY NULL, FUNCTION LENGTH(NULL), ADD NULL, COMPUTE = NULL, MOVE NULL, DISPLAY NULL, STOP RUN WITH ERROR STATUS NULL, concatenation, NULL = NULL each COBOL2576 (were run as LOW-VALUE; NULL = NULL crashed codegen); INITIALIZE P/PP/O REPLACING ... BY NULL, SET, IF P = NULL, EVALUATE P WHEN NULL and the CALL / FUNCTION / INVOKE argument slots run (goldens). The per-statement arms 0809/1694/1704 for NULL are gone. SR1 b) (message-tag) has no reachable subject: USAGE MESSAGE-TAG is DECLINED non-support (COBOL1943, Annex A.3 item 4).",
+ "state": "OK"
+}

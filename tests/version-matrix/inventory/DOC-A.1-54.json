@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-54",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 54,
+ "subject": "DISPLAY directive (meaning of compile-time-device-1)",
+ "rule-digest": "ea877bbb976b",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-54; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.Display.cs#DisplayDestinations; src/WiseOwl.Cobol.Editions/ImplementorNames.cs#ImplementorNames",
+ "test-ref": "unit:DisplayDirectiveTests.Upon_NamesTheDestinations; unit:DisplayDirectiveTests.Upon_BreakingItsFormat_IsDiagnosedAndTransfersNothing; conformance:cases/7.3.12-DISPLAY/pb807-display-directive-upon-input-device; conformance:cases/7.3.12-DISPLAY/pb807-display-directive-upon-listing-twice",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB807 landed (w1004b). compile-time-device-1 is an OUTPUT-capable device-name of the one implementor-name table (CONSOLE, SYSOUT: standard output; SYSERR: standard error); SYSIN and any other word are COBOL2698 naming the devices; several destinations write the line once to each in the order written, with LISTING and the device group each at most once.",
+ "state": "OK"
+}

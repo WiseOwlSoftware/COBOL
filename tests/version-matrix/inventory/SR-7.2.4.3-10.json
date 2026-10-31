@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.2.4.3-10",
+ "section": "7.2.4.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "REPLACE statement",
+ "rule-digest": "4db5bbe8ad8e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#IsDiscardedFormatDirective; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatMap.cs#HoldsDirectiveAt",
+ "test-ref": "unit:TextManipulationStatementTests.ReplaceOperandContent_IsScreened; unit:DirectiveWithinStatementTests.SourceFormatDirectiveInsideAStatement_IsDiagnosed; conformance:cases/7.2.4-REPLACE/pb1353-source-format-in-replace-pseudo-text; conformance:cases/7.2.4-REPLACE/pb1384-directive-within-replace",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1353 (w1032c): 'Compiler directive lines shall not be specified within pseudo-text-1, pseudo-text-2, partial-word-1, or partial-word-2' (cite.py OK 7.2.4.3 10)). Same three arms as COPY (SR-7.2.3.3-10): a directive reaching the operand is COBOL2572; a >>DEFINE/>>IF/>>EVALUATE/... line the driver consumes (the note's probe sr10, >>DEFINE ZZ AS 1 inside ==XX1==, and r_def.cob) is COBOL2697 naming 7.2.4.3 SR10 when the statement is open inside pseudo-text; a >>SOURCE FORMAT line logical conversion discarded is recognized through the text's ReferenceFormatMap and asked the same question. REPLACE twins: r_def.cob and the pb1353-source-format-in-replace-pseudo-text negative. || editions 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a compiler-directive rule; the 7.3 compiler-directive facility is a COBOL-2002 introduction (COBOL-85 has no >> directive line: docs/VERSION_CHANGE_REFERENCE.md Table 7 row 7.21, a derived edge). cite.py --check 7.3.3 \"A compiler directive may be specified anywhere in a compilation group\" OK.",
+ "state": "OK"
+}

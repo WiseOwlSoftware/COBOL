@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-24",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 24,
+ "subject": "WRITE statement",
+ "rule-digest": "418f10bf64c9",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/CloseTable14.cs#PhysicalFileCategory",
+ "test-ref": "unit:CloseTable14Tests.Category_PlacesEverySupportedConnectorKind",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely — item 3: a rule whose trigger can only arise through an unsupported capability closes as DOCUMENTED-NON-SUPPORT, CONTINGENT: re-adjudicate if the capability is ever added (kb/Work PB1198 Q2). §14.9.51.4 GR24's reel/unit swap needs an end of reel/unit recognized inside a multi-volume physical file; WiseOwl COBOL provides no reel or unit medium (docs/CONFORMANCE.md §2 A.3 items 26, 28-30, 33-34; A.1 item 24), and the witness pins that every connector kind reports a non-unit or mass-storage category (§14.9.6.4 GR2 (a)/(d)), so no WRITE can recognize an end of unit. The READ twin GR-14.9.30.4-23 was closed earlier by an owner-signed §8 derivation.",
+ "state": "OK"
+}

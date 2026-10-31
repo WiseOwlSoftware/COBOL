@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.3.3.6.2",
+ "section": "8.3.3.6.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Figurative constant values",
+ "rule-digest": "11f4a32bad96",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#figurativeConstant",
+ "test-ref": "conformance:cases/8.3.3.6-Figurative-constant-values/pb71_all_national_boolean_figurative",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Formats 1-6 (ZERO/SPACE/HIGH-VALUE/LOW-VALUE/QUOTE with the optional ALL, ALL literal-1) are the figurativeConstant rule; Format 7 (symbolic-character-1) binds through the SPECIAL-NAMES SYMBOLIC CHARACTERS path. kb/Work PB71 made Format 6 total over the literal kinds.",
+ "state": "OK"
+}

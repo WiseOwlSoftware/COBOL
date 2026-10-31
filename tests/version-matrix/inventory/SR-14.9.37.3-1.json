@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.37.3-1",
+ "section": "14.9.37.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "SEARCH statement",
+ "rule-digest": "1f484610610a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveSearchTable; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveTableOperand; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ReadWritten; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#Identifier1",
+ "test-ref": "conformance:cases/14.9.37-SEARCH/pb443-search-identifier-1-reference-modified; conformance:cases/14.9.37-SEARCH/pb443_search_identifier_1; unit:DecidedRuleStageDriftTests.SearchIdentifier1_IsACompileTimeError_NamingTheRule; unit:SearchOperandResolutionDriftTests.SearchBinder_ReducesNoOperandToItsBaseWord",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB443 LANDED. \"Identifier-1 shall not be reference-modified\" now HAS a site, and the reason it had none is the reason the other two ALL-FORMATS rules had none: SearchBinder read `drefs[0].cobolWord()` - the reference's BASE WORD - so a reference modifier never reached any code that could have refused it. MEASURED before: `SEARCH E(1:3) ... WHEN K (IX) = 03` compiled clean and produced output BYTE-IDENTICAL to the legal `SEARCH E`, at all four editions. Now COBOL2075 quotes SR1 at bind time. The screen reads ReferenceResolver.ResolveTableOperand's IsReferenceModified, which comes off the ONE decomposition of a written dataReference (ReadWritten - shared with ResolveImplCore, ResolveForAddressOf and SubscriptGroupOf, which each wrote the walk out for themselves), and BOTH formats reach it through the single SearchBinder.Identifier1 helper - Format 1 and Format 2 had two copies of the same eight lines, the two-arm shape this project keeps finding with one arm fixed. Staging is the PB390 invariant: an ERROR naming the rule, never the COBOL1756 deferral announce, asserted per row in DecidedRuleStageDriftTests.",
+ "state": "OK"
+}

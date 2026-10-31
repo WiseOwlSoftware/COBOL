@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.6.4-1",
+ "section": "11.6.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "INTERFACE-ID paragraph",
+ "rule-digest": "df42095203d2",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build; src/WiseOwl.Cobol.Compiler/Oo/OoInterfaceSymbol.cs#ExternalizedName; src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Lookup; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#ExternalizedDefinitions",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb974_repository_as_phrase",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1086: Rule (cite.py --check 11.6.4 OK, GR 1): 'Interface-name-1 names the interface declared by this interface definition. However, literal-1, if specified, is the name of the interface that is externalized to the operating environment.' Half 1: OoClassTable.Build registers the interface under interfaceName(0) (_ifaceByName), and every reference resolves through OoNameResolution (declared word). Half 2: the AS literal-1 is screened by ExternalizedName.Screen (§11.6.3 SR1, COBOL1794) and stored as OoInterfaceSymbol.ExternalizedName; it is the key a REPOSITORY 'INTERFACE x AS lit' resolves against (FindInterfaceByExternalizedName, §12.3.8.4 GR2) and the key of the §8.3.2.2 compilation-group uniqueness sweep (BinderDriver.ExternalizedDefinitions). Probe probe/interface-id-paragraph/pos.cob (--std 2002): INTERFACE-ID. IFPA AS \"EXTIFPA\"; main REPOSITORY 'INTERFACE IFPAX AS \"EXTIFPA\"', OBJECT REFERENCE IFPAX receives an IFPC3 reference and INVOKE RA \"SPEAK\" prints SPEAK -- the externalized name connects two different words. pb974_repository_as_phrase witnesses the same with W974SPK AS \"W974-SPEAKER\" and its expected output is derived from §12.3.8.4 GR2. Observation (not a defect): the emitted CLR interface name is the sanitized declared word (OoEmitter.EmitInterfaceUnit uses CsName), the same policy as CLASS-ID; the spec does not fix how an externalized name maps onto host metadata. || REFUTED: PARTIAL — GR1 has two halves. Half 1 (interface-name-1 names the declared interface) is verified. Half 2 says literal-1 'is the name of the interface that is externalized to the operating environment', and nothing is externalized under literal-1: the emitted CLR interface is the sanitized DECLARED word, and the literal never appears in the generated code. Literal-1 is only an internal key inside one compilation group (the REPOSITORY AS match and the §8.3.2.2 uniqueness sweep). A separately compiled program cannot reach the interface by literal-1, because the class table is per compilation group and there is no external repository. The adjudicator's note records the metadata point as an 'observation, not a defect'. But it is the externalization half itself, so that half is unverified, which makes the rule PARTIAL. pb974 pins only the in-group AS resolution, which is §12.3.8.4 GR2's branch. || Editions (adjudicator, verbatim): 2002, 2014, 2023 (the OO facility, introduced by ISO/IEC 1989:2002; interface definitions are rejected COBOL0900 at 85)",
+ "state": "GAP"
+}

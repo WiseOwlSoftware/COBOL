@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-19",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 19,
+ "subject": "WRITE statement",
+ "rule-digest": "157f5164a248",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#OpenConnectorWriteStream; src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#SharedAppendStream; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReleaseRecord",
+ "test-ref": "conformance:cases/14.9.51-WRITE/pb739_shared_extend_write_2023; conformance:cases/14.9.51-WRITE/pb739_shared_extend_write_2002; unit:SharedExtendWriteDriftTests.TwoSharedExtendConnectors_KeepBothRecords_ForEverySequentialFraming; unit:SharedExtendWriteDriftTests.TwoSharedExtendConnectors_MintDistinctAscendingOrdinals",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Two sharing-active file connectors extending one physical file each append after every record present at the moment of the write: a participant's writer is HostFile.OpenConnectorWriteStream's SharedAppendStream, which repositions at the physical end before every write instead of at the .NET FileMode.Append offset captured once at open. The record's ordinal is minted from the shared PhysicalFileTable.State.ReleasedOrdinal, so the two connectors' releases are 2 then 3 rather than 2 twice. Only the relative ORDER of the two connectors' records is undefined by this rule; both goldens read all three records back on every organization and framing. COBOL-85 has no file sharing, so the rule's antecedent cannot arise there. kb/Work PB740 renamed the role to HostFile.OpenConnectorWriteStream and moved its shared-vs-plain choice onto the 9.1.15 file lock the connector's handle carries (FileLockPosture.AdmitsAnotherWriter) instead of onto whether the SELECT wrote a SHARING or LOCK MODE clause: the same change made two CLAUSE-LESS connectors openable EXTEND on one physical file for the first time, and keying the repositioning stream on a clause would have left exactly that pair anchoring two buffered writers at one offset. The rule and its evidence are unchanged; this row is re-recorded because the symbol it names moved.",
+ "state": "OK"
+}

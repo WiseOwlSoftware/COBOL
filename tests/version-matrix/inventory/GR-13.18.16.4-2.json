@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.16.4-2",
+ "section": "13.18.16.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "CONTROL clause",
+ "rule-digest": "62bc0967d9f8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindReportDescriptionClauses; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#DetectBreakLevel",
+ "test-ref": "conformance:cases/13.14-Report-description/pb483_control_final_first; conformance:cases/13.18.16-CONTROL/pb483-control-final-placement",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 13.18.16.4 \"Therefore FINAL, if specified, is associated with the highest level in the hierarchy\" -> OK §13.18.16.4 2). FINAL is registered as a control whose value never changes (get = \"\", set = no-op) and DetectBreakLevel skips IsFinal, so it never breaks during GENERATE; its CF prints only at TERMINATE's most-major break (probe gr4/f3: `CFF B` once, after CFN/CFX, at TERMINATE). For every format-legal CONTROL clause FINAL is written first, so model.Controls[0] (the highest level) is FINAL. The out-of-position FINAL the grammar also admits is a FORMAT violation owned by FMT-13.18.16.2 / finding 1, not a GR2 defect. No spec-derived test isolates FINAL; test-ref empty. || Code sites (adjudicator detail): src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindReportDescriptionClauses; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs (FINAL AddControl); src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#DetectBreakLevel",
+ "state": "OK"
+}

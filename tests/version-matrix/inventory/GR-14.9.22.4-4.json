@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.22.4-4",
+ "section": "14.9.22.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "INSPECT statement",
+ "rule-digest": "47bcb931d4c0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#EmitStore; src/WiseOwl.Cobol.Compiler/Binding/Passes/UsageCollectionPass.cs; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#RetainSign; src/WiseOwl.Cobol.Compiler/Binding/Passes/StorageFormPass.cs#Classify",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/pb1128_inspect_identifier1_class_store; conformance:cases/14.9.22-INSPECT/pb1128-inspect-national-numeric-edited-mix; conformance:cases/14.9.22-INSPECT/pb1128_inspect_signed_sign_retained; conformance:cases/14.9.22-INSPECT/pb2004_dyn_element_character_channels",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED kb/Work PB1128 (GR4 d, the sign arm; GR4 c landed in w66k). A numeric DISPLAY / NATIONAL elementary identifier-1 that REPLACING / CONVERTING writes into is character-image stored (UsageCollectionPass.Visit(BoundInspect) makes INSPECT a character channel), and InspectEmitter.EmitStore re-signs the replaced digit run through CobolNum.RetainSign, which reads the ORIGINAL image's sign apart from the magnitude, so a negative item whose digits all become zeros stays a negative zero in every sign convention (separate leading / trailing, overpunch): S9(3) VALUE -5 REPLACING ALL 5 BY 0 holds 00} (witness 85/pb1128_inspect_signed_sign_retained S1-S5).",
+ "state": "OK"
+}

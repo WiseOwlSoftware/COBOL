@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.53.3-3",
+ "section": "13.18.53.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "SOURCE clause",
+ "rule-digest": "1807a2fe9c2b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindReportEntry; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ReportSourceExpressionNotNumeric; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportSourceClause",
+ "test-ref": "conformance:cases/13.18.53-SOURCE/pb852-source-expression-not-numeric; conformance:cases/13.18.53-SOURCE/pb852_report_source_expression; conformance:cases/13.18.53-SOURCE/pb3964-report-source-expression-85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "An arithmetic-expression operand or a ROUNDED phrase requires the entry to define a numeric or a numeric-edited item, screened inside BindReportEntry at the point the entry's PICTURE is analyzed - the receiving operand of 13.18.53.4 GR2's implicit COMPUTE is that printable item (COBOL2141). The rule had no reachable population before kb/Work PB852: neither the expression operand nor the phrase had a grammar surface, so nothing could violate it.",
+ "state": "OK"
+}

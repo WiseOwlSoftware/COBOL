@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.13.3-3",
+ "section": "13.18.13.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "CODE-SET clause",
+ "rule-digest": "dcaf6ae1636e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindCodeSetClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.CodeSetRecords.cs#CheckCodeSetRecordItems",
+ "test-ref": "conformance:cases/13.18.13-CODE-SET/pb110-code-set-nonidentity; conformance:cases/12.3.7-SPECIAL-NAMES/pb110_code_set_identity; conformance:cases/13.18.13-CODE-SET/pb1219_code_set_record_less_fd",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB110 (2026-08-19): with record description entries and no SELECT WHEN clauses (none exist in this grammar), one class only (both names → COBOL1672); a) every elementary item usage display and signed items SIGN SEPARATE (1672 — probed: a PIC S9 record under CODE-SET draws the SIGN SEPARATE arm); b) the national twin.",
+ "state": "OK"
+}

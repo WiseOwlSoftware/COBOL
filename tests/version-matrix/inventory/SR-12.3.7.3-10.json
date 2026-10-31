@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.7.3-10",
+ "section": "12.3.7.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "39ff50bd6b33",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#OrderTableBind",
+ "test-ref": "unit:StandardCompareTests.Literal9_ObeysSr10AndSr11",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB101 T7: literal-9 shall be an alphanumeric or national literal — a numeric or boolean literal is COBOL0898 citing SR10 (literal-4 is the LOCALE clause's, T1).",
+ "state": "OK"
+}

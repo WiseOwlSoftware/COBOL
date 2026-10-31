@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.8.4-2",
+ "section": "13.18.8.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "BLANK WHEN ZERO clause",
+ "rule-digest": "cde28cc30641",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#UsageFamilies.IsDisplayOrNational; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#BlankWhenZeroViolation",
+ "test-ref": "conformance:cases/13.18.8-BLANK-WHEN-ZERO/pb508_blank_when_zero_national; conformance:cases/13.18.8-BLANK-WHEN-ZERO/pb508_blank_when_zero_national_resultant; conformance:cases/13.18.8-BLANK-WHEN-ZERO/pb566_blank_when_zero_stored_value; unit:BlankWhenZeroUsagePairDriftTests.GR2_PromotesExactlyTheUsagesTheScreenAdmits_OverEveryUsage; unit:BlankWhenZeroUsagePairDriftTests.PromotionAndScreen_AskTheOnePredicate_AndNeitherSpellsUsageDisplay",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB508 landed. GR2 defines a category-numeric subject numeric-edited for BOTH usages SR2 admits, display and national. The promotion once tested usage display alone (PB508's finding); PB646 widened it when national-form numerics became real, and PB508's landing pins it: the promotion and SR2's own screen (DataBinder.BlankWhenZeroViolation) ask the one predicate UsageFamilies.IsDisplayOrNational, and BlankWhenZeroUsagePairDriftTests measures promotion against the predicate over every Usage member. Goldens: pb508_blank_when_zero_national (a PIC 9(5) USAGE NATIONAL BLANK WHEN ZERO item blanks on a stored zero exactly as its display twin does, shows 00012 after MOVE 12 and de-edits to a numeric receiver) and pb508_blank_when_zero_national_resultant (ADD 1 TO the item is COBOL1675, the arithmetic-resultant refusal that is only true if GR2 defined the item numeric-edited; refused 2002-2023). Both were mutation-checked: with the promotion reverted to usage display alone the first prints 00000 for the zero store and the second compiles. Below 2002 USAGE NATIONAL is itself refused (pb646-national-form-numeric-at-85, COBOL0900).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.7.3-1",
+ "section": "12.4.5.7.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "COLLATING SEQUENCE clause",
+ "rule-digest": "ce36947e08d3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveFileCollating; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CollatingAlphabetFault",
+ "test-ref": "conformance:cases/12.4.5.7-COLLATING-SEQUENCE/pb1074-file-collating-alphabet-class",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1074 landed (w61c). cite.py --check 12.4.5.7.3 'Alphabet-name-1 shall reference an alphabet that defines an alphanumeric collating sequence' -> OK SR1. Screened EAGERLY on the clause as written (ResolveFileCollating through the one class test CollatingAlphabetFault), so an undeclared alphabet-name-1 shadowed by key-level clauses for every key (probe p9) and a FOR NATIONAL alphabet as alphabet-name-1 (p4, formerly mis-reported as the COBOL1584 decline) both draw COBOL1583 citing SR1. Negative pb1074-file-collating-alphabet-class (NOSUCH shadowed by OF IX-KEY). retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveKeyCollating (SR1 is no longer checked lazily in the per-key resolution; ResolveFileCollating screens the clause as written (kb/Work PB1074))",
+ "state": "OK"
+}

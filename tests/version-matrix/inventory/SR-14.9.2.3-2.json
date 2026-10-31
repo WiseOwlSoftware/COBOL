@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.2.3-2",
+ "section": "14.9.2.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "ADD statement",
+ "rule-digest": "a11e62bb2996",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ScreenResultant",
+ "test-ref": "conformance:cases/14.9.2-ADD/pb128-add-edited-in-place; conformance:cases/14.9.2-ADD/pb128_resultant_categories; conformance:cases/14.9.2-ADD/da6-alphanumeric-numeric-operand; conformance:cases/14.9.2-ADD/da6-group-numeric-operand; conformance:cases/14.9.2-ADD/da6-refmod-numeric-operand",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB128): ADD's in-place TO receivers screen numeric-only (SR2) while GIVING admits numeric-edited (SR4) - the editedOk flag is stated at every call site with its own clause. ADD 1 TO ZZZ9 now rejects at compile time where it stored through the EditMask arm silently.",
+ "state": "OK"
+}

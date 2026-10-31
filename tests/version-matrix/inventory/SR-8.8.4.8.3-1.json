@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.4.8.3-1",
+ "section": "8.8.4.8.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Simple omitted argument condition",
+ "rule-digest": "5d1317b12203",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindComparison",
+ "test-ref": "conformance:cases/8.8.4.8-Simple-omitted-argument-condition/pb133-omitted-cond-not-formal; conformance-test:MethodOmittedArgumentTests.OmittedCondition_OnMethodNonFormal_1686; conformance:cases/8.4.3.2-Function-identifier/pb757_invoke_omitted",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB757.md landed w46i2. data-name-1 resolves against the formals of the source element containing the condition: the method's own USING formals inside a method body (OoMethodScope.Formals), else the program/function's LinkageFormals. A non-formal is COBOL1686 on both arms (negative pb133 for a program, test for a method).",
+ "state": "OK"
+}

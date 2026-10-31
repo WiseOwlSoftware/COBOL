@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-22",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 22,
+ "subject": "VALUE clause",
+ "rule-digest": "817385a720ec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.TableValue.cs#ScreenTableValueGeometry; src/WiseOwl.Cobol.Compiler/Binding/Model/TableValuePlan.cs#TableValueDim",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb505-table-value-subordinate-dynamic-no-to; conformance-test:ValueFormat2Tests.SubordinateToDynamicWithoutTo_Rejected1588; conformance-test:ValueFormat2Tests.DynamicWithoutTo_HigherSubscriptsShallBeEqual_1946",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "LANDED 2026-09-09 (kb/Work PB505). THE SUBORDINATE ARM NOW HAS A SITE. The same-entry arm was implemented (`dynamicNoTo` read `item` alone); \"or in any entry SUBORDINATE to such an OCCURS clause\" had none, and its population exited through the landable-scope stage COBOL0899 -- rejected, but as a compiler limitation and by a mechanism that also refused the conforming subordinate shapes. The predicate is now over the whole dimension list, every member of which is the subject's own OCCURS or one superordinate to it (TableValueDim.DynamicWithoutTo = Dynamic && no expected capacity), so both arms are one test and the message names WHICH entry carries the offending OCCURS DYNAMIC. MEASURED: `01 G OCCURS DYNAMIC CAPACITY IN C1. 05 X PIC X(2) VALUE \"AB\" FROM (1).` draws COBOL1588 naming SR22 and G; the same-entry spelling still does; the over-rejection control (`OCCURS DYNAMIC ... TO 5` with `VALUE ... FROM (1) TO (3)`) still compiles. Reported at all four editions -- SR22 carries no version proviso, and below 2014 the OCCURS DYNAMIC introduction gate is reported ALONGSIDE it. Editions kept at 2014,2023 (the rule's antecedent needs the 2014 DYNAMIC phrase; the dossier gap the earlier adjudication recorded stands).",
+ "state": "OK"
+}

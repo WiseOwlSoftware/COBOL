@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.6.4-6",
+ "section": "12.3.6.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "OBJECT-COMPUTER paragraph",
+ "rule-digest": "f4688f53852b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#SwitchBindSpecialNames; src/WiseOwl.Cobol.Runtime/Globalization/CharacterClassification.cs#None",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/pb64t5_case_locale_phrase; conformance:cases/12.3.5-SOURCE-COMPUTER/pb78_object_computer_optional_name",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB78 / PB64 T5 (2026-08-19): without a CHARACTER CLASSIFICATION clause — in the unit or any containing unit — the classification is CharacterClassification.None, the coded character set's: the PLAIN program of the T5 golden (a second top-level unit beside one WITH the clause) maps \"i\" → \"I\" (ORD 74) even while the run unit's LC_CTYPE is Turkish, and the pb78 golden has no clause at all.",
+ "state": "OK"
+}

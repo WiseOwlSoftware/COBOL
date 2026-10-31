@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.74.3-2",
+ "section": "15.74.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "PRESENT-VALUE function",
+ "rule-digest": "7e952fcb5d90",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#PresentValueDomain; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#LeadThenTail; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#PresentValueBase; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#AllArgs",
+ "test-ref": "conformance:cases/15.9.3-Argument-rules/pb65_domain_guards; conformance:cases/15.74.3-Argument-rules/pb1000_present_value_rate_near_minus_one; conformance:cases/15.8.3-Argument-rules/pb952_argument_domain_bound_adjacent; unit:TableAllLeadTests.TheFirstElementIsTheWalksFirst_EvenWhenAnInnerLevelIsEmptyAtTheFirstOuterOccurrence",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PB65 (domain-guard members) LANDED 2026-08-09: the argument-value guards exist at one raise site per rule, both carriers. PROBED: PV-NEG line: PRESENT-VALUE(-2.00, 300) takes the SS15.74.3 r2 EC path; the Dec carrier shares the raise site. PRIOR (DIVERGES): test-needed. §15.74.3 r2 (cite.py --check: OK) — the value of argument-1 shall be greater than −1. This is a permissible-VALUE constraint, so §15.3 applies: 'If the evaluation of an argument results in an incorrect value",
+ "state": "OK"
+}

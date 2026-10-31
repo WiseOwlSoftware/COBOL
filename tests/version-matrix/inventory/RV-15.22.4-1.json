@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.22.4-1",
+ "section": "15.22.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "DATE-OF-INTEGER function",
+ "rule-digest": "dcb1cdbca63f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AnyRealArgument; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RealMethod; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#CombinedDatetimeReal; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#DateOfInteger",
+ "test-ref": "conformance:cases/15.22.4-Returned-value-rules/l1_date_of_integer_standard_form; conformance-test:IntrinsicFunctionDifferentialTests.IntegerDateForm_Epoch_PinnedToSpec",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Integer date N maps to the day N days after 1600-12-31 (§15.5.2 starting date + §15.5.1 calendar/leap Note): the golden pins §15.5.2's two stated endpoints (1 -> 16010101, 3067671 -> 99991231) plus all three leap branches (1155 -> 16040229, 145791 -> 20000229, 36218/36219 -> 17000228/17000301 consecutive) and 143951 -> 19950215.",
+ "state": "OK"
+}

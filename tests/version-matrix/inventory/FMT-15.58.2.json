@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.58.2",
+ "section": "15.58.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "LOWEST-ALGEBRAIC function",
+ "rule-digest": "26bd3fe6fdfe",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#DeclareUserWord",
+ "test-ref": "conformance:cases/15.43.4-Returned-value-rules/highest_lowest_algebraic; conformance:cases/8.3.2-COBOL-words/pb65_repository_r5_intrinsic_names; conformance:cases/8.3.2-COBOL-words/pb65-repository-all-intrinsic-name-as-user-word",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB65 (2026-08-18): the same single site as FMT-15.43.2 — a shadowing table named LOWEST-ALGEBRAIC (or `01 LOWEST-ALGEBRAIC` under FUNCTION ALL INTRINSIC) is rejected at the declaration (COBOL1649), and LOWEST-ALGEBRAIC(A1) is the function (-999 for a S999 argument). Without a REPOSITORY entry the FUNCTION-less spelling is COBOL1543 (the earlier fix). retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.cs#ScreenRepositoryIntrinsicName (kb/Work PB1083 renamed the screen to the one declaration funnel DataBinder.DeclareUserWord)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.53.3-1",
+ "section": "13.18.53.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "SOURCE clause",
+ "rule-digest": "fe8d67460456",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportSourceClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#SOURCES; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportSourceClause",
+ "test-ref": "conformance:cases/13.18.53-SOURCE/pb506_report_value_operand_list; conformance:cases/13.18.14-COLUMN/pb1221_report_keyword_prefixes",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"SOURCE and SOURCES are synonyms.\" (cite.py --check 13.18.53.3 OK SR1). Both spellings reach the same production and the binder never reads which was written; conformance:cases/13.18.14-COLUMN/pb1221_report_keyword_prefixes writes SOURCES ARE and SOURCE IS in one report line with identical placement. The synonymy is of MEANING: each spelling keeps the connective its format alternative prints ({SOURCE IS | SOURCES ARE}, 13.18.53.2), so SOURCE ARE and SOURCES IS are refused by the parser (kb/Work PB1221). The SOURCES spelling is introduction-gated below 2002 (COBOL0900, constructs.json report-multi-source-2002). || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): 1985, 2002, 2014, 2023 (Report Writer: 85 optional module, 2023 optional element A.4.11; the 2023 Annex E lists no SOURCE-clause change; the multi-operand / SOURCES / arithmetic-expression forms are 2002 introductions per docs/VERSION_CHANGE_REFERENCE - not derivable from the 2023 text itself)",
+ "state": "OK"
+}

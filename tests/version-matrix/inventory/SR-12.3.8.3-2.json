@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.8.3-2",
+ "section": "12.3.8.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "eddaa1ff91e7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#BindSpecifierExternalizedName; src/WiseOwl.Cobol.Compiler/Binding/ExternalizedName.cs#Screen",
+ "test-ref": "conformance:cases/12.3.8-REPOSITORY/pb974-repository-class-as-zero-length; conformance:cases/12.3.8-REPOSITORY/pb237-repository-program-literal-class",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "All five literals (class 1, interface 2, program 3, property 4, function 5) pass the ONE ExternalizedName.Screen through BindSpecifierExternalizedName: alphanumeric or national, not figurative, not zero-length - COBOL1761 (kb/Work PB974; PB237 had the program specifier's literal-3 only).",
+ "state": "OK"
+}

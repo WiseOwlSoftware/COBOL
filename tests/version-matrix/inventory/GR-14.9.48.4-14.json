@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.48.4-14",
+ "section": "14.9.48.4",
+ "kind": "GR",
+ "ordinal": 14,
+ "subject": "UNSTRING statement",
+ "rule-digest": "27e0c2bbd4fc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/l1c35_unstring_tallying_accessed",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR14 'value at the beginning of the execution of the statement plus a value equal to the number of identifier-4 receiving data items accessed' (cite.py --check -> OK 14.9.48.4 14)). EmitUnstring: tly initialized from the TALLYING item's current value, += 1 inside the 'if (cnt >= 0)' acted-upon block only (a receiver skipped because the sender was exhausted, GR11g, is not accessed), stored back after the loop. Probe p2 T3: 5 + 3 receivers = 08; p2 T4 (GR15a overflow): 0 -> 00 (no receiver accessed). The only covering test (StringUnstringDifferentialTests.Unstring_DelimiterIn_CountIn_TallyingAddsToCurrentValue) is legacy-differential -> test-ref empty.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.17.4-3",
+ "section": "7.3.17.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "LEAP-SECOND directive",
+ "rule-digest": "835fa6ce1ad9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#AcceptSource; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#Format21; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#ProgramEmitter; src/WiseOwl.Cobol.Runtime/IO/Clock.cs#SystemClock",
+ "test-ref": "conformance-test:LeapSecondReportedSecondsPinTests.ReportedSeconds_ImpliedOff_LastTickBeforeLeapSecond_NeverExceeds59; conformance-test:LeapSecondReportedSecondsPinTests.ReportedSeconds_SpecifiedOff_LastTickBeforeLeapSecond_NeverExceeds59; conformance-test:LeapSecondReportedSecondsPinTests.ReportedSeconds_SpecifiedOff_2002_LastTickBeforeLeapSecond_NeverExceeds59; unit:WhenCompiledStampTests.WhenCompiled_LeapSecondOff_LastTickBeforeLeapSecond_Bakes59; unit:WhenCompiledStampTests.WhenCompiled_LeapSecondImpliedOff_LastTickBeforeLeapSecond_Bakes59",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR3 (cite OK 7.3.17.4 3)) on both arms, specified and GR1-implied OFF: all four sources pinned at 2016-12-31T23:59:59.9999999+00:00. Run time (WISEOWL_COBOL_CLOCK) gives 23595999 / 2016123123595999+0000 / 20161231T235959 (2014+). The WHEN-COMPILED bake (IntrinsicBinder.CompileClock, 2002 and 2023) gives 2016123123595999+0000. The live-clock goldens are layout witnesses only and are not claimed. retired-witness: src/Cobol.Net.Runtime/IO/Clock.cs#Clock (Clock.cs declares IClock and SystemClock; no declaration named Clock exists in it, the witness resolved on a comment)",
+ "state": "OK"
+}

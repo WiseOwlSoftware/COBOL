@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.38.3-28",
+ "section": "13.18.38.3",
+ "kind": "SR",
+ "ordinal": 28,
+ "subject": "OCCURS clause",
+ "rule-digest": "18a61a92177a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#DynamicResolve; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#DynamicBoundWithinMaximum; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#OccursDynamic",
+ "test-ref": "conformance-test:OccursDynamicGuardTests.FromGreaterThanTo_Rejected1522; conformance:cases/13.18.38-OCCURS/pb1264-occurs-dynamic-from-above-maximum",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1264: FROM >= TO is COBOL1522, FROM 0 is accepted and TO 0 is COBOL2386; the refuter's hole (an over-range FROM left InitialCap null and skipped the comparison) is closed by SR29's own refusal, COBOL2647: every value above CobolDynTable.MaxOccurrences is a compile error, so no over-range pair reaches a compiled program (re-probed: FROM 99999999999 TO 5 is COBOL2427 + COBOL2647).",
+ "state": "OK"
+}

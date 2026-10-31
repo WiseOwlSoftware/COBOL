@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.4-6",
+ "section": "8.5.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "Data description and representation",
+ "rule-digest": "e4496583c8fb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/MoveClassifier.cs#CanBeZeroLengthItem; src/WiseOwl.Cobol.Compiler/Binding/Bound/MoveClassifier.cs#NeedsLengthFreeze; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs",
+ "test-ref": "conformance:cases/8.5.4-Zero-length-items/pb425_zero_length_sender_shapes",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Stem: `OK  §8.5.4` \"A zero-length item is a data item or a literal whose minimum length is zero and whose length at runtime is zero.\" The compiler holds the stem's description half as ONE recurrence (DataItem.MinimumLengthIsZero) and the runtime half as the emitted current-length test; consumers read it (MoveClassifier.ZeroLengthItemRoute / MoveEmitter for §14.9.25.4 GR1, CobolClass for §8.8.4.4.4 GR1, STRING/UNSTRING/INSPECT runtime length). Item 6: CanBeZeroLengthItem admits a function-identifier whose resolved category is non-numeric (a numeric §15.4 temporary always has a digit position), materialized once via SendingValueTemp. `OK §15.96.4 4)` TRIM of all spaces 'the returned value is of length zero'. Probe p2: SP PIC X(4) SPACES -> MOVE FUNCTION TRIM(SP) TO X(5)=spaces, FUNCTION TRIM(SP) = \"\" true, FUNCTION LENGTH(FUNCTION TRIM(SP))=0, STRING FUNCTION TRIM(SP) ... \"Z\" -> ZBCDE. Golden 2023/pb425_zero_length_sender_shapes arm (2) pins both the zero-length function arm and the numeric-function non-arm. || editions as written by the adjudicator: 2014, 2023 (a zero-length returned value requires the 2014 zero-length facilities; golden l1_trim_zero_length_result_2014 at 2014). §8.5.4 is not in Annex E's 2014->2023 delta, so the concept predates 2023; the repo holds no 2002/2014 text, so the 2002-vs-2014 introduction edge is not separately derivable (VERSION_CHANGE_REFERENCE ratified decision #1).",
+ "state": "OK"
+}

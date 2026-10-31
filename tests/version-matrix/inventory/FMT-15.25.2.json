@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.25.2",
+ "section": "15.25.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "DAY-TO-YYYYDDD function",
+ "rule-digest": "3ef5d6fdb749",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicArgs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction",
+ "test-ref": "conformance:cases/15.25-DAY-TO-YYYYDDD/l1_day_to_yyyyddd_format; conformance:cases/15.25-DAY-TO-YYYYDDD/l1-day-to-yyyyddd-arity4; conformance:cases/15.25-DAY-TO-YYYYDDD/l1-day-to-yyyyddd-no-function-word; conformance:cases/15.23.4-Returned-value-rule/intrinsics_date_window",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "The one-line format asserts an ARITY structure and two REQUIRED WORDS, and both are now closed in both directions. Arity: the bracket nesting admits exactly 1, 2 and 3 arguments — the positive writes all three (A3=1885365 fully clock-free by §15.25.4 r1 over §15.100.4; A2 and A1 pinned on their clock-free halves plus r3's 50-default equivalence) and the comma spelling by §8.3.5 r2, while l1-day-to-yyyyddd-arity4 rejects four (COBOL1504). Required word: l1-day-to-yyyyddd-no-function-word omits FUNCTION with no REPOSITORY paragraph, withholding §8.4.3.2.3 SR2's only permission (COBOL1543). Both negatives are 2002+ — below that the NAME is rejected first and the keyword-omitted routing is inert.",
+ "state": "OK"
+}

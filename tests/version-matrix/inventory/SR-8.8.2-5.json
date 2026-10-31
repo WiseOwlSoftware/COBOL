@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.2-5",
+ "section": "8.8.2",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "Expressions",
+ "rule-digest": "2fd823fbaa80",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindBoolShiftSuffix; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#booleanShiftSuffix; src/WiseOwl.Cobol.Frontend/Expressions/ArithmeticFormationRules.cs#ShiftCountNotSoleOperand; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#IsIntegerOperand",
+ "test-ref": "conformance:cases/5.5-Integer-operands/pb1413-shift-count-not-integer; conformance:cases/8.8.2-Boolean-expressions/pb1413-shift-count-compound; conformance:cases/7.3.7-Compile-time-boolean-expressions/boolean_expression_formation; unit:BooleanExpressionFormationTests.ShiftCount_LiteralWithADecimalPoint_IsNotAnIntegerOperand",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1413 landed (wave 66 h). Rule (cite.py --check 8.8.2 'The second operand shall be an integer operand' -> OK §8.8.2 5)). The first half (first operand not ALL literal) was already COBOL1511. The second half is now enforced in both lanes: the SHAPE (Table 4 - only an identifier or literal after a shift operator) by the shared ArithmeticFormationRules screen (COBOL1719 at runtime via ExpressionFormationPass, COBOL1619 in a directive), then INTEGER-ness through the ONE integer classifier IntrinsicResultType.IsIntegerOperand (COBOL2513): COMPUTE R = A B-SHIFT-L 1.5 / NV (PIC 9V9) / FUNCTION SQRT(4) are 2513 (§8.4.3.2.3 SR11 --check OK), A B-SHIFT-L 1 + 1 / N * 1 are 1719; N (PIC 9), FUNCTION INTEGER(2.5), +1 are accepted and shift correctly.",
+ "state": "OK"
+}

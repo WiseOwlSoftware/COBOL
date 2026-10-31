@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.9.3-1",
+ "section": "14.9.9.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "CONTINUE statement",
+ "rule-digest": "988a746788fc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs",
+ "test-ref": "conformance:cases/14.9.9-CONTINUE/pb138_continue_after; conformance:cases/14.9.9-CONTINUE/altkey_suppress_when; conformance:cases/14.9.9-CONTINUE/ec_range_search; conformance:cases/_unassigned/wavef_dbg_proc",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED (kb/Work PB138): the arithmetic-expression interval evaluates through the ordinary expression spine per lane (float/decimal/fixed), with the sign test on the full-precision result and the truncation exact - the DIVERGES this row carried was the binary64-everywhere delivery.",
+ "state": "OK"
+}

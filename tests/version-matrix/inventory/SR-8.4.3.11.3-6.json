@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.11.3-6",
+ "section": "8.4.3.11.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "Data-address-identifier",
+ "rule-digest": "b8a948541039",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AddressOfOperandScreen.cs#Admit; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveForAddressOf",
+ "test-ref": "conformance:cases/8.4.3.11-Data-address-identifier/pb1407-address-of-dynamic-capacity",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1407. A dynamic-length elementary item, an element of and an item under a dynamic-capacity table, and an item under a group that contains a dynamic-length elementary item are each refused COBOL2785 by name; the 01 group that itself contains the dynamic item is none of the four shapes and stays addressable, as the rule reads.",
+ "state": "OK"
+}

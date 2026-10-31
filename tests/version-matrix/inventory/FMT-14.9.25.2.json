@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.25.2",
+ "section": "14.9.25.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "MOVE statement",
+ "rule-digest": "4fe0dc4c9ea8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#moveStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#moveReceivingPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#Bind; src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs#GuessCobolIntent; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sendingOperand",
+ "test-ref": "conformance:cases/14.9.25-MOVE/pb421_move_general_formats; conformance:cases/14.9.25-MOVE/pb421-move-sending-then-corresponding; conformance:cases/14.9.25-MOVE/pb421-move-literal-then-corr; conformance-test:PrintedFormatComplementTests.EverySpellingTheMoveFormatsAdmit_CompilesAtEveryEdition; conformance-test:PrintedFormatComplementTests.ACorrespondingPhraseAfterASendingOperand_IsRefusedAtEveryEdition; unit:PrintedFormatAlternativeDriftTests.MoveStatement_HasOneAlternativePerPrintedFormat; unit:PrintedFormatAlternativeDriftTests.TheCorrespondingKeyword_IsNamedOnlyByStatementRules",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB421.md landed w41. Both general formats were already faithfully implemented and the diagram was verified as PRINTED (PDF p.694): Format 1 'MOVE {identifier-1|literal-1} TO {identifier-2}...' and Format 2 'MOVE {CORRESPONDING|CORR} identifier-3 TO identifier-4'. The whole divergence was ONE over-accepting alternative: moveReceivingPhrase carried '(CORRESPONDING | CORR) dataReference TO dataReference', which composed with 'MOVE sendingOperand moveReceivingPhrase' to admit 'MOVE <sending-operand> CORRESPONDING id-3 TO id-4' -- a shape neither format prints, which the binder could not build, so MoveBinder fell through to BoundUnsupported and the compiler EMITTED A PROGRAM that died at run time claiming an unimplemented COBOL feature. The alternative is DELETED (Format 2 is spelled whole by moveStatement's first alternative), the shape is now a parse error re-coded as COBOL2173 naming both formats, and the fall-through message no longer says 'MOVE CORRESPONDING'. All FOUR spellings of the over-acceptance (identifier/literal sender x CORRESPONDING/CORR) are refused at all four editions, and the six legal spellings still compile. The drift guard is stated over the WHOLE grammar: a format-selecting CORRESPONDING/CORR keyword may be named only by a statement rule, never by a phrase rule it composes with. retired-witness: src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#moveSendingOperand (kb/Work PB2114 unified the sending operand into the one sendingOperand rule; moveSendingOperand no longer exists)",
+ "state": "OK"
+}

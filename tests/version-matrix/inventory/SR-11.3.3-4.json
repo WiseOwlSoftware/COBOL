@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.3.3-4",
+ "section": "11.3.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "CLASS-ID paragraph",
+ "rule-digest": "c733a1ea114e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build",
+ "test-ref": "conformance:cases/11.3-CLASS-ID/l1-class-id-inherits-cycle-direct; conformance:cases/11.3-CLASS-ID/l1-class-id-inherits-cycle-indirect; conformance:cases/11.3-CLASS-ID/pb1505-class-inherits-cycle",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "A 2-cycle (direct) and a 3-cycle (indirect only) are both rejected by the INHERITS-cycle arm; the diagnostic's citation defect is PB1505",
+ "state": "OK"
+}

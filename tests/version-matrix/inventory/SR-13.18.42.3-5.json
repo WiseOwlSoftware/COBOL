@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.42.3-5",
+ "section": "13.18.42.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "PROPERTY clause",
+ "rule-digest": "2fcc72359d29",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoBindPropertyClauses",
+ "test-ref": "conformance:cases/13.18.42-PROPERTY/pb1273-property-constant-record-without-no-set; conformance:cases/13.18.42-PROPERTY/pb1273_property_subject",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1273: an item in or under a CONSTANT RECORD whose PROPERTY clause lacks WITH NO SET is refused COBOL2563; with WITH NO SET it defines the GET accessor only.",
+ "state": "OK"
+}

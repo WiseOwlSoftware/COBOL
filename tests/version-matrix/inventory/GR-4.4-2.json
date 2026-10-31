@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-4.4-2",
+ "section": "4.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Conformance to this Working Draft International Standard",
+ "rule-digest": "2c0e91aa796d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CompilerDriver.cs#Compile",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-4.4-2",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work R43 item 4 (owner, 2026-09-24, extending PB386; answers PB468 Q9). §4.4 2) (cite.py --check 4.4 'complies with the explicitly stated provisions and specifications of standard COBOL with respect to the runtime behavior of that run unit' → OK 2)) and its paragraph ('The results of violating the formats or rules of standard COBOL are undefined unless otherwise specified' → OK 2)) classify the USER's run unit; none says what an implementation shall do. The runtime behaviour it refers to is verified row by row by the rules it points at, and the undefined situations are Annex A.2's (closed by the undefined-A.2 arm). docs/CONFORMANCE.md §8 DRV-GR-4.4-2, arm `definitional`.",
+ "state": "OK"
+}

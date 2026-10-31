@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.28.3-10",
+ "section": "14.9.28.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "PERFORM statement",
+ "rule-digest": "da4b1e0548c8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/l1_perform_thru_through_equivalent",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "THRU and THROUGH give identical printed weights over a full range (0111), a range that stops short (0110) and a range under an until-phrase (0330).",
+ "state": "OK"
+}

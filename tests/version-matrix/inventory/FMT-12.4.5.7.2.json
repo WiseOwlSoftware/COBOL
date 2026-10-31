@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-12.4.5.7.2",
+ "section": "12.4.5.7.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "COLLATING SEQUENCE clause",
+ "rule-digest": "675f8e443d15",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileCollatingSequenceClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#collatingForPhrase; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CaptureFileCollating; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveFileCollating; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CollatingKeyNamed; src/WiseOwl.Cobol.Compiler/Binding/ChoiceIndicators.cs#ForPhrasePair; src/WiseOwl.Cobol.Compiler/Binding/ChoiceIndicators.cs#AlphabetPair",
+ "test-ref": "conformance:cases/12.4.5.7-COLLATING-SEQUENCE/pb1075_collating_qualified_key; conformance:cases/12.4.5.7-COLLATING-SEQUENCE/l1-file-collating-key-subscripted; conformance:cases/12.4.5.7-COLLATING-SEQUENCE/pb1075-file-collating-for-repeated; unit:ForPhrasePairDriftTests.EveryBinderRead_GoesThroughChoiceIndicators; conformance:cases/12.4.5.7-COLLATING-SEQUENCE/pb1075-program-collating-for-repeated; conformance:cases/12.4.5.7-COLLATING-SEQUENCE/pb1075-sort-collating-for-repeated; conformance:cases/12.4.5.7-COLLATING-SEQUENCE/pb1075-code-set-for-repeated; conformance:cases/12.4.5.7-COLLATING-SEQUENCE/pb1075-character-classification-for-repeated",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1075: Format 2's operand is a dataReference (`OF dataReference+ IS? alphabet-name-3`), captured through the one data-name-n capture DataBinder.ClauseDataName (SR6's subscript refused by name, COBOL2024) and resolved by §8.4.2.2 narrowed to this file's RECORD KEY / ALTERNATE RECORD KEY items (the key clauses' own SR2 narrowing), compared by ITEM for SR4/SR5/SR7/SR8 and GR6 — so `COLLATING SEQUENCE OF IX-KEY IN IX-REC IS REV` compiles and orders the key by REV (2002/pb1075_collating_qualified_key: ZZZ, MMM, AAA) where it was COBOL0312. Format 1's FOR group stays a `collatingForPhrase+` superset and ChoiceIndicators.ForPhrasePair refuses a repeated alternative (§5.2.6.4, COBOL2104) instead of letting the last win; the same reader serves the PROGRAM COLLATING SEQUENCE and CHARACTER CLASSIFICATION clauses, SORT/MERGE COLLATING SEQUENCE and CODE-SET (ForPhrasePairDriftTests derives the repeated FOR-phrase rules from the grammar).",
+ "state": "OK"
+}

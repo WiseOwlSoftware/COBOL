@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.2.3-11",
+ "section": "8.4.3.2.3",
+ "kind": "SR",
+ "ordinal": 11,
+ "subject": "Function-identifier",
+ "rule-digest": "ad38d8b5a212",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/pb40-numeric-function-in-integer-position; conformance:cases/8.4.3.2-Function-identifier/pb1420-random-numeric-function-seed; conformance:cases/8.4.3.2-Function-identifier/pb1420-combined-datetime-numeric-function-date; unit:IntrinsicArgumentClassDriftTests.EveryTable21IntegerPosition_IsTypedInteger_InTheVerifiedTable; conformance:cases/8.4.3.2-Function-identifier/pb1421-goto-depending-numeric-function",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1420 LANDED (wave 1009 C). SR11 (cite.py --check 8.4.3.2.3 \"A numeric function shall not be specified where an integer operand is required\" -> OK, rule 11) is screened on the function TYPE (IntegerViolation, IntrinsicResultType.Resolve == Numeric) at every position the Verified table marks integer. The gap was the hand table of integer positions: RANDOM argument-1 (15.6 Table 21 prints Int1; 15.75.3 r2) and COMBINED-DATETIME argument-1 (Int1; 15.17.3 r1) were class numeric, so FUNCTION RANDOM(FUNCTION SQRT(4)) compiled. Both are kind i now, and a drift test DERIVES every Int-only operand position from Table 21 (found exactly those two; BASECONVERT is screened by its own arm). Pinned by negative pb1420-random-numeric-function-seed and pb1420-combined-datetime-numeric-function-date. WRITE ADVANCING / DISPLAY AT / GO TO DEPENDING refusing every function at parse is a separate over-rejection (screen facility A.4.2, PB260), not this rule's outcome.",
+ "state": "OK"
+}

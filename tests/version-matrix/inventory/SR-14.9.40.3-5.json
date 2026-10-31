@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.40.3-5",
+ "section": "14.9.40.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "SORT statement",
+ "rule-digest": "d1cd878a502c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#ScreenTransferRecordSizes; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordSizeRange",
+ "test-ref": "conformance:cases/14.9.40-SORT/pb995-sort-record-size-using-giving; conformance:cases/14.9.24-MERGE/pb995_sort_merge_record_size_ranges; conformance-test:SortMergeRecordSizeTests.RecordSizeRules_RefuseExactlyTheirViolations",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB995. cite.py --check 14.9.40.3 'the file description entry for file-name-2 shall describe neither records smaller than the smallest record nor larger than the largest record described for file-name-1' -> OK §14.9.40.3 5). SortBinder.ScreenTransferRecordSizes compares FileModel.RecordSizeRange of the USING file with the SD's: a variable-length SD bounds both ends, a fixed-length SD only the upper one (COBOL1757, citing SR5). Probes on the w1012h build: SD fixed 5 with a USING file of 8; SD VARYING 3 TO 5 with a USING file of 2 and of 9 are each refused; equal and smaller sizes compile and run (85/pb995_sort_merge_record_size_ranges). GnuCOBOL 3.2.0 accepts every one of the refused shapes (rule 1: the ISO text controls).",
+ "state": "OK"
+}

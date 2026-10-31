@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.25.3-4",
+ "section": "7.3.25.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "TURN directive",
+ "rule-digest": "5ed2752b8c28",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TurnDirectiveProcessor.cs#ParseTurn",
+ "test-ref": "conformance-test:ExceptionConditionConformanceTests.Turn_FileWithNonIoName_Diagnosed",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 7.3.25.3 \"exception-name-1 shall begin with the COBOL characters\" OK. A non-EC word following an exception-name not starting 'EC-I-O' -> COBOL0719. Probe TRNP8 '>>TURN EC-SIZE F1 CHECKING ON' -> error COBOL0719; TRNF1 'EC-I-O F1' and TRNF3 'EC-I-O-AT-END F1 F2' accepted. || editions (adjudicator): 2002, 2014, 2023 (the TURN directive is a COBOL-2002 introduction; §7.3 compiler directives)",
+ "state": "OK"
+}

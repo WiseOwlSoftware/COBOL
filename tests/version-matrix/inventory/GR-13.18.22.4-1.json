@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.22.4-1",
+ "section": "13.18.22.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "EXTERNAL clause",
+ "rule-digest": "f22995e86889",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#CallBindExternalAndGlobal; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#CallMakeExternal; src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs#Cell",
+ "test-ref": "conformance:cases/13.18.22-EXTERNAL/l1_cancel_external_unchanged",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§13.18.22.4 GR1: \"If the EXTERNAL clause is specified in a record description entry, the data contained in the record is external and may be accessed within the run unit by any runtime element that describes the same record as external\" + NOTE 1 \"Use of the EXTERNAL clause does not imply that the associated file-name or data-name is a global name.\" (cite.py OK §13.18.22.4 1)). A WS EXTERNAL record is re-based onto ONE run-unit ExternalTable cell keyed by its externalized name. Probe GR1 (two separately-described source elements, CALL): sub reads caller's `HELLO`, caller then reads sub's `WORLD`; a same-named NON-external LOCALX stays per-program (`LOCAL` in the caller after the sub moved XXXXX to its own). NOTE 1 half: probe NOTE1 - a CONTAINED program referencing the container's EXTERNAL XS without describing it gets COBOL1639 'not defined', i.e. EXTERNAL does not confer global visibility. Both halves verified. The golden l1_cancel_external_unchanged derives cross-element sharing from §13.18.22 (default-name WS record in two elements). || Editions (adjudicator): 1985, 2002, 2014, 2023",
+ "state": "OK"
+}

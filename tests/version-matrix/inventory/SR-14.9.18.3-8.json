@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.18.3-8",
+ "section": "14.9.18.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "GOBACK statement",
+ "rule-digest": "d1c3e31668fc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#ScreenStatusOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#DecodeGobackPhrases",
+ "test-ref": "conformance:cases/14.9.18-GOBACK/pb169-goback-status-zero-length-literal; conformance-test:StopGobackExitCodeTests.TheStatusPositionsOwnRules_AreEnforcedAndCited; conformance-test:GobackStatusArmParityTests.AStatusRuleBrokenInAMethod_IsRejectedExactlyAsInAProgram",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work/PB411.md - LANDED. 'case BoundStringLiteral { Value.Length: 0 }' -> COBOL1704 citing SR4/SR8, over the alphanumeric, national and boolean zero-length literal forms alike (all three bind to that node). The PARTIAL was the same method-arm drop as SR7: the zero-length screen was unreachable inside a method, where 'GOBACK WITH ERROR STATUS \"\".' compiled and ran clean at 2023. With the one decode before the 14.9.18.4 GR2/GR4 fork the screen runs on both arms, and the parity theory pins the method-context row beside the existing negative fixture that pins the program arm.",
+ "state": "OK"
+}

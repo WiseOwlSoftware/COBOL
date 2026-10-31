@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.5-L2.2",
+ "section": "14.7.5",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Common phrases and features for statements",
+ "rule-digest": "2e332210b69b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreArith; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#RcvFor",
+ "test-ref": "conformance-test:OnSizeErrorDifferentialTests.MultiReceiver_PartialStore_OnlyOverflowingUnchanged",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Phrase rule 2: only the overflowing resultant is unchanged, the others are stored as if no size error existed. PROBE p1.cob: MULTIPLY 3 BY A B C (A=17,B=8,C=39) -> E9 051 8 117 (B's 24 overflows PIC 9 and keeps 8); SUBTRACT 20 FROM A B C -> E10 031 8 097 (|8-20| = 12 overflows); ADD 5 TO A B C with no overflow runs NOT (N7). Also conformance:cases/14.9.8-COMPUTE/pb157_compute_multi_sizeerr (BIG=123456 SML=99). 2023 and 85 identical. || editions as adjudicated: 1985, 2002, 2014, 2023",
+ "state": "OK"
+}

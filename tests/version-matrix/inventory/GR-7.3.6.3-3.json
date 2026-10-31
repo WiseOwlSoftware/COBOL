@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.6.3-3",
+ "section": "7.3.6.3",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Compile-time arithmetic expressions",
+ "rule-digest": "4da9edf00649",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateArithmeticOperand; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#BindConstantArithmetic",
+ "test-ref": "unit:CompileTimeExpressionEvaluatorTests.Evaluates_ArithmeticAndReclassification",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'The final result of the arithmetic expression shall be truncated to the integer part of the value as specified in 15.49, INTEGER-PART function, and the resultant value shall be considered to be an integer numeric literal' (--check 7.3.6.3 -> OK §7.3.6.3 3)). EvaluateArithmeticOperand applies decimal.Truncate (toward zero = INTEGER-PART) to an expression's final result only, and emits the integer text as the literal; a SINGLE numeric literal is reclassified (§13.10.3 SR1 / §7.3.11.4 GR5) and keeps its value. Probes: CONSTANT AS 7 / 2 -> 3, -7 / 2 -> -3 (toward zero, not floor), 1.5 + 1 -> 2, 0.9 + 0 -> 0; >>DEFINE V2 AS -7 / 2 then >>IF V2 = -3 selects; >>DEFINE V4 AS 1.5 keeps 1.5 (literal) while >>IF V4 + 0 = 1 selects; >>EVALUATE 9 / 4 >>WHEN 2 selects. Binder stores isInt from the integer text so the constant is an integer literal. Unit Theory pins '7 / 2' -> '3' (GR3, spec-derived); the negative toward-zero edge is probe-only.",
+ "state": "OK"
+}

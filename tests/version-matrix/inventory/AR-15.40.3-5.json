@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.40.3-5",
+ "section": "15.40.3",
+ "kind": "AR",
+ "ordinal": 5,
+ "subject": "FORMATTED-DATETIME function",
+ "rule-digest": "340e3e86695f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#OffsetOutOfRange; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#FormattedDatetime",
+ "test-ref": "conformance:cases/15.40.3-Argument-rules/l1_formatted_datetime_offset_magnitude",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "NOT-IMPLEMENTED -> CONFORMS, re-verdicted by the kb/Work PB245 golden round (2026-09-09) on a spec-derived golden written and run against a build of this tree. THE RULE: §15.40.3 r5 'Argument-4 is an integer specifying the offset from UTC expressed in minutes. If argument-4 is specified, the magnitude of the value shall be less than or equal to 1439' (cite.py --check 15.40.3 'the magnitude of the value shall be less than or equal to 1439' -> OK, rule 5); the clause's own NOTE explains the number as 23 h 59 m. THE OBLIGATION IS THE EXCEPTION, NOT A VALUE (§15.3 item 14), so the golden turns EC-ARGUMENT-FUNCTION checking ON and asserts it. DERIVED BEFORE THE RUN, from r5 + §15.40.4 r3 (an OFFSET format reflects argument-3 directly in the time portion and argument-4 directly in the offset portion, so no arithmetic is involved) with integer date 153569 = 2021-06-16 and 45296 s = 12:34:56: +1439 -> '2021-06-16T12:34:56+23:59'; -1439 -> '...-23:59'; 0 -> '...+00:00'; +1440 and -1440 -> EC-ARGUMENT-FUNCTION with the receiver untouched. MEASURED: all six lines identical to the derivation. The bound is measured by a matched pair one minute apart on each side, so a guard at any other number moves a line. WHAT CLOSED IT: kb/Work PB11 landed CobolDate.OffsetOutOfRange, the run-time twin of the §15.40.3 r6 bind-time screen (the value of an ordinary numeric argument is generally unknown until execution). The row's own prior proof - 'grep -rn 1439 src/ returns NOTHING' - is stale: CobolDate.cs states the rule verbatim and raises on Math.Abs(offsetMinutes) > 1439. §15.41.3 r4 is the identical rule for FORMATTED-TIME and rides the SAME predicate with its own citation string, so the two cannot drift apart.",
+ "state": "OK"
+}

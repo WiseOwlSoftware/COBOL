@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.16.3-1",
+ "section": "7.3.16.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "IF directive",
+ "rule-digest": "457d9e854da7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#EvaluateCceText; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#SplitDirective",
+ "test-ref": "conformance:cases/7.3.16-IF/l1c13-if-directive-cce-split; conformance:cases/7.3.16-IF/l1c13-if-directive-mid-line",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR1 (cite.py --check 7.3.16.3 OK): '>>IF conditional-expression-1 shall begin on a new line and shall be specified entirely on that line.' Render recognizes a directive only when the TRIMMED line starts with '>>' (begin on a new line; §7.3.3 SR2 allows leading spaces); the cce is exactly the operand of that one line, fragment-parsed by DirectiveExpressionFragment.ParseCce. Probe p16: 'DISPLAY \"A\" >>IF V = 1' mid-line -> COBOL0307 (rejected). p17: '>>IF V =' with '1' on the next line -> COBOL1619 malformed 'V =' (rejected, the cce is not continued onto the next line). Both halves verified. No spec-derived negative test located. || editions (adjudicator): 2002, 2014, 2023 (the §7.3 compiler-directive facility, incl. conditional compilation, is absent from COBOL-85; the pinned compiler gates >>IF at --std 85 with COBOL0900, probe p01)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.7-9",
+ "section": "9.1.13.7",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "I-O status",
+ "rule-digest": "30ab59018127",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Delete; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Delete",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/l1_table20_seq_relative",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§9.1.13.7 9) '49' for DELETE RECORD or REWRITE not open I-O (cite.py --check OK §9.1.13.7 9)). All five entries begin `if (!IsOpen || Mode != FileOpenMode.IO) return Status = DeleteRewriteNotOpenForIO`. Probe logic4x/p1.cob: seq REWRITE open OUTPUT -> 49; relative DELETE open OUTPUT -> 49. conformance:cases/9.1.13.2-Successful-completion/l1_table20_seq_relative (QS-O-RW=49, RS-O-D=49 ...) and l1_table20_indexed pin every cell. || Editions (adjudicator, verbatim): 1985/2002/2014/2023",
+ "state": "OK"
+}

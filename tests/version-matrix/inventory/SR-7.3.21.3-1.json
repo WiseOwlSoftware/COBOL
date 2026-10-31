@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.21.3-1",
+ "section": "7.3.21.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "PROPAGATE directive",
+ "rule-digest": "3322e38c434f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/DirectivePlacementPass.cs#Run; src/WiseOwl.Cobol.Frontend/Preprocessor/PropagateDirectiveProcessor.cs#Process",
+ "test-ref": "conformance:cases/7.3.21-PROPAGATE/pb1378-propagate-within-unit; conformance:cases/7.3.20-POP/pb1377-pop-propagate-within-unit",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1378. cite.py --check 7.3.21.3 'A PROPAGATE directive shall not be specified within a compilation unit.' OK 1). Same row data and pass as LEAP-SECOND.",
+ "state": "OK"
+}

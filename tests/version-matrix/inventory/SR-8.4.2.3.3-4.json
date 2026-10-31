@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.2.3.3-4",
+ "section": "8.4.2.3.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "Subscripts",
+ "rule-digest": "c8c488c4c055",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ScreenIndexNameAssociation; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ReadSubscripts; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#BindIndexSegment",
+ "test-ref": "conformance:cases/8.4.2.3-Subscripts/pb459-index-name-not-in-table; conformance:cases/8.4.2.3-Subscripts/pb1472-all-subscript-index-name-other-table",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1472 landed (wave 1004 D). The table(ALL) intrinsic argument (the second arm of the subscript reading) now collects the index-names its non-ALL subscripts write (ReferenceResolver.RenderIndexSegment takes the collector, no default) and asks ScreenIndexNameAssociation, the screen ReadSubscripts asks for every other reference: FUNCTION SUM(E2(IXA, ALL)) with IXA on another table is COBOL1961 (cite.py --check 8.4.2.3.3 'Index-name-1 shall correspond to a data description entry in the hierarchy of the table being referenced' OK). Valid E2(IXB, ALL) compiles unchanged. retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#RenderIndexSegment (renamed: kb/Work PB2151 binds the subscript to a typed Position (BindIndexSegment) instead of rendering it to text)",
+ "state": "OK"
+}

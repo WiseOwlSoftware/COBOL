@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.3.4-2",
+ "section": "8.4.3.3.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Reference-modification",
+ "rule-digest": "1eb6e824c9d0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#CategoryOf; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#RefModExclusion; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#NumericImagePlace; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveImpl",
+ "test-ref": "conformance:cases/8.4.3.3-Reference-modification/pb70_group_reference_modification; conformance:cases/8.4.3.3-Reference-modification/pb73_table16_function_type_and_boolean_view; conformance:cases/8.4.3.3-Reference-modification/pb72_table16_admitted_cells; conformance:cases/8.4.3.3-Reference-modification/pb73-move-alphabetic-view-to-boolean",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB70 + PB73 (2026-08-18): a usage-DISPLAY item of a category other than alphanumeric is OPERATED UPON for reference modification as if redefined class-and-category alphanumeric of the same size — the rule governs the OPERATION (positions are the character positions of that redefinition: a numeric-DISPLAY item's digit/sign characters, an edited item's characters, an alphabetic or display-form boolean item's characters), while GR6 gives the RESULT its class and category (PB73 re-adjudicated PB72's reading, which had made every such view alphanumeric — the display-form boolean slice stays boolean and the alphabetic slice alphabetic). RefModPlace.CategoryOf is the ONE reader.",
+ "state": "OK"
+}

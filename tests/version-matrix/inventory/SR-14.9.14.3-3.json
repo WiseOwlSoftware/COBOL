@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.14.3-3",
+ "section": "14.9.14.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "EXIT statement",
+ "rule-digest": "b15fc42c0fb0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcBindRaising; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcResolveLevel3; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcCollectPdRaising; src/WiseOwl.Cobol.Compiler/Binding/EcNameResolution.cs#TryResolve; src/WiseOwl.Cobol.Compiler/Binding/EcRaiseSite.cs#Exit",
+ "test-ref": "conformance:cases/14.9.14-EXIT/l1-exit-raising-level2-name; conformance:cases/14.9.14-EXIT/l1-exit-raising-ecuser-not-in-pd; conformance:cases/14.9.14-EXIT/l1_exit_raising_ecuser_listed; conformance-test:ExceptionConditionConformanceTests.RaisingContext_DiagnosticCitesItsOwnClause; unit:EcRaiseSiteDriftTests.Cite_RendersTheClauseAndOrdinalOfThisSite",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Both SR3 paragraphs as rejections (level-2 EC-BOUND; EC-USER absent from the PD-header RAISING), plus the compile-only positive control that stops a refuse-every-EC-USER compiler passing.",
+ "state": "OK"
+}

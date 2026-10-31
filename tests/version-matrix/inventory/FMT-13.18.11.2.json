@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.11.2",
+ "section": "13.18.11.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "CLASS clause",
+ "rule-digest": "cc54e124ae42",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolDeclined.g4#validateClassClause; src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause",
+ "test-ref": "conformance:wiseowl/cases/13.18.11-CLASS/declined-validate-class",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "docs/CONFORMANCE.md §5 row A.4.14 (VALIDATE — Not claimed) + §4 item 3. Licence: Annex A.4.1 and its second sentence. OWNER DECISION kb/Work PB375, 2026-09-02. The GENERAL FORMAT row: the grammar RECOGNIZES the printed format — `CLASS IS { NUMERIC | ALPHABETIC | ALPHABETIC-LOWER | ALPHABETIC-UPPER | BOOLEAN | alphabet-name-1 | class-name-1 }`, RENDERED at PDF p412 / folio 382 (CLASS and the five keywords underlined, IS not; a plain required choice with no choice indicators) — and refuses it by name rather than failing to parse it. BOOLEAN has no lexer token and rides the class-name-1 arm, which is unobservable because the clause is refused whichever arm matched. The negative fixture exercises BOTH arms (a class-name and a keyword, the latter without the optional word IS). Re-affirmed 2026-10-22 (kb/Work PB3530, review R1-1) against the figure regenerated again: render_figure.py now keeps each printed line whole inside the enclosures that hold its words and starts a new row at a step wider than 3.5 pt, so the diagram's layout changed while its words did not (sweep_figures.py's word gate); the verdict stands on the printed format.",
+ "state": "OK"
+}

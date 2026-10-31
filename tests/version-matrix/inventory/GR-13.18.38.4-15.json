@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.38.4-15",
+ "section": "13.18.38.4",
+ "kind": "GR",
+ "ordinal": 15,
+ "subject": "OCCURS clause",
+ "rule-digest": "1873cbd9c233",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#Capacity; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/RecordStructEmitter.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/l1c20_capacity_register_set_and_read; conformance:cases/13.18.38-OCCURS/l1c20-capacity-register-move-receiver; conformance:cases/13.18.38-OCCURS/l1c20-capacity-register-add-receiver; conformance:cases/13.18.38-OCCURS/l1c20-capacity-register-perform-varying",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Rule (cite.py OK §13.18.38.4 15)): 'Data-name-3 defines a numeric data item that contains the current capacity of the associated table. Data-name-3 shall not be referenced as a receiving operand.' (the second sentence restates §13.18.38.3 SR32, cite.py OK, which excepts the variable-table format SET). Half 1: the register is a read-only view over CobolDynTable.Capacity (= _count, the current capacity §8.5.1.9.1). Probes (out13/probe/occurs-p2): gr1.cob DCAP=3 after three receiving refs; gr14b.cob RCAP 2 -> 4 -> 5 through implicit growth; gr15.cob SET RCAP TO 3 / SET RCAP TO X (X=4) / SET RCAP UP BY 2 read back 3/4/2; MOVE RCAP TO X is legal (sending). Half 2: every receiving position tried is refused COBOL1523 ('the CAPACITY register … shall not be a receiving operand except in a SET statement Format 14 (ISO §13.18.38.3 SR30–32)'): MOVE, MOVE to two receivers, ADD, SUBTRACT, COMPUTE, INITIALIZE, ACCEPT, STRING INTO, INSPECT REPLACING, PERFORM VARYING, CALL BY REFERENCE; CALL … BY CONTENT RCAP is accepted (not a receiving reference). Both halves verified. Read half is witnessed by conformance:cases/_unassigned/dyn_capacity_read and conformance:cases/8.5.1.9-Dynamic-capacity-tables/dyn_implicit_grow, but no spec-derived test pins the receiving-operand refusal (no .err or unit test names COBOL1523), so test-ref left empty = test-needed (one negative golden per receiving verb family). || Editions (adjudicator's statement, normalized to 2014,2023 by registrar 14e): 2014, 2023 (Format 4 only)",
+ "state": "OK"
+}

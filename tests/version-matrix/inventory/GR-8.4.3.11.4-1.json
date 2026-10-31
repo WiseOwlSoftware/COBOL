@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.11.4-1",
+ "section": "8.4.3.11.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Data-address-identifier",
+ "rule-digest": "2962a8aa9dae",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#ForceStringCanonical; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#AssignCellComponents; src/WiseOwl.Cobol.Runtime/Control/StorageCell.cs#DynTableAt",
+ "test-ref": "conformance:cases/8.4.3.11-Data-address-identifier/address_of_qualified; conformance:cases/8.4.3.11-Data-address-identifier/pb1042_cell_variable_components",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1042 (wave 1021 B2). GR1 'Data-address-identifier creates a unique data item of class pointer and category data-pointer that contains the address of identifier-1'. The one PARTIAL residue (ADDRESS OF a group CONTAINING a dynamic-capacity table refused COBOL0869, though §8.4.3.11.3 SR6 bars only an element of / an item subordinate to such a table) is closed: the ADDRESS-OF cell forcer (ForceStringCanonical, the one forcer of the three cell surfaces) now carries the table as a cell component. Measured: SET P TO ADDRESS OF DT with DT holding OCCURS DYNAMIC ... INITIALIZED, then SET ADDRESS OF B TO P; DT grows by receiving subscript and SET UP BY, its INITIALIZED occurrences take their VALUEs, LENGTH(DT) and INITIALIZE DT are correct, and the BASED view B reads DT's fixed run. Editions: ADDRESS OF from 2002.",
+ "state": "OK"
+}

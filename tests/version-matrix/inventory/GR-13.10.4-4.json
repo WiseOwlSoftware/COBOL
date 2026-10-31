@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.10.4-4",
+ "section": "13.10.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Constant entry",
+ "rule-digest": "2a9f0cbe8ec7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#BindConstantArithmetic; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvalArith",
+ "test-ref": "conformance:cases/13.10-Constant/l1c05_constant_expr_truncated_integer",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR4 (cite OK: \"it is evaluated in accordance with 7.3.6\") with §7.3.6.3 GR3 (cite OK: \"The final result ... shall be truncated to the integer part of the value\"). Probes: AS 7 / 2 -> 3; AS -7 / 2 -> -3 (INTEGER-PART toward zero); AS (0.5) -> 0 (parenthesized, not a single literal); AS 0.5 + 0.6 -> 1; AS 1 + 2 * 3 -> 7; golden K-EXPR (2+3)*4-6/2 = 17, K-TWICE = 10. Category numeric, integer (IsInteger true -> legal OCCURS/PIC repetition). Intermediate precision = .NET decimal, documented (CONFORMANCE.md line 515, §7.3.6.2 SR2). The accepted figurative ZERO operand is an SR6/SR7 defect, not an evaluation defect (F-ZERO-OPERAND). || REFUTED: CONFORMS (test-ref empty: conformance:cases/13.10-Constant/constant_entry does not pin the GR4 truncation/integer half) — The code conforms on every probe, but the cited golden does not pin the branch that makes GR4 distinct. Its only arithmetic-expression constants are K-EXPR = (2+3)*4-6/2 = 17 and K-TWICE = 10. Both are exact integers, so the §7.3.6.3 GR3 truncation never runs. Neither is used where only an integer may appear (the OCCURS bound and PIC repetition in the golden use the literal constants K-MAX and K-WID). So the 'Constant-name-1 is an integer' half is also unpinned. The golden verifies precedence and numeric category only. || Editions (adjudicator): 2002+/2014/2023: §13.10 is unchanged 2014->2023 (Annex E lists no constant-entry change); the 2002 introduction and which AS legs 2002 carried are not derivable from the 2023 text (dossier gap) || editions corrected from '2002' to 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a constant-entry rule; the constant entry (level 01 CONSTANT) is a COBOL-2002 introduction. cite.py --check 13.10.3 \"The length of data-name-1 or data-name-2 shall not be dependent\" OK.",
+ "state": "OK"
+}

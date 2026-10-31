@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.49.3-1",
+ "section": "14.9.49.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "USE statement",
+ "rule-digest": "8ac9d604bb80",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclCollectSection; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatementCore",
+ "test-ref": "conformance:cases/14.9.49-USE/pb361-use-outside-declaratives; unit:DeclarativesStructuralRulesTests.AUseStatementInANondeclarativeParagraph_IsRefused; unit:DeclarativesStructuralRulesTests.ASecondUseStatementInsideADeclarativeParagraph_IsRefused",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB361 LANDED. All three halves enforced. (a) immediately follows a section header and (c) in a sentence by itself: DeclCollectSection, COBOL0897, unchanged. (b) in the declaratives portion: the legal first sentence is consumed by DeclCollectSection and never bound as a statement, so every useStatement reaching StatementBinder.BindStatementCore is misplaced by construction and is refused there with COBOL2377 (formerly the bottom arm's BoundUnsupported: a COBOL1756 'not implemented' warning and a run-time abort). Every edition: COBOL-85's rule unchanged.",
+ "state": "OK"
+}

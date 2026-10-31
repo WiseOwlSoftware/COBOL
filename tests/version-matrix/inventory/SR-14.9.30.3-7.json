@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.30.3-7",
+ "section": "14.9.30.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "READ statement",
+ "rule-digest": "c5a0aff8b811",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRead",
+ "test-ref": "conformance:cases/14.9.30-READ/pb334-read-previous-line-sequential",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB334, LANDED. RULE: 'The phrase PREVIOUS shall not be specified if FILE ORGANIZATION LINE SEQUENTIAL is specified in the file control entry for file-name-1.' (cite.py --check 14.9.30.3 OK.) THE RULE HAD NO ATTACHMENT POINT, WHICH IS WHY IT HAD NO CHECK: SR7 pairs an ORGANIZATION with a read DIRECTION, and SequentialIoBinder.BindRead -- the one arm every LINE SEQUENTIAL file takes, via FileModel.IsSequential -- never called r.readDirection(), so the direction did not exist below the parse tree. The phrase was discarded and the read ran FORWARD. NOW: BindRead reads readDirection().PREVIOUS() and screens the pairing through StatementValidation.ScreenForbiddenPhrase -> EditionContext.Removed (COBOL1720), the same one seam that carries SR6 and the REWRITE/DELETE SR2 rules -- an ERROR under strict, a WARNING with the bind unchanged under --permissive, where SequentialConnector.SeekToOrdinal then refuses a line-sequential reposition and the READ reports the '30' permanent error rather than silently reading forward. VERIFIED: probe lineprev.cob (ORGANIZATION IS LINE SEQUENTIAL holding AAA/BBB, READ LSF PREVIOUS RECORD) gave 'GOT=AAA FS=00' before and 'error COBOL1720: the PREVIOUS phrase shall not be specified for a READ statement that references a file with line sequential organization (ISO 14.9.30.3 SR7)' after, at 2002, 2014 and 2023. CLOSING TEST: conformance:cases/14.9.30-READ/pb334-read-previous-line-sequential, reject-at 2002 2014 2023, expected diagnostic COBOL1720 -- spec-derived (the rule text is the whole expectation; there is no value to compute). EDITIONS: 85 is excluded because LINE SEQUENTIAL is not a COBOL-85 organization and the PREVIOUS phrase is a 2002 introduction, so at 85 the program is rejected for the file control entry and the direction phrase separately (conformance:cases/14.9.30-READ/pb334-read-previous-85 covers the direction gate); the 2023 clause carries no edition marker and Annex E lists no change to it, so 2002/2014/2023 are identical.",
+ "state": "OK"
+}

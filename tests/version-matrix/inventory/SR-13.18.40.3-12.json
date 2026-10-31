@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-12",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 12,
+ "subject": "PICTURE clause",
+ "rule-digest": "6f08c242e36d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ValidateEditing; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeFloatEdited; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb528-picture-composition; conformance:cases/13.18.40-PICTURE/pb528_picture_editing_transparency_2023; conformance-test:PictureEditingTests.FixedSignControl_Renders; conformance-test:PictureEditingTests.UnequalForLiteralWidth_Rejected1595; conformance:cases/_unassigned/pb866_float_edited_is_form; conformance:cases/_unassigned/pb866-float-edited-for-form; unit:PictureCompositionTests.ACompositionViolation_IsCOBOL1934",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PB528 landed the 'If the FOR phrase is not specified' branch (PictureComposition: a) at least one of A, N, X, Z, 1, 9, * or at least two occurrences of one of character-1, x, +, -, the currency symbol; b) CR, DB, E, S, V and '.' at most once, each COBOL1934, negative goldens PB13-PB17) and the FOR branch was measured CONFORMS. PB866 landed the float-edited leg that PB498 carried: AnalyzeFloatEdited refuses only the FOR form (an extended editing sign control symbol, SR12's FOR-phrase rules, COBOL1658) and compiles the IS form, a FIXED editing sign control symbol (goldens pb866_float_edited_is_form, pb866-float-edited-for-form). PB498's remaining leg was the citation of the three sites that named 13.18.63 GR6 for 13.18.63.3 SR6; re-cited in its landing, and the COBOL1658 and COBOL0801 messages cite SR12's FOR-phrase rules and SR14 respectively (re-probed on the landing build). retired-witness: unit:PictureCompositionTests.ACompositionViolation_IsCOBOLNET1934 (the same witness, re-spelled when the diagnostic code prefix became COBOL#### (kb/Work PB3575); the new spelling is recorded in its place)",
+ "state": "OK"
+}

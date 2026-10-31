@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.35.2",
+ "section": "13.18.35.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "LINE clause",
+ "rule-digest": "65085631a4c9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportLineClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportLineOperand; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportRelativeSign; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolScreen.g4#screenLineClause",
+ "test-ref": "conformance:cases/8.4.3.15-Report-counters/pb1001_line_next_page; unit:ReportClauseKeywordPrefixTests.LinePrefix_ParsesExactlyWhenPrinted; conformance:cases/13.18.35-LINE/pb1221-line-prefix-not-printed; conformance:cases/13.18.14-COLUMN/pb1221_report_keyword_prefixes",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "(kb/Work PB1221, wave 1021 F). Rendered PDF (13.18.35.2): Format 1 is the THREE-way brace {LINE NUMBER IS | LINE NUMBERS ARE | LINES ARE} (NUMBER, NUMBERS, IS, ARE not underlined) followed by the brace {integer-1 [ON NEXT PAGE] | {PLUS|+} integer-2 | ON NEXT PAGE} with an ellipsis; the transcription's diagram drew LINE NUMBER IS outside the first brace and is corrected. cite.py --check 13.18.35.2 \"NUMBERS\" OK. reportLineClause now opens (LINE (NUMBERS ARE? | ARE | NUMBER? IS?) | LINES ARE?), exactly the brace, so LINES NUMBER IS, LINE NUMBER ARE, LINES IS, LINES NUMBERS ARE and LINE NUMBERS IS are refused by the parser (COBOL0001 / COBOL0307), and LINE ARE, LINE IS, LINE NUMBER, LINE NUMBERS, LINES and LINES ARE compile and print on their lines (conformance:cases/13.18.14-COLUMN/pb1221_report_keyword_prefixes). The OPERAND half is unchanged (reportLineOperand; PB951 reportRelativeSign; PB1001 ON NEXT PAGE). ReportClauseKeywordPrefixTests enumerates all 18 (LINE|LINES, NUMBER|NUMBERS, IS|ARE) combinations. The 85 gate now names the written form (the LINES spelling, the multiple LINE clause form) instead of calling a single-operand LINES 3 a multiple LINE clause. Format 2 (screen) is the declined A.4.2 module, refused by name COBOL1560 (PB260). || Editions: Format 1 in every edition; the LINES / NUMBERS / ARE spellings and the multi-operand form are 2002 (report-multi-line-2002, COBOL0900 at 85).\nPB55 (2026-10-15): the catalog text of this row was regenerated here. Landing 241bd0d0c (PB1221) corrected this diagram's transcription against the printed page without regenerating spec-rule-catalog.json, so the catalog kept the pre-correction text; the verdict was adjudicated by that landing against the corrected diagram and is unchanged. extract_rule_catalog.py --check now fails on a stale catalog. Re-affirmed 2026-10-22 (kb/Work PB3530) against the figure regenerated from the printed page: render_figure.py's brace-group layout now keeps every alternative inside its own enclosure, so the diagram's layout changed while its words did not (sweep_figures.py's word gate); the verdict stands on the printed format.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-160",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 160,
+ "subject": "Report writer printable item (fixed correspondence between columns and national characters)",
+ "rule-digest": "1ae9afa1a716",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-160; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#DisplayTextWidth; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb541_report_national_item",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§13.18.14.4 GR2 (cite.py OK 2)) - fixed correspondence column <-> national character, implementor-specified. Code: ReportWriterEmitter.EmitFieldPlacements advances the horizontal counter by PrintItem.DisplayTextWidth (ReportWriterEmitter.cs:150-163), which is the character-position count for a PIC N item. Golden 2002/pb541_report_national_item: [WXYZ ABC] / [PQR] / [MN] (explicit, group-inherited and implied USAGE NATIONAL) pins one column per national character. probe/rw.cob: N(2) SOURCE then COLUMN PLUS 1 PIC 9 -> the digit lands in column 3. Adjacent open edge, stated in the row and not documented as behaviour: characters above U+00FF are written as '?' in the report file (kb/Work PB690, item 159 OMIT). Owning note kb/Work PB1253 (open; this row discharges its item-160 half).",
+ "state": "OK"
+}

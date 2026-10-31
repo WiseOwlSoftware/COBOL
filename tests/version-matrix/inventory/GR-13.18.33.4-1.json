@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.33.4-1",
+ "section": "13.18.33.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Level-number",
+ "rule-digest": "bf9296f45ce8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindReportEntry",
+ "test-ref": "conformance:cases/8.5.1.3.2-Level-numbers/pb1246-section-first-entry-not-level-1; conformance:cases/13.18.33-Level-number/pb1246-fd-first-entry-not-level-1; conformance:cases/13.15-Report-group-description/l1m8-report-first-entry-not-level-1; conformance:cases/13.18.33-Level-number/pb1246_level_hierarchy_legal; conformance:cases/13.18.33-Level-number/pb2516-constant-ends-record; conformance:cases/13.18.33-Level-number/pb2516_constant_between_records",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "(kb/Work PB1246) A record description whose first entry is not level 1 is refused COBOL2771 at the binder's nesting walk (the empty-stack root arm); the report-group arm's refusal moved from the shared not-implemented code to COBOL2772. (kb/Work PB2516) A constant entry ends the record description before it (13.5.2 lists constant-entry beside record-description-entry; 13.11.1), so BindEntries closes the level stack there (CloseRecord) and a following 02-49 entry opens no record: COBOL2771. Before, `01 D. 05 A. 01 K CONSTANT AS 3. 05 B.` bound B into D's storage.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.63.4-6",
+ "section": "13.18.63.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "VALUE clause",
+ "rule-digest": "6689115055a2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/OdoModel.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupImageCodec.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#BindInitializeTarget",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb577_odo_value_initial_state; conformance:cases/13.18.63-VALUE/pb577_odo_value_initialize",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB577.md - THE REFUTATION'S CRASH IS GONE AND BOTH OCCASIONS ARE NOW PINNED. The refuter overturned this row to PARTIAL on one ground: GR4c makes the execution of an INITIALIZE statement the SECOND occasion a VALUE clause takes effect on, and on that occasion `INITIALIZE <group containing an occurs-depending table>` threw NotImplementedCobolFeatureException, 'INITIALIZE target S (unsupported place kind)', at all four editions. RE-PROBED on this worktree's own build: it does not reproduce. kb/Work PB393 (commit a7a64fad9) fixed it at the root - InitializeBinder's place dispatch now asks `place.Undecorated`, so an OdoGroupPlace reaches the MemberPlace arm instead of the default one, and the code says so where it is implemented. ALL THREE ASSOCIATION CASES AT BOTH OCCASIONS ARE NOW COVERED BY SPEC-DERIVED GOLDENS, replacing the adjudicator's initial-state-only probes and the differentially-pinned OdoDifferentialTests the previous text named: conformance:cases/13.18.63-VALUE/pb577_odo_value_initial_state carries GR4c's first bullet (case b, the occurs-depending table itself - occurrences 1/3/5 all AB with the DEPENDING VALUE at 2; case c, subordinate items - A2(5)=CD B2(5)=4; case a, a group that contains the table - the group AREA computed over the MAXIMUM, so the 10-character literal lands AB..IJ; and GR6's last sentence, N4 holding its own VALUE 2 beside a maximum-count table) and conformance:cases/13.18.63-VALUE/pb577_odo_value_initialize carries GR4c's second bullet for the same shapes. THE ORDERING SENTENCE IS NOW MEASURED, NOT DERIVED - the refuter's softer second point. Its objection was that no shape can discriminate the order; conformance:cases/13.18.63-VALUE/pb577_odo_value_initialize L3 does: the DEPENDING item N2 is INSIDE identifier-1, so `INITIALIZE S2 ALL TO VALUE` initializes it too, and reading N2 BEFORE it is re-raised shows it holding its own VALUE 2 while the table beside it holds five initialized occurrences - which is only consistent with the DEPENDING item's value being placed AFTER the table is initialized. DETERMINATION D-ODO1 (docs/CONFORMANCE.md section 3) records the one place this rule and 14.9.20.4 GR8 disagree - how many occurrences an INITIALIZE statement initializes when the DEPENDING item is OUTSIDE identifier-1 - and chooses GR8's current-value answer, with both poles pinned by L1/L2 (outside, current) and L3 (inside, maximum).",
+ "state": "OK"
+}

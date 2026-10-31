@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.3.5.3-6",
+ "section": "9.3.5.3",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "Polymorphism",
+ "rule-digest": "ecf2750bf311",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DescriptionClauses.cs#AlignedOrDynamicLengthMismatch; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#SignatureDifference; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#SignatureDifference",
+ "test-ref": "conformance:cases/9.3.5.3-Parametric-polymorphism/w61b-pb1166-override-picture-clause; unit:PictureClauseIdentityDriftTests.AlignedAndDynamicLength_AreComparedThroughTheOneSharedPredicate; unit:PictureClauseIdentityDriftTests.AlphabeticAndAlphanumeric_AreDifferentPictureClauses_AndRepetitionIsNot",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1166 landed (w61b): the clause-list component: ALIGNED and DYNAMIC LENGTH (with LIMIT and structure) are compared through DescriptionClauses, the predicate the §8.5.3.1 compare reads too; A vs X through the picture identity. retired-witness: src/Cobol.Net.Compiler/Oo/OoConformance.cs#DescriptionMismatch (kb/Work PB3101 (wave 1082): the DataItem comparator family is deleted (OoConformance.DescriptionMismatch, StrongTypeMismatch, AsIfElementaryGroupMismatch, IsCategoryAlphanumeric, PictureClauseIdentity.Mismatch, ObjectRefDescriptor.SameDescriptionAs); every activation and pair-mode question describes its items through ActivationDescriptions and asks ActivationRelations (CallArgumentViolation / CallReturningViolation / MatchViolation / SignatureDifference), the PICTURE identity entering through PictureClauseIdentity.Key)",
+ "state": "OK"
+}

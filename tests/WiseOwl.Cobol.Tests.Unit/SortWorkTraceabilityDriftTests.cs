@@ -32,8 +32,7 @@ public sealed class SortWorkTraceabilityDriftTests
         Assert.Contains("GR-14.9.24.4-4", cited);
         Assert.Contains("GR-14.9.40.4-3", cited);
 
-        using var doc = JsonDocument.Parse(File.ReadAllText(TestRepo.VersionMatrix("traceability-inventory.json")));
-        var locations = doc.RootElement.EnumerateArray().ToDictionary(
+        var locations = TraceabilityInventory.Rows.ToDictionary(
             r => r.GetProperty("rule-id").GetString()!,
             r => r.TryGetProperty("code-location", out var c) ? c.GetString() ?? "" : "",
             StringComparer.Ordinal);

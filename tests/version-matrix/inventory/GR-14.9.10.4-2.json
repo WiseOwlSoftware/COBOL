@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.10.4-2",
+ "section": "14.9.10.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "DELETE statement",
+ "rule-digest": "ee997dcd2ff5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Status",
+ "test-ref": "conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_read_gate; conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_delete_file_gate; unit:FileStatusDisciplineTests.ReadGate_UnlockDropsIt_DeleteIs43_RecordSurvives; unit:FileStatusDisciplineTests.ReadGate_AlreadyOpen41DropsIt_DeleteIs43; unit:FileStatusDisciplineTests.ReadGate_DeleteFile41DropsIt_DeleteIs43",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB140): the '43' gate now drops at the ONE chokepoint - the FileConnector.Status setter (the same chokepoint PB63 gave EverAccessed) - because every status assignment IS an operation's outcome under 9.1.13.1's closed statement set; the READ terminals re-arm it AFTER their own assignment (FileConnector.ReadSucceeded, the one place). All four leak sites the refuter enumerated (UNLOCK, DELETE FILE, the already-open '41' OPEN arm, the sharing '38'/'61' arms) are closed BY CONSTRUCTION, and the next verb added is automatic. The hand-cleared per-entry resets are deleted; the '46' poison stays site-managed (a successful WRITE establishes no next record, so it must survive other verbs' assignments). Golden pb140_read_gate runs READ/UNLOCK/DELETE and READ/OPEN-'41'/DELETE, each '43' with the record readable afterwards; pb140_delete_file_gate runs the READ/DELETE-FILE-'41'/DELETE leg. NoteReadLockConflict deleted - the '51' SetStatus does its job now. GOLDEN RE-DERIVED: file_sharing_seq's REWB leg pinned the OLD leak - a REWRITE re-executed after its own '51' conflict answered '00'; under 9.1.13.7 3) the failed REWRITE is itself the last executed I-O statement, so the retry is '43' and record 2 keeps the other connector's value (REWB=00->43, D2=ZZZZZ->MMMMM; a program must re-READ or use the RETRY phrase, which retries WITHIN one statement execution).",
+ "state": "OK"
+}

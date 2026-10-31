@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.49.3-1",
+ "section": "13.18.49.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "SAME AS clause",
+ "rule-digest": "190b9f9288ef",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAs",
+ "test-ref": "conformance-test:SameAsTests.SameAsOfTableSubordinate_Rejected1556",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR1 \"Data-name-1 shall not be subject to any OCCURS clauses.\" (--check 13.18.49.3 -> OK 1)). ExpandSameAs walks target.Parent upward and rejects any IsTable ancestor with COBOL1556 (every level, not just the parent). The SameAsTests case (10 F under 05 ROW-E OCCURS 3) is spec-derived. The target's OWN OCCURS is SR5's separate arm. || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (the SAME AS clause is absent from COBOL-85 and is not in Annex E's 2014->2023 substantive-changes list, so the rule stands unchanged in 2014 and 2023)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-27",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 27,
+ "subject": "SET statement",
+ "rule-digest": "4f90266e571d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetLocale",
+ "test-ref": "conformance:cases/14.9.39-SET/pb64t1-set-locale-pointer-sr27; conformance-test:SetLocaleDispositionTests.SetLocale_IllegalShapes_DrawExactlyOneNamedRule",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T1 (2026-08-19): identifier-10 that is not category data-pointer is COBOL1668.",
+ "state": "OK"
+}

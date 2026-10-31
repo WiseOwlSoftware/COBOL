@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.39.3-1",
+ "section": "13.18.39.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "PAGE clause",
+ "rule-digest": "552d8921c908",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportPageSubclause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#PagePhraseOf",
+ "test-ref": "conformance:cases/13.18.39-PAGE/pb1059_page_last_control_heading",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1059: FIRST DE, LAST CH and LAST DE are written in the grammar as the synonyms SR1 names; LAST CH IS 3 sets integer-5 exactly as LAST CONTROL HEADING IS 3.",
+ "state": "OK"
+}

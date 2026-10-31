@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-159",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 159,
+ "subject": "Report file (record structure)",
+ "rule-digest": "9d02c3438ae8",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-159; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#WriteAdvancing; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitFileRegistration; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterReport",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/pb690_report_line_byte_image_85; conformance:cases/A.1-Implementor-defined-language-element-list/pb2556_report_line_refusal_line_sequential",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB690 (w61d). A.1 item 159 (cite.py --check 13.4.5.4 'The report writer logical record structure of the file associated with file-name-1 is defined by the implementor' -> OK 4)). One print line per record, one byte per column in ISO/IEC 8859-1: MEASURED 'AéB' is written as 41 E9 42 (ORD 234 read back), never '?'; a line holding U+20AC is refused ('91' in the report file's connector — GENERATE sets no FILE STATUS item, §9.1.13.1) and leaves a blank line, the device line not moving on a refused write so the next line lands on its own LINE-COUNTER line (ReportWriter).",
+ "state": "OK"
+}

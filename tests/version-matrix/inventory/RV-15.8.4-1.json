@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.8.4-1",
+ "section": "15.8.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "ACOS function",
+ "rule-digest": "13cd4d31ab4f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#SignDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Acos",
+ "test-ref": "conformance:cases/15.4.1-Numeric-and-integer-functions/pb56_dec_carrier_intrinsics; conformance:cases/15.8.4-Returned-value-rule/pb1041_trig_log_arc_exact_argument; unit:WholeRangeBodiesDriftTests.EveryExactIntakeArm_AnswersForTheExactArgument; conformance:cases/14.7.4-ROUNDED/pb3829_rounded_bounded_function_modes",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PB56 LANDED 2026-08-09: the Dec-carrier body - the SS15.4.1 r1 EAE evaluates ON the SDIDI (CobolIntrinsics.Dec.cs via IntrinsicRenderer.RenderDec), arguments lifted exactly, never quantized; prose-family results convert in per SS8.8.1.5.1. PROBED: AC=0.000000000: ACOS(1)=0 exact through the SS8.8.1.5.1 conversion (no double quantization). PRIOR (DIVERGES): DIVERGES SUSTAINED ON RE-MEASUREMENT (this pass re-ran every number below; the pre-adversarial record had this as PARTIAL, which understated a demonstrated wrong result). §15.8.4 r1 (validated: cite.py --check 15.8.4 \"approximation of the arccosine\" ",
+ "state": "OK"
+}

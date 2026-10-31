@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-36",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 36,
+ "subject": "SET statement",
+ "rule-digest": "1c6432414b34",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#setContentStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetContent; src/WiseOwl.Cobol.Compiler/Binding/AlgebraicRange.cs#Of; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSetContent",
+ "test-ref": "conformance:cases/14.9.39-SET/pb452_set_content_numeric; conformance:cases/14.9.39-SET/pb452_set_content_smallest_2023; conformance:cases/14.9.39-SET/pb452-set-content-numeric-edited",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work/PB452.md LANDED 2026-09-09. GR36 a): NEAREST-TO-ZERO sets the receiver to the nonzero value nearest to zero its own description permits - 10 to the minus scale for a fixed-point description, the carrier's subnormal minimum for a float one, from AlgebraicRanges.Of. GR36 b): the IN-ARITHMETIC-RANGE clamp takes whichever of the item's and the mode's nearest-to-zero values is FARTHER from zero, the mirror of GR32 b) and latent for the same measured reason. GR36 c): the SIGN phrase's sign, positive when absent. MEASURED at --std 2014 on PIC S9(4)V99 SIGN IS LEADING SEPARATE: +000001, and with SIGN NEGATIVE -000001. Annex D.32's equivalence (SET ... TO NEAREST-TO-ZERO IN-ARITHMETIC-RANGE equals MOVE SMALLEST-ALGEBRAIC(x) TO x) is asserted in the 2023 golden, since SMALLEST-ALGEBRAIC is a 2023 function while the format is a 2014 one. SR31 b), the NEAREST-TO-ZERO twin of the mandatory-SIGN rule, has no violating input in this implementation: the nearest-to-zero value is a MAGNITUDE identical in both directions for every description declarable here.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.63.4-8",
+ "section": "13.18.63.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "VALUE clause",
+ "rule-digest": "582a720c0e65",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#InitializerFrom",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb876_national_value_no_editing_bwz_inert; conformance:cases/13.18.63-VALUE/pb876_national_value_bwz_zero_contrast",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB562 — SAME TEXT AS 13.18.63.3 SR8, AND THE SAME VERDICT THE SIBLING PART RECORDED. ALPHANUMERIC LEG -- MEASURED (probe gr8bwz, ed*): `05 E1 PIC ZZZ9 BLANK WHEN ZERO VALUE \"0000\"` displays [0000]: BLANK WHEN ZERO had NO effect on initialization even though the item's value reads as zero. The CONTRASTS that make it a real measurement rather than a dead assertion: `05 E2 ... VALUE ZERO` displays [    ] and `05 E3 ... VALUE 0` displays [    ] (NOTE 1's case -- BWZ DOES affect), and `05 E4 ... VALUE 12` displays [  12] (the mask is otherwise live). NATIONAL LEG, MEASURED (kb/Work PB876, wave 1020 A): the national-class numeric-edited item is `PIC ZZZ9 BLANK WHEN ZERO USAGE NATIONAL` (8.5.2.1 Table 2: numeric-edited with usage national is class national), which builds. VALUE N\"0000\" displays 0000 - BLANK WHEN ZERO has no effect on initialization (GR8) - where the MOVE control of a zero into the same picture displays four spaces and, at 2023, VALUE ZERO and VALUE 0 display four spaces and VALUE 12 displays '  12' (goldens 2002/pb876_national_value_no_editing_bwz_inert, 2023/pb876_national_value_bwz_zero_contrast). The pre-2023 observation about VALUE ZERO recorded above is unchanged and is SR6's owner's, not this rule's. DISPLAY-OF / NATIONAL-OF read the Table-2 CLASS of the item (negative/pb876-national-of-national-numeric-edited). Verdict PARTIAL -> CONFORMS.",
+ "state": "OK"
+}

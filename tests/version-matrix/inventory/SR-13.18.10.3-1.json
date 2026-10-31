@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.10.3-1",
+ "section": "13.18.10.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "BLOCK CONTAINS clause",
+ "rule-digest": "fcfef0a2e846",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindBlockContainsClause; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#FileClauseSizeRange",
+ "test-ref": "conformance:cases/13.18.10-BLOCK-CONTAINS/pb1217-block-contains-inverted-range; conformance:cases/13.18.10-BLOCK-CONTAINS/pb1217-block-contains-equal-bounds; conformance:cases/_unassigned/pb1217_block_contains_ordered_range",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "(kb/Work PB1217) BLOCK CONTAINS integer-1 TO integer-2 with integer-2 not greater than integer-1 is refused COBOL2009, the code the RECORD clause's ordered pairs (13.18.43.3 SR5/SR9) already share.",
+ "state": "OK"
+}

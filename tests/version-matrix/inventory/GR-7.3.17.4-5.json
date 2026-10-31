@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.17.4-5",
+ "section": "7.3.17.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "LEAP-SECOND directive",
+ "rule-digest": "05d95bd8af52",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#SecondsOfReal; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#SecondsOfDec",
+ "test-ref": "conformance:cases/7.3.17-LEAP-SECOND/pb65_leap_second_off; conformance:cases/7.3.17-LEAP-SECOND/pb1379_time_form_floor_float_carriers_off; unit:CobolDateSecondsLandingTests.ATinyNegativeFloat_TakesTheOutOfRangePath; conformance:cases/7.3.17-LEAP-SECOND/pb1379_time_form_floor_sdidi_carrier",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1379 landed. Under OFF (the implied default) the ceiling 86,400 was enforced on every carrier but the floor was not: a COMP-2 / COMP-1 argument of -1.0E-10 was truncated to 0 by the float landing and formatted as midnight by FORMATTED-TIME, FORMATTED-DATETIME and LOCALE-TIME-FROM-SECONDS while COMBINED-DATETIME refused it. The landing now keeps the sign (rounds toward negative infinity), so every carrier takes the out-of-range path.",
+ "state": "OK"
+}

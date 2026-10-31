@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-3",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "SET statement",
+ "rule-digest": "cb08d20dbcb0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSetUpDown; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#LandAmount; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolIndex.cs#TryAmount; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolIndex.cs#TryAmountReal",
+ "test-ref": "conformance:cases/14.9.39-SET/pb459_set_index_amount_guards; conformance:cases/14.9.39-SET/pb459_set_index_amount_ec; unit:SetIndexAmountLandingDriftTests.EverySetFamilyAmountSite_LandsThroughCobolIndex",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB459.md LANDED. FORMAT 2 GR3 - 'The value of arithmetic-expression-2 is determined once at the beginning of the execution of the statement. If arithmetic-expression-2 does not evaluate to an integer' then all three consequents (cite.py --check 14.9.39.4 PASS). All three now happen. EmitSetUpDown no longer renders 'long tmp = (long)(NumericRenderer.Align(...))' - a cast that truncated the fraction the rule tests for before anything could see it - and instead lands the amount through SetEmitter.LandAmount into CobolIndex.TryAmount (the exact scaled Int128 lane, where the divisibility test IS the integrality test) or TryAmountReal (the native-float lane, where the test runs on the double, the CobolPtr.UpByReal shape from kb/Work PB151). The ENTIRE receiver loop sits inside the landing's success leg, so 'the execution of the SET statement is unsuccessful' leaves EVERY receiving operand unchanged, not just the ones after the first. MEASURED before: 'SET IX TO 2. SET IX UP BY A.' with A PIC 9V9 VALUE 1.5 printed IX-AFTER=0003. MEASURED after, checking OFF: UPBY-FRAC=+0000000000000000002 (unchanged); checking ON with a USE AFTER EXCEPTION CONDITION declarative: SUB=EC-BOUND-SUBSCRIPT then AFTER-SUB=+0000000000000000002. An integer value at a nonzero scale (UP BY 2.0) still moves the index, which the golden pins - the test is on the VALUE, not the scale.",
+ "state": "OK"
+}

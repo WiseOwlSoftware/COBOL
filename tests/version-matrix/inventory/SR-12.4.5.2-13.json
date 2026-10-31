@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.2-13",
+ "section": "12.4.5.2",
+ "kind": "SR",
+ "ordinal": 13,
+ "subject": "File control entry",
+ "rule-digest": "ec5c374a4081",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Rules",
+ "test-ref": "conformance:cases/12.4.5-File-control/pb773-sd-file-status-clause; conformance:cases/12.4.5-File-control/pb773_legal_file_control_entries_85; conformance-test:FileControlKeyRuleSpecTests.AClauseBeyondFormat4_OnASortMergeEntry_IsRefusedByTheRuleThatFitsIt; conformance-test:FileControlKeyRuleSpecTests.ASortMergeEntryWithTwoClausesBeyondFormat4_IsRefusedOncePerClause; unit:FileControlKeyRuleDriftTests.EveryEntryClause_IsCarriedByExactlyTheFormatsThatPrintIt",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-10-05 (kb/Work PB773). RULE (--check 12.4.5.2 13): \"Format 4 shall be specified only for a sort-merge file. The associated file description entry shall be a sort-merge file description entry.\" DETERMINATION: §12.4.5.1 prints Format 4 as SELECT [OPTIONAL], ASSIGN and [[ORGANIZATION IS] SEQUENTIAL] and nothing else, so an SD's file control entry is Format 4. Format 4 is a SUBSET of Format 3 (checked against the printed diagrams by the drift test), so an entry on an FD can never specify Format 4 alone and neither sentence can be broken from the FD side; the enforceable obligation is the SD's, and it is enforced clause by clause with each clause reported by exactly ONE row: a clause only one format prints names that format (SR8 Format 1, SR9 Format 2, SR11 Format 3), and a clause several formats print and Format 4 does not (ACCESS MODE, FILE STATUS, LOCK MODE, RESERVE, SHARING) is SR13's own row (FileControlKeyRules.Rules, Entry role, ScreenedOn SortMerge, COBOL1900). Re-measured before the fix on the pin's probes: FILE STATUS, ACCESS MODE IS SEQUENTIAL, ORGANIZATION IS LINE SEQUENTIAL, SHARING, RESERVE, LOCK MODE and RECORD DELIMITER on an SD all compiled clean; SELECT OPTIONAL and ORGANIZATION IS [RECORD] SEQUENTIAL on an SD remain legal (Format 4 prints them).",
+ "state": "OK"
+}

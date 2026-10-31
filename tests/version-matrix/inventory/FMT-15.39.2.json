@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.39.2",
+ "section": "15.39.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "FORMATTED-DATE function",
+ "rule-digest": "5f1180e5809e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall",
+ "test-ref": "conformance:cases/15.38.3-Argument-rules/l1_datetime_general_formats; conformance:cases/15.3.3.6.1-Offset-subformats/formatted_datetime; conformance:cases/15.39-FORMATTED-DATE/l1-formatted-date-no-function-word; conformance:cases/15.39-FORMATTED-DATE/l1-formatted-date-one-argument",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Printed two-argument form accepted at both §15.5.2 endpoints (FD-MIN=16010101, FD-MAX=99991231); FUNCTION omitted → COBOL1543 (§8.4.3.2.3 SR2); one argument → COBOL1504. 2014 arm: formatted_datetime D1-D4.",
+ "state": "OK"
+}

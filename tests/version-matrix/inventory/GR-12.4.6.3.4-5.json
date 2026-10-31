@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.6.3.4-5",
+ "section": "12.4.6.3.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "APPLY COMMIT clause",
+ "rule-digest": "09986d3a0d32",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/TransactionEmitter.cs#EmitActivation; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/TransactionEmitter.cs#EmitRetire; src/WiseOwl.Cobol.Runtime/IO/TransactionControl.cs#Retire",
+ "test-ref": "unit:TransactionControlTests.A_retired_clause_is_not_restored_and_the_next_statement_deactivates_it; conformance:cases/14.9.36-ROLLBACK/pb3338_apply_commit_rollback; conformance:cases/12.4.6-I-O-CONTROL/pb3338_ec_flow_apply_commit_under_sort",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB3338 (wave 1154): Annex A.4.3 is now PARTIAL (docs/CONFORMANCE.md §5, §4 item 2): the APPLY COMMIT clause, COMMIT and ROLLBACK are provided for RELATIVE and INDEXED files, whose keyed store engine keeps the transaction (kb/Work PB3337); a SEQUENTIAL or LINE SEQUENTIAL file named in the clause is under commit control too, its transaction journal being kb/Work PB3340 (COBOL1709, which refused it, is retired). The derived verdict commit-and-rollback-only that stamped the module DOCUMENTED-NON-SUPPORT is retired. GR5: the clause is activated with its runtime element (TransactionEmitter.EmitActivation); a CANCEL or an INITIAL program's return retires it (TransactionEmitter.EmitRetire, TransactionControl.Retire), and the next COMMIT or ROLLBACK deactivates it. pb3338_ec_flow_apply_commit_under_sort also activates the clause at a CALL after the SORT, and its ROLLBACK restores the item saved at that activation (review finding w1154a R1-2). retired-witness: conformance:wiseowl/cases/12.4.6.3-APPLY-COMMIT/declined-apply-commit (the commit and rollback facility is provided for the keyed organizations (kb/Work PB3338): the decline these witnessed is gone, and the rule is now witnessed by its own implementation) retired-witness: src/Cobol.Net.Compiler/Validation/DeclinedFacilityPass.cs#VisitApplyCommitClause (the commit and rollback facility is provided for the keyed organizations (kb/Work PB3338): the decline these witnessed is gone, and the rule is now witnessed by its own implementation)",
+ "state": "OK"
+}

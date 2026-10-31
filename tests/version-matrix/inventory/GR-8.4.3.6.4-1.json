@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.6.4-1",
+ "section": "8.4.3.6.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "EXCEPTION-OBJECT",
+ "rule-digest": "9b6ce15548fb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ExceptionEngine.ExceptionObject; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ExceptionEngine.SetObject; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ExceptionEngine.Set; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ExceptionEngine.Clear; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#ExceptionObjectRead",
+ "test-ref": "conformance:cases/8.4.3.6-EXCEPTION-OBJECT/gl2m2_exception_object_identity",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Identity with the raised object in and after the declarative (E, then F); null at start, after a named RAISE EXCEPTION and after SET LAST EXCEPTION TO OFF (§14.9.29.4 GR1/GR2, §14.9.39.4 GR28, §8.8.4.2.15)",
+ "state": "OK"
+}

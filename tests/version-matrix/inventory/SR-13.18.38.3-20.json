@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.38.3-20",
+ "section": "13.18.38.3",
+ "kind": "SR",
+ "ordinal": 20,
+ "subject": "OCCURS clause",
+ "rule-digest": "74caea2267de",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#DependingInsideTableRange; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#FirstOccurrenceOffsetOf",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb1261-depending-in-sibling-fd-record; conformance:cases/13.18.38-OCCURS/pb1261_depending_attributes_and_area",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1261 (wave 1015 Y). cite.py --check 13.18.38.3 \"The data item defined by data-name-1 shall not occupy a byte position within the range of the first byte position\" -> OK 20); 13.18.33.4 GR3 \"Multiple level 1 entries subordinate to a FD or SD entry represent implicit redefinitions of the same area\" -> OK. The test compared record ROOTS; DependingInsideTableRange now also compares across the records of one storage AREA (the shared RedefinesClass): the counter's byte window in its record against [table's first byte, table record's last byte] draws COBOL0857. The positive golden pins the two admitted shapes (counter before the table's first byte, counter past the record's last).",
+ "state": "OK"
+}

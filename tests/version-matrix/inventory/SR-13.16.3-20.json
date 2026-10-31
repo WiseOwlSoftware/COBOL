@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.16.3-20",
+ "section": "13.16.3",
+ "kind": "SR",
+ "ordinal": 20,
+ "subject": "Data description entry",
+ "rule-digest": "6139619154f7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolDeclined.g4#validationClause",
+ "test-ref": "conformance:cases/13.16-Data-description/l1-present-when-level-01; conformance:cases/13.16-Data-description/l1-present-when-level-77",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR20's antecedent is unsatisfiable (PRESENT WHEN is Annex A.4.14 item 5, unclaimed, refused by name with COBOL1708 at every level), so the witness writes the rule's OWN forbidden construct at level 1 and at 77 — PB371's shape; the level-05 fixture that was cleared could not.",
+ "state": "OK"
+}

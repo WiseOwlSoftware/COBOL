@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.4.4-2",
+ "section": "11.4.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "FACTORY paragraph",
+ "rule-digest": "61a8bdbe844a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#ImplementsClosure; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs; src/WiseOwl.Cobol.Compiler/Oo/OoInterfaceSymbol.cs#ImplementedCsTypes",
+ "test-ref": "conformance:cases/11.4-FACTORY/pb451_set_format5_self_sender",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (cite.py --check 11.4.4 \"the class containing the factory object inherits a class whose factory object implements int-1\" -> OK §11.4.4 2) c)): factory implements int-1 when a) its own IMPLEMENTS names it, b) it implements an interface inheriting int-1, c) its class inherits a class whose factory implements int-1. ImplementsClosure(cls, factory:true) walks the Base chain (leg c) collecting FactoryImplements (leg a) and recursively each interface's Inherits (leg b); OoBinder's SET format 5 test (~l.1129) consults the same closure; the emitter gives each emitted half its closure and the interface emits its INHERITS as C# bases. Probes: p6 leg b) - FACTORY IMPLEMENTS FPJ, FPJ INHERITS FPI, a ref typed FPI accepts the factory object and dispatches (J-F 0042); p5 leg c) - FPC with no IMPLEMENTS inherits FPB whose FACTORY IMPLEMENTS FPI; SET S(FPI) TO FPC accepted and INVOKE dispatches FPC's OVERRIDE (CHILD-F 0042) at 2002/2014/2023; leg a) in oo_implements_repeated; the negative direction (factory not implementing) is rejected COBOL0867 (p1/p8; negatives pb451-classname-sender-factory-not-implements, pb451-self-sender-factory-not-implements). Goldens pb451_set_format5_self_sender (legs b and c) and pb451_set_format5_class_name_sender (leg c) are derived from §11.4.4 GR2 (PB451 landed). || Editions (adjudicator, verbatim): 2002, 2014, 2023 (OO - the FACTORY paragraph - is new in ISO/IEC 1989:2002; absent from 1985; Annex E of 2023 lists no change to §11.4)",
+ "state": "OK"
+}

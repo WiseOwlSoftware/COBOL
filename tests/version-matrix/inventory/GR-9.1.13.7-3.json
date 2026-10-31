@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.7-3",
+ "section": "9.1.13.7",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "I-O status",
+ "rule-digest": "c92c8b4cbc0d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Status; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ReadSucceeded; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Delete; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Delete",
+ "test-ref": "conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_read_gate",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§9.1.13.7 3) '43' when the last I-O statement before a sequential-access DELETE RECORD/REWRITE was not a successful READ (cite.py --check OK §9.1.13.7 3)). The gate is PrevOpWasSuccessfulRead: it is dropped in the one Status setter (every statement outcome) and re-armed only by ReadSucceeded, so any intervening statement - UNLOCK, a failed OPEN '41', DELETE FILE, a failed REWRITE - clears it. Keyed connectors apply it only when Access == Sequential (the rule's 'in the sequential access mode'); a sequential-organization file is always sequential access. Probe logic4x/p1.cob: seq REWRITE with no READ -> 43; indexed DELETE with no READ -> 43; READ, UNLOCK, DELETE -> 43; s44/p44.cob: a failed REWRITE ('44') followed by REWRITE -> 43. conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_read_gate pins the READ/UNLOCK/DELETE and READ/'41'/DELETE sequences. || Editions (adjudicator, verbatim): 1985/2002/2014/2023",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-79",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 79,
+ "subject": "FLAG-02 directive (warning mechanism)",
+ "rule-digest": "75557fcc1e15",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-79; src/WiseOwl.Cobol.Compiler/Validation/FlagConformancePass.cs#FlagConformancePass; src/WiseOwl.Cobol.Frontend/Preprocessor/FlagDirective.cs#TryParse; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#Flag02Warning",
+ "test-ref": "unit:FlagDirectiveTests.Parse_Flag02_OnIsImplicit_WhenOnOffOmitted; unit:FlagDirectiveTests.Fold_DefaultsOff_AndIsStickyForwardStrictlyAfterTheDirective; unit:FlagPopulationTests.EcProgram_EachQualifyingTurnIsFlaggedAtItsOwnLine; unit:FlagDirectiveTests.Compile_Flag02IoStatus07On_EmitsCobol1620_OnEachPhraseSpelling",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "7.3.14.4 1) (cite.py OK). docs/CONFORMANCE.md section 7 DOC-A.1-79 documents the FLAG-02 warning mechanism: COBOL1620 per flagged construct, the five options and what each flags (EC-PROGRAM-EXCEPTIONS flags each qualifying >>TURN at its own line by source element), on/off semantics, defaults, edition gating, and the open defects it excludes (kb/Work PB1374 selection forms). The stale statement that the flags 'are not yet emitted' is gone. retired-witness: unit:FlagDirectiveTests.Compile_Flag02IoStatus07On_EmitsCobolnet1620_OnEachPhraseSpelling (the same witness, re-spelled when the product's name retired the compiler's first name (kb/Work PB3837: a test name carrying a code spells it COBOL####, kb/Work PB3575); the new spelling is recorded in its place)",
+ "state": "OK"
+}

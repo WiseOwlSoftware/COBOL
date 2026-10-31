@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.59.4-1",
+ "section": "15.59.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "MAX function",
+ "rule-digest": "476839df1cb3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AllRealArguments; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#MaxDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Select.cs#MaxAt",
+ "test-ref": "conformance:cases/15.59.4-Returned-value-rules/pb65_selection_mixed_carriers; conformance:cases/15.59.4-Returned-value-rules/pb65_selection_alignment; conformance:cases/15.59.4-Returned-value-rules/intrinsic_max_collating; conformance:cases/15.59.4-Returned-value-rules/pb3839_max_min_round_once",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB65 (2026-08-18) closes D2: a MIXED list (a float beside a fixed-point item) delivers the selected argument's CONTENT — MAX/MIN/ORD-MAX/ORD-MIN (and MEDIAN, 15.61.4 r1's (argument-a)) evaluate on the SDIDI carrier under native too (a 38-digit fixed exactly, the float through the 8.8.1.5.1 conversion, an exact compare); an all-float list keeps its double, an all-fixed list its exact Int128 selection (D1, landed 2026-08-09: CobolNum.Compare + MaxAt/MinAt select by index, no widening). MAX(F1 N1) with N1 = 999999999999999999 is 999999999999999999 (it returned 13). D3 (a national GROUP compared with the alphanumeric sequence) was REFUTED by the 2026-08-09 sweep: without GROUP-USAGE NATIONAL a group is class alphanumeric (8.5.2.1) and the alphanumeric sequence is right; the national-group leg exists only once GROUP-USAGE is modelled (kb/Work PB79). The alphanumeric PCS leg stays corroborated by intrinsic_max_collating.",
+ "state": "OK"
+}

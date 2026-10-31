@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.44.3-3",
+ "section": "14.9.44.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "SUBTRACT statement",
+ "rule-digest": "3509352ffb92",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NumLiteral; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NonNumericInNumericContext",
+ "test-ref": "conformance:cases/14.9.44-SUBTRACT/l1-subtract-sr3-literal1-nonnumeric; conformance:cases/14.9.44-SUBTRACT/l1-subtract-sr3-literal2-nonnumeric",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Both literal positions the rule names, reached by different binder paths (the operand list and format 2's FROM phrase); both COBOL0844. The over-rejection guard in the literal-1 header cites 8.3.3.6.3 SR1 a) ('the only figurative constant permitted is ZERO ... without the ALL phrase'), which is what actually keeps SUBTRACT ZERO FROM N legal -- 14.9.44.2 Format 1's slot is {identifier-1 | literal-1}, not an arithmetic expression, so 8.8.1.1 answers a different question and appears only as the name of the screen that reports the rejection.",
+ "state": "OK"
+}

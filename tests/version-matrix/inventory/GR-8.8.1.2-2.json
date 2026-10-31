@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.1.2-2",
+ "section": "8.8.1.2",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Arithmetic expressions",
+ "rule-digest": "cc344b4c344a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#unaryExpression; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BindPower",
+ "test-ref": "conformance:cases/8.8.1.2-Native-standard-binary-and-standard-decimal/pb158_arith_precedence_spine; conformance:cases/8.8.1.2-Native-standard-binary-and-standard-decimal/func_expr_arg",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PARTIAL -> CONFORMS (kb/Work PB158, landed 2026-09-02). The rule is GR2's four-rank hierarchy (1st unary +/-, 2nd exponentiation, 3rd multiply/divide, 4th add/subtract). The IMPLEMENTATION was already correct and is unchanged: powerExpression puts a full unaryExpression in its base position, so `- 2 ** 2` binds as (-2)**2. What was PARTIAL was the EVIDENCE - rank 1 over rank 2 was pinned NOWHERE, and it is the one rank whose answer differs from every mainstream language, so a regression would have looked like normal behaviour. tests/conformance/2023/pb158_arith_precedence_spine now pins all four ranks in one labelled golden with every expected value derived from GR2/GR3 rather than from a run: R1 `- 2 ** 2` = 4 (rank 1 over 2), R2 `2 ** 3 * 4` = 32 (2 over 3), R3 `2 + 3 * 4` = 14 (3 over 4), R4 `2 ** 3 ** 2` = 64 (GR3 left fold), R7 `8 / 4 / 2` = 1 (GR3 left fold on /), and R5/R6 as the parentheses-vs-precedence discriminator. It also replaces the previous evidence's dependence on pb69 T11, where the precedence fact was INCIDENTAL to a golden about the Int128 carrier and would have vanished silently if that expression were ever rewritten.",
+ "state": "OK"
+}

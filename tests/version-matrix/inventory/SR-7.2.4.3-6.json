@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.2.4.3-6",
+ "section": "7.2.4.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "REPLACE statement",
+ "rule-digest": "7612c6b90251",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair",
+ "test-ref": "unit:TextManipulationStatementTests.ReplaceOperandContent_IsScreened",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1353 (w68x): 'Partial-word-2 shall consist of zero or one text-word' (cite.py OK 7.2.4.3 6)) - COBOL2572 for ==NEW- X== (was a downstream COBOL0309).",
+ "state": "OK"
+}

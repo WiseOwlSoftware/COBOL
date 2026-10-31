@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.23.3-18",
+ "section": "14.9.23.3",
+ "kind": "SR",
+ "ordinal": 18,
+ "subject": "INVOKE statement",
+ "rule-digest": "6a80c96ab70d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitCobolInvoke",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/pb757-invoke-omitted-not-optional; conformance-test:MethodOmittedArgumentTests.Universal_OmittedIntoNonOptionalFormal_StopsAtRuntime; conformance:cases/8.4.3.2-Function-identifier/pb757_invoke_omitted",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB757.md landed w46i2. An OMITTED argument (both 14.9.23.2 spellings, and the 8.4.3.4.2 inline form) against a formal whose header lacks the OPTIONAL phrase is COBOL2237 at bind for a typed receiver (negative); through a universal receiver the formal is known only at runtime, so the callee's __CobolInvoke switch admits the OMITTED descriptor only against an OPTIONAL formal (9.3.6 match rule 3 b) and otherwise stops before the method runs (14.9.23.4 GR7c). Against an OPTIONAL formal both spellings compile and run (golden).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.3-3",
+ "section": "14.6.3",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Execution",
+ "rule-digest": "77338b907c95",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#RunMain; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod",
+ "test-ref": "conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/l1_transfer_of_control_implicit; conformance-test:TransferOfControlFatalDeclarativeTests.FatalDeclarative_OnMainLine_TerminatesAbnormally; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_go_to_out_of_perform; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_two_performs_deep; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_perform_thru_inverted; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_called_program; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_function_method; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_before_f3_handlers; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_sort_input_procedure; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_sort_output_procedure; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_sort_merge_called_program",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§14.6.3 3): empty paragraph/section as CONTINUE, EXIT PROGRAM transfers only when called, implicit GOBACK (golden); fatal-declarative sentence, first alternative, abnormal termination exit 1 (conformance-test)",
+ "state": "OK"
+}

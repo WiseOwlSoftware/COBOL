@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.14.4-4",
+ "section": "13.18.14.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "COLUMN clause",
+ "rule-digest": "cc25fe669606",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Place; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ReportLineImage; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ReportColumnOverlapError; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#NonfatalAmbientGates",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb1188_report_nonfatal_raise",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1188: the composed line records which columns a printable item uses (ReportLineImage); an item placed over a used column sets EC-REPORT-COLUMN-OVERLAP and, raised, is not placed (GR8 resume at the next item): \" AAA C\". Absent items never reach Place (§13.18.41.4 GR3 e)). With checking off the item overwrites (results undefined).",
+ "state": "OK"
+}

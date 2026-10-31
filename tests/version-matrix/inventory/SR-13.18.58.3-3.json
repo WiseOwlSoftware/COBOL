@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.58.3-3",
+ "section": "13.18.58.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "TYPEDEF clause",
+ "rule-digest": "647818b29969",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RegisterTypeDecl",
+ "test-ref": "conformance:cases/13.18.58-TYPEDEF/l1-typedef-external-subordinate",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§13.18.58.3 SR3: a level-05 TYPEDEF EXTERNAL entry under group G must be rejected (COBOL1529); this pins the TYPEDEF+EXTERNAL combination, which pb488-typedef-subordinate does not.",
+ "state": "OK"
+}

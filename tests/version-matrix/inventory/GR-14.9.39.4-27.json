@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-27",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 27,
+ "subject": "SET statement",
+ "rule-digest": "0bf176c58210",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/LocaleState.cs#Save",
+ "test-ref": "conformance:cases/14.9.39-SET/pb64t1_save_restore_locale; unit:LocaleStateTests.SaveAndRestore_IsAPerCategorySnapshot_ThroughAManagedHandle",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T1 (2026-08-19): SET identifier-11 TO LOCALE USER-DEFAULT saves the USER DEFAULT locale into a handle. Was DOCUMENTED-NON-SUPPORT (PB92).",
+ "state": "OK"
+}

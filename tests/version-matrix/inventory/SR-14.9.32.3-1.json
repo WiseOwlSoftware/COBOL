@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.32.3-1",
+ "section": "14.9.32.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "RELEASE statement",
+ "rule-digest": "6fdacb013faf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveRecordName; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReleaseRecord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease",
+ "test-ref": "conformance:cases/14.9.32-RELEASE/pb347-release-subordinate-item; conformance:cases/14.9.32-RELEASE/pb347-release-refmod-record; conformance:cases/14.9.32-RELEASE/pb236-release-record-not-sd; conformance:cases/14.9.32-RELEASE/pb347_record_name_identity; conformance:cases/14.9.32-RELEASE/pb347_record_name_identity_85; conformance:cases/14.9.32-RELEASE/l1_release_from_sender_available",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB347 LANDED; closes the half kb/Work PB236 left open. RULE (cite.py --check 14.9.32.3 'Record-name-1 shall be the name of a logical record in a sort-merge file description entry and it may be qualified.' -> OK, 14.9.32.3 1). BOTH DEFECTS THIS ROW CARRIED ARE NOW FIXED. (1) STAGE, closed by PB236: the rejection is a COMPILE-TIME COBOL1757 naming SR1, not a run-time NotImplemented.Run. (2) PREDICATE, closed here: seqIo.FileOfRecord tested CONTAINMENT -- it walked the reference's ancestry to its top-level 01 and asked whether THAT root was a file's record, so 'the reference lies somewhere INSIDE an SD record' passed, and `RELEASE SR-DATA` on a 05 item injected a record the program never released (measured before the fix on this worktree's own build: the output procedure returned R=[BBBbbbbb] AND R=[aaaaa   ], the second being SR-DATA's 5-byte image space-extended to the SD's 8). The rule now has ONE home for all three verbs that print record-name-1, StatementValidation.ResolveRecordName, which tests IDENTITY -- the reference IS a FileModel.Records entry -- and refuses a reference-modified one (see FMT-14.9.32.2). The containment walk survives only as the message: 'SR-DATA is subordinate to SRT-REC, which is the logical record of SRTF -- name that record, not one of its items'. The qualification half stays CONFORMS: `RELEASE SRT-REC OF SRTF` binds, pinned in both positive goldens. Edition-invariant -- the sentence is identical in 1985, 2002 and 2014, so no gate exists and each negative carries `*> reject-at: 85 2002 2014 2023`.",
+ "state": "OK"
+}

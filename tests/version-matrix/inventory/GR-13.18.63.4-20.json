@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.63.4-20",
+ "section": "13.18.63.4",
+ "kind": "GR",
+ "ordinal": 20,
+ "subject": "VALUE clause",
+ "rule-digest": "ea038cb1883a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFalsePhraseOperand; src/WiseOwl.Cobol.Compiler/Binding/Model/Condition88.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSet",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb555_value_false_phrase; conformance:cases/13.18.63-VALUE/pb455_set_false_group_length; conformance:cases/13.18.63-VALUE/pb555_typedef_condition_clone; conformance:cases/13.18.63-VALUE/pb555-set-false-no-phrase",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB561 - LANDED, RE-MEASURED. 'When a condition-name is referenced in a SET condition-name TO FALSE statement, the value of literal-4 from the FALSE phrase is placed in the associated conditional-variable.' This is the VALUE clause's half of the rule 14.9.39.4 GR7 states from the statement's side, and it failed for ONE reason: literal-4 parsed and was then discarded, so no member of Condition88 held it. DataBinder.BindFalsePhraseOperand now screens the operand through the one 13.18.63.3 SR2/SR4/SR5 literal-position funnel and STORES it on Condition88.FalseValue, which Condition88.CopyOnto carries into every TYPEDEF / SAME AS clone (unit:Condition88CloneDriftTests). Measured end to end: the row's own repro shape prints AFTER-TRUE then the literal-4 value instead of aborting at run time. Landed by e76c275d0 (kb/Work PB555).",
+ "state": "OK"
+}

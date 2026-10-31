@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.24.3-5",
+ "section": "14.9.24.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "MERGE statement",
+ "rule-digest": "ce36947e08d3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindCollating",
+ "test-ref": "conformance:cases/14.9.24-MERGE/l1c18-merge-collating-alnum-is-national",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 14.9.24.3 \"Alphabet-name-1 shall reference an alphabet that defines an alphanumeric collating sequence\" -> OK §14.9.24.3 5). SortBindCollating looks alphabet-name-1 up in ctx.Data.Alphabets only; a FOR NATIONAL alphabet there -> COBOL0898 (probe msr5 `FOR ALPHANUMERIC IS NN`), an undeclared name -> COBOL0898. Every alphanumeric alphabet form references a collating sequence (§12.3.7 Table 6: UTF-8/UTF-16 are the only CCS-only operands and UTF-8 is confined to the FOR NATIONAL branch — probe msr5u8 rejected at the ALPHABET clause), so no further case exists. Cosmetic: the diagnostic cites §14.9.40.3 SR2 (SORT's rule) for MERGE. || editions as adjudicated: 85/2002/2014/2023 (clause text; the FOR ALPHANUMERIC spelling is 2002+)",
+ "state": "OK"
+}

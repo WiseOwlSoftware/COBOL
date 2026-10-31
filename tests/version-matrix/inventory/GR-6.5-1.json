@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-6.5-1",
+ "section": "6.5",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Reference format",
+ "rule-digest": "1937f8d5669e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs#FormatSegments; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs#DirectiveText",
+ "test-ref": "conformance:cases/6.5-Logical-conversion/pb1361_directive_in_format_in_effect; unit:ReferenceFormatLogicalConversionTests.FreeFormDirective_AnywhereAfterSpaces_Switches",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1361 (w70b): '1) If the line is a SOURCE FORMAT directive, the reference format mode is determined and the SOURCE FORMAT directive line is logically discarded.' (cite.py --check 6.5 -> OK §6.5 1)). The mode is now STATE of an in-order walk over the lines, and a directive line is recognized against the program-text area of the mode in effect: a free-form '>>SOURCE FORMAT FIXED' whose operand lies past column 72 switches the mode (the golden's line 13 starts it at column 75), where the format-blind margin-R cut used to truncate it to '>>SOURCE FORMA' (COBOL1911) and leave the mode unchanged. The directive line is discarded to an empty slot as before.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.13.3-1",
+ "section": "12.4.5.13.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "RELATIVE KEY clause",
+ "rule-digest": "190b9f9288ef",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Rules; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#IsSubjectToOccurs",
+ "test-ref": "conformance:cases/12.4.5.13-RELATIVE-KEY/pb354-relative-key-occurs; conformance:cases/12.4.5.13-RELATIVE-KEY/pb699-relative-key-occurs-entry-only; conformance-test:FileControlKeyRuleSpecTests.RelativeKeyOperandRule_ReportsOnAnEntryOnlyProgram_AtEveryEdition",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "RE-SITED 2026-09-06 (kb/Work PB699); rule unchanged. RULE (--check 12.4.5.13.3 1): \"Data-name-1 shall not be subject to any OCCURS clauses.\" It is screened, with its two clause-mates, by FileControlKeyRules, so the entry is screened whether or not any statement names the file. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#KeyedValidateFile (KeyedValidateFile was removed when the file-control KEY rules became one table, FileControlKeyRules (kb/Work PB699, 3c5b4cd4d))",
+ "state": "OK"
+}

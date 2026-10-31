@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.15.4-3",
+ "section": "13.15.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Report group description entry",
+ "rule-digest": "56c62b78f18b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#EntryRepetitions; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenRepeatingOperandCount",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb565_report_vertical_repetition; conformance:cases/13.15-Report-group-description/pb565_report_repeating_entry",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB565 (vertical axis). ALL THREE of GR3's repetition vehicles are live: 'An entry that contains either an OCCURS clause or a LINE or COLUMN clause with more than one operand is said to be a repeating entry, and the number of repetitions is defined to be integer-2 of the OCCURS clause or the number of operands of the LINE or COLUMN clause, whichever is applicable.' EntryRepetitions computes the count from the entry's own clauses (the OCCURS integer-2 times a multiple COLUMN operand count; a multiple LINE clause cannot join either, 13.18.35.3 SR10d), RepetitionChain reads 'an entry that is subordinate to a repeating entry' off the entry scope stack, and the count is what 13.18.63.3 SR35 / 13.18.53.3 SR6 screen against. 'The number of repetitions of an entry that is not a repeating entry is defined to be 1' is the default both helpers take. Golden lines 30-31 exercise a repeating entry subordinate to a repeating entry on the other axis.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.6.2.1-1",
+ "section": "8.4.6.2.1",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Local and global names",
+ "rule-digest": "ea7009a2592e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#InheritGlobalSubtree; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#ReserveInheritedMemberNames",
+ "test-ref": "conformance:cases/8.4.6.2-Local-and-global-names/pb1047_nearest_declaring_element",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1047 (w68z). cite.py --check 8.4.6.2.1 'Using this set of names, the normal rules for qualification and any other rules for uniqueness of reference are applied until one or more items is identified' -> OK §8.4.6.2.1 1); cite.py --check 8.4.6.2.2 'All data-names and screen-names subordinate to a global name are global names' -> OK. The GLOBAL-root loop skipped a container root whose SPELLING the unit already had and dropped its WHOLE subtree, so a subordinate global name of a shadowed root (lg11 Y, lg12 Z) was 'not defined'. BindUnitData now inherits every global root whole; a local root spelled like one takes a distinct C# member (ReserveInheritedMemberNames) so the root's bridge can be emitted. Golden: I Y=OUY and I Z=OUZ W=MDW (subordinates of the outer G, whose spelling the middle's G hides), and O Y=NEW (the contained program's MOVE reached the outer item through the bridge).",
+ "state": "OK"
+}

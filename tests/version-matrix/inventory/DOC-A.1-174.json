@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-174",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 174,
+ "subject": "SET statement (effect of SET on function whose address is being stored in a function-pointer)",
+ "rule-digest": "ed4faea9a28a",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-174; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#FunctionAddressOf; src/WiseOwl.Cobol.Runtime/Control/FunctionPointer.cs",
+ "test-ref": "conformance:cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb452_set_function_pointer; conformance:cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb452_function_address_runtime",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "DOCUMENTED IN THE SAME CHANGE SET AS THE GENERAL RULE IT RIDES (kb/Work PB452). A.1 item 174 is a REQUIRED documentation obligation on 14.9.39.4 GR15 and it had no row while GR15 itself had no implementation. The determination is the EMPTY one and the empty one is substantive: storing a function's address does nothing whatever to the function - no activation (14.6.2.3.2 establishes initial state 'the first time the function ... is activated', and only 8.4.3.2.4 GR6 activates one), no loading, no allocation, no disturbance of its 13.5.4 GR1 static data. An implementation that pinned or eagerly initialized the function would have to say so here. The witness is an OBSERVATION, not a restatement: the 2014 golden activates the function before and after the SETs and both activations return the same value.",
+ "state": "OK"
+}

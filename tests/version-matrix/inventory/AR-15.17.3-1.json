@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.17.3-1",
+ "section": "15.17.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "COMBINED-DATETIME function",
+ "rule-digest": "e1c6d1c58e90",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#CombinedDatetime; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
+ "test-ref": "conformance:cases/15.17.3-Argument-rules/pb65_wide_values; conformance:cases/15.17.3-Argument-rules/pb620_combined_datetime_carriers; unit:IntrinsicCarrierAgreementDriftTests.CombinedDatetime_ScreensItsArguments_FromEveryCarrier; conformance:cases/8.4.3.2-Function-identifier/pb1420-combined-datetime-numeric-function-date; unit:IntrinsicArgumentClassDriftTests.EveryTable21IntegerPosition_IsTypedInteger_InTheVerifiedTable",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "PB65 (wide-value members) LANDED 2026-08-09. PROBED: CDZ=0: COMBINED-DATETIME(0, 45296) takes the SS15.17.3 r1/SS15.5.2 EC path with the documented default whole. PRIOR (PARTIAL): PB1 landed the CLASS half only. 15.17.3 r1 requires argument-1 to be in INTEGER DATE FORM - a value form (a valid standard date integer), not merely a class. The screen rejects a non-numeric operand and nothing more. tes kb/Work PB620 (2026-09-21, the THIRD carrier): §15.17.3's two rules are about argument VALUES (r1 integer date form, r2 standard numeric time form, which §15.5.5 bounds by MAGNITUDE), so the USAGE of the item holding the value cannot decide whether §15.3's \"incorrect value for that argument\" applies -- but the binary64 body had NO argument rule at all. Measured on a pre-fix build in ONE program under ONE armed >>TURN EC-ARGUMENT-FUNCTION CHECKING ON directive: COMBINED-DATETIME(1, F) with F USAGE COMP-2 VALUE 86400 printed 1.8639999999999 and set no exception condition, while the identical VALUE in a PIC 9(5)V9(8) item terminated the run unit. CombinedDatetimeReal now asks the SAME screen as its two exact-carrier twins (CobolDate.CombinedDatetimeOutOfRangeReal forwards to the one CombinedDatetimeOutOfRange comparison), takes the compilation group's LEAP-SECOND state like they do (§7.3.17.4 GR4/GR5 is what sets the bound), and substitutes §15.3's documented default 0; a non-finite operand is screened at the same site because neither §15.5.2's nor §15.5.5's form contains an infinity or a NaN. One rule, one raise site, one message, asserted across all three carriers. || kb/Work PB1420 (2026-10-03): argument-1 is Int1 in Table 21, so the Verified row is now per-position (i, n): a numeric function cannot be the integer date (SR11). Argument-2 (Num2) is unchanged.",
+ "state": "OK"
+}

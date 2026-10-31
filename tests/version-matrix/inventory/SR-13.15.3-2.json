@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.15.3-2",
+ "section": "13.15.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Report group description entry",
+ "rule-digest": "4576583b44a7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataName",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb1226_report_filler_entry_name",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1287: sentence (a), the filler format of the entry-name clause, is admitted by the shared dataName rule; (b) and (c) held before. retired-witness: src/Cobol.Net.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupName (the hand-written reportGroupName rule no longer exists: the report group entry's name slot is the data description entry's dataName rule (kb/Work PB1226))",
+ "state": "OK"
+}

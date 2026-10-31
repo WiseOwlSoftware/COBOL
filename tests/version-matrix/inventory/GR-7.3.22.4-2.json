@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.22.4-2",
+ "section": "7.3.22.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "PUSH directive",
+ "rule-digest": "bc119fe0f3cf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#PushableRows; src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveStateStack.cs#Apply; src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveStateRegistry.cs#Entries",
+ "test-ref": "unit:DirectiveStateStackTests.ThePushableSet_IsTheCatalogMinusGr2sFive; unit:DirectiveStateStackTests.TheRegistry_AccountsForEveryPushableDirective_AndNothingElse; unit:DirectiveStateStackTests.EveryDirectiveResultsMember_IsClaimedByTheRegistry; conformance:cases/7.3-Compiler-directives/pb941_push_pop_directive_state",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB941 (landed): PUSH ALL pushes every catalog row except the five GR2 names (DERIVED from the PUSH row's excludedDirectives, so a new directive row is pushed by existing); DirectiveStateRegistry accounts for every one (carried, or why no state is held, with its rule), drift-tested. Golden legs L1/L2.",
+ "state": "OK"
+}

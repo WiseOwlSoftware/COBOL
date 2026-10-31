@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.49.4-1",
+ "section": "15.49.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "INTEGER-PART function",
+ "rule-digest": "52bd4aa46fe4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AnyRealArgument; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#CombineCore; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Align; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#Truncate; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#TruncateReal; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolDec.cs#CobolDec",
+ "test-ref": "conformance:cases/15.42.3-Argument-rule/l1_integer_family_notes; conformance:cases/15.44.3-Argument-rule/l1_integer_floor_85; conformance:cases/15.7.4-Returned-value-rule/pb2_float_argument_exact_family",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§15.49.4 r1's EAE (SIGN(a) * INTEGER(ABS(a))) over seven arguments, reaching the |a| < 1 branch where the SIGN factor multiplies a ZERO (a=-0.5 and a=-0.25 return 0 while INTEGER of the same argument returns -1 — §15.44.4's own 'similar but returns different values for negative numbers'). The 2023 golden declares ARITHMETIC IS STANDARD-DECIMAL, so §15.4.1 r1 makes equality mandatory and it is the NORMATIVE pin; the 85 golden covers the row's 85 edition leg as a DETERMINATION pin against docs/CONFORMANCE.md A.1 item 92 ('INTEGER floors and INTEGER-PART truncates'), which is the same §15.4.1 native-arithmetic determination the pre-existing pb2_float_argument_exact_family already measures.",
+ "state": "OK"
+}

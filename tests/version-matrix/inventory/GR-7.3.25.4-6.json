@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.25.4-6",
+ "section": "7.3.25.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "TURN directive",
+ "rule-digest": "fcd1b7e39f5a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs#EnabledAtHeader; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData; src/WiseOwl.Cobol.Frontend/Preprocessor/TurnDirectiveProcessor.cs#ParseTurn; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitPresenting",
+ "test-ref": "conformance:cases/7.3.25-TURN/pb1381_turn_at_procedure_header; unit:TurnStateTests.LastMatchingEventWins; unit:TurnStateTests.FileScopedEvent_AppliesOnlyToThatFile; conformance:cases/7.3.25-TURN/pb1365_turn_checking_implied_on; conformance:cases/7.3.25-TURN/pb1365_turn_checking_with_location_implied_on; conformance:cases/7.3.25-TURN/pb1365_turn_checking_location_optional_with; conformance:cases/7.3.25-TURN/pb963_turn_file_name_arms; conformance:cases/7.3.25-TURN/l1c33_turn_level2_file_name; conformance:cases/7.3.25-TURN/pb963-turn-file-name-below-2002; conformance:cases/13.18.53-SOURCE/pb4031_report_source_size_checking; conformance:cases/13.18.53-SOURCE/pb4031_report_overflow_checking; conformance:cases/14.7.5-SIZE-ERROR-phrase-and-size-error/pb4092_size_checking_is_per_name; conformance:cases/13.18.53-SOURCE/pb4092_report_compose_per_name",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1365. The printed diagram (PDF page 115, rendered) underlines only OFF and LOCATION: ON and WITH are optional words, so CHECKING alone / CHECKING WITH LOCATION select ON (GR6 'specified or implied').",
+ "state": "OK"
+}

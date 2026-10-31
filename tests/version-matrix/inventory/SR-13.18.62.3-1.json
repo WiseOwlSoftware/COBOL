@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.62.3-1",
+ "section": "13.18.62.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "VALIDATE-STATUS clause",
+ "rule-digest": "fd91f04989b7",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause",
+ "test-ref": "conformance:wiseowl/cases/13.18.62-VALIDATE-STATUS/declined-validate-status",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "docs/CONFORMANCE.md §5 row A.4.14 (VALIDATE — Not claimed) + §4 item 3. Licence: Annex A.4.1, \"An implementation shall accept the syntax and provide the functionality for an optional element only when support for that language element is claimed by the implementor\", and its second sentence carrying the licence to the module's unlisted rules. Obsolescence (F.2 item 5) is corroboration, never the licence (kb/Work PB198). The fixture writes the FULL general format including the §5.2.6.4 CHOICE-INDICATOR ON group (FORMAT / CONTENT / RELATION, one or more, any order) and the FOR list, so the format's own shape is exercised rather than a minimal instance.",
+ "state": "OK"
+}

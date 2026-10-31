@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.14.4-1",
+ "section": "15.14.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "BYTE-LENGTH function",
+ "rule-digest": "9473334b0930",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindByteLengthFold",
+ "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb61_length_byte_length_rule_branches; conformance-test:IntrinsicFunctionDifferentialTests.ByteLength_NationalDivergesFromLength_Spec",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB61 — the LENGTH/BYTE-LENGTH folds enumerated from the rule branches; one builder for a runtime-length group; SR6 decided from the definition before binding). §15.14.4 r1 'the length of argument-1 in number of bytes' over a ZERO-LENGTH literal (§8.5.4 item 8): BYTE-LENGTH(\"\") = 0 and BYTE-LENGTH(N\"\") = 0 (golden ZL); the former Math.Max(1, …) clamp answered 1. Alphanumeric 1 byte/character, national 2 (D-N1).",
+ "state": "OK"
+}

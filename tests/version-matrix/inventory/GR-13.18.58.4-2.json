@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.58.4-2",
+ "section": "13.18.58.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "TYPEDEF clause",
+ "rule-digest": "2f15218b7dce",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RegisterTypeDecl",
+ "test-ref": "conformance:cases/13.18.58-TYPEDEF/l1-typedef-name-no-storage",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§13.18.58.4 GR2 + §8.5.3.1 + §8.4.2.1: MOVE to a type-name identifies no storage, so it is rejected (COBOL1639); the typed item V in the same source is legal.",
+ "state": "OK"
+}

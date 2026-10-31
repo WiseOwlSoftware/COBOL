@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.34.4-1",
+ "section": "15.34.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "EXP function",
+ "rule-digest": "ef140ee09431",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#SignDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Exp; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#InBinary64Range",
+ "test-ref": "conformance:cases/15.4.1-Numeric-and-integer-functions/pb56_dec_carrier_intrinsics; conformance:cases/15.20.4-Returned-value-rule/pb1041_exp_and_wide_exact_argument; unit:WholeRangeBodiesDriftTests.EveryExactIntakeArm_AnswersForTheExactArgument; conformance:cases/15.34.4-Returned-value-rules/pb1566_exp_result_range; unit:WholeRangeBodiesDriftTests.AResultOutsideBinary64_IsTheSizeErrorCondition",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "PB56 LANDED 2026-08-09: the Dec-carrier body - the SS15.4.1 r1 EAE evaluates ON the SDIDI (CobolIntrinsics.Dec.cs via IntrinsicRenderer.RenderDec), arguments lifted exactly, never quantized; prose-family results convert in per SS8.8.1.5.1. PROBED: EX=1.000000001: EXP(1e-9) via DecPow over the exact E with the RAW (unquantized) exponent operand. PRIOR (DIVERGES): DIVERGES confirmed, but the adjudicator's \"NATIVE half CONFORMS\" is OVERTURNED — the native half diverges too, and it is the PB5 defect one decade of magnitude out. §15.4.1's native licence (--check OK: \"the value returned is an implementor-defined a",
+ "state": "OK"
+}

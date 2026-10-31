@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-46",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 46,
+ "subject": "Data storage (possible representations when implementation provides multiple ways of storing data)",
+ "rule-digest": "9dbe91a4dafd",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-46; src/WiseOwl.Cobol.Runtime/Values/Text/StorageByte.cs#StorageByte.ImageByte",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/pb547_redefines_national_view_of_wide_character; conformance:cases/A.1-Implementor-defined-language-element-list/pb547_redefines_binary_and_bit_views_of_wide_character",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB547 LANDED. A.1 item 46 (8.5.1.1): the complete specification of the possible representations is the USAGE clause row of each usage (205-211, 213-216, 48, 74, 217), indexed by docs/CONFORMANCE.md DOC-A.1-46 with one fixed representation per usage and no per-compilation-unit option. The DISPLAY arm is single-valued: one byte per character position (item 209); a position holds a UTF-16 code unit (items 33, 188); a code unit above U+00FF other than HIGH-VALUE reads at every in-memory byte channel as ? with EC-DATA-CONVERSION (StorageByte.ImageByte; CobolBits and CobolNum.Image views; CONVERT BYTE/HEX/ANY) and is refused at the file channel with I-O status 91 (item 31, owner decision R47). Witnesses: the two pb547 conformance cases. retired-witness: src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#ByteSub (the symbol is deleted: CONVERT RawBytes and every REDEFINES view now share StorageByte.ImageByte (kb/Work PB547))",
+ "state": "OK"
+}

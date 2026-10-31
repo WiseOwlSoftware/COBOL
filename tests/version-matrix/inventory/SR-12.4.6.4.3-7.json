@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.6.4.3-7",
+ "section": "12.4.6.4.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "SAME clause",
+ "rule-digest": "22d65f2b2e4a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#SameOccurrenceRule; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#ScreenSameClauses",
+ "test-ref": "conformance:cases/12.4.6.4-SAME/pb1087-same-plain-file-two-file-areas; conformance:cases/12.4.6.4-SAME/pb1087-same-plain-file-two-record-areas; conformance:cases/12.4.6.4-SAME/pb1087_same_clauses_legal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1087 (wave 1011 B2). cite.py --check 12.4.6.4.3 'A given file-name that represents a file other than a report file or a sort or merge file may be specified in one file-area format' OK SR7. Other-file row of the occurrence table: (file-area 1, record-area 1, sort-merge-area unlimited); the record-area cell has its own negative (two record-area clauses). Positive half: F3 in a record-area clause and a sort-merge-area clause, F1/F2 in all three formats, in the golden.",
+ "state": "OK"
+}

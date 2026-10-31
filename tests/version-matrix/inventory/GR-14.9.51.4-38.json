@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-38",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 38,
+ "subject": "WRITE statement",
+ "rule-digest": "ae5934a81473",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Opened",
+ "test-ref": "conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/l1_open_extend_position",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "NOW (kb/Work PB3334, INDEXED on the keyed store engine): the INDEXED organization moved to the keyed store engine (kb/Work PB3334; DESIGN-runtime-library 2.2.1.4): the ascending check compares under the prime key order and EXTEND seeds it from the prime tree's last key (IndexedConnector.Opened). Rule (cite.py --check 14.9.51.4 'If the record is not in the sequence above, the execution of the WRITE statement is unsuccessful' -> OK 38)). Code: the sequential arm refuses `IndexedConnector.OrderOf(prime, _lastWrittenPrime) <= 0` with '21'. OpenCore seeds _lastWrittenPrime with the highest existing prime key under EXTEND, and the comparison uses the file's collating sequence. Probe dir: out/probe/write-statement-p3/ (pinned adj-d1 cobol.exe). idx1.cob, OUTPUT: K20 is written, then K10 gives 'S2 INV 21', K20 again gives 'S3 INV 21', and K30 and K40 succeed. EXTEND over a file whose highest key is K40: K35 gives 'E1 INV 21', K50 is accepted, and K45 then gives 'E3 INV 21' (it must exceed the highest key written through this connector). With COLLATING SEQUENCE ALPHA ('A' ALSO 'a'), a01 after A01 gives 'C2 INV 21'. The spec-derived golden l1_open_extend_position (K004 as the first record of an extend session over K002/K006/K008 gives 'XW2=21') covers the extend first-record sentence. The unit tests SharedExtendOpenDriftTests and SharedExtendWriteDriftTests cover the shared case. [editions as adjudicated: 85, 2002, 2014, 2023 (the rule is in every edition's relative/indexed WRITE text; Annex E records no 2014->2023 change to it)] retired-witness: src/Cobol.Net.Runtime/IO/IndexedConnector.cs#KeyCompare (the INDEXED organization moved to the keyed store engine (kb/Work PB3334; DESIGN-runtime-library 2.2.1.4): the ascending check compares under the prime key order and EXTEND seeds it from the prime tree's last key (IndexedConnector.Opened)) retired-witness: src/Cobol.Net.Runtime/IO/IndexedConnector.cs#OpenCore (the INDEXED organization moved to the keyed store engine (kb/Work PB3334; DESIGN-runtime-library 2.2.1.4): the ascending check compares under the prime key order and EXTEND seeds it from the prime tree's last key (IndexedConnector.Opened))",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.3.4-1",
+ "section": "8.8.4.3.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Simple boolean condition",
+ "rule-digest": "1cd97a2c6636",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs; src/WiseOwl.Cobol.Runtime/Values/Text/CobolBool.cs; src/WiseOwl.Cobol.Frontend/Expressions/BitString.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindSimpleBooleanCondition",
+ "test-ref": "conformance:cases/8.8.4.2-Simple-relation-conditions/boolean_ops; conformance:cases/8.8.2-Boolean-expressions/pb1465_boolean_paren_after_operator; conformance:cases/8.8.2-Boolean-expressions/pb1412_shift_only_boolean_conditions; conformance:cases/8.8.4.3-Simple-boolean-condition/pb1464_parenthesized_boolean_operands",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1412 + PB1464 LANDED (wave 1005 D). Rule: Boolean-expression-1 evaluates true if the result of the expression is 1 and false if 0 (cite.py --check 8.8.4.3.4 OK 1)). The three legal shapes the refuter named that never reached evaluation now do: the shift-only forms (IF BW B-SHIFT-L 1 false, B-SHIFT-LC true, (BW B-SHIFT-RC 1) true), the parenthesized bare operand (IF (BW), IF ((BW))), and - landed earlier by PB1465 - the parenthesized sub-expression after a binary operator or B-NOT. Values derived from 8.8.2 rules 8 and 9 in pb1412_shift_only_boolean_conditions and pb1464_parenthesized_boolean_operands.",
+ "state": "OK"
+}

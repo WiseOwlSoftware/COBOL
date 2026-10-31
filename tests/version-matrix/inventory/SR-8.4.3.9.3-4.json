@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.9.3-4",
+ "section": "8.4.3.9.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "Object property",
+ "rule-digest": "2eacaa6e5803",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoWrapPropertyOps",
+ "test-ref": "conformance-test:OoSpineTests.PropertyReference_ReceivingWithNoSet_0843",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 8.4.3.9.3 'a set property method shall exist for property-name-1' OK. OoWrapPropertyOps classifies the occurrence (Write/ReadWrite) and raises COBOL0843 SR4 when op.Set is null; the same property stays readable as a sender. OoSpineTests.PropertyReference_ReceivingWithNoSet_0843 asserts both halves (MOVE 9 TO BAL OF A rejected, sending use accepted). [editions as adjudicated: 2002, 2014, 2023 (the object property is part of the OO facility introduced by ISO/IEC 1989:2002; absent from X3.23-1985)]",
+ "state": "OK"
+}

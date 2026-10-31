@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.40.4-3",
+ "section": "13.18.40.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "PICTURE clause",
+ "rule-digest": "157f55f1b8bb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.Analyze; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#PicCategory; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#Table16Operand",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb535_picture_category_size_2023; conformance:cases/13.18.40-PICTURE/pb535_picture_category_size_85; conformance:cases/13.18.40-PICTURE/pb535-picture-no-category; unit:PictureCategoryDriftTests.TheWalk_AcceptsEveryOneOfTheEightCategories",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB535 LANDED 2026-09-13. ALL EIGHT OF GR3'S CATEGORIES ARE NOW CONSTRUCTIBLE, and the two reasons this row stood at PARTIAL are both gone. (1) NATIONAL-EDITED, which the note said 'cannot be defined at all (COBOL0899)', landed with kb/Work PB492 (row GR-13.18.40.4-10): `01 W PIC NNBNN.` compiles at 2002+ and sizes 5. (2) 'A character-string that defines NO category at all is accepted' - PIC S, PIC PPP, PIC SV each binding a zero-length category-numeric item - is closed by PB528's composition validator and by GR11's antecedent at the numeric arm (row GR-13.18.40.4-11). Measured on this worktree's own cobol.exe at 2023: alphabetic PIC AAAA=4, alphanumeric PIC XXX9=4, alphanumeric-edited PIC XX0XX=5, boolean PIC 1(4)=4, national PIC N(3)=3, national-edited PIC NNBNN=5, numeric PIC S9(3)V99=5, numeric-edited PIC ZZ,ZZ9.99=9 - the eight names of GR3's list, each sized by GR4. The REPRESENTATION note stands unchanged and is a representation choice rather than a divergence: ALPHABETIC and ALPHANUMERIC-EDITED ride flags beside PicCategory.Alphanumeric (PicInfo.IsAlphabetic, PicInfo.EditMask) and every place the category is observable reads the flags (MoveTable16.Table16Operand keys ISO Table 16 on (Category, IsAlphabetic, IsEdited), IntrinsicArgumentRules maps IsAlphabetic to CobolClass.Alphabetic, InitializeBinder to InitializeCategory.Alphabetic); the drift test's own histogram counts the eight by those flags and asserts every one of them appears. GR3's closing sentence, 'a BLANK WHEN ZERO clause specified for the subject of the entry defines the item as numeric-edited', is implemented for usage display (`PIC 9(5) BLANK WHEN ZERO` renders spaces after a zero store) and 13.18.8's own SR1/SR2 are now enforced by PictureComposition (SR22 refuses 'S' and '*' beside the clause). Its usage-NATIONAL leg cannot be reached at all, and not for a reason of this rule: `PIC 9(5) USAGE NATIONAL` is itself COBOL0899 national-form numeric data, the staged residue owned by row SR-13.18.60.3-12 - a loud non-implementation of that item, never a wrong category for one the compiler admits. The three 2002+ categories keep their introduction gate below 2002 (COBOL0900; constructs boolean-data-2002, national-data-2002, national-edited-2002, witnessed by conformance:cases/13.18.40-PICTURE/pb492-national-edited-at-85).",
+ "state": "OK"
+}

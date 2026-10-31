@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.26.4-4",
+ "section": "15.26.4",
+ "kind": "RV",
+ "ordinal": 4,
+ "subject": "DISPLAY-OF function",
+ "rule-digest": "5dfc4bbc94aa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Repertoire; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#DisplayOf",
+ "test-ref": "conformance:cases/15.2-Types-of-functions/national_intrinsics",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "UPHELD after varying the RECEIVER as well as the argument. Repertoire appends exactly one character per input character (a substitution replaces, never expands or drops), so the returned string's length is always argument-1's character count, and under D-N1 one national position is one UTF-16 char and one usage-display position. RAN MYSELF at --std 2023: FUNCTION LENGTH(FUNCTION DISPLAY-OF(PIC N(5))) -> 005; the same over a PIC N(3) containing a SUBSTITUTED U+4E16 -> 003, so substitution does not change the length; the ZERO-LENGTH national literal FUNCTION DISPLAY-OF(N\"\") -> LENGTH 000 and an all-space receiver, which is correct since 15.26.3 carries no zero-length-literal prohibition (its 15.66.3 r3 twin does); a SUPPLEMENTARY-plane national literal in a PIC N(2) -> LENGTH 002 and '??', consistent with the declared D-N1 one-code-unit-per-position model; a reference-modified argument N-SRC(1:3) -> 3; a national GROUP of two PIC N(2) items -> 4. Receiver variation: STRING FUNCTION DISPLAY-OF(N-SRC) DELIMITED BY SIZE INTO a PIC X(10) prefilled with '-' gives [HELLO-----], i.e. exactly 5 positions transferred; MOVE to a PIC X(6) gives 'HELLO '; and the length consequence in comparison is right in both directions - the result compares EQUAL to \"HELLO\", to \"HELLO   \" and to a PIC X(8) item, so the shorter operand is space-padded per 8.8.4.2.7 r2 rather than compared as a raw .NET string. There is no static width model for an intrinsic result in the compiler, so the length is purely the runtime string's and FUNCTION LENGTH reads that. conformance:cases/15.2-Types-of-functions/national_intrinsics verified on disk with its golden (LEN-D=05) and its tests/conformance/2002/manifest.json entry; the LEN-D line is computed from 15.26.4 r4, not pinned from behaviour. NOTED, and deliberately not charged here: FUNCTION BYTE-LENGTH(FUNCTION DISPLAY-OF(N-W)) crashes at run time with a NotImplementedCobolFeatureException naming 'ISO 15.14.3' - that is a 15.14 argument-shape gap for whoever adjudicates BYTE-LENGTH, not a 15.26.4 r4 defect.",
+ "state": "OK"
+}

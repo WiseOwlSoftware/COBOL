@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.6.3-3",
+ "section": "12.4.5.6.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "ALTERNATE RECORD KEY clause",
+ "rule-digest": "05ce6ffbad40",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Rules",
+ "test-ref": "conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1073-alternate-key-dynamic-length-item; conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1073_dynamic_length_member_not_a_key_2014; conformance-test:FileControlKeyRuleSpecTests.IndexedEntryRule_ReportsAtEveryEdition_WithOrWithoutAKeyedVerb",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "LANDED 2026-10-05 (kb/Work PB1073). RULE (--check 12.4.5.6.3 3): \"Data-name-1 and data-name-2 shall not reference a variable-length data item.\" §8.5.1.11.1: a variable-length data item is \"a dynamic-capacity table or a dynamic-length elementary item\". FileControlKeyRules.Rules (AlternateRecordKey role) asks the key operand's IsDynamicLength attribute (COBOL0863). The dynamic-capacity-table arm is a key under OCCURS and SR1's row reports it (a dynamic-capacity table cannot be in a record at all, COBOL1526), so the row does not say the same fact twice; a GROUP containing a dynamic-length item is a variable-length GROUP, which the standard names separately where it means to forbid one (§12.4.5.8.3 SR3, §13.10.3 SR12) and does not name here, so it is accepted (the minimum-record-size rule, SR5, bounds it). Re-measured before the fix: probe sr3.cob compiled exit 0 and WRITE returned '00'.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.30.4-25",
+ "section": "14.9.30.4",
+ "kind": "GR",
+ "ordinal": 25,
+ "subject": "READ statement",
+ "rule-digest": "b7f50ea6c256",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#LastSlot; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RelativeSlot",
+ "test-ref": "conformance:cases/12.4.5.13-RELATIVE-KEY/l1_read_relative_key_moved",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The key item is clobbered to 9999 before every read, so 0001/0002/0003 can only be GR25's store, and the at-end read must leave 9999 ('the record MADE AVAILABLE').",
+ "state": "OK"
+}

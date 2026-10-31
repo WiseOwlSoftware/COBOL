@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.6.4.3-4",
+ "section": "12.4.6.4.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "SAME clause",
+ "rule-digest": "976c38be793e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#SameRecordAreaPeers; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#BindIoControl",
+ "test-ref": "conformance:cases/12.4.6.4-SAME/l1c28_same_area_mixed_org",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 12.4.6.4.3 \"The files specified in a given SAME clause need not all have the same organization or access\" -> OK SR4 (a permission). BindIoControl links files by their record anchors with no organization/access test, and nothing else screens it. Probe gr2_mixed: `SAME RECORD AREA FOR F1 F2 F3` over ORGANIZATION SEQUENTIAL (PIC X(4)), RELATIVE ACCESS SEQUENTIAL (group X(2)+X(6)) and LINE SEQUENTIAL (PIC X(10)) compiles at 2023 and runs correctly (see GR-12.4.6.4.4-2); fmt_all_ok mixes SD and FD files in one clause. No spec-derived test mixes organizations. [registrar 14a — editions as adjudicated: 85, 2002, 2014, 2023 (the SAME clause is base I-O-CONTROL language in every edition; no Annex E change entry names it)]",
+ "state": "OK"
+}

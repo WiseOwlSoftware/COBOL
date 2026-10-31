@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.35.4-2",
+ "section": "14.9.35.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "REWRITE statement",
+ "rule-digest": "ad43e8e283bf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRewrite; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveRecordName",
+ "test-ref": "conformance:cases/14.9.32-RELEASE/pb348_from_into_move_rules_2023",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"The rewrite file connector is the file connector referenced by file-name-1 or the file-name associated with record-name-1.\" BindRewrite resolves record-name-1 through ResolveRecordName(..., out var file) and binds the statement (BoundRewrite / BoundKeyedRewrite) to THAT FileModel; both emitters key the runtime call by FileKeyExpr(file). A GLOBAL FD's records reached from a contained program keep the owner's shared FileModel (BinderDriver GLOBAL FD inheritance), so the connector is the owner's. The file-name-1 arm is the declined A.4.13 FILE phrase (PB282). pb348_from_into_move_rules' RWFROM line derives that the REWRITE replaced F's last-read record. cite.py --check 14.9.35.4 GR2 -> OK. [editions as adjudicated: 2023; ISO 1989:2023 Annex E lists no 2014->2023 change to this rule (E.3.3 item 41 touches GR10 only), so 2014 identically; the 1985/2002 wording is not derivable from the 2023 text]",
+ "state": "OK"
+}

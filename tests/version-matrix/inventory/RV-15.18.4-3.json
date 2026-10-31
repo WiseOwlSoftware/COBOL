@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.18.4-3",
+ "section": "15.18.4",
+ "kind": "RV",
+ "ordinal": 3,
+ "subject": "CONCAT function",
+ "rule-digest": "623f001f4356",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundIntrinsicCall; src/WiseOwl.Cobol.Runtime/Values/MoveValidity.cs#Table16Refusal",
+ "test-ref": "conformance:cases/8.4.3.3-Reference-modification/pb72_table16_admitted_cells; conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-08-09 (PB59 family 7): the ALPHABETIC half rides a RIDER on BoundIntrinsicCall (ResultIsAlphabetic), NOT a PicCategory.Alphabetic member - the PIC A fold and the six-type IntrinsicType stay deliberate (their written-down decisions hold: the rider is per-CALL derived state, not a declarable category, and no 15.3 argument rule admits class alphabetic). Set at the ONE generic construction site (BindIntrinsicCore - CONCAT has no bespoke arm) when argument-1 and all argument-2 are provably class alphabetic: a PIC A field that is NOT a ref-mod view (8.4.3.3.4 GR2/GR6 make every view plain alphanumeric and break the chain) or a nested CONCAT carrying the rider; literals never qualify (8.3.1.2), and every PIC A item is usage display so r3's precondition is subsumed. Consumed at Table 16's sender position: MOVE FUNCTION CONCAT(picA picA) TO a boolean item now rejects 0819 (negative pb59-concat-alphabetic-to-boolean) while the plain-X, mixed and ref-mod-argument forms stay admitted (the corpus golden's XB/MX legs + the r3 'otherwise' arm). The 15.18.1 table's two usage-national rows remain unreachable (PIC 9/1 USAGE NATIONAL stages loud, COBOL0899) - a pre-existing staging, not this rule's hole. The 'all arguments alphabetic' MAX/MIN analogue has no such row in 15.59.1/15.63.1, so CONCAT is the one function carrying the rider. retired-witness: src/Cobol.Net.Compiler/Binding/MoveTable16.cs#Refusal (kb/Work PB2076 moved Table 16 to the runtime as MoveValidity.Table16Refusal) retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

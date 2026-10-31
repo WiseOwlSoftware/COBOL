@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.42.3-2",
+ "section": "14.9.42.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "STOP statement",
+ "rule-digest": "90f5b63441ea",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#AdmittedStatusItem; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#ScreenStatusOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#StatusOperand; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#UsageOf",
+ "test-ref": "conformance-test:StopGobackExitCodeTests.RefModAndGroupStatusOperands_AreAdmittedBySR2; conformance-test:StopGobackExitCodeTests.TheStatusPositionsOwnRules_AreEnforcedAndCited; conformance:cases/14.9.18-GOBACK/pb411-status-strongly-typed-group; conformance:cases/14.9.42-STOP/pb217-status-bit-group; conformance:cases/14.9.42-STOP/pb169-status-index-name",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB411.md - LANDED, the twin of SR-14.9.18.3-6 and word for word the same rule ('Identifier-1 shall reference an integer data item or a data item with usage display or usage national'). ONE screen serves both verbs - ControlFlowBinder.BindTerminationStatus is the only decoder of the shared statusPhrase grammar rule, and CallBinder's GOBACK arm is its only other caller - so the alphanumeric-group defect and its fix are two-verb facts, measured on both: before, 'STOP RUN WITH ERROR STATUS <alphanumeric group>' drew COBOL1704 quoting this very rule; after, it compiles and passes the group's image to the operating system under the 14.9.42.4 GR5 determination published as docs/CONFORMANCE.md item 192. The usage answer comes from ItemCategory.UsageOf, the ONE 8.5.2.1 reader; 3.11's exclusions (bit, national, strongly-typed, variable-length) are each pinned - national ADMITTED by its 13.18.29.4 GR2 b usage, bit and strongly-typed REJECTED by negative fixtures. The index-name exclusion is 13.18.38.3 r7's, screened at the same site (COBOL1637). The phrase is a COBOL-2002 introduction on STOP, which is why the editions differ from the GOBACK twin's 2023.",
+ "state": "OK"
+}

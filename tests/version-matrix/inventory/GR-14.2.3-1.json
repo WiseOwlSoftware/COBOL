@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.2.3-1",
+ "section": "14.2.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Procedure division structure",
+ "rule-digest": "ebfb152b6fbe",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/l1c22_pd_exec_order_sections; conformance:cases/14.2-Procedure-division-structure/l1c22_pd_exec_order_nosections",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§14.2.3 GR1 (cite.py --check 14.2.3 \"Execution begins with the first statement of the procedure division, excluding declaratives\" -> OK §14.2.3 1)). ProcedureTableBuilder orders DECLARATIVES first and DispatchEmitter starts at the first NONdeclarative procedure. Probes: gr1.cob (DECLARATIVES then M SECTION with an unnamed leading sentence) prints FIRST/SECOND/THIRD with no DECL; fmt2_ok.cob (sentences before first paragraph) executes the header-following sentence first; fall-through order across sections/paragraphs is presentation order. pb367 golden (spec-derived output) runs the main section first behind a DECLARATIVES block. || REFUTED: CONFORMS (test-ref must be empty) — The behaviour holds. Execution skips the declaratives and starts at the first statement: the adjudicator's gr1/fmt2_ok probes, plus mine, where the first statement sits in the second paragraph of the first section and, separately, after an empty first section. The cited test-ref does not close this row, though. pb367_use_procedure_is_the_section derives its expected output from 14.9.49.3 SR1, 14.4.2, 14.6.3, 14.9.14.4 and 14.9.33.4, and never from 14.2.3 GR1. It pins USE-procedure extent, and GR1 is only incidental to its first line. A test that is not derived from this rule's text cannot close the row. Keep CONFORMS, untested.",
+ "state": "OK"
+}

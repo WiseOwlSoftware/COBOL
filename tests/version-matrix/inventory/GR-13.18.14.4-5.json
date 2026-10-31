@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.14.4-5",
+ "section": "13.18.14.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "COLUMN clause",
+ "rule-digest": "064bd2150b46",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Place; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#PageWidth",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb1059_page_columns_width; conformance:cases/13.18.14-COLUMN/pb1059_page_width_only; conformance:cases/13.18.14-COLUMN/pb1188_report_nonfatal_raise",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1059 + PB1188: the page width Place measures is the PAGE clause's integer-2 (or 999): a printable item ending past it sets EC-REPORT-PAGE-WIDTH, the line is truncated and printed.",
+ "state": "OK"
+}

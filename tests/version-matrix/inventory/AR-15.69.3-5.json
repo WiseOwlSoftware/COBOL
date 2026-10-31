@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.69.3-5",
+ "section": "15.69.3",
+ "kind": "AR",
+ "ordinal": 5,
+ "subject": "NUMVAL-F function",
+ "rule-digest": "51465ed634f7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NvfScan; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalFDec",
+ "test-ref": "conformance:cases/15.67.3-Argument-rules/pb60_numval_one_scan; conformance:cases/15.69.3-Argument-rules/numvalf_decimal_comma_and_spaces",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-09 (PB60): NUMVAL-F's value path rode text.Replace(\" \", \"\") - deleting exactly the spaces 15.69.3 r5's except-clause makes illegal - while TEST-NUMVAL-F enforced the placement correctly; the two now share ONE NvfScan. NUMVAL-F(\"1 2\") raises EC (default 0, golden row ES; TEST position 3, row ET); every LEGAL placement (leading, sign-to-digit, around the E parts, trailing) still values exactly (row LG, \" - 35E+0 \" = -35). The sibling find landed with it: TestNumvalF hard-coded the 31-digit cap where its two TEST- siblings take the mode-dependent digitCap - it now takes the parameter and the emitter passes DigitCapFlag. retired-witness: src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalF (kb/Work PB3839 deleted CobolIntrinsics.NumvalF, the scaled-Int128 NUMVAL-F projection: the function returns the exact NumvalFDec SDIDI value in every arithmetic mode, channel and receiver)",
+ "state": "OK"
+}

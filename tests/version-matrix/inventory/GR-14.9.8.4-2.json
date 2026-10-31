@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.8.4-2",
+ "section": "14.9.8.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "COMPUTE statement",
+ "rule-digest": "2ff197fb1905",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreArith",
+ "test-ref": "conformance:cases/14.9.8-COMPUTE/ca5b_prohibited_multi_receiver_size_error; conformance:cases/14.7.4-ROUNDED/rounded_modes; conformance:cases/14.9.8-COMPUTE/float_edited; conformance:cases/14.9.2-ADD/phrase_order_arithmetic; conformance:cases/14.9.2-ADD/optional_on_size_error; conformance:cases/14.9.8-COMPUTE/pb157_compute_multi_sizeerr; conformance:cases/8.3.3.6-Figurative-constant-values/pb51_compute_figurative_zero",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB157): the one unverified half is observed - pb157_compute_multi_sizeerr pins 14.7.5's storing rule across a MIXED multi-receiver COMPUTE: `COMPUTE BIG SML = 123456` stores into BIG (fits), leaves SML UNCHANGED at its prior 99 (the partial commit), and runs the ON SIZE ERROR imperative exactly once. The previously-verified halves stand: once-evaluation over differently-shaped receivers (pb51), per-resultant ROUNDED (ca5b + rounded_modes), the 14.6.8 numeric-edited delegation (float_edited), both 14.7.5 branches (phrase_order_arithmetic / optional_on_size_error).",
+ "state": "OK"
+}
