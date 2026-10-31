@@ -1934,7 +1934,7 @@ lowercase with Annex C. Three pieces, each in one place:
   `user-word-character-removed-2023` (COBOL0902) for a character only COBOL 2023 refuses (E.2 item 4); the construct
   `user-word-extended-letter-2002` (COBOL0900) below 2002 for an extended letter — but a character that NO edition's
   Annex B holds (U+00A0, the euro sign) is no extended letter, so `CobolCharacterRepertoire.ViolationAtEveryEdition`
-  makes it COBOL2773 at every target, COBOL-85 included, worded by what the character is (kb/Work PB4130). The tables are COBOL 2023's, transcribed list for list
+  makes it COBOL2773 at every target, COBOL-85 included, worded by what the character is (kb/Work PB4130). The gate is decided per CHARACTER (`CobolCharacterRepertoire.HasExtendedLetter`: any character some edition's Annex B holds), so a word holding both an extended letter and such a character draws the gate (COBOL0900) and COBOL2773 at COBOL-85 (kb/Work PB4156). The tables are COBOL 2023's, transcribed list for list
   from the standard by `scripts/spec/gen_annex_bc.py`; COBOL 2002/2014 are derived by reversing Annex E (E.2 item 4,
   E.3.3 items 4 and 5 — the standard records no 2002→2014 change, so 2002 uses 2014's). `AnnexBCDriftTests` re-reads
   every list from `specs/ISO_COBOL.md`. A word's length is counted in characters (code points), so a combining

@@ -29,6 +29,19 @@ public sealed class WordCharacterEveryEditionTests
         Assert.Contains("in no edition's Annex B", CobolWordRule.CharacterViolation(word, 1985));
     }
 
+    /// <summary>The extended-letter question is per CHARACTER (kb/Work PB4156): a word holds one when ANY character is in some
+    /// edition's Annex B, whatever else it holds; a word of basic characters and characters in no Annex B holds none.</summary>
+    [Theory]
+    [InlineData("CAFÉ", true)]
+    [InlineData("CAFÉ€", true)]
+    [InlineData("€CAFÉ", true)]
+    [InlineData("A\U0001E900 ", true)]
+    [InlineData("PREIS€", false)]
+    [InlineData("PREIS ", false)]
+    [InlineData("PREIS-1_X", false)]
+    public void HasExtendedLetter_IsAskedOfEachCharacter(string word, bool expected) =>
+        Assert.Equal(expected, CobolCharacterRepertoire.HasExtendedLetter(word));
+
     [Theory]
     [InlineData("CAFÉ")]
     [InlineData("STRASSE-ß")]
