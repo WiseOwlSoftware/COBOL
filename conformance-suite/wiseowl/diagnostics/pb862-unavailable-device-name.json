@@ -1,0 +1,1 @@
+{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "COBOL2241: SPECIAL-NAMES: 'CONSOEL' is not a switch-name, feature-name or device-name"}

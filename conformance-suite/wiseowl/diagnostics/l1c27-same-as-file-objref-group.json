@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "COBOL1556: 'FR': a SAME AS clause in the file section shall not reference 'OGI', whose description contains a USAGE OBJECT REFERENCE data item"}

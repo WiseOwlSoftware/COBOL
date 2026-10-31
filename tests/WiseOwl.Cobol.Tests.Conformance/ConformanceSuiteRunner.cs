@@ -71,7 +71,7 @@ internal static class ConformanceSuiteRunner
         finally { ScratchDirectory.Remove(work); }
     }
 
-    /// <summary>Compile a refused program (<c>wiseowl/diagnostics.json</c>) at <paramref name="edition"/> as the suite
+    /// <summary>Compile a refused program (<c>wiseowl/diagnostics/</c>) at <paramref name="edition"/> as the suite
     /// compiles it (the ordinary compile, its declared files beside it), and return the compiler's result.</summary>
     internal static CompilerDriver.Result CompileRefusal(SuiteRefusal refusal, string edition)
     {
@@ -229,7 +229,7 @@ internal static class ConformanceSuiteRunner
         }
     }
 
-    /// <summary>A WiseOwl test's WiseOwl compile options (<c>wiseowl/options.json</c>, which the generator validates),
+    /// <summary>A WiseOwl test's WiseOwl compile options (<c>wiseowl/options/</c>, which the generator validates),
     /// applied as the <c>cobol</c> command's <c>--sign-encoding</c>, <c>--numeric-display</c>, <c>--flag-extensions</c> and <c>--repository-update</c>
     /// apply them.</summary>
     private static CompilerDriver.Options WithWiseOwlOptions(CompilerDriver.Options options,

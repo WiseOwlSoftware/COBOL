@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "COBOL0900: a group SIGN clause applying to a signed numeric item whose usage is not DISPLAY requires COBOL-2002"}

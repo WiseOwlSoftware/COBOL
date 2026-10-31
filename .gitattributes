@@ -41,8 +41,6 @@ nuget-feed/*.nupkg binary
 # ABI pin; each conflict cost a finisher cycle to do what a program does exactly. git runs a driver only when both sides
 # changed the file, and only when the merge passes `-c merge.<name>.driver=…`: `enqueue.py land` and
 # `scripts/merge_drivers.py merge <ref>` do (merge_drivers.config_args); a bare `git merge` falls back to a line merge.
-conformance-suite/wiseowl/diagnostics.json merge=cobol-keyed-object
-conformance-suite/wiseowl/options.json merge=cobol-keyed-object
 tests/version-matrix/traceability-inventory.json merge=cobol-keyed-inventory
 tests/version-matrix/constructs.json merge=cobol-keyed-constructs
 kb/Work/PB*.md merge=cobol-work-note

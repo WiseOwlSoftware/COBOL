@@ -10,13 +10,17 @@
     python scripts/merge_drivers.py --hunks <file>...        # replay history's merges: were a file's conflicts insertions or revisions
     python scripts/merge_drivers.py --self-test
 
-⛔ WHY. Landings conflicted on files that are not code: `conformance-suite/wiseowl/diagnostics.json`, the traceability
-inventory, `tests/version-matrix/constructs.json`, the work notes two branches both append to, and the runtime ABI pin
-in `RuntimeAbiPinDriftTests.cs`. Each conflict (the landing logs, E:\\COBOL-coord\\logs\\land-lane-*.log, counted 15 on
-one manifest, 13 on another, 4 on the pin, 4 on diagnostics.json) stopped the landing and cost a finisher cycle (about
-100 k tokens and a re-gate) to do what a program does exactly: keep both sides' entries. Two branches that each ADD an
-entry to a keyed catalogue touch the same neighbourhood, which a line merge calls a conflict although the answer is
-always both entries.
+⛔ WHY. Landings conflicted on files that are not code: the traceability inventory, `tests/version-matrix/constructs.json`,
+the work notes two branches both append to, and the runtime ABI pin in `RuntimeAbiPinDriftTests.cs`. Each conflict (the
+landing logs, E:\\COBOL-coord\\logs\\land-lane-*.log, counted 15 on one manifest, 13 on another, 4 on the pin) stopped the
+landing and cost a finisher cycle (about 100 k tokens and a re-gate) to do what a program does exactly: keep both sides'
+entries. Two branches that each ADD an entry to a keyed catalogue touch the same neighbourhood, which a line merge calls a
+conflict although the answer is always both entries.
+A REGISTRY OF ENTRIES NEEDS NO DRIVER WHEN EACH ENTRY IS A FILE (kb/Work PB4147). The merge queue runs no driver, so a keyed
+file two open pull requests both edit is admitted one at a time (`enqueue.py` DRIVER FILE QUEUED, exit 16): WiseOwl's
+refusals and compile options (`conformance-suite/wiseowl/diagnostics/<test id>.json`, `options/`) were one such file, 61
+of the landing lane's 79 holds, and are one file per test now, so two refusals never share a file. Prefer that shape to a
+driver for the next registry; a driver is for a file that cannot be split.
 
 WHAT A DRIVER IS. A file that `.gitattributes` marks `merge=<name>` is merged by the command configured as
 `merge.<name>.driver` whenever BOTH sides changed it; git passes the three versions and takes the result in place of its
@@ -31,12 +35,12 @@ kb/Work PB3727 merging a main whose public-API baseline the driver SORTED got it
 measured case, RS0025 in the Release build.
 
 THE DRIVERS (DRIVERS: the one registry; `.gitattributes` repeats its patterns, and `--check` holds the two together):
-  KEYED CATALOGUES  a file of entries that are each a block of lines at one indentation, KEYED (an object's member
-                    name, or a field of an array element). The merge is three-way per KEY: an entry only one side
-                    changed takes that side's text, an entry both sides changed identically is taken once, an entry
-                    both changed differently (or one changed and one removed) is a REAL conflict. The entry text is
-                    preserved byte for byte (diagnostics.json holds both raw § and \\u00a7 spellings: a parse and
-                    re-serialize would rewrite every line), and the merged file must still parse as JSON.
+  KEYED CATALOGUES  a JSON file whose entries are the elements of one array, KEYED by a field of the element. The merge is
+                    three-way per KEY: an entry only one side changed takes that side's text, an entry both sides
+                    changed identically is taken once, an entry both changed differently (or one changed and one
+                    removed) is a REAL conflict. The entry text is preserved byte for byte (a file may hold both raw §
+                    and \\u00a7 spellings: a parse and re-serialize would rewrite every line), and the merged file must
+                    still parse as JSON.
   WORK NOTES        kb/Work/PB*.md: the frontmatter is merged per KEY (the same rule), the body by git's UNION merge
                     (two branches that each append a paragraph keep both; a line both rewrote differently is kept
                     twice, visible to the reader, never lost).
@@ -150,12 +154,12 @@ def merge_atom(base: str, ours: str, theirs: str) -> str | None:
 # ── keyed JSON catalogues ────────────────────────────────────────────────────────────────────────────────────────
 @dataclasses.dataclass(frozen=True)
 class Layout:
-    """Where a catalogue's entries are: the items of the container reached from the root through the member names in
-    `path` (the root itself when empty). An object's items are its members, keyed by member name; an array's items are
-    its elements, keyed by their `key_field` member. Read from the JSON STRUCTURE, never from indentation:
-    constructs.json carries entries hand-written at three different indentations."""
+    """Where a catalogue's entries are: the elements of the ARRAY reached from the root through the member names in
+    `path` (the root itself when empty), each keyed by its `key_field` member. Read from the JSON STRUCTURE, never from
+    indentation: constructs.json carries entries hand-written at three different indentations. A registry of members
+    keyed by name has no layout: one that two landings both add to is one file per entry instead (kb/Work PB4147)."""
+    key_field: str
     path: tuple[str, ...] = ()
-    key_field: str | None = None
 
 
 _MEMBER_KEY = re.compile(r'"(?:[^"\\]|\\.)*"\s*:')
@@ -208,14 +212,14 @@ def segment(text: str, layout: Layout) -> tuple[str, dict[str, tuple[str, str]],
     open_at = next((i for i, c in enumerate(text) if not c.isspace()), -1)
     for name in layout.path:
         open_at = _descend(text, open_at, name) if open_at >= 0 else -1
-    found = _items(text, open_at) if open_at >= 0 and text[open_at] in "{[" else None
+    found = _items(text, open_at) if open_at >= 0 and text[open_at] == "[" else None
     if not found or not found[0]:
         return None
     spans, entries, prev_end = found[0], {}, open_at + 1
     for a, b in spans:
         lead, item = text[prev_end:a].lstrip(","), text[a:b]
         try:
-            key = next(iter(json.loads("{" + item + "}"))) if text[open_at] == "{" else json.loads(item)[layout.key_field]
+            key = json.loads(item)[layout.key_field]
         except (ValueError, KeyError, TypeError, StopIteration):
             return None
         if not isinstance(key, str) or key in entries:
@@ -422,14 +426,11 @@ class Driver:
 
 
 DRIVERS: tuple[Driver, ...] = (
-    Driver("cobol-keyed-object", ("conformance-suite/wiseowl/diagnostics.json", "conformance-suite/wiseowl/options.json"),
-           lambda: merge_keyed(Layout()),
-           "test id -> its entry: every refusal and option a landing adds is one more member"),
     Driver("cobol-keyed-inventory", ("tests/version-matrix/traceability-inventory.json",),
-           lambda: merge_keyed(Layout((), "rule-id")),
+           lambda: merge_keyed(Layout("rule-id")),
            "rule id -> its verdict row: a landing re-verdicts the rows its fix closes"),
     Driver("cobol-keyed-constructs", ("tests/version-matrix/constructs.json",),
-           lambda: merge_keyed(Layout(("constructs",), "id")),
+           lambda: merge_keyed(Layout("id", ("constructs",))),
            "construct id -> its entry in the version-matrix catalogue"),
     Driver("cobol-work-note", ("kb/Work/PB*.md",), lambda: merge_note,
            "frontmatter per key, body by union: two branches that each append to one note keep both"),
@@ -606,7 +607,7 @@ def foresee_queue(repo: pathlib.Path | str, base: str, entries: list[tuple[str, 
     and no event a reader sees until it has happened). `entries`: (label, head commit) in queue order; `base`: main.
     Each head is merged onto the result of those before it WITH GIT'S OWN LINE MERGE AND NO DRIVER (probe with
     drivers=False): GitHub's merge group runs none, so two entries that each add a key to one keyed catalogue
-    (diagnostics.json, the traceability inventory, constructs.json, kb/Work notes) conflict there, and the queue removes
+    (the traceability inventory, constructs.json, kb/Work notes) conflict there, and the queue removes
     the second, which the drivers would have merged. An entry that conflicts is skipped, as the queue skips it. Returns
     {label: Foreseen} for each such entry, so its finisher can bring the entries ahead in while they are still queued.
     A head git cannot merge (an object this repository lacks) is left out: it is unknown, never a conflict. The runtime
@@ -796,9 +797,10 @@ def self_test() -> int:
         if not ok:
             failures.append(label)
 
-    obj = lambda *members: "{" + NL + (("," + NL).join(members)) + NL + "}" + NL    # noqa: E731
-    m = lambda k, v: f' "{k}": {{{NL}  "refuse-at": [{NL}   "{v}"{NL}  ]{NL} }}'    # noqa: E731
-    keyed = merge_keyed(Layout())
+    # A catalogue of constructs-shaped entries: {"constructs": [{"id": k, "refuse-at": v}, ...]}, the array of one member.
+    obj = lambda *members: "{" + NL + ' "constructs": [' + NL + (("," + NL).join(members)) + NL + " ]" + NL + "}" + NL    # noqa: E731
+    m = lambda k, v: f'  {{{NL}   "id": "{k}",{NL}   "refuse-at": "{v}"{NL}  }}'    # noqa: E731
+    keyed = merge_keyed(Layout("id", ("constructs",)))
 
     base = obj(m("a", "85"), m("c", "85"))
     ours = obj(m("a", "85"), m("b", "2002"), m("c", "85"), m("o", "85"))
@@ -807,8 +809,7 @@ def self_test() -> int:
     expect("keyed: entries each side ADDED are both kept, ours' order first, theirs' after the key it followed",
            got == obj(m("a", "85"), m("b", "2002"), m("c", "85"), m("t", "2014"), m("o", "85")), repr(got))
     expect("keyed: the merged text is the entries' own bytes and parses", got is not None and json.loads(got) == {
-        "a": {"refuse-at": ["85"]}, "b": {"refuse-at": ["2002"]}, "c": {"refuse-at": ["85"]},
-        "o": {"refuse-at": ["85"]}, "t": {"refuse-at": ["2014"]}})
+        "constructs": [{"id": k, "refuse-at": v} for k, v in (("a", "85"), ("b", "2002"), ("c", "85"), ("t", "2014"), ("o", "85"))]})
     expect("keyed: an entry only one side changed takes that side; one both changed identically is taken once",
            keyed(base, obj(m("a", "2002"), m("c", "85")), obj(m("a", "85"), m("c", "2014")))
            == obj(m("a", "2002"), m("c", "2014"))
@@ -821,19 +822,20 @@ def self_test() -> int:
            and keyed(base, obj(m("a", "85")), obj(m("a", "85"), m("c", "2014"))) is None)
     expect("keyed: a text that is not shaped as the layout says is None, never a guess",
            keyed(base, "not json" + NL, theirs) is None)
-    mixed = f'{{{NL} "e": {{{NL}  "expect": "ISO §14.9 (a)"{NL} }},{NL} "f": {{{NL}  "expect": "ISO \\u00a714.9 (b)"{NL} }}{NL}}}{NL}'
+    mixed = obj(f'  {{{NL}   "id": "e",{NL}   "expect": "ISO §14.9 (a)"{NL}  }}',
+                f'  {{{NL}   "id": "f",{NL}   "expect": "ISO \\u00a714.9 (b)"{NL}  }}')
     expect("keyed: a raw § and a \\u00a7 spelling in one file are kept as written (no re-serialization)",
            keyed(mixed, mixed.replace('"f"', '"f2"'), mixed) is not None
            and "§14.9 (a)" in keyed(mixed, mixed.replace('"f"', '"f2"'), mixed)
            and "\\u00a714.9 (b)" in keyed(mixed, mixed.replace('"f"', '"f2"'), mixed))
 
     rows = lambda *ids: "[" + NL + (("," + NL).join(f' {{{NL}  "rule-id": "{i}",{NL}  "verdict": "GAP"{NL} }}' for i in ids)) + NL + "]" + NL    # noqa: E731
-    inv = merge_keyed(Layout((), "rule-id"))
+    inv = merge_keyed(Layout("rule-id"))
     expect("keyed rows: an array of objects is keyed by a member; both sides' appended rows are kept",
            inv(rows("R1", "R2"), rows("R1", "R2", "R3"), rows("R1", "R2", "R4")) in (rows("R1", "R2", "R4", "R3"), rows("R1", "R2", "R3", "R4"))
            and inv(rows("R1"), rows("R1"), rows("R1", "R2")) == rows("R1", "R2"))
     nested = lambda *ids: ('{' + NL + ' "_comment": "x",' + NL + ' "constructs": [' + NL + (("," + NL).join(f'  {{{NL}   "id": "{i}"{NL}  }}' for i in ids)) + NL + ' ]' + NL + '}' + NL)    # noqa: E731
-    con = merge_keyed(Layout(("constructs",), "id"))
+    con = merge_keyed(Layout("id", ("constructs",)))
     expect("keyed nested: entries at a deeper indentation inside a member are keyed too, the head and tail untouched",
            con(nested("a"), nested("a", "b"), nested("a", "c")) in (nested("a", "b", "c"), nested("a", "c", "b"))
            and con(nested("a"), nested("a", "b"), nested("a")) == nested("a", "b"))
@@ -905,7 +907,7 @@ def self_test() -> int:
     try:
         scratch = ScratchRepo.init(root / "repo")
         repo = scratch.path
-        (repo / ".gitattributes").write_text("d.json merge=cobol-keyed-object" + NL + "kb/Work/PB*.md merge=cobol-work-note" + NL
+        (repo / ".gitattributes").write_text("d.json merge=cobol-keyed-constructs" + NL + "kb/Work/PB*.md merge=cobol-work-note" + NL
                                              + "src/**/PublicAPI.*.txt merge=cobol-keyed-publicapi" + NL, encoding="utf-8", newline=NL)
         (repo / "d.json").write_text(obj(m("a", "85"), m("c", "85")), encoding="utf-8", newline=NL)
         baseline = repo / "src" / "Lib" / "PublicAPI.Unshipped.txt"
@@ -936,10 +938,10 @@ def self_test() -> int:
         expect("conflicts: a ref git cannot read is None (git cannot say), never []",
                merge_conflicts(repo, "refs/heads/no-such-branch") is None)
         files = merge(repo, "main", "Merge main (self-test)")
-        merged = json.loads((repo / "d.json").read_text(encoding="utf-8")) if files.clean else {}
+        merged = {e["id"] for e in json.loads((repo / "d.json").read_text(encoding="utf-8"))["constructs"]} if files.clean else set()
         body = (repo / "kb" / "Work" / "PB1.md").read_text(encoding="utf-8")
         expect("git: merge() brings main in through the drivers: both entries, the status flip and both note paragraphs",
-               files.clean and set(merged) == {"a", "c", "ours", "theirs"} and "status: landed" in body
+               files.clean and merged == {"a", "c", "ours", "theirs"} and "status: landed" in body
                and "Landed A." in body and "Main note." in body and len(scratch.git("log", "--merges", "--format=%h").split()) == 1,
                f"{files} {sorted(merged)} {body!r}")
         expect("git: a public-API baseline both branches changed merges through its driver as a set: the symbol both "
@@ -980,7 +982,7 @@ def self_test() -> int:
         # there) beside one of its own, so a PLAIN merge-tree conflicts in the keyed file, while the drivers merge it to
         # main's own tree, which is what makes the branch LANDED
         lr = ScratchRepo.init(root / "landed")
-        lr.commit("base", {"d.json": obj(m("a", "85"), m("c", "85")), ".gitattributes": f"d.json merge=cobol-keyed-object{NL}"})
+        lr.commit("base", {"d.json": obj(m("a", "85"), m("c", "85")), ".gitattributes": f"d.json merge=cobol-keyed-constructs{NL}"})
         lr.git("switch", "-q", "-c", "topic")
         lr.commit("topic", {"d.json": obj(m("a", "85"), m("c", "85"), m("x", "85"))})
         lr.git("switch", "-q", "main")
@@ -1018,7 +1020,7 @@ def self_test() -> int:
         # k3, which edits the line k2 also edits in e.txt, then stays, because k2 is gone.
         kr = ScratchRepo.init(root / "queue-keyed")
         kr.commit("base", {"d.json": obj(m("a", "85"), m("c", "85")), "e.txt": f"1{NL}2{NL}3{NL}",
-                           ".gitattributes": f"d.json merge=cobol-keyed-object{NL}"})
+                           ".gitattributes": f"d.json merge=cobol-keyed-constructs{NL}"})
         for name, files in (("k1", {"d.json": obj(m("a", "85"), m("c", "85"), m("x", "85"))}),
                             ("k2", {"d.json": obj(m("a", "85"), m("c", "85"), m("y", "85")), "e.txt": f"1{NL}y{NL}3{NL}"}),
                             ("k3", {"e.txt": f"1{NL}z{NL}3{NL}"})):
@@ -1035,9 +1037,9 @@ def self_test() -> int:
                kseen == {"k2": Foreseen(("d.json",), ("k1",))}, str(kseen))
         # A file the keyed merger declines (both sides changed one entry) but git's line merge merges cleanly (the changes are
         # on lines apart, as a plain `git merge` would merge them) merges: no conflict, no markers (review finding R1-1).
-        fat = lambda p, s: (f'{{{NL} "x": {{{NL}  "p": "{p}",{NL}  "q": "q",{NL}  "r": "r",{NL}  "s": "{s}"{NL} }}{NL}}}{NL}')    # noqa: E731
+        fat = lambda p, s: obj(f'  {{{NL}   "id": "x",{NL}   "p": "{p}",{NL}   "q": "q",{NL}   "r": "r",{NL}   "s": "{s}"{NL}  }}')    # noqa: E731
         fr = ScratchRepo.init(root / "fallback")
-        fr.commit("base", {"d.json": fat("1", "4"), ".gitattributes": f"d.json merge=cobol-keyed-object{NL}"})
+        fr.commit("base", {"d.json": fat("1", "4"), ".gitattributes": f"d.json merge=cobol-keyed-constructs{NL}"})
         fr.git("switch", "-q", "-c", "topic")
         fr.commit("topic", {"d.json": fat("1+", "4")})
         fr.git("switch", "-q", "main")
@@ -1180,12 +1182,12 @@ def self_test() -> int:
         logs.mkdir()
         (logs / "land-lane-1-x.log").write_text(
             f"land lane: attempt 1 ended exit 4{NL}"
-            + verdict_line.render(verdict_line.conflict_outcome(["conformance-suite/wiseowl/diagnostics.json", "src/A.cs"]), "b")
+            + verdict_line.render(verdict_line.conflict_outcome(["tests/version-matrix/constructs.json", "src/A.cs"]), "b")
             + NL, encoding="utf-8", newline="\n")
         counts, read = conflict_report(logs)
         expect("conflicts: the landing logs' CONFLICT lines name their files, and a driver's file is told from the rest",
-               counts == {"conformance-suite/wiseowl/diagnostics.json": 1, "src/A.cs": 1} and read == 1
-               and covered_by_driver("conformance-suite/wiseowl/diagnostics.json") and covered_by_driver("kb/Work/PB3610.md")
+               counts == {"tests/version-matrix/constructs.json": 1, "src/A.cs": 1} and read == 1
+               and covered_by_driver("tests/version-matrix/constructs.json") and covered_by_driver("kb/Work/PB3610.md")
                and not covered_by_driver("src/A.cs"))
         expect("patterns: a driver's pattern names a path as git does: `**/` spans zero or more directories, `*` and `?` "
                "stay within one, a pattern without `/` matches the last component at any depth",
@@ -1201,16 +1203,20 @@ def self_test() -> int:
                # kb/Work PB3748: covered_by_driver asks pattern_matches, which anchors a pattern with a `/` at the root, so a
                # path that only ENDS in a driver's pattern is not covered (PurePosixPath.match matched from the right)
                and not covered_by_driver("x/kb/Work/PB1.md") and not covered_by_driver("x/src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin")
-               and not covered_by_driver("kb/Work/sub/PB1.md") and covered_by_driver("kb/Work/PB1.md"))
+               and not covered_by_driver("kb/Work/sub/PB1.md") and covered_by_driver("kb/Work/PB1.md")
+               # kb/Work PB4147: WiseOwl's refusals and options are one file per test, so no driver governs them and a
+               # landing that adds one is never held behind another (enqueue.driver_file_holders asks covered_by_driver)
+               and not covered_by_driver("conformance-suite/wiseowl/diagnostics/pb1-a.json")
+               and not covered_by_driver("conformance-suite/wiseowl/options/pb1-a.json"))
         # kb/Work PB3825: a new driver lands alone. `main` here stands for origin/main (the function's `main` argument).
         api = "src/a/PublicAPI.Unshipped.txt"
         api_main = f"#nullable enable{NL}b{NL}a{NL}"
         nd = ScratchRepo.init(root / "new-driver")
-        nd.commit("main", {".gitattributes": f"src/**/PublicAPI.*.txt merge=union{NL}conformance-suite/wiseowl/diagnostics.json merge=cobol-keyed-object{NL}",
-                           api: api_main, "conformance-suite/wiseowl/diagnostics.json": f"{{{NL}}}{NL}", "other.txt": "o"})
+        nd.commit("main", {".gitattributes": f"src/**/PublicAPI.*.txt merge=union{NL}tests/version-matrix/constructs.json merge=cobol-keyed-constructs{NL}",
+                           api: api_main, "tests/version-matrix/constructs.json": f"{{{NL}}}{NL}", "other.txt": "o"})
         nd.git("switch", "-q", "-c", "topic")
         nd.commit("topic: the new driver, and the baseline sorted too", {
-            ".gitattributes": f"src/**/PublicAPI.*.txt merge=cobol-keyed-publicapi{NL}conformance-suite/wiseowl/diagnostics.json merge=cobol-keyed-object{NL}",
+            ".gitattributes": f"src/**/PublicAPI.*.txt merge=cobol-keyed-publicapi{NL}tests/version-matrix/constructs.json merge=cobol-keyed-constructs{NL}",
             api: f"#nullable enable{NL}a{NL}b{NL}"})
         found, why = new_driver_files(nd.path, "main")
         expect("new driver: a branch that gives a pattern a driver main's attributes do not yet give it AND changes a file "
@@ -1223,7 +1229,7 @@ def self_test() -> int:
                "and runs no driver), though the branch still adds the driver",
                new_driver_files(nd.path, "main") == ([], None))
         nd.commit("topic: a file whose driver main already assigns, and a file no driver governs",
-                  {"conformance-suite/wiseowl/diagnostics.json": f"{{{NL} \"t\": 1{NL}}}{NL}", "other.txt": "changed"})
+                  {"tests/version-matrix/constructs.json": f"{{{NL} \"t\": 1{NL}}}{NL}", "other.txt": "changed"})
         expect("new driver: a changed file whose driver main's attributes already assign, and a file no pattern governs, "
                "are no finding",
                new_driver_files(nd.path, "main") == ([], None))
@@ -1252,7 +1258,7 @@ def self_test() -> int:
         bad = root / "bad"
         (bad / "x").mkdir(parents=True)
         findings_empty = ScratchRepo.init(bad / "r")
-        (findings_empty.path / ".gitattributes").write_text("zzz.json merge=cobol-keyed-object" + NL, encoding="utf-8", newline=NL)
+        (findings_empty.path / ".gitattributes").write_text("zzz.json merge=cobol-keyed-constructs" + NL, encoding="utf-8", newline=NL)
         findings_empty.git("add", "-A")
         findings_empty.git("commit", "-q", "-m", "x")
         found = check(findings_empty.path)

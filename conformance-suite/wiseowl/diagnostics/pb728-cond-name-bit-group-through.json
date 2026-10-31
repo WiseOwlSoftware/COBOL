@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "THROUGH may not be specified when the conditional variable is boolean"}
