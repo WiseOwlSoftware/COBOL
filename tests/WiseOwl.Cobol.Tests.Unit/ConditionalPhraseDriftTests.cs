@@ -187,8 +187,8 @@ public sealed class ConditionalPhraseDriftTests
     /// here until it is classified.</summary>
     private static readonly Dictionary<string, string> FormatChoice = new(StringComparer.Ordinal)
     {
-        ["ACCEPT"] = "rule",     // only Format 3 (screen) prints the pair: screenTail owns it
-        ["DISPLAY"] = "rule",    // only Format 2 (screen) prints the pair: screenTail owns it
+        ["ACCEPT"] = "selector",  // only Format 3 (screen) prints the pair: FROM selects Format 1 (kb/Work PB1528)
+        ["DISPLAY"] = "selector", // only Format 2 (screen) prints the pair: a literal, UPON, NO ADVANCING … select Format 1
         ["DELETE"] = "rule",     // deleteStatement (record, INVALID KEY) and deleteFileStatement (file, EXCEPTION)
         ["COMPUTE"] = "selector", // Format 2 (boolean-compute) prints no SIZE ERROR: the boolean-expression selects it
         ["READ"] = "selector",    // NEXT / PREVIOUS / ADVANCING ON LOCK select Format 1, KEY IS Format 2
@@ -226,7 +226,9 @@ public sealed class ConditionalPhraseDriftTests
 
     /// <summary>A selector is looked for among the owner's OWN syntax: a child rule, or the alternative a child bracket
     /// rule chose (<see cref="ConditionalPhraseAssociation.Selector"/>). Each selector's rule must be written that close
-    /// to its owner in the grammar, or <c>Writes</c> could never see it and the format it rules out would stay open.</summary>
+    /// to its owner in the grammar, or <c>Writes</c> could never see it and the format it rules out would stay open — or,
+    /// for a <see cref="ConditionalPhraseAssociation.Format.ProvedBy"/> selector, the format it proves would stay
+    /// presumed forever (kb/Work PB1528).</summary>
     [Fact]
     public void EverySelector_IsTheOwnersChild_OrItsBracketChildsAlternative()
     {
@@ -238,7 +240,7 @@ public sealed class ConditionalPhraseDriftTests
             string owner = CobolParserCore.ruleNames[rule];
             var children = Regex.Matches(grammar[owner], @"\b([a-z]\w*)\b").Select(m => m.Groups[1].Value)
                 .Where(grammar.ContainsKey).Distinct().ToList();
-            foreach (var selector in formats.SelectMany(f => f.Unprinted))
+            foreach (var selector in formats.SelectMany(f => f.Unprinted.Concat(f.ProvedBy)))
             {
                 seen++;
                 string name = CobolParserCore.ruleNames[selector.Rule];

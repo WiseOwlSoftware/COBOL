@@ -397,6 +397,9 @@ public sealed class Frontend
     private (CobolParserCore.CompilationUnitContext Tree, bool Parsed, IReadOnlyList<IToken> SourceDebuggingLines) LexAndParse(
         string text, string sourcePath, CobolWordsMap cobolWordsMap, DiagnosticBag diagnostics)
     {
+        // The pass's earlier stages (line entry, COPY, directives) reported into <diagnostics> already; the attempt bags below
+        // hold the lex and parse stages' own. An error of either keeps the binder from running.
+        bool priorErrors = diagnostics.HasErrors;
         // >>COBOL-WORDS (ISO §7.3.10.4 GR2/GR3/GR4): the LEXER applies the group's synonyms and de-reserved words to each
         // token as it emits it (TokenRetypes.PrimeLexer, kb/Work PB1372), so PIC's mode switch, the FUNCTION argument
         // region, the SUBSCRIPT trigger and every reader of the filled stream (DebuggingLineRewriter's source-unit
@@ -414,7 +417,7 @@ public sealed class Frontend
         while (true)
         {
             var attemptDiagnostics = new DiagnosticBag();
-            var (tree, parsed, sourceDebuggingLines) = LexAndParseOnce(text, sourcePath, cobolWordsMap, retypes, edition, attemptDiagnostics);
+            var (tree, parsed, sourceDebuggingLines) = LexAndParseOnce(text, sourcePath, cobolWordsMap, retypes, edition, priorErrors, attemptDiagnostics);
             if (tree.TokenRetypes.LexesDifferentlyFrom(retypes, edition))
             {
                 retypes = tree.TokenRetypes;
@@ -429,7 +432,8 @@ public sealed class Frontend
     /// <summary>One lex + parse of <paramref name="text"/> with <paramref name="retypes"/> priming the lexer (see
     /// <see cref="LexAndParse"/>), reporting into <paramref name="diagnostics"/>.</summary>
     private (CobolParserCore.CompilationUnitContext Tree, bool Parsed, IReadOnlyList<IToken> SourceDebuggingLines) LexAndParseOnce(
-        string text, string sourcePath, CobolWordsMap cobolWordsMap, TokenRetypes retypes, EditionInfo edition, DiagnosticBag diagnostics)
+        string text, string sourcePath, CobolWordsMap cobolWordsMap, TokenRetypes retypes, EditionInfo edition,
+        bool priorErrors, DiagnosticBag diagnostics)
     {
         // FIRST: a fixed-form debugging line is source or comment per its unit's WITH DEBUGGING MODE clause (kb/Work PB1705);
         // every reader after this one sees only the lines that are source. A line inside an open PICTURE or subscript
@@ -500,6 +504,17 @@ public sealed class Frontend
         foreach (var v in SeparatorRule.ArithmeticOperatorViolations(text, tree))
             sr7.SyntaxError(TextWriter.Null, null!, v.Token, v.Token.Line, v.Token.Column,
                 $"[{v.Descriptor.Code}] {v.Message}", null!);
+
+        // ISO §8.3.2.1 / §8.1.3.2 GR4 / Annex B.3 — the characters of every COBOL word the lexer produced. The binder driver
+        // screens the words of a tree it binds, but it does not run on a compilation whose frontend reported ANY error
+        // (CompilerDriver.Compile): a parse that FAILED, and equally a parse that succeeded beside a separator, PICTURE or
+        // preprocessor error. A word the grammar cannot use is exactly why a parse may have failed (it dies at the NEXT
+        // token), so for a compilation the binder will not see, the lexer's whole stream is screened here and the cause is
+        // named beside the error (kb/Work PB3845). The tree, partial as it may be, only says which tokens are a comment-entry's
+        // text rather than words. Placed after every other reader of the stream so the bag holds all of this attempt's errors.
+        if (parser.NumberOfSyntaxErrors != 0 || priorErrors || diagnostics.HasErrors)
+            WordCharacterScreen.RunOnTokens(tokens.GetTokens(), tree, edition,
+                new BagSink(diagnostics, (line, column) => LineMap.Locate(line, column, sourcePath)));
 
         return (tree, parser.NumberOfSyntaxErrors == 0, sourceDebuggingLines);
     }
