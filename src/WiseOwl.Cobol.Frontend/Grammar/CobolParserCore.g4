@@ -868,17 +868,10 @@ sectionDefinition
     ;
 
 // §14.4.2/§14.4.3 section-name-1 / paragraph-name-1 are user-defined words (§8.3.2.2), and BOTH are DEFINITION
-// slots — the two IsProvableUserWordPosition procedure-name positions. The `reservedGatedWord` alternative is
-// the declaration re-admission the reservation gate needs (kb/Work PB693, the dataName precedent): a
-// §8.9-reserved word is gated OUT of cobolWord at the editions that reserve it, so without this `BIT SECTION.`
-// at --std 2002 answers a raw COBOL0001 instead of the targeted COBOL0901 that names §8.9.
-// ⛔ IT SITS ON THE DEFINITION WRAPPERS, NOT ON `procedureName`: procedureName is shared with every REFERENCE
-// (GO TO … DEPENDING's procedure-name LIST above all), and re-admitting the word there would let that list
-// absorb the next statement's leading keyword again — the very defect PB693 fixes. Consumers read these
-// contexts with GetText(), so the alternative costs no binder change.
+// slots — the two IsProvableUserWordPosition procedure-name positions. They reach the reservation gate's
+// `reservedGatedWord` through `procedureName` below, the one procedure-name word rule.
 sectionName
     : procedureName
-    | reservedGatedWord
     ;
 
 paragraphDefinition
@@ -896,12 +889,29 @@ paragraphDefinition
 // reference format's, asked of every token at --std 85 by AreaPlacementPass (kb/Work PB3147; ISO §6.3.1 has no areas).
 paragraphName
     : procedureName
-    | reservedGatedWord
     ;
 
+// A procedure-name (§14.4.1: "a word used to refer to a paragraph or section") is a user-defined word (§8.3.2.2),
+// in a DEFINITION (sectionName / paragraphName above) and in every REFERENCE (PERFORM, GO TO, ALTER, RESUME AT,
+// the SORT / MERGE procedures) alike, and §8.3.2.1 1) "Reserved words shall not be used as user-defined words or
+// system-names" holds in both. The `reservedGatedWord` alternative keeps a reservation-gated word parseable HERE,
+// in the one rule every procedure-name slot shares, so the slot itself answers for the word (kb/Work PB4206):
+// - where §8.9 RESERVES it, the match stands and VersionConformancePass.VisitReservedGatedWord answers the
+//   targeted COBOL0901. Without the alternative a REFERENCE could not match the word, and where something else
+//   reads it — RECEIVE, SEND and VALIDATE begin statements — the parse took that reading instead: `PERFORM
+//   RECEIVE.` became an inline PERFORM whose RECEIVE statement refused the period, and `GO TO SEND.` a target-less
+//   GO TO followed by a SEND statement, each a COBOL0001 at the period that never named the word.
+// - where §8.9 leaves it FREE, the match is the user-defined-word reading the gate retypes the word for, exactly
+//   as a definition's match is.
+// The full-context prediction keeps every other reading where it parses: the inline PERFORM is the earlier
+// alternative of performStatement, so `PERFORM RECEIVE CD-1 … END-PERFORM` stays the inline statement, and a
+// statement reading never parses with an operand missing. ⛔ Why not on the definition WRAPPERS alone (the PB693
+// shape): the only list of procedure-names, GO TO … DEPENDING's, ends at the required DEPENDING, and ALTER's next
+// entry needs `TO` after its word, so neither can absorb the next statement's leading verb. Consumers read the
+// context's children with GetText(), so the alternative costs no binder change.
 procedureName
-    : (cobolWord | INTEGERLIT)
-      ((OF | IN) (cobolWord | INTEGERLIT))?
+    : (cobolWord | INTEGERLIT | reservedGatedWord)
+      ((OF | IN) (cobolWord | INTEGERLIT | reservedGatedWord))?
     ;
 
 // ==========================================
