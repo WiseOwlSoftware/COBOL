@@ -274,15 +274,21 @@ CLAUDE_IMAGES = ("claude", "claude.exe")
 WATCHER = re.compile(r"mailbox\.py\S*\s(?:.*\s)?watch\b.*?--inbox[=\s]+(\w+)")   # global options may precede watch
 
 
-def lane(cdir: pathlib.Path, env: dict[str, str] | None = None) -> str | None:
-    """The inbox this session answers: None for a loop unit (the supervisor exports coord.LOOP_UNIT_ENV to its units,
-    and the attended operator owns the inbox), 'operator' under the config dir operator-session.json names, else
-    'mythos'."""
+def account_lane(cdir: pathlib.Path, env: dict[str, str] | None = None) -> str:
+    """The lane of the ACCOUNT a process runs under, a loop unit or an attended session alike: 'operator' under the
+    config dir operator-session.json names, else 'mythos'. THE one rule of which lane a process belongs to: `lane`
+    (whose inbox a session answers) and the dispatch ledger's `lane` (who dispatched a group, so its stall reaches the
+    lane that can act on it, kb/Work PB4190) both read it."""
     env = os.environ if env is None else env
-    if env.get(coord.LOOP_UNIT_ENV):
-        return None
     op = session(cdir, None, None, None).get("config_dir")
     return "operator" if op and account.same_dir(pathlib.Path(op), account.config_dir(env)) else "mythos"
+
+
+def lane(cdir: pathlib.Path, env: dict[str, str] | None = None) -> str | None:
+    """The inbox this session answers: None for a loop unit (the supervisor exports coord.LOOP_UNIT_ENV to its units,
+    and the attended operator owns the inbox), else its account_lane."""
+    env = os.environ if env is None else env
+    return None if env.get(coord.LOOP_UNIT_ENV) else account_lane(cdir, env)
 
 
 def _ancestors(table: list[dict[str, Any]], pid: int | None) -> list[int]:
@@ -478,6 +484,10 @@ def _self_test() -> int:
         check("the config dir operator-session.json names is the operator lane", lane(cdir, op_env), "operator")
         check("any other config dir is the Mythos lane", lane(cdir, {account.ENV: str(cdir / "acct1")}), "mythos")
         check("a loop unit answers no inbox", lane(cdir, dict(op_env, **{coord.LOOP_UNIT_ENV: "wave"})), None)
+        check("a loop unit still belongs to its account's lane (PB4190: who dispatched a group)",
+              (account_lane(cdir, dict(op_env, **{coord.LOOP_UNIT_ENV: "wave"})),
+               account_lane(cdir, {account.ENV: str(cdir / "acct1"), coord.LOOP_UNIT_ENV: "wave"})),
+              ("operator", "mythos"))
         arm = "python scripts/orchestrator/mailbox.py watch --inbox operator --timeout 0"
         table = [{"pid": 10, "ppid": 1, "name": "claude.exe", "cmd": "claude --resume s"},          # the operator
                  {"pid": 11, "ppid": 10, "name": "bash.exe", "cmd": f"bash -c eval '{arm}'"},
