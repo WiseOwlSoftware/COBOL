@@ -1,4 +1,4 @@
-## PB107 review round: a number's lead stands below every digit-like character, and the review's five leads are answered
+## Entry 2874 — 2026-10-31 13:18 PDT — PB107 review round: a number's lead stands below every digit-like character, and the review's five leads are answered
 
 The branch review of the PB107 collation landing (`worktree-wf_94e81f77-f38-7`, head `d917370e0`) came back with six findings. This entry answers them.
 
@@ -15,3 +15,4 @@ The branch review of the PB107 collation landing (`worktree-wf_94e81f77-f38-7`, 
 **Still open.** `[hiraganaQ on]` stays the owner's question in PB107 (CLDR-deprecated; ICU 53+ ignores it; needs a Script property the pinned data lacks), reported per collation, never dropped. No inventory row moves (0 claimed).
 
 Gate: see the report.
+
