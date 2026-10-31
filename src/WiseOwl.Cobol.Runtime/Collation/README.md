@@ -38,13 +38,13 @@ for `ORD`/`CHAR`/`HIGH-VALUE`. `CompareInfo` remains a *cross-check oracle* in t
 
 | File | Role |
 |---|---|
-| `CollationElement.cs` | `CollationElement(Primary, Secondary, Tertiary, IsVariable, Case)` — one weight triple with its variable flag and CASE BITS (`ElementCase` Lower / Mixed / Upper — what `caseFirst` orders by); the enums `CollationStrength` (Primary=1 … Quaternary=4, Identical=5), `AlternateHandling` (NonIgnorable, Shifted), `CaseFirst` (Off, Upper, Lower), `MaxVariable` (Space, Punct, Symbol, Currency). |
+| `CollationElement.cs` | `CollationElement(Primary, Secondary, Tertiary, IsVariable, Case, Quaternary)` — one weight triple with its variable flag, CASE BITS and the tailored level-4 weight (0 on every root element) (`ElementCase` Lower / Mixed / Upper — what `caseFirst` orders by); the enums `CollationStrength` (Primary=1 … Quaternary=4, Identical=5), `AlternateHandling` (NonIgnorable, Shifted), `CaseFirst` (Off, Upper, Lower), `MaxVariable` (Space, Punct, Symbol, Currency). |
 | `CollationTable.cs` | The DERIVED table: code point / contraction → element sequence, non-starters (combining classes), canonical decompositions, UTS #10 Table 16 implicit weights (Han, Tangut, Nushu, Khitan, unassigned), Hangul syllable decomposition, and the CLDR **reordering groups** (`ReorderGroups`: space, punct, symbol, currency, digit, then one contiguous primary range per script — what `[reorder]` permutes and `MaxVariable` reads). `CollationTable.Root` loads the embedded `Data/root-collation.bin` once per process. `Lookup(cp)` (first element), `GetElements(cp)` (whole sequence), `WithTailoring(rules)` (a NEW table; the base is immutable), the root → table `PrimaryMap`/`SecondaryMap`/`TertiaryMap` a renumbered tailored table records (`WeightMap`), and the ONE construction step every tailoring goes through (`Rebuild(TailoringPlan)`). |
 | `ContractionWalker.cs` | The ONE UTS #10 S2.1 walk: code point decoding, the longest contiguous contraction, then the discontiguous extension over unblocked non-starters (S2.1.1–S2.1.3), consumed marks skipped. It decides which mapping each step takes; two callers read it — the iterator over a built table, and the CLDR builder over the mappings its rules have built so far (`CLDR/README.md` §5). |
-| `CollationElementIterator.cs` | The streaming UTS #10 S2 walk: the `ContractionWalker` steps fetched as elements (S2.2) — expansions, Hangul, implicit weights. Allocation-free on the common path. |
-| `Normalizer.cs` | NFD from the table's own data (canonical decomposition + canonical reordering) — applied only when a text holds a combining mark, or (at Identical strength) any decomposable character. |
-| `Collator.cs` | `CollationOptions` (strength, alternate, maxVariable, caseFirst, backwards secondaries — the UTS #35 settings the engine implements) and the `Collator`: a configured comparison over one table. `Compare` streams level by level (level 1 for both strings; only on a tie level 2; …; level 2 from the END under backwards secondaries); `GetKey` materializes a `CollationKey`, `GetKeyCached` through the key cache. `Collator.Root` = root table, tertiary, non-ignorable (the CLDR/ICU default). |
-| `CollationKey.cs` | The materialized sort key: per-level weight lists (`Primary`, `Secondary`, `Tertiary`, `Quaternary`), `CompareTo`, `ToByteArray()` (a byte image whose ordinal order equals `CompareTo`). |
+| `CollationElementIterator.cs` | The streaming UTS #10 S2 walk: the `ContractionWalker` steps fetched as elements (S2.2) — expansions, Hangul, implicit weights; with `numeric` a maximal run of decimal digits is ONE mapping, a number (lead, significant-digit count, digits). Allocation-free on the common path. |
+| `Normalizer.cs` | NFD from the table's own data (canonical decomposition + canonical reordering) — applied only when a text holds a combining mark, or (at Identical strength) any decomposable character. Pooled working arrays; `Compare` takes the span form into a stack buffer, so a comparison allocates nothing. |
+| `Collator.cs` | `CollationOptions` (strength, alternate, maxVariable, caseFirst, backwards secondaries, caseLevel, numericOrdering — the UTS #35 settings the engine implements) and the `Collator`: a configured comparison over one table. `Compare` streams level by level (level 1 for both strings; only on a tie level 2; …; level 2 from the END under backwards secondaries); `GetKey` materializes a `CollationKey`, `GetKeyCached` through the key cache. `Collator.Root` = root table, tertiary, non-ignorable (the CLDR/ICU default). |
+| `CollationKey.cs` | The materialized sort key: per-level weight lists (`Primary`, `Secondary`, `CaseLevel`, `Tertiary`, `Quaternary`), `CompareTo`, `ToByteArray()` (a byte image whose ordinal order equals `CompareTo`). |
 | `CollationEngine.cs` | The static façade: `Compare(a, b)` (root default), `Root`, `Standard` (the ISO/IEC 14651-style four-level ordering STANDARD-COMPARE's default table `"ISO 14651_2020_TABLE1"` names), `StandardAtLevel(n)`, `For(table, options)`, `ForLocale(tag)`, `ResolveLocale(tag)` (→ `ResolvedLocaleCollation`: the CLDR collation of the tag, then the `.tailor` layer, the settings, what is unsupported), `TableForLocale(tag)`, `GetKey(text, tag)` (cached), `TryGetOrderingTable(name)`. All results are cached and thread-safe. |
 | `TailoringRules.cs` | The `.tailor` file format (numeric weights, root scale, the SITE-OVERRIDE layer), loading (disk directories, then embedded resources), locale resolution with language fallback, and `Apply(table)`. |
 | `CLDR/` (`README.md`) | **The CLDR locale loader** (kb/Work PB105): every CLDR release file (135 locales, embedded), the LDML/JSON parser, the rule-syntax parser, `CldrLocaleLoader.Load` / `ResolveCollation` (parent chain, `-u-` keys) and `CldrTailoringBuilder` — CLDR rules → a tailored table + settings. The primary source of every locale's order. |
@@ -75,7 +75,7 @@ other Han FB80, everything else FBC0 — the ranges are derived from the UCD by 
 manifest, never hand-maintained). An unpaired surrogate is walked as its own code unit and takes an implicit
 weight, so ill-formed text still orders deterministically; `Collator.IsWellFormed` reports it.
 
-**Format** (`Data/root-collation.bin`, format 1): `"CNCT"`, u32 raw length, raw-deflate payload of — u16 format,
+**Format** (`Data/root-collation.bin`, format 3; the reordering groups and the decimal-digit runs follow what is listed here): `"CNCT"`, u32 raw length, raw-deflate payload of — u16 format,
 u8 primary shift, two length-prefixed UTF-8 strings (UCA version, source tag), the element pool (u16 primary, u16
 secondary, u8 tertiary, u8 flags), the single-code-point mappings (u32 cp, u32 pool offset, u8 count; sorted), the
 contractions (u8 n, n × u32 cp, u32 offset, u8 count), the non-starters (u32 cp, u8 ccc), the implicit ranges (u32
@@ -111,8 +111,11 @@ at level 4. So `"a-b"` and `"ab"` are equal through level 3 and differ at level 
 while `"a-b" < "ab"` at level 1 under `Root`. **`MaxVariable`** widens or narrows the variable set by reordering
 group (`Space`, `Punct` (default), `Symbol`, `Currency`).
 
-**Strength** truncates the levels considered; `Quaternary` under `NonIgnorable` behaves as `Tertiary` (there is no
-fourth level to weigh); `Identical` adds the NFD tie-break, giving a total order over canonically inequivalent
+**Strength** truncates the levels considered; `Quaternary` under `NonIgnorable` behaves as `Tertiary` on a table
+with no tailored quaternary weight (the root; there is no fourth level to weigh) and compares those weights on a
+table with some (Japanese `private-kana`'s `<<<<`: Hiragana before Katakana; every element that is not completely
+ignorable weighs the common level-4 maximum, the tailored weight raising it, so the POSITION of a difference counts, as
+under `Shifted` and in ICU); `Identical` adds the NFD tie-break, giving a total order over canonically inequivalent
 texts (what an INDEXED file needs to keep distinct keys distinct).
 
 **`CaseFirst`** (Danish `[caseFirst upper]`): the element's case bits — Upper / Mixed / Lower, from the DUCET
@@ -121,6 +124,17 @@ are compared BEFORE the tertiary weight (upper-first: Upper < Mixed < Lower; low
 `A < a` and `AA < Aa < aa` under Danish. **Backwards secondaries** (Canadian French `[backwards 2]`): the level-2
 weights are compared from the END of the texts (`cote < côte < coté < côté`); the identical-prefix skip is not
 taken for such collators.
+
+**`CaseLevel`** (`[caseLevel on]`, `-u-kc-true`; UTS #35: "a level consisting only of case characteristics will be
+inserted in front of tertiary level"): one case weight (lower < mixed < upper; reversed by `caseFirst upper`) per
+element that has a weight at the level before it — a primary at primary strength, so "accents ignored, case taken into
+account" is `strength primary` + `caseLevel on`, a secondary above it — compared between level 2 and level 3 at EVERY
+strength; the tertiary weight then carries no case prefix. **`NumericOrdering`** (`[numericOrdering on]`, `-u-kn-true`):
+a maximal run of decimal digits (General_Category Nd, from the table's own Unicode data: format 3 carries the 77
+runs of ten) is one number, ordered by value — a lead element (the digit zero's, one primary lower: before every string
+that begins with a digit-like character, as ICU has it, and equal to nothing but another number's lead), the count of
+significant digits, then the digits; leading zeros, scripts and widths drop out; the identical-prefix skip is off (a run straddles any
+boundary) and `PrefixShapeOf` sees the run as one mapping.
 
 **Keys.** `Collator.GetKey(text)` materializes the same weights into a `CollationKey`; `CompareTo` orders keys as
 `Compare` orders texts (a drift test asserts the agreement over a mixed corpus under four collators);
@@ -258,8 +272,8 @@ Bump the pinned inputs by replacing the files under `data/unicode/` (record the 
 `data/unicode/SOURCES.md`), regenerate all three artifacts, re-run the tests — including the full conformance files
 of the SAME CLDR tag and the ICU cross-check — and commit data, tables, pack, manifests and any tailoring whose
 `@version` changes, together. A `.tailor` file's numeric weights are relative to the table version its `@version`
-names; the version guard refuses a stale one. The table format is 2 (reordering groups + case bits); the runtime
-still decodes format 1.
+names; the version guard refuses a stale one. The table format is 3 (reordering groups, case bits and
+the decimal-digit runs `numericOrdering` reads); the runtime reads format 3 only.
 
 ## 9. The pipeline at a glance
 

@@ -25,8 +25,9 @@ public sealed record CldrBuildResult(CollationTable Table, CollationOptions Opti
 /// UTS #10 S2.1 over the mappings these rules have built so far, else the root's (<see cref="BuiltSoFar"/> — the
 /// same read an extension and a prefix take, as ICU's CollationBuilder does); a relation of strength N (<c>&lt;</c>=1, <c>&lt;&lt;</c>=2, <c>&lt;&lt;&lt;</c>=3) takes the
 /// last element of the position and gives the tailored string a copy of it whose level-N weight is a NEW slot inserted
-/// immediately after the anchor's on that level's line and whose lower levels are the common weights; <c>=</c> and
-/// <c>&lt;&lt;&lt;&lt;</c> copy the position unchanged; <c>[before N]</c> resets to the slot just before X's;
+/// immediately after the anchor's on that level's line and whose lower levels are the common weights; <c>=</c> copies
+/// the position unchanged, and <c>&lt;&lt;&lt;&lt;</c> copies it with a NEW slot after the anchor's on the fourth line
+/// (<see cref="CollationElement.Quaternary"/>: 0 on every root element); <c>[before N]</c> resets to the slot just before X's;
 /// <c>/extension</c> appends the extension's elements to the tailored string (never to the position the next
 /// relation of the chain is placed after); <c>prefix|string</c> becomes the contraction prefix+string
 /// (with the prefix's own elements first — the same order for every text). When all rules are in, each line is
@@ -38,9 +39,8 @@ public sealed record CldrBuildResult(CollationTable Table, CollationOptions Opti
 /// <para><b>Fidelity.</b> Everything CLDR release-48-2's files use is applied: the five operators, starred relations
 /// with ranges, prefixes, extensions, contractions, <c>[before 1/2/3]</c>, every logical reset position,
 /// <c>[import]</c>, <c>[suppressContractions]</c>, <c>[reorder]</c>, and the settings <c>strength</c>,
-/// <c>alternate</c>, <c>maxVariable</c>, <c>caseFirst</c>, <c>backwards 2</c>, <c>normalization</c>. Not
-/// implemented and reported: <c>caseLevel</c>, <c>numericOrdering</c>, <c>hiraganaQ</c>; a quaternary
-/// (<c>&lt;&lt;&lt;&lt;</c>) relation is applied as an identity at levels 1–3.</para>
+/// <c>alternate</c>, <c>maxVariable</c>, <c>caseFirst</c>, <c>backwards 2</c>, <c>normalization</c>, and the
+/// quaternary (<c>&lt;&lt;&lt;&lt;</c>) relation. Not implemented and reported: <c>hiraganaQ</c>.</para>
 /// </summary>
 public static class CldrTailoringBuilder
 {
@@ -76,23 +76,29 @@ public static class CldrTailoringBuilder
     /// <summary>The ordered weights of one level: the root's distinct weights plus the slots inserted after them.</summary>
     private sealed class Line
     {
-        private readonly int[] _roots;                                          // ascending, includes 0
-        private readonly HashSet<int> _rootSet;
+        private readonly int[] _roots;                                          // ascending, includes 0; shared (BaseRoots), never written
         private readonly Dictionary<int, Slot> _rootSlots = new();
         private readonly Dictionary<int, LinkedList<Slot>> _after = new();      // anchor root value → inserted slots after it, in order
         private readonly int _fixedRoom;                                        // room after an anchor that is not a root (implicit BBBB)
+        private readonly int _reservedTop;                                      // values at the top of each root's gap that no inserted slot takes
 
-        public Line(int level, IEnumerable<int> rootValues, int fixedRoom)
+        /// <param name="reservedTop">How many values just below each root stay free of inserted slots. The primary line
+        /// reserves one: <c>root − 1</c> is where <see cref="CollationTable.NumericLead"/> stands under the digit zero,
+        /// a primary no character may carry.</param>
+        public Line(int level, int[] roots, int fixedRoom, int reservedTop = 0)
         {
             Level = level;
-            _roots = rootValues.Append(0).Distinct().OrderBy(x => x).ToArray();
-            _rootSet = new HashSet<int>(_roots);
+            _roots = roots;
             _fixedRoom = fixedRoom;
+            _reservedTop = reservedTop;
         }
 
         public int Level { get; }
         public int InsertedCount { get; private set; }
         public bool Overflowed { get; private set; }
+
+        /// <summary>The root weights of the line, ascending (the shared array: read, never written).</summary>
+        public int[] Roots => _roots;
 
         public Slot RootSlot(int value)
         {
@@ -126,56 +132,127 @@ public static class CldrTailoringBuilder
         }
 
         /// <summary>Assign final values: root weights keep their value unless an overflowed gap below them forced a
-        /// shift; inserted slots take the values after their anchor. Returns the root → new mapping (null when identity).</summary>
+        /// shift; inserted slots take the values after their anchor. Returns the root → new mapping (null when identity).
+        /// SPARSE: only the anchors that have slots inserted after them, and the root slots the rules created, are
+        /// visited — the line itself (tens of thousands of weights) is walked only when a gap overflowed and the whole
+        /// map must be written.</summary>
         public WeightMap? Number()
         {
-            var to = new int[_roots.Length];
-            long shift = 0;
-            for (int i = 0; i < _roots.Length; i++)
+            // The anchors that are roots, ascending; each overflow shifts every root above its anchor.
+            var anchors = new List<(int Index, int Root, LinkedList<Slot> Slots)>();
+            foreach (var (anchor, list) in _after)
             {
-                int root = _roots[i];
+                if (list.Count == 0) continue;
+                int at = Array.BinarySearch(_roots, anchor);
+                if (at >= 0) anchors.Add((at, anchor, list));
+            }
+            anchors.Sort((x, y) => x.Index.CompareTo(y.Index));
+            var shifts = new List<(int FromIndex, long Shift)>();       // the shift in force from this root index on
+            long shift = 0;
+            foreach (var (index, root, list) in anchors)
+            {
                 int value = (int)(root + shift);
-                to[i] = value;
-                RootSlot(root).Value = value;
-                if (_after.TryGetValue(root, out var list) && list.Count > 0)
+                long gap = (index + 1 < _roots.Length ? _roots[index + 1] - root : long.MaxValue / 4) - _reservedTop;
+                int v = value;
+                foreach (var slot in list) slot.Value = ++v;
+                if (list.Count >= gap)
                 {
-                    long gap = i + 1 < _roots.Length ? _roots[i + 1] - root : long.MaxValue / 4;
-                    if (list.Count >= gap)
-                    {
-                        Overflowed = true;
-                        shift += list.Count - gap + 1;
-                    }
-                    int v = value;
-                    foreach (var slot in list) slot.Value = ++v;
+                    Overflowed = true;
+                    shift += list.Count - gap + 1;
+                    shifts.Add((index + 1, shift));
                 }
             }
             // Anchors that are not roots (implicit BBBB weights): fixed room, never shift anything.
             foreach (var (anchor, list) in _after)
             {
-                if (_rootSet.Contains(anchor)) continue;
+                if (Array.BinarySearch(_roots, anchor) >= 0) continue;
                 if (list.Count > _fixedRoom)
                     throw new NotSupportedException($"more than {_fixedRoom} relations after an implicit-weight position (level {Level}) are not supported");
                 int v = anchor;
                 foreach (var slot in list) slot.Value = ++v;
             }
-            // Root slots that are not on the line (the same implicit BBBB weights, read from a reset) keep their value.
+            // The root slots the rules created: a root keeps its value plus the shift in force at it; a weight that is not
+            // on the line (the implicit BBBB weights, read from a reset) keeps its value.
             foreach (var slot in _rootSlots.Values)
-                if (slot.Value < 0) slot.Value = slot.Root;
-            if (shift == 0) return null;
+            {
+                int at = shifts.Count == 0 ? -1 : Array.BinarySearch(_roots, slot.Root);
+                slot.Value = at < 0 ? slot.Root : (int)(slot.Root + ShiftAt(shifts, at));
+            }
+            if (shifts.Count == 0) return null;
+            var to = new int[_roots.Length];
+            int s = 0;
+            long current = 0;
+            for (int i = 0; i < _roots.Length; i++)
+            {
+                while (s < shifts.Count && shifts[s].FromIndex <= i) current = shifts[s++].Shift;
+                to[i] = (int)(_roots[i] + current);
+            }
             return new WeightMap((int[])_roots.Clone(), to);
+        }
+
+        private static long ShiftAt(List<(int FromIndex, long Shift)> shifts, int rootIndex)
+        {
+            long shift = 0;
+            foreach (var (from, amount) in shifts)
+            {
+                if (from > rootIndex) break;
+                shift = amount;
+            }
+            return shift;
         }
     }
 
-    /// <summary>A collation element while the rules are being processed: three slots plus the flags.</summary>
-    private readonly record struct BuildElement(Slot P, Slot S, Slot T, bool Variable, ElementCase Case)
+    /// <summary>The distinct weights of each level of one base table's pool (and the implicit AAAA primaries), ascending
+    /// with 0 included — the "roots" the lines are built on. They are a property of the BASE table, which every
+    /// build of every locale shares, so they are computed once per table instead of by a scan of its 41,724 elements
+    /// on every build (kb/Work PB107: that scan was a third of a locale's build).</summary>
+    private sealed record BaseRoots(int[] Primaries, int[] Secondaries, int[] Tertiaries, int[] Quaternaries);
+
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<CollationTable, BaseRoots> s_baseRoots = new();
+
+    private static BaseRoots RootsOf(CollationTable table) => s_baseRoots.GetValue(table, static t =>
     {
-        public Slot At(int level) => level switch { 1 => P, 2 => S, _ => T };
+        int shift = t.PrimaryShift;
+        var primaries = new HashSet<int>();
+        var secondaries = new HashSet<int>();
+        var tertiaries = new HashSet<int>();
+        var quaternaries = new HashSet<int>();
+        foreach (var e in t.Pool)
+        {
+            if (e.Primary != 0 && !CollationTable.IsImplicitSecond(e, shift)) primaries.Add(e.Primary);
+            if (e.Secondary != 0) secondaries.Add(e.Secondary);
+            if (e.Tertiary != 0) tertiaries.Add(e.Tertiary);
+            if (e.Quaternary != 0) quaternaries.Add(e.Quaternary);
+        }
+        // The implicit AAAA primaries are computed, not pooled: make them roots so a reset on a Han/Tangut character,
+        // [last regular], [first implicit] … can anchor an insertion, and so the map covers them (GetImplicit maps AAAA).
+        for (int aaaa = ImplicitFirst; aaaa <= ImplicitLastAaaa; aaaa++)
+            primaries.Add(t.PrimaryMap is { } m ? m.Map(aaaa << shift) : aaaa << shift);
+        return new BaseRoots(Sorted(primaries), Sorted(secondaries), Sorted(tertiaries), Sorted(quaternaries));
+
+        static int[] Sorted(HashSet<int> weights)
+        {
+            weights.Add(0);
+            var array = new int[weights.Count];
+            weights.CopyTo(array);
+            Array.Sort(array);
+            return array;
+        }
+    });
+
+    private const int ImplicitFirst = 0xFB00, ImplicitLastAaaa = 0xFBC0 + (0x10FFFF >> 15);   // FBE1
+
+    /// <summary>A collation element while the rules are being processed: three slots plus the flags.</summary>
+    private readonly record struct BuildElement(Slot P, Slot S, Slot T, Slot Q, bool Variable, ElementCase Case)
+    {
+        public Slot At(int level) => level switch { 1 => P, 2 => S, 3 => T, _ => Q };
         public bool IgnorableAt(int level) => At(level).IsZero;
         public BuildElement With(int level, Slot slot) => level switch
         {
             1 => this with { P = slot },
             2 => this with { S = slot },
-            _ => this with { T = slot },
+            3 => this with { T = slot },
+            _ => this with { Q = slot },
         };
     }
 
@@ -279,21 +356,21 @@ public static class CldrTailoringBuilder
     private sealed class Builder
     {
         private const int CommonSecondary = 0x0020, CommonTertiary = 0x0002;
-        private const int ImplicitFirst = 0xFB00, ImplicitLastAaaa = 0xFBC0 + (0x10FFFF >> 15);   // FBE1
         private const int HanImplicitFirst = 0xFB40;
 
         private readonly CollationTable _base;
         private readonly string _name;
         private readonly int _shift;
-        private readonly Line _p, _s, _t;
+        private readonly Line _p, _s, _t, _q;
         private readonly Dictionary<string, List<BuildElement>> _tailored = new(StringComparer.Ordinal);
         private readonly List<string> _tailoredOrder = [];
+        private readonly Dictionary<string, (string Prefix, List<BuildElement> Elements)> _prefixed = new(StringComparer.Ordinal);   // key → its `p|x` parts
         private readonly BuiltSoFar _built;
         private readonly List<string> _unsupported = [];
         private readonly List<string> _notes = [];
         private readonly HashSet<string> _importing = new(StringComparer.OrdinalIgnoreCase);
         private List<BuildElement> _position = [];
-        private int _rulesApplied, _quaternary, _prefixContexts;
+        private int _rulesApplied, _prefixContexts;
         private (int First, int Last) _variableRootRange;      // root scale: space.first .. punct.last
 
         public Builder(CollationTable baseTable, string name)
@@ -301,22 +378,11 @@ public static class CldrTailoringBuilder
             _base = baseTable;
             _name = name;
             _shift = baseTable.PrimaryShift;
-            var pool = baseTable.Pool;
-            var primaries = new HashSet<int>();
-            var secondaries = new HashSet<int>();
-            var tertiaries = new HashSet<int>();
-            foreach (var e in pool)
-            {
-                if (e.Primary != 0 && !IsImplicitSecond(e)) primaries.Add(e.Primary);
-                if (e.Secondary != 0) secondaries.Add(e.Secondary);
-                if (e.Tertiary != 0) tertiaries.Add(e.Tertiary);
-            }
-            // The implicit AAAA primaries are computed, not pooled: make them roots so a reset on a Han/Tangut character,
-            // [last regular], [first implicit] … can anchor an insertion, and so the map covers them (GetImplicit maps AAAA).
-            for (int aaaa = ImplicitFirst; aaaa <= ImplicitLastAaaa; aaaa++) primaries.Add(Mapped(aaaa << _shift));
-            _p = new Line(1, primaries, fixedRoom: (1 << _shift) - 1);
-            _s = new Line(2, secondaries, fixedRoom: 0);
-            _t = new Line(3, tertiaries, fixedRoom: 0);
+            var roots = RootsOf(baseTable);
+            _p = new Line(1, roots.Primaries, fixedRoom: (1 << _shift) - 1, reservedTop: 1);
+            _s = new Line(2, roots.Secondaries, fixedRoom: 0);
+            _t = new Line(3, roots.Tertiaries, fixedRoom: 0);
+            _q = new Line(4, roots.Quaternaries, fixedRoom: 0);
             int spaceFirst = 0, punctLast = 0;
             if (baseTable.TryGetReorderGroup("space", out var sp)) spaceFirst = sp.FirstPrimary;
             if (baseTable.TryGetReorderGroup("punct", out var pu)) punctLast = pu.LastPrimary;
@@ -326,15 +392,12 @@ public static class CldrTailoringBuilder
 
         /// <summary>A base-table element as a build element: its weights as the lines' root slots.</summary>
         private BuildElement FromBase(CollationElement e) =>
-            new(_p.RootSlot(e.Primary), _s.RootSlot(e.Secondary), _t.RootSlot(e.Tertiary), e.IsVariable, e.Case);
+            new(_p.RootSlot(e.Primary), _s.RootSlot(e.Secondary), _t.RootSlot(e.Tertiary), _q.RootSlot(e.Quaternary), e.IsVariable, e.Case);
 
         /// <summary>A base-scale primary of the base table (the base is normally the root; a base that is itself
         /// renumbered maps its own AAAA values through its map, as GetImplicit does).</summary>
         private int Mapped(int rootPrimary) => _base.PrimaryMap is { } m ? m.Map(rootPrimary) : rootPrimary;
 
-        /// <summary>The second element of an implicit weight (or an explicit copy of one): a large primary with no
-        /// secondary/tertiary — compared only against its own kind, never renumbered.</summary>
-        private bool IsImplicitSecond(in CollationElement e) => e.Secondary == 0 && e.Tertiary == 0 && e.Primary >= 0x8000 << _shift;
 
         public CldrBuildResult Run(CldrCollationSelection selection)
         {
@@ -363,7 +426,6 @@ public static class CldrTailoringBuilder
                 }
             }
             _unsupported.AddRange(settings.UnsupportedSettings());
-            if (_quaternary > 0) _unsupported.Add($"{_quaternary} quaternary (<<<<) relation(s) applied as identities at levels 1-3");
             if (_prefixContexts > 0) _notes.Add($"{_prefixContexts} prefix-context relation(s) (prefix|string) represented as contractions of prefix+string");
             var options = settings.ToOptions(CollationOptions.Default);
 
@@ -373,12 +435,13 @@ public static class CldrTailoringBuilder
             // ---- number the lines --------------------------------------------------------------------------
             // Numbering is the whole collation's, not one rule's: a line that cannot be numbered leaves no table to
             // build, so it is the resolution failure (kb/Work PB2773), never an exception of another type.
-            WeightMap? pMap, sMap, tMap;
+            WeightMap? pMap, sMap, tMap, qMap;
             try
             {
                 pMap = _p.Number();
                 sMap = _s.Number();
                 tMap = _t.Number();
+                qMap = _q.Number();
             }
             catch (NotSupportedException ex)
             {
@@ -387,6 +450,7 @@ public static class CldrTailoringBuilder
             Func<int, int> mapP = pMap is null ? x => x : pMap.Map;
             Func<int, int> mapS = sMap is null ? x => x : sMap.Map;
             Func<int, int> mapT = tMap is null ? x => x : tMap.Map;
+            Func<int, int> mapQ = qMap is null ? x => x : qMap.Map;
 
             // ---- reordering: a permutation of the groups' tiles on the numbered primary scale ---------------
             var groups = _base.ReorderGroups;
@@ -444,13 +508,10 @@ public static class CldrTailoringBuilder
             WeightMap? primaryMap = null;
             if (primaryChanged)
             {
-                var roots = new List<int>();
-                foreach (var e in _base.Pool) if (e.Primary != 0 && !IsImplicitSecond(e)) roots.Add(e.Primary);
-                for (int aaaa = ImplicitFirst; aaaa <= ImplicitLastAaaa; aaaa++) roots.Add(Mapped(aaaa << _shift));
-                roots.Add(0);
-                var from = roots.Distinct().OrderBy(x => x).ToArray();
-                var to = from.Select(finalP).ToArray();
-                primaryMap = new WeightMap(from, to);
+                var from = _p.Roots;                  // the base table's primary roots, 0 and the implicit AAAA weights included
+                var to = new int[from.Length];
+                for (int i = 0; i < to.Length; i++) to[i] = finalP(from[i]);
+                primaryMap = new WeightMap((int[])from.Clone(), to);
             }
             if (newGroups is null && pMap is not null)
             {
@@ -466,7 +527,7 @@ public static class CldrTailoringBuilder
             {
                 var cps = CodePoints(key);
                 if (suppress is not null && cps.Length > 1 && suppress.Contains(cps[0])) continue;
-                var ces = _tailored[key];
+                var ces = PrefixedElements(key) ?? _tailored[key];
                 var elements = new CollationElement[ces.Count];
                 for (int i = 0; i < elements.Length; i++)
                 {
@@ -475,24 +536,20 @@ public static class CldrTailoringBuilder
                         ce.P.IsZero ? 0 : perm(ce.P.Value),
                         ce.S.IsZero ? 0 : ce.S.Value,
                         ce.T.IsZero ? 0 : ce.T.Value,
-                        ce.Variable, ce.Case);
+                        ce.Variable, ce.Case,
+                        ce.Q.IsZero ? 0 : ce.Q.Value);
                 }
                 entries.Add((cps, elements));
             }
 
-            Func<CollationElement, CollationElement>? remap = null;
-            if (primaryChanged || sMap is not null || tMap is not null)
+            ElementRemap? remap = null;
+            if (primaryChanged || sMap is not null || tMap is not null || qMap is not null)
             {
-                remap = e =>
-                {
-                    if (IsImplicitSecond(e)) return e;
-                    return e with
-                    {
-                        Primary = e.Primary == 0 ? 0 : finalP(e.Primary),
-                        Secondary = e.Secondary == 0 ? 0 : mapS(e.Secondary),
-                        Tertiary = e.Tertiary == 0 ? 0 : mapT(e.Tertiary),
-                    };
-                };
+                var roots = RootsOf(_base);
+                remap = new ElementRemap(
+                    primaryChanged ? finalP : null,
+                    LookupOf(sMap, roots.Secondaries), LookupOf(tMap, roots.Tertiaries), LookupOf(qMap, roots.Quaternaries),
+                    _shift);
             }
             var plan = new TailoringPlan
             {
@@ -577,15 +634,13 @@ public static class CldrTailoringBuilder
         {
             if (_position.Count == 0) throw new NotSupportedException("no reset position");
             List<BuildElement> ces;
-            if (rel.Strength is CldrRelationStrength.Identity or CldrRelationStrength.Quaternary)
-            {
-                if (rel.Strength == CldrRelationStrength.Quaternary) _quaternary++;
-                ces = new List<BuildElement>(_position);
-            }
+            if (rel.Strength == CldrRelationStrength.Identity) ces = new List<BuildElement>(_position);
             else
             {
                 int n = (int)rel.Strength;
-                int idx = LastIndexForLevel(_position, n);
+                // A quaternary difference changes the last element's level-4 weight and nothing above it: the string is
+                // the position's copy, its fourth-level slot a new one after the anchor's (UTS #35 Part 5).
+                int idx = n == 4 ? _position.Count - 1 : LastIndexForLevel(_position, n);
                 var anchor = _position[idx];
                 var line = LineOf(n);
                 var slot = line.InsertAfter(anchor.At(n));
@@ -593,7 +648,7 @@ public static class CldrTailoringBuilder
                 if (n < 2) ce = ce with { S = _s.RootSlot(CommonSecondary) };
                 if (n < 3) ce = ce with { T = _t.RootSlot(CommonTertiary) };
                 if (n == 1) ce = ce with { Variable = IsVariableRoot(anchor.P.Root) };
-                ce = ce with { Case = CaseOf(rel.Text) };
+                if (n < 4) ce = ce with { Case = CaseOf(rel.Text) };
                 ces = _position.Take(idx).ToList();
                 ces.Add(ce);
             }
@@ -607,15 +662,31 @@ public static class CldrTailoringBuilder
             string key = rel.Text;
             if (rel.Prefix is { } prefix)
             {
+                // `p|x` is x AFTER p: the contraction p+x, whose elements are p's followed by x's. p's are read when the
+                // table is planned (PrefixedElements), not now — a later rule may still re-place p itself (ja.xml puts
+                // ァ after the rule `ァ|ー`), and ICU matches the prefix against p's FINAL mapping. The mappings-so-far
+                // take the elements as they stand now, which is all a reset or an extension in between can read.
                 _prefixContexts++;
                 key = prefix + rel.Text;
+                _prefixed[key] = (prefix, ces);
                 var withPrefix = _built.ElementsOf(prefix);
                 withPrefix.AddRange(ces);
                 ces = withPrefix;
             }
+            else _prefixed.Remove(key);
             if (!_tailored.ContainsKey(key)) _tailoredOrder.Add(key);
             _tailored[key] = ces;
             _built.Map(key, ces);
+        }
+
+        /// <summary>The elements of a `p|x` relation's contraction p+x once every rule is in: p's FINAL elements, then x's;
+        /// null when <paramref name="key"/> is not a prefix context.</summary>
+        private List<BuildElement>? PrefixedElements(string key)
+        {
+            if (!_prefixed.TryGetValue(key, out var parts)) return null;
+            var ces = _built.ElementsOf(parts.Prefix);
+            ces.AddRange(parts.Elements);
+            return ces;
         }
 
         /// <summary>The index of the element a level-N relation modifies: the LAST element, unless it is ignorable at
@@ -631,7 +702,17 @@ public static class CldrTailoringBuilder
             return last;
         }
 
-        private Line LineOf(int level) => level switch { 1 => _p, 2 => _s, _ => _t };
+        private Line LineOf(int level) => level switch { 1 => _p, 2 => _s, 3 => _t, _ => _q };
+
+        /// <summary>A map of one level as a direct lookup array over that level's weights (they are small: secondaries
+        /// reach 0x127, tertiaries 0x1E) — the remap of the base pool reads it once per element instead of searching.</summary>
+        private static int[]? LookupOf(WeightMap? map, int[] levelRoots)
+        {
+            if (map is null) return null;
+            var lookup = new int[levelRoots[^1] + 1];
+            foreach (int w in levelRoots) lookup[w] = w == 0 ? 0 : map.Map(w);
+            return lookup;
+        }
 
         private bool IsVariableRoot(int rootPrimary) => rootPrimary >= _variableRootRange.First && rootPrimary <= _variableRootRange.Last;
 
@@ -656,7 +737,7 @@ public static class CldrTailoringBuilder
         private BuildElement SpecialPosition(CldrSpecialPosition position)
         {
             var pool = _base.Pool;
-            BuildElement Make(int p, int s, int t) => new(_p.RootSlot(p), _s.RootSlot(s), _t.RootSlot(t), IsVariableRoot(p), ElementCase.Lower);
+            BuildElement Make(int p, int s, int t) => new(_p.RootSlot(p), _s.RootSlot(s), _t.RootSlot(t), _q.RootSlot(0), IsVariableRoot(p), ElementCase.Lower);
             switch (position)
             {
                 case CldrSpecialPosition.FirstTertiaryIgnorable:
@@ -702,13 +783,13 @@ public static class CldrTailoringBuilder
                 case CldrSpecialPosition.FirstTrailing:
                 {
                     int limit = Mapped(ImplicitLastAaaa << _shift), min = int.MaxValue;
-                    foreach (var e in pool) if (e.Primary > limit && !IsImplicitSecond(e)) min = Math.Min(min, e.Primary);
+                    foreach (var e in pool) if (e.Primary > limit && !CollationTable.IsImplicitSecond(e, _shift)) min = Math.Min(min, e.Primary);
                     return Make(min == int.MaxValue ? limit + 1 : min, CommonSecondary, CommonTertiary);
                 }
                 default:   // LastTrailing
                 {
                     int max = 0;
-                    foreach (var e in pool) if (!IsImplicitSecond(e)) max = Math.Max(max, e.Primary);
+                    foreach (var e in pool) if (!CollationTable.IsImplicitSecond(e, _shift)) max = Math.Max(max, e.Primary);
                     return Make(max, CommonSecondary, CommonTertiary);
                 }
             }
