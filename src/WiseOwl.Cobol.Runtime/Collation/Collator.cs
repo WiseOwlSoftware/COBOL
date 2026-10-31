@@ -9,9 +9,10 @@ namespace WiseOwl.Cobol.Runtime.Collation;
 /// implements, in one immutable value: <see cref="Strength"/> (how many levels decide), <see cref="Alternate"/> (how
 /// variable elements take part), <see cref="MaxVariable"/> (which groups are variable), <see cref="CaseFirst"/> (case
 /// before the other tertiary distinctions), <see cref="BackwardsSecondary"/> (level 2 compared from the end —
-/// Canadian French) and <see cref="CaseLevel"/> (a level of case alone between level 2 and level 3). A CLDR collation's own settings (<c>[caseFirst upper]</c>, <c>[backwards 2]</c>, <c>[alternate
+/// Canadian French), <see cref="CaseLevel"/> (a level of case alone between level 2 and level 3) and
+/// <see cref="NumericOrdering"/> (a run of decimal digits ordered by its numeric value). A CLDR collation's own settings (<c>[caseFirst upper]</c>, <c>[backwards 2]</c>, <c>[alternate
 /// shifted]</c>, <c>[strength n]</c>, <c>[maxVariable g]</c>) and the BCP 47 <c>-u-</c> keys (<c>ks</c>, <c>ka</c>,
-/// <c>kv</c>, <c>kf</c>, <c>kc</c>, <c>kb</c>) both resolve to this. <see cref="Default"/> is the CLDR default.
+/// <c>kv</c>, <c>kf</c>, <c>kc</c>, <c>kn</c>, <c>kb</c>) both resolve to this. <see cref="Default"/> is the CLDR default.
 /// <para>Not represented, because the engine does not implement it (documented in Collation/CLDR/README.md; a CLDR
 /// file that asks for it is loaded with the setting reported as unsupported): <c>hiraganaQuaternary</c>.</para>
 /// </summary>
@@ -21,7 +22,8 @@ public sealed record CollationOptions(
     MaxVariable MaxVariable = MaxVariable.Punct,
     CaseFirst CaseFirst = CaseFirst.Off,
     bool BackwardsSecondary = false,
-    bool CaseLevel = false)
+    bool CaseLevel = false,
+    bool NumericOrdering = false)
 {
     /// <summary>The CLDR default: tertiary, non-ignorable, maxVariable punct, caseFirst off, forward secondaries.</summary>
     public static CollationOptions Default { get; } = new();
@@ -31,7 +33,7 @@ public sealed record CollationOptions(
 
     /// <summary>True when only <see cref="Strength"/> and <see cref="Alternate"/> may differ from the defaults —
     /// the configurations the fast paths and the shared caches are keyed on.</summary>
-    public bool IsPlain => MaxVariable == MaxVariable.Punct && CaseFirst == CaseFirst.Off && !BackwardsSecondary && !CaseLevel;
+    public bool IsPlain => MaxVariable == MaxVariable.Punct && CaseFirst == CaseFirst.Off && !BackwardsSecondary && !CaseLevel && !NumericOrdering;
 }
 
 /// <summary>
@@ -98,7 +100,7 @@ public sealed class Collator
 
     /// <summary>A collator differing from this one in the given settings only.</summary>
     public Collator With(CollationStrength? strength = null, AlternateHandling? alternate = null, CollationTable? table = null,
-        MaxVariable? maxVariable = null, CaseFirst? caseFirst = null, bool? backwardsSecondary = null, bool? caseLevel = null) =>
+        MaxVariable? maxVariable = null, CaseFirst? caseFirst = null, bool? backwardsSecondary = null, bool? caseLevel = null, bool? numericOrdering = null) =>
         new(table ?? Table, Options with
         {
             Strength = strength ?? Options.Strength,
@@ -107,6 +109,7 @@ public sealed class Collator
             CaseFirst = caseFirst ?? Options.CaseFirst,
             BackwardsSecondary = backwardsSecondary ?? Options.BackwardsSecondary,
             CaseLevel = caseLevel ?? Options.CaseLevel,
+            NumericOrdering = numericOrdering ?? Options.NumericOrdering,
         });
 
     /// <summary>A collator over the same table with other settings.</summary>
@@ -156,7 +159,9 @@ public sealed class Collator
         // is compared from its END (the prefix's weights are compared last, after the differing tail — a shorter
         // tail then meets the prefix's weights, not "end of text"), so the skip is taken only for the state-free
         // forward non-ignorable collators (every default locale sequence; STANDARD-COMPARE's arguments are short).
-        int skip = Alternate == AlternateHandling.NonIgnorable && !Options.BackwardsSecondary ? SafeBoundary(a, b, a.CommonPrefixLength(b)) : 0;
+        // Nor under numeric ordering, where a digit run is one number whichever side of the boundary its digits are on.
+        int skip = Alternate == AlternateHandling.NonIgnorable && !Options.BackwardsSecondary && !Options.NumericOrdering
+            ? SafeBoundary(a, b, a.CommonPrefixLength(b)) : 0;
         ReadOnlySpan<char> ta = a[skip..], tb = b[skip..];
 
         foreach (int level in _levels)
@@ -259,7 +264,7 @@ public sealed class Collator
         foreach (int level in _levels)
         {
             var weights = new List<int>(walked.Length + 4);
-            var it = new CollationElementIterator(walked, Table);
+            var it = new CollationElementIterator(walked, Table, Options.NumericOrdering);
             bool afterVariable = false;
             while (it.TryNext(out var ce))
             {
@@ -294,7 +299,7 @@ public sealed class Collator
             origin = new List<int>(text.Length + 8);
             walked = Normalizer.ToNfd(text, Table, origin);
         }
-        var it = new CollationElementIterator(walked, Table);
+        var it = new CollationElementIterator(walked, Table, Options.NumericOrdering);
         bool afterVariable = false;
         int before = 0, since = 0;          // the level-1 weights before the last cut, and since it
         int cut = 0, reach = 0;             // the last cut, and past the furthest position consumed since it
@@ -353,8 +358,8 @@ public sealed class Collator
 
     private int CompareLevel(ReadOnlySpan<char> a, ReadOnlySpan<char> b, int level)
     {
-        var ia = new CollationElementIterator(a, Table);
-        var ib = new CollationElementIterator(b, Table);
+        var ia = new CollationElementIterator(a, Table, Options.NumericOrdering);
+        var ib = new CollationElementIterator(b, Table, Options.NumericOrdering);
         bool va = false, vb = false;
         while (true)
         {
@@ -390,7 +395,7 @@ public sealed class Collator
 
         int Gather(ReadOnlySpan<char> text, ref int[] buffer)
         {
-            var it = new CollationElementIterator(text, Table);
+            var it = new CollationElementIterator(text, Table, Options.NumericOrdering);
             bool afterVariable = false;
             int n = 0;
             while (it.TryNext(out var ce))
