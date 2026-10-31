@@ -131,4 +131,11 @@ leads, the records and the ledger.
    session has no Artifact tool): the supervisor announces the owed publish after you end, and the attended session
    publishes `{COORD}\ledger.html` to the owner's artifact. Do not look for a way around that.
 8. Write the handoff (`landed`; the branches still pending, an ENQUEUED one with its PR number; `next_unit` null unless
-   you know better).
+   you know better). ⛔ NEVER name `enqueue` as `next_unit` to wait for a pull request to merge, for the lane to land a
+   branch, or for a review to finish (kb/Work PB4180): the landing lane and the review lane own all of that beside every
+   unit, so an enqueue unit spent waiting is a whole Opus session that produces nothing while the waves and campaigns
+   wait behind it (28 such chains, 75 units, 49.6 hours, 2026-10-01 to 2026-10-30). Name a successor only for work no
+   lane owns: a STOPPED, BOUNCED or DECISION row a finisher or the operator must resolve, an uncollected lane attempt,
+   or leads still to file. Write what the lanes are waiting on in the `summary` and the pending branches, with
+   `next_unit` null. `next_unit.py` runs a handoff's `enqueue` only while it finds that agent work (rule 6), so a
+   named `enqueue` with none is not run: the next unit is the meter, a resume, a wave or a campaign.

@@ -11,4 +11,6 @@ from disk; do not re-do finished work.
    finish (SPLIT or interrupted: plan_wave.py picks it up as a finisher), to land, or ABANDONED (a line in its kb/Work
    note with the word ABANDONED directly after the branch's name, and why; then `--apply --abandon <branch>`). One the owner must decide
    becomes `outcome: owner-question`. Commit or remove nothing you have not read.
-3. Write the handoff with `branches_pending` and `next_unit`: `enqueue` when anything is ready, otherwise `wave`.
+3. Write the handoff with `branches_pending` and `next_unit`: `enqueue` only when a STOPPED, BOUNCED or DECISION row or a lane hold needs an agent
+   (a branch the lanes own, WAITING TO LAND or ENQUEUED, is not that: `next_unit.py` runs no enqueue unit to wait for
+   it, kb/Work PB4180), otherwise `wave`.
