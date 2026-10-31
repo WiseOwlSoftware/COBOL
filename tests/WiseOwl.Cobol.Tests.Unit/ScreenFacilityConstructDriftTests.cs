@@ -125,16 +125,18 @@ public sealed class ScreenFacilityConstructDriftTests
         Assert.False(Has(errors, "COBOL1560") || Has(errors, "COBOL1707"));
     }
 
-    /// <summary>⛔ THE REGRESSION THIS WAVE ALMOST SHIPPED. `ON EXCEPTION` / `NOT ON EXCEPTION` is spelled the
-    /// same on a screen ACCEPT/DISPLAY as on the statements that already own one, and DISPLAY sits inside every
-    /// one of their imperative-statement slots — so a free-standing optional exception-phrase pair on
-    /// DISPLAY made the INNER display swallow the ENCLOSING statement's NOT-arm, and the enclosing statement
-    /// lost it silently. Four corpus programs went red (delete_file_absent, ec_external_*). The grammar now
-    /// binds the exception phrases to the AT/LINE/COLUMN positioning phrase (`screenTail`), which no other
-    /// statement's exception arm can begin with; this pins that coupling so it cannot be "simplified" away.
-    /// The program must compile AND its own DISPLAYs must draw no screen verdict.</summary>
+    /// <summary>⛔ AN INNER DEVICE ACCEPT / DISPLAY NEVER STEALS THE ENCLOSING STATEMENT'S ARM. `ON EXCEPTION` /
+    /// `NOT ON EXCEPTION` is spelled the same on a screen ACCEPT/DISPLAY as on the statements that already own one,
+    /// and ACCEPT and DISPLAY sit inside every one of their imperative-statement slots — so a free-standing
+    /// exception-phrase pair once made the INNER display swallow the ENCLOSING statement's NOT-arm (four corpus
+    /// programs went red: delete_file_absent, ec_external_*). ISO §14.5.3.3 gives the phrase to the inner statement
+    /// only when it "may be syntactically associated" with it, and the screen format's operand is a screen-name,
+    /// which the parser cannot see: so a literal operand rules the screen format out, and an identifier operand
+    /// leaves it only PRESUMED, taking the phrase only when no enclosing statement may (kb/Work PB1528,
+    /// ConditionalPhraseAssociation.Format.ProvedBy). Both operand kinds and both verbs, nested in DELETE FILE and in
+    /// CALL: the program must compile AND draw no screen verdict.</summary>
     [Fact]
-    public void NestedDisplayInAnExceptionArm_DoesNotStealTheEnclosingStatementsNotArm()
+    public void NestedDeviceAcceptOrDisplayInAnExceptionArm_DoesNotStealTheEnclosingStatementsArm()
     {
         var (ok, errors) = Compile("""
             IDENTIFICATION DIVISION.
@@ -147,16 +149,100 @@ public sealed class ScreenFacilityConstructDriftTests
             FILE SECTION.
             FD F.
             01 F-REC PIC X(10).
+            WORKING-STORAGE SECTION.
+            01 WS-X PIC X(5) VALUE "NOEXC".
             PROCEDURE DIVISION.
             MAIN.
                 DELETE FILE F
                     ON EXCEPTION DISPLAY "EXC"
                     NOT ON EXCEPTION DISPLAY "NOEXC"
-                END-DELETE.
+                END-DELETE
+                DELETE FILE F
+                    ON EXCEPTION DISPLAY WS-X
+                    NOT ON EXCEPTION DISPLAY "NOEXC"
+                END-DELETE
+                CALL "NOSUCHPG"
+                    NOT ON EXCEPTION ACCEPT WS-X
+                    ON EXCEPTION DISPLAY "EXC"
+                END-CALL.
                 STOP RUN.
             """, 2023);
         Assert.True(ok, string.Join("\n", errors));
         Assert.False(Has(errors, "COBOL1707"));
+    }
+
+    /// <summary>kb/Work PB1528: the UNPOSITIONED screen statement with an exception phrase — `ACCEPT screen-name-1 ON
+    /// EXCEPTION …` / `DISPLAY screen-name-1 ON EXCEPTION …`, legal Format 3 / Format 2 shapes because the printed
+    /// formats bracket the AT phrase and the exception phrases independently (§14.9.1.2, §14.9.11.2) — draws the
+    /// named Annex A.4.2 refusal COBOL1707 that docs/CONFORMANCE.md §5 promises, and no parse error: it used to draw
+    /// "unexpected 'ON'" (COBOL0307, later COBOL2269) plus a COBOL0901 for the END- word.</summary>
+    [Theory]
+    [InlineData("ACCEPT", 2002)]
+    [InlineData("ACCEPT", 2023)]
+    [InlineData("DISPLAY", 2002)]
+    [InlineData("DISPLAY", 2023)]
+    public void UnpositionedScreenStatementWithExceptionPhrase_IsRefusedByName(string verb, int edition)
+    {
+        var (ok, errors) = Compile($"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SCRUNPOS.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-X PIC X VALUE "A".
+            SCREEN SECTION.
+            01 SG.
+               05 SI1 PIC X TO WS-X.
+            PROCEDURE DIVISION.
+            MAIN.
+                {verb} SG
+                    ON EXCEPTION DISPLAY "E"
+                    NOT ON EXCEPTION DISPLAY "N"
+                END-{verb}.
+                STOP RUN.
+            """, edition);
+        Assert.False(ok);
+        Assert.True(Has(errors, $"COBOL1707: the {verb} statement's screen format")
+            && Has(errors, "'SG' is declared in the SCREEN SECTION, and the ON EXCEPTION"), string.Join("\n", errors));
+        Assert.False(Has(errors, "COBOL0307") || Has(errors, "COBOL2269") || Has(errors, "COBOL0901"),
+            string.Join("\n", errors));
+    }
+
+    /// <summary>The two complements of the presumed reading at top level, where no enclosing statement may take the
+    /// phrase. An IDENTIFIER operand leaves the screen format possible to the parser, so the phrase reaches the binder,
+    /// which sees the operand is no screen-name and names the shape (COBOL2269: Format 1 prints no exception phrase) —
+    /// never the screen refusal COBOL1707, which would tell the user the declined module is what is missing; a LITERAL
+    /// operand rules the screen format out at parse time (§14.9.11.2: Format 2 writes screen-name-1), so the phrase may
+    /// be associated with nothing (§14.5.3.3) and the parse layer's COBOL2269 names the operand that ruled it out.</summary>
+    [Fact]
+    public void ExceptionPhraseOnADeviceOperand_IsNamed_ByWhatTheOperandIs()
+    {
+        var (_, identifier) = Compile("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SCRDEVID.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-X PIC X VALUE "A".
+            PROCEDURE DIVISION.
+            MAIN.
+                ACCEPT WS-X ON EXCEPTION CONTINUE END-ACCEPT
+                STOP RUN.
+            """, 2023);
+        Assert.True(Has(identifier, "COBOL2269") && Has(identifier, "'WS-X' is not declared in the SCREEN SECTION")
+            && Has(identifier, "§14.9.1.2 Format 1 (device)"), string.Join("\n", identifier));
+        Assert.False(Has(identifier, "COBOL1707"), "a device ACCEPT with an exception phrase is not the declined "
+            + "screen module — claiming that module would not make it legal:\n" + string.Join("\n", identifier));
+
+        var (_, literal) = Compile("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SCRDEVLT.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY "A" ON EXCEPTION CONTINUE END-DISPLAY
+                STOP RUN.
+            """, 2023);
+        Assert.True(Has(literal, "COBOL2269") && Has(literal, "this DISPLAY statement specifies a literal operand"),
+            string.Join("\n", literal));
+        Assert.False(Has(literal, "COBOL1707"), string.Join("\n", literal));
     }
 
     /// <summary>⛔ THE COMPLEMENT OF THE OPTIONS INITIALIZE REFUSAL. §11.9.10.4 GR1 — "If ALL is specified,
