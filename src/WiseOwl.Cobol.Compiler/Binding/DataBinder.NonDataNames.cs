@@ -25,6 +25,8 @@ internal enum NonDataDeclarationKind
     TypeDeclarationMember,
     /// <summary>A condition-name declared only by a level-88 entry of a type declaration (§13.18.58.4 GR1, GR2).</summary>
     TypeDeclarationCondition,
+    /// <summary>A file-name: a SELECT entry of this source element, or the GLOBAL file of a containing one (§13.18.27.4 GR1).</summary>
+    FileName,
 }
 
 /// <summary>A declaration that gives a name although it declares no data item: its kind, for a type declaration's
@@ -57,6 +59,7 @@ internal readonly record struct NonDataDeclaration(
             + $" only by a level-88 entry of the type declaration '{TypeName}', not as a condition-name of a data item: a "
             + "type declaration has no storage associated with it (ISO §13.18.58.4 GR2), so the condition-name has no "
             + "conditional variable until a group is defined using the type-name (GR1), and no such group is visible here",
+        NonDataDeclarationKind.FileName => "is declared as a file-name (a file control entry, ISO §12.4.5), not as a data item",
         _ => throw new System.Diagnostics.UnreachableException(Kind.ToString()),
     };
 }
@@ -83,6 +86,8 @@ public sealed partial class DataBinder
             return new(NonDataDeclarationKind.ConstantName, DeclarationRefused: IsRefusedConstantName(name));
         if (Symbols.IndexCandidates(name, qualifiers, scope) is not null) return new(NonDataDeclarationKind.IndexName);
         if (dataName) return null;
+        // A file-name (kb/Work PB3557): this element's own SELECT, or a containing element's GLOBAL file (§13.18.27.4 GR1).
+        if (qualifiers.Count == 0 && IsVisibleFileName(name)) return new(NonDataDeclarationKind.FileName);
         if (Symbols.TryResolveCondition(name, scope, out _)) return new(NonDataDeclarationKind.ConditionName);
         if (qualifiers.Count == 0 && TryFindTypeDecl(name, scope, out _)) return new(NonDataDeclarationKind.TypeName);
         // §13.18.58.4 GR1: "Subordinate data description entries, condition-name entries, and RENAMES clauses are part of
@@ -97,6 +102,19 @@ public sealed partial class DataBinder
         }
         return null;
     }
+
+    /// <summary>Whether <paramref name="name"/> is a file-name visible in this source element: one of its own files or a
+    /// GLOBAL file of a containing element (<see cref="InheritedGlobalFiles"/>, known before the unit binds).</summary>
+    internal bool IsVisibleFileName(string name) => TryGetVisibleFile(name, out _);
+
+    /// <summary>⛔ THE ONE LOOKUP OF A FILE-NAME VISIBLE IN THIS SOURCE ELEMENT, at any point of the bind: its own file,
+    /// which hides a container's of the same spelling (§8.4.6.2.1 3) a)), else the nearest container's GLOBAL file
+    /// (§13.18.27.4 GR1). <see cref="FilesByName"/> alone answers only after the unit binds, when
+    /// <c>BinderDriver.BindUnitData</c> merges the inherited files in; the data division's own clauses resolve before
+    /// that, and a container's GLOBAL record qualified by its file (§8.4.2.2.2 Format 1's file-report-qualifier) must
+    /// resolve there too (kb/Work PB3557 review R2-1).</summary>
+    internal bool TryGetVisibleFile(string name, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out FileModel? file) =>
+        FilesByName.TryGetValue(name, out file) || InheritedGlobalFiles.TryGetValue(name, out file);
 
     /// <summary>The type declarations visible in <paramref name="scope"/>, in <see cref="TryFindTypeDecl"/>'s order: a
     /// method's own, this element's, a container's GLOBAL one.</summary>

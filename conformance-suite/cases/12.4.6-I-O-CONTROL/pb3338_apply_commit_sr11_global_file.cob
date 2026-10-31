@@ -8,10 +8,10 @@
 *> specified in the APPLY COMMIT clause of the same source element."
 *> The shape: a contained program's APPLY COMMIT clause names RELF, a file its CONTAINING program declares with the
 *> GLOBAL clause (FD RELF IS GLOBAL). The name is visible in the contained program, and SR11 still keeps it out of that
-*> program's clause (as SR1 does: RELF is not in the contained program's FILE-CONTROL paragraph). An APPLY COMMIT operand
-*> is looked up only in the element that writes the clause, so the only refusal this program can draw is that the
-*> operand resolves to nothing there (COBOL1639, "no declaration in this source element"). Fails if the clause is
-*> accepted.
+*> program's clause (as SR1 does: RELF is not in the contained program's FILE-CONTROL paragraph). The name IS visible in
+*> the contained program (ISO 13.18.27.4 GR1: the file-name of a GLOBAL FD is a global name), so it is refused under its
+*> own rule, COBOL4709, never as an undefined data-name (kb/Work PB3557: COBOL1639 said "no declaration in this source
+*> element gives the name", false for a visible GLOBAL file). Fails if the clause is accepted or refused otherwise.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3338SB.
        ENVIRONMENT DIVISION.

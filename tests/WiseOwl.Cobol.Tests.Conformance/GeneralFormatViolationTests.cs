@@ -34,7 +34,10 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// PB3428 and PB3861 the rows whose token stands where the parse expects only nameable elements, or a literal of
 /// another category, draw COBOL5506 naming what is expected there: OPEN F1 expects EXTEND, I-O, INPUT or OUTPUT (PBGF40),
 /// PERFORM VARYING … BY 1 expects UNTIL (PBGF12), CALL … RETURNING 5 expects no literal (PBGF23, which drew the
-/// guess COBOL0308 "a data-name is expected here").</para>
+/// guess COBOL0308 "a data-name is expected here"). Since kb/Work PB4133 every refused row draws exactly ONE
+/// diagnostic: PBGF04, 07 and 10 (a statement where the IF, WHEN or UNTIL operand is required) drew a false COBOL2072
+/// after the true COBOL0001, and PBGF32 a second one at the GIVING, when ANTLR's single-token deletion repaired the
+/// wrong element.</para>
 /// </summary>
 public sealed class GeneralFormatViolationTests
 {
@@ -94,6 +97,10 @@ public sealed class GeneralFormatViolationTests
         var (ok, diagnostics) = EditionHarness.Compile(Program(pid, statement), 2023);
         Assert.False(ok, $"{pid}: '{statement}' is outside its general format, and it compiled");
         EditionHarness.AssertHasDiagnostic(diagnostics, code);
+        // ONE VIOLATION IS ONE DIAGNOSTIC (kb/Work PB4133, PB3843, PB4173): the recovery adds no second, false one. PBGF04, 07,
+        // 10 and 32 drew a second after ANTLR's single-token deletion repaired the wrong element.
+        Assert.True(diagnostics.Count == 1,
+            $"{pid}: '{statement}' is one violation, and drew {diagnostics.Count} diagnostics:\n{string.Join("\n", diagnostics)}");
     }
 
     [Theory]
