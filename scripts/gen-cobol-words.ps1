@@ -316,6 +316,17 @@ foreach ($t in $subTrigTokens) { [void]$cs.AppendLine("        $t,") }
 [void]$cs.AppendLine('    {')
 foreach ($t in $gatedTokens) { [void]$cs.AppendLine("        $t,") }
 [void]$cs.AppendLine('    };')
+[void]$cs.AppendLine('')
+[void]$cs.AppendLine('    /// <summary>The words a general format spells as a keyword where ISO §8.9 may leave them free — the rows')
+[void]$cs.AppendLine('    /// carrying the keywordWhereFree determination, whose &lt;word&gt;Keyword rules step 5c emits (kb/Work PB4174). A syntax')
+[void]$cs.AppendLine('    /// diagnostic that names the words EXPECTED at an edition (AdmittedKinds) keeps them although the reserved-word')
+[void]$cs.AppendLine('    /// table does not reserve them there. Generated, so a determination added tomorrow needs no edit anywhere.</summary>')
+[void]$cs.AppendLine('    internal static bool IsKeywordWhereFree(string word) => _keywordWhereFreeWords.Contains(word);')
+[void]$cs.AppendLine('')
+[void]$cs.AppendLine('    private static readonly System.Collections.Generic.HashSet<string> _keywordWhereFreeWords = new(System.StringComparer.Ordinal)')
+[void]$cs.AppendLine('    {')
+foreach ($r in $keywordRows) { [void]$cs.AppendLine("        `"$(To-Word $r.token)`",") }
+[void]$cs.AppendLine('    };')
 [void]$cs.AppendLine('}')
 Set-LfContent -LiteralPath $csOut -Value $cs.ToString().TrimEnd()
 

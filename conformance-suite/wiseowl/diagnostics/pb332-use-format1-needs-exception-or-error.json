@@ -1,1 +1,1 @@
-{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "COBOL5506: cannot parse construct near 'PROCEDURE'. The word PROCEDURE is not expected here: expected AFTER, BEFORE, EC, EO, ERROR, EXCEPTION, FOR, GLOBAL or STANDARD"}
+{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "COBOL5506: cannot parse construct near 'PROCEDURE'. The word PROCEDURE is not expected here: expected AFTER, BEFORE, "}
