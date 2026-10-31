@@ -167,7 +167,7 @@ public sealed class ApplyCommitEnclosingFileTests
     /// <summary>⛔ THE NEARER DECLARATION DECIDES, NOT THE NAME TABLE (review R2-2; §8.4.6.2.1 3) a): "If the name is
     /// declared in source element B, the item in source element B is the referenced item"). The contained program's own
     /// report entry RREC hides the container's GLOBAL record area RREC, so the operand names a report item and the refusal
-    /// is the report section's (§13.8.6.2.3, COBOL5092), never SR11's: the kb/Work PB4196 order, on the APPLY COMMIT arm.</summary>
+    /// is the report section's (§13.8.6.2.3, COBOL5092), never §12.4.6.3.3 SR11: the kb/Work PB4196 order, on the APPLY COMMIT arm.</summary>
     [Fact]
     public void AnOwnReportEntrySpelledLikeTheContainersGlobalRecordArea_IsRefusedAsAReportItem()
     {
@@ -187,7 +187,7 @@ public sealed class ApplyCommitEnclosingFileTests
 
     /// <summary>Two GLOBAL files each with a record of one name (review R2-3): the file-report-qualifier tells them apart
     /// (§8.4.2.2.2 Format 1), so <c>R IN F2</c> is F2's record area and SR11 names F2; the bare word identifies neither,
-    /// so it is the reference that fails (§8.4.2.2.3 SR1's ambiguity), never SR11 about whichever file came first.</summary>
+    /// so it is the reference that fails (§8.4.2.2.3 SR1, ambiguity), never §12.4.6.3.3 SR11 about whichever file came first.</summary>
     [Fact]
     public void TwoGlobalFilesRecordsOfOneName_AreToldApartByTheFileQualifier()
     {
