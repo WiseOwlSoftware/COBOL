@@ -5104,6 +5104,35 @@ public sealed partial class DataBinder
         return NearestInScope(hits, h => h.Report);
     }
 
+    /// <summary>⛔ THE ONE ORDER OF AMBIGUITY AND REPORT-ENTRY REFUSAL (kb/Work PB3767): true when the written reference
+    /// reaches SEVERAL <paramref name="dataItems"/> and no report entry it also reaches is declared in a NEARER source
+    /// element than they are — then §8.4.2.2.3 SR1's ambiguity among data items is the rule the reference breaks, and the
+    /// caller reports it before it asks <see cref="ReportEntryReferenceRefused"/>. A report entry in a nearer source element
+    /// is the referenced item (ISO §8.4.6.2.1 3) a): "If the name is declared in source element B, the item in source
+    /// element B is the referenced item"), however many farther GLOBAL data items spell the same, so the report-item
+    /// refusal (§13.8.6.2.3) stands. <paramref name="dataItems"/> is the nearest tier already
+    /// (<see cref="QualifiedCandidates"/>), so its depth is any member's. Read by every site that counts data items
+    /// before it refuses a report entry: the procedure division's unidentified reference and a data division clause
+    /// operand.</summary>
+    internal bool DataItemsAmbiguousBeforeReportEntry(NameCandidates<DataItem> dataItems, string name, IReadOnlyList<string> qualifiers)
+    {
+        if (dataItems.Count <= 1) return false;
+        return ReportEntriesNamed(name, qualifiers) is not [var (report, _), ..]
+            || dataItems.Any(item => DeclaringDepth(item) <= ReportDepth(report));
+    }
+
+    /// <summary>How many report entries the written reference also reaches in the SAME source element as
+    /// <paramref name="dataItems"/> (the tier <see cref="DataItemsAmbiguousBeforeReportEntry"/> leaves to the ambiguity): a
+    /// report entry is a data-name §8.4.2.2.3 SR1 counts with the ordinary ones (kb/Work PB3232, PB3767 review R1-2), so the
+    /// ambiguity's wording counts it too.</summary>
+    internal int ReportEntriesInTierOf(NameCandidates<DataItem> dataItems, string name, IReadOnlyList<string> qualifiers)
+    {
+        var entries = ReportEntriesNamed(name, qualifiers);
+        return entries.Count != 0 && dataItems.Any(item => DeclaringDepth(item) == ReportDepth(entries[0].Report))
+            ? entries.Count
+            : 0;
+    }
+
     /// <summary>⛔ THE ONE REFUSAL OF A REFERENCE TO A REPORT SECTION ENTRY WHERE NONE IS ADMITTED (kb/Work PB1046) — a
     /// procedure division statement, or a clause of any section of the data division other than the report section.
     /// ISO §13.8.6.2.3: "Report items shall not be accessed or referred to by any clauses in any other section of the
