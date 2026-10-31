@@ -33,9 +33,13 @@ internal static class ElidedMessageOpening
     /// <c>BoundRejected.Report(</c>, <c>BoundOperandError.Refused(</c>, <c>InitializeErrorAction(</c>,
     /// <c>EditionDiagnostic(</c>, the warning form and the three <c>EditionContext</c> seams whose caller string IS the
     /// head of the message they write: <c>Extension(id, seen)</c> (<c>"{seen} is a nonstandard extension"</c>),
-    /// <c>Removed(code, message)</c> and <c>Declined(descriptor, seen)</c> (<c>"{seen}: title"</c>).</summary>
+    /// <c>Removed(code, message)</c> and <c>Declined(descriptor, seen)</c> (<c>"{seen}: title"</c>).
+    /// <para>The messages of the RUNNING program (kb/Work PB4212) open the same way and are caught by the same head:
+    /// the emitter's <c>detail</c> that <c>CobolIndex</c> puts in front of its exception text (<c>LandAmount(…, detail, …)</c>,
+    /// <c>AugmentSetTarget(…, detail)</c>), <c>FileRegistry.MisroutedVerb(verb, …)</c>, and any <c>new …Exception(</c>.</para></summary>
     public static readonly Regex Source = new(
-        @"\b(?:Error|Report|Refused|Warning|InitializeErrorAction|EditionDiagnostic|Extension|Removed|Declined)\((?:" + LeadingArgument
+        @"\b(?:Error|Report|Refused|Warning|InitializeErrorAction|EditionDiagnostic|Extension|Removed|Declined"
+        + @"|LandAmount|AugmentSetTarget|MisroutedVerb|\w+Exception)\((?:" + LeadingArgument
         + @"){0,4}\s*\$?""" + Head,
         RegexOptions.Compiled);
 

@@ -44,7 +44,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     public void EmitSetTo(BoundSetTo s)
     {
         var w = ctx.Writer;
-        string guard = LandAmount(s.Value, SetAmountRule.IndexTo, "SET … TO", out string tmp, "set");
+        string guard = LandAmount(s.Value, SetAmountRule.IndexTo, "SET index-name TO", out string tmp, "set");
         // GR2: each receiver is identified as it is changed, so an object-property receiver's accessors go around ITS store
         // (kb/Work PB2078).
         using (w.Block($"if ({guard})"))
@@ -183,7 +183,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     public void EmitSetUpDown(BoundSetUpDown s)
     {
         var w = ctx.Writer;
-        string verb = s.Down ? "SET … DOWN BY" : "SET … UP BY";
+        string verb = $"SET index-name {(s.Down ? "DOWN" : "UP")} BY";
         string guard = LandAmount(s.Amount, SetAmountRule.IndexBy, verb, out string tmp, "set");
         using (w.Block($"if ({guard})"))
             foreach (var t in s.Targets) AugmentSetTarget(t, s.Down, new NumX(tmp, 0), verb);
