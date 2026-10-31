@@ -787,14 +787,16 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor ApplyCommitClauseRule = new(
         "COBOL4709", "apply-commit-clause-rule", EditionSeverity.Error,
         "An I-O-CONTROL APPLY COMMIT clause breaks one of its syntax rules (ISO §12.4.6.3.3): a file-name-1 not "
-        + "specified in this source element's FILE-CONTROL paragraph (SR1), a sort-merge file or a report file (SR2), "
+        + "specified in this source element's FILE-CONTROL paragraph, so also a file of a containing source element "
+        + "(SR1), a sort-merge file or a report file (SR2), "
         + "an identifier-1 that is not an unreferenced-modified 01 or 77 item of the LINKAGE, WORKING-STORAGE or "
         + "LOCAL-STORAGE SECTION or that repeats or overlaps another (SR3), no operand at all (SR4), the clause in a "
         + "recursive source element (SR5; a function is always one, §8.6.6) or in a class, factory or interface "
         + "definition (SR6), a data item containing an object reference (SR7), only one of two 01/77 "
         + "items one of which depends on the other (SR8), a FILE STATUS, LINAGE or RECORD DEPENDING item outside "
-        + "those sections (SR9), or any of them subject to a BASED clause (SR10).",
-        "ISO §12.4.6.3.3 SR1-SR10 / §9.1.18.6");
+        + "those sections (SR9), any of them subject to a BASED clause (SR10), or a file or record area declared with the GLOBAL "
+        + "clause named in the clause of a source element other than the one that declares it (SR11).",
+        "ISO §12.4.6.3.3 SR1-SR11 / §9.1.18.6");
     public static readonly DiagnosticDescriptor AcceptVariableLengthGroup = new(
         "COBOL1691", "accept-variable-length-group", EditionSeverity.Error,
         "An ACCEPT receiver references a variable-length group: a group with a DYNAMIC LENGTH elementary item "
