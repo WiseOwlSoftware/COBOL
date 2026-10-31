@@ -44,3 +44,6 @@ and the CobolData.g4 design comment now describe the live-context follow.
 **Self-review.** Architecture: one follow question for both predicates, and no second copy. Performance: the walk runs
 only at a pointer operand decision, as `keywordContinuesHere` runs at a list decision. Duplication: the FOLLOW cache
 keeps its one caller (`ReadingParses`). Comments: each predicate cites §8.3.2.1 3) and §8.10, checked with `cite.py`.
+
+**Gate.** Run 000001-20261031T213728Z on 5e969b810: `LEG 1 ONLY (batched gating, PB2515): GREEN`, with the Linux
+half (WSL clone of HEAD) GREEN. Both goldens and all 15 PointerUsageOperandDriftTests cases passed in leg 1.
