@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 ///
 /// <para>⛔ WHY THESE HAD TO BE WRITTEN AS xUnit FACTS. The negative corpus can only assert a FAILING compile
 /// (<c>ConformanceSuiteTestsBase{TSlot}.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic</c> asserts the refusal
-/// and matches its <c>wiseowl/diagnostics.json</c> code), and the positive corpus compares STDOUT only — the fixture header of
+/// and matches its <c>wiseowl/diagnostics/</c> code), and the positive corpus compares STDOUT only — the fixture header of
 /// <c>2023/wave_h_facilities_inert.cob</c> says in so many words that the warnings "go to the non-failing
 /// compile channel (not stdout)". So COBOL1560 / 1578 / 1579 / 1580 had **no assertion mechanism of any
 /// kind**: a repository-wide search found the four codes only inside SOURCE COMMENTS. Every one of them could

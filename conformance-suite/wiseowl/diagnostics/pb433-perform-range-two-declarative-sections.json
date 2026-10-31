@@ -1,0 +1,1 @@
+{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "COBOL2186: PERFORM 'D-P1' THRU 'D-P2': 'D-P1' is a procedure of declarative section 'D-SEC1' and 'D-P2' is a procedure of declarative section 'D-SEC2'"}

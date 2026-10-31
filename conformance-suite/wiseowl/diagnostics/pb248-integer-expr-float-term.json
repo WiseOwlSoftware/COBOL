@@ -1,0 +1,1 @@
+{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "is a floating-point numeric data item, so the sum does not always result in an integer value"}

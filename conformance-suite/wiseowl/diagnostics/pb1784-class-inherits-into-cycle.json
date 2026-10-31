@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "COBOL2791: class 'P1784C': INHERITS FROM 'P1784B', which inherits from 'P1784C'"}

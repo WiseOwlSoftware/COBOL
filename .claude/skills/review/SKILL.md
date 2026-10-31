@@ -60,6 +60,14 @@ copy is being made · anything O(n²) over the corpus or the symbol table.
 Repeated logic · two mechanisms doing one job · redundant recomputation of something the binder already resolved ·
 anything a single canonical implementation should absorb. This is the dimension most often skipped and the one the
 owner named explicitly.
+⛔ **Repeated work in the tests and the gates is a duplication finding, never a style note** (owner 2026-10-30, kb/Work
+PB4182): a test that recomputes what another test in the same run already produced — re-running a population (the suite,
+the corpus, the NIST goldens) to prove two mechanisms agree, re-judging rows a partition already judged, rebuilding or
+recompiling what an earlier step built — is a finding (category `duplication`), with the duplicated cost as its failure
+scenario. Agreement of two mechanisms is a property of their LOGIC: require a fixture with one case per path both implement
+(and a drift test that every path has a case), or a comparison against the results the first run recorded; a whole-population
+cross-check belongs once in CI, never in every local gate. The same holds for a gate or script step that redoes another
+step's work.
 
 ## The branch form — one DONE branch, one reviewer, the findings file (kb/Work PB3027)
 
@@ -86,7 +94,7 @@ the implementer was told, and a branch that lacks a requirement is a finding (ca
    reaches a SORT, MERGE or file I/O path, **its abnormal and exception-path tests**. Check them against the case list
    in the I11 row of `.claude/skills/workstream/templates/MANDATORY-PRACTICES.md`, the owner's standing rule in its one
    home, and against the report's `## Owner test requirement` section. A path the change reaches with no test is a
-   finding (category `test-coverage`). Then the other three dimensions where the diff warrants them (a new type or file: architecture and duplication; a hot path: performance).
+   finding (category `test-coverage`). Then the other three dimensions where the diff warrants them (a new type or file: architecture and duplication; a hot path: performance; a new or changed test: duplication's repeated-work rule).
    The base skill's Step 6 holds for each candidate: try to REFUTE it, running its scenario when that is cheap; an
    uncertain candidate is dropped. A finding the implementer's report already answers with a reason you accept is not
    one.
