@@ -2043,8 +2043,14 @@ lowercase with Annex C. Three pieces, each in one place:
   UTF-16 code units (a supplementary letter is two surrogates, both in the class), it has no edition, and a character
   outside Annex B must be NAMED rather than end the word with "unexpected". Every text-stage word scanner (the
   directive line, `>>DEFINE` / `>>COBOL-WORDS` word shapes, the fixed-form word-continuation test) asks the same
-  predicate, so all stages agree where a word ends.
-- **The legality** — `CobolCharacterRepertoire.Violation(word, edition)` over the edition's Annex B.3 position classes
+  predicate, so all stages agree where a word ends. The lexer also takes a word that STARTS or ENDS on an underscore
+  (`_A`, `A_`, `_`) whole, as an ill-formed IDENTIFIER (the last two `NAME_BODY` alternatives, kb/Work PB4234), so that
+  §8.3.2.1's "The hyphen or underscore shall not appear as the first or last character" is named by the legality
+  below instead of the word being split at the `_` into "unexpected '_'". A hyphen at an edge is not taken whole: it is
+  also the arithmetic minus and a sign.
+- **The legality** — `CobolCharacterRepertoire.SeparatorPositionViolation` (the edition-free hyphen/underscore position
+  rule, COBOL2773 at every edition; at COBOL-85 the underscore gate COBOL0900 also applies, and the edge is no 2023
+  removal), then `CobolCharacterRepertoire.Violation(word, edition)` over the edition's Annex B.3 position classes
   (anywhere / not first / medial), asked by `CobolWordRule` from `WordCharacterScreen` and the directive
   stages: COBOL2773 for a character outside the edition's Annex B or a B.3 item 2 character first; the construct
   `user-word-character-removed-2023` (COBOL0902) for a character only COBOL 2023 refuses (E.2 item 4); the construct
