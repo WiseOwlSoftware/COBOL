@@ -38,8 +38,9 @@ UNIT: wave.
    register's series moved, and it is never committed: kb/Work PB2426). You cannot
    PUBLISH it (a headless session has no Artifact tool): the supervisor announces the owed publish after you end, and the
    attended session publishes `{COORD}\ledger.html` to the owner's artifact. Do not look for a way around that.
-6. Write the handoff: `workflow.state`, and every branch the wave finished in `branches_pending` (DONE: the next unit is
-   `enqueue`); `next_unit` null unless you know better. A branch the Workflow returned in `ready` was reviewed CLEAN
+6. Write the handoff: `workflow.state`, and every branch the wave finished in `branches_pending` (DONE: the review and
+   landing lanes take it from there, and `next_unit.py` starts an enqueue unit only for agent work, kb/Work PB4180);
+   `next_unit` null unless you know better. A branch the Workflow returned in `ready` was reviewed CLEAN
    and the landing lane lands it as it comes back, a same-file predecessor too: nothing is held for its successor
    (kb/Work PB3381). The Workflow's `leads` are the reviews' non-blocking findings (each report lists them under
    `## Review findings`): the enqueue unit's clerk files them (units/enqueue.md step 5).

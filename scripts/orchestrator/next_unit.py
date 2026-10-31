@@ -11,7 +11,9 @@ Prints JSON {unit, reason}. The order (docs/rearchitecture/DESIGN-orchestrator-l
      campaign rule does not re-decide it either; a `campaign` steer runs the first --cluster lead.
   1. the handoff carries owner_question            -> owner-question
   2. the handoff names next_unit                    -> that unit; a wave-type unit (`wave` or `campaign`) names only a WAVE, and with --cluster the campaign rule below decides
-     its lane (kb/Work PB2522)
+     its lane (kb/Work PB2522). A handoff's `enqueue` is honored only while rule 6 finds agent work: the landing and
+     review lanes own the rest (waiting for a merge is no unit's work), so otherwise it falls through to rules 3 to 7
+     and the reason says so (kb/Work PB4180)
   3. no meter reading of THIS account in 3 hours   -> meter (two accounts share readings.json; kb/Work PB2478), unless
      the meter is UNREADABLE: METER_ATTEMPTS meter units of this account in a row ended without a reading (any other
      unit may have run between them) and the newest attempt is younger than the maximum age. The choice then carries
@@ -218,6 +220,28 @@ def starved(lanes: dict[str, dict], history: list[dict], now: dt.datetime) -> li
     return out
 
 
+def enqueue_chains(history: list[dict]) -> list[dict]:
+    """The drift measure of kb/Work PB4180: every run of two or more consecutive `enqueue` units in units.jsonl, oldest
+    first, each {units, started_at, hours (the units' own durations summed), reasons}. A `meter` unit between two is
+    invisible (read-only: it is no part of the work chain, section 4.5), any other unit ends the run. A chain is the
+    footprint of a handoff that named `enqueue` for work the lanes own; the choice above no longer starts one, so a
+    chain that starts after the fix is a regression."""
+    chains: list[list[dict]] = []
+    run: list[dict] = []
+    for rec in [*history, {"unit": None}]:
+        if rec.get("unit") == "meter":
+            continue
+        if rec.get("unit") == "enqueue":
+            run.append(rec)
+            continue
+        if len(run) > 1:
+            chains.append(run)
+        run = []
+    return [{"units": len(r), "started_at": r[0].get("started_at"),
+             "hours": round(sum(float(u.get("duration_s") or 0) for u in r) / 3600, 2),
+             "reasons": [u.get("reason", "") for u in r]} for r in chains]
+
+
 def lane_why(lead: str, lane: dict) -> str:
     if lane["state"] == "unknown":
         return f"no kb/Work note names the cluster {lead}"
@@ -266,9 +290,30 @@ def meter_due(cdir: pathlib.Path, history: list[dict], now: dt.datetime, acct_na
 def base_choice(h: dict, cdir: pathlib.Path, repo: pathlib.Path, now: dt.datetime, last_failed: bool,
                 last_started: dt.datetime | None, meter_reason: str | None) -> dict[str, str]:
     """Rules 2 to 7: the unit, before the campaign rule decides the lane of a wave-type one. `meter_reason` is rule
-    3's verdict from `meter_due`: the reason a meter unit is due, else None (fresh, or due but unreadable)."""
-    if h.get("next_unit"):
-        return {"unit": h["next_unit"], "reason": "named by the last handoff: " + h.get("next_unit_reason", "")}
+    3's verdict from `meter_due`: the reason a meter unit is due, else None (fresh, or due but unreadable).
+
+    A handoff's `enqueue` is a REQUEST, not an order (kb/Work PB4180): `enqueue` is the one unit whose work the lanes
+    own (the landing lane lands and the review lane reviews, beside whatever unit runs), so rule 2 honors the name only
+    while `enqueue_work` (rule 6's one reader) finds work no lane owns. Otherwise the choice falls through to rules 3
+    to 7 and says so: a handoff that names `enqueue` to wait for a merge no longer chains one enqueue unit after
+    another while the waves and campaigns wait (28 chains, 75 units, 49.6 hours, 2026-10-01 to 2026-10-30)."""
+    named = h.get("next_unit")
+    if named and named != "enqueue":
+        return {"unit": named, "reason": "named by the last handoff: " + h.get("next_unit_reason", "")}
+    landing = enqueue_work(h, cdir)
+    if named and landing:
+        return {"unit": "enqueue", "reason": "named by the last handoff: " + h.get("next_unit_reason", "") + "; "
+                                             + landing["reason"]}
+    choice = after_handoff(h, repo, last_failed, last_started, meter_reason, landing)
+    if named:
+        choice["reason"] = ("the last handoff named enqueue for work the lanes own (a merge to wait for, a branch to "
+                            "land or review), so no enqueue unit runs; " + choice["reason"])
+    return choice
+
+
+def after_handoff(h: dict, repo: pathlib.Path, last_failed: bool, last_started: dt.datetime | None,
+                  meter_reason: str | None, landing: dict[str, str] | None) -> dict[str, str]:
+    """Rules 3 to 7; `landing` is rule 6's verdict from `enqueue_work`."""
     if meter_reason:
         return {"unit": "meter", "reason": meter_reason}
     state = repo_state(repo)
@@ -280,9 +325,7 @@ def base_choice(h: dict, cdir: pathlib.Path, repo: pathlib.Path, now: dt.datetim
         fresh = fresh_unlanded(repo, last_started)
         if fresh:
             return {"unit": "resume", "reason": "unlanded branches from the last unit: " + ", ".join(fresh)}
-    if landing := enqueue_work(h, cdir):
-        return landing
-    return {"unit": "wave", "reason": "nothing pending"}
+    return landing or {"unit": "wave", "reason": "nothing pending"}
 
 
 def enqueue_work(h: dict, cdir: pathlib.Path) -> dict[str, str] | None:
@@ -359,7 +402,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--cluster", action="append", default=[],
                     help="a campaign lane's lead (repeatable, in the supervisor's -Cluster order)")
     ap.add_argument("--work", default=str(work.WORK), help="the register directory (a test seam)")
+    ap.add_argument("--enqueue-chains", action="store_true",
+                    help="print the runs of consecutive enqueue units in units.jsonl as JSON (kb/Work PB4180) and exit")
     a = ap.parse_args(argv)
+    if a.enqueue_chains:
+        print(json.dumps(enqueue_chains(unit_history(coord.coord_dir(a.coord)))))
+        return 0
     handoff, operator = read_handoff(a.handoff), read_handoff(a.operator_handoff)
     now = dt.datetime.fromisoformat(a.now) if a.now else dt.datetime.now(dt.timezone.utc)
     started = dt.datetime.fromisoformat(a.last_started) if a.last_started else None
