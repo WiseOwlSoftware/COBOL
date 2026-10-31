@@ -35,7 +35,11 @@ internal static class ElidedMessageOpening
     public static readonly Regex Source = new(
         @"\b(?:Error|Report|Refused|Warning|InitializeErrorAction|EditionDiagnostic)\((?:" + LeadingArgument
         + @"){0,4}\s*\$?""" + Head,
-        RegexOptions.Compiled, TimeSpan.FromSeconds(20));
+        RegexOptions.Compiled);
+
+    /// <summary>A text that BEGINS with the head — for a string that becomes the head of a message when a registry
+    /// splices it in front of one (a construct's <c>display</c> opens <c>"{display} requires COBOL-2002"</c>).</summary>
+    public static readonly Regex Opening = new("^" + Head, RegexOptions.Compiled);
 
     /// <summary>A rendered diagnostic (<c>file(l,c): error COBOLnnnn: message</c>) whose message has the head.</summary>
     public static readonly Regex Rendered = new(

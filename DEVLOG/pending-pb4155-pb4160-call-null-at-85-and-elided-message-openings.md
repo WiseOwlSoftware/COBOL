@@ -27,5 +27,7 @@ fifty-file scan; the leading-argument group is now one alternation under one sta
 `14.9.4-CALL/pb4160-verb-phrase-diagnostics-name-the-phrase` (twelve diagnostics) and `13.18.38-OCCURS/pb4160-clause-diagnostics-name-the-phrase`
 (five). Existing tests that pinned the old text moved with it (`SEARCH NOT AT END`, `SEARCH KEY:`, `SET 'PP' TO ENTRY`, three `diagnostics.json` expects).
 
+The first gate run earned the second net its keep: 164 negative goldens failed it on heads the source scan cannot see because a label assembled them, the explicit MOVE's `where` (`MOVE ... TO X`), the implicit-MOVE phrase labels (`READ ... INTO`, `WRITE ... FROM`), INITIALIZE REPLACING `<category> ... BY` and 13 `display` rows of the construct registry (`SET ... TO object-reference requires COBOL-2002`). All fixed; the registry is asked as data by `NoConstructDisplayOpensWithAnElidedStatement`. A literal `TimeSpan` match timeout in the helper tripped `NoWallClockAssertionDriftTests` and went once the pattern was linear.
+
 Left unfixed and reported: the runtime messages of `SetEmitter` / `ControlFlowEmitter` (`LandAmount(..., "SET ... TO", ...)`, snapshot-pinned) and
 `FileRegistry.MisroutedVerb` open with an ellipsis too, but they are exceptions of the running program, not compile diagnostics.

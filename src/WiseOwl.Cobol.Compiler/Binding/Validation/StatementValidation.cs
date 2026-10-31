@@ -1245,7 +1245,7 @@ internal sealed class StatementValidation(DataBinder data)
             if (cats.Contains(cat) && InitializeCategories.IsSetForm(cat))
             {
                 data.Edition.Error(DiagnosticCatalog.InitializeReplacingPointerNeedsIdentifier,
-                    $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} ... BY the literal {literalText}: "
+                    $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} DATA BY the literal {literalText}: "
                     + "identifier-2 shall be specified (ISO §14.9.20.3 SR3 — the implicit statement for this "
                     + "category is a SET, §14.9.20.4 GR4, and no SET format admits a literal sending operand)");
                 return;   // one message per REPLACING item, naming the first offending category

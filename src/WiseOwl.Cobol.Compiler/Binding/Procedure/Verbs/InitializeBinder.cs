@@ -902,7 +902,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             // reads (null receiver) as "not a group", i.e. a violation when the sender is a variable-length group.
             if (MoveTable16.Validity(value, recvPos, receiverItem: null)?.Reason is not { } refusal) continue;
             ctx.Edition.Error(DiagnosticCatalog.InitializeReplacingMoveInvalid,
-                $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} … BY {senderText}: ISO §14.9.20.3 SR4 "
+                $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} DATA BY {senderText}: ISO §14.9.20.3 SR4 "
                 + $"requires that `MOVE {senderText} TO <an item of category "
                 + $"{InitializeCategories.Spelling(cat)}>` be valid, and {refusal}");
             return;   // one message per REPLACING item, naming the first offending category
