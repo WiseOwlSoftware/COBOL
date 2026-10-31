@@ -237,7 +237,9 @@ for ($i = 0; $i -lt $nameSlotTokens.Count; $i++) {
 # the word must still PARSE, for two readers: where §8.9 RESERVES it the funnel answers with the targeted
 # COBOL0901 ("'X' is a reserved word in COBOL-nnnn") instead of a raw COBOL0001 parse error that never names
 # the cause; where §8.9 leaves it FREE this match IS the declaration ReservationGateRewriter looks for, and the
-# re-parse then sees the word as an IDENTIFIER everywhere. Every definition slot therefore offers this rule.
+# re-parse then sees the word as an IDENTIFIER everywhere. Every definition slot therefore offers this rule, and so
+# does procedureName, the one rule of every procedure-name slot, REFERENCES included (kb/Work PB4206): a statement
+# reading of the word (PERFORM RECEIVE as an inline PERFORM) otherwise wins and the error never falls at the word.
 # No predicate: a predicate is what could not steer prediction (step 5), and the token type alone is the fact.
 # That re-admission used to be a HAND-WRITTEN list of two words in CobolData.g4 (COMMIT/ROLLBACK) — so CRT and
 # CURSOR, gated by kb/Work PB301, never got their 0901 and nobody noticed; then the GATE ITSELF was a
@@ -249,11 +251,12 @@ if ($gatedTokens.Count -lt 1) {
     throw "the derived gate set is empty: dataName references reservedGatedWord, and an empty rule is invalid ANTLR"
 }
 [void]$sb.AppendLine('')
-[void]$sb.AppendLine('// The DECLARATION home of every reservation-gated word (kb/Work PB300/PB137/PB693/PB655). A gated word')
+[void]$sb.AppendLine('// The USER-WORD home of every reservation-gated word (kb/Work PB300/PB137/PB693/PB655/PB4206). A gated word')
 [void]$sb.AppendLine('// is never a cobolWord; the TOKEN-LEVEL gate (ReservationGateRewriter) retypes it to IDENTIFIER where')
-[void]$sb.AppendLine('// §8.9 leaves it free AND a definition slot below matched it. Where §8.9 reserves it, the match stands')
-[void]$sb.AppendLine('// and VersionConformancePass.VisitReservedGatedWord — the ONE funnel arm — answers COBOL0901: every')
-[void]$sb.AppendLine('// use of this rule is a definition slot, so a new slot needs no new C#.')
+[void]$sb.AppendLine('// §8.9 leaves it free AND a user-defined-word slot below matched it. Where §8.9 reserves it, the match')
+[void]$sb.AppendLine('// stands and VersionConformancePass.VisitReservedGatedWord — the ONE funnel arm — answers COBOL0901: every')
+[void]$sb.AppendLine('// use of this rule is a user-defined-word slot (every definition slot, and procedureName, references')
+[void]$sb.AppendLine('// included; kb/Work PB4206), so a new slot needs no new C#.')
 [void]$sb.AppendLine('reservedGatedWord')
 for ($i = 0; $i -lt $gatedTokens.Count; $i++) {
     $sep = if ($i -eq 0) { ': (' } else { '  |' }
