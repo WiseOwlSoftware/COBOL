@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "COBOL0805: MULTIPLY: the composite of operands spans 32 digits"}

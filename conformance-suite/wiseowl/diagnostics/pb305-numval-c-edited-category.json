@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "argument-1 is of an EDITED category (numeric-edited), which the CATEGORY wording of ISO §15.68.3 r1 does not admit"}

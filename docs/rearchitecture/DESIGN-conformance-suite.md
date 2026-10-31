@@ -95,7 +95,7 @@ its own directory's edition today; which editions each belongs in is what §6 st
 | `requires` | Optional modules (Annex A.4) and processor-dependent elements (Annex A.3) the test needs, spelled `A.4.<n>` (the module's subclause, `A.4.11` Report Writer) and `A.3-<n>` (the element's item); the generator reads the valid names from the standard's annexes. A compiler whose profile does not claim one gets NOT APPLICABLE |
 | `implementor-defined` | §3.3: Annex A.1 items whose standard-enumerated value the expected output depends on, by item number |
 | `files` | Copybooks, data files and other compilation units the test needs, beside it; the generator refuses a COPY (in the program or in a declared copybook) of an undeclared library text, a declared file that is not there, and a file in a clause folder no test declares or expects |
-| `build` | A WiseOwl test only (kb/Work PB2101; DESIGN-external-repository §17.1): the compilation steps of a multi-unit test, an ordered flow list of quoted items, each `"<declared file>"` or `"<declared file> > <output base name>"`, with `"{self}"` standing for the test's own source (appended last when the list omits it): `*> build: ["pb2101_callee.cbl > P2101LIB", "{self}"]`, or a stale caller `["CALLEE1.cbl > CALLEE", "{self}", "CALLEE2.cbl > CALLEE"]` (the callee rebuilt after its caller). How separately compiled units find each other is §8.13's implementor mechanism, not a portable program, so `build` is refused in `cases/`. Every step's file is in `files` (a unit's extension is `.cbl`, because the generator reads every `*.cob` of a folder as a test); a step's output defaults to the file's base name; two steps may not compile into one output before `{self}` (the first would be overwritten unused) and no output may be the test's own id. The runner compiles the steps in list order into the test's one working directory, which is the run unit's application directory and the default repository directory, so a case writes no repository option; a step that needs a compile option takes it from `wiseowl/options.json`, keyed `<id>/<step file>` (`repository-update on\|off` is one) |
+| `build` | A WiseOwl test only (kb/Work PB2101; DESIGN-external-repository §17.1): the compilation steps of a multi-unit test, an ordered flow list of quoted items, each `"<declared file>"` or `"<declared file> > <output base name>"`, with `"{self}"` standing for the test's own source (appended last when the list omits it): `*> build: ["pb2101_callee.cbl > P2101LIB", "{self}"]`, or a stale caller `["CALLEE1.cbl > CALLEE", "{self}", "CALLEE2.cbl > CALLEE"]` (the callee rebuilt after its caller). How separately compiled units find each other is §8.13's implementor mechanism, not a portable program, so `build` is refused in `cases/`. Every step's file is in `files` (a unit's extension is `.cbl`, because the generator reads every `*.cob` of a folder as a test); a step's output defaults to the file's base name; two steps may not compile into one output before `{self}` (the first would be overwritten unused) and no output may be the test's own id. The runner compiles the steps in list order into the test's one working directory, which is the run unit's application directory and the default repository directory, so a case writes no repository option; a step that needs a compile option takes it from `wiseowl/options/<id>.<step file>.json` (`repository-update on\|off` is one) |
 | `source-format` | `fixed` or `free`, required on every test (compilers differ in their default) |
 | `portable` | `unverified` on every migrated test until its clause pass (§6 step 2) clears it; the suites carry only cleared tests |
 
@@ -132,7 +132,7 @@ COBOL with `FLAGSTD` warns and still translates). So:
   expectation at 85 (a program that observes an exception condition: a TURN directive, an `EC-` name or an exception
   function, §15.28-15.33), and abnormal termination is not a portable expectation (exit status is not standard).
 - WiseOwl's own stricter checks (that it refuses, and with which code) stay outside the cases, in
-  `wiseowl/diagnostics.json` (§4).
+  `wiseowl/diagnostics/` (§4).
 
 ### 3.3 Expected output that is portable
 
@@ -195,8 +195,11 @@ conformance-suite/
   adapters/<compiler>.json    compile, run and flag commands, the edition map, the ASSIGN mapping (§5)
   baselines/<compiler>.json   that compiler's recorded verdicts (§5)
   harness/                    the generator and the runner (§5)
-  wiseowl/diagnostics.json    WiseOwl's refusals: per test, the editions at which WiseOwl refuses it and the code
-                              or message substring it reports (today's reject-at + .err, carried over by §6 step 1)
+  wiseowl/diagnostics/<id>.json  WiseOwl's refusals, ONE FILE PER TEST: the editions at which WiseOwl refuses it
+                              and the code or message substring it reports (today's reject-at + .err, carried over
+                              by §6 step 1)
+  wiseowl/options/<id>.json   the WiseOwl compile options of a WiseOwl test, one file per test (`<id>.<step file>.json`
+                              for one build step of a multi-unit test)
   wiseowl/cases/<clause>/     WiseOwl-only regression tests, same format: documented non-support, tests of no
                               normative rule, tests that cannot be made portable; the generator writes them to a
                               `wiseowl` manifest only, never to a suite
@@ -204,6 +207,18 @@ conformance-suite/
 
 - **In this repository**, not a separate one: a compiler fix and its test land in one change and CI runs both. The
   folder's own LICENSE lets it be licensed apart from the compiler.
+- **WiseOwl's own facts about a test (its refusal, its compile options) are one file per test, never one shared file**
+  (kb/Work PB4147): `wiseowl/diagnostics/<id>.json` is `{"refuse-at": [...], "expect": "..."}` and `wiseowl/options/<id>.json`
+  is `{"<option>": "<value>"}`, with `<id>.<step file>.json` for one build step of a multi-unit test (an id holds no `.`,
+  §3.1, so the first one begins the step file; `generate.sidecar_key` is the one reader of the name). The registries were
+  two JSON objects keyed by test id, which every landing that added a refusal edited. GitHub's merge queue runs no merge
+  driver, so `enqueue.py` admitted one such pull request at a time (61 of the landing lane's 79 driver-file holds were this
+  file) and the queue's five-wide build went unused. A file per test makes two refusals share nothing, so no driver
+  is needed and the shape stays right for the next case (CLAUDE.md rule 5). The alternative of putting `refuse-at` and
+  `expect` in the refused test's own header was rejected: `cases/` tests are compiler-neutral and every adapter's harness
+  reads their headers, while a WiseOwl diagnostic code is exactly what §1 keeps out of them. The generator refuses a
+  file that is not `<key>.json`, one that is not JSON, and an entry naming no test; `MergeDriverDriftTests` keeps the
+  registries from becoming one file again and keeps a merge driver off every path of the suite.
 - **Filed by clause**, because edition is metadata: a folder per clause shows coverage against the standard's
   structure, and an inherited rule's test is written once.
 - **The generator** (`harness/generate.py`, with `harness/cobol_source.py` for the facts it reads from program
@@ -216,13 +231,13 @@ conformance-suite/
   a test missing `source-format`, or whose block is written in the other form; an unknown field; a missing or unused
   expected output; an A.1 item or `requires` name the registries lack; a test filed under a clause none of its rules
   belongs to, or with no rules outside `_unassigned/`; a folder not named `<clause>-<Name>`; a file no test declares;
-  a `wiseowl/diagnostics.json` entry naming no test or refusing a test where it must be accepted, and a flagged test
+  a `wiseowl/diagnostics/` file naming no test or refusing a test where it must be accepted, and a flagged test
   without one; a `build` outside the wiseowl tree, naming an undeclared file, a bad output name, an output compiled twice
   before the test's own source or `{self}` twice (§3.1); a portability-lint violation in a test the suites carry. It writes `suites/<edition>/manifest.json`
   per edition (the cleared tests of `cases/`, not `_unassigned/`, that apply there, with their expectation: the
   expected-output file per A.1 value, or the flag kind, the marked line and the control), and
   `suites/wiseowl/manifest.json`: every test of both trees at each edition it names, portable or not, and the
-  `wiseowl/diagnostics.json` refusals, each with the refused test's source, reference format and declared files,
+  `wiseowl/diagnostics/` refusals, each with the refused test's source, reference format and declared files,
   which is what WiseOwl's own runner executes (S1c). A multi-unit test's entry carries `build`: its steps in order, each
   `{file, output, options}` with `file` and `output` null for the test's own source. Only WiseOwl's in-process runner
   (`ConformanceSuiteRunner`) reads the `wiseowl` manifest, so it is the one runner that executes `build`; `run.py` reads
@@ -290,7 +305,7 @@ conformance-suite/
   others' (each edition's record is a whole run of its suite), and `--test` is refused with it. `run.py` executes the per-edition suites; the `wiseowl` manifest and its
   refusals are the in-process xUnit runner's (S1c).
 - **In WiseOwl's own pipeline**: the xUnit runner in `WiseOwl.Cobol.Tests.Conformance` executes the same manifests
-  in-process (fast) and also checks `wiseowl/diagnostics.json`; the drift test that requires the two runners'
+  in-process (fast) and also checks `wiseowl/diagnostics/`; the drift test that requires the two runners'
   verdict sets to be equal runs `harness/run.py` with the WiseOwl adapter itself, on the same generated suites, so
   every gate and both of CI's operating systems run it (no CI job of its own, which a local gate would not
   reproduce). The output normalization exists in both languages by nature (`CutRunner.Normalize` in C#; LF,
@@ -308,7 +323,7 @@ conformance-suite/
    known: `rules` from those rows; `accept` = its current directory's edition only; `source-format` for EVERY test,
    from the same detector the runner uses today; `files` from its COPY statements and data files; `portable:
    unverified`. Negative programs keep their `reject-at` editions and their `.err` expectation, code or message
-   substring, in `wiseowl/diagnostics.json`; they become flagged tests only in their clause pass (step 2), when a
+   substring, in `wiseowl/diagnostics/`; they become flagged tests only in their clause pass (step 2), when a
    control is written. **Programs that witness documented non-support** (every citing row DOCUMENTED-NON-SUPPORT, or a
    non-support diagnostic in the `.err`: the 84 negatives among them) go to `wiseowl/cases/` (§4), never to
    `cases/`; `DocumentedNonSupportWitnessTests` and `DeclinedFacilityTests` keep pinning them there.
@@ -367,7 +382,8 @@ conformance-suite/
 - Every inventory `test-ref` naming a suite test resolves to a file; every test's `rules` exist in the inventory.
 - Every `accept`/`flag` list agrees with `constructs.json`; every flagged test's control exists and is accepted at
   the same editions.
-- Every flagged test has a `wiseowl/diagnostics.json` entry, and every entry names an existing test.
+- Every flagged test has a `wiseowl/diagnostics/<id>.json` file, and every file names an existing test; nothing else sits in
+  a registry directory, and no merge driver governs a path of the suite (`MergeDriverDriftTests`, kb/Work PB4147).
 - The xUnit runner and `harness/run.py` (WiseOwl adapter) report the same verdict for every test.
 - The two output normalizations agree on the shared fixture.
 - The completeness report (§4) is printed by the generator and shown on the ledger per edition.
@@ -477,7 +493,7 @@ hold the status, this section the scope. Every slice ships its own tests and dri
   compiler's own failure.
 - **S1c — WiseOwl's manifest runner (PB3176).** An xUnit runner in `tests/WiseOwl.Cobol.Tests.Conformance` that executes
   the generator's manifests in-process (accept: compile, run, compare through `CutRunner.Normalize`; flag: the
-  diagnostic at the marked line; `wiseowl/diagnostics.json`: the refusal and its code or message), and the drift
+  diagnostic at the marked line; `wiseowl/diagnostics/`: the refusal and its code or message), and the drift
   tests of §9: equal verdicts with `run.py` on the WiseOwl adapter, and the two normalizations on one shared fixture.
   **As landed:** `ConformanceSuiteTests` (one row per test and edition of the `wiseowl` manifest, red on FAIL or NO
   VERDICT as `run.py` is with no baseline; one row per refusal and edition, which the front end or the binder must
@@ -498,7 +514,7 @@ hold the status, this section the scope. Every slice ships its own tests and dri
   as `CorpusRunnerTests` is (kb/Work PB2527), and decides the verdict drift test's shape at that size, since `run.py`
   starts one `cobol` process per compile.
 - **S2 — the move (PB3177).** §6 step 1, in one landing: the converter (committed on the branch for review, deleted
-  before it lands: the move is its output), the moved tree, `wiseowl/cases/` and `wiseowl/diagnostics.json`, the
+  before it lands: the move is its output), the moved tree, `wiseowl/cases/` and `wiseowl/diagnostics/`, the
   inventory's citations and ref grammar, every consumer of §2's command, the arch-oracle baseline, the hook, CI, the
   skills and the open notes, `CorpusRunnerTests`/`CorpusManifest`/`tests/conformance/` deleted, and the neutrality
   proof's evidence in the note. `tests/conformance/README.md`'s authoring guide moves to `conformance-suite/README.md`,
@@ -521,7 +537,7 @@ hold the status, this section the scope. Every slice ships its own tests and dri
   refuses it and a finisher restores the three from the branch's history, at c9a1ffdb2, re-runs them and deletes them
   again, as it did once for PB370's four) moved 5,236 programs (2,478 positive, 2,758 negative; the first run's 5,219
   and three re-runs' 17) into 5,127 tests of `cases/` and 109 of `wiseowl/cases/`, 2,758 refusals into
-  `wiseowl/diagnostics.json`, two compile options into `wiseowl/options.json`, and rewrote the inventory's citations
+  `wiseowl/diagnostics/`, two compile options into `wiseowl/options/`, and rewrote the inventory's citations
   (7,920 at the first run); a sweep rewrote the other files' citations, the moved tests' own comments included. No map
   survives the move, because none is needed: the witness-loss audit reads a moved test's identity from git's
   rename record across the change (`audit_witness_loss.respellings`; `inventory_schema.witness_losses` excuses a
@@ -541,7 +557,7 @@ hold the status, this section the scope. Every slice ships its own tests and dri
   positions, ISO 6.1); a library text is read by its byte-order mark and staged as bytes; `cobol_source.py` follows
   SOURCE FORMAT directives (ISO 7.3.24.3 GR 1) and reads no COPY in a directive's text (7.3.19.4 GR 1); a test that
   is only refused may COPY an unavailable text (7.2.3.4 GR 2); a WiseOwl test may declare a library folder
-  (`<library>/<file>`), take WiseOwl compile options (`wiseowl/options.json`) and use free form at 85 (WiseOwl's
+  (`<library>/<file>`), take WiseOwl compile options (`wiseowl/options/`) and use free form at 85 (WiseOwl's
   extension); an annex clause folder (`A.1-…`) is a clause folder; the in-suite verdict drift test keeps its shape,
   because a migrated test is `portable: unverified` and in no per-edition suite until its clause pass. The line numbers
   the header moves are moved in the expectations that quote them (a diagnostic's `(line,column)`, a reported
