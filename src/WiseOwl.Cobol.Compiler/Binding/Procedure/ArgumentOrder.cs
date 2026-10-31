@@ -34,6 +34,13 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// a value: <see cref="Hold"/> holds ITS arguments and the call is read over them, a pure selection reading what it read at its
 /// place. Any other held argument is described by its value (<c>FunctionDeviceText.Field</c>).</para>
 ///
+/// <para><b>A table(ALL) argument is a sequence of arguments, and is held as a table (kb/Work PB4162).</b> §15.3 14): "When ALL is
+/// specified as a subscript, the effect is as if each table element associated with that subscript position were specified", each
+/// evaluated where it stands in the list. <c>IntrinsicBinder.TryBindAllArgument</c> records the operand it builds like any other, and
+/// <see cref="StoreAt"/> holds it with <see cref="SendingValueTemp.MaterializeTableAll"/>: a compiler-temporary TABLE of the element's
+/// own description, copied from the enumeration at the argument's place, which the call then enumerates in its stead - so a nested call
+/// naming an ALL is held by holding its arguments (<see cref="Hold"/>) like every other selecting call.</para>
+///
 /// <para><b>An object property is an argument evaluated IN ITS PLACE (kb/Work PB1932).</b> Its value is temp-1,
 /// "determined as though the associated get property method were invoked" (§8.4.3.9.4 GR1), so the GET IS the
 /// argument's evaluation. Every property reference in a function argument is SENDING — an intrinsic argument always

@@ -45,6 +45,13 @@ public sealed class HeldFunctionArgumentDescriptionTests : WiseOwlCobolTestBase
         ("plus", "WS-A * WS-B + WS-S", false),
         ("lit", "21", false),
         ("litneg", "-21.50", true),
+        // kb/Work PB4162: a table(ALL) argument is held as a table of its elements, and a nested call naming one is held as the call it is
+        ("all", "WS-TA (ALL)", false),
+        ("allmax", "FUNCTION MAX(WS-TA (ALL), 5)", false),
+        ("allmax2", "FUNCTION MAX(FUNCTION MAX(WS-TA (ALL), 5), 6)", false),
+        ("allsum", "FUNCTION SUM(WS-TA (ALL))", false),
+        ("allmean", "FUNCTION MEAN(WS-TA (ALL))", false),
+        ("allabs", "FUNCTION ABS(FUNCTION MIN(WS-TB (ALL)))", false),
     ];
 
     /// <summary>The outer selection, the filler that never wins it (a literal, and the same value held behind an activation), and
@@ -86,6 +93,10 @@ public sealed class HeldFunctionArgumentDescriptionTests : WiseOwlCobolTestBase
         01 WS-LO PIC 9(8) VALUE 0.
         01 WS-HI PIC 9(8) VALUE 99999999.
         01 WS-N PIC 9(4) VALUE 0.
+        01 WS-TA-REC.
+           05 WS-TA PIC 9(8) OCCURS 3 VALUE 21.
+        01 WS-TB-REC.
+           05 WS-TB PIC S9(3)V99 OCCURS 2 VALUE -12.50.
         PROCEDURE DIVISION.
         MAIN.
 
