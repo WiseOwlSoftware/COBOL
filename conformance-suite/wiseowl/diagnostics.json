@@ -14578,7 +14578,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL5506: cannot parse construct near '\"A\"'. The alphanumeric literal \"A\" is not expected here: of the literals, only a numeric literal is expected at this position"
+  "expect": "COBOL5506: cannot parse construct near '\"A\"'. The alphanumeric literal \"A\" is not expected here: of the literals, only a numeric literal or the figurative constant ZERO is expected at this position"
  },
  "pb3391-special-names-locale-shape-word": {
   "refuse-at": [
@@ -15385,6 +15385,21 @@
    "2023"
   ],
   "expect": "'ZERO + 1' is not one of the operands"
+ },
+ "pb3148-validate-statement-below-2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0900: the VALIDATE statement requires COBOL-2002 (targeting COBOL-85)"
+ },
+ "pb4120-set-up-by-zero-touching-sign": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2993"
  },
  "pb3981-compute-zero-touching-sign": {
   "refuse-at": [
