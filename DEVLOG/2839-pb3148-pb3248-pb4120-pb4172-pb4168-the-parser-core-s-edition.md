@@ -1,4 +1,4 @@
-## PB3148, PB3248, PB4120 (+ PB4172), PB4168: the parser core's edition gate, reserved-word recovery and bare ZERO
+## Entry 2839 — 2026-10-30 21:46 PDT — PB3148, PB3248, PB4120 (+ PB4172), PB4168: the parser core's edition gate, reserved-word recovery and bare ZERO
 
 Wave 20261780 group C, one root file (`CobolParserCore.g4` and the parse machinery around it). Each note was re-probed on this
 tree's Debug build (0/0) before any change.
@@ -62,3 +62,4 @@ token) is a lead.
 No inventory row changed verdict (the claimed rows were none; the touched format rows already CONFORM). Codes COBOL5596-5598 were
 not needed and are returned. Docs: DESIGN-frontend-grammar.md (the reservation gate's recovery, the ZERO round, `facilityWord`'s
 scope), docs/CONFORMANCE.md A.4.14.
+
