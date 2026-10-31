@@ -287,6 +287,17 @@ public sealed partial class DataBinder
     /// can span tiers, so the nearest-tier filter is free for every other unit.</summary>
     internal bool InheritsGlobalData => _inheritedGlobalDepth.Count != 0;
 
+    /// <summary>⛔ THE ONE QUESTION "IS THIS WORD A DATA-NAME THIS SOURCE ELEMENT ITSELF DEFINES?" — the test behind
+    /// every rule that reads "shall not be defined elsewhere in the source element" (§13.18.38.3 SR30 for a CAPACITY
+    /// register, §13.18.64.3 SR2 for a report VARYING counter) and behind the report section's "also declared in
+    /// ordinary storage" screens (§8.4.2.1). A container's GLOBAL data-name is inherited into <see cref="ByName"/>
+    /// before the resolve passes run (<see cref="InheritContainerGlobalData"/>), but it is defined in ANOTHER source
+    /// element: this element's own declaration of the spelling hides it (§8.4.6.2.1 3), so it can neither duplicate
+    /// nor be duplicated by it. Asking <c>ByName.ContainsKey</c> instead refuses a legal program (kb/Work PB3766,
+    /// review finding R2-1).</summary>
+    internal bool DeclaresOwnDataName(string name) =>
+        ByName.TryGetValue(name, out var items) && items.Any(i => DeclaringDepth(i) == 0);
+
     /// <summary>The containers' named GLOBAL data roots (ISO §13.18.27.4 GR1/GR2), nearest container first, each with
     /// its containment distance; set by <c>BinderDriver.BindUnitData</c> before the unit binds and inherited by
     /// <see cref="InheritContainerGlobalData"/> (kb/Work PB3766, review finding R1-1).</summary>
@@ -317,8 +328,8 @@ public sealed partial class DataBinder
     /// total: a name index this binder gains is inherited here or excluded there with its reason. Each item carries its depth, so
     /// a nearer declaration of the same spelling wins by §8.4.6.2.1 3) at REFERENCE time
     /// (<see cref="Model.SymbolTable.NearestDeclaring{T}"/>), not by being left out here. Called nearest container
-    /// first, after this unit's own data division has bound, so each name list stays in nearest-first order. The
-    /// cells stay the container's: this unit reaches them through the GLOBAL bridge
+    /// first, after this unit's own names are declared (the end of <see cref="BindDeclarations"/>), so each
+    /// ByName list stays in nearest-first order. The cells stay the container's: this unit reaches them through the GLOBAL bridge
     /// (<see cref="GlobalBridgesOf"/>) and never emits them.</summary>
     internal void InheritGlobalSubtree(DataItem item, int depth)
     {
@@ -334,8 +345,9 @@ public sealed partial class DataBinder
             conds.Add(cond);
         }
         foreach (var idx in item.Indexes) IndexNames.Inherit(idx, depth);
-        // Appended after this element's own register and each nearer container's (nearest first, as called), the
-        // order ReferenceResolver.CapacityRegisterFor reads. A register the container refused (SR30's COBOL1523)
+        // Placed by depth (AddCapacityRegister): this element's own registers, minted later by DynamicResolve, sort
+        // in before it, a nearer container's before a farther one's — the order
+        // ReferenceResolver.CapacityRegisterFor reads. A register the container refused (SR30's COBOL1523)
         // failed that compile and has no CapacityRegister view to inherit.
         if (item.OccursSpec is { CapacityName: { } cap, CapacityRegister: not null }) AddCapacityRegister(_capacityRegisters, cap, item);
         foreach (var child in item.Children) InheritGlobalSubtree(child, depth);

@@ -4363,7 +4363,7 @@ public sealed partial class DataBinder
             // item or constant is in ByName; a report group entry, printable item or sum counter is a report section
             // name of some report of the source element, all of which are described by now.
             foreach (var name in model.VaryingNames)
-                if (ByName.ContainsKey(name) || IsReportSectionOnlyName(name))
+                if (DeclaresOwnDataName(name) || IsReportSectionOnlyName(name))
                     Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"RD '{model.Name}' VARYING '{name}': the counter "
                         + "data-name shall not be defined elsewhere in the source element (ISO §13.18.64.3 SR2)");
 
@@ -5053,7 +5053,7 @@ public sealed partial class DataBinder
     /// are not subscripts (§8.4.3.2.3 SR2) — and a reference modification (<c>refModPart</c>) has none.</summary>
     private IEnumerable<string> SubscriptWordsOfReference(Core.DataReferenceContext dref)
     {
-        if (dref.cobolWord()?.GetText() is not { } baseWord || !(ByName.ContainsKey(baseWord) || IsReportSectionOnlyName(baseWord)))
+        if (dref.cobolWord()?.GetText() is not { } baseWord || !(DeclaresOwnDataName(baseWord) || IsReportSectionOnlyName(baseWord)))
             yield break;
         foreach (var suffix in dref.dataReferenceSuffix())
         {
@@ -5082,7 +5082,7 @@ public sealed partial class DataBinder
     private bool IsReportSubscriptCounter(string word) =>
         CobolNames.Same(word, "LINE-COUNTER")
         || CobolNames.Same(word, "PAGE-COUNTER")
-        || (!ByName.ContainsKey(word) && Reports.Any(r => r.NamedEntries.Any(e =>
+        || (!DeclaresOwnDataName(word) && Reports.Any(r => r.NamedEntries.Any(e =>
             e.IsSumCounter && CobolNames.Same(e.Name, word))));
 
     /// <summary>⛔ ISO §8.4.2.3.3 SR8 (kb/Work PB1474) — "In the report section, neither a sum counter nor the LINE-COUNTER
@@ -5131,7 +5131,7 @@ public sealed partial class DataBinder
     {
         var names = new List<string>();
         foreach (var entry in model.NamedEntries)
-            if (!ByName.ContainsKey(entry.Name) && !names.Contains(entry.Name, CobolNames.Comparer))
+            if (!DeclaresOwnDataName(entry.Name) && !names.Contains(entry.Name, CobolNames.Comparer))
                 names.Add(entry.Name);
         return names;
     }
