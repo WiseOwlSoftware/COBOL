@@ -3,6 +3,7 @@
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Binding;                // ConditionalStatements, Table12StatementNames
+using WiseOwl.Cobol.Binding.Procedure;      // ProcedureNameShape — the one reader of a procedure-name node
 using WiseOwl.Cobol.Editions;               // IDiagnosticSink / EditionDiagnostic / EditionSeverity
 using WiseOwl.Cobol.Editions.Diagnostics;   // DiagnosticCatalog
 using WiseOwl.Cobol.Frontend.Generated;     // CobolParserCore
@@ -163,7 +164,7 @@ internal sealed class ProcedureFormatPass(IDiagnosticSink sink) : CursorFollowin
             var paragraphs = units.Select(u => u.paragraphDefinition()).OfType<Core.ParagraphDefinitionContext>().ToList();
             if (paragraphs.Count > 0)
                 ReportFormat(paragraphs[0],
-                    $"paragraph {paragraphs[0].paragraphName().GetText().ToUpperInvariant()} is not in a section"
+                    $"paragraph {ProcedureNameShape.Head(paragraphs[0].paragraphName().procedureName()).ToUpperInvariant()} is not in a section"
                     + (paragraphs.Count > 1 ? $" (nor are {paragraphs.Count - 1} more paragraphs after it)" : "")
                     + $" — {why}, and §14.4.1: \"If one paragraph is in a section, all paragraphs shall be in sections\"");
         }

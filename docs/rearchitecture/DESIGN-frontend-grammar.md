@@ -673,12 +673,20 @@ the keyword is not reserved (an older edition, `--permissive`), and it deliberat
 was MEASURED, not reasoned: a first cut dropped the guard after PROPERTY (gated) proved safe without it, and the
 drift test then failed on BIT; a second cut that excluded only clause-LEADING words then let
 `USAGE POINTER HIGH-ORDER-RIGHT` bind the endianness phrase (UsageClausePhraseDriftTests caught it). So the
-TO-less arm is `{pointerOperandHere()}? cobolWord`, a LEFT-EDGE predicate (`CobolParserCoreBase`) refusing any
-token in FOLLOW(`usageKeyword`) — the USAGE tail phrases and whatever may follow the clause — **computed off the
-generated ATN** (`UsageFollowSet`, a context-free FOLLOW over every call site) — never a hand list, so a clause or
-USAGE phrase added to the grammar is excluded automatically. `PointerUsageOperandDriftTests` (Unit) derives
-FOLLOW(usageKeyword) ∩ FIRST(cobolWord) from the ATN and, for every such word at every edition, parses
-`USAGE {POINTER|PROGRAM-POINTER|FUNCTION-POINTER} W.` and demands an empty operand. The binders read the OPERAND's presence, never the TO token's (`DataBinder`:
+TO-less arm is `{pointerOperandHere()}? cobolWord`, a LEFT-EDGE predicate (`CobolParserCoreBase`) refusing a word
+that is the KEYWORD of what follows the usage IN THIS ENTRY — the USAGE tail phrases and the entry's next clause —
+**walked off the generated ATN from the pointer rule's end through the parser's live rule-invocation stack**
+(`KeywordContinuesFrom`, the one question `keywordContinuesHere` asks at a list's end), never a hand list, so a
+clause or USAGE phrase added to the grammar is excluded automatically. ⛔ It is never the context-free
+FOLLOW(`usageKeyword`) (kb/Work PB4235): the usage clause is a clause of the data description entry, the report
+group description entry AND the screen description entry, and that union refused the thirteen §8.10 screen words
+(AUTO, BELL, SECURE …, context-sensitive in the "screen description entry", user-defined words elsewhere by
+§8.3.2.1 3)) as a data entry's type-name with a false COBOL1941. Reading the rule's END as the slot's exit holds
+because the optional operand is each pointer rule's last element, and it gives the same answer in prediction and in
+the inline check. `PointerUsageOperandDriftTests` (Unit) derives each entry's OWN follow of a usage keyword from the
+ATN along that entry's rule chain and, for EVERY word `cobolWord` admits, parses
+`USAGE {POINTER|PROGRAM-POINTER|FUNCTION-POINTER} W` in that entry (the data entry at every edition) and demands the
+operand exactly when W does not follow; it also holds the last-element shape. The binders read the OPERAND's presence, never the TO token's (`DataBinder`:
 the §13.18.60.3 SR18/SR19 screen and FUNCTION-POINTER's mandatory operand). The same
 REQUIRED-INSIDE-AN-OPTIONAL-GROUP shape was OBJECT REFERENCE's `(FACTORY OF)?`, whose OF is also unstressed on
 folio 503; it is `(FACTORY OF?)?` now. Both are pinned by `OptionalWordSubsetDriftTests` rows, the guard the gates
