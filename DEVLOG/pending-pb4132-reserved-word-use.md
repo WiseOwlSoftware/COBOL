@@ -32,3 +32,11 @@ RETRY rows and the arm that keeps COBOL0901 where a user word stands. `EditionRe
 `ReservedUserWordViolation` read. Docs: DESIGN-frontend-grammar.md (the reservation gate and the parse-error path), DESIGN.md.
 
 **Rows.** None re-verdicted: every program involved was already refused; the landing names the true fault.
+
+**Self-review.** Architecture: the §8.9 diagnosis is now one decision in the strategy's one report path, read by the report and
+its recovery; the listener no longer overrides a ranked diagnosis. Duplication: the closed-construct prologue two members shared
+is one member. Performance: the new reads run only on a syntax error at a reserved gated word. Silent failure: an expected set the
+parse cannot compute keeps COBOL0901, the earlier behaviour.
+
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` on 1546da903 (run 000001-20261031T174911Z:
+Conformance 10,376, Unit 7,127 and Characterization 6 cases; Linux half (WSL clone of HEAD) GREEN).
