@@ -608,7 +608,9 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             && AdmittedKinds.Refusal(token, admitted.Tokens, admitted.Words, StatementBlockStart(recognizer),
                    at.APeriodLetsTheSentenceFollow,
                    ZeroTokenRewriter.AZeroWrittenAtIsArithmetic(((BufferedTokenStream)recognizer.InputStream).GetTokens(),
-                       token.TokenIndex)) is { } kindMsg)
+                       token.TokenIndex),
+                   // The words the compile edition has (kb/Work PB4174): the parse is the superset of the editions.
+                   recognizer is CobolParserCoreBase editionParser ? editionParser.PrintsKeyword : _ => true) is { } kindMsg)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL5506, kindMsg, 0));
 
         // ⛔ NO "MISSING SPACE BEFORE / AFTER STRING LITERAL" GUESS HERE (kb/Work PB1394). A literal delimiter that is not

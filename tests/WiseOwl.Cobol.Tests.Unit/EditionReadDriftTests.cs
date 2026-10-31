@@ -100,7 +100,7 @@ public sealed class EditionReadDriftTests
     {
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs"] =
         [
-            "IsKeywordReadingHere", "NoteGatedOffender", "ReservedGatedWord",
+            "IsKeywordReadingHere", "NoteGatedOffender", "PrintsKeyword", "ReservedGatedWord",
             "ReservedUserWordViolation", "conditionalPhraseAssociates", "entryNameHere", "facilityWord",
             "gatedDeclaration", "is2002", "is2014",
             "is2023", "is85", "keywordContinuesHere", "reservedHere", "screenPositionAhead", "setLocaleAhead",
@@ -156,6 +156,10 @@ public sealed class EditionReadDriftTests
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4 | LPAREN | OnDefaultLParen"] = (1, Verdict.WordStatus),
         // The listeners: the authoritative pass's syntax-error listener reports and retypes a reservation-gated word.
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorListener.cs | CobolErrorListener.SyntaxError | ReservedUserWordViolation"] = (1, Verdict.WordStatus),
+        // The error strategy's COBOL5506 sentence names the keywords EXPECTED at a refused token, and only those a general
+        // format of the compile edition can print (kb/Work PB4174): §8.9 reserves the word there, or it is a context-sensitive
+        // word. It refuses nothing itself and gates no construct.
+        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.GuessCobolIntent | PrintsKeyword"] = (1, Verdict.WordStatus),
         ["src/WiseOwl.Cobol.Frontend/Parsing/ReservationGateRewriter.cs | OffenderWitness.SyntaxError | NoteGatedOffender"] = (1, Verdict.WordStatus),
         // The front end's driver decides whether a re-parse lexes differently because a word the program declared is
         // reserved at the edition.
