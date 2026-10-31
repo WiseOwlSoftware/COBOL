@@ -2423,15 +2423,20 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 var cands = QualifiedCandidates(keyName, quals, Model.Scope.Program);
                 var inFile = cands.Where(i => RecordLayout.IsInRecordOfFile(file, i));
                 using var __ = Edition.At(at);
-                var hit = UniqueOrReportAmbiguous(inFile.Count > 0 ? inFile : cands, face,
-                    WrittenQualified(keyName, quals), out bool ambiguous);
-                if (ambiguous && hit is null) refusedKeys.Add(keyName);
+                string written = WrittenQualified(keyName, quals);
                 // A name the REPORT SECTION declares is not "nothing described" either (kb/Work PB3768's sibling arm):
                 // §13.8.6.2.3 bars the key clause from referring to a report item, the ONE refusal says so, and
-                // SR2's row stays silent about an operand already refused.
-                else if (hit is null && cands.Count == 0
-                    && ReportEntryReferenceRefused($"{face} '{WrittenQualified(keyName, quals)}'", keyName, quals))
+                // SR2's row stays silent about an operand already refused. It is asked before the ambiguity, which it
+                // leaves standing unless a report entry of a NEARER source element hides the data items (kb/Work
+                // PB3767's one order, ISO §8.4.6.2.1 3) a)); a key item of the file's own record is never hidden.
+                if (inFile.Count == 0 && cands.Count != 1
+                    && ReportEntryReferenceRefused(cands, $"{face} '{written}'", keyName, quals))
+                {
                     refusedKeys.Add(keyName);
+                    return null;
+                }
+                var hit = UniqueOrReportAmbiguous(inFile.Count > 0 ? inFile : cands, face, written, out bool ambiguous);
+                if (ambiguous && hit is null) refusedKeys.Add(keyName);
                 return hit;
             }
             // ⛔ ONE RESOLUTION FOR BOTH KEY FORMS (kb/Work PB1099 Q1): data-name-1 is the key's one segment, and
@@ -2509,15 +2514,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (_refusedClauseOperands.Contains(name)) return null;   // already refused at capture — one fault, one verdict
         using var __ = Edition.At(at);
         string written = WrittenQualified(name, quals);
-        // The ambiguity is told first unless a report entry of a NEARER source element is the referenced item
-        // (DataItemsAmbiguousBeforeReportEntry, kb/Work PB3767: ISO §8.4.6.2.1 3) a)); the report section's own clauses
-        // never ask the report-item refusal below, so for them the ambiguity always stands.
-        if (survivors.Count > 1 && (inReportSection || DataItemsAmbiguousBeforeReportEntry(survivors, name, quals)))
-            return UniqueOrReportAmbiguous(survivors, clauseFace, written, out _);
         // A name the REPORT SECTION declares is not undefined (kb/Work PB1046): §13.8.6.2.3 bars every clause of a data
         // division section other than the report section from referring to a report item. (The report section's own
-        // clauses are that section's; their operand rules are theirs.)
-        if (!inReportSection && ReportEntryReferenceRefused($"{clauseFace} '{written}'", name, quals)) return null;
+        // clauses are that section's; their operand rules are theirs, so for them the ambiguity always stands.) The
+        // refusal applies the one order (kb/Work PB3767): several survivors are the ambiguity unless a report entry of a
+        // NEARER source element is the referenced item (ISO §8.4.6.2.1 3) a)).
+        if (!inReportSection && ReportEntryReferenceRefused(survivors, $"{clauseFace} '{written}'", name, quals)) return null;
+        if (survivors.Count > 1) return UniqueOrReportAmbiguous(survivors, clauseFace, written, out _);
         // A name declared as something other than a data item is not undefined (kb/Work PB1906): the one query of what
         // it is, the same the procedure division's unidentified reference asks. A refused declaration was reported.
         var nonData = NonDataDeclarationOf(name, quals, Model.Scope.Program);
@@ -2757,17 +2760,19 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // reference that survives nothing, so this site reports the category sentence rather than a second
         // uniqueness one.
         // Counted (kb/Work PB978): two survivors are §8.4.2.2.3 SR1's ambiguity, reported once by the ONE verdict.
-        DataItem? item = UniqueOrReportAmbiguous(
-            QualifiedCandidates(dynName, file.AssignUsingQualifiers, Model.Scope.Program), "ASSIGN USING",
-            WrittenQualified(dynName, file.AssignUsingQualifiers), out bool ambiguous);
-        if (ambiguous && item is null) return;
+        var candidates = QualifiedCandidates(dynName, file.AssignUsingQualifiers, Model.Scope.Program);
+        string written = WrittenQualified(dynName, file.AssignUsingQualifiers);
         // A name the REPORT SECTION declares is not undescribed (kb/Work PB3768): §13.8.6.2.3 bars every clause of a
         // data division section other than the report section from referring to a report item, so the ONE refusal
-        // speaks (as ResolveClauseOperand does for the other file clauses) before "no such data item is described".
-        // The subject is the head of the refusal, so it names the phrase as written, never `ASSIGN … USING` (kb/Work
-        // PB4160: a head that elides the statement renders `ASSIGN . USING` on the console).
-        if (item is null && ReportEntryReferenceRefused(
-                $"ASSIGN USING '{WrittenQualified(dynName, file.AssignUsingQualifiers)}'", dynName, file.AssignUsingQualifiers)) return;
+        // speaks (as ResolveClauseOperand does for the other file clauses) before "no such data item is described",
+        // and before the ambiguity, which it leaves standing unless a report entry of a NEARER source element hides the
+        // data items (kb/Work PB3767's one order, ISO §8.4.6.2.1 3) a)). The subject is the head of the refusal, so it
+        // names the phrase as written, never `ASSIGN … USING` (kb/Work PB4160: a head that elides the statement renders
+        // `ASSIGN . USING` on the console).
+        if (candidates.Count != 1
+            && ReportEntryReferenceRefused(candidates, $"ASSIGN USING '{written}'", dynName, file.AssignUsingQualifiers)) return;
+        DataItem? item = UniqueOrReportAmbiguous(candidates, "ASSIGN USING", written, out bool ambiguous);
+        if (ambiguous && item is null) return;
         if (item is null || !ItemCategory.IsAlphanumeric(item))
         {
             Edition.Error(DiagnosticCatalog.AssignUsingNotAlphanumeric,

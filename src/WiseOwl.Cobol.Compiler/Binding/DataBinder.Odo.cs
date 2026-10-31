@@ -403,12 +403,17 @@ public sealed partial class DataBinder
             // involves the reference's own entry, or anything outside the copy, is the PLACEMENT's and is reported here.
             bool DeclarationFact(params DataItem[] involved) =>
                 item.IsCopiedUnder(placedAt) && Array.TrueForAll(involved, i => i.IsCopiedUnder(placedAt));
+            // A name the report section declares is not undefined (kb/Work PB1046): §13.8.6.2.3 bars this clause, of a
+            // section other than the report section, from referring to a report item. Asked for a reference that reaches no
+            // data item or several (a declaration's is asked by each clone, below), before the ambiguity, which it leaves
+            // standing unless a report entry of a NEARER source element hides the data items (kb/Work PB3767's one order,
+            // ISO §8.4.6.2.1 3) a)).
+            if (!declaration && tier.Count != 1
+                && ReportEntryReferenceRefused(tier, $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}'", depName, spec.DependingQualifiers))
+                continue;
             if (tier.Count == 0)
             {
                 if (declaration) continue;   // placed, and so checked, by each clone (above)
-                // A name the report section declares is not undefined (kb/Work PB1046): §13.8.6.2.3 bars this clause, of a
-                // section other than the report section, from referring to a report item.
-                if (ReportEntryReferenceRefused($"OCCURS DEPENDING ON '{writtenDep}' on '{subject}'", depName, spec.DependingQualifiers)) continue;
                 // Nor is a name declared as something other than a data item (kb/Work PB1906): the one query of what it is.
                 // A refused declaration was reported at its entry.
                 var nonData = NonDataDeclarationOf(depName, spec.DependingQualifiers, ScopeOf(item.Root));
