@@ -5,9 +5,9 @@
     python scripts/carry_retired_registers.py [--repo DIR]   # in a merge left in progress (`merge_drivers.py merge <ref> --keep`)
     python scripts/carry_retired_registers.py --self-test
 
-WHY. Two registers that most landings edited are one file per entry now, so two branches never share a file:
-WiseOwl's refusals (`conformance-suite/wiseowl/diagnostics.json` became `conformance-suite/wiseowl/diagnostics/<test id>.json`,
-PB4147) and the traceability inventory (`tests/version-matrix/traceability-inventory.json` became
+WHY. Three registers that landings edited are one file per entry now, so two branches never share a file: WiseOwl's
+refusals (`conformance-suite/wiseowl/diagnostics.json` became `conformance-suite/wiseowl/diagnostics/<test id>.json`, PB4147),
+its compile options (`wiseowl/options.json` became `wiseowl/options/<test id>.json`, PB4147) and the traceability inventory (`tests/version-matrix/traceability-inventory.json` became
 `tests/version-matrix/inventory/<rule-id>.json`, PB4148). A branch on one side of that change that edited the single file
 meets, at a merge with the other side, a MODIFY/DELETE conflict (git's DU or UD): one side deleted the file and the other
 changed entries in it, which no merge driver sees. Resolving it is mechanical, so this script does it. The entries the
@@ -19,11 +19,13 @@ THE RULE, for each register whose single file is unmerged with exactly one side 
 or 1 and 3): BASE is stage 1 (the merge base's file), EDITED is the stage that still holds it, CURRENT is the per-entry
 directory in the working tree (the deleting side's files, as git merged them). For every key whose entry differs between
 BASE and EDITED: CURRENT equal to BASE takes EDITED's entry (added, changed or removed); CURRENT equal to EDITED needs
-nothing; anything else is a REAL conflict (both sides changed that entry differently), reported by key, and that register
-is left unmerged for the finisher. A register with no such key is written through its own writer
-(`inventory_store.write_inventory`; one `{...}` line per test for the refusals, named by `generate.sidecar_path`), its
-single file is removed from the index and the tree, and its directory is staged. The refusal file's `$comment` header is
-no entry and is not carried. A single file both sides still hold is not this script's: that is a content conflict.
+nothing; anything else is a REAL conflict (both sides changed that entry differently), reported by key. Every key that is
+not in conflict is carried either way, through the register's own writer (`inventory_store.write_inventory`; one line per
+test for the refusals and options, named by `generate.sidecar_path`), and the directory is staged. A register with no key
+in conflict has its single file removed from the index and the tree. One with a key in conflict keeps it unmerged as the
+finisher's reminder: the finisher resolves ONLY the keys named, `git add`s them and then `git rm`s the single file (the
+entries carried are already in the tree, so nothing the editing side changed is lost). The refusal file's `$comment`
+header is no entry and is not carried. A single file both sides still hold is not this script's: that is a content conflict.
 
 EXIT: 0, nothing it carries is left unmerged (or there was nothing to carry); 1, a key in conflict, a single file
 unmerged in a shape it does not carry, or a per-entry directory its reader refuses (a stray or unreadable file), each
@@ -44,30 +46,35 @@ sys.path.insert(0, str(HERE / "spec"))
 sys.path.insert(0, str(REPO / "conformance-suite" / "harness"))
 import inventory_store  # noqa: E402
 from standard_streams import ensure_utf8  # noqa: E402
-from generate import DIAGNOSTICS_DIR, load_sidecars, sidecar_path  # noqa: E402
+from generate import DIAGNOSTICS_DIR, OPTIONS_DIR, load_sidecars, sidecar_path  # noqa: E402
 
 NL = chr(10)
 Entries = dict[str, Any]
 
 
-def _refusals_of(text: str) -> Entries:
+def _sidecars_of(text: str) -> Entries:
+    """A one-file-per-test registry's retired single file (`diagnostics.json`, `options.json`): key -> entry. The `$comment`
+    header the refusals' file carried is no entry."""
     return {k: v for k, v in json.loads(text).items() if not k.startswith("$")}
 
 
-def _read_refusals(directory: pathlib.Path) -> Entries:
+def _read_sidecars(directory: pathlib.Path) -> Entries:
     entries, problems = load_sidecars(directory, directory.parent)
     if problems:
         raise SystemExit("carry: " + "; ".join(f"{where}: {why}" for where, why in problems))
     return entries
 
 
-def _write_refusals(directory: pathlib.Path, before: Entries, after: Entries) -> None:
-    for key in before.keys() - after.keys():
-        (directory / sidecar_path(DIAGNOSTICS_DIR, key).name).unlink()
-    for key, entry in after.items():
-        if before.get(key) != entry:
-            (directory / sidecar_path(DIAGNOSTICS_DIR, key).name).write_text(
-                json.dumps(entry, ensure_ascii=False) + NL, encoding="utf-8", newline=NL)
+def _sidecar_writer(registry: pathlib.Path) -> Callable[[pathlib.Path, Entries, Entries], None]:
+    """The writer of one `wiseowl/<registry>/` directory: only the files whose entry changed, one line each."""
+    def write(directory: pathlib.Path, before: Entries, after: Entries) -> None:
+        for key in before.keys() - after.keys():
+            (directory / sidecar_path(registry, key).name).unlink()
+        for key, entry in after.items():
+            if before.get(key) != entry:
+                (directory / sidecar_path(registry, key).name).write_text(
+                    json.dumps(entry, ensure_ascii=False) + NL, encoding="utf-8", newline=NL)
+    return write
 
 
 def _rows_of(text: str) -> Entries:
@@ -93,7 +100,9 @@ class Register(NamedTuple):
 
 REGISTERS = (
     Register("conformance-suite/wiseowl/diagnostics.json", "conformance-suite/wiseowl/diagnostics",
-             _refusals_of, _read_refusals, _write_refusals),
+             _sidecars_of, _read_sidecars, _sidecar_writer(DIAGNOSTICS_DIR)),
+    Register("conformance-suite/wiseowl/options.json", "conformance-suite/wiseowl/options",
+             _sidecars_of, _read_sidecars, _sidecar_writer(OPTIONS_DIR)),
     Register(inventory_store.LEGACY_FILE_REL, inventory_store.INVENTORY_DIR_REL, _rows_of, _read_rows, _write_rows),
 )
 
@@ -152,17 +161,21 @@ def carry(repo: pathlib.Path, out=print) -> int:
         edited_side = "HEAD (ours)" if 2 in stages else "MERGE_HEAD (theirs)"
         after, carried, conflicts = three_way(reg.entries_of(_blob(repo, stages[1])),
                                               reg.entries_of(_blob(repo, stages[max(stages)])), current)
+        reg.write(directory, current, after)                 # every entry that is not in conflict is carried, either way
+        subprocess.run(["git", "add", "-A", "--", reg.directory], cwd=repo, capture_output=True, check=True)
+        listing = "".join(f"{NL}  {how}: {key}" for key, how in carried)
         if conflicts:
+            # The single file stays unmerged as the reminder: the finisher resolves ONLY the keys named (each key's file
+            # holds the deleting side's entry; the editing side's is in `git show :{stage}:{single}`), then `git rm`s it.
             out(f"carry: {reg.single}: {len(conflicts)} entr{'y' if len(conflicts) == 1 else 'ies'} changed on both "
-                f"sides, left unmerged for you: {', '.join(conflicts)}")
+                f"sides, left for you: {', '.join(conflicts)}; the other {len(carried)} "
+                f"entr{'y' if len(carried) == 1 else 'ies'} {edited_side} changed {'is' if len(carried) == 1 else 'are'} "
+                f"carried and staged. Resolve those keys' files, `git add` them, then `git rm {reg.single}`" + listing)
             worst = 1
             continue
-        reg.write(directory, current, after)
         subprocess.run(["git", "rm", "-q", "--", reg.single], cwd=repo, capture_output=True, check=True)
-        subprocess.run(["git", "add", "-A", "--", reg.directory], cwd=repo, capture_output=True, check=True)
         out(f"carry: {reg.single} -> {reg.directory}/: carried the {len(carried)} entr{'y' if len(carried) == 1 else 'ies'} "
-            f"{edited_side} changed; the single file takes its deletion"
-            + "".join(f"{NL}  {how}: {key}" for key, how in carried))
+            f"{edited_side} changed; the single file takes its deletion" + listing)
     return worst
 
 
@@ -175,40 +188,45 @@ def self_test() -> int:
         if not ok:
             failures.append(what)
 
-    refusals, inventory = REGISTERS
+    refusals, options, inventory = REGISTERS
     tests = [f"t{i:02}" for i in range(24)]                  # enough entries that git pairs no entry file with the
     base_refusals = {"$comment": "header", **{t: {"refuse-at": ["85"], "expect": f"COBOL{1000 + i}"}  # single file
                                               for i, t in enumerate(tests)}}
+    base_options = {t: {"numeric-display": "digits", "n": i} for i, t in enumerate(tests)}
     base_rows = [{"rule-id": f"GR-4.4-{i}", "section": "4.4", "ordinal": i, "verdict": "", "notes": f"n{i}"}
                  for i in range(1, 25)]
 
-    def singles(ref: dict[str, Any], rows: list[dict[str, Any]]) -> dict[str, str]:
-        return {refusals.single: json.dumps(ref, indent=1) + NL, inventory.single: json.dumps(rows, indent=1) + NL}
+    def singles(ref: dict[str, Any], opts: dict[str, Any], rows: list[dict[str, Any]]) -> dict[str, str]:
+        return {refusals.single: json.dumps(ref, indent=1) + NL, options.single: json.dumps(opts, indent=1) + NL,
+                inventory.single: json.dumps(rows, indent=1) + NL}
 
-    def split(repo: ScratchRepo, ref: dict[str, Any], rows: list[dict[str, Any]]) -> None:
+    def split(repo: ScratchRepo, ref: dict[str, Any], opts: dict[str, Any], rows: list[dict[str, Any]]) -> None:
         """The PB4147/PB4148 change: the single files become per-entry directories, written by their own writers."""
-        repo.write({refusals.single: None, inventory.single: None})
-        (repo.path / refusals.directory).mkdir(parents=True)
-        _write_refusals(repo.path / refusals.directory, {}, _refusals_of(json.dumps(ref)))
+        repo.write({refusals.single: None, options.single: None, inventory.single: None})
+        for reg, entries in ((refusals, _sidecars_of(json.dumps(ref))), (options, opts)):
+            (repo.path / reg.directory).mkdir(parents=True)
+            reg.write(repo.path / reg.directory, {}, entries)
         inventory_store.write_inventory(rows, repo.path / inventory.directory)
 
     t = scratch_dir("carry-retired-")
     repo = ScratchRepo.init(t / "repo")
-    repo.commit("base", singles(base_refusals, base_rows))
-    # main edits the single files: a refusal added, one reworded, one removed; a row re-sited.
+    repo.commit("base", singles(base_refusals, base_options, base_rows))
+    # main edits the single files: a refusal added, one reworded, one removed; an option set changed and one added; a
+    # row re-sited.
     main_refusals = {**base_refusals, "t99": {"refuse-at": ["2023"], "expect": "COBOL5563"},
                      "t01": {"refuse-at": ["85", "2002"], "expect": "COBOL1001"}}
     del main_refusals["t02"]
+    main_options = {**base_options, "t03": {"sign-encoding": "ascii"}, "t98/step.cbl": {"flag-extensions": "on"}}
     main_rows = [dict(r, notes="moved") if r["rule-id"] == "GR-4.4-3" else r for r in base_rows]
     repo.git("checkout", "-q", "-b", "edits")
-    repo.commit("main edits the single files", singles(main_refusals, main_rows))
+    repo.commit("main edits the single files", singles(main_refusals, main_options, main_rows))
     edits_head = repo.git("rev-parse", "HEAD")
     repo.git("checkout", "-q", "main")
     repo.git("checkout", "-q", "-b", "split")
-    split(repo, base_refusals, base_rows)
+    split(repo, base_refusals, base_options, base_rows)
     repo.commit("split the registers")
     split_head = repo.git("rev-parse", "HEAD")
-    want_refusals = _refusals_of(json.dumps(main_refusals))
+    want_refusals = _sidecars_of(json.dumps(main_refusals))
     want_rows = {r["rule-id"]: r for r in main_rows}
 
     def merged(side: str, other: str, label: str) -> str:
@@ -220,10 +238,11 @@ def self_test() -> int:
         code = carry(repo.path, said.append)
         check(code == 0, f"{label}: carry exits 0 ({said})")
         check(not repo.git("ls-files", "-u").strip(), f"{label}: nothing is left unmerged")
-        check(not (repo.path / refusals.single).exists() and not (repo.path / inventory.single).exists(),
-              f"{label}: the single files take their deletion")
-        check(_read_refusals(repo.path / refusals.directory) == want_refusals,
+        check(not any((repo.path / reg.single).exists() for reg in REGISTERS), f"{label}: the single files take their deletion")
+        check(_read_sidecars(repo.path / refusals.directory) == want_refusals,
               f"{label}: the refusals equal the edited single file's")
+        check(_read_sidecars(repo.path / options.directory) == main_options,
+              f"{label}: the options equal the edited single file's")
         check(_read_rows(repo.path / inventory.directory) == want_rows, f"{label}: the rows equal the edited single file's")
         repo.git("commit", "-q", "--no-edit")
         return repo.git("rev-parse", "HEAD^{tree}").strip()
@@ -232,7 +251,9 @@ def self_test() -> int:
     # the split meets after it lands (the branch edited, main split: UD) give the same tree.
     check(merged("split", edits_head, "DU") == merged("edits", split_head, "UD"), "both directions merge to one tree")
 
-    # A refusal both sides changed differently is a real conflict: named, and the single file stays unmerged.
+    # A refusal both sides changed differently is a real conflict: named, and the single file stays unmerged. The
+    # editing side's OTHER entries (t99 added, t02 removed) are still carried, staged and not lost when the finisher
+    # resolves the named key and removes the single file (the review's R1-1 of the first landing).
     repo.git("checkout", "-q", "-b", "split2", split_head)
     repo.write({f"{refusals.directory}/t01.json": json.dumps({"refuse-at": ["2014"], "expect": "COBOL1001"}) + NL})
     repo.commit("the split side rewords t01 too")
@@ -240,7 +261,18 @@ def self_test() -> int:
     said = []
     check(carry(repo.path, said.append) == 1 and any("t01" in s for s in said), f"a both-sides change is refused ({said})")
     check(refusals.single in repo.git("ls-files", "-u"), "the refused register's single file stays unmerged")
-    check(inventory.single not in repo.git("ls-files", "-u"), "the other register is still carried")
+    for other in (options, inventory):
+        check(other.single not in repo.git("ls-files", "-u"), f"the {other.directory} register is still carried")
+    kept = _read_sidecars(repo.path / refusals.directory)
+    check(kept.get("t99") == main_refusals["t99"] and "t02" not in kept,
+          "the entries not in conflict are carried although another one is")
+    check(kept.get("t01") == {"refuse-at": ["2014"], "expect": "COBOL1001"}, "the conflicting key is left as the split side had it")
+    check(not repo.git("diff", "--name-only", "--", refusals.directory).strip(), "the carried entries are staged")
+    repo.git("rm", "-q", "--", refusals.single)
+    check(not repo.git("ls-files", "-u").strip(), "removing the single file ends the conflict")
+    repo.git("commit", "-q", "--no-edit")
+    check(_read_sidecars(repo.path / refusals.directory).get("t99") == main_refusals["t99"],
+          "the committed merge keeps the carried entry")
     repo.run("merge", "--abort")
     said = []
     check(carry(repo.path, said.append) == 2 and "no merge" in said[0], "outside a merge it refuses with exit 2")
