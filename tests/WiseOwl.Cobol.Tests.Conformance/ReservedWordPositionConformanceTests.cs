@@ -376,6 +376,13 @@ public sealed class ReservedWordPositionConformanceTests
     [InlineData(2023, "ADD VALIDATE W-N TO W-N.", "VALIDATE")]
     [InlineData(2023, "MOVE RAISE W-X TO W-Y.", "RAISE")]
     [InlineData(2023, "MOVE FREE W-X TO W-Y.", "FREE")]
+    // Inside an inline PERFORM's UNTIL condition, with more condition text after the word (review R3-1 of the
+    // PB4133/PB4134/PB4173 branch): the condition's own operands and the PERFORM's statements are not a second fault.
+    [InlineData(2023, "PERFORM UNTIL RECEIVE W-X = 1 DISPLAY \"X\" END-PERFORM.", "RECEIVE")]
+    [InlineData(2023, "PERFORM UNTIL SEND W-X = 1 DISPLAY \"X\" END-PERFORM.", "SEND")]
+    [InlineData(2023, "PERFORM UNTIL VALIDATE W-X = 1 DISPLAY \"X\" END-PERFORM.", "VALIDATE")]
+    [InlineData(2023, "PERFORM UNTIL W-N = 1 OR RECEIVE W-X = 1 DISPLAY \"X\" END-PERFORM.", "RECEIVE")]
+    [InlineData(2023, "PERFORM WITH TEST AFTER UNTIL RECEIVE W-X = 1 DISPLAY \"X\" END-PERFORM.", "RECEIVE")]
     public void AReservedVerbWrittenAsAnOperand_DrawsOneDiagnostic(int edition, string statement, string word)
     {
         var (ok, diags) = EditionHarness.Compile($"""

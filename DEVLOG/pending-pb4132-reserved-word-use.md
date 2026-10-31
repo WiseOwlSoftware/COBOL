@@ -31,6 +31,20 @@ of every gated terminator, read from the ATN, at every edition that reserves it.
 RETRY rows and the arm that keeps COBOL0901 where a user word stands. `EditionReadDriftTests` records the moved
 `ReservedUserWordViolation` read. Docs: DESIGN-frontend-grammar.md (the reservation gate and the parse-error path), DESIGN.md.
 
+**Merge with main (PB4133, PB4134, PB4173 and PB3248's review R3-1).** Main had gained, in the same members, the unit-tail
+discard (`_orphansItsTail` replaced `_constructEndedEarly`) and `IsReservedOperand`: PB4133's single-token deletion declines to
+delete a token the missing element would let follow, except a reserved word written as the operand
+(`PERFORM UNTIL RECEIVE W-X = 1 …`), which it deletes. Main's predicate asked the parser's `ReservedUserWordViolation`, the
+listener's old test, which this branch had replaced by `ReservedWordUse`. Kept both: the report sets the tail-discard flag and
+makes the §8.9 decision; the deletion, which decides before its report, asks `ReservedWordUse` of the token's own position
+(`IsReservedOperand`), and both recoveries share the statement test (`BeginsNoStatementThatParses`). To let the decision be
+asked before a report, it no longer reads the hint list: hint 13's test became `UnownedScopeTerminator`, which hint 13 and
+`ReservedWordUse` share. So a word the report calls a misplaced keyword (a stray scope terminator, a phrase word where no
+user-defined word can stand) is never deleted as a refused name. `ParseRecoveryTailTests` compiles through main's shared
+`RecoverySources`, whose `Errors` gained the edition its gated-terminator sweep passes; its private compile is gone.
+`EditionReadDriftTests` records the one read, in `ReservedWordUse`. The landed note's title, which named the refuted
+mechanism (review lead R1-1), now names the listener's re-code.
+
 **Rows.** None re-verdicted: every program involved was already refused; the landing names the true fault.
 
 **Self-review.** Architecture: the §8.9 diagnosis is now one decision in the strategy's one report path, read by the report and

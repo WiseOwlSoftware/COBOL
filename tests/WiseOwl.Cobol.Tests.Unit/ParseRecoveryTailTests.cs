@@ -4,8 +4,6 @@ using Antlr4.Runtime;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
-using WiseOwl.Cobol.Frontend.Preprocessor;
-using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
@@ -94,7 +92,7 @@ public sealed class ParseRecoveryTailTests
     [MemberData(nameof(EveryGatedTerminatorAtEveryEditionThatReservesIt))]
     public void AStrayGatedTerminator_IsTheMisplacedTerminator_AtEveryEditionThatReservesIt(string word, int edition)
     {
-        var errors = Compile($"MOVE 1 TO W-N {word} MOVE 2 TO W-K.", edition);
+        var errors = RecoverySources.Errors(RecoverySources.Program($"MOVE 1 TO W-N {word} MOVE 2 TO W-K."), edition);
         Assert.True(errors.Count == 1, $"[{word} at {edition}] expected exactly one diagnostic, got:\n{string.Join("\n", errors)}");
         Assert.Contains("COBOL0306", errors[0]);
         Assert.Contains($"{word} appears without a matching", errors[0]);
@@ -110,7 +108,7 @@ public sealed class ParseRecoveryTailTests
         string body = opening.Length == 0
             ? $"MOVE 1 TO W-N {word} MOVE 2 TO W-K."
             : $"{opening} MOVE 1 TO W-N {word} MOVE 2 TO W-K {closing}.";
-        var errors = Compile(body);
+        var errors = RecoverySources.Errors(RecoverySources.Program(body));
         // the word closes the construct it names when that is the open one: then it is the CLOSING that is written
         // twice, and the second is the stray one
         string stray = errors.Count == 1 ? errors[0] : string.Join("\n", errors);
@@ -137,7 +135,7 @@ public sealed class ParseRecoveryTailTests
     [InlineData("IF W-N = 1 DISPLAY \"A\" ELSE DISPLAY \"B\" ELSE DISPLAY \"C\" DISPLAY \"D\" END-IF DISPLAY \"E\".", "COBOL2269", "ELSE")]
     public void AnUnownedPhraseOrStrayTerminator_DrawsOnlyItsOwnDiagnostic(string statements, string code, string word)
     {
-        var errors = Compile(statements);
+        var errors = RecoverySources.Errors(RecoverySources.Program(statements));
         Assert.True(errors.Count == 1, $"expected exactly one diagnostic, got:\n{string.Join("\n", errors)}");
         Assert.Contains(code, errors[0]);
         Assert.Contains($"'{word}'", errors[0]);
@@ -148,39 +146,10 @@ public sealed class ParseRecoveryTailTests
     [Fact]
     public void TheNextSentence_IsParsedAfresh()
     {
-        var errors = Compile("IF W-N = 0 MOVE 1 TO W-N END-ADD MOVE 2 TO W-N END-IF. MOVE 3 TO W-N END-EVALUATE. DISPLAY W-N.");
+        var errors = RecoverySources.Errors(RecoverySources.Program(
+            "IF W-N = 0 MOVE 1 TO W-N END-ADD MOVE 2 TO W-N END-IF. MOVE 3 TO W-N END-EVALUATE. DISPLAY W-N."));
         Assert.Equal(2, errors.Count);
         Assert.Contains("'END-ADD'", errors[0]);
         Assert.Contains("'END-EVALUATE'", errors[1]);
-    }
-
-    private static IReadOnlyList<string> Compile(string statements, int edition = 2023)
-    {
-        string source = $$"""
-                   IDENTIFICATION DIVISION.
-                   PROGRAM-ID. PRTAIL.
-                   DATA DIVISION.
-                   WORKING-STORAGE SECTION.
-                   01 W-N PIC 9 VALUE 0.
-                   01 W-K PIC 9 VALUE 0.
-                   01 W-A PIC X(10) VALUE "A,B".
-                   01 W-B PIC X(10).
-                   PROCEDURE DIVISION.
-                   MAIN-PARA.
-                       {{statements}}
-                       STOP RUN.
-
-                   """;
-        string dir = ScratchDirectory.Create("WiseOwlCobol_PB3843_");
-        try
-        {
-            string src = Path.Combine(dir, "prtail.cob");
-            File.WriteAllText(src, source);
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "prtail.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: InitialReferenceFormat.Free));
-            Assert.False(r.Success, "the source holds a syntax error and must be rejected");
-            return r.Errors;
-        }
-        finally { ScratchDirectory.Remove(dir); }
     }
 }

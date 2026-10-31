@@ -98,8 +98,10 @@ public sealed partial class DataBinder
     /// data division is bound.
     /// <para>The operand list repeats an all-optional pair, so the symbol table is the only discriminator: a BARE word
     /// naming a file of THIS element's FILE-CONTROL paragraph is file-name-1 (SR1; §8.4.2.2.2 gives a file-name no
-    /// qualified format, kb/Work PB2040), anything else is identifier-1 — and an inherited GLOBAL file, which SR1 and
-    /// SR11 both keep out of a contained element's clause, therefore resolves as an identifier and is refused there.</para>
+    /// qualified format, kb/Work PB2040), anything else is identifier-1. A file of a CONTAINING element — a GLOBAL one,
+    /// which SR1 and SR11 both keep out of a contained element's clause, or one with no GLOBAL clause, which SR1 keeps
+    /// out — is therefore screened by <see cref="ResolveApplyCommit"/>, which decides by the element that declares what the word names,
+    /// and is refused under its own rule (<see cref="ScreenEnclosingFileOperand"/>, kb/Work PB3557).</para>
     /// <para>A file of any organization on a mass storage device but a sort-merge or report file is accepted (§9.1.18.2:
     /// <i>"Apart from sort-merge files and report writer files, any type of file on a mass storage device may be
     /// specified"</i>): the keyed organizations keep the transaction in their store (DESIGN-runtime-library.md 2.2.1.10)
@@ -157,6 +159,7 @@ public sealed partial class DataBinder
         var listed = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);
         foreach (var (name, quals, at) in clause.Identifiers)
         {
+            if (ScreenEnclosingFileOperand(name, quals, at)) continue;
             if (ResolveClauseOperand(name, quals, "APPLY COMMIT identifier-1", at) is not { } item) continue;
             using var _ = Edition.At(at);
             if (item.Level is not (1 or 77) || item.Section is not (EntrySection.WorkingStorage
@@ -223,6 +226,77 @@ public sealed partial class DataBinder
                     clause.Items.Add(item);
             }
         }
+    }
+
+    /// <summary>§12.4.6.3.3 SR11, quoted (cite.py --check 12.4.6.3.3).</summary>
+    private const string Sr11Text = "Where a file or record area is declared with the GLOBAL clause, it may only be "
+        + "specified in the APPLY COMMIT clause of the same source element.";
+
+    /// <summary>⛔ AN OPERAND OF THE CLAUSE THAT NAMES A FILE OR RECORD AREA OF A CONTAINING ELEMENT IS SR1's OR SR11's
+    /// VIOLATION, never an undefined data-name nor an SR3 item (kb/Work PB3557). <see cref="BindApplyCommitClause"/> takes
+    /// a bare word for file-name-1 only when this element's own FILE-CONTROL paragraph selects it; every other word is
+    /// identifier-1. A container's GLOBAL file used to draw COBOL1639 "no declaration in this source element gives the
+    /// name" — false: it is visible here (§13.18.27.4 GR1) — and the clause's own rule went unreported.
+    /// <para>⛔ THE OPERAND IS DECIDED BY THE ELEMENT THAT DECLARES WHAT IT NAMES, never by whether a name table holds it
+    /// (review R2-1): a container's GLOBAL record is inherited into this unit's data-name index with its depth
+    /// (<see cref="InheritContainerGlobalData"/>), so "the lookup found it" no longer means "declared here". The one
+    /// data-name lookup (<see cref="QualifiedCandidates"/>, qualification first, then the nearest declaring element) and the
+    /// depths of the other declarations the word can name are set side by side, and the NEAREST is the referenced item
+    /// (§8.4.6.2.1 3) a): "If the name is declared in source element B, the item in source element B is the referenced
+    /// item"; b): otherwise the nearest containing element's):</para>
+    /// <list type="bullet">
+    /// <item>A data item this element declares, or another kind of name it declares (a constant, an alphabet, an index):
+    /// identifier-1 as written.</item>
+    /// <item>A report entry nearer than any data item or file of the spelling (this element's own, against a container's
+    /// GLOBAL record): the report-item refusal, §13.8.6.2.3 (<see cref="ReportEntryReferenceRefused"/>; review R2-2, the
+    /// kb/Work PB4196 order on this arm).</item>
+    /// <item>A container's GLOBAL file, bare and no farther than any data item of the spelling: SR11 — <i>"Where a file or
+    /// record area is declared with the GLOBAL clause, it may only be specified in the APPLY COMMIT clause of the same
+    /// source element"</i>; the file is outside this element's FILE-CONTROL paragraph too, so SR1 is broken with it, in
+    /// the one report.</item>
+    /// <item>The one data item the lookup identifies is a container's GLOBAL record area
+    /// (<see cref="InheritedGlobalRecordAreas"/>), bare or with its file-report-qualifier (§8.4.2.2.2 Format 1): SR11's
+    /// other noun. Two GLOBAL files' records of one name are told apart by that qualifier, as any data-name is.</item>
+    /// <item>No visible declaration, and a container's file with no GLOBAL clause of the spelling: SR1 — <i>"File-name-1
+    /// shall be specified in the FILE-CONTROL paragraph of the source element that contains this clause"</i>.</item>
+    /// </list>
+    /// Anything else (a container's GLOBAL working-storage item, an ambiguous or undefined reference) resolves as written
+    /// (<see cref="ResolveClauseOperand"/>).</summary>
+    /// <returns>true after reporting — the operand is refused and goes no further.</returns>
+    private bool ScreenEnclosingFileOperand(string name, IReadOnlyList<string> quals, Editions.DiagnosticCursor at)
+    {
+        var dataItems = QualifiedCandidates(name, quals, Model.Scope.Program);
+        if (dataItems.Any(i => DeclaringDepth(i) == 0)) return false;   // the nearest tier is this element's own
+        if (NonDataDeclarationOf(name, quals, Model.Scope.Program) is { } declared
+            && declared.Kind != NonDataDeclarationKind.FileName) return false;
+        FileModel? global = quals.Count == 0 && InheritedGlobalFiles.TryGetValue(name, out var g) ? g : null;
+        int fileDepth = global is null ? int.MaxValue : InheritedFileDepth(global);
+        string written = WrittenQualified(name, quals);
+        using var reportAt = Edition.At(at);
+        if (ReportEntriesNamed(name, quals) is [var (report, _), ..] && ReportDepth(report) < fileDepth
+            && !dataItems.Any(i => DeclaringDepth(i) <= ReportDepth(report)))
+            return ReportEntryReferenceRefused(dataItems, $"APPLY COMMIT identifier-1 '{written}'", name, quals);
+        if (global is not null && !dataItems.Any(i => DeclaringDepth(i) < fileDepth))
+        {
+            ApplyCommitRule($"'{global.CobolName}' is a file of a containing source element declared with the GLOBAL clause, "
+                + "and it is not specified in the FILE-CONTROL paragraph of this source element either (SR1)", "SR11", Sr11Text);
+            return true;
+        }
+        if (dataItems.Single is { } item && InheritedGlobalRecordAreas.TryGetValue(item, out var owner))
+        {
+            ApplyCommitRule($"'{written}' is a record area of file '{owner.CobolName}' declared with the GLOBAL clause in a "
+                + "containing source element", "SR11", Sr11Text);
+            return true;
+        }
+        if (dataItems.Count == 0 && quals.Count == 0
+            && ContainerLocalFiles.Find(f => CobolNames.Same(f.CobolName, name)) is { } local)
+        {
+            ApplyCommitRule($"'{local.CobolName}' is a file of a containing source element, not specified in the "
+                + "FILE-CONTROL paragraph of this one (it has no GLOBAL clause, so it is not visible here)", "SR1",
+                "File-name-1 shall be specified in the FILE-CONTROL paragraph of the source element that contains this clause.");
+            return true;
+        }
+        return false;
     }
 
     /// <summary>SR7 and SR10 over one item the clause saves: no object reference within it (ISO §12.4.6.3.3 SR7, and
