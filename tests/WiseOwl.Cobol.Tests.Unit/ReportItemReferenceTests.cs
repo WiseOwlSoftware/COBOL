@@ -205,8 +205,10 @@ public sealed class ReportItemReferenceTests
         Assert.Contains(local, x => x.Contains("COBOL0851"));
     }
 
-    /// <summary>The method body of <paramref name="member"/> in a source file: from its declaration line to the
-    /// closing brace at the same indentation (every member this file's tests slice is a four-space-indented method).</summary>
+    /// <summary>The text of a member in a source file: from its <paramref name="declaration"/> to the next closing brace
+    /// at class-member indentation (four spaces). A member of the class is sliced exactly; a LOCAL function (the record-key
+    /// resolver <c>InRecords</c>) is sliced to the end of the method that holds it, which is wider than the function but
+    /// still the one method that must ask the question.</summary>
     private static string MethodText(string file, string declaration)
     {
         string text = File.ReadAllText(file);
