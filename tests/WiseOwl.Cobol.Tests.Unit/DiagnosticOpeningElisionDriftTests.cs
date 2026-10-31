@@ -98,6 +98,12 @@ public sealed class DiagnosticOpeningElisionDriftTests
             "ctx.Edition.Extension(ExtensionIds.SetProgramPointerToEntry, \"SET … TO ENTRY\");",
             "ctx.Edition.Removed(\"COBOL0902\", $\"CALL … AS NESTED argument {n}: \"",
             "ctx.Edition.Declined(DiagnosticCatalog.X, \"WRITE ... FILE of the record\");",
+            // PB4212: the messages of the RUNNING program, as the tree carried them verbatim
+            "string guard = LandAmount(s.Value, SetAmountRule.IndexTo, \"SET … TO\", out string tmp, \"set\");",
+            "string guard = set.LandAmount(from, SetAmountRule.IndexTo, \"PERFORM VARYING … FROM\", out string tmp, \"pv\");",
+            "throw new InvalidOperationException(\n                $\"OPEN … WITH NO REWIND reached a {c.Category} connector '{name}'\");",
+            "throw MisroutedVerb(\"OPEN … REVERSED\", name, c);",
+            "set.AugmentSetTarget(also, down: false, new NumX(\"1\", 0), \"SEARCH ... VARYING\");",
         ];
         foreach (string defect in defects)
             Assert.True(ElidedMessageOpening.Source.IsMatch(defect), $"the elided-opening pattern no longer matches: {defect}");
@@ -119,6 +125,11 @@ public sealed class DiagnosticOpeningElisionDriftTests
             "ctx.Edition.Declined(DiagnosticCatalog.X, \"WRITE FILE of the record\");",
             // a collection's own Removed( with no message string
             "list.Removed(item, 1);",
+            // PB4212: the repaired twins, and a runtime message whose ellipsis is mid-sentence
+            "string guard = LandAmount(s.Value, SetAmountRule.IndexTo, \"SET index-name TO\", out string tmp, \"set\");",
+            "throw new InvalidOperationException(\n                $\"OPEN WITH NO REWIND reached a {c.Category} connector '{name}'\");",
+            "throw MisroutedVerb(\"OPEN REVERSED\", name, c);",
+            "throw new InvalidOperationException(\"the receiving operand of SET … TO ENTRY is missing\");",
         ];
         foreach (string ok in fine)
             Assert.False(ElidedMessageOpening.Source.IsMatch(ok), $"the elided-opening pattern matches a message it must leave alone: {ok}");
