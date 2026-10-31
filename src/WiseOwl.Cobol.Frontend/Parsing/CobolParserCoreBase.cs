@@ -655,15 +655,17 @@ public abstract class CobolParserCoreBase : Parser
     }
 
     /// <summary>True when the current token spells <paramref name="keyword"/> AND §8.9 reserves it at the targeted
-    /// edition — the predicate on the recognize-and-name statement arms of VALIDATE (§14.9.50, Annex A.4.14) and
-    /// COMMIT / ROLLBACK (§14.9.7 / §14.9.36, Annex A.3 items 6–7). For these verbs the reservation begins at the
-    /// statement's introduction and never lapses (VALIDATE from 2002, COMMIT and ROLLBACK from 2023), so "reserved
-    /// here" is exactly "the statement exists here", and where the word is a user word the arm stays out of the way:
-    /// <c>COMMIT.</c> at --std 2014 is a paragraph.
-    /// <para>⛔ NOT FOR A VERB WHOSE RESERVATION IS NON-MONOTONIC (kb/Work PB374). RECEIVE and SEND are reserved at
-    /// COBOL-85 for the '85 communication module, user words at 2002/2014 and reserved again at 2023 for asynchronous
-    /// messaging, so this predicate recognized the 2023 formats at --std 85. Their arms are the union grammar
-    /// (<see cref="wordAhead"/>) and the edition pass gates their introduction (COBOL0900).</para>
+    /// edition — the predicate on the recognize-and-name statement arms of COMMIT / ROLLBACK (§14.9.7 / §14.9.36,
+    /// Annex A.3 items 6–7). For these verbs the reservation begins at the statement's introduction (2023) and never
+    /// lapses, so "reserved here" is exactly "the statement exists here", and where the word is a user word the arm
+    /// stays out of the way: <c>COMMIT.</c> at --std 2014 is a paragraph. That is the reason these two need it: the
+    /// statement is the bare verb, so below 2023 no parse can tell it from a paragraph header.
+    /// <para>⛔ NOT FOR A VERB THAT TAKES OPERANDS (kb/Work PB374, PB3148). RECEIVE and SEND are reserved at COBOL-85
+    /// for the '85 communication module, user words at 2002/2014 and reserved again at 2023 for asynchronous
+    /// messaging, so this predicate recognized the 2023 formats at --std 85; and VALIDATE, whose reservation is
+    /// monotonic, turned <c>VALIDATE WS-A.</c> at --std 85 into a bare parse error where the edition gate should
+    /// name its 2002 introduction. Their arms are the union grammar (<see cref="wordAhead"/>) and the edition pass
+    /// gates their introduction (COBOL0900).</para>
     /// <para>⛔ The arms this gates are KEYWORD-TOKEN-LED, never IDENTIFIER-led: an IDENTIFIER-led <c>statement</c>
     /// alternative poisons ANTLR's ALL(*) boolean-factor prediction DFA and regresses <c>COMPUTE R = B-NOT A.</c> at
     /// every edition (DEVLOG 903). Reads the SAME <see cref="ReservedWords"/> table the §8.9 funnel uses, so
