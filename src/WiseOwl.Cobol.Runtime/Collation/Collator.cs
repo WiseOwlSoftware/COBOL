@@ -114,9 +114,33 @@ public sealed class Collator
         // Fast path: identical code units are identical at every level.
         if (a.SequenceEqual(b)) return 0;
         bool forIdentical = Strength == CollationStrength.Identical;
-        if (Normalizer.NeedsNfd(a, Table, forIdentical)) a = Normalizer.ToNfd(a, Table);
-        if (Normalizer.NeedsNfd(b, Table, forIdentical)) b = Normalizer.ToNfd(b, Table);
+        bool nfdA = Normalizer.NeedsNfd(a, Table, forIdentical), nfdB = Normalizer.NeedsNfd(b, Table, forIdentical);
+        return nfdA || nfdB ? CompareDecomposing(a, b, nfdA, nfdB) : CompareNormalized(a, b);
+    }
 
+    /// <summary>The comparison of two texts one or both of which need their NFD first: decomposed into caller-stack
+    /// buffers (a pooled array past 128 chars), so a comparison allocates nothing (kb/Work PB107).</summary>
+    private int CompareDecomposing(ReadOnlySpan<char> a, ReadOnlySpan<char> b, bool nfdA, bool nfdB)
+    {
+        Span<char> scratchA = stackalloc char[128], scratchB = stackalloc char[128];
+        char[]? rentedA = null, rentedB = null;
+        try
+        {
+            ReadOnlySpan<char> walkedA = nfdA ? Normalizer.ToNfd(a, Table, scratchA, out rentedA) : a;
+            ReadOnlySpan<char> walkedB = nfdB ? Normalizer.ToNfd(b, Table, scratchB, out rentedB) : b;
+            return CompareNormalized(walkedA, walkedB);
+        }
+        finally
+        {
+            Normalizer.Return(rentedA);
+            Normalizer.Return(rentedB);
+        }
+    }
+
+    /// <summary>The comparison of two texts already in the form the walk needs (<see cref="Compare(ReadOnlySpan{char}, ReadOnlySpan{char})"/>
+    /// normalizes first).</summary>
+    private int CompareNormalized(ReadOnlySpan<char> a, ReadOnlySpan<char> b)
+    {
         // Identical-prefix skip: an identical prefix yields identical elements at every level, so the walks may
         // start at its end — provided the boundary is CONTEXT-SAFE (see SafeBoundary). Under Shifted the level-4
         // "following a variable" state depends on the prefix, and under backwards secondaries the level-2 sequence
