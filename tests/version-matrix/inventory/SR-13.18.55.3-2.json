@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.55.3-2",
+ "section": "13.18.55.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "SYNCHRONIZED clause",
+ "rule-digest": "4fd59d7b7e4d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
+ "test-ref": "conformance:cases/13.18.55-SYNCHRONIZED/l1_sync_abbreviation; conformance:cases/13.18.55-SYNCHRONIZED/l1_sync_abbrev_group_below_2023",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Five paired positions (77, elementary, LEFT, RIGHT, group) answer identically in both spellings, and the negative proves SYNC meets the same 2023 group gate (COBOL0900) as SYNCHRONIZED.",
+ "state": "OK"
+}

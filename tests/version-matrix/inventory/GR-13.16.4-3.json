@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.16.4-3",
+ "section": "13.16.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Data description entry",
+ "rule-digest": "c1c387785c92",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#CheckEntryFormat; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderCondition88",
+ "test-ref": "conformance:cases/13.16-Data-description/pb501_condition_name_entry_format; conformance:cases/13.16-Data-description/pb501-condition-name-entry-has-no-name; conformance:cases/13.16-Data-description/pb485-level-88-not-condition-name",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB501 LANDED, both arms. GR3 says a format-3 entry carries 'the name of the condition AND the value, values, or range of values associated with the condition-name', and a level-88 entry was never screened against its own general format, so an entry missing EITHER constituent reached the backend. Arm 1 (no value-clause, `88 NOVAL.`) was closed by kb/Work PB485/PB829 -- COBOL1747 from LevelNumberPass, re-measured on this worktree. Arm 2 (no condition-name, `88 VALUE 1.`) is closed here, in the same pass and under the same code, because it is the same rule's other half: 13.16.2 was RENDERED from the printed page (folio 364 / PDF p394) and format 3 prints condition-name-1 UNBRACKETED while format 4 brackets condition-name-2; format 4's licence to omit the name is not free-standing, since its value-clause is 13.18.63.2 format 5 whose figure ends in a REQUIRED { INVALID / VALID } choice. So a nameless 88 with no VALID/INVALID phrase is neither format and 13.16.3 SR24 leaves no third possibility. MEASURED on this worktree's own build at 85 and 2023: `88 VALUE 1.` and `88 VALUE 07.` -> COBOL1747 naming both formats (both compiled CLEAN and produced a .dll before -- BindCondition returns on a missing data-name and the entry evaporated). Over-rejection measured too: the legal format-3 spellings (single literal, THRU range, literal list, a condition-name over a GROUP conditional variable) all compile and evaluate correctly, and the format-4 spelling `88 VALUE 1 THRU 9 IS VALID.` still draws its own A.4.14 decline (COBOL1708), not this screen. RenderCondition88 is now TOTAL over an empty value set -- it rendered the two-character fragment `()`, so the generated source read `if (())` and the user got CS1525 against a .g.cs path; an empty association can only be false (13.16.4 GR3).",
+ "state": "OK"
+}

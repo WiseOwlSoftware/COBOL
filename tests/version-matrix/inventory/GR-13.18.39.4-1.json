@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.39.4-1",
+ "section": "13.18.39.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "PAGE clause",
+ "rule-digest": "bfd4b4e2bdff",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#GroupLimits; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#RelativeFirstLineFloor; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#MinimumLastLine",
+ "test-ref": "conformance:cases/13.18.35-LINE/pb484_report_line_placement; conformance:cases/13.18.35-LINE/pb1270-page-heading-below-first-detail; conformance:cases/13.18.39-PAGE/pb1270-page-heading-relative-past-first-detail; conformance:cases/13.18.35-LINE/pb1270_report_page_region_boundaries; conformance:cases/13.18.39-PAGE/pb1270-page-footing-relative-past-page-limit; conformance:cases/13.18.39-PAGE/pb1270-report-footing-relative-past-page-limit; conformance:cases/13.18.39-PAGE/pb1270-report-heading-relative-zero-above-heading; conformance:cases/13.18.39-PAGE/pb1270-page-heading-relative-zero-above-heading; conformance:cases/13.18.39-PAGE/pb1270_report_relative_first_boundaries",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1270 landed 2026-10-04 (wave 1012 G): every report group is confined to its region. Absolute lines by SR6 c) against GroupLimits, a relative heading by its last line against FIRST DETAIL - 1, a relative page or report footing by its last line against the page limit (GR2 a), the first line of a relative heading or footing against the HEADING integer / FOOTING + 1 (GR2 c, g), a body group by the run-time page-fit test.",
+ "state": "OK"
+}

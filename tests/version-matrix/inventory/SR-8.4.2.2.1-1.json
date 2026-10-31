@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.2.2.1-1",
+ "section": "8.4.2.2.1",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Qualification",
+ "rule-digest": "551024429315",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/QualifiedNameClasses.cs#QualifiedNameClasses; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveIndexName; src/WiseOwl.Cobol.Compiler/Binding/Model/IndexDeclaration.cs#IndexNameRegistry",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/pb919-index-name-ambiguous; conformance:cases/8.4.2.2-Qualification/pb919_index_name_qualified; conformance-test:IndexNameUniquenessTests.DuplicatedIndexName_QualifiedThroughItsTable_IsSR6; conformance-test:IndexNameUniquenessTests.ContainedProgram_LocalIndexWins_GlobalReachableQualified",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB919, wave 57. 8.4.2.2.1 1) 'Qualification of a user-defined name is required unless ... No other name has the identical spelling' - the last name class without it (index-names) now requires qualification exactly when a second visible declaration shares the spelling; a unique index-name (JX in the golden) needs none. Visibility follows 8.4.6.2.3 (an index-name's scope is its table's) and 8.4.6.2.1 3) (a contained program's own declaration wins over a container's GLOBAL one), in IndexNameRegistry.Candidates.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.13.1.3-7",
+ "section": "14.6.13.1.3",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "Exception conditions",
+ "rule-digest": "b13719753494",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitArgOrPlain; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#RunMain; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#AbnormalTermination",
+ "test-ref": "conformance-test:SizeErrorDispositionTests.CheckingOn_NoHandler_TerminatesAbnormally; conformance-test:SizeErrorDispositionTests.FatalRaiseInsideAPerform_IsDispatchedOnce_ThenTerminates",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB75 (2026-08-18) + the EC waves: with checking enabled and no WHEN / USE / PROPAGATE that resumes, execution of the run unit is terminated abnormally (§14.6.12): the guard rethrows the (dispatched) fatal to ProgramTable.RunMain, which writes 'abnormal run-unit termination: EC-… (fatal): …' to stderr and exits 1 — the size-error family included, which used to escape as a raw CLR crash.",
+ "state": "OK"
+}

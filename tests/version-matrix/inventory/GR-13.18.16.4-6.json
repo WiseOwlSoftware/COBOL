@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.16.4-6",
+ "section": "13.18.16.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "CONTROL clause",
+ "rule-digest": "f44e1c48c470",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ControlOperandShapeViolation",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-13.18.16.4-6",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 13.18.16.4 \"Data-name-1 shall not reference a zero-length group item\" -> OK 6). Zero-length group per §8.5.4 (cite.py --check 8.5.4 \"A group data item containing only an occurs-depending table in which the number of occurrences is zero\" -> OK 1)): item 1 (group of only an ODO table) and item 2 (group of only a zero-length subordinate, recursively ODO or DYNAMIC LENGTH) are always rejected at bind by ControlOperandShapeViolation's SR5 arm (OdoModel.TableUnder, cite OK §13.18.16.3 5)) and SR7 arm (HasVariableLengthSubordinate, cite OK §13.18.16.3 7)); items 3/4 are elementary, not groups; item 5 (a variable-length logical record whose runtime length is zero) is a run-time state the GR constrains the PROGRAM against with no exception condition or specified outcome, so no implementation action is required. Existing negatives pb177-control-occurs-depending / pb177-control-variable-length-group are SR5/SR7 witnesses whose groups have nonzero minimum length, so they do not witness GR6 as such; test-ref empty. || Editions (adjudicator): 85, 2002, 2014, 2023 (text as in 2023; Annex E carries no edition note for it)",
+ "state": "OK"
+}

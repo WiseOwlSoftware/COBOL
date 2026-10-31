@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.3.3-2",
+ "section": "8.4.3.3.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Reference-modification",
+ "rule-digest": "7e50986b04d7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ResultRefMod",
+ "test-ref": "conformance:cases/8.4.3.3-Reference-modification/pb8_refmod_function_result; conformance:cases/8.4.3.3-Reference-modification/pb8-refmod-numeric-function",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The POSITIVE half (a function-identifier IS admissible as identifier-1) and the NEGATIVE half (it shall be an alphanumeric, boolean, or national function) are both enforced. Before fix-queue PB8 the shape was a COBOL0001 parse error at every edition, so neither half could be reached. A non-conforming class is rejected with COBOL1629; national and alphanumeric results are covered by the golden, and the user-defined-function result reference-modifies through RefModPlace using the RETURNING item's own category.",
+ "state": "OK"
+}

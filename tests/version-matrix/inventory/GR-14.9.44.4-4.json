@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.44.4-4",
+ "section": "14.9.44.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "SUBTRACT statement",
+ "rule-digest": "6cb79a7cac85",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#LiteralNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#CombineCore; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#CombineAdditive",
+ "test-ref": "conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb156_float_literal_exact_native",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Adjudicated 2026-08-31 with its ADD twin GR-14.9.2.4-4 (owner decision D-B; kb/Work PB156), which had left this row unverdicted. The SUBTRACT rule is the ADD rule one word apart — 'enough places shall be carried so as not to lose significant digits during execution' where ADD says 'not to lose any significant digits' (both cite.py --check verified; the 'verbatim twin' the design note claimed is very near but not literally verbatim). Same premise, same code path, same measurement: SUBTRACT 1.0E+0 FROM S (PIC 9(20) = 12345678901234567890) gave 12345678901234567168 at HEAD 6cd228b6 and gives 12345678901234567889 now. One rendering serves both statements, so the two rows cannot drift apart; pb156_float_literal_exact_native pins the ADD and SUBTRACT legs side by side for exactly that reason.",
+ "state": "OK"
+}

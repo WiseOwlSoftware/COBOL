@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.11.4-2",
+ "section": "14.9.11.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "DISPLAY statement",
+ "rule-digest": "0b0ce06c66b4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitDisplay; docs/CONFORMANCE.md#DOC-A.1-58",
+ "test-ref": "conformance:cases/14.9.11-DISPLAY/l1_display_transfer_size; conformance-test:DisplayUponTests.Upon_EachOutputDevice_TransfersALongOperandAsOneLine",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "CLOSED by kb/Work PB243 (wave 1091). GR2 ('The implementor shall define, for each device, the size of a data transfer', cite.py --check OK §14.9.11.4 2)) is DETERMINED and DOCUMENTED in docs/CONFORMANCE.md DOC-A.1-58: UNBOUNDED for every output device - the standard display device and CONSOLE / SYSOUT (standard output) and SYSERR (standard error) are byte streams; AcceptDisplayEmitter.EmitDisplay joins the operands into one sending item (GR6) and writes it in ONE stream operation, with no width, no per-device table, no loop. MEASURED per device: conformance:cases/14.9.11-DISPLAY/l1_display_transfer_size displays 2,000 positions on the standard device as ONE line; DisplayUponTests.Upon_EachOutputDevice_TransfersALongOperandAsOneLine displays the same 2,000-position operand (ALL '0123456789', a fold at any column visible, ending in a digit so the harness trailing-space trim of PB150 cannot hide one) on the default device, SYSOUT, CONSOLE and SYSERR and asserts exactly one line on each stream. The earlier residue (no A.1 item-58 row; then only the no-UPON device measured) is discharged.",
+ "state": "OK"
+}

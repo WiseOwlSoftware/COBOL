@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-49",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 49,
+ "subject": "DEFINE directive (mechanism for providing value of a compilation-variable-name from the operating environment)",
+ "rule-digest": "8e2a6ef34483",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-49; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.Display.cs#ParameterText; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#ApplyDefine; src/WiseOwl.Cobol.Frontend/Pipeline/CompilationInputs.cs#GetEnvironmentVariable",
+ "test-ref": "unit:ConditionalCompilationDefineTests.Parameter_TwoSpellingsOfOneName_ReadOneVariable; unit:ConditionalCompilationDefineTests.Parameter_ValueCategory_FollowsTheDocumentedTyping; unit:ConditionalCompilationDefineTests.Parameter_Unavailable_NotDefined; unit:ConditionalCompilationDefineTests.Parameter_SourcesFromEnvironment",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1533 landed (w1004b). The method is documented in docs/CONFORMANCE.md (DOC-A.1-49): the environment variable named by the compilation-variable-name in its canonical upper-case spelling (so every spelling of one name reads one variable), numeric when the whole text parses as an invariant-culture decimal number and alphanumeric otherwise, an absent variable meaning not defined. The same lookup serves the DISPLAY directive's PARAMETER phrase (ParameterText, one rule).",
+ "state": "OK"
+}

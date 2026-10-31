@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.25.3-5",
+ "section": "15.25.3",
+ "kind": "AR",
+ "ordinal": 5,
+ "subject": "DAY-TO-YYYYDDD function",
+ "rule-digest": "fe4e90e187a5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#YearToYyyy; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#DayToYyyyddd; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#CurrentDate; src/WiseOwl.Cobol.Runtime/IO/Clock.cs#SystemClock",
+ "test-ref": "conformance:cases/15.23.3-Argument-rules/l1_windowing_omitted_arg3",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "The same sentence as §15.23.3 r5, tested the same way in the same program's DAY-* lines: the substituted value staged through an integer item (§8.4.3.2.3 SR11 bars writing NUMVAL in argument-3), argument-1 derived from the execution year (YY = MOD(CY,100), argument-1 = YY*1000+365), and the omitted-vs-explicit identity asserted at argument-2 = 0 and -1 so a one-year skew in either direction breaks it. Clock-free witnesses: nnn = 365 by §15.25.4 r1, and two explicit argument-3 values that must differ (1885365 / 1985365). The DayToYyyyddd 2-argument overload IS the mechanism r5 names — it supplies RunUnit.Current.Clock.Now().Year — and is added to the code-location for that reason.",
+ "state": "OK"
+}

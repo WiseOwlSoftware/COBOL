@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.27.4-12",
+ "section": "14.9.27.4",
+ "kind": "GR",
+ "ordinal": 12,
+ "subject": "OPEN statement",
+ "rule-digest": "7ed3cd269c01",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#NoRewindPhraseEffect; src/WiseOwl.Cobol.Runtime/IO/CloseTable14.cs#PhysicalFileCategory; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-14.9.27.4-12",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB317. RULE: 'If the storage medium for the file permits rewinding, the following rules apply: a) When neither the EXTEND, nor the NO REWIND phrase is specified, execution of the OPEN statement causes the file to be positioned at its beginning. b) When the NO REWIND phrase is specified, execution of the OPEN statement does not cause the file to be repositioned ...' (cite.py --check 14.9.27.4 -> OK, rule 12). THE WHOLE RULE'S ANTECEDENT IS FALSE HERE, BOTH ARMS -- and that is now FORCED rather than incidental. GR11 and GR12 partition the media between them: GR11 governs a medium the phrase 'does not apply to', which 9.1.13.2 item 6 fixes as the non-reel/unit medium, and GR12 governs a medium that 'permits rewinding'. Choosing 14.9.6.4 GR2 category (a) for every sequential connector -- the placement 9.1.13.2 item 6 already FORCED, because it is what makes the 07 this compiler reports for CLOSE REEL/UNIT, CLOSE WITH NO REWIND and now OPEN WITH NO REWIND correct -- chooses GR11 and makes GR12 vacuous. THE PRIOR ADJUDICATION IS SUPERSEDED: it recorded arm (a) as VERIFIED against SequentialConnector.OpenCore, but what that code realizes is 14.9.27.4 GR14 ('the file position indicator for that file connector is set to 1'), which is unconditional; a golden written for GR12 a) would be measuring GR14. Arm (b) is not 'not implemented' either -- it is unreachable, and FileRegistry.NoRewindPhraseEffect refuses any category but (a) LOUDLY so a future rewinding medium cannot inherit this closure silently; unit:CloseTable14Tests.OpenNoRewind_IsTheCloseArmsTwinOnTheSameMedium is the drift test that fires. CONFORMS-BUT-UNCOVERED BY DESIGN: the row has no observable obligation and so wants a section 8 derivation, DRV-GR-14.9.27.4-12, arm unpopulatable-antecedent, closed set = the two PhysicalFileCategory values any connector reports. BARE OWNER QUESTION: sign that derivation row? An agent may not, so the row stays a GAP until it is signed (the argument is drafted verbatim in the PB317 implementer report). || EDITIONS AS ADJUDICATED: 1985 . 2002 . 2014 . 2023 CLOSED ON AN OWNER-SIGNED DERIVATION (docs/CONFORMANCE.md §8 row DRV-GR-14.9.27.4-12, decision Q25 of 2026-09-09): the rule has no observable obligation, so no spec-derived test can cover it.",
+ "state": "OK"
+}

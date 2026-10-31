@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.5.4-4",
+ "section": "13.18.5.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "BASED clause",
+ "rule-digest": "f0f7c54c2b1e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/CobolPtr.cs#Deref; src/WiseOwl.Cobol.Runtime/Control/StorageCell.cs#End; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#BoundPtrError",
+ "test-ref": "unit:CobolPtrTests.Deref_Null_And_OutOfBounds_AreLoud; conformance:cases/13.18.5-BASED/pb1216_ls_and_cancel_pointer_lifetime; conformance:cases/13.18.5-BASED/pb1216_recursive_initial_pointer_lifetime; conformance:cases/13.18.5-BASED/pb1216_method_pointer_lifetime",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1216 landed: a pointer into storage whose life ended (FREE, activation exit, CANCEL) fails its dereference with EC-BOUND-PTR.",
+ "state": "OK"
+}

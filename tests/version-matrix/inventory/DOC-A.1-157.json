@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-157",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 157,
+ "subject": "Reference format (meaning of lines and character positions in free-form and fixed-form format)",
+ "rule-digest": "6f34dcc9e8c7",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-157; src/WiseOwl.Cobol.Frontend/Preprocessor/PhysicalLines.cs#Read; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#ConvertFreeLines",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/pb1586_tab_stops_fixed_form; conformance:cases/A.1-Implementor-defined-language-element-list/pb1586_tab_in_literal; conformance:cases/A.1-Implementor-defined-language-element-list/pb1586_tab_free_form; conformance:cases/6-Reference-format/pb1496_free_form_line_255; conformance:cases/6-Reference-format/pb1496-free-form-line-256; unit:PhysicalLinesTests.ATabAdvancesToTheNextTabStop; unit:PhysicalLinesTests.FreeForm_LineOfMoreThan255Positions_IsDiagnosed",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1586 + PB1496 + PB1800. cite.py --check 6.1 'The implementor shall specify the meaning of lines and character positions' OK 6.1 c); 6.1 'ranging from a minimum of 0 to a maximum of 255' OK 6.1 a). The determination is written and now true of the compiler: ONE line-entry stage (PhysicalLines.Read) expands every TAB to the next tab stop (positions 1, 9, 17, ...) before any stage reads the line, literals included (owner decision R55); a free-form line of more than 255 expanded positions is COBOL2653 at every edition; a fixed-form line is not subject to the limit (6.1 2) b)); the short-line padding half landed under PB1491. Probed: two leading TABs in fixed form start DISPLAY at position 17 (before: COBOL2616 'column 7 holds L'); 000100<TAB><TAB>DISPLAY likewise; a TAB at position 64 carries the next text past margin R, where it is ignored. retired-witness: src/Cobol.Net.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#ConvertFreeLine (kb/Work PB1804: the free-form 255-position limit is asked in ConvertFreeLines)",
+ "state": "OK"
+}

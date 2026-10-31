@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.60.3-19",
+ "section": "13.18.60.3",
+ "kind": "SR",
+ "ordinal": 19,
+ "subject": "USAGE clause",
+ "rule-digest": "69a7f5b3cd31",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
+ "test-ref": "conformance:cases/13.18.60-USAGE/pb452-program-pointer-to-without-typedef; conformance:cases/13.18.60-USAGE/pb817_restricted_program_pointer",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR18 AND SR19 ARE ONE SENTENCE WRITTEN TWICE AND ARE NOW ONE SCREEN (kb/Work PB497 + PB817). 'If program-prototype-name-1 is specified, the TYPEDEF clause shall be specified for the subject of the entry' has SR18's exact shape over the other operand, and SR18 was implemented twenty lines away while this one was covered by a COBOL0899 staging that hid the gap; lifting that staging without the screen would have turned a latent under-rejection into a live one, which is precisely what PB497 predicted. As with SR18 the LITERAL reading is the startling one and is the correct one: the subject is the entry carrying the TO phrase, so '01 PP USAGE PROGRAM-POINTER TO PROTO.' is itself nonconforming and the conforming spelling is a TYPE DECLARATION reached by a TYPE clause. MEASURED ASYMMETRY: there is NO function-pointer twin of SR18/SR19 - 13.18.60.3 stops at SR21 and carries no function-prototype-name sentence - so a level-1 USAGE FUNCTION-POINTER TO fp needs no TYPEDEF, and enforcing a third arm would reject legal source.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.85.4-2",
+ "section": "15.85.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "STANDARD-COMPARE function",
+ "rule-digest": "908e49726ef6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#StandardCompare; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#OrderNotSupportedError",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb101_ec_order_not_supported; unit:StandardCompareTests.UnavailableTableOrLevel_RaisesEcOrderNotSupported; unit:StandardCompareTests.UnavailableTable_WithCheckingOff_ReturnsEqual_AndRecordsNothing",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB101 T7: an unresolvable ordering table (a literal-9 that is neither the default name nor a locale tag) or a level outside 1..4 sets EC-ORDER-NOT-SUPPORTED at the reference through the ambient-gate machinery (a USE declarative observes it — the golden); with checking off the function answers \"=\" (the §14.6.13.1.3 #8 implementor choice, CONFORMANCE.md §4 item 5). The binder warns COBOL1662 at compile time for a literal-9 that can never resolve.",
+ "state": "OK"
+}

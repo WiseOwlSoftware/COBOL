@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.15.4-1",
+ "section": "8.4.3.15.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Report counters",
+ "rule-digest": "6bb35429ea48",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/AlgebraicRange.cs#CounterRegisterDigits; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsString; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#IsIntegerOperand; src/WiseOwl.Cobol.Compiler/Binding/RelationComparability.cs#IsNumericIntegerOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLengthFold",
+ "test-ref": "conformance:cases/8.4.3.14-LINAGE-COUNTER/pb1153_counter_register_character_image; conformance:cases/8.4.3.14-LINAGE-COUNTER/pb1153_counter_register_byte_length",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR1 (cite.py --check 8.4.3.15.4 OK 1) with SR1 (cite.py --check 8.4.3.15.3 OK 1: \"may be referenced in any context where an integer data item may appear\"). The arithmetic half and the receiving side (PB429) already conformed. kb/Work PB1153/PB1199/PB1318 LANDED (wave 73 group C): the register is an unsigned integer DATA ITEM whose implicit description is PIC 9(d) USAGE DISPLAY (docs/CONFORMANCE.md, the counter registers' declared capacity: d = the LINAGE page size's digits, 18 for LINE-/PAGE-COUNTER). AlgebraicRanges.CounterRegisterDigits / IsCounterRegister are the one reader: OperandText.AsString renders the d-digit zero-filled image in every character context (DISPLAY, MOVE to alphanumeric, STRING sender, relation with an alphanumeric operand), IntrinsicResultType.IsIntegerOperand makes it an integer (PERFORM ... TIMES), RelationComparability admits it as 8.8.4.2.5's integer display item, and the LENGTH / BYTE-LENGTH folds answer d. Golden: after INITIATE + one GENERATE (FIRST DETAIL 2) DISPLAY PAGE-COUNTER shows 000000000000000001, LINE-COUNTER OF R1 000000000000000002, MOVE LINE-COUNTER TO X(4) stores 0000 (leftmost four of 18 digits, 14.9.25.4 GR6 a), STRING, relation, PERFORM PAGE-COUNTER TIMES runs once, LENGTH 18.",
+ "state": "OK"
+}

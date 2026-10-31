@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.9.3-3",
+ "section": "8.4.3.9.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Object property",
+ "rule-digest": "27494936e43f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#PropertyGet; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundStores.cs#StoreKindOf; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.ObjectProperty.cs#ResolveObjectProperty",
+ "test-ref": "conformance-test:OoSpineTests.PropertyReference_SendingWithNoGet_0843; conformance:cases/8.4.3.9-Object-property/pb1275_property_set_formats",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1275 LANDED (w1014u). cite.py --check 8.4.3.9.3 'If the object property is used as a sending item, a get property method shall exist' OK 3). The refuted over-application is fixed: STRING's identifier-3 is classified WRITE-only (14.9.43.3 SR10 'The data item referenced by identifier-3 is the receiving operand'), so a WITH NO GET property as the STRING INTO target no longer demands a GET - it compiles and its SET stores the transferred characters (golden line 8, ABCDEFGH); identifier-4 (POINTER) stays read-modify-write. Every true sending use without a GET still raises COBOL0843 naming SR3 (OoSpineTests.PropertyReference_SendingWithNoGet_0843). retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#OoTryBindPropertyReference (the one-word property binder ReferenceResolver.OoTryBindPropertyReference is deleted by kb/Work PB1425 (w1021a): a property reference is resolved by ReferenceResolver.ResolveObjectProperty, which splits the chain and resolves identifier-3 through the ordinary resolver)",
+ "state": "OK"
+}

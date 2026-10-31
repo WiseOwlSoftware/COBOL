@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.11.4-1",
+ "section": "12.4.5.11.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "RECORD DELIMITER clause",
+ "rule-digest": "b8b6fca57d01",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read; src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#EncodeFrameHead; src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#ReadFrame; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#NextFrame",
+ "test-ref": "conformance:cases/12.4.5.11-RECORD-DELIMITER/pb292_record_delimiter_witness",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"Any method used shall not be reflected in the record area or the record size used within the function, method, or program\" is the rule that makes this implementation's method admissible, and the golden measures it directly. Records of 3 and 8 bytes are written to four variable-length files and read back; §13.18.43.4 GR15 stores the byte count of the record just read into the DEPENDING item, and the count read back is 03 then 08 on every file — the 4-byte little-endian length prefix (Annex A.1 item 151) is stripped before the record area is filled and never enters a record size the program can see. The DEPENDING item is deliberately forced to 99 before each READ so the measurement is GR15's stored count and not the leftover MOVE that sized the WRITE, and the displayed text is reference-modified to the reported length so nothing depends on what a short READ leaves in the tail of the area. retired-witness: src/Cobol.Net.Runtime/IO/RecordFraming.cs#PrefixLength (kb/Work PB2754 made RecordFraming.EncodeFrameHead the one frame-head encoder and RecordFraming.ReadFrame the one decoder, which strips the head before any payload reaches the record area; the Latin-1 char decoders, PrefixLength among them, were deleted, and WritePrefix had already been replaced by WriteFrameHead) retired-witness: src/Cobol.Net.Runtime/IO/RecordFraming.cs#WritePrefix (kb/Work PB2754 made RecordFraming.EncodeFrameHead the one frame-head encoder and RecordFraming.ReadFrame the one decoder, which strips the head before any payload reaches the record area; the Latin-1 char decoders, PrefixLength among them, were deleted, and WritePrefix had already been replaced by WriteFrameHead)",
+ "state": "OK"
+}

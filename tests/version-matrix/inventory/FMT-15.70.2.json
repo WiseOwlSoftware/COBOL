@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.70.2",
+ "section": "15.70.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "ORD function",
+ "rule-digest": "d73416746aa3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+ "test-ref": "nist:IF127A; conformance:cases/12.3.7-SPECIAL-NAMES/ca26_char_unicode_pcs",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Re-verified independently. The canonical PDF was re-extracted at PDF page 930 (printed folio 900): the general format is literally 'FUNCTION ORD ( argument-1 )' — no brackets, no optional element, so there is no room for the falsely-restrictive OCR failure mode; the §15.70.2 transcription is faithful. Grammar (read, not inferred): functionCall : FUNCTION functionName (LPAREN functionArgList? RPAREN)? ; ORD is not a reserved word and reaches functionName as an ordinary word. Exact arity 1 comes from the catalog row Add(new(\"ORD\", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, \"s\", \"Ord\", IntrinsicBind.Runtime, false, 85)) and is enforced by BindIntrinsicCore's MinArgs/MaxArgs gate. RE-PROBED with the built CLI at --std 2023: 'FUNCTION ORD' and 'FUNCTION ORD()' each give COBOL1504 '1 argument(s); 0 given', 'FUNCTION ORD(A B)' gives '1 argument(s); 2 given', and the one-argument form binds. Both test-refs exist on disk and both call the one-argument format with value assertions (IF127A has 10 FUNCTION ORD call sites).",
+ "state": "OK"
+}

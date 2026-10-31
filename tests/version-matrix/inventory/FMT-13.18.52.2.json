@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.52.2",
+ "section": "13.18.52.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "SIGN clause",
+ "rule-digest": "f2585a3f548d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#signClause; src/WiseOwl.Cobol.Frontend/Cst/ClauseCardinality.cs#ClauseCardinalities; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenClauseRepetition",
+ "test-ref": "conformance:cases/13.18.52-SIGN/pb486-sign-written-twice; conformance:cases/13.16-Data-description/pb917-data-usage-twice; conformance:cases/13.18.52-SIGN/pb917-report-group-picture-twice",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB486 (wave 1019 D2), re-probed: the clause's own format (LEADING / TRAILING in braces, SEPARATE CHARACTER optional) is exact, and the entry-level repeat the finding measured is now refused by kb/Work PB917's ClosedFormatPass over the §13.16.2 and §13.15.2 cardinality rows (COBOL2423): `SIGN IS LEADING SEPARATE SIGN IS TRAILING` (the case that silently dropped the SEPARATE position) and `SIGN IS TRAILING LEADING` are both rejected at 85-2023, in a data description entry and in a report group description entry. §5.2.6.2 (cite.py OK): brackets 'may be explicitly specified or that portion of the general format may be omitted'. Witness added: pb486-sign-written-twice.",
+ "state": "OK"
+}

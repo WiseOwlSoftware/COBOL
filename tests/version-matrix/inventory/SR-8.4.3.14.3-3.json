@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.14.3-3",
+ "section": "8.4.3.14.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "LINAGE-COUNTER",
+ "rule-digest": "b4028d32b66f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#LinageFileOf",
+ "test-ref": "conformance-test:LinageConformanceTests.UnqualifiedCounter_TwoLinageFiles_IsRejected",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR3 defers to §8.4.2.2; the operative rule is §8.4.2.2.3 SR8: \"LINAGE-COUNTER shall be qualified if more than one file description entry containing a LINAGE clause may be referenced within the source element in which the reference to LINAGE-COUNTER occurs.\" (cite.py --check 8.4.2.2.3 -> OK 8)); scope per §8.4.6.2.6 (global only with GLOBAL; cite OK). LinageFileOf: unqualified resolves only when exactly one VISIBLE LINAGE file (FilesByName, including containers' GLOBAL FDs, PB123) else COBOL0864; qualified requires the qualifier to name a LINAGE file else COBOL0863. Probed at 85 and 2023 (probe/linage-counter): OF LPF with one LINAGE file (qualification not needed, still legal per §8.4.2.2.3 SR2) runs (Q1); unqualified with one runs (Q5); OF a non-LINAGE file (Q2), OF an undefined name (Q3), OF a data-name (Q4) rejected; two LINAGE files qualified run correctly (g4, and the covering QualifiedCounter_TwoLinageFiles test); unqualified with two is rejected by the covering test. || editions as written by the adjudicator: 85 2002 2014 2023",
+ "state": "OK"
+}

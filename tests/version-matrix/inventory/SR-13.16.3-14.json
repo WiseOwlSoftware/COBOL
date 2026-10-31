@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.16.3-14",
+ "section": "13.16.3",
+ "kind": "SR",
+ "ordinal": 14,
+ "subject": "Data description entry",
+ "rule-digest": "c6a2b0685300",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Cst/DataClauseKind.cs#TypeCoPermitted; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#TypeEntryRule; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#TypeEntryRule",
+ "test-ref": "conformance:cases/13.16-Data-description/pb513_type_entry_composition; conformance:cases/13.16-Data-description/pb513-type-entry-composition",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB513 - LANDED (wave 39). SR14's permitted set is now ONE constant, DataClauseKinds.TypeCoPermitted, read over the entry's WRITTEN clause set (DataDescriptionEntryCst.WrittenClauses) exactly as SR12's SameAsCoPermitted is, and the guard sits in BindEntry beside SR12's: COBOL2150, which NAMES the offending clause instead of restating the permitted list. CLASS, DEFAULT, DESTINATION, INVALID, PRESENT WHEN, VALIDATE-STATUS and VARYING arrive as the single Validation bit, which is exactly the set 13.16.2's validation-clauses meta-term names. Measured after the fix, at --std 2002 and 2023: TYPE+PICTURE, TYPE+USAGE, TYPE+JUSTIFIED, TYPE+SYNCHRONIZED, TYPE+SIGN, TYPE+BLANK WHEN ZERO, TYPE+REDEFINES and TYPE+GROUP-USAGE each draw exactly one COBOL2150 (negative pb513-type-entry-composition), and TYPE+VALUE / +OCCURS / +GLOBAL / +BASED / +TYPEDEF still compose (positive pb513_type_entry_composition). The WRONG ANSWER the missing rule caused is gone with it: `01 T IS TYPEDEF PIC X(3). 01 A TYPE T PIC 9(5).` no longer binds A as a 5-digit numeric item that 13.18.57.4 GR1 never described. SR14 is also the standing WARRANT for CopyEntryDescription's receiver-wins copy, which its doc comment already cited; the rule is now true. The same sweep fixed the TYPE arm's missing chained-template hop (a type declaration whose own description is a TYPE clause, 13.18.58.3 SR2 / 13.18.58.4 GR3), which ExpandSameAs has always had for its target.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.66.3-1",
+ "section": "15.66.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "NATIONAL-OF function",
+ "rule-digest": "78cc089871b2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckRepertoireArgs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#OperandCategory; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#StrArgVisitor",
+ "test-ref": "conformance:cases/15.66.3-Argument-rules/l1_national_of_argument_classes; conformance:cases/15.66.3-Argument-rules/l1-national-of-numeric-argument1; conformance:cases/15.3-Arguments/national-of-wrong-category",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "New goldens close r1's two untested branches: class ALPHABETIC admitted (PIC A(3) -> ALPHABETIC=ABC, ALPHALEN=3) and a class outside the repertoire pair refused (PIC 9(3) -> COBOL1546). Editions no longer blank: IntrinsicCatalog.cs line 210 introduces NATIONAL-OF at 2002 and r1's text is identical at 2002/2014/2023.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.4.3.3.2",
+ "section": "8.4.3.3.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Reference-modification",
+ "rule-digest": "39fb6e57d078",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#refModPart; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#refModSpec; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ReadRefMod; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ScreenEmptyParentheses",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb202_odo_refmod_group_direction; conformance:cases/8.4.3.1-Identifier/pb1407-ref-mod-leftmost-position-omitted",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1458 (closed by PB1407 wave 1019 C, the same code site). The PARTIAL was X(:2): the REQUIRED leftmost-position omitted was refused only by the COBOL2362 internal-error net. It is now COBOL2876 naming the 8.4.3.3.2 format identifier-1( leftmost-position : [ length ] ), for X (:2), X (: 2) and X (:) on a sending, receiving, relation and ADDRESS OF operand. T(1)( :2) and FUNCTION F (:2) never reach the resolver: the default-mode refModPart grammar rule requires the leftmost expression, so they are parse errors (COBOL0001). retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#LeftmostPositionOmitted (kb/Work PB2113: every reference modifier is the parsed refModPart/refModSpec, read by the one ReadRefMod) retired-witness: src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#subscriptOrRefMod (kb/Work PB2113: every reference modifier is the parsed refModPart/refModSpec, read by the one ReadRefMod)",
+ "state": "OK"
+}

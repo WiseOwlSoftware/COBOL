@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.48.3-5",
+ "section": "14.9.48.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "UNSTRING statement",
+ "rule-digest": "bc0a8c64f191",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/pb88-unstring-count-without-delimited",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB88 (2026-08-18): a bind-time rejection (COBOL1651) through the ONE Reject helper — it was a BoundUnsupported run-time stage on illegal source. Identifier-6 (COUNT IN) and identifier-8 (TALLYING) shall reference integer data items without P — Reject at each site.",
+ "state": "OK"
+}

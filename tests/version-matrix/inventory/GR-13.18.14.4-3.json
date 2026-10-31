@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.14.4-3",
+ "section": "13.18.14.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "COLUMN clause",
+ "rule-digest": "871d4b69e783",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#DisplayTextWidth; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/l1c03_report_column_synonyms_printable_size",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: printable-size = columns for the characters the PICTURE describes, or, with no PICTURE, the VALUE literal; one column per alphanumeric character (cite.py --check 13.18.14.4 'in the absence of a PICTURE clause, the literal specified in the VALUE clause' -> OK 3)). The emitter advances the horizontal counter by PrintItem.DisplayTextWidth. Probe p5.cob (2023) with each item followed by a relative '|': PIC 9(3)V99 -> 5 columns ('01234', V occupies none), PIC S999 SIGN LEADING SEPARATE -> 4 ('-012'), PIC -ZZ9.99 -> 7 ('- 12.34'), PIC S999 (embedded sign) -> 3, PIC N(2) -> 2: output '01234|-012|- 12.34|01K|AB|' - every boundary exact. Probe p1.cob: `COLUMN 3 VALUE \"ABC\"` (no PICTURE) occupied 3-5 and `COLUMN PLUS 2` then landed at 7. NOTE 1 is informative. No spec-derived golden isolates printable-size; test-needed. || Code sites (adjudicator detail): src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#DisplayTextWidth; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs (line-width loop ~2690)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-183",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 183,
+ "subject": "SPECIAL-NAMES paragraph, ALPHABET clause, code-name-1 (alphanumeric coded character set and collating sequence; ordinal ",
+ "rule-digest": "485b62c79d4c",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-183; src/WiseOwl.Cobol.Compiler/Binding/ImplementorCodeNames.cs#SingleByteCodePage; src/WiseOwl.Cobol.Compiler/Binding/ImplementorCodeNames.cs#EbcdicCodePage; src/WiseOwl.Cobol.Compiler/Binding/ImplementorCodeNames.cs#Ascii",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb793_code_name_alphabets; conformance:cases/13.18.13-CODE-SET/pb793_code_set_ebcdic; conformance:cases/12.3.7-SPECIAL-NAMES/pb793_code_name_alphabets_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "A.1 item 183 - the code-name-1 coded character set and collating sequence, the ordinal number of characters, and the correspondence with the native alphanumeric character set (12.3.7.4 GR7 i). CONDITIONALLY REQUIRED 'because it is conditioned upon the existence of a code-name', and the condition became TRUE with owner decision kb/Work PB793, so the item is LIVE and the determination is written out in full at docs/CONFORMANCE.md section 7. ASCII: ISO/IEC 646 IRV, 128 ordinals, ordinal n = native character U+(n-1), the identity correspondence, the native collating positions. EBCDIC: IBM CCSID 37, 256 ordinals, ordinal n = the native character that page assigns to code unit n-1, the correspondence being the page itself and the collating position of a native character being its code unit in it; the 65,280 native characters the page does not spell are not members of the set and take the collating position 12.3.7.4 GR7 k3 gives an unspecified character. Surveyed rather than assumed (survey_compilers_on_latitude): CCSID 37 is the canonical registered complete single-byte EBCDIC page and the z/OS default; GnuCOBOL's own default table corresponds to no registered CCSID and its named alternates are CCSID 500 variants, so its LATITUDE is followed and its tables are not (they are GPL and are not read here). The whole table is DERIVED from Encoding.GetEncoding(37) at bind time, so nothing is transcribed and there is no 256-entry literal to drift. || editions 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a facility that exists at every edition (the COBOL-85 nucleus, I-O, inter-program and SPECIAL-NAMES implementor-names; its arithmetic, the only arithmetic of COBOL-85, is what later editions name native).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.58.2",
+ "section": "13.18.58.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "TYPEDEF clause",
+ "rule-digest": "14ee29114801",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#typedefClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitTypedefClause",
+ "test-ref": "conformance:cases/13.18.58-TYPEDEF/l1c34_typedef_format_spellings",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Format 'IS TYPEDEF [ STRONG ]' (cite.py --check 13.18.58.2 \"TYPEDEF\" OK; printed as IS <u>TYPEDEF</u> [ <u>STRONG</u> ]). Grammar typedefClause: IS? TYPEDEF STRONG? -- IS optional (not underlined), TYPEDEF required, STRONG optional: exact. Probe E:/Temp/claude/E--COBOL/a700c052-f9e4-4942-84ff-a13c7505d6ec/scratchpad/adj-d1/out13/probe/typedef-clause/td11fmt.cob (T1 IS TYPEDEF / T2 TYPEDEF STRONG / T3 IS TYPEDEF STRONG) compiles and prints '123' at --std 2002, 2014 and 2023; at --std 85 each TYPEDEF is COBOL0900. td22nois (TYPEDEF IS EXTERNAL) accepted. No spec-derived golden exercises the IS spelling of TYPEDEF positively (typedef_strong_ok writes 'TYPEDEF STRONG' only), so test-ref is empty. Observation outside this row: '01 T PIC X TYPEDEF.' (td23order) is accepted although §13.16.3 SR4 requires the TYPEDEF clause to immediately follow the entry-name clause -- that is row SR-13.16.3-4, not this one. || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (TYPEDEF [STRONG] is a COBOL-2002 introduction; Annex E carries no 2014/2023 change row for TYPEDEF or STRONG; only STRONG+EXTERNAL is new in 2023, E.3.3 item 20)",
+ "state": "OK"
+}

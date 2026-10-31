@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.8-1",
+ "section": "14.7.8",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Common phrases and features for statements",
+ "rule-digest": "409cfe257b05",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#IsCollatedThroughRange; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BindWhenItem; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderMembershipTest",
+ "test-ref": "conformance:cases/14.7.8-THROUGH/pb401_range_invalid_by_class; conformance-test:ThroughRangeExceptionTests.ThroughRange_RaisesRangeInvalidByClassNotByOperandForm; conformance:cases/13.18.63-VALUE/ec_range_invalid",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB401.md - rule 1, 'When the range of values is defined by numeric literals, the range of values includes literal-1, literal-2, and all algebraic values between literal-1 and literal-2'. A numeric range lowers to the inclusive ALGEBRAIC pair `subject >= lo && subject <= hi` over the numeric channel, names no collating sequence, and sets NO exception condition in either direction - which is what makes rule 1 observably different from rule 2 and is measured as such: PBR10 (inverted numeric identifier ends: empty, no EC), PBR11 (arithmetic-expression ends 1+1 THRU 8+2 containing 5 algebraically), PBR12/PBR13 (literal ends both directions), and the golden's NUMINV/ARITH arms. The rule-1/rule-2 split is written down ONCE, as CollatingSelection.IsCollatedThroughRange over the range's class, so a site cannot implement one rule and leave the other to a second author; before it, an arithmetic-expression-ended range was classified ALPHANUMERIC (its operand answered 'no category') and took rule 2's collating treatment.",
+ "state": "OK"
+}

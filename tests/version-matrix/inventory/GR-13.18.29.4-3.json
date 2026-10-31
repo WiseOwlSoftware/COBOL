@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.29.4-3",
+ "section": "13.18.29.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "GROUP-USAGE clause",
+ "rule-digest": "51695fb2df27",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#OperandPic; src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#ExtentBits",
+ "test-ref": "conformance:cases/13.16-Data-description/pb79_group_usage_bit; conformance:cases/13.18.29-GROUP-USAGE/pb61_length_byte_length_rule_branches",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (PB79). No GROUP-USAGE clause specified or implied => an alphanumeric group item: OperandPic is null (GR4 group MOVE, r3 LENGTH, the trailing-filler rule 4 of §8.5.1.6.3 — `01 G USAGE BIT. 05 GA PIC 1(5). 05 GB PIC 1(3).` is an ALPHANUMERIC group of 1 byte: LENGTH 1, BYTE-LENGTH 1).",
+ "state": "OK"
+}

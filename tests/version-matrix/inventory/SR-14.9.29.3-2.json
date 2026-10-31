@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.29.3-2",
+ "section": "14.9.29.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "RAISE statement",
+ "rule-digest": "1b9b29b7af77",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#BindRaise",
+ "test-ref": "conformance-test:OoSpineTests.RaiseObject_BindViolations",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "\"Identifier-1 shall be an object reference; the predefined object references NULL and SUPER shall not be specified.\" (cite.py --check 14.9.29.3 -> OK §14.9.29.3 2)). BindRaise: NULL/SUPER -> COBOL0848 citing SR2; a resolved item whose category is not ObjectReference -> 0848. Probed: RAISE SUPER in a method -> 0848 (probe/raise/sr2.cob); RAISE of a typed reference E, a universal reference U, EXCEPTION-OBJECT and SELF (in a method) all accepted and run (probe/raise/sr2b.cob). The named Theory pins RAISE NULL and RAISE of a numeric item; SUPER is probed only. RAISE SELF outside a method is rejected under §8.4.3.8.3 SR1 (a separate rule, correctly cited).",
+ "state": "OK"
+}

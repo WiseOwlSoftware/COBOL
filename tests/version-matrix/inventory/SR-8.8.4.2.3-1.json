@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.4.2.3-1",
+ "section": "8.8.4.2.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Simple relation conditions",
+ "rule-digest": "7e8b10195e02",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckRelationalOperands; src/WiseOwl.Cobol.Compiler/Binding/Model/StrongTypeModel.cs#SameType",
+ "test-ref": "conformance:cases/8.8.4.2-Simple-relation-conditions/strong-group-heterogeneous-compare",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR1 (cite.py OK). CheckRelationalOperands raises COBOL1533 when either BoundFieldOperand is a strong group and the other is absent or not SameType. Measured COBOL1533 for: strong vs SPACES, vs alphanumeric literal, vs a same-layout ordinary group, vs an elementary member of a same-type group, and under EVALUATE subject/WHEN (probe srel2/s_1,2,3,8,9); same-type pair accepted (s_4/s_5). Same-type equivalence itself is §8.5.3.3's (PB427 landed). [editions as adjudicated: 2002, 2014, 2023 (TYPEDEF STRONG enters with ISO/IEC 1989:2002)]",
+ "state": "OK"
+}

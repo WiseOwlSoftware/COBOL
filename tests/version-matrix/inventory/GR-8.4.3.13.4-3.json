@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.13.4-3",
+ "section": "8.4.3.13.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Program-address-identifier",
+ "rule-digest": "499c8859348e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetProgramAddress; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#RestrictedReceiverNeedsPrototype",
+ "test-ref": "conformance:cases/8.4.3.13-Program-address-identifier/l1m7_program_address_prototype_restricted; conformance:cases/8.4.3.13-Program-address-identifier/l1m7-program-address-prototype-signature",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR3 + §14.9.39.3 SR22: ADDRESS OF PROGRAM proto is restricted; the same prototype SETs into a restricted RP and CALLs (RP-NULL/RP-SET/PA OK); a different-signature prototype is rejected with COBOL1959",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.96.2",
+ "section": "15.96.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "TRIM function",
+ "rule-digest": "59879c2f8187",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindTrim",
+ "test-ref": "conformance:cases/15.3-Arguments/pb124_keyword_positions; conformance:cases/15.3-Arguments/pb124-trim-keyword-after-arg2; conformance:cases/15.96-TRIM/pb124-trim-all-below-2023; conformance:cases/15.3-Arguments/intrinsics_trim",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "LANDED (kb/Work PB124 wave 1): the format's order is enforced (the keyword group between argument-1 and the repeated argument-2, zero or one) and the row's edition-gate hole is closed - a table(ALL) argument enumerates a VARIABLE argument list, i.e. the 2023 argument-2 form whatever its element count, so TRIM(E(ALL)) at --std 2014 now draws COBOL1502 where the old operands.Count > 1 gate saw one operand and passed it (negative pb124-trim-all-below-2023, reject-at 2014).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.7.4-6",
+ "section": "12.4.5.7.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "COLLATING SEQUENCE clause",
+ "rule-digest": "c4879d71df13",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveKeyCollating",
+ "test-ref": "conformance:cases/12.4.5.7-COLLATING-SEQUENCE/pb703_collating_key_named_twice",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Alphabet-name-3 applies to record keys identified by data-name-1 or record-key-name-1. ResolveKeyCollating resolves each key's weight table from the Format-2 clause naming it before falling back to the Format-1 default (GR2) and then to native (GR4/GR5). The golden gives the prime key the alphabet REV and the alternate key DREV in the same file control entry and reads the file back on each key: the two halves order DIFFERENTLY (Z,M,A against 3,2,1 = A,Z,M), so neither can pass with the other's sequence applied and neither can pass with native ordinal weights.",
+ "state": "OK"
+}

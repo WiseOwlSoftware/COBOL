@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.2.4.4-6",
+ "section": "7.2.4.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "REPLACE statement",
+ "rule-digest": "99bc8cf64bb4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReplaceStates",
+ "test-ref": "conformance:cases/7.2.4-REPLACE/pb1357_replace_also_last; unit:TextManipulationStatementTests.WithNoneActive_AlsoAndLastOffHaveNoEffect",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1357 (w68x): with none active, format 1 activates and 'The ALSO phrase, if specified, has no effect' (cite.py OK 7.2.4.4 6) a)); format 2 'has no effect' (6) b)). Golden legs [X1-X2-] (LAST OFF first) and [AAX2-] (ALSO first).",
+ "state": "OK"
+}

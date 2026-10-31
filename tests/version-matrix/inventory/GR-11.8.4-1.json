@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.8.4-1",
+ "section": "11.8.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "OBJECT paragraph",
+ "rule-digest": "136fbf638ec1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ValidateImplements",
+ "test-ref": "conformance:cases/11.8-OBJECT/oo_interface",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR1: \"The IMPLEMENTS clause specifies the names of the interfaces that are implemented by the object of the containing class according to 9.3.11\" (cite.py --check 11.8.4 OK; 9.3.11 --check OK). Captured into OoClassSymbol.Implements (instance roster only; the FACTORY list is separate, FactoryImplements), emitted as the C# base list, and checked per §9.3.11 in ValidateImplements. Probe p1/p8 (probe dir out/probe/object-paragraph (gen.py)): objects of an implementing class assign to and invoke through interface-typed references with the right methods dispatched; p9 a class with the method but no IMPLEMENTS is refused at SET (COBOL0867), so the clause (not duck-typing) decides implementation. || Editions (adjudicator, verbatim): 2002, 2014, 2023 (the OO facility, introduced by ISO/IEC 1989:2002; absent from X3.23-1985) || Code sites (adjudicator, verbatim): src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build (CaptureImplements); src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs (IMPLEMENTS list joins the C# base list); src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ValidateImplements",
+ "state": "OK"
+}

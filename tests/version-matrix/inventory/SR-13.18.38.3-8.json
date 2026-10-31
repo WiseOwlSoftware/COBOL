@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.38.3-8",
+ "section": "13.18.38.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "OCCURS clause",
+ "rule-digest": "c8f844c1d216",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#OccursKeyItemFault; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#IsBooleanMessageTagObjectOrPointer",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb1263-occurs-key-boolean",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1263 (wave 1015 Y). cite.py --check 13.18.38.3 \"The KEY phrase shall not be specified for a data item of class boolean, message-tag, object, or pointer\" -> OK 8). ItemCategory.IsBooleanMessageTagObjectOrPointer: class boolean through the operand PICTURE (PIC 1, a bit group's as-if PICTURE), and message-tag / object / pointer through the SR14 usage population (MESSAGE-TAG, OBJECT REFERENCE, POINTER, FUNCTION-POINTER, PROGRAM-POINTER). Probed also: a POINTER key under TYPEDEF STRONG draws COBOL2787.",
+ "state": "OK"
+}

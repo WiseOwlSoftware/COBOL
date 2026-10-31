@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-5",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "VALUE clause",
+ "rule-digest": "a7b414166eb2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ValidateValueCategory; src/WiseOwl.Cobol.Compiler/Binding/ValueSubject.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.GroupValue.cs#CheckGroupValueDeclarations",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb206-national-group-value-oversize; conformance:cases/13.18.63-VALUE/pb206-group-value-national-literal; conformance:cases/13.18.63-VALUE/pb206_value_size_categories; conformance:cases/13.18.63-VALUE/pb598_condition_name_value_size_national_bit; conformance-test:NationalBooleanDataTests.IllegalValueShape_Rejects0898; conformance-test:ConditionNameValueSizeTests.AnOversizeNationalOrBooleanConditionNameLiteral_IsLegalFrom2002; conformance-test:ConditionNameValueSizeTests.TheNationalAndBooleanSizeSentencesStillBindAnElementarySubject",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "RE-RECORDED 2026-09-05 (kb/Work PB598) — SR5's size sentences reach an elementary item and a national group item, and NOT a condition-name. SR5 is SR4's national twin, sentence for sentence, and it carried the same subject error, but unlike SR4's it had carried it since the arm was first written rather than acquiring it with PB206: `01 NV PIC N(2). 88 NC VALUE N\"ABC\".` was COBOL0898 at every edition national data exists. No GnuCOBOL differential case caught it because the corpus carries no oversize national level-88 literal (measured: 0 of 1,611 members), which is why only SR4's alphanumeric arm surfaced as a flip. The derivation is SR4's: a Format-3 entry admits no PICTURE clause (13.16.2), SR33 makes the level-88 entry the subject, 8.5.1.3.2 item 3 gives it no concept of level, and 13.18.63.4 GR19 gives it its conditional variable's characteristics only IMPLICITLY — which 'an explicit PICTURE clause' excludes. The size now comes from the ValueSubject descriptor, whose ForConditionName factory carries that derivation and returns no size at all. The category sentence is untouched and still binds a condition-name (SR5 is an ALL FORMATS rule): ConditionNameValueSizeTests.TheClassHalfStillBindsAConditionName pins it. The 2002 golden pb598_condition_name_value_size_national_bit derives the permanently-false comparison (8.8.4.5.3 item 2) and the truncating SET ... TO TRUE store (14.9.39.4 GR6 -> 13.18.63.4 GR7 -> 14.6.8.5) before measuring them; the elementary and national-group size sentences stay enforced, evidenced by the pb206 negatives and by TheNationalAndBooleanSizeSentencesStillBindAnElementarySubject, and the DYNAMIC LENGTH acceptance PB206 landed is unchanged (its null size is now ValueSubject.ForElementary's, stated once with its 13.18.19.3 SR1 / 13.18.19.4 GR1 citation).",
+ "state": "OK"
+}

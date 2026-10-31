@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.22.4-19",
+ "section": "14.9.22.4",
+ "kind": "GR",
+ "ordinal": 19,
+ "subject": "INSPECT statement",
+ "rule-digest": "dbcfeed779c3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#IdentifyOperands; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#OperandTextOf; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceIdentification.cs#Freeze",
+ "test-ref": "conformance:cases/14.6.4-Item-identification/pb1123_inspect_item_identification_once",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED kb/Work PB1123 (INSPECT arm). A format 3's REPLACING operands are identified with the TALLYING ones before the tally increments a counter they subscript: TALLYING ND ... REPLACING ALL A BY T(ND) reads T(1) (golden B leg).",
+ "state": "OK"
+}

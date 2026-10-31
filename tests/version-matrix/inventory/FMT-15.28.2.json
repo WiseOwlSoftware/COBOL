@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.28.2",
+ "section": "15.28.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "EXCEPTION-FILE function",
+ "rule-digest": "e489fddbace2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindExceptionFileArg",
+ "test-ref": "conformance:cases/15.28.4-Returned-value-rules/exception_file_arg",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "UPHELD, and re-verified independently rather than inherited. I re-rendered the PRINTED page myself (python scripts/render-spec-page.py 874 -> folio 844): the diagram is exactly `FUNCTION EXCEPTION-FILE [(argument-1)]` with FUNCTION and EXCEPTION-FILE underlined and argument-1 not underlined inside the optional group -- the Markdown transcription is faithful, with no falsely-restrictive OCR artifact, and it is corroborated by the 15.2 function table row (\"EXCEPTION-FILE | File1 | Anum ... If optional argument-1 is specified\") and by Annex E.3.3 item 25. Grammar realizes the shape as a superset (`functionCall` : FUNCTION functionName (LPAREN functionArgList? RPAREN)?) and the catalog row pins arity 0..1. I re-ran every shape at --std 2023: `FUNCTION EXCEPTION-FILE` -> ok; `FUNCTION EXCEPTION-FILE(FA)` -> ok; `FUNCTION EXCEPTION-FILE()` -> ok, which is CONFORMING, not lax -- the standard's own 8.4.3.2.3 SR6 NOTE writes `FUNCTION MAX (FUNCTION RANDOM () A B)`; `FUNCTION EXCEPTION-FILE(FA FB)` -> \"error COBOL1504: FUNCTION EXCEPTION-FILE takes 0..1 argument(s); 2 given (ISO 15.3)\". Edition realization re-run at all four --std values from one source: the no-argument form is accepted at 2002/2014/2023 and rejected at 85 (COBOL1502), and the bracketed argument-1 form is accepted only at 2023, rejected at 85/2002/2014 (COBOL0900) -- the 2023 window taken from Annex E.3.3 item 25, not from the catalog row under review. Out of scope for THIS rule and not scored against it: `FUNCTION EXCEPTION-FILE(1:2)` fails to parse at every edition, but so does `FUNCTION CURRENT-DATE(1:4)` -- that is a general 8.4.3 reference-modification-of-a-function-identifier gap, not a defect in this function's general format. Docs debt (not a conformance defect): the IntrinsicCatalog.cs EXCEPTION-FILE row comment still says the 2023 file-connector-arg form \"renders loud -- VCR row 68\", and docs/VERSION_CHANGE_REFERENCE.md rows 68/69 still carry `new-feature-gate <!-- todo -->`; the form is implemented.",
+ "state": "OK"
+}

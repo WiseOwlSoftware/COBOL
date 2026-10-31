@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-5.5-1",
+ "section": "5.5",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Description techniques",
+ "rule-digest": "144924cb280b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#IntegerOperandPass; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#IntegerOperandRules",
+ "test-ref": "conformance:cases/5.5-Integer-operands/pb859-occurs-zero-times; conformance:cases/5.5-Integer-operands/pb859_integer_n_zero_permitted; conformance-test:IntegerOperandZeroTests.ZeroWhereItsRulePermitsIt_IsAccepted; unit:IntegerOperandSlotDriftTests.EveryGrammarRuleWritingIntegerLiteral_IsClassified; conformance-test:IntegerOperandZeroTests.ZeroWhereNoRulePermitsIt_IsCOBOL2386",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB859 (+ PB910, the PERFORM 0 TIMES instance of the same rule), wave 56. BOTH halves of 5.5 1) are now enforced for every integer-n: UNSIGNED by construction (the grammar's integerLiteral : INTEGERLIT, pinned by SignedIntegerSlotDriftTests) and NONZERO by ONE pre-bind screen over every integerLiteral in the tree (Validation/IntegerOperandPass, COBOL2386). The associated rules that 'otherwise specify' are ONE table keyed by grammar rule, each citing its rule (13.18.34.3 SR4, 13.18.35.3 SR3, 13.18.38.3 SR16/SR28, 13.18.43.3 SR7/SR8, 14.9.51.3 SR15), and IntegerOperandSlotDriftTests derives the rule set from the generated parser in both directions so a new integer-n site cannot be added unclassified. OCCURS 0 TIMES used to reach Roslyn as CS0029. retired-witness: conformance-test:IntegerOperandZeroTests.ZeroWhereNoRulePermitsIt_IsCOBOLNET2386 (the same witness, re-spelled when the diagnostic code prefix became COBOL#### (kb/Work PB3575); the new spelling is recorded in its place)",
+ "state": "OK"
+}

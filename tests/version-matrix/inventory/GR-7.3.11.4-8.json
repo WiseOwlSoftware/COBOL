@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.11.4-8",
+ "section": "7.3.11.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "DEFINE directive",
+ "rule-digest": "5a1703223cf0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#AssignDefine",
+ "test-ref": "conformance:cases/7.3.11-DEFINE/l1c06_define_literal_categories",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 7.3.11.4 \"If literal-1 is specified, compilation-variable-name-1 references literal-1.\" -> OK GR8. Every literal category binds its literal: numeric (p1b N=3, F=1.5), alphanumeric (S=\"ABC\"), national (u1 N\"AB\"), boolean (u1 B\"10\"), hexadecimal-alphanumeric (u1 X\"41\" = \"A\"); a floating-point literal is refused per §7.3.3 SR10 (n9). The numeric case is pinned by Define_SingleFractionLiteral_KeepsValue; no DEFINE test pins the non-numeric categories - test-needed. || editions (adjudicator): 2002, 2014, 2023 - §7.3 compiler-directive facility; ISO/IEC 1989:2023 Annex E lists no change to §7.3.11 against 2014 (the 2002 introduction is not stated in the 2023 text itself; below 2002 the directive is COBOL0900)",
+ "state": "OK"
+}

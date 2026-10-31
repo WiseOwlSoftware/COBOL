@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.3.2.3-5",
+ "section": "8.3.3.2.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "Alphanumeric literals",
+ "rule-digest": "aeae82f35659",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#RepertoireViolation; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#HEX_BODY; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#Screen; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#ParseOperandFragment",
+ "test-ref": "conformance:cases/8.3.3.2-Alphanumeric-literals/w73a-hex-literal-non-hex-digit; unit:SeparatorRuleTests.OutsideRepertoire_NamesTheCharacterAndTheRule; unit:SeparatorRuleTests.PrefixedLiteral_IsOneTokenWhateverItsContent; conformance-test:DirectiveLiteralScreenTests.LiteralRepertoire_IsScreenedInAnOmittedBranch",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR5 (cite.py --check 8.3.3.2.3 \"Hex-character-sequence-1 shall be composed of hexadecimal digits\" OK 5)); 3.98 hexadecimal digit, A-F equivalent to a-f (cite.py OK). kb/Work PB1394/PB1441 LANDED (wave 73 group A): HEX_BODY is now [x] STR_BODY, so X\"GG\" is one HEXLIT and never IDENTIFIER X + \"GG\"; LiteralScreenPass asks CobolLiteral.RepertoireViolation of every literal token and reports COBOL2630 naming the character and SR5 (before the grouping rule, which declines such a literal); every hex decoder answers \"\" for it instead of throwing. Negative: DISPLAY X\"GG\" beside 01 X -> COBOL2630 at 2002/2014/2023 (it used to print ZZZGG). retired-witness: src/Cobol.Net.Compiler/Validation/LiteralScreenPass.cs#Screen (kb/Work PB1616 moved LiteralScreenPass (Compiler/Validation) to LiteralScreen (Frontend/Parsing) so the directive lane asks the same body; the witness is the same code at its new path)",
+ "state": "OK"
+}

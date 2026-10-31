@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-13",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 13,
+ "subject": "SET statement",
+ "rule-digest": "f60d4987e993",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindSetObjectRef; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ClassNameSenderRule; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#objectReferenceUsage",
+ "test-ref": "conformance:cases/13.18.60-USAGE/pb451_set_format5_class_name_sender; conformance:cases/9.3.6-Method-invocation/pb389_object_reference_descriptor; conformance:cases/14.9.39-SET/pb451-classname-sender-receiver-without-factory; conformance:cases/13.18.60-USAGE/pb451-classname-sender-only-receiver-subclass; conformance:cases/14.9.39-SET/pb451-classname-sender-superclass-name",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB451 — WAS PARTIAL ('the right outcome for the wrong reason': a not-yet-implemented notice stood in for the rule, and both sub-rules had no expressible input); CLOSED. Rule: `cite.py --check 14.9.39.3 \"the data item shall be described with the FACTORY phrase\"` -> OK 13); a) `\"if the data item referenced by identifier-3 is described with the ONLY phrase, object-class-name-1 shall be the object-class-name specified in the description of the data item referenced by identifier-3\"` -> OK 13); b) `\"otherwise, object-class-name-1 shall reference the same class or a subclass of the class specified in the description of the data item referenced by identifier-3\"` -> OK 13). DERIVED AND MEASURED, all three obligations, both directions: the LEADING requirement - a receiver described with an object-class-name but WITHOUT the FACTORY phrase is refused (pb451-classname-sender-receiver-without-factory), and the FACTORY-described receiver runs (SET FO TO PB451B -> FTAG-B, SET F1 F2 TO PB451D -> FTAG-D twice); a) - an ONLY receiver takes the SAME name (positive SET FO TO PB451B) and refuses a subclass name (pb451-classname-sender-only-receiver-subclass); b) - without ONLY, the same class or a subclass (positive SET F1 F2 TO PB451D, and PB389's SET F TO PB389D), refusing a SUPERCLASS name (pb451-classname-sender-superclass-name). The rejection is now the RULE's rather than a staging notice: the message names SS14.9.39.4 GR10 for the sender's identity and SS14.9.39.3 SR13 for the governing rule, chosen from the RECEIVER's description, and the same code answers SR11 for an interface receiver and SR14 for an ACTIVE-CLASS one. Both sub-rules have writable subjects because objectReferenceUsage now prints the general format's FACTORY OF and ONLY phrases (PB389). || CODE SITES: OoBinder.OoBindSetObjectRef object-class-name-sender arm; the synthetic sender is `ObjectClass(sname, factory: true, only: true)` - the description the class's factory object actually has - so SR13's three obligations fall out of the SR12 a) table rather than being written a second time.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.9.4-4",
+ "section": "12.4.5.9.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "LOCK MODE clause",
+ "rule-digest": "0f78b2aaed64",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReadSetsRecordLock; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ApplyPostReadLockActions; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#PreflightReadLock",
+ "test-ref": "conformance:cases/12.4.5.9-LOCK-MODE/l1_read_lock_mode_governs",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 12.4.5.9.4 4) 'Records are locked when any READ statement is executed.' OK. ReadSetsRecordLock: no phrase -> meta.LockMode == Automatic. WITH NO LOCK -> false, per the READ statement's own §14.9.30.4 GR11 b)/c) refinement. Both READ formats (ReadShared for Format 1, ReadKeyedShared for the Format 2 random read) reach ApplyPostReadLockActions. Probe rt1.cob phase 1, relative dynamic, Format-2 random READs: A (AUTOMATIC) read record 1 with plain READ and got '00'. B then read record 1 and got '51', which means A's READ set the lock with no LOCK phrase. conformance:cases/12.4.5.9-LOCK-MODE/l1_read_lock_mode_governs leg 2 and conformance:cases/14.9.41-START/l1_start_no_record_locks (AREAD/BLOCKED) witness the same thing on indexed files. [registrar 14a — editions as adjudicated: 2002, 2014, 2023 (the clause is absent from ISO 1989:1985; it arrives with the 2002 file sharing / record locking facility, D.2.4 / A.4.7; no later change to 12.4.5.9 located)]",
+ "state": "OK"
+}

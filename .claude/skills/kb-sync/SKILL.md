@@ -51,7 +51,7 @@ fix re-verdicted LEAVE `inventory_rows` — the claim a note makes while it is o
 which is what survives the landing. A landing that closed no inventory row says so: `closes_rows: []` plus a
 `closes_rows_reason:` sentence. Nothing here is optional prose — `python scripts/spec/work.py check`
 (`scripts/spec/work_inventory.py`, a gate audit) fails when a landed `kind: defect` note says neither, and when a row it
-names is still non-OK in `tests/version-matrix/traceability-inventory.json`. The field exists because without it
+names is still non-OK in `tests/version-matrix/inventory/` (one JSON file per row). The field exists because without it
 "which rows did this fix close" could only be answered by measuring the compiler again: fourteen §15 rows held
 the GAP open on mechanisms seven landings had already shipped, and thirteen closed CONFORMS the first time
 anyone looked. `python scripts/spec/backfill_closes_rows.py` derives the answer from the inventory's own commit

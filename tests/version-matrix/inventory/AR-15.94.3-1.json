@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.94.3-1",
+ "section": "15.94.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "TEST-NUMVAL-C function",
+ "rule-digest": "d1d3420f1f44",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindNumvalCFamily",
+ "test-ref": "conformance:cases/15.68.3-Argument-rules/pb64t6_numvalc_locale",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "The ONE bespoke bind serves both functions; the r5 LOCALE arm imported whole at T6. || editions corrected from '85,2002,2014,2023' to 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the TEST-NUMVAL-C function exists from 2002 (IntrinsicCatalog.cs, the COBOL1502 edition window).",
+ "state": "OK"
+}

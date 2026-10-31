@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.5.3-1",
+ "section": "12.4.5.5.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "General",
+ "rule-digest": "fc7509ec6703",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#AccessMode; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#KeyedAccess",
+ "test-ref": "conformance:cases/12.4.5-File-control/l1c12_access_mode_sequential_default",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: \"If the ACCESS MODE clause is not specified, sequential access is assumed.\" (cite.py --check 12.4.5.5.3 -> OK §12.4.5.5.3 1)). FileModel.AccessMode defaults to FileAccessMode.Sequential (FileModel.cs:128) and is only overwritten by a written clause (DataBinder.cs:994); the ordinal passes to the runtime KeyedAccess.Sequential=0. Probe gA.cob: INDEXED file with no ACCESS clause, WRITE 'C3' then 'A1' -> statuses 00 then 21 (sequence error, the sequential-access indexed WRITE rule), proving sequential access was assumed; gB.cob: RELATIVE with no ACCESS clause reads records in ascending RRN (R2,R5,R9) with plain READ. Both at --std 85 and 2023. No spec-derived golden asserts the default specifically. [registrar 14a — editions as adjudicated: 1985, 2002, 2014, 2023 (Annex E lists no substantive change to the ACCESS MODE clause)]",
+ "state": "OK"
+}

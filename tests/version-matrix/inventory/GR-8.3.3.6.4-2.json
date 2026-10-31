@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.3.3.6.4-2",
+ "section": "8.3.3.6.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Figurative constant values",
+ "rule-digest": "bf2459f07079",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundAllLiteral; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#MoveEmitter; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#WriteFill; src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#SpliceInto",
+ "test-ref": "conformance:cases/8.3.3.6-Figurative-constant-values/pb110_symbolic_and_class_in; conformance:cases/8.3.3.6-Figurative-constant-values/pb71_all_national_boolean_figurative; conformance:cases/8.3.3.6-Figurative-constant-values/pb1655_all_literal_refmod_receiver; unit:CobolStringPadTests.SpliceInto_Repeat_FillsTheSliceWithTheFigurativeSeed",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB110 (2026-08-19): the figurative fill — repeated character by character to the associated item's size, then right-truncated — over a VALUE clause (VAL-FILL3: position 3 of a PIC X(3) VALUE BELL holds the character) and a fixed-length MOVE receiver (MOVE-FILL: position 4 of an X(4)); the ALL-literal fill of PB71's golden is the same rule over a longer literal-1. One node (BoundAllLiteral) carries the semantics for the classic figuratives, ALL literal-1 and the symbolic characters alike.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-87",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 87,
+ "subject": "FORMATTED-CURRENT-DATE (accuracy of returned time)",
+ "rule-digest": "a8e196852c90",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-87; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#Clock",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1_formatted_current_date_accuracy; unit:CobolDateAccuracyTests.FormattedCurrentDate_PinnedClock_ClockTickThenZeros",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "§15.38.4 r2's accuracy measured as the pair the row's 2026-09-02 note demanded: the unit test renders the 18-digit fraction field from a PINNED clock (tick then zeros, at widths 7/9/18), the golden renders the same field on an unpinned clock and pins the zero tail and the exact 44-position length. || editions 2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the FORMATTED-CURRENT-DATE function exists from 2014 (IntrinsicCatalog.cs, the COBOL1502 edition window).",
+ "state": "OK"
+}

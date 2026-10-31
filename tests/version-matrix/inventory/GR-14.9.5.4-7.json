@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.5.4-7",
+ "section": "14.9.5.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "CANCEL statement",
+ "rule-digest": "588c7f0d29c6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode",
+ "test-ref": "conformance:cases/14.9.5-CANCEL/pb154_cancel_scope; conformance:cases/11.10-PROGRAM-ID/pb154_cancel_cascade",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB154): GR7 is a MODELED predicate - Node.CalledSinceCancel, set at both activation sites (RunMain, CallProgram), cleared by explicit CANCEL and by the 14.9.18 GR2 implicit cancel - and CancelNode's whole body is guarded on it, so 'no action' is literal for BOTH arms. It is deliberately NOT derived from Instance nullness (a returned RECURSIVE activation restores a NULL slot while run-state remains) nor from the registry (a never-called unit's connectors were never registered - the first gate run's NIST IC203A CNCL-TEST-04 crashed on exactly that conflation before the predicate existed). The not-located arm is ACTION-FREE too: Cancel resolves probe:false - no ProbeSiblingModule load, no foreign registration, no miss-cache suppressing a later CALL's legitimate probe - and functions are invisible (wantFunction:false), so a UDF name lands here rather than on GR2. Evidence: pb154_cancel_scope (not-located + zero-length as H-counter no-ops), pb154_cancel_cascade (never-called containee with an unregistered connector; a repeated CANCEL as the already-canceled no-op; C=0001 on re-CALL), NIST IC203A CNCL-TEST-03/-04.",
+ "state": "OK"
+}

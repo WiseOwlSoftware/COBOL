@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.42.4-6",
+ "section": "14.9.42.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "STOP statement",
+ "rule-digest": "96880ca6de96",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#Visit; src/WiseOwl.Cobol.Runtime/Control/Signals/StopRun.cs#StopRun; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#Main; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#RunMain",
+ "test-ref": "conformance:cases/14.9.42-STOP/l1c30_stop_run_from_called_program",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 14.9.42.4 GR6 -> OK. STOP RUN throws StopRun, caught only at the generated Main's 'catch (StopRun) { }' (searched src/WiseOwl.Cobol.Runtime and CodeGen for generic catch clauses: only ProbeSiblingModule's catch-all, which wraps assembly loading, not activation). Probes: p1..p9 never print 'AFTER'; q1 terminates from a CALLed program inside an inline PERFORM - neither 'SUB-AFTER' nor 'MAIN-AFTER-CALL' runs. Doc defect only: StopRun.cs summary cites 'ISO §14.9.43' - that is the STRING statement; it should be §14.9.42.4 GR6. No spec-derived test asserts termination from call depth -> test-ref empty. [editions as adjudicated: 1985, 2002, 2014, 2023 (STOP RUN is in every edition; §14.9.42 of the 2023 text)]",
+ "state": "OK"
+}

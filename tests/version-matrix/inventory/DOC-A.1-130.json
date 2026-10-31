@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-130",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 130,
+ "subject": "OPEN statement with OUTPUT phrase (positioning of the output file with regard to physical page boundaries)",
+ "rule-digest": "72dfeca97836",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-130; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenWriter; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#BeginLinagePage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#EmitTopMarginIfPending; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Advance",
+ "test-ref": "conformance:cases/13.18.34-LINAGE/pb523_linage_margins_on_the_medium; conformance:cases/13.18.34-LINAGE/pb523_linage_margins_on_the_medium_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§14.9.27.4 GR18 (cite.py OK §14.9.27.4 18)) leaves positioning with respect to physical page boundaries to the implementor; WiseOwl COBOL's answer is 'top of the first physical page, nothing written by the OPEN'. Verified in code: OpenWriter(FileMode.Create) writes nothing; BeginLinagePage (SequentialConnector.cs:497) sets LinageCounter = 1 and _topMarginPending, materialized by EmitTopMarginIfPending before the first presentation; Advance (L1170) writes '\\f' for ADVANCING PAGE on a non-LINAGE file. Probes probe/pg.cob --std 2023 (LINAGE-COUNTER after OPEN = 0001; LINAGE file with one WRITE = CRLF CRLF AAA CRLF; LINAGE file with no WRITE = 0 bytes; line-sequential and record-sequential first WRITE AFTER ADVANCING PAGE = \\f then the record) and probe/pg85.cob --std 85 (same bytes). The pb523 goldens pin the LINAGE half (page 1 begins at the file's first physical line, top margin on the medium); the non-LINAGE form-feed half has no golden. This row discharges determination D of kb/Work PB322 (open; its other determinations A/B/C/E/F stay open).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.29.4-1",
+ "section": "13.18.29.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "GROUP-USAGE clause",
+ "rule-digest": "abe6df0bbfe0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#AsIfPic; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#OperandPic; src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#ExtentBits; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupImageCodec.cs#EmitBitMethods",
+ "test-ref": "conformance:cases/13.16-Data-description/pb79_group_usage_bit",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (PB79; D20). (a) class/category boolean — every category reader goes through OperandPic; (b) treated as PICTURE 1(m): MOVE to/from it pads and truncates in boolean positions, compares as boolean, is a boolean-expression operand, FUNCTION LENGTH = m (r1) with NO trailing filler (the §8.5.1.6.3 NOTE), DISPLAY shows the bit string; (c) subordinates laid out per §8.5.1.6.3 — a nested bit group shares a byte with a preceding same-level bit item (rule 1), the packed image is the run's (AsImage/FromImage), the operand face AsBits/FromBits.",
+ "state": "OK"
+}

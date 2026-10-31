@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.2-9",
+ "section": "12.4.5.2",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "File control entry",
+ "rule-digest": "fd52bda0dde5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Rules",
+ "test-ref": "conformance:cases/12.4.5-File-control/pb742-relative-key-on-sequential-file; conformance:cases/12.4.5-File-control/pb742-relative-format-on-sort-merge-entry; conformance:wiseowl/cases/12.4.5-File-control/pb742_legal_entry_formats_85; conformance-test:FileControlKeyRuleSpecTests.AKeyClauseOutsideItsFormat_IsRefusedAtEveryEdition; conformance-test:FileControlKeyRuleSpecTests.AFormat1Or2ClauseOnASortMergeEntry_IsRefusedAtEveryEdition",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-09-06 (kb/Work PB742). RULE (--check 12.4.5.2 9): \"Format 2 shall be specified only for a relative file. The associated file description entry shall not be a sort-merge file description entry.\" SR8's twin one format over, landed in the same change set for the reason the register keeps re-learning: a rule set with one member enforced is the shape in which the missing member hides. Sentence 1 is a row over the RELATIVE KEY clause - 12.4.5.1 prints it in Format 2 and nowhere else - screened on every organization but relative; `ORGANIZATION IS SEQUENTIAL ... RELATIVE KEY IS R` compiled clean and bound a key no path read (measured). Sentence 2 is an Entry row over a sort-merge file description entry, reachable by the ORGANIZATION clause alone (SELECT ... ORGANIZATION IS RELATIVE over an SD, with no key clause at all, is the pb742-relative-format-on-sort-merge-entry fixture) - COBOL1900. Boundary measured: the same clause on a RELATIVE file, and a legal Format-4 entry, draw nothing.",
+ "state": "OK"
+}

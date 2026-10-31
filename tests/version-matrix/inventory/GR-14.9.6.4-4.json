@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.6.4-4",
+ "section": "14.9.6.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "CLOSE statement",
+ "rule-digest": "540e0f712900",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseNoRewind",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/pb141_close_forms; conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_close_status; unit:FileStatusDisciplineTests.Close_ThenCloseAgain42_ThenReopen00; unit:KeyedClosePermanentErrorWitnessTests.A_keyed_close_that_answers_30_runs_the_use_procedure_stores_the_status_and_continues_or_terminates_by_the_rule",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB140 + PB141): the refuter's three wrong values are all closed - (1) CLOSE WITH NO REWIND now yields '07' (PB141's NoRewind kind; pb141_close_forms), (2) the keyed REEL/UNIT stale-status arm is bind-rejected (COBOL1693) with a loud runtime invariant behind it, (3) FileConnector.Close maps OS-level failures to the 9.1.13.6 item 1 '30' (PB140). Every 9.1.13-prescribed CLOSE status family is produced: '00', '42', '07' (REEL/UNIT and NO REWIND both), '30'; the '30' leg stays read-verified (no test can force a flush failure without an injectable stream seam).",
+ "state": "OK"
+}

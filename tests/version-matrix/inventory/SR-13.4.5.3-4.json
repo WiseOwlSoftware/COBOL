@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.4.5.3-4",
+ "section": "13.4.5.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "File description entry",
+ "rule-digest": "061b6b641733",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#FileDescriptionClauseAdmitted",
+ "test-ref": "conformance:cases/13.4.5-File-description/pb1238-line-sequential-record-contains; conformance:cases/13.4.5-File-description/pb1238_line_sequential_varying",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1238: a LINE SEQUENTIAL file's FD that writes BLOCK CONTAINS or RECORD CONTAINS (the record clause's Formats 1 and 3, §13.18.43.2) is refused COBOL2605 and the clause is not bound; RECORD IS VARYING ... DEPENDING ON stays legal (§14.9.51.4 GR22 describes a line sequential file whose RECORD clause has the DEPENDING phrase) and round-trips [ABC]. LINE SEQUENTIAL itself is 2023-only (edition-gated below).",
+ "state": "OK"
+}

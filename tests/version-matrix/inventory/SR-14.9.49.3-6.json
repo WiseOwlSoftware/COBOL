@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.49.3-6",
+ "section": "14.9.49.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "USE statement",
+ "rule-digest": "524e352c4942",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useStatement",
+ "test-ref": "conformance:cases/14.9.49-USE/l1_use_error_exception_synonym",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Two Format 1 declaratives identical in everything but the word ERROR / EXCEPTION, over identically declared files provoked by the identical CLOSE-42: both fire and both report 42, inside the handler and after it.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-11",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "WRITE statement",
+ "rule-digest": "a5c8e1d3afbb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#WriteShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#LocksEffective",
+ "test-ref": "unit:CobolFileLockTests.WriteShared_WithLock_LocksTheWrittenRecord_AndSingleLockingReleasesItOnTheNextWrite",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR11: 'If record locks have an effect for the write file connector and the WITH LOCK phrase is specified or implied, the record lock associated with the record written is set when the execution of the WRITE statement is successful.' WriteShared: wantLock = phrase==WithLock && LocksEffective (LOCK MODE not None, not SHARING NO OTHER); lock set only when status[0]=='0' via _physical.LockRecord on c.LastWrittenRecordId. The 'implied' arm: the only source of an implied WITH LOCK is §9.1.16's 'implicit LOCK MODE IS AUTOMATIC WITH LOCK ON MULTIPLE RECORDS' for files subject to commit and rollback (cite.py --check 9.1.16 -> OK); APPLY COMMIT is refused by name (COBOL1709, CONFORMANCE.md A.4.3 Not claimed), so no compilable program reaches that arm — the same vacuity the owner recorded as CONFORMS for commit-antecedent rules (kb/Work PB371). Automatic locking does not lock on WRITE (§14.9.51.3 SR22 forbids the phrase; the concept text locks on READ). cite.py --check 14.9.51.4 'the WITH LOCK phrase is specified or implied' -> OK rule 11.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-20",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 20,
+ "subject": "SET statement",
+ "rule-digest": "ce759f9d2290",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/CobolPtr.cs#UpBy; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#RangePtrError; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/PtrEmitter.cs#EmitSetPointerUpDown",
+ "test-ref": "conformance:cases/14.9.39-SET/pb465_set_pointer_range_ec; conformance:cases/14.9.39-SET/pointer_arith; unit:CobolPtrTests.UpBy_MovesByBytes_AndComposes; unit:CobolPtrTests.UpByAmount_KeepsTheFullMagnitude_AndAnswersGr20",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB465.md - FORMAT 10. The movement half was already CONFORMS (per-receiver item identification inside the emitter's target loop; conformance:cases/14.9.39-SET/pointer_arith). The RANGE half, which held this row at PARTIAL, is now settled and implemented: \"If this new address is outside the range of values allowed by the implementor for a data-pointer data item, the EC-RANGE-PTR exception condition is set to exist and the value of the data item referenced by identifier-9 is unchanged\" (cite.py --check 14.9.39.4 PASS). The range is the CARRIER's - the signed 64-bit interval of character-position displacements, CobolPtr.MinAddress/MaxAddress - and it is now DOCUMENTED as DOC-A.1-216 in docs/CONFORMANCE.md section 7, which Annex A.1 item 216 requires (cite.py --check A.1 PASS); audit_annex_a1.py --check reports no findings. This CORRECTS the earlier \"the range is unbounded, so the antecedent is unsatisfiable\" answer, which the implementation contradicted: the displacement was formed in the `long` carrier and WRAPPED at 2^63, so `SET P UP BY 18446744073709551618` moved the pointer by 2 rather than raising anything. EC-RANGE-PTR had a Table 13 catalog row and no raise site anywhere in src/; it now has one (ExceptionState.RangePtrError), a checking flag (CheckingFlags.RangePtr), an EcEmitter.FatalAmbientGates row and an EcBinder ambient gate, so `>>TURN EC-RANGE-PTR CHECKING ON` arms it and a USE AFTER EXCEPTION CONDITION EC-RANGE-PTR declarative selects on it - MEASURED end to end by the 2002 golden, which prints `RANGE=EC-RANGE-PTR` and then shows identifier-9 unchanged. An address INSIDE the range but outside the addressed cell remains a legal pointer VALUE and fails loud at dereference under 13.18.5.4 GR4; CobolPtr.Deref's window bound is now formed in Int128, because it too wrapped at 2^63 and admitted an out-of-cell window as in-bounds. Five of kb/Work/PB460's obligations remain open; the A.1 216 row it named for this rule is supplied here.",
+ "state": "OK"
+}

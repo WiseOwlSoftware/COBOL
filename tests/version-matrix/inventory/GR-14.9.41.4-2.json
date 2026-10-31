@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.41.4-2",
+ "section": "14.9.41.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "START statement",
+ "rule-digest": "eb3dcfad73e7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#StartFirstLast; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#SeekToRecord; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#StartAt; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Start",
+ "test-ref": "conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb352_start_sequential_first_last; conformance:cases/14.9.41-START/pb870_start_first_last_relative_exceptions",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB352. RULE: \"The execution of the START statement does not alter either the content of the record area or the content of the data item referenced by the data-name specified in the DEPENDING ON phrase of the RECORD clause…\" (cite.py --check 14.9.41.4 \"does not alter either the content of the record area\" -> OK §14.9.41.4 2)). CODE: EmitStart only READS — `OperandText.AsString(new BoundFieldOperand(sta.Operand!), num)` for the indexed key and `NumericRenderer.Align(num.FieldNum(sta.Operand!),0)` for the relative RRN — then stores the file status and runs the §9.1.14 branch; neither connector's Start/StartFirstLast writes back an image. MEASURED — BOTH HALVES: probe start-p2-g (relative, RECORD IS VARYING IN SIZE FROM 4 TO 8 DEPENDING ON RLEN): after a SUCCESSFUL `START RLF FIRST` -> RLEN=08, REC=[ZZZZZZZZ] unchanged; after an UNSUCCESSFUL `START RLF KEY = RK` ('23') -> RLEN=07, REC=[YYYYYYY ] unchanged. probe start-p2-b (indexed): T1 REC-AREA=[ABZZCCCC] and T6 REC-AREA=[AB02ZZZZ] both survive the START verbatim. WHY NOT CONFORMS: the SEQUENTIAL-organization arm cannot execute at all — START on ORGANIZATION SEQUENTIAL compiles to a BoundUnsupported and throws NotImplementedCobolFeatureException at run time (probe start-p2-h), so GR2 is unhonoured there; GR-14.9.41.4-20/-21 in part 3 own that arm. No spec-derived covering test. || EDITIONS AS ADJUDICATED: 1985 / 2002 / 2014 / 2023 — no edition marker in the clause; Annex E lists no START change.\n\nLANDED 2026-09-05 (kb/Work PB352). The sequential arm now executes, and it does not touch the record area: SequentialConnector.StartFirstLast repositions the READER (SeekToRecord resets the stream offsets, the GR15 remainder, the REWRITE byte anchors and the 9.1.16 ordinal) and never writes an image. MEASURED: conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb352_start_sequential_first_last MOVEs \"XXXXX\" into the record area, executes a SUCCESSFUL `START SQF FIRST`, and prints AREA=XXXXX - the value survives verbatim. The relative and indexed halves were already verified; all three now are.",
+ "state": "OK"
+}

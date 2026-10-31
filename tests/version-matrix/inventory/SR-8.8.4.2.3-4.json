@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.4.2.3-4",
+ "section": "8.8.4.2.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "Simple relation conditions",
+ "rule-digest": "5c4bb8a2f726",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ContainsNonOrderableLeaf",
+ "test-ref": "conformance-test:TypedefResidueTests.StrongBooleanGroupOrderingCompare_Rejected1535; conformance:cases/8.8.4.2-Simple-relation-conditions/pb1469-strong-program-pointer-ordering; conformance-test:TypedefResidueTests.StrongProgramPointerGroupOrderingCompare_Rejected1535",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1469 LANDED (wave 65 A). SR4 (cite.py OK: 'may be compared only for equality or inequality'). ContainsNonOrderableLeaf now asks the §8.5.2.1 Table-2 class lattice (IntrinsicArgumentRules.ClassOfItem) for class boolean / object / pointer, so all three pointer categories (data-, program-, function-pointer) are class pointer: `IF T1 > T2` over a strong group with a USAGE PROGRAM-POINTER leaf is refused COBOL1535 (negative pb1469-strong-program-pointer-ordering), and its equality compiles and compares by §8.8.4.2.16 (golden strong_group_element_order P1/P2). Boolean / data-pointer / object leaves unchanged (StrongBooleanGroupOrderingCompare_Rejected1535). Message-tag leaves cannot be declared (COBOL1943, declined MCS); the lattice gains the class the day the usage lands.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.69.3-4",
+ "section": "15.69.3",
+ "kind": "AR",
+ "ordinal": 4,
+ "subject": "NUMVAL-F function",
+ "rule-digest": "8bfcc8943518",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#CommaFlag; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalFDec",
+ "test-ref": "conformance:cases/15.69.3-Argument-rules/numvalf_decimal_comma_and_spaces",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Verdict UNCHANGED after an independent attack on all five axes. I did not accept the adjudicator's single-channel probe: I re-derived the mechanism from the code (`char dec = commaMode ? ',' : '.'`, so under the default a comma reaches the malformed-character return and under DECIMAL-POINT IS COMMA a period does — that IS 'used instead of', which is what the rule requires) and then attacked the boundaries that broke every other row on this sheet. It held at all of them: the CommaFlag is a property of ctx.Data and is therefore independent of the RECEIVER, so it holds in every channel; it applies identically to a NATIONAL argument; and it is correctly scoped PER PROGRAM — a sibling program in the same compilation group with no SPECIAL-NAMES clause still takes the period. Both halves of the sentence are verified, so this is not the half-a-rule PARTIAL shape. test-ref DELIBERATELY EMPTY: no spec-derived repo test exercises NUMVAL-F under DECIMAL-POINT IS COMMA, and my own probes corroborate but cannot close the row. CONFORMS-but-untested is the honest record here. cite.py --check OK on §15.69.3 4. EVIDENCE: Probe E:/Temp/nvfr/r-d.cob (PROGRAM-ID NVFRD04, SPECIAL-NAMES. DECIMAL-POINT IS COMMA, --std 2023) exercised three channels plus a sibling program in one run: A-DISPLAY-COMMA (receiverless) FUNCTION NUMVAL-F(\"1,5E+2\")=150.000000000; B-MOVE-COMMA `MOVE FUNCTION NUMVAL-F(\"1,5E+2\") TO R` (R PIC 9(6)V9(3))=000150000; C-NATIONAL-COMMA FUNCTION NUMVAL-F over `01 NN PIC N(12) VALUE N\"1,5E+2\"`=150.000000000; and the CALLed sibling NVFRD04I, which declares no SPECIAL-NAMES, gave D-SIBLING-PERIOD `NUMVAL-F(\"1.5E+2\")`=000150000 — the flag did not leak across the program boundary. Read IntrinsicRenderer (the CommaFlag read is unchanged): `private string CommaFlag => ctx.Data.DecimalPointIsComma ? \", commaMode: true\" : \"\";` — no receiver term, and RenderDec's NUMVAL-F arm is the ONLY emit site for this function's value (kb/Work PB3839: no RenderNum arm, no receiver term). TEST-REF ADDED 2026-08-08: spec-derived golden closing the row (PB29/PB39 session; expected values derived from the cited rules, NUMVAL-F exponent-sign requirement verified on printed page 898). || editions 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the NUMVAL-F function exists from 2002 (IntrinsicCatalog.cs, the COBOL1502 edition window). retired-witness: src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalF (kb/Work PB3839 deleted CobolIntrinsics.NumvalF, the scaled-Int128 NUMVAL-F projection: the function returns the exact NumvalFDec SDIDI value in every arithmetic mode, channel and receiver)",
+ "state": "OK"
+}

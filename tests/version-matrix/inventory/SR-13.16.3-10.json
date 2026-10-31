@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.16.3-10",
+ "section": "13.16.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "Data description entry",
+ "rule-digest": "2462f276d57b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#AdmitsNoValueLiteral; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UsageInheritanceElementary",
+ "test-ref": "conformance:cases/13.16-Data-description/pb515-value-on-index-item; conformance:cases/13.16-Data-description/pb515_index_item_without_value; conformance:cases/13.16-Data-description/pb557-value-null-on-pointer; conformance:cases/13.16-Data-description/pb557-value-on-object-reference; conformance-test:ValueClauseScreenTests.IndexItem_WithValue_IsRejected_WrittenAndInherited; conformance-test:ValueClauseScreenTests.IndexItem_WithoutValue_Compiles; unit:ValueClauseUsageSetDriftTests.TheSet_IsSr10sClasses_ThroughTableTwo; conformance:cases/13.16-Data-description/pb3682-typedef-usage-index-with-value",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB515, LANDED (wave 58). \"The VALUE clause shall not be specified for data items of class index, message-tag, object, or pointer\" (cite --check OK, §13.16.3 10)). UsageFamilies.AdmitsNoValueLiteral is now THIS rule's class set, spelled as the usages §8.5.2.1 Table 2 files under the four classes: INDEX (class index), MESSAGE-TAG, OBJECT REFERENCE (class object), POINTER / FUNCTION-POINTER / PROGRAM-POINTER (class pointer); ValueClauseUsageSetDriftTests.TheSet_IsSr10sClasses_ThroughTableTwo re-derives it from SR10 and Table 2 in the spec on every run, both directions. It was written from §13.18.63.3 SR9 alone and so lacked USAGE INDEX: `77 I USAGE INDEX VALUE 7.` compiled at every edition and seeded the index item. Two screens, one diagnostic (COBOL2168) and one cited sentence (UsageFamilies.NoValueClauseRule): BindEntry for the entry's own USAGE clause, UsageInheritanceElementary for a usage ACQUIRED from a group under §13.18.60.4 GR1 (`01 G USAGE INDEX. 05 A VALUE 1.` compiled clean before). The pointer and object classes were already refused (PB557) and are unchanged; the message-tag leg reports beside the facility decline (COBOL1943 + COBOL2168). MEASURED on the wave-58 build at every edition.",
+ "state": "OK"
+}

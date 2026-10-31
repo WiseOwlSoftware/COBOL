@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.3-5",
+ "section": "15.3",
+ "kind": "AR",
+ "ordinal": 5,
+ "subject": "Intrinsic functions",
+ "rule-digest": "720db8e17ebc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#IsIndexOperand",
+ "test-ref": "conformance:cases/15.2-Types-of-functions/pb124_index_function; conformance:cases/15.3-Arguments/intrinsic-index-argument; conformance:cases/13.18.29-GROUP-USAGE/pb61_length_byte_length_rule_branches",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB124 wave 5b): (a) MAX/MIN over index arguments now carries conformance tests - the golden's REL/MIN/SUB legs are the first fixtures passing index arguments to the polymorphic family. (b) The result-collapse half closes with GR-15.2-6 (ClassOf1 resolves Index for nested calls). (c) THE ROW'S THIRD CLAIM MEASURED FALSE: 'an index item reached through a ref-mod or any decorated place does not select the Index row' - a SUBSCRIPTED index item (05 IXE USAGE INDEX OCCURS 2) selects the Index row and the relation runs (the golden's SUB leg): Place.Item reaches through a subscripted place; a REF-MODDED index item is separately rejected at the ref-mod site (negative pb70-refmod-index-item), so no decorated shape escapes.",
+ "state": "OK"
+}

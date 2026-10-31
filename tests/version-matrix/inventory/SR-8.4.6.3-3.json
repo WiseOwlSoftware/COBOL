@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.6.3-3",
+ "section": "8.4.6.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Scope of names",
+ "rule-digest": "a2f7d6584f51",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ResolveVisible; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ProbeSiblingModule; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#EntryOf",
+ "test-ref": "conformance:cases/8.4.6.3-Scope-of-program-names/pb133_recursive_containee",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: \"If the program-name is that of an outermost program, that program-name may be referenced by statements included in any source element in the run unit.\" (cite.py --check 8.4.6.3 -> OK §8.4.6.3 3)). Code: ResolveVisible's final arm scans _order for ParentPath==null independent of the caller, then the separately-compiled sibling-module probe (run unit spans runtime modules, §14.6.1); CANCEL shares it (probe:false, GR7 no-op); program-address-identifier EntryOf resolves outermost only, matching §8.4.3.13.4 GR2 \"the address is that of the outermost program identified by the externalized program-name\" (cite.py --check 8.4.3.13.4 -> OK). Probes: r3.cob — a depth-2 contained program calls another OUTERMOST program of the group (prints 'O5 FROM DEPTH 2') under --std 85 (EXIT PROGRAM variant), 2002, 2023; r3f.cob — a FUNCTION-ID source element CALLs an outermost program ('O7 FROM FUNCTION', V=1). Covering test: pb133_recursive_containee's containee PB133C calls its outermost container PB133R (a statement in a contained source element referencing an outermost program-name), expected trace derived from the spec. Edge not in this rule: a CALL through a program-pointer re-resolves the pointer's name through ResolveVisible's containee arm first, so a caller with a containee sharing the outermost target's name would activate the containee (§8.4.3.13.4 GR2 territory, recorded as a dossier gap, not this row). [editions as adjudicated: 1985, 2002, 2014, 2023 (nested and COMMON programs exist from COBOL-85; the recursive-attribute provisions apply from 2002, where the RECURSIVE clause exists; 2023 Annex E records no change to 8.4.6.3)]",
+ "state": "OK"
+}

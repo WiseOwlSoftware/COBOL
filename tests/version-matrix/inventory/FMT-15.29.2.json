@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.29.2",
+ "section": "15.29.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "EXCEPTION-FILE-N function",
+ "rule-digest": "e20787b38ebe",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindExceptionFileArg",
+ "test-ref": "conformance:cases/15.31.3-Returned-value-rules/exception_file_n",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Re-verified independently, not inherited. I rendered printed folio 846 (PDF page 876) myself with scripts/render-spec-page.py: the format is `FUNCTION EXCEPTION-FILE-N [(argument-1)]` with FUNCTION and EXCEPTION-FILE-N underlined and the parenthesized argument bracketed — the transcription is faithful, no OCR over-restriction, and `python scripts/spec/cite.py --check 15.29.2` matches it. Grammar: `functionCall : FUNCTION functionName (LPAREN functionArgList? RPAREN)?` admits both shapes. Ran every shape against the built CLI: 0 args -> `00`; empty parens `FUNCTION EXCEPTION-FILE-N()` -> `00` (the ISO §8.4.3.2.3 SR6 NOTE's `FUNCTION RANDOM ()` shape, validated with cite.py — not a §15.29.2 over-acceptance); 1 arg -> accepted; a SPACE before the left parenthesis (`FUNCTION EXCEPTION-FILE-N (INF)`) still binds as the argument form, per SR6; 2 args rejected `COBOL1504: FUNCTION EXCEPTION-FILE-N takes 0..1 argument(s); 2 given (ISO 15.3)`. The bracketed argument is correctly introduction-gated at 2023 (`COBOL0900 ... requires COBOL-2023 (targeting COBOL-2014)` observed at --std 2014) per Annex E.3.3 item 26 (cite.py-checked); the whole function is gated below 2002 by COBOL1502 (tests/conformance/negative/exception_file_n_below_2002.cob, verified on disk). Editions are the national-function window (national data and the -N exception twins are ISO/IEC 1989:2002 additions), NOT read off the IntrinsicCatalog row. COVERAGE GAP (does not change the verdict): the cited case exercises only the ZERO-argument shape; the one-argument shape — the only thing 2023 added to this format — has no spec-derived case for EXCEPTION-FILE-N (tests/conformance/2023/exception_file_arg.cob covers the alphanumeric sibling only). ADJACENT, OUT OF SCOPE FOR THIS RULE: reference modification of a function-identifier does not parse at all (`FUNCTION EXCEPTION-FILE-N(INF)(1:1)` and even `FUNCTION UPPER-CASE(WS-A)(1:2)` both give `COBOL0001: no viable alternative at input '('`), although ISO §8.4.3.3.3 SR2 permits it for an alphanumeric, boolean, or national function and EXCEPTION-FILE-N is national (§15.29.1). That is a general §8.4.3.3 grammar row, not a §15.29.2 format defect.",
+ "state": "OK"
+}

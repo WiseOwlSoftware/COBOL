@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.13.4-6",
+ "section": "13.18.13.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "CODE-SET clause",
+ "rule-digest": "2da9f48c543c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/CodeSetConversion.cs#ToNative; src/WiseOwl.Cobol.Runtime/IO/CodeSetConversion.cs#ToMedium; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#FromMedium; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ToMedium; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#NextFrame; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#EmitRecord",
+ "test-ref": "conformance:cases/13.18.13-CODE-SET/pb793_code_set_ebcdic",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR6 a/b - the character-for-character replacement in both directions, realized for the first time by kb/Work PB793 (before it, every non-identity set was refused at compile time and GR6 had nothing to do). The correspondence is a COMPILE-TIME artifact of the named alphabet (12.3.7.4 GR7 i), emitted into the generated program as a 256-entry char[] literal exactly as a collating sequence's weights are, so the runtime holds no code page and knows no alphabet name. The boundary is the ONE physical transfer point of each organization and nowhere else - SequentialConnector.NextFrame on the read side, its EmitRecord / EmitRecordLine / OverwriteInPlace twins on the write side, and RecordFraming's store payload for RELATIVE and INDEXED - so a record area, a key value, a comparison and a lock identity are always in the native character set, which is what every other rule is written about. The golden proves both directions independently: the round trip restores AB012, and a second file description with no CODE-SET clause reads the same physical file as 194 195 241 242 243, the native ordinals of X'C1 C2 F0 F1 F2'.",
+ "state": "OK"
+}

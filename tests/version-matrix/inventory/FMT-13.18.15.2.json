@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.15.2",
+ "section": "13.18.15.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "CONSTANT RECORD clause",
+ "rule-digest": "9bce506df09c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#constantRecordClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitConstantRecordClause",
+ "test-ref": "conformance:cases/13.18.15-CONSTANT-RECORD/constant_record",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Format: CONSTANT RECORD, both words underlined (cite.py --check 13.18.15.2 \"CONSTANT\" OK). Grammar constantRecordClause : CONSTANT RECORD, LL-disjoint from constantEntryBody by the second token; BindEntry sets isConstantRecord. Probes: clause accepted in either order with GLOBAL (`01 R1 GLOBAL CONSTANT RECORD.` / `01 R2 CONSTANT RECORD GLOBAL.` -> G1G2 at 2002 and 2023). Edition gate constant-record-2002 -> COBOL0900 at --std 85 (negative/constant-record-at-85). Golden conformance:cases/13.18.15-CONSTANT-RECORD/constant_record compiles the clause and reads the record. || Editions (adjudicator): 2002, 2014, 2023 (COBOL-2002 introduction; not in 1985)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.47.3-1",
+ "section": "14.9.47.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "UNLOCK statement",
+ "rule-digest": "771213ccf9c1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/FileLockBinder.cs#BindUnlock",
+ "test-ref": "conformance:cases/14.9.47-UNLOCK/unlock-sort-file",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "RULE: 'File-name-1 shall not refer to a sort file or a merge file.' - cite.py --check 14.9.47.3 'File-name-1 shall not refer to a sort file or a merge file.' -> OK §14.9.47.3 1). CODE: FileLockBinder.BindUnlock does `if (file.IsSortMerge) ctx.Edition.Error(\"COBOL1512\", $\"UNLOCK may not name the sort/merge file '{name}' (ISO §14.9.47 SR1)\")`. The predicate is earned, not guessed: IsSortMerge is set at exactly one site, DataBinder.cs:1032 `sdFile.IsSortMerge = true;` when an SD (sort-merge file description entry) is bound - and §13.4.6 IS the sort-merge file description entry, so 'sort file or merge file' and 'described by an SD' are the same set (a file used only as SORT USING/GIVING is described by an FD and is correctly NOT caught). MEASURED: tests/conformance/negative/unlock-sort-file.cob compiled at --std 2002, 2014 and 2023 - each emits `error COBOL1512: UNLOCK may not name the sort/merge file 'S' (ISO §14.9.47 SR1)` and exits 70. At 85 the statement itself is COBOL0900-rejected first, so the rule has no 85 leg to test. COVERING TEST: conformance:cases/14.9.47-UNLOCK/unlock-sort-file (spec-derived form; header `*> reject-at: 2002 2014 2023` matches the measured editions exactly).",
+ "state": "OK"
+}

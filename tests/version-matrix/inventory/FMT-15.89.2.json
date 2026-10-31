@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.89.2",
+ "section": "15.89.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "TAN function",
+ "rule-digest": "579fae6c37d6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog",
+ "test-ref": "conformance:cases/15.89.3-Argument-rule/l1_tan_format; conformance:cases/15.89-TAN/l1-tan-two-arguments",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "15.89.2 'FUNCTION TAN ( argument-1 )' written over every 15.3 type-10 argument shape (tan(0)=0 exactly by 15.89.4 r1) with the eighth-turn +1/-1 pins as the discriminator against a return-zero stub; the complement, a second argument, rejects with COBOL1504 at all four editions. There is no no-argument form here, unlike 15.75.2 RANDOM.",
+ "state": "OK"
+}

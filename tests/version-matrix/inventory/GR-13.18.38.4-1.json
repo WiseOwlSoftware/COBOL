@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.38.4-1",
+ "section": "13.18.38.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "OCCURS clause",
+ "rule-digest": "4d4f91402a3a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#FieldInit; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#At; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#RefReceiving",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/l1c20_occurs_clauses_per_occurrence; conformance:cases/13.18.38-OCCURS/l1c20_occurs_dynamic_clauses_per_occurrence; conformance:cases/13.18.38-OCCURS/l1c20_occurs_usage_per_occurrence; conformance:cases/13.18.38-OCCURS/l1c20_occurs_dynamic_usage_per_occurrence",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 13.18.38.4 \"all data description clauses associated with an item whose description includes an OCCURS clause apply to each occurrence of the item described\" -> OK §13.18.38.4 1)). Code: every table element is ONE element type (ElementType) repeated — a fixed table is an array of the one-occurrence element initializer (FieldInit's Enumerable.Repeat / per-occurrence ElementInit), a dynamic table is CobolDynTable<ElementType> seeded by the same ElementInit, so PICTURE/USAGE/SIGN/JUSTIFIED/BLANK WHEN ZERO/VALUE live on the element type and apply per occurrence by construction. PROBE (pinned cobol.exe, out13/probe/occurs-p2/gr1.cob, --std 2023): fixed table E PIC -9(3) OCCURS 3 -> '-005 007-005'; J PIC X(4) JUSTIFIED RIGHT OCCURS 3 -> J(2)='   A'; B PIC 9(3) BLANK WHEN ZERO -> B(1)=spaces, B(3)='012'; S PIC S9(3) SIGN LEADING SEPARATE -> '+000+000-004'; C PIC S9(3) COMP-3 -> packed per occurrence, C(2)=-009. Same five clauses on OCCURS DYNAMIC elements: DD1 edited '-005 007-005', DJE(2)='   A', DBE(1) blank, DSE(2)='-004', DVE VALUE 'ABC' per occurrence ('ABCABCZ  '). The clause set is witnessed per format band, each on a NON-FIRST occurrence: PICTURE editing, JUSTIFIED, BLANK WHEN ZERO and SIGN SEPARATE on formats 1, 2 and 4 (l1c20_occurs_clauses_per_occurrence, l1c20_occurs_dynamic_clauses_per_occurrence), and USAGE (PACKED-DECIMAL, BINARY and DISPLAY storage per occurrence) on formats 1 and 2 (l1c20_occurs_usage_per_occurrence: the group image is 3 x 2 bytes, read through a group MOVE, and arithmetic on occurrence 3) and on format 4 (l1c20_occurs_dynamic_usage_per_occurrence: BYTE-LENGTH of occurrences 1-3). SYNCHRONIZED per occurrence is pinned by conformance:cases/8.5.1.6.4-Item-alignment-for-increased-object-code/l1_sync_occurs_and_no_auto_align (a §13.18.55.4 GR8 golden: WiseOwl performs no alignment, DOC-A.1-195, so the per-occurrence extent equals the unsynchronized one). Format 2 shares the element-type model (verified in gr7.cob: TE PIC Z9 edits per occurrence). || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): 1985, 2002, 2014, 2023 (Formats 1 and 2 all editions; Format 4 from 2014 — Annex E of 2023 lists no change to it, so it predates 2023)",
+ "state": "OK"
+}

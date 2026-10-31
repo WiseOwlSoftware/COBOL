@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.60.4-25",
+ "section": "13.18.60.4",
+ "kind": "GR",
+ "ordinal": 25,
+ "subject": "USAGE clause",
+ "rule-digest": "a3bd0420f681",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#ProgramPointerItem; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetProgramPointer; src/WiseOwl.Cobol.Compiler/Binding/PrototypeSignatures.cs#Same; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#ScreenImplicitSet; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ElementaryAction",
+ "test-ref": "conformance:cases/13.18.60-USAGE/pb817_restricted_program_pointer; conformance:cases/13.18.60-USAGE/pb817-set-program-pointer-signature; conformance:cases/13.18.60-USAGE/pb452-program-pointer-to-without-typedef; conformance:cases/14.9.20-INITIALIZE/pb3817-initialize-replacing-restricted-program-pointer; conformance:cases/14.9.20-INITIALIZE/pb3817_initialize_replacing_restricted_program_pointer",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "THE RESTRICTED PROGRAM-POINTER IS DECLARABLE (kb/Work PB497's finding; the declaration half of PB609's fix shape, landed with PB817). 'If program-prototype-name-1 is specified, this data item is a restricted program-pointer' - PicInfo.RestrictedPrototypeName carries the operand, screened for 8.4.6.8 scope (COBOL1958) and for 13.18.60.3 SR19's TYPEDEF requirement (COBOL0881, the SR18 twin). 'A restricted program-pointer shall contain only the predefined address NULL or the address of a program with the same signature as that identified by the specified program-prototype-name' - enforced by 14.9.39.3 SR22 at every SET into it (COBOL1959), with the NULL alternative admitted explicitly. It used to draw COBOL0899 at the declaration, so the rule had no subject. RESIDUE, deliberately not claimed here: 14.9.4.3 SR14's CALL-side consumption of the restriction (kb/Work PB609, row SR-14.9.4.3-14) and StrongTypeModel.PointerRestriction's missing ProgramPointer arm are untouched.",
+ "state": "OK"
+}

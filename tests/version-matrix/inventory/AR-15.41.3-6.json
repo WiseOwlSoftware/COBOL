@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.41.3-6",
+ "section": "15.41.3",
+ "kind": "AR",
+ "ordinal": 6,
+ "subject": "FORMATTED-TIME function",
+ "rule-digest": "4e5217542f2c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#EmitFormatted",
+ "test-ref": "conformance:cases/15.3.3.6.1-Offset-subformats/pb11_datetime_format_grammar; conformance:cases/15.41.3-Argument-rules/l1_formatted_time_offset_normalization",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Both antecedents with argument-3 omitted: OMIT-OFF=010000+0000 renders the substituted zero visibly per 15.3.3.6.1, T-UTC=010000Z applies the zero adjustment of 15.41.4 2); the new golden's R7/R8 pair omitted against explicit 0.",
+ "state": "OK"
+}

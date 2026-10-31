@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.20.4-5",
+ "section": "14.9.20.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "INITIALIZE statement",
+ "rule-digest": "e8d825852f8e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#Qualify; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#QualifiesCategorically; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ExpandInitialize; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ExpandTableValue; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#SeedOccurrenceKey; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#InitializeItemCategory; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#initializeCategoryName",
+ "test-ref": "conformance:cases/14.9.11-DISPLAY/initialize_phrases; conformance:cases/14.9.20-INITIALIZE/pb418_initialize_value_categorical; conformance:cases/14.9.20-INITIALIZE/pb418_initialize_table_value_arms; conformance:cases/14.9.20-INITIALIZE/pb418_initialize_table_value_shapes; conformance:cases/14.9.20-INITIALIZE/pb415_initialize_category_set; conformance:cases/14.9.20-INITIALIZE/pb415_initialize_replacing_set_form; conformance:cases/14.9.20-INITIALIZE/pb415_initialize_function_pointer; conformance:cases/14.9.20-INITIALIZE/pb415_initialize_multi_category_85; conformance-test:InitializeDifferentialTests.Initialize_WithFiller_2023_IncludesFillerItems; conformance:cases/14.9.20-INITIALIZE/initialize_program_pointer",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB415.md - THE LAST HOLD ON THIS ROW IS GONE. kb/Work PB418 closed step (c)'s substituted premise by splitting the qualification test (Qualify -> InitializeQualification) from the sender choice (SenderFor), implementing GR5c1a's categorical arm and GR5c1c's Format-2 table VALUE, and correcting GR5c4's premise to the PHRASE's presence; it left this row PARTIAL for ONE reason, that `initializeCategory` spelled 7 of the standard's 13 category-names, so GR5c1's 'one of the categories specified or implied in the VALUE phrase' and GR5c2's 'one of the categories specified in the REPLACING phrase' could only be evaluated over a fraction of the category space. The category-name is now the SET 14.9.20.2 draws over all thirteen words (kb/Work PB415), and the membership test is InitializeCategorySet.Contains on both arms. Step (a)'s exclusions, step (b)'s possible-receiving-item walk (including the per-occurrence table expansion) and step (c)'s four alternatives are each measured; the new per-category witnesses are listed in the test-refs.",
+ "state": "OK"
+}

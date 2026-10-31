@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-12.3.5.2",
+ "section": "12.3.5.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "SOURCE-COMPUTER paragraph",
+ "rule-digest": "f4e91fe1a6b6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sourceComputerParagraph; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#debuggingModeClause; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDebuggingModeClause",
+ "test-ref": "conformance:cases/12.3.5-SOURCE-COMPUTER/pb78_object_computer_optional_name; conformance:cases/12.3.5-SOURCE-COMPUTER/pb830-source-computer-unrecognized-clause; conformance:cases/12.3.5-SOURCE-COMPUTER/pb830_computer_paragraph_clauses_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB78 (2026-08-18) + PB830 (2026-09-22). RENDERED from the printed page (PDF p314 / folio 284): SOURCE-COMPUTER. [computer-name-1] . and nothing else; SR1 (no name -> the second period may be omitted) is the PB78 witness. The format is CLOSED since PB830: what follows the name used to be a `~DOT` token SINK (the computer-attributes sink), kept for the deleted '85 WITH DEBUGGING MODE and never gated, so `SOURCE-COMPUTER. IBM-370 WIBBLE WOBBLE.` compiled and ran at every edition (the previous CONFORMS witness answered a different question - the optional name). The '85 clause is now a modelled rule (`debuggingModeClause`, gated debugging-mode-removed-2002 at its node) and the residue is the `unrecognizedClause` error production, refused by name as COBOL1970 at every edition (the negative).",
+ "state": "OK"
+}

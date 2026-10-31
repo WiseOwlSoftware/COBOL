@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.19.2",
+ "section": "14.9.19.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "IF statement",
+ "rule-digest": "e92d8bc7c09b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#ifStatement",
+ "test-ref": "conformance:cases/14.9.19-IF/pb396-if-empty-consequent; unit:RequiredImperativeStatementDriftTests.AnEmptyRequiredImperative_IsRejected; unit:RequiredImperativeStatementDriftTests.NoGrammarRule_AdmitsAnEmptyStatementBlock; conformance-test:GeneralFormatViolationTests.AStatementOutsideItsGeneralFormat_IsRefused",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB387.md (wave 1031 A) re-verdict. Format 1 prints IF condition-1 THEN statement-1 [ ELSE statement-2 ] END-IF with statement-1 unbracketed and Format 2 stacks { statement-1 | NEXT SENTENCE } in braces (cite.py --check 5.2.6.2 OK Brackets, 5.2.6.3 OK Braces). The DIVERGES verdict was the grammar's statementBlock* (kb/Work PB396), which PB396 made statementBlock: re-probed on this worktree, IF X = 1 END-IF, IF ... ELSE END-IF and IF A = 1. each draw COBOL2072 at --std 2023; IF with no condition and IF with two ELSE phrases are refused (GeneralFormatViolationTests rows PBGF04-PBGF06). The row's only former test reference was an empty [Fact] (M413_OverlenientIfElseTests, deleted with the legacy project, PB2110); VacuousTestDriftTests now refuses that shape solution-wide.",
+ "state": "OK"
+}

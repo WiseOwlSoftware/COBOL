@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.38.3-30",
+ "section": "13.18.38.3",
+ "kind": "SR",
+ "ordinal": 30,
+ "subject": "OCCURS clause",
+ "rule-digest": "b5963d17200f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#DynamicResolve; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#CapacityRegisterName; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#CapacityRegisterFor; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#DeclareUserWord",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb1264-capacity-register-named-like-a-file; conformance:cases/13.18.38-OCCURS/pb1264-capacity-register-named-like-a-paragraph; conformance:cases/13.18.38-OCCURS/pb1264-capacity-register-named-like-a-section; conformance:cases/13.18.38-OCCURS/pb457-capacity-register-under-table",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1264: data-name-3 is announced through the ONE user-word declaration funnel as a data-name, so a file-name, paragraph-name or section-name spelled like the register is refused COBOL2692 (the later declaration is the one reported); a data-name or another register duplicate stays COBOL1523 (DynamicResolve's own test). The hand-written file-name scan is gone.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.25.4-7",
+ "section": "7.3.25.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "TURN directive",
+ "rule-digest": "51c36e50ad78",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs#WithLocation; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#LastLocation",
+ "test-ref": "conformance:cases/7.3.25-TURN/l1_exception_no_location_arms; conformance:cases/7.3.25-TURN/exception_statement_ambient",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 7.3.25.4 \"the implementor shall specify whether this information is made available or not\" OK. First sentence: probe TRNL1 '>>TURN EC-SIZE CHECKING ON WITH LOCATION' -> EXCEPTION-LOCATION 'TRNL1; P1; 9', EXCEPTION-STATEMENT 'ADD'. Second sentence (implementor choice): docs/CONFORMANCE.md DOC-A.1-204 documents 'no location information is saved unless LOCATION is written' (Annex A.1 item 204, required + documented); TRNL1's second ADD under a plain ON -> EXCEPTION-LOCATION one space, matching the determination. Both goldens are spec-derived witnesses of the two arms. (The implied-ON spelling 'CHECKING WITH LOCATION' is rejected — that is the FMT-7.3.25.2 parse mechanism, not this rule's semantics.) || editions (adjudicator): 2002, 2014, 2023 (the TURN directive is a COBOL-2002 introduction; §7.3 compiler directives)",
+ "state": "OK"
+}

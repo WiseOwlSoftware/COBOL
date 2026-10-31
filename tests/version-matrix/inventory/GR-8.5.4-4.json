@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.4-4",
+ "section": "8.5.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Data description and representation",
+ "rule-digest": "cea64dbc86c8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#MinimumLengthIsZero; src/WiseOwl.Cobol.Compiler/Binding/Bound/MoveClassifier.cs#ZeroLengthItemRoute; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#Emit; src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#CobolClass",
+ "test-ref": "conformance:cases/8.5.4-Zero-length-items/ca7_class_zero_length",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Stem: `OK  §8.5.4` \"A zero-length item is a data item or a literal whose minimum length is zero and whose length at runtime is zero.\" The compiler holds the stem's description half as ONE recurrence (DataItem.MinimumLengthIsZero) and the runtime half as the emitted current-length test; consumers read it (MoveClassifier.ZeroLengthItemRoute / MoveEmitter for §14.9.25.4 GR1, CobolClass for §8.8.4.4.4 GR1, STRING/UNSTRING/INSPECT runtime length). Item 4: IsDynamicLength -> MinimumLengthIsZero true; runtime half is the carrier's .Length. Probe p2: `01 D PIC X DYNAMIC LENGTH.` never assigned -> IS ALPHABETIC false, MOVE D TO X(5)=spaces, STRING D ... \"Q\" -> QBCDE, UNSTRING D -> receiver unchanged, INSPECT tally 0, FUNCTION LENGTH 0. Goldens: 2014/ca7_class_zero_length (class condition on a zero-length dynamic-length item), 2014/pb425_zero_length_item_move (GR1 route). || editions as written by the adjudicator: 2014, 2023 (DYNAMIC LENGTH is a post-2002 facility; the golden corpus places it at 2014). §8.5.4 is not in Annex E's 2014->2023 delta, so the concept predates 2023; the repo holds no 2002/2014 text, so the 2002-vs-2014 introduction edge is not separately derivable (VERSION_CHANGE_REFERENCE ratified decision #1).",
+ "state": "OK"
+}

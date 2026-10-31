@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.45.2",
+ "section": "14.9.45.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "SUPPRESS statement",
+ "rule-digest": "f1bc0758c498",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#suppressStatement; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatement",
+ "test-ref": "conformance:cases/13.18.16-CONTROL/rw_suppress",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Format '<u>SUPPRESS</u> PRINTING' (cite.py --check 14.9.45.2 \"SUPPRESS\" OK); PRINTING is not underlined so it is optional. Grammar 'suppressStatement : SUPPRESS PRINTING? ;' admits both forms; conformance:cases/13.18.16-CONTROL/rw_suppress (SUPPRESS PRINTING) and conformance:cases/_unassigned/rw_suppress_bare (bare SUPPRESS) cover both. Probe ed.cob: bare SUPPRESS compiles and runs at --std 85/2002/2014/2023 (no edition gate, per row 130d accept-everywhere posture). [editions as adjudicated: 2014, 2023 (not an Annex E 2014->2023 addition, so present in 2014); 85/2002 availability not derivable from the 2023 text (VERSION_CHANGE_REFERENCE row 130d, RW accepted at every edition)]",
+ "state": "OK"
+}

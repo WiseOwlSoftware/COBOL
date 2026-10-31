@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.14.3-5",
+ "section": "13.18.14.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "COLUMN clause",
+ "rule-digest": "f39dc0001def",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportColumnClause",
+ "test-ref": "unit:ReportClauseKeywordPrefixTests.ColumnPrefix_ParsesExactlyWhenPrinted; conformance:cases/13.18.14-COLUMN/pb1221_report_keyword_prefixes",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "(kb/Work PB1221, wave 1021 F). cite.py --check 13.18.14.3 \"The keyword IS shall not be specified if COLUMNS, COLS, or NUMBERS is specified\" -> OK SR5. The PLURAL half of reportColumnClause admits no IS, so COLUMNS IS 5, COLS IS 5, COLUMN NUMBERS IS 5 and COLS LEFT IS 5 are COBOL0001 (or COBOL0307 where error recovery reads the context-sensitive NUMBERS as a user word, 8.10); COLUMN IS, COL NUMBER IS and COL NUMBER CENTER IS compile and place their items. ReportClauseKeywordPrefixTests enumerates every combination. || Editions: COLUMNS/COLS/NUMBERS are 2002 spellings; the parse refusal holds at every edition.",
+ "state": "OK"
+}

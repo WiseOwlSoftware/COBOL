@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.51.4-6",
+ "section": "15.51.4",
+ "kind": "RV",
+ "ordinal": 6,
+ "subject": "LOCALE-COMPARE function",
+ "rule-digest": "3a16d5318450",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#Compare",
+ "test-ref": "unit:CobolLocaleTests.Compare_IsTheLocaleBasedRelation_WithTheSignMap",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T4: a one-character string; the catalog row's type is alphanumeric (§15.51.1).",
+ "state": "OK"
+}

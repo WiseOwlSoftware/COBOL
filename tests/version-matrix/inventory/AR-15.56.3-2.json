@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.56.3-2",
+ "section": "15.56.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "LOG10 function",
+ "rule-digest": "380284c38c52",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Log10; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ArgumentError; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#FatalAmbientGates; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.RaiseDeclarations.cs#OperandRaises; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.RaiseDeclarations.cs#PartHasIntrinsic",
+ "test-ref": "conformance:cases/15.56.3-Argument-rules/pb26_ec_argument_function_every_statement",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Already pinned: pb26 writes FUNCTION LOG10(0) -- the rule's boundary violation -- in SEVEN statement positions (COMPUTE 45, MOVE 47, DISPLAY 49, IF 51, nested argument 55, STRING 60, PERFORM UNTIL 71) under >>TURN EC-ARGUMENT-FUNCTION CHECKING ON, each expecting the declarative's CAUGHT (15.3's 'set to exist' consequence); the eighth position, UNSTRING, probes the same 15.3 consequence through FUNCTION CHAR(0) because 14.9.48.3 SR2 bars a numeric delimiter. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#ContainsIntrinsic (the intrinsic gate is an OperandRaises declaration over PartHasIntrinsic, and the nested-statement recursion ContainsIntrinsic is gone because a nested statement is its own EC region (kb/Work PB3102, PB441)) retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#DirectIntrinsic (the intrinsic gate is an OperandRaises declaration over PartHasIntrinsic, and the nested-statement recursion ContainsIntrinsic is gone because a nested statement is its own EC region (kb/Work PB3102, PB441))",
+ "state": "OK"
+}

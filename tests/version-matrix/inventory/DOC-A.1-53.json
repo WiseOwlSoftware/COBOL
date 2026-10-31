@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-53",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 53,
+ "subject": "DISPLAY directive (conversion of data transferred)",
+ "rule-digest": "32b10241f868",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-53; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.Display.cs#DisplayImage; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.Display.cs#ApplyDisplay",
+ "test-ref": "unit:DisplayDirectiveTests.ConversionOfData_FollowsTheDeterminedImages; unit:DisplayDirectiveTests.OperandsAreTransferredInOrderAsOneLine; conformance:cases/7.3.12-DISPLAY/pb807_display_directive_operands",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1538 landed (w1004b). The conversion of data transferred matches the documented determination: alphanumeric and national values as their characters, boolean values as 0 and 1, numeric values in the shortest decimal form, images of one directive joined by one space on ONE line.",
+ "state": "OK"
+}

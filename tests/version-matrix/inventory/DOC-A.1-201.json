@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-201",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 201,
+ "subject": "Text manipulation (stage of processing parameterized class expansion)",
+ "rule-digest": "52ed5fcb340c",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-201; src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#OoExpansion; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BinderDriver",
+ "test-ref": "conformance:cases/11.3-CLASS-ID/pb759_parameterized_class; conformance:cases/A.1-Implementor-defined-language-element-list/pb1522_replace_before_parameterized_expansion",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Voluntary row (A.1 201 need not be documented; A.1 cites 7.2 but cite.py --check 7.1 'The manner and time of expansion of parameterized classes and parameterized interfaces is defined by the implementor' -> OK §7.1 General; the same sentence continues 'except that it occurs after the text manipulation stage of processing' -> OK §7.1). OoExpansion summary: each expansion re-parses the parameterized definition's tokens with formals replaced (not a C# generic). THE ORDER IS PINNED BY A COMMITTED WITNESS (kb/Work PB1522, re-verdict 2026-10-25): conformance:cases/A.1-Implementor-defined-language-element-list/pb1522_replace_before_parameterized_expansion makes a REPLACE ==USAGE OBJECT REFERENCE PB1522BOX== BY ==USAGE OBJECT REFERENCE PB1522TXT== active over a parameterized class PB1522HOLD (cancelled by REPLACE OFF before the expanding program). The pseudo-text occurs once in the definition's source (item FIXED) and a second time only in the text the expansion produces (ITEM and X are written ELEM, which expands to PB1522BOX). Measured output BOX 042 / TXT: FIXED became PB1522TXT (the REPLACE rewrote the definition BEFORE it was expanded) while ITEM and X stayed PB1522BOX (the REPLACE never saw the expansion's text); without the REPLACE, SET FIXED TO Y is refused (COBOL0867, SR12 a)2.), probe noreplace. Earlier probes: pb759_parameterized_class.cob --std 2002 output identical to its golden; a REPLACE ==ZZELEM== BY ==ELEM== over USING ZZELEM gives the identical output; --std 85 -> COBOL0900 (negative pb759-parameterized-class-at-85). Owning note: kb/Work/PB1535 (landed).",
+ "state": "OK"
+}

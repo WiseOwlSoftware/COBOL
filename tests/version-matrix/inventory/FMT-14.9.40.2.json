@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.40.2",
+ "section": "14.9.40.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "SORT statement",
+ "rule-digest": "615df9827cab",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sortStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sortKeyPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sortCollatingPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#collatingForPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindFile; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindTable; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindCollating; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sortDuplicatesPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolWords.g4#orderKeyword",
+ "test-ref": "conformance:cases/14.9.40-SORT/pb1175_table_sort_shared_storage; conformance:cases/8.4.2.3-Subscripts/pb1055_table_sort_nested_subject; conformance:cases/14.9.24-MERGE/pb994_sort_merge_keyed_using_giving; conformance:cases/14.9.24-MERGE/pb1139_sort_collating_word_optional; conformance:cases/14.9.40-SORT/pb3794_order_data_item_duplicates_in_order",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB994 + PB1175 landed: the two legal operand shapes the refuter named as not compiling to working code now do - a Format-2 table inside a REDEFINES view / a nested table (PB1175, PB1055) and a relative or indexed USING/GIVING file (this note); the syntax surface the adjudicator measured stands (phrase order, Format-1 KEY arity, the 2002 gate of Format 2, the FOR forms, DUPLICATES, the OCCURS KEY default), and COLLATING is an optional word (printed page 745; PB1139).",
+ "state": "OK"
+}

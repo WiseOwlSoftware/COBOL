@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-31",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 31,
+ "subject": "SET statement",
+ "rule-digest": "8a1e0b56e659",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetContent",
+ "test-ref": "conformance:cases/14.9.39-SET/pb452_set_content_numeric; conformance:cases/14.9.39-SET/pb452-set-content-numeric-edited",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB453 - RE-VERDICTED, NOT RE-FIXED. The row was NOT-IMPLEMENTED because Format 15 had no surface at all and the screen could not exist: PB453 3) measured `SET CONTENT OF N TO FARTHEST-FROM-ZERO` as `COBOL0001: no viable alternative at input 'SETCONTENT'`. The surface landed with kb/Work PB452 (setContentStatement, bind-gated SetNumericContent2014). RE-PROBED on this worktree's own build: the statement compiles and runs at --std 2023 (N=999I), and SR31 - \"If FARTHEST-FROM-ZERO or NEAREST-TO-ZERO is specified, identifier-14 shall reference a numeric data item\" (cite.py --check 14.9.39.3 OK) - is enforced by name, `SET CONTENT OF A TO FARTHEST-FROM-ZERO` over `01 A PIC X(4)` drawing `COBOL1938: ... identifier-14 shall reference a numeric data item (ISO 14.9.39.3 syntax rule 31)`.",
+ "state": "OK"
+}

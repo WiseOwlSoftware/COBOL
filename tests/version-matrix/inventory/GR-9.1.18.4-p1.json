@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.18.4-p1",
+ "section": "9.1.18.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Commit and Rollback",
+ "rule-digest": "c8493e449080",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/TransactionControl.cs#Rollback; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#Rollback; src/WiseOwl.Cobol.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/WiseOwl.Cobol.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CommitSequential; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RollbackSequential; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CommitKeyed; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RollbackKeyed; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#DeleteCovered; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#JournalCapture; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#JournalCreation; src/WiseOwl.Cobol.Runtime/IO/KeyedStore.cs#AdoptRestored",
+ "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3338_apply_commit_rollback; conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.Rewrite_then_rewrite_again_then_rollback; unit:SequentialJournalTests.Append_then_capture_then_rollback_restores_the_before_file_and_truncates_to_L; conformance:cases/14.9.36-ROLLBACK/pb3492_keyed_file_replaced_or_removed; unit:CommitRollbackRuntimeTests.A_keyed_capture_or_creation_refused_at_every_journal_operation_leaves_the_last_commit_or_the_committed_change",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB3340, PB3492: ROLLBACK restores every file under commit control to the last COMMIT: a sequential file from its journal (images, committed length, before file; 2.2.2.7), a keyed file's records from the keyed store's transaction, and a RELATIVE or INDEXED file an OPEN OUTPUT replaced, a DELETE FILE removed or an OPEN created since the last COMMIT from the same journal (its before file restored and the captured transaction rolled back in it, or the created file removed; DESIGN-runtime-library.md 2.2.2.14). Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5).",
+ "state": "OK"
+}

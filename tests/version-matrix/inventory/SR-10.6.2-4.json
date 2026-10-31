@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-10.6.2-4",
+ "section": "10.6.2",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "COBOL compilation group",
+ "rule-digest": "17ab6f74576f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PrototypeUnitRules.cs#ScreenBody; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build",
+ "test-ref": "conformance-test:PrototypeUnitRulesTests.Sr4a_ArithmeticClause_IsRefused; conformance-test:PrototypeUnitRulesTests.Sr4b_ObjectComputer_IsRefused; conformance-test:PrototypeUnitRulesTests.Sr4c_ClassClauseInSpecialNames_IsRefused; conformance-test:PrototypeUnitRulesTests.Sr4d_InputOutputSection_IsRefused; conformance-test:PrototypeUnitRulesTests.Sr4e_NonLinkageSection_IsRefused; conformance-test:PrototypeUnitRulesTests.Sr4f_ProcedureStatements_AreRefused; conformance-test:PrototypeUnitRulesTests.LinkageAndHeaderOnly_AdmittedSpecialNames_Compile; conformance-test:OoSpineTests.Interface_PrototypeWithBody_2272; conformance:cases/10.6-COBOL-compilation-group/pb894-program-prototype-body",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB894: ONE screen (COBOL2272) for all three kinds the rule names. Each of a)-f) is witnessed on a program AND a function prototype; the method-prototype arm (OoClassTable) now calls the same screen instead of its own two-of-six copy. Before PB894 a function prototype's WORKING-STORAGE and statements compiled clean and vanished.",
+ "state": "OK"
+}

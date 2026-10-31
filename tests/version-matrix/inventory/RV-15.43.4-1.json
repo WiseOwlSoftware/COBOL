@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.43.4-1",
+ "section": "15.43.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "HIGHEST-ALGEBRAIC function",
+ "rule-digest": "69ab2fdf19dc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindAlgebraicFold; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeFloatEdited",
+ "test-ref": "conformance:cases/14.6.13.2-Incompatible-data/pb66_float_edited_algebraic_and_checking; conformance:cases/15.43.4-Returned-value-rules/pb66-algebraic-float-edited-range",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB66, data-model design D21). The floating-point numeric-edited PICTURE (§13.18.40.4 GR13 b) is LIVE, so the rule is evaluable and enforced AT THE FUNCTION REFERENCE: the fold parses the mask (CobolEdit.FloatMask.Parse — the ONE parser) and requires the all-nines significand at the maximum exponent to lie within the intermediate's range for the arithmetic mode in effect (§8.8.4.4.4 GR3 l — binary64 natively: PIC 9(3)E+999 is ~1E+1002 > 1.8E+308 → COBOL1660; decimal128 under ARITHMETIC IS STANDARD-DECIMAL: the same entry passes). Returned value = that extreme (RV-15.43.4-2), verified by MOVE FUNCTION HIGHEST-ALGEBRAIC(E1) TO E1 in the golden.",
+ "state": "OK"
+}

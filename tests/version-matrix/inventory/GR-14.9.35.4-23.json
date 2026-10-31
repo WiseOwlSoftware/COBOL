@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.35.4-23",
+ "section": "14.9.35.4",
+ "kind": "GR",
+ "ordinal": 23,
+ "subject": "REWRITE statement",
+ "rule-digest": "4541e90fedf4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite",
+ "test-ref": "conformance:cases/14.9.35-REWRITE/l1c26_rewrite_indexed_prime_key",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: indexed random/dynamic - the record replaced is the one with the prime key; none -> unsuccessful, '23'. cite.py --check 14.9.35.4 -> OK 23). Rewrite looks up target by KeyEq on the prime key and returns RecordNotFound '23' before any mutation. Probe probe/rewrite-statement-p2/p1.cob (ACCESS DYNAMIC): absent K009 -> IK23 taken, ABSENT=23; after READ K001, REWRITE of K002's image -> DYNOTHER=00 and K002 now K002A02NEW (replacement by prime key, not by last read); REWRITE without any preceding READ -> DYNNOREAD=00 (no GR5 gate outside sequential access). Only KeyedIoDifferentialTests.Indexed_RandomCrudByPrimeKey covers it, and it is a legacy differential (AssertSameAsLegacy) -> does not close; test-needed. [editions as adjudicated: 1985, 2002, 2014, 2023]",
+ "state": "OK"
+}

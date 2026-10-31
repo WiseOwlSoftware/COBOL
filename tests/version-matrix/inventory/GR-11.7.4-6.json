@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.7.4-6",
+ "section": "11.7.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "METHOD-ID paragraph",
+ "rule-digest": "dfbf13c8eba6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.ObjectProperty.cs#ResolveObjectProperty",
+ "test-ref": "conformance:cases/8.4.3.9-Object-property/oo_property_explicit_ref; conformance:cases/11.7-METHOD-ID/pb1449_interface_property; conformance:cases/11.7-METHOD-ID/pb1449-implements-without-property-accessor",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1449 LANDED (wave 1015 Z). cite.py --check 11.7.4 'If the GET phrase is specified, this method is a get property method for property-name-1.' OK 6). The prototype half: an interface's GET PROPERTY prototype is a get property method — it joins the interface roster under __GET_<P>, a class implementing the interface must define it (the clause accessor or an explicit GET PROPERTY; pb1449-implements-without-property-accessor is COBOL0841), and BAL OF I with I interface-typed invokes it (pb1449_interface_property: A=00100 through the clause GET, B=00007 through the explicit GET). The class half stays witnessed by oo_property_explicit_ref. retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#OoTryBindPropertyReference (the one-word property binder ReferenceResolver.OoTryBindPropertyReference is deleted by kb/Work PB1425 (w1021a): a property reference is resolved by ReferenceResolver.ResolveObjectProperty, which splits the chain and resolves identifier-3 through the ordinary resolver)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.40.4-14",
+ "section": "14.9.40.4",
+ "kind": "GR",
+ "ordinal": 14,
+ "subject": "SORT statement",
+ "rule-digest": "9a5d0b50d892",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSort; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#ReturnStatement",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/pb440_sort_procedure_range; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_sort_output_procedure; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_sort_merge_procedure_ends_at_last_paragraph; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_sort_merge_called_program",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'If an output procedure is specified, control passes to it after the file referenced by file-name-1 has been sequenced ... The compiler inserts a return mechanism after the last statement in the output procedure ... passes control to the next executable statement after the SORT statement ... The RETURN statements in the output procedure are the requests for the next record.' (cite.py --check 14.9.40.4 OK, GR14). EmitSort emits SortSort, then SortEnterProcedure(output: true) + the bounded dispatch of the output range, then the end label and SortClose, falling through to the next statement; RETURN pulls the next record by cursor (CobolSort.Return). Sorted records are delivered one per RETURN in pb440 (OUT=A/B/C) and in the spec-pinned conformance-test SortMergeDifferentialTests.Sort_InputOutputProcedures_MultiKeyMixedDirections; conformance:cases/14.6.13.1.2-Normal-completion-of-a-declarative-procedure/pb367b_sort_use_not_normal shows control reaching the statement after the SORT. [editions as adjudicated: 1985, 2002, 2014, 2023]",
+ "state": "OK"
+}

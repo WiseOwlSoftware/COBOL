@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.2.2.3-4",
+ "section": "8.4.2.2.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "Qualification",
+ "rule-digest": "605a18790ec2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#SumCounterFor; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifierWalk",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/pb567_condition_name_qualification; conformance:cases/8.4.2.2-Qualification/pb567-condition-name-misqualified; conformance:cases/8.4.2.2-Qualification/qualified-ambiguous-match; conformance:cases/8.4.2.2-Qualification/pb1454_sum_counter_group_qualifier; conformance:cases/8.4.2.2-Qualification/pb1454-sum-counter-qualifier-not-above",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1454 landed (w1005e): part (a)'s permission side for a sum counter (its report group is a level it is subordinate to) is closed. DataBinder.QualifierWalk is now the ONE inner-to-outer walk, over a data item's ancestors and over ReportSumModel.Qualification alike; TOT2 OF RF1 (a group the counter is not under) is refused COBOL2145.",
+ "state": "OK"
+}

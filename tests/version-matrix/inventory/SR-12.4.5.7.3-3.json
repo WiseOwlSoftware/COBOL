@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.7.3-3",
+ "section": "12.4.5.7.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "COLLATING SEQUENCE clause",
+ "rule-digest": "b07fa82a1c3a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveFileCollating",
+ "test-ref": "conformance-test:FileCollatingSequenceSpecTests.FileLevel_TwoClausesInOneFileControlEntry_Diagnosed",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Only one file-level (Format 1) COLLATING SEQUENCE clause per file control entry. CaptureFileCollating counts the Format-1 clauses on the FileModel (FileLevelCollatingCount) and ResolveFileCollating rejects a count above one with COBOL1582. The clause is a COBOL-2002 addition (constructs.json file-collating-clause-2002), so 85 is the gate lane, not a behaviour lane.",
+ "state": "OK"
+}

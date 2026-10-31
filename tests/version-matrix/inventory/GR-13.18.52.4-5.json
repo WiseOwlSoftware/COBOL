@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.52.4-5",
+ "section": "13.18.52.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "SIGN clause",
+ "rule-digest": "daf767c68e18",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/ZonedSign.cs#IsSignCharacter; src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#IsNumericZoned; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#ParseDisplay; docs/CONFORMANCE.md#DOC-A.1-178; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs",
+ "test-ref": "conformance:cases/13.18.52-SIGN/pb803_sign_valid_set; conformance:wiseowl/cases/13.18.52-SIGN/pb803_sign_encoding_ascii; conformance:cases/13.18.52-SIGN/pb803_sign_default_representation_85; unit:ZonedSignTableDriftTests.TheConventionsAreNotTheSameTable",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "WITNESSED (kb/Work PB803). (a) THE WIDTH HALF, which nothing shipped or drafted previously pinned: conformance:cases/13.18.52-SIGN/pb803_sign_valid_set answers WIDTH=3 3 8 over `PIC S9(3) SIGN IS LEADING` and `PIC S9(3) SIGN IS TRAILING` inside a 3+1+3+1 group. Every leg writes a SIGN clause WITHOUT SEPARATE, because GR5 and GR6 are mutually exclusive by their own antecedents and a SEPARATE leg would pin GR6 a) -- the earlier claim that the EXPL/SEP legs of l1_sync_sign_position and l1_sync_size_unchanged covered GR5 a) was false and is not relied on here. (b) THE VALID-SIGN SET is now derived from the SAME tables the encoder punches with (ZonedSign.IsSignCharacter, reached from both the emitted class condition and CobolNum.IsNumericImage) instead of a literal character-range pattern written a second time beside them -- which is what made the owner's two-convention decision implementable at all: the old pattern could only ever answer for one convention. The golden pins the accepted set at BOTH ends of both tables (`12{` = +120 and `12}` = -120, the position-0 characters a letters-only reading drops) and refuses the four near-misses `+`, `-`, space, lower-case `l` and `Z`; the LEADING legs pin `C23` = +323, which fails for any implementation that treats a punch as a sign-only marker and leaves the underlying digit alone. Every ACCEPTED leg also prints the algebraic value so the class test and the value are pinned to agree; a REFUSED leg deliberately prints none, since what a numeric operation makes of incompatible content is 14.6.13.2's obligation and filing it here would put one determination under another's number. conformance:wiseowl/cases/13.18.52-SIGN/pb803_sign_encoding_ascii repeats the set under the alternative convention, where `12t` is NUMERIC and `12C` and `12{` are not.",
+ "state": "OK"
+}

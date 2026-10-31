@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.37.3-8",
+ "section": "14.9.37.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "SEARCH statement",
+ "rule-digest": "6b0f32110181",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/SearchAllFormat2Rules.cs#CheckKeySide; src/WiseOwl.Cobol.Compiler/Binding/Validation/SearchAllFormat2Rules.cs#CheckKeySubscript; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#SubscriptSegments; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#OccursKeyResolve",
+ "test-ref": "conformance:cases/14.9.37-SEARCH/pb445-search-all-when-not-a-key; conformance:cases/14.9.37-SEARCH/pb445-search-all-when-literal-subscript; conformance:cases/14.9.37-SEARCH/pb445-search-all-when-index-plus; conformance:cases/14.9.37-SEARCH/pb445_search_all_format2_legal; conformance:cases/13.18.38-OCCURS/pb1018_occurs_key_qualified",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB445.md LANDED; kb/Work PB1018 re-verdict. KEY-phrase membership matches the WHEN operand's resolved DataItem by IDENTITY against OdoModel.KeyItems, which now reads the keys OccursKeyResolve resolved WITH their written qualifiers: `ASCENDING KEY IS K OF B` beside a second K under A used to resolve to the first K and refuse a legal `WHEN K OF B (IX) = 2` (COBOL1965). The subscript obligations (first index-name, no +/- on it) are unchanged and keep their PB445 negatives.",
+ "state": "OK"
+}

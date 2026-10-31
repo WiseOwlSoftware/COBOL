@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.3.3.3-3",
+ "section": "8.3.3.3.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Numeric literals",
+ "rule-digest": "32c703dd7b9b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/NumericLiteral.cs#CheckFloatingPointForm; src/WiseOwl.Cobol.Frontend/Common/NumericLiteral.cs#FitsBinaryFloat; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#CheckLiteral; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ValidateValueCategory",
+ "test-ref": "conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb99-floating-literal-form; conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb99-floating-literal-range; conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb99-floating-literal-range-statement; conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb99_floating_literal_extremes; conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb99_floating_literal_standard_decimal; conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb156_float_literal_exact_native",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB99), RANGE DETERMINATION REPLACED 2026-08-31 by owner decision D-B (kb/Work PB156 + PB195 + PB276). 'a maximum of four digits' - COBOL1661 for a fifth (1.0E12345, which used to reach Roslyn as an overflowing C# double literal, CS0594). The IMPLEMENTOR-DEFINED maximum / minimum exponent VALUE is documented in CONFORMANCE.md Sec.7 A.1 item 82 and enforced at compile time, and it is now ONE range for every statement position: the DECIMAL128 range, about 1E-6176 to 9.99E+6144, in EVERY arithmetic mode (ExpressionBinder.CheckLiteral) - so 1.0E+400 evaluates and 1.0E+9999 / 1.0E-9999 are COBOL1661. ⛔ THE PER-POSITION SPLIT THIS REPLACED is what the previous note published: a literal in a NATIVE arithmetic expression or statement was screened against binary64 (about 4.9E-324..1.8E+308, so 1.0E+400 was rejected) while the identical program compiled under ARITHMETIC IS STANDARD-DECIMAL. Two rules remain, and they are different rules rather than different positions: a VALUE clause on a FLOAT-* item keeps the RECEIVER's binary form (Sec.13.18.63.3 SR2 - 'permissible values within the range indicated by the PICTURE clause or the USAGE clause', and a FLOAT-* subject has no PICTURE; DataBinder.FitsBinaryFloat, which is that screen's only surviving caller), and a VALUE on a fixed-point or floating-point numeric-edited item has no bound beyond the receiver's PICTURE (PIC 9E+9999 VALUE 1.0E+9999). The two lanes are witnessed SEPARATELY: pb99-floating-literal-range carries only the VALUE-clause entries and pb99-floating-literal-range-statement only the statement ones, because the negative harness asserts that SOME diagnostic contains COBOL1661 and a shared file let the VALUE entries satisfy it alone.",
+ "state": "OK"
+}

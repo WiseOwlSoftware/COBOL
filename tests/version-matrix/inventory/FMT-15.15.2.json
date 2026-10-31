@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.15.2",
+ "section": "15.15.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "CHAR function",
+ "rule-digest": "42722474a0f8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+ "test-ref": "conformance:cases/15.8-ACOS/general_format_intrinsics_batch1",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Verdict unchanged; supplies the missing spec-derived test. Exact case: 15.15.4 r1 makes the argument an ORDINAL POSITION (1-based) in the alphanumeric program collating sequence, so CHAR(66) is the character with native code 65.",
+ "state": "OK"
+}

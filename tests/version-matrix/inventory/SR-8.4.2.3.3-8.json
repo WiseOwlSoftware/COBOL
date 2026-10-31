@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.2.3.3-8",
+ "section": "8.4.2.3.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "Subscripts",
+ "rule-digest": "fa54e30d14ec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportSubscripts; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#SubscriptWordsOfReference; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#IsReportSubscriptCounter; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#CheckConditionOperands",
+ "test-ref": "conformance:cases/8.4.2.3-Subscripts/pb1474-sum-addend-subscripted-by-line-counter; conformance:cases/8.4.2.3-Subscripts/pb1474-sum-addend-subscripted-by-sum-counter; conformance:cases/8.4.2.3-Subscripts/pb1474-source-expression-subscripted-by-page-counter; conformance:cases/8.4.2.3-Subscripts/pb1474-source-subscripted-by-line-counter; conformance:cases/8.4.2.3-Subscripts/pb1474-present-when-subscripted-by-page-counter; conformance:cases/8.4.2.3-Subscripts/pb1474-present-when-subscripted-by-line-counter; conformance:cases/8.4.2.3-Subscripts/pb1474_report_subscripts_legal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1474 landed 2026-10-04 (wave 1012 G): ScreenReportSubscripts (COBOL2751) asks every SOURCE, SUM, VARYING and OCCURS clause of a written entry once; a PRESENT WHEN condition is SR16's (COBOL1559), whose LINE-COUNTER and PAGE-COUNTER scan now reads the subscript's words too.",
+ "state": "OK"
+}

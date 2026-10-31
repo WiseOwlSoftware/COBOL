@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.16.3-1",
+ "section": "13.18.16.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "CONTROL clause",
+ "rule-digest": "e2830eee4d43",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportControlClause",
+ "test-ref": "conformance:cases/13.18.16-CONTROL/rw_suppress; conformance:cases/13.18.16-CONTROL/pb205_control_ref_mod",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The one grammar rule accepts both spellings - (CONTROL IS? | CONTROLS ARE?) - and nothing downstream can tell them apart, so they are synonyms by construction. Witnessed both ways: rw_suppress writes CONTROL IS, pb205_control_ref_mod writes CONTROLS ARE. kb/Work PB688 (2026-09-05): the golden moved from tests/conformance/2002 to tests/conformance/2023 - it observes the report by re-reading the report file through ORGANIZATION IS LINE SEQUENTIAL, which is a COBOL-2023 introduction (12.4.5.10.3 GR2; the Foreword's main-changes list over ISO/IEC 1989:2014), so the program is not expressible at 2002. The RULE's editions are unchanged.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-31",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 31,
+ "subject": "VALUE clause",
+ "rule-digest": "bfdae03433a2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindCondition; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#TryResolveRangeAlphabet; src/WiseOwl.Cobol.Compiler/Binding/Model/Condition88.cs#Alphabet",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb890-value-alphabet-without-through; conformance:cases/13.18.63-VALUE/pb502_value_range_in_alphabet; conformance:cases/13.18.63-VALUE/pb695_value_false_optional_words; conformance:cases/13.18.63-VALUE/pb555_typedef_condition_clone; unit:Condition88CloneDriftTests.CopyOnto_LeavesNoWritableMemberBehind",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB890 (+ PB503) - THE LAST UNENFORCED ARM IS NOW ENFORCED, so PARTIAL becomes CONFORMS. SR31 carries four obligations and all four were MEASURED at --std 2023 on this worktree's own build. (1) Sentence 1's class prohibition on a NUMERIC through-pair: `88 C VALUE 1 THRU 5 IN MYALPH.` -> COBOL1998. (2) Sentence 1's 'only when' with NO THROUGH PHRASE AT ALL: `88 CN VALUE \"Y\" IN MYALPH.` used to compile rc=0 and is now COBOL2176 - 'Alphabet-name-1 may be specified only when the literals specified in the THROUGH phrase are of class alphanumeric or national', and with no THROUGH phrase written there are no 'literals specified in the THROUGH phrase', so the permission is never satisfied. This is a SYNTAX rule, so the counter-argument that the phrase is inert over a value LIST (8.8.4.5.3 GR2 compares singletons under the PROGRAM collating sequence, which IN never reaches) is a general-rule answer to a syntax-rule question. (3) Sentence 2, the national arm: `01 CV PIC N(1). 88 CN VALUE N\"A\" THRU N\"C\" IN AN1.` with AN1 an ALPHANUMERIC alphabet -> COBOL1999. (4) Sentence 2's 'otherwise' arm: alphanumeric THROUGH operands under `ALPHABET NAT1 FOR NATIONAL` -> COBOL1999. Also still enforced: an undeclared alphabet-name and a SPECIAL-NAMES name that is not an alphabet -> COBOL1997, and the alphabet survives a TYPEDEF / SAME AS clone (Condition88.CopyOnto). ⛔ THE GUARD THAT HELD ARM 2 OPEN WAS A GREEN GOLDEN: `cond.Values.Any(v => v.High is not null)` existed only to keep tests/conformance/2002/pb695_value_false_optional_words.cob's `88 CN-ORDER VALUE 1 IN AL1 WHEN SET TO FALSE 0.` - a numeric singleton with IN, which the rule excludes twice over - compiling; that operand is now a conforming alphanumeric THROUGH range and the guard is gone. MEASURED also that the national THROUGH range it orders now EXECUTES (it used to be refused as staged-not-implemented): `88 CN VALUE N\"A\" THRU N\"C\" IN NAT1` over PIC N(1) = N\"B\" answers TRUE.",
+ "state": "OK"
+}

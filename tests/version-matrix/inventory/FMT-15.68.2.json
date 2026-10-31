@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.68.2",
+ "section": "15.68.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "NUMVAL-C function",
+ "rule-digest": "6ea43b3466f8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindNumvalCFamily",
+ "test-ref": "conformance:cases/15.67.3-Argument-rules/pb60_numval_one_scan; conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-09 (PB60): BindNumvalCFamily walks ( argument-1 [argument-2] [ANYCASE] ) BY POSITION - the CONVERT-5a template. Slot 0 always binds as argument-1 (ANYCASE is 8.10 context-sensitive, so a data item so named stays legal there - written before argument-1 it now binds as an operand, fails name resolution and the arity screen, both measured); ANYCASE is admitted once, last, and a repeat or a trailing operand rejects COBOL1504 (negative pb60-numvalc-anycase-position; the old order-free sweep accepted NUMVAL-C(ANYCASE WS-A \"USD\") and a doubled ANYCASE). The LOCALE phrase keeps its upstream 4.2.7 documented-non-support interception (COBOL1518). Editions field stays 2002+ (the function's own introduction; Annex E is informative). retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

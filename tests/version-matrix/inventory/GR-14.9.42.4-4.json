@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.42.4-4",
+ "section": "14.9.42.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "STOP statement",
+ "rule-digest": "464003752875",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#Visit; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#ExitStatus",
+ "test-ref": "conformance-test:StopGobackExitCodeTests.TerminationStatus_SetsProcessExitCode",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 14.9.42.4 GR4 -> OK. No status phrase => no SetExitStatus emitted, exit stays 0 (p1; test InlineData 'STOP RUN.' 0). Adversarial: a CALLed (non-main) program executing 'GOBACK WITH ERROR STATUS 5' then the main's plain 'STOP RUN.' (probe q2) -> exit 0, so a non-main status phrase does not leak into GR4's normal indication. The implementor-defined error-termination mechanism is optional (Annex A item 193); none is provided, which is permitted. Abnormal termination (fatal EC) is §14.6.12, not this rule. [editions as adjudicated: 1985, 2002, 2014, 2023 (STOP RUN is in every edition; §14.9.42 of the 2023 text)]",
+ "state": "OK"
+}

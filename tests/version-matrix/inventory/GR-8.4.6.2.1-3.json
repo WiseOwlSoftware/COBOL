@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.6.2.1-3",
+ "section": "8.4.6.2.1",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Local and global names",
+ "rule-digest": "db8eebc7d4a9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs#NearestDeclaring; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#InheritGlobalSubtree; src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs#IndexCandidates; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#DropShadowedConstants",
+ "test-ref": "conformance:cases/8.4.6.2-Local-and-global-names/pb1047_nearest_declaring_element; conformance:cases/8.4.6.2-Local-and-global-names/pb1047_global_constant_nearer_data_name; conformance:cases/8.4.6.2-Local-and-global-names/pb1047-two-globals-one-element-ambiguous",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1047 / PB1243 (w68z). cite.py --check 8.4.6.2.1 'If the name is declared in source element B, the item in source element B is the referenced item' -> OK §8.4.6.2.1 3) a); 'The item in source element A if the name is declared in source element A' -> OK 3) b) 1. The contained program's name map used to be ONE flat tier (its own names + the containers' globals), so a local X and a container's global G.X were co-candidates (COBOL1639 ambiguous), for condition-names too. Every inherited global item now carries its nesting depth (DataBinder.InheritGlobalSubtree) and SymbolTable.NearestDeclaring narrows the QUALIFIED survivor set to the nearest declaring element — ReferenceResolver.ResolveUnqualified, DataBinder.QualifiedCandidates and ConditionBinder.ConditionOf ask it; two survivors in that one element stay ambiguous (negative). Siblings on the same rule, fixed: a nearer DATA-name now hides a farther global INDEX-name (SymbolTable.IndexCandidates) and a farther global CONSTANT-name (DataBinder.DropShadowedConstants, depth-aware). Golden legs: I X=LOC (3a), I C=FALSE (3a, 88), I IX=7 (3a across name classes), I XG=MID (qualification first, then 3b1), J X=MID / J C=TRUE (3b1), T K=MDK (3b1, constant vs data).",
+ "state": "OK"
+}

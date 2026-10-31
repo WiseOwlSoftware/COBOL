@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.7.4-3",
+ "section": "14.9.7.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "COMMIT statement",
+ "rule-digest": "d0885f815266",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/WiseOwl.Cobol.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CommitSequential; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RollbackSequential; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
+ "test-ref": "unit:CommitRollbackRuntimeTests.Commit_makes_the_changes_permanent_and_a_later_rollback_restores_to_it; unit:TransactionControlTests.A_two_file_commit_refused_at_the_second_file_leaves_the_first_committed; unit:TransactionControlTests.A_retired_clause_is_not_restored_and_the_next_statement_deactivates_it; conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.First_write_under_extend_then_commit",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB3340 (wave 1157): COMMIT permanently applies the changes of every file in the active clauses, sequential included (FileRegistry.CommitSequential), and deactivates the retired clauses. Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5).",
+ "state": "OK"
+}

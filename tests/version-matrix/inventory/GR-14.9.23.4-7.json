@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.23.4-7",
+ "section": "14.9.23.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "INVOKE statement",
+ "rule-digest": "ea0ca2e5c701",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#IdentifyOperands; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitInstanceInvoke; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitUniversalInvoke; src/WiseOwl.Cobol.Runtime/Control/CobolObject.cs#RequireNonNull; src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs#Describe; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitMethod; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#MethodExternalCheck; src/WiseOwl.Cobol.Runtime/Control/ExternalStore.cs#DescribeAtMethodActivation; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#ExternalMaskAt; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#ParameterViolation; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#ReturningViolation",
+ "test-ref": "conformance:cases/14.9.23-INVOKE/w68r_pb1138_method_external_check; conformance:cases/14.9.23-INVOKE/w68r-pb1138-method-external-below-2023; unit:ProgramActivationMaskTests.MethodActivation_PairsTheInvokeFlagsWithTheMethodMask_AndFailsAsAFatalCondition; conformance:cases/14.6.4-Item-identification/pb1123_returning_item_identification_once; conformance:cases/9.3.6-Method-invocation/pb480_universal_match_relations; conformance:cases/14.9.23-INVOKE/pb480_universal_variable_length",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED kb/Work PB1123 (the F2 arm PB1138 left open). OoEmitter.EmitInvoke / EmitUniversalInvoke identify the receiver, every argument and RETURNING identifier-4 at the beginning of the statement (GR7 a) through PlaceIdentification, before the method is invoked, so INVOKE OBJ BUMP USING I RETURNING T(I) delivers into T(1) when the method bumps I through its BY REFERENCE argument. retired-witness: src/Cobol.Net.Compiler/Oo/OoConformance.cs#ConformanceDescriptor (kb/Work PB480 deleted the universal descriptor string; GR7 c)'s conformance is ActivationRelations.ParameterViolation / ReturningViolation)",
+ "state": "OK"
+}

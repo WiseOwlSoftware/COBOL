@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.8.4-2",
+ "section": "8.4.3.8.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "SELF and SUPER",
+ "rule-digest": "0993e7e4398e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindByReceiver; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundOo.cs#InvokeForm",
+ "test-ref": "conformance:cases/8.4.3.8-SELF-and-SUPER/oo_self_polymorphic",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (--check 8.4.3.8.4 'based upon the set of methods defined for the runtime class of the object referenced by SELF' -> OK §8.4.3.8.4 2)). OoBindByReceiver sets searchRoot = cur for SELF (static roster check per §14.9.23.3 SR4f/g) and binds InvokeForm.Self -> virtual `this.M()`, so dispatch is on the runtime class. oo_self_polymorphic.out = DESCRIBING/WOOF (inherited ANIMAL.DESCRIBE's INVOKE SELF \"SOUND\" reaches DOG's override). Probe PGR3: A.M's INVOKE SELF \"N\" on a C object prints C.N (two-level). Factory flavor resolves over FindFactoryMethod (host.OoInFactory). [editions as adjudicated: 2002, 2014, 2023 (OO predefined object references; absent from COBOL-85)]",
+ "state": "OK"
+}

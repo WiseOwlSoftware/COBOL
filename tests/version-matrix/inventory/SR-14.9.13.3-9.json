@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.13.3-9",
+ "section": "14.9.13.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "EVALUATE statement",
+ "rule-digest": "303afeb57e1e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#ScreenRangeOperands; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#HasVariableLengthSubordinate",
+ "test-ref": "conformance:cases/14.9.13-EVALUATE/pb399-evaluate-range-variable-length-group; conformance:cases/14.9.13-EVALUATE/pb399_evaluate_selection_set_shapes; conformance-test:Format3RelationSurfaceDriftTests.RangeOperand_OdoGroupIsLegal_DynamicLengthGroupIsNot",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB399.md LANDED. Both ends of a range-expression are screened for 8.5.1.12.1's variable-length group through the ONE definition (ReferenceResolver.HasVariableLengthSubordinate), so this screen cannot drift from the REDEFINES / VALUE / report screens that ask the same question. THE NOTE'S REPRO HAD THE PREMISE BACKWARDS and is corrected here: 8.5.1.12.1 defines a variable-length group as one with a DYNAMIC-LENGTH elementary item or a DYNAMIC-CAPACITY table subordinate, so an OCCURS DEPENDING ON group is NOT one (its size is its maximum) and the note's p12 program was legal source. Re-measured with `PIC X DYNAMIC LENGTH` members: the defect is real - that program compiled clean and aborted at run time on the whole-group image. Both directions are pinned, the ODO one as LEGAL (golden leg ODO-RANGE and the drift test's first half).",
+ "state": "OK"
+}

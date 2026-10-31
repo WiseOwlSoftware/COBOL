@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.6-5",
+ "section": "14.6.6",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Execution",
+ "rule-digest": "348fe909db74",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Init; src/WiseOwl.Cobol.Runtime/Values/Text/LocaleCollation.cs#Snapshot; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSort",
+ "test-ref": "conformance:cases/14.6.6-Locale-identification/pb64t1_sort_locale_snapshot; conformance:cases/12.3.6-OBJECT-COMPUTER/pb64t1_locale_declare; unit:LocaleStateTests.Snapshot_FreezesTheCurrentLocaleForm_AndLeavesBoundFormsAlone",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T1 (2026-08-19): a SORT/MERGE COLLATING SEQUENCE alphabet associated with a locale uses that locale's LC_COLLATE, SNAPSHOTTED when the statement begins (CobolSort.Init takes the sequence; LocaleCollation.Snapshot binds the current-locale form to the locale current then) — a SET LOCALE in the INPUT PROCEDURE has no effect on the sort phase.",
+ "state": "OK"
+}

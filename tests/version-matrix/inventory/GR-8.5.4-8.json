@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.4-8",
+ "section": "8.5.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "Data description and representation",
+ "rule-digest": "0b975a671f3a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/MoveClassifier.cs#Sender; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs",
+ "test-ref": "conformance:cases/8.5.4-Zero-length-items/pb35_zero_length_literal_legal_forms",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Stem: `OK  §8.5.4` \"A zero-length item is a data item or a literal whose minimum length is zero and whose length at runtime is zero.\" The compiler holds the stem's description half as ONE recurrence (DataItem.MinimumLengthIsZero) and the runtime half as the emitted current-length test; consumers read it (MoveClassifier.ZeroLengthItemRoute / MoveEmitter for §14.9.25.4 GR1, CobolClass for §8.8.4.4.4 GR1, STRING/UNSTRING/INSPECT runtime length). Item 8: a BoundStringLiteral of Value.Length 0 is the zero-length literal; FUNCTION LENGTH(\"\")=0 (IntrinsicBinder, PB61 removed the Max(1,..) clamp), MOVE \"\" TO 999 -> '   ' (GR2 SPACE), MOVE \"\" TO XX/XX -> '  /  ', STRING \"\" DELIMITED SIZE \"Q\" -> QBCDE (probes p4, p7). Semantics conform at 2014/2023. The EDITION half — `MOVE \"\" TO X` compiles and runs at --std 85 and 2002 (probe p11) — is already owned by the OPEN note kb/Work PB895; not re-reported. || editions as written by the adjudicator: 2014, 2023 per the project's own reading (kb/Work PB895, OPEN: the zero-length literal is a post-85 addition with no introduction gate). §8.5.4 is not in Annex E's 2014->2023 delta, so the concept predates 2023; the repo holds no 2002/2014 text, so the 2002-vs-2014 introduction edge is not separately derivable (VERSION_CHANGE_REFERENCE ratified decision #1).",
+ "state": "OK"
+}

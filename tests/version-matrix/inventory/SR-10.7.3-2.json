@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-10.7.3-2",
+ "section": "10.7.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "End markers",
+ "rule-digest": "10c0dd6741cb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#ScreenProgram",
+ "test-ref": "conformance:cases/10.7-End-markers/pb988-end-program-name-mismatch; conformance:cases/10.7-End-markers/pb988_end_markers",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB988 LANDED (wave 1015 Z2). cite.py --check 10.7.3 'Program-name-1 shall be identical to the program-name declared in a preceding PROGRAM-ID paragraph.' OK 2). PROGRAM-ID. PB988A. ... END PROGRAM PB988Z. is COBOL2793 (SR2) at every edition; before the fix nothing read the END PROGRAM name and the program ran. The comparison is the COBOL-word one (CobolNames.Same), so pb988_end_markers' END PROGRAM pb988n / Pb988M close PB988N / PB988M.",
+ "state": "OK"
+}

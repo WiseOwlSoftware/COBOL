@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.13.3-4",
+ "section": "14.9.13.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "EVALUATE statement",
+ "rule-digest": "b50495adecf4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#ScreenRangeOperands; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOf; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#TableTwoClass",
+ "test-ref": "conformance:cases/8.3.3.2-Alphanumeric-literals/pb399-evaluate-range-class-mix; conformance:cases/14.9.13-EVALUATE/pb399-evaluate-range-pointer-class; conformance:cases/14.9.13-EVALUATE/pb399-evaluate-range-boolean-class; conformance:cases/14.9.13-EVALUATE/pb399_evaluate_selection_set_shapes",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB399.md LANDED. ONE screen over the range PAIR, called once from the valueRange arm before the class is asked for collation, answers both halves of SR4: neither end of class boolean, message-tag, object or pointer, and the two ends of the SAME class. CLASS is ISO 8.5.2.1 Table 2's, read through the ONE existing Table-2 lattice (IntrinsicArgumentRules.ClassOf projected by TableTwoClass) - so alphabetic and alphanumeric are two classes, the three pointer categories are one, and numeric-edited takes the class of its usage; a figurative (a candidate SET, not a class) and an error node abstain. A rejected range returns a BoundConditionError, so the meaningless comparison is never lowered. Class message-tag has no lattice member because USAGE MESSAGE-TAG is declined non-support (COBOL1943) and refused by name at every edition, so no such operand can reach the screen; the day it lands the lattice gains the member and the screen sees it unchanged. The legal complement - a numeric pair, an alphabetic pair - is pinned by conformance:cases/14.9.13-EVALUATE/pb399_evaluate_selection_set_shapes legs NUM-RANGE and ALPHA-RANGE.",
+ "state": "OK"
+}

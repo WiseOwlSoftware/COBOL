@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.58.4-2",
+ "section": "15.58.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "LOWEST-ALGEBRAIC function",
+ "rule-digest": "11eb71929f2d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindAlgebraicFold; src/WiseOwl.Cobol.Compiler/Binding/AlgebraicRange.cs#Decimalize; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#MaskCapacity; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#WrapBinary; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#InBinaryRange",
+ "test-ref": "conformance:cases/15.58.3-Argument-rules/l1_lowest_algebraic_value_rule; conformance:cases/15.43.4-Returned-value-rules/highest_lowest_algebraic; conformance-test:IntrinsicFunctionDifferentialTests.Algebraic_Fold",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "All seven shapes of the 15.58.4 NOTE re-derived and pinned in one run, including the three the 2002 golden misses: the USAGE BINARY picture bound (13.18.60.4 GR4) -> -9999, the sign-bearing edited mask -> -99999.99, and the two's-complement container floor (GR12/GR21 + CONFORMANCE.md A.1 items 206/207) -> -128 for BINARY-CHAR SIGNED, 0 for UNSIGNED.  || CODE-LOCATION RE-POINTED 2026-09-09 (kb/Work PB452, no verdict change): Decimalize moved out of IntrinsicBinder into the new src/WiseOwl.Cobol.Compiler/Binding/AlgebraicRange.cs when the extreme-value computation was extracted to serve BOTH surfaces the standard gives it - the 15.43/15.58/15.83 intrinsics and 14.9.39 SET format 15, whose equivalence Annex D.32 states outright. || editions 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the LOWEST-ALGEBRAIC function exists from 2002 (IntrinsicCatalog.cs, the COBOL1502 edition window).",
+ "state": "OK"
+}

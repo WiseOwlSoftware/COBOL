@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.2.4-7",
+ "section": "8.4.3.2.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "Function-identifier",
+ "rule-digest": "03c93c6f96bc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfBindCall; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#ArgCarrierText",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/pb757_invoke_omitted; conformance-test:MethodOmittedArgumentTests.Function_TrailingOmissionOfNonOptional_1506",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB757.md landed w46i2. A spelled OMITTED crosses as the null carrier and a trailing omission (14.8.2.1, every trailing formal OPTIONAL) leaves the slot absent, which the callee's program-ABI adapters answer as omitted; the condition is true in the function (golden: F(OMITTED W4)=OP, F(W4 OMITTED)=PO, F(W4)=PO, F(W4 W4)=PP). Trailing omission of a non-OPTIONAL formal stays COBOL1506 (test).",
+ "state": "OK"
+}

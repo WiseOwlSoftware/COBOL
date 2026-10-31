@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.80.3-2",
+ "section": "15.80.3",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "SECONDS-PAST-MIDNIGHT function",
+ "rule-digest": "46ca279d1836",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#SecondsPastMidnight; src/WiseOwl.Cobol.Runtime/IO/Clock.cs#SystemClock",
+ "test-ref": "unit:CobolDateWindowingTests.SecondsPastMidnight_PinnedClock_ExactTicks; unit:CobolDateWindowingTests.NowFunctions_OnePinnedClock_OneInstant",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Reads RunUnit.Current.Clock.Now().TimeOfDay — the current LOCAL wall-clock reading (SystemClock falls back to DateTimeOffset.Now; a WISEOWL_COBOL_CLOCK pin parses with DateTimeStyles.AssumeLocal) — expressed in seconds past midnight via the tick count at scale 7. The Annex D.31.5.4 anchor is pinned exactly: local 05:14:27.8124791 → 188,678,124,791 ticks = 18867.8124791 s. The clock is the ONE seam every now-function shares (kb/Work R21), so CURRENT-DATE, FORMATTED-CURRENT-DATE and SECONDS-PAST-MIDNIGHT observe one instant per run unit; ClockSeamDriftTests guards that no direct DateTime[Offset].Now read bypasses the seam.",
+ "state": "OK"
+}

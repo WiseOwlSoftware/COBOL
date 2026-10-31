@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.7.3-5",
+ "section": "13.7.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "Linkage section",
+ "rule-digest": "8d3c99ab4a5a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ReceivingPlaceBar; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#IsFunctionFormal",
+ "test-ref": "conformance:cases/13.7-Linkage-section/pb1250_function_formal_read_only; conformance:cases/13.7-Linkage-section/pb1250-function-formal-arithmetic-receiver; conformance:cases/13.7-Linkage-section/pb1250-function-formal-refmod-receiver",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1250 landed (wave 1012 F). cite.py --check 13.7.3 'A formal parameter of a function shall not be used as a receiving operand' -> OK 13.7.3 5). One arm of ExpressionBinder.ReceivingPlaceBar (the receiving-operand prohibition table every statement's receiver and §8.4.3.2.4 GR5's BY-CONTENT choice already ask): the parameter is barred in any reference form (whole, or reference-modified) as COBOL2747. Determination: an item SUBORDINATE to a group parameter is not 'a formal parameter' (the same clause's SR4 b) writes 'subordinate to an operand of the USING phrase' when it means one); the RETURNING item is no formal parameter and stays a legal receiver (pinned by the positive golden).",
+ "state": "OK"
+}

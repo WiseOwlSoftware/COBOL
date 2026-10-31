@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.27.3-6",
+ "section": "14.9.27.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "OPEN statement",
+ "rule-digest": "ef930aaa3c06",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenTapePhrase; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#OpenTapePhraseRule; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen",
+ "test-ref": "conformance:cases/14.9.27-OPEN/pb317-open-norewind-extend",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB318's row, landed by kb/Work PB317 2026-09-05 (same root cause: the phrase never left the parse tree, so nothing could pair it with its own group's open mode). RULE: 'The NO REWIND phrase may be specified only when the INPUT or OUTPUT phrase is specified' (cite.py --check 14.9.27.3 -> OK, rule 6). CODE-LOCATION RE-RECORDED by kb/Work PB668 2026-09-22, verdict unchanged: SR6 is now the NoRewind row's Modes column (Input, Output) on OpenTapePhraseRule, read by the ONE screen CheckOpenTapePhrase through OpenTapePhraseRule.For; still COBOL1803, still pairing the phrase with the open mode of the openClause the file-name sits in -- BindOpen has both in one loop body. 14.9.27.4 GR12 a) corroborates the rule by naming only EXTEND as the mode that suppresses the beginning-of-file positioning the phrase talks about, and SR6 is also what keeps the GR17 05-assigning path out of GR11's way. MEASURED before PB317: OPEN I-O F WITH NO REWIND and OPEN EXTEND F WITH NO REWIND both compiled clean at --std 2023 and reported 00. MEASURED after, and re-measured 2026-09-22 on the merged screen: COBOL1803 for both, at all four editions. || EDITIONS AS ADJUDICATED: 1985 . 2002 . 2014 . 2023",
+ "state": "OK"
+}

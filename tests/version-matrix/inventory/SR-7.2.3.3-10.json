@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.2.3.3-10",
+ "section": "7.2.3.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "COPY statement",
+ "rule-digest": "4db5bbe8ad8e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#IsDiscardedFormatDirective; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatMap.cs#HoldsDirectiveAt",
+ "test-ref": "unit:TextManipulationStatementTests.ReplaceOperandContent_IsScreened; unit:DirectiveWithinStatementTests.SourceFormatDirectiveInsideAStatement_IsDiagnosed; conformance:cases/7.2.3-COPY/pb1353-source-format-in-copy-pseudo-text; conformance:cases/7.2.3-COPY/pb1384-directive-within-copy",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1353 (w1032c): 'Compiler directive lines shall not be specified within pseudo-text-1, pseudo-text-2, partial-word-1, or partial-word-2' (cite.py OK 7.2.3.3 10)). Three arms, one answer: a directive line that REACHES the operand (>>TURN, >>PAGE, ...) is COBOL2572 (ScreenOperandPair); a directive the conditional-compilation driver consumes (>>DEFINE, >>IF, >>EVALUATE, ...) is COBOL2697 at the driver's directive line (OpenStatementAt, PB1384); and the one directive logical conversion consumes, >>SOURCE FORMAT (the line is discarded, 6.5 1), leaving a blank), is recognized by the blank line's origin in the text's ReferenceFormatMap (CopyProcessor.IsDiscardedFormatDirective) and asked the same OpenStatementAt question over the pending block: probe r_dir.cob (COPY bk1 REPLACING ==AA-X / >>SOURCE FORMAT FIXED / == BY ==BB-Y==.) was HELLO, is now COBOL2697 naming 7.2.3.3 SR10 at --std 2002/2023 (COBOL0900 too at 85, where the directive itself is a 2002 introduction). || editions 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a compiler-directive rule; the 7.3 compiler-directive facility is a COBOL-2002 introduction (COBOL-85 has no >> directive line: docs/VERSION_CHANGE_REFERENCE.md Table 7 row 7.21, a derived edge). cite.py --check 7.3.3 \"A compiler directive may be specified anywhere in a compilation group\" OK.",
+ "state": "OK"
+}

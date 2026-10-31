@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.38.3-4",
+ "section": "13.18.38.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "OCCURS clause",
+ "rule-digest": "cbed69f76063",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#OccursKeyItemFault",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb1263-occurs-key-under-nested-table; conformance:cases/13.18.38-OCCURS/pb1263_occurs_key_items_admitted",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1263 (wave 1015 Y). cite.py --check 13.18.38.3 \"that group item shall not contain an OCCURS clause\" -> OK 4). OccursKeyResolve asks OccursKeyItemFault of every resolved key: a group strictly between the table and the key whose entry contains an OCCURS clause and is one of SR4's four group kinds (ItemCategory.GroupKindsOf) draws COBOL2787. The admitted half (a key under a group with no OCCURS, a sibling table beside the key) is the positive golden.",
+ "state": "OK"
+}

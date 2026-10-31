@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.6-1",
+ "section": "14.7.6",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Common phrases and features for statements",
+ "rule-digest": "b59e3515ee91",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrMatch; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrMembers; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrEligible; src/WiseOwl.Cobol.Compiler/Binding/Model/RedefinesModel.cs#IncludedElementaryItems",
+ "test-ref": "conformance:cases/14.7.6-CORRESPONDING/pb966_move_corresponding_through_alias; conformance-test:CorrespondingDifferentialTests.MoveCorresponding_NestedPairs_PartialMatch; conformance-test:CorrespondingDifferentialTests.MoveCorresponding_ExcludesFillerOccursAndRedefinesChildren; conformance:cases/14.7.6-CORRESPONDING/pb229_corresponding_filler_group_rule4",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule 1 (cite.py --check 14.7.6 'are not implicitly or explicitly described with the keyword FILLER and have the same data-name and the same qualifiers, if any, up to, but not including, D1 and D2' -> OK 14.7.6 1)). CorrMembers is the ONE answer to 'which data items are in D' for both operands, and CorrMatch pairs by data-name level by level (identical relative qualification). An item described with FILLER never pairs; an item UNDER a FILLER group does (kb/Work PB229, docs/CONFORMANCE.md section 3 D-CORRFILLER: 8.4.2.2.1 'The superordinate names are called qualifiers' -> OK, and a FILLER group has no name, 13.18.20.4 -> OK), so CorrMembers walks through a FILLER group unless rule 5 cuts it off (OCCURS or REDEFINES on it); pinned for MOVE, ADD and SUBTRACT by conformance:cases/14.7.6-CORRESPONDING/pb229_corresponding_filler_group_rule4 (F1 under one FILLER level, F2 under FILLER levels on both sides, PG.FILLER.P1 against PG.P1). kb/Work PB966: a level-66 THROUGH alias is an alphanumeric group item (13.18.45.4 GR2); its members are the ELEMENTARY items GR2 says it includes (RenamesInfo.IncludedElementaryItems, declaration order). DETERMINATION (docs/CONFORMANCE.md section 3 D-CORR66): the alias includes no groups, so each included item stands directly in D1 with no qualifier between it and D1 and corresponds by name with a first-level item of the other operand; a name included twice falls to rule 6; rules 4/5 exclude an included item under an OCCURS or REDEFINES entry inside the window. Measured: MOVE CORRESPONDING SALIAS TO DST gives **ABC00123DEF***RRGHI******, and the alias as receiver gives aaa222333.",
+ "state": "OK"
+}

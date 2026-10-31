@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.23.3-2",
+ "section": "14.9.23.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "INVOKE statement",
+ "rule-digest": "2d0fe3b043bf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvoke; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoMethodNameOf",
+ "test-ref": "conformance:cases/8.3.3.5-National-literals/pb1136_invoke_selector_forms",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1136 selector half LANDED (w1014u). cite.py --check 14.9.23.3 'Literal-1 shall be of class alphanumeric or national' OK 2). ONE method-name decoder (OoBinder.OoMethodNameOf) for the INVOKE statement and every inline segment: STRINGLIT / NATLIT / HEXLIT through CobolLiteral.Decode, so NX\"0047...\" is one national character per 4-digit group (8.3.3.5.4 GR4) - the private copy read NX as alphanumeric hex and refused GREET; an alphanumeric/national concatenation (8.8.3.3 GR3) now serves the inline form too. Golden pb1136_invoke_selector_forms lines 3-6 (NX literal-1 INVOKE -> HI; NX inline -> ACCOUNT; concat inline -> ACCOUNT; concat INVOKE -> HI). Zero-length and wrong-class refusals unchanged (COBOL0823).",
+ "state": "OK"
+}

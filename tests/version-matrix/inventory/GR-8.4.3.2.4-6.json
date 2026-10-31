@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.2.4-6",
+ "section": "8.4.3.2.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "Function-identifier",
+ "rule-digest": "395823693f40",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#DrainPending; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; docs/CONFORMANCE.md#DOC-A.1-89",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/pb1422_function_argument_exception_no_activation; conformance-test:FunctionLocateResourceWitnessTests.UnloadableSiblingModule_IsNotFound_NeverProgramResources; conformance-test:ExceptionConditionConformanceTests.FunctionPointerNull_Enabled_NoHandler_FatalTerminates",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "8.4.3.2.4 GR6 (cite.py --check: 'Each argument-1 is evaluated at the beginning of the evaluation of the function-identifier' OK 6); 'If an exception condition exists, any declarative or WHEN phrase of a PERFORM statement' OK 6)). a) HOLDS and is now witnessed by a golden: an argument whose evaluation raises EC-SIZE-ZERO-DIVIDE (checking on, USE declarative with RESUME AT NEXT STATEMENT) prints DECL, the function never prints ACTIVATED and the receiving item keeps its value; the next COMPUTE with a good argument activates it (golden 2002/pb1422_function_argument_exception_no_activation, run on this tree with --std 2002: START DECL R=0007 ACTIVATED R=0001; the fatal arm with no resume terminates abnormally, kb/Work PB1422's probe p10_gr6a). b) EC-FUNCTION-NOT-FOUND is the function CALL's notFoundEc (FunctionLocateResourceWitnessTests). c) the implementor-defined resource set is EMPTY and documented (DOC-A.1-89, recorded CONFORMS by doc-rows-2): a located function never raises EC-PROGRAM-RESOURCES because no resource is checked, so there is no raise site to add; EC-FUNCTION-PTR-NULL is PB847's (ExceptionConditionConformanceTests.FunctionPointerNull_Enabled_NoHandler_FatalTerminates). e)/f) propagation and the declarative/WHEN dispatch are PB892's. The note's premise that a raise site is owed was refuted by the item-89 determination. kb/Work PB1422 w1015w.",
+ "state": "OK"
+}

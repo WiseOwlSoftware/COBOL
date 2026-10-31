@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.34.2",
+ "section": "14.9.34.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "RETURN statement",
+ "rule-digest": "1c9ba88c98d5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#VisitStatementBlock; src/WiseOwl.Cobol.Compiler/Binding/ConditionalStatements.cs#IsConditional",
+ "test-ref": "conformance:cases/14.9.34-RETURN/pb350_return_at_end_required; conformance:cases/14.9.34-RETURN/pb350_return_at_end_required_85; conformance:cases/14.9.34-RETURN/pb350-return-without-at-end; conformance:cases/14.9.34-RETURN/pb350-return-reversed-not-only; unit:RequiredFormatPhraseDriftTests.EveryUnbracketedConditionalPhrase_IsScreenedOrAdjudicated; conformance:cases/14.9.34-RETURN/pb351-return-at-end-conditional; conformance:cases/14.9.34-RETURN/pb351_delimited_conditional_operand",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB351 LANDED (w1015c): the residue after PB350 is closed. imperative-statement-1 / -2 of RETURN admit no conditional statement - an IF with no END-IF after AT END is refused COBOL2796 at every edition by the ONE screen of every non-IF statementBlock (ISO 14.5.1: 'Any statement with a conditional phrase that is not terminated by its explicit scope terminator is a conditional statement'; cite.py --check 14.5.1 OK). PB350's mandatory AT END half stays as landed (COBOL1850).",
+ "state": "OK"
+}

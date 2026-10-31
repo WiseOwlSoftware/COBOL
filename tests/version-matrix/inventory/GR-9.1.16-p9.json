@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.16-p9",
+ "section": "9.1.16",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "Files",
+ "rule-digest": "2cc538e98d9a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#LockRecord; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ConflictOnLockedRecord; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#HoldingsGate",
+ "test-ref": "unit:LockedRecordStatusProducersDriftTests.LockedRecordStatus_IsProducedOnlyWhereAnotherConnectorHoldsTheLock; conformance:cases/A.1-Implementor-defined-language-element-list/pb669_lock_visibility_plain_connector; unit:CommitRollbackRuntimeTests.A_transactions_changes_are_held_against_every_other_connector; conformance:cases/14.7.9-RETRY/pb3340_sequential_holding_exception_paths; unit:SequentialCommitControlTests.A_read_not_ignoring_lock_meets_the_records_a_live_transaction_holds",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB284: PROSE-PARAGRAPH row. §9.1.16 paragraph 9 PERMITS the implementor to specify circumstances other than a locked logical record that return a locked record status; it requires nothing. kb/Work PB3337 (2026-10-20): WiseOwl COBOL specifies one, a transaction's HOLDING under an active APPLY COMMIT clause (DOC-A.1-152, 'Provided: one circumstance', docs/CONFORMANCE.md §7); LockedRecordStatusProducersDriftTests pins that a locked status is produced only where another connector holds a lock or another transaction a holding. || editions 2002,2014,2023 (kb/Work PB284): record locking and the sharing/locking I-O statuses are decided at 2002 for the sibling rows GR-9.1.15-1..3, GR-9.1.13.8-1 and GR-9.1.13.9-1 (kb/Work PB3173), and this paragraph states the same facility.",
+ "state": "OK"
+}

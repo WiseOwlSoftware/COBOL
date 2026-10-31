@@ -15,7 +15,7 @@ THE INVARIANT, in two directions:
 
   COVERAGE (the registration wave of 2026-08-31). Every inventory row whose verdict is DEFECTIVE is claimed, in
   `inventory_rows`, by a LIVE note (a status that is not terminal); and every `inventory_rows` claim names a rule-id the
-  inventory has. `tests/version-matrix/traceability-inventory.json` says which spec rules the compiler does not yet
+  inventory has. `tests/version-matrix/inventory/` says which spec rules the compiler does not yet
   implement correctly, `kb/Work/` says what is left to do, and nothing held them together: measured 2026-08-31, of 138
   rows verdicted PARTIAL / NOT-IMPLEMENTED / DIVERGES, 131 were invisible to `work.py next`. The link is the NOTE→ROW
   direction on purpose: a note that lands keeps naming its rows, so a landed note whose rows were never re-verdicted turns
@@ -182,10 +182,11 @@ def live_problems(notes: list[Note], terminal: Collection[str]) -> list[str]:
     """The findings for the repository's own inventory and schema (`work.py check` calls this with its own
     TERMINAL_STATUSES: the vocabulary has one home, and importing it from here would load `work.py` twice)."""
     import inventory_schema  # noqa: PLC0415  (this directory's; imported here so --self-test needs neither file)
+    import inventory_store  # noqa: PLC0415
 
-    if not inventory_schema.INVENTORY_PATH.exists():
-        return [f"inventory missing: {inventory_schema.INVENTORY_PATH} — run python scripts/spec/build_inventory.py"]
-    return problems(notes, inventory_schema.load_inventory(), inventory_schema.load_schema().defective,
+    if not inventory_store.INVENTORY_DIR.is_dir():
+        return [f"inventory missing: {inventory_store.INVENTORY_DIR} — run python scripts/spec/build_inventory.py"]
+    return problems(notes, inventory_store.load_inventory(), inventory_schema.load_schema().defective,
                     terminal)
 
 

@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-72",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 72,
+ "subject": "FILE-CONTROL entry, ASSIGN clause (consistency rules for external file connectors)",
+ "rule-digest": "5c8cccac375f",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-72; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#SelectFingerprint; src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs#Resolve",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1c09_external_assign_consistency",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Corrected row (kb/Work/PB1530 'Decide, then make ONE of them true': the row now states the resolved-target rule the code implements). §12.4.5.3 1) b) and 3) b) (cite.py OK). Refuter: the rule compares the operand text (AssignTargetRule.Resolve output, uppercased), NOT the item-71 host path - probe /tmp/adj/doc/doc-w1-s3/refute-probe/x4.cob: ASSIGN TO XADAT vs ASSIGN TO \"xadat.txt\" (both resolve to host file xadat.txt) -> EC-EXTERNAL-FILE-MISMATCH; row corrected to say so. Comparing the operand rather than the clause text is within the latitude §12.4.5.3 1) b) grants ('The implementor shall specify the consistency rules'), so PB1530 is a documentation defect closed by this row. The fingerprint is 'ASSIGN='+FileModel.AssignTarget.ToUpperInvariant() (AssignTargetRule.Resolve drops a DISK/PRINTER class and decodes a literal) plus 'USING='+name and qualifiers joined with OF, uppercased. Probes /tmp/adj/doc/doc-w1-s3/probe/e1..e9.cob (two separately-described programs, >>TURN EC-EXTERNAL-FILE-MISMATCH CHECKING ON in both): \"xa.dat\" vs \"xb.dat\" -> EC-EXTERNAL-FILE-MISMATCH (fatal) at the CALL; DISK \"xa.dat\" vs \"xa.dat\", PRINTER vs DISK, XADAT vs \"xadat\", \"Data.txt\" vs \"data.txt\", FNAME IN G vs FNAME OF G -> no condition; FNAME vs FNAME OF G and TO \"xa.dat\" USING FNAME vs USING FNAME -> mismatch; e9 without >>TURN -> no condition. The old Pinned-by tests do not drive the ASSIGN arm with checking on (pb673 has no >>TURN; ec_external_file_mismatch differs in ORGANIZATION), so Pinned-by is empty; the witness PB1530 asks for is still owed.",
+ "state": "OK"
+}

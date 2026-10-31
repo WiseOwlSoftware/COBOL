@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.2.3-4",
+ "section": "8.5.2.3",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Class and category of data items and literals",
+ "rule-digest": "e6ca7bd65347",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#FunctionResultLength",
+ "test-ref": "conformance:cases/8.5.2.3-Alphanumeric-category/pb1398_length_of_function_result",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1398 landed (wave 1004 D). An alphanumeric function result is the data item of category alphanumeric (cite.py --check 8.5.2.3 'an item is referred to as an alphanumeric' OK; 15.2 item 1; 8.4.3.2.1), so FUNCTION LENGTH and FUNCTION BYTE-LENGTH admit it (15.50.3 r1 / 15.14.3 r1): ONE arm, IntrinsicBinder.FunctionResultLength, keyed on the function's 15.2 type for both folds. LENGTH and BYTE-LENGTH of UPPER-CASE(X) over a 3-character item are 3 and 3 (golden 2002/pb1398_length_of_function_result).",
+ "state": "OK"
+}

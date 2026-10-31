@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-94",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 94,
+ "subject": "GOBACK statement (values in the STATUS phrase)",
+ "rule-digest": "8c92eea288b4",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-94; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#ExitStatus; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#DecodeGobackPhrases",
+ "test-ref": "conformance-test:StopGobackExitCodeTests.TerminationStatus_SetsProcessExitCode; conformance-test:StopGobackExitCodeTests.NonNumericStatusOperand_IsLegalAndInterpretedNumerically",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "§14.9.18.4 10) (cite.py OK) leaves constraints on the STATUS value to the implementor; the row states none beyond SR6/SR7 and gives the value-to-exit-code mapping shared with STOP (§3 bullet, items 192/193, PB169 landed). Probes /tmp/adj/doc/doc-w1-s3/probe/g1..g9.cob at --std 2023: ERROR STATUS 42 exit 42; NORMAL STATUS \"ABEND\" 0; NORMAL STATUS 300 44; ERROR STATUS S(-3) 253; ERROR STATUS D(4.7) 4; ERROR STATUS X(\"A1B2\") 12; NORMAL STATUS SPACE 0; GOBACK ERROR 1; called program GOBACK WITH ERROR STATUS 9 -> caller continues, run unit exits 0 (GR3/GR10 main-program only). --std 2014 -> COBOL0900. StopGobackExitCodeTests pins GOBACK ERROR STATUS 5/NORMAL STATUS 0/ERROR/plain and GOBACK STATUS \"007\" and a display item. Owning note: kb/Work/PB1534 (item 94 in its list).",
+ "state": "OK"
+}

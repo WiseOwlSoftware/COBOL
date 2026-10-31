@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.4.4-12",
+ "section": "14.9.4.4",
+ "kind": "GR",
+ "ordinal": 12,
+ "subject": "CALL statement",
+ "rule-digest": "c98418a8ba36",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ProgramArgOmittedError; src/WiseOwl.Cobol.Runtime/Control/OmittedFormal.cs#Ref; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.ArgOmitted.cs#MarkFormals; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#RootOf",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb133_omitted_lenient; conformance:cases/14.2-Procedure-division-structure/pb133_omitted_args; conformance:cases/14.9.4-CALL/pb133_omitted_transitive; conformance:cases/14.9.4-CALL/pb165_gr12_forward; conformance:cases/14.2-Procedure-division-structure/pb133-omitted-not-optional; conformance:cases/14.9.4-CALL/pb971_program_arg_omitted; conformance:cases/14.9.4-CALL/pb971-arg-omitted-below-2002; unit:OmittedFormalGuardDriftTests.Guard_RaisesItsKindsName_UnderTheEmittersFlag",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "RE-VERDICTED by kb/Work PB971. `cite.py --check 14.9.4.4 \"the EC-PROGRAM-ARG-OMITTED exception condition is set to exist\"` -> OK §14.9.4.4 12). The prior CONFORMS held on the lenient half only: with checking ON no reference ever raised (the name was queried only around a CALL, so the callee's referencing statement never enabled the flag; a group or redefined formal's boundary copy was never checked at all). Now every rendered reference whose access path is rooted at a formal (elementary, subordinate, REDEFINES view, subscript/ref-mod position, GLOBAL formal from a contained program) renders through OmittedFormal under the element-kind ambient gate; the two exemptions (the omitted-argument condition; the whole formal forwarded as an argument, GR1c) do not render the path. Checking OFF stays lenient (pb133_omitted_lenient).",
+ "state": "OK"
+}

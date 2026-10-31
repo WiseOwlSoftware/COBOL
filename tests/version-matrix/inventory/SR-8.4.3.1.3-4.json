@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.1.3-4",
+ "section": "8.4.3.1.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "Identifier",
+ "rule-digest": "fd23a167d6ea",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#refModPart; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#refModSpec; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#RefModOf; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ReadRefMod; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveReceiving",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1407_address_of_reference_modified; conformance:cases/8.4.3.1-Identifier/pb1407-ref-mod-leftmost-position-omitted; conformance:cases/8.4.3.1-Identifier/pb1407-address-of-ref-mod-leftmost-position-omitted",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1407 (wave 1019 C). Format 3 is identifier-1 + the 8.4.3.3 reference-modifier. The one remaining divergence is closed: a reference modifier with no leftmost-position (X (:2), X (: 2), X (:)) is refused COBOL2876 naming 8.4.3.3.2 by the one reader of the captured modifier (ReferenceResolver.ReadRefMod), on every surface (sending operand, relation operand, ADDRESS OF operand, function result). The RECEIVING surface used to drop the operand with no diagnostic at all (MOVE \"A\" TO X (:2) compiled clean with the MOVE missing) because ExpressionBinder.ResolveReceiving built no refusal node for the PB1029 ledger to check; it now records the refusal there, so a resolver that claims to have reported and did not fails the compile (COBOL2362) on the receiving arm as on the sending one. retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#LeftmostPositionOmitted (kb/Work PB2113: the omitted leftmost position is read off the parsed refModSpec (its optional leftmost label) by the one ReadRefMod)",
+ "state": "OK"
+}

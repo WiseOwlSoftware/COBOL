@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.18.7-p1",
+ "section": "9.1.18.7",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Commit and Rollback",
+ "rule-digest": "54a65f8d05aa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/TransactionControl.cs#Activate; src/WiseOwl.Cobol.Runtime/Control/ModuleStack.cs#AnyRecursive; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitMethod",
+ "test-ref": "unit:TransactionControlTests.An_activation_under_an_active_sort_raises_ec_flow_apply_commit_or_stays_inactive; conformance:cases/12.4.6-I-O-CONTROL/pb3540_ec_flow_apply_commit_under_method; unit:TransactionControlTests.An_activation_under_an_active_method_raises_ec_flow_apply_commit_or_stays_inactive",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB3338 (wave 1154) and PB3540 (wave 1157): the APPLY COMMIT clause, COMMIT and ROLLBACK are provided for RELATIVE and INDEXED files, whose keyed store engine keeps the transaction (kb/Work PB3337); a SEQUENTIAL or LINE SEQUENTIAL file named in the clause is under commit control too, its transaction journal being kb/Work PB3340 (COBOL1709, which refused it, is retired) (Annex A.4.3 stays PARTIAL, docs/CONFORMANCE.md 5; this rule's obligations are met for every file the clause admits). EC-FLOW-APPLY-COMMIT (the name Table 13 gives 9.1.18.7's EC-FLOW-APPLY) is raised at an activation under the control of a recursive runtime element or a SORT or MERGE. A recursive runtime element (8.6.6: a RECURSIVE program, a function, a method) is a frame the module stack marks recursive, the emitted method body's included, and TransactionControl.FlowForbidden asks ModuleStack.AnyRecursive.",
+ "state": "OK"
+}

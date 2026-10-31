@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.10.4-6",
+ "section": "11.10.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "PROGRAM-ID paragraph",
+ "rule-digest": "16df9ec28fe8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit; src/WiseOwl.Cobol.Compiler/Binding/GroupRepository.cs#ProgramDetails",
+ "test-ref": "conformance:cases/10.6-COBOL-compilation-group/pb894_program_prototype_2002",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB894: program-prototype-name-1 is BoundUnit.Name and literal-1 BoundUnit.ExternalizedName — the same two fields and the same AS screen as Format 1. The golden's `PGPQ AS \"PGPQX\" IS PROTOTYPE` is found by the REPOSITORY specifier `PROGRAM PGPQ AS \"PGPQX\"` through its EXTERNALIZED name. retired-witness: src/Cobol.Net.Compiler/Binding/BinderDriver.cs#BuildProgramDetailsTable (BuildProgramDetailsTable is deleted by kb/Work PB989; GroupRepository.ProgramDetails finds a prototype by its externalized name)",
+ "state": "OK"
+}

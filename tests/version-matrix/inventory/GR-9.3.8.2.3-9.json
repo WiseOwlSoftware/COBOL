@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.3.8.2.3-9",
+ "section": "9.3.8.2.3",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "Conformance for object orientation",
+ "rule-digest": "09a45e98ad44",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#RaisingMismatches; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#MethodConformanceMismatches",
+ "test-ref": "conformance:cases/9.3.8.2.3-Conformance-between-interfaces/pb972_raising_conformance; conformance:cases/9.3.8.2.3-Conformance-between-interfaces/pb972-raising-exception-name-differs; conformance:cases/9.3.8.2.3-Conformance-between-interfaces/pb972-raising-class-not-in-interface; conformance:cases/9.3.8.2.3-Conformance-between-interfaces/pb972-raising-interface-not-inherited; conformance:cases/9.3.8.2.3-Conformance-between-interfaces/pb972-raising-override-widens",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB972.md landed w51e. Every element of interface-1's RAISING phrase needs a covering element in interface-2's: a) the same exception-name; b) the same object-class-name or a superclass with the same FACTORY presence, or an interface the factory/instance object implements (OoClassTable.ImplementsClosure); c) the same interface-name or one it inherits. Read by all three askers of MethodConformanceMismatches: 9.3.11 IMPLEMENTS (COBOL0841), 11.7.3 SR9 overrides (COBOL0829) and the interface-to-interface relation (InterfaceConformsTo, GOBACK/EXIT RAISING SR4 b / SR5 b).",
+ "state": "OK"
+}

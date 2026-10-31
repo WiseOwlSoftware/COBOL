@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.38.3-1",
+ "section": "13.18.38.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "OCCURS clause",
+ "rule-digest": "e0d89f51440e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ClausePlacementRules; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#OdoResolve",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb1260-occurs-at-level-01; conformance:cases/13.18.38-OCCURS/pb1260-occurs-at-level-77; conformance:cases/13.18.38-OCCURS/pb1260-odo-under-occurs-dynamic; conformance:cases/8.4.2.3-Subscripts/index_name_r7_windows; unit:DataClausePlacementDriftTests.OccursAtLevel01Or77_IsRefused",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1260: both halves enforced. a) the clause-placement table's NotAtLevel row refuses OCCURS on a level-01 or level-77 entry (COBOL2404, every section, every edition); levels 66 and 88 are refused through the RENAMES grammar (COBOL0307) and COBOL1747. b) OdoResolve's IsTable ancestor test refuses an occurs-depending table under a fixed or Format-4 OCCURS (COBOL0854).",
+ "state": "OK"
+}

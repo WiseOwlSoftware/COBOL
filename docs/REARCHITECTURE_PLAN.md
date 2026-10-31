@@ -1740,7 +1740,7 @@ of work counted twice**, and unifying them before the SR mass starts avoids audi
 
 5b. **⛔ THE ROAD TO ZERO GAP — THE EXECUTION PLAN (written 2026-08-03, measured not estimated).**
    v1.0 is defined as this inventory at zero GAP (D13). Everything below is computed from
-   `tests/version-matrix/traceability-inventory.json`; **re-measure before trusting any number here.**
+   `tests/version-matrix/inventory/`; **re-measure before trusting any number here.**
 
    **WHERE THE WORK ACTUALLY IS — and it is not where the review has been looking.**
    | | rows | adjudicated |
@@ -1850,7 +1850,7 @@ of work counted twice**, and unifying them before the SR mass starts avoids audi
    the extractor's literal heading-spelling map was found to have silently skipped whole clauses; regenerate with
    `python scripts/spec/extract_rule_catalog.py`, which now also REPORTS any rule-shaped heading it cannot
    resolve. The traceability
-   inventory exists at `tests/version-matrix/traceability-inventory.json` and session-probe now reports the live
+   inventory exists at `tests/version-matrix/inventory/` and session-probe now reports the live
    GAP. Phase B = map + verify each rule → code → verdict (resumable; verdicts persist across sessions) · Phase C =
    close every DIVERGES / NOT-IMPLEMENTED / untested-CONFORMS. **The inventory at zero GAP = P14 DONE = D13.**
 
@@ -3440,7 +3440,7 @@ Confirm the P14 preconditions exist:
 coverage instrument is partial (the audit missed mandatory OO surface; capped-sample finders cannot certify
 completeness). "All remaining work" is unknowable without a clause-level map. This step builds it.
 
-**The artifact.** `docs/rearchitecture/TRACEABILITY-INVENTORY.md` + `tests/version-matrix/traceability-inventory.json`
+**The artifact.** `docs/rearchitecture/TRACEABILITY-INVENTORY.md` + `tests/version-matrix/inventory/`
 (machine-readable; the .md renders from it). One row per construct at CLAUSE/STATEMENT/FUNCTION/DIRECTIVE/FORMAT
 granularity — §7.3.x directives · §8 fundamentals sub-clauses (incl. the EC catalog raise surface, identifier
 forms §8.4.3.x, operators) · §9 I-O concepts + the §9.1.13 status table · §10–§12 division/paragraph clauses ·

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-1",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "SET statement",
+ "rule-digest": "69dcec4e78b9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#ScreenIndexAssignmentReceiver; src/WiseOwl.Cobol.Compiler/Binding/Procedure/OperandClassScreen.cs#OperandClassScreen",
+ "test-ref": "conformance:cases/14.9.17-GO-TO/pb212_operand_class_screens; conformance:cases/14.9.39-SET/pb212-set-receiver-noninteger; unit:OperandClassScreenDriftTests.EveryRow_RefusesExactlyTheShapesItsRuleExcludes",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB212 (landed): the Format-1 receiving identifier-1 is the OperandPositions.SetIndexAssignmentReceiver row; alphanumeric, group, numeric-edited, non-integer numeric and floating-point receivers refused with COBOL2326 in both lanes (they threw at run time or stored a value GR2 defines for no such receiver).",
+ "state": "OK"
+}

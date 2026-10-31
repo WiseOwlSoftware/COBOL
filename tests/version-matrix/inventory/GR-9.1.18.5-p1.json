@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.18.5-p1",
+ "section": "9.1.18.5",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Commit and Rollback",
+ "rule-digest": "189200bfa702",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#EndTransactions; src/WiseOwl.Cobol.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/WiseOwl.Cobol.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CommitSequential; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RollbackSequential; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CommitKeyed; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RollbackKeyed; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#DeleteCovered; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#JournalCapture; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#JournalCreation; src/WiseOwl.Cobol.Runtime/IO/KeyedStore.cs#AdoptRestored",
+ "test-ref": "unit:CommitRollbackRuntimeTests.Termination_commits_a_normal_ending_and_rolls_back_an_abnormal_one; conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.A_killed_run_units_transaction_is_rolled_back_by_the_next_writable_open; unit:SequentialCommitControlTests.Normal_termination_commits_and_abnormal_termination_rolls_back; conformance:cases/14.9.36-ROLLBACK/pb3492_keyed_file_replaced_or_removed; unit:CommitRollbackRuntimeTests.A_keyed_capture_or_creation_refused_at_every_journal_operation_leaves_the_last_commit_or_the_committed_change",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB3340, PB3492: Normal termination commits; abnormal termination rolls back every file under commit control (the runtime's own path and, for a kill or a power loss, the next writable OPEN's or DELETE FILE's entry step), a keyed file replaced, removed or created since the last COMMIT included (its journal settled, then the store's dead-owner step on the restored file; 2.2.2.14).",
+ "state": "OK"
+}

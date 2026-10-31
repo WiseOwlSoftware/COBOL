@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.15.4-3",
+ "section": "8.4.3.15.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Report counters",
+ "rule-digest": "b939257bb3d9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PageFeed",
+ "test-ref": "conformance:cases/8.4.3.15-Report-counters/pb1001_line_next_page",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 8.4.3.15.4 \"The initial value of LINE-COUNTER is set to zero by execution of an INITIATE statement\" -> OK 3). Initiate: LineCounter = 0; PageFeed (the one page-advance body, shared by AdvancePage and the RH/RF own-page feeds): LineCounter = 0. An INITIATE that fails §14.9.21.4 GR3 takes no action (counters untouched) - consistent. Probe a2.cob INIT LC=0000; E->F advance reset then FIRST DETAIL placement. Both halves pinned: conformance:cases/8.4.3.15-Report-counters/pb1001_line_next_page (per-page SOURCE LINE-COUNTER), and conformance-test:ReportWriterConformanceTests.Initiate_Gr1_CountersZeroAndOne (LC=000 after INITIATE). [editions as adjudicated: 1985 (Report Writer optional module), 2002, 2014, 2023 - clause 8.4.3.15 text]",
+ "state": "OK"
+}

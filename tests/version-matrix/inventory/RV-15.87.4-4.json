@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.87.4-4",
+ "section": "15.87.4",
+ "kind": "RV",
+ "ordinal": 4,
+ "subject": "SUBSTITUTE function",
+ "rule-digest": "2505915cdb67",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Substitute",
+ "test-ref": "conformance:cases/15.87.3-Argument-rules/substitute; conformance:cases/15.87.4-Returned-value-rules/pb81_substitute_table_all",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "Subsequent argument-2/argument-3 pairs are tried from the first position following the previous substitution — the single-pass scan (the `substitute` golden's MULTI row; PB81's TWO row over two enumerations).",
+ "state": "OK"
+}

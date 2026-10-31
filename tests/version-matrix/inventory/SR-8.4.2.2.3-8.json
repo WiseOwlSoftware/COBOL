@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.2.2.3-8",
+ "section": "8.4.2.2.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "Qualification",
+ "rule-digest": "77e0e98774a9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#LinageFileOf",
+ "test-ref": "conformance-test:LinageConformanceTests.UnqualifiedCounter_TwoLinageFiles_IsRejected; conformance-test:LinageConformanceTests.QualifiedCounter_TwoLinageFiles",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 8.4.2.2.3 \"LINAGE-COUNTER shall be qualified if more than one file description entry containing a LINAGE clause may be referenced within the source element in which the reference to LINAGE-COUNTER occurs\" -> OK §8.4.2.2.3 8). LinageFileOf binds a qualified LINAGE-COUNTER IN/OF file-name to that file and refuses an unqualified one when more than one LINAGE file is REFERENCEABLE (COBOL0864). The 'may be referenced within the source element' edge was probed across a nested-program boundary (pinned cobol.exe, --run): k1 - outer FD LP1 IS GLOBAL LINAGE 5, nested program's own FD LP2 LINAGE 7, unqualified LINAGE-COUNTER in the nested program -> COBOL0864 at 85 and 2023 (two LINAGE FDs may be referenced there); k2 - same with the outer FD NOT global -> compiles, K1=003 (only LP2 is referenceable, so no qualification is required; value = 2 lines advanced + 1); k3 - LINAGE-COUNTER OF LP1 (the GLOBAL outer file) in the nested program -> K1=002. The two conformance tests compute their expected values from the rule (two LINAGE files: qualified reads P1=002/P2=003; unqualified rejected). Both halves (qualification required when several referenceable; not required when one) verified. [editions as adjudicated: 85, 2002, 2014, 2023 (LINAGE and LINAGE-COUNTER exist in every edition)]",
+ "state": "OK"
+}

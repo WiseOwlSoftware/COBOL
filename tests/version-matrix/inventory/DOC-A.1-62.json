@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-62",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 62,
+ "subject": "Dynamic-length elementary items (maximum length)",
+ "rule-digest": "590d0bee1476",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-62; src/WiseOwl.Cobol.Runtime/Values/Text/CobolDynString.cs#MaxLength; src/WiseOwl.Cobol.Runtime/Values/Text/CobolDynString.cs#MaxSizeOf; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#DynMaxSize",
+ "test-ref": "unit:CobolDynStringTests.MaxSizeOf_NoLimitPhrase_IsTheImplementorMaximum; conformance-test:DynamicLengthTests.ImplementorMaximum_IsTheNumberPublishedInConformanceSection7; conformance:cases/8.5.1.9.6-Exceeding-capacity/pb463_dyn_implementor_maximum",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB463 LANDED - the A.1 item 62 determination is STATED and IMPLEMENTED. 8.5.1.10.1 makes the maximum size of a dynamic-length elementary item \"the smallest of\" three candidates and A.1 item 62 makes the third of them - \"the maximum permitted by the implementor\" - required AND documented; 13.18.19.4 GR2 makes it the whole answer when no LIMIT phrase is written. WiseOwl COBOL provides 1,073,741,791 characters (0x3FFFFFDF) for every dynamic-length elementary item, alphanumeric or national: the CARRIER's own ceiling, since the item IS a native System.String whose maximum length is that value - the same \"the carrier's headroom IS the implementor maximum\" reading CobolDynTable<T>.MaxOccurrences already records for a dynamic-capacity table. A LIMIT phrase below it is the maximum size; one above it cannot raise the maximum and is REPORTED (COBOL2027, a warning - 13.18.19.3 bounds integer-1 only when a dynamic-length-structure-name is written too, SR4, so the entry is legal source). The second candidate never applies: the PREFIXED phrase rides a dynamic-length-structure-name, refused by COBOL1562. ONE producer computes it (CobolDynString.MaxSizeOf) and DataItem.DynMaxSize carries it, so the value cannot differ between the binder, the emitters and the runtime; DynamicLengthTests.ImplementorMaximum_IsTheNumberPublishedInConformanceSection7 reads the number back out of the section 7 row in both published spellings, so the determination and the constant cannot drift apart. Before this landing the item had no maximum at all and the section 7 register said only that a branch was unreachable - a determination about code nobody had checked, which is how a SET SIZE past 2**32 came to wrap to its low bits.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.37.4-2",
+ "section": "13.18.37.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "NEXT GROUP clause",
+ "rule-digest": "dc95a53e8508",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup",
+ "test-ref": "conformance:cases/8.4.3.15-Report-counters/pb957_next_group_forms; conformance:cases/13.18.37-NEXT-GROUP/pb957_next_group_control",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB957. ApplyNextGroup is the one place the clause takes effect, called after the group's last line from every presentation path that can carry it; dummy and SUPPRESSed groups return before it (§8.4.3.15.4 GR5, §14.9.45.4 GR3c).",
+ "state": "OK"
+}

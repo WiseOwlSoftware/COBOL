@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.2-4",
+ "section": "9.1.13.2",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "I-O status",
+ "rule-digest": "6687777bb08d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#DeleteFile; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#OptionalFileNotFound; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/l1_open_optional_create; conformance:cases/9.1.13.2-Successful-completion/l1_open_optional_input_absent; conformance:cases/9.1.13.2-Successful-completion/delete_file_absent",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 9.1.13.2 \"If the open mode is I-O or extend, the physical file has been created\" -> OK §9.1.13.2 4); --check 9.1.13.2 \"For a DELETE FILE statement, the referenced file is not available\" -> OK 4)). a) every organization's OpenCore returns OptionalFileNotFound for an absent OPTIONAL file and creates it on I-O/EXTEND. Probes: sequential OA-OPEN-IN=05, OE-OPEN-EXT=05 then OE-REOPEN=00 (created), OI-OPEN-IO=05 then OI-REOPEN=00; indexed O-OPEN-IN=05, O-OPEN-IO=05 then O-REOPEN=00. The OPEN INPUT ... WITH NO REWIND on an absent optional file answers '07' instead (a documented determination, docs/CONFORMANCE.md '07 vs 05', §9.1.13.1 'If more than one value applies, the implementor determines' - cite.py OK). b) FileRegistry.DeleteFile answers '05' for Absent via the shared HostFile.Probe and for an unassociated ASSIGN USING connector; golden delete_file_absent (ST=05). Golden l1_open_optional_create pins 05 on EXTEND and I-O for sequential and relative plus the re-open 00 proving creation. || Editions (adjudicator, verbatim): a) 85,2002,2014,2023; b) 2023 only (DELETE FILE is new, E.3.3 items 15 and 35) retired-witness: src/Cobol.Net.Runtime/IO/IndexedConnector.cs#OpenCore (the keyed OPEN arms are written once, in KeyedConnector.OpenCore, since both organizations drive the keyed store engine (kb/Work PB3334, PB2753)) retired-witness: src/Cobol.Net.Runtime/IO/RelativeConnector.cs#OpenCore (the keyed OPEN arms are written once, in KeyedConnector.OpenCore, since both organizations drive the keyed store engine (kb/Work PB3334, PB2753))",
+ "state": "OK"
+}

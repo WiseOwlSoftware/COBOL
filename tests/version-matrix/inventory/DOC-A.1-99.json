@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-99",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 99,
+ "subject": "Implementor-defined exception conditions, EC-IMP-xxx (specification and meaning of xxx)",
+ "rule-digest": "cf2d24c505d1",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-99; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionCatalog.cs#TryGet; src/WiseOwl.Cobol.Compiler/Binding/EcNameResolution.cs",
+ "test-ref": "conformance:wiseowl/cases/A.1-Implementor-defined-language-element-list/pb1531-ec-imp-suffix-raise; conformance:wiseowl/cases/A.1-Implementor-defined-language-element-list/pb1531-ec-imp-suffix-turn; conformance:wiseowl/cases/A.1-Implementor-defined-language-element-list/pb1531-ec-imp-suffix-use; conformance:cases/A.1-Implementor-defined-language-element-list/l1_dns_a1_99_ec_imp_level2_valid; unit:EcImplementorNamesDocumentationDriftTests.Item99_NoEcImpSuffixNameExists",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "A.1 item 99 (optional; documented if provided; Table 13, ISO 1989:2023 14.6.13.1.1 'There are two types of level-3 of implementor-defined exception-names', cite.py --check OK). NOT PROVIDED, and the compiler now says so: ExceptionCatalog.TryGet resolves no EC-IMP-suffix name, so RAISE EXCEPTION / >>TURN / USE AFTER EXCEPTION CONDITION on EC-IMP-WIBBLE are COBOL0711 (negatives pb1531-ec-imp-suffix-raise/-turn/-use, run on this tree; the >>TURN one reports the directive's line). The level-2 name EC-IMP stays valid (golden 2002/l1_dns_a1_99_ec_imp_level2_valid) and the SPELLING stays reserved in directives (8.12). The catalog agrees with the row: EcImplementorNamesDocumentationDriftTests.Item99_NoEcImpSuffixNameExists. GnuCOBOL 3.2's EC-IMP level-3 set is closed too (libcob/exception.def) and cobc rejects any other name in a TURN list. kb/Work PB1531 w1015w.",
+ "state": "OK"
+}

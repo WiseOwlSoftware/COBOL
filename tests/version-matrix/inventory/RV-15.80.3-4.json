@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.80.3-4",
+ "section": "15.80.3",
+ "kind": "RV",
+ "ordinal": 4,
+ "subject": "SECONDS-PAST-MIDNIGHT function",
+ "rule-digest": "25c2fbf0042a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#SecondsPastMidnight; src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CompilerDirectiveCatalog",
+ "test-ref": "unit:CobolDateWindowingTests.SecondsPastMidnight_Range_StandardNumericTimeForm",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "A.1 ITEM-112 DISCHARGED 2026-08-08, closing the PARTIAL's only open half: docs/CONFORMANCE.md SS7 now carries the item-112 row (answer NO - .NET DateTime cannot represent a leap second, so the returned value is always < 86,400, satisfying SS7.3.17.4 GR4's ON-mode bound on both directive branches; >>LEAP-SECOND ON is recognized and behaviorally identical to OFF, the granted latitude). audit_annex_a1.py --check clean, 19/199 discharged. Prior record: The determination itself is made, conforming, and implemented: the answer is NO — .NET's DateTime cannot represent a leap second, so the returned value is always < 86,400, which satisfies §7.3.17.4 GR4's ON-mode bound ('a standard numeric time form value shall be greater than or equal to zero and less than 86,401') and exercises exactly the latitude GR4 grants ('The implementor defines whether a value greater than or equal to 86,400 may be returned from the SECONDS-PAST-MIDNIGHT intrinsic function'). >>LEAP-SECOND is recognized-and-consumed, and since the answer is 'no', ON is behaviorally ide || kb/Work PB725 re-pointed the recognition half of this row's code-location: ConditionalCompilationProcessor.KnownIgnoredDirectives was a flat directive-name set with no edition column (eleven ISO 7.3 directives compiled clean at --std 85) and was replaced by CompilerDirectiveCatalog, derived from the directiveWords column of constructs.json. >>LEAP-SECOND is still recognized, and now also GATED at 2002 from the same one site.",
+ "state": "OK"
+}

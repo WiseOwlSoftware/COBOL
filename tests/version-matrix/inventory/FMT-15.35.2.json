@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.35.2",
+ "section": "15.35.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "EXP10 function",
+ "rule-digest": "5828fce20c76",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindArgOperand",
+ "test-ref": "conformance:cases/8.8.1.5.4-Exponentiation-in-standard-decimal-arithmetic/exp_standard_decimal_eae",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "FUNCTION EXP10(23) in the printed format returning 10^23 exactly, which S15.4.1 r1 REQUIRES of S15.35.4 r1's expression under the file's STANDARD-DECIMAL mode.",
+ "state": "OK"
+}

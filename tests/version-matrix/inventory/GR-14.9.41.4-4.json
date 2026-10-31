@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.41.4-4",
+ "section": "14.9.41.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "START statement",
+ "rule-digest": "c66ef8695691",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitStoreFileStatus; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#StartFirstLast; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#StartFirstLast; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#StartFirstLast",
+ "test-ref": "conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb352_start_sequential_first_last",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB352 (OPEN) after kb/Work PB236 (landed). RULE (cite.py --check 14.9.41.4 OK, GR4): 'The execution of the START statement causes the value of the I-O status associated with file-name-1 to be updated.' RELATIVE + INDEXED HALF -- VERIFIED, unchanged: EmitStart emits SeqIo.EmitStoreFileStatus(file) on all three forms and every connector path assigns Status before returning. ONE OF THE TWO UNCOVERED SHAPES IS GONE: a relative file whose file control entry has no RELATIVE KEY clause used to bind to an unreported BoundUnsupported and abort the run unit without touching the I-O status; that program is now REJECTED AT BIND (COBOL0862, see GR-14.9.41.4-8), so there is no execution whose status could go un-updated -- GR4 is not violated by a statement that never runs. STILL PARTIAL for PB352's half, untouched here: the SEQUENTIAL-organization START. GR4 is stated before the RELATIVE FILES heading so it governs that START too, and 14.9.41.3 SR2 makes it legal with FIRST or LAST; KeyedIoBinder.BindStart still returns BoundUnsupported for file.IsSequential before any node is built, so the run unit aborts with the I-O status never touched (probe/seq-start/STPRB2.cob). It is no longer SILENT -- the deferral now announces itself as COBOL1756 at compile time -- but the FEATURE is unbuilt, which is the correct job for that carrier and is PB352's to build.\n\nLANDED 2026-09-05 (kb/Work PB352). The last uncovered shape is gone: the sequential-organization START no longer aborts the run unit with the I-O status untouched - it binds to BoundKeyedStart, EmitStart emits EmitStoreFileStatus for it like the other two organizations, and every SequentialConnector.StartFirstLast path assigns Status before returning. conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb352_start_sequential_first_last reads the status back after every one of the nine sequential STARTs it executes (00, 23 and 47 all observed).",
+ "state": "OK"
+}

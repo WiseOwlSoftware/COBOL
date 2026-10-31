@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.23.3-13",
+ "section": "14.9.23.3",
+ "kind": "SR",
+ "ordinal": 13,
+ "subject": "INVOKE statement",
+ "rule-digest": "8459bd4668eb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#ActiveClassSubordinateAdmitted; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoScreenReturning; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindUniversalInvoke",
+ "test-ref": "conformance:cases/14.9.23-INVOKE/pb1116-active-class-subordinate",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1116 (SR13 half landed w1006a). Rule (cite.py --check 14.9.23.3 OK 13)): 'If Identifier-3, identifier-4, or identifier-5 references a group item, there shall not be an item subordinate to that group item that is an object reference described with the ACTIVE-CLASS phrase.' Its own screen, OoBinder.ActiveClassSubordinateAdmitted (COBOL2728), asked of every operand the rule names: the typed lane's identifier-3 / identifier-5 (OoBindInvocationArg, before any conformance question; the inline form's arguments ride the same body), the universal lane's identifier-3 (OoBindUniversalInvoke) and identifier-4 through OoScreenReturning (typed and universal). Probe pg4 (strong TYPEDEF T with 05 TA ACTIVE-CLASS, INVOKE SELF 'TAKEG' USING G and BY CONTENT G) -> COBOL2728 naming SR13, twice; before, both drew the Tier-C carrier refusal COBOL0828.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.23.4-2",
+ "section": "14.9.23.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "INVOKE statement",
+ "rule-digest": "318dc68912b5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindByReceiver; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInstanceInvoke; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindUniversalInvoke; src/WiseOwl.Cobol.Runtime/Control/CobolObject.cs#NormalizeMethodName",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1_invoke_dotnet_member_universal; conformance:cases/A.1-Implementor-defined-language-element-list/l1-invoke-dotnet-class-new; conformance:cases/A.1-Implementor-defined-language-element-list/l1-invoke-dotnet-member-typed",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "re-verdicted CONFORMS by the 2026-10-23 analyses sweep (PB1149 closed; witness: docs/CONFORMANCE.md DOC-A.1-101 and goldens l1_invoke_dotnet_member_universal, l1-invoke-dotnet-class-new, l1-invoke-dotnet-member-typed)",
+ "state": "OK"
+}

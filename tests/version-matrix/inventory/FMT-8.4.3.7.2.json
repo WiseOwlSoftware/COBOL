@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.4.3.7.2",
+ "section": "8.4.3.7.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "NULL object reference",
+ "rule-digest": "d56dd92a0740",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#invokeArgument; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg",
+ "test-ref": "conformance:cases/8.4.3.7-NULL-object-reference/pb1137_invoke_argument_forms",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1137 (landed w61j). Format: the underlined word NULL (cite.py --check 8.4.3.7.2 OK), an identifier (8.4.3.1.3 SR7). It now parses in every INVOKE identifier-5 slot: keyword-less and BY CONTENT (the literal alternative's figurativeConstant) and BY VALUE (invokeArgument's BY VALUE brace gained `literal`, the printed literal-2 that also carries NULL; before it `USING BY VALUE NULL` was COBOL0001). Binding: BY CONTENT / keyword-less NULL into an object-reference formal crosses as the null reference (golden: NULL LO=NULL twice). A BY VALUE NULL reaches the BY VALUE formal refusal that kb/Work PB1051 owns (COBOL0899 / 0828 SR5b) rather than a parse error. The 1985 non-reserved spelling is unchanged (NULL_ is a reservedGatedWord).",
+ "state": "OK"
+}

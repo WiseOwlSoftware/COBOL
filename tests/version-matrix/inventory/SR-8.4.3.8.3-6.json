@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.8.3-6",
+ "section": "8.4.3.8.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "SELF and SUPER",
+ "rule-digest": "377aee528e10",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#selfAndSuper; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindByReceiver",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1425_qualified_super; conformance:cases/8.4.3.8-SELF-and-SUPER/oo_super",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1425 (w1014 group S). SR6 (cite.py --check 8.4.3.8.3 6) OK): with one INHERITS class object-class-name-1 MAY be specified — both the bare SUPER (oo_super) and `PB1425B OF SUPER` (INVOKE statement and inline `::` invocation) compile and run. The `selfAndSuper` rule carries `(cobolWord OF)? SUPER` ahead of dataReference in objectReference.",
+ "state": "OK"
+}
