@@ -310,13 +310,21 @@ public static class CobolTable
             for (long i = 1; i <= n; i++) { idx[level] = i; Walk(level + 1); }
         }
         Walk(0);
-        if (list.Count == 0)
-        {
-            const string why = "a table(ALL) intrinsic argument ranged over no occurrences — the ALL subscript shall result in at least one argument (ISO §15.3)";
-            ExceptionState.ArgumentError(why);                          // EC-ARGUMENT-FUNCTION when checking is on (fatal, USE-dispatchable)
-            throw new CobolFatalException("EC-ARGUMENT-FUNCTION", why);  // the undefined case is defined LOUD, checking or not
-        }
+        RequireOccurrences(list.Count);
         return list.ToArray();
+    }
+
+    /// <summary>"The evaluation of an ALL subscript shall result in at least one argument, otherwise the result of the reference to the
+    /// function-identifier is undefined" (ISO §15.3 14)), defined here as EC-ARGUMENT-FUNCTION (set when checking is on, fatal,
+    /// USE-dispatchable) ending the reference either way - raised by the enumeration that ranged over nothing (<see cref="AllArgs{T}"/>)
+    /// and by the HELD form of the argument (<c>BoundHoldTableAll</c>) when its copy found nothing, which is the same evaluation, at the
+    /// argument's place in the list (§8.4.3.2.4 GR2), before a later argument's activation.</summary>
+    public static void RequireOccurrences(long count)
+    {
+        if (count != 0) return;
+        const string why = "a table(ALL) intrinsic argument ranged over no occurrences — the ALL subscript shall result in at least one argument (ISO §15.3)";
+        ExceptionState.ArgumentError(why);                          // EC-ARGUMENT-FUNCTION when checking is on (fatal, USE-dispatchable)
+        throw new CobolFatalException("EC-ARGUMENT-FUNCTION", why);  // the undefined case is defined LOUD, checking or not
     }
 
     /// <summary>⛔ A FIXED TABLE'S INITIAL ELEMENTS, built at run time: <paramref name="element"/> composes occurrence
