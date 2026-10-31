@@ -114,6 +114,11 @@ public sealed class CollationTable
     /// identical-prefix skip backs its boundary up by this much.</summary>
     public int MaxContractionLength { get; private init; } = 1;
 
+    /// <summary>True when some element of the table carries a <see cref="CollationElement.Quaternary"/> tailoring weight
+    /// (a CLDR <c>&lt;&lt;&lt;&lt;</c> relation) — the collation then has a fourth level even without
+    /// <see cref="AlternateHandling.Shifted"/>. False for the root.</summary>
+    public bool HasQuaternary { get; private init; }
+
     /// <summary>The number of precomposed characters <see cref="Rebuild"/> re-derived from tailored components — the
     /// canonical closure over composites (diagnostics; 0 for the root).</summary>
     public int ClosedComposites { get; private init; }
@@ -493,7 +498,10 @@ public sealed class CollationTable
             foreach (var c in list) longest = Math.Max(longest, c.Rest.Length + 1);
         return new CollationTable(plan.Name, UcaVersion, SourceTag, _primaryShift, pool, singles, contractions,
             _ccc, _implicit, _nfd, plan.Groups ?? _groups, plan.Tailoring, plan.Description, plan.PrimaryMap, plan.SecondaryMap, plan.TertiaryMap)
-        { ContractionCount = contractionCount, MaxContractionLength = longest, ClosedComposites = closedComposites };
+        {
+            ContractionCount = contractionCount, MaxContractionLength = longest, ClosedComposites = closedComposites,
+            HasQuaternary = HasQuaternary || plan.Entries.Any(e => e.Elements.Any(x => x.Quaternary != 0)),
+        };
     }
 
     /// <summary>The NFD of a code point sequence under this table's Unicode data, or null when the sequence is already

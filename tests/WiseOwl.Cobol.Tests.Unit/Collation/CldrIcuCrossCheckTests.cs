@@ -53,7 +53,10 @@ public sealed class CldrIcuCrossCheckTests(ITestOutputHelper output)
         yield return ["el-GR", "el", new[] { "\U000003B1", "\U000003B2", "\U000003C9", "a", "b", "1", "\U00000391" }];
         yield return ["ja-JP", "ja", new[] { "\U00003042", "\U00003044", "\U000030A2", "\U000030A4", "\U00003041", "\U000030A1", "a", "\U00004E00", "\U0000304B", "\U0000304C", "\U000030AB", "\U000030AC", "\U00003042\U000030FC", "\U00003042\U00003042",
             // kb/Work PB2761: the =-chain after an extension (ja.xml: <<<う|ゝ=ぅ|ゝ=ゔ|ゝ=う|ゞ/゙=ぅ|ゞ/゙=ゔ|ゞ/゙).
-            "\U00003045\U0000309E", "\U00003045\U00003094", "\U00003094\U0000309E", "\U00003094\U00003094", "\U00003046\U0000309E", "\U00003046\U00003094" }];
+            "\U00003045\U0000309E", "\U00003045\U00003094", "\U00003094\U0000309E", "\U00003094\U00003094", "\U00003046\U0000309E", "\U00003046\U00003094",
+            // kb/Work PB107: a `p|x` prefix context reads p's FINAL elements (ja.xml: `ァ|ー` is a rule, ァ itself is placed
+            // later by `&ぁ<<<<ァ`), and the <<<< relations leave hiragana = katakana through level 3, as ICU has it.
+            "\U00003041\U000030FC", "\U000030A1\U000030FC", "\U00003042\U000030FC", "\U000030A2\U000030FC", "\U000030AB\U000030FC", "\U0000304B\U000030FC", "\U0000309D", "\U000030FD" }];
         yield return ["ko-KR", "ko", new[] { "\U0000AC00", "\U0000AC01", "\U0000AC02", "\U0000B098", "a", "\U00004E00", "\U00001100", "\U00003131" }];
         yield return ["zh-CN", "zh", new[] { "\U00004E00", "\U00004E01", "\U00004E03", "\U00004E07", "\U00004E2D", "\U00006587", "\U00004E2D\U00006587", "\U00006587\U00004E2D", "a", "b", "1", "\U00005B57",
             // kb/Work PB3293: &'(一)'<<<㈠ (and 七, 三) resets on a string holding an ideograph tailored earlier.
@@ -90,6 +93,28 @@ public sealed class CldrIcuCrossCheckTests(ITestOutputHelper output)
             }
         foreach (string d in disagreements) output.WriteLine(d);
         Assert.True(disagreements.Count == 0, $"{tag}: {disagreements.Count} disagreement(s) with the host ICU ({culture}):\n" + string.Join("\n", disagreements.Take(30)));
+    }
+
+    /// <summary>kb/Work PB107: <c>caseLevel</c> at primary strength (accents ignored, case compared) against the host's
+    /// ICU, which .NET reaches through <see cref="CompareOptions.IgnoreNonSpace"/> without <see cref="CompareOptions.IgnoreCase"/>
+    /// (its collator is then primary strength with the case level on). Width variants are left out of the corpus:
+    /// .NET adds its own rules to keep them apart at that strength.</summary>
+    [Fact]
+    public void CaseLevel_AtPrimaryStrength_AgreesWithTheHostIcu()
+    {
+        if (!HostHasIcu()) return;
+        var icu = CultureInfo.GetCultureInfo("en-US").CompareInfo;
+        var ours = Collator.Root.With(strength: CollationStrength.Primary, caseLevel: true);
+        string[] corpus = ["a", "A", "á", "Á", "ab", "aB", "Ab", "AB", "áb", "Áb", "ábc", "b", "B", "ä", "Ä", "ß", "ss", "SS", "Ss", "æ", "Æ",
+            "é", "É", "résumé", "Resume", "RESUME", "resume", "1", "a-b", "A-b", "a b", "ǆ", "ǅ", "Ǆ", "ﬁ", "FI", "fi", "Fi"];
+        var disagreements = new List<string>();
+        foreach (string x in corpus)
+            foreach (string y in corpus)
+            {
+                int mine = Math.Sign(ours.Compare(x, y)), theirs = Math.Sign(icu.Compare(x, y, CompareOptions.IgnoreNonSpace));
+                if (mine != theirs) disagreements.Add($"{Show(x)} vs {Show(y)}: ours {mine}, ICU {theirs}");
+            }
+        Assert.True(disagreements.Count == 0, $"{disagreements.Count} disagreement(s) with the host ICU:\n" + string.Join("\n", disagreements.Take(30)));
     }
 
     private static string Show(string s) => s.Any(c => c > 0x7F) ? $"{s} ({string.Join(" ", s.EnumerateRunes().Select(r => $"U+{r.Value:X4}"))})" : s;
