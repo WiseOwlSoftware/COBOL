@@ -256,6 +256,82 @@ public sealed class WordCharacterScreenTests
         Assert.True(cause < effect, string.Join('\n', errors));
     }
 
+    /// <summary>Two diagnoses of ONE word at ONE position read in the order the screen makes them, whichever arm reports them
+    /// (kb/Work PB4200): <c>CAFÉ€</c> at COBOL-85 draws the introduction gate for É (COBOL0900) and then the word-character
+    /// error for € (COBOL2773), both at the word's position. The frontend arm (a failed parse's token stream) used to print
+    /// them reversed, the second cause meeting the first it had just inserted; the binder arm (a parsed source's tree) never did.</summary>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void TwoCausesAtOnePosition_ReadInTheOrderTheScreenMakesThem_OnBothArms(bool parses)
+    {
+        string word = "CAFÉ" + Euro;
+        string source = Unparseable(word, word);
+        if (parses) source = source.Replace(" MOVE MOVE", "");
+        var (ok, errors, _) = EditionHarness.CompileFull(source, 85);
+        Assert.False(ok);
+        var codes = errors
+            .Select(e => e.Contains("COBOL0900") ? "COBOL0900" : e.Contains("COBOL2773") ? "COBOL2773" : e.Contains("COBOL0001") ? "COBOL0001" : "other")
+            .ToList();
+        Assert.Equal(parses ? ["COBOL0900", "COBOL2773"] : ["COBOL0900", "COBOL2773", "COBOL0001"], codes);
+    }
+
+    /// <summary>The cross-file arm of the placement (kb/Work PB4200): a parse error INSIDE a COPY member is never compared with
+    /// the cause, whose position is in the program file, even when the member's line number would sort after the cause's. The
+    /// cause reads before the next effect of ITS OWN file and after the member's error. The member's error is at line 9, the
+    /// cause at line 6, so comparing across files would have put the cause before the member's error.</summary>
+    [Fact]
+    public void TheCause_IsNotComparedWithAnEffectInACopyMember()
+    {
+        string source = $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB4200C.
+            PROCEDURE DIVISION.
+                DISPLAY "A" MOVE MOVE.
+                COPY BADMEMBER.
+                DISPLAY X{Euro} MOVE MOVE.
+                STOP RUN.
+            """;
+        string member = "\n\n\n\n\n\n\n\n    DISPLAY \"C\" MOVE MOVE.\n";
+        var (ok, errors, _) = EditionHarness.CompileFull(source, 2023,
+            copybooks: new Dictionary<string, string> { ["BADMEMBER.cpy"] = member });
+        Assert.False(ok);
+        Assert.Equal(4, errors.Count);
+        Assert.Contains("prog.cob(4,", errors[0]);
+        Assert.Contains("COBOL0001", errors[0]);
+        Assert.Contains("BADMEMBER.cpy(9,", errors[1]);
+        Assert.Contains("COBOL0001", errors[1]);
+        Assert.Contains("prog.cob(6,", errors[2]);
+        Assert.Contains("COBOL2773", errors[2]);
+        Assert.Contains("prog.cob(6,", errors[3]);
+        Assert.Contains("COBOL0001", errors[3]);
+    }
+
+    /// <summary>A cause with no effect of its own file after it is appended, behind an effect of another file that the
+    /// diagnostics of its own file never order against (kb/Work PB4200).</summary>
+    [Fact]
+    public void ACauseWithNoLaterEffectInItsFile_IsAppendedAfterAnEffectInACopyMember()
+    {
+        string source = $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB4200D.
+            PROCEDURE DIVISION.
+                DISPLAY "A" MOVE MOVE.
+                DISPLAY X{Euro}.
+                COPY BADMEMBER.
+                STOP RUN.
+            """;
+        string member = "    DISPLAY \"C\" MOVE MOVE.\n";
+        var (ok, errors, _) = EditionHarness.CompileFull(source, 2023,
+            copybooks: new Dictionary<string, string> { ["BADMEMBER.cpy"] = member });
+        Assert.False(ok);
+        Assert.Equal(3, errors.Count);
+        Assert.Contains("prog.cob(4,", errors[0]);
+        Assert.Contains("BADMEMBER.cpy(1,", errors[1]);
+        Assert.Contains("prog.cob(5,", errors[2]);
+        Assert.Contains("COBOL2773", errors[2]);
+    }
+
     /// <summary>The binder driver screens only a compilation whose frontend reported nothing, so a source that PARSES beside
     /// another frontend error (here the §8.3.5 separator rule: a semicolon must be followed by a space) is screened by the
     /// frontend too: the underscore gate of '85 is not lost until the separator is fixed.</summary>
