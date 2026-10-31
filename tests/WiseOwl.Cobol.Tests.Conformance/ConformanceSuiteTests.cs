@@ -71,8 +71,9 @@ public abstract class ConformanceSuiteTestsBase<TSlot>
         EditionHarness.AssertHasDiagnostic(result.Errors, refusal.Expect);
         // ⛔ NO MESSAGE OPENS WITH AN ELIDED STATEMENT (kb/Work PB4160): `CALL … USING BY VALUE` renders as `CALL . USING`,
         // a statement nobody wrote. Asked of the RENDERED text of every negative golden, so a head that string-building
-        // assembled from a label is seen too; DiagnosticOpeningElisionDriftTests asks the same of the source.
-        string? elided = result.Errors.FirstOrDefault(e => ElidedMessageOpening.Rendered.IsMatch(e));
+        // assembled from a label is seen too; DiagnosticOpeningElisionDriftTests asks the same of the source. Warnings
+        // ride along: a --permissive Removed(...) or a declined element's accept-inert warning has the same head.
+        string? elided = result.Errors.Concat(result.Warnings).FirstOrDefault(e => ElidedMessageOpening.Rendered.IsMatch(e));
         Assert.True(elided is null,
             $"[{edition}/{id}] a diagnostic OPENS with a statement whose phrase it elided (kb/Work PB4160): {elided}");
     }

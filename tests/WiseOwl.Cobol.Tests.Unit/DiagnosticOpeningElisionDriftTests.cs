@@ -94,6 +94,10 @@ public sealed class DiagnosticOpeningElisionDriftTests
             "Sink.Report(new EditionDiagnostic(DiagnosticCatalog.X.Code,\n            EditionSeverity.Error, DiagnosticCatalog.X.Id,\n            $\"{owner} … {phrase}: this {name} statement\"",
             // PB4160: InitializeErrorAction carries a message as its first argument
             "actions.Add(new InitializeErrorAction(\"INITIALIZE ... WITH FILLER of the implicit filler bits of \"",
+            // R1-1 (the review of PB4160): the three EditionContext seams whose caller string IS the head of the message
+            "ctx.Edition.Extension(ExtensionIds.SetProgramPointerToEntry, \"SET … TO ENTRY\");",
+            "ctx.Edition.Removed(\"COBOL0902\", $\"CALL … AS NESTED argument {n}: \"",
+            "ctx.Edition.Declined(DiagnosticCatalog.X, \"WRITE ... FILE of the record\");",
         ];
         foreach (string defect in defects)
             Assert.True(ElidedMessageOpening.Source.IsMatch(defect), $"the elided-opening pattern no longer matches: {defect}");
@@ -109,6 +113,12 @@ public sealed class DiagnosticOpeningElisionDriftTests
             "ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,\n                    $\"SET '{drefs[i].GetText()}': the receiving operand of SET … TO ENTRY \"",
             // a message that does not open with the statement's words
             "ctx.Edition.Error(DiagnosticCatalog.X, \"the NESTED phrase … is not admitted\");",
+            // the repaired twins of the three seams
+            "ctx.Edition.Extension(ExtensionIds.SetProgramPointerToEntry, $\"SET {SetFormatSelection.Written(drefs)} TO ENTRY\");",
+            "ctx.Edition.Removed(\"COBOL0902\", $\"CALL AS NESTED argument {n}: \"",
+            "ctx.Edition.Declined(DiagnosticCatalog.X, \"WRITE FILE of the record\");",
+            // a collection's own Removed( with no message string
+            "list.Removed(item, 1);",
         ];
         foreach (string ok in fine)
             Assert.False(ElidedMessageOpening.Source.IsMatch(ok), $"the elided-opening pattern matches a message it must leave alone: {ok}");

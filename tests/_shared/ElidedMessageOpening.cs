@@ -31,9 +31,11 @@ internal static class ElidedMessageOpening
     /// <summary>The message-reporting call forms of the compiler, followed by up to four leading arguments (the
     /// edition, the code, the severity, the id) and then the FIRST string literal: <c>Error(</c>, <c>Report(</c>,
     /// <c>BoundRejected.Report(</c>, <c>BoundOperandError.Refused(</c>, <c>InitializeErrorAction(</c>,
-    /// <c>EditionDiagnostic(</c> and the warning forms.</summary>
+    /// <c>EditionDiagnostic(</c>, the warning form and the three <c>EditionContext</c> seams whose caller string IS the
+    /// head of the message they write: <c>Extension(id, seen)</c> (<c>"{seen} is a nonstandard extension"</c>),
+    /// <c>Removed(code, message)</c> and <c>Declined(descriptor, seen)</c> (<c>"{seen}: title"</c>).</summary>
     public static readonly Regex Source = new(
-        @"\b(?:Error|Report|Refused|Warning|InitializeErrorAction|EditionDiagnostic)\((?:" + LeadingArgument
+        @"\b(?:Error|Report|Refused|Warning|InitializeErrorAction|EditionDiagnostic|Extension|Removed|Declined)\((?:" + LeadingArgument
         + @"){0,4}\s*\$?""" + Head,
         RegexOptions.Compiled);
 
