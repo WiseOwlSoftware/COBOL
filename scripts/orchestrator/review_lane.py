@@ -119,6 +119,11 @@ LAST_TICK = "last-tick.json"
 REVIEW, CONFLICT = "review", "conflict"
 #: The agent each kind runs: `.claude/agents/<role>.md` (its model, effort, hooks and turn cap are the role's own).
 ROLE = {REVIEW: "cobol-reviewer", CONFLICT: "cobol-finisher"}
+#: The loop-session mark (coord.LOOP_UNIT_ENV) every session the lane starts carries, as orchestrate.ps1 marks a unit's: a
+#: lane agent is the loop's, so it answers no inbox (mailbox.lane), inbox_guard never holds its turn end for a watcher, and
+#: session_start names it no attended lane's skills. Unmarked, it read as the attended operator, armed the operator's
+#: watcher, and outlived its result by up to its ceiling, holding a lane slot and re-woken by every message (kb/Work PB4070).
+LANE_UNIT = "review-lane"
 #: Concurrent agents (reviewers and finishers together). The landing lane's gates are capped by the gate slot; the agents
 #: are capped here, and each one's tokens are the loop's (budget.py decides before any starts).
 MAX_AGENTS = 3
@@ -598,7 +603,7 @@ def run_agent(path: pathlib.Path) -> int:
         return 2
     cdir = path.resolve().parents[2]   # <coord>/review-lane/runs/<id>.json
     outcome = None
-    env = {**os.environ, "COBOL_COORD_DIR": str(cdir)}
+    env = {**os.environ, "COBOL_COORD_DIR": str(cdir), coord.LOOP_UNIT_ENV: LANE_UNIT}
     with open(rec["prompt"], "rb") as prompt, open(rec["log"], "ab") as log:
         # its own session on POSIX: kill_tree's tree there is the process group, which the agent must lead (kb/Work PB4072)
         proc = subprocess.Popen(rec["argv"], cwd=rec.get("cwd") or None, stdin=prompt, stdout=log, stderr=subprocess.STDOUT,
@@ -1015,8 +1020,10 @@ def self_test() -> int:
         # 9. THE RUNNER: rc and the verdict recorded; the CEILING and a loop stop each end a hung agent.
         c12 = fresh()
         stub = root / "stub.py"
-        stub.write_text("import sys, time\nmode = sys.argv[1]\nsys.stdin.read()\nif mode == 'hang':\n    time.sleep(600)\n"
-                        "sys.exit(0 if mode == 'ok' else 3)\n", encoding="utf-8", newline="\n")
+        stub.write_text("import os, pathlib, sys, time\nmode = sys.argv[1]\nsys.stdin.read()\n"
+                        f"pathlib.Path(sys.argv[0] + '.' + mode + '.unit').write_text(os.environ.get({coord.LOOP_UNIT_ENV!r}, ''), "
+                        "encoding='utf-8')\nif mode == 'hang':\n    time.sleep(600)\nsys.exit(0 if mode == 'ok' else 3)\n",
+                        encoding="utf-8", newline="\n")
         f12 = Fake(c12, [row(f"U{i}", "WAITING FOR REVIEW", f"{i}a{i}a{i}a{i}") for i in (1, 2, 3)])
         tick(c12, root, budget=lambda: "go", start=lambda argv, log: 0, alive=lambda r: True,
              tip={r["worktree"]: r["tip"] for r in f12.rows}.get, argv_for=lambda k: [sys.executable, str(stub), "ok"], now=t0, say=lambda s: None)
@@ -1034,6 +1041,10 @@ def self_test() -> int:
         rc1 = run_agent(pathlib.Path(u1["_path"]))
         done1 = runs_of(c12, "U1")[0]
         expect("the runner records rc 0 and the verdict the findings file holds for the run's round", rc1 == 0 and done1["rc"] == 0 and done1["verdict"] == "CLEAN", str(done1))
+        import mailbox  # the inbox rule the lane's sessions must fall outside (kb/Work PB4070)
+        unit = (root / "stub.py.ok.unit").read_text(encoding="utf-8")
+        expect("the runner marks its agent a loop session, so it answers no inbox and holds no watcher past its result",
+               unit == LANE_UNIT and mailbox.lane(c12, {coord.LOOP_UNIT_ENV: unit}) is None, repr(unit))
         rc2 = run_agent(pathlib.Path(recs["U2"]["_path"]))
         done2 = runs_of(c12, "U2")[0]
         expect("a failed agent records its rc and no verdict", rc2 == 3 and done2["rc"] == 3 and done2["verdict"] is None, str(done2))
