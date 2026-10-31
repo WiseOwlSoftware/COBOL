@@ -55,10 +55,13 @@ internal static class RecoverySources
 
         """;
 
+    /// <summary>The edition a recovery test compiles at unless it names one: the compiler's default, COBOL-2023.</summary>
+    public const int DefaultEdition = 2023;
+
     /// <summary>The errors of the check-only compile of <paramref name="source"/> (free form, at
-    /// <paramref name="edition"/>, COBOL-2023 by default: a sweep over the editions that reserve a word passes each,
-    /// kb/Work PB4132); the source holds a syntax error and must be rejected.</summary>
-    public static IReadOnlyList<string> Errors(string source, int edition = 2023)
+    /// <paramref name="edition"/>, <see cref="DefaultEdition"/> unless named: a sweep over the editions that reserve a
+    /// word passes each, kb/Work PB4132); the source holds a syntax error and must be rejected.</summary>
+    public static IReadOnlyList<string> Errors(string source, int edition = DefaultEdition)
     {
         string dir = ScratchDirectory.Create("WiseOwlCobol_PBREC_");
         try

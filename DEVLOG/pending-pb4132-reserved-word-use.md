@@ -56,3 +56,25 @@ parse cannot compute keeps COBOL0901, the earlier behaviour.
 Conformance 10,376, Unit 7,127 and Characterization 6 cases; Linux half (WSL clone of HEAD) GREEN). After the merge with main, the
 same verdict on 0595f7edc (run 000003-20261031T183641Z: Conformance 10,305, Unit 7,153 and Characterization 6 cases; Linux half
 (WSL clone of HEAD) GREEN).
+
+**Review finisher (round 1: R1-1 blocking, R1-2 and R1-3 leads).** The branch was merged, with PB4206's branch under it
+(`procedureName` now takes `reservedGatedWord` in every procedure-name slot), into a fresh finisher branch; three conflicts
+(DESIGN-frontend-grammar, the `ReservationGateRewriter` summary, `ReservedWordPositionConformanceTests`) kept both sides.
+R1-1 reproduced on that build: at --std 2023 a stray END-DISPLAY beginning a sentence (`MOVE 1 TO W-N.` then
+`END-DISPLAY MOVE 2 TO W-K.`) drew `COBOL0307: cannot parse construct near 'MOVE'. A period may be missing at the end of the
+previous sentence.`, where END-ADD drew COBOL0306 at the word; END-ACCEPT, END-SEND and END-RECEIVE the same, as the paragraph's
+first sentence, the procedure division's first and after a SECTION header too. The header reading (`paragraphName` →
+`procedureName` → `reservedGatedWord`) was the only reading the prediction had for the word, so it was taken and the parse died
+at the next token; the period the message advised turned the word into a reserved paragraph-name. Fixed in the grammar:
+`paragraphName` and `sectionName` carry `{procedureHeaderHere(DOT|SECTION)}?`, which takes a word §8.9 reserves here as a header's
+name only where the header follows it (ISO §14.4.3: "A paragraph consists of a paragraph-name followed by a separator period").
+Elsewhere the word fails at itself and `ReservedWordUse` decides: COBOL0306 for every stray terminator, COBOL0901 where the
+header's user word stands (`CONSTANT MOVE 1 TO W-N.` at 2002, which also used to be COBOL0307 at MOVE). A written header
+(`END-DISPLAY.`) still parses and draws the funnel's COBOL0901: it matches the paragraph format and no other. The sibling sweep
+(every `reservedGatedWord` slot in the grammar) finds the two header slots the only ones at a sentence start. New golden
+`cases/14.5.3.2-Explicit-scope-termination/pb4132-stray-end-display-sentence-start` (COBOL0306 at 2002, 2014, 2023). R1-3:
+the gated-terminator theory re-ran the 2023 rows of the all-terminator sweep; the all-terminator sweep now also covers both
+sentence starts at the default edition (`AStrayTerminatorBeginningASentence_DrawsExactlyOneDiagnostic`), and the gated sweep runs
+all three positions at every OTHER edition that reserves the word (`RecoverySources.DefaultEdition` names the split). R1-2: the
+generated `CobolLexer.IsReservationGated` summary (written by `scripts/gen-cobol-words.ps1`) no longer says every error on a gated
+word is COBOL0901 from the listener; it names `ReservedWordUse`. `EditionReadDriftTests` records the two new word-status sites.
