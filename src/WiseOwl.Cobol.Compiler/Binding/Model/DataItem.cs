@@ -79,7 +79,7 @@ public sealed class DataItem
     /// DESIGN-backend-abstraction §1.2): <see cref="CsNames.Allocate"/>d at bind time in the item's scope (its group's
     /// record struct, or the program class for a root), so it is unique there and never a C# keyword.
     /// <para>⛔ ONE EXCEPTION, a known leak: a CARRIER-RESIDENT linkage formal's is rewritten to its carrier's C# access
-    /// text, <c>__lnk7.Value</c> (<c>DataBinder.CallBindLinkage</c>, <c>DataBinder.BindMethodLinkage</c>), which is a C#
+    /// text, <c>__lnk7.Value</c> (<c>DataBinder.CallBindLinkage</c>, <c>DataBinder.OoBindMethodData</c>), which is a C#
     /// fragment, not a name (DESIGN-backend-abstraction §1.3 L7).</para></summary>
     [DescriptionCopy(DescriptionCopyKind.None,
         "identity — re-uniquified among the clone's NEW siblings")]
