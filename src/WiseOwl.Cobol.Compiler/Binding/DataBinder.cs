@@ -1299,7 +1299,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     + "within a factory, function, object, or program.\"");
                 continue;
             }
-            var file = new FileModel { CobolName = name, SelectName = name, AssignTarget = name, Optional = grp.OPTIONAL() is not null };
+            var file = new FileModel { CobolName = name, SelectName = name, HasSelect = true, Optional = grp.OPTIONAL() is not null };
             // The entry's OWN position: §12.4.5.1's required members and §12.4.5.2 SR10 are violated by the
             // ABSENCE of a clause, so there is nothing else to point at (kb/Work PB699).
             file.EntryAt = Edition.Cursor;
@@ -1316,6 +1316,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // the FILE-NAME, so its records landed in `<file-name>.txt` (kb/Work PB324).
                 if (clauses.assignClause() is { } asg)
                 {
+                    file.AssignWritten = true;
                     // The TO phrase is a LIST (§12.4.5.1's ellipsis); which lists are allowable and what one names
                     // is the §12.4.5.2 SR5 determination, read in ONE place (AssignTargetRule, DOC-A.1-71).
                     file.AssignTarget = asg.assignTarget() is { Length: > 0 } tgts

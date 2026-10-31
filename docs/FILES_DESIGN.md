@@ -1247,7 +1247,8 @@ sets, and the overlap is the point:
 *"Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses"* — and §12.4.5.13.3 SR1 states it a
 third time for the relative key. Alongside them sit §12.4.5.12.3 SR2 / §12.4.5.6.3 SR2 (data-name-1 is within a
 record description entry associated with the file-name), §12.4.5.13.3 SR2 (an unsigned integer without `P`) and
-SR3 (*not* in a record of the file), §12.4.5.1 Format 1's unbracketed RECORD KEY clause, and §12.4.5.2 SR10
+SR3 (*not* in a record of the file), the unbracketed clauses of §12.4.5.1 (Format 1's RECORD KEY, and ASSIGN in all
+four formats), and §12.4.5.2 SR10
 (*"The RELATIVE clause shall be specified if the DYNAMIC or RANDOM phrase of the ACCESS clause is specified"*).
 Every one of them is stated about the ENTRY. The entry violates it whether or not a statement references the
 file, and §4.2.2's mechanism has to be able to indicate it.
@@ -1271,8 +1272,8 @@ predicates (precondition · violation · message) and an optional diagnostic cod
 file, after the keys resolve. One-report-per-file is then a consequence of *where* the screen runs, not a set it
 has to carry, and the diagnostic is positioned at the offending CLAUSE (`FileModel.RecordKeyAt` /
 `AlternateKeyClause.At` / `RelativeKeyAt`) or, for an absent clause, at the entry (`FileModel.EntryAt`).
-An absent clause is modelled as an operand with a null name, so a "clause required" rule and an "operand breaks
-a rule" rule are the same kind of row and there is no second arm to dispatch on.
+An absent clause is modelled as an operand with a null name, so a rule that requires a clause BECAUSE OF something
+else in the entry (§12.4.5.2 SR10) and an "operand breaks a rule" rule are the same kind of row and there is no second arm to dispatch on.
 
 **Why a table and not seven `if`s.** A rule set with one member written down is where the missing members hide:
 PB354 found two of these three OCCURS bans absent, PB699 found the third fired only under a verb. The table makes
@@ -1302,6 +1303,24 @@ reads `ItemCategory.IsAlphanumericOrNational` — the ONE §8.5.2 category reade
 ASSIGN … USING screen — which admits an alphanumeric group item (§13.18.29.4 GR3) and a national group and
 refuses alphabetic, numeric, edited, boolean and the PICTURE-less usages. The inventory row earns CONFORMS only
 when both rows are live, which is why PB699 recorded no verdict for either.
+
+**THE REQUIRED MEMBERS OF A FORMAT ARE ONE TABLE TOO** (kb/Work PB4236). §12.4.5.1 prints a clause with no bracket
+around it when every entry of the format shall specify it: the figure notes say no choice indicators appear and
+every stacked group is a plain brace (exactly one) or a plain bracket (zero or one). Two clauses open a line
+unbracketed: ASSIGN, in all four formats (rendered, PDF p342-344), and the prime RECORD KEY, in Format 1.
+A requirement a general format states has no numbered rule and no operand, so it is neither a
+`FileControlKeyRule` row nor an `EntryClause`: `FileControlKeyRules.RequiredClauses` holds one
+`RequiredClause(Face, Printed, Applies, Written)` per such clause, `Printed` the SET of formats that print it
+unbracketed (the kinds of file it is required of follow from it), and `Screen` reports a missing one under
+COBOL5701 at the entry (`FileModel.EntryAt`) before any rule over the clauses that were written.
+`FileModel.AssignWritten` is the fact (`AssignTarget` cannot say: the bare `ASSIGN USING` form leaves it empty),
+`FileModel.HasSelect` keeps the screen off the FileModel the binder builds for an FD whose file-name no SELECT
+names (§13.4.5.3 SR1 reports that one). Nothing invents a target any more: `AssignTarget` is no longer defaulted
+to the file-name, which is what bound a SELECT with no ASSIGN to `<file-name>.txt`.
+`FileControlKeyRuleDriftTests.EveryFormat_PrintsExactlyTheRequiredClausesOfTheTableUnbracketed` re-reads the four
+printed diagrams on every run: EVERY line that opens with no bracket (SELECT aside) must be exactly one row's
+face, and each row must open a line in exactly the formats it says, so the next unbracketed clause a later
+edition prints is a failing test until it is a row.
 
 **WHICH FORMAT A CLAUSE SPECIFIES IS ONE TABLE TOO** (kb/Work PB773). §12.4.5.2 SR8, SR9, SR11 and SR13 tie a
 format to a file (Format 1 to an indexed file, Format 2 to a relative one, Format 3 to a sequential or report file,

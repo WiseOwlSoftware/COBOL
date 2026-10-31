@@ -196,12 +196,24 @@ public sealed class FileModel
     public string SelectName { get; init; } = "";
 
     /// <summary>The ASSIGN clause's TO-phrase target text — literal-1's decoded value or device-name-1 (ISO
-    /// §12.4.5.3 GR3 a); resolved to a host path at run time by <c>CobolFile.ResolveHostPath</c>. Defaults to the
-    /// file-name when no ASSIGN clause is present. ⛔ EMPTY for the bare <c>ASSIGN USING data-name-1</c> form, which
-    /// specifies no device-name-1/literal-1 at all: the connector then registers UNASSOCIATED and
+    /// §12.4.5.3 GR3 a); resolved to a host path at run time by <c>CobolFile.ResolveHostPath</c>. ⛔ NEVER DEFAULTED
+    /// TO THE FILE-NAME: an entry with no ASSIGN clause is refused (<see cref="AssignWritten"/>, §12.4.5.1 prints the
+    /// clause unbracketed in all four formats), and a target invented from the file-name is what made a file bind
+    /// to <c>&lt;file-name&gt;.txt</c> (kb/Work PB4236). EMPTY for the bare <c>ASSIGN USING data-name-1</c> form,
+    /// which specifies no device-name-1/literal-1 at all: the connector then registers UNASSOCIATED and
     /// <see cref="AssignUsingName"/>'s content associates it at each OPEN/SORT/MERGE (GR3 b). Defaulting it to the
     /// file-name there is what made a bare-USING file's records land in <c>&lt;file-name&gt;.txt</c>.</summary>
     public string AssignTarget { get; set; } = "";
+
+    /// <summary>Whether a SELECT clause named this file: false for the model built so a FILE SECTION entry's records
+    /// resolve when its file-name is in NO file control entry (ISO §13.4.5.3 SR1, COBOL1237's subject), which has no
+    /// entry for <see cref="FileControlKeyRules"/> to find a clause missing from.</summary>
+    public bool HasSelect { get; init; }
+
+    /// <summary>Whether the entry WROTE an ASSIGN clause — in either of its two forms (<c>ASSIGN [TO] … [USING …]</c>
+    /// and the bare <c>ASSIGN USING data-name-1</c>), which §12.4.5.1 prints with no bracket around it in all four
+    /// formats. <see cref="AssignTarget"/> cannot say: it is empty for the bare-USING form too.</summary>
+    public bool AssignWritten { get; set; }
 
     /// <summary>The ASSIGN clause's USING data-name-1 as written (ISO §12.4.5.3 GR3 b — dynamic file assignment,
     /// §9.1.21), resolved post-build to <see cref="AssignUsingItem"/>; null when the clause has no USING phrase.

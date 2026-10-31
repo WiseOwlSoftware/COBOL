@@ -77,25 +77,47 @@ public sealed class FileControlKeyRuleDriftTests
         }
     }
 
-    /// <summary>⛔ THE DIAGRAM HALF of the §12.4.5.1 Format 1 row, which no sentence can carry: the requirement
-    /// is that the printed indexed format writes the RECORD KEY clause with NO bracket around it. Asserted on the
-    /// RAW transcription line, because the general row check normalizes punctuation away and the diagram is
-    /// nothing but punctuation. The FILE STATUS and ALTERNATE RECORD KEY clauses of the same figure are the
-    /// contrast: both ARE bracketed, so a figure that had lost its brackets altogether would fail here too.
+    /// <summary>⛔ THE REQUIRED MEMBERS OF EVERY GENERAL FORMAT ARE RE-DERIVED FROM THE FOUR PRINTED DIAGRAMS ON
+    /// EVERY RUN (kb/Work PB4236). §12.4.5.1's figure notes say no choice indicators appear and every stacked group
+    /// is a plain brace or a plain bracket, so a clause whose line opens with NO bracket is a required member of the
+    /// format. The old guard asserted one clause (Format 1's RECORD KEY) and so could not see that ASSIGN, printed
+    /// unbracketed in all four, was screened by nothing. This one reads the diagrams: for each format, EVERY line
+    /// that opens with a letter (the SELECT line aside) must be exactly one <see cref="FileControlKeyRules.RequiredClauseCatalog"/>
+    /// row's face, and each row must open a line in exactly the formats it says it is printed in — so the next
+    /// unbracketed clause a later edition prints turns this red until it is a row.
+    /// <para>Asserted on the RAW transcription lines, because the general row check normalizes punctuation away and a
+    /// diagram is nothing but punctuation. The contrast is in the same figures: FILE STATUS and ALTERNATE RECORD KEY
+    /// are optional and open with a bracket, so a figure that had lost its brackets would fail here too.</para>
     /// <para>⚠ If this ever fails, RENDER THE PDF PAGE (<c>scripts/render-spec-page.py</c>) before changing the
-    /// rule — the OCR'd diagrams were systematically lossy toward falsely-restrictive syntax (CLAUDE.md rule 1).</para></summary>
+    /// table — the OCR'd diagrams were systematically lossy toward falsely-restrictive syntax (CLAUDE.md rule 1).</para></summary>
     [Fact]
-    public void IndexedFormat_PrintsTheRecordKeyClauseUnbracketed()
+    public void EveryFormat_PrintsExactlyTheRequiredClausesOfTheTableUnbracketed()
     {
-        var region = ClauseRegion(SpecLines(), "12.4.5.1");
-        // The PRIME key clause is the one whose line BEGINS with the clause (nothing to its left but blanks) —
-        // the ALTERNATE clause's line begins with the '│' of its own optional bracket, which is the contrast.
-        Assert.Single(region, l => l.TrimStart().StartsWith("<u>RECORD</u> KEY IS", StringComparison.Ordinal));
-
-        // The contrast, in the same figure: an OPTIONAL clause is written inside a bracket.
-        Assert.Contains(region, l => l.TrimStart().StartsWith("[ FILE <u>STATUS</u> IS", StringComparison.Ordinal));
-        Assert.Contains(region, l => l.Contains("<u>ALTERNATE</u> <u>RECORD</u> KEY IS", StringComparison.Ordinal)
-                                     && l.TrimStart().StartsWith('│'));
+        var printed = PrintedFormats();
+        Assert.Equal(4, printed.Count);
+        var rows = FileControlKeyRules.RequiredClauseCatalog;
+        Assert.Contains(rows, r => r.Face == "ASSIGN" && r.Printed == (FileFormats.Format1 | FileFormats.Format2 | FileFormats.Format3 | FileFormats.Format4));
+        foreach (var (format, block) in printed)
+        {
+            // A line the diagram opens with no bracket, box-drawing character or brace: the clause starts in column
+            // zero of its own line (Formats 2 to 4) or after the margin the outer Format 1 box leaves.
+            var opening = block.Split('\n').Select(l => l.Trim()).Where(l => l.Length > 0 && char.IsLetter(l[0])).ToList();
+            Assert.Single(opening, l => l.StartsWith("SELECT", StringComparison.Ordinal));
+            foreach (var line in opening.Where(l => !l.StartsWith("SELECT", StringComparison.Ordinal)))
+                Assert.True(rows.Count(r => line.StartsWith(r.Face, StringComparison.Ordinal)) == 1,
+                    $"Format {(int)Math.Log2((int)format) + 1} opens a line \"{line}\" with no bracket, so it is a required member, "
+                    + "and the RequiredClauses table has not exactly one row for it — add the row, or re-render the page.");
+            foreach (var row in rows)
+                Assert.True(row.Printed.HasFlag(format) == opening.Any(l => l.StartsWith(row.Face, StringComparison.Ordinal)),
+                    $"'{row.Face}': the table says Format {(int)Math.Log2((int)format) + 1} "
+                    + $"{(row.Printed.HasFlag(format) ? "prints" : "does not print")} it unbracketed, the printed diagram "
+                    + $"{(opening.Any(l => l.StartsWith(row.Face, StringComparison.Ordinal)) ? "does" : "does not")}.");
+        }
+        // The contrast, in the same figures: an OPTIONAL clause is written inside a bracket.
+        var format1 = ClauseRegion(SpecLines(), "12.4.5.1");
+        Assert.Contains(format1, l => l.TrimStart().StartsWith("[ FILE <u>STATUS</u> IS", StringComparison.Ordinal));
+        Assert.Contains(format1, l => l.Contains("<u>ALTERNATE</u> <u>RECORD</u> KEY IS", StringComparison.Ordinal)
+                                      && l.TrimStart().StartsWith('│'));
     }
 
     /// <summary>Where a row names a printed ORDINAL (its inventory rule-id carries one), the text it quotes is
@@ -108,7 +130,6 @@ public sealed class FileControlKeyRuleDriftTests
         int checkedRows = 0;
         foreach (var rule in FileControlKeyRules.Catalog)
         {
-            if (rule.RuleId is null) continue;
             var m = Regex.Match(rule.RuleId, @"^SR-(?<clause>[0-9.]+)-(?<n>\d+)$");
             Assert.True(m.Success, $"rule-id '{rule.RuleId}' is not the inventory's SR-<clause>-<n> shape.");
             Assert.Equal(rule.Clause, m.Groups["clause"].Value);
@@ -378,8 +399,12 @@ public sealed class FileControlKeyRuleDriftTests
             if (where.Contains("FileControlKeyRules", StringComparison.Ordinal)) claimed.Add(id);
             else if (where.Length > 0) locatedElsewhere[id] = where;
         }
-        var inTable = new SortedSet<string>(
-            FileControlKeyRules.Catalog.Where(r => r.RuleId is not null).Select(r => r.RuleId!), StringComparer.Ordinal);
+        var inTable = new SortedSet<string>(FileControlKeyRules.Catalog.Select(r => r.RuleId), StringComparer.Ordinal)
+        {
+            // The RequiredClauses table is the implementation of the general format's unbracketed members, which no
+            // numbered rule states: its inventory row is the format row (kb/Work PB4236).
+            "FMT-12.4.5.1",
+        };
 
         Assert.True(claimed.Count > 0,
             "no inventory row points at FileControlKeyRules — either the batch was never applied or the screen moved.");

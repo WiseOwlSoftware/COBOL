@@ -3926,6 +3926,25 @@ public static class DiagnosticCatalog
         + "BEFORE/AFTER pair (§14.9.51.3 / §14.9.51.4). The site names the rule it caught.",
         "ISO §14.9.41.3 / §14.9.51.3 / §14.9.51.4");
 
+    /// <summary>COBOL5701 — a file control entry omits a clause that the general format of its kind prints with NO
+    /// bracket around it (ISO §12.4.5.1, kb/Work PB4236): ASSIGN in all four formats, and RECORD KEY in Format 1. The
+    /// figure notes say every stacked group is a plain brace (exactly one) or a plain bracket (zero or one), so an
+    /// unbracketed clause is a required member of the entry. ONE code for the whole class because the rule is one:
+    /// the table is <c>FileControlKeyRules.RequiredClauses</c>, re-derived from the four printed diagrams by
+    /// <c>FileControlKeyRuleDriftTests</c>, so the next unbracketed clause a later edition prints is a row.
+    /// <para>The RECORD KEY absence was COBOL0863's until PB4236 moved it here: that code's subject is a key clause
+    /// that IS written and breaks a syntax rule, and an absent clause of any kind is a different edit.</para></summary>
+    public static readonly DiagnosticDescriptor FileControlClauseRequired = new(
+        "COBOL5701", "file-control-clause-required", EditionSeverity.Error,
+        "A file control entry omits a clause that the general format of its kind prints with no bracket around it. "
+        + "ISO §12.4.5.1 prints the ASSIGN clause unbracketed in Format 1 (indexed), Format 2 (relative), Format 3 "
+        + "(sequential) and Format 4 (sort-merge), so every SELECT entry shall specify one — either "
+        + "ASSIGN [ TO ] { device-name-1 | literal-1 } … [ USING data-name-1 ] or ASSIGN USING data-name-1 — and no "
+        + "file-name is bound to a name the program did not write; and it prints the RECORD KEY clause unbracketed in "
+        + "Format 1, so an indexed file shall specify one. The figure notes say that no choice indicators appear and "
+        + "every stacked group is a plain brace (exactly one) or a plain bracket (zero or one).",
+        "ISO §12.4.5.1 Formats 1 to 4");
+
     /// <summary>COBOL0863 — the FILE-CONTROL KEY-CLAUSE band: a RECORD KEY, ALTERNATE RECORD KEY or RELATIVE
     /// KEY clause (or the LINAGE-COUNTER qualifier that reads one of the same file description entries) violates
     /// its own rule. Covers ISO §12.4.5.1 (the file control entry's required clauses), §12.4.5.2 SR10 (RELATIVE
@@ -3942,8 +3961,7 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor FileKeyClauseRule = new(
         "COBOL0863", "file-key-clause-rule", EditionSeverity.Error,
         "A file control entry's key clause — RECORD KEY (ISO §12.4.5.12.3), ALTERNATE RECORD KEY (§12.4.5.6.3) "
-        + "or RELATIVE KEY (§12.4.5.13.3) — is absent where the organization requires it (§12.4.5.1 Format 1) or "
-        + "the access mode does (§12.4.5.2 SR10), names a data item that is not within a record description entry "
+        + "or RELATIVE KEY (§12.4.5.13.3) — is absent where the access mode requires it (§12.4.5.2 SR10), names a data item that is not within a record description entry "
         + "associated with the file (§12.4.5.12.3 SR2 / §12.4.5.6.3 SR2), or breaks one of the clause's other "
         + "syntax rules: all three state \"Data-name-1 and data-name-2 shall not be subject to any OCCURS "
         + "clauses\" (§12.4.5.12.3 syntax rule 1 and its twins), and RELATIVE KEY adds the unsigned-integer "
