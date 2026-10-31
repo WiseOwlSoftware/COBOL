@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.42.2",
+ "section": "15.42.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "FRACTION-PART function",
+ "rule-digest": "7a375760eb9f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
+ "test-ref": "conformance:cases/15.42.3-Argument-rule/l1_integer_family_notes; conformance:cases/15.42-FRACTION-PART/l1-fraction-part-arity; conformance:cases/15.7.4-Returned-value-rule/pb2_float_argument_exact_family",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§15.42.2's one-argument format written as printed (accept) and a two-argument list rejected COBOL1504 on §15.3's 'the definition of a function specifies the number of arguments required'; the COBOL1502 edition half is not spec-derivable and is left as residue.",
+ "state": "OK"
+}

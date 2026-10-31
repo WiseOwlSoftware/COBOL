@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.22.4-2",
+ "section": "14.9.22.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "INSPECT statement",
+ "rule-digest": "ab6d9b1f5e1c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/pb1128_inspect_identifier1_class_store",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1128 (landed w66k). GR2 a)-c): a zero-length identifier-1 leaves identifier-1 AND identifier-2 unchanged and control goes immediately to the end of the statement. InspectEmitter.Emit reads identifier-1's image once and wraps every pass and the write-back in `if (image.Length != 0)`, so the tallying pass no longer runs counter := counter + 0 (an arithmetic store that re-encoded a non-canonical counter image: '7 ' in a PIC 99 came back '07'). Witness N9: ZG's table at count 0, CG holding '7 ' reads '7 ' after INSPECT ZG TALLYING C2 FOR CHARACTERS.",
+ "state": "OK"
+}

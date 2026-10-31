@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-23",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 23,
+ "subject": "SET statement",
+ "rule-digest": "b1826972a98e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetFormatSelection.cs#Select; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#BindSetUpDown",
+ "test-ref": "conformance:cases/14.9.39-SET/pb449-set-mixed-pointer-receivers; conformance:cases/14.9.39-SET/pointer_arith; unit:SetFormatSelectionDriftTests.SelectionDoesNotDependOnTheOrderTheOperandsAreWritten",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB449. 'Identifier-9 shall be of category data-pointer' is now enforced over EVERY receiving operand of a Format-10 statement, including the first, and the format is selected from the whole receiving list rather than from receivers[0]. Before: SET P1 WS-N UP BY 4 drew a correct COBOL0869 citing SR23 while SET WS-N P1 UP BY 4 - the SAME two operands - compiled with zero diagnostics and aborted at run time on 'arithmetic into a non-fixed-point target P1'; source order is a variable in no rule of 14.9.39. PtrBinder.TryBindSetUpDown's drefs[0] peek is deleted; the SR23 screen (PtrResolvePointer, the COMMITTING resolve kb/Work PB221 required) now runs uniformly over drefs, so the first operand gets the 8.8.1.1 position screen the others always had. An index-name operand among the receivers is a CATEGORY refusal naming SR23, not COBOL1639 (the PB388 shape). MEASURED on this worktree's build at --std 2023: both orders now report COBOL0869 on WS-N at the same column.",
+ "state": "OK"
+}

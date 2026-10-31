@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.58.3-2",
+ "section": "13.18.58.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "TYPEDEF clause",
+ "rule-digest": "d1b79bfdcce7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandTemplate; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandType; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandTypes",
+ "test-ref": "conformance:cases/13.18.58-TYPEDEF/pb1302-recursive-typedef-unreferenced; conformance:cases/13.18.58-TYPEDEF/pb1302_forward_type_and_same_as",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1302 (wave 1019 D). SR2 is a property of the declaration: ExpandTypes completes every type declaration first (its chained TYPE clause, then every member's TYPE / SAME AS reference), and a declaration reached while still in progress is the recursion (COBOL1530) - self (`01 T TYPEDEF TYPE T.`), member (`05 B TYPE T` in T) and indirect (T1 -> T2 -> T1) shapes, referenced or not, in any declaration order. Copies never re-expand (CloneItem asserts a complete source).",
+ "state": "OK"
+}

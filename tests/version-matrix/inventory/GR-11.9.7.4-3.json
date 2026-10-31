@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.9.7.4-3",
+ "section": "11.9.7.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "ENTRY-CONVENTION clause",
+ "rule-digest": "946478a3b63c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#ScreenEntryConvention",
+ "test-ref": "conformance:cases/11.9.7-ENTRY-CONVENTION/pb232-entry-convention-name",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB232 (wave 56): the implementor-defined meaning is that NO entry-convention-name-1 is defined (docs/CONFORMANCE.md §7 DOC-A.1-64); one written is refused by name, COBOL2385. retired-witness: src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#EntryConventionOf (kb/Work PB298: the ENTRY-CONVENTION screen returns nothing now that the clause has no model field, so EntryConventionOf became ScreenEntryConvention (the same SR1 + GR3 checks, COBOL2385))",
+ "state": "OK"
+}

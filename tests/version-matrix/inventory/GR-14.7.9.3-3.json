@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.9.3-3",
+ "section": "14.7.9.3",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "RETRY phrase",
+ "rule-digest": "d2defae36429",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RetryLoop; src/WiseOwl.Cobol.Runtime/IO/RetryAttempt.cs#RetryAttempt; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#DeleteFile",
+ "test-ref": "unit:CobolFileLockTests.RetryForever_AgainstAHolderOutsideTheRunUnit_WaitsUntilTheOperationCompletes; unit:CobolFileLockTests.RetryAgainstAnOutsideHolder_PausesBeforeEachReattempt_AndOnlyThen; unit:SharingRefusalStatusTests.RetryForever_WaitsForAnotherRunUnitToRelease_DeleteFileAndOpen; unit:CobolFileLockTests.RetryLoop_LandsTheConflictsOwnStatus_ByClass; conformance:cases/14.7.9-RETRY/pb3340_retry_forever_own_run_unit_hold; unit:SequentialCommitControlTests.A_statement_meeting_another_run_units_journal_holding_retries_under_its_retry_phrase",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1163 landed (w73b). cite.py --check 14.7.9.3 \"If the FOREVER phrase is specified, the mass storage control system shall attempt to gain access to a locked resource until the input-output operation has been completed\" -> OK 3). Every attempt now names its holder (RetryAttempt.HolderOutsideRunUnit): Table 19's '61', OpenByAnotherConnector's '62' and every record lock are held INSIDE the run unit; FileConnector.Open's host-refusal '61' and HostFile.IsHeldByAnother's '62' are held OUTSIDE it. RetryLoop's FOREVER arm re-attempts every FileRegistry.RetryInterval (100 ms) while the holder is outside, until the operation completes; against an inside holder, which cannot release while the statement executes, it re-checks once and stops (the A.1 item 109 deadlock for a record, the conflict's own status for a file). Probe on the w73b build: DELETE FILE F RETRY FOREVER and OPEN INPUT RETRY FOREVER G, each held FileShare.None by another process for ~3 s: before DELFOREVER=62 / OPENFOREVER=61 after 68 ms with the file present; after 00 / 00, file deleted. D8 and DOC-A.1-109/165/166 corrected.",
+ "state": "OK"
+}

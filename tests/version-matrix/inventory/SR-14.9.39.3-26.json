@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-26",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 26,
+ "subject": "SET statement",
+ "rule-digest": "65bcb231feb0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetLocale; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#ResolveLocaleName",
+ "test-ref": "conformance:cases/14.9.39-SET/pb64t1-locale-name-undeclared; conformance-test:SetLocaleDispositionTests.SetLocale_IllegalShapes_DrawExactlyOneNamedRule",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T1 (2026-08-19): a TO operand that is neither a declared locale-name nor a data item is COBOL1664 (citing SR26 and SR27). Was DOCUMENTED-NON-SUPPORT (PB92).",
+ "state": "OK"
+}

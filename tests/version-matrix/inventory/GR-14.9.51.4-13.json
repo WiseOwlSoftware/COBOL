@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-13",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 13,
+ "subject": "WRITE statement",
+ "rule-digest": "950c3cb9a194",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Stored; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#TransfersPastRecord; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#SentRecordImage; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite",
+ "test-ref": "conformance:cases/14.9.51-WRITE/pb1907_write_past_record; conformance:cases/14.9.35-REWRITE/pb1907_keyed_rewrite_past_record; conformance:cases/14.9.35-REWRITE/pb1907_past_record_whole_record",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Annex A.2 item 64 (cite.py --check 14.9.51.4 'the content of the bytes that extend outside the end of record-name-1 are undefined' -> OK 13); 4.4 2) makes the run unit conforming. The content is a DOCUMENTED determination, docs/CONFORMANCE.md 3 D-WRT1 (owner decision 2026-10-01): a byte past record-name-1 is the record area's content at that position, a position no record description occupies is a space; the NUMBER of bytes stays ISO (13.18.43.4 GR13 a), GR6). Line sequential (GR21/GR22) and a varying file without DEPENDING (GR13 b) send record-name-1 itself. Pinned by the three goldens.",
+ "state": "OK"
+}

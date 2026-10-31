@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.40.4-1",
+ "section": "15.40.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "FORMATTED-DATETIME function",
+ "rule-digest": "02ee6c487824",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#EmitFormatted",
+ "test-ref": "conformance:cases/15.40.4-Returned-value-rules/l1_fdt_returned_value_combination",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "One date and one INTEGER seconds value (45296) through every 15.3.3.7 combined shape over all six 15.3.1.1 date formats, plus two fraction widths carried by values that are exact at their own width -- excess precision is deliberately never presented, because no normative clause says whether it is truncated or rounded. Four of the six shape values are independently rendered by the 2014 twin. The week values are derived from 15.3.1.7 and deliberately contradict Annex D.31.5.2, which is in error.",
+ "state": "OK"
+}

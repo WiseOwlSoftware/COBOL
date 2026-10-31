@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.51.3-11",
+ "section": "14.9.51.3",
+ "kind": "SR",
+ "ordinal": 11,
+ "subject": "WRITE statement",
+ "rule-digest": "d6d62157f88f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#Write; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFromPhrase",
+ "test-ref": "conformance:cases/14.9.51-WRITE/l1_write_from_national_fn; conformance:cases/14.9.32-RELEASE/pb348-write-from-integer-function; conformance:cases/8.4.3.1-Identifier/pb10_function_identifier_sending",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "No-FILE arm: a national function is admitted and written (new golden), an integer function is refused (COBOL1914), an alphanumeric function is admitted (pb10). The boolean arm is not pinned because SR4 contradicts SR11 there.",
+ "state": "OK"
+}

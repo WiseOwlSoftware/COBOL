@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.18.3-7",
+ "section": "14.9.18.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "GOBACK statement",
+ "rule-digest": "7232679be301",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#ScreenStatusOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#IsIntegerLiteralText; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#DecodeGobackPhrases",
+ "test-ref": "conformance-test:StopGobackExitCodeTests.NonNumericStatusOperand_IsLegalAndInterpretedNumerically; conformance-test:StopGobackExitCodeTests.TheStatusPositionsOwnRules_AreEnforcedAndCited; conformance-test:GobackStatusArmParityTests.AStatusRuleBrokenInAMethod_IsRejectedExactlyAsInAProgram",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work/PB411.md - LANDED. The rule is CONDITIONAL ('If literal-1 is numeric') and the screen honours the conditional in both directions: a non-numeric literal-1 is admitted and a non-integer numeric literal is rejected with COBOL1704 citing SR3/SR7. The PARTIAL was the METHOD arm, which never ran the rule at all - 'GOBACK WITH ERROR STATUS 1.5.' inside a method compiled clean at 2023/2014/2002 because the OO binder re-decoded the parse node and never read g.statusPhrase(). The decode now happens ONCE before the fork (CallBinder.DecodeGobackPhrases) and the method arm takes the decoded record, so the rule is unreachable-proof rather than merely present; the parity theory carries a method-context row for this exact literal and asserts the same diagnostic as the program arm.",
+ "state": "OK"
+}

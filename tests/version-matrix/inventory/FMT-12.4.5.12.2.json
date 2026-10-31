@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-12.4.5.12.2",
+ "section": "12.4.5.12.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "RECORD KEY clause",
+ "rule-digest": "dc0639616e62",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#recordKeyClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#recordKeySourcePhrase; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CaptureRecordKeySource",
+ "test-ref": "conformance:cases/12.4.5.12-RECORD-KEY/pb354_start_generic_key_ok; conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099_record_key_source; conformance-test:FileControlKeyRuleSpecTests.SourcePhrase_CompilesFrom2002_AndIsAnIntroductionBelow; conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099-record-key-source-85",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely — item 2: a rule HALF inside a declined facility takes its LIVE half's verdict; the declined half (the record-key-name-1 SOURCE alternative, A.3 item 40) parses and is refused by name (COBOL1954). The data-name-1 alternative matches the grammar's recordKeyClause. ||  kb/Work PB1099 Q1 (w1095i): the record-key SOURCE phrase is PROVIDED (owner rule R65); both key forms are provided; the SOURCE form is post-1985 (record-key-source-2002). retired-witness: conformance:cases/14.9.41-START/pb358-record-key-source-optional-words (the COBOL1954 decline of the SOURCE phrase is retired: kb/Work PB1099 provides it)",
+ "state": "OK"
+}

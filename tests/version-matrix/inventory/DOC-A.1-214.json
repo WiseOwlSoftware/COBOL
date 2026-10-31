@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-214",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 214,
+ "subject": "USAGE OBJECT REFERENCE clause (amount of storage allocated)",
+ "rule-digest": "780ccf6f5fae",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-214; src/WiseOwl.Cobol.Compiler/Binding/Model/TierCIsland.cs#TierCIsland; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Sr1Offence",
+ "test-ref": "conformance:cases/13.18.60-USAGE/pb496_object_reference_storage; conformance:cases/13.18.29-GROUP-USAGE/pb61_length_byte_length_rule_branches; conformance:cases/A.1-Implementor-defined-language-element-list/pb1527_object_reference_group_image; conformance:cases/A.1-Implementor-defined-language-element-list/pb1527-string-object-reference-group",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1527 (wave 1011 A, DISCHARGED as a crash). Re-probed: a group holding an OBJECT REFERENCE or POINTER leaf is legal only under a STRONG type (13.18.60.3 SR14), and a strongly-typed group is a bind error as a STRING/UNSTRING operand (PB244: Sr1Offence COBOL1626, Sr2OffendingCategory COBOL1651), so the Tier-C run-time abort is unreachable through these verbs. DISPLAY and MOVE read the 8-position placeholder image (the golden); the old CONFORMANCE.md warning that STRING compiles and aborts was stale and is rewritten.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.28.3-12",
+ "section": "14.9.28.3",
+ "kind": "SR",
+ "ordinal": 12,
+ "subject": "PERFORM statement",
+ "rule-digest": "c8805f26442b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureOperand; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#RejectProcedureName",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/pb390-perform-unknown-procedure-name-1; conformance:cases/8.4.4-Condition-name/pb390_procedure_and_condition_operands; unit:DecidedRuleStageDriftTests.DecidedRule_IsACompileTimeError_NamingTheRule_AndNeverTheDeferralWarning; conformance-test:OoSpineTests.Trap10_CrossMethodPerform_IsRefusedAtCompileTime",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB390.md — The predicate was always right; the STAGE was the defect, and it is fixed. An unresolvable procedure-name-1 now draws COBOL1639 at bind, quoting SR12 in full, from the ONE procedure-name operand resolution (ProcedureTableBuilder.ResolveProcedureOperand → StatementValidation.RejectProcedureName) that PERFORM, GO TO, GO TO … DEPENDING, ALTER, RESUME AT and the SORT/MERGE INPUT/OUTPUT PROCEDURE phrases all enter; the silent twin is renamed ResolveProcedureQuiet and left to the two prescans that do not bind. Before this the verdict was a BoundUnsupported, which StatementEmitter renders as NotImplemented.Run(...): the program compiled, an assembly was produced, and the run unit aborted with an unhandled .NET exception claiming WiseOwl COBOL had not implemented a feature — the diagnosis sent to the wrong party, and on an unexecuted path not sent at all, where ISO §4.2.2 ¶2 requires the compile-time mechanism. Both halves of the rule are covered: 'the name of either a paragraph or a section' by the negative and by the positive golden's paragraph / SECTION / qualified / THRU targets, and 'in the same source element' by the OO method-local case (§11.7), whose test moved from requiring the run-time throw to requiring the compile-time diagnostic. What must NOT be rejected is pinned by the same positive golden: an inverted THRU range, a section target, and a qualified procedure-name all still compile and run.",
+ "state": "OK"
+}

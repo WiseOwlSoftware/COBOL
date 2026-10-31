@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.76.4-1",
+ "section": "15.76.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "RANGE function",
+ "rule-digest": "23c6dc7d34e5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#RangeScaled; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#RangeReal; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AnyRealArgument",
+ "test-ref": "conformance:cases/15.76.4-Returned-value-rule/pb252_native_carrier_boundary; conformance:cases/15.7.4-Returned-value-rule/pb2_float_argument_exact_family; unit:ExactCarrierBoundaryDriftTests.AtTheBoundary_TheExactCarrierRaisesEcSizeOverflow",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "CONFORMS -> CONFORMS 2026-09-05, evidence WIDENED (kb/Work PB252). The verdict is unchanged and is not being re-argued; what changes is that its evidence had examined ONE of RANGE's three lanes. The row's code-location and its only test-ref were both the FLOAT lane (RangeReal, pb2_float_argument_exact_family), so nothing had ever exercised the NATIVE fixed-point lane -- and that lane was `MaxScaled(xs) - MinScaled(xs)` on an unchecked Int128, which MEASURABLY returned a NEGATIVE value: with two 31-digit arguments of opposite sign aligned to scale 8, the difference 3.4e38 exceeded Int128.MaxValue and wrapped, and the wrapped value FIT the receiver, so it was stored silently. Sec.15.76.4 r1's expression is '(FUNCTION MAX (argument-list) - FUNCTION MIN (argument-list))' (--check OK) and Sec.15.59.4 r1 / Sec.15.63.4 r1 select the greatest and the least of the SAME list (--check OK), so MAX >= MIN and RANGE can never be negative in any arithmetic mode -- the returned value was outside the rule's range, not merely imprecise. RangeScaled now subtracts through the checked ExactSub and escapes to EC-SIZE-OVERFLOW at the D1 boundary (Sec.14.7.5 rule 5). conformance:cases/15.76.4-Returned-value-rule/pb252_native_carrier_boundary carries the case as a DISJUNCTION over the only two conforming outcomes -- the exact value, or the size error with the receiver unchanged (Sec.14.7.5 rule 1) -- plus the sign consequence and a control inside the carrier, so it pins no implementor determination; it prints RANGE-SIGN=NEGATIVE on the pre-fix build. A green row whose evidence never looked at the failing arm is the shape this widening exists to remove.",
+ "state": "OK"
+}

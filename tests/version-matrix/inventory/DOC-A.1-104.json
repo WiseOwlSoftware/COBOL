@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-104",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 104,
+ "subject": "I-O status (if more than one value applies)",
+ "rule-digest": "513159423b75",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-104; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#NoRewindPhraseEffect",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/pb317_open_no_rewind",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§9.1.13.1 (cite.py OK) 'If more than one value applies, the implementor determines which of the applicable values to place'; A.1-104 is required but need not be documented, so the row is VOLUNTARY (like 90/92/123/144). Verified by code reading (FileConnector.SequentialReadGuard orders 47/46/10 and SequentialReadReachesRetrieval keeps a '51' from preempting them; FileRegistry.NoRewindPhraseEffect overlays '07' only on a '0'-first-digit status) and by re-running golden 2023/pb317_open_no_rewind at the branch build: output identical to .out (OPT-ABSENT=07), probe copy /tmp/adj/doc/doc-w1-s4/probe/p104.out. Owning note PB1534/PB1522 step 3; the 07-vs-05 determination was kb/Work PB317.",
+ "state": "OK"
+}

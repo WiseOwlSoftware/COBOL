@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.22.4-17",
+ "section": "14.9.22.4",
+ "kind": "GR",
+ "ordinal": 17,
+ "subject": "INSPECT statement",
+ "rule-digest": "1d16bf4ae9ca",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Replace; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#OpenLeadingAnchors",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/pb1124_inspect_leading_anchor_at_first_eligible_cycle; conformance:cases/14.9.22-INSPECT/pb1152_inspect_backward_leftmost_match_at_current_position",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1124: REPLACING LEADING shares the one anchor rule with TALLYING LEADING.",
+ "state": "OK"
+}

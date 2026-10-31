@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.27.3-1",
+ "section": "13.18.27.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "GLOBAL clause",
+ "rule-digest": "fe6994220d8e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ClausePlacementRules; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.16-Data-description/pb518-global-below-level-1; unit:DataClausePlacementDriftTests.MisplacedExternalOrGlobal_IsRefused_AndNeverRegistered; conformance:cases/8.4.6.2-Local-and-global-names/pb163_global_local_storage; conformance:cases/8.6.7-Sharing-data-items/pb1009_global_linkage_formal; conformance:cases/13.18.27-GLOBAL/pb369_global_file_use_selection; conformance:cases/13.18.27-GLOBAL/pb369_global_report_use_selection",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: \"The GLOBAL clause may be specified only in the following entries: a) A constant entry. b) A data description entry whose level-number is 1 that is specified in the file, working-storage, local-storage, or linkage section. c) A screen-description entry whose level-number is 1. d) A file description entry. e) A report description entry.\" cite.py --check 13.18.27.3 \"A data description entry whose level-number is 1 that is specified in the file, working-storage, local-storage, or linkage section\" -> OK §13.18.27.3 1) b); twin cite.py --check 13.16.3 \"The CONSTANT RECORD and GLOBAL clauses may be specified only in data description entries whose level-number is 1\" -> OK §13.16.3 6). Code: DataBinder.ClausePlacement row (DataClauseKind.Global, Residence, '§13.16.3 SR6 / §13.18.27.3 SR1 b)', EntrySections.All) -> COBOL2404. PROBES @0caa7d5. ADMITTED (compile + run clean): `01 K CONSTANT IS GLOBAL AS 5` and `1 K2 CONSTANT GLOBAL AS 'AB'` (a) at 2023 (constant entry is 2002+, COBOL0900 at 85); `01 ... GLOBAL` in FILE (incl. under an SD, and `1 W GLOBAL`), WORKING-STORAGE, LOCAL-STORAGE, LINKAGE (b) at 2002/2023; `FD F IS GLOBAL` (d); `RD RPT IS GLOBAL` (e); `01 T TYPEDEF GLOBAL` (a level-1 data description entry; §13.18.58.4 GR3). REFUSED: `77 X77 PIC X GLOBAL` and `05 X05 PIC X GLOBAL` -> COBOL2404 at 85 and 2023; `88 ... GLOBAL` -> COBOL1747; `66 R66 RENAMES A GLOBAL` -> COBOL0307; report group `01 RG TYPE DETAIL GLOBAL` -> COBOL0307; `SD S GLOBAL` (an SD is not a file description entry; §13.4.6.2 prints no GLOBAL) -> COBOL0307. Arm c) is the declined screen module (docs/CONFORMANCE.md#A.4.2 Not claimed): `01 SG GLOBAL` in a SCREEN SECTION -> COBOL1560 (witness a42-screen-global), which A.4.1 makes the conforming posture. kb/Work PB1045 (open) claims this row but its own 2026-09-24 addendum records the SR1 arms refused COBOL2404 (PB518) and its open part is the SR4 arm (SR-13.18.27.3-4, not this row).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.15.3-1",
+ "section": "14.9.15.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "FREE statement",
+ "rule-digest": "83191232a875",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#BindFree; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#PtrResolvePointer",
+ "test-ref": "conformance:cases/14.9.15-FREE/free-non-pointer",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "\"The data item referenced by data-name-1 shall be of category data-pointer\" (cite.py --check 14.9.15.3 -> OK SR1). BindFree resolves every operand through PtrResolvePointer, which accepts only PicCategory.Pointer (data-pointer; ProgramPointer/FunctionPointer are distinct categories) else COBOL0869 and BoundRejected. Probes: f4 `FREE PP` (USAGE PROGRAM-POINTER) -> COBOL0869 'a FREE operand (ISO 14.9.15.3 SR1 - data-pointers only) shall be a USAGE POINTER data item'; f5 `FREE ADDRESS OF B` (vendor form) rejected; negative golden free-non-pointer (PIC X(5) operand, reject-at 2002 2014 2023) pins the diagnostic and is spec-derived. || editions as adjudicated: 2002, 2014, 2023 (FREE is absent from ISO 1989:1985; the 2023 Annex E records only 2014->2023 changes, and 14.9.15 is unchanged text in 2014/2023)",
+ "state": "OK"
+}

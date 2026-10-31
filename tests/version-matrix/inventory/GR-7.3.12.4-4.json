@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.12.4-4",
+ "section": "7.3.12.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "DISPLAY directive",
+ "rule-digest": "1dcf526f268e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#CompilerDirectiveLine; src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#display-directive-2023; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.Display.cs#ApplyDisplay",
+ "test-ref": "unit:DisplayDirectiveTests.OperandsAreTransferredInOrderAsOneLine; unit:DisplayDirectiveTests.SeveralDirectives_TransferInTheOrderMet; unit:DisplayDirectiveTests.ACompilationVariableName_IsAnOperand",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1538 landed (w1004b). Operands are evaluated and transferred in the order written (one line per directive, images joined by one space) and directives in the order encountered.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.29.4-2",
+ "section": "14.9.29.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "RAISE statement",
+ "rule-digest": "c1d023700f41",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitRaiseObject; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#SetObject",
+ "test-ref": "conformance-test:OoSpineTests.RaiseObject_NoDeclarative_ContinuesNextStatement",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "\"If identifier-1 is specified, EXCEPTION-OBJECT is set to reference the object referenced by identifier-1. If there is no applicable declarative, processing continues with the statement following the RAISE statement.\" (cite.py --check 14.9.29.4 -> OK §14.9.29.4 2)). EmitRaiseObject calls ExceptionState.SetObject(obj) then dispatches F4 declaratives, continuing after the RAISE on complete / RESUME NEXT / no match. Probes: probe/raise/gr2.cob (no declaratives) prints 'A0 EXCEPTION-OBJECT' then continues, including a RAISE of a reference holding NULL at runtime ('A1'); probe/raise/sr2b.cob (USE AFTER EO CERR2) runs the handler and continues after each of RAISE E / RAISE U / RAISE EXCEPTION-OBJECT; conformance:cases/14.6.13.1.5-Exception-objects/oo_ec_raise_object shows the handler reading the same object back (REGISTER-SET). Both halves verified; edition 2002 probed identically.",
+ "state": "OK"
+}

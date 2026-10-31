@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-60",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 60,
+ "subject": "Dynamic-capacity table (determination of highest permissible occurrence number)",
+ "rule-digest": "04c9a3bc8450",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-60; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#MaxOccurrences; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#GrowTo; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#RefReceiving; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#SetCapacity",
+ "test-ref": "unit:CobolDynTableTests.SetCapacity_BeyondRuntimeResources_LeavesTheCapacityUnchanged; conformance:cases/8.5.1.9.6-Exceeding-capacity/pb463_dyn_implementor_maximum",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "w70c (kb/Work PB1268 landed). A.1 item 60 (8.4.2.3): cite.py --check 8.4.2.3.4 'The highest permissible occurrence number for any given dimension of a dynamic-capacity table is implementor-defined and may be affected by the availability of runtime resources' -> OK 8.4.2.3.4 2). docs/CONFORMANCE.md section 7 DOC-A.1-60 carries the determination (the smaller of CobolDynTable.MaxOccurrences = 0x3FFFFFFF and the largest capacity the process can allocate), the implementing sites (GrowTo / Enlarged / SetCapacity; the resource arm landed with kb/Work PB1410) and the witnesses (unit CobolDynTableTests.SetCapacity_BeyondRuntimeResources_LeavesTheCapacityUnchanged, conformance 2023/pb463_dyn_implementor_maximum); audit_annex_a1.py --check reports no findings on the w70c tree. The adjacent subscript arm this row named (EC-BOUND-SUBSCRIPT on RefSending / RefReceiving for an occurrence outside the current capacity or below one) now raises (golden 2023/w70c_pb1268_dynamic_table_bound_subscript). Owner decision kb/Work PB1535 (landed) settled how DOC rows are recorded.",
+ "state": "OK"
+}

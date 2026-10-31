@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.3.2.3-6",
+ "section": "8.3.3.2.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "Alphanumeric literals",
+ "rule-digest": "e6c0e2b977bc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#HexGroupViolation; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#HEXLIT; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#ParseOperandFragment",
+ "test-ref": "conformance:cases/8.3.3.2-Alphanumeric-literals/r03-hex-literal-digit-grouping; conformance:cases/8.3.3.2-Alphanumeric-literals/pb1393-concat-operand-hex-grouping; conformance-test:LiteralScreenTests.HexGrouping_IsScreenedAtEveryPosition; conformance:cases/8.3.3.2-Alphanumeric-literals/pb1393_hex_literal_positions; conformance:cases/8.3.3.2-Alphanumeric-literals/pb1616-define-hex-odd; conformance:cases/8.3.3.2-Alphanumeric-literals/pb1616-omitted-branch-hex-odd; conformance-test:DirectiveLiteralScreenTests.HexGrouping_IsScreenedAtEveryDirectivePosition",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1393 (w61g). cite.py --check 8.3.3.2.3 \"Each hex-character-sequence-1 shall consist of the number of hexadecimal\" -> OK SR6 (implementor's number: two, DOC-A.1-9). The refuter's hole is closed: \"Z\" & X\"4\" (a concatOperand), ALL \"A\" & X\"4\" and the keyword-omitted LENGTH(X\"414\") are each rejected COBOL1635 once; the screen is on the literal TOKEN (LiteralScreenPass), and an X\"...\" inside a subscript or a keyword-omitted argument list is the ordinary HEXLIT token (kb/Work PB2113 deleted the SUBSCRIPT lexer mode), so the screen sees it. Well-formed values unchanged (pb1393_hex_literal_positions: LENGTH(X\"4142\")=2). retired-witness: src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4#SUB_HEXLIT (kb/Work PB2113 deleted the SUBSCRIPT lexer mode; a literal inside a subscript or keyword-omitted argument list is the ordinary HEXLIT token) retired-witness: src/Cobol.Net.Compiler/Validation/LiteralScreenPass.cs (kb/Work PB1616 moved LiteralScreenPass (Compiler/Validation) to LiteralScreen (Frontend/Parsing) so the directive lane asks the same body; the witness is the same code at its new path)",
+ "state": "OK"
+}

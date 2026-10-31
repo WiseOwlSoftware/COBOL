@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.38.3-3",
+ "section": "13.18.38.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "OCCURS clause",
+ "rule-digest": "a9ea35d34770",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#OccursKeyResolve",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb1018-occurs-key-not-within-table; conformance:cases/13.18.38-OCCURS/pb1018_occurs_key_qualified; conformance:cases/13.18.38-OCCURS/pb1018_table_sort_qualified_keys",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1018. cite.py --check 13.18.38.3 \"the name of either the entry containing the OCCURS clause or an entry subordinate to the entry containing the OCCURS clause\" -> OK SR3. Every data-name-2 is resolved ONCE by the post-build OccursKeyResolve pass over the table's OWN subtree (DataBinder.SubtreeCandidates), narrowed by its WRITTEN qualifiers and counted by the ONE ambiguity verdict (8.4.2.2.3 SR1, COBOL1639); a key naming nothing there, and a SUBSEQUENT key naming the table entry itself, is COBOL2353. Before PB1018 nothing checked the phrase at all (an unknown key compiled clean) and the lookup took the first same-named item under the table.",
+ "state": "OK"
+}

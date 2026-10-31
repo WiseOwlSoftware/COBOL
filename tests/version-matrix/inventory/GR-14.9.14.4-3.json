@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.14.4-3",
+ "section": "14.9.14.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "EXIT statement",
+ "rule-digest": "2f3fb75a6e6f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitExitProgram; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitRaisingStage; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitPropagationPickup; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#TakeRaisedPropagation; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs",
+ "test-ref": "conformance:cases/14.9.14-EXIT/pb408_raising_enablement_locus; conformance-test:ExceptionConditionConformanceTests.ExitProgramRaising_ActivatorEnabled_CalleeDisabled_RaisesInTheActivator; conformance-test:ExceptionConditionConformanceTests.ExitProgramRaising_InCalledProgram_Propagates",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB406.md - LANDED (part 2); part 1 stands as a recorded defect in the STANDARD. PART 1, UNCHANGED AND NOT TO BE 'FIXED' IN specs/ISO_COBOL.md: GR3 sends a CALLED-program EXIT PROGRAM to '14.9.18, GOBACK statement, General rules 3 and 4', but 14.9.18.4 GR3 is the NOT-under-control case ('operates as if executing a STOP statement') and GR4 is the within-a-METHOD case, so neither can apply to a statement whose own condition is UNDER the control of a calling element; taken literally a called-program EXIT PROGRAM would stop the run unit, contradicting 14.9.14.1 ('marks the logical end of a called program'). The rules that match the stated condition are GR1 (the RAISING phrase raises the condition in the ACTIVATOR) and GR2 (terminate, return, deliver the header RETURNING value, run the INITIAL implicit CANCEL). VERIFIED FAITHFUL against the canonical PDF page 655 (printed 625) - the standard itself prints the wrong ordinals. PART 2 IS NOW FIXED. The intended reading imports GOBACK GR1 b), whose enablement test the compiler took in the RAISING element; kb/Work PB408 moved it to the ACTIVATING element for both verbs at once, because EXIT PROGRAM RAISING and GOBACK RAISING stage through the one CallEmitter.EmitRaisingStage and pick up through the one EmitPropagationPickup. The row's original test-ref exercised the both-enabled configuration, the one configuration in which the locus is invisible; PB406 section 6 asked for 'a golden of the gr3-actvon-suboff shape, plus the sub-on/activator-off complement' and 2002/pb408_raising_enablement_locus carries exactly that pair for EXIT PROGRAM (PB408S5: activator ON / callee OFF, the activator's declarative runs; PB408S6: activator OFF / callee ON, nothing is raised), alongside the GOBACK pair. The three legs the adjudication measured green - RAISING propagation, the header RETURNING value, the INITIAL implicit CANCEL - are unchanged and still green. GOBACK GR1 a) (a non-COBOL activator) now carries its 4.2.16 determination in docs/CONFORMANCE.md section 3.",
+ "state": "OK"
+}

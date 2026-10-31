@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.63.4-19",
+ "section": "13.18.63.4",
+ "kind": "GR",
+ "ordinal": 19,
+ "subject": "VALUE clause",
+ "rule-digest": "56a91d11b9fd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#InitializerFrom; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#EditedImageOfNumericValue",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb560_condition_value_is_the_value_clause_85; conformance:cases/13.18.63-VALUE/pb560_condition_value_numeric_edited_2023; conformance:cases/13.18.63-VALUE/pb560-numeric-edited-value-below-2023; unit:ConditionValueRecipeDriftTests.TheNumericEditedValueImage_HasExactlyThreeReaders; unit:ConditionValueRecipeDriftTests.TheNumericEditedValueImage_IsPhaseNeutral",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB560 (verdict unchanged, LANDED) - TEST-REF REPAIRED IN THE CHANGE SET THAT RENAMED THE TEST (kb/Work PB920). The drift test this row rests on asserted the §13.18.63.3 SR6 edited-image composer had exactly TWO readers; PB920's fix makes the BINDER a third, DELIBERATELY - §13.18.63.3 SR26 and SR27 compare \"the value of\" two VALUE-clause operands, and on a numeric-edited subject that value IS the edited image, so a screen that composed its own would be the very drift the test exists to catch. The assertion was therefore renamed to TheNumericEditedValueImage_HasExactlyThreeReaders with the third reader named in its own doc comment, and a second assertion, TheNumericEditedValueImage_IsPhaseNeutral, pins the signature that keeps the composer callable from binding (it takes (dialectLevel, decimalPointIsComma), never an EmitContext - an EmitContext parameter is exactly how a second copy of SR6 gets written). Both are named here so this row's evidence follows the rename rather than pointing at a method that no longer exists, which SpecTraceabilityInventoryDriftTests.EveryTestRef_ResolvesToARealTest caught at the gate.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.28.4-16",
+ "section": "14.9.28.4",
+ "kind": "GR",
+ "ordinal": 16,
+ "subject": "PERFORM statement",
+ "rule-digest": "1adf8e185dfc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs#CheckCrossStatementBans",
+ "test-ref": "conformance-test:PerformFormat3BehaviorTests.Finally_RunsOnNormalPath; conformance:cases/14.9.28-PERFORM/pb434-finally-transfer-out; conformance:cases/14.9.28-PERFORM/pb434_finally_exit_perform_admitted",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work/PB434.md (wave 1021 C) — all four sentences conform. Sentence 2, \"There shall be no statements that include a transfer of control out of the PERFORM statement within imperative-statement-5\" (cite.py --check 14.9.28.4 OK 16)), is enforced by Region E of EcBinder.CheckCrossStatementBans: GO TO, EXIT PARAGRAPH/SECTION/PROGRAM/METHOD/FUNCTION, GOBACK and NEXT SENTENCE in the FINALLY subtree draw COBOL2927 at the statement (negative pb434-finally-transfer-out: five codes). EXIT PERFORM in imp-5 stays the implicit CONTINUE after END-PERFORM (sentence 3), an inline PERFORM's EXIT PERFORM nested in FINALLY and an out-of-line PERFORM from FINALLY are admitted (positive pb434_finally_exit_perform_admitted: IMP1/LOOP 1/SUB 2/FIN-END/DONE). STOP is admitted by determination: it ends the run unit (14.9.42.4 GR1), not a transfer of control within it. Sentences 1 and 4 unchanged (the __f3fin label before FINALLY; with no FINALLY the end is END-PERFORM).",
+ "state": "OK"
+}

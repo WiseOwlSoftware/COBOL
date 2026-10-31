@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.5.4-10",
+ "section": "14.9.5.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "CANCEL statement",
+ "rule-digest": "e14806eb1a02",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Cancel",
+ "test-ref": "conformance:cases/14.9.5-CANCEL/pb154_cancel_scope",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB154): CANCEL never probes (probe:false), so a non-COBOL module is unreachable from CANCEL by construction and the implementor-defined effect is a decided 'no effect' rather than an incidental one. A.1 item 19 is discharged in docs/CONFORMANCE.md section 7 (result of canceling a non-COBOL program: no effect; CANCEL performs no sibling-module probe). The CALL-CONVENTION directive (§7.3.9) remains unimplemented but no longer bears on CANCEL's disposition (the prior row note's '7.3.4 GR2' locus for it was an inherited miscitation - §7.3.4 contains no CANCEL text).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.97.4-4",
+ "section": "15.97.4",
+ "kind": "RV",
+ "ordinal": 4,
+ "subject": "UPPER-CASE function",
+ "rule-digest": "29ece2ad03a3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#UpperCase; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#UpperCase; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/pb64t5_case_locale_phrase; unit:CobolLocaleTests.CaseMapping_FollowsTheLocalesLcCtype",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB64 T5 (2026-08-19): the implementor's correspondence — the .NET invariant case tables (CONFORMANCE.md §3, the case-mapping bullet; Annex A item 35 needs no documentation) — is now the ELSE-ARM it is meant to be: taken when no LOCALE phrase is given and the module has no classification for the operand's class (the PLAIN program → 74 even while LC_CTYPE is Turkish; the null-facts unit arm). At 85 it is the only behaviour. Rule --check verified at 15.97.4 4).",
+ "state": "OK"
+}

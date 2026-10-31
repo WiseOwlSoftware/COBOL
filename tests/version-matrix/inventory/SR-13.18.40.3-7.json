@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-7",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "PICTURE clause",
+ "rule-digest": "459081c85b3b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Parsing/PictureSeparatorPeriodRule.cs; src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs#LexAndParse; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#PIC_STRING",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb569_picture_trailing_symbol_last; conformance:cases/13.18.40-PICTURE/pb569-picture-comma-not-last; conformance:cases/13.18.40-PICTURE/pb569-picture-period-not-last; unit:KeywordSpellingDriftTests.PictureTrailingSymbol_IsFollowedByTheSeparatorPeriod",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB569 LANDED. SR7 is decided from the characters PICMODE delimited: after PIC_STRING's single trailing-separator trim, a character-string whose last symbol is ',' or '.' shall be followed immediately by the separator period (PictureSeparatorPeriodRule, every PICTURE parent, once per clause); otherwise COBOL2419 at all four editions. Both arms: PIC 999,, USAGE DISPLAY. and PIC 999,; VALUE ZERO. (the ',' arm the refutation measured) AND PIC 999., VALUE ZERO. / PIC 999.; VALUE ZERO. (the '.' arm, which the refutation called structural and which compiled silently as [000.]). The legal shapes bind: PIC 999,. -> [012,], USAGE DISPLAY PIC 999,. -> [005,] (PICTURE last after another clause), PIC 999.. -> [012.], and PIC 999, VALUE ZERO. is character-string 999 + a separator comma (8.3.5 rule 2) -> [000].",
+ "state": "OK"
+}

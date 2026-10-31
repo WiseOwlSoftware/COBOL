@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.2.3-7",
+ "section": "8.4.3.2.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "Function-identifier",
+ "rule-digest": "3f331a4aaf0a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindArgOperand",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/func-omitted-arg",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR7 (cite.py --check 8.4.3.2.3 'The word OMITTED shall not be specified if intrinsic-function-name-1 is specified' -> OK §8.4.3.2.3 7)). The grammar admits OMITTED as a superset functionArgument, and BindArgOperand rejects it with COBOL1544 for every intrinsic. User functions bind OMITTED through their own arm in UdfActivate, before BindArgOperand is reached. Probe out/probe/function-identifier/p11_sr7.cob FUNCTION UPPER-CASE(OMITTED) -> COBOL1544. conformance:cases/8.4.3.2-Function-identifier/func-omitted-arg (MAX(OMITTED, 4)) expects COBOL1544 at 2014 and 2023. || editions as written by the adjudicator: 1985 (Amendment 1), 2002, 2014, 2023 - applies to every function-identifier. Annex E (2014->2023) lists no change to 8.4.3.2",
+ "state": "OK"
+}

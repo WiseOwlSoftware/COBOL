@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.49.3-5",
+ "section": "13.18.49.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "SAME AS clause",
+ "rule-digest": "05d537c0144b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAs",
+ "test-ref": "conformance-test:SameAsTests.SameAsOfOccursEntry_Rejected1556",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR5 (--check 13.18.49.3 -> OK 5)). Both halves: `target.Occurs is not null || target.OccursSpec is not null` -> COBOL1556 (SameAsOfOccursEntry_Rejected1556); the permission half 'items subordinate to data-name-1 may contain OCCURS clauses' - probe p22_sr5ok (`01 T. 05 R PIC X OCCURS 3. 01 W SAME AS T.`, MOVE \"ABC\" TO W, R OF W (2) -> [B]) - and CloneItem clones OccursSpec per clone. Test covers the prohibition half; the positive half is exercised by no named test (typedef_same_as copies OCCURS-free targets). || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (the SAME AS clause is absent from COBOL-85 and is not in Annex E's 2014->2023 substantive-changes list, so the rule stands unchanged in 2014 and 2023)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.7.4-10",
+ "section": "12.3.7.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "9a61ee8291f2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#AlphabetFigurative",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb1093_alphabet_high_value_tail; conformance:cases/8.3.3.6-Figurative-constant-values/pb1759_high_value_is_the_highest_native_character",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1093 LANDED via PB1759 (owner decision R52): AlphabetFigurative answers the native extremes U+FFFF / U+0000 for both the alphanumeric and the national sequence (both are the 65,536 UTF-16 code units in code-unit order). cite.py --check 12.3.7.4 \"When specified as literals in the SPECIAL-NAMES paragraph, the figurative constants HIGH-VALUE and LOW-VALUE are associated with those characters having the highest and lowest positions\" -> OK 10). Goldens: ALPHABET AL IS HIGH-VALUE \"B\" \"A\" puts U+FFFF at ordinal 1 (LOW-VALUE ORD 1) and X\"FF\" in the tail (ORD 257, above \"A\"); CLASS HVC IS HIGH-VALUE holds CHAR(65536) and not CHAR(256).",
+ "state": "OK"
+}

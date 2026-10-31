@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.23.3-3",
+ "section": "14.9.23.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "INVOKE statement",
+ "rule-digest": "7813447cfa0a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindClassInvoke; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvoke",
+ "test-ref": "conformance:cases/14.9.23-INVOKE/oo_factory; conformance:cases/14.9.23-INVOKE/pb1548-new-without-base; conformance:cases/14.9.23-INVOKE/pb1136-invoke-class-name-identifier-2",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1136 LANDED (w1014u). cite.py --check 14.9.23.3 'If object-class-name-1 is specified, literal-1 shall be specified' OK 3). OoBindInvoke's identifier-2 arm now asks whether the target names a class (a name that is not a data item, through OoNameResolution) BEFORE resolving it as identifier-1, and refuses INVOKE class-name identifier-2 with COBOL0866 naming SR3 (and SR7) - it drew the resolver's false COBOL1639 'is not defined'. The literal half (method in the factory interface) is OoBindClassInvoke's COBOL0825/2448 (oo_factory, pb1548-new-without-base).",
+ "state": "OK"
+}

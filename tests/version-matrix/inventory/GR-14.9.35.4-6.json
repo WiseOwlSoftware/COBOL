@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.35.4-6",
+ "section": "14.9.35.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "REWRITE statement",
+ "rule-digest": "7212088aac7a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitReleasedRecordAlsoAvailable; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#OutOfLineRecordsOfArea",
+ "test-ref": "conformance:cases/14.9.32-RELEASE/pb1195_released_record_also_available_out_of_line; conformance:cases/14.9.35-REWRITE/pb1195_keyed_released_record_also_available",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1195: the REWRITE of a record in a SAME RECORD AREA clause makes it available in the other records of the area through the same two halves a READ uses - the shared character area when the released record is out of line, and every other out-of-line record (FileModel.OutOfLineRecordsOfArea) at its released length with its extent table - after a SUCCESSFUL statement (sequential and keyed emitters; WRITE and RELEASE share the store). Goldens: pb1195_released_record_also_available_out_of_line (sequential WRITE/REWRITE/READ and RELEASE) and pb1195_keyed_released_record_also_available (relative WRITE/REWRITE).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.49.3-10",
+ "section": "14.9.49.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "USE statement",
+ "rule-digest": "abc22054e5a3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#RejectInBeforeReporting; src/WiseOwl.Cobol.Compiler/Binding/Procedure/EnclosingContext.cs#InBeforeReportingProcedure",
+ "test-ref": "conformance:cases/14.9.49-USE/pb363-generate-in-before-reporting; unit:DeclarativesStructuralRulesTests.AReportWriterVerbInABeforeReportingProcedure_IsRefused; unit:DeclarativesStructuralRulesTests.GenerateInitiateAndTerminate_ReadTheOneSr10Guard",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB363 LANDED. GENERATE, INITIATE and TERMINATE bound in a USE BEFORE REPORTING procedure are refused with COBOL2378 through ONE guard over the one bind-position probe (ctx.Enclosing), the same probe SUPPRESS's converse 14.9.45.3 SR1 reads. The run-time twin (a GENERATE reached through a PERFORM) is 14.9.49.4 GR10, kb/Work PB326.",
+ "state": "OK"
+}

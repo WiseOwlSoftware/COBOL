@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.17.4-1",
+ "section": "7.3.17.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "LEAP-SECOND directive",
+ "rule-digest": "028c0430bdad",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/LeapSecondDirectiveProcessor.cs#Process; src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs",
+ "test-ref": "conformance:cases/7.3.17-LEAP-SECOND/l1_fdt_argument3_time_form",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'If the LEAP-SECOND directive is not specified, a LEAP-SECOND directive with the OFF phrase is implied before the first compilation unit in the compilation group.' (cite.py --check 7.3.17.4 OK). Process() starts on=false and returns it when no directive is seen (and (text,false) when the text has no '>>'). Probe a_implied.cob (no directive): SFFT('hhmmss','235960')=0, TEST-FORMATTED-DATETIME('hhmmss','120060')=5, FORMATTED-TIME('hhmmss',86400)=spaces - the OFF bounds. Last directive before the first unit wins (c_lastwins ON then OFF -> OFF; e_offon OFF then 'ON *> on' -> ON). l1_fdt_argument3_time_form writes no directive and asserts 86400 is CAUGHT, derived from §15.5.5 / §7.3.17.4 GR5 under the implied OFF. || editions (adjudicator): 2002, 2014, 2023 (the §7.3 directive facility is absent in 1985; the 2002 edge is DERIVED per docs/VERSION_CHANGE_REFERENCE.md row 7.21 - Annex E itemizes the 2014->2023 delta and does not list LEAP-SECOND, so it predates 2023). The time-form / formatted-time consumers the rule bounds are COBOL-2014 intrinsics (§15.3). || code sites: LeapSecondDirectiveProcessor.Process holds the directive state and src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs calls it",
+ "state": "OK"
+}

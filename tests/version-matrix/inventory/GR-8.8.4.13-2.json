@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.13-2",
+ "section": "8.8.4.13",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Conditional expressions",
+ "rule-digest": "7c53726125a2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfAttachPerEvaluation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#DrainPerEvaluation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoDrainPropertyGets; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindFlatSequence",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb987_property_per_evaluation; conformance:cases/8.8.4.13-Order-of-evaluation-of-conditions/udf_per_eval; conformance:cases/8.8.4.13-Order-of-evaluation-of-conditions/pb17_function_subscript; conformance:cases/8.8.4.13-Order-of-evaluation-of-conditions/pb987-property-per-evaluation-below-2002",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "CONFORMS (kb/Work PB987, w54f). 'Values are established for arithmetic expressions and functions if and when the conditions containing them are evaluated': arithmetic expressions and intrinsic functions render inline inside the C# condition, so C#'s && / || short-circuit (8.8.4.13 1)) and the loop's re-test reach them per evaluation; every HOISTED activation - a user-defined function, an inline method invocation, a function-bearing subscript's temp store (DataBinder.PendingPreOps) and, since PB987, an object-property GET (DataBinder.OoPendingPropertyOps) - is drained by the per-evaluation window it was written in (UdfBinder.Mark marks BOTH lists): a PERFORM UNTIL / VARYING UNTIL condition, a SEARCH WHEN, an EVALUATE object, a non-first AND/OR operand, a VARYING BY / AFTER FROM operand, and runs at each evaluation or not at all. Negated conditions render as C# negation of the inner condition, evaluated when reached. Before PB987 a property reference in PERFORM UNTIL P OF S > 3 was fetched once for the whole loop (K=09 where the rule gives K=03). Witnesses: pb987_property_per_evaluation (UNTIL, AND/OR short-circuit, EVALUATE WHEN order, SEARCH WHEN, VARYING BY), udf_per_eval, pb17_function_subscript.",
+ "state": "OK"
+}

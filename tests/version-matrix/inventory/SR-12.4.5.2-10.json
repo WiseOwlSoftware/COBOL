@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.2-10",
+ "section": "12.4.5.2",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "File control entry",
+ "rule-digest": "f2d735f4e5c8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Rules",
+ "test-ref": "conformance:cases/12.4.5-File-control/pb699-relative-key-required-entry-only; conformance-test:FileControlKeyRuleSpecTests.RelativeKeyRequiredByAccessMode_CitesSr10_AtEveryEdition",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-09-06 (kb/Work PB699). RULE (--check 12.4.5.2 10): \"The RELATIVE clause shall be specified if the DYNAMIC or RANDOM phrase of the ACCESS clause is specified.\" The rejection existed but was filed under a clause that does not state it - \"ISO 12.4.5.13 - required for random/dynamic access\" - and 12.4.5.13's three syntax rules (in 12.4.5.13.3) contain no such requirement, while the 12.4.5.1 Format 2 diagram BRACKETS the RELATIVE KEY clause. SR10 is the one sentence that requires it. The boundary is measured as well as the violation: FileControlKeyRuleSpecTests.RelativeKeyOmitted_UnderAccessSequential_IsLegal pins that ACCESS SEQUENTIAL still may omit the clause.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.18.4-6",
+ "section": "13.18.18.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "DESTINATION clause",
+ "rule-digest": "7129a36a9601",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause",
+ "test-ref": "conformance:wiseowl/cases/13.18.18-DESTINATION/declined-validate-destination",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "docs/CONFORMANCE.md §5 row A.4.14 (VALIDATE — Not claimed) + §4 item 3. Licence: Annex A.4.1, \"An implementation shall accept the syntax and provide the functionality for an optional element only when support for that language element is claimed by the implementor\", and its second sentence carrying the licence to the module's unlisted rules. Obsolescence (F.2 item 5) is corroboration, never the licence (kb/Work PB198). ⚠ CORRECTION TO THE A.4.14 ANALYSIS THAT PROPOSED THIS ROW: it recorded that writing this clause \"yields COBOL0901 'DESTINATION' is a reserved word\". MEASURED, it did not — the clause drew a bare \"COBOL0001: no viable alternative at input 'DESTINATION'\" at every edition, which is worse, not better. The 0901 belongs to the NEIGHBOURING name-slot position (`01 DESTINATION PIC X.`), where it is CORRECT and still fires: DESTINATION is §8.9-reserved at every edition and stays name-slot-admitted for exactly that reason (conformance:cases/_unassigned/declined-validate-entry-name-still-0901).",
+ "state": "OK"
+}

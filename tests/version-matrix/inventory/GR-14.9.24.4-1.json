@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.24.4-1",
+ "section": "14.9.24.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "MERGE statement",
+ "rule-digest": "7ba7fc5468dc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitMerge; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitInputFile; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Merge; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#SequenceMerge; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#WriteStreamChunks; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#SortMergeCursor",
+ "test-ref": "conformance:cases/14.6.13.1.3-Fatal-exception-conditions/pb993_sort_merge_transfer_termination; unit:SortWorkBoundTests.AMergeManyTimesTheLimit_KeepsInputFileOrder_WithinTheLimit; conformance-test:SortWorkSpillConformanceTests.ASortAndAMergeAHundredTimesTheLimit_OrderAsTheyDoInMemory_AndLeaveNoFile",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'The MERGE statement merges all records contained on the files referenced by file-name-2 and file-name-3.' (cite.py --check 14.9.24.4 -> OK §14.9.24.4 1)). Code: EmitMerge emits one SortNextInput + EmitInputFile per USING file (READ loop releasing EVERY record until an unsuccessful read), then CobolSort.Merge sequences the statement's store (SortWork.Sequence -> SequenceMerge): every released record is in its USING stream's slice of the in-memory chunk or, once the chunk has filled the memory limit, on that stream's run file (WriteStreamChunks), and SortMergeCursor.Next returns a record until every run is exhausted, so no record is dropped in memory or spilled (kb/Work PB3339). Probe probe/merge-p2/m1.cob (3 USING files, 4+3+2 records, OUTPUT PROCEDURE): all 9 records returned, CNT=09, identical at --std 2023 and --std 85. Golden 2002/pb993 leg 6 (USING SRC-A {A,C} SRC-B {B,D}) expects L6-OUT=A,B,C,D - all four records of both files, computed from the rule. || editions as adjudicated: 85, 2002, 2014, 2023 (MERGE is a COBOL-85 statement; the rule text is unchanged) Past the memory limit: SortWorkBoundTests.AMergeManyTimesTheLimit_KeepsInputFileOrder_WithinTheLimit and SortWorkSpillConformanceTests (60,000 records of two USING files, all returned).",
+ "state": "OK"
+}

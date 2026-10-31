@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.23.4-6",
+ "section": "14.9.23.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "INVOKE statement",
+ "rule-digest": "52d9f09f6ccd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#invokeArgument; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg",
+ "test-ref": "conformance:cases/14.9.23-INVOKE/pb1135_invoke_keywordless_expression_argument; conformance:cases/14.9.4-CALL/pb130_call_format2_bare; conformance:cases/8.4.3.4-Inline-method-invocation/pb1051_method_by_value; conformance-test:OoSpineTests.ObjectData_AutoContent_Sr10; conformance:cases/8.4.3.7-NULL-object-reference/pb1137_invoke_argument_forms; conformance:cases/14.9.4-CALL/pb3760_grouped_argument_before_boolean_argument",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "PB55 FOLD (2026-10-15, owner decision 2026-08-08 'THE RULE IS THE UNIT'): the transcription printed this rule's nested list(s) at column 0, so 2 sub-item(s) held rows of their own; indented at their measured printed level, they are this rule's body and their adjudications are folded here, nothing dropped.\n\n[the rule's own record before the fold]\nkb/Work PB1135 / decision R59: a keyword-less N + 1 is ONE expression argument (BY CONTENT); a sole identifier stays BY REFERENCE (SR9).\n\n[folded GR-14.9.23.4-L2.1 = §14.9.23.4 6) a) 1.: CONFORMS]\nRule GR6 a)1: 'if the argument meets the requirements of Syntax rules 9 and 10, BY REFERENCE is assumed' (cite.py --check 14.9.23.3 'Identifier-3 shall be an address-identifier or shall reference a data item defined in the file, working-storage, local-storage, or linkage section' OK). OoBindInvocationArg: byReference = !explicitContent && !objectData && inlinePlace is null, resolved through ResolveReceiving (SR20 receiving operand), WriteBack true. The test asserts WN=06 (driver WS argument written back — BY REFERENCE) and OD=05 for object data (SR10). Probe c1.cob A=0077 confirms. An address-identifier (SR9's other arm) crosses as a sending pointer value per SR19. Over-reach into arguments that do NOT meet SR9 (object properties) is recorded under L2.2 (F4). || editions as adjudicated: 2002, 2014, 2023 (INVOKE / OO is a COBOL-2002 introduction)\n\n[folded GR-14.9.23.4-L2.2 = §14.9.23.4 6) a) 2.: CONFORMS]\nkb/Work PB1051 landed (wave 1011 C): a METHOD formal declared BY VALUE is carried (OoFormal.ByValue). GR6 b) 'When the BY VALUE phrase is specified or implied for the corresponding formal parameter, BY VALUE is assumed' (cite.py --check 14.9.23.4 OK 6) b)): OoBindInvocationArg takes the formal's mode for a keyword-less argument and binds it as a detached value; golden pb1051_method_by_value (bare N, bare literal, inline form).",
+ "state": "OK"
+}

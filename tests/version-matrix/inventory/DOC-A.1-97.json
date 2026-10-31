@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-97",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 97,
+ "subject": "Hexadecimal national literals (mapping for non-existing corresponding character)",
+ "rule-digest": "234fc6fd71d7",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-97; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#DecodeHexGroups",
+ "test-ref": "conformance:cases/8.3.3.5-National-literals/l1c12_hex_national_no_character",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§8.3.3.5.4 5) (cite.py OK) leaves the no-corresponding-character result to the implementor; §8.3.3.5.3 5) (cite.py OK) the digits per character. DecodeHexGroups(digits,4) casts each group to a char. Probe /tmp/adj/doc/doc-w1-s3/probe/p95.cob: NX\"D800FFFF0041\" ORD 55297 65536 66, LENGTH(NX\"D800\")=1; p97.cob: NX\"D800DC00\" into N(2) gives ORD 55297 56321 (two positions), NX\"FFFF\" > NX\"D800\" true, DISPLAY of lone DC00 writes EF BF BD (U+FFFD), exit 0. No spec-derived test pins the no-character arm (r03_hexadecimal_national_and_boolean_literals pins only NX\"00410042\"), so test-ref empty. Closes the documentation gap PB160 names for item 97.",
+ "state": "OK"
+}

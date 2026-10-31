@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.7.5.2-9",
+ "section": "8.7.5.2",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "Relational operators",
+ "rule-digest": "ed077db0f25c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#comparisonOperator; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#MapOperator; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#MapOperator",
+ "test-ref": "conformance:cases/8.7.5-Relational-operators/pb333_start_general_relation_operators",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: '>= is an abbreviation for GREATER THAN OR EQUAL TO.' (cite.py --check 8.7.5.2 -> OK §8.7.5.2 9)). The grammar admits '>=' (comparisonOperator alt) and MapOperator normalizes the concatenated token text (IS/THAN/TO stripped, NOT inverts) so '>=' and 'GREATER THAN OR EQUAL TO' map to the same C# operator; the >>IF evaluator's private copy is textually identical. Probe probe/relop/relpos.cob (A=5 vs B=3 and B=5, IF with every printed spelling, --std 2023 and 85): the symbol and word forms give identical truth values at both data points (AB TTTFFFFFF|TTTTTFFFFFTTT / AC FFFFFFTTT|TTTTTTTTTTFFF at both editions), all as derived from the rule. The covering golden positions START with 'GREATER THAN OR EQUAL TO' and with '>=' on the same key and derives CD03 for both. [editions as adjudicated: 2023 (clause text, no edition qualifier); 2014 identical (Annex E, the 2014->2023 delta, lists no change); 1985/2002 text not in-repo, so the edition at which <> (and >=/<=) entered is NOT derivable here - the compiler accepts every spelling at every --std]",
+ "state": "OK"
+}

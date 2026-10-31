@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.2.2",
+ "section": "14.9.2.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "ADD statement",
+ "rule-digest": "8f03e8ef40b2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#addToPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindAdd",
+ "test-ref": "conformance:cases/14.9.26-MULTIPLY/pb134_giving_sending_operands; conformance:cases/14.9.2-ADD/pb134-add-to-literal-f1; conformance:cases/14.9.2-ADD/pb134-add-no-phrase; conformance:cases/14.9.2-ADD/phrase_order_arithmetic; conformance:cases/14.9.2-ADD/corresponding_rounded_mode; conformance:cases/14.9.2-ADD/pb45_function_in_sending_operands; conformance:cases/14.9.2-ADD/optional_on_size_error",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB134): all four measured divergences closed. (1) Format 2's `TO {identifier-2 | literal-2}` parses - three ADDITIVE addToPhrase alternatives (literal, functionCall per 8.4.3.1.2 - the legacy freeze reads .receivingArithmeticOperand() by name, so no wrapper rule), and the binder narrows by the GIVING phrase; `ADD 1 TO 2 GIVING C` computes 3 and `ADD 1 TO FUNCTION SQRT(9) GIVING D` computes 4 (the first fix attempt bound the function's ARGUMENT - PB45's walk trap re-sprung, re-pinned in the golden's derivation). (2) `ADD A B.` (both phrases absent - no format prints it) is COBOL1689 at bind where it was a RUNTIME loud. (3) Format 2's ONE-TO-operand rule enforced (the extra operands were silently summed). (4) ROUNDED on the Format-2 TO operand rejected (it was silently dropped). The ONE discipline (Format2SendingOperand/Format1Receivers) serves ADD/SUBTRACT/MULTIPLY/DIVIDE.",
+ "state": "OK"
+}

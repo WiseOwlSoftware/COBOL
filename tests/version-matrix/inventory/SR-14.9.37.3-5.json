@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.37.3-5",
+ "section": "14.9.37.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "SEARCH statement",
+ "rule-digest": "b2b8d32e23ca",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#BindSearch; src/WiseOwl.Cobol.Compiler/Binding/Procedure/OperandClassScreen.cs#OperandClassScreen; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#SubscriptNamesIndex",
+ "test-ref": "conformance:cases/14.9.17-GO-TO/pb212_operand_class_screens; conformance:cases/14.9.37-SEARCH/pb211-search-varying-noninteger; conformance:cases/14.9.37-SEARCH/pb211-search-varying-self-subscript; unit:OperandClassScreenDriftTests.EveryRow_RefusesExactlyTheShapesItsRuleExcludes",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB211 (landed): BOTH sentences. Sentence 1 is the OperandPositions.SearchVaryingIdentifier row (index data item or integer data item); sentence 2 (not subscripted by identifier-1's first index-name) is asked of the written subscript through ReferenceResolver.SubscriptNamesIndex, the reader SR10 shares. COBOL2325, both lanes. cite.py --check 14.9.37.3 \"shall not be subscripted by the first or only index-name\" -> OK 5).",
+ "state": "OK"
+}

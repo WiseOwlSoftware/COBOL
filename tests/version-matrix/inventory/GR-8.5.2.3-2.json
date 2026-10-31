@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.2.3-2",
+ "section": "8.5.2.3",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Class and category of data items and literals",
+ "rule-digest": "fb34a4be65aa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ImpliedPicture.cs#SynthesizeImpliedPictures; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ImpliedPicture.cs#Sr9ImpliedFor",
+ "test-ref": "unit:ImpliedPictureTests.Sr9a_AlphanumericLiteral_ImpliesPictureXOfTheLiteralLength",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: '2) An elementary data item described with a VALUE clause containing an alphanumeric literal, and without a PICTURE clause.' (cite.py OK). §13.16.3 SR9 a) implies 'PICTURE X(length)' (cite.py --check 13.16.3 OK). SynthesizeImpliedPictures gives such an entry PIC X(len) analyzed by the one PictureAnalyzer, so it becomes category alphanumeric. Probe p4.cob at 2002/2014: '01 A1 VALUE \"HELLO\".' -> [HELLO], LENGTH 5; subordinate '05 A3 VALUE \"XYZ\".' composes into its group (LENGTH(G)=4) and MOVE \"Q\" TO A3 -> 'Q  '; ALL \"AB\" -> 'AB'. At --std 85 COBOL0900 names the construct. Zero-length literal excluded (SR9) and falls to SR8 per code. || editions as written by the adjudicator: 2002, 2014, 2023 (the VALUE-implied picture of §13.16.3 SR9; 2023 Annex E lists no change; below-2002 absence is the project's version-matrix determination, not derivable from the 2023 text)",
+ "state": "OK"
+}

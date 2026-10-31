@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.65.4-5",
+ "section": "15.65.4",
+ "kind": "RV",
+ "ordinal": 5,
+ "subject": "MODULE-NAME function",
+ "rule-digest": "9310a3f3b2f8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ModuleStack.cs#Name; docs/CONFORMANCE.md#DOC-A.1-136",
+ "test-ref": "conformance:cases/15.65.4-Returned-value-rules/pb63_module_name_lengths; conformance-test:IntrinsicFunctionDifferentialTests.ModuleName_ActivatingAcrossCall_2023; conformance-test:IntrinsicFunctionDifferentialTests.ModuleName_MainProgram_2023",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB63 — the exception surface: the FD screen, the SELECT-spelled name on the connector, the one access-recording path, the r2b procedure field and element name, the MODULE-NAME determinations). §15.65.4 r5 — a plain program CALLed from a METHOD names the METHOD-ID (golden S-ACT=[SHOW], S-STK=[PB63MNSUB;SHOW;PB63MNMAIN; ]) — the sweep's FIXED (PB36) verdict pinned; A.1 item 136 (how a main program is identified — the element RunMain started, the only IsMain frame) documented.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.6.4.3-1",
+ "section": "12.4.6.4.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "SAME clause",
+ "rule-digest": "f8b860fb7ff2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sameClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#SameClauseKind",
+ "test-ref": "conformance:cases/12.4.6.4-SAME/l1c28_same_sort_merge_area; conformance:cases/12.4.6.4-SAME/pb1087_same_clauses_legal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1087 (wave 1011 B2). SR1 (SORT and SORT-MERGE are equivalent) is now structural: SameClauseKind has ONE SortMergeArea format (SameClause.Written keeps the spelling for messages), so SR5-SR10 and the SORT/MERGE SR10/SR11 screens cannot treat the spellings differently. The golden mixes SORT and SORT-MERGE spellings in one legal program.",
+ "state": "OK"
+}

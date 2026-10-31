@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.48.3-1",
+ "section": "14.9.48.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "UNSTRING statement",
+ "rule-digest": "92c9368e4a99",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#UnstringSenderCategory; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#IsZeroLengthLiteral; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BeginsWithAllWord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#StrUnstrOperand; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#unstringDelimiterItem",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/pb1181-unstring-numeric-literal-delimiter; conformance:cases/14.9.43-STRING/pb1181_string_unstring_screen_controls; conformance-test:StringUnstringOperandScreenTests.Unstring_DelimiterLiteral_IsSR1; conformance-test:StringUnstringOperandScreenTests.Unstring_BooleanOrNumericConstantDelimiter_IsSR1; conformance:cases/8.3.3.2-Alphanumeric-literals/pb1545_hex_alphanumeric_literal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1181 (wave 1011 A). SR1 'Literal-1 and literal-2 shall be literals of the category alphanumeric or national and shall be neither a figurative constant that begins with the word ALL nor a zero-length literal.' (cite.py --check 14.9.48.3 -> OK 1)). Every delimiter operand is asked the numeric/boolean literal arms of UnstringSenderCategory, IsZeroLengthLiteral and BeginsWithAllWord (ALL ALL literal / ALL ALL SPACES are the ALL phrase followed by such a figurative); ALL literal, SPACE, hexadecimal and OR forms stay legal (the positive control). COBOL1651.",
+ "state": "OK"
+}

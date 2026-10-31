@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-11.8.2",
+ "section": "11.8.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "OBJECT paragraph",
+ "rule-digest": "7b87c1b64e4b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#objectParagraph; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#implementsClause",
+ "test-ref": "conformance:cases/11.4-FACTORY/oo_implements_repeated",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Format `OBJECT. [ IMPLEMENTS { interface-name-1 } ... . ]` (cite.py --check 11.8.2 \"OBJECT\" -> OK §11.8.2 General format). Grammar: objectParagraph `(IDENTIFICATION DIVISION DOT)? OBJECT DOT implementsClause? ...`, implementsClause `IMPLEMENTS interfaceName+ DOT` - one-or-more repetition and the clause's own trailing period, exactly as printed. Probes (probe dir out/probe/object-paragraph (gen.py)): p8 `OBJECT. IMPLEMENTS IA` / `IC.` spanning two lines compiles and runs (CB8-PA, CB8-PC); p2 missing trailing period -> COBOL0307; p11 `IMPLEMENTS .` (empty list) -> COBOL0001; --std 85 -> COBOL0900 (OO gated), 2002/2014 run. IMPLEMENTS stays a user word (§8.10 context-sensitive; OoSpineTests line 2085). Repetition of a name legal (PB946 landed; golden oo_implements_repeated). || Editions (adjudicator, verbatim): 2002, 2014, 2023 (the OO facility, introduced by ISO/IEC 1989:2002; absent from X3.23-1985)",
+ "state": "OK"
+}

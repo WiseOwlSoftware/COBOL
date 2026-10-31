@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.14.3-1",
+ "section": "7.3.14.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "FLAG-02 directive",
+ "rule-digest": "7bef74ce85be",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/DirectivePlacementPass.cs#Run",
+ "test-ref": "unit:PushPopAllPlacementTests.FlagDirectivesAndNamedPushPop_InsideAStatement_Warn_BetweenStatements_DoNot",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1065. cite.py --check 7.3.14.3 'The FLAG-02 directive may be specified only between clauses in divisions other than the procedure division and only between statements in the procedure division' OK 1). Row data (directivePlacement: betweenClauses) judged by the pass the PUSH/POP ALL rule uses; a suppressible COBOL2344 warning (D20 / 4.2.2), witnessed by unit tests because the program still compiles.",
+ "state": "OK"
+}

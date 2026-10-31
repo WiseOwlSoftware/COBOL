@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-156",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 156,
+ "subject": "Reference format (control characters in a free-form line)",
+ "rule-digest": "907c36e342e4",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-156; src/WiseOwl.Cobol.Frontend/Preprocessor/PhysicalLines.cs#Read; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#COMMENT_TEXT; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#STR_BODY",
+ "test-ref": "conformance:cases/6.5-Logical-conversion/pb1496_lone_cr_is_a_character; unit:PhysicalLinesTests.ALoneCrIsACharacter; unit:PhysicalLinesTests.ALoneCr_DoesNotStartADirectiveLine",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1496 + PB1800. cite.py --check 6.1 'The implementor shall specify any control characters that terminate a free-form line' OK 6.1 b). ONE set, ONE stage: PhysicalLines ends a line at LF (a CR immediately before it belongs to the terminator), and the lexer's line end is the LF only (COMMENT_TEXT / COMMENT_END / STR_BODY / WS no longer name CR or TAB), so a lone CR is a character of a comment or a literal and a >> after it is not at a line start. Probed: a *> comment holding a lone CR does not end at it (HIDDEN not displayed), and a literal's lone CR is F(2:1) = X\"0D\".",
+ "state": "OK"
+}

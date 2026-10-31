@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.44.3-6",
+ "section": "13.18.44.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "REDEFINES clause",
+ "rule-digest": "c4971f85c015",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Cst/DataDescriptionCst.cs#RedefinesTarget; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RedefinesDataName2; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveRedefines",
+ "test-ref": "conformance:cases/13.18.44-REDEFINES/pb1281-redefines-qualified; conformance:cases/13.18.44-REDEFINES/pb1281_redefines_data_name_2_bare",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1281 (wave 1020 H). SR6 (cite.py --check 13.18.44.3 \"Data-name-2 shall not be qualified\" OK §13.18.44.3 6)). The CST used to hand the binder dataReference().GetText(), so `REDEFINES A OF G` resolved the glued word AOFG: COBOL1654 citing SR4/SR7/SR10 when no AOFG existed, and a SILENT bind to an unrelated item AOFG when one did (sr6_aofg printed WXYZ). DataDescriptionCst.RedefinesTarget now returns the written reference and DataBinder.RedefinesDataName2 refuses a qualifier as COBOL2915 (naming SR6 and quoting NOTE 1) and resolves the BASE data-name only, so nothing cascades; negative pb1281-redefines-qualified keeps an AOFG item declared to prove the silent bind is gone. NOTE 1's placement reading for a non-unique data-name-2 is pinned by 85/pb1281_redefines_data_name_2_bare (Z REDEFINES X inside H overlays H's X: CD). retired-witness: src/Cobol.Net.Frontend/Cst/DataDescriptionCst.cs#RedefinesTargetName (kb/Work PB1281 replaced the glued-text accessor RedefinesTargetName with RedefinesTarget, which hands the binder the written dataReference)",
+ "state": "OK"
+}

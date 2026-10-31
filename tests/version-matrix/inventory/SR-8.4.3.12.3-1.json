@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.12.3-1",
+ "section": "8.4.3.12.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Function-address-identifier",
+ "rule-digest": "f8bc53d72aa8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetFunctionAddress; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#ScreenAddressName",
+ "test-ref": "conformance:cases/8.4.3.12-Function-address-identifier/pb452-function-address-operand; conformance:cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb452_function_address_runtime; conformance:cases/8.4.3.12-Function-address-identifier/pb1417_function_address_identifier_operands; conformance:cases/8.4.3.12-Function-address-identifier/pb1417-function-address-alphabetic-operand",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "'Identifier-1 shall be of category alphanumeric or national.' COBOL1960. The braced operand of ADDRESS OF FUNCTION arrives as ONE dataReference and the two arms are told apart at BIND, where the REPOSITORY function-specifier table and the item's resolved category are both facts: a word that is a declared function-prototype-name takes the prototype arm, anything else must resolve to an alphanumeric or national identifier. The positive leg is witnessed too - the 2023 golden drives the whole run-time lane through a PIC X(12) identifier-1.",
+ "state": "OK"
+}

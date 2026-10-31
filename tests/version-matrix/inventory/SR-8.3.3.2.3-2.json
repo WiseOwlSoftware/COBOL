@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.3.2.3-2",
+ "section": "8.3.3.2.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Alphanumeric literals",
+ "rule-digest": "2b10e782430d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#STR_BODY",
+ "test-ref": "conformance:cases/8.3.3.2-Alphanumeric-literals/l1c01_alnum_literal_characters",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 8.3.3.2.3 \"Character-1 may be any character in the coded character set\" OK. STR_BODY admits every code point except the delimiter (undoubled) and CR/LF (which end the line, so cannot be literal content in any reference format); the compile-time alphanumeric set is UTF-16 (project charset decision), so nothing the source set can carry is refused. Probe p11: e-acute and a CJK ideograph in a Format 1 literal compile and round-trip. NOTE 1's UTF-8/mixed option is permissive ('neither required ... nor prohibited') and not provided. No spec-derived golden pins non-ASCII Format 1 content -> test-ref empty. || editions as written by the adjudicator: 2014, 2023 (Annex E itemizes the 2014->2023 delta and lists no change to 8.3.3.2, so the rule stands in both; the 1985/2002 edge is NOT derivable in-repo -- no 2002 or 1985 text is held)",
+ "state": "OK"
+}

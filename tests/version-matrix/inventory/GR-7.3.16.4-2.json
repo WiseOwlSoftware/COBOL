@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.16.4-2",
+ "section": "7.3.16.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "IF directive",
+ "rule-digest": "7aec0c7be706",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+ "test-ref": "conformance:cases/7.3.16-IF/pb1006_source_format_in_false_path; conformance:cases/7.3.16-IF/conditional_compilation; conformance:cases/7.3.16-IF/pb1006-source-format-false-path-below-2002",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB1006 (RETIRED 2026-09-22): the IF frame's TRUE arm emits text-1 and blanks text-2 (the ELSE flips Emitting to ParentActive && !BranchTaken). PB1006 claimed a >>SOURCE line in an omitted branch must switch nothing; 7.2.1 Step 1 says the opposite - 'SOURCE FORMAT directives in the false path shall be processed to correctly interpret input lines' - so the normalizer processing it before conditional compilation is the required behaviour, and the golden pins it (L3).",
+ "state": "OK"
+}

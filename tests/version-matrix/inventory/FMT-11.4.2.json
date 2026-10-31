@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-11.4.2",
+ "section": "11.4.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "FACTORY paragraph",
+ "rule-digest": "ac11e003ee2f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#factoryParagraph; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#implementsClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#classDefinition",
+ "test-ref": "conformance:cases/11.4-FACTORY/oo_implements_repeated",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: `FACTORY. [ IMPLEMENTS { interface-name-1 } ... . ]` (cite.py --check 11.4.2 \"FACTORY\" -> OK §11.4.2 General format). Grammar: factoryParagraph = (IDENTIFICATION DIVISION DOT)? FACTORY DOT implementsClause? ...; implementsClause = IMPLEMENTS interfaceName+ DOT - FACTORY required, IMPLEMENTS optional, repetition via +, trailing separator period required. The optional ID DIVISION header / END FACTORY come from the §10.6 class-definition format, not this rule. Probes (pinned cobol.exe, out/probe/factory-paragraph/): p6 `FACTORY. IMPLEMENTS FPJ.` compiles+runs (J-F 0042); p7 drops the trailing period -> COBOL0307 (correctly rejected); p5 bare `FACTORY.` runs at --std 2002/2014/2023 (CHILD-F 0042); at --std 85 the OO source is rejected COBOL0900 (FACTORY is a user word at 85, pinned by the OoSpineTests FACTORY-at-85 test). Repeated interface-name legal (PB946 landed). Covering golden: conformance:cases/11.4-FACTORY/oo_implements_repeated (`FACTORY. IMPLEMENTS PB946I PB946I.`), plus conformance:cases/14.9.23-INVOKE/oo_factory for the bare paragraph. || Editions (adjudicator, verbatim): 2002, 2014, 2023 (OO - the FACTORY paragraph - is new in ISO/IEC 1989:2002; absent from 1985; Annex E of 2023 lists no change to §11.4)",
+ "state": "OK"
+}

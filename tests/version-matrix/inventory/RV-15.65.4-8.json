@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.65.4-8",
+ "section": "15.65.4",
+ "kind": "RV",
+ "ordinal": 8,
+ "subject": "MODULE-NAME function",
+ "rule-digest": "7a4bc0bada5d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ModuleStack.cs#Name; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram",
+ "test-ref": "conformance:cases/15.65.4-Returned-value-rules/module_name",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "Verdict SUSTAINED after attacking the two things that could break it. (1) THE FORM. r8 is the ONE returned-value rule that removes r4's latitude — 'the name, AS SPECIFIED IN THE PROGRAM-ID' — so the returned characters, not merely the right word, are normative. A mixed-case PROGRAM-ID round-trips VERBATIM, so 'as specified' is literally satisfied rather than satisfied up to §8.3.1.1 case-equivalence. (2) THE SCAN. `for (int i = s.Count - 1; i >= 0; i--) if (s[i].IsNested) return s[i].Name;` and the `return top.Name` fallback: I could not construct a legal program in which the scan and the top frame disagree, and the reason is structural rather than lucky — §15.65.3 AR1 is enforced at COMPILE time on the source element containing the reference, and the only element that can execute that reference is the one whose frame is on top, so the first IsNested frame from the top is always that element. The fallback is therefore genuinely dead, and IsNested is read from the same registry containment fact as the compile-time gate, so the two cannot drift. Verified for double nesting, for a nested program inside a FUNCTION definition, and through the keyword-omitted reference form. Left untested deliberately: CONFORMS with an empty test-ref is the honest record here; the corpus golden tests/conformance/2023/module_name.out line 5 'N-NST=[NESTPROG            ]' is corroboration only and does not close the row. EVIDENCE: New probe E:/Temp/mnref/case.cob, `PROGRAM-ID. MnRcAsE1-In.` nested in `PROGRAM-ID. MnRcAsE1.` -> 'C-NST=[MnRcAsE1-In]' — exact source casing. New probe fnnest.cob -> 'FI-NST=[MNRFNN-IN]' (nested inside a FUNCTION definition). New probe omitnest.cob -> 'IN-NST=[MNROMNS1-IN]' via the FUNCTION-keyword-omitted form. Adjudicator's q.cob double-nesting result ('L1-NST=[MNQ-L1]' / 'L2-NST=[MNQ-L2]') re-read. ProgramTable.CallProgram: `_owner.Modules.Push(n.Name, OutermostName(n), n.ParentPath is not null);`. Citation checked: `cite.py --check 15.65.4 \"If the NESTED keyword is specified, then the returned value is the name, as specified in the PROGRAM-ID, of the currently running, most recently nested program.\"` -> OK §15.65.4 8). TEST-REF ADDED 2026-08-08: spec-derived golden closing the row (PB29/PB39 session; expected values derived from the cited rules, NUMVAL-F exponent-sign requirement verified on printed page 898).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.13.3-2",
+ "section": "7.3.13.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "EVALUATE directive",
+ "rule-digest": "8dd21c3e4732",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#DropDirectiveContinuation",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb1360-evaluate-operand-continued; unit:LogicalLineBuilderTests.FloatingContinuation_AfterADirectiveLine_IsDiagnosedAndNotJoined",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1360 landed (w1004b). The refuter's edge (>>EVALUATE 1 then + 1 swallowed as an omitted pre-WHEN text line) no longer reproduces: PB1363's frame phase reports program text between >>EVALUATE and its first >>WHEN as COBOL2649 whether or not the enclosing branch is active. A fixed or floating continuation of the EVALUATE line is COBOL2696.",
+ "state": "OK"
+}

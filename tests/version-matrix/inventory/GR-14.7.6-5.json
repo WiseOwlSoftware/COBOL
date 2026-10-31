@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.6-5",
+ "section": "14.7.6",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Common phrases and features for statements",
+ "rule-digest": "d323eadab533",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrMatch; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrMembers; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#RuleFiveExcludesSubordinates",
+ "test-ref": "conformance:cases/14.7.6-CORRESPONDING/l1c04_corr_occurs_redefines_subordinate; conformance:cases/14.7.6-CORRESPONDING/pb229_corresponding_filler_group_rule4",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule 5 (--check 14.7.6 -> OK §14.7.6 5)). The recursion descends only through CorrEligible groups, so nothing under a subordinate OCCURS/REDEFINES group is reached; for a THROUGH-alias operand CorrMembers walks each included item's ancestors up to the window's enclosing group (PB966). PROBE c2.cob: O1 under 'OG OCCURS 1' in D1 is not paired with O1 under a plain OG in D2 (OG of G2 stays 0); out/probe/corr/c3.cob: FF under 'FILLER REDEFINES FF' is not reached. D1 itself with a REDEFINES clause is correctly NOT excluded (c1.cob S4: ADD CORRESPONDING M1R TO M2 where M1R REDEFINES M1 pairs KK). No golden isolates rule 5 - test-needed. || editions as adjudicated: 1985, 2002, 2014, 2023",
+ "state": "OK"
+}

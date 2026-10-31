@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.39.4-1",
+ "section": "15.39.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "FORMATTED-DATE function",
+ "rule-digest": "91bffb96cf08",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#EmitFormatted",
+ "test-ref": "conformance:cases/15.3.3.6.1-Offset-subformats/pb11_datetime_format_grammar; conformance:cases/15.39.3-Argument-rules/pb15_result_type_follows_argument; conformance:cases/15.3.3.6.1-Offset-subformats/formatted_datetime",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Existing coverage, checked at the branch: pb11 renders integer date 100000 through all six §15.3.1.1 date formats (18741016 / 1874-10-16 / 1874289 / 1874-289 / 1874W425 / 1874-W42-5, each independently recomputed from §15.5.2's epoch), and pb15 covers §15.39.1's result-type table in both rows.",
+ "state": "OK"
+}

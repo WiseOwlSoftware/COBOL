@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.7.4-1",
+ "section": "11.7.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "METHOD-ID paragraph",
+ "rule-digest": "2965d0d14286",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build; src/WiseOwl.Cobol.Compiler/Oo/NamingConvention.cs#GetAccessorName; src/WiseOwl.Cobol.Compiler/Oo/NamingConvention.cs#SetAccessorName",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb303_as_module_name_and_invoke; conformance:cases/11.7-METHOD-ID/oo_property_methods",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 11.7.4 \"If the PROPERTY clause is specified, the name is implementor-defined.\" -> OK §11.7.4 1) a). a) property method name = NamingConvention.GetAccessorName/SetAccessorName (__GET_<P>/__SET_<P>), the same pinned name the PROPERTY-clause synthesized accessors use; property goldens resolve through it. b) method-name-1 is the declared name; the AS literal becomes OoMethodSymbol.ExternalizedName (screened by ExternalizedName.Screen, SR1) and is the roster key; INVOKE resolves the literal per §14.9.23.4 GR2 a) (cite.py --check 14.9.23.4 \"is the name of the method to be invoked as described in 8.3.2.2\" -> OK) — golden pb303_as_module_name_and_invoke reaches METHOD-ID PB303MD AS \"PB303MDX\" via INVOKE ... \"PB303MDX\" (landed PB303). NOTE: Annex A.1 item 121 requires the property-method name to be DOCUMENTED; docs/CONFORMANCE.md carries no DOC-A.1-121 row — that is its own inventory row (DOC-A.1-121), not this GR's. || Editions (adjudicator, verbatim): 2002, 2014, 2023 (METHOD-ID is part of the OO facility introduced by COBOL 2002; absent at 1985)",
+ "state": "OK"
+}

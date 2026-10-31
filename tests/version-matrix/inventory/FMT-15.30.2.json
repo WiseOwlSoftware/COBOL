@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.30.2",
+ "section": "15.30.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "EXCEPTION-LOCATION function",
+ "rule-digest": "6348d3f24d0b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction",
+ "test-ref": "conformance:cases/15.30.3-Returned-value-rules/pb63_exception_location_procedure_field; conformance-test:ExceptionConditionConformanceTests.WithLocation_CapturesStatementAndLocation",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB63 — the exception surface: the FD screen, the SELECT-spelled name on the connector, the one access-recording path, the r2b procedure field and element name, the MODULE-NAME determinations). `FUNCTION EXCEPTION-LOCATION` — the sweep's FIXED verdict pinned: the keyword-omitted bare EXCEPTION-LOCATION under FUNCTION ALL INTRINSIC (golden KO=) returns the r2b string. Keyword omission is 2002+.",
+ "state": "OK"
+}

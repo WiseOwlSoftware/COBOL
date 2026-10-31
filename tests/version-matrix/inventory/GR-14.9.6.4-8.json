@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.6.4-8",
+ "section": "14.9.6.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "CLOSE statement",
+ "rule-digest": "cd4697dd2324",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close",
+ "test-ref": "conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_close_status; unit:FileStatusDisciplineTests.Close_ThenCloseAgain42_ThenReopen00",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB140): the success halves were already verified (dissociation + no open mode, all three organizations; pb140_close_status pins the OPEN/CLOSE/CLOSE/OPEN cycle 00/00/42/00 through the FILE STATUS item). The disproved half - the sequential close path had NO failure boundary at all - is closed at the BASE: FileConnector.Close maps UnauthorizedAccessException/IOException to '30' (its OPEN twin's shape), _openMode clears on every completed close, and SequentialConnector.CloseCore nulls its streams in a finally, so a failed close leaves the connector dissociated, out of its open mode, with a recorded status the program can observe and retry. The siblings' per-connector catch arms and _open bits are deleted - ONE mechanism at the base.",
+ "state": "OK"
+}

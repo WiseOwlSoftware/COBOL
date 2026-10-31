@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.18.7-p2",
+ "section": "9.1.18.7",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Commit and Rollback",
+ "rule-digest": "3a02799e0557",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/TransactionControl.cs#Commit; src/WiseOwl.Cobol.Runtime/IO/TransactionControl.cs#Rollback; src/WiseOwl.Cobol.Runtime/Control/ModuleStack.cs#AnyRecursive; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitMethod",
+ "test-ref": "conformance:cases/14.9.7-COMMIT/pb3338_commit_rollback_under_recursive_element; unit:TransactionControlTests.Commit_and_rollback_under_an_active_sort_raise_ec_flow_or_change_nothing; conformance:cases/14.9.7-COMMIT/pb3540_commit_rollback_under_method; conformance:cases/14.9.7-COMMIT/pb3540_commit_under_factory_method_unchecked; unit:TransactionControlTests.Commit_and_rollback_under_an_active_method_raise_ec_flow_or_change_nothing",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB3338 (wave 1154) and PB3540 (wave 1157): the APPLY COMMIT clause, COMMIT and ROLLBACK are provided for RELATIVE and INDEXED files, whose keyed store engine keeps the transaction (kb/Work PB3337); a SEQUENTIAL or LINE SEQUENTIAL file named in the clause is under commit control too, its transaction journal being kb/Work PB3340 (COBOL1709, which refused it, is retired) (Annex A.4.3 stays PARTIAL, docs/CONFORMANCE.md 5; this rule's obligations are met for every file the clause admits). EC-FLOW-COMMIT and EC-FLOW-ROLLBACK are raised for a COMMIT or ROLLBACK with an active clause under an active SORT or MERGE or under the control of a recursive runtime element (8.6.6: a RECURSIVE program, a function, a method): the module stack marks the frame of each recursive and TransactionControl.FlowForbidden asks ModuleStack.AnyRecursive, so a program a method CALLs raises them.",
+ "state": "OK"
+}

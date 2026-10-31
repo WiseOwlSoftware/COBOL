@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.8.3-2",
+ "section": "8.4.3.8.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "SELF and SUPER",
+ "rule-digest": "bb75159da8ab",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#nonReceivableIdentifier; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#receivingIdentifier; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ReceivingOperandForms.cs#Rules; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveReceiving; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#callByReference; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#invokeArgument; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ReceivingOperandForms.cs#FormOfOoIdentifier",
+ "test-ref": "conformance:cases/8.4.3.8-SELF-and-SUPER/pb1551-self-receiving; conformance:cases/8.4.3.8-SELF-and-SUPER/pb1551-super-receiving; conformance:cases/8.4.3.8-SELF-and-SUPER/pb1551_receiving_identifier_routes; unit:ReceivingOperandFormDriftTests.EveryNonReceivableAlternative_IsReadByFormOf; conformance:cases/8.4.3.8-SELF-and-SUPER/pb1551-call-by-reference-self; conformance:cases/8.4.3.8-SELF-and-SUPER/pb1551-call-implied-reference-self; conformance:cases/8.4.3.8-SELF-and-SUPER/pb1551-invoke-universal-self; unit:ReceivingOperandFormDriftTests.NoReceivingPhrase_TakesABareDataReference",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1551 (w1097d; review round 1 finding R1-1). \"This identifier format shall not be specified as a receiving operand\" (cite.py --check 8.4.3.8.3 -> OK 2)). Every receiving grammar slot is a receivingIdentifier (setReceivingIdentifier in SET) that parses SELF and SUPER as a nonReceivableIdentifier, and ExpressionBinder.ResolveReceiving refuses them by this rule from the ReceivingOperandForms table (COBOL3978) in every receiving position: MOVE, INITIALIZE, ACCEPT, the arithmetic resultants, COMPUTE, CALL/INVOKE RETURNING, READ/RETURN INTO, STRING/UNSTRING, INSPECT TALLYING, SEARCH/PERFORM VARYING, ALLOCATE RETURNING, every SET receiving list, and the BY REFERENCE argument of CALL (14.9.4.3 SR5, cite.py OK 5)) and INVOKE (14.9.23.3 SR20, cite.py OK 20)). The IMPLIED BY REFERENCE reaches the same row: CALL Format 1's keyword-less SELF/SUPER under the prevailing BY REFERENCE (14.9.4.4 GR5) and every keyword-less argument through a universal object reference (14.9.23.3 SR6) are refused by this rule, not as a temporary or a literal. It was a parse error re-coded to 8.9 (COBOL0901). The qualified SUPER (`K OF SUPER`) is a data reference and is refused by SR3 (COBOL2900). [editions: SELF/SUPER are OO identifiers, 2002+; at COBOL-85 an undeclared SELF/SUPER is an undefined reference, COBOL1639]",
+ "state": "OK"
+}

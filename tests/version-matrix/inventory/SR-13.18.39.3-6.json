@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.39.3-6",
+ "section": "13.18.39.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "PAGE clause",
+ "rule-digest": "cfce8cfea96d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportPageIntegers; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#Slots",
+ "test-ref": "conformance:cases/13.18.39-PAGE/pb1270-page-heading-after-first-detail; conformance:cases/13.18.39-PAGE/pb1270-page-footing-over-limit; conformance:cases/13.18.39-PAGE/pb1270-page-last-detail-after-footing; conformance:cases/13.18.35-LINE/pb1270_report_page_region_boundaries",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1270 landed 2026-10-04: the written integers in ascending order with equality allowed (COBOL2744); greater-than-zero is COBOL2386.",
+ "state": "OK"
+}

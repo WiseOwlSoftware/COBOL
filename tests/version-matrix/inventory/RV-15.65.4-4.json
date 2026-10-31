@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.65.4-4",
+ "section": "15.65.4",
+ "kind": "RV",
+ "ordinal": 4,
+ "subject": "MODULE-NAME function",
+ "rule-digest": "6511f1f8e973",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#RunMain; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#OutermostName; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programIdParagraph",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb36_module_name_invoke_activation; conformance:cases/15.65.4-Returned-value-rules/pb63_module_name_lengths",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "§15.65.4 r4 - the returned form is the *-ID paragraph name, the first form r4 permits and the one docs/CONFORMANCE.md DOC-A.1-135 documents: pb36 pins PROGRAM-ID (P-CUR/C-CUR), FUNCTION-ID (F-CUR=[PB36MNFN]), METHOD-ID (D-ACT=[SHOW]) and CLASS-ID (I-CUR) verbatim, never an operating-environment spelling. The §11.10.2 AS-phrase gap is kb/Work PB303's §11.10 defect, not r4's.",
+ "state": "OK"
+}

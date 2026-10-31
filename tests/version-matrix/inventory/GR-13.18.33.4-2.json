@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.33.4-2",
+ "section": "13.18.33.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Level-number",
+ "rule-digest": "14d4d4272c11",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#CheckEntryFormat",
+ "test-ref": "conformance:cases/13.18.33-Level-number/pb485-level-77-renames; conformance:cases/13.16-Data-description/pb485-level-66-not-renames; conformance:cases/13.18.33-Level-number/pb485-renames-not-level-66; conformance:cases/13.16-Data-description/pb485-level-88-not-condition-name; conformance:cases/13.16-Data-description/pb485_entry_format_legal_forms",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "All three special-level assignments, each with its own witness: GR2a (77 may be used only as described by the data description format) by a 77 written as a renames entry; GR2b (66 only as the renames format) in BOTH directions -- a 66 with no RENAMES clause and a RENAMES body at another level, the latter of which reached the emitter and produced uncompilable C# before this screen; GR2c (88 only as the condition-name or validation format) by an 88 carrying a PICTURE. The format is read from the entry BODY and never from the level-number, or every one of these rules would be vacuous. kb/Work PB485.",
+ "state": "OK"
+}

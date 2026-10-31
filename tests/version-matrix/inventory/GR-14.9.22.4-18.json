@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.22.4-18",
+ "section": "14.9.22.4",
+ "kind": "GR",
+ "ordinal": 18,
+ "subject": "INSPECT statement",
+ "rule-digest": "ec4cd5b95ebc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#EmitBody; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Replace",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/pb1907_inspect_replacing_overlap",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§14.9.22.4 GR18 (identifier-3/4/5 in the storage of identifier-1: result undefined, Annex A.2 item 21 e)); §4.4 2). Documented and pinned (docs/CONFORMANCE.md D-INS3; kb/Work PB1907): operand values and the image are read when the REPLACING pass starts, the cycle matches that image, one store at the end; identical to GnuCOBOL 3.2 on every probe.",
+ "state": "OK"
+}

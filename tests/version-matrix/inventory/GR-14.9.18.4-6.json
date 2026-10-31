@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.18.4-6",
+ "section": "14.9.18.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "GOBACK statement",
+ "rule-digest": "63ea7b8197e2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitGoback; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#InGlobalDeclarativeRangeTest; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#FlowGlobalGobackError",
+ "test-ref": "conformance-test:ExitPlacementContextDriftTests.GobackWithinTheRangeOfAGlobalDeclarative_RaisesOnlyWhenChecked",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB409.md landed w39. EC-FLOW-GLOBAL-GOBACK was a catalog row with no raise site and no TURN wiring; it now has all three - EcBinder.QueryFor's precise BoundGoback arm puts the name in the statement's enabled set, EcEmitter.FatalAmbientGates maps it to ExceptionState.FlowGlobalGobackChecking, and EmitGoback tests the GLOBAL declaratives' own __useActive slots. WITHIN THE RANGE is a RUN-TIME relation, so it is the dynamic activated-and-not-yet-returned flag 14.9.49.4 GR2 already maintains, never a bind-time approximation of SR1; SAME PROGRAM comes free because the array is per program instance and a container's GLOBAL declarative runs in the container's. Measured on legal source (a GOBACK in an ordinary paragraph a global declarative PERFORMs): checking ON terminates the run unit abnormally per 14.6.13.1.3 rule 7, checking OFF is lenient per 14.6.13.1.1. DETERMINATION: the Table 13 neighbour EC-FLOW-GLOBAL-EXIT gets NO raise site - 14.9.14.4 states no general rule that sets it (GR3 imports 14.9.18.4 GR3 and GR4, not GR6) and Table 13's third column is a description.",
+ "state": "OK"
+}

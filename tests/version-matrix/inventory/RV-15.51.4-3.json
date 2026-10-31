@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.51.4-3",
+ "section": "15.51.4",
+ "kind": "RV",
+ "ordinal": 3,
+ "subject": "LOCALE-COMPARE function",
+ "rule-digest": "1a1c03b0ed88",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#Compare; src/WiseOwl.Cobol.Runtime/Values/Text/LocaleCollation.cs#Resolve",
+ "test-ref": "conformance:cases/14.6.6-Locale-identification/pb64t4_locale_functions; unit:CobolLocaleTests.NamedUnavailableLocale_IsMissing_AndTheRootAnswers",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T4: the named locale's sequence, else the current LC_COLLATE (§14.6.6 r7); an unavailable named locale is EC-LOCALE-MISSING at use (checking-gated; the root order answers when checking is off).",
+ "state": "OK"
+}

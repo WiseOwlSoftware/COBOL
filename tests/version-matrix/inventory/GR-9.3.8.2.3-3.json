@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.3.8.2.3-3",
+ "section": "9.3.8.2.3",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Conformance for object orientation",
+ "rule-digest": "ceb98a3fd1d1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DescriptionClauses.cs#AlignedOrDynamicLengthMismatch; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#SignatureDifference; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#SignatureDifference; src/WiseOwl.Cobol.Compiler/Binding/Model/PictureClauseIdentity.cs#Key; src/WiseOwl.Cobol.Compiler/Oo/ActivationDescriptions.cs#ElementaryClauses",
+ "test-ref": "conformance-test:OoSpineTests.Implements_NumericDescriptionMismatch_0841; conformance:cases/9.3.5.3-Parametric-polymorphism/w61b-pb1166-implements-picture-clause; conformance:cases/9.3.5.3-Parametric-polymorphism/w61b-pb1166-override-picture-clause; unit:PictureClauseIdentityDriftTests.AlphabeticAndAlphanumeric_AreDifferentPictureClauses_AndRepetitionIsNot; unit:PictureClauseIdentityDriftTests.AlignedAndDynamicLength_AreComparedThroughTheOneSharedPredicate; unit:PictureClauseIdentityDriftTests.CurrencySymbols_MatchIffTheirStringsMatch; unit:PictureClauseIdentityDriftTests.PeriodAndCommaSymbols_MatchOnlyUnderTheSameDecimalPointSetting; conformance:cases/9.3.8.2.3-Conformance-between-interfaces/pb1012_strong_type_override_factory",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1166 landed (w61b): rule 3's clause list through the one identity + DescriptionClauses: PIC A(4) vs X(4), ALIGNED one side, DYNAMIC LENGTH one side, F->'EUR' vs F->'GBP' and DPC for one interface are each refused (COBOL0841 on IMPLEMENTS, 0829 on overrides); the previously-correct edges are unchanged. retired-witness: src/Cobol.Net.Compiler/Binding/Model/PictureClauseIdentity.cs#Mismatch (kb/Work PB3101 (wave 1082): the DataItem comparator family is deleted (OoConformance.DescriptionMismatch, StrongTypeMismatch, AsIfElementaryGroupMismatch, IsCategoryAlphanumeric, PictureClauseIdentity.Mismatch, ObjectRefDescriptor.SameDescriptionAs); every activation and pair-mode question describes its items through ActivationDescriptions and asks ActivationRelations (CallArgumentViolation / CallReturningViolation / MatchViolation / SignatureDifference), the PICTURE identity entering through PictureClauseIdentity.Key) retired-witness: src/Cobol.Net.Compiler/Oo/OoConformance.cs#DescriptionMismatch (kb/Work PB3101 (wave 1082): the DataItem comparator family is deleted (OoConformance.DescriptionMismatch, StrongTypeMismatch, AsIfElementaryGroupMismatch, IsCategoryAlphanumeric, PictureClauseIdentity.Mismatch, ObjectRefDescriptor.SameDescriptionAs); every activation and pair-mode question describes its items through ActivationDescriptions and asks ActivationRelations (CallArgumentViolation / CallReturningViolation / MatchViolation / SignatureDifference), the PICTURE identity entering through PictureClauseIdentity.Key)",
+ "state": "OK"
+}

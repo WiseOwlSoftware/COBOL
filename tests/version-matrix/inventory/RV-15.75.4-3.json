@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.75.4-3",
+ "section": "15.75.4",
+ "kind": "RV",
+ "ordinal": 3,
+ "subject": "RANDOM function",
+ "rule-digest": "09c124f9933a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Random",
+ "test-ref": "unit:RandomSeedSubsetTests.Seeds_0_Through_65535_YieldPairwiseDistinctSequences; unit:RandomSeedSubsetTests.SeedsAtOrAbove2Pow31_AliasToTheirMaskedValue; conformance:cases/15.75.3-Argument-rules/pb636_random_total_seed",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB65 (2026-08-18): the A.1 item-145 determination is now DOCUMENTED (docs/CONFORMANCE.md section 7 item 145) and MEASURED — the first three draws of every seed 0..65,535 are pairwise distinct (RandomSeedSubsetTests), which discharges the required 0..32,767 floor with a margin; the wide-seed alias (seed AND 0x7FFFFFFF) and the negative-seed EC are pinned in the same test/row. kb/Work PB636 (2026-09-21): the SEED's totality is now witnessed. §15.75.3 r2 constrains the SIGN alone and r3 makes the distinct-sequence subset a FLOOR, so §15.3 has no incorrect value to raise on; the intake rode the PARTIAL-function narrowing, so a 19-digit seed terminated the run unit under armed EC-ARGUMENT-FUNCTION checking and substituted the ARGUMENT 0 with checking off. The runtime body now declares Int128 — the carrier IS the totality claim IntrinsicCarrierAgreementDriftTests pairs against — and the arm takes IntArgWide; the low-31-bit reduction (CONFORMANCE.md DOC-A.1-145) is unchanged.",
+ "state": "OK"
+}

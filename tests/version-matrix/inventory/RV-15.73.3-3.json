@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.73.3-3",
+ "section": "15.73.3",
+ "kind": "RV",
+ "ordinal": 3,
+ "subject": "PI function",
+ "rule-digest": "a5d2dbada616",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#StoreExpr; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#Store",
+ "test-ref": "conformance:cases/15.17.4-Returned-value-rule/pb65_dec_move_channel",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "PB65 (Dec MOVE-channel members) LANDED 2026-08-09: MOVE was the one numeric consumer without the Dec-carrier store case; both edited and plain arms now land through the SDIDI final transfer. PROBED: same one site (the MOVE Dec-store case) serves PI - the constant arm is shared and both channels land identically. PRIOR (DIVERGES): EDITIONS CORRECTED to 2014,2023: standard-decimal arithmetic is a COBOL-2014 introduction (ConstructRegistry row 'arithmetic-standard-decimal-2014', IntroducedIn 2014) - re-verified, 'OPTIONS. ARITHME",
+ "state": "OK"
+}

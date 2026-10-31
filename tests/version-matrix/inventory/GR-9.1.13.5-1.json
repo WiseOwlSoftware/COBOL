@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.5-1",
+ "section": "9.1.13.5",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "I-O status",
+ "rule-digest": "42715d234365",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#SequenceError",
+ "test-ref": "conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/l1_open_extend_position",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 9.1.13.5 \"The prime record key value has been changed by the runtime element between the successful execution of a READ statement\" -> OK §9.1.13.5 1)). Two arms, both located and both probed: (i) ascending-sequence violation - IndexedConnector.Write, sequential access only (§14.9.51.4 GR38/GR42 a), not-greater-than the last prime written through THIS connector (and, under extend, the highest existing - l1_open_extend_position XW2=21); probe iostat-ix SW2-SEQ=21 (descending) and SW3-EQ=21 (equal - '21' and '22' both apply; the implementor's choice under §9.1.13.1, cite.py OK). (ii) prime key changed between READ and REWRITE - IndexedConnector.Rewrite sequential-access arm compares with KeyEq (collating sequence, §12.4.5.12.4 GR1) against _lastReadPrime; probe SRW-CHG=21. Random/dynamic access never yields '21' (rule scoped to a sequentially accessed file). The golden covers arm (i) only; arm (ii) has no spec-derived golden (KeyedIoDifferentialTests is a legacy differential and does not qualify).",
+ "state": "OK"
+}

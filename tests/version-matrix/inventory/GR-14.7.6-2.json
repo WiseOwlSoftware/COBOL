@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.6-2",
+ "section": "14.7.6",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Common phrases and features for statements",
+ "rule-digest": "c55e73e9c484",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrRule2MoveValid; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#DataItemRefusal",
+ "test-ref": "conformance:cases/14.7.6-CORRESPONDING/pb391_corresponding_rule2_table16_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule 2 (--check 14.7.6 -> OK §14.7.6 2)). The 'at least one elementary' half is structural (group x group namesakes descend in CorrMatch, NOTE 5 under §14.9.25.4 GR11); the validity half delegates to the ONE MoveTable16.DataItemRefusal (Table 16 + SR8 + SR9), refusal = silent non-selection (PB391 landed). PROBE out/probe/corr/c2.cob: MOVE CORRESPONDING pairs BINARY-LONG -> 9(3) (003), 9(3) -> X(3) (004), group -> X(2) (12), 9 -> X (5). Goldens 85/pb391_corresponding_rule2_table16_85, 2023/pb391_corresponding_rule2_rule4_categories, 2002/pb391_corresponding_rule2_sr8_binary, 2014/pb391_corresponding_rule2_sr9_varlen cover the category cells. || editions as adjudicated: 1985, 2002, 2014, 2023",
+ "state": "OK"
+}

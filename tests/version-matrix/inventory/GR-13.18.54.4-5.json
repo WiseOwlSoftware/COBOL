@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.54.4-5",
+ "section": "13.18.54.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "SUM clause",
+ "rule-digest": "a87f7ccf0507",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#SumCounterFor; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#ReportSumCounterPlace; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#SumCounters; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindReportClauses",
+ "test-ref": "conformance:cases/13.8.6.2.3-Report-Items/pb882_report_sum_counter_identity; conformance:cases/13.18.53-SOURCE/pb1292_source_forms_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB840 + PB882 + PB1454 + PB1292 landed. GR5 'the data-name is the name of the sum counter, not the name of the associated printable item, if any' (cite.py --check 13.18.54.4 OK). The data-name resolves to ReportSumCounterPlace in the procedure division (MOVE, ADD, SUBTRACT, COMPUTE, read after TERMINATE; group-qualified, PB1454) AND as a SOURCE identifier of the current report (pb1292_source_forms_85: SOURCE RUNTOT).",
+ "state": "OK"
+}

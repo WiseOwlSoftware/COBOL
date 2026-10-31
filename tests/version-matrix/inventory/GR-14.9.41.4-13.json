@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.41.4-13",
+ "section": "14.9.41.4",
+ "kind": "GR",
+ "ordinal": 13,
+ "subject": "START statement",
+ "rule-digest": "0dda0bb0a5da",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/StartKeyLength.cs#TryCompareLength; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#CategorySource",
+ "test-ref": "conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb357_start_length_not_integer; conformance:cases/14.9.41-START/pb355_start_length_national_past_operand; conformance:cases/14.9.41-START/pb355_start_length_past_operand; unit:StartKeyLengthTests.NationalCount_IsPositions_ScaledToStorageAfterTheTest; conformance:cases/14.9.41-START/pb1099_record_key_source_national; conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099_record_key_source",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB357 LANDED (wave 56). RULE (cite.py --check 14.9.41.4 'if data-name-1 or record-key-name-1 is of class national, arithmetic-expression-1 is the number of national character positions' -> OK 14.9.41.4 13)). ALPHANUMERIC arm: the count is character positions end to end (pb355_start_length_past_operand, pb357). NATIONAL arm: reachable since kb/Work PB327 (national record keys); StartKeyLength.UnitWidth scales the POSITION count to storage AFTER the GR14 test, witnessed by pb355_start_length_national_past_operand. RECORD-KEY-NAME-1 ARM (kb/Work PB1099, the SOURCE phrase provided from 2002; review R1-3): a SOURCE-form key takes the class of its data-name-2 (cite.py --check 12.4.5.12.3 'Record-key-name-1 has the class and category of data-name-2' -> OK 5)), so a national record-key-name counts national positions, run end to end across its data-name-2 segments in the order specified (12.4.5.12.4 GR2). Witnessed by conformance:cases/14.9.41-START/pb1099_record_key_source_national: a key of two PIC N(2) segments, START LENGTH 1 (=, >), LENGTH 3 (crosses the segment boundary) and LENGTH 2 (invalid key), each row chosen so a byte count would select a different record; the alphanumeric record-key-name arm is conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099_record_key_source (L1/L2).",
+ "state": "OK"
+}

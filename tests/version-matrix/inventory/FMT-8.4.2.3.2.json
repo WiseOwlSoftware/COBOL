@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.4.2.3.2",
+ "section": "8.4.2.3.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Subscripts",
+ "rule-digest": "5cbb1a7db079",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#InterpretSubscripts; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#subscriptList; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#SegmentsOf; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#BindPosition; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#MaterializePosition",
+ "test-ref": "conformance:cases/8.4.2.3-Subscripts/pb877_subscripted_subscript; conformance:cases/8.4.2.3-Subscripts/pb136_subscript_expressions; conformance:cases/8.4.2.3-Subscripts/pb62_all_subscript_runtime_ranges; conformance:cases/8.4.2.3-Subscripts/index_name_r7_windows; conformance:cases/8.4.2.3-Subscripts/pb170_position_operand_legal_shapes",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The subscript general format has exactly THREE alternatives and each now has a witness. ALL - pb62 (the three ranges GR1a defers to; vacuous at 85, which has no function for which the subscript ALL is allowed). index-name-1 [{+|-} integer-1] - 85/index_name_r7_windows and pb170. arithmetic-expression-1 - pb136 for compound expressions and pb877_subscripted_subscript for the shape that had no vehicle until kb/Work PB877: an identifier operand carrying its OWN subscripts. 8.8.1.1 admits 'an identifier referencing a numeric data item' and 8.4.3.1.2 Format 2 makes that identifier a qualified-data-name-WITH-SUBSCRIPTS, so X(1) is an arithmetic-expression-1 - but the declaration-informed '(' splitter asked DataItem.IsTable, which is only the first half of 8.4.2.3.3 SR2, so the identifier's own '(' opened a SECOND subscript and every such reference failed arity. It was loud on the receiving side (COBOL0899) and a run-time abort on the sending side. Format 1 (qualified-data-name-with-subscripts) and Format 2 (qualified-condition-name-with-subscripts) are both covered: the golden subscripts data-names, and ResolveForItem - the condition-name path, whose subscripts identify the occurrence of the CONDITIONAL VARIABLE - applies the same SR2/SR3 screen. retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#SplitSubscriptTokens (kb/Work PB2113: the subscript list is the grammar's subscriptList, read by SegmentsOf) retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#MaterializeViaFragment (replaced: kb/Work PB2151 reads the position's parse node into a typed Position (BindPosition, MaterializePosition); RenderSegment and the text re-parse are deleted) retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#RenderSegment (replaced: kb/Work PB2151 reads the position's parse node into a typed Position (BindPosition, MaterializePosition); RenderSegment and the text re-parse are deleted)",
+ "state": "OK"
+}

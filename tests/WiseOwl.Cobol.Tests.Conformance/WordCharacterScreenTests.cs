@@ -206,6 +206,56 @@ public sealed class WordCharacterScreenTests
         if (edition == 85) Assert.Contains(errors, e => e.Contains("COBOL0900") && e.Contains(word));
     }
 
+    /// <summary>A CAUSE READS BEFORE ITS EFFECT (kb/Work PB4131): the word the screen names is why the parser died at the NEXT
+    /// token, so COBOL2773 precedes the COBOL0001 it explains although the screen needs the failed parse and reports last. Placement
+    /// is by source position among the parse's own reports: a parse error that sits BEFORE the word (unrelated to it) stays before,
+    /// one after it stays after, and the report order is the same at every edition.</summary>
+    [Theory]
+    [InlineData(85)]
+    [InlineData(2002)]
+    [InlineData(2014)]
+    [InlineData(2023)]
+    public void TheWordCharacterCause_ReadsBeforeTheParseErrorItExplains(int edition)
+    {
+        string source = $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB4131A.
+            PROCEDURE DIVISION.
+                DISPLAY "A" MOVE MOVE.
+                DISPLAY X{Euro} MOVE MOVE.
+                DISPLAY "B" MOVE MOVE.
+                STOP RUN.
+            """;
+        var (ok, errors, _) = EditionHarness.CompileFull(source, edition);
+        Assert.False(ok);
+        var codes = errors.Select(e => e.Contains("COBOL2773") ? "COBOL2773" : e.Contains("COBOL0001") ? "COBOL0001" : "other").ToList();
+        Assert.Equal(["COBOL0001", "COBOL2773", "COBOL0001", "COBOL0001"], codes);
+        Assert.Contains("(4,", errors[0]);
+        Assert.Contains("(5,", errors[1]);
+        Assert.Contains("(5,", errors[2]);
+        Assert.Contains("(6,", errors[3]);
+    }
+
+    /// <summary>The same placement when the word is the whole line, as in golden <c>pb3845-nbsp-word-unparseable</c> (the parse
+    /// dies on the NEXT line's first token): the word's line reads first.</summary>
+    [Fact]
+    public void TheWordCharacterCause_OnItsOwnLine_ReadsBeforeTheParseErrorOfTheNextLine()
+    {
+        string source = $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB4131B.
+            PROCEDURE DIVISION.
+            {" "}
+                STOP RUN.
+            """;
+        var (ok, errors, _) = EditionHarness.CompileFull(source, 2023);
+        Assert.False(ok);
+        int cause = errors.ToList().FindIndex(e => e.Contains("COBOL2773"));
+        int effect = errors.ToList().FindIndex(e => e.Contains("COBOL0001"));
+        Assert.True(cause >= 0 && effect >= 0, string.Join('\n', errors));
+        Assert.True(cause < effect, string.Join('\n', errors));
+    }
+
     /// <summary>The binder driver screens only a compilation whose frontend reported nothing, so a source that PARSES beside
     /// another frontend error (here the §8.3.5 separator rule: a semicolon must be followed by a space) is screened by the
     /// frontend too: the underscore gate of '85 is not lost until the separator is fixed.</summary>

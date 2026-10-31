@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.1.3.2-4",
+ "section": "8.1.3.2",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "COBOL character repertoire",
+ "rule-digest": "dc932c141b33",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#EXT_CHAR; src/WiseOwl.Cobol.Editions/CobolCharacterRepertoire.cs#Violation; src/WiseOwl.Cobol.Editions/CobolCharacterRepertoire.cs#LengthInCharacters; src/WiseOwl.Cobol.Frontend/Common/CobolWordRule.cs#CharacterViolation; src/WiseOwl.Cobol.Runtime/CobolNames.cs#UpperFold; src/WiseOwl.Cobol.Editions/ReservedWords.cs#Find",
+ "test-ref": "conformance:cases/8.1.3-COBOL-character-repertoire/pb1402_extended_letters; conformance:cases/8.1.3-COBOL-character-repertoire/pb1402_extended_letters_2023; conformance:cases/8.1.3-COBOL-character-repertoire/pb1402-not-an-annex-b-character; conformance:cases/8.1.3-COBOL-character-repertoire/pb1402-annex-b-2023-letter-before-2023; unit:AnnexBCDriftTests.AnnexBList_EqualsTheSpec; unit:CobolNameFoldDriftTests.Violation_IsTheEditionsAnnexB; unit:CobolNameFoldDriftTests.WordLength_CountsCharacters_NotUtf16Units; conformance:cases/8.1.3-COBOL-character-repertoire/pb1965_annex_c_word_keys; conformance:cases/8.1.3-COBOL-character-repertoire/pb1965-kelvin-spelled-reserved-word; conformance:cases/8.1.3-COBOL-character-repertoire/pb1965-method-names-one-word-before-2023",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1965 (w1047a): b) reaches the word tables outside the compiler and frontend: an uppercase extended letter that folds to a basic letter (the Kelvin sign, (212A,006B)) now finds the reserved word it spells (<Kelvin>EY is KEY, COBOL0901 by 8.3.2.1 1)) and the >>COBOL-WORDS synonym it spells; final sigma keeps its own key at 2023 (E.2 item 14) in C# identifiers and EXTERNAL identities, and below 2023 folds to sigma (two METHOD-IDs X<final sigma> and X<sigma> are one name, COBOL0822).",
+ "state": "OK"
+}

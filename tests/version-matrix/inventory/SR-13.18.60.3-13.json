@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.60.3-13",
+ "section": "13.18.60.3",
+ "kind": "SR",
+ "ordinal": 13,
+ "subject": "USAGE clause",
+ "rule-digest": "fbcaf116bf53",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UsageInheritancePass; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UsageInheritanceElementary; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ApplyEffectiveUsage; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ScreenUsageAgainstPicture; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#IsPictureless",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/national_data; conformance:cases/13.18.60-USAGE/pb495_group_usage_applies_to_each_leaf; conformance-test:UsageInheritanceDriftTests.InheritedUsage_IsTheSameItemAsAWrittenOne; unit:PicturelessUsageSetDriftTests.EverySr8NamedUsage_WithAMember_IsPictureless; unit:PicturelessUsageSetDriftTests.EveryPicturelessMember_IsSr8Named_OrACoveredDetermination",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB495 landed the ONE derivation of an elementary item's EFFECTIVE usage -- its own USAGE clause, else the nearest enclosing group's (13.18.60.4 GR1) -- feeding the group-header shed, the leaf's representation and EVERY 13.18.60.3 screen through the SAME code the written-clause path runs (PictureAnalyzer.ScreenUsageAgainstPicture, extracted for the purpose). The invariant is stated and locked as an EQUIVALENCE rather than as cases: `01 G USAGE u. 05 A <pic>.` and `01 G. 05 A <pic> USAGE u.` are the same item, so they must produce the same verdict, the same diagnostic code and the same width, for EVERY member of the Usage enum. UsageInheritanceDriftTests enumerates the enum and asserts exactly that (24 members x 6 pictures x 2 arms). MEASURED on the pre-fix tree 39479e19: 108 of those 138 cells DIFFERED between the two arms; after the fix, 0 differ. SR13'S OWN PRECONDITION IS NOW HONOURED. The implication applies only \"When a USAGE clause is not specified for an elementary data item OR FOR ANY GROUP TO WHICH THE DATA ITEM BELONGS\", and the second half was ignored: SR13a's national implication was applied from the PICTURE alone, so `01 G USAGE DISPLAY. 05 A PIC N(2).` and `01 G USAGE COMP. 05 A PIC N(4).` compiled with A byte-for-byte identical to the same leaf under a usage-less group -- the group's written clause had no effect and drew no diagnostic. Now the group's clause IS the leaf's clause, SR13's precondition fails, and SR20 rejects both (COBOL0881). The unconditioned cases are unchanged and pinned by the same drift theory: with no clause anywhere, `PIC N(2)` implies NATIONAL (SR13a, 4 bytes) and every other picture implies DISPLAY (SR13b).",
+ "state": "OK"
+}

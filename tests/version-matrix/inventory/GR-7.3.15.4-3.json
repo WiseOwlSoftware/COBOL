@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.15.4-3",
+ "section": "7.3.15.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "FLAG-14 directive",
+ "rule-digest": "ec948a7d09a0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FlagState.cs#IsOnAt; src/WiseOwl.Cobol.Frontend/Preprocessor/FlagDirective.cs#TryParse",
+ "test-ref": "unit:FlagDirectiveTests.Compile_Flag14ReadPreviousOff_EmitsNoFlagWarning; unit:FlagDirectiveTests.Compile_Flag14_DefaultedBraces_SelectTheRightOptions",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1374 (w1020f). cite.py --check 7.3.15.4 'If OFF is specified, flagging for the selected option or options is disabled' OK. OFF for explicitly selected options (a single option, several, explicit ALL OFF) already worked; `>>FLAG-14 OFF` is OFF with the implicitly selected ALL (the 5.2.6.3 default of the outer braces) and is now accepted: a bare `>>FLAG-14` followed by `>>FLAG-14 OFF` leaves VALUE-ZERO silent (Compile_Flag14_DefaultedBraces_SelectTheRightOptions).",
+ "state": "OK"
+}

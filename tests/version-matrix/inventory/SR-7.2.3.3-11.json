@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.2.3.3-11",
+ "section": "7.2.3.3",
+ "kind": "SR",
+ "ordinal": 11,
+ "subject": "COPY statement",
+ "rule-digest": "68595372f2d2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair",
+ "test-ref": "unit:TextManipulationStatementTests.CopyOperandContent_IsScreened",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1353 (w68x): 'Partial-word-1 shall consist of one text-word' (cite.py OK 7.2.3.3 11)): zero or several text-words are COBOL2572 (probe r_lmulti: AA -X silently became CC-X, now rejected). ApplyReplacements' from[0] therefore sees exactly the one word.",
+ "state": "OK"
+}

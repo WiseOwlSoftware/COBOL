@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.3.4-10",
+ "section": "14.9.3.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "ALLOCATE statement",
+ "rule-digest": "39f8a5f00ffc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/CobolPtr.cs#Free",
+ "test-ref": "conformance:cases/14.9.3-ALLOCATE/allocate_initialized",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (--check OK, §14.9.3.4 10): the storage persists until FREE or run unit termination, whichever is first. Half 1 — nothing but FREE releases it: `StorageCell.Freed` (src/WiseOwl.Cobol.Runtime/Control/StorageCell.cs:20) has exactly ONE writer in the whole tree, `CobolPtr.Free`'s `w.Cell.Freed = true` (grep over src/WiseOwl.Cobol.Runtime + src/WiseOwl.Cobol.Compiler returns only that assignment plus the two READS in CobolPtr.Deref/Free), so no other statement, program exit, or CANCEL can release an allocated cell; a StorageCell is an ordinary managed object reachable from every CellPointer that addresses it, so it outlives the allocating program's activation as long as any pointer holds it. Half 2 — run unit termination: §14.6.11 3) (--check OK) 'Any storage obtained with an ALLOCATE statement and not yet released by a FREE statement is released' is satisfied by process exit reclaiming the managed heap; there is no observable difference because nothing can reference the storage after the run unit ends. Evidence: 2002/allocate_initialized allocates, writes through the based item, re-windows the SAME storage through a different based item after intervening statements (`SET ADDRESS OF W TO P` -> `DISPLAY \"W=[\" W \"]\"`), then FREEs and checks `IF P = NULL AND P2 = NULL` — the persist-then-release pair, byte-compared. Not verified by any test: persistence across a program-unit boundary (allocate in a contained program, dereference in the container after it returns); that is what a further golden would add. || UPHELD: I re-ran the `Freed` writer search over src/ (bin/obj excluded) and CobolPtr.cs:136 is the only assignment; I read Free (CobolPtr.cs:130-142) and Deref (CobolPtr.cs:24-62) and the only other mutation on the release path is `w.Cell.Ref = \"\"` in the same block. I independently --check'd §14.6.11 3) and it returned OK with the exact sentence quoted. I also read §8.6.5 (specs/ISO_COBOL.md:7676-7690) to test the one thing that could contradict this row: it ends the ASSOCIATION at the end of a section's data life cycle or at the end of a linkage-section runtime element's execution — the association, never the STORAGE — so the managed cell outliving the based entry is exactly what GR10 requires, and the leaked-but-persisting cell is conformant. Not downgraded for the untested cross-program-unit edge: the single-writer read is a structural proof that covers every boundary, not a sample.",
+ "state": "OK"
+}

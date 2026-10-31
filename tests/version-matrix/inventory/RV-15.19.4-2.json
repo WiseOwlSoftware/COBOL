@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.19.4-2",
+ "section": "15.19.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "CONVERT function",
+ "rule-digest": "ad1e5c68ab7c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Convert; src/WiseOwl.Cobol.Runtime/Values/Text/CobolBits.cs#Pack; src/WiseOwl.Cobol.Runtime/Values/Text/StorageByte.cs#StorageByte.ImageByte",
+ "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.Convert_Formats_2023; conformance-test:IntrinsicFunctionDifferentialTests.Convert_ByteSerializationSetsDataConversion_WhenChecked_2023; conformance:cases/15.3-Arguments/intrinsics_convert",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-08-09 (PB59 family 5b), all three legs. (a) stayed CONFORMS (the character sources' hex digits, unchanged). (b) the ZERO-BIT PADDING: a sub-byte ANY source arrives PRE-PACKED high-order-first (CobolBits.Pack zero-fills the trailing partial byte), which IS r2's multiple-of-8 pad - B\"101\" ANY ANUM HEX = A0 (the row's own derivation; measured, corpus row BA), never the old 313031 (the hex of the CHARACTERS '101') and never NOTE 3 c's defective E0. (c) the substitution: DECIDED as the documented item-209 disposition (CONFORMANCE.md item-33 row tail) - r2 carries no substitution sentence because the spec's model assumes a total serialization; where the declared 1-byte DISPLAY serialization is partial (above 0xFF), the r1/r3-analogous '?'+EC-DATA-CONVERSION is the smallest extension of the standard's own machinery, visible under checking (pinned by the WhenChecked test). The r4 twin (16-bit pad) is the same landing - see RV-15.19.4-4. retired-witness: src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#ByteSub (the symbol is deleted: CONVERT RawBytes and every REDEFINES view now share StorageByte.ImageByte (kb/Work PB547))",
+ "state": "OK"
+}

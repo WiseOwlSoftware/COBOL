@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.11.3-1",
+ "section": "12.4.5.11.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "RECORD DELIMITER clause",
+ "rule-digest": "c78819f3c1ba",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported; src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Declined; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl",
+ "test-ref": "conformance:cases/12.4.5.11-RECORD-DELIMITER/pb292_record_delimiter_witness; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterStandard1_NamedNonSupportWarning_PinnedToSpec; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterFeatureName_NamedNonSupportWarning_PinnedToSpec",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"The RECORD DELIMITER clause may be specified only for variable-length records\" is NOT enforced, and the licence is express rather than inferred. §4.2.6 ¶3, second sentence: \"Although this warning mechanism shall identify processor-dependent elements that are not supported, it is not required to diagnose syntax errors within this unsupported syntax\" (cite.py --check OK). The clause is unsupported whole — docs/CONFORMANCE.md §2 row 26 for the STANDARD-1 arm (Annex A.3 item 26) and §7 A.1 item 150 for the feature-name arm — and COBOL1778 names it at every edition, which is the obligation §4.2.6 ¶3 does impose. Enforcing SR1 anyway was considered and REJECTED as a rejects-legal-source risk, not skipped: SR1's own NOTE makes variable-length-ness partly an implementor determination (A.1 items 147-148, both still open), and §9.1.7.2 makes a LINE SEQUENTIAL file's records variable with no RECORD clause written at all, so a test keyed on FileModel.Varying would refuse legal source in order to enforce a rule the standard excuses. The golden's four files are all SR1-legal (RECORD IS VARYING), so nothing here depends on the unenforced case.",
+ "state": "OK"
+}

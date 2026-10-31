@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.2.3.3-3",
+ "section": "8.4.2.3.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Subscripts",
+ "rule-digest": "2dfac91389b6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#SubscriptArity; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#SubscriptLevels; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ScreenSubscriptArity; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#AccessPath",
+ "test-ref": "conformance:cases/8.4.2.3-Subscripts/pb877_subscripted_subscript; conformance:cases/8.4.2.3-Subscripts/pb877-subscript-count-mismatch; unit:SubscriptAdmissionDriftTests.TheSr3ArityWalk_IsWrittenExactlyOnce; unit:SubscriptAdmissionDriftTests.BothSubscriptScreens_AreWiredAtTheOneResolutionSite; conformance:cases/8.4.2.3-Subscripts/pb1016-constant-length-subscript-count",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The COUNT and the ORDER. DataItem.SubscriptArity is the count - one per OCCURS clause in the item's description, fixed or dynamic - and DataItem.SubscriptLevels() is the same walk as a list, outermost first, which is SR3's 'order of successively less inclusive dimensions'. Five hand-written copies of that ancestor walk were in the compiler; the drift test pins it to one. POSITIVE: the 85 golden writes one subscript per dimension in every position, including the two-dimensional Y2 OF Y-REC (X(1), 2) and the nested SEARCH ALL T-E (T-N (1), TX) whose witness value discriminates the outer occurrence. NEGATIVE: X (1, 2) on a one-dimensional element is COBOL2097 at all four editions. SR5's seven exceptions are all about OMITTING the subscript list and are decided by the owning binders (a SEARCH subject, a REDEFINES clause, an OCCURS KEY IS phrase, a SORT key or table subject, a screen entry's FROM/TO/USING phrase, a report SUM addend), so the screen deliberately fires only on a reference that WRITES subscripts.",
+ "state": "OK"
+}

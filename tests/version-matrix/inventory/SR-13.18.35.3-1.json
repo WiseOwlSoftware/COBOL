@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.35.3-1",
+ "section": "13.18.35.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "LINE clause",
+ "rule-digest": "93b70d4af3ef",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportRelativeSign; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolScreen.g4#screenLineClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportRelativeSign",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb951_relative_sign_synonyms; conformance:cases/8.4.3.15-Report-counters/pb957_next_group_forms; unit:GrammarRelativeSignDriftTests.EveryRuleNamingTheWordPlus_AlsoNamesTheSymbol; conformance:cases/13.18.35-LINE/pb3964-report-plus-symbol-85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB951. 'PLUS and + are synonyms' (ALL FORMATS). The report-writer LINE operand admitted only the WORD, so LINE + 1 was a bare COBOL0001; it now references the ONE fragment reportRelativeSign : PLUSWORD | PLUS, and the golden proves the identity (DE-W with PLUS and DE-S with + print identical lines at identical distances). Format 2 (screen, CobolScreen.g4 screenLineClause) already admitted both tokens; the drift test pins every parser rule naming PLUSWORD to also name PLUS.",
+ "state": "OK"
+}

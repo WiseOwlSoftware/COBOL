@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.2.4.3-1",
+ "section": "7.2.4.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "REPLACE statement",
+ "rule-digest": "0b06a11cbd28",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#FindStatementKeyword; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements",
+ "test-ref": "conformance:cases/7.2.4-REPLACE/pb1358_replace_anywhere; unit:TextManipulationStatementTests.Replace_IsRecognizedMidLine; unit:TextManipulationStatementTests.ReplaceInsideAWordOrLiteral_IsNotAStatement",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1358 (w68x): 'A REPLACE statement may be specified anywhere in source text or in library text that a character-string or a separator ... may appear' (cite.py OK 7.2.4.3 1)). REPLACE is located by the same text-word walk that finds COPY (FindStatementKeyword, which replaced FindKeywordAtLineStart and FindCopyKeyword), never inside a literal, a directive line or a longer word. Probe midline.cob was COBOL0001 near '=', now START / AAA; golden leg [B-C] is a REPLACE inside a DISPLAY statement.",
+ "state": "OK"
+}

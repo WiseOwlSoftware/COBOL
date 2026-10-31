@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.13.4-1",
+ "section": "12.4.5.13.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "RELATIVE KEY clause",
+ "rule-digest": "83a3cd68a4ed",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs; src/WiseOwl.Cobol.Runtime/IO/StoreTable.cs; src/WiseOwl.Cobol.Runtime/IO/KeyedStore.cs",
+ "test-ref": "conformance:cases/_unassigned/l1c24_relative_record_numbering",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR1: 'The first logical record has a relative record number of 1, and subsequent logical records have relative record numbers of 2, 3, 4, ...' (cite.py --check 12.4.5.13.4 \"The first logical record has a relative record number of 1\" -> OK). The runtime store is keyed by 1-based RRN (RelativeConnector.cs:24 slot store, :522 `into.Put(i + 1, rec)`). Probe rk4 (pinned cobol.exe): ACCESS SEQUENTIAL OPEN OUTPUT, three WRITEs with RELATIVE KEY preset to 77 -> key item reads 0001, 0002, 0003 after each (FS 00); sequential READs return AAAA K=0001, BBBB K=0002; DYNAMIC random READ with key 0 -> INVALID KEY, FS=23; random WRITE with key 0 -> FS=34, which is what §14.9.51.4 GR29 b) requires for a value less than 1 (cite.py --find located it: §14.9.51.4 29) b)). Ordinal-position semantics also observed via START NOT LESS THAN 4 -> READ NEXT returns RRN 7 record. No spec-derived golden asserts the output-mode numbering starting at 1 (l1_read_relative_key_moved writes with explicit keys 1..3), so test-ref is empty = test-needed. [registrar 14a — editions as adjudicated: 1985, 2002, 2014, 2023] retired-witness: src/Cobol.Net.Runtime/IO/KeyedStoreTable.cs (the whole-store model's remains are deleted (kb/Work PB3335; DESIGN-runtime-library 2.2.1.13): KeyedStoreTable.cs is split: the store table is StoreTable.cs and the engine handle with its two views is KeyedStore.cs)",
+ "state": "OK"
+}

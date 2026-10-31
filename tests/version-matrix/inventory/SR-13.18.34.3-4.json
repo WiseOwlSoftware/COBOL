@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.34.3-4",
+ "section": "13.18.34.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "LINAGE clause",
+ "rule-digest": "df7db8c0cbf6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs",
+ "test-ref": "conformance:cases/13.18.34-LINAGE/l1_linage_zero_margins",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Zero margins are accepted (the permission — tested by the fixture compiling at all) and, per §13.18.34.4 GR1, must behave as an omitted phrase: LINAGE-COUNTER steps 1,2,3,4 identically on the explicit-zero file and the phrase-less control (GR7d, GR7c3). The columns pin GR7, NOT margin handling — a zero margin is the identity, so column equality is blind to how a margin is treated. Every WRITE is preceded by its own MOVE because §14.9.51.4 GR4 empties the record area on each successful WRITE.",
+ "state": "OK"
+}

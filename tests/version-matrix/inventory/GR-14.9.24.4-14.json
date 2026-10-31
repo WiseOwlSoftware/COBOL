@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.24.4-14",
+ "section": "14.9.24.4",
+ "kind": "GR",
+ "ordinal": 14,
+ "subject": "MERGE statement",
+ "rule-digest": "e9e8323b2911",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitImplicitOpen; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#ExecutingElementArgs; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Associate",
+ "test-ref": "conformance:cases/14.9.24-MERGE/l1c18_merge_assign_using_association",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'Additional rules affecting the execution of the MERGE statement are given in 12.4.5, File control entry, General rules 3 and 4.' (cite.py --check 14.9.24.4 -> OK §14.9.24.4 14)); target: 'The association occurs at the time of execution of an OPEN, SORT, or MERGE statement that referenced file-name-1' ... 'If the association cannot be made ... the OPEN, SORT, or MERGE statement is unsuccessful.' (cite.py --check 12.4.5.3 -> OK §12.4.5.3 3)). GR4 is implementor-defined content (DOC-A.1-73 / DOC-A.1-10; GR-12.4.5.3-4 adjudicated CONFORMS in the file-control-entry batch). Code: every MERGE implicit OPEN goes through EmitImplicitOpen with seqIo.ExecutingElementArgs(file) - the executing element's ASSIGN spec (kb/Work PB673) - so association happens at MERGE execution. Probe probe/merge-p2/m6.cob (USING I1 `ASSIGN USING N1`, I2, GIVING `ASSIGN USING NG`): M1 with N1='mp2aA.dat' -> AAA,CCC into mp2aO1.dat; M2 with N1='mp2aB.dat' -> BBB,CCC into mp2aO2.dat (re-association per MERGE execution); M3 with N1=SPACES -> S1='31', MERGE terminated (I2 untouched, mp2aO3.dat never created) = 'the MERGE statement is unsuccessful'. The SD's own ASSIGN is never associated because the SD's records live in the runtime's sort work (memory, spilling to anonymous temporary run files; docs/CONFORMANCE.md §3 D-SWK), never in a file the SD assigns - unobservable. conformance:cases/14.9.24-MERGE/l1c18_merge_assign_using_association runs MERGE over ASSIGN USING files (moved from 85 by kb/Work PB746: the USING phrase is a 2002 introduction). || editions as adjudicated: 85, 2002, 2014, 2023 (the cross-reference; 12.4.5.3 GR3 b)/GR4's USING phrase follows that phrase's own edition, dated 2002 by kb/Work PB746: the USING phrase is a COBOL-2002 introduction (kb/Work PB746): Annex E never names it, so it predates 2023, and GnuCOBOL 3.2's per-standard dialect files date it at 2002 (cobol85.conf assign-using-variable: unconformable; cobol2002.conf and cobol2014.conf: ok; cobc -std=cobol85 refuses `ASSIGN USING`) - constructs row assign-using-2002, VCR row 7.27; below 2002 the phrase is COBOL0900 on both arms (conformance:cases/12.4.5-File-control/pb746-assign-using-below-2002)) retired-witness: conformance:85/l1c18_merge_assign_using_association (moved to conformance:cases/14.9.24-MERGE/l1c18_merge_assign_using_association: its MERGE runs over ASSIGN USING files, a 2002 phrase (kb/Work PB746))",
+ "state": "OK"
+}

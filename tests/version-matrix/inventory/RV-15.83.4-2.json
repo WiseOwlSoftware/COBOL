@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.83.4-2",
+ "section": "15.83.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "SMALLEST-ALGEBRAIC function",
+ "rule-digest": "c53fc994d192",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindAlgebraicFold",
+ "test-ref": "conformance:cases/15.83.4-Returned-value-rules/l1_smallest_algebraic_float_increment; conformance:cases/15.43.3-Argument-rules/pb122_smallest_algebraic_float; conformance:cases/15.83.4-Returned-value-rules/intrinsics_smallest_algebraic; conformance:cases/15.83.4-Returned-value-rules/smallest_algebraic; conformance-test:IntrinsicFunctionDifferentialTests.SmallestAlgebraic_PictureIncrement_Spec",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "PARTIAL -> CONFORMS, re-verdicted by the kb/Work PB245 golden round (2026-09-09). THE RULE: §15.83.4 r2 'The value returned is equal to the positive algebraic value of smallest finite magnitude that may be used to increment argument-1' (cite.py --check 15.83.4 on that sentence -> OK, rule 2). DERIVED BEFORE THE RUN: 'may be used to increment argument-1' is a property of the item's REPRESENTATION, not of any value it holds - the format's smallest finite positive magnitude, which for an IEEE 754 binary carrier is its smallest positive SUBNORMAL. §13.18.60.4 GR12/GR13 pin FLOAT-SHORT/COMP-1 to binary32 and FLOAT-LONG/COMP-2 to binary64, giving 2^-149 = 1.40129846432481707092...E-45 and 2^-1074 = 4.94065645841246544176...E-324; the clause's own NOTE table (S999 -> +1, 99V9(3) -> +.001) is the same rule read on a fixed-point carrier. MEASURED under ARITHMETIC IS STANDARD-DECIMAL, where the comparisons run on the exact 34-digit intermediate: both values inside windows one unit wide in the TWENTIETH significant digit, and the fixed-point .001 arm beside them. The windows were proved discriminating by shifting each by one unit in the last place and watching the probe go red. ⚠ THE PRE-EXISTING WITNESS WAS WEAKER THAN THE RULE: pb122_smallest_algebraic_float brackets binary64 as '> 0 and < 5.0E-324', which any positive number below the subnormal satisfies - the right test for §15.83.3 r2's ADMISSION arm (RV-15.83.4-1), not for this row's VALUE. WHAT CLOSED IT: kb/Work R10 + PB122 replaced a blanket float refusal with the mode-aware path - the r2/r3 usage bars, r1's IN-ARITHMETIC-RANGE screen, then the per-usage fold at full decimal128 precision. The row's note ('there is no returned-value rule for a floating-point argument-1 anywhere in this method') is stale.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.40.4-16",
+ "section": "14.9.40.4",
+ "kind": "GR",
+ "ordinal": 16,
+ "subject": "SORT statement",
+ "rule-digest": "c03135a0623f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitGivingFile; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#ShortRecordFillNational; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#FillTo; src/WiseOwl.Cobol.Runtime/IO/RecordFill.cs#Fit",
+ "test-ref": "conformance:cases/14.9.24-MERGE/pb1140_sort_merge_short_record_fill",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1140 landed (w1003b). Same EmitGivingFile fill as MERGE GR13, read against the GIVING file (the printed GR16 a)/b) name file-name-2 where the lead-in names file-name-3: a slip of the standard, docs/CONFORMANCE.md D-SMF (b)). Golden legs G1 (GIVING one record `PIC 9(3) USAGE NATIONAL`: 00 31 00 20 00 20), G2 (one record N(3): same), G3 (two records N(3) and X(6), no SELECT WHEN: 00 31 20 20 20 20, alphanumeric by c)), G4 (X(6): 00 31 20 20 20 20). editions: fill 1985 (c), national arms 2002.",
+ "state": "OK"
+}

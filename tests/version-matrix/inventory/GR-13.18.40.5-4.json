@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.40.5-4",
+ "section": "13.18.40.5",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "PICTURE clause",
+ "rule-digest": "78289b09f12b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Format",
+ "test-ref": "conformance:cases/13.18.40.5-Editing-rules/l1_picture_special_insertion",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Three masks whose '.' sits at positions 5, 2 and 4; each edited image is displayed with the three-character window around that position, including the ***.** zero case where editing rule 7b keeps the separator amid full asterisk replacement.",
+ "state": "OK"
+}

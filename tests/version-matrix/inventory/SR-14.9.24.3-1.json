@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.24.3-1",
+ "section": "14.9.24.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "MERGE statement",
+ "rule-digest": "af374726cb04",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs#CheckCrossStatementBans; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateSortMergeProcedures; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#ScreenDeclarativePlacement; src/WiseOwl.Cobol.Compiler/Binding/Model/PcRange.cs#Spans",
+ "test-ref": "conformance:cases/14.9.24-MERGE/pb1139-merge-in-declarative; conformance:cases/14.9.24-MERGE/pb1139-merge-in-sort-procedure; conformance:cases/14.9.24-MERGE/pb1139-merge-in-exception-perform; conformance:cases/14.9.24-MERGE/pb1139_merge_in_sort_procedure_allowed",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1139 landed: MERGE's three regions are all asked. Exception-checking PERFORM imperative-statement-1 (COBOL1615, parse-tree, 2023 - the construct is new there); another MERGE's output procedure / a file SORT's input or output procedure (COBOL1572, 2023 only - Annex E.2 item 20 'now prohibited'; 2014 accepts, golden 2014/pb1139_merge_in_sort_procedure_allowed), through ONE lexical membership test PcRange.Spans shared with the SORT/COMMIT/ROLLBACK arms so an inverted THRU range no longer escapes; a declarative procedure (COBOL2700, every edition, SortBinder.ScreenDeclarativePlacement from EnclosingContext.InDeclarative). The executed (PERFORM out-and-back) reach of GR10 stays kb/Work PB812's.",
+ "state": "OK"
+}

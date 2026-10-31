@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.16.3-18",
+ "section": "13.16.3",
+ "kind": "SR",
+ "ordinal": 18,
+ "subject": "Data description entry",
+ "rule-digest": "802beaff7d15",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Frontend/Cst/DataClauseKind.cs#LengthClauseCoPermitted",
+ "test-ref": "conformance:cases/13.16-Data-description/pb487-aligned-co-clause-rules; unit:DataClauseKindDriftTests.PermittedSets_MatchTheRuleSentences",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "SR18 states the SAME permitted list as SR17, and keeping them as two hand-maintained chains is how they drifted apart (SR18 had fifteen flags to SR17's ten, both still short of ALIGNED, GROUP-USAGE, SELECT WHEN and the validation clauses). ONE constant now serves both rules. The written set also retired the hasGlobal / hasProperty locals, which existed only because GLOBAL and PROPERTY bind post-build and so escaped an allowlist keyed on decode flags. kb/Work PB487.",
+ "state": "OK"
+}

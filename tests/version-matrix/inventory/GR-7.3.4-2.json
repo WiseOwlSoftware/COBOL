@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.4-2",
+ "section": "7.3.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Compiler directives",
+ "rule-digest": "0f2af913ec93",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#ProcessWithCopyMapped; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements",
+ "test-ref": "unit:TextManipulationDirectiveLineTests.Replace_DoesNotRewriteALaterStagesDirective; conformance:cases/7.2.3-COPY/pb1352_directive_lines_not_replaced",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1352 (w67m): the text-manipulation order of 7.2.1 is honoured in its result (7.2.1 lets the implementor optimize 'as long as the final result is the same'): REPLACE still runs before the TURN/PROPAGATE/FLAG stages read their lines, but it can no longer change a directive line (7.3.4 1)), so each directive reaches its stage exactly as written, in encounter order.",
+ "state": "OK"
+}

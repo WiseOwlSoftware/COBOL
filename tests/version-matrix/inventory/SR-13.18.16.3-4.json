@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.16.3-4",
+ "section": "13.18.16.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "CONTROL clause",
+ "rule-digest": "b2abc4c1c586",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ControlOperandRef; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ReadOperandSuffixes; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveItemRefMod",
+ "test-ref": "conformance:cases/13.18.16-CONTROL/pb205_control_ref_mod; conformance:cases/13.18.16-CONTROL/pb205-control-ref-mod-not-literal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB205 - both halves of SR4. The PERMISSION: a reference-modified operand now binds as its slice, because the capture keeps the ref-mod (ReadOperandSuffixes reads both source carriers lexically) and the emitter builds the 8.4.3.3.4 GR5 unique data item through the one ref-mod view builder (ResolveItemRefMod over RefModView), so 13.18.16.4 GR3's prior control is the slice; before this the ref-mod was dropped and CONTROL IS CX(1:3) broke on all six characters, a silent wrong answer. The RESTRICTION: a leftmost-position or length that is not an integer literal is rejected (COBOL1699) - unscreenable while the ref-mod never reached the binder. The omitted length CX(4:) is 8.4.3.3.2's bracketed form and runs to the rightmost position (GR5c).",
+ "state": "OK"
+}

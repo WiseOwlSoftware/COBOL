@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.1.4-3",
+ "section": "14.9.1.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "ACCEPT statement",
+ "rule-digest": "2c65e8d9170c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#Device; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitAcceptDevice; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReceivingStore.cs#CharacterPositions",
+ "test-ref": "conformance-test:AcceptDifferentialTests.Device_ExactSizeReceiver_StoresTheWholeTransfer; conformance-test:AcceptDifferentialTests.Device_ExactSizeReceiver_ShortLine_ConsumesExactlyOneRecord; conformance-test:AcceptDifferentialTests.Device_AnyLengthReceiver_TransfersTheArgumentsSize; conformance-test:AcceptDifferentialTests.Device_AnyLengthFunctionFormal_TransfersTheArgumentsSize; unit:ReceivingStoreDriftTests.AcceptDevice_SizesEveryElementaryTransferByTheOneReceiverSize",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1013 (2026-09-22). 'The same size as the receiving data item' is the receiver's size AT EXECUTION (ReceivingStore.CharacterPositions): an ANY LENGTH receiver's is its argument's (13.18.2.4 GR1 b)). The device window was sized from the DECLARED width, so a PIC X ANY LENGTH bound to X(6) stored ONE character ('ACCEPT L' over QRSTUV gave [Q     ]); PIC N and PIC 1 ANY LENGTH likewise. Witnessed for X, N and 1 ANY LENGTH receivers in a contained program and a user-defined function's BY REFERENCE formal (2002).",
+ "state": "OK"
+}

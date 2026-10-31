@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.43.4-7",
+ "section": "13.18.43.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "RECORD clause",
+ "rule-digest": "5d8584cd9786",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindRecordClause; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMin; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMax; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Stored",
+ "test-ref": "conformance:cases/13.18.43-RECORD/l1c23_record_varying_bounds_depending",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 13.18.43.4 GR7 (Format 2 variable-length; integer-2 min, integer-3 max). `RECORD IS VARYING IN SIZE FROM 5 TO 20 DEPENDING ON L` - L=3 and L=21 answer 44, L=7 writes a 7-byte record (4-byte prefix + 7, p4.dat 11 bytes), READ restores L=7 (probe/record-clause/p4.cob); REWRITE with L=30 answers 44. Variable-length framing on sequential/relative/indexed via RecordFraming. Integer-2 = 0 is covered by conformance:cases/8.5.4-Zero-length-items/pb721_zero_length_record (min half only), so no single spec-derived test pins both bounds -> test-ref left empty.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.6.3-3",
+ "section": "11.6.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "INTERFACE-ID paragraph",
+ "rule-digest": "d028eca868fb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build",
+ "test-ref": "conformance:cases/11.6-INTERFACE-ID/l1c15-interface-inherits-cyclic",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (cite.py --check 11.6.3 OK, SR 3): 'Interface-name-2 shall not inherit directly or indirectly from interface-name-1.' Code: after resolution, a DFS from each interface over Inherits reports COBOL2791 (the INHERITS-clause rule, kb/Work PB1784) 'the INHERITS graph is cyclic (ISO §11.6.3 SR3)' when it reaches itself. Probes (--std 2002): probe/interface-id-paragraph/sr3_self.cob (A INHERITS A) -> 2791; sr3_cycle.cob (A->B->A) -> 2791 on both; sr3_indirect.cob (A->C->B->A, three-deep) -> 2791 on all three (re-probed at 2002, 2014 and 2023 by the PB1784 review finisher, R2-2). Acyclic diamond-free multi-base pos.cob compiles. The spec-derived test is the negative golden l1c15-interface-inherits-cyclic (COBOL2791). || Editions (adjudicator, verbatim): 2002, 2014, 2023 (the OO facility, introduced by ISO/IEC 1989:2002; interface definitions are rejected COBOL0900 at 85)",
+ "state": "OK"
+}

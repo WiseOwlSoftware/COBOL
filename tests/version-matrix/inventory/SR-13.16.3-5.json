@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.16.3-5",
+ "section": "13.16.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "Data description entry",
+ "rule-digest": "58aada85fd5e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenClausePlacement; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#CallBindExternalAndGlobal",
+ "test-ref": "conformance:cases/13.16-Data-description/pb519-external-redefines; conformance:cases/13.16-Data-description/pb518_clause_placement_legal; unit:DataClausePlacementDriftTests.MisplacedExternalOrGlobal_IsRefused_AndNeverRegistered; unit:DataClausePlacementDriftTests.ExternalOnTheAnchor_StillRebasesTheWholeClass",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB519 LANDED. Both legs of 'The EXTERNAL clause shall not be specified in the same data description entry as the REDEFINES or BASED clause' are ONE NotWith row of the clause-placement table (ClausePlacementRules.Rules), screened at BindEntry -> COBOL2404; the BASED leg's private COBOL0881 arm in the BASED block is deleted. The refusal DROPS the EXTERNAL clause, so HasExternalClause is false and CallBindExternalAndGlobal (which now reads only the admitted bound facts, never the parse tree) cannot re-base the redefinER - the runtime arm that folded the redefines ANCHOR onto the external cell and discarded its VALUE; an InvalidOperationException now guards that invariant. MEASURED on this worktree at 85/2002/2014/2023: `01 A PIC X(4) VALUE \"ABCD\". 01 B REDEFINES A IS EXTERNAL PIC X(4).` -> COBOL2404 (was: compiled clean, DISPLAY A printed spaces); EXTERNAL on the ANCHOR still re-bases the whole class (golden pb518_clause_placement_legal, X=1234 through a second program). The BASED leg is live from 2002 (BASED's introduction), the REDEFINES leg from 1985.",
+ "state": "OK"
+}

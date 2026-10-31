@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.11.4-2",
+ "section": "8.4.3.11.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Data-address-identifier",
+ "rule-digest": "9f2a3546a683",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/StrongTypeModel.cs#AddressOfRestriction; src/WiseOwl.Cobol.Compiler/Binding/Model/StrongTypeModel.cs#TypedItemType; src/WiseOwl.Cobol.Compiler/Binding/Model/StrongTypeModel.cs#SameRestriction; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#ScreenBasedReceiverRestriction",
+ "test-ref": "conformance:cases/8.4.3.11-Data-address-identifier/pb1408_address_of_restricted_pointer; conformance:cases/8.4.3.11-Data-address-identifier/pb1408-set-address-of-based-from-restricted-pointer-address; conformance:cases/8.4.3.11-Data-address-identifier/pb1408-set-address-of-based-from-subordinate-strong-group; conformance:cases/8.4.3.11-Data-address-identifier/pb1408-call-address-of-restricted-pointer-into-target-formal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1408 landed: both arms fixed at the one accessor (AddressOfRestriction), and SET ADDRESS OF's data-name-1 side (SR19 second sentence) now asks the same accessor, so a based restricted pointer is of its own type there too. Derivation: GR2: the data-address-identifier is restricted to 'the type of identifier-1'. A restricted data-pointer is a typed item (13.18.60.3 SR18 admits the restriction only in a type declaration, reached by TYPE), so its type is its own TYPEDEF (TypedItemType), never the type its value addresses; a strongly-typed group nested in a strong record is typed by its position in the declaration (8.5.3.1 second alternative: TypeRestriction.Member). One accessor feeds SET Format 7 sender and receiver, the CALL/INVOKE address-identifier argument and the conformance descriptor key.",
+ "state": "OK"
+}

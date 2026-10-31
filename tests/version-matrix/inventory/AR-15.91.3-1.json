@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.91.3-1",
+ "section": "15.91.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "TEST-DAY-YYYYDDD function",
+ "rule-digest": "9f51c82096cb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#NonIntegralItemReason",
+ "test-ref": "conformance:cases/15.90.3-Argument-rule/pb248-integer-arg-float-item; conformance:cases/15.90.3-Argument-rule/pb248-integer-arg-float-literal; conformance:cases/15.90.3-Argument-rule/pb248-integer-expr-float-term; conformance:wiseowl/cases/_unassigned/pb248_integer_arg_float_admitted; unit:IntrinsicArgumentClassDriftTests.EveryIntegerArgumentPosition_RejectsAFloatingPointItem",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "CLOSED BY kb/Work PB248. cite.py --check 15.91.3 \"Argument-1 shall be an integer.\" => OK (15.91.3 1); the integer TYPE it invokes is 15.3 type 6, --check OK. THE ROW'S TEST-REF WAS DELIBERATELY EMPTY - the refuter recorded that no fixture wrote a bad argument to THIS function and that IntrinsicArgumentClassDriftTests only asserted a row EXISTS, never what it rejects. That is the gap the new drift test closes structurally rather than by adding a fixture per function: EveryIntegerArgumentPosition_RejectsAFloatingPointItem walks IntrinsicArgumentRules.Verified, collects EVERY position (and tail position) whose Kind is 'i' - TEST-DAY-YYYYDDD's included, by name - and asserts Violation() returns non-null for a floating-point item at each, once per floating-point Usage member. The unswept sibling arm the row named (a COMP-1/COMP-2/FLOAT-* item is Category numeric with Scale 0, so the `Scale: > 0` guard never fired) is gone: PicInfo.IsIntegerDescription now carries 15.3 type 6's requirement in one place and both integer screens read it. The E-form LITERAL sibling and the additive-EXPRESSION sibling were closed in the same change set. Proven not-blind: the drift test was run against the pre-fix predicate and failed on all ten float usages.",
+ "state": "OK"
+}

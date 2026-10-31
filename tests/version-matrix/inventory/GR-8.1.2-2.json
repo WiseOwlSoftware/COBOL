@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.1.2-2",
+ "section": "8.1.2",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Character sets",
+ "rule-digest": "08a522f60bc8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/CobolBits.cs#BytesPerNational; src/WiseOwl.Cobol.Runtime/Values/Text/CobolBits.cs#NatBytes; src/WiseOwl.Cobol.Runtime/Values/Text/CobolBits.cs#NatReadWindow; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ElementaryByteWidth",
+ "test-ref": "conformance:cases/8.1.2-Computer-s-coded-character-set/l1c04_national_uniform_bytes",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: \"The number of bytes used in the memory of the computer to represent characters in the national coded character set shall be the same for all characters in that coded character set; the number of bytes shall be determined at compile time.\" (cite.py --check 8.1.2 -> OK §8.1.2 2)). National = one UTF-16 code unit per position, BytesPerNational = 2 (a compile-time const, D-N1); every code unit U+0000-U+FFFF has a total 2-byte UTF-16BE image (PutNat/NatReadWindow are exact inverses for national content). NOTE 3 (\"COBOL processes each fixed-size element of a character set as one character\", --check OK) edge probed - cs1/p3.cob: LENGTH(N\"😀€\")=3 BYTE-LENGTH=6 (the surrogate pair is two positions), PIC N(4) BYTE-LENGTH 8; N\"€A\" in a PIC N(2) redefined as X(4) reads bytes 0x20 0xAC 0x00 0x41 (ORD 33 173 1 66) - uniform, lossless. No spec-derived test pins this rule; test-needed. || editions as written by the adjudicator: 2002, 2014, 2023 (national class introduced in ISO/IEC 1989:2002)",
+ "state": "OK"
+}

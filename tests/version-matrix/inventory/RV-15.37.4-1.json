@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.37.4-1",
+ "section": "15.37.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "FIND-STRING function",
+ "rule-digest": "b2c27c4a8fc4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#FindString; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#StrArgVisitor; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFindString",
+ "test-ref": "conformance:cases/15.37.4-Returned-value-rules/find_string; conformance-test:IntrinsicFunctionDifferentialTests.FindString_Positions_2023; conformance:cases/15.37.4-Returned-value-rules/pb314_find_string_overlapping_matches",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "Both branches with argument-3 absent, on one pair of operands: \"ABCABCABC\" holds \"ABC\" at 1/4/7, so FIRST=1 (default) and LAST=7 (keyword LAST) - distinct, so the LAST arm is genuinely exercised. What an OCCURRENCE is when matches OVERLAP is not settled by §15.37 and is not pinned by any file in this slug; see the defect entry under this rule.",
+ "state": "OK"
+}

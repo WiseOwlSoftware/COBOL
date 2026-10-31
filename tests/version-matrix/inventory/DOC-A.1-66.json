@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-66",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 66,
+ "subject": "External repository (mechanism for specifying whether checking and updating occur)",
+ "rule-digest": "f604a8ac7072",
+ "verdict": "DIVERGES",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-66; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#ProgramPrototypesOf; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#UserFunctionsOf; src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Resolve; src/WiseOwl.Cobol.Cli/Program.cs",
+ "test-ref": "",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "A.1 item 66 (8.13): required, documented. cite.py --check 8.13 'The implementor shall provide a mechanism that allows the user to specify whether to update the external repository when a compilation unit is compiled' -> OK §8.13 (External repository); cite.py --check 8.13 'whether to flag differences in prototypes and definitions in the compilation group from the information in the external repository' -> OK §8.13. Determination per owner decision kb/Work/R44 (2026-09-24, landed, never re-ask; answers PB1099 Q3): implement §8.13 with .NET assembly metadata as the repository; producing an assembly is updating it; a compiler option references repository assemblies; both §8.13 'shall' mechanisms are user-visible options. R44 fixes the mechanism but not the option spellings or defaults, and no design doc exists yet; the row (refuter-corrected) states only what R44 decided, and the R44 design doc (kb/Work PB1086) fills the spellings and defaults into it. DIVERGES (the facility is absent — the brief's vocabulary has no NOT-IMPLEMENTED): cobol --help at pin 80de60472 lists no repository option (-o, --nist, --std, --permissive, --copy, --run, --sign-encoding only); probe d2rep.cob (REPOSITORY. PROGRAM NOSUCHPG CLASS NOSUCHCL.) compiles clean and runs (RAN) at --std 2023 — nothing is resolved against any repository. Owning note kb/Work/PB1086 (open; R44 names it the implementation note that closes items 66/161/162). The R44 design doc must also settle PB1086's open question whether the compilation group itself populates the repository (§12.3.8.3 SR14 / GR10 a)). Witness owed: goldens for an unresolvable REPOSITORY name (diagnosed), a signature mismatch against a referenced assembly (flagged, and not flagged when the flag option is off), and an assembly compiled with repository update off that fails to resolve when referenced. DOC-ROWS-2 REFUTER (determination): overturned and corrected; the recorded row carries the correction (adjudication/doc-rows-2/LANDING.md).",
+ "state": "GAP"
+}

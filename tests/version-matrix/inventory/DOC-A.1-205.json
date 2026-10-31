@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-205",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 205,
+ "subject": "USAGE BINARY clause (computer storage allocation, alignment and representation of data)",
+ "rule-digest": "d159a6003bc9",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-205; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ByteWidth",
+ "test-ref": "conformance:cases/13.18.60-USAGE/l1_usage_binary_storage",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The 1/2/4/8/16 ladder checked against GR4's 'sufficient storage' floor at every tier, alignment none, and the two's-complement big-endian image of -1234 (X\"FB2E\") read byte by byte. || editions 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a facility that exists at every edition (the COBOL-85 nucleus, I-O, inter-program and SPECIAL-NAMES implementor-names; its arithmetic, the only arithmetic of COBOL-85, is what later editions name native). retired-witness: src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#ByteWidth (ByteWidth is a member of DataItem (Binding/Model/DataItem.cs); PicInfo.cs names it only in comments)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.35.4-5",
+ "section": "14.9.35.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "REWRITE statement",
+ "rule-digest": "417f233188c4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#PrevOpWasSuccessfulRead; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ReadSucceeded; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite",
+ "test-ref": "conformance:cases/14.9.6-CLOSE/file_sharing_seq",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: previous I-O statement on the connector must be a successfully executed READ, else '43'; a successful REWRITE replaces the record the READ accessed. cite.py --check 14.9.35.4 -> OK 5). The '43' gate is one flag armed only by FileConnector.ReadSucceeded and dropped by the Status setter on EVERY outcome, so any intervening statement (incl. an unsuccessful READ, START, or the REWRITE itself) disarms it. Probe probe/rewrite-statement-p2/p1.cob: indexed ACCESS SEQUENTIAL REWRITE with no READ -> NOREAD=43; second REWRITE after a successful one -> TWICE=43; relative ACCESS SEQUENTIAL no READ -> RQNOREAD=43, after READ -> RQOK=00, again -> RQTWICE=43. Replacement half: p2.cob sequential REWRITE read-back BACK lines show the READ's record replaced in place. Dynamic/random access correctly skip the gate (p1 DYNNOREAD=00). file_sharing_seq (2002) pins the '43' after an unsuccessful READ for the sequential organization; the relative/indexed arms are probe-verified only. Ordering note: IndexedConnector checks GR20 '44' before '43' while RelativeConnector checks '43' first; the spec states no precedence between them, so not a divergence. [editions as adjudicated: 1985, 2002, 2014, 2023]",
+ "state": "OK"
+}

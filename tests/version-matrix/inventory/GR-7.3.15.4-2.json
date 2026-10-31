@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.15.4-2",
+ "section": "7.3.15.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "FLAG-14 directive",
+ "rule-digest": "29919097a8a4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FlagState.cs#IsOnAt; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#FlagScanState; src/WiseOwl.Cobol.Frontend/Preprocessor/FlagDirective.cs#TryParse",
+ "test-ref": "unit:FlagDirectiveTests.Fold_DefaultsOff_AndIsStickyForwardStrictlyAfterTheDirective; unit:FlagDirectiveTests.Compile_Flag14_DefaultedBraces_SelectTheRightOptions; unit:FlagDirectiveTests.Parse_AllAndOn_AreTheDefaults_WhenOmitted",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1374 (w1020f). cite.py --check 7.3.15.4 'If ON is explicitly or implicitly specified for an option' OK. EXPLICIT ON: FlagState.IsOnAt folds the last toggle strictly before the site line (Fold_DefaultsOff_AndIsStickyForwardStrictlyAfterTheDirective), sticky until the end of the group, an ALL OFF or that option's own OFF. IMPLICIT ON (the word omitted, the 5.2.6.3 default) is now accepted by FlagDirectiveLine.TryParse: `>>FLAG-14 VALUE-ZERO`, `>>FLAG-14 ALL` and a bare `>>FLAG-14` flag exactly as the written-ON forms do (Compile_Flag14_DefaultedBraces_SelectTheRightOptions).",
+ "state": "OK"
+}

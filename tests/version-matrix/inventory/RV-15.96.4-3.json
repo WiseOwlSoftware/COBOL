@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.96.4-3",
+ "section": "15.96.4",
+ "kind": "RV",
+ "ordinal": 3,
+ "subject": "TRIM function",
+ "rule-digest": "b741eb7b969a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Trim",
+ "test-ref": "conformance:cases/15.96.4-Returned-value-rules/pb117_trim_sequential; conformance:cases/15.3-Arguments/intrinsics_trim; conformance:cases/15.39.3-Argument-rules/pb15_result_type_follows_argument",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "RE-VERDICTED (kb/Work PB124 wave 1): the row's charge - the no-phrase multi-argument-2 form computed as a one-shot set union - was cured by PB117 (2026-08-28, after batch 7 adjudicated): Trim folds SEQUENTIALLY via TrimOne per 15.96.4 r5, and the golden pins the exact interleaved case the row constructed (TRIM('bcab' 'c' 'b') = 'ca', where the union gave 'a') plus the order-sensitivity pair. The r3 default-space leg and both keyword modes ride the same fold.",
+ "state": "OK"
+}

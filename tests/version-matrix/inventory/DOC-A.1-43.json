@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-43",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 43,
+ "subject": "Currency symbol (equivalence of non-COBOL characters)",
+ "rule-digest": "2084a097f52a",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-43; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#SwitchBindCurrency; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#Analyze",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1c06_currency_non_cobol_equivalence_85; conformance:cases/A.1-Implementor-defined-language-element-list/l1c06_currency_non_cobol_symbols; conformance:cases/A.1-Implementor-defined-language-element-list/l1c06-currency-non-cobol-equivalent-rebound",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§12.3.7.3 SR20 (cite.py --check 12.3.7.3 'any equivalence between that character and any other character in the computer's compile-time coded character set is defined by the implementor' -> OK §12.3.7.3 20)); A.1 cross-references SR21 where the equivalence is consumed. Code: DataBinder.Switches.cs:593 key = char.ToUpperInvariant(symbol), r21 collision COBOL0891; PictureAnalyzer.cs:139-155 matches picture characters by ToUpperInvariant. Probes /tmp/adj/doc/doc-w1-s2/probe/: i43a.cob (2023) SYMBOL 'é', PIC É9.99 and é9.99 -> EUR1.50 / EUR2.50; i43b.cob 'é'->EUR plus 'É'->USD -> COBOL0891 at 2002/2023; i43d.cob full-width ｅ symbol with PIC Ｅ9.99 -> EUR1.50; i43e.cob bare CURRENCY SIGN 'é', PIC É9.99 / éé9.99 -> 'é1.50' / ' é2.50' identically at 85/2002/2014/2023; enum.cob (all code units 129..65535 through UPPER-CASE=ToUpperInvariant) -> only U+017F maps onto a picture letter (S). No golden pins the non-COBOL arm (l1_picture_currency_equivalent pins the COBOL-letter §8.1.3.2 arm), so Pinned by is '-' and the inventory row stays a GAP until one lands. Owning note: kb/Work PB1092 (open, documentation-only; this row discharges its item-43 half).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.9.4-1",
+ "section": "8.4.3.9.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Object property",
+ "rule-digest": "b8b4f78abf3e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#CreateCompilerTemp; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.ObjectProperty.cs#ResolveObjectProperty",
+ "test-ref": "conformance:cases/8.4.3.9-Object-property/pb1448_group_valued_property",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1448 landed (w1005e): temp-1 takes the get method's RETURNING description whatever its category. OoTryBindPropertyReference no longer refuses a group and CreateCompilerTemp deep-clones the group; the golden's GET returns a group (R1 PIC 9(3), R2 PIC X(3)) and the sending-only MOVE prints it after exactly one GET-CALLED. The elementary half stays witnessed by oo_property_explicit_ref. retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#OoTryBindPropertyReference (the one-word property binder ReferenceResolver.OoTryBindPropertyReference is deleted by kb/Work PB1425 (w1021a): a property reference is resolved by ReferenceResolver.ResolveObjectProperty, which splits the chain and resolves identifier-3 through the ordinary resolver)",
+ "state": "OK"
+}

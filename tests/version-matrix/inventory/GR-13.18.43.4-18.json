@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.43.4-18",
+ "section": "13.18.43.4",
+ "kind": "GR",
+ "ordinal": 18,
+ "subject": "RECORD clause",
+ "rule-digest": "80be0e22cd8b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindRecordClause; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMin; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMax",
+ "test-ref": "conformance:cases/13.18.43-RECORD/l1c23_record_format3_variable",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 13.18.43.4 'the size of each record is completely defined in the record description entry' OK (GR18). integer-4/5 are the connector's min/max (F3 ODO record: 4 bytes -> 44, 24 bytes -> 44, 12 bytes -> 00, probe/record-clause/p4.cob); each record is written at its own description's size (A3 5 bytes, B3 10 bytes, p3.cob) with no DEPENDING item. RecordClauseRules deliberately adds no SR4-analogue for Format 3 (p7.cob F3 with a 50-byte record under CONTAINS 5 TO 30 compiles clean - the standard states no such rule). || Code-location detail (moved from the field by registrar 14e): src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs (no SR4 analogue for Format 3) || Re-sited by registrar 14e: the RecordClauseRules.cs witness was removed because that table has no row for this rule (RecordClauseRuleDriftTests clamp: a code-location naming RecordClauseRules claims a Catalog row). RecordClauseRules.Screen only CONSUMES FileModel.Min/MaxRecordSize.",
+ "state": "OK"
+}

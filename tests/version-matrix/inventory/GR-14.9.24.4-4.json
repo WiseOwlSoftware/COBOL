@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.24.4-4",
+ "section": "14.9.24.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "MERGE statement",
+ "rule-digest": "6a34895503fa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Merge; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#NextInput; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#NextStream; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#WriteStreamChunks; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#SequenceMerge; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#SortMergeCursor",
+ "test-ref": "conformance:cases/14.9.24-MERGE/l1c18_merge_key_order_ties; unit:SortWorkBoundTests.AMergeManyTimesTheLimit_KeepsInputFileOrder_WithinTheLimit; conformance-test:SortWorkSpillConformanceTests.ASortAndAMergeAHundredTimesTheLimit_OrderAsTheyDoInMemory_AndLeaveNoFile",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: equal-key records return a) 'Follows the order of the associated input files as specified in the MERGE statement.' b) 'Is such that all records associated with one input file are returned prior to the return of records from another input file.' (cite.py --check 14.9.24.4 -> OK §14.9.24.4 4) b)). Code: CobolSort.NextInput (SortWork.NextStream) marks each USING stream's start in statement order; a stream's records keep their arrival order in its slice of the in-memory chunk or, past the memory limit, in its run file (SortWork.WriteStreamChunks); SortMergeCursor.Next picks the head with STRICT less-than, so an equal head never displaces an earlier stream, and within a stream records keep file order; a stream's equal-key run is fully drained before a later stream's equal record because the earlier stream's next equal head again wins the tie. Probe probe/merge-p2/m1.cob: key A9Z in F1(1 rec), F2(2 recs), F3(1 rec) -> A9ZF1-1, A9ZF2-1, A9ZF2-2, A9ZF3-1; key B5A F1 before F3 - both halves. More streams than one merge reads (SortMemory.FanIn) merge only the LAST F, which are consecutive (SortWork.SequenceMerge), into one run that keeps their place in statement order, so the earliest-stream tie-break holds through the consolidation (kb/Work PB3339). Witnesses: golden l1c18_merge_key_order_ties (in memory); SortWorkBoundTests.AMergeManyTimesTheLimit_KeepsInputFileOrder_WithinTheLimit and SortWorkSpillConformanceTests (spilled runs, equal keys of OUTA before OUTB).",
+ "state": "OK"
+}

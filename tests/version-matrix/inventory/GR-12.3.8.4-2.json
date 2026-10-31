@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.8.4-2",
+ "section": "12.3.8.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "f56241697db5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Lookup; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#FindByExternalizedName; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#UserFunctionsOf; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#ProgramPrototypesOf; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.ObjectProperty.cs#ResolveObjectProperty",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb974_repository_as_phrase; conformance:cases/8.3.2.2-User-defined-words/pb237_program_prototype",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "literal-1/2/3/5 is the externalized name of the class / interface / program / function the declared word then names (resolved against the definition's own externalized name - CLASS-ID / INTERFACE-ID / FUNCTION-ID / PROGRAM-ID AS literal - in the compilation group); the property specifier's literal-4 is the property's name in the declared classes (GR2's second sentence, and SR16 a)). 'The implementor shall specify when the AS phrase is required' is DOC-A.1-163: never. kb/Work PB974. retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#OoTryBindPropertyReference (the one-word property binder ReferenceResolver.OoTryBindPropertyReference is deleted by kb/Work PB1425 (w1021a): a property reference is resolved by ReferenceResolver.ResolveObjectProperty, which splits the chain and resolves identifier-3 through the ordinary resolver)",
+ "state": "OK"
+}

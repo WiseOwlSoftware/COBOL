@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-75",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 75,
+ "subject": "File sharing (interaction with other facilities and languages)",
+ "rule-digest": "d60db400f646",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-75; src/WiseOwl.Cobol.Runtime/IO/Sharing/RunUnitFileLock.cs#Take; src/WiseOwl.Cobol.Runtime/IO/Sharing/OfdRegionLocks.cs#Open; src/WiseOwl.Cobol.Runtime/IO/Sharing/FileLockPosture.cs#OfSharingMode; src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#IsSharingRefusal; src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#IsHeldByAnother; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#TakeRunUnitFileLock; docs/rearchitecture/DESIGN-runtime-library.md; docs/FILES_DESIGN.md",
+ "test-ref": "unit:RunUnitFileLockDriftTests.ASecondRunUnitsOpenIsArbitratedByTable19; unit:FileLockPostureDriftTests.TheHostsShareModeSemanticsAreTheDocumentedOnes",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "A.1 item 75: 'File sharing (interaction with other facilities and languages). This item is optional. This item, if provided by the implementor, shall be documented' (9.1.15). cite.py --check 9.1.15 'their interaction with COBOL file sharing is defined by the implementor' -> OK 9.1.15. The element IS provided, and docs/CONFORMANCE.md DOC-A.1-75 documents it as IMPLEMENTED (kb/Work PB833 landed): a WiseOwl COBOL run unit is arbitrated by Table 19 across processes by RunUnitFileLock (Linux x86-64/arm64, OFD region locks keyed by the Table 19 columns) or by the mandatory per-access share modes plus the OUTPUT host probe (Windows); a process that takes no lock meets only the share mode of the connector's own handle, whose strength is the host's (Windows mandatory and per-access; Linux and macOS one advisory flock), measured by HostCapability.Sharing and pinned by FileLockPostureDriftTests.TheHostsShareModeSemanticsAreTheDocumentedOnes; macOS (no region lock) meets only the share mode. Reverse direction unchanged: HostFile.IsSharingRefusal maps Windows ERROR_SHARING/LOCK_VIOLATION and Unix EWOULDBLOCK to 61 for OPEN (9.1.13.9 1)) and 62 for DELETE FILE (9.1.13.9 2)). The earlier DIVERGES (the doc described an intended posture the code did not have) is closed because the code now has it. Clause-less default mode is item 77 (kb/Work PB322).",
+ "state": "OK"
+}

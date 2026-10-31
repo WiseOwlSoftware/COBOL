@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.4.4-11",
+ "section": "14.9.4.4",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "CALL statement",
+ "rule-digest": "39c3ccc6490c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#Omitted; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/pb133_omitted_args; conformance:cases/14.9.4-CALL/pb133_omitted_transitive",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB133 wave C1): both omission forms - the written OMITTED phrase and the trailing omission - make the 8.8.4.8 omitted-argument condition true in the called program, through ONE presence law (the argument crosses as a null carrier; CobolArgAdapt.Present, the IS [NOT] OMITTED condition, and GR1c's transitive omission all read it). The condition parses (a new comparisonExpression alternative), binds against THIS element's formals (SR1 - COBOL1686 otherwise), and renders as the formal carrier's IsNull. GR1c's transitive leg: a carrier-resident formal forwarded BY REFERENCE passes its CARRIER itself, so presence rides to the next callee (pb133_omitted_transitive). Edition-gated as omitted-arguments-2002 (OMITTED / OPTIONAL / IS OMITTED - one construct row, four parse-arm gates, 85 draws COBOL0900).",
+ "state": "OK"
+}

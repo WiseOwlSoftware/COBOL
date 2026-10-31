@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.30.4-17",
+ "section": "14.9.30.4",
+ "kind": "GR",
+ "ordinal": 17,
+ "subject": "READ statement",
+ "rule-digest": "92f78616c72e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read",
+ "test-ref": "conformance-test:SequentialFileIoSpecTests.LineSequential_OverLengthRecord_TruncatesWith06_AndContinuesRemainder",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "RULE: 'Regardless of the method used to overlap access time with processing time, the concept of the READ statement is unchanged; a record is available to the runtime element prior to the execution of imperative-statement-2 or imperative-statement-4, if specified, or prior to the execution of any statement following the READ statement...' cite.py --check 14.9.30.4 'a record is available to the runtime element prior to the execution of imperative-statement-2' -> OK 14.9.30.4 17). This implementation uses NO overlapped/asynchronous access method: every READ is a synchronous call on the connector, and both emitters place the record-area store FIRST inside the success block -- SequentialIoEmitter.EmitRead emits EmitImageInto(area, tmp) then EmitReadLengthStore then EmitStoreFileStatus then the INTO move then NotAtEnd; KeyedIoEmitter.EmitRead emits EmitImageInto then the RRN move-back inside `if (st[0]=='0')`, with the INTO move and NOT AT END / NOT INVALID KEY in the following guarded block. So imperative-statement-2 and imperative-statement-4 and every following statement observe the record already in the record area. Verified as OUTPUT by CA15, whose DISPLAY of REC immediately after each READ shows the record just read ('1:ABCDE', '2:FGH   '), and by every probe in this batch (probe/seqprev, probe/relprev, probe/gr14long) where the DISPLAY after the READ carries the delivered record. The rule imposes nothing further on a non-overlapped implementation.",
+ "state": "OK"
+}

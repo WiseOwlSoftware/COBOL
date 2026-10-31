@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.36.2",
+ "section": "14.9.36.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "ROLLBACK statement",
+ "rule-digest": "518bb2a352ad",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#rollbackFacilityStatement; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindCommitRollback",
+ "test-ref": "conformance:cases/14.9.7-COMMIT/pb137_commit_inert; conformance:cases/14.9.7-COMMIT/wave_h_facilities_inert",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "General format is the single keyword ROLLBACK (cite.py --check 14.9.36.2 \"ROLLBACK\" -> OK, <u>ROLLBACK</u>). Grammar: rollbackFacilityStatement : ROLLBACK, reached from `statement` under {facilityWord(\"ROLLBACK\")}? so it is a statement exactly where §8.9 reserves the word. Editions from the spec: Annex E.3.2 item 2 'Commit and rollback facility' (cite.py --check E.3.2 \"Commit and rollback facility.\" -> OK §E.3.2 2)) - a COBOL-2023 addition; below 2023 ROLLBACK is a user word and there is no ROLLBACK statement. Probed on the pinned cobol.exe (out/probe/rollback/rb9_2014.cob): a bare ROLLBACK statement compiles and runs at --std 2023, and at 85/2002/2014 is rejected as an undefined user word (COBOL1639) - correct, no such statement exists there. The goldens pin a bare ROLLBACK parsing as a statement in sentence and imperative positions. FMT under an unclaimed module: the derived selector commit-and-rollback-only excludes FMT rows by KIND and records that the shipped grammar matches the printed format, which this confirms.",
+ "state": "OK"
+}

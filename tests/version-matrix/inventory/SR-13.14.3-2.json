@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.14.3-2",
+ "section": "13.14.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Report description entry",
+ "rule-digest": "f0b8f2f6e134",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportDescriptionEntry; src/WiseOwl.Cobol.Compiler/Binding/UnrepeatedElements.cs#AtMostOnce; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindReportDescriptionClauses",
+ "test-ref": "conformance:cases/13.14-Report-description/pb483_control_final_first; conformance:cases/13.14-Report-description/pb483-report-format-element-repeated; conformance-test:ReportClauseFormatScreenTests.ControlFinal_FirstThenDataNames_Accepted; conformance-test:ReportClauseFormatScreenTests.ControlClause_Twice_2423; conformance-test:ReportClauseFormatScreenTests.PageClause_Twice_2423",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 13.14.3 OK): 'The clauses that follow report-name-1 may appear in any order.' Grammar `reportDescriptionClause*` over an unordered alternation and a binder loop that dispatches per clause (the only order-sensitive step, CONTROL operand order, is within one clause per §13.18.16.4 GR1). Probe RDO1 `RD R-1 PAGE LIMIT 20 CONTROL FINAL IS GLOBAL.` compiles and runs; the reverse order is in the pb369 golden. CODE in any position is refused, but that is the FMT row's defect, not an order restriction. No golden asserts a permuted order -> test-needed.",
+ "state": "OK"
+}

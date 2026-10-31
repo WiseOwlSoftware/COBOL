@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.4.3.5.2",
+ "section": "8.4.3.5.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Object-view",
+ "rule-digest": "c8ef3b5b5340",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectView; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectReferenceAtom; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.ObjectView.cs#OoBindObjectView; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoCreateObjectViewTemp; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitObjectView; src/WiseOwl.Cobol.Runtime/Control/CobolObject.cs#ObjectView",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1425_object_view; conformance:cases/8.4.3.5-Object-view/pb1425-object-view-interface-phrase; conformance:cases/8.4.3.5-Object-view/pb1425-object-view-below-2002",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1425 (w1019a). The general format, rendered from the canonical PDF (printed page 134): `identifier-1 AS { [FACTORY OF] object-class-name-1 [ONLY] | interface-name-1 | UNIVERSAL }`, one brace, AS/FACTORY/ONLY/UNIVERSAL underlined, OF not. Grammar `objectView : objectReferenceTerm objectViewPhrase+`, `objectViewPhrase : AS UNIVERSAL | AS (FACTORY OF?)? className ONLY?` (interface-name and class-name are one word; the binder refuses FACTORY/ONLY on an interface, COBOL2872). UNIVERSAL is a new token, 8.9-reserved 2002+ (cobol-words.json). The view is an object-reference ATOM, reached by every object-reference position (INVOKE receiver, inline receiver, SET Format 5 sender, RAISE). Was COBOL0901 on AS in every position. [editions: the OO facility, 2002+]",
+ "state": "OK"
+}

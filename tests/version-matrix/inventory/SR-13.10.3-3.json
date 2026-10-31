@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.10.3-3",
+ "section": "13.10.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Constant entry",
+ "rule-digest": "36f5814e6313",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#BindConstantLength; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#IsIntegerConstant",
+ "test-ref": "conformance:cases/8.4.2.3-Subscripts/pb1016_constant_length_subscripts; conformance:cases/13.10-Constant/pb1232_constant_length_constant_subscript; conformance:cases/13.10-Constant/pb1232-constant-length-noninteger-subscript",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1232 (w1006c). cite.py --check 13.10.3 \"All subscripts of data-name-1 and data-name-2 shall be literals\" -> OK SR3. The screen in BindConstantLength (one screen for LENGTH OF and BYTE-LENGTH OF since PB1227) admits integer-literal tokens and, per SR2 ('constant-name-1 may be used anywhere that a format specifies a literal of the class and category of constant-name-1') with GR1/GR3, a subscript word naming an INTEGER constant: LENGTH OF E (KI) = 3, BYTE-LENGTH OF C OF R (KI 1) = 4, LENGTH OF E (KJ) with KJ = KI + 1 = 3. Still refused: a data-name subscript (LENGTH OF E (I)), and a NON-integer constant (KD = 1.5 -> negative pb1232-constant-length-noninteger-subscript, COBOL1547 SR3). || editions corrected from '2002' to 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a constant-entry rule; the constant entry (level 01 CONSTANT) is a COBOL-2002 introduction. cite.py --check 13.10.3 \"The length of data-name-1 or data-name-2 shall not be dependent\" OK.",
+ "state": "OK"
+}

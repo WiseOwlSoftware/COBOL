@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.24.3-2",
+ "section": "7.3.24.3",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "SOURCE FORMAT directive",
+ "rule-digest": "0a3560ea5346",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/InitialReferenceFormat.cs#InitialReferenceFormat; src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs#InitialFormat; src/WiseOwl.Cobol.Compiler/CompilerDriver.cs#Options; src/WiseOwl.Cobol.Cli/Program.cs#BuildParser",
+ "test-ref": "conformance:cases/_unassigned/pb1362_fixed_form_default; unit:CliParserTests.SourceFormat_DefaultsToFixed_SelectsFreeOrAuto_AndRejectsAnythingElse; unit:ReferenceFormatLogicalConversionTests.NoDirective_NoSelection_IsReadInFixedForm",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1362 (w70b): '2) The default reference format of a compilation group is fixed form.' (cite.py --check 7.3.24.3 -> OK §7.3.24.3 2)). The initial format is now a SELECTION whose default is FIXED at every entry point (CLI --source-format, CompilerDriver.Options.SourceFormat, Frontend.InitialFormat); free and the structural auto-detection (IsFixedForm) are the §4.2.10 3) implementor-defined selection mechanism for a nonstandard behavior ('provided that standard-conforming behavior is also implemented and that an implementor-defined mechanism exists for selection of the nonstandard behavior', cite.py --check 4.2.10 -> OK §4.2.10 3)), documented in docs/CONFORMANCE.md DOC-A.1-158. Probes rf7/rf8/sf_p1/sf_p2/sf_p3 (letters or blank in the sequence area, tags past margin R, a '*' comment line) now compile fixed and print their OK lines; under --source-format auto they still fail as before, which is the extension's documented hazard.",
+ "state": "OK"
+}

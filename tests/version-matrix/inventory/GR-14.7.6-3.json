@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.6-3",
+ "section": "14.7.6",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Common phrases and features for statements",
+ "rule-digest": "29bcbdb1dd71",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrMatch",
+ "test-ref": "conformance:cases/14.7.6-CORRESPONDING/l1c04_corr_arith_numeric_pairs",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule 3 (--check 14.7.6 -> OK §14.7.6 3)): CorrMatch admits an ADD/SUBTRACT pair only when both Pic.Category are Numeric. PROBE c2.cob ADD CORRESPONDING G1 TO G2: BINARY-LONG 3+10=13, FLOAT-LONG 2.5+10=12.5, COMP-2 1.5+10=11.5 all pair (numeric data items); a numeric-EDITED namesake NE (ZZ9) is not paired (stays ' 10'); a group SG descends and pairs its numeric children (12). l1_subtract_corr_word_equivalence pins only the positive pairing, no golden pins the non-numeric exclusion - test-needed. || editions as adjudicated: 1985, 2002, 2014, 2023",
+ "state": "OK"
+}

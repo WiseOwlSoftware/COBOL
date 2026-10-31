@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.24.4-11",
+ "section": "14.9.24.4",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "MERGE statement",
+ "rule-digest": "f89a6eb9ed0a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitTransferUse; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitInputFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitGivingFile",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-14.9.24.4-11",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'During the execution of any USE procedure implicitly invoked while executing the MERGE statement, no statement may be executed manipulating the file referenced by or accessing the record area associated with file-name-2, file-name-3, or file-name-4.' (cite.py --check 14.9.24.4 -> OK §14.9.24.4 11)). A constraint on the program with no exception condition and no prescribed consequence - nothing for the implementation to enforce or detect (GR12's closing paragraph restates it for file-name-4 with 'shall not'). Code: the as-if statements' USE procedures are invoked via EmitTransferUse (seqIo.EmitUseHook); the transfer's own state (READ/WRITE loops, CobolSort store) does not depend on the USE procedure leaving the connectors alone beyond the loop's own unsuccessful-status exit, so a violating program gets deterministic results within 'undefined'. No finding. || editions as adjudicated: 2002, 2014, 2023 in substance (USE procedures invoked from the implicit transfers belong to the 2002 exception model)",
+ "state": "OK"
+}

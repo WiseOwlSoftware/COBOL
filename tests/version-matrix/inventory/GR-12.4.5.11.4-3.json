@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.11.4-3",
+ "section": "12.4.5.11.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "RECORD DELIMITER clause",
+ "rule-digest": "9d25767eeec6",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported; src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Declined; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl",
+ "test-ref": "conformance:cases/12.4.5.11-RECORD-DELIMITER/pb292_record_delimiter_witness; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterStandard1_NamedNonSupportWarning_PinnedToSpec; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterOptionalWordOmitted_NamedNonSupportWarning_PinnedToSpec",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"If STANDARD-1 is specified, the method used for determining the length of a variable-length record shall be that specified in ISO/IEC 1001:2012, 7.1.2\" rides GR2's decline: the method is the tape-interchange framing of a standard this implementation neither implements nor could exercise, having no reel device (docs/CONFORMANCE.md §2 row 26, Annex A.3 item 26). §4.2.6's \"Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented\" is the carry-over licence — the §4.2.6 analogue of Annex A.4.1's second paragraph, and it is what reaches from item 26's PHRASE to this rule. What happens instead is §12.4.5.11.4 GR5's implementor method, documented as Annex A.1 item 151 in §7. Witnessed by the named decline at every edition rather than by silence.",
+ "state": "OK"
+}

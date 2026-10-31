@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.4.6.4-1",
+ "section": "13.4.6.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Sort-merge file description entry",
+ "rule-digest": "a05a77dfd0b8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MaxRecordSize; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MinRecordSize",
+ "test-ref": "conformance:cases/13.4.6-Sort-merge-file-description/pb1277_record_size_in_bytes; conformance:cases/13.4.6-Sort-merge-file-description/pb1277-sd-varying-national-above-max",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Landed by kb/Work PB1277 (w61f). cite.py --check 13.4.6.4 'The number of characters is specified in terms of bytes' -> OK §13.4.6.4 1). An SD's RECORD clause integers are compared with the record's BYTE size: SD RECORD IS VARYING IN SIZE FROM 6 TO 8 over N(3)+N(1) (8 bytes) compiles and sorts (golden SN leg, SORTED=2; was COBOL2010 'describes 4 bytes'); SD FROM 1 TO 5 over PIC N(5) (10 bytes) is refused COBOL2010 (negative; was accepted). The SORT key screen (COBOL0874) and the RECORD clause screen now count in the same unit.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.37.4-5",
+ "section": "15.37.4",
+ "kind": "RV",
+ "ordinal": 5,
+ "subject": "FIND-STRING function",
+ "rule-digest": "d7234a5982c7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#FindString; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#FieldAsString",
+ "test-ref": "conformance:cases/15.37.4-Returned-value-rules/find_string_zero_length",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "First witness of any kind for r5, and it reaches BOTH species r5's subject names. Zero-length LITERAL: argument-1, argument-2, both, both in the national class, and argument-2 zero-length with LAST/START AFTER/ANYCASE all written - r5 names no exception, so it is reached before r1/r2/r4. Zero-length DATA ITEM: a group containing only a zero-occurrence ODO table (§8.5.4 item 1 via §13.18.38.4 GR8 a), routed through FieldAsString's OdoGroupPlace arm) and a ref-mod slice of length zero under >>REF-MOD-ZERO-LENGTH (§8.5.4 item 9, the RefModPlace arm), each in argument-1 and argument-2 in turn - which is what makes the FieldAsString code-location above honest. §8.3.3.1 makes the literal operand legal; §15.37.3 states none of the six siblings' zero-length prohibition. CTRL/NCTRL and ZGCTRL (the same ODO group read at full extent, answering 2) guard against a clean-looking all-zero run.",
+ "state": "OK"
+}

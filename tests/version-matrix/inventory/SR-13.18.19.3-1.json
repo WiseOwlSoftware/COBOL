@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.19.3-1",
+ "section": "13.18.19.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "DYNAMIC LENGTH clause",
+ "rule-digest": "adc5d00b01d1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry",
+ "test-ref": "conformance-test:DynamicLengthTests.NumericPicture_Rejected1561; conformance-test:DynamicLengthTests.BooleanPicture_Rejected1561; conformance-test:DynamicLengthTests.CountGreaterThanOne_Rejected1561; conformance-test:DynamicLengthTests.CountOneForm_Accepted",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "cite.py --check 13.18.19.3 \"The character-string specified in that PICTURE clause shall be one instance of the picture symbol 'N', or 'X'.\" OK (SR1). Both halves (a PICTURE shall be specified; exactly one N or X) verified by probe against the COBOL1561 check (regex ^[XN](\\(0*1\\))?$ over the upper-cased string): no PICTURE -> COBOL1561 (+0881); PIC XX, PIC N(2), PIC 1, PIC A -> COBOL1561; lower-case PIC x(001) accepted and runs; PIC X, PIC N accepted. || Editions (adjudicator): 2014, 2023 (COBOL-2014 introduction per VERSION_CHANGE_REFERENCE; the 2023 Annex E lists only the 2023 SET enhancement for dynamic-length items, E.3 item 17)",
+ "state": "OK"
+}
