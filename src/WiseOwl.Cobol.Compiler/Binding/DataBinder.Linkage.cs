@@ -287,6 +287,24 @@ public sealed partial class DataBinder
     /// can span tiers, so the nearest-tier filter is free for every other unit.</summary>
     internal bool InheritsGlobalData => _inheritedGlobalDepth.Count != 0;
 
+    /// <summary>The containers' named GLOBAL data roots (ISO §13.18.27.4 GR1/GR2), nearest container first, each with
+    /// its containment distance; set by <c>BinderDriver.BindUnitData</c> before the unit binds and inherited by
+    /// <see cref="InheritContainerGlobalData"/> (kb/Work PB3766, review finding R1-1).</summary>
+    internal IReadOnlyList<(DataItem Root, int Depth)> ContainerGlobalRoots { get; init; } = [];
+
+    /// <summary>⛔ THE ONE POINT A CONTAINER'S GLOBAL DATA NAMES BECOME VISIBLE to this unit (ISO §13.18.27.4 GR1/GR2),
+    /// beside <see cref="InheritContainerReports"/>: the end of <see cref="BindDeclarations"/> — after this unit's own
+    /// names are declared, so a name it declares hides the container's (§8.4.6.2.1 3), and BEFORE
+    /// <see cref="BindResolve"/>, so every clause of this unit's own data division that names a data item (FILE
+    /// STATUS, RECORD / RELATIVE KEY, OCCURS … DEPENDING ON, ASSIGN … USING) finds the container's GLOBAL item.
+    /// Inheriting after the whole <c>Bind</c> told a programmer that a name the container declares GLOBAL "is not
+    /// defined" (the data-item twin of kb/Work PB3766's report case).</summary>
+    private void InheritContainerGlobalData()
+    {
+        foreach (var (root, depth) in ContainerGlobalRoots)
+            InheritGlobalSubtree(root, depth);
+    }
+
     /// <summary>Make one container GLOBAL root's whole subtree visible here, <paramref name="depth"/> containment
     /// levels out (ISO §13.18.27.4 GR2 — "may reference that name without describing it again"): every data-name
     /// (§8.4.6.2.2: "All data-names and screen-names subordinate to a global name are global names"), every
@@ -498,6 +516,7 @@ public sealed partial class DataBinder
         // RETURNING §14.2.3 GR6/SR1 resolution + the RAISING EC semantics (StatementBinder.Exceptions) stay bind-time.
         if (pd.returningClause()?.dataReference() is { } rref)
         {
+            using var returningAt = Edition.At(rref);   // the RETURNING item's own position, as each USING parameter's (kb/Work PB2034)
             // §14.2.3 GR6: the returning item's storage is allocated IN THE ACTIVATED element — it stays an
             // ordinary callee-local field; its value transfers out at termination (GR7, the Call copy-out).
             LinkageReturning = FindLinkageRoot(rref.GetText());
