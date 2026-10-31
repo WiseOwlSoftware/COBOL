@@ -1,4 +1,4 @@
-## Leg-1 selection holes filed, and the owner amends batched gating (PB4228, PB4269, PB4270, PB4271)
+## Entry 2883 — 2026-10-31 14:27 PDT — Leg-1 selection holes filed, and the owner amends batched gating (PB4228, PB4269, PB4270, PB4271)
 
 PR #894 (PB107) bounced out of the merge queue twice on 2026-10-31, and PR #896 failed with it in the same merge group.
 The red was `RunUnitStateDriftTests.NoStaticMutableCollection_OutsideTheDocumentedProcessStores`: the branch added a
@@ -19,3 +19,4 @@ The owner chose "Run the whole tier (Recommended)". That is kb/Work PB4269, an a
 recorded in plan §0's GATE POLICY bullet and not yet implemented in `gate_plan.py`. PB4271 classifies every
 merge-queue red (selection miss, local-passed, merge, infrastructure), so selection misses are counted and filed. This
 landing changes only the register and §0.
+
