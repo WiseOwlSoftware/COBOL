@@ -264,10 +264,12 @@ public sealed class IntrinsicArgumentClassDriftTests
             // USAGE MESSAGE-TAG (kb/Work PB487) — §13.18.60.4 GR9 makes the class AND category of a message-tag
             // data item message-tag, a class this implementation does not model because it DECLINES the facility
             // (Annex A.3 item 4; docs/CONFORMANCE.md §4 item 1): ParseUsage refuses the usage BY NAME with
-            // COBOL1943, an Error, at every edition. So no CONFORMING program can present such an item to
-            // ClassOfPlace, and a usage-keyed CobolClass arm would be an arm for a class no bound item can
-            // legally have. In the errored bind the storage category answers, as it does for the other refused
-            // usages above (FLOAT-BINARY-128 and the FLOAT-DECIMAL pair) — hence "category". ⛔ This row is the
+            // COBOL1943 (an Error, at 2023; below it the COBOL0900 introduction gate — kb/Work PB916). So no
+            // CONFORMING program can present such an item to ClassOfPlace, and a usage-keyed CobolClass arm
+            // would be an arm for a class no bound item can legally have. In the errored bind the entry's
+            // recovery profile (PicInfo.MessageTagRecovery, AnalyzedCategory null) has no decidable class and
+            // every screen fails OPEN, as it does for the other refused usages above (FLOAT-BINARY-128 and the
+            // FLOAT-DECIMAL pair) — hence "category". ⛔ This row is the
             // DECLINE recorded, not a claim that message-tag IS its storage category: if the facility is ever
             // implemented, GR9 requires a class of its own and this row must change with it.
             [WiseOwl.Cobol.Binding.Model.Usage.MessageTag] = "category",

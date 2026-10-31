@@ -6246,14 +6246,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// silently, with the last clause winning. That is a WIDER rule about clause repetition in a closed
     /// general format, not §13.18.60.3 SR21, and it is registered as its own mechanism; this list is the
     /// structure it will be enforced from.</para>
-    /// <para>⚠ NO EDITION GATE HERE, DELIBERATELY. MESSAGE-TAG is an Annex E.2 item-25 COBOL-2023 addition and
-    /// below 2023 the word is an ordinary user-defined word, so the edition-correct diagnostic below 2023 is
-    /// the introduction gate rather than this rule. That routing is BROKEN for the whole MESSAGE-TAG surface —
-    /// COBOL1943 itself fires at 2002 and 2014, contradicting its own message text — and it is one
-    /// mechanism with one fix, registered separately. Gating only THIS screen would re-open the silent
-    /// acceptance below 2023 while leaving the sibling wrong, so the screen stays edition-blind until the
-    /// gate lands, and its negative golden pins only the 2023 cell (feedback green_test_can_hold_a_gap_open:
-    /// a golden that pinned 2002 would freeze the defect).</para></summary>
+    /// <para>⚠ NO EDITION GATE HERE, AND NOW NONE IS OWED. MESSAGE-TAG is an Annex E.2 item-25 COBOL-2023
+    /// addition, so below 2023 the entry also draws the COBOL0900 introduction gate (usage-message-tag-2023,
+    /// <c>VersionConformancePass.UsageConstructId</c>) — and ParseUsage no longer adds COBOL1943 beside it
+    /// (kb/Work PB916). This rule is a SYNTAX rule of the usage clause and, like FUNCTION-POINTER's COBOL1958, is
+    /// reported beside the introduction gate rather than instead of it, so the clause list that breaks it is
+    /// named at every edition; the negative golden sweeps all four.</para></summary>
     private void CheckMessageTagExclusivity(
         Core.UsageClauseContext? firstUsage, List<Core.UsageClauseContext>? extraUsages, string entryWhere)
     {
@@ -6921,10 +6919,23 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             "PICTURE may not be specified with USAGE INDEX — an index data item is picture-less, and "
             + "its content is an occurrence number rather than a pictured value (ISO §13.16.3 SR8; "
             + "§13.18.60.4 GR10)"),
-        _ => ("COBOL1521",
+        // §13.16.3 SR8 names message-tag in the same sentence as the float usages, so it reaches this screen on
+        // BOTH paths (its own clause, and the usage a group hands down — §13.18.60.4 GR1), and before this arm the
+        // fall-through below told the programmer their message-tag item was floating-point (kb/Work PB916).
+        Usage.MessageTag => (DiagnosticCatalog.UsageClauseCompatibility.Code,
+            "PICTURE may not be specified with USAGE MESSAGE-TAG — a message-tag item is picture-less "
+            + "(ISO §13.16.3 SR8; §13.18.60.4 GR9)"),
+        // The float family is a NAMED arm and the fall-through refuses, so a picture-less usage added tomorrow
+        // is a crash in the drift test that enumerates Usage, never a message naming the wrong family.
+        Usage.Float or Usage.Double or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended
+            or Usage.FloatBinary32 or Usage.FloatBinary64 or Usage.FloatBinary128
+            or Usage.FloatDecimal16 or Usage.FloatDecimal34 => ("COBOL1521",
             "PICTURE may not be specified with a floating-point usage "
             + "(COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED/FLOAT-BINARY-*/FLOAT-DECIMAL-*) — a "
             + "floating-point item is picture-less (ISO §13.16.3 SR8; §13.18.60.2)"),
+        _ => throw new ArgumentOutOfRangeException(nameof(usage), usage,
+            "Sr8PicturelessVerdict was asked about a usage with no verdict of its own — guard the call with "
+            + "UsageFamilies.IsPictureless and give the new picture-less usage an arm"),
     };
 
     /// <summary>The USAGE an entry hands DOWN to the elementary items under it — ISO §13.18.60.4 GR1, "If the

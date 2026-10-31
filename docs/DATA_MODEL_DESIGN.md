@@ -2104,7 +2104,8 @@ source; the backstop is kept as the recovery-path guard, never deleted.
 **Forward obligations, held by a test rather than by memory.** `Usage.MessageTag` EXISTS as of kb/Work PB487,
 but the usage itself is DECLINED non-support — the data-item half of the Annex A.3 item 4 asynchronous messaging
 facility (`docs/CONFORMANCE.md` §4 item 1), refused BY NAME in `PictureAnalyzer.ParseUsage` with COBOL1943 at
-every edition. The member is there for the FLOAT-BINARY-128 reason: `ParseUsage` must return something and the
+2023 (below it the usage does not exist, and the COBOL0900 gate `usage-message-tag-2023` is the whole answer — kb/Work
+PB916). The member is there for the FLOAT-BINARY-128 reason: `ParseUsage` must return something and the
 entry is PICTURE-less (§13.16.3 SR8 exempts message-tag), so without it the errored compile carried a null
 `PicInfo` into the emitter — which is exactly the unhandled `NullReferenceException` PB487 measured.
 
@@ -2124,8 +2125,9 @@ in an entry cannot be written against a scalar; the entry now keeps the clause L
 `UsageDeclarationPlacementDriftTests` still requires a recorded verdict for every `Usage` member, and the
 verdict recorded for this one is the refusal. The pre-2023 shape of these rules is not derivable
 from the 2023 text (Annex E's scope is 2014→2023 only, so its silence is a missing observation) — the arms ship
-ungated below 2023, recorded as kb/Work PB296, and PB544's witness pins the 2023 cell ONLY so that a golden
-cannot freeze the below-2023 routing defect it is waiting on.
+ungated below 2023, recorded as kb/Work PB296; below 2023 the entry ALSO draws the COBOL0900 introduction gate
+(`usage-message-tag-2023`, kb/Work PB916) and the three rules are reported beside it, so PB544's witness sweeps
+all four editions.
 
 **The other half of §13.16.3 SR8 — its SR9 exception — is SYNTHESIZED, not excused** (kb/Work PB504/PB831/PB828;
 mechanism design `docs/rearchitecture/DESIGN-data-model.md` §2.7a). SR9 says the PICTURE clause "may be omitted

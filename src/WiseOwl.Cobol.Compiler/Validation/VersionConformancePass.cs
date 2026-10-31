@@ -509,6 +509,11 @@ internal sealed class VersionConformancePass
                 ? Constructs.UsageFunctionPointer2014   // LIVE (kb/Work PB452/PB817) — the 0900 introduction gate below 2014, the ProgramPointer2002 shape
             : cat is PicCategory.ObjectReference || pu is Usage.ObjectReference || ou is Usage.ObjectReference
                 ? Constructs.UsageObjectReference2002
+            // USAGE MESSAGE-TAG — a 2023 introduction (§8.9; Annex E.2 item 25) whose entry binds the declined
+            // facility's recovery profile (PicInfo.MessageTagRecovery), so the resolved usage is the only witness
+            // (kb/Work PB916): below 2023 the word is a user-defined word and THIS gate is the whole edition answer —
+            // ParseUsage's COBOL1943 decline asks the same row and fires only where the usage exists.
+            : pu is Usage.MessageTag || ou is Usage.MessageTag ? Constructs.UsageMessageTag2023
             : pu is { } fixedPu && UsageFamilies.IsFixedWidthBinary(fixedPu)
               || ou is { } fixedOu && UsageFamilies.IsFixedWidthBinary(fixedOu)
                 ? Constructs.UsageBinaryCharFamily2002
