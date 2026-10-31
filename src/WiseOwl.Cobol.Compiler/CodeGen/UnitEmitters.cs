@@ -70,7 +70,7 @@ internal sealed class UnitEmitters
         Strings = new StringEmitter(Ctx, Num, Arith, Ec, Move, Brackets);
         Ptr = new PtrEmitter(Ctx, Num, ecState, Ec);
         Set = new SetEmitter(Ctx, Num, Arith, Ptr, Move, Brackets);
-        TableHold = new TableHoldEmitter(Ctx, Set);   // the held form of a table(ALL) function argument (kb/Work PB4162)
+        TableHold = new TableHoldEmitter(Ctx, Arith);   // the held form of a table(ALL) function argument (kb/Work PB4162)
         KeyedIo = new KeyedIoEmitter(Ctx, Num, Refs, Arith, Move);
         SeqIo = new SequentialIoEmitter(Ctx, Num, Refs, dispatchState, ecState, callState, KeyedIo, Arith, Ec, Move);
         Transactions = new TransactionEmitter(Ctx, Refs, SeqIo);   // APPLY COMMIT, COMMIT, ROLLBACK (kb/Work PB3338)
