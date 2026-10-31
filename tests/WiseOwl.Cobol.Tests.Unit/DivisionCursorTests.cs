@@ -86,18 +86,95 @@ public sealed class DivisionCursorTests
         Assert.False(cursor.InIdentificationDivisionAt(block2, block2.IndexOf("COPY", StringComparison.Ordinal)));
     }
 
-    [Fact] // the operands of a COPY statement are not text that stands in a division, and the library text's own end state is adopted
-    public void Skip_PassesOverACopyStatement_AndAdoptTakesTheLibraryTextsDivision()
+    [Theory] // the operands of a COPY or REPLACE statement are not text that stands in a division (kb/Work PB4241): the
+             // pseudo-text names a division; the text did not. The statement runs to its separator period outside the
+             // pseudo-text (a period inside it ends nothing), across lines
+    [InlineData("COPY BOOK REPLACING ==A== BY ==PROCEDURE DIVISION==.\nREMARKS.")]
+    [InlineData("COPY BOOK\n    REPLACING ==A== BY ==PROCEDURE DIVISION==.\nREMARKS.")]
+    [InlineData("copy book replacing ==A== by ==X. PROCEDURE DIVISION== .\nREMARKS.")]
+    [InlineData("REPLACE ==A== BY ==PROCEDURE DIVISION==.\nREMARKS.")]
+    [InlineData("COPY BOOK REPLACING DIVISION BY X.\nREMARKS.")]
+    public void CopyOrReplaceStatement_IsNotReadAsText(string text)
     {
         var cursor = new DivisionCursor(startsInIdentificationDivision: true);
-        string text = "COPY BOOK REPLACING ==A== BY ==PROCEDURE DIVISION==.\nREMARKS.";
-        Assert.True(cursor.InIdentificationDivisionAt(text, 0));
-        cursor.Skip(text, text.IndexOf('\n'));
-        Assert.True(cursor.InIdentificationDivisionAt(text, text.Length));   // the pseudo-text names a division; the text did not
+        Assert.True(cursor.InIdentificationDivisionAt(text, text.Length));
+    }
 
+    [Fact] // the statement ends at its period: the text after it is read again
+    public void TextAfterACopyStatement_IsRead()
+    {
+        var cursor = new DivisionCursor(startsInIdentificationDivision: true);
+        Assert.False(cursor.InIdentificationDivisionAt("COPY BOOK. PROCEDURE DIVISION.", 30));
+    }
+
+    [Fact] // line by line, as the converters feed it: the state of a statement carries across lines
+    public void CopyStatement_CarriesAcrossLines()
+    {
+        var cursor = new DivisionCursor(startsInIdentificationDivision: true);
+        cursor.Read("COPY BOOK");
+        cursor.Read("REPLACING ==PROCEDURE DIVISION== BY ==X==.");
+        Assert.True(cursor.InIdentificationDivision);
+        cursor.Read("PROCEDURE DIVISION.");
+        Assert.False(cursor.InIdentificationDivision);
+    }
+
+    [Fact] // the library text's own end state is adopted
+    public void Adopt_TakesTheLibraryTextsDivision()
+    {
+        var cursor = new DivisionCursor(startsInIdentificationDivision: true);
         var library = new DivisionCursor(startsInIdentificationDivision: true);
         library.Finish("PROCEDURE DIVISION.");
         cursor.Adopt(library);
         Assert.False(cursor.InIdentificationDivision);
+    }
+
+    [Fact] // §6.5: a header continued onto a second line (fixed form: hyphen in column 7) is ONE word once joined, so it
+           // leaves the division the same as one written whole; each half read alone would not
+    public void ContinuedDivisionHeader_LeavesTheIdentificationDivision()
+    {
+        const string header = "000300     PROCEDURE DIVI\n000310-    SION.\n";
+        string[] lines = Convert("000100 IDENTIFICATION DIVISION.\n000200 PROGRAM-ID. P.\n" + header
+                                 + "000400 REMARKS.\n000500     DISPLAY \"X\".\n");
+        Assert.Contains(lines, l => l.Trim() == "REMARKS.");
+        Assert.Contains(lines, l => l.Trim() == "DISPLAY \"X\".");
+    }
+
+    [Fact] // a COPY statement's REPLACING operand in the SOURCE text, read by the converter, moves nothing
+    public void CopyReplacingOperandNamingADivision_InTheSourceText_LeavesTheDivisionAlone()
+    {
+        string[] lines = Convert("000100 IDENTIFICATION DIVISION.\n000200 PROGRAM-ID. P.\n"
+                                 + "000300 COPY BOOK REPLACING ==PROCEDURE DIVISION== BY ==X==.\n"
+                                 + "000400 INSTALLATION. \"UNCLOSED HERE.\n000500 SECURITY. MORE\n");
+        Assert.Equal("INSTALLATION. .", lines[3]);
+        Assert.Equal("SECURITY. .", lines[4]);
+    }
+
+    [Theory] // kb/Work PB4241: §6.5 converts BEFORE conditional compilation, so which branch of a >>IF the text keeps is not
+             // known to the converter. A division word in a group's branches counts only when every branch (the one no
+             // condition selects included, when there is no >>ELSE or >>WHEN OTHER) ends in the same division; otherwise the
+             // text is in the division it was in before the group. Lines are separated by '|'
+    [InlineData(false, ">>IF X IS DEFINED|IDENTIFICATION DIVISION.|>>END-IF", false)]   // the omitted branch enters: nothing moves
+    [InlineData(true, ">>IF X IS DEFINED|PROCEDURE DIVISION.|>>END-IF", true)]          // … or leaves
+    [InlineData(true, ">>IF X|PROCEDURE DIVISION USING A.|>>ELSE|PROCEDURE DIVISION.|>>END-IF", false)]   // both leave
+    [InlineData(false, ">>IF X|ID DIVISION.|>>ELSE|IDENTIFICATION DIVISION.|>>END-IF", true)]            // both enter
+    [InlineData(true, ">>EVALUATE X|>>WHEN 1|PROCEDURE DIVISION.|>>WHEN OTHER|PROCEDURE DIVISION.|>>END-EVALUATE", false)]
+    [InlineData(true, ">>EVALUATE X|>>WHEN 1|PROCEDURE DIVISION.|>>WHEN 2|PROCEDURE DIVISION.|>>END-EVALUATE", true)]   // no OTHER
+    [InlineData(false, ">>IF A|>>IF B|IDENTIFICATION DIVISION.|>>END-IF|>>ELSE|IDENTIFICATION DIVISION.|>>END-IF", false)]
+    [InlineData(true, ">>END-IF|>>ELSE|PROCEDURE DIVISION.", false)]   // a phrase with no group open moves nothing
+    public void ConditionalGroup_CountsOnlyWhenEveryBranchAgrees(bool startsInIdentification, string lines, bool expected)
+    {
+        var cursor = new DivisionCursor(startsInIdentification);
+        foreach (string line in lines.Split('|')) cursor.Read(line);
+        Assert.Equal(expected, cursor.InIdentificationDivision);
+    }
+
+    [Fact] // the omitted branch of a >>IF spells IDENTIFICATION DIVISION: the REMARKS paragraph after >>END-IF is a paragraph
+    public void OmittedBranchSpellingAnIdentificationDivision_DoesNotMakeLaterRemarksAComment()
+    {
+        string[] lines = Convert("000100 IDENTIFICATION DIVISION.\n000200 PROGRAM-ID. P.\n000300 PROCEDURE DIVISION.\n"
+                                 + "000400 >>IF NEVER IS DEFINED\n000500 IDENTIFICATION DIVISION.\n000600 >>END-IF\n"
+                                 + "000700 REMARKS.\n000800     DISPLAY \"X\".\n");
+        Assert.Contains(lines, l => l.Trim() == "REMARKS.");
+        Assert.Contains(lines, l => l.Trim() == "DISPLAY \"X\".");
     }
 }
