@@ -1,7 +1,7 @@
 ## PB4196, PB4113, PB4199: a nearer report entry hides a container's GLOBAL name, a COMP-5 VALUE takes its range from the container, a contained FILE STATUS names a GLOBAL item
 
 Three notes of the data binder (wave 20261785, group A), fixed at their roots in harm order, on top of the PB3557 branch
-(`worktree-wf_34371f8b-c21-12`, merged first with `merge_drivers.py merge --keep`; it lands with this one).
+(`worktree-wf_34371f8b-c21-12`, merged first with `merge_drivers.py merge --keep`; it had already landed on main through PR #891).
 
 **PB4196 (silent wrong answer).** A contained program's report entry `PV` did not hide its container's single GLOBAL data item
 `PV`: `MOVE PV TO W` and `FILE STATUS IS PV` in the contained program bound the container's item, where §8.4.6.2.1 3) a) ("If the name
@@ -18,8 +18,8 @@ mechanism: condition-names (`IF CN`, with `ConditionBinder.ReportMisqualifiedCon
 capacity registers (`SymbolTable.NearerDataNameHides`), constants (`DataBinder.DeclaredNearerThan`). Not changed: the sum counter's
 own earlier path; a qualifier that reaches only the container's item (`PV OF G1`) and a nearer data item against a farther GLOBAL
 report entry keep their answers. A drift test (`GlobalNameClassDriftTests.ADataNameNarrowing_RanksTheReportEntriesToo`) holds every
-narrowing to the one method and the other-class predicates to the entries. Goldens: `13.8.6.2.3-Report-Items/pb4196-*` (four
-refusals at all editions: statement, FILE STATUS, condition-name, index-name; one run-pass: a nearer data item against a GLOBAL
+narrowing to the one method and the other-class predicates to the entries. Goldens: `13.8.6.2.3-Report-Items/pb4196-*` (six
+refusals: statement, FILE STATUS, condition-name, index-name, and (branch review R1-1) a GLOBAL constant and a GLOBAL report sum counter, each against a nearer report entry; one run-pass: a nearer data item against a GLOBAL
 report entry) and `8.4.6.2-Local-and-global-names/pb4196-contained-qualified-reference-...`. Design: REPORT_WRITER_DESIGN.md.
 
 **PB4113 (rejected legal source).** `PIC 9(4) COMP-5 VALUE 65535` (and `S9(4)` -32768, `9(2)` 255, `S99V99` -327.68, the same
