@@ -38,12 +38,13 @@ public static partial class ReferenceFormatProcessor
     /// periods, reserved words, numbers and quoted strings, spanning one or more lines until the next
     /// Area-A header. That free text cannot be reliably bounded by a token grammar (e.g. the FCTC address
     /// in RW101A's INSTALLATION contains "...AUTOMATED DATA AND..." and "5203 LEESBURG PIKE"), so we treat
-    /// the comment-entry as commentary in the column-aware preprocessor: discard the entry — the rest of the
-    /// header line and its content up to the next Area-A header — and keep the paragraph HEADER, written
-    /// <c>AUTHOR. .</c> (the paragraph's terminating period standing for the entry, which COBOL-85 ended at the next
-    /// Area-A word), so the parser and the ONE removal gate (<c>VersionConformancePass</c>, COBOL0902 from 2002) see a
-    /// fixed-form paragraph exactly as they see a free-form one (kb/Work PB1494, PB1758) — no embedded-period or
-    /// terminating-period edge cases reach the grammar.
+    /// the comment-entry as commentary in the logical conversion, in BOTH reference formats: discard the entry and keep
+    /// the paragraph HEADER, written <c>AUTHOR. .</c> (the paragraph's terminating period standing for the entry), so the
+    /// parser and the ONE removal gate (<c>VersionConformancePass</c>, COBOL0902 from 2002) see the same paragraph in
+    /// either format (kb/Work PB1494, PB1758) and no comment-entry text reaches the lexer — no embedded-period,
+    /// terminating-period or unclosed-quotation-mark edge cases reach the grammar or the token rules (kb/Work PB3245). In
+    /// fixed form the entry is the rest of the header line and its content up to the next Area-A header (COBOL-85); in free
+    /// form it is the rest of the header line (GnuCOBOL 3.2's <c>-free</c> reading; docs/CONFORMANCE.md D-CE1).
     /// </summary>
     private static readonly HashSet<string> CommentEntryParagraphs = new(CobolNames.Comparer)
     {
@@ -123,9 +124,8 @@ public static partial class ReferenceFormatProcessor
         if (segments.Count == 0)
         {
             formats = ReferenceFormatMap.Create(firstFixed, detected: initialFixed is null, [], directiveLines, lines);
-            var (wl, wo) = firstFixed
-                ? new FixedFormConverter(gates, sourcePath, ccvsIndicators, startsInIdentificationDivision).Convert(lines)
-                : ConvertFreeLines(lines, gates, sourcePath);
+            bool inIdentificationDivision = startsInIdentificationDivision;
+            var (wl, wo) = ConvertSegment(lines, firstFixed, gates, sourcePath, ccvsIndicators, ref inIdentificationDivision);
             return Mapped(wl, wo, sourcePath);
         }
 
@@ -140,7 +140,7 @@ public static partial class ReferenceFormatProcessor
         var outLines = new List<string>();
         var outOrigins = new List<LineOrigin>();   // where each output line came from (kb/Work PB82, PB1801)
         bool segFixed = firstFixed;
-        bool inIdentification = startsInIdentificationDivision;   // carried across the text's fixed segments
+        bool inIdentification = startsInIdentificationDivision;   // carried across the text's segments, in either format
         int segStart = 0;
         for (int s = 0; s <= segments.Count; s++)
         {
@@ -150,17 +150,7 @@ public static partial class ReferenceFormatProcessor
             int segEnd = s < segments.Count ? segments[s].Index + (keepsLine ? 1 : 0) : lines.Length;   // exclusive
             if (segEnd > segStart)
             {
-                var segment = lines[segStart..segEnd];
-                List<string> sl;
-                List<LineOrigin> so;
-                if (segFixed)
-                {
-                    var converter = new FixedFormConverter(gates, sourcePath, ccvsIndicators, inIdentification);
-                    (sl, so) = converter.Convert(segment);
-                    inIdentification = converter.InIdentificationDivision;
-                }
-                else
-                    (sl, so) = ConvertFreeLines(segment, gates, sourcePath);   // free form: its comments removed, floating-continued literals joined (§6.5 2) / 3) / 4) / 8))
+                var (sl, so) = ConvertSegment(lines[segStart..segEnd], segFixed, gates, sourcePath, ccvsIndicators, ref inIdentification);
                 outLines.AddRange(sl);
                 outOrigins.AddRange(so);
             }

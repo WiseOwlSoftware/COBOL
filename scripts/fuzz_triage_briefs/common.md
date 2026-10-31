@@ -66,7 +66,10 @@ P10, P14). Public skills for your role (P10): `<<REPO>>/tools/claude-skills/skil
 A `GNUCOBOL-SIDE` verdict that is a real defect is filed as a `kind: upstream` kb/Work note, after an independent refuter,
 by `fuzz_triage.py file`. A signature whose cause is implementor latitude, a harness artifact (`cobc -x` refusing
 `PROCEDURE DIVISION USING`), `NOT-COMPARABLE` or `UNINITIALIZED`, or one of our documented extensions (COMP-1/2/3 under
-`-std=cobol2014`) is not a GnuCOBOL defect: use that verdict instead. The verdict line carries an `upstream` object whose
+`-std=cobol2014`) is not a GnuCOBOL defect: use that verdict instead. Judge cobc only under the pinned command (`-std=` an
+ISO dialect, plus `-fec=` or a `>>TURN` directive when checking is the subject); never test or report a combination of
+`-std=cobolXXXX` with `-frelax-syntax-checks`, which selects vendor (Micro Focus, ACU) behaviour and which the maintainer
+calls "not a very useful combination" (bugs #1271, 2026-10-30). The verdict line carries an `upstream` object whose
 `disposition` is one of:
 - `record`: you wrote a record to the bar (below). Fields: `family` (a unique lowercase slug, `[a-z0-9-]+`; a second
   mechanism is `<family>--<suffix>`), `class` (`crash` · `wrong-output` · `rejects-legal-source` ·

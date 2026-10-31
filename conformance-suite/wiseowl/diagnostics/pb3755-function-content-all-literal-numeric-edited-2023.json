@@ -1,0 +1,1 @@
+{"refuse-at": ["2023"], "expect": "error COBOL0902: MOVE of an alphanumeric figurative constant (HIGH-VALUE/LOW-VALUE/non-digit ALL) to a numeric or numeric-edited item was removed in COBOL-2023 (targeting COBOL-2023) — FUNCTION F3755F argument 1: ALL \"X\" BY CONTENT to formal parameter 'E'"}
