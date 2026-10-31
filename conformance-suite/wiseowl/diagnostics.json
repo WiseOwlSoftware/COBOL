@@ -11300,6 +11300,22 @@
   ],
   "expect": "COBOL1670"
  },
+ "pb4108-symbolic-trailing-name-without-ordinal": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL1670"
+ },
+ "pb4108-symbolic-leading-constant-before-names": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL1670"
+ },
  "pb1951-table-sort-external-pointer-dynamic-at-2014": {
   "refuse-at": [
    "2014"

@@ -2279,13 +2279,19 @@ public sealed partial class DataBinder
                 return;
             }
         }
-        var (names, ords) = SymbolicClauseOperands(sc);
-        if (names.Count != ords.Count)
+        var (names, ords, groupsWellFormed) = SymbolicClauseOperands(sc);
+        if (!groupsWellFormed || names.Count != ords.Count)
         {
-            Edition.Error(DiagnosticCatalog.SymbolicCharactersViolation, $"SYMBOLIC CHARACTERS: {names.Count} "
-                + $"symbolic-character name(s) against {ords.Count} integer(s) — there shall be a one-to-one "
-                + "correspondence between the occurrences of symbolic-character-1 and of integer-1 in the clause, "
-                + "paired by position (ISO §12.3.7.3 SR16 b/c)");
+            if (!groupsWellFormed)
+                Edition.Error(DiagnosticCatalog.SymbolicCharactersViolation, "SYMBOLIC CHARACTERS: the clause repeats the "
+                    + "group {symbolic-character-1}... [IS|ARE] {integer-1}..., so each repetition names at least one "
+                    + "symbolic-character-1 and then at least one integer-1: the clause must open with a "
+                    + "symbolic-character-1 and close with an integer-1 (ISO §12.3.7.2 general format)");
+            else
+                Edition.Error(DiagnosticCatalog.SymbolicCharactersViolation, $"SYMBOLIC CHARACTERS: {names.Count} "
+                    + $"symbolic-character name(s) against {ords.Count} integer(s) — there shall be a one-to-one "
+                    + "correspondence between the occurrences of symbolic-character-1 and of integer-1 in the clause, "
+                    + "paired by position (ISO §12.3.7.3 SR16 b/c)");
             // RECOVERY, so the one refusal does not cascade into a false "'SC1' is not defined" at each use: the names
             // the clause wrote are declared with a placeholder value (never observed: the clause failed).
             foreach (var name in names)
@@ -2351,12 +2357,18 @@ public sealed partial class DataBinder
     /// after IS/ARE is an ordinal whatever it names (so an undefined one is reported by the reader as "not a defined
     /// constant-name"); any other word is a symbolic-character-1. An ordinal whose value is null was refused by the
     /// reader and is already reported.</para></summary>
-    private (List<Core.CobolWordContext> Names, List<(string Text, int? Value)> Ordinals) SymbolicClauseOperands(
-        Core.SymbolicCharactersClauseContext sc)
+    private (List<Core.CobolWordContext> Names, List<(string Text, int? Value)> Ordinals, bool GroupsWellFormed)
+        SymbolicClauseOperands(Core.SymbolicCharactersClauseContext sc)
     {
         const string where = "SYMBOLIC CHARACTERS clause";
         var names = new List<Core.CobolWordContext>();
         var ordinals = new List<(string Text, int? Value)>();
+        // The repeated group is `{name}... [IS|ARE] {integer}...`: names then ordinals, each at least once, so the stream
+        // of operand kinds is (N+ O+)+ — it opens with a name and closes with an ordinal, and nothing more is needed
+        // (any such stream is a concatenation of N+ O+ groups). The entry is not the unit of the rule (above), so the
+        // grammar cannot enforce this and the count comparison in SwitchBindSymbolic cannot see it (kb/Work PB4108, R1-1).
+        bool? firstIsName = null;
+        bool lastIsName = false;
         foreach (var entry in sc.symbolicCharacterEntry())
         {
             bool afterIs = false;
@@ -2376,9 +2388,13 @@ public sealed partial class DataBinder
                 if (word is not null && !afterIs && FindConstant(word.GetText()) is null && !IsFailedConstant(word.GetText()))
                 {
                     names.Add(word);
+                    firstIsName ??= true;
+                    lastIsName = true;
                     continue;
                 }
                 afterIs = false;
+                firstIsName ??= false;
+                lastIsName = false;
                 ordinals.Add(child switch
                 {
                     Core.IntegerLiteralContext il => (il.GetText(),
@@ -2389,7 +2405,7 @@ public sealed partial class DataBinder
                 });
             }
         }
-        return (names, ordinals);
+        return (names, ordinals, firstIsName == true && !lastIsName);
     }
 }
 
