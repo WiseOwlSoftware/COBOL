@@ -39,6 +39,28 @@ public sealed class ApplyCommitEnclosingFileTests
         + "       PROCEDURE DIVISION.\n           GOBACK.\n"
         + "       END PROGRAM PB3557I.\n       END PROGRAM PB3557O.\n";
 
+    /// <summary>A chain of nested programs, outermost first: each is (its PROGRAM-ID, its FILE-CONTROL entries, its I-O-CONTROL
+    /// paragraph body, its DATA DIVISION body), every one empty where the program has none.</summary>
+    private static string Chain(params (string Id, string FileControl, string IoControl, string Data)[] programs)
+    {
+        var text = new System.Text.StringBuilder();
+        for (int i = 0; i < programs.Length; i++)
+        {
+            var (id, fileControl, ioControl, data) = programs[i];
+            text.Append($"       IDENTIFICATION DIVISION.\n       PROGRAM-ID. {id}.\n");
+            if (fileControl.Length + ioControl.Length != 0)
+                text.Append("       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n")
+                    .Append(fileControl.Length == 0 ? "" : "       FILE-CONTROL.\n" + fileControl)
+                    .Append(ioControl.Length == 0 ? "" : "       I-O-CONTROL.\n" + ioControl);
+            if (data.Length != 0) text.Append("       DATA DIVISION.\n").Append(data);
+            text.Append("       PROCEDURE DIVISION.\n")
+                .Append(i + 1 < programs.Length ? $"           CALL \"{programs[i + 1].Id}\"\n" : "")
+                .Append("           GOBACK.\n");
+        }
+        for (int i = programs.Length - 1; i >= 0; i--) text.Append($"       END PROGRAM {programs[i].Id}.\n");
+        return text.ToString();
+    }
+
     /// <summary>SR11: the container's GLOBAL file is visible in the contained program, and still may not be named in its
     /// clause. One report, under SR11, the only refusal; the undefined-name verdict is gone.</summary>
     [Fact]
@@ -140,5 +162,75 @@ public sealed class ApplyCommitEnclosingFileTests
         EditionHarness.AssertNoDiagnostic(errors, "COBOL4709");
         EditionHarness.AssertNoDiagnostic(errors, "COBOL1639");
         Assert.True(ok, string.Join("\n", errors));
+    }
+
+    /// <summary>⛔ THE NEARER DECLARATION DECIDES, NOT THE NAME TABLE (review R2-2; §8.4.6.2.1 3) a): "If the name is
+    /// declared in source element B, the item in source element B is the referenced item"). The contained program's own
+    /// report entry RREC hides the container's GLOBAL record area RREC, so the operand names a report item and the refusal
+    /// is the report section's (§13.8.6.2.3, COBOL5092), never SR11's: the kb/Work PB4196 order, on the APPLY COMMIT arm.</summary>
+    [Fact]
+    public void AnOwnReportEntrySpelledLikeTheContainersGlobalRecordArea_IsRefusedAsAReportItem()
+    {
+        var (ok, errors) = EditionHarness.Compile(Chain(
+            ("PB3557O", "           SELECT RELF ASSIGN TO \"pb3557.dat\".\n", "",
+                "       FILE SECTION.\n       FD RELF IS GLOBAL.\n       01 RREC PIC X(10).\n"
+                + "       WORKING-STORAGE SECTION.\n       01 RK PIC X(5) GLOBAL.\n"),
+            ("PB3557I", "           SELECT PRTF ASSIGN TO \"pb3557.rpt\".\n", "           APPLY COMMIT ON RREC.\n",
+                "       FILE SECTION.\n       FD PRTF REPORT IS RP.\n       REPORT SECTION.\n       RD RP.\n"
+                + "       01 DL TYPE DETAIL LINE PLUS 1.\n           05 RREC COLUMN 1 PIC X(5) SOURCE RK.\n")), 2023);
+        Assert.False(ok);
+        var only = Assert.Single(errors);
+        Assert.Contains("COBOL5092", only, StringComparison.Ordinal);
+        Assert.Contains("APPLY COMMIT identifier-1 'RREC'", only, StringComparison.Ordinal);
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL4709");
+    }
+
+    /// <summary>Two GLOBAL files each with a record of one name (review R2-3): the file-report-qualifier tells them apart
+    /// (§8.4.2.2.2 Format 1), so <c>R IN F2</c> is F2's record area and SR11 names F2; the bare word identifies neither,
+    /// so it is the reference that fails (§8.4.2.2.3 SR1's ambiguity), never SR11 about whichever file came first.</summary>
+    [Fact]
+    public void TwoGlobalFilesRecordsOfOneName_AreToldApartByTheFileQualifier()
+    {
+        static string Source(string operand) => Chain(
+            ("PB3557O", "           SELECT F1 ASSIGN TO \"pb3557a.dat\".\n           SELECT F2 ASSIGN TO \"pb3557b.dat\".\n", "",
+                "       FILE SECTION.\n       FD F1 IS GLOBAL.\n       01 R PIC X(10).\n"
+                + "       FD F2 IS GLOBAL.\n       01 R PIC X(10).\n"),
+            ("PB3557I", "", $"           APPLY COMMIT ON {operand}.\n", ""));
+        var (ok, errors) = EditionHarness.Compile(Source("R IN F2"), 2023);
+        Assert.False(ok);
+        var only = Assert.Single(errors);
+        Assert.Contains("COBOL4709", only, StringComparison.Ordinal);
+        Assert.Contains("'R OF F2' is a record area of file 'F2'", only, StringComparison.Ordinal);
+
+        var (bareOk, bare) = EditionHarness.Compile(Source("R"), 2023);
+        Assert.False(bareOk);
+        EditionHarness.AssertNoDiagnostic(bare, "COBOL4709");
+        EditionHarness.AssertNoDiagnostic(bare, "no declaration in this source element");
+    }
+
+    /// <summary>⛔ DEPTH, BOTH WAYS (review R2-1): the nearest containing element's declaration is the referenced item
+    /// (§8.4.6.2.1 3) b)). A middle program's GLOBAL working-storage item X hides the outermost program's GLOBAL file X, so
+    /// the innermost clause names a working-storage 01 item (SR3 holds; SR11 is about files and record areas only); and a
+    /// middle program's GLOBAL file X hides the outermost program's GLOBAL item X, so the clause names a GLOBAL file (SR11).</summary>
+    [Fact]
+    public void TheNearestContainersDeclarationDecides_FileOrDataItem()
+    {
+        const string fileX = "           SELECT X ASSIGN TO \"pb3557x.dat\".\n";
+        const string fdX = "       FILE SECTION.\n       FD X IS GLOBAL.\n       01 XR PIC X(10).\n";
+        const string wsX = "       WORKING-STORAGE SECTION.\n       01 X PIC X(10) GLOBAL.\n";
+        const string inner = "           APPLY COMMIT ON X.\n";
+
+        var (itemOk, itemErrors) = EditionHarness.Compile(
+            Chain(("PB3557A", fileX, "", fdX), ("PB3557B", "", "", wsX), ("PB3557C", "", inner, "")), 2023);
+        EditionHarness.AssertNoDiagnostic(itemErrors, "COBOL4709");
+        Assert.True(itemOk, string.Join("\n", itemErrors));
+
+        var (fileOk, fileErrors) = EditionHarness.Compile(
+            Chain(("PB3557A", "", "", wsX), ("PB3557B", fileX, "", fdX), ("PB3557C", "", inner, "")), 2023);
+        Assert.False(fileOk);
+        var only = Assert.Single(fileErrors);
+        Assert.Contains("COBOL4709", only, StringComparison.Ordinal);
+        Assert.Contains("ISO §12.4.6.3.3 SR11", only, StringComparison.Ordinal);
+        Assert.Contains("'X' is a file of a containing source element", only, StringComparison.Ordinal);
     }
 }

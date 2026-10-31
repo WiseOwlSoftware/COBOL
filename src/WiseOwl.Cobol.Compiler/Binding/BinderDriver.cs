@@ -728,17 +728,17 @@ internal sealed class BinderDriver
         // substitutions, so they join BEFORE this unit binds, and a local data-name shadows them after. EVERY
         // container, nearest first (the nearest global declaration wins): an intermediate program's own NON-global
         // declaration of the name hides nothing from the programs it contains.
-        int constantDepth = 0;
+        int containerDepth = 0;   // the containment distance, 1 for the parent
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
         {
-            data.InheritGlobalConstants(anc.Data, ++constantDepth);
+            data.InheritGlobalConstants(anc.Data, ++containerDepth);
             // …and its GLOBAL type declarations (§13.18.58.4 GR3; §8.4.6.2.2 — a type-name described with a GLOBAL
             // clause is a global name; kb/Work PB1303): the same BEFORE-Bind, nearest-first, local-shadows contract —
             // ExpandTypes runs inside data.Bind, so a TYPE clause here already sees the container's type-name.
             data.InheritGlobalTypeDecls(anc.Data);
             // …and its files' names (§13.18.27.4 GR1), the same BEFORE-Bind contract: the data division's own
             // resolutions ask whether a name that is no data item IS a visible file-name (kb/Work PB3557).
-            data.InheritFileNames(anc.Data);
+            data.InheritFileNames(anc.Data, containerDepth);
         }
         // The member names every container's GLOBAL root will occupy in this unit's class (kb/Work PB1047): the
         // bridges are emitted for every global root below, so a LOCAL root spelled like one (the §8.4.6.2.1 3) a)
