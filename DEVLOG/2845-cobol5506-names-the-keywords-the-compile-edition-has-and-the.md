@@ -1,4 +1,4 @@
-## COBOL5506 names the keywords the compile edition has, and the §8.10 half stays open (PB4174)
+## Entry 2845 — 2026-10-31 00:30 PDT — COBOL5506 names the keywords the compile edition has, and the §8.10 half stays open (PB4174)
 
 **PB4174** (wave 20261783, group F): COBOL5506's list of what is expected was edition-blind. The parse is the
 superset of the four editions, and `AdmittedKinds.Name` listed whatever the parse took.
@@ -38,3 +38,4 @@ once through the word funnel, the strategy passes a delegate; no table of statem
 §8.3.2.1 and §8.9, which `cite.py --check` confirmed; the sibling enumerations (figurative-family hint, closed-format
 residue) name no superset expected set. Performance: error path only, one dictionary lookup per named word.
 Duplication: `keywordWhereFree` is read from the same rows as the keyword rules, not restated.
+
