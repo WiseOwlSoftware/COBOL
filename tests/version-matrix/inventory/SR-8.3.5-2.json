@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.5-2",
+ "section": "8.3.5",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Lexical elements",
+ "rule-digest": "d1910ad25ebb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Parsing/SeparatorRule.cs#Violations; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#SEMICOLON; src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs#LexAndParse",
+ "test-ref": "conformance:cases/8.3.5-Separators/w73a-comma-not-followed-by-space; conformance:cases/8.3.5-Separators/w73a_separator_context_conforming; unit:SeparatorRuleTests.NonconformingSeparator_IsReportedOnce; unit:SeparatorRuleTests.ConformingSeparators_AreNotReported",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule 2 (cite.py --check 8.3.5 \"The COBOL characters comma and semicolon, immediately followed by a space, are separators\" OK 2)). kb/Work PB1394 LANDED (wave 73 group A): SeparatorRule, run post-lex over every token of the unit (all channels) from the source characters, reports a comma or semicolon not immediately followed by a space as COBOL2631 - the COMMA token and the lone ';' (the SEMICOLON token, which the lexer keeps on the HIDDEN channel instead of skipping); a comma or semicolon followed by a space is the one FNARG_SEPARATOR token and needs no check. The one space-less comma it leaves alone is a numeric literal's decimal point under DECIMAL-POINT IS COMMA (a digit after it and a digit, sign, '(' or space before it - 12.3.7.4 GR14 a)), which the numeric-literal rules own. Negative: MOVE 1 TO N,M / N;M -> COBOL2631 at all four editions (they used to compile as two receivers and print 001001); positive: MOVE 1 TO N, M and N; M. retired-witness: src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#SUB_COMMA (kb/Work PB2113 deleted the SUBSCRIPT lexer mode; a comma inside a subscript is the ordinary COMMA token) retired-witness: src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#SUB_SEMICOLON (kb/Work PB2113 deleted the SUBSCRIPT lexer mode; a space-less semicolon is the ordinary SEMICOLON token)",
+ "state": "OK"
+}

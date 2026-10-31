@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.14.3-10",
+ "section": "14.9.14.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "EXIT statement",
+ "rule-digest": "d1094eb4ded6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindExit; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs",
+ "test-ref": "conformance:cases/14.9.14-EXIT/l1_exit_paragraph_unnamed_paragraph",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR10 admits no violating program (14.4.3), so the golden pins its one checkable half: EXIT PARAGRAPH accepted in the paragraph-name-omitted paragraph, behaving per 14.9.14.4 GR6.",
+ "state": "OK"
+}

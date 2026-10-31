@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.16.3-3",
+ "section": "13.18.16.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "CONTROL clause",
+ "rule-digest": "190b9f9288ef",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ControlOperandShapeViolation; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ControlOperandRef",
+ "test-ref": "conformance:cases/13.18.16-CONTROL/pb177-control-occurs; conformance:cases/13.18.16-CONTROL/pb205-control-operand-subscripted",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The shape arm (kb/Work PB177 arm C) rejects an operand subject to any OCCURS clause, recognised with DataItem.IsTable so both dynamic-capacity shapes are covered. kb/Work PB205 added the WRITTEN half: a subscript on the operand was dropped at capture, and since SR3 bars the OCCURS case and 8.4.2.3.3 SR2 bars a subscript on an item without one, no subscripted control operand is legal - it is now rejected on the spelling, not only on the item.",
+ "state": "OK"
+}

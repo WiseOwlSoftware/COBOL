@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.79.2",
+ "section": "15.79.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "SECONDS-FROM-FORMATTED-TIME function",
+ "rule-digest": "f6315245db35",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgList; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgument; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+ "test-ref": "conformance:cases/15.3.3.6.1-Offset-subformats/formatted_datetime; conformance-test:IntrinsicFunctionDifferentialTests.SecondsFromFormattedTime_Fractional_2014",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "PDF page 939 (printed folio 909) was RE-RENDERED independently for this review and the transcription is faithful: FUNCTION and SECONDS-FROM-FORMATTED-TIME are underlined (required words), argument-1 and argument-2 appear unbracketed inside the parentheses separated by a space — exactly two mandatory arguments, no optional phrase, no OCR-induced over-restriction. The grammar is the intended superset (`functionCall : FUNCTION functionName (LPAREN functionArgList? RPAREN)?`; the hyphenated name arrives as IDENTIFIER; arguments juxtapose or take the §8.3.5 comma separator), narrowed at bind time by the catalog row (IntrinsicArity.Fixed, 2, 2). Re-verified at --std 2014: the space-separated two-argument form compiles and returns +45296.00; one argument → COBOL1504 'takes 2 argument(s); 1 given (ISO §15.3)'; three arguments → the same 1504 with '3 given'; --std 2002 → COBOL1502 'introduced by ISO/IEC 1989:2014'. The two test-refs write the general format's exact shape and assert a correct value, so they cover the positive side; the COBOL1504 arity rejection has no negative test.",
+ "state": "OK"
+}

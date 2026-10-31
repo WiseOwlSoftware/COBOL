@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.8.3.3-L3.3",
+ "section": "14.8.3.3",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Returning items",
+ "rule-digest": "369b2b53106c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#CallStringRead; src/WiseOwl.Cobol.Compiler/Oo/ActivationDescriptions.cs#Of; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#ReturningConformance",
+ "test-ref": "conformance:cases/9.3.6-Method-invocation/w61b_pb1166_picture_identity; conformance:cases/14.8.2.2-Group-items/w61b-pb1166-group-kind-pairing",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1166 landed (w61b): a national group of 5 national positions matches PIC N(5) in both directions (positive RN/NG legs, delivered as characters, not NUL-interleaved bytes); a national group against an alphanumeric group of equal width is COBOL1688 (negative NG leg). retired-witness: src/Cobol.Net.Compiler/Oo/OoConformance.cs#AsIfElementaryGroupMismatch (kb/Work PB3101 (wave 1082): the DataItem comparator family is deleted (OoConformance.DescriptionMismatch, StrongTypeMismatch, AsIfElementaryGroupMismatch, IsCategoryAlphanumeric, PictureClauseIdentity.Mismatch, ObjectRefDescriptor.SameDescriptionAs); every activation and pair-mode question describes its items through ActivationDescriptions and asks ActivationRelations (CallArgumentViolation / CallReturningViolation / MatchViolation / SignatureDifference), the PICTURE identity entering through PictureClauseIdentity.Key)",
+ "state": "OK"
+}

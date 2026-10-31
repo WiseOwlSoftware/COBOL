@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-11.7.2",
+ "section": "11.7.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "METHOD-ID paragraph",
+ "rule-digest": "ad93e19003ad",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build",
+ "test-ref": "conformance:cases/11.7-METHOD-ID/oo_override_final; conformance:cases/11.7-METHOD-ID/oo_property_methods; conformance:cases/8.3.2.2-User-defined-words/pb303_as_module_name_and_invoke; conformance:cases/11.7-METHOD-ID/pb1449_interface_property; conformance:cases/11.7-METHOD-ID/pb1449-set-property-prototype-two-using",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1449 LANDED (wave 1015 Z). cite.py --check 11.7.2 '[ <u>OVERRIDE</u> ] [ IS <u>FINAL</u> ]' OK. The refuter's PARTIAL was the PROTOTYPE half: the format is shared by method definitions and prototypes, and every GET/SET PROPERTY prototype was refused COBOL0899. OoClassTable.Build's interface arm now admits the {GET|SET} PROPERTY property-name-1 arm (the roster name is the pinned accessor name, as in the class arm), the staged descriptor oo-interface-property-prototype is deleted, and pb1449_interface_property compiles and runs an interface with both prototypes. The class-method arms stay witnessed by oo_override_final, oo_property_methods and pb303_as_module_name_and_invoke.",
+ "state": "OK"
+}

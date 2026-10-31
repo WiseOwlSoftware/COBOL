@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.85.3-3",
+ "section": "15.85.3",
+ "kind": "AR",
+ "ordinal": 3,
+ "subject": "STANDARD-COMPARE function",
+ "rule-digest": "54b51afd91a5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindStandardCompare; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#StandardCompare",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb101_standard_compare; unit:StandardCompareTests.Argument1And2_ObeyTheClassAndZeroLengthRules",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB101 T7: no cross-class check exists; the golden compares an alphanumeric literal with a PIC X item and the runtime body takes both operands as strings (r3's national conversion is the identity on the D-N1 substrate).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.9.4-8",
+ "section": "12.4.5.9.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "LOCK MODE clause",
+ "rule-digest": "fb116ac12d13",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReadShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ApplyPostReadLockActions; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#WriteShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RewriteShared",
+ "test-ref": "conformance:cases/12.4.5.9-LOCK-MODE/l1c17_lock_mode_no_other_inert",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 12.4.5.9.4 8) 'The setting of a record lock is part of the operation of an I-O statement.' OK. Every acquisition happens inside the governed verb's own runtime entry (ReadShared/ReadKeyedShared -> ApplyPostReadLockActions; WriteShared/RewriteShared wantLock -> LockRecord), with no separate lock step emitted around the statement. A failure to set a lock (53/54 ceiling) is therefore the statement's own unsuccessful I-O status, pre-flighted before the operation commits (PB338 landed, PreflightReadLock/PreflightNewLock). Probe rt1 C2 shows the READ itself returning '54'. No existing test is aimed at GR8 specifically, so test-ref is empty. [registrar 14a — editions as adjudicated: 2002, 2014, 2023 (the clause is absent from ISO 1989:1985; it arrives with the 2002 file sharing / record locking facility, D.2.4 / A.4.7; no later change to 12.4.5.9 located)]",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.43.4-15",
+ "section": "13.18.43.4",
+ "kind": "GR",
+ "ordinal": 15,
+ "subject": "RECORD clause",
+ "rule-digest": "c915825bef81",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#LastReturnedLength",
+ "test-ref": "conformance:cases/8.5.4-Zero-length-items/pb721_zero_length_record; conformance:cases/13.18.32-JUSTIFIED/pb339_into_current_record_2023",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 13.18.43.4 GR15. READ: sequential L=07 after a 7-byte record (probe/record-clause/p4.cob), L=05/L=10 for Format-2 file over Format-3-written records (p3.cob), indexed READ L=08 (p5.cob), national record L=20 bytes (p8b.cob). RETURN: L=09/05/01 per released length (p6.cob). pb721_zero_length_record pins READ -> 0; pb339 pins RETURN/READ restoring WS-LEN.",
+ "state": "OK"
+}

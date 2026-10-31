@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.34.4-2",
+ "section": "14.9.34.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "RETURN statement",
+ "rule-digest": "28e4d49638bd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitReturn; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitImageInto; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindReturn",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-14.9.34.4-2",
+ "editions": "85,2002,2014,2023",
+ "notes": "RULE (cite.py --check 14.9.34.4 'is undefined at the completion of the execution of the RETURN statement' -> OK, 14.9.34.4 rule 2). This is a PERMISSION, not an obligation: with more than one record description, whatever lies outside the current record's range is undefined, so any deterministic content conforms. CODE (read, not assumed): BindReturn:255-260 deliberately resolves the record area through file.AreaRecord - the LARGEST record's view (13.4.2) - rather than Records[0], so a multi-01 SD is not truncated; EmitReturn:167 calls SequentialIoEmitter.EmitImageInto(rt.RecordArea, tmp), which writes CobolString.Store(image, record.ImageWidth). CobolString.Store(value, width, justifiedRight=false, pad=' ') space-fills, so the bytes outside the returned record are deterministically SPACES - a documented refinement of 'undefined'. The secondary 01s of a multi-01 SD are synthesized REDEFINES over that same area (9.1.2), so they read the same image. Nothing here can contradict a rule whose content is a grant of undefinedness. NO SPEC-DERIVED TEST exercises a multi-01 SD through RETURN (the two spec-pinned sort suites use single-01 SDs), so the row is CONFORMS-but-untested and stays a GAP. || CLOSED 2026-09-04 ON AN OWNER-SIGNED DERIVATION. kb/Work PB386 admits the determination filed at docs/CONFORMANCE.md#DRV-GR-14.9.34.4-2 under the mechanical undefined-A.2 arm (Annex A.2 item 46 cites this rule), in place of a test for a rule that grants undefinedness rather than imposing an obligation. The row is CONFORMS-but-untestable, not CONFORMS-but-untested, and is no longer a GAP.",
+ "state": "OK"
+}

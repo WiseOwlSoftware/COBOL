@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-16",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 16,
+ "subject": "WRITE statement",
+ "rule-digest": "f0b0a2ad7ac3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#WriteShared",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-14.9.51.4-16",
+ "editions": "2002,2014,2023",
+ "notes": "GR16: 'The RETRY phrase is used to control the behavior of the WRITE statement for files opened for file sharing for the case where resources needed to write a record are locked by another run unit. The I-O status is set in accordance with the rules in 14.7.9, RETRY phrase.' (cite.py --check 14.9.51.4 -> OK rule 16). The antecedent is unpopulatable in this implementation: FILES_DESIGN §14.7.9 GR2 determination (CONFORMANCE A.1 items 165/166) — every file and record lock is held by a connector of the executing run unit, and WRITE defines no record operation conflict. WriteShared therefore binds the RETRY phrase (grammar retryPhrase, GateRetryIntro 2002) and makes the first attempt decide. The one resource denial WriteShared CAN return, the §12.4.5.9 GR7 lock ceiling '53'/'54' from PreflightNewLock, bypasses RetryLoop — kb/Work PB707 (open) owns that as a where-the-rule-is-written defect, behaviour-identical today (no re-attempt within one run unit can clear the ceiling). No verdict-changing edge found.",
+ "state": "OK"
+}

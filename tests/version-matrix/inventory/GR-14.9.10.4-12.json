@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.10.4-12",
+ "section": "14.9.10.4",
+ "kind": "GR",
+ "ordinal": 12,
+ "subject": "DELETE statement",
+ "rule-digest": "47cef6217cb5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindDeleteFile",
+ "test-ref": "conformance:cases/14.9.10-DELETE/pb134_delete_file_format2",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED (kb/Work PB134): multiple file-names execute exactly as the rule states - the binder builds one BoundKeyedDeleteFile per name, in source order, each re-binding the phrase blocks (the textual as-if-separate semantics), wrapped in a BoundSequence. The golden deletes two absent files in one statement (each a GR14 '05' success).",
+ "state": "OK"
+}

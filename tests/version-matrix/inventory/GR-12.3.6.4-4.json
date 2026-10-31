@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.6.4-4",
+ "section": "12.3.6.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "OBJECT-COMPUTER paragraph",
+ "rule-digest": "4f6ec8615492",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#configurationParagraph",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/pb77_move_past_the_carrier",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB78 (2026-08-18): no OBJECT-COMPUTER paragraph anywhere — the object computer is the implementor's (every program without the paragraph runs on the one .NET runtime).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-2",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "PICTURE clause",
+ "rule-digest": "2b126086704c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Precedence; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#Analyze",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb528-picture-precedence; conformance:cases/13.18.40-PICTURE/pb528_picture_composition_legal_85; unit:PictureTable10DriftTests.Table10_InTheCompiler_MatchesTheTranscription; conformance-test:DataSkeletonEditionTests.InvalidPictureSymbol_0808AtEveryEdition; unit:LoudGuardTests.Analyze_InvalidSymbol_0808AtEveryEdition; unit:PictureCompositionTests.APrecedenceViolation_IsCOBOL1935",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-09-09 (kb/Work PB528; data-model design D24). SR2 states TWO obligations and only the first was ever answered. MEMBERSHIP - 'Character-string-1 shall consist of an allowable combination of characters used as picture symbols' - is PictureAnalyzer's whitelist loop (COBOL0808). The COMBINATION half - 'The allowable combinations of symbols for a PICTURE clause are specified in 13.18.40.6, Precedence rules' - is now PictureComposition: Table 10 as a 24x24 DATA table in the standard's own printed order, and symbol ORDER decided by assigning each occurrence its Table-10 role and requiring an 'x' for EVERY ordered pair (13.18.40.6: an 'x' means the column symbol 'may precede (but not necessarily immediately)' the row symbol, so the relation binds non-adjacent pairs). The two position-ambiguous kinds - a non-floating '+'/'-' and a non-floating currency symbol, each of which has a leftmost and a rightmost role - are SEARCHED rather than guessed, and SR24 bounds each to one occurrence so the search is at most four assignments. A violation is COBOL1935 naming the offending pair. Table10DriftTests re-parses all 576 cells plus the 163-mark glyph count out of specs/ISO_COBOL.md every build; the markdown was itself verified cell-for-cell against the canonical PDF (printed folios 459-460) by geometry. Measured before enabling over all 730 distinct PICTURE strings in the corpora and after over all 1339 conformance+NIST programs: the only rejections were an authentic NIST card error (IX110A's PIC P, corrected) and the deliberate format-2 negatives. retired-witness: unit:PictureCompositionTests.APrecedenceViolation_IsCOBOLNET1935 (the same witness, re-spelled when the diagnostic code prefix became COBOL#### (kb/Work PB3575); the new spelling is recorded in its place)",
+ "state": "OK"
+}

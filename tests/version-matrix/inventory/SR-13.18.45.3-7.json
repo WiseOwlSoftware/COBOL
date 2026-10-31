@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.45.3-7",
+ "section": "13.18.45.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "RENAMES clause",
+ "rule-digest": "924572546e16",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindRenames; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ClauseDataName",
+ "test-ref": "conformance:cases/13.18.45-RENAMES/l1c24-renames-subscripted-operand",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR7 'Data-name-2 and data-name-3 shall not be subscripted.' cite.py --check 13.18.45.3 -> OK §13.18.45.3 7). BindRenames captures both operands through ClauseDataName, which refuses a subscripted operand (COBOL2024) and records it in _refusedClauseOperands so ResolveRedefines skips it (one fault). Probe sr7.cob `66 X1 RENAMES A(1).` -> error COBOL2024 at --std 2023 and --std 85. No RENAMES-specific negative golden found under tests/conformance/negative (test-needed). || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): 85, 2002, 2014, 2023 (the RENAMES clause is in every edition; the rule text is the 2023 §13.18.45.3 wording)",
+ "state": "OK"
+}

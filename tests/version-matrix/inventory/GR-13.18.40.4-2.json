@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.40.4-2",
+ "section": "13.18.40.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "PICTURE clause",
+ "rule-digest": "f2cd69ac5c0a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Format; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#FormatSimpleInsertion",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb646_national_form_numeric_bytes; conformance:cases/13.18.40-PICTURE/pb646_national_form_numeric_2023; conformance:cases/13.18.40-PICTURE/pb492_national_edited_2023; conformance:cases/13.18.40-PICTURE/pb492_national_edited_editing",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB646 LANDED the leg this row was held open on, 2026-09-13. GR2's national sentence - 'When the usage of the item being edited is national, the value is the national character representation' - now has BOTH of its item-being-edited forms. The national-EDITED form was measured by PB492; the other, a NUMERIC-EDITED picture under USAGE NATIONAL, was COBOL0899 until this landing and is now measured: `PIC ZZ9.99 USAGE NATIONAL` after MOVE 42.5 renders [ 42.50], and conformance:cases/13.18.40-PICTURE/pb646_national_form_numeric_bytes reads its twelve bytes back through a REDEFINES PIC X(12) - six low bytes spelling the image and six high bytes all zero. That is exactly what 'the national character representation' of the inserted '.' is under the D-N4 total UTF-16 identity (U+002E, serialized 00 2E): the insertion character is a two-byte national character whose correspondent is its alphanumeric self, not a one-byte one and not a different character. The alphanumeric sentence is unchanged and verified.",
+ "state": "OK"
+}

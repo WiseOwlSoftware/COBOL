@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.6.4.3-6",
+ "section": "12.4.6.4.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "SAME clause",
+ "rule-digest": "427eadbf4e4f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#SameOccurrenceRule; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#ScreenSameClauses",
+ "test-ref": "conformance:cases/12.4.6.4-SAME/pb1087-same-sort-file-file-area; conformance:cases/12.4.6.4-SAME/pb1087-same-sort-file-two-record-areas; conformance:cases/12.4.6.4-SAME/pb1087_same_clauses_legal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1087 (wave 1011 B2). cite.py --check 12.4.6.4.3 'A given file-name that represents a sort or merge file may be specified in one record-area format SAME clause' OK SR6. Sort/merge row of the occurrence table: (file-area 0, record-area 1, sort-merge-area 1). Positive half: S1 in one record-area and one sort-merge-area clause in the golden (and ST131A-style RELEASE under a record-area clause keeps compiling).",
+ "state": "OK"
+}

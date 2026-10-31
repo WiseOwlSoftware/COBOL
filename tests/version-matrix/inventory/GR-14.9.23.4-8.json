@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.23.4-8",
+ "section": "14.9.23.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "INVOKE statement",
+ "rule-digest": "177eb428a766",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindResolvedInvoke; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitInstanceInvoke",
+ "test-ref": "conformance:cases/14.9.23-INVOKE/oo_method_args",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'If a RETURNING phrase is specified, the result of the activated method is placed into identifier-4.' (cite.py --check 14.9.23.4 OK, GR8). The typed path pairs RETURNING iff the method declares one (§14.8.3.1 'if and only if', cite OK), checks §14.8.3.3 conformance (SET rules for object references, strict description otherwise) and stores the method's returning item into identifier-4 as the final effect; the universal path carries the descriptor for the callee check (Universal_ReturningPresenceMismatch_EcOoUniversal). Probe r1.cob: an ACTIVE-CLASS returning item delivered into a typed receiver (§14.8.3.3 rule 2) -> SAME. WHERE identifier-4 is identified is GR7a's defect (F2), recorded there. || editions as adjudicated: 2002, 2014, 2023 (INVOKE / OO is a COBOL-2002 introduction)",
+ "state": "OK"
+}

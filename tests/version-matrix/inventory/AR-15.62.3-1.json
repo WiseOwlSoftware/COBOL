@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.62.3-1",
+ "section": "15.62.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "MIDRANGE function",
+ "rule-digest": "5e4a69b9f544",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build",
+ "test-ref": "conformance:cases/15.62.3-Argument-rule/stat-midrange-arg-class-numeric",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "New negative: PIC X(3) at argument-3 of 3 - the LAST position, which proves the variadic tail rule screens every position. 15.62.4 r1's equivalent expression is over MAX/MIN, whose own r1 admits alphanumeric; MIDRANGE's r1 does not, and the EAE states the value, never the admissible arguments.",
+ "state": "OK"
+}

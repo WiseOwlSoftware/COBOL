@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.3.3.6.4-1",
+ "section": "8.3.3.6.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Figurative constant values",
+ "rule-digest": "16d4efec5a1c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#FillChar; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#Fill; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#AlphabetFigurative",
+ "test-ref": "conformance:cases/8.3.3.6-Figurative-constant-values/l1c10_figurative_space_quote_zero_chars; conformance:cases/8.3.3.6-Figurative-constant-values/l1c10_figurative_code_values; conformance:cases/A.1-Implementor-defined-language-element-list/l1c05_coded_character_values_national",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'When a figurative constant is used in a context requiring national characters, the figurative constant represents a national character value ... the character value representation of the figurative constant ZERO (ZEROS, ZEROES), SPACE (SPACES), and QUOTE (QUOTES) is the value of the character '0', space, and '\"', respectively ... The implementor shall specify the unique representation of ZERO, SPACE, and QUOTE in the computer's alphanumeric and national coded character sets.' (cite.py --check 8.3.3.6.4 -> OK 1)). Behaviour: FigurativeConstants.FillChar maps Z->'0', S->' ', Q->'\"' for every category, the category coming from the associated operand. Documentation: the last sentence is Annex A.1 item 74, now written as docs/CONFORMANCE.md DOC-A.1-74 (U+0030, U+0020, U+0022 in both sets; items 32 and 209 give the bytes), witnessed by the l1c10 goldens. Both halves hold. kb/Work PB1397.",
+ "state": "OK"
+}

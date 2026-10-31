@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.5.3-1",
+ "section": "11.5.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "FUNCTION-ID paragraph",
+ "rule-digest": "9df61c0a1e3e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ExternalizedName.cs#Screen",
+ "test-ref": "conformance:cases/11.5-FUNCTION-ID/pb303_as_function_id_literal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "The FUNCTION-ID arm of the shared AS-literal screen; the FUNCTION-ID paragraph is itself a 2002 introduction. kb/Work PB303.",
+ "state": "OK"
+}

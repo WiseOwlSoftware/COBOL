@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-211",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 211,
+ "subject": "USAGE INDEX clause (alignment and representation of data)",
+ "rule-digest": "9f05669a13de",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-211; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ByteWidth",
+ "test-ref": "conformance:cases/13.18.60-USAGE/pb164_index_group_image",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Existing golden already pins GR10 whole: occurrence-number correspondence (SET/relation round trip), the 8-byte big-endian occurrence image (ORD reads of bytes 4 and 11) and no alignment filler (X(11) = 3 + 8). || editions 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a facility that exists at every edition (the COBOL-85 nucleus, I-O, inter-program and SPECIAL-NAMES implementor-names; its arithmetic, the only arithmetic of COBOL-85, is what later editions name native). retired-witness: src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#ByteWidth (ByteWidth is a member of DataItem (Binding/Model/DataItem.cs); PicInfo.cs names it only in comments)",
+ "state": "OK"
+}

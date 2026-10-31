@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.22.2",
+ "section": "14.9.22.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "INSPECT statement",
+ "rule-digest": "27e57515a8b8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectTallyingItem; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectCountPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectCountOperand; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectReplacingItem; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectReplacingPair; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectConvertingPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectDelimiters; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhraseOperands; src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#IsBareInspectOperand; src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#IsBareInspectReplacingPair; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#INSPECT",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/pb1125_inspect_printed_format_shapes; conformance:cases/14.9.22-INSPECT/pb1125_inspect_tallying_next_counter_extent; conformance:cases/14.9.22-INSPECT/pb1125-inspect-tallying-second-for-same-counter; conformance:cases/14.9.22-INSPECT/pb1125-inspect-tallying-first-operand-without-adjective; conformance:cases/14.9.22-INSPECT/pb1125-inspect-replacing-without-adjective; conformance:cases/14.9.22-INSPECT/pb1125-inspect-replacing-bare-pair-after-characters; conformance:cases/14.9.22-INSPECT/pb1125-inspect-converting-before-twice; conformance:cases/14.9.22-INSPECT/pb1125-inspect-converting-after-twice",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED kb/Work PB1125 (formats rendered from the PDF folio 643-644). The grammar spells the printed shapes: ONE FOR per identifier-2; the adjective REQUIRED on a phrase's first operand with only later operands bare (GR10/GR16); CHARACTERS repeats nothing; one inspectDelimiters rule (AFTER and BEFORE at most once, either order) for all four formats, CONVERTING included. Tallying FIRST/TRAILING and REPLACING TRAILING stay grammar-admitted and are refused by the binder with COBOL2269 (not ISO formats; PB909). BACKWARD is gated at 2023 (COBOL0845).",
+ "state": "OK"
+}

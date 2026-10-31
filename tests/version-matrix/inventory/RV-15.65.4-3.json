@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.65.4-3",
+ "section": "15.65.4",
+ "kind": "RV",
+ "ordinal": 3,
+ "subject": "MODULE-NAME function",
+ "rule-digest": "97280095292a",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-134",
+ "test-ref": "unit:ModuleStackInvariantTests.TopLevel_WithoutAMainFrame_IsTheDocumentedNonCobolValue",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB63 — the exception surface: the FD screen, the SELECT-spelled name on the connector, the one access-recording path, the r2b procedure field and element name, the MODULE-NAME determinations). §15.65.4 r3 / A.1 item 134 — the DOC-layer obligation discharged: CONFORMANCE.md's A.1 register row 134 states the value for a non-COBOL designated element (a single space — no COBOL element running, or TOP-LEVEL when the environment activated a non-COBOL host).",
+ "state": "OK"
+}

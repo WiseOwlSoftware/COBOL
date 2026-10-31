@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-6.2.3.2-2",
+ "section": "6.2.3.2",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Floating indicators",
+ "rule-digest": "5d45316da471",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ReportComment; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatDiagnostics.cs#ReferenceFormatDiagnostics",
+ "test-ref": "conformance:cases/6.2.3-Floating-indicators/pb1493-floating-comment-not-separated; unit:ReferenceFormatLogicalConversionTests.FloatingComment_NotPrecededBySeparatorSpace_IsDiagnosed",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1493: a *> not preceded by a separator space (the start of the program text is preceded by an implied space, §6.3.5 / §6.4.2) is COBOL2495 in both reference formats. Exception b) (after a floating literal continuation indicator) has no instance to accept: that indicator is not recognized at all yet (kb/Work PB1359, which owns it). retired-witness: src/Cobol.Net.Frontend/Preprocessor/ReferenceFormatProcessor.cs#StripInlineComment (moved or replaced by the ONE §6.5 logical conversion in ReferenceFormatProcessor.LogicalConversion.cs (kb/Work PB1491)) retired-witness: src/Cobol.Net.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#FloatingComment (kb/Work PB1804 / PB1640: the floating-comment report is LogicalLineBuilder.ReportComment, and ReferenceFormatDiagnostics is its own file) retired-witness: src/Cobol.Net.Frontend/Preprocessor/ReferenceFormatProcessor.cs#ReferenceFormatDiagnostics (kb/Work PB1804 / PB1640: the floating-comment report is LogicalLineBuilder.ReportComment, and ReferenceFormatDiagnostics is its own file)",
+ "state": "OK"
+}

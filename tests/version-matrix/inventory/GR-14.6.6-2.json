@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.6-2",
+ "section": "14.6.6",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Execution",
+ "rule-digest": "7cf20267c0c0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#DispatchEmitter; src/WiseOwl.Cobol.Runtime/Globalization/CharacterClassification.cs#Resolve; src/WiseOwl.Cobol.Runtime/Globalization/LocaleFacts.cs#Require; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/ObjectComputerEmit.cs#ObjectComputerEmit",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/pb64t5_case_locale_phrase; conformance:cases/8.8.4.4-Simple-class-condition/pb64t5_character_classification; conformance:cases/8.8.4.4-Simple-class-condition/pb64t5_classification_unavailable; unit:CobolLocaleTests.Classification_ResolvesAtActivation_AndDrivesTheClassTests; conformance:cases/12.3.6-OBJECT-COMPUTER/pb111_class_object_computer",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T5 (2026-08-19): on activation of a runtime element with the clause, LC_CTYPE of the specified locale is what the class test and UPPER-CASE / LOWER-CASE use (the CALLed contained program resolves ITS classification at ITS activation — INNER = 305 under the Turkish current locale). A DECLARED but UNAVAILABLE locale (L1: availability is a run-time property) raises EC-LOCALE-MISSING at the operation that requires it — the class test, the case function — through the ONE §8.2.1 gate (LocaleFacts.Require), the coded character set's behavior standing when checking is off (golden 3). Rule --check verified at 14.6.6 2). kb/Work PB111 (2026-08-19): a METHOD is a runtime element — a CLASS-ID's CHARACTER CLASSIFICATION is resolved at each method activation (CLS-UP = 305).",
+ "state": "OK"
+}

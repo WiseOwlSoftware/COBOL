@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-178",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 178,
+ "subject": "SIGN clause (valid sign when SEPARATE CHARACTER phrase not present)",
+ "rule-digest": "b3445729fe96",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-178; src/WiseOwl.Cobol.Runtime/Values/Numeric/ZonedSign.cs#IsSignCharacter; src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#IsNumericZoned",
+ "test-ref": "conformance:cases/13.18.52-SIGN/pb803_sign_valid_set; conformance:wiseowl/cases/13.18.52-SIGN/pb803_sign_encoding_ascii; conformance:cases/13.18.52-SIGN/pb803_sign_default_representation_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "DOCUMENTED (kb/Work PB803). The row states the valid sign set as a RULE over the program's convention rather than as a character list: at the sign position a plain digit 0-9 plus both tables of the selected convention, every other position a plain digit. It records the three things a user has to know and could not previously look up -- that a PLAIN DIGIT is valid and means positive (so a group MOVE of raw characters, and every positive value under the `ascii` convention, is well formed); that a punched character carries a DIGIT as well as a sign, so it fixes the value (`12{` is +120, and at the leading position `C23` is +323); and that the SEPARATE characters `+` and `-` are 13.18.52.4 GR6 b)'s and are NOT valid here. GR5 a) is documented alongside b) although it is not latitude, because it is what makes the width answer 3 and a reader looking up the sign set is exactly the reader who needs it. What a numeric operation makes of a character outside the set stays 14.6.13.2's obligation and is not filed here.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.2.3.3-6",
+ "section": "7.2.3.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "COPY statement",
+ "rule-digest": "46507fd49e62",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands",
+ "test-ref": "conformance:cases/7.2.3-COPY/pb1353-copy-operand-content; unit:TextManipulationStatementTests.CopyOperandContent_IsScreened",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1353 (w68x): 'Pseudo-text-1 shall contain one or more text-words, at least one of which shall be neither a separator comma nor a separator semicolon' (cite.py OK 7.2.3.3 SR6) is COBOL2572, checked by the ONE operand screen shared with REPLACE's SR3 (probes r_comma / r_empty: were RAN rc=0, now COBOL2572).",
+ "state": "OK"
+}

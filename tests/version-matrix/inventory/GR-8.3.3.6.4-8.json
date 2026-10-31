@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.3.3.6.4-8",
+ "section": "8.3.3.6.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "Figurative constant values",
+ "rule-digest": "b1ac343655b5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#FillChar; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#KindOf",
+ "test-ref": "conformance:cases/8.3.3.6-Figurative-constant-values/l1c10_figurative_space_quote_zero_chars; conformance:cases/8.3.3.6-Figurative-constant-values/l1c10-quote-bounds-literal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'The quote format represents one or more of the quotation mark character ' \" ' in the computer's runtime coded character set. The word QUOTE or QUOTES shall not be used in place of a quotation symbol to bound a literal.' (cite.py --check 8.3.3.6.4 -> OK 8)). First half: FillChar 'Q' -> '\"' (both classes); probe probe/figurative-constant-values/p1.cob MOVE QUOTE TO PIC X(3)/PIC N(3) -> '\"\"\"|\"\"\"', DISPLAY QUOTE -> '\"'. Second half: the lexer recognizes literal delimiters only as quotation symbols (§8.3.5 SR5); QUOTE is a figurative token (KindOf) with no delimiter role anywhere in the grammar, so it cannot bound a literal. No spec-derived test isolates the quote character; test-needed.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-30",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 30,
+ "subject": "SET statement",
+ "rule-digest": "2048ad34ce3d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetCapacity; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetLiteralAmount.cs#Of",
+ "test-ref": "conformance:cases/14.9.39-SET/pb458-set-capacity-literal-below-minimum; conformance:cases/13.18.38-OCCURS/dyn_capacity_bounds; conformance:cases/14.9.39-SET/dyn_capacity_set",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB458. All three bounds of 'Integer-1 shall be nonnegative and, if TO is specified, integer-1 shall be not less than the minimum capacity defined in the corresponding OCCURS clause and not greater than the expected capacity, if specified' are now screened at bind time against the OCCURS clause's own FROM/TO (13.18.38.4 GR16/GR17), through COBOL2113. 5.5 rule 1 makes integer-n a LITERAL, so the screen is SoleOperand.NumericLiteral (the one 8.3.3.3.2 rule-2 contiguity reading) and an amount written as a data item stays arithmetic-expression-4 under GR29/GR30 at run time. DETERMINATION: 'if TO is specified' reads as the SET statement's own TO alternative, not the OCCURS clause's - UP BY / DOWN BY write a DELTA, which 'not less than the minimum capacity' cannot be about, and the second half's 'if specified' is what conditions on the OCCURS TO phrase. Before: the runtime clamp in CobolDynTable.SetCapacity was the only bound, so SET WS-CAP TO 1 over FROM 2 TO 10 ran and answered 2 - a DIFFERENT value from the one written. conformance:cases/13.18.38-OCCURS/dyn_capacity_bounds was re-derived in the same change set: it pinned SET WS-CAP TO 9 over TO 4 (a literal above the expected capacity) as accepted while asserting a run-time rule, and now writes the amount as arithmetic-expression-4, which is what 8.5.1.9.1's 'may be exceeded with a nonfatal exception' is about.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.13.1.5-1",
+ "section": "14.6.13.1.5",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Exception conditions",
+ "rule-digest": "9fe107a3d85a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitRaiseObject; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitPropagationPickup; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#SetObject",
+ "test-ref": "conformance:cases/14.6.13.1.5-Exception-objects/l1_exit_raising_object_sending",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: §14.6.13.1.5 1) (cite.py --check 14.6.13.1.5 \"The predefined object reference EXCEPTION-OBJECT is set to the content of the object reference specified in the RAISE statement\" -> OK 1)). Both halves located: RAISE identifier-1 -> EmitRaiseObject emits ExceptionState.SetObject(<operand>) before the F4 dispatch; EXIT/GOBACK RAISING identifier-1 -> the callee stages via SetPropagatingObject and the activator's pickup (EmitPropagationPickup) calls SetObject(__po) before dispatching (§14.9.18.4 GR1b2). Golden l1_exit_raising_object_sending (EXIT PROGRAM RAISING W-E, activator F4 declarative SETs U TO EXCEPTION-OBJECT -> 'OBJECT-SENT') pins the EXIT half with a spec-quoting header; golden 2002/oo_ec_raise_object pins the RAISE half ('REGISTER-SET'). || editions as adjudicated: 2002, 2014, 2023 (exception objects arrive with the ISO 2002 OO facility and EC model)",
+ "state": "OK"
+}

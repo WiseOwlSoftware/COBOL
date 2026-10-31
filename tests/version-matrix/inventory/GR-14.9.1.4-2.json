@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.1.4-2",
+ "section": "14.9.1.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "ACCEPT statement",
+ "rule-digest": "0b0ce06c66b4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#Device; src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#RecordSize; docs/CONFORMANCE.md#DOC-A.1-5",
+ "test-ref": "unit:AcceptSourceTests.LongLine_SplitsIntoPaddedRecords; conformance-test:AcceptDifferentialTests.Device_LongLine_SplitsAtRecordBoundary; conformance-test:AcceptDifferentialTests.Device_FloatReceiver_ReadsTheDisplayImage",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The definition (one 80-character card-image record per transfer, CONSOLE and SYSIN both naming standard input) matched the implementation since PB139; the Annex A.1 item-5 documentation row is now written (docs/CONFORMANCE.md DOC-A.1-5, kb/Work PB887), including the receiving size GR3/GR4 compare against per receiver shape and the float receiver's one-record transfer.",
+ "state": "OK"
+}

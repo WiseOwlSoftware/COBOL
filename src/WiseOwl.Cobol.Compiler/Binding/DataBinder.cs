@@ -1277,7 +1277,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         : "";   // bare `ASSIGN USING …`: no device-name-1/literal-1 exists — UNASSOCIATED until an OPEN
                     if (asg.dataReference() is { } dyn)
                     {
-                        (file.AssignUsingName, file.AssignUsingQualifiers) = ClauseDataName(dyn, "ASSIGN … USING");
+                        (file.AssignUsingName, file.AssignUsingQualifiers) = ClauseDataName(dyn, "ASSIGN USING");
                         using var __ = Edition.At(dyn);
                         file.AssignUsingAt = Edition.Cursor;   // §12.4.5.2 SR7 reports here, from ResolveFiles
                     }
@@ -1487,7 +1487,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         var operands = new List<KeySourceOperand>();
         foreach (var dref in src.dataReference())
         {
-            var (n, q) = ClauseDataName(dref, $"{clause} … SOURCE");
+            var (n, q) = ClauseDataName(dref, $"{clause} SOURCE");
             using var _ = Edition.At(dref);
             operands.Add(new KeySourceOperand { Name = n, Qualifiers = q, At = Edition.Cursor });
         }
@@ -1596,7 +1596,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             if (!IsAlphabetName(alphabet3))
             {
                 Edition.Error(DiagnosticCatalog.FileCollatingAlphabet, $"file '{file.CobolName}': COLLATING SEQUENCE "
-                    + $"OF … IS '{alphabet3}' — alphabet-name-3 names no alphabet declared in SPECIAL-NAMES "
+                    + $"OF {string.Join(' ', keys.Select(k => WrittenQualified(k.Name, k.Qualifiers)))} IS '{alphabet3}' — alphabet-name-3 names no alphabet declared in SPECIAL-NAMES "
                     + "(ISO §12.4.5.7.3 SR7)");
                 continue;
             }
@@ -2304,7 +2304,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         Editions.DiagnosticCursor depAt = default;
         if (rc.dataReference() is { } d)
         {
-            (dep, depQuals) = ClauseDataName(d, "RECORD … DEPENDING ON");
+            (dep, depQuals) = ClauseDataName(d, "RECORD DEPENDING ON");
             // The OPERAND's own position, inside the clause cursor kb/Work PB721 pushed at the method top.
             using var _dep = Edition.At(d);
             depAt = Edition.Cursor;
@@ -2448,7 +2448,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     return item is null ? null : RecordKey.OfItem(item);
                 }
                 foreach (var op in source.Operands)
-                    op.Item = InRecords(op.Name, op.Qualifiers, $"{face} … SOURCE", op.At);
+                    op.Item = InRecords(op.Name, op.Qualifiers, $"{face} SOURCE", op.At);
                 return source.Operands.All(o => o.Item is not null)
                     ? RecordKey.OfSource(source.Name, [.. source.Operands.Select(o => o.Item!)]) : null;
             }
@@ -2480,7 +2480,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // working-storage, local-storage or linkage section) is one of the screen's rows (kb/Work PB858).
             if (file.Varying?.DependingName is { } vn)
                 file.VaryingDependingItem = ResolveClauseOperand(
-                    vn, file.Varying.DependingQualifiers, "RECORD … DEPENDING ON", file.Varying.DependingAt);
+                    vn, file.Varying.DependingQualifiers, "RECORD DEPENDING ON", file.Varying.DependingAt);
             RecordClauseRules.Screen(file, Edition);
             ResolveLinage(file);   // §13.18.34 — the logical-page operands and §13.18.34.3's syntax rules
         }
@@ -2755,7 +2755,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // uniqueness one.
         // Counted (kb/Work PB978): two survivors are §8.4.2.2.3 SR1's ambiguity, reported once by the ONE verdict.
         DataItem? item = UniqueOrReportAmbiguous(
-            QualifiedCandidates(dynName, file.AssignUsingQualifiers, Model.Scope.Program), "ASSIGN … USING",
+            QualifiedCandidates(dynName, file.AssignUsingQualifiers, Model.Scope.Program), "ASSIGN USING",
             WrittenQualified(dynName, file.AssignUsingQualifiers), out bool ambiguous);
         if (ambiguous && item is null) return;
         // A name the REPORT SECTION declares is not undescribed (kb/Work PB3768): §13.8.6.2.3 bars every clause of a
@@ -6427,21 +6427,21 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         var (alnumName, natName) = ChoiceIndicators.AlphabetPair(Edition, cs.codeSetForPhrase(),
             f => f.NATIONAL() is not null, f => f.cobolWord().GetText(), cs.cobolWord(),
             $"file '{file.CobolName}' CODE-SET", "13.18.13.2");
-        var alnumSet = alnumName is null ? null : CodedCharacterSetOf(cs, alnumName, $"CODE-SET … {alnumName}",
+        var alnumSet = alnumName is null ? null : CodedCharacterSetOf(cs, alnumName, $"CODE-SET {alnumName}",
             "ISO §13.18.13.3 SR1 — alphabet-name-1 shall reference an alphabet that defines an alphanumeric coded character set");
-        var natSet = natName is null ? null : CodedCharacterSetOf(cs, natName, $"CODE-SET … {natName}",
+        var natSet = natName is null ? null : CodedCharacterSetOf(cs, natName, $"CODE-SET {natName}",
             "ISO §13.18.13.3 SR2 — alphabet-name-2 shall reference an alphabet that defines a national coded character set");
         if (alnumName is not null && alnumSet is null || natName is not null && natSet is null) return;
         if (alnumSet is { National: true })
         {
-            Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET … {alnumName}: alphabet-name-1 shall "
+            Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET {alnumName}: alphabet-name-1 shall "
                 + "reference an alphabet that defines an ALPHANUMERIC coded character set — this alphabet is defined "
                 + "FOR NATIONAL (ISO §13.18.13.3 SR1)");
             return;
         }
         if (natSet is { National: false })
         {
-            Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET … {natName}: alphabet-name-2 shall "
+            Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET {natName}: alphabet-name-2 shall "
                 + "reference an alphabet that defines a NATIONAL coded character set — this alphabet is alphanumeric "
                 + "(ISO §13.18.13.3 SR2)");
             return;
@@ -6463,7 +6463,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         {
             if (set is null) continue;
             if (set.Medium is CodeSetMedium.NotProvided)
-                Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET … {name}: the {set.Phrase} coded "
+                Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET {name}: the {set.Phrase} coded "
                     + "character set's on-medium representation differs from the native encoding, and this processor "
                     + "does not provide alternate device code sets (Annex A §A.3 item 27 — documented non-support, "
                     + "CONFORMANCE.md §2 row 27); NATIVE, STANDARD-1, STANDARD-2, UTF-16 and the ASCII code-name "

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.35.2",
+ "section": "14.9.35.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "REWRITE statement",
+ "rule-digest": "8550e44aaff1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#rewriteStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#recordLockPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#retryPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#DeclinedFilePhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#recordFromPhrase; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordFromPhrase; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases",
+ "test-ref": "conformance:cases/14.7.9-RETRY/l1m8_rewrite_format_phrases; conformance:cases/14.9.35-REWRITE/l1m8_rewrite_format_85; conformance:cases/13.4.5-File-description/a413-rewrite-file-declined; conformance:cases/14.9.35-REWRITE/pb2650-rewrite-from-literal-85; conformance:cases/14.9.35-REWRITE/pb2650_from_literal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Every optional phrase of the record-name-1 arm, alone and combined, is pinned via GR7/GR23/§9.1.14. The 85 golden uses the 85 subset. The FILE arm is declined (A.4.13) and witnessed by the a413 negative. kb/Work PB2650 LANDED (w1040w): the FROM {identifier-1 | literal-1} phrase of WRITE, REWRITE and RELEASE is ONE grammar rule (recordFromPhrase) with ONE parse-arm edition gate (VisitRecordFromPhrase, construct from-literal-2002, COBOL0871): literal-1 (a figurative constant included) is refused below 2002, the edge derived in VERSION_CHANGE_REFERENCE row 7.34 (X3.23-1985 prints FROM identifier-1; no NIST CCVS-85 program writes a literal there). The gate used to be RELEASE's alone, and WRITE / REWRITE ... FROM literal compiled clean at --std 85. Positive conformance:cases/14.9.35-REWRITE/pb2650_from_literal (2002/2014/2023 identical); negative pb2650-rewrite-from-literal-85 (85, FROM SPACE). retired-witness: src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#rewriteFrom (kb/Work PB2650 merged writeFrom / rewriteFrom / releaseFrom into the one rule recordFromPhrase, and VisitReleaseFrom into VisitRecordFromPhrase; both successors are named in this record's code-location) retired-witness: src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#rewriteInvalidKeyPhrase (kb/Work PB3830: every Table 12 [NOT] phrase is the one conditionalPhrases rule now; the per-statement phrase rule no longer exists)",
+ "state": "OK"
+}

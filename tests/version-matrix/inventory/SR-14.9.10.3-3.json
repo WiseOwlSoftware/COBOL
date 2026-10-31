@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.10.3-3",
+ "section": "14.9.10.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "DELETE statement",
+ "rule-digest": "79c732d4c8bb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenSortMergeFile",
+ "test-ref": "conformance:cases/14.9.10-DELETE/pb140-delete-file-sd; conformance:cases/14.9.10-DELETE/pb140-delete-record-sd; conformance:cases/13.4.6-Sort-merge-file-description/pb140-close-sd",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED (kb/Work PB140): the ONE 13.4.6.3 SR3 screen (StatementValidation.ScreenSortMergeFile, COBOL1692) now fires from BindDeleteFile (this row's 14.9.10.3 SR3), BindDelete, BindClose AND the OPEN/WRITE/READ/REWRITE seam (SequentialIoBinder.UnsupportedOrg routes through it - previously a runtime loud stage, now a bind error with the loud belt retained). The old patchwork (bind error at UNLOCK, loud at four verbs, NOTHING at CLOSE/DELETE) is one rule in one place, and the fail-open '00' that made the miss silent is deleted with it.",
+ "state": "OK"
+}

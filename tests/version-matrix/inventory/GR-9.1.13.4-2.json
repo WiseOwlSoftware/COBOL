@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.4-2",
+ "section": "9.1.13.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "I-O status",
+ "rule-digest": "1996553a1757",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#RelativeKeyOverflow",
+ "test-ref": "conformance:cases/9.1.13.4-At-end-condition-with-unsuccessful-completion/pb1516_relative_key_binary_char_digit_size",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1516 (2026-09-30): the rule is written in DIGITS (cite.py --check 9.1.13.4 OK 9.1.13.4 2)), and RelativeConnector.ReadSequential tests the significant digits of the RRN against the key's size in digits. A PICTURE-less BINARY-CHAR UNSIGNED key has the implementor digit size 3 (PicInfo.BinaryItem; docs/CONFORMANCE.md determination), so RRN 255 and 256 read with '00' and RRN 1000 with '14' (AT END) - pinned by the golden. The earlier REFUTED claim (check disabled for a PICTURE-less key) was measured false; a capacity reading (0..255) is not in the text.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.44.3-1",
+ "section": "14.9.44.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "SUBTRACT statement",
+ "rule-digest": "82ae251703d0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs",
+ "test-ref": "conformance:cases/14.9.2-ADD/ca4_giving_composite",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The three per-format DETERMINATIONS are each implemented at their own call site and read correct. (a) format 1 `all of the operands in the statement`: CheckComposite(\"SUBTRACT\", minuends, recv) superimposes the sending operands AND the identifier-2 receivers. (b) format 2 `excluding the data item that follow the word GIVING`: CheckComposite(\"SUBTRACT\", [minuends, fromX], []) passes an EMPTY receiver list - pinned by the spec-derived golden conformance:cases/14.9.2-ADD/ca4_giving_composite, whose SUBTRACT leg (`SUBTRACT B FROM D GIVING C` over 25-digit operands and a 16-digit GIVING receiver) is legal only because the receiver is excluded. (c) format 3 `the two corresponding operands for each separate pair`: the check runs inside CorrMatch's per-pair loop with exactly [source] + [target]. The rule's `when native arithmetic is in effect` antecedent is honoured at StatementValidation.cs:107 (`if (data.Options.Arithmetic != ArithmeticMode.Native) return true`) - confirmed by k1/k2, where a composite far past the cap compiles under ARITHMETIC IS STANDARD-DECIMAL. 14.7.7 rule 2b's exclusions ride InComposite (binary-char/-short/-long/-double and float usages) and OfExpr's silence on function-call operands, so an intrinsic-function operand contributes nothing. The 31-digit CAP itself is 14.7.7 rule 2's row, not this one; this row is only the per-format determination. Legs (a) and (c) are code-read + probe-consistent but have no spec-derived golden of their own.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs:105-165 CheckComposite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs:92 (format 1 - minuends + receivers); src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs:83 (format 2 - minuends + the FROM operand, NO receivers); src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs:144-147 (format 3 - per PAIR)",
+ "state": "OK"
+}

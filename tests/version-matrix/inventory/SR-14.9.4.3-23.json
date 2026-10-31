@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.4.3-23",
+ "section": "14.9.4.3",
+ "kind": "SR",
+ "ordinal": 23,
+ "subject": "CALL statement",
+ "rule-digest": "6dc1bd6ab1b9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#Sr23LiteralIsNumeric",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb238-by-value-nonnumeric-literal; conformance:cases/14.9.4-CALL/pb238-by-value-formal-derived-literal; conformance:cases/14.9.4-CALL/pb238_call_format2_operands",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB238 LANDED — BOTH subjects, and the verdict is now the COMPILER'S. Rule (cite.py OK, 14.9.4.3 rule 23): 'If literal-2 or its corresponding formal parameter is specified with the BY VALUE phrase, literal-2 shall be a numeric literal.' FIRST SUBJECT (written BY VALUE): callByValue is now `BY? VALUE (arithmeticExpression | literal)` — arithmeticExpression FIRST so every spelling that parsed before parses identically (the figurative ZERO keeps ZERO_ARITH, which 8.3.3.6.3 SR1a sanctions where a literal is restricted to numeric), and the `literal` alternative exists solely so the residue it catches — a NON-numeric literal-2 — draws COBOL1762 with its citation instead of a raw ANTLR 'no viable alternative' naming no rule. SECOND SUBJECT ('or its corresponding formal parameter'): the keyword-less literal arm now derives its mode from the formal through 14.9.4.4 GR9 b) (CallBinder.Gr9NonIdentifierMode) instead of hard-coding Content, so a bare literal-2 against a BY VALUE formal is screened by the same rule; a constant-name argument is screened on the literal 13.10.4 GR1 substitutes and GR2 gives the class of, never on the name. THE OLD 'REJECTS LEGAL SOURCE' FINDING recorded here is separately closed: `USING VALUE 5` (BY omitted, 8.3.2.4.3) parses and runs — see pb238_call_format2_operands' S5 assertion for the bare-literal GR9 b) leg. TESTS: negative pb238-by-value-nonnumeric-literal (CALL ... USING BY VALUE \"ABC\" => COBOL1762) and negative pb238-by-value-formal-derived-literal (USING K with K CONSTANT AS \"XY\" against a BY VALUE formal => COBOL1762), both reject-at 2002 2014 2023 because BY VALUE is a COBOL-2002 introduction and below it the phrase draws its own gate (COBOL0900). EDITIONS 2002+ (FORMAT 2).",
+ "state": "OK"
+}

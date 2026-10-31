@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.2.3-3",
+ "section": "14.9.2.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "ADD statement",
+ "rule-digest": "3509352ffb92",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NumLiteral",
+ "test-ref": "conformance:cases/14.9.2-ADD/pb155-add-string-literal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB155): NumLiteral gains the STRINGLIT/HEXLIT arm - the fourth shape of the ONE 8.8.1.1 rule, raising the same COBOL0844 the NATLIT/BOOLLIT arm raises (8.3.3.2.1: both formats of the alphanumeric literal are class and category alphanumeric) - so `ADD \"ABC\" TO N` is a bind-time COBOL diagnostic instead of `\"ABC\"L` in the generated C# (the PB94 wrong-stage family's arithmetic sibling). The non-ZERO figurative arm now ERRORS 0844 too (it returned a bare BoundExprError that rendered as a runtime NotImplemented). The literal-2 half is REACHABLE since PB134 widened the Format-2 TO operand and rides the same NumLiteral funnel.",
+ "state": "OK"
+}

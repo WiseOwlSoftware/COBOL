@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.28.3-1",
+ "section": "15.28.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "EXCEPTION-FILE function",
+ "rule-digest": "f0c313c87d91",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindExceptionFileArg",
+ "test-ref": "conformance:cases/15.3-Arguments/pb63_exception_file_select_names; conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB63 — the exception surface: the FD screen, the SELECT-spelled name on the connector, the one access-recording path, the r2b procedure field and element name, the MODULE-NAME determinations). §15.28.3 r1 'the name of a file connector that is specified in an FD statement' — BOTH halves: the resolver matches the SELECT-spelled name and then requires HasFd && !IsSortMerge, so an SD (negative pb63-exception-file-sd) and a SELECT with no FD (pb63-exception-file-no-fd) are COBOL1574 with the function's own clause; a nested reject no longer cascades a second LENGTH message. The FD'd connectors bind (golden). retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

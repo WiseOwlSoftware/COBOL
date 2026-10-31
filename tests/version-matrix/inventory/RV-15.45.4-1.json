@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.45.4-1",
+ "section": "15.45.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "INTEGER-OF-BOOLEAN function",
+ "rule-digest": "d75dc73d85c0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#IntegerOfBoolean",
+ "test-ref": "conformance:cases/15.17.3-Argument-rules/pb65_wide_values; conformance-test:IntrinsicFunctionDifferentialTests.BooleanOfInteger_MsbFirst_LeftTruncates_Spec; conformance-test:IntrinsicFunctionDifferentialTests.IntegerOfBoolean_RoundTrip_Spec; conformance:cases/15.2-Types-of-functions/intrinsics_boolean_conv",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "PB65 (wide-value members) LANDED 2026-08-09. PROBED: B64=18446744073709551615: the unsigned binary value of a 64-one-bit item is exact on the Int128 accumulator; past 126 bits the escape boundary is LOUD (CobolSizeError), never the silent 63-bit default. PRIOR (PARTIAL): REFUTER: verdict SUSTAINED at PARTIAL. I looked hard for a DIVERGES here and did not find one; the value arithmetic and the boundary were re-derived by hand from the source and are right. Two OVER-CLAIMS in the prior not",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.12.3-2",
+ "section": "13.18.12.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "CODE clause",
+ "rule-digest": "7d66aca5fae9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ResolveReportCode; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ReportCodeClauseRule",
+ "test-ref": "conformance:cases/13.18.12-CODE/pb1129-code-identifier-numeric; conformance:cases/13.18.12-CODE/pb1129-code-identifier-odo-group; conformance:cases/13.18.12-CODE/pb1129_rd_code_identifier",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "(kb/Work PB1129, wave 1005 A). 'Identifier-1 shall reference an alphanumeric data item that shall not be an occurs-depending-on group item, a variable-length group, or a dynamic-length elementary item' (cite.py --check 13.18.12.3 OK 2)): ResolveReportCode classifies the item through the ONE Table-2 classifier (IntrinsicArgumentRules.ClassOfItem / TableTwoClass), then refuses an OCCURS-subject item that is not subscripted, an ODO-bearing group, a variable-length group and a dynamic-length item (COBOL2713). A subscripted or reference-modified identifier stages with SOURCE's (kb/Work PB1292). retired-witness: src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#ReportCodeClause (the descriptor was deleted: the CODE clause is implemented and its syntax rules are COBOL2713 (ReportCodeClauseRule))",
+ "state": "OK"
+}

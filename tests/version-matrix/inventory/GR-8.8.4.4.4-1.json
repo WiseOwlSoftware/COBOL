@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.4.4-1",
+ "section": "8.8.4.4.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Simple class condition",
+ "rule-digest": "8a96bc28213a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#IsNumeric; src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#IsAlphabetic; src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#IsInClass; src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#IsInCodedSet; src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#IsBoolean",
+ "test-ref": "conformance:cases/8.5.4-Zero-length-items/ca7_class_zero_length",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'If the data item referenced by identifier-1 is a zero-length item, the truth value of the class condition without the word NOT is false.' (cite.py --check 8.8.4.4.4 -> OK §8.8.4.4.4 1)). Every runtime class predicate (IsNumeric, IsAlphabetic/-Upper/-Lower incl. the locale overloads, IsInClass, IsInCodedSet, IsBoolean, IsNumericZoned) returns false on string.IsNullOrEmpty. Numeric-category and float operands cannot be zero-length. Probed with pinned cobol.exe (probe/simple-class-condition/p1.cob, p4.cob): ODO group (§8.5.4 1), cite OK) at CNT=0 -> IS NUMERIC F, IS ALPHABETIC F, IS ALPHABETIC-LOWER F, IS HEXC (user class) F, IS ASC (alphabet STANDARD-1) F; ref-mod AX(1:0) under >>REF-MOD-ZERO-LENGTH ON -> IS NUMERIC F. ca7_class_zero_length pins the DYNAMIC LENGTH ALPHABETIC case from the rule text. [editions as adjudicated: 85, 2002, 2014, 2023 (2023 text; Annex E records no change; reachable wherever a §8.5.4 zero-length item exists - ODO group at zero occurrences in every edition, ANY LENGTH 2002+, DYNAMIC LENGTH / REF-MOD-ZERO-LENGTH 2023)]",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.8.3-10",
+ "section": "12.3.8.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "41a0a6da6f11",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfBindCall",
+ "test-ref": "",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1086: Rule (cite.py --check 12.3.8.3 'the name of a function for which information exists in the external repository' -> OK §12.3.8.3 10)): literal-5 / function-prototype-name-1 shall name a function prototype in this group, a function definition specified PREVIOUSLY in this group, or a function with external-repository information. Code: the specifier is only recorded (BindDeclarations -> UserFunctionNames/FunctionSpecifiers); no check at the specifier. A USE of an unresolvable name draws COBOL1505 (UdfBindCall). Probe out/probe/repo/sr10.cob (--std 2023): 'FUNCTION NOSUCHFN' and 'FUNCTION ALIASFN AS \"NOSUCH-EXT\"' with no definition, no prototype and no external repository (§8.13 unimplemented, so no information can exist) -> compiles clean and runs (RAN). Expected: the specifier itself is nonconforming. Also: a function definition that FOLLOWS the REPOSITORY (not 'previously') is accepted as the first alternative - the order question kb/Work PB989 raises for GR11 applies to this rule's second bullet too (PB989 claims only GR10/GR11).",
+ "state": "GAP"
+}

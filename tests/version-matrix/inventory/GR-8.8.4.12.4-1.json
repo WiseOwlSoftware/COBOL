@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.12.4-1",
+ "section": "8.8.4.12.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Abbreviated combined relation conditions",
+ "rule-digest": "023d3da2b3cc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindFlatSequence; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#AbbrevCarry; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindAbbreviatedRelation",
+ "test-ref": "conformance-test:AbbreviatedConditionDifferentialTests.Abbreviated; conformance:cases/8.8.4.12-Abbreviated-combined-relation-conditions/pb1390_abbreviated_tail_and_or; conformance:cases/7.3.8-Constant-conditional-expression/pb1390_abbreviated_tail_xor; conformance:cases/8.8.4.12-Abbreviated-combined-relation-conditions/pb1390-abbreviated-relation-without-subject",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1390 landed (wave 68 s). Both halves (cite.py --check 8.8.4.12.4 on both sentences OK). INSERT: every legal shape now parses, so AbbrevCarry reaches them; goldens run all six GR1 NOTE shapes that need no parenthesis after XOR (E4 = NOTE 1, E5 = NOTE 5, X4 = NOTE 6) plus OR-then-AND-bare, OR-then-AND-NOT, XOR-led, OR-then-XOR over 81 tuples against the spec expansion: 0 disagreements. TERMINATE: E3 `A = B OR < D AND C = 1` = (A=B) OR ((A<D) AND (C=1)) — the stated relation ends the insertion (unreachable before, COBOL0001); the class-condition termination `A = 1 OR B IS NUMERIC OR < 2` is now the spec-derived negative COBOL2552 (it was refused with no diagnostic, the COBOL2319 internal-error net), and the bare `... OR 2` form is COBOL2318.",
+ "state": "OK"
+}

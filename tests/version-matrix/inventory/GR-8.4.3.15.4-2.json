@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.15.4-2",
+ "section": "8.4.3.15.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Report counters",
+ "rule-digest": "60f15f61ddfe",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PageFeed; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup",
+ "test-ref": "conformance:cases/8.4.3.15-Report-counters/pb957_next_group_forms",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 8.4.3.15.4 \"It is reset to 1 when a report group that contains a NEXT GROUP clause with a RESET phrase is printed\" -> OK 2). INITIATE sets PageCounter = 1 (GR1c comment); PageFeed increments by 1 at every page advance; NEXT GROUP ... WITH RESET arms _resetPageCounterAtAdvance and the next PageFeed sets 1. The WHEN of the reset is a documented determination (docs/CONFORMANCE.md, PB957 block (1)) reconciling GR2 with §13.18.37.4 GR6 (--check 13.18.37.4 \"immediately after the page feed caused by the next page advance\" -> OK 6)) and §14.9.16.4 GR6 d) (--check -> OK 6) d)). Probe a2.cob: INIT PC=1; after overflow PC=2 (D); D2 NEXT GROUP NEXT PAGE WITH RESET -> PC still 2 (E, determination), next advance -> PC=1 (F); page headings print 01/02/01. Pinned by conformance:cases/8.4.3.15-Report-counters/pb957_next_group_forms (WITH RESET derivation) and conformance:cases/8.4.3.15-Report-counters/pb1001_line_next_page (+1 per advance). [editions as adjudicated: 1985 (Report Writer optional module), 2002, 2014, 2023 - clause 8.4.3.15 text]",
+ "state": "OK"
+}

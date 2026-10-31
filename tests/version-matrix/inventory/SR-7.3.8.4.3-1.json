@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.8.4.3-1",
+ "section": "7.3.8.4.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Defined condition",
+ "rule-digest": "5699e9302a7a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvalDefined",
+ "test-ref": "conformance:cases/7.3.8.4-Defined-condition/pb1366-defined-condition-directive-word; conformance:cases/7.3.8.4-Defined-condition/pb1366-defined-condition-exception-name",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1366. cite.py --check 7.3.8.4.3 'Compilation-variable-name-1 shall not be the same as a compiler-directive word.' OK 1). Words the primed directive lexer does not admit as a cobolWord are still COBOL1619 (a diagnostic, not silent).",
+ "state": "OK"
+}

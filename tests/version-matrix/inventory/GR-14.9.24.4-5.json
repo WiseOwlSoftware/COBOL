@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.24.4-5",
+ "section": "14.9.24.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "MERGE statement",
+ "rule-digest": "7f4db54205c6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindCollating; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#CollatingSelection; src/WiseOwl.Cobol.Runtime/IO/SortKeyColumns.cs#SequenceFor",
+ "test-ref": "conformance:cases/14.9.24-MERGE/pb678_sort_national_key_collating; conformance:cases/14.9.24-MERGE/pb678-sort-collating-for-forms-at-85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB678 (2026-09-05): MERGE GR5 is SORT GR5 word for word and shares its whole implementation - SortBindCollating resolves the same pair for both verbs and SortKeyColumns applies it per key class: SortWork builds that one key-column set for a SORT's runs and a MERGE's streams alike (kb/Work PB3339). LEG 7 of the file golden is MERGE's OWN evidence (two pre-sorted USING files, a national key, COLLATING SEQUENCE FOR NATIONAL): the shared implementation is the claim, so a SORT-only corpus would not have checked it. retired-witness: src/Cobol.Net.Runtime/IO/CobolSort.cs#SequenceFor (kb/Work PB3339 moved the GR5 class-to-sequence selection, unchanged, out of CobolSort into SortKeyColumns)",
+ "state": "OK"
+}

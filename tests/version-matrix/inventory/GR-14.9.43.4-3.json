@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.43.4-3",
+ "section": "14.9.43.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "STRING statement",
+ "rule-digest": "dc866f213d06",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#WriteImage",
+ "test-ref": "conformance:cases/14.9.43-STRING/pb1179_string_into_national_receiver",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1179: STRING into a class-national receiver (elementary or group) transfers national-to-national with no space fill; it used to abort at run time.",
+ "state": "OK"
+}

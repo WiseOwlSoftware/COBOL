@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.13.4-1",
+ "section": "13.18.13.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "CODE-SET clause",
+ "rule-digest": "72622113247d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindCodeSetClause; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#CodeSetMedium",
+ "test-ref": "conformance:cases/13.18.13-CODE-SET/pb793_code_set_ebcdic; conformance:cases/12.3.7-SPECIAL-NAMES/pb110_code_set_identity; conformance:cases/13.18.13-CODE-SET/pb110-code-set-nonidentity",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR1 names the clause's purpose: alphabets used to convert medium-to-native on input and native-to-medium on output. DETERMINATION, documented (CONFORMANCE.md section 2 row 27), and it is a PROPERTY OF THE SET rather than a list of phrase names in the file-description binder - CodedCharacterSet.Medium answers it once for every reference site. IDENTITY (claimed, no conversion emitted): NATIVE (12.3.7.4 GR7 d, by definition), STANDARD-1/STANDARD-2 (GR7 c - the native set's first 128 characters ARE ISO/IEC 646 IRV), UTF-16 (the D-N1 substrate) and the ASCII code-name (the same set as STANDARD-1). TRANSLATED (claimed, and real - kb/Work PB793): the EBCDIC code-name, whose GR7 i correspondence with the native set is IBM CCSID 37, converts every record crossing the medium. NOT-PROVIDED: a literal-phrase alphabet's remapped ordinals (GR7 k4 leaves that correspondence to the implementor and this one does not define it) and UTF-8 / UCS-4 as variable-width medium encodings are the DOCUMENTED Annex A A.3 item 27 non-support - COBOL1672, never a silent identity (the negative). Rule --check verified at 13.18.13.4 1).",
+ "state": "OK"
+}

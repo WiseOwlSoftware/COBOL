@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.33.3-5",
+ "section": "13.18.33.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "Level-number",
+ "rule-digest": "ac32669d889e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#Classify",
+ "test-ref": "conformance:cases/13.16-Data-description/pb485-level-78-working-storage; conformance:cases/13.18.33-Level-number/pb485-level-50-linkage; conformance:cases/13.18.33-Level-number/pb485-level-number-unparseable; conformance:cases/8.5.1.3.2-Level-numbers/pb485_level_number_legal_forms",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The NoncontiguousCapable arm: working-storage, local-storage and linkage take {66, 77, 88, 1-49}. Witnessed three ways -- the MicroFocus/GnuCOBOL 78 constant (which ISO does not define; the conforming spelling is the 13.10 CONSTANT entry), an ordinary out-of-range 50, and a twelve-digit level that used to become a silent lvl = 0 in DataBinder -- plus the positive over-rejection guard proving 66, 77, 88 and 1-49 still compile. kb/Work PB485.",
+ "state": "OK"
+}

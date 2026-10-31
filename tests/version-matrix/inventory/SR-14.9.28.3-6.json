@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.28.3-6",
+ "section": "14.9.28.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "PERFORM statement",
+ "rule-digest": "47f8927a38ba",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#CheckVaryingOperandRules",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/pb432-varying-operand-rules",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB432 (landed). Decidable entirely at compile time because it constrains a LITERAL, and it is the one varying-phrase operand rule whose absence changed a program's OUTCOME rather than its legality: 14.9.28.4 GR12 makes the augment value zero, so no induction variable ever changes and the UNTIL condition can never become true through the phrase. The probe only ever returned because a counter guard was planted in the body, and it fired with N = 11 while the loop was still running. Now COBOL2120 quoting SR6. It is reported in PREFERENCE to SR4 c) where both apply (an index-name varied BY a zero literal violates both): SR6 is unconditional and is the stronger statement of the same defect, so the programmer is not sent to a premise that is beside the point. An OMITTED BY phrase is out of scope - GR12 gives it the augment value 1 and there is no literal for the rule to be about.",
+ "state": "OK"
+}

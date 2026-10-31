@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.64.4-3",
+ "section": "13.18.64.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "VARYING clause",
+ "rule-digest": "0b2333e8c736",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitVaryingCounters; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportVaryingUse; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#VaryValue",
+ "test-ref": "conformance:cases/13.18.64-VARYING/pb1305_report_varying_expression; conformance:cases/8.4.2.2-Qualification/pb1306_varying_scope; conformance:cases/13.18.53-SOURCE/pb4031_report_overflow_checking",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1306 landed. cite.py --check 13.18.64.4 'For the second and subsequent occurrences, the value of arithmetic-expression-2 is added to data-name-1' OK (GR3 b). Occurrence n of the DECLARING entry holds FROM + n x BY (closed form), restarting with every occurrence of an enclosing repeating entry (golden line 2: J = 1, 2 and the subordinate L = 11, 12 then 21, 22), and a BY that names a counter of its own entry (SR3) is the running recurrence the closed form is not: `VARYING M FROM 1 BY M` is 1, 2, 4 (line 3). Sibling counters of one clause advance in clause order (CONFORMANCE.md section 3 'VARYING counters of one clause').",
+ "state": "OK"
+}

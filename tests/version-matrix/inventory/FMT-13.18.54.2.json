@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.54.2",
+ "section": "13.18.54.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "SUM clause",
+ "rule-digest": "692275d2f27c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportSumClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportSumGroup; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportEntryClausePresence; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindSumClause",
+ "test-ref": "conformance:cases/13.18.54-SUM/pb1295-sum-reset-between-groups; conformance:cases/13.18.54-SUM/pb1295-sum-rounded-between-groups; conformance:cases/13.18.54-SUM/pb1295_report_sum_groups_then_reset_rounded",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1295 landed 2026-10-04 (wave 1012 G): reportSumClause is the repeated reportSumGroup followed by one RESET and one rounded-phrase, exactly the printed format; a phrase between two SUM groups ends the clause and the second clause is refused (COBOL1559).",
+ "state": "OK"
+}

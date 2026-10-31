@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.37.4-1",
+ "section": "13.18.37.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "NEXT GROUP clause",
+ "rule-digest": "0521be6b7ecc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Generate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Terminate",
+ "test-ref": "conformance:cases/13.18.37-NEXT-GROUP/pb957_next_group_control",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB957. Only the control footing AT the break level applies its NEXT GROUP (PresentBody applyNextGroup: i == breakLevel; at TERMINATE the most major, §14.9.46.4 GR3b). The golden's major break prints the minor footing N11 with no effect and the major J12 (J15 had the minor's clause applied).",
+ "state": "OK"
+}

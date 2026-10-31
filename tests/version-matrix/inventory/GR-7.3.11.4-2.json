@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.11.4-2",
+ "section": "7.3.11.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "DEFINE directive",
+ "rule-digest": "7a52d4721da2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#BindConstantFrom; src/WiseOwl.Cobol.Frontend/Preprocessor/CompilationVariableEvent.cs#DefinitionAt; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateOperand",
+ "test-ref": "conformance:cases/7.3.11-DEFINE/pb1368-constant-from-after-define-off",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1368 (w1006c). cite.py --check 7.3.11.4 \"shall not be used except in a defined condition unless it is redefined in a subsequent DEFINE directive\" -> OK GR2. Every use path now checks it: >>IF/>>EVALUATE/>>DEFINE operands and >>DISPLAY (COBOL1619, PB807/wave 1004), CONSTANT ... FROM after OFF (COBOL1547 naming 13.10.3 SR8 and GR2; negative pb1368-constant-from-after-define-off) and a COBOL-WORDS literal slot after OFF (COBOL1623). IS [NOT] DEFINED still reads an OFF name, and a later DEFINE revives it (the timeline's last event for the name wins).",
+ "state": "OK"
+}

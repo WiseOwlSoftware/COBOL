@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.9.6.3-2",
+ "section": "11.9.6.3",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "DEFAULT ROUNDED clause",
+ "rule-digest": "44452f827613",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OptionsModel.cs#DefaultRounding; src/WiseOwl.Cobol.Compiler/Binding/OptionsModel.cs#Default; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#RoundingOf",
+ "test-ref": "conformance-test:OptionsDifferentialTests.NoDefaultRounded_BareRounded_IsNearestAway",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "cite.py --check 11.9.6.3 \"If the DEFAULT ROUNDED clause is not specified, DEFAULT ROUNDED MODE IS NEAREST-AWAY-FROM-ZERO is implied\" -> OK §11.9.6.3 2). OptionsModel.DefaultRounding initializes to CobolRounding.NearestAwayFromZero; OptionsModel.Default (no OPTIONS paragraph) and an OPTIONS paragraph without the clause (Apply leaves the field) both yield it; below 2002 BindParagraph returns the baseline, so a bare ROUNDED is nearest-away-from-zero at 85/2002 too. Test NoDefaultRounded_BareRounded_IsNearestAway asserts 25/10 ROUNDED -> 003 (spec-derived; distinguishes from NEAREST-EVEN/TRUNCATION/NEAREST-TOWARD-ZERO). The negative-half-way leg (-2.5 -> -3, distinguishing from TOWARD-GREATER) is not separately tested. || Editions (adjudicator, verbatim): 2014, 2023 (the implied default equals the only ROUNDED semantics of 1985/2002, per the rule's NOTE)",
+ "state": "OK"
+}

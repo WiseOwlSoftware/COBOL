@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.40.4-13",
+ "section": "14.9.40.4",
+ "kind": "GR",
+ "ordinal": 13,
+ "subject": "SORT statement",
+ "rule-digest": "4c4c6e20da78",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSort; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#ReleaseStatement; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Init",
+ "test-ref": "unit:SortMergeStatementEcTests.Release_InAnOutputProcedure_RaisesActive_BeforeFlowRelease_AndReleasesNothing; unit:SortMergeStatementEcTests.Init_WhileAProcedureRuns_RaisesActive_AndLeavesTheEnclosingStoreIntact; conformance:cases/13.18.43-RECORD/pb1036_sort_merge_statement_ec; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_sort_output_procedure",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 14.9.40.4 \"If the range of the output procedure causes the execution of any MERGE, RELEASE, or format 1 SORT statement\" -> OK 13). The range half CONFORMS as adjudicated. The EC half now CONFORMS: CobolSort.Init raises EC-SORT-MERGE-ACTIVE for a MERGE or format 1 SORT while any procedure phase (input or output) runs, and ReleaseStatement raises it while any store is in the OUTPUT phase, ahead of EC-FLOW-RELEASE (D-SMA (a)). Wired by kb/Work PB1036 (w59c): FatalAmbientGates row + CheckingFlags field + ExceptionEngine helper; EcBinder.QueryFor asks the name at the SORT/MERGE/RELEASE/RETURN node; the golden raises it under >>TURN ... CHECKING ON with a USE AFTER EXCEPTION CONDITION declarative; checking off keeps the pre-PB1036 lenient behaviour (docs/CONFORMANCE.md §3 D-SMA (c)).",
+ "state": "OK"
+}

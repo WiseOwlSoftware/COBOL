@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.23.3-11",
+ "section": "14.9.23.3",
+ "kind": "SR",
+ "ordinal": 11,
+ "subject": "INVOKE statement",
+ "rule-digest": "12c6bfcc2e9f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoScreenReturning; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ParameterConformance.cs#ScreenSection; src/WiseOwl.Cobol.Compiler/Binding/Model/SectionDataItem.cs#NonSectionKind",
+ "test-ref": "conformance:cases/14.9.23-INVOKE/pb1137-invoke-returning-page-counter; conformance:cases/14.9.23-INVOKE/pb1137-invoke-by-reference-page-counter; conformance:cases/8.4.3.7-NULL-object-reference/pb1137_invoke_argument_forms",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1137 (landed w61j). 'Identifier-4 shall reference a data item defined in the file, working-storage, local-storage, or linkage section' (cite.py --check 14.9.23.3 OK, SR11). The RETURNING item of the typed AND universal paths now takes ParameterConformance.ScreenSection (OoScreenReturning), which asks Model/SectionDataItem what the resolved place is: a report's PAGE-COUNTER (8.4.3.15.4 GR1), a sum counter, DEBUG-ITEM, EXCEPTION-OBJECT and every compiler temporary are not section items -> COBOL2452 (negative pb1137-invoke-returning-page-counter). SR9's twin (identifier-3) is the same screen (negative pb1137-invoke-by-reference-page-counter); an object property is admitted by 8.4.3.9.3 SR5/SR6. The CALL twins (14.9.4.3 SR3/SR7, COBOL1677) ask the same screen, so CALL USING / RETURNING PAGE-COUNTER is now refused too.",
+ "state": "OK"
+}

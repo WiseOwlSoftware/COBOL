@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.16.4-8",
+ "section": "14.9.16.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "GENERATE statement",
+ "rule-digest": "f242026ec572",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLine; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ReportLineOverlapError; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.RaiseDeclarations.cs#GenerateNames",
+ "test-ref": "conformance:cases/13.18.35-LINE/pb1130_report_sum_size_line_overlap",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1130: the engine's nonfatal raise (EC-REPORT-LINE-OVERLAP, §13.18.35.4 GR3) runs the declarative and GENERATE resumes at the next line (the overlapping line is abandoned, LINE-COUNTER untouched); a nonfatal condition raised while composing an item (a SOURCE move) records and the compose continues with the next item. The OTHER nonfatal report conditions (PAGE-LIMIT, PAGE-WIDTH, COLUMN-OVERLAP) have no raise site - that is their own rules' defect (GR-13.18.35.4-2, GR-13.18.14.4-4, kb/Work PB1188), not this resumption rule's. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#GenerateNames (the family arrays moved into EcBinder.RaiseDeclarations.cs (kb/Work PB3102))",
+ "state": "OK"
+}

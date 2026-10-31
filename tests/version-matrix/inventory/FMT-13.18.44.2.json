@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.44.2",
+ "section": "13.18.44.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "REDEFINES clause",
+ "rule-digest": "daf7642b52e3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#redefinesClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveRedefines; src/WiseOwl.Cobol.Frontend/Cst/DataDescriptionCst.cs#RedefinesTarget; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RedefinesDataName2",
+ "test-ref": "conformance:cases/13.18.44-REDEFINES/pb203_redefines_bit_window",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Format `level-number [ entry-name-clause ] REDEFINES data-name-2` (cite.py --check 13.18.44.2 OK). The grammar's redefinesClause is `REDEFINES dataReference` inside the free-order dataDescriptionClauses list; both the named and the entry-name-less form parse and run (probe sr1_noname_ok: `01 REDEFINES A. 05 B1.. 05 B2..` -> CD). The grammar is a SUPERSET (dataReference admits OF/IN and subscripts, and clause order is free) - those residues are SR1/SR5/SR6 questions and are recorded on those rows, not here. || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): 1985, 2002, 2014, 2023 (the REDEFINES clause is in the base language of every edition; the 2023 Annex E lists no change to this rule) retired-witness: src/Cobol.Net.Frontend/Cst/DataDescriptionCst.cs#RedefinesTargetName (kb/Work PB1281 replaced the glued-text accessor RedefinesTargetName with RedefinesTarget, which hands the binder the written dataReference; DataBinder.RedefinesDataName2 decides the operand's shape)",
+ "state": "OK"
+}

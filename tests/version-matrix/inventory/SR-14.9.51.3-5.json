@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.51.3-5",
+ "section": "14.9.51.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "WRITE statement",
+ "rule-digest": "cdf892acf77d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveRecordName; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite",
+ "test-ref": "conformance:cases/14.9.51-WRITE/pb347-write-subordinate-item; conformance:cases/14.9.51-WRITE/pb347-write-refmod-record; conformance:cases/14.9.51-WRITE/pb347-write-record-of-no-file; conformance:cases/14.9.32-RELEASE/pb347_record_name_identity; conformance:cases/14.9.32-RELEASE/pb347_record_name_identity_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB347. RULE (cite.py --check 14.9.51.3 'Record-name-1 is the name of a logical record in the file section of the data division and may be qualified.' -> OK, 14.9.51.3 5). This is RELEASE 14.9.32.3 SR1 and REWRITE 14.9.35.3 SR1 written a third time, and all three now share ONE implementation, StatementValidation.ResolveRecordName. BOTH HALVES ARE WITNESSED. Name-of-a-logical-record: a subordinate item is refused (`WRITE OR-DATA` -> COBOL1757, naming OUT-REC as the record to write instead), a reference-modified record is refused (record-name-1 is a user-defined word per 8.3.2.2.25 and 5.2.4, not an identifier position per 8.4.3.3.3 SR5), and a WORKING-STORAGE 01 is refused with 14.9.51.3 SR1's reason -- 'The write file is the file referenced by file-name-1 or by the file-name associated with record-name-1' (--check OK) -- there being no file to name. May-be-qualified: `WRITE OUT-REC OF OUTF` binds and writes, pinned in both positive goldens. BEFORE THIS: all three were accepted with NO error. The subordinate and reference-modified forms drew nothing at all and emitted CobolFile.Write with the wrong operand and so the wrong record WIDTH; the WORKING-STORAGE form drew only the COBOL1756 DEFERRAL WARNING, which announces the COMPILER's gap for what is the source's error, and the program compiled. ISO 4.2.2 makes the compile-time indication mandatory. Edition-invariant: the sentence is identical in 1985, 2002 and 2014, so no gate exists and each negative carries `*> reject-at: 85 2002 2014 2023`.",
+ "state": "OK"
+}

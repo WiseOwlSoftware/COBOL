@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.5.3.2-2",
+ "section": "14.5.3.2",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Scope of statements",
+ "rule-digest": "c8ba9f162d3f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#statementBlock; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#ifStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases",
+ "test-ref": "conformance:cases/14.5.3.2-Explicit-scope-termination/l1c31_scope_termination",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: the explicit terminator also terminates 'any unterminated statements that appear between that statement-name and the explicit scope terminator' (cite.py --check 14.5.3.2 -> OK §14.5.3.2 2)). Mechanism: statementBlock : statement+ stops at any END_x token that cannot start a statement; each intervening rule's own END_y? is absent, so it closes implicitly and control returns up the rule stack to the rule owning END_x. Probes: IF ... ADD ON SIZE ERROR ... END-IF closes the ADD (sc1 T3 -> 'T3 SE','T3 AFTER-IF'); ADD ON SIZE ERROR IF ... END-ADD closes the IF (sc1 T4); PERFORM ... IF ... END-PERFORM (sc4 U1); EVALUATE WHEN IF ... END-EVALUATE (sc4 U2); SEARCH WHEN IF ... END-SEARCH (sc4 U7) - all as the rule requires, at 85 and 2023. (U1/U2/U7 place an undelimited conditional where a format writes imperative-statement; that acceptance is PB351's open under-reject, not this row.) No existing spec-derived test crosses an intervening unterminated statement: test-needed. probe dir out/probe/scope-of-statements (sc1/sc4/sc5, pinned cobol.exe; sc1 identical output at --std 85/2002/2014/2023, sc4 at 85 and 2023) [editions as adjudicated: 85, 2002, 2014, 2023 (explicit/implicit scope termination is COBOL-85 surface; Annex E records no change to 14.5.3)] retired-witness: src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#arithmeticOnSizeError (kb/Work PB3830: every Table 12 [NOT] phrase is the one conditionalPhrases rule now; the per-statement phrase rule no longer exists)",
+ "state": "OK"
+}

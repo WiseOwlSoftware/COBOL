@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.9.3-3",
+ "section": "15.9.3",
+ "kind": "AR",
+ "ordinal": 3,
+ "subject": "ANNUITY function",
+ "rule-digest": "13c9790a692c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation",
+ "test-ref": "conformance:cases/15.3-Arguments/pb58_argument_predicates_legal; conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). ANNUITY is a per-position schema now — Schema(['n','i']) for §15.9.3 r1/r3 ('Argument-2 shall be a positive integer'): a PIC 9(3)V99 argument-2 is rejected (negative pb58-annuity-frac), an integer item binds (golden ANN = 0.50 for ANNUITY(0, 2)). The Uniform 'n' row had admitted the non-integer period count. retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

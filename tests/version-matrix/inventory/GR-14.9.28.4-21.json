@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.28.4-21",
+ "section": "14.9.28.4",
+ "kind": "GR",
+ "ordinal": 21,
+ "subject": "PERFORM statement",
+ "rule-digest": "ee1940996fdd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#RunTopFrame; src/WiseOwl.Cobol.Runtime/Exceptions/PerformFrame.cs#Handling; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitExceptionPerform",
+ "test-ref": "conformance-test:PerformFormat3BehaviorTests.Gr21_ReRaiseInHandler_NotReCaught_FallsToFatal",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "Two mechanisms realize it. (a) Every frame VISITED during a resolution is marked Handling for the whole walk and skipped by any nested resolution, so an exception raised inside imp-2/3/4 cannot re-enter this PERFORM's WHEN arms nor a suspended inner frame's - the covering test raises inside the handler and shows it falling through to the fatal default instead of being re-caught. (b) The frame is popped in the `finally` BEFORE the FINALLY block is entered, so imp-5 executes with no frame installed - literally 'as if these statements were specified in a format 2 PERFORM statement'. In practice most conditions cannot even arise inside imp-2..5 because GR14's implicit TURN OFF ALL is in force there (EmitRunF3 / the FINALLY PushAllCheckingOff), and §14.6.13.1.1 raises nothing whose checking is disabled; the Handling flag is what covers the residue (a fatal raise, or a handler-local >>TURN that re-enables a name).  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#RunTopFrame (:815-833); src/WiseOwl.Cobol.Runtime/Exceptions/PerformFrame.cs#Handling; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitExceptionPerform (frame pop before FINALLY, :108)",
+ "state": "OK"
+}

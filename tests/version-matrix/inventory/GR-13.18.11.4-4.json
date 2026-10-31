@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.11.4-4",
+ "section": "13.18.11.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "CLASS clause",
+ "rule-digest": "7695bdb80789",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause",
+ "test-ref": "conformance:wiseowl/cases/13.18.11-CLASS/declined-validate-class",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "docs/CONFORMANCE.md §5 row A.4.14 (VALIDATE — Not claimed) + §4 item 3. Licence: Annex A.4.1 and its second sentence. OWNER DECISION kb/Work PB375, 2026-09-02. The group-item propagation of General rules 2 and 3, carrying the same VALIDATE-only content, with a PRESENT WHEN exemption that is itself a declined clause of the same group.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.16.3-17",
+ "section": "13.16.3",
+ "kind": "SR",
+ "ordinal": 17,
+ "subject": "Data description entry",
+ "rule-digest": "993cf2769b33",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Frontend/Cst/DataClauseKind.cs#LengthClauseCoPermitted",
+ "test-ref": "unit:DataClauseKindDriftTests.PermittedSets_MatchTheRuleSentences; conformance:cases/13.16-Data-description/pb487-any-length-excluded-clauses",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "'the only other clauses permitted are level-number, entry-name, PICTURE, USAGE, and VALUE' - a whole-list rule implemented as a ten-flag || chain that could not see ALIGNED, CONSTANT RECORD, DYNAMIC LENGTH, GLOBAL, GROUP-USAGE, PROPERTY, SAME AS, SELECT WHEN or the validation clauses, nine of the fourteen it excludes. Now the WRITTEN clause set against LengthClauseCoPermitted OR the subject's own bit; the co-permitted constant excludes BOTH length clauses, which is what makes ANY LENGTH DYNAMIC LENGTH on one entry a violation of both rules rather than neither. kb/Work PB487.",
+ "state": "OK"
+}

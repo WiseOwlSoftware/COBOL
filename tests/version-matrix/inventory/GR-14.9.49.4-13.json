@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.49.4-13",
+ "section": "14.9.49.4",
+ "kind": "GR",
+ "ordinal": 13,
+ "subject": "USE statement",
+ "rule-digest": "c967fded4320",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitArgOrPlain; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitRaise; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitSizeHandling; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclCollectSection; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#RunUseCall; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody",
+ "test-ref": "conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb367_use_procedure_is_the_section; conformance-test:ExceptionConditionConformanceTests.UseF3_UseProcedureIsTheWholeSection_ThenGr13bTerminates",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB367 (LANDED). Rule text (cite.py --check 14.9.49.4 \"If the exception condition is fatal, execution continues as specified in 14.6.12\" -> OK, GR 13 b). BOTH ARMS ARE IMPLEMENTED AND BOTH ARE NOW WITNESSED, and the divergence of the rule's premise is gone. GR13a - a NONFATAL non-EC-I-O condition whose declarative completes normally returns control to an implicit CONTINUE following the raising statement: conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb367_use_procedure_is_the_section raises EC-USER-DEMO (14.6.13.1.1: 'All user-defined exception conditions shall be nonfatal'; Table 13 spells it NF), its declarative D3 runs its WHOLE section and completes normally through 14.9.14.4 GR7's EXIT SECTION - no RESUME - and AFTER-RAISE proves the return. GR13b - a FATAL condition whose declarative completes normally terminates the run unit abnormally (14.6.13.1.3 #5): EmitArgOrPlain / EmitRaise / EmitSizeHandling all end with `if (__r != -2) { Dispatched = true; throw; }`, and UseF3_UseProcedureIsTheWholeSection_ThenGr13bTerminates asserts BOTH halves at once - the stdout shows the tail-shaped declarative ran whole (H1 then H2, where the deleted shape-derived handler end printed H1 alone) and the run then terminated abnormally naming EC-BOUND-SUBSCRIPT. The -2 escape is RESUME AT NEXT STATEMENT (14.9.33.4 GR2), already covered by Raise_Enabled_DeclarativeHandles_ResumeNextStatement_StatusPersists. The rule's premise - that the USE procedure has EXECUTED before either arm is chosen - is 14.9.49.3 SR1 + 14.4.2 + 14.9.14.4 GR7's NOTE, and BoundDeclarative now carries the section's own PcRange rendered at the ONE site EmitterState.RunUseCall. || EDITIONS AS ADJUDICATED: 2002/2014/2023 (FORMAT 3). No Annex E entry touches it.",
+ "state": "OK"
+}

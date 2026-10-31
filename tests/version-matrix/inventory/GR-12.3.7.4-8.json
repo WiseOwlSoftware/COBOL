@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.7.4-8",
+ "section": "12.3.7.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "51f4dd9f3e04",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#Extremes",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb1093_alphabet_high_value_tail; unit:CodedCharacterSetTests.Extremes_HighValueIsTheHighestTailCharacter_AndTheTieRuleAtAFullTop",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1093 LANDED via PB1759 (owner decision R52): CollatingTable.Extremes walks the WHOLE 65,536-unit repertoire for both classes from NativeCollatingSequence.HighValue, so the runtime HIGH-VALUE is the largest UNSPECIFIED code unit (GR7 k3 tail) and GR8's tie rule applies only when every code unit is specified. cite.py --check 12.3.7.4 \"If more than one character has the highest position in the program collating sequence, the last character specified is associated with the figurative constant HIGH-VALUE\" -> OK 8). Golden: ALPHABET AL IS HIGH-VALUE \"B\" \"A\" -> ORD(HIGH-VALUE) = 65536 (U+FFFE, U+FFFF being specified), U+0100 <= HIGH-VALUE. Unit: the tail case, the specified-U+FFFF case and the full-repertoire ALSO tie (last specified wins).",
+ "state": "OK"
+}

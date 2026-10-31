@@ -676,13 +676,25 @@ def removal_of(path, removed, after):
 
 
 def data_files(rows):
-    """The DATA files the drift tests read by name — every non-C# file a row's paths name exactly — each with the
-    classes that govern it specifically: the registers that cite tree symbols (the traceability inventory's
-    code-locations and test-refs, docs/CONFORMANCE.md's pins) and the tests that check those citations resolve."""
+    """The DATA files the drift tests read by name — every non-C# file a row's paths name exactly, and every JSON file under a
+    directory they name (the traceability inventory is one file per row, kb/Work PB4148) — each with the classes that
+    govern it specifically: the registers that cite tree symbols (the inventory's code-locations and test-refs,
+    docs/CONFORMANCE.md's pins) and the tests that check those citations resolve."""
     out = {}
     for p in sorted({p for r in rows for p in reads(r) if not p.endswith(".cs")}):
         if (ROOT / p).is_file():
             out[p] = sorted(r["test"] for r in governing(rows, p)[0])
+        elif (ROOT / p).is_dir():
+            # A register kept one row per file is JSON (corpora, goldens and build outputs are not registers: only the
+            # TRACKED files count, so an untracked cache or bin/obj JSON under the directory is never one). The files of
+            # one directory sit under the same read paths at one depth, so the first stands for them all.
+            by_parent = {}
+            for rel in sorted(tracked_tree(p)):
+                if rel.endswith(".json"):
+                    parent = rel.rpartition("/")[0]
+                    if parent not in by_parent:
+                        by_parent[parent] = sorted(r["test"] for r in governing(rows, rel)[0])
+                    out.setdefault(rel, by_parent[parent])
     return out
 
 
@@ -806,9 +818,11 @@ def qualifies(segs, i):
     return i + 1 < len(segs) and (segs[i + 1][:1].isupper() or segs[i + 1][:1] == "_")
 
 
-def tracked_tree():
-    """The committed tree's paths (`git ls-files`): `citing`'s default tree, with the deleted paths added back."""
-    out = subprocess.run(["git", "-c", "core.quotePath=false", "ls-files", "-z"], cwd=ROOT, check=True,
+def tracked_tree(under=None):
+    """The committed tree's paths (`git ls-files`; those under the repository-relative directory `under`, when given):
+    `citing`'s default tree, with the deleted paths added back, and the files `data_files` finds in a register directory."""
+    out = subprocess.run(["git", "-c", "core.quotePath=false", "ls-files", "-z", *(["--", under] if under else [])],
+                         cwd=ROOT, check=True,
                          capture_output=True, text=True, encoding="utf-8", errors="replace").stdout
     return [p for p in out.split("\0") if p]
 
@@ -850,6 +864,7 @@ def self_test():
     read from its source (the real one, copied), a helper class's paths inherited transitively and only within the
     using test's project, a comment naming a helper is no use of it, a suite test resolved by its literal id, an
     inherited path never making a class a sweep, and an unreadable TestRepo helper reported."""
+    global ROOT
     import shutil
     import tempfile
     failures = 0
@@ -933,6 +948,22 @@ def self_test():
               "NamesCaseDriftTests" in spec and "NamesCaseDriftTests" in
               {r["test"] for r in governing(rows, "conformance-suite/cases/1.2-Clause/g1.cob")[0]},
               by["NamesCaseDriftTests"]["paths"])
+        # A register directory a drift test names holds its TRACKED JSON files and nothing else (kb/Work PB4148 review
+        # R1-1: a cache or build output beside the rows is no register).
+        sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+        from scratch_repo import ScratchRepo  # noqa: PLC0415  (scripts/: the one scratch-repository fixture)
+        scratch = ScratchRepo.init(root / "regs-repo")
+        scratch.commit("a tracked row and a note", {"docs/regs/a.json": "{}", "docs/regs/notes.md": ""})
+        scratch.write({"docs/regs/stray.json": "{}"})
+        register = {"test": "RegDriftTests", "paths": ["docs/regs"], "through": [], "scopes": [], "rule": "r",
+                    "file": "tests/P/RegDriftTests.cs"}
+        real_root, ROOT = ROOT, scratch.path
+        try:
+            held = sorted(data_files([register]))
+        finally:
+            ROOT = real_root
+        check("a register directory a drift test names yields its tracked JSON files, never an untracked one or a non-JSON",
+              held == ["docs/regs/a.json"], held)
         check("a call's path stops at its first argument that is not a literal, a collection expression included, and "
               "Path.Combine(TestRepo.Root, ...) is the root helper written out",
               by["OwnPathDriftTests"]["paths"] == ["tests/nist/cases", "src/Proj/Dir", "specs/S.md", "docs/D"],

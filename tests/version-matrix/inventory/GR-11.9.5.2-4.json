@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.9.5.2-4",
+ "section": "11.9.5.2",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "ARITHMETIC clause",
+ "rule-digest": "51727e5abf48",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OptionsModel.cs#Arithmetic; src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#BindParagraph; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs",
+ "test-ref": "conformance:cases/11.9.5-ARITHMETIC/l1_native_arith_lane_and_rounding",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (cite --check 11.9.5.2 \"If the ARITHMETIC clause is not specified in this source element or a containing source element, it is as if the ARITHMETIC clause were specified with the NATIVE phrase\" -> OK §11.9.5.2 4)). Code: OptionsModel.Arithmetic defaults to ArithmeticMode.Native; OptionsBinder.Bind/BindParagraph start from the CONTAINER's model (baseline, DataBinder._inheritedOptions set from container.Options) and only fall back to OptionsModel.Default for an outermost unit - so NATIVE applies exactly when neither this element nor any container specifies the clause (cite --check 11.9.4 \"unless overridden by a clause in an OPTIONS paragraph in a contained source element\" -> OK §11.9.4 1)). Below 2002 BindParagraph returns the baseline (native). Probed: no OPTIONS -> native at 2002/2014/2023 (p_none, binary64 SQRT); nested p_nest.cob: outer STANDARD-DECIMAL, contained program with no clause -> standard-decimal (the 'containing source element' half: NOT native), a clause-less program inside an explicit-NATIVE contained program -> native. Both halves verified. Test: conformance:cases/11.9.5-ARITHMETIC/l1_native_arith_lane_and_rounding writes no OPTIONS paragraph and asserts native-only observables (the 2**53 float-lane switch, one rounding at final transfer) with a cite --check of this rule in its header; the containing-element half is covered by conformance:cases/11.9-OPTIONS/pb60_nested_configuration_inheritance (inherited STANDARD-DECIMAL 2,000000 vs overriding NATIVE 1,999999). || Editions (adjudicator, verbatim): 2002, 2014, 2023 (the clause exists from 2002; in 1985 native arithmetic is the only arithmetic, which the same default yields) retired-witness: src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#Bind (kb/Work PB780 V11 deleted OptionsBinder.Bind: a program unit's paragraph is found by OptionsBinder.ParagraphOf and bound by OptionsBinder.BindParagraph, called at ONE point for every element, DataBinder.BindDeclarations, after the element's constant entries are declared (both already witnesses of this row))",
+ "state": "OK"
+}

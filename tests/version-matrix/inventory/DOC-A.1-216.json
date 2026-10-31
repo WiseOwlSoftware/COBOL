@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-216",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 216,
+ "subject": "USAGE POINTER clause (alignment, size, representation, and range of values)",
+ "rule-digest": "6376ab4e265c",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-216; src/WiseOwl.Cobol.Runtime/Control/PointerImage.cs#Of; src/WiseOwl.Cobol.Runtime/Control/CobolPtr.cs#UpByAmount",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/pb970_pointer_by_content_storage_image; conformance:cases/14.9.39-SET/pb465_set_pointer_range_ec; unit:PointerImageTests.DataPointer_IsAreaBasePlusDisplacement_BigEndian; unit:PointerImageTests.Null_OfEveryCategory_IsTheZeroAddress; unit:CobolPtrTests.UpByAmountReal_AnIntegralAmountPastTheCarrier_IsGr20_NotGr19",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB970 arm 2 + PB465. docs/CONFORMANCE.md section 7 row DOC-A.1-216 carries the determination for all four things 13.18.60.4 GR23 leaves to the implementor: alignment (a reference's 8-byte natural alignment), size (8, FUNCTION BYTE-LENGTH), range (signed 64-bit displacements, PB465) and - landed here - the REPRESENTATION of the 8 storage positions, chosen by CLAUDE.md rule 1's ISO -> GnuCOBOL -> IBM/Micro Focus precedence: GnuCOBOL's machine address in the native binary byte order, NULL = zero address; this implementation's address token in its own binary order (big-endian, A.1 items 205/207): NULL eight X'00', a data-pointer = area base (k * 2^32) + displacement, program/function-pointers a per-(category, name) base. ONE codec (PointerImage) serves the CALL boundary's BY CONTENT record. RESIDUE (lead, not claimed here): a byte VIEW of a shared area's pointer member (a BASED window) still reads the PB231 reserved spaces, not the image - pinned by conformance:cases/14.9.3-ALLOCATE/pb231_based_pointer_leaf; making the area's bytes carry the image needs a NULL-image seed at every cell creation (ALLOCATE fill, the group-image composer) plus a slot-write shadow, and is recorded as a lead for an owner-visible decision.",
+ "state": "OK"
+}

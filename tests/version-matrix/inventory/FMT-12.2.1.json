@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-12.2.1",
+ "section": "12.2.1",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Environment division structure",
+ "rule-digest": "5d1240009e4e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#environmentDivision; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl",
+ "test-ref": "conformance:cases/12.2-Environment-division-structure/l1c08_environment_division_shapes; conformance:cases/12.2-Environment-division-structure/l1c08-env-division-section-order",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule §12.2.1: 'ENVIRONMENT DIVISION.' (both words underlined, period required) followed by '[ configuration-section ]' then '[ input-output-section ]' -- both optional, in that order. Grammar environmentDivision = ENVIRONMENT DIVISION DOT configurationSection? inputOutputSection? matches exactly (no binder/validation pass narrows it; ClosedFormatPass line 132 only names the node). Probed with pinned cobol.exe at --std 85/2002/2014/2023: empty division, CONFIGURATION only, INPUT-OUTPUT only, both in order, empty section headers alone -> all compile and run correctly; INPUT-OUTPUT before CONFIGURATION -> COBOL0001 unexpected 'CONFIGURATION' (correct rejection, order is fixed by the format); header without period -> COBOL0307 (correct). cite.py --check 12.2.1 '[ configuration-section ]' -> OK; '[ input-output-section ]' -> OK. No spec-derived test targets this format (order rejection has no negative golden) -> test-ref empty = test-needed. Probes: out/probe/env-div/{A,B,C,D,E,G,H,N}.cob. [registrar 14a — editions as adjudicated: 85, 2002, 2014, 2023 (the §12.2.1 format carries no edition gating; unchanged across editions)] retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.cs#EnvDivisions (kb/Work PB3154 deleted DataBinder.EnvDivisions: a unit now carries at most one environment division (an OO definition's synthetic unit only its own; a class definition's configuration reaches its factory and instance definitions by InheritConfiguration), so BindDeclarations reads its configuration section and BindFileControl its input-output section through the singular environmentDivision() accessor)",
+ "state": "OK"
+}

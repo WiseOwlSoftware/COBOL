@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.38.3-5",
+ "section": "13.18.38.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "OCCURS clause",
+ "rule-digest": "b66bc6c1be3d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#OdoBindOccursSpec",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb885-occurs-key-subscripted",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB885 sibling sweep. 'Data-name-2 shall be specified without the subscripting normally required': the KEY capture kept the base word and dropped a written subscript in silence; it now goes through ClauseDataName and draws COBOL2024.",
+ "state": "OK"
+}

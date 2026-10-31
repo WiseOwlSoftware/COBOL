@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.38.3-25",
+ "section": "13.18.38.3",
+ "kind": "SR",
+ "ordinal": 25,
+ "subject": "OCCURS clause",
+ "rule-digest": "94295967908d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportOccursOf",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb565-report-occurs-step-required; conformance:cases/13.18.38-OCCURS/pb565-report-line-step-required; conformance:cases/13.15-Report-group-description/pb565_report_vertical_repetition; conformance:cases/13.15-Report-group-description/pb565_report_repeating_entry",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB565 (vertical axis). All four legs are now enforced, and LEG BY LEG rather than as one subtree scan. a) and b) - an absolute LINE clause on the entry or subordinate to it - are one scan (AbsoluteLineClauseIn) because the entry either carries the clause or has them below it (13.18.35.3 SR4), witnessed by pb565-report-line-step-required. c) and d) do NOT collapse: c) asks about the entry's OWN COLUMN clause and d) adds 13.18.38.4 GR12b's qualifier 'being itself subordinate to an entry with a LINE clause' (SubordinateToLineClause). The previous landing read c/d as a single subtree scan and so REFUSED '03 LINE PLUS 1 OCCURS 3 TIMES.' over a subordinate '05 COLUMN 1' - conforming source under GR10c, whose repetitions are spread by the LINE clause and whose column is the same in each. That shape is golden lines 27-29.",
+ "state": "OK"
+}

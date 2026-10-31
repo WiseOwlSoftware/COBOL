@@ -10,7 +10,7 @@
     python scripts/merge_drivers.py --hunks <file>...        # replay history's merges: were a file's conflicts insertions or revisions
     python scripts/merge_drivers.py --self-test
 
-⛔ WHY. Landings conflicted on files that are not code: the traceability inventory, `tests/version-matrix/constructs.json`,
+⛔ WHY. Landings conflicted on files that are not code: the traceability inventory (then one file), `tests/version-matrix/constructs.json`,
 the work notes two branches both append to, and the runtime ABI pin in `RuntimeAbiPinDriftTests.cs`. Each conflict (the
 landing logs, E:\\COBOL-coord\\logs\\land-lane-*.log, counted 15 on one manifest, 13 on another, 4 on the pin) stopped the
 landing and cost a finisher cycle (about 100 k tokens and a re-gate) to do what a program does exactly: keep both sides'
@@ -19,8 +19,10 @@ conflict although the answer is always both entries.
 A REGISTRY OF ENTRIES NEEDS NO DRIVER WHEN EACH ENTRY IS A FILE (kb/Work PB4147). The merge queue runs no driver, so a keyed
 file two open pull requests both edit is admitted one at a time (`enqueue.py` DRIVER FILE QUEUED, exit 16): WiseOwl's
 refusals and compile options (`conformance-suite/wiseowl/diagnostics/<test id>.json`, `options/`) were one such file, 61
-of the landing lane's 79 holds, and are one file per test now, so two refusals never share a file. Prefer that shape to a
-driver for the next registry; a driver is for a file that cannot be split.
+of the landing lane's 79 holds, and are one file per test now, so two refusals never share a file. The traceability
+inventory was the second (10 holds; kb/Work PB4148) and is one file per row, `tests/version-matrix/inventory/<rule-id>.json`
+(scripts/spec/inventory_store.py). Prefer that shape to a driver for the next registry; a driver is for a file that cannot
+be split.
 
 WHAT A DRIVER IS. A file that `.gitattributes` marks `merge=<name>` is merged by the command configured as
 `merge.<name>.driver` whenever BOTH sides changed it; git passes the three versions and takes the result in place of its
@@ -426,9 +428,6 @@ class Driver:
 
 
 DRIVERS: tuple[Driver, ...] = (
-    Driver("cobol-keyed-inventory", ("tests/version-matrix/traceability-inventory.json",),
-           lambda: merge_keyed(Layout("rule-id")),
-           "rule id -> its verdict row: a landing re-verdicts the rows its fix closes"),
     Driver("cobol-keyed-constructs", ("tests/version-matrix/constructs.json",),
            lambda: merge_keyed(Layout("id", ("constructs",))),
            "construct id -> its entry in the version-matrix catalogue"),
@@ -607,7 +606,7 @@ def foresee_queue(repo: pathlib.Path | str, base: str, entries: list[tuple[str, 
     and no event a reader sees until it has happened). `entries`: (label, head commit) in queue order; `base`: main.
     Each head is merged onto the result of those before it WITH GIT'S OWN LINE MERGE AND NO DRIVER (probe with
     drivers=False): GitHub's merge group runs none, so two entries that each add a key to one keyed catalogue
-    (the traceability inventory, constructs.json, kb/Work notes) conflict there, and the queue removes
+    (constructs.json, kb/Work notes) conflict there, and the queue removes
     the second, which the drivers would have merged. An entry that conflicts is skipped, as the queue skips it. Returns
     {label: Foreseen} for each such entry, so its finisher can bring the entries ahead in while they are still queued.
     A head git cannot merge (an object this repository lacks) is left out: it is unknown, never a conflict. The runtime

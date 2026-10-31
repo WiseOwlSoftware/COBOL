@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.8-4",
+ "section": "9.1.13.8",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "I-O status",
+ "rule-digest": "5909d2c90c7f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#LockRecord; src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#PreflightNewLock",
+ "test-ref": "conformance:cases/9.1.13.8-Record-operation-conflict-condition-with-unsuccessful/pb338_read_lock_limit_position",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§9.1.13.8 4) '54' when the file connector holds the implementation maximum of record locks (cite.py --check OK §9.1.13.8 4)). ConnectorLockMax = 15, the §12.4.5.9.4 GR7 floor (cite.py --check 12.4.5.9.4 \"The implementor shall specify the maximum number of record locks that may be held by a file connector\" -> OK). conformance:cases/9.1.13.8-Record-operation-conflict-condition-with-unsuccessful/pb338_read_lock_limit_position pins the 16th lock -> 54 on relative sequential, indexed and relative random reads. PB707 (open) concerns the WRITE/REWRITE preflight's placement relative to RETRY, behaviour-identical. || Editions (adjudicator, verbatim): 2002/2014/2023",
+ "state": "OK"
+}

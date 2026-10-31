@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.60.4-26",
+ "section": "13.18.60.4",
+ "kind": "GR",
+ "ordinal": 26,
+ "subject": "USAGE clause",
+ "rule-digest": "0a74dd744bd6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#FunctionPointerItem; src/WiseOwl.Cobol.Runtime/Control/FunctionPointer.cs; docs/CONFORMANCE.md#DOC-A.1-210; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#ScreenImplicitSet; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ElementaryAction",
+ "test-ref": "conformance:cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb452_set_function_pointer; conformance:cases/13.18.60-USAGE/pb452-function-pointer-without-to; conformance:cases/13.18.60-USAGE/pb452-function-pointer-unknown-prototype; conformance:cases/13.18.60-USAGE/pb452-function-pointer-at-2002; conformance:cases/14.9.20-INITIALIZE/pb3817-initialize-replacing-restricted-function-pointer",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "ALL THREE PARAGRAPHS OF GR26 NOW HAVE A SUBJECT (kb/Work PB497's finding, landed by PB452 + PB817). The entry establishes a function-pointer data item of category function-pointer (8.5.2.7) carried by the runtime FunctionPointer struct; the implementor-defined alignment/size/representation and the allowable-languages answer are published as docs/CONFORMANCE.md section 7 DOC-A.1-210; and the invariant 'A function-pointer shall contain only the predefined address NULL or the address of a function with the same signature as that identified by the specified function-prototype-name-1' is enforced at BOTH ends - at bind by 14.9.39.3 SR20 (COBOL1959) and at run time by ProgramTable.FunctionSignatureMatches under 14.9.39.4 GR14. EDITIONS NARROWED from the row's previous 85,2002,2014,2023: the reserved-word evidence dates FUNCTION-POINTER to 2014 (reserved-words.json r2002=false r2014=true) and constructs.json usage-function-pointer-2014 gates it, so the rule does not exist below 2014. It used to be refused by name with COBOL0899 and the entry got no PicInfo at all, which also produced a COBOL0881 'a PICTURE clause shall be specified' and a COBOL0844 that called the item 'of category alphanumeric'.",
+ "state": "OK"
+}

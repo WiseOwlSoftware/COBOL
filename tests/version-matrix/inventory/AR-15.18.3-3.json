@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.18.3-3",
+ "section": "15.18.3",
+ "kind": "AR",
+ "ordinal": 3,
+ "subject": "CONCAT function",
+ "rule-digest": "4ea400a2f925",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckConcatArgs",
+ "test-ref": "conformance:cases/15.3-Arguments/pb58_argument_predicates_legal; conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). §15.18.3 r3 'If argument-1 or argument-2 is numeric, it shall be usage display or national and shall be an unsigned integer': a signed item (pb58-concat-signed), a scaled item (pb58-concat-frac), a COMP item (pb58-concat-comp) and a signed literal (pb58-concat-neglit) are rejected; an unsigned integer DISPLAY item and an unsigned integer literal bind (golden CAT: A005-12ABC). retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

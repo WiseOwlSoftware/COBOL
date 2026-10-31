@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.7.4-5",
+ "section": "12.4.5.7.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "COLLATING SEQUENCE clause",
+ "rule-digest": "bde31a217823",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveKeyCollating",
+ "test-ref": "conformance:cases/12.4.5.7-COLLATING-SEQUENCE/pb1074_file_collating_key_class",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1074 landed (w61c). cite.py --check 12.4.5.7.4 'the native national collating sequence applies to any record keys of class national' -> OK GR5. A national key under a file-level alphanumeric alphabet with no alphabet-name-2 orders and compares natively: golden file G (COLLATING SEQUENCE IS EQV, 'A' ALSO 'B') writes N\"A\" and N\"B\" -> 00 00 (was 22); probe gr1na now GW2 00.",
+ "state": "OK"
+}

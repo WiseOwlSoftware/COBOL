@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.15.3-8",
+ "section": "13.15.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "Report group description entry",
+ "rule-digest": "089895b7a754",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportLineNesting",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb565-report-line-in-line",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "'No report group description entry with a LINE clause shall be subordinate to another entry with a LINE clause.' ScreenReportLineNesting walks the flat entry array once per RD. For every entry with a LINE clause it scans the entry's subtree (following entries of a higher level) and reports the first subordinate LINE clause (COBOL2199). The screen is flat, so a Format-3 replay does not duplicate it. The code cites the word-for-word twin §13.18.35.3 SR4. The same rule is pinned at all four editions by conformance:cases/13.15-Report-group-description/pb565-report-line-in-line (01 TYPE DE / 03 LINE PLUS 1 / 05 LINE PLUS 1, reject-at 85 2002 2014 2023), whose expectation is derived from that clause. cite.py --check 13.15.3 'No report group description entry with a LINE clause shall be subordinate to another entry with a LINE clause' -> OK. || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): 85, 2002, 2014, 2023 (the report group description entry is Report Writer nucleus syntax at every edition; no Annex E item changes §13.15 between 2014 and 2023)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.8.3-2",
+ "section": "13.18.8.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "BLANK WHEN ZERO clause",
+ "rule-digest": "29e38e8869e7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#CheckClauseSubjects",
+ "test-ref": "conformance:cases/13.18.8-BLANK-WHEN-ZERO/pb507-blank-when-zero-binary; unit:DataClausePlacementDriftTests.ClauseOnAnInadmissibleSubject_IsRefused; unit:DataClausePlacementDriftTests.ClauseOnAnAdmissibleSubject_BindsClean",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB507 LANDED. Reads the EFFECTIVE usage after 13.18.60.4 GR1 inheritance, so a written and an inherited non-display/national usage are the same violation -> COBOL2405. MEASURED at 85/2002/2014/2023: `PIC 9(5) USAGE COMP BLANK WHEN ZERO` -> COBOL2405 (was: accepted, a zero store displayed 00000); `USAGE PACKED-DECIMAL` likewise; USAGE NATIONAL is admitted and blanks. The inherited spelling `01 G COMP. 05 A PIC 999 BLANK WHEN ZERO.` is refused first by 13.18.60.3 SR3 (COBOL0881, the GR2-promoted numeric-edited picture under USAGE BINARY) - a compile error either way.",
+ "state": "OK"
+}

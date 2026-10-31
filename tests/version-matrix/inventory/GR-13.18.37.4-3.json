@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.37.4-3",
+ "section": "13.18.37.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "NEXT GROUP clause",
+ "rule-digest": "e9da71e5a808",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PageFeed",
+ "test-ref": "conformance:cases/8.4.3.15-Report-counters/pb957_next_group_forms; conformance:cases/13.18.37-NEXT-GROUP/pb957_next_group_control",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB957. RH: relative adds integer-2 (the page heading moves from line 2 to line 3 in the forms golden); absolute sets it; NEXT PAGE puts the RH alone on page 1 and takes PageFeed with no page footing (§13.18.57.4 GR6f 1), PAGE-COUNTER set to 1 under WITH RESET (§14.9.16.4 GR4a) — the control golden's second page heading shows PH 1. The absolute RH arm is covered by the same switch and its SR6a negative; no positive golden prints it.",
+ "state": "OK"
+}

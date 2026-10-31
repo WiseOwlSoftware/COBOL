@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.14.3-1",
+ "section": "15.14.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "BYTE-LENGTH function",
+ "rule-digest": "b4cc1103bc9f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLengthFamily; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TypeNameArgument; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindByteLengthFold",
+ "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb61_length_byte_length_rule_branches; conformance:cases/8.4.3.2-Function-identifier/pb1060_address_identifier_evaluate_argument; conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB61 — the LENGTH/BYTE-LENGTH folds enumerated from the rule branches; one builder for a runtime-length group; SR6 decided from the definition before binding). §15.14.3 r1 'an alphanumeric or national literal, a based entry, a type-name, or a data item of any class or category': a reference-modified item is a data item (§8.4.3.3.4 GR6) — golden RM: BYTE-LENGTH(X5(2:3)) = 3, N4(2:2) = 4 bytes, X5(3:) = 3 (it used to bind a BoundExprError that threw at run time); a TYPE-NAME argument (a level-1 TYPEDEF, resolved from DataBinder.TypeDecls) — golden TYPE: 9 / 6 / 6 / 1 / 7; a boolean literal is rejected (negative pb61-byte-length-boolean-literal — the sibling §15.50.3 r1 ADMITS it, the two folds are deliberately not unified) and a numeric literal (COBOL1627). A based entry binds through its class view; its ODO half is PB80. retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

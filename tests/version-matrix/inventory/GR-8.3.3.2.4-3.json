@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.3.3.2.4-3",
+ "section": "8.3.3.2.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Alphanumeric literals",
+ "rule-digest": "48e5065faefc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#IsZeroLength; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#Decode",
+ "test-ref": "conformance:cases/8.3.3.2-Alphanumeric-literals/pb425_zero_length_literal_move",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 8.3.3.2.4 \"If character-1 is not specified, the literal is a zero-length literal\" OK. Zero-length: IsZeroLength asks the structural question (Body.Length==2) for \"\" and ''; probe p1 MOVE \"\"/'' TO W gives spaces (the 14.9.25.4 GR2 substitution, pinned by pb425). a)/b) compile-time value -> runtime value: the project's alphanumeric repertoire is UTF-16 (charset decision), so the compile-time string IS the runtime string; probe p11/p12: VALUE \"\\u00e9\\u4e2dZ\" displays e-acute,CJK,Z (UTF-8 bytes c3 a9 e4 b8 ad 5a at the display boundary), LENGTH(\"\\u00e9\\u4e2d\")=2, ORD(\"\\u00e9\")=234. c) is conditional on the implementor PROVIDING a UTF-8 / mixed option; none is provided (no such option in the CLI or OPTIONS paragraph), so c) imposes nothing -- the Annex A item 38 documentation row is a separate DOC rule. || editions as written by the adjudicator: 2014, 2023 (Annex E itemizes the 2014->2023 delta and lists no change to 8.3.3.2, so the rule stands in both; the 1985/2002 edge is NOT derivable in-repo -- no 2002 or 1985 text is held) retired-witness: conformance:2002/pb425_zero_length_literal_move (the golden moved to the 2014 corpus: it writes a zero-length literal, a COBOL-2014 introduction gated by kb/Work PB895 (same program, same expected output))",
+ "state": "OK"
+}

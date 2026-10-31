@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.50.3-1",
+ "section": "15.50.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "LENGTH function",
+ "rule-digest": "0da39b1a856d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLengthFamily; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TypeNameArgument; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLengthFold",
+ "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb61_length_byte_length_rule_branches; conformance-test:NationalBooleanReviewFixTests.NationalBooleanLiterals_AsIntrinsicArguments_Parse; conformance:cases/8.4.3.2-Function-identifier/pb1060_address_identifier_evaluate_argument; conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB61 — the LENGTH/BYTE-LENGTH folds enumerated from the rule branches; one builder for a runtime-length group; SR6 decided from the definition before binding). §15.50.3 r1 'an alphanumeric, national, or boolean literal; a data item of any class or category; a based entry; or a type-name': a TYPE-NAME argument now resolves (TypeNameArgument over DataBinder.TypeDecls — a level-1 TYPEDEF is filed off the data-name namespace, so BindArgOperand reported it undefined) — golden TYPE: LENGTH(MYTYPE) = 9, LENGTH(TNAT) = 6 (an alphanumeric group, §13.18.29.4 GR3), LENGTH(TNATE) = 3 national positions, LENGTH(TBOOL) = 5 boolean positions, LENGTH(TALPH) = 7; a boolean literal (golden BIT: 5) and a ref-mod view (golden RM) bind; a numeric literal is rejected (negative pb61-length-numeric-literal, COBOL1627). Type-names are 2002+ (typedef-def-2002); the literal/data-item legs are 85's. retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

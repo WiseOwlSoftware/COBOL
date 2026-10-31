@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.14.4-4",
+ "section": "15.14.4",
+ "kind": "RV",
+ "ordinal": 4,
+ "subject": "BYTE-LENGTH function",
+ "rule-digest": "21f9b28bb72c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ElementaryByteWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ElementaryImageWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#Characters; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#Usage",
+ "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb61_length_byte_length_rule_branches",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "A level-1 elementary PIC 1(12) USAGE BIT gets no filler (8.5.1.6.3 NOTE), so it occupies 12 bits = 1.5 bytes and r4 rounds up: golden line BIT=12 2; TYPEDEF PIC 1(5) -> 1 is the second instance; pb43 ELEM-BYTES=1 is the integral must-not-fire control; the level-77 axis is covered by conformance:cases/8.5.1.6.4-Item-alignment-for-increased-object-code/l1_byte_length_implicit_filler's L77=2 1.",
+ "state": "OK"
+}

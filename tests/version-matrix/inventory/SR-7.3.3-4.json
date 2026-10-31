@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.3-4",
+ "section": "7.3.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "Compiler directives",
+ "rule-digest": "873249b01de0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/TurnDirectiveProcessor.cs#ParseTurn; src/WiseOwl.Cobol.Editions/CobolSourceText.cs#InlineCommentAt",
+ "test-ref": "unit:StageOwnedDirectiveOperandDriftTests.EveryStageDirectiveWord_RejectsAWordAfterItsOperand_AndAcceptsItsOperandAndAComment; unit:CompilerDirectiveCatalogDriftTests.InlineComment_IsNotPartOfTheOperand; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_DiagnosesAMalformedOperand; unit:CompilerDirectiveCatalogDriftTests.EveryNoOperandWord_RejectsAnOperandAndAcceptsTheBareWord; conformance:cases/7.3-Compiler-directives/pb794_directive_operands; conformance:cases/7.3-Compiler-directives/pb1365-turn-directive-trailing-word",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1365 (wave 1019 B). Same one parse as SR-7.3.3-3: the free-form theory case of StageOwnedDirectiveOperandDriftTests drives every stage-owned directive word through the real front end with InitialFormat=Free; a free-form >>TURN ... CHECKING OFF JUNK, >>END-IF JUNK and >>LISTING ON JUNK are rejected and '*> c' is accepted (re-probed). PB806 (ELSE/END-IF/END-EVALUATE) and PB807 (DISPLAY) are landed, so no directive's stage parser skips the rule. retired-witness: src/Cobol.Net.Editions/CompilerDirectiveLine.cs#StripInlineComment (kb/Work PB2621: the directive line's inline comment is found by the one literal reader, CobolSourceText.InlineCommentAt, which CompilerDirectiveLine.TryParse asks)",
+ "state": "OK"
+}

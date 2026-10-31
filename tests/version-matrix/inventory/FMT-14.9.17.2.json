@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.17.2",
+ "section": "14.9.17.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "GO TO statement",
+ "rule-digest": "39b7f82878e4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#goToStatement; src/WiseOwl.Cobol.Frontend/Parsing/GoToFormat.cs#GoToFormats; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindGoTo; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitGoToStatement; src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs#GoToComplementMessage",
+ "test-ref": "conformance:cases/14.9.17-GO-TO/pb412_go_to_general_formats; conformance:cases/14.9.17-GO-TO/pb412-go-to-names-without-depending; conformance:cases/14.9.17-GO-TO/pb412-go-to-depending-without-names; conformance-test:PrintedFormatComplementTests.EverySpellingTheGoToFormatsAdmit_CompilesAtEveryEdition; conformance-test:PrintedFormatComplementTests.AGoToShapeNeitherFormatPrints_IsRefusedAtEveryEdition; conformance-test:PrintedFormatComplementTests.TheAnsi85TargetLessGoTo_KeepsItsNamedEditionGate; unit:PrintedFormatAlternativeDriftTests.GoToStatement_HasOneAlternativePerPrintedFormatPlusTheGatedLegacyArm; conformance:cases/14.9.17-GO-TO/pb1421_goto_depending_function_identifier",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB412.md landed w41. PDF page 660 (printed folio 630) re-rendered at 190 dpi, the diagram being load-bearing: Format 1 is 'GO TO procedure-name-1' with only GO underlined, so TO is an optional word (5.2.3) and procedure-name-1 is unbracketed and therefore singular and required (5.2.6.2); Format 2 is 'GO TO { procedure-name-1 } ... DEPENDING ON identifier-1' -- one or more names (5.2.7), DEPENDING underlined and required (5.2.2), ON optional. The transcription matches the page. THE REPAIR IS STRUCTURAL: goToStatement now carries ONE ALTERNATIVE PER PRINTED FORMAT plus the edition-gated ANSI-85 target-less arm, so the complement is a syntax error in the parser; GoToFormats.Of is the ONE classifier every reader asks (the binder's total three-arm switch, the BareGotoRemoved2002 gate, and the ALTER sole-GO-TO-paragraph test), replacing three separate reconstructions from optional children; and CobolErrorStrategy re-codes the resulting parse error as COBOL2172 naming the format's own cardinalities. WHAT WAS WRONG: the rule was the single union 'GO TO? procedureName? (procedureName)* (DEPENDING ON? dataReference)?', so 'GO TO A B.' compiled at every edition and the Format-1 bind arm read names[0] and DISCARDED B in silence, while 'GO TO DEPENDING ON X.' compiled clean and aborted the run unit on a BoundUnsupported loud stage -- that stage is now deleted. Measured after the fix: both shapes refused with COBOL2172 at 85/2002/2014/2023, the bare form still gated by name (COBOL0811) at 2002+ and accepted at 85, and the six legal spellings (TO omitted, ON omitted, one and three procedure-names, a section target, a qualified name) plus GR2's out-of-range fall-through all correct.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.1.2-1",
+ "section": "8.1.2",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Character sets",
+ "rule-digest": "2bcfb84b1934",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/StorageByte.cs#StorageByte.ImageByte; src/WiseOwl.Cobol.Runtime/Values/Text/StorageByte.cs#StorageByte.ToByte",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/pb547_redefines_national_view_of_wide_character; conformance:cases/A.1-Implementor-defined-language-element-list/pb547_redefines_binary_and_bit_views_of_wide_character; unit:StorageImageByteTests.NatReadWindow_ReadsAWideCharacterAsTheSubstituteByte_AndSetsDataConversion; unit:StorageImageByteTests.ToByte_IsTheLaw_OverTheWholeRepertoire; unit:StorageByteLawDriftTests.NoCharacterIsReducedToAByteOutsideTheStorageByteLaw",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB547 LANDED. The rule: the number of bytes used to represent characters of the alphanumeric coded character set is the same for all characters, fixed at compile time. PicInfo.ByteWidth gives one byte per DISPLAY position (DOC-A.1-209) and every in-memory byte channel now answers a character with no one-byte image (above U+00FF other than HIGH-VALUE) the same way: StorageByte.ImageByte reads it as the byte ? (0x3F) and sets EC-DATA-CONVERSION (DOC-A.1-31, -33, -46), through the national, bit, binary, packed and floating-point views (CobolBits.NatReadWindow, ReadWindow, Blit, NatFromStorage; CobolNum.Image decoders) and CONVERT BYTE/HEX/ANY. The FILE channel refuses such a record with the implementor-defined I-O status 91 (owner decision R47, kb/Work PB690), so no channel changes the character silently: the former REDEFINES arm cast the code unit to its low-order byte (U+20AC read as 0xAC, a national view held U+AC41 and a write back made the euro U+00AC). Witnesses: the two pb547 conformance cases (national view; binary and bit views) and StorageImageByteTests; StorageByteLawDriftTests keeps a (byte) cast of a character out of the runtime. retired-witness: src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#ByteSub (the symbol is deleted: CONVERT RawBytes and every REDEFINES view now share StorageByte.ImageByte (kb/Work PB547))",
+ "state": "OK"
+}

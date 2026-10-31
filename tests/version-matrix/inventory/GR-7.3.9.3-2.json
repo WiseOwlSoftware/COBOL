@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.9.3-2",
+ "section": "7.3.9.3",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "CALL-CONVENTION directive",
+ "rule-digest": "fda05450e30d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckWords; tests/version-matrix/constructs.json#call-convention-directive-2002",
+ "test-ref": "conformance:cases/7.3.9-CALL-CONVENTION/pb1383-call-convention-undefined-name; conformance:cases/7.3.9-CALL-CONVENTION/pb1383_call_convention_cobol",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule 7.3.9.3 GR2 (cite.py OK 7.3.9.3 2) a) 'When COBOL is specified, that program-name or method-name is treated as a COBOL word' and OK 2) b) 'When call-convention-name-1 is specified, that program-name or method-name is treated as a literal'). a) holds: names under COBOL map by the documented COBOL-word rule (DOC-A.1-68). b) has no subject: no call-convention-name is defined, and an undefined one is now a compile-time error instead of being processed silently under a). LANDED w1007b (kb/Work PB1383): WiseOwl COBOL defines no call-convention-name, as docs/CONFORMANCE.md DOC-A.1-68 states, so the directive row's operand set is COBOL alone (constructs.json call-convention-directive-2002; the 'any COBOL word' userWord column is deleted): >>CALL-CONVENTION XYZZY is COBOL1911 (conformance:cases/7.3.9-CALL-CONVENTION/pb1383-call-convention-undefined-name), and >>CALL-CONVENTION COBOL + CALL \"p1383s\" reaches P1383S by the case-insensitive COBOL-word mapping (conformance:cases/7.3.9-CALL-CONVENTION/pb1383_call_convention_cobol).",
+ "state": "OK"
+}

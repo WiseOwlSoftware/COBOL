@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.8.3-7",
+ "section": "8.4.3.8.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "SELF and SUPER",
+ "rule-digest": "ec8e1219657a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.OoIdentifier.cs#OoBindSelfOperand; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoCreateSelfTemp; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitSelfReference; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#SoleOoIdentifier",
+ "test-ref": "conformance:cases/8.4.3.8-SELF-and-SUPER/pb389-only-receiver-self-sender; conformance:cases/8.4.3.1-Identifier/pb1425_predefined_object_operands; unit:ReferenceOperandArithmeticTests.ObjectReferenceInArithmetic_IsRefusedUnderEveryDialect",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1425 (w1020c). \"SELF and SUPER are both implicitly described as class object and category object reference, and are not universal object references\" (cite.py --check 8.4.3.8.3 -> OK 7)). SELF as an operand is a compiler temporary described ACTIVE-CLASS (FACTORY OF in a factory method) - class object, not universal, the class of the object the method was invoked on (8.4.3.8.4 GR1) - so it is compared as class object (8.8.4.2.15: IF O = SELF, IF SELF = A, EVALUATE SELF WHEN O, in an instance and a factory method), passed as an object-reference argument (BY CONTENT / BY VALUE / bare, inline), raised (GOBACK RAISING SELF, the 14.9.18.3 SR4 c) ACTIVE-CLASS check), and refused in an arithmetic expression by 8.8.1.1 (COBOL0844) under every dialect - --permissive's digit decoding no longer reaches class object or pointer (it used to end in a Roslyn CS1503). SET's SELF sender keeps its named rules (14.9.39.3 SR10 d) / SR12 c) / SR14 b)). [editions: the OO facility, 2002+]",
+ "state": "OK"
+}

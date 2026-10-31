@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.14.4-7",
+ "section": "14.9.14.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "EXIT statement",
+ "rule-digest": "f4c5919c2e2d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#TransferJump; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod",
+ "test-ref": "conformance:cases/14.9.14-EXIT/pb405_exit_paragraph_section_in_inline_perform; conformance-test:SectionDifferentialTests.ExitSection_MidSectionUnderPerform_TriggersPerformReturn; conformance-test:SectionDifferentialTests.ExitSection_TopLevel_FallsThroughToNextSection; unit:DispatcherTransferIdiomDriftTests.NoDispatcherTransferIsCapturedByALoweredContainer",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB405.md - LANDED, same mechanism as GR-14.9.14.4-6 with a worse effect. GR7 passes control to 'an unnamed empty paragraph immediately following the last paragraph of the current section, preceding any return mechanisms for that section'. Inside an inline PERFORM the emitted `break` left the loop, and the paragraph's fall-through epilogue then overwrote the `__pc = SectionEndPc + 1` the statement had set, so the section-exit target was discarded and every remaining paragraph of the section ran too (measured: `IT 1 / IT 2 / TAIL-S1A / S1B / S2A` where GR7 requires `IT 1 / IT 2 / S2A`). The statement now renders the pc assignment, then the section's OWN return mechanism (`if (__exitPc == SectionEndPc) return __pc;` - a C# return, which no container can capture, and which is what fires the PERFORM/SORT/USE return from a MID-section paragraph where the bounded loop's __atExit was captured for the current pc), then the uncapturable jump to the dispatcher landing. Re-derived rather than moved: the order is exactly GR7's 'preceding any return mechanisms'. The two SectionDifferentialTests remain the statement-level spec-pinned witnesses; the new 2002 golden adds the inline-PERFORM arm and the under-a-PERFORM section return.",
+ "state": "OK"
+}

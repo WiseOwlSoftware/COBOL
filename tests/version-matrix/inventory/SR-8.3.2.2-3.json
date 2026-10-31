@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.2.2-3",
+ "section": "8.3.2.2",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "COBOL words",
+ "rule-digest": "f37b240049a1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CheckLetter; src/WiseOwl.Cobol.Editions/CobolCharacterRepertoire.cs#IsLetter",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb990_user_word_types_one_per_word; conformance:cases/8.3.2.2-User-defined-words/pb1403_letterless_words_by_type; conformance:cases/8.3.2.2-User-defined-words/pb990-alphabet-name-and-data-name; conformance:cases/8.3.2.2-User-defined-words/pb990-section-name-and-paragraph-name; conformance:cases/8.3.2.2-User-defined-words/pb1403-letterless-data-name; conformance:cases/8.1.3-COBOL-character-repertoire/pb1402_extended_letters",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1402: the extended-letter half of 'at least one basic letter or extended letter' is reachable now that words hold extended letters; IsLetter counts every Annex B character beyond the basic ones (B.1), a combining mark or another script's digit included.",
+ "state": "OK"
+}

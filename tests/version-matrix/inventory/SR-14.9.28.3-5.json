@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.28.3-5",
+ "section": "14.9.28.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "PERFORM statement",
+ "rule-digest": "085250169443",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#CheckVaryingOperandRules; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#Classify",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/pb432-varying-operand-rules; conformance:cases/14.9.28-PERFORM/pb432_varying_brace_group",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB432 (landed). The rule's PREMISE - an index-name in the FROM phrase - is now COMPUTED (VaryingOperandKind.IndexName off the ONE operand classification); before this it was never derived at all, so none of a)/b)/c) could fire whatever the source said. SR4 and SR5 are TWO ARMS OF ONE QUESTION - which POSITION holds the index-name - and both are asked, always, from the one function that knows both answers; they are neither exclusive nor nested, and VARYING IX FROM JX BY N satisfies both premises at once. Measured: a) SET IX2 TO 1 / PERFORM VARYING NI FROM IX2 BY 1 with NI PIC 9(4)V99 -> SR5 a); c) the same shape with BY 1.5 -> SR5 c) (reported together with a), which is correct: the program violates both). The legal case - an index-name FROM an index-name with an integer varied item - is golden leg D, where GR12's occurrence-number initialization value gives 3 iterations.",
+ "state": "OK"
+}

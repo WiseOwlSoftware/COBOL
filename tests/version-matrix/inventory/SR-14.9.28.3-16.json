@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.28.3-16",
+ "section": "14.9.28.3",
+ "kind": "SR",
+ "ordinal": 16,
+ "subject": "PERFORM statement",
+ "rule-digest": "db29d83f16ba",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionCatalog.cs",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/l1_perform_f3_when_file_ec_io_prefix; conformance:cases/14.9.28-PERFORM/l1-perform-f3-sr16-non-io-name; conformance:cases/14.9.28-PERFORM/l1-perform-f3-sr16-user-name",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "Prefix test, not a category or catalog-membership test: accepts level-2 EC-I-O and level-3 EC-I-O-AT-END with FILE, rejects EC-BOUND-SUBSCRIPT and the unenumerable open-family EC-USER-MINE.",
+ "state": "OK"
+}

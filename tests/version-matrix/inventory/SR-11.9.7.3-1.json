@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.9.7.3-1",
+ "section": "11.9.7.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "ENTRY-CONVENTION clause",
+ "rule-digest": "8c11562ca953",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#EntryConventionForbiddenIn",
+ "test-ref": "conformance:cases/11.9.7-ENTRY-CONVENTION/pb232-entry-convention-contained; conformance:cases/11.9.7-ENTRY-CONVENTION/pb232_entry_convention_cobol",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB232 (wave 56): the clause's source element is read off the parse tree at the one OPTIONS construction point; a contained program, a method definition and a FACTORY / OBJECT paragraph are refused (COBOL2385); an outermost program, a class and an interface definition accept it.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.75.4-2",
+ "section": "15.75.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "RANDOM function",
+ "rule-digest": "e565aaf52c56",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Random",
+ "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.Random_SeededSequence_PinnedToSpec",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Random(long seed) constructs `new Random(int)`, which on .NET 6+ is pinned to the back-compatible (Knuth subtractive) seeded implementation — deterministic for a given seed. Re-verified across FOUR separate processes at four editions: FUNCTION RANDOM(5) returned 338369841 every time while the argument-less draws in the same programs varied, so the determinism belongs to the seeded path and is not process reuse. Independently corroborated WITHOUT using the compiler as its own oracle: a from-scratch reimplementation of the .NET seeded subtractive generator reproduces the compiler's output exactly for seeds 0 (726243270), 1 (248668584), 5 (338369841), 42 (668106466, 140907298, 125518289) and 2147483643 (636542013) — the sequence is algorithmically determined by the seed, not incidentally stable. Residual TEST gap (not a conformance gap): the test asserts only same-seed equality within one process; no golden pins an actual RANDOM value, so a change of the underlying seeded generator would land silently.",
+ "state": "OK"
+}

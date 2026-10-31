@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.27.4-18",
+ "section": "14.9.27.4",
+ "kind": "GR",
+ "ordinal": 18,
+ "subject": "OPEN statement",
+ "rule-digest": "f152580b4f96",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; docs/CONFORMANCE.md#DOC-A.1-130; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#BeginLinagePage; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore",
+ "test-ref": "conformance:cases/14.9.27-OPEN/pb322_default_sharing_by_open_mode; conformance:cases/13.18.34-LINAGE/pb523_linage_margins_on_the_medium; conformance:cases/13.18.34-LINAGE/pb523_linage_margins_on_the_medium_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "RE-VERDICTED (kb/Work PB322, w1013m). HALF 1 (the OUTPUT OPEN creates the file and it holds no records) is witnessed by the EMPTY=10 leg of 2002/pb322_default_sharing_by_open_mode (OPEN OUTPUT, CLOSE, OPEN INPUT, first READ at end). HALF 2 (positioning with respect to physical page boundaries, implementor-defined) is DOC-A.1-130 (CONFORMS, released): top of the first physical page, nothing written by the OPEN; the pb523 goldens pin the LINAGE form. retired-witness: src/Cobol.Net.Runtime/IO/IndexedConnector.cs#OpenCore (the keyed OPEN arms are written once, in KeyedConnector.OpenCore, since both organizations drive the keyed store engine (kb/Work PB3334, PB2753)) retired-witness: src/Cobol.Net.Runtime/IO/RelativeConnector.cs#OpenCore (the keyed OPEN arms are written once, in KeyedConnector.OpenCore, since both organizations drive the keyed store engine (kb/Work PB3334, PB2753))",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.6.4.3-11",
+ "section": "12.4.6.4.3",
+ "kind": "SR",
+ "ordinal": 11,
+ "subject": "SAME clause",
+ "rule-digest": "793668d0a2b0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#ScreenApplyCommitSubject; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ApplyCommitSubjectRule",
+ "test-ref": "conformance:cases/12.4.6.4-SAME/apply-commit-same-area; conformance-test:ApplyCommitSubjectRuleTests.ForbiddenShape_IsRefusedByItsOwnRule",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB3338 (wave 1154): the APPLY COMMIT clause is ACCEPTED for RELATIVE and INDEXED files (Annex A.4.3 Partial), so this forbidden shape is a program a user can write; DataBinder.ScreenApplyCommitSubject refuses it by name, COBOL2974 (the one report of the family, kb/Work PB666), in the strict lane and under --permissive alike. The fixture names a RELATIVE file in the clause, so the only refusal it can draw is this rule's own (ApplyCommitSubjectRuleTests.ForbiddenShape_IsRefusedByItsOwnRule). History: kb/Work PB371 (the rule vacuous while COBOL1709 refused the clause), PB666 (enforced in its own right). retired-witness: conformance-test:ApplyCommitSubjectRuleTests.ForbiddenShape_IsRefusedUnderPermissive (COBOL1709 no longer refuses the clause for a keyed file (kb/Work PB3338): the rule is witnessed by its own refusal, COBOL2974, and the renamed both-lanes test) retired-witness: src/Cobol.Net.Compiler/Validation/DeclinedFacilityPass.cs#VisitApplyCommitClause (COBOL1709 no longer refuses the clause for a keyed file (kb/Work PB3338): the rule is witnessed by its own refusal, COBOL2974, and the renamed both-lanes test) retired-witness: src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#ApplyCommitClauseUnsupported (COBOL1709 no longer refuses the clause for a keyed file (kb/Work PB3338): the rule is witnessed by its own refusal, COBOL2974, and the renamed both-lanes test)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.25.3-8",
+ "section": "14.9.25.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "MOVE statement",
+ "rule-digest": "a8ccbd84ecf9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#ShapeRefusal; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#Validity; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#MoveCategoryLegality; src/WiseOwl.Cobol.Runtime/Values/MoveValidity.cs#BinaryWidthRefusal",
+ "test-ref": "conformance:cases/14.9.25-MOVE/move-binary-to-national; conformance-test:NationalBooleanReviewFixTests.MoveBinaryFamilyToNational_Rejected_SR8; conformance:cases/14.9.25-MOVE/pb878-move-binary-char-to-group; conformance:cases/14.9.25-MOVE/pb878-invoke-content-binary-long-to-alnum",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB878 closes the arm kb/Work PB422 measured: the written MOVE skipped every GROUP receiver (MoveReceiverCategory's `continue`) before SR8 was asked, so MOVE <BINARY-CHAR> TO <group> compiled clean and stored '065 '. MoveBinder now asks the whole chain MoveTable16.Validity (SR2, SR6-SR8, SR9, SR10) for EVERY receiver; SR8 refuses a group receiver by its letter ('identifier-2 shall reference a numeric or numeric-edited item') - the group exemption is Table 16's (14.9.25.4 GR4) and SR10 applies only 'for all other cases not described in Syntax rules 8 and 9'. The same chain answers INITIALIZE REPLACING (14.9.20.3 SR4), MOVE CORRESPONDING (14.7.6 rule 2) and the BY CONTENT argument screen (14.8.2.3.3 rule 2d: a BINARY-LONG argument at a PIC X formal is COBOL0828, was LK-X=[0000]). Measured at 2002/2014/2023: COBOL0819.",
+ "state": "OK"
+}

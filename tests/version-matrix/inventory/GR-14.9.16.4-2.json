@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.16.4-2",
+ "section": "14.9.16.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "GENERATE statement",
+ "rule-digest": "5c30de9c4b4d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitGenerate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore",
+ "test-ref": "conformance:cases/14.9.16-GENERATE/l1c12_generate_detail_and_summary",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR2: GENERATE report-name-1 \"results in the same processing as for a GENERATE data-name statement for the same report, except that no detail is printed. This process is called summary reporting.\" (cite.py --check 14.9.16.4 OK, 2)). BindGenerate returns BoundGenerate(summary, null) and the emitter passes null to Generate. GenerateCore runs the same GR4/GR5 control-break path and the same SUM accumulation. Only the final `detailName is not null` presentation is skipped. probe out/probe/generate/g1.cob (pinned cobol.exe, --std 2023): a summary GENERATE R-1 with no control break printed nothing. A summary GENERATE R-1 after K1 changed 2->3 printed CF2 21, CF1 21, CH1 31, CH2 31 and no DE line, which matches the spec. The second sentence only defines the term 'summary report' and has no operational content. No spec-derived test exercises summary reporting, so test-ref is empty. || editions as adjudicated: 85, 2002, 2014, 2023 (Report Writer is present in every edition; the 2023 Annex E lists no change to GENERATE)",
+ "state": "OK"
+}

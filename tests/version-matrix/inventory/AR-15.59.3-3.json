@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.59.3-3",
+ "section": "15.59.3",
+ "kind": "AR",
+ "ordinal": 3,
+ "subject": "MAX function",
+ "rule-digest": "ee1404c10555",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckRepertoireArgs",
+ "test-ref": "conformance:cases/15.59.3-Argument-rules/pb35-zero-length-literal-max-argument",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Existing golden exercises this branch alone: FUNCTION MAX(\"\" \"AB\") - r1's negative class list and r2's all-same-class cannot fire on two alphanumeric literals, so the COBOL1627 the .err pins can only be r3.",
+ "state": "OK"
+}

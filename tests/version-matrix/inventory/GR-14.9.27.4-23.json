@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.27.4-23",
+ "section": "14.9.27.4",
+ "kind": "GR",
+ "ordinal": 23,
+ "subject": "OPEN statement",
+ "rule-digest": "14b4d331e670",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#OpenShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitSharingRegistration",
+ "test-ref": "conformance:cases/14.9.27-OPEN/pb316_open_group_scope; conformance:cases/14.9.27-OPEN/pb322_default_sharing_by_open_mode; conformance:cases/14.9.27-OPEN/pb322_clauseless_reader_sees_record_lock; unit:OpenTable19Tests.ImplementorDefault_IsAFunctionOfTheOpenMode; unit:OpenGroupScopeDriftTests.EachOpenEntry_CarriesOnlyItsOwnGroupsPhrases",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "THIRD SENTENCE LANDED (kb/Work PB322 determination A, w1013m): 'the implementor shall define the sharing mode that is established for each file connector' when neither a SHARING phrase nor a SHARING clause is written - the mode is established at SharedOpenAttempt from the OPEN mode (INPUT = READ ONLY, otherwise NO OTHER) and documented at docs/CONFORMANCE.md DOC-A.1-77 / DOC-A.1-131. All three sentences now conform: (1) phrase overrides clause and is per-group (PB316), (2) no phrase = file control entry, (3) neither = the documented default. The first two lines of pb316_open_group_scope did not move (F-A is NO OTHER, F-E READ ONLY: 00/00/61 either way).",
+ "state": "OK"
+}

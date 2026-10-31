@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-12.4.5.6.2",
+ "section": "12.4.5.6.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "ALTERNATE RECORD KEY clause",
+ "rule-digest": "a6e9b6472afe",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#alternateKeyClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#recordKeySourcePhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#alternateKeySuppressWhen; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAlternateKeySuppressWhen; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CaptureRecordKeySource",
+ "test-ref": "conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb756-alternate-record-omitted; conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb756_alternate_record_key_spellings; conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099_record_key_source; conformance-test:FileControlKeyRuleSpecTests.SourcePhrase_CompilesFrom2002_AndIsAnIntroductionBelow; conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099-record-key-source-85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB756 (landed, wave 1019 F). cite.py --check 12.4.5.6.2 \"ALTERNATE RECORD KEY\" -> OK §12.4.5.6.2 (figure notes: ALTERNATE, RECORD, SOURCE, DUPLICATES and SUPPRESS underlined; KEY, IS, WITH and WHEN not). cite.py --check 8.3.2.4.3 \"uppercase words that are not underlined are called optional words\" -> OK §8.3.2.4.3. RECORD measured underlined on printed page 350 / folio 320 (box 131.86-171.34, rule 133.25-170.36, 94.0% cover). `alternateKeyClause` read `ALTERNATE RECORD? KEY? IS? …` and compiled `ALTERNATE KEY IS F-D` at exit 0 at every edition; it now reads `ALTERNATE RECORD KEY? IS? …` and that source is COBOL0312 at 85/2002/2014/2023 (negative/pb756-alternate-record-omitted). The three printed spellings `ALTERNATE RECORD KEY IS k`, `ALTERNATE RECORD k` and `ALTERNATE RECORD KEY k WITH DUPLICATES` compile and retrieve by their keys at --std 85 (conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb756_alternate_record_key_spellings). ⚠ GnuCOBOL 3.2 accepts `ALTERNATE KEY IS k` (a vendor extension); ISO underlines RECORD, so the spec controls (CLAUDE.md rule 1). The other facets (KEY/IS/WITH/WHEN optional, DUPLICATES-then-SUPPRESS order, SUPPRESS 2023 gate, the SOURCE arm declined by COBOL1954, the subscript refusal COBOL2024) were verified by registrar 14a and are unchanged. [editions: 85,2002,2014,2023; SUPPRESS WHEN from 2023 only, Annex E.3.3 item 42] kb/Work PB1099 Q1 (w1095i): the record-key SOURCE phrase is PROVIDED (owner rule R65); both key forms are provided; the golden writes the optional-word minimum ALTERNATE RECORD IX-AK SOURCE IX-D IX-C WITH DUPLICATES.",
+ "state": "OK"
+}

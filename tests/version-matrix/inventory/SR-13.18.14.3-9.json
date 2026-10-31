@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.14.3-9",
+ "section": "13.18.14.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "COLUMN clause",
+ "rule-digest": "d3a2686e0a4e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportColumnClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindReportEntry; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ReportColumnAlignmentNotAbsolute",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb1220_column_alignment; conformance:cases/13.18.14-COLUMN/pb1220-column-alignment-relative",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "(kb/Work PB1220, wave 1005 A). Sentence 1 ('If LEFT, CENTER, or RIGHT is specified, all the operands shall be absolute') is COBOL2711 at bind: COLUMN RIGHT PLUS 5 is refused by the rule itself. Sentence 2 (LEFT assumed for an absolute operand with no alignment word) is ReportColumnSpec's default Left, witnessed by the bare COLUMN 33 item of pb1220_column_alignment. cite.py --check 13.18.14.3 OK 9).",
+ "state": "OK"
+}

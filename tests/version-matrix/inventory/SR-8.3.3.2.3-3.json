@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.3.2.3-3",
+ "section": "8.3.3.2.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Alphanumeric literals",
+ "rule-digest": "d4e172bcca6f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#STR_BODY; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#Decode; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#SplitLiteral",
+ "test-ref": "conformance-test:ApostropheValueDifferentialTests.EmbeddedDelimiter_DecodesToOneCharacter_PerForm",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 8.3.3.2.3 \"Two contiguous quotation symbol characters matching the quotation symbol used in the opening delimiter\" OK. STR_BODY's per-delimiter alternation ('\"\"' in the quote arm, '\\'\\'' in the apostrophe arm) and Decode's Replace(new string(q,2), q) collapse only the OPENING delimiter's doubling. Adversarial edge (the non-matching symbol stays literal content): probe p1 'a\"\"b' -> a\"\"b and \"a''b\" -> a''b (both kept doubled, correct), 'it''s' -> it's, \"a\"\"b\" -> a\"b. The named test asserts A'B and A\"B computed from the rule. || editions as written by the adjudicator: 2014, 2023 (Annex E itemizes the 2014->2023 delta and lists no change to 8.3.3.2, so the rule stands in both; the 1985/2002 edge is NOT derivable in-repo -- no 2002 or 1985 text is held)",
+ "state": "OK"
+}

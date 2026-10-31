@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-105",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 105,
+ "subject": "I-O status, permanent error (technique for error correction)",
+ "rule-digest": "a5b835be81fd",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-105; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#PermanentErrorReplay; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReadExceedsRecordMaximum",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/pb1541_permanent_error_remains_in_effect; unit:PermanentErrorInEffectTests.RecordSequential_EveryVerbReplaysThePermanentError_AndCloseEndsIt; unit:PermanentErrorInEffectTests.Indexed_EveryVerbReplaysThePermanentError_AndCloseEndsIt; unit:PermanentErrorInEffectTests.Relative_RegistryVerbs_ReplayTheBoundaryError_UnlockAndDeleteFileToo_AndCloseEndsIt; unit:PermanentErrorInEffectTests.FailedOpen_LeavesNoConditionInEffect_TheNextOpenStartsFresh",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1541: the technique is CLOSE (documented). A '3x' status assigned to an OPEN connector begins the permanent error (FileConnector.Status setter, the one status path), every later statement but CLOSE replays the same status without touching the file (PermanentErrorReplay asked once in each verb family's shared precondition, WRITE entries, OPEN, UNLOCK and DELETE FILE), and a completed CLOSE ends it. Golden pb1541_permanent_error_remains_in_effect (relative '34' then WRITE, READ, REWRITE, DELETE, START, UNLOCK, OPEN replayed; CLOSE then OPEN I-O writes) and the organization x verb matrix PermanentErrorInEffectTests. retired-witness: unit:PermanentErrorInEffectTests (a class-level ref does not resolve as a test; replaced by its methods)",
+ "state": "OK"
+}

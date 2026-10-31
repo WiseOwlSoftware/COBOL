@@ -104,10 +104,8 @@ public sealed class AnnexA1RegisterDriftTests
         var filed = json.GetProperty("filed").EnumerateArray().Select(x => x.GetInt32()).ToHashSet();
         var withdrawn = json.GetProperty("unreachable").EnumerateArray().Select(x => x.GetInt32()).ToHashSet();
 
-        string path = TestRepo.VersionMatrix("traceability-inventory.json");
-        using var doc = JsonDocument.Parse(File.ReadAllText(path));
         var verdicted = new List<int>();
-        foreach (var e in doc.RootElement.EnumerateArray())
+        foreach (var e in TraceabilityInventory.Rows)
         {
             if (e.GetProperty("kind").GetString() != "DOC") continue;
             string verdict = e.TryGetProperty("verdict", out var v) ? v.GetString() ?? "" : "";

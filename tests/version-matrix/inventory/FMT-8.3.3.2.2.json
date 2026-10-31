@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.3.3.2.2",
+ "section": "8.3.3.2.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Alphanumeric literals",
+ "rule-digest": "8eef1f14d8a9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#STR_BODY; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#HEX_BODY; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#nonNumericLiteral; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#GateFormat",
+ "test-ref": "conformance:cases/8.3.3.2-Alphanumeric-literals/r03_hexadecimal_national_and_boolean_literals; conformance:cases/8.3.3.2-Alphanumeric-literals/pb1545_hex_alphanumeric_literal; conformance:cases/8.3.3.2-Alphanumeric-literals/pb1545-hex-alphanumeric-literal-below-2002; conformance-test:DirectiveLiteralScreenTests.LiteralFormatEdition_IsGatedInACompiledBranchOnly",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Format 1 quote/apostrophe with character-1 optional (STR_BODY `(...)*`), Format 2 X\"...\"/X'...' with the hex sequence optional (HEX_BODY is `[x] STR_BODY`, which admits zero length; caseInsensitive so x\"4a\" also lexes; 3.98 makes A-F equivalent to a-f). cite.py --check 8.3.3.2.2 \"hexadecimal-alphanumeric\" OK. Probe p1 (probe dir E:/Temp/claude/E--COBOL/a700c052-f9e4-4942-84ff-a13c7505d6ec/scratchpad/adj-d2/out/probe/anlit): 'it''s', \"a\"\"b\", X'4142', x\"4a4b\", X\"\" all lex and decode ([it's][a\"b][AB][JK][    ]). r03 golden rows 13/15/17/18 pin X\"\", X\"4142\", X'', X'4142' (both delimiters of Format 2, zero length); Format 1 apostrophe/quote parity is also pinned by conformance-test:ApostropheValueDifferentialTests.EmbeddedDelimiter_DecodesToOneCharacter_PerForm. The X\"GG\" (non-hex body) lexing hole is SR5's defect, recorded there. || editions as written by the adjudicator: 2014, 2023 (Annex E itemizes the 2014->2023 delta and lists no change to 8.3.3.2, so the rule stands in both; the 1985/2002 edge is NOT derivable in-repo -- no 2002 or 1985 text is held) retired-witness: src/Cobol.Net.Compiler/Validation/LiteralScreenPass.cs#GateFormat (kb/Work PB1616 moved LiteralScreenPass (Compiler/Validation) to LiteralScreen (Frontend/Parsing) so the directive lane asks the same body; the witness is the same code at its new path)",
+ "state": "OK"
+}

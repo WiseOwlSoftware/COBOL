@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.63.4-3",
+ "section": "13.18.63.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "VALUE clause",
+ "rule-digest": "8e0abea2dd5c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs",
+ "test-ref": "conformance:cases/13.7-Linkage-section/pb499_table_value_linkage_and_file_2002",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB499, LANDED — RE-VERDICT ONLY, nothing was fixed here. \"In the linkage section, VALUE clauses take effect only during the execution of an explicit or implicit INITIALIZE statement\" (§13.18.63.4 3)). The PARTIAL verdict was the FORMAT-2 half: §13.18.63.4 GR11 imports GR3 into format 2, and the INITIALIZE lane could not see the table carrier at all. PB418 split §14.9.20.4 GR5c's qualification from GR6's sender and routed the VALUE read through DataItem.ValueAt, which is exactly the fix this note prescribed, reached by a different carrier; tests/WiseOwl.Cobol.Tests.Unit/InitializeLaneDriftTests pins that the binder reads a VALUE only through ValueAt, so a THIRD carrier is automatic rather than invisible. RE-MEASURED on this worktree's own build, format 2: a callee whose formal is `01 L. 05 LE PIC X(2) OCCURS 3 VALUES ARE \"AA\" \"BB\" FROM (1) TO (2).` over a caller's `PIC X(6) VALUE \"......\"` reads SUB-BEFORE=[......] on entry (GR3's negative half — the VALUE did NOT take effect at activation) and SUB-AFTER=[AABB..] after `INITIALIZE L ALL TO VALUE`, with the caller seeing CALLER=[AABB..] (§14.9.4.4 BY REFERENCE). Occurrence 3 keeps the caller's dots, which is §14.9.20.4 GR5 c) 1. c) — only the occurrences the clause gives a value to qualify — and is the leg that tells a per-occurrence map from a whole-table fill. The row was defective for lack of a witness, not for lack of a fix; the golden is that witness.",
+ "state": "OK"
+}

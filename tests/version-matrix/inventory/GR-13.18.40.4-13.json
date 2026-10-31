@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.40.4-13",
+ "section": "13.18.40.4",
+ "kind": "GR",
+ "ordinal": 13,
+ "subject": "PICTURE clause",
+ "rule-digest": "7a700a953253",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#Analyze; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeFloatEdited",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb66_float_edited_picture; conformance:cases/13.18.40-PICTURE/pb66-float-edited-picture-symbols; unit:LoudGuardTests.Analyze_FloatEdited_LegalShape_ClassifiesNumericEdited; unit:LoudGuardTests.Analyze_FloatEdited_IllegalSignificandOrExponent_1658",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB66 / D21). (a) the fixed-point numeric-edited definitions are the long-standing Analyze classification (NIST NC-series editing goldens); (b) the floating-point form — 'two parts, separated without any spaces, by the symbol E', the significand a numeric or fixed-point numeric-edited character-string with neither floating insertion nor zero suppression with replacement, the exponent +9 / +99 / +999 / +9999 — is AnalyzeFloatEdited: one E, the exponent shape, and (with §13.18.40.6 Table 10 row E, rendered from the PDF to confirm the OCR) only 9 B 0 / , . and a leading fixed sign before the E; V P S Z * CR DB the currency symbol, a second E, an EDITING phrase and a SIGN clause are each COBOL1658 with a per-rule message. Category numeric-edited (PicInfo.IsFloatEdited the discriminator). (b) is a 2002 introduction — COBOL0900 below 2002 (registry row pic-external-float-2002, negative pb66-float-edited-at-85).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.1.5.2-2",
+ "section": "8.8.1.5.2",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Standard-decimal arithmetic",
+ "rule-digest": "32d566224960",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolDec.cs#Clamp",
+ "test-ref": "conformance:cases/8.8.1.5.2-Standard-decimal-intermediate-data-item/pb145_pow_range; conformance:cases/8.8.1.5.2-Standard-decimal-intermediate-data-item/pb145_round_prohib; unit:CobolDecPowRangeTests.BelowRangeExponent_IsUnderflow_UnderEveryIntermediateMode; unit:CobolDecPowRangeTests.SubnormalTie_UnderProhibited_IsUnderflowByName; conformance:cases/8.8.1.5.2-Standard-decimal-intermediate-data-item/pb75_sdidi_overflow_outside_arithmetic; unit:CobolDecRoundingTests.FarBelowSubnormal_IsUnderflow_NotOneQuantum",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "LANDED (kb/Work PB145): r2's two names now map one-to-one onto the two physical directions on EVERY path. The Pow escape names by magnitude (0.5 ** 600000 UNDERFLOW beside 2 ** 600000 OVERFLOW - pb145_pow_range pins both through FUNCTION EXCEPTION-STATUS in the ON SIZE ERROR phrase); Clamp's below-range landing keeps EC-SIZE-UNDERFLOW under INTERMEDIATE ROUNDING IS PROHIBITED (was 14.7.4.3 r7's EC-SIZE-TRUNCATION - pb145_round_prohib discriminates the two raise sites: the 35-digit inexact reduction IS r3d TRUNCATION, the below-range landing is r2 UNDERFLOW). The COBOL-level underflow evidence the refuter found missing exists now in both shapes (the ** escape and the computed Div/Mul chain). THE RECORDING HALF of the same finding: EC-SIZE-UNDERFLOW was MISSING from EcBinder.SizeNames (the same missing-member shape as DELETE FILE in QueryFor), so >>TURN EC-SIZE-UNDERFLOW never reached a statement's mask and EXCEPTION-STATUS read a stale name inside the phrase - added. The tiny-and-inexact nonzero-quantum reading is SETTLED as a CONFORMANCE.md determination: r2's too-small is the round-to-zero test; gradual underflow onto a nonzero quantum sets nothing.",
+ "state": "OK"
+}

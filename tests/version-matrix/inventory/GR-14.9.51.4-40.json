@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-40",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 40,
+ "subject": "WRITE statement",
+ "rule-digest": "2ad780e17de6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReleaseOrdinals; src/WiseOwl.Cobol.Runtime/IO/KeyedStore.cs#Release",
+ "test-ref": "conformance:cases/14.9.51-WRITE/l1c38_write_alt_key_dup_order",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 14.9.51.4 'If the DUPLICATES phrase is not specified and the alternate key value is non unique, the execution of the WRITE statement is unsuccessful' -> OK 40)). Code: for each alternate key, `exists && !_alts[i].Dups` gives '22' and the record is not added. With DUPLICATES, the record is added with a fresh release ordinal under every key (ReleaseOrdinals), so a sequential walk returns duplicates in the order they were written. Probe dir: out/probe/write-statement-p3/ (pinned adj-d1 cobol.exe). idx1.cob: FU (ALTERNATE U-ALT, no DUPLICATES): U01/ZZ gives 'U1 OK 00', U02/ZZ gives 'U2 INV 22', and a random READ by ZZ still returns U01. Through FX/FR (X-ALT WITH DUPLICATES): K20, K30, K40, K50 are written sequentially and K05, K47 dynamically, all with alternate key AA, and START KEY = R-ALT then READ NEXT walks K20, K30, K40, K50, K05, K47. That is the write order, not prime-key order. The '02' of §9.1.13.2 2c accompanies each duplicate. The '22' that a SUPPRESSED alternate key raises today is a GR41 defect, not this rule's. No spec-derived golden is aimed at the WRITE side (l1_read_alt_dup_walk is a READ GR26 golden), so test-ref is empty. [editions as adjudicated: 85, 2002, 2014, 2023 (the rule is in every edition's relative/indexed WRITE text; Annex E records no 2014->2023 change to it)] retired-witness: src/Cobol.Net.Runtime/IO/KeyedStoreTable.cs#KeyedRec (the INDEXED organization moved to the keyed store engine (kb/Work PB3334; DESIGN-runtime-library 2.2.1.4): the WRITE releases n + 1 entries under ONE fresh ordinal (IndexedStore.Release); the record list's element went with the whole store) retired-witness: src/Cobol.Net.Runtime/IO/KeyedStoreTable.cs#Release (the whole-store model's remains are deleted (kb/Work PB3335; DESIGN-runtime-library 2.2.1.13): KeyedStoreTable.cs is split: the engine handle and its two views are KeyedStore.cs (kb/Work PB3335))",
+ "state": "OK"
+}

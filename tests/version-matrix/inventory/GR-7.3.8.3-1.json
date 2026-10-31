@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.8.3-1",
+ "section": "7.3.8.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Constant conditional expression",
+ "rule-digest": "43531d0c81e9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#cceOr; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#cceXor; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#cceAnd; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#cceNot; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvalCceXor; src/WiseOwl.Cobol.Frontend/Expressions/LogicalOperatorGate.cs#Check",
+ "test-ref": "conformance:cases/7.3.8-Constant-conditional-expression/pb1390_abbreviated_tail_xor; conformance:cases/7.3.8-Constant-conditional-expression/pb1371-cce-not-not; conformance:cases/7.3.8-Constant-conditional-expression/pb1371-cce-xor-below-2023; unit:ConditionTierConnectiveDriftTests.EachCceTier_HasTheConnectiveShapeOfItsConditionTier",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1371 landed (wave 68 s). Rule: 'Complex conditions are evaluated according to the rules in 8.8.4.9' (cite.py --check 7.3.8.3 OK); §8.8.4.9 XOR \"true if one but not both\" (--check OK); §8.8.4.11.3 precedence NOT > AND > XOR > OR and Table 5 'NOT NOT' not permissible (--check OK). The cce tiers gained cceXor (the ONE xorOperator rule) between OR and AND and a non-recursive cceNot (NOT? ccePrimary); ConditionTierConnectiveDriftTests requires each cce tier's connective shape to equal its runtime tier's. Golden K1-K5 at 2023: 1 = 2 XOR 1 = 1 TRUE; EXCLUSIVE-OR both true FALSE; 1 = 1 OR 1 = 2 XOR 1 = 1 TRUE (XOR binds tighter than OR); 1 = 1 XOR 1 = 1 AND 1 = 2 TRUE (AND tighter than XOR); NOT 1 = 2 XOR 1 = 2 TRUE. Below 2023 the XOR connective is COBOL0900 (LogicalOperatorGate, per fragment); >>IF NOT NOT 1 = 1 is COBOL1619 at every edition.",
+ "state": "OK"
+}

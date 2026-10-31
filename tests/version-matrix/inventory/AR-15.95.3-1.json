@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.95.3-1",
+ "section": "15.95.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "TEST-NUMVAL-F function",
+ "rule-digest": "27c3311d6105",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Admissible; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfPlace; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+ "test-ref": "conformance:cases/15.95.3-Argument-rule/l1_test_numval_f_class_screen; conformance:cases/15.95.3-Argument-rule/l1-test-numval-f-alphabetic-item; conformance:cases/15.95.3-Argument-rule/l1-test-numval-f-numeric-item",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "PARTIAL -> CONFORMS, re-verdicted by the kb/Work PB245 golden round (2026-09-09). THE RULE: §15.95.3 r1 'Argument-1 shall be an alphanumeric or national literal or a data item of class alphanumeric or national' (cite.py --check 15.95.3 on that sentence -> OK, rule 1). DERIVED BEFORE THE RUN from §8.5.2.1 Table 2, as an ADMIT set and an EXCLUDE set: class ALPHANUMERIC reaches categories alphanumeric, alphanumeric-edited and numeric-edited (display), class NATIONAL reaches national and national-edited, and a group item is class alphanumeric - all admitted; class ALPHABETIC is a DISTINCT class with its own Table 2 row and r1 does not name it (§15.96.3 r1 shows the drafters writing 'class alphabetic, alphanumeric, or national' when they mean to include it), and class NUMERIC is not named either - both excluded. MEASURED: an alphanumeric literal, a PIC X item, a PIC ZZ9.99 numeric-edited item, a PIC N(8) national item and a group item all bind and evaluate; a PIC A(6) item and a PIC 9(6) item are both rejected COBOL1627 at 2002, 2014 and 2023, each message naming the class it found and citing this rule. THE ROW'S OPEN HALF WAS THE ALPHABETIC EXCLUSION AND IT IS CLOSED: kb/Work PB124 wave 5 gave CobolClass its Alphabetic member and routed a PIC A item to it through PicInfo.IsAlphabetic in ClassOfPlace, and TEST-NUMVAL-F's Verified row moved from the class-worded 's' set to the _t_ set, which excludes it. The row's note ('CobolClass has no Alphabetic member ... the distinction is not recoverable here') is stale, and so was the enum's own class remark, which still said the member could not exist - corrected in this change set. ⚠ THE ADMIT SIDE IS FIXTURED TOO, deliberately: numeric-edited is the category Table 2 FOLDS INTO class alphanumeric, so a screen narrowed to categories instead of the class column would close the alphabetic hole and over-reject conforming source, invisibly from the negatives alone.",
+ "state": "OK"
+}

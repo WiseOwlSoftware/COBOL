@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.4.5.3-5",
+ "section": "13.4.5.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "File description entry",
+ "rule-digest": "98e48aad5011",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#FileDescriptionClauseAdmitted",
+ "test-ref": "conformance:cases/13.4.5-File-description/pb1238-fd-linage-relative; conformance:cases/13.4.5-File-description/pb1238-report-fd-linage; conformance:cases/13.4.5-File-description/pb1238-fd-file-control-clause; conformance:cases/13.4.5-File-description/pb1238_fd_formats_admitted",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1238: the FD's format is decided once (FileDescriptionFormats.Of: relative/indexed -> Format 2; else a REPORT clause anywhere in the entry -> Format 3; else Format 1, SR5/SR7/SR8) and every clause is asked against the rendered §13.4.5.2 list of that format before it binds: LINAGE / CODE-SET / FORMAT on a relative or indexed file, LINAGE on a report FD and a REPORT clause on a relative file are refused COBOL2604 and not bound. Every Format 1 and Format 2 clause stays admitted (85/pb1238_fd_formats_admitted). FileDescriptionFormatDriftTests holds the table total over the grammar's alternatives.",
+ "state": "OK"
+}

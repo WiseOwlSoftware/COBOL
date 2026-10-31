@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.10.4-4",
+ "section": "7.3.10.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "COBOL-WORDS directive",
+ "rule-digest": "dbf4c7dc3708",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#NextToken; src/WiseOwl.Cobol.Frontend/Parsing/CobolWordsRewriter.cs#Plan; src/WiseOwl.Cobol.Compiler/Binding/FunctionWord.cs#FunctionWord",
+ "test-ref": "conformance:cases/7.3.10-COBOL-WORDS/pb1372_cobol_words_substitute_keyword_functions; conformance:cases/7.3.10-COBOL-WORDS/pb1372_cobol_words_substitute_keyword_omitted; conformance:cases/7.3.10-COBOL-WORDS/cobol_words_substitute; unit:CobolLexerWordRetypeDriftTests.ASubstituteForPicture_EntersPicMode_AndPictureIsADataName",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1372 landed. GR4 (cite.py OK 7.3.10.4 4)): SUBSTITUTE literal-4 BY literal-5 gives literal-5 literal-4's role in every syntax - PICTURE/LOOKS enters PICMODE (007), and the intrinsic names that are also lexer keywords (SUM/TOTAL = 06, LENGTH/LEN = 07, SIGN/SGN = -1, RANDOM/RND) bind as functions, in the FUNCTION form, the REPOSITORY specifier and the keyword-omitted form - while literal-4 is a user word. The directive is applied to a name once (FunctionWord): the second application read the canonical literal-4 as removed. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore (kb/Work PB1372 landed: the double application in IntrinsicBinder.BindIntrinsicCore is gone (FunctionWord resolves the name once), CobolWordsRewriter.Rewrite is deleted and the PIC rule carries no mode command; the replacement witnesses are named in this record) retired-witness: src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4#PIC (kb/Work PB1372 landed: the double application in IntrinsicBinder.BindIntrinsicCore is gone (FunctionWord resolves the name once), CobolWordsRewriter.Rewrite is deleted and the PIC rule carries no mode command; the replacement witnesses are named in this record) retired-witness: src/Cobol.Net.Frontend/Parsing/CobolWordsRewriter.cs#Rewrite (kb/Work PB1372 landed: the double application in IntrinsicBinder.BindIntrinsicCore is gone (FunctionWord resolves the name once), CobolWordsRewriter.Rewrite is deleted and the PIC rule carries no mode command; the replacement witnesses are named in this record)",
+ "state": "OK"
+}

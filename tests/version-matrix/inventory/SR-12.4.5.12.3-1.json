@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.12.3-1",
+ "section": "12.4.5.12.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "RECORD KEY clause",
+ "rule-digest": "ab11777be5de",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Rules; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#IsSubjectToOccurs",
+ "test-ref": "conformance:cases/12.4.5.12-RECORD-KEY/pb354-record-key-occurs; conformance:cases/12.4.5.12-RECORD-KEY/pb699-record-key-occurs-entry-only; conformance-test:FileControlKeyRuleSpecTests.IndexedEntryRule_ReportsAtEveryEdition_WithOrWithoutAKeyedVerb; conformance-test:FileControlKeyRuleSpecTests.SourcePhraseOperandRules_ReachEachDataName2_Once",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "RE-SITED 2026-09-06 (kb/Work PB699); rule unchanged. RULE (--check 12.4.5.12.3 1): \"Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses.\" The screen is FileControlKeyRules, one table keyed by organization and key role, run from DataBinder.ResolveFiles over every declared file. conformance:cases/12.4.5.12-RECORD-KEY/pb699-record-key-occurs-entry-only is the discriminator against the older pb354 case, which contains a READ. DATA-NAME-2 is the SOURCE phrase's operand and has no reachable spelling: the grammar's recordKeyClause is `RECORD KEY? IS? dataReference` with no SOURCE alternative, and docs/CONFORMANCE.md 2 row 40 declines A.3 item 40, so honouring the ban on data-name-1 is the whole of what this rule can require here. kb/Work PB1099 Q1 (w1095i): the record-key SOURCE phrase is PROVIDED (owner rule R65); each data-name-2 is screened by the data-name-1 row. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#KeyedValidateFile (KeyedValidateFile was removed when the file-control KEY rules became one table, FileControlKeyRules (kb/Work PB699, 3c5b4cd4d))",
+ "state": "OK"
+}

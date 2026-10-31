@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-192",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 192,
+ "subject": "STOP and GOBACK statements (constraints on the value of the STATUS literal or on the contents of the data item reference",
+ "rule-digest": "7f334834615b",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-192; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#ExitStatus; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#ExitStatus",
+ "test-ref": "conformance-test:StopGobackExitCodeTests.TerminationStatus_SetsProcessExitCode; conformance-test:StopGobackExitCodeTests.NonNumericStatusOperand_IsLegalAndInterpretedNumerically; conformance-test:StopGobackExitCodeTests.StatusBeyondTheHostExitCode_IsClampedNeverWrapped; conformance-test:StopGobackExitCodeTests.FigurativeAllAndBooleanStatusLiterals_RenderUnderTheGR5Mapping",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "A.1 item 192 required + documented. cite.py --check 14.9.42.4 'Any constraints on the value of literal-1 or the contents of the data item referenced by identifier-1 are defined by the implementor' -> OK §14.9.42.4 5); cite.py --check 14.9.18.4 'are defined by the implementor' -> OK §14.9.18.4 10); cite.py --check 14.9.42.4 'If the ERROR phrase is specified, the operating system will indicate an error termination ...' -> OK §14.9.42.4 2). Doc-rows-1 OMITTED this row because kb/Work PB1178 contested (a) the long->int WRAP and (b) the value-wins-over-ERROR precedence. (a) FIXED by w59b (saturating narrowing, RuntimeApi.HostInt64 / CobolNum.Position32; GR-14.9.42.4-5 closed); (b) settled by the orchestrator under the standing owner-decision protocol on PB1178 2026-09-24: the GnuCOBOL-surveyed determination (value wins) stands (rule 1 precedence: ISO silent on precedence -> GnuCOBOL). Probes at pin 80de60472 (run/d5/S1..S6.cob, --std 2023; exit codes as Git-Bash reports them, low 8 bits): ERROR STATUS 0 -> 0; ERROR STATUS 4294967296 -> 255 (= low 8 bits of 2147483647, clamp, not wrap to 0); ERROR STATUS \"ABEND\" -> 0; NORMAL STATUS 7 -> 7; WITH ERROR -> 1; ERROR STATUS 300 -> 44. NORMAL STATUS 7 compiles at --std 2014 and 2002; at --std 85 COBOL0900 'STOP RUN WITH status requires COBOL-2002'. The row agrees with DOC-A.1-94 (GOBACK) and DOC-A.1-193 (no error-termination mechanism) and the §3 bullet. On landing, PB1178 drops DOC-A.1-192 from inventory_rows (closes_rows) and GR-14.9.42.4-2/-3 get re-verdicted on this determination. Owning note: kb/Work/PB1178.",
+ "state": "OK"
+}

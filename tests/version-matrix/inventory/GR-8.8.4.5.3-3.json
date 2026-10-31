@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.5.3-3",
+ "section": "8.8.4.5.3",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Simple condition-name condition (conditional variable)",
+ "rule-digest": "10127fa11ae6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderCondition88; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderMembershipTest",
+ "test-ref": "conformance:cases/8.8.4.5-Simple-condition-name-condition/l1_value_values_equivalent",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 8.8.4.5.3 \"The result of the test is true if one of the values corresponding to condition-name-1 equals the value of its associated conditional variable\" -> OK §8.8.4.5.3 3). RenderCondition88 ORs one membership test per value (empty set -> false, PB501). Probed: VALUE 1,3,5,7,9 over table elements holding 1,2,3 -> T F T; N-MULTI singleton 5 true only at 5; NOT R-ONE OF R2 -> T when the value is not in the set. l1_value_values_equivalent C-IN/C-OUT derives T for CV=3 in {1,2,3} and F for 7 from GR3. [editions as adjudicated: 85, 2002, 2014, 2023 (§8.8.4.5 carries no edition marking; the simple condition-name condition is base COBOL in every edition)]",
+ "state": "OK"
+}

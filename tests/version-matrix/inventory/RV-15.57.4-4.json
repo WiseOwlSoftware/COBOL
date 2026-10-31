@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.57.4-4",
+ "section": "15.57.4",
+ "kind": "RV",
+ "ordinal": 4,
+ "subject": "LOWER-CASE function",
+ "rule-digest": "1af630ef3213",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#LowerCase; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#LowerCase; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/pb64t5_case_locale_phrase; unit:CobolLocaleTests.CaseMapping_FollowsTheLocalesLcCtype",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB64 T5 (2026-08-19) — was PARTIAL (the condition 'when a locale is not in effect' was unimplemented: the invariant fold was taken unconditionally). Now the ELSE-ARM of r2 and r3: the invariant tables (CONFORMANCE.md §3; Annex A item 35) apply exactly when no LOCALE phrase is given and no classification locale is in effect for the operand's class — the PLAIN program of the golden lowers/uppers invariantly while the run unit's LC_CTYPE is Turkish. Rule --check verified at 15.57.4 4).",
+ "state": "OK"
+}

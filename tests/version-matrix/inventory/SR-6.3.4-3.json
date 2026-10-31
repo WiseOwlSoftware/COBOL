@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-6.3.4-3",
+ "section": "6.3.4",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Fixed-form reference format",
+ "rule-digest": "07ad05ede69f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#FixedFormConverter",
+ "test-ref": "conformance:cases/6.3.4-Program-text-area/l1c11_program_text_all_spaces",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (§6.3.4 3): \"All spaces.\" cite.py --check 6.3.4 \"All spaces\" -> OK §6.3.4 3). Code: a line shorter than 7 columns becomes an empty output line (AppendLine()). A line whose program-text area is all spaces goes through the default arm: StripInlineComment, then TrimEnd, which gives an empty line. Probe ffp15 has blank lines of 0 characters, 6 spaces, 7 characters, and a sequence number followed by 66 spaces, placed between division headers and inside the PROCEDURE DIVISION. It compiles and prints BLANKS-OK. The all-spaces line breaks only when it falls between the parts of a continued literal (ffp2 crash). That is §6.3.5's interspersing rule and is recorded under SR-6.3.5-1 and SR-6.3.5-2 (finding F1). No spec-derived test targets this row; SourceFormatTests.FixedSegment_TrailingBlankLine_Preserved is a §6.5 line-count test. || Editions (adjudicator, verbatim): 1985, 2002, 2014, 2023 || Code sites (adjudicator, verbatim; the converter is now FixedFormConverter): the line.Length < SourceAreaStart arm and the default arm with an all-space program-text area retired-witness: src/Cobol.Net.Frontend/Preprocessor/ReferenceFormatProcessor.cs#ConvertFixedToFree (ConvertFixedToFree was deleted by PB1800; FixedFormConverter is the converter it named)",
+ "state": "OK"
+}

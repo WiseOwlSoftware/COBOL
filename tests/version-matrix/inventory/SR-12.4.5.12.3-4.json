@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.12.3-4",
+ "section": "12.4.5.12.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "RECORD KEY clause",
+ "rule-digest": "40c5767b8f14",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#BeyondMinimum; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#KeyWindowOf; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#SourceOperands",
+ "test-ref": "conformance:cases/12.4.5.12-RECORD-KEY/pb1025-indexed-key-beyond-minimum; conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1025_key_after_dynamic_member; conformance-test:FileControlKeyRuleSpecTests.SourcePhraseOperand_BeyondTheMinimumRecordSize_IsSR4_ForThatOperandOnly",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1025. cite.py --check 12.4.5.12.3 \"data-name-1 and each data-name-2 shall be contained within the first n bytes of the record\" -> OK SR4. Unenforced before PB1025. A FileControlKeyRules row (COBOL0863) measures the RECORD KEY's furthest reach through RecordLayout.KeyWindowOf - its offset, or for a key a dynamic-length member precedes its fixed-run offset plus every preceding member at its maximum (13.18.43.4 GR8 b) - against FileModel.VaryMin (13.18.43.4 GR9 when integer-2 is unstated; D-FRA (iv) for an implied Format 2). A legal key after a dynamic member is located per record by CobolContiguousLayout.Position (CONFORMANCE.md section 3 D-KWV). Each data-name-2 of the SOURCE form (kb/Work PB1099, provided from 2002; review R1-3) is measured as its own operand - FileControlKeyRules.SourceOperands yields one per data-name-2 - and reported once, naming the operand beyond the minimum and not its siblings within it (FileControlKeyRuleSpecTests.SourcePhraseOperand_BeyondTheMinimumRecordSize_IsSR4_ForThatOperandOnly).",
+ "state": "OK"
+}

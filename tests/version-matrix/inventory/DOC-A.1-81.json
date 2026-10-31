@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-81",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 81,
+ "subject": "Floating-point numeric item (alignment when used as a receiving operand)",
+ "rule-digest": "0cd0d33fd63d",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-81; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolFloat.cs#ScaledToSingle; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolFloat.cs#StoreChecked; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#MoveEmitter; src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#DeviceFloat",
+ "test-ref": "conformance:cases/14.6.8.3-Floating-point-numeric-receiving-data-items/pb1110_float_short_every_landing",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "A.1 item 81 (floating-point numeric item, alignment when used as a receiving operand): required by 14.6.8.3 rule 1; A.1 does not require it documented, so the row is VOLUNTARY. The determination in docs/CONFORMANCE.md section 7 (one correctly rounded conversion into the receiver's own format, ties to even, never through a wider format) now holds for every binary32 landing: the PARTIAL of the earlier adjudication (binary32 in-range fit double-rounded) is closed by kb/Work PB1110 (MOVE arm: earlier landing; ACCEPT device transfer and the unit test ScaledToSingleTests: this landing; conformance:cases/14.6.8.3-Floating-point-numeric-receiving-data-items/pb1110_float_short_every_landing pins MOVE from five sender usages, COMP-1, ROUNDED COMPUTE / ADD GIVING, INITIALIZE REPLACING and the VALUE clause). cite.py --check 14.6.8.3 'the content of the receiving operand is set to the algebraic value of the sending operand' -> OK 14.6.8.3 1); cite.py --check 14.6.8.3 'in a manner consistent with the specifications of ISO/IEC 60559:2020' -> OK 14.6.8.3 2).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.42.3-3",
+ "section": "13.18.42.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "PROPERTY clause",
+ "rule-digest": "e044baafaa34",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ClausePlacementRules; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoBindPropertyClauses",
+ "test-ref": "conformance:cases/13.18.42-PROPERTY/pb1273-property-name-needs-qualification; unit:DataClausePlacementDriftTests.EveryElementaryOnlySubject_IsRefusedOnAGroup; conformance:cases/13.18.42-PROPERTY/pb1273_property_subject",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1273: the elementary half is an ElementaryOnly row of the data-clause placement table (a group PROPERTY is refused and defines no accessor); the qualification half counts same-named items in the object/factory data and refuses a non-unique name. The accessor's subject is the item carrying the clause, not the first same-named item (the wrong-answer arm).",
+ "state": "OK"
+}

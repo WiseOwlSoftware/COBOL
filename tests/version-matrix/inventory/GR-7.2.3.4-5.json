@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.2.3.4-5",
+ "section": "7.2.3.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "COPY statement",
+ "rule-digest": "6a60a1e5b941",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveStateRegistry.cs#ListingDirective2002",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-7.2.3.4-5",
+ "editions": "2002,2014,2023",
+ "notes": "GR5: 'At the completion of copying the library text into the compilation group, the LISTING directive that is in effect for the COPY statement itself is considered to be in effect, regardless of any LISTING directives in the library text.' No source listing is produced (docs/CONFORMANCE.md §5 prose: '>>LISTING / >>PAGE (§7.3.18 / §7.3.19) — no source listing is produced, so listing on/off and page ejects are inert'); the LISTING directive is recognized and consumed, carrying no state that could leak out of a copybook. Vacuously satisfied; no observable behaviour to test. || editions (adjudicator): 2002, 2014, 2023 (the LISTING directive is a §7.3 compiler directive; the rule is moot at 85, which has no directives)",
+ "state": "OK"
+}

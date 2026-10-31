@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.15.4-1",
+ "section": "13.15.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Report group description entry",
+ "rule-digest": "38e0dbf9bc8d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindReportEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindReportEntries",
+ "test-ref": "conformance:cases/13.15-Report-group-description/l1c27_report_group_level1_extent",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "'Each level 1 entry identifies a report group. The report group is defined by this entry and all its subordinate entries.' BindReportEntry opens a new ReportGroupModel on `level == 1` (int.TryParse, so `1` and `01` are the same). BindReportEntries computes each entry's subtree as the following entries of a higher level-number. ScreenReportEntryClausePresence derives elementary-ness from that same hierarchy. Probe gr1lvl (`1 D1 TYPE DE. 3 LINE 1. 5 COLUMN 1 ... 1 D2 TYPE DE. 3 LINE PLUS 1. 5 COLUMN 3 ...`, GENERATE D1 then D2) printed `A` on line 1 and `  B` on line 2: two groups, each built from its own subordinates. cite.py --check 13.15.4 'Each level 1 entry identifies a report group' -> OK. No existing spec-derived test is aimed at GR1 alone, so test-ref is empty. || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): 85, 2002, 2014, 2023 (the report group description entry is Report Writer nucleus syntax at every edition; no Annex E item changes §13.15 between 2014 and 2023)",
+ "state": "OK"
+}

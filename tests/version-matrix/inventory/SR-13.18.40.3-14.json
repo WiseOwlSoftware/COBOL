@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-14",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 14,
+ "subject": "PICTURE clause",
+ "rule-digest": "fea139985385",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#CheckDigitCapacity; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenPictureDigitCapacity",
+ "test-ref": "conformance-test:WideNumericTests.EditionGate_Pic32_RejectedAtEveryEdition; conformance-test:WideNumericTests.EditionGate_Pic19_RejectedAt85_NamingRequiredEdition; conformance:cases/13.18.40-PICTURE/pb529-picture-no-digit-position; conformance:cases/13.18.40-PICTURE/pb529-picture-editing-no-digit-position; conformance:cases/13.18.40-PICTURE/pb535-picture-no-category; conformance:cases/13.18.40-PICTURE/pb528_picture_editing_transparency_2023; unit:EditionContextTests.CheckDigitCapacity_AsksSr14sRangeAtBothEnds",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB529 landed (wave 1019 E). BOTH ENDS of SR14's range live in ONE method, EditionContext.CheckDigitCapacity: fewer than 1 digit position is COBOL2882, 19-31 need --std 2002 (COBOL0802), more than 31 is COBOL0801 at every edition. The lower bound used to be the caller's skip guard (DataBinder.ScreenPictureDigitCapacity asked DigitPositions > 0), so the exact count SR14 forbids was the one that skipped the check. MEASURED on this build: `PIC S`, `PIC V`, `PIC SV`, `PIC P`, `PIC PPP`, a lone `$` or `+` never reach the screen (the composition validator's SR12 a refuses them as COBOL1934 at every edition; negative/pb529-picture-no-digit-position, negative/pb535-picture-no-category), but `PIC LL EDITING L IS \":\"` DID: two simple-insertion character-1 (13.18.40.5 rule 3) satisfy SR12 a's 'at least two occurrences of character-1', describe zero digit positions (GR14 counts 9, Z, *, floating symbols and P) and was accepted - the guard was the live exemption, pinned as legal by pb528_picture_editing_transparency_2023's N02. N02 is now `9LL` (still the Table-10 transparency witness) and the LL shape is negative/pb529-picture-editing-no-digit-position (COBOL2882). The screen's domain is now named positively: an ANALYSED (PicInfo.AnalyzedCategory, so not a recovery profile) numeric or fixed-point numeric-edited picture the entry WROTE (PICTURE-less usages - INDEX, the pointers - are out of the domain by construction).",
+ "state": "OK"
+}

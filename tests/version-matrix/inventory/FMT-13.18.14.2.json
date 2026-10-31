@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.14.2",
+ "section": "13.18.14.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "COLUMN clause",
+ "rule-digest": "8af75d870eff",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportColumnClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportColumnOperand; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportColumnClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolScreen.g4#screenColumnClause",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb1220_column_alignment; conformance:cases/13.18.14-COLUMN/pb1220-column-alignment-at-85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "(kb/Work PB1220, wave 1005 A). Format 1 rendered from the PDF (printed p386): {COLUMN NUMBER|COLUMN NUMBERS|COLUMNS|COL NUMBER|COL NUMBERS|COLS} [LEFT|CENTER|RIGHT] [IS|ARE] {integer-1 | {PLUS|+} integer-2}... The grammar is now (COLUMN|COLUMNS|COL|COLS) (NUMBER|NUMBERS)? (LEFT|CENTER|RIGHT)? (IS|ARE)? reportColumnOperand+, CENTER a context-sensitive token (8.10, a user word elsewhere). The alignment brace is OPTIONAL in the grammar though the diagram prints a brace, because SR9 states 'If any of the operands is absolute and neither LEFT, CENTER, nor RIGHT is specified, LEFT is assumed' (cite.py --check 13.18.14.3 OK 9)). The alignment phrase gates 2002 with the other COLUMN forms (construct report-multi-column-2002; the 85 form is COLUMN NUMBER IS integer-1 alone). Re-affirmed 2026-10-22 (kb/Work PB3530) against the figure regenerated from the printed page: render_figure.py's brace-group layout now keeps every alternative inside its own enclosure, so the diagram's layout changed while its words did not (sweep_figures.py's word gate); the verdict stands on the printed format.",
+ "state": "OK"
+}
