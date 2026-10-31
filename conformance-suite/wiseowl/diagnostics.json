@@ -18359,6 +18359,48 @@
   ],
   "expect": "COBOL2021"
  },
+ "pb3766-contained-file-status-names-global-report-item": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL5092"
+ },
+ "pb3766-contained-odo-names-global-report-item": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL5092"
+ },
+ "pb3768-assign-using-names-report-item": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL5092"
+ },
+ "pb3768-record-key-names-report-item": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL5092"
+ },
+ "pb4109-level-01-multiple-line-at-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0900"
+ },
  "pb565-report-multiple-line-at-85": {
   "refuse-at": [
    "85"

@@ -527,10 +527,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // §12.3.3 SR1: "The configuration section shall not be specified in a program that is contained within
         // another program" — the container's applies (§12.3.4 GR1, InheritConfiguration). Diagnosed, then the
         // section is still walked below so a second diagnostic never masks this one.
-        if (UnitIsContained && program.environmentDivision()?.configurationSection() is not null)
+        if (UnitIsContained && program.environmentDivision()?.configurationSection() is { } containedConfiguration)
+        {
+            using var configurationAt = Edition.At(containedConfiguration);   // the section as written (kb/Work PB2034)
             Edition.Error(DiagnosticCatalog.ConfigurationSectionInContainedProgram,
                 "a CONFIGURATION SECTION is specified in a program contained within another program; the "
                 + "containing program's configuration section applies to it (ISO §12.3.3 SR1 / §12.3.4 GR1)");
+        }
 
         // ARITHMETIC mode validity (§11.9.5 / §8.8.1): NATIVE, STANDARD-DECIMAL, and plain STANDARD are
         // implemented. STANDARD arithmetic (the 2002 mode; obsolete 2014, removed 2023 — Annex E.2 item 21)
@@ -681,6 +684,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // The constant entries nothing has needed yet — a length phrase waiting for an operand described after it
         // binds here, with its operand bound (kb/Work PB1231).
         BindRemainingConstants();
+
+        // The containers' GLOBAL reports (§13.18.27.4 GR1/GR2), now that this unit's own names are all declared.
+        InheritContainerReports();
     }
 
     /// <summary>The C#-field-name scope at the class level, shared by FILE SECTION records, WORKING-STORAGE
@@ -1526,6 +1532,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// read at all.</para></summary>
     private void ResolveFileCollating(FileModel file)
     {
+        using var fileLevelAt = Edition.At(file.ClauseOrEntryAt(file.FileLevelCollatingAt));   // the file-level clause (kb/Work PB2034)
         if (file.FileLevelCollatingCount > 1)
             Edition.Error(DiagnosticCatalog.FileCollatingKey, $"file '{file.CobolName}': at most one file-level "
                 + "COLLATING SEQUENCE clause may be specified in one file control entry (ISO §12.4.5.7.3 SR3)");
@@ -2040,7 +2047,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // REPORT(S) clause (ISO §13.18.46): the FD hosts these reports — a report FILE (§9.1.22,
                     // legally record-less). Names resolve to ReportModels post-build (ResolveReports).
                     foreach (var rn in rep.reportName())
-                        file.ReportNames.Add(rn.GetText());
+                    {
+                        using var at = Edition.At(rn);   // the name's own position, where the correspondence rules report
+                        file.ReportNames.Add(new ReportClauseName(rn.GetText(), Edition.Cursor));
+                    }
                 else if (clause.fileGlobalExternalClause() is { } ge)
                 {
                     // FD IS EXTERNAL / IS GLOBAL (ISO §13.18.22 / §13.18.27.4 GR1): EXTERNAL ⇒ one run-unit file
@@ -2414,6 +2424,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 var hit = UniqueOrReportAmbiguous(inFile.Count > 0 ? inFile : cands, face,
                     WrittenQualified(keyName, quals), out bool ambiguous);
                 if (ambiguous && hit is null) refusedKeys.Add(keyName);
+                // A name the REPORT SECTION declares is not "nothing described" either (kb/Work PB3768's sibling arm):
+                // §13.8.6.2.3 bars the key clause from referring to a report item, the ONE refusal says so, and
+                // SR2's row stays silent about an operand already refused.
+                else if (hit is null && cands.Count == 0
+                    && ReportEntryReferenceRefused($"{face} '{WrittenQualified(keyName, quals)}'", keyName, quals))
+                    refusedKeys.Add(keyName);
                 return hit;
             }
             // ⛔ ONE RESOLUTION FOR BOTH KEY FORMS (kb/Work PB1099 Q1): data-name-1 is the key's one segment, and
@@ -2740,6 +2756,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             QualifiedCandidates(dynName, file.AssignUsingQualifiers, Model.Scope.Program), "ASSIGN … USING",
             WrittenQualified(dynName, file.AssignUsingQualifiers), out bool ambiguous);
         if (ambiguous && item is null) return;
+        // A name the REPORT SECTION declares is not undescribed (kb/Work PB3768): §13.8.6.2.3 bars every clause of a
+        // data division section other than the report section from referring to a report item, so the ONE refusal
+        // speaks (as ResolveClauseOperand does for the other file clauses) before "no such data item is described".
+        if (item is null && ReportEntryReferenceRefused(
+                $"ASSIGN … USING '{WrittenQualified(dynName, file.AssignUsingQualifiers)}'", dynName, file.AssignUsingQualifiers)) return;
         if (item is null || !ItemCategory.IsAlphanumeric(item))
         {
             Edition.Error(DiagnosticCatalog.AssignUsingNotAlphanumeric,
@@ -7947,6 +7968,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             if (!implicitArea
                 && cls.Members.FirstOrDefault(m => !ReferenceEquals(m, cls.Canonical) && m.IsDynamicTable) is { } dynSubject)
             {
+                using var dynamicSubjectAt = Edition.At(dynSubject);   // the REDEFINES entry as written; this pass runs post-build (kb/Work PB2034)
                 Edition.Error("COBOL1525", $"REDEFINES entry '{dynSubject.CobolName ?? dynSubject.CsName}' is "
                     + "itself a dynamic-capacity table: its capacity \"may vary during execution\" (ISO "
                     + "§8.5.1.9.1), so it has no fixed area for the storage association §13.18.44.4 GR1 requires; "
