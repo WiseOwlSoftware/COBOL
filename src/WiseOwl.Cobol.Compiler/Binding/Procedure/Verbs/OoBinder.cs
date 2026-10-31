@@ -219,7 +219,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         {
             if (a.predefinedNull() is not null)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InvokeOperandSection,
-                    "INVOKE … USING BY REFERENCE NULL: ISO §14.9.23.3 SR9 — identifier-3 \"shall be an address-identifier "
+                    "INVOKE USING BY REFERENCE NULL: ISO §14.9.23.3 SR9 — identifier-3 \"shall be an address-identifier "
                     + "or shall reference a data item defined in the file, working-storage, local-storage, or linkage "
                     + "section\", and the predefined NULL (§8.4.3.7 / §8.4.3.10) is neither; pass it BY CONTENT or BY VALUE");
             if (a.receivingIdentifier() is { } byRef && byRef.dataReference() is null)
@@ -515,7 +515,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         const string subject = "INVOKE NULL USING argument";
         if (arg.Omitted) return true;   // SR18 asks a formal parameter's OPTIONAL phrase; there is no formal
         if (arg.Address is { } addrCtx)   // SR9's address-identifier, a sending operand by SR19
-            return host.Ptr.BindAddressIdentifier(addrCtx, "INVOKE … USING") is not null;
+            return host.Ptr.BindAddressIdentifier(addrCtx, "INVOKE USING") is not null;
         if (arg.Self)
         {
             if (host.OoCurrentClass is not null) return true;
@@ -902,7 +902,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     {
         foreach (var a in site.Args)
         {
-            if (a.Address is { } addrCtx) _ = host.Ptr.BindAddressIdentifier(addrCtx, $"{site.Verb} … USING");
+            if (a.Address is { } addrCtx) _ = host.Ptr.BindAddressIdentifier(addrCtx, $"{site.Verb} USING");
             else if (a.Ref is { } dref && host.Expr.LiteralAliasOf(dref) is null)
                 _ = host.Expr.ResolveSending(dref).PlaceOrReported(ctx.Edition);
         }
@@ -1147,7 +1147,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // reads (PtrBinder.AddressConformanceReason).
         if (arg.Address is { } addrCtx)
         {
-            if (host.Ptr.BindAddressIdentifier(addrCtx, verb + " … USING") is not { } ao) return null;
+            if (host.Ptr.BindAddressIdentifier(addrCtx, verb + " USING") is not { } ao) return null;
             if (host.Ptr.AddressConformanceReason(formal, ao.Data, ao.Program) is { } awhy)
             {
                 Err($"USING argument '{DataBinder.WrittenText(addrCtx)}' (an address-identifier) does not conform to "
@@ -1636,7 +1636,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // box is never copied back.
             if (a.Address is { } addrCtx)
             {
-                if (host.Ptr.BindAddressIdentifier(addrCtx, "INVOKE … USING") is not { } ao)
+                if (host.Ptr.BindAddressIdentifier(addrCtx, "INVOKE USING") is not { } ao)
                     return BoundRejected.Reported(ctx.Edition);
                 args.Add(new BoundUniversalArg(null,
                     ActivationDescriptions.OfAddress(ao, ao.Program?.Prototype is { } prototype ? host.ProgramRestrictionIdentityOf(prototype) : null))

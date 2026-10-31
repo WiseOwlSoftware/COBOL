@@ -469,7 +469,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             }
             if (gapCur is null)
             {
-                actions.Add(new InitializeErrorAction("INITIALIZE ... WITH FILLER of the implicit filler bits of "
+                actions.Add(new InitializeErrorAction("INITIALIZE WITH FILLER of the implicit filler bits of "
                     + $"'{group.CobolName ?? "FILLER"}' (unwired storage tier; ISO §8.5.1.6.3)"));
                 continue;
             }
@@ -481,7 +481,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             var item = filler.Item;
             if (cur.Child(item) is not { } fillerCur)
             {
-                actions.Add(new InitializeErrorAction("INITIALIZE ... WITH FILLER of the implicit filler bits of "
+                actions.Add(new InitializeErrorAction("INITIALIZE WITH FILLER of the implicit filler bits of "
                     + $"'{group.CobolName ?? "FILLER"}' (unwired storage tier; ISO §8.5.1.6.3)"));
                 continue;
             }
@@ -652,7 +652,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                     // `REPLACING … BY NULL` (kb/Work PB1427): GR4's SET receiving-operand TO NULL — the same
                     // action the GR6c default gives, written this time rather than implied.
                     BoundPredefinedNull => new InitializeSetNull(cur.ToPlace()),
-                    _ => new InitializeErrorAction($"INITIALIZE REPLACING {cat} … BY a function-identifier into "
+                    _ => new InitializeErrorAction($"INITIALIZE REPLACING {cat} BY a function-identifier into "
                         + $"'{item.CobolName ?? "FILLER"}' (ISO §14.9.20.4 GR4 makes the implicit statement a SET, "
                         + "and §14.9.39 admits no function-identifier as a SET sending operand)"),
                 }
@@ -712,7 +712,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                 if (d.Var is null && d.Fixed is null) { keyed = false; break; }
         if (!keyed)
         {
-            actions.Add(new InitializeErrorAction($"INITIALIZE … TO VALUE of '{item.CobolName ?? "FILLER"}', whose "
+            actions.Add(new InitializeErrorAction($"INITIALIZE TO VALUE of '{item.CobolName ?? "FILLER"}', whose "
                 + "table-format VALUE clause is keyed to occurrences identifier-1 does not pin at compile time "
                 + "(ISO §14.9.20.4 GR5c1c/GR6a3)"));
             return;
@@ -888,7 +888,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         if (anyMoveFormCategory && MoveTable16.SenderClassRefusal(value) is { } classRefusal)
         {
             ctx.Edition.Error(DiagnosticCatalog.InitializeReplacingMoveInvalid,
-                $"INITIALIZE REPLACING … BY {senderText}: ISO §14.9.20.3 SR4 requires the implicit MOVE to be "
+                $"INITIALIZE REPLACING BY {senderText}: ISO §14.9.20.3 SR4 requires the implicit MOVE to be "
                 + $"valid, and {classRefusal}");
             return;
         }
@@ -902,7 +902,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             // reads (null receiver) as "not a group", i.e. a violation when the sender is a variable-length group.
             if (MoveTable16.Validity(value, recvPos, receiverItem: null)?.Reason is not { } refusal) continue;
             ctx.Edition.Error(DiagnosticCatalog.InitializeReplacingMoveInvalid,
-                $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} … BY {senderText}: ISO §14.9.20.3 SR4 "
+                $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} DATA BY {senderText}: ISO §14.9.20.3 SR4 "
                 + $"requires that `MOVE {senderText} TO <an item of category "
                 + $"{InitializeCategories.Spelling(cat)}>` be valid, and {refusal}");
             return;   // one message per REPLACING item, naming the first offending category

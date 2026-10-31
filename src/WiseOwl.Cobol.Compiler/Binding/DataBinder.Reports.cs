@@ -2795,7 +2795,7 @@ public sealed partial class DataBinder
         Editions.DiagnosticCursor dAt = default;
         if (depending is not null)
         {
-            (dn, dq) = ClauseDataName(depending, $"{where}: OCCURS … DEPENDING ON");
+            (dn, dq) = ClauseDataName(depending, $"{where}: OCCURS DEPENDING ON");
             using var _d = Edition.At(depending);
             dAt = Edition.Cursor;
         }
