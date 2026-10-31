@@ -2059,7 +2059,8 @@ lowercase with Annex C. Three pieces, each in one place:
   compilation: every `IDENTIFIER` token that holds an underscore or a character outside the basic repertoire gets the
   underscore gate (`user-word-underscore-2002`), the extended-letter gate and the Annex B test, one report per distinct word
   (the Annex C fold). `IDENTIFIER` is the only token built from `NAME_BODY`, so the walk covers a name slot, a phrase word
-  and a word the grammar cannot place alike. It began as a check in the bound-tree funnel (`VisitCobolWord`), which never
+  and a word the grammar cannot place alike; a keyword token whose text holds an extended letter (the lexer's fold retype,
+  below) is screened with them, so `DİSPLAY` is COBOL0900 at COBOL-85 and the Kelvin-sign `KEY` COBOL2773 before 2023. It began as a check in the bound-tree funnel (`VisitCobolWord`), which never
   runs on a source that does not parse, so the U+00A0-only line of golden `pb1660-nbsp-only-line-is-not-blank` was
   answered "cannot parse near STOP" without the cause. One body (`Check`), two word sources chosen by whether the binder
   will run: a compilation whose frontend reported ANY error (a parse that failed, or one that parsed beside a separator,
@@ -2100,6 +2101,15 @@ lowercase with Annex C. Three pieces, each in one place:
   (`DESIGN-architecture-review.md` §8.1), for the fold. A default externalized name and the run-time EXTERNAL
   identities (`BinderDriver.ExternalItemIdentity`, `OoEmitter.SelectFingerprint`'s word segments) are written in the
   word's `UpperFold`, so the ordinal comparison at run time agrees with Annex C.
+- **The keyword a folded word spells (kb/Work PB4240).** The keyword rules match the basic letters of either case (the
+  grammar's `caseInsensitive` option), which is the fold for every letter but the three extended letters Annex C folds to
+  a BASIC one: U+0130 → i, the Kelvin sign U+212A → k, and before 2023 the dotless i U+0131 → i (E.2 item 14). A word
+  holding one lexes as `IDENTIFIER`, and `CobolLexer.RetypeFoldedKeyword` (in `NextToken`, after the edition spelling and
+  before the `>>COBOL-WORDS` retype and every decision taken from a keyword) gives it the type of the keyword its
+  `UpperFold` spells (`CobolKeywordTokens.TryTokenType`), keeping the source spelling. So `DİSPLAY "HI"` is the DISPLAY
+  statement and `01 DİSPLAY PIC X.` reads exactly as `01 DISPLAY PIC X.` does; the primed directive expression's
+  `DEFINED`, a keyword only there, is retyped by IDENTIFIER's action through `CobolNames.Same` on the edition spelling.
+  `CobolNameFoldDriftTests` scans the grammars' actions as well as the C# (a `.g4` action is C# the tool copies).
 - **The encoding of the grammar itself** (kb/Work PB1944) — ANTLR reads a `.g4` in the JVM's default charset (UTF-8 on
   Java 18+ and on Linux, Cp1252 on Windows CI's JVM), so `Invoke-Antlr4CSharp.ps1` passes `-encoding UTF-8` and every
   grammar file is valid UTF-8 without a byte-order mark (`GrammarEncodingDriftTests`). The encoding is declared, so

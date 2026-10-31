@@ -220,7 +220,7 @@ internal static class AdmittedKinds
         if (token.Type == CobolLexer.IDENTIFIER) return $"The word '{text}'";
         if (token.Type == CobolLexer.DOT) return "The separator period";
         if (LiteralTokens.CategoryOf(token.Type) is { } kind) return $"The {kind} {text}";
-        return text is [var first, ..] && char.IsAsciiLetter(first) ? $"The word {text}" : $"'{text}'";
+        return text is [var first, ..] && char.IsLetter(first) ? $"The word {text}" : $"'{text}'";
     }
 
     private static string Join(IReadOnlyList<string> names) => names.Count switch

@@ -602,7 +602,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // A word (a reserved word is the candidate) or a literal the production does not open with — in the data
         // division's form, one that begins with an unsigned integer (kb/Work PB3373, PB3390); ClosedFormatResidue
         // decides.
-        return (IsLiteral(token) || token.Text is [var first, ..] && char.IsAsciiLetter(first))
+        return (IsLiteral(token) || token.Text is [var first, ..] && char.IsLetter(first))
                && !atn.NextTokens(state, recognizer.Context).Contains(token.Type)
                && ClosedFormatResidue(recognizer, new OffendingPosition(recognizer, token), predictionFailedAt: false) is not null;
     }
@@ -1543,7 +1543,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// multi-spelling keywords the vocabulary publishes no literal name for). Every such word begins with a letter;
     /// testing that first keeps a numeric literal away from the lexer probe.</summary>
     private static bool IsReservedWord(IToken token)
-        => token.Text is [var first, ..] text && char.IsAsciiLetter(first)
+        => token.Text is [var first, ..] text && char.IsLetter(first)
            && CobolKeywordTokens.TryTokenType(text, out int type) && type == token.Type;
 
     // ── The GO TO general-format complement (kb/Work PB412) ──

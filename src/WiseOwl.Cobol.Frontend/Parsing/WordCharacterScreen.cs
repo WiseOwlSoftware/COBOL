@@ -32,9 +32,9 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// character, so the diagnostic can NAME the character instead of ending the word with "unexpected"): the word is
 /// not where the grammar can use it, the parse fails at the NEXT token, and the user was told "cannot parse near
 /// 'STOP'" without the cause. The lexer's word class is the single <see cref="CobolLexer.IDENTIFIER"/> token (only
-/// <c>IDENTIFIER</c> is built from <c>NAME_BODY</c>; a reserved word has only basic characters), so one walk of the
-/// words asks the rule of every word in every position — a name slot, a phrase word, a word the parser
-/// rejects — and a new grammar position needs no arm. The one text that is not words is a comment-entry, which the
+/// <c>IDENTIFIER</c> is built from <c>NAME_BODY</c>; a keyword written with an extended letter that Annex C folds to a
+/// basic one is retyped from it, kb/Work PB4240, and is screened with it), so one walk of the words asks the rule of
+/// every word in every position — a name slot, a phrase word, a word the parser rejects — and a new grammar position needs no arm. The one text that is not words is a comment-entry, which the
 /// tree names (<see cref="CobolParserCore.CommentEntryContext"/>). The directive stages ask the same rule of the
 /// words they scan themselves (<see cref="CobolWordRule.DirectiveWordViolations"/>): a directive is removed from the
 /// text before the lexer runs.</para>
@@ -88,12 +88,22 @@ public static class WordCharacterScreen
     /// a token's text is cut from the input on every call. A word of a fixed-form debugging line that is a COMMENT (its
     /// unit has no WITH DEBUGGING MODE, so <see cref="DebuggingLineRewriter"/> moved it to the
     /// <see cref="CobolLexer.ABSENT_DEBUG_LINE"/> channel) is not a COBOL word of the program, as the sibling readers of
-    /// the stream decide it too (<see cref="SeparatorRule"/>, <see cref="PictureSeparatorPeriodRule"/>; kb/Work PB1705).</summary>
+    /// the stream decide it too (<see cref="SeparatorRule"/>, <see cref="PictureSeparatorPeriodRule"/>; kb/Work PB1705).
+    /// <para>A KEYWORD token is a word too when it was written with an extended letter: the lexer makes a word whose Annex C
+    /// fold spells a keyword that keyword (<c>CobolLexer.RetypeFoldedKeyword</c>, kb/Work PB4240: <c>DİSPLAY</c>, <c>KEY</c>
+    /// with the Kelvin sign), and the letter is screened like any other — below 2002 there are no extended letters, and
+    /// before 2023 Annex B holds no Kelvin sign. Asked only of a token whose text holds such a character, so no basic word
+    /// reaches the lexer probe.</para></summary>
     private static bool IsCandidate(IToken token)
     {
-        if (token.Type != CobolLexer.IDENTIFIER || token.Channel == CobolLexer.ABSENT_DEBUG_LINE) return false;
-        string text = token.Text;
-        return text.Contains('_') || CobolCharacterRepertoire.HasExtendedCharacter(text);
+        if (token.Channel == CobolLexer.ABSENT_DEBUG_LINE) return false;
+        if (token.Type == CobolLexer.IDENTIFIER)
+        {
+            string text = token.Text;
+            return text.Contains('_') || CobolCharacterRepertoire.HasExtendedCharacter(text);
+        }
+        return token.Text is { Length: > 0 } written && CobolCharacterRepertoire.HasExtendedCharacter(written)
+               && CobolKeywordTokens.TryTokenType(CobolNames.UpperFold(written), out int keyword) && keyword == token.Type;
     }
 
     private static void Check(IEnumerable<IToken> words, EditionInfo edition, IDiagnosticSink sink)
