@@ -1,0 +1,13 @@
+## Entry 2820 — 2026-10-30 17:05 PDT — Filed the leads of five fix-lane reports as PB4168-PB4176
+
+The lead-filing clerk (units/enqueue.md step 5) turned the new defects and the non-blocking review leads of five finished fix-lane reports into nine `kb/Work/` notes, two housekeeping edits and one witness. No code changed.
+
+- PB4168 (defect, MINOR, misleads_diagnosis): `SEND TO LINAGE-COUNTER` / `PAGE-COUNTER OF RPT` followed by RETURNING or RAISING and END-SEND draws a bare parse error at END-SEND. PB4169 (defect, TRIVIAL, misleads_diagnosis): `DeclinedFacilityBinder.ScreenName` cites both §14.9.38.2 and §14.9.31.2 in every COBOL2024. PB4170 (defect, TRIVIAL): the `mcsSendStatement` grammar comment and the `ScreenSendRequiredPhrases` summary still call every TO name a declaration question. From the PB4118 report, item 1, R1-1 and R1-2 (its `RETURN-CODE` item 2 is no defect by the report's own words).
+- PB4171 (defect, TRIVIAL): the PB1682 golden cites 8.4.3.10.4 GR2 for a data-pointer; `cite.py --check` places the rule at GR1. From the PB1682 report, R1-1.
+- PB4172 (defect, MAJOR, rejects_legal_source): a sole figurative ZERO is refused where the only operand is an arithmetic expression (`SET IX TO ZERO`, `SET ... UP/DOWN BY ZERO`, `ALLOCATE ZERO CHARACTERS`, `CONTINUE AFTER ZERO SECONDS`); PB51 fixed COMPUTE alone and RETRY, START ... LENGTH, report SUM/VARYING and B-SHIFT are unprobed siblings. PB4173 (defect, MINOR, misleads_diagnosis): the recovery cascade after a refused operand (`CobolErrorStrategy.Recover`). PB4174 (defect, MINOR, misleads_diagnosis): COBOL5506's enumeration is edition-blind (`AdmittedKinds.Name`). PB4175 (defect, TRIVIAL): the COBOL5506 descriptor comment contradicts D-EXPECT. From the PB3428 / PB3861 report; the repros of PB4173 and PB4174 are not recorded.
+- PB4176 (defect, MINOR, misleads_diagnosis): `COPY "ABC` draws COBOL2450 and COBOL2449 instead of naming the literal as not closed. From the PB3245 report.
+- PB765 extended with a witness: the `SORT ... WITH DUPLICATES IN FOO` bare COBOL0001 lead of the PB3428 report is this note's mechanism.
+- PB2624 corrected in place: COBOL0308 and COBOL0309 (deleted by PB3861) left its `r2_members` and `Moves or changes` lines.
+
+Skipped: the PB3245 report's "division cursor reads an inline comment's words" (its round-2 review refuted it); the PB3845 report's R2-1 stale comments and its COBOL0900-at-85 lead (both fixed on that branch, which lands separately) and its report-order lead (held by PB4131); the PB3845 report's lead 3 (PB4070).
+
