@@ -600,6 +600,68 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         return true;
     }
 
+    /// <summary>⛔ THE HELD FORM OF A table(ALL) FUNCTION ARGUMENT (ISO §8.4.3.2.4 GR2, §15.3; kb/Work PB4162): copy the elements
+    /// <paramref name="all"/> enumerates into a compiler-temporary table of the element's own description, as a PRE-op placed at
+    /// <paramref name="at"/> (<see cref="Positioned"/>), and answer the enumeration over that table. §15.3 makes <c>T (ALL)</c> "as if each
+    /// table element associated with that subscript position were specified" - a sequence of arguments, each evaluated where it
+    /// stands in the list - so a later argument's activation may not be the first to read the table. The copy is
+    /// <see cref="BoundHoldTableAll"/>: one flat level in enumeration order, whatever the number of ALL levels, of the product of
+    /// the levels' maxima (an OCCURS DEPENDING level counts at most its maximum, so no allocation exceeds the table it copies),
+    /// and, when a range is a run-time value, the number of elements the copy counted in a numeric temporary the held enumeration
+    /// ranges over (<see cref="AllCount.Odo"/>). A dynamic-capacity level has no allocated maximum, so it makes the held table a
+    /// dynamic-capacity one whose capacity the copy sets (§8.5.1.9). Null - nothing held - for an element <see cref="Model"/> cannot
+    /// describe (a variable-length group).</summary>
+    internal Place? MaterializeTableAll(TableAllPlace all, string tag, int? at = null) =>
+        Positioned(at, () => FreezeTableAll(all, tag));
+
+    private Place? FreezeTableAll(TableAllPlace all, string tag)
+    {
+        long capacity = 1;
+        bool dynamic = false;
+        foreach (var level in all.Counts)
+        {
+            long max = level switch
+            {
+                AllCount.Fixed f => f.Occurs,
+                AllCount.Odo o => o.MaxOccurs,
+                AllCount.ReportDepending d => d.MaxOccurs,
+                _ => 0,   // a dynamic-capacity level has no allocated maximum
+            };
+            if (max < 1) dynamic = true;
+            else if ((capacity *= max) > int.MaxValue) return null;
+        }
+        var element = new BoundFieldOperand(all.Element);
+        if (Model(element, default) is not { } model) return null;
+        var table = ctx.Data.CreateCompilerTempTable(model.Item, dynamic ? null : (int)capacity, "__HELDALL-", "__heldall", tag, out var cell);
+        cell.IsDynamicLength = model.DynLimit > 0;   // the run-time-length attributes are no part of the cloned description (Freeze)
+        if (cell.IsDynamicLength) cell.DynMaxSize = model.DynLimit;
+        var held = new LocalVector($"__hold{table.Uid}");
+        if (ctx.Refs.ResolveItemAt(cell, [new PositionLocalElement(held, 0)]) is not { } heldElement) return null;
+        Place? count = null;
+        AllCount heldCount;
+        if (dynamic)
+        {
+            // A dynamic-capacity table's count IS its current capacity, which the holder sets to the number of elements it counted.
+            if (ctx.Refs.CurrentOccurrenceCount(cell, []) is not { } capacityCount) return null;
+            heldCount = capacityCount;
+        }
+        else if (all.StaticCount is { } fixedCount) heldCount = new AllCount.Fixed((int)fixedCount);
+        else
+        {
+            var numberModel = new DataItem
+            {
+                Level = 1, CobolName = "__HELDALLN", CsName = "__heldalln",
+                Pic = new PicInfo(PicCategory.Numeric, Usage.Display, Length: 10, Digits: 10, Scale: 0, Signed: false),
+            };
+            var number = ctx.Data.CreateCompilerTemp(numberModel, "__HELDALLN-", "__heldalln", tag);
+            if (ctx.Refs.ResolveItem(number) is not { } numberPlace) return null;
+            (count, heldCount) = (numberPlace, new AllCount.Odo(numberPlace, 0, (int)capacity));
+        }
+        var heldAll = new TableAllPlace(heldElement, held, [heldCount]);
+        ctx.Data.PendingPreOps.Add(new BoundHoldTableAll(all, heldAll, count, IdentityStore(element, model.Item, heldElement)));
+        return heldAll;
+    }
+
     /// <summary>The intermediate result item's description: the cloned model plus, for a run-time-length
     /// carrier, its §8.5.1.10 limit (0 = a fixed-length clone). Null when the operand is not materialized.
     /// <paramref name="FunctionValue"/> marks the §15.4 temporary of a NUMERIC function's returned value, whose
