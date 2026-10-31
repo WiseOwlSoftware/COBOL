@@ -1,4 +1,4 @@
-## PB4132: a reserved word is refused as a user-defined word only where one could stand (a stray END-DISPLAY is COBOL0306, a misplaced RETRY COBOL2269)
+## Entry 2875 — 2026-10-31 13:21 PDT — PB4132: a reserved word is refused as a user-defined word only where one could stand (a stray END-DISPLAY is COBOL0306, a misplaced RETRY COBOL2269)
 
 **Re-probe.** At --std 2023 `MOVE 1 TO W-N END-DISPLAY.` drew `COBOL0901: 'END-DISPLAY' is a reserved word in COBOL-2023 and
 cannot be used as a user-defined word`, and END-ACCEPT, END-SEND and END-RECEIVE the same; `READ F ADVANCING ON LOCK RETRY 3
@@ -82,3 +82,4 @@ Self-review: the predicate costs one token lookup and one hash probe per header 
 summary was corrected to the §14.2.1 general format. Gate on 0eebca4b8: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating,
 PB2515): GREEN` (run 000001-20261031T195428Z: Conformance 10,551, Unit 35,181 and Characterization 8 cases; Linux half (WSL clone
 of HEAD) GREEN).
+
