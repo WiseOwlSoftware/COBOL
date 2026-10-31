@@ -1,4 +1,4 @@
-## PB4241: the division cursor reads logical text, skips COPY and REPLACE statements, and follows conditional groups
+## Entry 2889 — 2026-10-31 16:11 PDT — PB4241: the division cursor reads logical text, skips COPY and REPLACE statements, and follows conditional groups
 
 The obsolete COBOL-85 comment-entry paragraphs (AUTHOR ... SECURITY, REMARKS) exist only in an IDENTIFICATION DIVISION, so the
 §6.5 converter keeps a `DivisionCursor` (one rule, PB2739) and reads each line's words to know where it stands. The Mythos
@@ -57,3 +57,4 @@ the statement-skip, line-by-line, continued-header and eight conditional-group c
 per-physical-line read are gone). Full code: the cited rules are §6.5 6) b) (join), §8.3.5 3) and 6) (period, pseudo-text),
 §7.3.16.2 / §7.3.13.2 (group phrases), each run through `cite.py --check`. Performance: each logical line is scanned once, as
 the physical line was before. Duplication: no second statement-skip rule.
+
