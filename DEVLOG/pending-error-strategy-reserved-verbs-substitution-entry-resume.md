@@ -22,7 +22,12 @@ reading is now three-valued (`ReadStatementAt`: None, Complete, CutShort, the la
 more), and a CutShort reading is the next statement unless the word read as a name carries the whole sentence to its period
 (`OffendingPosition.NameCarriesTheSentence`): the reading that goes further is named. `DISPLAY RECEIVE W-X.` and `MOVE W-X TO MOVE W-Y.` stay COBOL0901
 (both are whole sentences as names); `SEND TO W-X.` after an incomplete MOVE, the old "control" row, is now the next statement (a SEND cut short). R1-2
-(a doc comment of `facilityWord` the insertion had cut in two) repaired.
+(a doc comment of `facilityWord` the insertion had cut in two) repaired. **Review round 2 (R2-1, blocking):** R1-1 was fixed only where the incomplete next
+statement ran into the separator period; `ReadingParses` called a statement CutShort only when the speculative parse was refused at the copied stream's end,
+so `MOVE W-X TO` / `ADD 1 TO` / `DISPLAY W-Y.` (also `DISPLAY W-Y UPON` + a statement, `ADD 1 TO` + `MOVE …`, `ADD 1 TO` + `END-IF` / `ELSE` / `END-PERFORM`)
+was still one COBOL0901 ADD with the second statement's fault lost (main: two COBOL0001). A refusal at a token the rule may be followed by (`FollowSet`, read off the
+ATN) is now a cut-short reading too; a refusal at any other token (`TO` after `ADD`, a prefix stopping at `TO`) is still none. `AReservedVerbBeginningAnIncompleteNextStatement_IsNotCalledAMisusedName`
+gained 7 rows (10 in all, each asserting both faults, no COBOL0901) and the golden `pb4207-next-statement-cut-short-by-the-statement-after-it` was added.
 
 **PB4218, single-token substitution.** `PERFORM UNTIL RECEIVE = 1 DISPLAY "X" END-PERFORM.` drew a false COBOL5506 "expected TIMES": nothing remains of the
 condition once the word is deleted, and the resynchronization stopped at the `1`. The re-probe traced it to a `Sync` mismatch, and the note's fix direction

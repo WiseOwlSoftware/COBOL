@@ -432,8 +432,9 @@ the statement the word would begin is a complete reading (`CobolParserCoreBase.R
 reached — the one helper, `ReadingParses`, that also answers `entryNameHere`'s clause reading). Where it parses the report is the
 ordinary one and the recovery resumes at the verb, the statement read as written; where it does not (`GOBACK` in `MOVE GOBACK TO
 W-X`, a prefix that stops at a token no statement is followed by) the word is the operand. A statement the sentence's end cuts short
-(`StatementReading.CutShort`: the verb and one token or more, then the period: `MOVE W-X TO` then `ADD 1 TO.`, `DISPLAY W-Y UPON.`,
-a statement with an operand missing of its own, review R1-1) is also the next statement, unless the word read as a user-defined
+(`StatementReading.CutShort`: the verb and one token or more, then the period or a token a statement may be followed by, the next
+statement's verb, a scope terminator or a phrase of the enclosing statement: `MOVE W-X TO` then `ADD 1 TO.` or `ADD 1 TO DISPLAY W-Y.`,
+`DISPLAY W-Y UPON.`, `ADD 1 TO END-IF`, a statement with an operand missing of its own, reviews R1-1 and R2-1) is also the next statement, unless the word read as a user-defined
 word carries the whole sentence to its period (`OffendingPosition.NameCarriesTheSentence`: `DISPLAY RECEIVE W-X.`, `MOVE W-X TO
 MOVE W-Y.`): of two readings of the tokens, the one that goes further is the one the report names, and where both are whole
 sentences the name reading is the one §8.3.2.1 1) forbids. **Three recoveries read that

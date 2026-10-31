@@ -475,8 +475,9 @@ public abstract class CobolParserCoreBase : Parser
         /// enclosing statement.</summary>
         Complete,
 
-        /// <summary>The verb and at least one more token, and the sentence ends before the statement does: a statement
-        /// written with an operand missing (<c>ADD 1 TO.</c>, <c>DISPLAY W-Y UPON.</c>).</summary>
+        /// <summary>The verb and at least one more token, and the statement ends before it is whole, at the sentence's end or
+        /// at a token a statement may be followed by (the next statement's verb, a scope terminator): a statement written
+        /// with an operand missing (<c>ADD 1 TO.</c>, <c>DISPLAY W-Y UPON.</c>, <c>ADD 1 TO</c> then <c>DISPLAY W-Y.</c>).</summary>
         CutShort,
     }
 
@@ -485,11 +486,13 @@ public abstract class CobolParserCoreBase : Parser
     /// correctly begins the NEXT statement after an incomplete one (<c>MOVE W-X TO</c> then <c>RECEIVE FROM W-X GIVING W-Y
     /// W-N</c>): the syntax error falls AT the verb either way, and only the statement reading tells them apart. A COMPLETE
     /// reading (<see cref="ReadingParses(int, IToken?)"/>) is the next statement, read as written, and the error is the
-    /// missing receiver. A reading <see cref="StatementReading.CutShort"/> by the end of the sentence is a statement with an
-    /// operand missing of its own (<c>ADD 1 TO.</c>): the caller weighs it against the word read as a name, which a
-    /// statement that merely lacks its tail does not exclude (<c>DISPLAY RECEIVE W-X.</c> is a DISPLAY of two operands).
-    /// A reading refused at the token after the verb (<c>ADD TO W-X</c> in <c>MOVE ADD TO W-X.</c>), or mid-sentence, shows
-    /// nothing was written beyond the word, and it stood for the operand the report names. A statement that merely
+    /// missing receiver. A reading <see cref="StatementReading.CutShort"/> by the end of the sentence, or by a token a
+    /// statement may be followed by (the NEXT statement's verb or a scope terminator, review R2-1), is a statement with an
+    /// operand missing of its own (<c>ADD 1 TO.</c>, <c>ADD 1 TO DISPLAY W-Y.</c>): the caller weighs it against the word
+    /// read as a name, which a statement that merely lacks its tail does not exclude (<c>DISPLAY RECEIVE W-X.</c> is a
+    /// DISPLAY of two operands). A reading refused at the token after the verb (<c>ADD TO W-X</c> in <c>MOVE ADD TO
+    /// W-X.</c>), or at any token no statement is followed by, shows nothing was written beyond the word, and it stood for
+    /// the operand the report names. A statement that merely
     /// parses as a PREFIX is not enough (review R2-1 of PB3248): GOBACK alone, or VALIDATE, RAISE and FREE with one
     /// operand, parse in <c>MOVE GOBACK TO W-X</c> and <c>ADD VALIDATE W-N TO W-N</c>, and only the token after them (TO,
     /// which no statement is ever followed by) shows the word was an operand. <paramref name="from"/> is the OFFENDING
@@ -533,9 +536,10 @@ public abstract class CobolParserCoreBase : Parser
     /// Read-only.</summary>
     private bool ReadingParses(int rule, IToken? from = null) => ReadingParses(rule, from, out _);
 
-    /// <summary><see cref="ReadingParses(int, IToken?)"/>, and where the speculative parse is refused ONLY BY THE END OF THE
-    /// SENTENCE (the reading took every token written and wanted more), how many tokens from <paramref name="from"/> it
-    /// took (<paramref name="endedAfter"/>); -1 where it parsed, parsed only a prefix, or was refused at a token written.</summary>
+    /// <summary><see cref="ReadingParses(int, IToken?)"/>, and where the speculative parse is refused ONLY BY WHAT FOLLOWS THE
+    /// RULE (the reading took every token written up to the end of the sentence, or up to a token the rule may be followed
+    /// by, the next statement's verb or a scope terminator, and wanted more), how many tokens from <paramref name="from"/> it
+    /// took (<paramref name="endedAfter"/>); -1 where it parsed, parsed only a prefix, or was refused at any other token.</summary>
     private bool ReadingParses(int rule, IToken? from, out int endedAfter)
     {
         endedAfter = -1;
@@ -557,7 +561,9 @@ public abstract class CobolParserCoreBase : Parser
         catch (Antlr4.Runtime.Misc.ParseCanceledException refused)
         {
             // The token stream numbers the copies as it fetches them, so the refused token's index is its position.
-            if (refused.InnerException is RecognitionException { OffendingToken: { Type: TokenConstants.EOF } at }) endedAfter = at.TokenIndex;
+            if (refused.InnerException is RecognitionException { OffendingToken: { } at }
+                && (at.Type == TokenConstants.EOF || FollowSet(Atn, rule).Contains(at.Type)))
+                endedAfter = at.TokenIndex;
             return false;
         }
     }

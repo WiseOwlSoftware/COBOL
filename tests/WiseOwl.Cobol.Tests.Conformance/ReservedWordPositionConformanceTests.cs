@@ -496,13 +496,25 @@ public sealed class ReservedWordPositionConformanceTests
     /// word read as a name would not let the source go on: ADD, SEND and DISPLAY below each lack something of their own (ISO
     /// §14.9.2.2 prints "TO identifier-2", §14.9.11.2 a mnemonic-name after UPON, and the SEND statement its FROM phrase).
     /// Calling the verb a misused name (COBOL0901) consumed it as the MOVE's receiver and lost the second statement's fault.
-    /// Each row asserts BOTH faults: the ordinary refusal at the verb (line 10, never COBOL0901) and the second statement's
-    /// own refusal after it.</summary>
+    /// Each row asserts BOTH faults: the ordinary refusal at the verb (line 11, never COBOL0901) and the second statement's
+    /// own refusal after it, named by its token and, where it is a scope terminator, its code.
+    /// <para>The incomplete statement ends at the sentence's period or runs into whatever follows it (review R2-1): the next
+    /// statement's verb (<c>ADD 1 TO</c> then <c>DISPLAY W-Y.</c>, then <c>MOVE W-X TO W-Y.</c>), a scope terminator
+    /// (<c>END-IF</c>) or a phrase of the enclosing statement (<c>ELSE</c>, <c>END-PERFORM</c>): the statement refused at a
+    /// token a statement may be followed by lacks only its own tail, exactly as one refused at the period does.</para></summary>
     [Theory]
-    [InlineData("ADD 1 TO.", "ADD")]
-    [InlineData("SEND TO W-X.", "SEND")]
-    [InlineData("DISPLAY W-Y UPON.", "DISPLAY")]
-    public void AReservedVerbBeginningAnIncompleteNextStatement_IsNotCalledAMisusedName(string statement, string word)
+    [InlineData("MOVE W-X TO", "ADD 1 TO.", "DISPLAY W-Y.", "ADD", "COBOL0001: unexpected '.'")]
+    [InlineData("MOVE W-X TO", "SEND TO W-X.", "DISPLAY W-Y.", "SEND", "COBOL5506")]
+    [InlineData("MOVE W-X TO", "DISPLAY W-Y UPON.", "DISPLAY W-Y.", "DISPLAY", "COBOL0001: unexpected '.'")]
+    [InlineData("MOVE W-X TO", "ADD 1 TO", "DISPLAY W-Y.", "ADD", "COBOL0001: unexpected 'DISPLAY'")]
+    [InlineData("MOVE W-X TO", "ADD 1 TO", "MOVE W-X TO W-Y.", "ADD", "COBOL0001: unexpected 'MOVE'")]
+    [InlineData("MOVE W-X TO", "DISPLAY W-Y UPON", "DISPLAY W-Y.", "DISPLAY", "COBOL0001: unexpected 'DISPLAY'")]
+    [InlineData("MOVE W-X TO", "SEND TO W-X", "DISPLAY W-Y.", "SEND", "COBOL5506")]
+    [InlineData("IF W-N = 1 MOVE W-X TO", "ADD 1 TO", "END-IF.", "ADD", "COBOL0306")]
+    [InlineData("IF W-N = 1 MOVE W-X TO", "ADD 1 TO", "ELSE DISPLAY W-Y.", "ADD", "COBOL0001: unexpected 'ELSE'")]
+    [InlineData("PERFORM UNTIL W-N = 1 MOVE W-X TO", "ADD 1 TO", "END-PERFORM.", "ADD", "COBOL0001: unexpected 'END-PERFORM'")]
+    public void AReservedVerbBeginningAnIncompleteNextStatement_IsNotCalledAMisusedName(
+        string incomplete, string statement, string after, string word, string secondFault)
     {
         var (ok, diags) = EditionHarness.Compile($"""
                    IDENTIFICATION DIVISION.
@@ -511,19 +523,21 @@ public sealed class ReservedWordPositionConformanceTests
                    WORKING-STORAGE SECTION.
                    01 W-X PIC X(4).
                    01 W-Y PIC X(4).
+                   01 W-N PIC 9(4).
                    PROCEDURE DIVISION.
                    MAIN-P.
-                       MOVE W-X TO
+                       {incomplete}
                        {statement}
-                       DISPLAY W-Y.
+                       {after}
                        STOP RUN.
 
                """, 2023);
         Assert.False(ok);
         Assert.True(diags.Count == 2 && diags[0].Contains($"unexpected '{word}'", StringComparison.Ordinal)
-                                     && diags[0].Contains("(10,", StringComparison.Ordinal)
+                                     && diags[0].Contains("(11,", StringComparison.Ordinal)
+                                     && diags[1].Contains(secondFault, StringComparison.Ordinal)
                                      && diags.All(d => !d.Contains("COBOL0901", StringComparison.Ordinal)),
-            $"expected the refusal at '{word}' on line 10 and the statement's own, no COBOL0901, got:\n{string.Join("\n", diags)}");
+            $"expected the refusal at '{word}' on line 11 and the statement's own ({secondFault}), no COBOL0901, got:\n{string.Join("\n", diags)}");
     }
 
     // ── A reserved word in a procedure-name slot (kb/Work PB4206) ─────────────────────────────────────────────────
