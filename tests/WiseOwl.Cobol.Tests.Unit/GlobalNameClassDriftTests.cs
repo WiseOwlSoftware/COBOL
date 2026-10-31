@@ -26,6 +26,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// a GLOBAL record hands down. The behavioural half is
 /// <c>conformance-suite/cases/_unassigned/pb1674_global_capacity_register.cob</c>.</para>
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class GlobalNameClassDriftTests
 {
     /// <summary>Name index → the text <c>InheritGlobalSubtree</c> reaches it by.</summary>
