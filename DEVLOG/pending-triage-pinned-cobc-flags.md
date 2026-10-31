@@ -1,0 +1,3 @@
+## The fuzz triage brief judges cobc only under its pinned command, never -std with -frelax-syntax-checks
+
+On bugs #1271 the GnuCOBOL maintainer called -std=cobolXXXX with -frelax-syntax-checks "not a very useful combination": relaxed checking selects vendor (Micro Focus, ACU) behaviour. Our differential harnesses never pass it (conformance-suite/adapters/gnucobol.json pins -std, -fformat and -x); only one hand-written upstream report used it as an extra case. scripts/fuzz_triage_briefs/common.md now says a GnuCOBOL-side verdict judges cobc only under the pinned command (-std plus -fec or a >>TURN directive when checking is the subject) and never tests or reports that combination.
