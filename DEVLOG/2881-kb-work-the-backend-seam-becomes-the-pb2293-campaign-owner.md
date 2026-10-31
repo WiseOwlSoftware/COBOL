@@ -1,4 +1,4 @@
-## kb/Work: the backend seam becomes the PB2293 campaign, owner priority; file PB4265 and PB4266
+## Entry 2881 — 2026-10-31 14:09 PDT — kb/Work: the backend seam becomes the PB2293 campaign, owner priority; file PB4265 and PB4266
 
 The owner asked what keeping the Roslyn code generator replaceable requires, then removed any C/C++ backend
 requirement (the requirement is a direct-IL backend only, DESIGN.md §1.1) and directed: "elevate the priority to
@@ -13,3 +13,4 @@ owner-approved external-repository design made `CsNames.Allocate` the one bind-t
 backends must emit; and PB4266, the §6 backend-contract test does not exist and `ICodeGenBackend` has one
 implementation. PB2293 also records the front-end review's AST verdict reconsidered against the seam: no parser-side
 AST, because the bound tree is the AST for every backend, and finishing it (no parse contexts) is this campaign.
+
