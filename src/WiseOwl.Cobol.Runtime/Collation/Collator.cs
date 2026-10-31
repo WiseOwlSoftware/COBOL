@@ -464,7 +464,9 @@ public sealed class Collator
     /// and is 0 at levels 1–3; a primary-ignorable element FOLLOWING a variable one is 0 everywhere; every other
     /// element keeps its three weights and takes the maximum ("no variable here") at level 4, raised by its tailored
     /// <see cref="CollationElement.Quaternary"/> weight. Under <see cref="AlternateHandling.NonIgnorable"/> the three
-    /// weights are used as they are and level 4 is the tailored quaternary weight alone (0 on every element of the root).
+    /// weights are used as they are and level 4 (present only when the table has tailored quaternary weights) gives every
+    /// element that is not completely ignorable the same common weight raised by its tailored one, so the POSITION of a
+    /// quaternary difference counts (ICU's <c>compareUpToQuaternary</c> does the same).
     /// With <see cref="CaseFirst"/> on, the level-3 weight is prefixed by the case bit (upper-first: uppercase 0,
     /// other 1; lower-first: the reverse) so case decides before width/compat/font/circled variants.</summary>
     internal int WeightAt(in CollationElement element, int level, ref bool afterVariable)
@@ -486,7 +488,14 @@ public sealed class Collator
             afterVariable = false;
             return level switch { 1 => element.Primary, 2 => element.Secondary, 3 => Tertiary(element), 4 => Table.MaxPrimary + element.Quaternary, _ => 0 };
         }
-        return level switch { 1 => element.Primary, 2 => element.Secondary, 3 => Tertiary(element), 4 => element.Quaternary, _ => 0 };
+        return level switch
+        {
+            1 => element.Primary,
+            2 => element.Secondary,
+            3 => Tertiary(element),
+            4 => element.IsCompletelyIgnorable ? 0 : Table.MaxPrimary + element.Quaternary,
+            _ => 0,
+        };
     }
 
     /// <summary>The level-3 weight with the case bits in front when <see cref="CaseFirst"/> is on: upper-first ranks

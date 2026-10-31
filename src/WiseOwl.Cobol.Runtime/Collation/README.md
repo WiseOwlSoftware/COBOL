@@ -113,8 +113,9 @@ group (`Space`, `Punct` (default), `Symbol`, `Currency`).
 
 **Strength** truncates the levels considered; `Quaternary` under `NonIgnorable` behaves as `Tertiary` on a table
 with no tailored quaternary weight (the root; there is no fourth level to weigh) and compares those weights on a
-table with some (Japanese `private-kana`'s `<<<<`: Hiragana before Katakana; under `Shifted` the weight raises the
-"no variable here" maximum); `Identical` adds the NFD tie-break, giving a total order over canonically inequivalent
+table with some (Japanese `private-kana`'s `<<<<`: Hiragana before Katakana; every element that is not completely
+ignorable weighs the common level-4 maximum, the tailored weight raising it, so the POSITION of a difference counts, as
+under `Shifted` and in ICU); `Identical` adds the NFD tie-break, giving a total order over canonically inequivalent
 texts (what an INDEXED file needs to keep distinct keys distinct).
 
 **`CaseFirst`** (Danish `[caseFirst upper]`): the element's case bits — Upper / Mixed / Lower, from the DUCET
