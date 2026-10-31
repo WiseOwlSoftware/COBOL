@@ -97,7 +97,7 @@ category (the shape `SET LOCALE LC_ALL` will take in design increment T1); nothi
 `Collation/CLDR/README.md`. All 135 collation files of CLDR release-48-2 are embedded (with `bcp47/collation.xml`
 and `supplementalData.xml`'s parent locales), a site directory (`COBOL_CLDR_DIR`, `Collation/CLDR/`) may add or
 override files (`.xml` LDML or the documented `.json` mirror), every construct of the pinned release's rule syntax is
-applied except `caseLevel` / `numericOrdering` / `hiraganaQ` (reported, never dropped — kb/Work PB107), and 29
+applied except `hiraganaQ` (reported, never dropped — kb/Work PB107), and 29
 locales are cross-checked pair-by-pair against the host's ICU. The hand-derived Spanish `.tailor` is kept in
 agreement with the CLDR derivation by a test.
 

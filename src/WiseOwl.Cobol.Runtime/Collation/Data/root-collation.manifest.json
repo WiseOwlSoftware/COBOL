@@ -1,5 +1,5 @@
 {
-  "format": 2,
+  "format": 3,
   "primaryShift": 4,
   "ucaVersion": "17.0.0",
   "sourceTag": "CLDR allkeys_CLDR.txt (UCA 17.0.0) + UCD 17.0.0",
@@ -13,7 +13,7 @@
     "FractionalUCA.txt": "591153cea3a1c33d69cf6ebefd3a7cd667bfb86a59ad2b5597b88c666bd6d521",
     "PropertyValueAliases.txt": "64e9a5f76f7a1e8b5a47d6a1f9a26522a251208f5276bdfa1559dac7cf2e827a"
   },
-  "outputSha256": "030fcd304ea938d5ab5d69f5cd03653f8b80b3bb4175c80033495f03e4e0fd15",
+  "outputSha256": "2af58d955d3a8b6f856ae38170249bac3250aee49964f198d2f553ac27aa0165",
   "stats": {
     "entries": 39761,
     "singleMappings": 38787,
@@ -29,10 +29,11 @@
     "implicitRanges": 23,
     "reorderGroups": 173,
     "upperElements": 1606,
+    "decimalDigitRuns": 77,
     "canonicalDecompositions": 2081,
     "maxDecompositionLength": 4,
-    "rawBytes": 644159,
-    "compressedBytes": 230196
+    "rawBytes": 644469,
+    "compressedBytes": 230559
   },
   "implicitRanges": [
     {
