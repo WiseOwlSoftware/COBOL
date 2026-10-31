@@ -44,7 +44,8 @@ $jsonOut  = Join-Path $repo 'tests/version-matrix/reserved-words.json'
 # well as §8.9's - it had only the words that happen to be lexer tokens, and rejected legal directives
 # naming HEX, CURRENT, LC_ALL, ANUM, BYTE, ACTIVATING, STACK, TOP-LEVEL, UCS-4, UTF-8, UTF-16, ...  The
 # directive is a 2023 introduction (cobol-words-directive-2023), so §8.10's 2023 table is exactly the
-# population its rules speak about and no per-edition flags are needed.
+# population its rules speak about; the per-word introduction edition (step 7c, kb/Work PB4174) serves the
+# syntax diagnostics that name the words expected, not the directive.
 $ctxCsOut   = Join-Path $repo 'src/WiseOwl.Cobol.Editions/ContextSensitiveWords.Table.cs'
 $ctxJsonOut = Join-Path $repo 'tests/version-matrix/context-sensitive-words.json'
 $cache    = Join-Path $repo '.cache/gnucobol-words'
