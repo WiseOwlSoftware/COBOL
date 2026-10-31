@@ -551,9 +551,19 @@ public abstract class CobolParserCoreBase : Parser
         Antlr4.Runtime.Atn.ATNState? exit = null;
         for (int i = 0; i < d.NumberOfTransitions && exit is null; i++)
             if (d.Transition(i).target is Antlr4.Runtime.Atn.LoopEndState le) exit = le;
-        if (exit is null) return false;
+        return exit is not null && KeywordContinuesFrom(exit);
+    }
+
+    /// <summary>The one question behind <see cref="keywordContinuesHere"/> and <see cref="pointerOperandHere"/>: does
+    /// the lookahead word take its keyword reading here (<see cref="IsKeywordReadingHere"/>) AND can it be matched as
+    /// a keyword of what follows <paramref name="exit"/> in THIS parse — the follow walked through the live
+    /// rule-invocation stack (<see cref="KeywordFollows"/>), never the context-free FOLLOW of a rule, which unions
+    /// every construct that invokes it (kb/Work PB4235: the screen entry's clause words leaked into the data
+    /// description entry that way).</summary>
+    private bool KeywordContinuesFrom(Antlr4.Runtime.Atn.ATNState exit)
+    {
         int la = TokenStream.LA(1);
-        return IsKeywordReadingHere(la) && KeywordFollows(atn, exit, Context, la);
+        return IsKeywordReadingHere(la) && KeywordFollows(Interpreter.atn, exit, Context, la);
     }
 
     /// <summary>Whether the lookahead word takes its KEYWORD reading in an operand list (kb/Work PB805/PB655).
@@ -797,30 +807,31 @@ public abstract class CobolParserCoreBase : Parser
     /// starting one more pair.</summary>
     protected bool IsBareInspectReplacingPair() => !BeginsInspectPhrase(TokenStream.LA(1));
 
-    /// <summary>Predicate for the TO-less operand of the three §13.18.60.2 pointer usages (kb/Work PB848): TO is
-    /// an optional word there (§5.2.3 — not underlined on the printed folio 503), so the word after
-    /// POINTER / FUNCTION-POINTER / PROGRAM-POINTER is the type-name or prototype-name — UNLESS it is a word that
-    /// may legitimately FOLLOW the usage without any operand: a USAGE-clause tail phrase (HIGH-ORDER-RIGHT, the
-    /// SIGN phrases — the ones a following semantic check rejects by name) or the next data-description clause.
+    /// <summary>Predicate for the TO-less operand of the three §13.18.60.2 pointer usages (kb/Work PB848, PB4235): TO
+    /// is an optional word there (§5.2.3 — not underlined on the printed folio 503), so the word after
+    /// POINTER / FUNCTION-POINTER / PROGRAM-POINTER is the type-name or prototype-name — UNLESS it is the KEYWORD of
+    /// what may follow the usage in THIS entry without any operand: a USAGE-clause tail phrase (HIGH-ORDER-RIGHT, the
+    /// SIGN phrases — the ones a following semantic check rejects by name) or the next clause of the entry.
     /// <c>cobolWord</c>'s reservation gate does not settle that on its own: it admits a keyword wherever it is not
     /// reserved (an older edition, <c>--permissive</c>; BIT and NATIONAL are also bare USAGE keywords). Both failures
-    /// were MEASURED — <c>USAGE POINTER BIT</c> and
-    /// <c>USAGE POINTER HIGH-ORDER-RIGHT</c> each bound the word as a type-name. A plain IDENTIFIER is always
-    /// the operand (the only thing it could otherwise begin is the unrecognizedDataClause error production).</summary>
-    protected bool pointerOperandHere()
-    {
-        int t = TokenStream.LA(1);
-        return t == CobolLexer.IDENTIFIER || !UsageFollowSet(Atn).Contains(t);
-    }
-
-    /// <summary>FOLLOW(<c>usageKeyword</c>) — every token that can come next after a usage keyword in ANY context
-    /// that invokes it — read off the GENERATED ATN rather than listed by hand: the union, over every call site of
-    /// the rule, of what the ATN can match after it, climbing to the caller's own call sites wherever the caller
-    /// can end there (context-free FOLLOW). A clause added to the closed §13.16.2 format, or a phrase added to the
-    /// USAGE clause, is excluded from the TO-less pointer operand the moment the grammar gains it
-    /// (<see cref="pointerOperandHere"/>; pinned by PointerUsageOperandDriftTests). Computed once per process.</summary>
-    public static Antlr4.Runtime.Misc.IntervalSet UsageFollowSet(Antlr4.Runtime.Atn.ATN atn)
-        => FollowSet(atn, CobolParserCore.RULE_usageKeyword);
+    /// were MEASURED — <c>USAGE POINTER BIT</c> and <c>USAGE POINTER HIGH-ORDER-RIGHT</c> each bound the word as a
+    /// type-name.
+    /// <para>WHAT FOLLOWS IS THE LIVE CONTEXT'S (kb/Work PB4235). The usage clause is a clause of the data description
+    /// entry, the report group description entry AND the screen description entry, and each is followed by its own
+    /// entry's clauses. §8.10 makes AUTO, BELL, SECURE and the other screen attribute words context-sensitive words of
+    /// the "screen description entry", and §8.3.2.1 3) lets such a word be a user-defined word "in contexts other than
+    /// the language construct in which they are defined" — so in a data description entry <c>USAGE POINTER AUTO</c>
+    /// names a type AUTO, exactly as <c>USAGE POINTER TO AUTO</c> does, while in a screen entry AUTO begins the AUTO
+    /// clause. The follow is therefore walked from this rule's end through the parser's live rule-invocation stack
+    /// (<see cref="KeywordContinuesFrom"/>, the same question <see cref="keywordContinuesHere"/> asks at a list's
+    /// end), never the context-free FOLLOW of <c>usageKeyword</c>, which unioned the three entries' clause words.
+    /// The rule's END is the operand slot's exit because the optional operand is each pointer rule's last element
+    /// (CobolData.g4; PointerUsageOperandDriftTests holds that shape), and reading the rule's stop state keeps the
+    /// answer the same during prediction (State = the slot's decision) and in the inline check that follows it.
+    /// A plain IDENTIFIER is always the operand (it is no keyword, <see cref="IsKeywordReadingHere"/>), and a word the
+    /// program declared that §8.9 leaves free at this edition is its user-word reading, as in every operand list.
+    /// </para></summary>
+    protected bool pointerOperandHere() => !KeywordContinuesFrom(Interpreter.atn.ruleToStopState[Context.RuleIndex]);
 
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<int, Antlr4.Runtime.Misc.IntervalSet>
         s_follow = new();
