@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "COBOL2918: 'BAL OF NULL': its object shall not be the predefined object reference NULL"}

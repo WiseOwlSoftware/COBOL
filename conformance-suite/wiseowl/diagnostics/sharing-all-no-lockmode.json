@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "OPEN of file 'F' with SHARING WITH ALL OTHER requires the file to have a LOCK MODE clause"}

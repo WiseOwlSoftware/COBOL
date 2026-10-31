@@ -1,0 +1,1 @@
+{"refuse-at": ["2023"], "expect": "COBOL1601: WHEN exception-name 'EC-BOUND-SUBSCRIPT' is paired with FILE"}

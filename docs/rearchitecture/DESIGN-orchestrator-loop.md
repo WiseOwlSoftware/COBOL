@@ -700,7 +700,11 @@ it ticks the review lane. The tick:
 3. LAUNCHES, at most `-ReviewAgents` alive at once, conflict finishers first, then reviews in survey order. A launch
    writes `review-lane/runs/<id>.json` and the prompt, and starts `review_lane.py run <record>` DETACHED
    (`scripts/detached.py`), which runs `claude -p --agent cobol-reviewer|cobol-finisher` in the main checkout with the
-   prompt on stdin (the role's own definition carries its model, hooks and turn cap), kills it at the role's ceiling
+   prompt on stdin (the role's own definition carries its model, hooks and turn cap) and `COBOL_LOOP_UNIT=review-lane`
+   (`review_lane.LANE_UNIT`), the loop-session mark a unit gets from `orchestrate.ps1`: the agent answers no inbox, the
+   inbox Stop hook never holds its turn end for a watcher, and the SessionStart hook names it no skill. Unmarked, the
+   agents read as the attended operator, armed the operator's watcher and idled past their result, each holding a slot to
+   its ceiling and re-woken by every message (kb/Work PB4070). The runner kills the agent at the role's ceiling
    (`reviewer_ceiling_min` 90, the finisher's 240: STALLED) or on a loop stop (STOPPED), and records rc, the end head and
    the verdict the findings file holds.
 
@@ -1558,8 +1562,8 @@ backspace; `operator-session.json` was invalid JSON with unescaped backslashes).
   does not re-arm it goes deaf mid-session, and nothing at session start sees that: on 2026-10-18 the operator's
   watcher fired at 14:40, was not re-armed, and nine messages waited until 17:14. The Stop hook
   `scripts/hooks/inbox_guard.py` asks `status` at every attended turn's end and, when it reads false, refuses the stop
-  with the ⛔ line as the reason, so the session acts on the inbox and arms the watcher first. A loop unit and a host
-  without the coordination directory pass silently. A turn already continued for a Stop hook (`stop_hook_active`) gets
+  with the ⛔ line as the reason, so the session acts on the inbox and arms the watcher first. A loop unit, a review-lane agent
+  (both carry `COBOL_LOOP_UNIT`, section 4.9.1) and a host without the coordination directory pass silently. A turn already continued for a Stop hook (`stop_hook_active`) gets
   the line as a warning instead, so the hook never loops. `watch` fires only on messages NEW TO ITS SESSION: it records the
   ones it returned in `mailbox/delivered-<lane>-<session pid>.json`, keyed by the watching session's Claude Code process
   and pruned to the open messages. So a watcher stays armed beside a message the session has seen and cannot close yet,

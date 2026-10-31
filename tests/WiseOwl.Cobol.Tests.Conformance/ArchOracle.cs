@@ -115,7 +115,7 @@ public static class ArchOracle
                 : ConformanceSuiteRunner.FlagOptions(test, edition, dir))));
     }
 
-    /// <summary>One of WiseOwl's refusals (<c>wiseowl/diagnostics.json</c>) at one edition.</summary>
+    /// <summary>One of WiseOwl's refusals (<c>wiseowl/diagnostics/</c>) at one edition.</summary>
     private static IEnumerable<OracleCase> SuiteRefusalCase(object[] row)
     {
         var (id, edition) = ((string)row[0], (string)row[1]);

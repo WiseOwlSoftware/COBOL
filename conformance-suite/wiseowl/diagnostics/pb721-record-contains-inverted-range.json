@@ -1,0 +1,1 @@
+{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "COBOL2009: file description entry 'F': the RECORD CONTAINS clause states 20 TO 5; integer-5 shall be greater than integer-4"}
