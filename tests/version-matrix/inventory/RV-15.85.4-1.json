@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.85.4-1",
+ "section": "15.85.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "STANDARD-COMPARE function",
+ "rule-digest": "04f1516c9d93",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#StandardCompare",
+ "test-ref": "unit:StandardCompareTests.OmittedLevel_IsTheHighestLevelTheTableDefines; conformance:cases/12.3.7-SPECIAL-NAMES/pb101_standard_compare",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB101 T7: level 0 (unspecified) is 4 — the highest level the derived table defines (UCA's four: primary, secondary, tertiary, the shifted variable weights); the golden's OMHY line equals its L4HY line and differs from L3HY.",
+ "state": "OK"
+}

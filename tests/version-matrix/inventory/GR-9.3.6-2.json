@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.3.6-2",
+ "section": "9.3.6",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Objects",
+ "rule-digest": "38b2bf09498d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindClassInvoke; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindByReceiver; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInstanceInvoke",
+ "test-ref": "conformance-test:OoSpineTests.Factory_DualRoster_AndDiagnosticBand",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Three sentences, all verified. (a) 'otherwise, the resolution will be to an instance method' — a non-FACTORY receiver resolves FindMethod (instance roster). (b) SUPER 'restricted search, as specified in 8.4.3.8' — OoBindByReceiver binds SUPER against the containing class's base (InvokeForm.Super -> non-virtual base call), and COBOL0827 refuses SUPER in a root class. (c) 'If an invocation specifies the object using a class name, the factory object of the specified class is used as the object on which the method is invoked' (cite.py --check 9.3.6 -> OK §9.3.6 2)) — OoBindClassInvoke resolves FindFactoryMethod over the INHERITS chain. Probe out/probe/objects-p1/p1.cob: INVOKE OBJC \"FAONLY\" (inherited factory method) ran A-FAONLY with SELF polymorphic (WHOF-B); SUPER \"M\" from OBJC skipped OBJB (no M) and ran OBJA's M (M-C then M-A), including through a base-typed reference. Covering tests: OoSpineTests.Factory_DualRoster_AndDiagnosticBand (class-name -> FACTORY-PING, object -> INSTANCE-PING) and OoSpineTests.ThreeLevelSuperChain_RunsBaseFirst_NoRecursion (SUPER). The trailing 'Method resolution proceeds as follows:' is the lead-in to L2.1-L2.6. || Editions (adjudicator, verbatim): 2002, 2014, 2023 (OO is an ISO/IEC 1989:2002 introduction; absent from 1985 — probe p1.cob at --std 85 is refused COBOL0900)",
+ "state": "OK"
+}

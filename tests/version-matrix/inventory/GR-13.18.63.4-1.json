@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.63.4-1",
+ "section": "13.18.63.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "VALUE clause",
+ "rule-digest": "d32ba563bd52",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InitializeEmitter.cs#EmitAction; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#ConvertSource",
+ "test-ref": "conformance:cases/13.7-Linkage-section/pb576_float_value_occasions; conformance:cases/13.18.63-VALUE/pb576_file_section_value_initialize",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB576.md - THE REFUTATION'S LOUD IS GONE AND GR1 IS NOW PINNED ON EVERY OCCASION. The refuter overturned this row to PARTIAL on one ground: GR1's value was given only on GR4c's FIRST bullet, because InitializeEmitter matched `case InitializeStore { Target.Item.Pic: { IsFloat: true } } s:` and emitted LoudStmt('... float MOVE path deferred') for every non-ZERO sender - so GR2 (file section), GR3 (linkage), GR4a (external), GR4b (based, under ALLOCATE) and GR4c's second bullet (any INITIALIZE) all aborted at run time. RE-PROBED on this worktree's own build: it does not reproduce. kb/Work PB420 (commit c2f0c4c50, 'a stale deferral kept INITIALIZE out of a float receiver') deleted the arm at the root - a float receiver is category NUMERIC by 8.5.2 and now takes exactly the path its EXPLICIT MOVE takes, MoveEmitter's float-receiver arm in ConvertSource, and StaleDeferralDriftTests keeps the arm from coming back. THE ROW WAS 'CONFORMS-but-untested' AND IS NOT ANY MORE. conformance:cases/13.7-Linkage-section/pb576_float_value_occasions pins GR1 at five occasions - the initial state (GR4c b1), an INITIALIZE (GR4c b2), ALLOCATE ... INITIALIZED (GR4b), an EXTERNAL item's INITIALIZE (GR4a) and a LINKAGE item's INITIALIZE (GR3) - and conformance:cases/13.18.63-VALUE/pb576_file_section_value_initialize adds GR2's file-section path. EVERY ASSERTION IS A COMPARISON, NOT A RENDERING: the item is compared against a MOVE of the SAME literal into the SAME usage (14.9.25 gives that MOVE the same approximation GR1 gives the VALUE clause), and the 'approximation' half is pinned from the other side by COMPUTE X = A * 3 comparing UNEQUAL to 0.3 - which is true of binary64's nearest neighbour to 0.1 and false of the exact arithmetic value, so the two lines bracket GR1 rather than restate it. The linkage line also carries GR3's 'only' half: on entry the item holds the caller's 9.0 and not the VALUE clause's 0.1. || editions corrected from '85,2002,2023' to 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): FLOAT-SHORT / FLOAT-LONG / FLOAT-EXTENDED are COBOL-2002 introductions.",
+ "state": "OK"
+}

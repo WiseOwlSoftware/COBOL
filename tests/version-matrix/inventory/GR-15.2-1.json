@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-15.2-1",
+ "section": "15.2",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Intrinsic functions",
+ "rule-digest": "d4cbc7c9f2e6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#CategoryOf",
+ "test-ref": "conformance:cases/8.4.3.3-Reference-modification/pb73_table16_function_type_and_boolean_view; conformance-test:MoveTable16FunctionTypeTests.IntegerFunction_ToAlphanumeric_IsLegalStrict",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 15.2 'Alphanumeric functions. These are of the class and category alphanumeric' => OK §15.2 1). THREE clauses, all met. (a) CLASS AND CATEGORY ALPHANUMERIC: IntrinsicSig.CategoryOf(IntrinsicType.Alphanumeric) => PicCategory.Alphanumeric, and it is the ONE §15.2-type-to-category mapping — the declared column and the argument-resolved path (IntrinsicResultType.Resolve, read at IntrinsicBinder.cs line 670) both go through it, which is the kb/Work PB15 repair of three competing mechanisms. Consumers see the category: MoveBinder's §14.9.25.3 Table-16 legality, the string channels, the relation checkpoint. (b) IMPLICIT USAGE DISPLAY is modelled and is READ: IntrinsicArgumentRules.cs#StaticUsageOf answers Usage.Display for a nested intrinsic whose ResultCategory is Alphanumeric, and that is the axis §15.18.3 r2 (--check'd) and §15.19.3 r4/r5/r6/r7 key on, so the implicit usage is not decorative. (c) 'represented in the alphanumeric coded character set in effect when the function is referenced at runtime': the compiler has ONE runtime alphanumeric repertoire — UTF-16, one code unit per character position — recorded as a required-and-documented determination in docs/CONFORMANCE.md items 33 and 188, so 'the set in effect' is invariant and the sentence is satisfied by construction rather than left open. TESTS: pb73_table16_function_type_and_boolean_view exercises alphanumeric-typed function results as MOVE senders against Table 16, with MoveTable16FunctionTypeTests asserting the strict/permissive dispositions.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.28.3-1",
+ "section": "13.18.28.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "GROUP INDICATE clause",
+ "rule-digest": "d6996b354b57",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportEntryClausePresence; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#WrittenGroupKind",
+ "test-ref": "conformance:cases/13.18.28-GROUP-INDICATE/pb1245-group-indicate-not-detail; conformance:cases/13.18.28-GROUP-INDICATE/pb1245-group-indicate-no-column; conformance:cases/13.18.28-GROUP-INDICATE/pb1245-group-indicate-sum-only",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1245 (w66j). cite.py --check 13.18.28.3 'may be specified only within a detail report group description, in an elementary entry that also contains a COLUMN clause and a SOURCE or VALUE clause' OK 1). ScreenReportEntryClausePresence (once per written entry) now screens all three conditions: elementary via §13.15.3 SR11 (COBOL2247, unchanged), and COBOL2519 report-group-indicate-placement for a non-DETAIL group (TYPE read from the level-01 entry through WrittenGroupKind, shared with ScreenReportLineClauses), an elementary entry with no COLUMN clause, and one with neither SOURCE nor VALUE (COLUMN + SUM only). One negative per arm, each rejected at 85/2002/2014/2023 with that arm's message.",
+ "state": "OK"
+}

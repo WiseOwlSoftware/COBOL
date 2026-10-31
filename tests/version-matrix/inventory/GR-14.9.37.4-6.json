@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.37.4-6",
+ "section": "14.9.37.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "SEARCH statement",
+ "rule-digest": "d2434a6ada6c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs",
+ "test-ref": "conformance:cases/14.9.37-SEARCH/l1_search_all_unsequenced_no_match",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR6 b) on GR6's own branch: ASCENDING KEY declared over 09,07,05,03,01 violates GR5a (which the refuted ec_range_search leg did not), and no occurrence holds 04, so AT END is taken and EC-RANGE-SEARCH-NO-MATCH is the last exception status. GR6 a) is not asserted — the standard says it is undefined which alternative occurs. Edition twin: conformance:cases/_unassigned/l1_search_all_unsequenced_no_match_85.",
+ "state": "OK"
+}

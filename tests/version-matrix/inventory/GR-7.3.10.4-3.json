@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.10.4-3",
+ "section": "7.3.10.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "COBOL-WORDS directive",
+ "rule-digest": "5ba0efb16d54",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#NextToken; src/WiseOwl.Cobol.Frontend/Parsing/CobolWordsRewriter.cs#Plan",
+ "test-ref": "conformance:cases/7.3.10-COBOL-WORDS/pb1372_cobol_words_lexer_keywords; conformance:cases/7.3.10-COBOL-WORDS/pb1372-cobol-words-undefined-picture-syntax-withdrawn; unit:CobolLexerWordRetypeDriftTests.AnUndefinedPicture_IsADataName_AndSwallowsNothing; unit:CobolLexerWordRetypeDriftTests.UndefiningPic_LeavesPictureAKeyword",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1372 landed. GR3 (cite.py OK 7.3.10.4 3)): an UNDEFINEd PICTURE is a user-defined word and opens no picture-string mode (01 PICTURE PIC X(3) -> PPP), while the syntax requiring it is not available (negative: PICTURE X(3) is a syntax error); UNDEFINE of PIC leaves PICTURE a keyword (one token type carries both spellings, the text test). retired-witness: src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4#PIC (kb/Work PB1372 landed: CobolWordsRewriter.Rewrite is deleted (the lexer applies the retype, CobolWordsRewriter.Plan) and the PIC rule no longer carries the pushMode command; the replacement witnesses are named in this record) retired-witness: src/Cobol.Net.Frontend/Parsing/CobolWordsRewriter.cs#Rewrite (kb/Work PB1372 landed: CobolWordsRewriter.Rewrite is deleted (the lexer applies the retype, CobolWordsRewriter.Plan) and the PIC rule no longer carries the pushMode command; the replacement witnesses are named in this record)",
+ "state": "OK"
+}

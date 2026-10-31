@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-18",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 18,
+ "subject": "SET statement",
+ "rule-digest": "9dfd72c4ea71",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/CobolPtr.cs; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs",
+ "test-ref": "unit:CobolPtrTests.UpBy_Null_RaisesWhenChecked_AndIsUnchangedWhenNot",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "FORMAT 10 — \"If identifier-9 contains the predefined address NULL, the EC-DATA-PTR-NULL exception condition is set to exist\" (cite.py --check 14.9.39.4 PASS). MEASURED at --std 2002: probe p4_gr18_null (`>>TURN EC-DATA-PTR-NULL CHECKING ON`, `SET P TO NULL.` then `SET P UP BY 4.`) terminates with `abnormal run-unit termination: EC-DATA-PTR-NULL (fatal): SET pointer UP/DOWN BY with a NULL pointer operand (ISO 14.9.39 Format 10 GR18)`; probe p4_gr18_null_nocheck, the same program without the TURN, prints AFTER-UP and leaves the operand at NULL — the §14.6.13 checking-off behaviour, and the value returned is the unchanged operand rather than an invented address. The C#-null carrier and ManagedPointer.Null normalise to the same predefined address, so the two spellings of NULL raise identically. The unit test cites this GR by number and asserts the raised EC NAME and the unchanged operand from the spec's own sentence, so it is spec-derived, not characterization.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Runtime/Control/CobolPtr.cs:68-94 (UpBy — `if (p is null || p.IsNull) { ExceptionState.DataPtrNullError(…); return ManagedPointer.Null; }`) + src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs:323-372 (DataPtrNullError, checking-gated, Table-13 fatal) + src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs:152 (the EC-DATA-PTR-NULL → DataPtrNullChecking wiring) + src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/PtrEmitter.cs:75-102 (EmitSetPointerUpDown)",
+ "state": "OK"
+}

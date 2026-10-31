@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.43.4-3",
+ "section": "13.18.43.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "RECORD clause",
+ "rule-digest": "fa673ff2572d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MaxRecordSize; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MinRecordSize; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ByteWidth",
+ "test-ref": "conformance:cases/13.4.6-Sort-merge-file-description/pb1277_record_size_in_bytes; conformance:cases/13.18.43-RECORD/pb1277-record-contains-national-larger; unit:RecordSizeModelTests.UnstatedRange_IsTheRecordsByteSize",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Landed by kb/Work PB1277 (w61f). cite.py --check 13.18.43.4 'regardless of the types of characters used' -> OK §13.18.43.4 3). Record sizes are DataItem.ByteWidth (a national position = 2 bytes, D-N1), never the carrier's ImageWidth: RECORD CONTAINS 10 over PIC N(10) is refused COBOL2010 (20 bytes), FROM 16 TO 40 over X(10)+N(5) compiles (20 bytes), a DEPENDING 12 WRITE of a PIC N(10) record answers 44 (min 20). The sibling FileModel.AreaRecord (the largest record, whose view a READ splices through) now also chooses by bytes: X(15) vs N(10) picks the 20-byte N(10) record (was X(15): a READ delivered 7.5 national characters).",
+ "state": "OK"
+}

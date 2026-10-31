@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.23.3-22",
+ "section": "14.9.23.3",
+ "kind": "SR",
+ "ordinal": 22,
+ "subject": "INVOKE statement",
+ "rule-digest": "d8f56b598c8b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindResolvedInvoke; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindClassInvoke; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindUniversalInvoke",
+ "test-ref": "conformance:cases/14.9.23-INVOKE/l1-invoke-returning-constant-record; conformance:cases/14.9.23-INVOKE/l1-invoke-returning-constant-record-universal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR22 makes identifier-4 a receiving operand, and §13.18.15.3 SR2 then bars a CONSTANT RECORD item: RETURNING KA is rejected with COBOL1548 on the resolved and universal arms",
+ "state": "OK"
+}

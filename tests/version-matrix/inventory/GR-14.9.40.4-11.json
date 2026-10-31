@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.40.4-11",
+ "section": "14.9.40.4",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "SORT statement",
+ "rule-digest": "7f9906a2a019",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSort; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortRange",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/pb440_sort_procedure_range; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_sort_input_procedure; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_sort_merge_procedure_ends_at_last_paragraph; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_sort_merge_called_program",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'If an input procedure is specified, control is passed to the input procedure before the file referenced by file-name-1 is sequenced by the SORT statement. The compiler inserts a return mechanism after the last statement in the input procedure. When control passes to that return mechanism, the records that have been released ... are sorted.' (cite.py --check 14.9.40.4 OK, GR11). EmitSort emits SortEnterProcedure + Statements.EmitProcedureRange(ip) (a bounded __Dispatch(start,end) whose bounded return IS the inserted return mechanism) BEFORE SortSort; the range is resolved by the one PERFORM-style procedure resolver incl. THRU and inverted ranges. pb440 pins an inverted IN-B THRU IN-A range (RELEASE C,A,B -> OUT=A/B/C) and an empty section (CNT=0), expected values derived in the golden header. [editions as adjudicated: 1985, 2002, 2014, 2023]",
+ "state": "OK"
+}

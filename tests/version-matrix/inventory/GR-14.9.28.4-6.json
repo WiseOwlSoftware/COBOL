@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.28.4-6",
+ "section": "14.9.28.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "PERFORM statement",
+ "rule-digest": "15a11152c14f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform; src/WiseOwl.Cobol.Compiler/Binding/Model/PcRange.cs; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/pb440_perform_range_composition; conformance:cases/14.9.28-PERFORM/pb440_sort_procedure_range; conformance:cases/14.9.28-PERFORM/pb440_perform_empty_range_2023; unit:ProcedureRangeEmptinessDriftTests.ThroughComposesTheSpecifiedSet; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_perform_thru_inverted",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB440.md - LANDED. The two arms the row's previous verdict rested on are fixed at the ROOT: a resolved procedure range is now a PcRange that CARRIES its emptiness (it cannot be derived - a zero-paragraph section, 14.4.2, and an ADJACENT inverted THRU range, GR6, are the identical pair (s, s-1)), BindPerform has ONE path that always binds the control phrase, EmitOutOfLinePerform emits the control-phrase scaffold for EVERY range and supplies an EMPTY body when the set is empty, and DispatchState.DispatchCall is the one place a range becomes __Dispatch and THROWS on an empty one. The distinctive half - no source-order relationship is required between procedure-name-1 and procedure-name-2 - is measured twice: pb440_perform_range_composition's INVERTED case (INV-A physically precedes INV-B and is reached by a GO TO; N=0300) and pb440_sort_procedure_range, where the identically-composed SORT INPUT PROCEDURE IS IN-B THRU IN-A releases all three records. The second half - the consecutive sequence begins at procedure-name-1 - now holds when that procedure is EMPTY: the sequence is empty and the compiler begins nowhere, instead of beginning at the FOLLOWING section and running to the end of the pc space. This is NOT the NOTE 2 flawed-program case; nothing here transfers control out of the range.",
+ "state": "OK"
+}

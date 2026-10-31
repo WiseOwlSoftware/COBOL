@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.31.2",
+ "section": "13.18.31.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "INVALID clause",
+ "rule-digest": "04f559948ce4",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause",
+ "test-ref": "conformance:wiseowl/cases/13.18.31-INVALID/declined-validate-invalid",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "docs/CONFORMANCE.md §5 row A.4.14 (VALIDATE — Not claimed) + §4 item 3. Licence: Annex A.4.1, \"An implementation shall accept the syntax and provide the functionality for an optional element only when support for that language element is claimed by the implementor\", and its second sentence carrying the licence to the module's unlisted rules. Obsolescence (F.2 item 5) is corroboration, never the licence (kb/Work PB198).",
+ "state": "OK"
+}

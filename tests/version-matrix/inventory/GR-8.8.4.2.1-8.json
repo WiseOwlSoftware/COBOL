@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.2.1-8",
+ "section": "8.8.4.2.1",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "Simple relation conditions",
+ "rule-digest": "76537d77b65e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RelationComparability.cs#Breach; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckGeneralRelationComparability; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#CheckedRangeMembership",
+ "test-ref": "conformance:wiseowl/cases/8.8.4.2-Simple-relation-conditions/pb1468_relation_defined_pairs; conformance:cases/8.8.4.2-Simple-relation-conditions/pb1468-relation-index-pair; conformance-test:RelationComparabilityTests.EveryPair_MatchesTheComparisonsDefinedList; conformance-test:RelationComparabilityTests.EverySurface_ReportsTheBreach; conformance-test:RelationComparabilityTests.RangeMembershipArm_ReportsTheBreach; conformance-test:RelationComparabilityTests.EvaluateSubjectIntermediate_IsScreenedAsWritten",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1468 LANDED (wave 67 N). Item 8 'Comparisons involving indexes or index data items' is defined by §8.8.4.2.13 'Relation tests may be made only between' (cite.py OK). RelationComparability.Breach answers every pair with a class-index operand (index-name or index data item, read from the §8.5.2.1 Table-2 lattice): both index -> rows 1/3; an index-name against a numeric data item, a numeric literal or ZERO -> row 2; everything else COBOL2533 (unconditional error). Measured: `IF IDX1 = NI`, `IF IDX1 = 3`, `IF IDX1 = ZERO`, `IF IDX1 = XA`, `IF I1 = XA` each COBOL2533 (I1 = XA used to abort the run unit, 'computed expression in a string context'). Defined cases unchanged (golden 85/pb1468_relation_defined_pairs lines 08-12). Sibling arm: the EVALUATE THROUGH lowering BoundRangeMembership (IN alphabet-name / EC-RANGE-INVALID checking) is built by ConditionBinder.CheckedRangeMembership through the same checkpoint; a multiply-read EVALUATE subject is screened as WRITTEN (ConditionBinder.RecordIntermediate), not as its implementor intermediate.",
+ "state": "OK"
+}

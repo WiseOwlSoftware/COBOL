@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.41.4-2",
+ "section": "15.41.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "FORMATTED-TIME function",
+ "rule-digest": "a57594f19778",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#EmitFormatted",
+ "test-ref": "conformance:cases/15.3.3.6.1-Offset-subformats/formatted_datetime; conformance:cases/15.41.3-Argument-rules/l1_formatted_time_offset_normalization; conformance-test:IntrinsicFunctionDifferentialTests.FormattedTime_UtcRollAcrossMidnight_2014",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Direction from 15.3.3.6.1 1)/2); a crossing normalizes because 15.3.3.3 confines hh to 00..23, so 3600 with +120 is 23:00:00Z and 82800 with -120 is 01:00:00Z, with the mid-range T2/R3 as control.",
+ "state": "OK"
+}

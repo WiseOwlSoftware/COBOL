@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-30",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 30,
+ "subject": "SET statement",
+ "rule-digest": "ea0dc5539e54",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#SetCapacity; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#GrowTo; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#BoundSetError; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionCatalog.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.RaiseDeclarations.cs#SetCapacityNames",
+ "test-ref": "conformance:cases/14.9.39-SET/dyn_capacity_set; conformance:cases/14.9.39-SET/pb460_ec_bound_set",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB460 - FORMAT 14, ALL SIX OBLIGATIONS. a) TO, b) UP BY, c) DOWN BY, the minimum clamp, the EC-BOUND-TABLE-LIMIT first arm (capacity unchanged, GrowTo) were already live; the SECOND arm - \"otherwise, if an expected maximum capacity is specified for the table and the new capacity of the table exceeds that expected maximum capacity, the EC-BOUND-SET exception condition is set to exist\" (cite.py --check 14.9.39.4 -> OK 30)) - had a catalog row and NO raise site. CobolDynTable.SetCapacity now raises it (nonfatal, Table 13) on EVERY SET whose new capacity exceeds the expected maximum - no first-crossing exemption, that is 8.5.1.9.6 GR1's for implicit changes - BEFORE the change, the shape of the implicit twin EC-BOUND-OVERFLOW; the EC binder binds it PRECISELY on BoundSetCapacity with EC-FLOW-SEARCH, and EcEmitter's nonfatal gate table carries (EC-BOUND-SET, BoundSetChecking). Measured on 2014/pb460_ec_bound_set: TO 9 / UP BY 1 / DOWN BY 1 above 6 each raise and run the USE declarative (which sees the prior capacity), TO 4 / DOWN BY 5 / DOWN BY 100 do not, and every change is made. docs/CONFORMANCE.md A.4.4 records the two determinations (EC-BOUND-SET not EC-BOUND-OVERFLOW for the explicit SET; raise-then-change). retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#SetCapacityNames (the family arrays moved into EcBinder.RaiseDeclarations.cs (kb/Work PB3102))",
+ "state": "OK"
+}

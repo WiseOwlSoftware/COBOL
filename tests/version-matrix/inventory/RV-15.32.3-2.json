@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.32.3-2",
+ "section": "15.32.3",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "EXCEPTION-STATEMENT function",
+ "rule-digest": "08427c3ac5d0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Exceptions/EcFunctions.cs#Statement",
+ "test-ref": "conformance:cases/7.3.25-TURN/exception_statement_ambient; conformance:cases/15.32.3-Returned-value-rules/l1_exception_statement_table12",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "exception_statement_ambient S1/T1 give SEARCH and CONTINUE 63 wide, left-justified space-filled, from the TURN WITH LOCATION and PERFORM WITH LOCATION arms; l1_exception_statement_table12's L-T adds r2's 'in uppercase letters' clause from lowercase source.",
+ "state": "OK"
+}

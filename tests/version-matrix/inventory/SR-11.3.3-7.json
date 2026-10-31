@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.3.3-7",
+ "section": "11.3.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "CLASS-ID paragraph",
+ "rule-digest": "9208d14f0e43",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build",
+ "test-ref": "conformance:wiseowl/cases/11.3-CLASS-ID/oo-inherits-same-base-twice",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "docs/CONFORMANCE.md §5 row A.4.10 (Object orientation optional items — Not claimed), for items 1 and 3 ONLY. Licence: §4.2.7 + Annex A.4.1. The OO CORE is mandatory surface and is implemented; only the CLASS-side INHERITS repetition (item 1) and parametric polymorphism (item 3) are declined. Item 2, the INTERFACE-ID INHERITS repetition, IS IMPLEMENTED (CobolOO.g4 `INHERITS FROM interfaceName+`; OoClassTable enforces §11.6.3 SR2 with COBOL0840 and SR3/SR6 with COBOL2791 (kb/Work PB1784)) — its rows are NOT in this batch. SR7's OWN subject — the SAME class name twice in one INHERITS clause. The pre-existing fixture oo-multi-base-inherits uses two DISTINCT base names, so this rule had never been witnessed on its own subject.",
+ "state": "OK"
+}

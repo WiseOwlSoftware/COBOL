@@ -43,9 +43,10 @@ TESTREF_CLEARED = re.compile(
 #: row ALREADY carries an owner verdict is EXCLUDED and raised as an owner question. The measurement is not
 #: lost — it lands as a kb/Work note that claims the row.
 OWNER_VERDICTS = {"DOCUMENTED-NON-SUPPORT"}
-_inv = pathlib.Path("tests/version-matrix/traceability-inventory.json")
-OWNED_ROWS = ({r["rule-id"] for r in json.loads(_inv.read_text(encoding="utf-8"))
-               if r.get("verdict") in OWNER_VERDICTS} if _inv.exists() else set())
+sys.path.insert(0, "scripts/spec")
+from inventory_store import INVENTORY_DIR, load_inventory  # noqa: E402  (the one reader of the inventory, kb/Work PB4148)
+OWNED_ROWS = ({r["rule-id"] for r in load_inventory()
+               if r.get("verdict") in OWNER_VERDICTS} if INVENTORY_DIR.is_dir() else set())
 
 records, digest, unrefuted, skipped = [], collections.OrderedDict(), [], []
 for f in sorted(out.glob("out-*.json")) + sorted(out.glob("adjudicate-*.jsonl")):

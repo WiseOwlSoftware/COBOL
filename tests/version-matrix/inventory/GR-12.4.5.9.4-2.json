@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.9.4-2",
+ "section": "12.4.5.9.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "LOCK MODE clause",
+ "rule-digest": "d98a46ae707a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#LocksEffective; src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#PreflightNewLock",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-12.4.5.9.4-2",
+ "editions": "2002,2014,2023",
+ "notes": "GR-12.4.5.9.4-2 CONFORMS on DRV-GR-12.4.5.9.4-2 (docs/CONFORMANCE.md section 8, unpopulatable-antecedent, owner: 2026-10-23, kb/Work PB1636). cite.py --check 12.4.5.9.4 OK 2); cite.py --check 9.1.16 OK. Every connector supports record locking, so GR2's antecedent is never populated; the cross-run-unit probes (RELATIVE, INDEXED, SEQUENTIAL, LINE SEQUENTIAL) answer '51' to a second run unit (PB1636 re-verification 2026-10-17).",
+ "state": "OK"
+}

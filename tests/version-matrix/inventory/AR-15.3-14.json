@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.3-14",
+ "section": "15.3",
+ "kind": "AR",
+ "ordinal": 14,
+ "subject": "Intrinsic functions",
+ "rule-digest": "78bebec8f75a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#IsVariableLengthGroup",
+ "test-ref": "conformance:cases/15.3-Arguments/pb124-vlg-function-argument; conformance:cases/15.3-Arguments/pb124-vlg-type-argument; conformance:cases/15.3-Arguments/pb124-convert-type-argument; conformance:cases/13.18.29-GROUP-USAGE/pb61_length_byte_length_rule_branches; conformance:cases/8.4.2.3-Subscripts/pb62_all_subscript_runtime_ranges; conformance:cases/15.3-Arguments/pb62-all-subscript-mod",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB124 wave 4): the trailing block's three charges. (a) The variable-length-group ARGUMENT prohibition is screened at CheckArgumentClasses' top (before the Verified early-return, so class-unscreened functions are covered) by IsVariableLengthGroup - the 8.5.1.12.1 DEFINITION verbatim (a dynamic-length elementary or dynamic-capacity table subordinate; an OCCURS DEPENDING group is a FIXED-length group the prohibition does not reach - my first cut used the broader HasRuntimeLength and the gate's pb61 15.50.4 r4a leg caught the over-reach immediately). Only LENGTH (15.50.4 r7/r8) and BYTE-LENGTH (15.14.4 r6/r7) define a VLG value; pb61 + pb24_length_variable_length_group pin the admitted direction. (b) The type-declaration half: BindLengthFamily rejects a VLG typedef (15.3's second sentence) where it previously answered a width silently; an ODO typedef stays r4a-legal. (c) Table 21's Type1 cell for CONVERT: 15.19.3/.4 define NO semantics for a type-name - recorded in CONFORMANCE.md as a standard-text inconsistency beside the 14.9.28.4 precedent; BindConvert rejects a type-name argument-1 with a targeted COBOL1514 naming the note. The EC-ARGUMENT-FUNCTION and type-name-argument halves of this row were already verified.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.2.4-4",
+ "section": "14.9.2.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "ADD statement",
+ "rule-digest": "425cae37c61c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#LiteralNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#CombineCore; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#CombineAdditive",
+ "test-ref": "conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb156_float_literal_exact_native; conformance:cases/14.9.2-ADD/ca6_binary_operand_composite; conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb99_floating_literal_operand_exact",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "DIVERGES -> CONFORMS 2026-08-31 (owner decision D-B; kb/Work PB156). GR4: 'When native arithmetic is in effect and none of the operands is described with usage binary-char, binary-short, binary-long, binary-double, float-short, float-long, or float-extended, enough places shall be carried so as not to lose any significant digits during execution' (cite.py --check verified). The conforming half was never in doubt — an ADD over fixed-point items and fixed-point literals aligns to max(a.Scale, b.Scale) in the Int128 lane, the composite is capped at 31 by StatementValidation.CheckComposite, and a value past the carrier raises the size error condition loudly. The DIVERGING half was the floating-point LITERAL operand: a literal is not 'described with usage' anything, and Sec.14.7.7 rule 2 lists 'a data item described with usage ...' and 'a floating-point literal' as SEPARATE bullets, so GR4 binds when a float literal appears — yet EmitCore.UnscaledLit returned a Real NumX for any E-form literal and CombineCore's float lane then evaluated the whole statement in binary64. MEASURED at HEAD 6cd228b6: ADD 1.0E+0 TO W (PIC 9(20) = 12345678901234567890) gave 12345678901234567168. NumericRenderer.LiteralNum now renders every floating-point literal as its exact Sec.8.3.3.3.3 rule-5 value on the SDIDI lane, so the statement takes CombineCore's decimal arm and answers 12345678901234567891; CombineCore itself is unchanged and the float lane still wins whenever a float ITEM or float RECEIVER is present, which is where GR4's own condition stops applying.",
+ "state": "OK"
+}

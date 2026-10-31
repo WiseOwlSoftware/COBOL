@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-6.3.4-1",
+ "section": "6.3.4",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Fixed-form reference format",
+ "rule-digest": "9d53bc27166e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#FixedFormConverter",
+ "test-ref": "conformance:cases/6-Reference-format/pb1491_continued_literal_logical_line; conformance:cases/6-Reference-format/pb1493_floating_comment_fixed; unit:ReferenceFormatLogicalConversionTests.CommentLines_BecomeEmpty_InBothReferenceFormats",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1491/PB1493: a * or / comment line is logically discarded by the §6.5 pass, so its comment-text never reaches the lexer: a comment line between PIC and its character-string (W-P in 2002/pb1493_floating_comment_fixed), unbalanced quotation symbols in comment-text (W-A in 85/pb1491_continued_literal_logical_line), and a comment line inside REPLACE all leave the program unchanged. Auto-DETECTION misreading a file whose sequence area holds letters as free form is the detection extension (DOC-A.1-158), reported as a separate lead.",
+ "state": "OK"
+}

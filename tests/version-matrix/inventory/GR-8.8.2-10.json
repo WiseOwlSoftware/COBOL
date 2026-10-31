@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.2-10",
+ "section": "8.8.2",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "Expressions",
+ "rule-digest": "cd9109791cbf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/CobolBool.cs#Combine; src/WiseOwl.Cobol.Runtime/Values/Text/CobolBool.cs#Not; src/WiseOwl.Cobol.Runtime/Values/Text/CobolBool.cs#CombineAll; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BoolResultLength",
+ "test-ref": "unit:CobolBoolTests.And_UnequalLengths_RightZeroExtends",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule 10 (cite.py --check 8.8.2 \"whose length shall be the number of boolean positions of the larger item referenced in that operation\" -> OK §8.8.2 10)). Combine's result length = max(a,b); Not preserves its operand's length; an ALL/ZERO figurative is positionless and materializes to the concrete operand's length (CombineAll), so the result is the concrete item's length. BoolResultLength mirrors this statically (LargerOf, figurative contributes nothing). 'Item' is read to include a literal operand, consistent with rule 9 applying 'first item referenced' to a literal first operand of a shift (Table A.2 shifts a value); the separate §14.9.8.4 GR3 COMPUTE store width counts data items only (ItemWidth) - a different rule. PROBE p1b.cob UNEQ: a 2-position B-OR 4-position result is 4 positions (1101). The named unit test asserts the rule-10 length (Max) with a spec-derived expected value. || editions as written by the adjudicator: 2002, 2014, 2023 (boolean expressions and B-AND/B-OR/B-XOR/B-NOT are a COBOL-2002 introduction - the in-repo 2023 text's Annex E carries only the 2014->2023 delta, so the 2002 introduction is taken from the clause's absence in 85 and the probe gate COBOL0900 at --std 85)",
+ "state": "OK"
+}

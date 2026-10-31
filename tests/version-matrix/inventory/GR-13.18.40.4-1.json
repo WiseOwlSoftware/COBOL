@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.40.4-1",
+ "section": "13.18.40.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "PICTURE clause",
+ "rule-digest": "a4a0c6e3ffeb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#NationalWindow; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ElementaryByteWidth",
+ "test-ref": "conformance:cases/8.4.3.3-Reference-modification/pb646_national_form_numeric_2002; conformance:cases/13.18.40-PICTURE/pb646_national_form_numeric_2014; conformance:cases/13.18.40-PICTURE/pb646_national_form_numeric_2023; conformance:cases/13.18.40-PICTURE/pb646_national_form_numeric_bytes; conformance:cases/13.18.40-PICTURE/pb492_national_edited_2023; conformance:cases/13.18.40-PICTURE/national_data",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB646 LANDED the leg this row was held open on, 2026-09-13. GR1's national sentence - 'When the usage of the subject of the entry is national, each symbol representing a character position defines a national character position' - is now exercised for EVERY shape 13.18.60.3 SR12 admits, not only the two character categories. MEASURED: `PIC 9(3) USAGE NATIONAL` is 3 national character positions and 6 bytes (FUNCTION LENGTH 3 by 15.50.4 r2, FUNCTION BYTE-LENGTH 6 by 13.18.60.4 GR8 at D-N1's two bytes); `PIC S9(3) USAGE NATIONAL SIGN IS LEADING SEPARATE` is FOUR positions and 8 bytes, because 13.18.52.4 GR6a makes the separate sign 'the leading (or, respectively, trailing) character position of the data item to which it applies; this character position is not a digit position' and GR1 makes that position a NATIONAL one - it measured 3 and 6 before this landing, where its DISPLAY twin measured 4, because PicInfo.SignKindFor sent every non-DISPLAY usage to BinaryMinus and dropped the position; `PIC 1(4) USAGE NATIONAL` is 4 boolean positions (15.50.4 r1) occupying 4 national character positions and 8 bytes; `PIC ZZ9.99 USAGE NATIONAL` is 6 positions and 12 bytes with the '.' among them. The byte layout is OBSERVED, not asserted: conformance:cases/13.18.40-PICTURE/pb646_national_form_numeric_bytes reads a REDEFINES PIC X over each and finds the low byte of every pair to be the character and the high byte of every pair to be zero. The DISPLAY sentence is unchanged and verified.",
+ "state": "OK"
+}

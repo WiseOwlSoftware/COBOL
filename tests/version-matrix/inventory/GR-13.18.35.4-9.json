@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.35.4-9",
+ "section": "13.18.35.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "LINE clause",
+ "rule-digest": "e9f2690c8252",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportRepetitionOf",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb565_report_vertical_repetition",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB565 (vertical axis). 'A multiple LINE clause is functionally equivalent to a LINE clause with a single operand, together with a simple OCCURS clause whose integer is equal to the number of operands of the LINE clause, except that the multiple LINE clause allows the report lines to be defined at unequal vertical intervals' is IMPLEMENTED AS THAT EQUIVALENCE, not beside it: ReportRepetitionOf returns a simple, STEP-less, VERTICAL ReportOccursSpec whose Max is the operand count, and the repetition ORDINAL then selects the LINE operand - so the multiple LINE clause drives the SAME subtree replay as 13.18.38 format 3 and every clause of the repeated subtree rides it unchanged. The 'unequal vertical intervals' exception is exactly what the per-ordinal operand gives: golden lines 2, 4, 7 from one clause.",
+ "state": "OK"
+}

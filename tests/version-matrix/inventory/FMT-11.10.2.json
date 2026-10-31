@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-11.10.2",
+ "section": "11.10.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "PROGRAM-ID paragraph",
+ "rule-digest": "56acb8fe4e7c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programIdParagraph; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#prototypePhrase; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit",
+ "test-ref": "conformance:cases/10.6-COBOL-compilation-group/pb894_program_prototype_2002; conformance:cases/13.5-Working-storage-section/recursive_ws; conformance-test:PrototypeUnitRulesTests.LinkageAndHeaderOnly_AdmittedSpecialNames_Compile",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB894. Both formats (PDF p310 rendered): Format 1's attribute group and Format 2's `PROGRAM-ID. program-prototype-name-1 [AS literal-1] IS PROTOTYPE .` are ALTERNATIVES of programIdParagraph, and the IS PROTOTYPE tail is the ONE prototypePhrase rule the FUNCTION-ID paragraph shares (IS unstressed, so optional — the golden writes `PGPR PROTOTYPE.`). Before PB894 Format 2 drew COBOL0901 on the reserved word. Format 2 is a COBOL-2002 introduction (program-prototype-2002; below it COBOL0900 from the bound arm).",
+ "state": "OK"
+}

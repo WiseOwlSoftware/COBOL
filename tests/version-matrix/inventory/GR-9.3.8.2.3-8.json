@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.3.8.2.3-8",
+ "section": "9.3.8.2.3",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "Conformance for object orientation",
+ "rule-digest": "961fa9803995",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#OptionalMismatch; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#MethodConformanceMismatches; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ValidateOverrideSignatures",
+ "test-ref": "conformance-test:MethodOmittedArgumentTests.Implements_OptionalPresenceDiffers_0841; conformance-test:MethodOmittedArgumentTests.Override_OptionalPresenceDiffers_0829",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB757.md landed w46i2. The OPTIONAL phrase is carried on OoFormal.Optional; OptionalMismatch is the one comparison, read by MethodConformanceMismatches (IMPLEMENTS conformance and the interface-to-interface relation GOBACK/EXIT RAISING asks) and by ValidateOverrideSignatures (11.7.3 SR9 holds an inherited method's parameter declarations to 9.3.8.2.3). A presence difference in either direction is COBOL0841 / COBOL0829.",
+ "state": "OK"
+}

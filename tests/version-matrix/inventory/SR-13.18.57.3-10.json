@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.57.3-10",
+ "section": "13.18.57.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "TYPE clause",
+ "rule-digest": "175b564e2af5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ControlLevelOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ControlOperandRef",
+ "test-ref": "conformance:cases/13.18.16-CONTROL/pb205_control_ref_mod; conformance:cases/13.18.57-TYPE/pb205-type-control-operand-other-slice",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB205. All three of SR10's sentences: the TYPE CH/CF operand may be qualified and reference-modified (the capture keeps both), its ref-mod positions shall be integer literals (screened at the capture with the clause's own citation), and it 'shall be the same as one of the operands of the CONTROL clause' - one comparison over the whole written reference, shared with 13.18.54.3 SR8. Before this the operand kept only its base word and matched by name, so CX(4:3) selected the CX(1:3) level and the minor footing printed at the major level.",
+ "state": "OK"
+}

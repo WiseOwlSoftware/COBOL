@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.10.4-5",
+ "section": "11.10.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "PROGRAM-ID paragraph",
+ "rule-digest": "21c142c11ed9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ResolveVisible; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit",
+ "test-ref": "conformance:cases/11.10-PROGRAM-ID/pb1133_recursive_container_static_ws; conformance:cases/8.4.6.3-Scope-of-program-names/pb1133_recursive_attribute_scope",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1133 (wave 1012 J). cite.py --check 11.10.4 'Additional rules concerning initial and recursive programs are given in 8.6.6' OK GR5. 8.6.6's recursive paragraph - the program's internal data and that of any contained programs is initialized as described in 14.6.2 - is realized for the composition the refusal blocked: a recursive program with internal data that contains programs (pb1133_recursive_container_static_ws - last-used between activations, initial after CANCEL for the container AND its containee; pb1133_recursive_attribute_scope - the non-recursive re-entry is refused, a recursive one is not).",
+ "state": "OK"
+}

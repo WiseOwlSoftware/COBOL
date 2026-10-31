@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.13.3-15",
+ "section": "7.3.13.3",
+ "kind": "SR",
+ "ordinal": 15,
+ "subject": "EVALUATE directive",
+ "rule-digest": "0dce225b48d6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#EvaluateOperandText; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#MatchWhen; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#CheckOperandSyntax",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/pb1364-when-after-match-boolean-formation; conformance:cases/7.3.13-EVALUATE/pb1363-omitted-evaluate-subject-malformed",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1364. cite.py --check 7.3.13.3 'Boolean-expression-1 and boolean-expression-2 shall be formed in accordance with 7.3.7, Compile-time boolean expressions.' OK 15). The same arm as SR14: a boolean operand of a WHEN after a match (`B\"1\" B-AND 1`) is COBOL1619 (7.3.7.2 SR1), and an omitted-branch EVALUATE subject is parsed.",
+ "state": "OK"
+}

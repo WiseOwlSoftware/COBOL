@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.4.3-2",
+ "section": "11.4.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "FACTORY paragraph",
+ "rule-digest": "1b00d4078353",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ValidateImplements; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#MethodConformanceMismatches; src/WiseOwl.Cobol.Compiler/Oo/OoClassSymbol.cs#FindFactoryMethod",
+ "test-ref": "conformance:cases/11.4-FACTORY/l1c09-factory-implements-nonconforming-method",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (cite.py --check 11.4.3 \"such that the factory interface of this class conforms to all implemented interfaces\" -> OK §11.4.3 2)). Code: ValidateImplements runs Check(cls, ImplementsClosure(cls, factory:true), factory:true): for every prototype of every closure interface (AllPrototypes incl. inherited) it looks up the FACTORY roster (FindFactoryMethod walks the base chain, so inherited factory methods count) and applies §9.3.8.2.3 via MethodConformanceMismatches; missing or non-conforming -> COBOL0841. Probes: p2 - FACTORY IMPLEMENTS FPI with no factory SPEAK (instance has one) -> 0841 'the factory interface FPI requires a method SPEAK' (no cross-roster leak); p3 - factory SPEAK formal PIC 9(8) vs prototype 9(4) -> 0841 §9.3.8.2.3 rules 2/3; p4 - SPEAK inherited from base FPB's factory satisfies FPI (runs BASE-F 0042). Diagnostic cites §9.3.11/§9.3.8.2.3 rather than §11.4.3 SR2 (the operative clauses; acceptable). Existing 0841 tests (OoSpineTests.Implements_NumericDescriptionMismatch_0841 / Implements_MissingMethod_0841, MethodOmittedArgumentTests.Implements_OptionalPresenceDiffers_0841) exercise the OBJECT arm only -> test-ref empty (test-needed for the factory arm). || Editions (adjudicator, verbatim): 2002, 2014, 2023 (OO - the FACTORY paragraph - is new in ISO/IEC 1989:2002; absent from 1985; Annex E of 2023 lists no change to §11.4)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-5.5-2",
+ "section": "5.5",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Description techniques",
+ "rule-digest": "6272ce0c9d23",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#IsIntegerDescription; src/WiseOwl.Cobol.Compiler/Binding/Procedure/OperandClassScreen.cs#OperandPositions; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindBoolShiftSuffix; src/WiseOwl.Cobol.Frontend/Common/NumericLiteral.cs#IsIntegerLiteralForm",
+ "test-ref": "conformance:cases/5.5-Integer-operands/pb86-perform-times-non-integer-item; conformance:cases/5.5-Integer-operands/pb169-status-non-integer-numeric-literal; conformance:cases/5.5-Integer-operands/pb1413-shift-count-not-integer",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1413 landed (wave 66 h). Rule (cite.py --check 5.5 'if that operand is a literal, it shall be an integer literal' -> OK §5.5 2) a)). The refuter's one escaping site - §8.8.2 rule 5's shift count (COMPUTE BC = BB B-SHIFT-L D with D PIC 9V9, and B-SHIFT-L 1.5, silently truncated) - now asks the same integer classifier every other integer SR site uses (IntrinsicResultType.IsIntegerOperand -> PicInfo.IsIntegerDescription for items; the literal FORM test is the ONE NumericLiteral.IsIntegerLiteralForm, shared with the compile-time shift count): both are COBOL2513. The other SR sites the adjudicator and refuter probed hold unchanged.",
+ "state": "OK"
+}

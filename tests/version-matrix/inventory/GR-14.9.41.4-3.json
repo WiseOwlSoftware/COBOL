@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.41.4-3",
+ "section": "14.9.41.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "START statement",
+ "rule-digest": "c4e0e586ed13",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#StartRelative; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#StartIndexed; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#StartFirstLast; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Start",
+ "test-ref": "conformance:cases/14.9.41-START/l1_start_no_record_locks",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Two connectors on one indexed file with SHARING ALL OTHER + LOCK MODE AUTOMATIC: a START neither releases the holder's lock (the blocked read stays '51'), nor acquires one on the record it positioned at ('00'), nor detects one ('00' where the same connector's READ was refused '51').",
+ "state": "OK"
+}

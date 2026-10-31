@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.80.3-1",
+ "section": "15.80.3",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "SECONDS-PAST-MIDNIGHT function",
+ "rule-digest": "5117645c61b9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#SecondsPastMidnight; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
+ "test-ref": "unit:CobolDateWindowingTests.SecondsPastMidnight_Range_StandardNumericTimeForm; conformance:cases/15.80.3-Returned-value-rules/seconds_past_midnight",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "§15.5.5: a standard numeric time form value is 'a numeric value representing seconds past midnight', and with LEAP-SECOND OFF in effect (the only supported mode; §7.3.17.4 GR1 implies OFF when unspecified) it 'shall be greater than or equal to zero and less than 86,400'. The runtime returns DateTime.TimeOfDay.Ticks — always in [0, 864,000,000,000) — and the renderer types it as NumX at scale 7, so the delivered numeric value is seconds in [0, 86400) with 7 fraction digits; function type Numeric per the catalog (§15.80.1 'The type of this function is numeric'). Both range endpoints are pinned (0 at midnight; 863,999,999,999 at 23:59:59.9999999), and the golden probes the range end-to-end through COMPUTE into PIC 9(5)V9(7).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.3.3-1",
+ "section": "14.9.3.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "ALLOCATE statement",
+ "rule-digest": "13be10e6cc4d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#PtrResolveBased",
+ "test-ref": "conformance:cases/14.9.3-ALLOCATE/allocate-non-based",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (--check OK, §14.9.3.3 1): data-name-1 shall be described with the BASED clause. Read `PtrBinder.PtrResolveBased`: it looks the name up and returns it only on `if (item is { IsBased: true }) return item;`, otherwise raising COBOL0869 '...shall be a BASED level-01/77 item (ISO §14.9.39 SR18 / §14.9.3 SR1 — rebasing or allocating a non-BASED item is not ISO COBOL)'. `PtrBinder.BindAllocate`'s form-2 arm calls it for drefs[0] and returns BoundNop on failure, so a non-BASED data-name-1 never reaches the emitter. Evidence: conformance:cases/14.9.3-ALLOCATE/allocate-non-based is exactly this rule's fixture (`01 W PIC X(5).` + `ALLOCATE W RETURNING P.`, reject-at 2002 2014 2023, .err expecting 'the operand shall be a BASED level-01/77 item') and is registered in tests/conformance/negative/manifest.json. OBSERVATION, not a downgrade: PtrResolveBased deliberately bypasses the SymbolTable (`dref.ChildCount == 1 && ctx.Data.ByName.TryGetValue(...) ? list[0] : null`, a bypass the class doc flags as a behavior-sensitive follow-up). It rejects a qualified/subscripted operand, which costs nothing here because BASED is a level-01/77 clause and such a name has no higher group to qualify it; and `ByName` is per-program-unit (BinderDriver.cs:383 constructs a DataBinder inside the per-unit loop), so the list[0] pick cannot cross program units. The SR1 predicate itself is exactly the rule. || UPHELD, and the 'no higher group to qualify it' premise is now MEASURED rather than assumed: specs/ISO_COBOL.md:15101 (§13.18.x SR16) reads 'The BASED clause may be specified only in data description entries in the linkage section, in the working-storage section, and in the local-storage section. The level number of such data description entries shall be 1 or 77' — so a based entry is never in an FD and has no containing group, and the only legal reference to it is the bare name that `dref.ChildCount == 1` admits. I read PtrBinder.cs:194-203 and confirmed the predicate is `item is { IsBased: true }` with the 0869 error on every other path, and I read the fixture + its .err and confirmed the manifest registration by loading tests/conformance/negative/manifest.json. Residual, recorded not scored: with two same-named level-01 entries (a reference the standard already requires to be unique or qualified, §8.4.2.2) `list[0]` silently picks the first rather than diagnosing ambiguity — an UNDER-rejection of source that is already nonconforming, so it does not affect this row's verdict.",
+ "state": "OK"
+}

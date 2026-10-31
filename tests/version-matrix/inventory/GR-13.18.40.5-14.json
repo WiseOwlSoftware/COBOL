@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.40.5-14",
+ "section": "13.18.40.5",
+ "kind": "GR",
+ "ordinal": 14,
+ "subject": "PICTURE clause",
+ "rule-digest": "5f9cb6730e1b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolLocaleEdit.cs#Format",
+ "test-ref": "conformance:cases/13.18.40.5-Editing-rules/pb64t6_locale_size_ec; unit:CobolLocaleEditTests.LocaleSize_RaisingArm_IsCharacterBased",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "r14 b is CHARACTER-based (a truncated currency character or separator raises; Table 13's 'digits' gloss is narrower); both silent arms pinned. EC-LOCALE-SIZE's FIRST raise site.",
+ "state": "OK"
+}

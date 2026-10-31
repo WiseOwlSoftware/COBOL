@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.20.4-1",
+ "section": "7.3.20.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "POP directive",
+ "rule-digest": "5ea79c00ea21",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveStateStack.cs#Apply; src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs#Fold; src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveStateStack.cs#Replay",
+ "test-ref": "unit:DirectiveStateStackTests.EachCarriedDirective_IsSavedByPushAndRestoredByPop; unit:DirectiveStateStackTests.PopRestoresTheMostRecentSave_Nested; conformance:cases/7.3-Compiler-directives/pb941_push_pop_directive_state",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB941 (landed): a named POP pops that directive's most recent save and its carrier restores it; for the line-scoped folds (TURN, REF-MOD-ZERO-LENGTH, FLAG) the events written since the PUSH are REVOKED at the POP line (DirectiveTimeline), for DEFINE the whole table is reinstated (all instances). Golden L3/L5/L6. retired-witness: src/Cobol.Net.Frontend/Preprocessor/DirectiveStateStack.cs#CarrierFor (kb/Work PB1004: DirectiveEventLog.CarrierFor is deleted - a stage now only COLLECTS its events and DirectiveTimeline.Replay runs the op program through the stack with one per-row carrier, the code path the binder re-runs with the GR14 implicit ops)",
+ "state": "OK"
+}

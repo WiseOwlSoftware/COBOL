@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.2.3.4-7",
+ "section": "7.2.3.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "COPY statement",
+ "rule-digest": "bd03f9f6ad54",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy",
+ "test-ref": "conformance:cases/7.2.3-COPY/copy_nested_five_levels",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR7: 'If the REPLACING phrase is not specified, the library text is included in the resultant text unchanged.' ApplyReplacements returns the mapped text untouched when the replacement list is empty (active.Count == 0 -> return mapped); the only transformation is §6.5 logical conversion (NormalizeCopybookMapped), which the spec itself performs before text manipulation (§7.2.1 Step 1). The golden copy_nested_five_levels (expected L5, the copybook's VALUE, derived from GR12) incorporates library text unchanged across five levels. || editions (adjudicator): 85, 2002, 2014, 2023 (COPY statement present in every edition; Annex E.2 item 1 bullet 4 touches only non-pseudo-text REPLACING operands at 2023)",
+ "state": "OK"
+}

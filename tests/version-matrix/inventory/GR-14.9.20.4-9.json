@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.20.4-9",
+ "section": "14.9.20.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "INITIALIZE statement",
+ "rule-digest": "e751ccce980b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ExpandInitialize",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-14.9.20.4-9",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR9 imposes no behaviour: it WIDENS undefinedness, overriding 14.6.10 rule 2 ('when the data items are described by the same data description entry, the result ... is the same as if the data items shared no part of their storage areas') so that an INITIALIZE whose identifier-1 and identifier-2 overlap is undefined EVEN THEN. The only way to violate it is to reject the source or to fail; the compiler does neither -- MEASURED: `01 G. 05 A1 PIC X(3) VALUE \"AAA\". 05 B1 PIC X(3) VALUE \"BBB\".` + `INITIALIZE G REPLACING ALPHANUMERIC DATA BY A1` compiles and runs (A1=AAA, B1=AAA -- a sequential per-elementary reading of the sender, which is inside the undefined envelope). No test-ref: a rule that requires nothing cannot be closed by a positive test, and I did not write goldens here.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ExpandInitialize CLOSED ON AN OWNER-SIGNED DERIVATION (docs/CONFORMANCE.md §8 row DRV-GR-14.9.20.4-9, decision Q26 of 2026-09-09): the rule has no observable obligation, so no spec-derived test can cover it.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.89.3-1",
+ "section": "15.89.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "TAN function",
+ "rule-digest": "5e4a69b9f544",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+ "test-ref": "conformance:cases/15.89.3-Argument-rule/l1-tan-class-numeric; conformance:cases/15.89.3-Argument-rule/l1_tan_format",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "15.89.3 r1 'shall be of class numeric' -- TAN's rejecting branch, which nothing in the corpus screened (pb1 covers ACOS/ASIN/ATAN, pb52 covers SQRT): PIC X(3) and PIC ZZ9.99 (numeric-edited, class alphanumeric by 8.5.2.1 Table 2) both draw COBOL1627 at every edition, with the TAN format golden's four class-numeric shapes as the accepting complement.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-19",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 19,
+ "subject": "VALUE clause",
+ "rule-digest": "76be22568bf2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#signedIntegerLiteral; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#valueClauseTablePhrase; src/WiseOwl.Cobol.Compiler/Binding/SignedIntegerLiteral.cs",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb553_table_value_signed_subscript; conformance:cases/13.18.63-VALUE/pb553-value-subscript-sign-not-adjacent; unit:SignedIntegerSlotDriftTests.SignedIntegerLiteral_IsReferencedByExactlyTheSlotsTheStandardSigns; unit:SignedIntegerSlotDriftTests.IntegerLiteral_StaysUnsigned",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB553 LANDED. The permitted signed spelling now parses and the prohibition still holds. SR19 reads 'Subscript-1 and subscript-2 shall be integer numeric literals', which routes through 5.5 2) a) to 8.3.3.3.2 and its 2) 'If a sign is used, it shall appear as the leftmost character of the literal' (cite.py --check OK on both) -- so `VALUE \"AB\" FROM (+1) TO (+3)` is conforming source and used to be COBOL0001 at every edition that has the Format 2 clause. THE NOTE'S OWN PRESCRIPTION WAS WRONG AND WAS NOT FOLLOWED: it asked for an optional sign on `integerLiteral` so every integer-literal position would inherit it, which would have ACCEPTED `01 T PIC X OCCURS +3.` -- non-conforming, because 5.5 1) makes the metalanguage `integer-n` 'unsigned and nonzero unless otherwise specified in the associated rules' and 13.18.38.3 SR16 otherwise-specifies only the nonzero half. The fix is therefore a SECOND rule, `signedIntegerLiteral : (PLUS | MINUS)? INTEGERLIT`, used by the one slot the standard prints as `subscript-n` rather than `integer-n` (swept: all 40 `integerLiteral` uses), and SignedIntegerSlotDriftTests pins that inventory in BOTH directions -- the unsigned rule may not grow a sign and a new signed slot may not be added silently. The superset the sign-as-its-own-token shape also admits, `FROM ( + 1 )`, is narrowed BY NAME at bind (COBOL2155, 8.3.3.3.2 2)) because ANTLR's GetText() strips the space and makes the violation invisible to any caller that reads the text; the same reader raised the saturation floor from 0 to int.MinValue so a `-1` subscript is quoted back as -1 by the existing SR20 range screen instead of being clamped to a 0 the source never wrote. || The old PARTIAL's second half -- the same unsigned rule serving the OCCURS bound (`integerOperand`) -- is not a defect after all: that slot IS `integer-n` and its rejection is correct.",
+ "state": "OK"
+}

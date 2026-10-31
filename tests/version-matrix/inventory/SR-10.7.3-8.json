@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-10.7.3-8",
+ "section": "10.7.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "End markers",
+ "rule-digest": "2ceb18c217f2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#ScreenProgram",
+ "test-ref": "conformance:cases/10.7-End-markers/pb988-end-program-prototype-name-mismatch; conformance:cases/10.7-End-markers/pb988_end_markers",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB988 LANDED (wave 1015 Z2). cite.py --check 10.7.3 'Program-prototype-name-1 shall be identical to the program-prototype-name declared in the corresponding PROGRAM-ID paragraph.' OK 8). PROGRAM-ID. PB988P IS PROTOTYPE. ... END PROGRAM PB988Q. is COBOL2793 (SR8); pb988_end_markers' END PROGRAM pb988pp closes PB988PP.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.52.4-2",
+ "section": "15.52.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "LOCALE-DATE function",
+ "rule-digest": "634cfa72f441",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#Date; src/WiseOwl.Cobol.Runtime/Globalization/LocaleFacts.cs#DateFormat",
+ "test-ref": "conformance:cases/14.6.6-Locale-identification/pb64t4_locale_functions; unit:CobolLocaleTests.Date_RendersPerTheLocalesShortDatePattern_AndRejectsAnInvalidDate",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T4 — DETERMINATION L10 (CONFORMANCE.md §4 item 5): d_fmt is the culture's short date pattern (LocaleFacts over CultureInfo.DateTimeFormat.ShortDatePattern); the DATE-ROOT / DATE-FR / DATE-JA lines. EC-LOCALE-INVALID (§8.2.1) when the locale has no culture data for LC_TIME.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.46.4-4",
+ "section": "14.9.46.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "TERMINATE statement",
+ "rule-digest": "075a352448fb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindTerminate; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitTerminate",
+ "test-ref": "conformance:cases/14.9.46-TERMINATE/l1c33_terminate_multi_order_no_close; conformance:cases/14.9.46-TERMINATE/l1c33_terminate_resume_next_implicit",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 14.9.46.4 \"processing resumes at the next implicit TERMINATE statement\" -> OK §14.9.46.4 4). BindTerminate builds one BoundTerminate per report-name in written order inside a BoundImplicitSeries (the PB419 per-implicit-statement boundary mechanism; ImplicitStatementSeriesDriftTests enumerates TERMINATE). Both sentences probed: out/probe/terminate-statement/p2.cob, TERMINATE R-C R-B R-A with R-A and R-C active and R-B never initiated, >>TURN EC-REPORT-INACTIVE CHECKING ON and a USE AFTER EC-REPORT-INACTIVE declarative doing RESUME AT NEXT STATEMENT: output HANDLED-I, AFTER; R-C's file carries RFC and R-A's carries RFA — R-C terminated first, the R-B implicit TERMINATE raised, processing resumed at the NEXT implicit TERMINATE (R-A), not after the whole statement. No spec-derived golden pins either sentence for TERMINATE. [editions as adjudicated: sentence 1: 1985 (Report Writer module), 2002, 2014, 2023; sentence 2 (RESUME NEXT STATEMENT): 2002, 2014, 2023]",
+ "state": "OK"
+}

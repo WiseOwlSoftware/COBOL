@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-63",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 63,
+ "subject": "Dynamic-length elementary items (structure if dynamic-length-structure-name-1 is not specified)",
+ "rule-digest": "ffa5ff9d8d25",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-63; src/WiseOwl.Cobol.Runtime/Values/Text/CobolDynString.cs#CobolDynString; src/WiseOwl.Cobol.Compiler/Binding/Model/DynamicLengthStructure.cs#DynamicLengthStructure",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/pb1053_dynamic_members_both_sides",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "A.1 item 63 (8.5.1.10.2): required, need NOT be documented (row voluntary). cite.py --check 13.18.19.3 'If dynamic-length-structure-name-1 is not specified, the structure of the dynamic-length elementary item is defined by the implementor' -> OK §13.18.19.3 3) (Syntax rules); cite.py --check 8.5.1.10.2 'structure' -> OK §8.5.1.10.2 (Structure of a dynamic-length elementary item: 'In the absence of a dynamic-length-structure-name the internal structure is defined by the implementor'). DEFECT FIXED since doc-rows-1: the OMIT rested on PB1094's unstructured arm (record 'ABCDE' read back as D1=[ABCDE] D2=[]). kb/Work PB1053 (landed train 60-63, CONFORMANCE §3 D-FRA (v)) now writes a variable-length group record with its extent table. Probe d2dl.cob (pin 80de60472; FD R. 05 D1 PIC X DYNAMIC LENGTH. 05 D2 PIC X DYNAMIC LENGTH.; MOVE 'ABC' TO D1, 'DE' TO D2; WRITE; READ) at --std 2014 AND 2023: D1=[ABC] 3, D2=[DE] 2; file bytes 05 00 00 80 | 02 00 00 00 | 00 00 00 00 03 00 00 00 | 00 00 00 00 02 00 00 00 | 41 42 43 44 45 (header, extent count 2, (offset,length) pairs, content). Witness conformance:cases/A.1-Implementor-defined-language-element-list/pb1053_dynamic_members_both_sides round-trips adjacent unstructured dynamic members (QC/QD) through SEQUENTIAL, RELATIVE and INDEXED files. PB1094 stays open for the DELIMITED/PREFIXED layout (GR18/GR19: d2dlb.cob with DYNAMIC LENGTH STRUCTURE DLD IS DELIMITED round-trips correctly but writes no X'00' delimiter — a separate row, GR-12.3.7.4-19). The external record image per character position is item 209's (alphanumeric) or 213's (national) representation; the row deliberately states no in-memory byte width so it cannot contradict row 209. PB991 claims SR-13.18.19.3-3 (the non-DOC twin of this item) and can close it on the same witness.",
+ "state": "OK"
+}

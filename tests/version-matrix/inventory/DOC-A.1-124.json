@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-124",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 124,
+ "subject": "Native arithmetic (when an operand or arithmetic expression is an integer)",
+ "rule-digest": "124c98b6938c",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-124; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#HasFraction; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolIndex.cs; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#OccScaled; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.cs#IntegerArgScaled; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#PositionOf; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#OccValue; src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#RefModValue; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitPositionValue",
+ "test-ref": "conformance:cases/5.5-Integer-operands/pb1526_integer_argument_has_integral_value; unit:IntrinsicCarrierAgreementDriftTests.TheIntegerIntake_RaisesOnAFractionOnEveryCarrier_AndAcceptsAnIntegralValue; conformance:cases/5.5-Integer-operands/pb1526_integer_argument_integrality_standard_decimal; conformance:cases/5.5-Integer-operands/pb1890_position_expression_exact; conformance:cases/5.5-Integer-operands/pb1890_position_expression_standard_decimal; conformance:cases/8.4.2.3-Subscripts/pb41_position_not_integer",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1890 (landed, wave 1006 B) closes the one open exception docs/CONFORMANCE.md DOC-A.1-124 carried. cite.py --check 5.5 'the implementor shall define when the operand represents an integer' -> OK §5.5 3) a). The determination (an operand is an integer exactly when its value has no nonzero digit right of the point, tested on the exact value) now holds at every rule that asks: a fixed-point item at its declared scale (CobolNum.HasFraction via CobolTable.Occ / CobolString.RefModPosition), an expression or float subscript / ref-mod bound on its own carrier before any store (CobolTable.OccValue* / CobolString.RefModValue*, PB1890), a SET index or amount (CobolIndex), and an intrinsic integer argument (CobolIntrinsics.IntegerArg*, PB1526). The binary64 predicate is one function, CobolNum.HasFraction(double), shared by the intrinsic intake and the position intakes. GnuCOBOL offers no precedent (it truncates a subscript to int and never tests a fraction). Witnessed by the PB1526 goldens (intrinsic arm) and the two PB1890 goldens (position arm).",
+ "state": "OK"
+}

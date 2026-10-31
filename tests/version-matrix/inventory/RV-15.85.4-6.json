@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.85.4-6",
+ "section": "15.85.4",
+ "kind": "RV",
+ "ordinal": 6,
+ "subject": "STANDARD-COMPARE function",
+ "rule-digest": "0a602be57207",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#StandardCompare",
+ "test-ref": "unit:StandardCompareTests.ReturnedValue_IsOneOfThreeCharacters_LengthOne; conformance:cases/12.3.7-SPECIAL-NAMES/pb101_standard_compare",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB101 T7: \"<\", \"=\", \">\".",
+ "state": "OK"
+}

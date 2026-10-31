@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.57.3-9",
+ "section": "13.18.57.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "TYPE clause",
+ "rule-digest": "6ed254b899a1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupType; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#GroupKindOf",
+ "test-ref": "conformance:cases/13.18.57-TYPE/l1c34_report_type_abbreviations",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "'RH is an abbreviation for REPORT HEADING. ... RF is an abbreviation for REPORT FOOTING.' reportGroupType pairs each full spelling with its abbreviation as one alternative; GroupKindOf maps both to the same ReportGroupKindModel. Probe fmt_abbrev_all (RH/PH/CH/DE/CF/PF/RF) and fmt_fullwords_all (all full spellings) compile and print the identical report. cite.py --check 13.18.57.3 'RH is an abbreviation for REPORT HEADING.' OK. No spec-derived test pinning the equivalence located. probes under out13/probe/type-clause-p1/ (pinned adj-d1 cobol.exe, --std 2023) || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): Format 2 (report writer): COBOL-85 optional Report Writer module; ISO 2023 optional language element A.4.11; 2002/2014 availability not derivable from the 2023 text (VERSION_CHANGE_REFERENCE row 130d); Annex E lists no 2014->2023 change to the TYPE clause",
+ "state": "OK"
+}

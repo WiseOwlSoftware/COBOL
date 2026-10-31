@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.28.2",
+ "section": "14.9.28.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "PERFORM statement",
+ "rule-digest": "09a38c20f42a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#CheckInlineHeadCardinality; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindVaryingOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/pb431-inline-head-two-control-phrases; conformance:cases/14.9.28-PERFORM/pb431-format3-control-phrase; conformance:cases/14.9.28-PERFORM/pb432-varying-operand-expression; conformance:cases/14.9.28-PERFORM/pb432-varying-from-nonnumeric-literal; conformance:cases/14.9.28-PERFORM/pb432_varying_brace_group",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB431 + PB432 (landed). The DIVERGES verdict rested on FOUR shape errors in this figure and all four are now closed, each against the PRINTED page (682-683 / PDF 712-713), not the OCR. (1) The inline head's CARDINALITY: Format 2 prints ONE bracket over three stacked loop-control alternatives and Format 3 prints none, while the grammar spelled the head a repetition and BindPerformControl read FirstOrDefault() - PERFORM 3 TIMES UNTIL X > 100 ran three times, PERFORM UNTIL X > 4 3 TIMES ran five (the FIRST phrase always won), PERFORM 3 TIMES UNTIL ... VARYING I ... left I never initialized, and PERFORM 3 TIMES ... WHEN EC-ALL ... ran its body ONCE; ONE screen above the Format-2/Format-3 split now reports COBOL2117 / COBOL2118 at every edition. (2) The varying-phrase FROM/BY slots were typed arithmeticExpression, WIDER than the printed brace group - FROM A + B BY B * 2 compiled and ran at every --std, now COBOL2119. (3) The same typing was NARROWER: the figurative FROM ZERO, which 8.3.3.6.3 SR1 a) permits because 14.9.28.3 SR3 restricts the literal to numeric, was a hard parse error; the slot is now the shared valueOperand and FROM ZERO / FROM ZEROS compile and initialize to 0 (conformance:cases/14.9.28-PERFORM/pb432_varying_brace_group legs A and B). (4) The empty imperative-statement-1 half, which PB431 recorded as unowned, was closed earlier by kb/Work PB396 and is RE-MEASURED here on this tree: PERFORM UNTIL X > 5 END-PERFORM is refused COBOL2072 naming 5.2.6.2, and a Format-3 PERFORM with no imperative-statement-1 is refused structurally at the parse. RESIDUE, and it is a message-quality one rather than a conformance gap: the Format-3 empty-body refusal is a bare COBOL0001 where the Format-2 one names the rule (registered as a lead in the PB432 implementer report). Re-affirmed 2026-10-22 (kb/Work PB3530) against the figure regenerated from the printed page: render_figure.py's brace-group layout now keeps every alternative inside its own enclosure, so the diagram's layout changed while its words did not (sweep_figures.py's word gate); the verdict stands on the printed format.",
+ "state": "OK"
+}

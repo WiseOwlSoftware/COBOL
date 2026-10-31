@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.9.10.4-2",
+ "section": "11.9.10.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "INITIALIZE clause",
+ "rule-digest": "db541889e9de",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/InitialStateBackground.cs#FillFor",
+ "test-ref": "conformance:cases/11.9.10-INITIALIZE/pb152_options_initialize_sections; conformance:cases/11.9.10-INITIALIZE/pb152_options_initialize_local_storage",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-09-02 (PB152). Section selection keys on ROOT MEMBERSHIP in DataBinder.LocalStorageRoots, never on 'not a file record': 13.18.63.4 GR2/GR3 leave file-section and linkage initial values undefined or governed by 13.7, so those sections are outside this rule's reach entirely and a negative test would sweep them in. pb152_options_initialize_sections probes BOTH directions - a clause naming LOCAL-STORAGE alone must leave WORKING-STORAGE at its baseline - because a one-section probe passes for the wrong reason under an implementation that ignores the section list and fills everything. LOCAL-STORAGE is automatic data (13.6.4 GR1), so the background is re-laid on EVERY activation; pinned by a two-CALL golden that mutates the item in between.",
+ "state": "OK"
+}

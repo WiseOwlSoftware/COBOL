@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.14.4-7",
+ "section": "15.14.4",
+ "kind": "RV",
+ "ordinal": 7,
+ "subject": "BYTE-LENGTH function",
+ "rule-digest": "fe86eb15fcb3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLengthFamily",
+ "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb61_length_byte_length_rule_branches",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB61 — the LENGTH/BYTE-LENGTH folds enumerated from the rule branches; one builder for a runtime-length group; SR6 decided from the definition before binding). §15.14.4 r7 — PHYSICAL on a variable-length group 'the length of argument-1 in number of bytes': under WiseOwl COBOL's documented determination (CONFORMANCE.md — the group is physically located where it is defined) it is the r6 sum: golden PHYS BYTE-LENGTH(VLG PHYSICAL) = 9. The keyword was unwritable on BYTE-LENGTH (FMT-15.14.2).",
+ "state": "OK"
+}

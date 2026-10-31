@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.54.4-6",
+ "section": "13.18.54.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "SUM clause",
+ "rule-digest": "879741da53ad",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindRolledValues; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#SumAddition",
+ "test-ref": "conformance:cases/13.18.53-SOURCE/pb1294_report_rolled_totals; conformance:cases/13.18.54-SUM/pb1294_report_rolled_varying; conformance:cases/13.18.53-SOURCE/pb1294_report_rolled_unprintable_source",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1294 landed. The value a rolled addition adds is the entry's sum counter occurrence (a ReportSumCounterPlace read) or the operand of its SOURCE or VALUE clause as a number (BindRolledValues); a counter's additions precede its being read because registrations on one group are put in dependency order (RegisterCrossEngineAdditions). Witnessed by a detail -> control footing -> FINAL footing chain, a VALUE entry, an unprintable SOURCE entry and a SOURCE operand that is a VARYING counter (4+6+8 = 18).",
+ "state": "OK"
+}

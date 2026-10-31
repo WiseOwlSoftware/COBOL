@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.8.2.3.3-2",
+ "section": "14.8.2.3.3",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Elementary items",
+ "rule-digest": "ff36cbf9ddfb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ActiveClassFormalMismatch; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ObjectReferenceContentMismatch; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ParameterConformance.cs#ContentConformanceReason",
+ "test-ref": "conformance:cases/14.8.2.3.2-Elementary-items-passed-by-reference/pb1112_active_class_invocation; conformance:cases/14.8.2.3.3-Elementary-items-passed-by-content-or/pb1112-active-class-content-invocation",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1112 (wave 73 E). Rule (cite.py --check 14.8.2.3.3 \"The method to be activated shall be invoked with an object-class-name or with an object reference described with an object-class-name and the ONLY phrase\" -> OK §14.8.2.3.3 2)). Alternative 2) = invoked through an object-class-name (ONLY) AND ObjectRefAssignmentMismatch (SET SR12) into an object reference described with that class-name and ONLY, the formal's FACTORY presence. Measured: INVOKE X \"M\" USING BY CONTENT X (X C1 ONLY) was COBOL0828 ('does not conform to a receiver described with the ACTIVE-CLASS phrase (SR14)'), now runs (M#2); INVOKE X \"M\" USING BY CONTENT O (O C1 without ONLY) -> COBOL0828 (SR12 a)1.). retired-witness: src/Cobol.Net.Compiler/Oo/OoConformance.cs#ContentMismatch (kb/Work PB3101: ContentMismatch is deleted; the ACTIVE-CLASS alternatives are asked through OoConformance.ObjectReferenceContentMismatch from the one activation entry)",
+ "state": "OK"
+}

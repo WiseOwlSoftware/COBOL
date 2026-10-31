@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.8.3-2",
+ "section": "14.6.8.3",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Alignment and transfer of data into data items",
+ "rule-digest": "29c3c2a0dac4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolFloat.cs#ScaledToSingle; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolDec.cs#ToSingle; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#ConvertSource",
+ "test-ref": "conformance:cases/14.6.8.3-Floating-point-numeric-receiving-data-items/pb1110_binary32_receiver_single_rounding",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1110: a MOVE of a fixed-point, decimal-literal or standard-decimal sender into a binary32 receiver is ONE correctly rounded conversion (ScaledToSingle / CobolDec.ToSingle); the arithmetic landing already rounds exactly under its mode (a COMPUTE with no ROUNDED truncates by default).",
+ "state": "OK"
+}

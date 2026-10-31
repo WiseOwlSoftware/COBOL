@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-17",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 17,
+ "subject": "WRITE statement",
+ "rule-digest": "7c5c5986c02d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReleaseRecord",
+ "test-ref": "conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/l1_open_extend_position",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR17: 'The successor relationship of a sequential file is established by the order of execution of WRITE statements when the physical file is created. The relationship does not change except when records are added to the end of a physical file.' (cite.py --check 14.9.51.4 -> OK rule 17). The sequential connector appends each record to one forward-only writer (OUTPUT = FileMode.Create, EXTEND = append stream, PB739 made shared append re-seek to the end), so read-back order is write order; REWRITE overwrites in place (never reorders). Golden l1_open_extend_position's sequential leg reads back SEQ001, SEQ002, SEQ003 after an EXTEND append — the order of execution of the WRITEs.",
+ "state": "OK"
+}

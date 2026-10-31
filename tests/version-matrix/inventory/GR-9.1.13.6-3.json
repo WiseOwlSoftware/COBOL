@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.6-3",
+ "section": "9.1.13.6",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "I-O status",
+ "rule-digest": "73fc3378d559",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#IsMediumBoundary; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#ForWriteFailure; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write",
+ "test-ref": "unit:FileBoundaryTests.SequentialWrite_OnAFullMedium_Is34_AtTheWrite; unit:FileBoundaryTests.WriteFailure_MediumExhaustionIs34_AnyOtherFailureIs30",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1192 (w61d). Rule (cite.py --check 9.1.13.6 'an attempt is made to write outside the externally-defined boundaries of a physical sequential file' -> OK 3)). The implementor's manner (Annex A.1 item 108, DOC-A.1-108): the host medium's capacity, classified once by HostFile.IsMediumBoundary; the three sequential write entry points answer '34' through FileStatusCode.ForWriteFailure. See GR-14.9.51.4-20 for the witness.",
+ "state": "OK"
+}

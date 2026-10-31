@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.9.4-3",
+ "section": "12.4.5.9.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "LOCK MODE clause",
+ "rule-digest": "fd94d2b2db62",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#LocksEffective",
+ "test-ref": "conformance:cases/12.4.5.9-LOCK-MODE/l1c17_lock_mode_no_other_inert",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 12.4.5.9.4 3) 'If a physical file is open in the sharing with no other mode, the LOCK MODE clause has no effect.' OK. LocksEffective returns false when st.Open[name].Sharing == FileSharing.NoOther. That is the ARBITRATED sharing of the opening, so an OPEN SHARING phrase that overrides the clause (§9.1.15) is honoured. Under Table 19 only one connector can hold a NO OTHER opening, so this connector's mode is the physical file's mode. Probe rt1.cob phase 2: C (SHARING WITH NO OTHER, LOCK MODE IS MANUAL WITH LOCK ON MULTIPLE RECORDS) ran 17 `READ C WITH LOCK` and got seventeen '00'. No lock was set, so the GR7 ceiling was never reached. Control C2 has the same clause under SHARING WITH ALL OTHER and got '54' on reads 16 and 17, so the clause really is inert only under NO OTHER. conformance:cases/12.4.5.9-LOCK-MODE/pb695_lock_mode_optional_words cites GR3 but has no SHARING clause, so it never reaches GR3's antecedent and is not a witness. test-ref is empty (test-needed; probe rt1 phase 2 is the shape). [registrar 14a — editions as adjudicated: 2002, 2014, 2023 (the clause is absent from ISO 1989:1985; it arrives with the 2002 file sharing / record locking facility, D.2.4 / A.4.7; no later change to 12.4.5.9 located)]",
+ "state": "OK"
+}

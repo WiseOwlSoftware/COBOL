@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-5",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "SET statement",
+ "rule-digest": "d155bf47eacf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#SwitchBindSet; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#SwitchCondOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#AnalyzeBareOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BareOperandKind; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#setSwitchStatement",
+ "test-ref": "conformance:cases/8.8.4.6-Simple-switch-status-condition/pb400_evaluate_condition_subject_forms; conformance-test:EvaluateOperandClassifierDriftTests.EveryConditionShape_ClassifiesTheSameAsSubjectAndAsObject",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB400.md - REPAIRED. The rule is a claim about what a condition-name YIELDS after SET ... TO ON/OFF, and the SET/read-side state was already shared and correct; what held the row open was a legal context in which the condition-name could not be WRITTEN at all. `EVALUATE W-ON WHEN TRUE` over a SPECIAL-NAMES switch was refused with two COBOL1634s naming the subject 'an identifier', while the level-88 spelling in the identical position compiled and ran and the same switch name worked as an EVALUATE OBJECT, in IF and in PERFORM UNTIL - the asymmetry that proved it a classifier hole rather than a Table-15 fact. Cause: EvaluateBinder had TWO per-side classifiers, and only the object one asked ConditionBinder.BareOperandAsCondition, the single helper that recognises a switch-status condition-name (8.8.4.6). They are now ONE (EvaluateBinder.BareOperandKind over ConditionBinder.AnalyzeBareOperand, mapped across Table 15's axes by EvaluateOperandCombinations.AsSubjectOperand), so a condition form added to one side is recognised on the other by construction, and EvaluateOperandClassifierDriftTests measures that symmetry over every bare-operand condition shape in both positions and both polarities. The golden observes the promised truth value through the subject position at --std 85 for ON and for OFF, alongside the object position and the level-88 control.",
+ "state": "OK"
+}

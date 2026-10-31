@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.2.12-1",
+ "section": "8.5.2.12",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Class and category of data items and literals",
+ "rule-digest": "01d1c1dfe642",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#Analyze; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#BlankWhenZeroViolation",
+ "test-ref": "conformance:cases/8.5.2.12-Numeric-category/l1c04_numeric_category_bwz; conformance:cases/8.5.2.12-Numeric-category/l1c04-bwz-not-numeric-operand",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 8.5.2.12 OK 1)): 'An elementary data item described as numeric by its PICTURE character-string and not described with a BLANK WHEN ZERO clause.' PictureAnalyzer.Analyze returns PicCategory.Numeric from its fall-through arm only when no editing symbol is present AND NOT (blankWhenZero && digits>0 && !signed && usage display/national) — the BWZ arm returns NumericEdited (line ~429). A signed or non-display BWZ subject is refused by §13.18.8.3 SR1/SR2 (DataBinder.BlankWhenZeroViolation, CheckClauseSubjects), so no numeric-PICTURE+BWZ item survives as category numeric. Probes (2023, probe/cc2): p1.cob plain PIC 9(3) accepted by SET CONTENT OF N1 TO FARTHEST-FROM-ZERO (-> 999, §14.9.39.3 SR31 'numeric data item') ; n1/n3/n4/n7 — PIC 9(3) BLANK WHEN ZERO and PIC 9(3)V9 BLANK WHEN ZERO are REFUSED as numeric data items (COBOL1938 SR31, COBOL0844 §8.8.1.1, COBOL2216 §8.8.4.4.3 SR6); g85b.cob same at --std 85. Both halves verified. No single spec-derived test pins BOTH halves (Strict_AcceptsNumericOperands pins the numeric half only; the BWZ-exclusion half as a numeric-operand refusal has no golden), so test-ref left empty = test-needed. || editions as written by the adjudicator: 85, 2002, 2014, 2023 (numeric PICTURE category and the BLANK WHEN ZERO exclusion are in every edition)",
+ "state": "OK"
+}

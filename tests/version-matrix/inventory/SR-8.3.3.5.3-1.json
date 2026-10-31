@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.3.5.3-1",
+ "section": "8.3.3.5.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "National literals",
+ "rule-digest": "95492ee31c56",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#LengthViolation; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#MaxPositions",
+ "test-ref": "conformance-test:LiteralScreenTests.LiteralLength_IsScreenedAtEveryPosition; conformance-test:NationalBooleanLiteralTests.NationalLiteral_Over8191Positions_Rejects0814; conformance-test:DirectiveLiteralScreenTests.LiteralLength_IsScreenedForEveryClass; conformance-test:LiteralScreenTests.LiteralLength_BoundIsTheEditions; conformance-test:LiteralScreenTests.LiteralLength_Over8191_IsRefusedAtEveryEdition; unit:CobolLiteralTests.LengthViolation_TheBoundaryFromBothSides_PerEdition",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1393 (w61g). cite.py --check 8.3.3.5.3 \"The length of a national literal, excluding the separators that delimit the literal, shall\" -> OK SR1. VALUE N\"<8192>\" (formerly compiled clean) and DISPLAY N\"<8192>\" rejected COBOL0814 once each; 8,191 accepted. One screen for every class and position (LiteralScreenPass). retired-witness: src/Cobol.Net.Compiler/Validation/LiteralScreenPass.cs (kb/Work PB1616 moved LiteralScreenPass (Compiler/Validation) to LiteralScreen (Frontend/Parsing) so the directive lane asks the same body; the witness is the same code at its new path) kb/Work PB1615: the bound is the EDITION's - 8,191 from COBOL-2014, 160 below it (constructs row literal-length-8191-2014; VCR row 7.43, edge DERIVED from GnuCOBOL 3.2 cobol85.conf/cobol2002.conf literal-length 160 and cobol2014.conf 8191): CobolLiteral.MaxPositions(edition), read by LiteralScreen and ConcatFolder.ResultLengthViolation.",
+ "state": "OK"
+}

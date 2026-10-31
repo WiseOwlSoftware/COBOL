@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.14.3-1",
+ "section": "8.4.3.14.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "LINAGE-COUNTER",
+ "rule-digest": "2053110716fb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenDataNameShape; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ReportLinageCounterOutsideProcedure; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#LinageFileOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ResolveSumAddend; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveImplCore",
+ "test-ref": "conformance:cases/8.4.3.14-LINAGE-COUNTER/pb489-linage-operand-is-linage-counter; conformance:cases/8.4.3.14-LINAGE-COUNTER/pb1431-linage-counter-report-source-expression; conformance:cases/8.4.3.14-LINAGE-COUNTER/pb1431-linage-counter-report-source-bare; conformance:cases/8.4.3.14-LINAGE-COUNTER/pb1431-linage-counter-report-sum-addend; conformance:cases/8.4.3.14-LINAGE-COUNTER/pb1431-linage-counter-report-present-when",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1431 (wave 1020 D). 8.4.3.14.3 SR1 'LINAGE-COUNTER may be referenced only in procedure division statements.' Data-name clause operands (OCCURS DEPENDING ON, FILE STATUS, ASSIGN USING, RELATIVE KEY, LINAGE FOOTING, RECORD VARYING DEPENDING ON) keep COBOL2024 through ScreenDataNameShape. Every other data division operand is a report-section clause, which binds through the procedure-phase ExpressionBinder with ReferenceResolver.ReportScope set, and LinageFileOf is the ONE producer of the LINAGE-COUNTER operand: it now refuses by BINDING CONTEXT, so SOURCE LINAGE-COUNTER + 1, the bare SOURCE LINAGE-COUNTER [OF file], PRESENT WHEN LINAGE-COUNTER > 1 and a VARYING FROM/BY expression are COBOL2904 (re-probed first: on this build the bare SOURCE no longer drew 0899 either, it bound and read the live counter, so the note's 'right outcome, wrong sentence' half had itself become a silent acceptance). A SUM addend written as a bare LINAGE-COUNTER is resolved at data bind and was refused as 'does not resolve to a data item' under 13.18.54.3 SR5 (COBOL0899, the wrong rule's sentence); ResolveSumAddend now names SR1 under COBOL2904. The Screen Section FROM stays COBOL1560 (optional module not claimed, CONFORMANCE.md section 5).",
+ "state": "OK"
+}

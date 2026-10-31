@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.27.2",
+ "section": "15.27.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "E function",
+ "rule-digest": "7f1d1086c9b1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sendingOperand",
+ "test-ref": "conformance:cases/8.8.1.5.4-Exponentiation-in-standard-decimal-arithmetic/exp_standard_decimal_eae",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "The format's whole content is the ABSENCE of an argument list; bare FUNCTION E is written twice with the value fixed exactly by S15.27.3 r3. FUNCTION E's own edition window (COBOL1502 below 2002) is unwitnessed anywhere in the negative corpus. retired-witness: src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#addOperand (kb/Work PB2114 collapsed the four arithmetic sending operand rules into the one sendingOperand rule)",
+ "state": "OK"
+}

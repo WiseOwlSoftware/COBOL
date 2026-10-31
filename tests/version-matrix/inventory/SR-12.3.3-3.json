@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.3-3",
+ "section": "12.3.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Configuration section",
+ "rule-digest": "70150cfa6e5a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OoEnvironmentRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Oo/OoDriver.cs",
+ "test-ref": "conformance-test:OoEnvironmentPlacementTests.EnvironmentPlacement_FollowsTheOneTable",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB813: SOURCE-COMPUTER / OBJECT-COMPUTER / REPOSITORY in a factory or instance definition is COBOL2644 (both arms).",
+ "state": "OK"
+}

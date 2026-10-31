@@ -260,12 +260,10 @@ public sealed class RecordClauseRuleDriftTests
     [Fact]
     public void EveryScreenedRuleInTheInventory_IsARowInTheTable()
     {
-        using var doc = JsonDocument.Parse(File.ReadAllText(
-            TestRepo.At("tests", "version-matrix", "traceability-inventory.json")));
         var claimed = new SortedSet<string>(StringComparer.Ordinal);
         var locatedElsewhere = new Dictionary<string, string>(StringComparer.Ordinal);
         var allIds = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var row in doc.RootElement.EnumerateArray())
+        foreach (var row in TraceabilityInventory.Rows)
         {
             string id = row.GetProperty("rule-id").GetString()!;
             allIds.Add(id);

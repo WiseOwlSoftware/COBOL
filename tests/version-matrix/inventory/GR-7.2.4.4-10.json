@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.2.4.4-10",
+ "section": "7.2.4.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "REPLACE statement",
+ "rule-digest": "753e24cf3246",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs",
+ "test-ref": "conformance:cases/7.2.4-REPLACE/l1c24_replace_free_form_result",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 7.2.4.4 \"additional spaces may be introduced only between text-words where there already exists a space\" -> OK 10). Source is normalized to logical free form before Step 3; pseudo-text-2 is inserted verbatim (its own line breaks/indentation are existing spaces), partial-word-2 is spliced with no added space. Probes out/probe/replace-p2/gr9.cob (multi-line pseudo-text-2 -> A, B) and lead.cob (NEW-X spliced). || editions (adjudicator): 85, 2002, 2014, 2023 (REPLACE statement; Annex E 2014->2023 lists no change to it) || code-location detail: src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs (normalization to free form precedes REPLACE)",
+ "state": "OK"
+}

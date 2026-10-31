@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.9.9.3-1",
+ "section": "11.9.9.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "FLOAT-DECIMAL clause",
+ "rule-digest": "d1a075da4729",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#DeclineFloatDecimal",
+ "test-ref": "conformance:cases/4.2.10-Nonstandard-extensions/w59_float_decimal_clause_witness; conformance-test:DocumentedNonSupportWitnessTests.FloatDecimalClause_NamedNonSupportWarning_PinnedToSpec",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 rows 13 (FLOAT-DECIMAL clause, Not claimed), 17 (FLOAT-BINARY-128 — binary128 not provided), 19 (FLOAT-DECIMAL-16/-34, Not claimed) and 20-21 (the encoding phrase, N/A with item 19). Licence: §4.2.6. The usages are refused by name (COBOL1564, PictureAnalyzer.ParseUsage) and the OPTIONS FLOAT-DECIMAL clause draws the §4.2.6 warning COBOL2424 (OptionsBinder.ApplyFloatDecimal). || editions 2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a FLOAT-DECIMAL clause rule (the OPTIONS paragraph clause for the standard decimal floating-point usages), a 2014 introduction. cite.py --check 11.9.9.1 \"The FLOAT-DECIMAL clause specifies the encoding and the endianness\" OK.",
+ "state": "OK"
+}

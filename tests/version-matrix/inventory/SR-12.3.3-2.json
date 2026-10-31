@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.3-2",
+ "section": "12.3.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Configuration section",
+ "rule-digest": "c0d748690e33",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OoEnvironmentRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoBindMethodData",
+ "test-ref": "conformance-test:OoEnvironmentPlacementTests.EnvironmentPlacement_FollowsTheOneTable",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1076: a method's CONFIGURATION SECTION is COBOL2644; a bare ENVIRONMENT DIVISION header is legal (§10.6.1, §12.2.1).",
+ "state": "OK"
+}

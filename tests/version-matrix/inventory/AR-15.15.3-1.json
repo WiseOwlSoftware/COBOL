@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.15.3-1",
+ "section": "15.15.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "CHAR function",
+ "rule-digest": "9f51c82096cb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation",
+ "test-ref": "conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). CHAR's 'i' row (§15.15.3 r1 'Argument-1 shall be an integer', §15.3 type 6): a scaled data item is rejected (negative pb58-char-fraction), a numeric-edited one (pb1-integer-arg-numeric-edited), a nested numeric function (the §8.4.3.2.3 SR11 arm), and — new — a numeric literal with a nonzero fraction (IntegerViolation's literal arm); an always-integral expression is admitted (§4.2.2 discretion — not syntactically distinguishable). retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

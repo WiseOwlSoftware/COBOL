@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.42.4-1",
+ "section": "14.9.42.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "STOP statement",
+ "rule-digest": "744f674efc7a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#RunMain; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#Terminate; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#Run; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#Visit; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#Begin; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseAll",
+ "test-ref": "conformance-test:RunUnitScopeHostTests.ASecondRunUnitInOneProcess_InheritsNoSwitchAndNoFactoryData; unit:RunUnitStateDriftTests.EveryMember_IsFreshInTheNextRunUnit; unit:RunUnitStateDriftTests.StaticStorage_IsResetAtAdoption_OnceEach_AndAgainAtTermination",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1069 LANDED (wave 73 D). cite.py --check 14.9.42.4 'The operations described in 14.6.11, Normal run unit termination, are performed' -> OK §14.9.42.4 1). STOP RUN unwinds through ProgramTable.RunMain's finally, which runs RunUnit.Terminate: item 2's implicit CLOSE of every open file (FileRegistry.CloseAll; an OS close failure maps to status 30 and never stops the loop) and items 3/4/6 for the one kind of storage the RunUnit object does not own - static working-storage, every unit's adopted __ResetStatics. Items 4/5 across run units hold by the new-RunUnit-object design (w68w). Items 1 and 7 belong to declined facilities (commit/rollback, MCS; PB260/PB261/PB281-PB283). retired-witness: conformance-test:RunUnitScopeHostTests.ASecondRunUnitInOneProcess_FindsMethodWorkingStorageInItsInitialState (a method's WORKING-STORAGE is illegal at every edition (kb/Work PB1308), so the test's program no longer compiles; the run-unit scope facts stay witnessed by the row's other references) || editions 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): STOP RUN and normal run-unit termination exist at every edition.",
+ "state": "OK"
+}

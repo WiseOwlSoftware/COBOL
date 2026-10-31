@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.2.3.4-13",
+ "section": "7.2.3.4",
+ "kind": "GR",
+ "ordinal": 13,
+ "subject": "COPY statement",
+ "rule-digest": "0de6c4933fda",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ForbiddenIn; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#HoldsComment",
+ "test-ref": "unit:TextManipulationStatementTests.CopyResult_ShallNotHoldCopy_ButMayHoldReplace; unit:TextManipulationStatementTests.CopyResult_ShallNotHoldAComment",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1356 finisher (w69x): 'The replacing action of a COPY statement shall not introduce ... a comment' (cite.py OK 7.2.3.4 13)) - the COPY twin of GR-7.2.4.4-9 through the same ForbiddenIn/HoldsComment: COPY bk REPLACING LEADING ==Q== BY ==*== over library text holding Q>1 is COBOL2574 (probe w69x gr9d; before: silent).",
+ "state": "OK"
+}

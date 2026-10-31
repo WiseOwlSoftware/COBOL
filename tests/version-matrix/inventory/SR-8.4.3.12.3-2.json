@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.12.3-2",
+ "section": "8.4.3.12.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Function-address-identifier",
+ "rule-digest": "6d239ea147d8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetFunctionAddress; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
+ "test-ref": "conformance:cases/8.4.3.12-Function-address-identifier/pb452-function-address-operand; conformance:cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb452_set_function_pointer",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "'Function-prototype-name-1 shall be a function prototype specified in the REPOSITORY paragraph.' Resolved through DataBinder.UserFunctionNames - the REPOSITORY FUNCTION specifiers WITHOUT the INTRINSIC phrase - plus 8.4.6.6's other leg, 'the user-function-name of the containing function definition', so a self-referential function-pointer inside a function definition needs no repository entry. The SAME two legs the USAGE clause's TO phrase resolves, written once per operand kind. A word in neither leg is not silently accepted: it falls to SR1's identifier test and is refused COBOL1960.",
+ "state": "OK"
+}

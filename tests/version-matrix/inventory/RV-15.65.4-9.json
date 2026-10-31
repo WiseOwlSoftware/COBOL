@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.65.4-9",
+ "section": "15.65.4",
+ "kind": "RV",
+ "ordinal": 9,
+ "subject": "MODULE-NAME function",
+ "rule-digest": "da5a18e90cd0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ModuleStack.cs#Name; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb36_module_name_invoke_activation; conformance:cases/15.65.4-Returned-value-rules/pb63_module_name_lengths; conformance-test:IntrinsicFunctionDifferentialTests.ModuleName_ActivatingAcrossCall_2023; conformance-test:IntrinsicFunctionDifferentialTests.ModuleName_StackFromNestedProgram_2023",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "r9 is composed from the other keywords and the goldens check it that way: D-STACK entry 2 equals the D-ACT printed one line above, the penultimate entry is TOP-LEVEL, the final entry a single space; R-STACK proves three recursive activations are three entries; pb63 X-STK vs X-ACT repeats the check across a CALL chain.",
+ "state": "OK"
+}

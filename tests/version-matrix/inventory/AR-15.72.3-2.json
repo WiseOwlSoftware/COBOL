@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.72.3-2",
+ "section": "15.72.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "ORD-MIN function",
+ "rule-digest": "ee1404c10555",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckRepertoireArgs",
+ "test-ref": "conformance:cases/15.72.3-Argument-rules/stat-ord-min-zero-length-literal-argument",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "New negative: zero-length literal at argument-1 of 2, the ordinal 15.72.3 r2 names literally; the .err pins the r2 ordinal, not MIN's r3. Fixture rejects at 2002 2014 2023; no 85 leg is asserted because the repo holds no 1985 text from which the construct's availability at that edition could be derived.",
+ "state": "OK"
+}

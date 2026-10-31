@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.3-7",
+ "section": "7.3.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "Compiler directives",
+ "rule-digest": "98d50a47835e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CompilerDirectiveWords.cs#CompilerDirectiveWords; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#ApplyDefine",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb1366-define-name-is-directive-word-off; unit:CompilerDirectiveWordsDriftTests.Table_IsEqualToTheSpecTable",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1366. cite.py --check 7.3.3 'that compiler-directive word is reserved within the context of that directive' OK 7). The 8.12 table is data (CompilerDirectiveWords), equal to the spec table by drift test; the DEFINE name, the defined condition and the TURN file-name slots consult it.",
+ "state": "OK"
+}

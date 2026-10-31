@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.24.4-8",
+ "section": "14.9.24.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "MERGE statement",
+ "rule-digest": "89428c1df43c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitMerge; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#ReleaseStatement; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Init; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateSortMergeProcedures",
+ "test-ref": "conformance:cases/13.18.43-RECORD/pb1036_sort_merge_statement_ec; unit:SortMergeStatementEcTests.Release_InAnOutputProcedure_RaisesActive_BeforeFlowRelease_AndReleasesNothing; unit:SortMergeStatementEcTests.Init_WhileAProcedureRuns_RaisesActive_AndLeavesTheEnclosingStoreIntact; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_sort_merge_called_program",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 14.9.24.4 \"The range of the output procedure shall not cause the execution of any MERGE, RELEASE, or the file format of the SORT statement\" -> OK 8). The range half CONFORMS as adjudicated. The EC half now CONFORMS: CobolSort.Init raises EC-SORT-MERGE-ACTIVE while ANY store is in a procedure phase (a MERGE or format 1 SORT from the range - the phase is dynamic, so a declarative run from the range counts), before touching a store; ReleaseStatement raises it while any store is in the output phase, AHEAD of EC-FLOW-RELEASE (docs/CONFORMANCE.md §3 D-SMA (a)). At 2023 COBOL1572 also rejects a MERGE lexically in the range. Wired by kb/Work PB1036 (w59c): FatalAmbientGates row + CheckingFlags field + ExceptionEngine helper; EcBinder.QueryFor asks the name at the SORT/MERGE/RELEASE/RETURN node; the golden raises it under >>TURN ... CHECKING ON with a USE AFTER EXCEPTION CONDITION declarative; checking off keeps the pre-PB1036 lenient behaviour (docs/CONFORMANCE.md §3 D-SMA (c)). retired-witness: src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#GateMergeInSortMergeProc (the method was generalised and renamed GateSortMergeProcedures (kb/Work PB1139); same arm, same site)",
+ "state": "OK"
+}

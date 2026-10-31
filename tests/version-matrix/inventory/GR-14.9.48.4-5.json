@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.48.4-5",
+ "section": "14.9.48.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "UNSTRING statement",
+ "rule-digest": "b76a3d361690",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringExtract; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/pb979_unstring_receiver_size",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR5 'The data item referenced by identifier-7 contains a value that indicates a relative character position within the area referenced by identifier-1' (cite.py --check -> OK 14.9.48.4 5)). Kernel treats pointer as 1-based (pos = pointer - 1) and returns it as the next unexamined 1-based position. Golden pb979 RM2: POINTER 4 examines from 'D' (\"DEFG\"), P ends 08. Probe p2 T6: P=12 examines the 12th (last) character.",
+ "state": "OK"
+}

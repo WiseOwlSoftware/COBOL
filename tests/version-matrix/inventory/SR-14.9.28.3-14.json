@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.28.3-14",
+ "section": "14.9.28.3",
+ "kind": "SR",
+ "ordinal": 14,
+ "subject": "PERFORM statement",
+ "rule-digest": "2328d13d0f9a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/l1_perform_f3_when_file_repeat_licensed; conformance:cases/14.9.28-PERFORM/l1-perform-f3-sr14-file-repeat-bare; conformance:cases/14.9.28-PERFORM/l1-perform-f3-sr14-file-repeat-cross-form; conformance:cases/14.9.28-PERFORM/l1-perform-f3-sr14-file-repeat-same-phrase",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "Licence half (a file named twice, every instance exception-name-paired, compiles and runs) plus the three prohibition readings the wording forces; editions corrected to 2023 per Annex E.3.3 item 36 - see defects.",
+ "state": "OK"
+}

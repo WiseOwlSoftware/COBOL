@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.3-9",
+ "section": "7.3.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "Compiler directives",
+ "rule-digest": "2e732b6fc777",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#Find; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#ApplyDefine",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb1366-define-name-is-directive-word-imp; conformance:cases/7.3-Compiler-directives/w59h-imp-directive-undefined",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1366. IMP is an 8.12 word, so >>DEFINE IMP is COBOL2650; the IMP directive itself stays undefined (w59h negative).",
+ "state": "OK"
+}

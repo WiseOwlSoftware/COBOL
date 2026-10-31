@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.7.9.2",
+ "section": "14.7.9.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "RETRY phrase",
+ "rule-digest": "614c868d9983",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#retryPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#PreviousTokenCouldBeDataName",
+ "test-ref": "conformance:cases/14.7.9-RETRY/w73a_retry_parenthesized_count; conformance:cases/14.7.9-RETRY/l1m8_rewrite_format_phrases",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "cite.py --check 14.7.9.2 OK (General format: RETRY { arithmetic-expression-1 TIMES | FOR arithmetic-expression-2 SECONDS | FOREVER }). kb/Work PB1162 re-verdicted (wave 73 group A): the finding was the '(' right after RETRY opening SUBSCRIPT mode, so RETRY (N) TIMES was COBOL0001. kb/Work PB1465 (56098c443) made the subscript trigger ask the compile's own reservation (a word ReservedWordSet refuses as a user word never triggers), and RETRY is reserved from 2014, so the '(' now groups. Re-probed on the w73a build: READ F RETRY (N) TIMES, WRITE R RETRY (N + 1) TIMES and OPEN INPUT RETRY (N) TIMES F compile at 2014 and 2023. Golden: WRITE R RETRY (N + 1) TIMES then READ F RETRY (N) TIMES on a relative file -> W 00, R 00 REC1 (14.7.9.3 GR4 acts only after a conflict).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-10",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "PICTURE clause",
+ "rule-digest": "01b4a8157caf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#editingPhrase; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BuildEditingSpecs; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ValidateEditing",
+ "test-ref": "conformance-test:PictureEditingTests.Char1AbsentFromMask_Rejected1593; conformance:cases/13.18.40-PICTURE/pb491_editing_variable_width; conformance:cases/13.18.40-PICTURE/pb568-editing-char1-quoted",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "LANDED 2026-09-19 (kb/Work PB568). The PARTIAL was not about the SR10 predicate, which was always right, but about REACHABILITY: character-string-1's character-1 is written BARE in the printed general format - re-rendered here from the canonical PDF at printed page 441, PDF page 471: `EDITING character-1 { IS literal-1 | FOR { NEGATIVE IS literal-2 | POSITIVE IS literal-3 } }`, character-1 carrying no quotation marks and named character-1 exactly as character-string-1 is, while literal-1/-2/-3 are named as literals. CobolData.g4's editingPhrase demanded a quoted literal there, so every CONFORMING EDITING phrase was a parse error and SR10 was reachable only through a spelling the standard does not define. The grammar now reads `EDITING ( cobolWord | literal ) ...` and the quoted spelling draws the named COBOL2149 at bind rather than an ANTLR syntax error (parse-wide/bind-narrow, this grammar's stated discipline). MEASURED: PIC 99T99 EDITING T IS \":\" compiles and renders 12:30; PIC 999 EDITING T IS \":\" draws COBOL1593 naming SR10; PIC 99T99 EDITING \"T\" IS \":\" draws COBOL2149.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.13.2-6",
+ "section": "14.6.13.2",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "Exception condition handling",
+ "rule-digest": "fb845f76f95c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#FromCurrentImage; src/WiseOwl.Cobol.Runtime/Control/StorageCell.cs#DynTableAt; src/WiseOwl.Cobol.Compiler/Binding/Model/AccessPath.cs#CellTableSegment; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#DynTableNew",
+ "test-ref": "unit:DynamicCapacityAgreementDriftTests.ATableIsConstructedOnlyFromItsOwnDescription; unit:DynamicCapacityAgreementDriftTests.ATableIsRecreatedOnlyThroughTheReceivingDescription; unit:DynamicCapacityAgreementDriftTests.TheRuntimeTableCannotAdoptForeignStorage; conformance:cases/14.6.13.2-Incompatible-data/pb1042_dyn_table_agreement",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1042 (wave 1021 B2) made rule 6 REACHABLE and gave it its raise site. 'When the internal format of a dynamic-capacity table, as defined by the implementor, is not correctly formed or does not agree with the corresponding OCCURS clause an EC-DATA-INCOMPATIBLE exception condition is set to exist.' Until PB1042 every table a program read was constructed from that program's own OCCURS clause (ValueInitializer, now the ONE construction DynTableNew for both storage lanes) or recreated into it (FromCurrentImage), so the rule was unreachable by construction. A cell-backed area (an EXTERNAL record described by two programs) now shares one table across descriptions, so every cell table reference carries the REFERENCING description's FROM minimum and element width (CellTableSegment) and StorageCell.DynTableAt asks agreement, the twin of CobolDynString.Agree for rule 5: a capacity below the minimum or elements of another width disagree, an area holding no table at the component is not correctly formed; with checking enabled the fatal condition is raised, with it off the result is undefined and the reference proceeds. Witness: three programs describing one EXTERNAL record (element width 3 vs 2; FROM 3 vs capacity 2; an agreeing description). Editions: 2014 (OCCURS DYNAMIC), 2023.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-7.3.23.2",
+ "section": "7.3.23.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "REF-MOD-ZERO-LENGTH directive",
+ "rule-digest": "efe586d4f729",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/RefModZeroLengthDirectiveProcessor.cs#Process; src/WiseOwl.Cobol.Editions/DirectiveOperandSyntax.cs#DirectiveOperandSyntax",
+ "test-ref": "conformance:cases/7.3.23-REF-MOD-ZERO-LENGTH/ref-mod-zero-length-malformed; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_DiagnosesAMalformedOperand; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "{ ON | OFF } with ON un-underlined, so a bare >>REF-MOD-ZERO-LENGTH selects ON. Any other operand is COBOL1911 (kb/Work PB794 retired this directive's own COBOL1576).",
+ "state": "OK"
+}

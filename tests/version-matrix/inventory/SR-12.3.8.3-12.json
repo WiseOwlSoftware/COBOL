@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.8.3-12",
+ "section": "12.3.8.3",
+ "kind": "SR",
+ "ordinal": 12,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "d48e2a77b2fd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#DeclareUserWord; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RepositoryIntrinsicSpecifier; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#DeclareUnitName; src/WiseOwl.Cobol.Compiler/Binding/UserWordKind.cs#UserWordKind; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#DeclareUserWord; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#DeclareParameterNames; src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#Expand; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoBindMethodData",
+ "test-ref": "conformance:cases/12.3.8-REPOSITORY/pb1083-special-names-intrinsic-words; conformance:cases/12.3.8-REPOSITORY/pb1083-contained-program-intrinsic-name; unit:UserWordDeclarationDriftTests.EveryType_IsDeclared_OrExemptWithItsReason; unit:UserWordDeclarationDriftTests.TheEnum_IsTheStandardsList; conformance:cases/12.3.8-REPOSITORY/pb1744-interface-parameter-name-intrinsic",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1744 (wave 1019 D2) restates PB1083's CONFORMS with the parameter-name witness. SR12 ('Intrinsic-function-name-1 shall not be specified as a user-defined word within the scope of this REPOSITORY paragraph.', cite.py OK 12)) now reaches every §8.3.2.2 type: a parameterized class's or interface's parameter-names are declared through DeclareUserWord by DataBinder.DeclareParameterNames, which OoExpansion calls for every skeleton over the definition's own REPOSITORY (its FUNCTION ... INTRINSIC specifiers recorded by the one writer, AddRepositoryIntrinsics). `INTERFACE-ID. I USING MOD.` under `FUNCTION MOD INTRINSIC` is COBOL1649; the drift test's ParameterName exemption is gone. retired-witness: src/Cobol.Net.Compiler/Oo/OoDriver.cs#DeclareMethodWords (kb/Work PB2921 review round 2 deleted OoDriver.DeclareMethodWords: a method is a source element of its own, so its METHOD-ID (or the property-name it names) is declared through DeclareUserWord by DataBinder.OoBindMethodData inside the method's own census (EnterMethodDeclarations), where the same intrinsic-name screen applies)",
+ "state": "OK"
+}

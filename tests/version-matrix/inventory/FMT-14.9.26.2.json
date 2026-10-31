@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.26.2",
+ "section": "14.9.26.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "MULTIPLY statement",
+ "rule-digest": "a8a272b3231e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#multiplyStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#multiplyByOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindMultiply; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#Receivers; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticOperandRole.cs#FirstNonReceiver; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#Format1Receivers; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases",
+ "test-ref": "conformance:cases/14.9.2-ADD/phrase_order_arithmetic; conformance:cases/14.9.26-MULTIPLY/pb1142_arithmetic_identifier_operands; conformance:cases/8.4.3.4-Inline-method-invocation/pb1142-divide-into-inline-receiver; conformance-test:ArithmeticIdentifierOperandTests.Format1_NonReceiverOperand_IsRejected_NotDroppedOrCrashed; unit:ArithmeticOperandRoleDriftTests.TheClassifier_PartitionsEveryOperandArm",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1142 landed (w65c). Both formats parse and bind; the union grammar (multiplyByOperand: receivingOperand roundedPhrase? | functionCall | inlineMethodInvocation) is narrowed per format by the ONE ArithmeticOperandRole classification all four arithmetic verbs ask: Format 1 `BY {identifier-2 [rounded-phrase]}` accepts only a data reference placed through a receiving rule (positive definition), so a literal, a function-identifier (8.4.3.2.3 SR1) and an inline method invocation (8.4.3.4.3 SR1) are each COBOL1689 - before, the invocation receiver was silently DROPPED (MULTIPLY A BY B OB::\"GETX\" printed B=8.2 with the second operand ignored). Format 2 `BY {identifier-2 | literal-2}` + GIVING binds every identifier format (2002 golden rows 1-4). ArithmeticOperandRoleDriftTests pins the mixed-rule set and the receiving-rule set against the .g4. retired-witness: src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#arithmeticOnSizeError (kb/Work PB3830: every Table 12 [NOT] phrase is the one conditionalPhrases rule now; the per-statement phrase rule no longer exists)",
+ "state": "OK"
+}

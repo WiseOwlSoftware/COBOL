@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.16.3-6",
+ "section": "13.18.16.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "CONTROL clause",
+ "rule-digest": "42b5c00b5854",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindReportDescriptionClauses",
+ "test-ref": "conformance:cases/13.18.16-CONTROL/pb205-control-operand-not-unique; conformance:cases/13.18.16-CONTROL/pb205_control_ref_mod",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB205. Uniqueness is of the WRITTEN reference (ReportControlRef.SameOperandAs over name + qualifiers + ref-mod), which is what SR6's own second sentence forces: two operands may 'refer to the same physical data item or to overlapping data items', so the referenced item cannot be what distinguishes them - and 13.18.57.3 SR10 could not name a level unambiguously if it were. The positive golden is the legal shape the second sentence permits (CONTROLS ARE CX(1:3) CX(4:)); the negative is the same reference twice.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.2.3-3",
+ "section": "14.2.3",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Procedure division structure",
+ "rule-digest": "c65c1b192bd0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs; src/WiseOwl.Cobol.Compiler/Oo/OoFormal.cs",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/pb133-omitted-not-optional; conformance:cases/8.4.3.2-Function-identifier/pb757-function-omitted-not-optional; conformance:cases/14.2-Procedure-division-structure/pb757-invoke-omitted-not-optional; conformance:cases/14.2-Procedure-division-structure/pb133_omitted_args",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§14.2.3 GR3 (cite.py --check 14.2.3 \"the OMITTED phrase shall not be specified as the corresponding argument\" -> OK §14.2.3 3)). Both halves probed. Permission: OPTIONAL formal + CALL USING OMITTED -> callee sees 'OMITTED' (b2/gr3_omit_opt.cob). Prohibition on every arm whose formals are known at bind: prototype CALL -> COBOL1685 (§14.9.4.3 SR24), function reference -> COBOL2238 (§8.4.3.2.3 SR9), INVOKE -> COBOL2237 (§14.9.23.3 SR18). A Format-1 CALL by literal (no AS NESTED/prototype) to a contained non-OPTIONAL formal compiles (b2/gr3_omit.cob): §14.9.4.3 SR19-SR25 are the program-prototype-format rules, so no compile-time check is mandated there and the callee is not required to be matched - not treated as a defect. || editions as adjudicated: 2002, 2014, 2023 (OPTIONAL / OMITTED are COBOL-2002 introductions)",
+ "state": "OK"
+}

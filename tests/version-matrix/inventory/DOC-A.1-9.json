@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-9",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 9,
+ "subject": "Alphanumeric literals (number of hexadecimal digits that map to an alphanumeric character)",
+ "rule-digest": "f48066e43558",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-9; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#HexGroupViolation; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs",
+ "test-ref": "conformance:cases/8.3.3.2-Alphanumeric-literals/r03-hex-literal-digit-grouping; conformance:cases/8.3.3.2-Alphanumeric-literals/pb1393-concat-operand-hex-grouping; conformance:cases/8.3.3.2-Alphanumeric-literals/pb1393_hex_literal_positions",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1393 (w61g). The determination (two hexadecimal digits per alphanumeric character, 8.3.3.2.3 SR6) is written in CONFORMANCE.md 7 and now holds at every position a literal is written: the concatenation-operand and keyword-omitted-argument holes the adjudicator found are closed (LiteralScreenPass; COBOL1635), and the CONFORMANCE row's open-PB1393 caveat is removed. retired-witness: src/Cobol.Net.Compiler/Validation/LiteralScreenPass.cs (kb/Work PB1616 moved LiteralScreenPass (Compiler/Validation) to LiteralScreen (Frontend/Parsing) so the directive lane asks the same body; the witness is the same code at its new path)",
+ "state": "OK"
+}

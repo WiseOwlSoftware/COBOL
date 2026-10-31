@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-11.9.5.1",
+ "section": "11.9.5.1",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "ARITHMETIC clause",
+ "rule-digest": "54379f048ab6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#arithmeticClause; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#arithmeticMethod; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitArithmeticMethod; src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#ArithmeticOf",
+ "test-ref": "conformance:cases/11.9.5-ARITHMETIC/l1c01_arithmetic_clause_forms; conformance:cases/11.9.5-ARITHMETIC/l1c01-arithmetic-two-alternatives; conformance:cases/11.9.5-ARITHMETIC/l1c01-arithmetic-no-alternative",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: `ARITHMETIC IS {NATIVE | STANDARD-BINARY | STANDARD-DECIMAL}`, ARITHMETIC and the three phrases underlined, IS not underlined, plain braces = exactly one (cite.py --check 11.9.5.1 \"STANDARD-DECIMAL\" -> OK §11.9.5.1 General format; cite.py --check E.2 \"Standard Arithmetic\" -> OK §E.2 21)). Code: arithmeticClause = ARITHMETIC IS? arithmeticMethod; arithmeticMethod = NATIVE | STANDARD_BINARY | STANDARD_DECIMAL | STANDARD. Probed with the pinned cobol.exe (probe/arithmetic-clause/p_*.cob) at --std 85/2002/2014/2023: every alternative with and without IS compiles at 2014/2023 and selects the right engine (FUNCTION SQRT(2) into PIC 9V9(30): NATIVE/absent -> binary64 1.414213562373095145474621858738, STANDARD-DECIMAL -> 34-digit 1.414213562373095048801688724209); `ARITHMETIC IS NATIVE STANDARD-DECIMAL` -> COBOL0307 (exactly one); `ARITHMETIC IS.` -> COBOL0001 (one required); STANDARD-DECIMAL at 2002 -> COBOL0900; OPTIONS at 85 -> COBOL0804; the 2002 STANDARD phrase compiles at 2002, warns obsolete (0903) at 2014, is rejected at 2023 (0807, Annex E.2 item 21 removal) - edition-correct dual window. STANDARD-BINARY is refused by COBOL0806 at every edition: a documented processor-dependent decline (A.3 item 2, cite --check A.3 OK; docs/CONFORMANCE.md §2 row 2, kb/Work PB198), not a syntax defect; at 2023 it additionally draws the NOTE 2 obsolete warning 0903 (cite --check 11.9.5.2 \"The STANDARD-BINARY mode of arithmetic is an obsolete feature\" OK). Grammar comment calls bare STANDARD 'a common vendor spelling' - it is in fact the ISO 2002 phrase; the gating is right, the comment is stale. No single existing test exercises the IS-omitted spelling plus each alternative, so test-ref is empty (candidates: conformance:cases/11.9.5-ARITHMETIC/l1_native_arithmetic_intermediate writes ARITHMETIC IS NATIVE; conformance:cases/14.9.8-COMPUTE/arithmetic_standard_decimal writes ARITHMETIC IS STANDARD-DECIMAL). || Editions (adjudicator, verbatim): 2002 (clause introduced with the OPTIONS paragraph; NATIVE | STANDARD); 2014 (STANDARD-BINARY, STANDARD-DECIMAL added; STANDARD obsolete); 2023 (NATIVE | STANDARD-BINARY | STANDARD-DECIMAL; Standard Arithmetic removed - Annex E.2 item 21); not in 1985",
+ "state": "OK"
+}

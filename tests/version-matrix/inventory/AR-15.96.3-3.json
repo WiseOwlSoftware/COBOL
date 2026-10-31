@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.96.3-3",
+ "section": "15.96.3",
+ "kind": "AR",
+ "ordinal": 3,
+ "subject": "TRIM function",
+ "rule-digest": "251cc3dab0cb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Trim",
+ "test-ref": "conformance:cases/15.96.3-Argument-rules/pb249_trim_argument2_repeats; conformance:cases/15.3-Arguments/intrinsics_trim; conformance:cases/15.39.3-Argument-rules/pb15_result_type_follows_argument",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "CLOSED by kb/Work PB249. Citation re-derived: cite.py --check 15.96.3 'When no argument-2 is specified' -> OK, rule 3. THE DEFAULT'S VALUE WAS ALWAYS RIGHT AND IS UNDISTURBED: the typed-native model stores a national item as UTF-16 code units, one per national character position (pb15_result_type_follows_argument.g.cs stores PIC N(8) as an 8-character string padded with U+0020), so the national space IS U+0020 and r3 b) needs no separate constant - a distinct national-space value would be a second mechanism, not a fix. WHAT WAS WRONG WAS THE ANTECEDENT. r3 fires 'When NO argument-2 is specified' - a SYNTACTIC condition - and the body decided it at RUN time on an 'any' flag computed AFTER '.Where(c => c.Length > 0)' had emptied a set built from argument-2s that WERE specified, so r3's space default was re-applied where r3's antecedent is FALSE: FUNCTION TRIM(X DYN-ITEM) over an ANY LENGTH / DYNAMIC LENGTH argument-2 holding the empty string bound clean (the ExactWidth predicate fails open on a null width) and SILENTLY TRIMMED SPACES. The body now decides r3 on 'chars.Length == 0' ALONE, and that array IS the syntactic fact: IntrinsicRenderer's Trim arm emits no chars for the one-argument form, and the table(ALL) lane cannot deliver an empty list because CobolTable.AllArgs raises EC-ARGUMENT-FUNCTION on an enumeration over no occurrences. A SPECIFIED argument-2 of any width but one is now 15.3 rule 14's incorrect argument value - EC-ARGUMENT-FUNCTION, zero-length substitute - instead of falling back to r3's answer. EVIDENCE: 2023/pb249_trim_argument2_repeats DEF=HELLO pins r3 a) beside the four r2 legs and ECV=blank pins the former fallback path; intrinsics_trim and pb15_result_type_follows_argument keep r3 a) and r3 b)'s values.",
+ "state": "OK"
+}

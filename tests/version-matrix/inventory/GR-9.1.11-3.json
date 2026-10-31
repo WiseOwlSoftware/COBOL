@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.11-3",
+ "section": "9.1.11",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Files",
+ "rule-digest": "766def595830",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ReadSucceeded; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs",
+ "test-ref": "conformance:cases/9.1.11-File-position-indicator/pb336_optional_absent_read_46",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (9.1.11 item 3): \"No next or previous logical record exists.\" [cite.py --check PASS 9.1.11]. The at-end state is represented by the same '46' poison the at-end READ arms (the at-end READ is unsuccessful), which is observationally the state the standard requires: the READ that finds no next/previous record answers '10' (9.1.13.4) and the following sequential READ '46' until a reposition. NEXT half: pb336 SEQ-PRESENT R1=00 R2=10 R3=46 (spec-derived). PREVIOUS half: conformance:cases/14.9.30-READ/pb343_read_previous_relative_2023 R2=ATEND|10 (spec-derived); probe E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2b\\out\\probe\\p911\\r1.cob at 2002/2014/2023: indexed READ random AAAA (first) then READ PREVIOUS -> 10, READ PREVIOUS -> 46; START repositions, READ NEXT BBBB 00, READ NEXT 10, READ NEXT 46; relative RL-P1 10, RL-P2 46. Both halves verified. || Editions (adjudicator, verbatim): 1985, 2002, 2014, 2023 (no Annex E change); the 'previous' half is reachable only where READ ... PREVIOUS exists",
+ "state": "OK"
+}

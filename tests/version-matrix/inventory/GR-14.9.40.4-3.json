@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.40.4-3",
+ "section": "14.9.40.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "SORT statement",
+ "rule-digest": "3360f693bb5e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sortDuplicatesPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindSort; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitTableSort; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Sort; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#SortedOrder; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#Cascade; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#SortMergeCursor",
+ "test-ref": "conformance:cases/14.9.40-SORT/pb704_sort_duplicates_in_order_2023; conformance:cases/14.9.40-SORT/pb704_sort_duplicates_in_order_85; conformance:cases/14.9.40-SORT/pb704_sort_duplicates_gr3_arms; conformance-test:OptionalWordSubsetDriftTests.EveryOptionalWordSubset_CompilesAndRunsIdentically; unit:SortWorkBoundTests.ASortManyTimesTheLimit_OrdersStably_WithinTheLimit_AndLeavesNoFile; conformance-test:SortWorkSpillConformanceTests.ASortAndAMergeAHundredTimesTheLimit_OrderAsTheyDoInMemory_AndLeaveNoFile; conformance:cases/14.9.40-SORT/pb3794_order_data_item_duplicates_in_order",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB704 (2026-09-06): the phrase that BUYS this rule was unusable above COBOL-85 until this landing - ORDER is the format's own optional word (measured: on the printed page only DUPLICATES is underlined) but the grammar spelled it as a `cobolWord`, and the 8.9 funnel, which screens IDENTIFIER occurrences position-blind, refused it as a user-defined word from 2002 (8.9 reserves ORDER since 2002). ORDER is now a lexer token with a cobol-words.json nameSlot row, so the phrase parses at every edition and `01 ORDER PIC X.` still draws COBOL0901 at 2002+ (conformance:cases/_unassigned/pb704-order-as-data-name). All three arms are evidenced: a) the USING-file order and, within a file, the access order; b) the input procedure's RELEASE order; c) the table elements' pre-sort relative order. Both formats realize it as an unconditional STABLE sort - CobolSort.Sort's store (SortWork, kb/Work PB3339) sorts each memory-sized chunk with a tie broken by release order (SortedOrder), merges only consecutive runs, always the last F (Cascade), and SortMergeCursor.Next gives an equal key to the EARLIEST run, so release order holds in memory and spilled alike (Format 1) and EmitTableSort emits a stable comparer (Format 2) - so GR4's undefined order is safely refined to the same one. Arm c) needs Format 2, which is 2002+; arms a) and b) hold at 85. Past the memory limit: SortWorkBoundTests.ASortManyTimesTheLimit_OrdersStably_WithinTheLimit_AndLeavesNoFile and SortWorkSpillConformanceTests (30,000 records, DUPLICATES IN ORDER).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.9.3-2",
+ "section": "12.4.5.9.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "LOCK MODE clause",
+ "rule-digest": "b45432187acb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl",
+ "test-ref": "conformance:cases/12.4.5.9-LOCK-MODE/l1c17-lock-multiple-access-sequential; conformance:cases/12.4.5.9-LOCK-MODE/l1c17-lock-multiple-access-omitted; conformance:cases/12.4.5.9-LOCK-MODE/lock-mode-multiple-sequential",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 12.4.5.9.3 2) 'The MULTIPLE phrase shall not be specified for a file described with sequential organization or sequential access mode.' OK. §12.4.5.5.3 1) 'If the ACCESS MODE clause is not specified, sequential access is assumed.' OK. DataBinder.cs:1108: `file.LockMode is { Multiple: true } && (file.AccessMode is Sequential || file.IsSequential)` -> COBOL1512. The check runs after the clause loop, so clause order does not matter. IsSequential covers an omitted ORGANIZATION (§12.4.5.10.3 GR6), RECORD SEQUENTIAL and LINE SEQUENTIAL. probe out/probe/lock-mode-clause/gen.py rejects (COBOL1512): f) indexed with ACCESS MODE omitted (sequential by default), h) LINE SEQUENTIAL, k) indexed ACCESS SEQUENTIAL at --std 2002, m) ORGANIZATION omitted. It accepts: a) indexed DYNAMIC, g) relative RANDOM, l) relative DYNAMIC at --std 2014, and j) indexed ACCESS SEQUENTIAL with single `LOCK ON RECORD` (no MULTIPLE, so outside the rule). conformance:cases/12.4.5.9-LOCK-MODE/lock-mode-multiple-sequential (reject-at 2002 2014 2023) witnesses only the sequential-ORGANIZATION half. No negative covers the sequential-ACCESS-mode half on a keyed file, or the omitted-ACCESS default, so test-ref is empty (test-needed). [registrar 14a — editions as adjudicated: 2002, 2014, 2023 (the clause is absent from ISO 1989:1985; it arrives with the 2002 file sharing / record locking facility, D.2.4 / A.4.7; no later change to 12.4.5.9 located)]",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.30.3-9",
+ "section": "14.9.30.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "READ statement",
+ "rule-digest": "68152f3c36d8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead",
+ "test-ref": "conformance:cases/14.9.30-READ/pb340_advancing_on_lock_relative; conformance:cases/14.9.30-READ/pb340_advancing_on_lock_indexed",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB335, LANDED with PB340. Rule re-validated: cite.py --check 14.9.30.3 'If neither the NEXT phrase nor the PREVIOUS phrase is specified and ACCESS MODE DYNAMIC is specified in the file control entry for file-name-1, the NEXT phrase is implied if any of the following phrases is specified: ADVANCING, AT END, or NOT AT END.' -> OK. THE TRIGGER IS NOW THE SET THE RULE NAMES. KeyedIoBinder.BindRead's ACCESS DYNAMIC arm read two of SR9's three members - NEXT and the AT END family of phrases, `next || ConditionalPhrases.HasFamily(r.conditionalPhrases(), ConditionalPhraseFamily.AtEnd)` - and never consulted readAdvancingOnLock, although the same method read it four lines later to populate BoundKeyedRead.AdvancingOnLock; the third member is now in the test, so a DYNAMIC-access READ carrying only ADVANCING ON LOCK binds Format 1 as SR9 requires instead of falling to the Format-2 random read. This is inseparable from GR-14.9.30.4-22: without it the GR22 skip-scan is unreachable for the one spelling SR9 exists to name. TEST: both PB340 goldens write `READ F-B ADVANCING ON LOCK.` with neither NEXT nor an at-end phrase on an ACCESS DYNAMIC file, and their headers derive the expected record from SR9 + GR19 + GR21 - relative RRN 3 and indexed K003 after two locked records are skipped; under the previous binding that statement was a Format-2 random read keyed on the record area's stale key. || EDITIONS AS ADJUDICATED: unchanged from the prior verdict - 85,2002,2014,2023; the 2023 text carries no edition marker on this clause and Annex E is a 2014-to-2023 delta only. The ADVANCING member is itself COBOL-2002 (COBOL0900 rejects it at --std 85, pinned by conformance:cases/14.9.30-READ/pb340-advancing-on-lock-keyed-85), so at 85 only the AT END / NOT AT END members of the set are reachable.",
+ "state": "OK"
+}

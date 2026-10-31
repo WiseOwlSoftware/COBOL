@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.63.4-4",
+ "section": "13.18.63.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "VALUE clause",
+ "rule-digest": "b0dddcb3933f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs",
+ "test-ref": "conformance:cases/13.7-Linkage-section/pb499_table_value_by_section_2002",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB499, LANDED — RE-VERDICT ONLY. GR4's four occasions and its closing paragraph, RE-MEASURED on this worktree's own build with a FORMAT 2 (table) VALUE in every population: (a) external — X-START=[      ] at initial state and X-TOVAL=[AABB  ] after INITIALIZE, which is \"for external items, during the execution of an INITIALIZE statement\" including its negative half; (b) based — `ALLOCATE B INITIALIZED RETURNING PTR` gives B-ALLOC=[AABB  ]; (c) all other items — W-START=[AABB  ] at initial state and W-TOVAL=[AABB..] after MOVE ALL \".\" + INITIALIZE. The CLOSING PARAGRAPH — \"When VALUE clauses take effect, data items with a VALUE clause are initialized to the specified value and data items of class message-tag, class object, and class pointer are initialized to null\" (cite --check OK, §13.18.63.4 4) c)) — was the diverging leg: `SET PTR TO ADDRESS OF ANCHOR` then `INITIALIZE PTR ALL TO VALUE` left the stale address, because §14.9.20.4 GR5 c) 1.'s arm a) (the CATEGORY arm) was unwritten and the code demanded a VALUE clause §13.18.63.3 SR9 forbids a pointer to have. It now gives P-SET then P2-NULL. PB418's landing carried that arm; this records it with a witness. The MESSAGE-TAG leg stays unobservable — the usage is declined non-support (COBOL1943).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.40.5-6",
+ "section": "13.18.40.5",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "PICTURE clause",
+ "rule-digest": "86590e059837",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Render; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#FindFloatingPlacement; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#TrySimpleInsertion; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#MarkFloating",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb490_simple_insertion_strings_85; conformance:cases/13.18.40-PICTURE/pb490_editing_simple_insertion; conformance-test:PictureEditingTests.FloatingCharacter1_RendersAsAFloatingString; conformance-test:PictureEditingTests.FloatingMultiCharLiteral_HasAnnexD24Size; conformance:cases/13.18.40-PICTURE/pb491_editing_variable_width; conformance:cases/13.18.40.5-Editing-rules/pb490_simple_insertion_strings_2002; conformance:cases/13.18.40.5-Editing-rules/pb490_simple_insertion_strings_2014; conformance:cases/12.3.7-SPECIAL-NAMES/pb490_simple_insertion_comma_mode; conformance:cases/13.18.40.5-Editing-rules/pb490_simple_insertion_strings_2023; unit:CobolEditSimpleInsertionDriftTests.FloatingPlacement_LandsOnTheSymbolEmbeddedInAFloatingString; conformance:cases/13.18.40.5-Editing-rules/pb2639_floating_char1_digit_positions; unit:CobolEditMaskFactsTests.Format_AlignsAtTheGeometrysScale; unit:CobolEditMaskFactsTests.DeEdit_ReadsAtTheGeometrysScale",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-09-19 (kb/Work PB491). Rule 6's FIRST SENTENCE names four kinds of floating insertion symbol - 'The currency symbol, the extended editing sign control symbols, if specified, and the fixed editing sign control symbols + and -' - and the detector knew only three. PictureComposition.MarkFloating now takes the FOR-phrase character-1 letters as floating candidates (the IS-form ones stay transparent, since rule 3 makes those SIMPLE insertion symbols and rule 6's own 'embedded ... or to the immediate right' sentence is what absorbs them), and CobolEdit's digit-position count, suppression walk, placement pass and mask capacity all follow: a repeated FOR character-1's occurrences are digit positions, the literal lands once at the rightmost suppressed position of its zone, and GR14 sizes it as 'one occurrence of literal-2 or literal-3 ... plus one character for each repetition of character-1'. MEASURED: PIC LLLL9.99F with \"(\" / \")\" renders ' (123.45)' for -123.45, exactly Annex D.24's 'b(123.45)'; PIC LLLL9.99 with \"DEBIT \" is 13 characters, the size D.24 states outright.",
+ "state": "OK"
+}

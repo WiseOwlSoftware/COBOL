@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.38.4-18",
+ "section": "13.18.38.4",
+ "kind": "GR",
+ "ordinal": 18,
+ "subject": "OCCURS clause",
+ "rule-digest": "0f2800010ad1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#FieldInit; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#NoValueSeed; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#GrowTo",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb1267_dyn_initialized_seed; unit:CobolDynTableTests.CreatedOccurrences_TakeTheInitializedSeed_OpeningOccurrencesTheInitialState; conformance:cases/13.18.38-OCCURS/dyn_initialized",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1267 (landed w67o). GR18 -> 8.5.1.9.5: a new element is initialized as though by INITIALIZE ... WITH FILLER ALL TO VALUE THEN TO DEFAULT. The emitter composes a second seed under SeedRecipe.Initialize (threaded through ValueInitializer, GroupValueSlicer, PhysicalModel's memo key and GroupImageCodec's image lane): a VALUE-less numeric-edited leaf takes the edited ZERO (14.9.20.4 GR6 c), a group-level VALUE is not a sender (GR5 c) 1. b), no OPTIONS background; VALUE-bearing leaves compose as in the initial state (GR6 a) 3.). CobolDynTable seeds occurrences a statement creates (RefReceiving, SET) from it and the opening occurrences from the initial state. Witness: C2/C3 [  0][$ 0.00][000 ][00/00][  ][42], O1 keeps the group VALUE GV.",
+ "state": "OK"
+}

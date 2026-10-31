@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.49.4-9",
+ "section": "14.9.49.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "USE statement",
+ "rule-digest": "decda7a3bc5e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Generate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#RunBeforeReporting; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#RunUseCall",
+ "test-ref": "conformance-test:ReportWriterConformanceTests.UseBeforeReporting_Gr9ab_AfterBreakProcessingAndAfterSumIncrement; conformance-test:ReportWriterConformanceTests.UseBeforeReporting_PresentWhen_DeclarativeRunsBeforeTheConditionIsEvaluated; conformance-test:ReportWriterConformanceTests.UseBeforeReporting_UseProcedureIsTheWholeSection",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB367 (LANDED), PB367b (LANDED). Rule text (cite.py --check 14.9.49.4 \"Before any page fit processing, if the associated report group is a body group\" -> OK, GR 9 c). a) AND b) ARE NOW WITNESSED. UseBeforeReporting_Gr9ab_AfterBreakProcessingAndAfterSumIncrement: the detail's declarative writes 09 and no control heading ever shows it - the first shows 00 and the one printed during the break shows the 07 the control-footing declarative had just written - which is a) ('After any control break processing, if the associated report group is a detail and the associated report description has a CONTROL clause'); and the control-footing declarative changes the ADDEND (1 -> 5), which leaves the break footing at 01 and makes the TERMINATE footing 05, which is b) ('After incrementing sum counters defined in the report group') seen from the only angle the language offers - the increments of the instance precede its declarative, and the breaking GENERATE's own increment (14.9.16.4 GR5 a) places it after the break processing) follows it. THE CF QUESTION IS SETTLED by that same chain: a control footing presented DURING break processing has already received every increment that belongs to it, because 13.18.54.4 GR7 c) 1. adds on every GENERATE and the breaking record's addend belongs to the NEW control group. c) and d) hold transitively: the declarative precedes EvaluatePresent (UseBeforeReporting_PresentWhen_...), which precedes the 13.18.35.4 GR4 fit test (13.18.41.4 GR3 d) - the fit test disregards absent lines) and all LINE placement. NOTE: the DIRECT observable for b) - a declarative reading its own group's sum counter, which 13.18.54.4 GR5 + GR12 make legal - is unavailable because a named sum counter is rejected as undefined in the procedure division (COBOL1639); that is a separate defect reported with kb/Work PB367b and does not bear on this rule's behaviour. || EDITIONS AS ADJUDICATED: 1985/2002/2014/2023 (FORMAT 2). No Annex E entry touches it.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.41.4-14",
+ "section": "14.9.41.4",
+ "kind": "GR",
+ "ordinal": 14,
+ "subject": "START statement",
+ "rule-digest": "5199f2584b35",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/StartKeyLength.cs#TryCompareLength; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Start; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart",
+ "test-ref": "conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb357_start_length_not_integer; unit:StartKeyLengthTests.ScaledLane_AnswersGr14OnTheExactValue; unit:StartKeyLengthTests.RealLane_AnswersGr14OnTheDouble; unit:StartKeyLengthTests.EmitStart_CarriesTheCountUnnarrowed",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB357 LANDED (wave 56). RULE (cite.py --check 14.9.41.4 'does not evaluate to a positive nonzero integer that is less than or equal to the length of the associated key' -> OK 14.9.41.4 14)). The count now travels to the connector as a StartKeyLength built from the exact lane (scaled Int128 + scale, or the native double) and IndexedConnector.Start asks TryCompareLength once: integrality via SetAmount.Land, then 1 <= count <= key length, then the GR13 national scaling on the bounded integer. The former int narrowing of Align(expr,0) turned 2.5 into 2 and 4294967297 into 1. MEASURED on this build: WITH LENGTH 2.5, 3 / 2, a PIC 9V9 item holding 2.5 and a PIC 9(12) item holding 4294967297 each give FS=23 and INVALID KEY; a PIC 9V9 item holding 2.0 positions with FS=00. In-range legs (0, -1, 5 on a 4-character key -> 23) unchanged. The phrase is post-85 (no LENGTH phrase in the COBOL-85 START; negatives pb353/pb332 cover its gating).",
+ "state": "OK"
+}

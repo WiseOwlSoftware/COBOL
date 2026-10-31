@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.6.3.4-4",
+ "section": "12.4.6.3.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "APPLY COMMIT clause",
+ "rule-digest": "88fb4541a9fa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/TransactionControl.cs#Activate; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram",
+ "test-ref": "unit:TransactionControlTests.An_activation_under_an_active_sort_raises_ec_flow_apply_commit_or_stays_inactive; conformance:cases/12.4.6-I-O-CONTROL/pb3338_ec_flow_apply_commit_under_sort",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB3338 (wave 1154): Annex A.4.3 is now PARTIAL (docs/CONFORMANCE.md §5, §4 item 2): the APPLY COMMIT clause, COMMIT and ROLLBACK are provided for RELATIVE and INDEXED files, whose keyed store engine keeps the transaction (kb/Work PB3337); a SEQUENTIAL or LINE SEQUENTIAL file named in the clause is under commit control too, its transaction journal being kb/Work PB3340 (COBOL1709, which refused it, is retired). The derived verdict commit-and-rollback-only that stamped the module DOCUMENTED-NON-SUPPORT is retired. GR4: an activation under an active SORT or MERGE procedure raises EC-FLOW-APPLY-COMMIT under the activating element's checking and, with checking off, leaves the clause inactive. The compiled path (review finding w1154a R1-2): pb3338_ec_flow_apply_commit_under_sort CALLs an element with a clause from a SORT input procedure with checking off at the CALL, through an intermediate element whose own CALL has checking off (the latch is the activating CALL's), and with checking on (the condition), then after the SORT (the clause active). retired-witness: conformance:wiseowl/cases/12.4.6.3-APPLY-COMMIT/declined-apply-commit (the commit and rollback facility is provided for the keyed organizations (kb/Work PB3338): the decline these witnessed is gone, and the rule is now witnessed by its own implementation) retired-witness: src/Cobol.Net.Compiler/Validation/DeclinedFacilityPass.cs#VisitApplyCommitClause (the commit and rollback facility is provided for the keyed organizations (kb/Work PB3338): the decline these witnessed is gone, and the rule is now witnessed by its own implementation)",
+ "state": "OK"
+}

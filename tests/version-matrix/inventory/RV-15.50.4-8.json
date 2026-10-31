@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.50.4-8",
+ "section": "15.50.4",
+ "kind": "RV",
+ "ordinal": 8,
+ "subject": "LENGTH function",
+ "rule-digest": "f22998f8d925",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#fnArgPhraseWord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+ "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb61_length_byte_length_rule_branches; conformance:cases/15.50.4-Returned-value-rules/pb24_length_physical_keyword",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "PHYS=...9 9 equals VLG=9 in the same run, which is r8's closing sentence under the §4.2.16 determination recorded at docs/CONFORMANCE.md; r8's pointer branch has no observable in this implementation.",
+ "state": "OK"
+}

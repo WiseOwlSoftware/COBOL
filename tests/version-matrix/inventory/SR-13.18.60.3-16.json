@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.60.3-16",
+ "section": "13.18.60.3",
+ "kind": "SR",
+ "ordinal": 16,
+ "subject": "USAGE clause",
+ "rule-digest": "6762c371d206",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoBindObjectRefDescriptor; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#objectReferenceUsage",
+ "test-ref": "conformance:cases/13.18.60-USAGE/pb496_active_class_positions; conformance:cases/9.3.6-Method-invocation/pb389_object_reference_descriptor; conformance:cases/13.18.60-USAGE/pb389-active-class-outside-class; conformance:cases/13.18.60-USAGE/pb389-active-class-method-working-storage",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB496 — WAS NOT-IMPLEMENTED ('the phrase the rule restricts does not exist in this compiler, so the restriction has nothing to enforce and the legal spelling is rejected'); CLOSED by [[PB389]]'s grammar and descriptor plus this round's positional goldens. Rule: `cite.py --check 13.18.60.3 \"The ACTIVE-CLASS phrase may be specified only in a factory definition, an instance definition, or the linkage or local-storage section of a method definition\"` -> OK 16). DERIVED: FOUR permitted positions and everything else forbidden, and the rule is only implemented when BOTH directions are true. OBSERVED, all four permitted positions accepted AND OBSERVABLE: a factory definition's WORKING-STORAGE and an instance definition's WORKING-STORAGE and a method's LINKAGE SECTION (pb496_active_class_positions - FTAG-C/FTAG-D from the factory item, WHO-C/WHO-D from the instance item, and the same again through the LINKAGE parameter received BY REFERENCE), and a method's LOCAL-STORAGE (pb389_object_reference_descriptor). FORBIDDEN positions refused by NAME, not by accident: outside a class definition and in a method's WORKING-STORAGE both draw COBOL1924 (pb389-active-class-outside-class, pb389-active-class-method-working-storage) - the method's WORKING-STORAGE is excluded because SR16 lists 'the linkage or local-storage section of a method definition' SEPARATELY, which would be redundant if a method inside a factory or instance definition already qualified. The recorded evidence for the old verdict - COBOL0813 'names the unknown class or interface ACTIVE-CLASS' beside COBOL0901 'is a reserved word' - is falsified: ACTIVE-CLASS is a real lexer token with a DERIVED reservation gate (a user word at 85, COBOL0901 at 2002+), and the phrase parses. || CODE SITES: DataBinder.OoBindObjectRefDescriptor is the ONE place a written phrase becomes a descriptor and the ONE place SR16's placement is adjudicated (COBOL1924, both arms); CobolOO.g4#objectReferenceUsage carries the `[FACTORY OF] ACTIVE-CLASS` alternative the general format prints.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.25.4-5",
+ "section": "14.9.25.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "MOVE statement",
+ "rule-digest": "1a84f06a8cab",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#FieldNum; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#ConvertSource; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#DeEdit; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.Float.cs#DeEditFloat",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb66_float_edited_picture; conformance:cases/14.6.13.2-Incompatible-data/pb66_float_edited_algebraic_and_checking",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (PB66 — the floating-point form; the fixed-point de-editing MOVE is the NIST-pinned COBOL-85 behavior). A numeric-edited SENDER de-edits only into a numeric or numeric-edited receiver: E1 → S9(5)V9(3) is -12345.600 and E1 → +9(3).9(2)E+999 is -123.45E+002 (de-edit then edit), while E1 → PIC X(12) copies the characters (an alphanumeric receiver — no de-editing). The floating-point sender de-edits to an EXACT CobolDec (the significand with its own power of ten — never a binary64), so a 36-digit significand round-trips.",
+ "state": "OK"
+}

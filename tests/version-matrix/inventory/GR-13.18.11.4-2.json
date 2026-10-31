@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.11.4-2",
+ "section": "13.18.11.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "CLASS clause",
+ "rule-digest": "f6cbeea41ea8",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause",
+ "test-ref": "conformance:wiseowl/cases/13.18.11-CLASS/declined-validate-class",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "docs/CONFORMANCE.md §5 row A.4.14 (VALIDATE — Not claimed) + §4 item 3. Licence: Annex A.4.1 and its second sentence. OWNER DECISION kb/Work PB375, 2026-09-02. The rule conditions the clause on the item's internal indicator after the FORMAT VALIDATION stage — a per-item state that exists only inside a VALIDATE statement (§14.9.50.4), so nothing of it survives the decline.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.13.4-6",
+ "section": "7.3.13.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "EVALUATE directive",
+ "rule-digest": "38673dedab94",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/l1c07_evaldir_fmt1_other_nomatch",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR6 (cite.py --check 7.3.13.4 6) OK; E.2 item 8 made it a conjunction): END-EVALUATE reached with no TRUE WHEN AND no WHEN OTHER -> all text-1 omitted. The frame starts Emitting=false, each unmatched WHEN sets Emitting=false, END-EVALUATE pops the frame so following text emits per the parent. Probe: >>EVALUATE 5 / WHEN 1 / WHEN 2 / END-EVALUATE -> neither emitted; the line after END-EVALUATE emitted. CONFORMANCE.md determination (E.2 item 8) agrees. No spec-derived golden exercises the no-match/no-OTHER case. Probe dir out/probe/evaldir2 (pinned cobol.exe, --std 2023; p1 re-run at --std 2002 and 2014 with identical output; --std 85 rejects >>EVALUATE with COBOL0900). || editions (adjudicator): 2002, 2014, 2023 (the 7.3 directive facility is absent from 1985; Annex E.2 item 8 records the 2023 rewording of GR6/GR10 only)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.38.4-7",
+ "section": "13.18.38.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "OCCURS clause",
+ "rule-digest": "e4c90edcd917",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#OdoExtent; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#At; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#FatalAmbientGates; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#OdoReferenceCheckFor; src/WiseOwl.Cobol.Compiler/Binding/Model/AccessPath.cs#OdoReferenceCheck; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#RenderPath",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/ec_bound_odo_below_min; conformance:cases/13.18.38-OCCURS/w70c_pb1268_ec_bound_odo_element_reference; conformance:cases/13.18.38-OCCURS/w70c-pb1268-turn-bound-odo-below-2002",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "w70c (kb/Work PB1268 landed). cite.py --check 13.18.38.4 'If the value of the data item does not fall within the specified bounds, the EC-BOUND-ODO exception condition is set to exist' -> OK 13.18.38.4 7). The SUBJECT and SUBORDINATE arms are now checked at the reference: a subscripted reference through an OCCURS DEPENDING level carries an OdoReferenceCheck (data-name-1's place, integer-1, integer-2 - the same bounds the extent model uses) on its FixedTableSegment, rendered CobolTable.At(path, index, CobolTable.Occ(N, _P_n), min, max), which raises EC-BOUND-ODO before locating the element. Attached only when the compilation group can enable EC-BOUND-ODO (DataBinder.OdoReferenceChecking = TurnState.AnyEnabledFor, the zero-scaffolding invariant; a program with no such TURN renders the plain At). Measured on the w70c build, probe gr7.cob at --std 2023 and 2002: TX(1) with N = 7 (subordinate), MOVE G TO IMG (superordinate), MOVE 'Z' TO T(1) with N = 1 (subject) -> CNT = 3 (pre-fix 1); an in-bounds reference raises nothing (golden leg 4). Statement-internal occurrence walks (INITIALIZE's per-occurrence cursor) take their count from GR8 itself (the maximum for a receiving group holding data-name-1), not from a written reference, and carry no check. || editions: the bounds requirement at every edition; EC-BOUND-ODO 2002+ (>>TURN refused at 85, COBOL0900)",
+ "state": "OK"
+}

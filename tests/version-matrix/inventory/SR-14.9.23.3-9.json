@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.23.3-9",
+ "section": "14.9.23.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "INVOKE statement",
+ "rule-digest": "a02358574e43",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#invokeArgument; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#argument; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#BindAddressIdentifier; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1021_address_identifier_operands; conformance:cases/14.9.23-INVOKE/pb1021-address-identifier-relation-at-85",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB1021): the address-identifier alternative SR9 names ('Identifier-3 shall be an address-identifier or shall reference a data item defined in the file, working-storage, local-storage, or linkage section') is now an operand of every INVOKE phrase (bare, BY REFERENCE, BY CONTENT, BY VALUE) and of the 8.4.3.4 inline form's argument, through the ONE addressIdentifier rule PB239 gave CALL; it binds through PtrBinder.BindAddressIdentifier, conforms by the ONE 14.8.2 class-pointer verdict (PtrBinder.AddressConformanceReason) and crosses as a detached pointer value that never writes back (SR19). The second alternative (a data item of one of the four sections) holds by resolution: a SCREEN SECTION or REPORT SECTION name does not resolve to storage and draws COBOL0828. BY VALUE keeps the pre-existing method-formal limitation (COBOL0899 on a BY VALUE method formal) - not this rule. Introduced 2002 with the pointer classes (COBOL0900 at 85).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.8.4-2",
+ "section": "8.8.4.8.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Simple omitted argument condition",
+ "rule-digest": "d88d89b4e862",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#Visit",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/pb757_invoke_omitted",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB757.md landed w46i2. NOT and OMITTED form ONE condition: BoundOmittedCondition carries Negated and renders !(test) over the presence fact - golden method TWO's `IF B IS NOT OMITTED` takes both branches (B=WXYZ / B OMITTED).",
+ "state": "OK"
+}

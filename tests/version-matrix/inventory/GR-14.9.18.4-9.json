@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.18.4-9",
+ "section": "14.9.18.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "GOBACK statement",
+ "rule-digest": "381b759618af",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitGoback; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#AbnormalTermination",
+ "test-ref": "conformance-test:StopGobackExitCodeTests.TerminationStatus_SetsProcessExitCode",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "A phrase-free GOBACK emits NO status write at all, so Environment.ExitCode keeps its 0 default and the run unit terminates normally - the theory's 'GOBACK.' -> 0 row is the GOBACK-arm pin, and the zero-scaffolding invariant (DESIGN 18.16) is what makes the default rather than an explicit write carry it. The rule's escape clause ('unless error termination has been indicated by an implementor-defined mechanism') has exactly one such mechanism in this implementation and it is documented: ProgramTable.AbnormalTermination writes the 14.6.12 diagnostic to stderr and sets exit code 1 for a fatal condition that reaches the run-unit boundary - which by construction cannot coexist with a completed GOBACK in the same run, so no ordering conflict exists. Applies at every edition GOBACK exists in (2002+), unlike GR7/GR8 whose phrases are 2023 introductions.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitGoback (no SetExitStatus is emitted when g.Status is null); src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#AbnormalTermination",
+ "state": "OK"
+}

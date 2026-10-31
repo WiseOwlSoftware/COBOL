@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.5-L2.3",
+ "section": "14.7.5",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Common phrases and features for statements",
+ "rule-digest": "3a44c103b237",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreArith; src/WiseOwl.Cobol.Compiler/Binding/Procedure/PhraseBlocks.cs",
+ "test-ref": "conformance-test:OnSizeErrorDifferentialTests.BothPhrases_ErrorPath_RunsOnSizeErrorOnly",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Phrase rule 3: 'After completion of the arithmetic operations, and possibly the storing of values ..., control is transferred to the imperative-statement specified in the SIZE ERROR phrase' (--check 14.7.5 -> OK §14.7.5 3)). PROBE p1.cob E9/E10 display the receivers FROM INSIDE the phrase and see the non-erring receivers already stored (051 / 117), so the dispatch follows all stores; the statement then ends (next DISPLAY runs once). Row text also carries the lead-in 'If the size error condition exists and a SIZE ERROR phrase is not specified:' which introduces L3.x, adjudicated there. Also conformance:cases/14.9.2-ADD/optional_on_size_error. || editions as adjudicated: 1985, 2002, 2014, 2023",
+ "state": "OK"
+}

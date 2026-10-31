@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.22.4-1",
+ "section": "7.3.22.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "PUSH directive",
+ "rule-digest": "37ac63586ee0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveStateStack.cs#Apply; src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveStateStack.cs#TryParse",
+ "test-ref": "unit:DirectiveStateStackTests.EachCarriedDirective_IsSavedByPushAndRestoredByPop; unit:DirectiveStateStackTests.ANamedPush_SavesOnlyThatDirective; conformance:cases/7.3-Compiler-directives/pb941_push_pop_directive_state",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB941 (landed): a named PUSH saves the named directive's state onto that directive's own stack in DirectiveStateStack; every stage holding directive state (normalizer: SOURCE; conditional-compilation driver: DEFINE + running FLAG options; post-COPY stages: TURN, REF-MOD-ZERO-LENGTH, FLAG-02/14, COBOL-WORDS, LEAP-SECOND) registers a carrier. Golden legs L3 (PUSH TURN), L5 (PUSH DEFINE), L6 (PUSH SOURCE).",
+ "state": "OK"
+}

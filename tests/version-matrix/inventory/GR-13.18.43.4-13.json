@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.43.4-13",
+ "section": "13.18.43.4",
+ "kind": "GR",
+ "ordinal": 13,
+ "subject": "RECORD clause",
+ "rule-digest": "c5df70fcbc31",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Stored; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs; src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs",
+ "test-ref": "conformance:cases/8.5.4-Zero-length-items/pb721_zero_length_record; conformance:cases/13.18.32-JUSTIFIED/pb339_into_current_record_2023; conformance:cases/13.18.33-Level-number/pb981_fd_variable_length_records",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 13.18.43.4 GR13 c) OK. a) DEPENDING content: WRITE L=7 -> 7-byte record (probe/record-clause/p4.cob), RELEASE L=5/9 (p6.cob). b) no DEPENDING, no variable-occurrence item: `FD F1 RECORD IS VARYING IN SIZE. 01 A1 PIC X(5). 01 B1 PIC X(12).` writes 5- and 12-byte frames (p5.cob p5a.dat). c) no DEPENDING, ODO record: N2=1 writes 3 bytes, N2=25 writes 27 (p5.cob), and pb981 covers the dynamic-length (implied Format 2) shape. Covering tests: pb721_zero_length_record (a), pb339_into_current_record (a and b, per its GR13 a)/b) comments), pb981 (c).",
+ "state": "OK"
+}

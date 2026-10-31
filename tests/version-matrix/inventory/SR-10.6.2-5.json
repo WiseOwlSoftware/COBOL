@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-10.6.2-5",
+ "section": "10.6.2",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "COBOL compilation group",
+ "rule-digest": "ac17c34df4b9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs; src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveSiteProcessor.cs; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs; src/WiseOwl.Cobol.Frontend/Preprocessor/TurnDirectiveProcessor.cs",
+ "test-ref": "conformance:cases/10.6-COBOL-compilation-group/pb246_sqrt_absolute_value_and_domain",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'Compiler directives may appear in a structured compilation group as specified in 7.3, Compiler directives.' (cite.py --check 10.6.2 -> OK §10.6.2 5)). The substance is §7.3.3 SR8 'A compiler directive may be specified anywhere in a compilation group, in source text or in library text' (OK §7.3.3 8)) and §7.3.4 GR2 compile-stage directives 'processed in the order encountered in the structured compilation group' (OK §7.3.4 2)) with GR5 'applies to all of the source text and library text that follows' (OK §7.3.4 5)). Directives are line-level text processed by the preprocessor chain before the parse, so no source-unit boundary blocks them. PROBES (pinned cobol.exe, E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2b\\out\\probe\\cg): two_programs_directive.cob - >>DEFINE between END PROGRAM and the next PROGRAM-ID, >>IF/>>ELSE/>>END-IF inside the second unit, >>SOURCE FORMAT FREE after the last unit -> prints DEF / ONE (correct). dir_class_free.cob - >>DEFINE before the first unit (a CLASS-ID), >>IF inside a factory method, >>SOURCE FORMAT FREE between the class and a free-form program, >>SOURCE FORMAT FIXED between two programs -> CLS-DEF / FREE-DEF / FIXED-AGAIN (correct). turn_between.cob - a compilation-stage directive >>TURN EC-SIZE-ZERO-DIVIDE CHECKING ON between two units: unit 1 (before it) continues after DIVIDE BY 0, unit 2 (after it) terminates with EC-SIZE-ZERO-DIVIDE fatal -> order-of-encounter across units is honoured. The §7.3.3 SR8 exceptions (a)-(c) and the per-directive placement rules (e.g. PUSH/POP ALL, PushPopAllPlacementPass) are their own rows. Covering test: golden 2002/pb246_sqrt_absolute_value_and_domain writes >>TURN EC-ARGUMENT-FUNCTION CHECKING ON between END PROGRAM PB246SQRTABS and PROGRAM-ID PB246SQRTON and its spec-derived .out depends on it applying to the following unit only. || Editions (adjudicator, verbatim): 2002, 2014, 2023 (compiler directives and the structured compilation group are post-85; §7.3 / §10.6)",
+ "state": "OK"
+}

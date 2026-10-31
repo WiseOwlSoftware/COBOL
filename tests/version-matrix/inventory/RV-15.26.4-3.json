@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.26.4-3",
+ "section": "15.26.4",
+ "kind": "RV",
+ "ordinal": 3,
+ "subject": "DISPLAY-OF function",
+ "rule-digest": "c6538f5cfb5e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Repertoire",
+ "test-ref": "conformance-test:NationalBooleanLiteralTests.NationalLiteral_NonLatin1Char_Accepted_DisplayOfCarriesIt; conformance:cases/15.26.4-Returned-value-rules/pb59_repertoire_identity",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-09 (PB59): both obligations discharged. (a) EC-DATA-CONVERSION from the r3 path is UNREACHABLE BY DECLARATION - the item-33 correspondence is total, so no national character lacks an alphanumeric correspondent and r3's premise never holds (a conforming determination, r1 grants the correspondence to the implementor); the retargeted Convert_CharacterPathway_NeverSetsDataConversion_2023 asserts POSITIVELY (ORD witness + empty EXCEPTION-STATUS under enabled checking) that the old '?'+EC arm is gone. (b) The documentation half: the item-33 row in docs/CONFORMANCE.md section 7 IS the required Annex A.1 documentation, validated by audit_annex_a1.py --check.",
+ "state": "OK"
+}

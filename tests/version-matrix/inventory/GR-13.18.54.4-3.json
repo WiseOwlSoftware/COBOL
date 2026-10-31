@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.54.4-3",
+ "section": "13.18.54.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "SUM clause",
+ "rule-digest": "d9bd5edd96db",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Align; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AddSumTerm",
+ "test-ref": "conformance:cases/13.18.54-SUM/pb883_report_sum_expression; conformance:cases/13.18.54-SUM/pb883-sum-rounded-without-column",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The current content of each addend is added into the counter at the counter's own scale, once per GENERATE that GR7 c) selects, with an expression addend accumulating as the COMPUTE that GR3's second sentence names rather than the ADD. The ROUNDED phrase reaches that alignment through NumericRenderer.Align's one rounding parameter. DETERMINATION (13.18.54.4 GR4): the phrase governs the ACCUMULATION, not GR4's later MOVE of the counter to the printable item - GR1 derives the counter's integral and fractional digits from that item's own PICTURE, so that transfer is always scale-identical and the delivery reading would make a normative phrase dead. EC-REPORT-SUM-SIZE remains the default-off checking seam. kb/Work PB883 x PB852.",
+ "state": "OK"
+}

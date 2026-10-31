@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.11.4-1",
+ "section": "7.3.11.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "DEFINE directive",
+ "rule-digest": "856ecae72655",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#ApplyDefine; src/WiseOwl.Cobol.Frontend/Preprocessor/CompilationVariableEvent.cs#DefinitionAt; src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs#Preprocess; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#BindConstantFrom; src/WiseOwl.Cobol.Frontend/Preprocessor/CobolWordsDirectiveProcessor.cs#Literal",
+ "test-ref": "conformance:cases/7.3.11-DEFINE/pb1368_constant_from_compilation_variable; conformance:cases/7.3.11-DEFINE/pb1368_compilation_variable_timeline; conformance:cases/7.3.11-DEFINE/pb1368-constant-from-defined-later; conformance:cases/7.3.11-DEFINE/pb1368-cobol-words-numeric-variable",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1368 (w1006c). cite.py --check 7.3.11.4 \"in a constant entry where the FROM phrase is specified\" -> OK GR1. All three permitted uses now honored: (a) directive operands (IF/EVALUATE/DEFINE/DISPLAY) through the evaluator's live table; (b) CONSTANT ... FROM compilation-variable-name-1 reads the >>DEFINE TIMELINE (DirectiveResults.CompilationVariables, PUSH/POP replayed) at the entry's own line - GR1 'in text that follows a DEFINE', so a DEFINE after the entry does not reach it (negative pb1368-constant-from-defined-later) and an OVERRIDE between two entries gives each its own value (2002 golden CT=1 CU=2); (c) a >>COBOL-WORDS literal slot takes a variable defined before the directive whose value is alphanumeric (2023 golden: EQUATE W1 WITH W2 makes SHOW a DISPLAY synonym); a numeric variable there is refused COBOL1623 (the category clause of GR1).",
+ "state": "OK"
+}

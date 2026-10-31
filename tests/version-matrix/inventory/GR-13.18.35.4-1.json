@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.35.4-1",
+ "section": "13.18.35.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "LINE clause",
+ "rule-digest": "8b6991986b24",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#LineCounter",
+ "test-ref": "conformance-test:ReportWriterConformanceTests.Source_Gr6_LineCounterComposesAfterCounterUpdate; conformance:cases/8.4.3.15-Report-counters/pb1247_line_placement_unpaged_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1247: the physical line and LINE-COUNTER agree after a LINE PLUS 0 overprint; an abandoned (raised-overlap) line leaves LINE-COUNTER naming the last line printed.",
+ "state": "OK"
+}

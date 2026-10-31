@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.26.4-4",
+ "section": "14.9.26.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "MULTIPLY statement",
+ "rule-digest": "98e92396418d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Multiply; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#Divide",
+ "test-ref": "conformance:cases/14.9.2-ADD/phrase_order_arithmetic; conformance:cases/14.9.26-MULTIPLY/pb1143_native_product_beyond_scaled_int128; unit:CobolNumDivideAlignmentTests.AnAlignmentPastTheCarrier_StillGivesTheExactQuotient; unit:CobolDecRoundToOddTests.AnInexactQuotient_RoundsAsTheExactQuotientWould",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1143 landed. The 14.7.7 rule 1 link ('any necessary conversion and decimal point alignment is supplied throughout the calculation') held for the product's operands but not for the product or for DIVIDE's radix alignment; both are exact now (the product on the SDIDI past 38 digits, the divide alignment over arbitrary precision past the carrier).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.10.2",
+ "section": "13.10.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Constant entry",
+ "rule-digest": "5048b4f3efbc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#constantEntryBody; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#constantValue; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#constantEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#BindConstantEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#WrittenSpecification",
+ "test-ref": "conformance:cases/13.10-Constant/pb1225_constant_optional_words; conformance:cases/13.10-Constant/pb1225-constant-without-as-at-85; conformance:cases/13.2-Data-division-structure/pb1226_report_section_constant; conformance:cases/13.10-Constant/pb1227_constant_byte_length; conformance:cases/7.3.11-DEFINE/pb1368_constant_from_compilation_variable",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1225 (w1007c). PDF p.355 (anchor page-385) RENDERED: 1/01, CONSTANT, GLOBAL, BYTE-LENGTH, LENGTH and FROM are underlined; IS, AS and OF are not, so each is an optional word (cite.py --check 5.2.3 \"Optional words are reserved words or context-sensitive words. They are shown in uppercase and not underlined in general formats\" -> OK). Grammar now `CONSTANT (IS? GLOBAL)? (AS? constantValue | FROM cobolWord)` with `LENGTH OF? dataReference | constantByteLengthWord OF? dataReference`: `01 K CONSTANT 8.` -> 8, `CONSTANT \"AB\"` -> AB, `CONSTANT LENGTH W` -> 7, `CONSTANT IS GLOBAL LENGTH OF W` -> 7, `CONSTANT BYTE-LENGTH W` -> 7, `CONSTANT GLOBAL 2 + 3` -> 5 (golden pb1225_constant_optional_words). SR9's specification of a length phrase drops the optional OF, so `LENGTH W` duplicated as `AS LENGTH OF W` is the same specification (in the golden). Every leg is now bound: BYTE-LENGTH OF (PB1227), FROM (PB1368), the REPORT SECTION host (PB1226 constantEntry). Level 1/01 only (05/77 -> COBOL1547). Below 2002 the AS-less entry takes the constant-entry-2002 gate COBOL0900 (negative pb1225-constant-without-as-at-85), never a parse error. The SCREEN SECTION host is the declined A.4.2 module (CONFORMANCE section 5 item 4; PB260). || editions corrected from '2002' to 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a constant-entry rule; the constant entry (level 01 CONSTANT) is a COBOL-2002 introduction. cite.py --check 13.10.3 \"The length of data-name-1 or data-name-2 shall not be dependent\" OK. Re-affirmed 2026-10-22 (kb/Work PB3530) against the figure regenerated from the printed page: render_figure.py's brace-group layout now keeps every alternative inside its own enclosure, so the diagram's layout changed while its words did not (sweep_figures.py's word gate); the verdict stands on the printed format.",
+ "state": "OK"
+}

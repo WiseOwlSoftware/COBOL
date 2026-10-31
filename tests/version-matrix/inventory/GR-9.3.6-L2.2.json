@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.3.6-L2.2",
+ "section": "9.3.6",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Objects",
+ "rule-digest": "17b0bb3b981b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitCobolInvokeCase",
+ "test-ref": "conformance:cases/9.3.6-Method-invocation/pb389_object_reference_descriptor; conformance:cases/9.3.6-Method-invocation/pb1051_method_by_value_match; conformance:cases/9.3.6-Method-invocation/pb1051_universal_by_value_no_match",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1051 landed (wave 1011 C): a METHOD formal declared BY VALUE is carried (OoFormal.ByValue). Resolution step 2 (the upward INHERITS walk for an exact match) over a BY VALUE formal: golden pb1051_method_by_value_match invokes the inherited ADD2 and TR on a DBM object; golden pb1051_universal_by_value_no_match ends the search in EC-OO-METHOD (step 6).",
+ "state": "OK"
+}

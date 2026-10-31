@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.35.4-16",
+ "section": "14.9.35.4",
+ "kind": "GR",
+ "ordinal": 16,
+ "subject": "REWRITE statement",
+ "rule-digest": "2f85ae4da381",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#RewriteRecordSequential; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#RewriteLengthArg",
+ "test-ref": "conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb1168_rs_rewrite_size_gr16",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1168 landed (w67p). cite.py --check 14.9.35.4 'For a record sequential file, if the number of bytes in the data item referenced by identifier-1, the runtime representation of literal-1, or the record referenced by record-name-1 is not equal to the number of bytes in the record being replaced' -> OK §14.9.35.4 16). SequentialConnector.RewriteRecord now dispatches on the ORGANIZATION: every record sequential file, fixed or varying, takes RewriteRecordSequential's equality test against LastReadLength; the emitter passes record-name-1's byte size (RecordLayout.PhysicalWidth) for a fixed-length file. Golden: implicit format 1 (integer-1 = 20) REWRITE of a 10-byte R1 -> 44 and record 2 unchanged; a 20-byte R2 -> 00; an explicit RECORD CONTAINS 12 over an 8-byte record -> 44. Before: '00' and the record replaced (fixed arm had no test).",
+ "state": "OK"
+}

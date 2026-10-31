@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-7.3.10.2",
+ "section": "7.3.10.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "COBOL-WORDS directive",
+ "rule-digest": "365b22efc1ea",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CobolWordsDirectiveProcessor.cs#TryParseOption; src/WiseOwl.Cobol.Frontend/Preprocessor/CobolWordsDirectiveProcessor.cs#TryBinary; src/WiseOwl.Cobol.Frontend/Preprocessor/CobolWordsDirectiveProcessor.cs#TryUnary; src/WiseOwl.Cobol.Editions/CompilerDirectiveLine.cs#SeparatorsAsSpaces",
+ "test-ref": "unit:CobolWordsDirectiveTests.Malformed_Emits1623_AndCollectsNoOp; unit:CobolWordsDirectiveTests.SeparatorCommaOrSemicolon_IsASeparatorSpace; unit:CobolWordsDirectiveTests.CommaOrSemicolonThatSeparatesNothing_IsMalformed1623; unit:DirectiveOperandSeparatorTests.SeparatorsAsSpaces_ReadsTheSeparatorsOutsideLiterals; conformance:cases/7.3.10-COBOL-WORDS/pb1373_cobol_words_separators_header_populations",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1373 landed (w1019 G). Format: >>COBOL-WORDS { EQUATE literal-1 WITH literal-2 | UNDEFINE literal-3 | SUBSTITUTE literal-4 BY literal-5 | RESERVE literal-6 } (cite.py OK §7.3.10.2). The four options, their join words and arity were already parsed; the separator comma and semicolon (§8.3.5 2), cite.py OK) are now read as the space they stand for once, by CompilerDirectiveLine.SeparatorsAsSpaces, for every directive operand, and an unterminated literal is COBOL1623 (the two refuted-PARTIAL gaps). Measured: EQUATE \"DISPLAY\", WITH \"SHOW\" -> synonym (was COBOL1623).",
+ "state": "OK"
+}

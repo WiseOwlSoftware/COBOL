@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.5-4",
+ "section": "8.3.5",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "Lexical elements",
+ "rule-digest": "bb6a79f2ae93",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#LPAREN; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#RPAREN; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#PIC_STRING; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadOperand; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#OnDefaultLParen",
+ "test-ref": "conformance:cases/8.3.5-Separators/l1c17_parentheses_balanced; conformance:cases/8.3.5-Separators/l1c17-paren-unclosed; conformance:cases/8.3.5-Separators/l1c17-paren-extra-close; conformance:cases/8.3.5-Separators/l1c17-paren-not-delimiting",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'Except when appearing in a picture character-string, the COBOL characters right parenthesis and left parenthesis are separators. Except in pseudo-text, parentheses may appear only in balanced pairs ... delimiting subscripts, a list of function or method arguments, a reference modifier, arithmetic or boolean expressions, or conditions.' (cite.py --check 8.3.5 OK §8.3.5 4)). Picture exception: PICMODE captures `X(5)`/`9(3)` as one PIC_STRING. Balance/position enforced by the parser: probes probe/lexical-elements/unbalparen.cob `COMPUTE N = (M + 1.` rejected; extraparen.cob `(M + 1))` rejected; parendisp.cob `DISPLAY (A).` rejected; subsp.cob `E (2)` / `E( 3 )` accepted. Pseudo-text exception: replparen.cob `REPLACE ==ZZ(== BY ==DISPLAY ==.` then `ZZ( \"OK\".` compiles and prints OK. All halves probed. || editions as written by the adjudicator: 1985, 2002, 2014, 2023 (§8.3.5 is common to all editions; Annex E lists no change to separators) retired-witness: src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ReadReplaceOperand (the symbol was removed by kb/Work PB1350/PB1354; the successor that now implements the same step is named in its place (verdict untouched — the row is another note's)) retired-witness: src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4#SUB_LPAREN (kb/Work PB2113 deleted the SUBSCRIPT lexer mode; OnDefaultLParen types every paren (REF_LPAREN, FNARG_LPAREN, LPAREN) from one balanced stack)",
+ "state": "OK"
+}

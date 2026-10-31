@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.5.4-1",
+ "section": "8.4.3.5.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Object-view",
+ "rule-digest": "c83d976d8d3b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectView; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectReferenceAtom; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.ObjectView.cs#OoBindObjectView; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoCreateObjectViewTemp; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitObjectView; src/WiseOwl.Cobol.Runtime/Control/CobolObject.cs#ObjectView",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1425_object_view",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1425 (w1019a). \"This reference of identifier-1 is treated at compile-time as though it had the description specified by the AS phrase\" (OK 1)). The view binds to a compiler temporary DESCRIBED by the phrase (DataBinder.OoCreateObjectViewTemp, PicInfo.ObjectReferenceItem(view)), filled by the BoundObjectView pre-op and read as a BoundNumRef, so every rule that asks an object reference's description (SET SR10-SR14, INVOKE roster selection, inline SR2) asks the view's: `SET OA TO OU AS PB1425VA` narrows a universal into a typed receiver, `INVOKE OU AS PB1425VD \"SPEAK\"` resolves statically, `OU AS UNIVERSAL` takes the dynamic path. [editions: the OO facility, 2002+]",
+ "state": "OK"
+}

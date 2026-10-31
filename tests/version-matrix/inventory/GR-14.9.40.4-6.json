@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.40.4-6",
+ "section": "14.9.40.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "SORT statement",
+ "rule-digest": "7a0d9c49922f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitImplicitOpen; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#ExecutingElementArgs",
+ "test-ref": "conformance:cases/14.9.40-SORT/l1c29_sort_assign_using_at_sort",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'Additional rules affecting the execution of the SORT statement are given in 12.4.5, File control entry, General rules 3 and 4.' (cite.py --check 14.9.40.4 OK, GR6). 12.4.5.3 GR3: 'The association occurs at the time of execution of an OPEN, SORT, or MERGE statement that referenced file-name-1' (cite.py --check 12.4.5.3 OK). Code: every implicit USING/GIVING OPEN renders seqIo.ExecutingElementArgs(file) -- the literal ASSIGN target (GR3 a) or the CURRENT content of the ASSIGN USING data item (GR3 b) evaluated at the SORT. PROBE out/probe/sort-statement-p2/passign.cob: ASSIGN USING FI-NAME / FO-NAME, names changed to passign-in2.dat / passign-out2.dat before the SORT; the SORT read passign-in2.dat and wrote passign-out2.dat (OUT=AAA, OUT=BBB), and no -in1/-out1 file was created. GR4's content/consistency rules are implementor-defined. The 'association cannot be made -> SORT unsuccessful' arm is the implicit OPEN's status path (pb714/pb837 goldens). No golden witnesses ASSIGN USING through a SORT (pb673_external_assign_executor exercises OPEN only), so test-ref is empty. [editions as adjudicated: 1985, 2002, 2014, 2023 (the ASSIGN USING form of 12.4.5.3 GR3 b is a 2002 addition)]",
+ "state": "OK"
+}

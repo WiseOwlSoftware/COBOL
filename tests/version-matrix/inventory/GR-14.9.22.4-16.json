@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.22.4-16",
+ "section": "14.9.22.4",
+ "kind": "GR",
+ "ordinal": 16,
+ "subject": "INSPECT statement",
+ "rule-digest": "a9a612d8c239",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhraseOperands",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/l1p5_inspect_general_rules",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR16 plus GR17d: FIRST carries to B (T1=XYAB), ALL ends FIRST (T2=XYZAYZ)",
+ "state": "OK"
+}

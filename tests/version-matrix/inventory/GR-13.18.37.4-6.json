@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.37.4-6",
+ "section": "13.18.37.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "NEXT GROUP clause",
+ "rule-digest": "bee8cd0c3915",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PageFeed; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup",
+ "test-ref": "conformance:cases/8.4.3.15-Report-counters/pb957_next_group_forms; conformance:cases/13.18.37-NEXT-GROUP/pb957_next_group_control",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB957. WITH RESET arms a one-shot flag consumed by the next PageFeed, between the page footing and the page heading (§14.9.16.4 GR6d): the forms golden's third page heading shows PH 1, not PH 3; the RH form shows PH 1 on page 2. DETERMINATION: §8.4.3.15.4 GR2 says PAGE-COUNTER 'is reset to 1 when a report group that contains a NEXT GROUP clause with a RESET phrase is printed'; the clause's own GR6 and §14.9.16.4 GR6d both time it at the next page advance, and the specific rules are implemented.",
+ "state": "OK"
+}

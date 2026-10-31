@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.6.4.3-2",
+ "section": "12.4.6.4.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "SAME clause",
+ "rule-digest": "40d21285f330",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#ScreenSameOperands",
+ "test-ref": "conformance:cases/12.4.6.4-SAME/pb1087-same-file-not-in-file-control",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1087 (wave 1011 B2). cite.py --check 12.4.6.4.3 'File-name-1 and file-name-2 shall be specified in the FILE-CONTROL paragraph' OK SR2. FilesByName holds exactly this unit's own files at BindIoControl time (a containing program's GLOBAL files merge in after the unit's data binds), so an undeclared name, a data-name and a container's file are all refused (COBOL2738) instead of dropped; the record-area link no longer builds a group around a dropped operand.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.4.4-1",
+ "section": "11.4.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "FACTORY paragraph",
+ "rule-digest": "df73853ff061",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#ImplementsClosure; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ValidateImplements; src/WiseOwl.Cobol.Compiler/Binding/Passes/StorageFormPass.cs",
+ "test-ref": "conformance:cases/11.4-FACTORY/oo_implements_repeated",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (cite.py --check 11.4.4 \"implemented by the factory object of the containing class according to 9.3.11\" -> OK §11.4.4 1)): the IMPLEMENTS clause names the interfaces the FACTORY object implements per §9.3.11. Code: Build's CaptureImplements records the FACTORY paragraph's list into sym.FactoryImplements (separate from the OBJECT list); ImplementsClosure(cls, factory:true) is consumed by the §9.3.11 conformance pass (factory roster via FindFactoryMethod) and by the emitter (StorageFormPass ~l.121) so the factory singleton's C# type carries the interface. Probes: p6 SET an interface-typed ref TO the class (factory object) and INVOKE through it dispatches the factory method (J-F 0042); golden oo_implements_repeated shows factory and instance each dispatching their own SPEAK through one interface reference (FACTORY SPEAKS / OBJECT SPEAKS); pb389_object_reference_descriptor also exercises FACTORY IMPLEMENTS dispatch. || Editions (adjudicator, verbatim): 2002, 2014, 2023 (OO - the FACTORY paragraph - is new in ISO/IEC 1989:2002; absent from 1985; Annex E of 2023 lists no change to §11.4)",
+ "state": "OK"
+}

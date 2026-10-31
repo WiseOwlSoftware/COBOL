@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.2.1",
+ "section": "14.2.1",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Procedure division structure",
+ "rule-digest": "604c99f50235",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ProcedureHeaderScreen.cs#OptionalNeedsByReference; src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#VisitProcedureDivision",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/pb1145-optional-after-by-value; conformance:cases/14.2-Procedure-division-structure/pb1146_procedure_division_formats; conformance:cases/14.2-Procedure-division-structure/pb1146-paragraph-before-section; conformance:cases/14.2-Procedure-division-structure/pb1146-sentence-before-section; conformance:cases/14.2-Procedure-division-structure/pb1146-paragraph-after-declaratives; conformance:cases/14.2-Procedure-division-structure/pb1146-second-declaratives",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1145: OPTIONAL after a BY VALUE phrase is refused (COBOL2648) - it belongs to the BY REFERENCE alternative only. kb/Work PB1146 LANDED (w1015c): Format 1 (with-sections) and Format 2 (without-sections) are now distinguished (PDF page 557 rendered) - in a division with a section or DECLARATIVES, a leading sentence, a paragraph outside every section (ISO 14.4.1: 'If one paragraph is in a section, all paragraphs shall be in sections') or a second DECLARATIVES portion is refused COBOL2797 at every edition; cite.py --check 14.2.1 / 14.4.1 OK.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.3.4-4",
+ "section": "11.3.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "CLASS-ID paragraph",
+ "rule-digest": "b54f2753a1ac",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build",
+ "test-ref": "conformance:wiseowl/cases/11.3-CLASS-ID/oo-inherits-diamond",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "docs/CONFORMANCE.md §5 row A.4.10 (Object orientation optional items — Not claimed), for items 1 and 3 ONLY. Licence: §4.2.7 + Annex A.4.1. The OO CORE is mandatory surface and is implemented; only the CLASS-side INHERITS repetition (item 1) and parametric polymorphism (item 3) are declined. Item 2, the INTERFACE-ID INHERITS repetition, IS IMPLEMENTED (CobolOO.g4 `INHERITS FROM interfaceName+`; OoClassTable enforces §11.6.3 SR2 with COBOL0840 and SR3/SR6 with COBOL2791 (kb/Work PB1784)) — its rows are NOT in this batch. GR4's OWN subject — the DIAMOND. The rule's own NOTE fixes the reading: \"While the same class cannot be directly inherited more than once, a class can be indirectly inherited multiple times\", and the indirect route needs some class to carry two DIRECT bases, which item 1 declines.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.37.3-5",
+ "section": "13.18.37.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "NEXT GROUP clause",
+ "rule-digest": "5b659fad0d6a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindNextGroupClauses",
+ "test-ref": "conformance:cases/13.18.37-NEXT-GROUP/pb957-next-group-next-page-in-page-footing",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB957. NEXT GROUP NEXT PAGE in a page footing draws COBOL2284.",
+ "state": "OK"
+}

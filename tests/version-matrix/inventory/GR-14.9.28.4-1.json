@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.28.4-1",
+ "section": "14.9.28.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "PERFORM statement",
+ "rule-digest": "52b4cfe24d98",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitOutOfLinePerform; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#RunTopFrame",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/pb442_f3_when_activation_scope; conformance:cases/14.9.17-GO-TO/pb3491_go_to_depending_out_of_perform_range; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_go_to_out_of_perform; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_two_performs_deep",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB442: the cross-activation edge is decided, not staged (docs/CONFORMANCE.md §3 D-F3S): the range includes a CALLed element's statements, and a condition raised there is processed in that element (§14.6.13.1.1) and reaches the PERFORM's WHEN only by propagation (§14.9.18.4 GR1 b)); the GOBACK/EXIT PROGRAM carve-out and the declarative-in-range sentence hold as the adjudicator measured. Witness Q1 (a PERFORMed paragraph in the range) and Q2/Q3 (the activation boundary, propagation) of pb442_f3_when_activation_scope; the pc-dispatcher range is edition-invariant. kb/Work PB3491: a GO TO ... DEPENDING that leaves the range of an active PERFORM is a statement executed as a result of the transfer (V1, V2, V5 of cases/14.9.17-GO-TO/pb3491_go_to_depending_out_of_perform_range).",
+ "state": "OK"
+}

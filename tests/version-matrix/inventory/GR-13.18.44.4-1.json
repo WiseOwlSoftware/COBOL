@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.44.4-1",
+ "section": "13.18.44.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "REDEFINES clause",
+ "rule-digest": "042580633b30",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#PlaceForItem; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#BuildBackingPath",
+ "test-ref": "conformance:cases/13.18.44-REDEFINES/pb178_convert_any_redefines_group; conformance:cases/13.18.44-REDEFINES/pb1279_redefines_within_occurs; conformance:cases/13.18.44-REDEFINES/pb1933_redefines_in_dynamic_table",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1279 landed (w1005e): the edge the adjudicator left unverified, a Tier-B class whose canonical lies within an OCCURS, is built. Each occurrence of the enclosing table holds its own backing in that element's struct, reached through the subscripted parent path; the golden seeds, reads and writes six elements (two levels of OCCURS), a table inside the redefined group, and an OCCURS DEPENDING table.",
+ "state": "OK"
+}

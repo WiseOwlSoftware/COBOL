@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.2-1",
+ "section": "12.4.5.2",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "File control entry",
+ "rule-digest": "9fc0462a5f6c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileControlClauseGroup; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileControlClauses",
+ "test-ref": "conformance:cases/12.4.5-File-control/l1c11_select_clause_any_order; conformance:cases/12.4.5-File-control/l1c11-select-not-first",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'The SELECT clause shall be specified first in the file control entry. The clauses that follow the SELECT clause may appear in any order.' (cite.py --check 12.4.5.2 -> OK §12.4.5.2 1)). Code: fileControlClauseGroup is `SELECT OPTIONAL? (fileName | reservedGatedWord) fileControlClauses* DOT`, and fileControlClauses is a flat alternation (assign, relative key, organization, access mode, record key, record delimiter, alternate key, file status, reserve, padding, sharing, lock mode, collating, unrecognizedClause) so both halves hold structurally: SELECT is the only possible entry opener and every following clause is order-free (ASSIGN included). Probes (pinned cobol.exe, --std 2023): probe/fce/sr1order (SELECT F1 ORGANIZATION ... ACCESS MODE ... ASSIGN TO last) compiles and runs 'OK' exit 0; probe/fce/sr1nosel (`ASSIGN TO \"a.dat\" SELECT F1.`) is refused COBOL0001 unexpected 'ASSIGN'. No spec-derived test pins the any-order half by name; test-needed. [registrar 14a — editions as adjudicated: 85, 2002, 2014, 2023 (the rule is stated for ALL FORMATS of the file control entry; no Annex E row touches it)]",
+ "state": "OK"
+}

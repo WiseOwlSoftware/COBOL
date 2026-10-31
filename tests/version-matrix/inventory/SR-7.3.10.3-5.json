@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.10.3-5",
+ "section": "7.3.10.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "COBOL-WORDS directive",
+ "rule-digest": "42d5f0e7d047",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CobolWordsDirectiveProcessor.cs#Process; src/WiseOwl.Cobol.Frontend/Preprocessor/CobolWordsDirectiveProcessor.cs#Words",
+ "test-ref": "unit:CobolWordsDirectiveTests.Sr5_DuplicateWord_Rejected1623",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "SR5 'The same COBOL word shall not be contained in a literal in more than one COBOL-WORDS directive within a single compilation group' (cite.py OK §7.3.10.3 5)). seenWords (OrdinalIgnoreCase) spans both operands of every directive in the group. Probed: EQUATE \"DISPLAY\" ... + EQUATE \"display\" ... -> 1623 (case-insensitive); RESERVE \"ZQX\" + RESERVE \"zqx\" -> 1623; the unit test covers the cross-option (RESERVE then EQUATE literal-2) case. A POP withdrawing ops does not withdraw seenWords, consistent with SR5's group-wide scope. || editions (adjudicator): 2023 only (new in COBOL-2023: Foreword list 'Additional compiler directives were added: COBOL-WORDS directive'; Annex E.3.3 item 12, cite.py OK §E.3.3 12)); below 2023 the directive word is COBOL0900",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-113",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 113,
+ "subject": "Life cycle for objects (timing and algorithm for taking part in continued execution)",
+ "rule-digest": "5022dae37571",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-113; src/WiseOwl.Cobol.Runtime/Control/CobolObject.cs#CobolObject; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#EnqueueInstanceClose",
+ "test-ref": "unit:InstanceFileFinalizerTests.AnUnreachableObjectsFile_IsClosedInItsOwnRunUnit_BeforeTheNextOpen",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "w68w (kb/Work PB1532): cite.py --check 9.3.14.3 'An instance object is destroyed either when it is determined that the object cannot take part in the continued execution of the run unit' -> OK; cite.py --check 9.1.4 'For file connectors in an object when the object is deleted' -> OK. The determination (reachability decided by the .NET GC; the finalizer closes the object's files in the run unit that created it) now holds: the object captures its creating run unit's FileRegistry when it tracks its first instance file, and the finalizer enqueues there instead of resolving the empty AsyncLocal on the finalizer thread (which reached an orphan run unit). Witness: object dropped + GC.Collect + WaitForPendingFinalizers, then a second connector's OPEN OUTPUT of the same file is 00 (61 on the old shape, measured). retired-witness: src/Cobol.Net.Runtime/Control/RunUnit.cs#Current (the CobolFile facade enqueue (which resolved RunUnit.Current on the finalizer thread) is deleted; the finalizer enqueues on the captured owning FileRegistry (kb/Work PB1532)) retired-witness: src/Cobol.Net.Runtime/IO/CobolFile.cs#EnqueueInstanceClose (the CobolFile facade enqueue (which resolved RunUnit.Current on the finalizer thread) is deleted; the finalizer enqueues on the captured owning FileRegistry (kb/Work PB1532))",
+ "state": "OK"
+}
