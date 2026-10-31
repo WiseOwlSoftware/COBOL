@@ -42,6 +42,43 @@ public sealed class WordCharacterEveryEditionTests
     public void HasExtendedLetter_IsAskedOfEachCharacter(string word, bool expected) =>
         Assert.Equal(expected, CobolCharacterRepertoire.HasExtendedLetter(word));
 
+    /// <summary>ISO §8.3.2.1 (kb/Work PB4234): "The hyphen or underscore shall not appear as the first or last character in such
+    /// words." The rule is edition-free and the one place that states it is <see cref="CobolCharacterRepertoire.SeparatorPositionViolation"/>,
+    /// which every consumer asks: the screen and the directive stages (<see cref="CobolWordRule.CharacterViolation"/>), the
+    /// text-stage word readers (<see cref="CobolCharacterRepertoire.IsWordShape"/>) and the parse layer's word test.</summary>
+    [Theory]
+    [InlineData("_A", "first")]
+    [InlineData("A_", "last")]
+    [InlineData("-A", "first")]
+    [InlineData("A-", "last")]
+    [InlineData("_", "first")]
+    [InlineData("A-B_", "last")]
+    public void AHyphenOrUnderscoreAtAWordEdge_IsRefusedAtEveryTarget_NamingTheRule(string word, string position)
+    {
+        foreach (int level in new[] { 1985, 2002, 2014, 2023 })
+        {
+            string? message = CobolWordRule.CharacterViolation(word, level);
+            Assert.NotNull(message);
+            Assert.Contains($"as its {position} character", message);
+            Assert.Contains("§8.3.2.1", message);
+            Assert.False(CobolWordRule.RemovedAt2023(word, level));
+        }
+        Assert.False(CobolCharacterRepertoire.IsWordShape(word));
+        Assert.False(CobolCharacterRepertoire.IsWordAtSomeEdition(word));
+    }
+
+    [Theory]
+    [InlineData("A_B")]
+    [InlineData("MY_NAME-2")]
+    [InlineData("1_A")]
+    [InlineData("CAFÉ_X")]
+    public void AnInnerHyphenOrUnderscore_IsNoPositionViolation(string word)
+    {
+        Assert.Null(CobolCharacterRepertoire.SeparatorPositionViolation(word));
+        Assert.Null(CobolWordRule.CharacterViolation(word, 2023));
+        Assert.True(CobolCharacterRepertoire.IsWordShape(word));
+    }
+
     [Theory]
     [InlineData("CAFÉ")]
     [InlineData("STRASSE-ß")]
