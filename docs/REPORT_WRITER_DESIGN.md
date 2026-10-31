@@ -457,6 +457,11 @@ off-by-one through every later counter check.
   `ResolveFiles` (RECORD KEY / ALTERNATE RECORD KEY, which would otherwise draw SR2's COBOL0863 "references nothing
   described"); `ReportItemReferenceTests.EveryUndefinedNameArm_AsksTheOneRefusal` names each arm by member. The report
   section's own clauses are not refused here: their operand rules are theirs (`ReportSectionNameIn`, COBOL2144).
+  **The ambiguity among data items is told first** (kb/Work PB3767): a reference that reaches SEVERAL data items breaks
+  §8.4.2.2.3 SR1 whether or not a report entry spells the same, so `DataBinder.DataItemsAmbiguousBeforeReportEntry` is
+  the ONE order both arms read before they ask the refusal (COBOL1639, its text counting the report entries of the data
+  items' source element, `ReportEntriesInTierOf`) — except that a report entry of a NEARER source element than the
+  ambiguous GLOBAL data items is the referenced item (§8.4.6.2.1 3) a)) and keeps COBOL5092.
   **A contained program sees its containers' GLOBAL reports from the end of its own declaration half** (kb/Work
   PB3766): `BinderDriver.BindUnitData` OFFERS them (`DataBinder.ContainerGlobalReports`, nearest container first) and
   `DataBinder.InheritContainerReports` inherits them at the end of `BindDeclarations`, before `BindResolve`, so the

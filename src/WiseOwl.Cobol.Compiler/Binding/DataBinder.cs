@@ -2509,7 +2509,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (_refusedClauseOperands.Contains(name)) return null;   // already refused at capture — one fault, one verdict
         using var __ = Edition.At(at);
         string written = WrittenQualified(name, quals);
-        if (survivors.Count > 1)
+        // The ambiguity is told first unless a report entry of a NEARER source element is the referenced item
+        // (DataItemsAmbiguousBeforeReportEntry, kb/Work PB3767: ISO §8.4.6.2.1 3) a)); the report section's own clauses
+        // never ask the report-item refusal below, so for them the ambiguity always stands.
+        if (survivors.Count > 1 && (inReportSection || DataItemsAmbiguousBeforeReportEntry(survivors, name, quals)))
             return UniqueOrReportAmbiguous(survivors, clauseFace, written, out _);
         // A name the REPORT SECTION declares is not undefined (kb/Work PB1046): §13.8.6.2.3 bars every clause of a data
         // division section other than the report section from referring to a report item. (The report section's own
