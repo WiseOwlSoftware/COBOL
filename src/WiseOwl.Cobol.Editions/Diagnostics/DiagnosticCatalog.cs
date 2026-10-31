@@ -405,9 +405,14 @@ public static class DiagnosticCatalog
         + "A keyword is named only if the targeted edition has it: a word the §8.9 table shows a LATER edition "
         + "introduced is a user-defined word at this one (§8.3.2.1 1: \"Reserved words shall not be used as "
         + "user-defined words or system-names\"), so the boolean operators B-AND, B-OR and B-XOR are named from COBOL-2002 "
-        + "and the shift operators B-SHIFT-L, B-SHIFT-LC, B-SHIFT-R and B-SHIFT-RC from COBOL-2023. The §8.10 "
-        + "context-sensitive words carry no per-edition flag and are named at every edition.",
-        "ISO §5.2.1 · §8.3.3.1 · §8.3.3.3.2 · §8.3.2.1 · §8.9");
+        + "and the shift operators B-SHIFT-L, B-SHIFT-LC, B-SHIFT-R and B-SHIFT-RC from COBOL-2023. A §8.10 "
+        + "context-sensitive word is named by the same rule, from the edition that introduced it "
+        + "(ContextSensitiveWordEntry.Introduced: the 2002 standard's list, else E.3.3 item 13 for COBOL-2023, else "
+        + "COBOL-2014): §8.10 treats such a word as a keyword only where the construct is a construct of the edition, "
+        + "so ROUNDED MODE names its eight mode words from COBOL-2014 and OPTIONS ARITHMETIC names NATIVE and "
+        + "STANDARD at COBOL-2002 and adds STANDARD-BINARY and STANDARD-DECIMAL from COBOL-2014; where no word is left to name, the "
+        + "message is the bare COBOL0001.",
+        "ISO §5.2.1 · §8.3.3.1 · §8.3.3.3.2 · §8.3.2.1 · §8.9 · §8.10 · §E.3.3 13)");
 
     public static readonly DiagnosticDescriptor RedefinesPointerObject = new(
         "COBOL1697", "redefines-pointer-object", EditionSeverity.Error,

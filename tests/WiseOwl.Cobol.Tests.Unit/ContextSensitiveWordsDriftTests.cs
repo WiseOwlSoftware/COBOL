@@ -23,12 +23,19 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class ContextSensitiveWordsDriftTests
 {
-    /// <summary>The C# table equals the canonical JSON, both directions, word AND context column.</summary>
+    /// <summary>The C# table equals the canonical JSON, both directions, word, context column AND introduction edition.</summary>
     [Fact]
     public void CsharpTable_Matches_Json()
     {
-        var json = LoadJson();
+        var jsonRows = LoadJsonRows();
+        var json = jsonRows.ToDictionary(kv => kv.Key, kv => kv.Value.Context, StringComparer.Ordinal);
         var table = ContextSensitiveWords.Entries.ToDictionary(e => e.Word, e => e.Context, StringComparer.Ordinal);
+
+        var introMismatch = ContextSensitiveWords.Entries
+            .Where(e => !jsonRows.TryGetValue(e.Word, out var row) || row.Introduced != e.Introduced)
+            .Select(e => e.Word).Take(5).ToList();
+        Assert.True(introMismatch.Count == 0,
+            $"§8.10 introduction-edition drift on [{string.Join(",", introMismatch)}] — re-run scripts/gen-reserved-words.ps1");
 
         var onlyJson = json.Keys.Where(w => !table.ContainsKey(w)).Take(5).ToList();
         var onlyTable = table.Keys.Where(w => !json.ContainsKey(w)).Take(5).ToList();
@@ -81,14 +88,65 @@ public sealed class ContextSensitiveWordsDriftTests
         Assert.Null(ContextSensitiveWords.Find("MOVE"));
     }
 
-    private static Dictionary<string, string> LoadJson()
+    /// <summary>⛔ EACH WORD'S INTRODUCTION EDITION IS DERIVED FROM THE TWO SOURCES, NEVER HAND-SET (kb/Work PB4174). The
+    /// 2002 list this repository records (<c>context-sensitive-words-2002.json</c>) dates a word 2002; ISO §E.3.3 item 13
+    /// ("the following words have either been added to the list of context-sensitive words or the context in which they
+    /// are reserved has been expanded") dates a word that list lacks 2023; every other word of the 2023 table was in the
+    /// 2014 standard (§E.1: the list is of the changes since the previous standard) and not in 2002. The test re-derives
+    /// that from the files and the spec, so a transcription repair or a new row moves the flag or fails here.</summary>
+    [Fact]
+    public void Introduced_IsDerivedFromThe2002ListAndAnnexE33()
+    {
+        var list2002 = LoadWordList("context-sensitive-words-2002.json");
+        var item13 = SpecItem13Words();
+        Assert.True(list2002.Count >= 50 && item13.Count >= 10, $"2002 list={list2002.Count}, E.3.3 item 13={item13.Count}");
+        var table = ContextSensitiveWords.Entries.ToDictionary(e => e.Word, StringComparer.Ordinal);
+
+        var strayList = list2002.Where(w => !table.ContainsKey(w)).Take(5).ToList();
+        var strayItem = item13.Where(w => !table.ContainsKey(w)).Take(5).ToList();
+        Assert.True(strayList.Count == 0 && strayItem.Count == 0,
+            $"words outside the 2023 table: 2002 list [{string.Join(",", strayList)}], E.3.3 item 13 [{string.Join(",", strayItem)}] — decide their edition range");
+
+        var wrong = table.Values
+            .Where(e => e.Introduced != (list2002.Contains(e.Word) ? 2002 : item13.Contains(e.Word) ? 2023 : 2014))
+            .Select(e => e.Word).Take(5).ToList();
+        Assert.True(wrong.Count == 0, $"introduction edition disagrees with its derivation on [{string.Join(",", wrong)}] — re-run scripts/gen-reserved-words.ps1");
+        Assert.All(table.Values, e => Assert.Contains(e.Introduced, new[] { 2002, 2014, 2023 }));
+    }
+
+    private static Dictionary<string, (string Context, int Introduced)> LoadJsonRows()
     {
         string path = TestRepo.VersionMatrix("context-sensitive-words.json");
         Assert.True(File.Exists(path), $"canonical json missing: {path} — run scripts/gen-reserved-words.ps1");
         using var doc = JsonDocument.Parse(File.ReadAllText(path));
         return doc.RootElement.GetProperty("words").EnumerateArray()
-            .ToDictionary(e => e.GetProperty("word").GetString()!, e => e.GetProperty("context").GetString()!,
+            .ToDictionary(e => e.GetProperty("word").GetString()!,
+                          e => (e.GetProperty("context").GetString()!, e.GetProperty("introduced").GetInt32()),
                           StringComparer.Ordinal);
+    }
+
+    private static HashSet<string> LoadWordList(string file)
+    {
+        string path = TestRepo.VersionMatrix(file);
+        Assert.True(File.Exists(path), $"word list missing: {path}");
+        using var doc = JsonDocument.Parse(File.ReadAllText(path));
+        return doc.RootElement.GetProperty("words").EnumerateArray().Select(e => e.GetString()!).ToHashSet(StringComparer.Ordinal);
+    }
+
+    /// <summary>The words of Annex E.3.3 item 13 in the spec (the bulleted list under "13\) **Context-sensitive words.**").</summary>
+    private static HashSet<string> SpecItem13Words()
+    {
+        string path = TestRepo.Specs("ISO_COBOL.md");
+        Assert.True(File.Exists(path), $"spec missing: {path} — git submodule update --init --recursive");
+        var set = new HashSet<string>(StringComparer.Ordinal);
+        bool inItem = false;
+        foreach (string line in File.ReadLines(path))
+        {
+            if (!inItem) { inItem = Regex.IsMatch(line, @"^13\\\)\s+\*\*Context-sensitive words\."); continue; }
+            if (Regex.IsMatch(line, @"^14\\\)")) break;
+            if (Regex.Match(line, @"^[—-]\s+([A-Z][A-Z0-9_-]*)\s*$") is { Success: true } m) set.Add(m.Groups[1].Value);
+        }
+        return set;
     }
 
     private static HashSet<string> SpecContextWords()

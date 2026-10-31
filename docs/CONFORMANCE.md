@@ -2329,16 +2329,25 @@ of an unsupported facility.
   and TRAILING so COBOL2269 refuses them by name), so the message says "expected", never "the general format
   admits". **Except for the keywords the compile edition does not have (kb/Work PB4174):** the parse also takes every
   later edition's words, and §8.3.2.1 1) ("Reserved words shall not be used as user-defined words or system-names")
-  makes a word §8.9 has not reserved yet a user-defined word, so a keyword is named only unless the §8.9 table
-  (`ReservedWords.AdmitsAsKeyword`) shows a LATER edition introduced it: `COMPUTE W-N = (W-N + 1.` expects B-AND,
+  makes a word §8.9 has not reserved yet a user-defined word, so a keyword is named unless a table shows a LATER
+  edition introduced it: the §8.9 table (`ReservedWords.AdmitsAsKeyword`) or, for a §8.10 context-sensitive word, the
+  row's first-listing edition (`ContextSensitiveWordEntry.Introduced`). `COMPUTE W-N = (W-N + 1.` expects B-AND,
   B-OR and B-XOR from COBOL-2002, the shift operators B-SHIFT-L, B-SHIFT-LC, B-SHIFT-R and B-SHIFT-RC from COBOL-2023
-  (Annex E.2 3), and none of the seven at COBOL-85. A word an older edition reserved and this one dropped stays named
-  (the migration mode's removed clause; `COBOL` and `PHYSICAL`, which 2023 formats underline although its §8.9 does
-  not list them), as does a word a format spells where §8.9 leaves it free (`keywordWhereFree`,
-  `CobolLexer.IsKeywordWhereFree`) and a §8.10 context-sensitive word. **Known residue:** §8.10 carries no per-edition
-  flag and the repository holds neither the 1985, 2002 nor the 2014 text, so the context-sensitive words (the ROUNDED
-  MODE names, `PROHIBITED`, `STANDARD-DECIMAL`, …) are named at every edition; the GnuCOBOL per-standard lists that
-  fed §8.9 are not a safe source for them (they omit ISO's `NEAREST-EVEN` at 2014). It is not given where a statement may begin (the
+  (Annex E.2 3), and none of the seven at COBOL-85; `OPTIONS. ARITHMETIC IS FOO.` expects NATIVE or STANDARD at 2002
+  and also STANDARD-BINARY and STANDARD-DECIMAL from 2014; `ADD 1 TO W ROUNDED MODE IS FOO.` names the eight mode
+  names from 2014 and, below it, has no keyword to name (the bare COBOL0001). A word an older edition reserved and
+  this one dropped stays named (the migration mode's removed clause; `COBOL` and `PHYSICAL`, which 2023 formats
+  underline although its §8.9 does not list them), as does a word a format spells where §8.9 leaves it free
+  (`keywordWhereFree`, `CobolLexer.IsKeywordWhereFree`). **A §8.10 word's first edition** is derived, never hand-set
+  (`scripts/gen-reserved-words.ps1` step 7c, `ContextSensitiveWordsDriftTests.Introduced_IsDerivedFromThe2002ListAndAnnexE33`):
+  2002 for a word in the 2002 standard's §8.10 list, which the repository records as
+  `tests/version-matrix/context-sensitive-words-2002.json` (transcribed from the 2002 post-ballot text, kb/Work PB3602
+  source P2); 2023 for a word Annex E.3.3 item 13 of the 2023 standard says it added and that list lacks; 2014 for every
+  other word of the 2023 table (E.1: the annex lists the changes since the previous standard, so a word it does not call
+  new was in 2014, and it is not in the 2002 list). A word an older edition reserved outright (`MULTIPLE`, a 1985
+  reserved word) is the §8.9 table's. The 2009 CD 1.2 of the 2014 line (PB3602 source P3) lists 14 of the 22 words
+  dated 2014 and none dated 2023; the GnuCOBOL per-standard lists were not used (they omit ISO's `NEAREST-EVEN` at
+  2014). It is not given where a statement may begin (the
   imperative-statement and statement-shape diagnostics own those positions), where a forgotten separator period
   would let the next sentence or entry follow (COBOL0307), or at a closed format's residue (COBOL1941 / 1970 / 1971).
   Witnesses: `conformance:cases/12.3.6-OBJECT-COMPUTER/pb3428-memory-size-unit-word`,
