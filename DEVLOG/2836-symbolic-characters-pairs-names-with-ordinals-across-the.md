@@ -1,4 +1,4 @@
-## SYMBOLIC CHARACTERS pairs names with ordinals across the whole clause, so a literal ordinal before a constant-name ordinal compiles (PB4108)
+## Entry 2836 — 2026-10-30 21:31 PDT — SYMBOLIC CHARACTERS pairs names with ordinals across the whole clause, so a literal ordinal before a constant-name ordinal compiles (PB4108)
 
 `SYMBOLIC CHARACTERS SC1 SC2 66 K2` (K2 an integer constant-name) was refused with COBOL1670 "2 name(s) against 1 integer(s)"
 while `SC1 SC2 K1 67` compiled. Re-probe on the built compiler at main f2b93f2ab reproduced RT04, RT06, RT07 and
@@ -32,3 +32,4 @@ refuses otherwise with one COBOL1670 and the names still declared. Goldens `pb41
 R2-1, fixed by the landing's finisher) and `pb4108-symbolic-leading-constant-before-names` (COBOL1670 at 2002, 2014, 2023).
 The PB4110 note's reference to the renamed member was updated. The landing's merge of main moved the three refusals into
 main's one-file-per-test layout (`conformance-suite/wiseowl/diagnostics/<id>.json`, kb/Work PB4147).
+
