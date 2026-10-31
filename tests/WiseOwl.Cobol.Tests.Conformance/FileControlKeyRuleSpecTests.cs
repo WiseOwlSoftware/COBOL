@@ -342,6 +342,56 @@ public sealed class FileControlKeyRuleSpecTests
         }
     }
 
+    /// <summary>⛔ ISO §12.4.5.1 PRINTS THE ASSIGN CLAUSE WITH NO BRACKET IN ALL FOUR FORMATS, so a SELECT entry of any
+    /// kind that omits it is refused at every edition (COBOL5701, kb/Work PB4236). The entry used to compile and
+    /// run, bound to an invented <c>&lt;file-name&gt;.txt</c>. One row per kind of file — Format 3 twice, because
+    /// the record-sequential and LINE SEQUENTIAL organizations are two kinds of one format — and every row but one
+    /// carries OTHER clauses, so what is missing is the ASSIGN clause alone. The control rows write the clause in
+    /// each of its general-format forms and, in the SD's row, AFTER another clause (SR1: any order), and draw
+    /// nothing.</summary>
+    [Theory]
+    [InlineData("SELECT F ACCESS MODE IS DYNAMIC ORGANIZATION IS INDEXED RECORD KEY IS F-KEY.", "FD", 1)]
+    [InlineData("SELECT F ORGANIZATION IS RELATIVE ACCESS MODE IS SEQUENTIAL.", "FD", 1)]
+    [InlineData("SELECT F ORGANIZATION IS SEQUENTIAL FILE STATUS IS F-FS.", "FD", 1)]
+    [InlineData("SELECT F ORGANIZATION IS LINE SEQUENTIAL.", "FD", 1)]
+    [InlineData("SELECT F.", "FD", 1)]
+    [InlineData("SELECT F ORGANIZATION IS SEQUENTIAL.", "SD", 1)]
+    [InlineData("SELECT F ORGANIZATION IS SEQUENTIAL ASSIGN TO \"fckr-a.tmp\".", "SD", 0)]
+    [InlineData("SELECT F ORGANIZATION IS SEQUENTIAL ASSIGN \"fckr-a.tmp\".", "FD", 0)]
+    [InlineData("SELECT F ASSIGN TO DISK \"fckr-a.tmp\" USING F-FS.", "FD", 0)]
+    public void ASelectEntryWithoutAnAssignClause_IsRefusedInEveryFormatAtEveryEdition(string select, string description, int expected)
+    {
+        string source = $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. FCKRAS.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                {select}
+            DATA DIVISION.
+            FILE SECTION.
+            {description} F.
+            01 F-REC.
+               05 F-KEY PIC X(3).
+               05 F-D PIC X(4).
+            WORKING-STORAGE SECTION.
+            01 F-FS PIC XX.
+            PROCEDURE DIVISION.
+            MAIN.
+                STOP RUN.
+            """;
+        foreach (int edition in AllEditions)
+        {
+            var hits = Diagnostics(source, edition).Where(e => e.Contains("COBOL5701", StringComparison.Ordinal)).ToList();
+            Assert.True(hits.Count == expected, $"[{select}] @ {edition}: COBOL5701 {hits.Count}×, expected {expected}: {string.Join(" | ", hits)}");
+            Assert.All(hits, hit =>
+            {
+                Assert.Contains("file 'F' has no ASSIGN clause", hit, StringComparison.Ordinal);
+                Assert.Contains("ISO §12.4.5.1", hit, StringComparison.Ordinal);
+            });
+        }
+    }
+
     /// <summary>THE OTHER HALF OF THE DELETED EARLY RETURN. A legal sort-merge entry must draw no KEY-clause
     /// diagnostic either — before kb/Work PB742 that was guaranteed by <c>if (file.IsSortMerge) return;</c>, and
     /// it is now a property of every row's <c>ScreenedOn</c> set. A row that forgot to exclude the sort-merge
