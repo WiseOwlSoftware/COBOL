@@ -1,4 +1,4 @@
-## A SELECT entry with no ASSIGN clause is refused: the unbracketed members of the four general formats are one table (PB4236)
+## Entry 2885 — 2026-10-31 15:14 PDT — A SELECT entry with no ASSIGN clause is refused: the unbracketed members of the four general formats are one table (PB4236)
 
 **The defect.** `SELECT F.` with an FD compiled at every edition and ran, the file bound to an invented `<file-name>.txt`
 (`FileModel.AssignTarget` was initialised to the file-name). The re-probe on this build reproduced it at `--std 85` and
@@ -41,3 +41,4 @@ controls that write the clause in each form.
 **Self-review.** Architecture: one table, one screen, the fact on the model, no C# text in a bound node. Code: the message names
 the cited rule; sibling arms (SD, relative, indexed) probed one by one, and the FD-without-SELECT model does not hear a second
 error. Performance: two predicates per entry, no allocation. Duplication: the RECORD KEY requirement no longer has a second home.
+
