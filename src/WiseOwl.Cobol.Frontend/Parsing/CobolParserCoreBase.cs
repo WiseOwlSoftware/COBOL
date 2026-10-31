@@ -446,8 +446,8 @@ public abstract class CobolParserCoreBase : Parser
     /// <summary>⛔ A RESERVED WORD IS READ AS A PROCEDURE HEADER'S NAME ONLY WHERE THE HEADER IT WOULD BEGIN IS WRITTEN
     /// (kb/Work PB4132) — the predicate on the two definition slots, <c>paragraphName</c> (<paramref name="follower"/>
     /// the separator period) and <c>sectionName</c> (the word SECTION). ISO §14.4.3: "A paragraph consists of a
-    /// paragraph-name followed by a separator period"; a section header is the section-name followed by SECTION
-    /// (§14.4.2). A procedure-name is a user-defined word, so a word §8.9 reserves at this edition stands there only as
+    /// paragraph-name followed by a separator period"; the general formats of §14.2.1 write a section header as
+    /// <c>section-name-1 SECTION.</c> A procedure-name is a user-defined word, so a word §8.9 reserves at this edition stands there only as
     /// the §8.3.2.1 1) violation ("Reserved words shall not be used as user-defined words or system-names") the funnel
     /// names with COBOL0901, and the source writes that use only where the header follows: <c>END-DISPLAY.</c> and
     /// <c>RECEIVE SECTION.</c> are headers naming a reserved word. Where the header does not follow, the word is its
