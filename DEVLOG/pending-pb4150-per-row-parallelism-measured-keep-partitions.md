@@ -39,4 +39,6 @@ pole start and end times, the paired differences and the thread counts). One cla
 first draft listed `process-globals` classes as racing under per-row parallelism, but the package leaves an explicit
 collection serial; only `AcceptSourceTests` (`Console.In` in each of five facts) would race.
 
-**Gate.** See the branch's gate record.
+**Gate.** `TestResults/build-local/000001-20261031T004941Z` on `ebd24b37f`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched
+gating, PB2515): GREEN — … Conformance 54/19,881 · Unit 5,578/38,701 · Characterization 3/36 cases ran (skipped 0) in 1
+of 2 leg(s) · Linux half (WSL clone of HEAD) GREEN …`. The commit after it changes only this entry and the note.
