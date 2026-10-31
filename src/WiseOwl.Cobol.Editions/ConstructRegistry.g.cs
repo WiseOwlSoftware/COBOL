@@ -101,6 +101,7 @@ public static partial class ConstructRegistry
         new("constant-record-2002", "the CONSTANT RECORD clause", 2002, null, null, "COBOL0900", "ISO §13.18.15; D5"),
         new("usage-program-pointer-2002", "USAGE PROGRAM-POINTER", 2002, null, null, "COBOL0900", "ISO §13.18.60.4 GR24/GR25"),
         new("usage-function-pointer-2014", "USAGE FUNCTION-POINTER", 2014, null, null, "COBOL0900", "ISO §13.18.60.4 GR26 / §8.5.2.7; the FunctionPointer carrier — LIVE end-to-end (kb/Work PB452 + PB817)"),
+        new("usage-message-tag-2023", "USAGE MESSAGE-TAG", 2023, null, null, "COBOL0900", "ISO §13.18.60.4 GR9 / §8.9 (reserved from 2023)"),
         new("set-function-pointer-2014", "SET TO function-pointer (Format 8)", 2014, null, null, "COBOL0900", "ISO §14.9.39.2 Format 8 / §14.9.39.3 SR20 / §14.9.39.4 GR14 / §8.4.3.12"),
         new("set-program-pointer-2002", "SET TO program-pointer (Format 9)", 2002, null, null, "COBOL0900", "ISO §14.9.39.2 Format 9 / §14.9.39.3 SR21 / SR22 / §8.4.3.13"),
         new("user-word-program-pointer-2002", "the word PROGRAM-POINTER as a user-defined word", 85, 2002, null, "COBOL0901", "§8.9 interval encoding: user-definable at 85, reserved since 2002 (ReservedWords.Table row; the user-word-constant-2002 precedent)"),

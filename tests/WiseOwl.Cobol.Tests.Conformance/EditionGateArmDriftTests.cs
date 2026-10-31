@@ -84,6 +84,7 @@ public sealed class EditionGateArmDriftTests
         ["UsageProgramPointer2002"] = UsageFact("USAGE PROGRAM-POINTER"),
         ["UsageFunctionPointer2014"] = UsageFact("USAGE FUNCTION-POINTER"),
         ["UsageObjectReference2002"] = UsageFact("USAGE OBJECT REFERENCE"),
+        ["UsageMessageTag2023"] = UsageFact("USAGE MESSAGE-TAG"),
         ["UsageBinaryCharFamily2002"] = UsageFact("USAGE BINARY-CHAR/-SHORT/-LONG/-DOUBLE"),
         ["UsageFloatShort2002"] = UsageFact("USAGE FLOAT-SHORT"),
         ["UsageFloatLong2002"] = UsageFact("USAGE FLOAT-LONG"),
