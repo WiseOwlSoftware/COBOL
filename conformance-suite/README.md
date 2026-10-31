@@ -11,7 +11,8 @@ PB3160); this folder is built slice by slice from its §13.
 |---|---|
 | `cases/<clause>/` | The tests, filed by ISO clause (`14.9.8-COMPUTE/`), each `<id>.cob` with its expected outputs and the files it declares. `cases/_unassigned/` holds tests no rule cites yet; the suites leave them out |
 | `wiseowl/cases/<clause>/` | WiseOwl COBOL's own regression tests, in the same format, never part of a suite |
-| `wiseowl/diagnostics.json` | WiseOwl COBOL's refusals: per test, the editions at which it refuses the program and the code or text it reports |
+| `wiseowl/diagnostics/<id>.json` | WiseOwl COBOL's refusals, one file per refused test: the editions at which it refuses the program and the code or text it reports |
+| `wiseowl/options/<id>.json` | The WiseOwl compile options of a WiseOwl test, one file per test (`<id>.<step file>.json` for one build step of a multi-unit test) |
 | `implementor-defined.json` | The Annex A.1 items whose values the standard enumerates, and those values |
 | `harness/generate.py` | The one reader of the test headers: refuses a malformed test (and a malformed adapter, profile or baseline), writes the suites, reports completeness |
 | `harness/run.py` | The harness: runs the suites against a compiler through its adapter and reports a verdict per test |
@@ -65,12 +66,13 @@ the tests pin.
 - **The expectation.** An accepted test's `<id>.out` is its exact standard output, compared through
   `CutRunner.Normalize` / `run.py`'s `normalize()` (LF, per-line trailing-space trim, no trailing newline); a test that
   only proves translation ends in `STOP RUN` with an empty `.out`.
-- **A program WiseOwl must refuse** names no `accept` edition and has an entry in `wiseowl/diagnostics.json`: the
-  editions WiseOwl refuses it at (`refuse-at`) and the code or message substring it reports (`expect`).
+- **A program WiseOwl must refuse** names no `accept` edition and has a file `wiseowl/diagnostics/<id>.json`,
+  `{"refuse-at": [<editions>], "expect": "<code or message substring>"}`: the editions WiseOwl refuses it at and what it reports.
+  A refusal is a file of its own, so two landings that each add one never edit the same file (kb/Work PB4147).
   `ConformanceSuiteTestsBase.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic` compiles it at each and requires the
   front end or the binder to refuse it with that text. A clause pass (design §6 step 2) turns such a test into a
   flagged test with a control.
-- **A WiseOwl compile option** a WiseOwl test needs is its entry in `wiseowl/options.json` (`sign-encoding`:
+- **A WiseOwl compile option** a WiseOwl test needs is its file `wiseowl/options/<id>.json`, `{"<option>": "<value>"}` (`sign-encoding`:
   `ibm` · `ascii`; `numeric-display`: `decimal` · `digits`; `flag-extensions`: `on` · `off`); the generator refuses one for a test of `cases/`.
 - **Migrated tests.** The programs of the former `tests/conformance/` corpus (design §6 step 1, kb/Work PB3177)
   carry `portable: unverified`, are accepted at the edition their old directory named, and wait for their clause
@@ -117,7 +119,7 @@ WiseOwl COBOL's test assembly `tests/WiseOwl.Cobol.Tests.Conformance` runs the s
 `ConformanceSuiteTests` generates the manifests into a directory of its own (`generate.py --out`) and runs every test
 of `suites/wiseowl/manifest.json` (both trees, at every edition each names) through `ConformanceSuiteRunner`, which
 judges exactly as `run.py` does with the WiseOwl adapter, red on FAIL or NO VERDICT; and it compiles every refusal of
-`wiseowl/diagnostics.json` at its editions, which must be refused with its code or text. `ConformanceSuiteRunnerDriftTests`
+`wiseowl/diagnostics/` at its editions, which must be refused with its code or text. `ConformanceSuiteRunnerDriftTests`
 runs `run.py` through the WiseOwl adapter on the same generated suites and requires both runners to give every suite
 test the same verdict, holds both output normalizations to the one fixture `harness/normalization-fixture.json`, and
 holds the WiseOwl adapter's locale pin (a program's default locales are its environment's) to the in-process one.

@@ -390,7 +390,7 @@ def measure_battery(stamp_sha: str) -> dict:
 def measure_suite() -> dict:
     """The conformance suite as its generator reads it (`conformance-suite/harness/generate.py`, the one reader of a
     test's header): the tests, the tests accepted at each edition (the schema's editions, ascending) and the
-    refusals `wiseowl/diagnostics.json` records; then the version matrix's registry and anchor counts."""
+    refusals `wiseowl/diagnostics/` records (one file per refused test); then the version matrix's registry and anchor counts."""
     sys.path.insert(0, str(SUITE_HARNESS))
     import generate  # noqa: PLC0415  (the suite's own reader; imported here, so only this measurement pays for it)
     inputs, _ = generate.repository_inputs()

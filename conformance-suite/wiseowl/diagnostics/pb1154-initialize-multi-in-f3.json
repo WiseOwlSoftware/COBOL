@@ -1,0 +1,1 @@
+{"refuse-at": ["2023"], "expect": "COBOL1614: an INITIALIZE naming more than one identifier-1 shall not appear in imperative-statement-1"}
