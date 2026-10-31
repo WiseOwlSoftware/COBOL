@@ -206,6 +206,11 @@ public sealed class FileRegistry
         if (cobolName.StartsWith("::EXT::", StringComparison.Ordinal) && _files.ContainsKey(cobolName))
             return;   // the run-unit EXTERNAL connector already exists (§13.18.22.4 GR4a)
         CloseDisplaced(cobolName);
+        // lineSequential: false is deliberate for EVERY report file, whatever ORGANIZATION it names (docs/CONFORMANCE.md
+        // DOC-A.1-159; kb/Work PB1664, PB2556): the report writer's line end is the host newline either way, so the
+        // connector never takes the line sequential arm and a print line holding a character above U+00FF is refused
+        // with '91' (§9.1.13.11), never the '71' of §14.9.51.4 GR23, which is a line sequential file's WRITE rule.
+        // The value is not observable: GENERATE sets no FILE STATUS item and runs no USE procedure (§9.1.13.1).
         _files[cobolName] = new SequentialConnector(CobolFile.ResolveHostPath(assignTarget), lineWidth,
             lineSequential: false, recordDescribed: false)
         { IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName), Edition = edition, Transactions = Sequential };
