@@ -343,7 +343,7 @@ ioControlClause
     // The APPLY COMMIT clause (ISO §12.4.6.3; kb/Work PB3338). It must precede unrecognizedClause, which would
     // otherwise match the bare word APPLY and then die on COMMIT with an unnamed error. {is2023()}? because the whole
     // commit-and-rollback facility is a COBOL-2023 addition (Annex E.3.2 item 2). ⚠ kb/Work PB2291 VERDICT: a
-    // CONSTRUCT GATE, not word status — APPLY is §8.10 context-sensitive at every edition and no earlier edition
+    // CONSTRUCT GATE, not word status — APPLY is a §8.10 context-sensitive word only from COBOL-2023 and no earlier edition
     // has an APPLY clause, so `APPLY COMMIT` has no other reading below 2023, and the gate turns what the
     // conformance pass should name (COBOL0900) into a bare COBOL0001. Recorded in EditionReadDriftTests.
     | {is2023()}? applyCommitClause

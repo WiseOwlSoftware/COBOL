@@ -68,7 +68,7 @@ internal sealed class _PRG_CHAR_OCCURS : ICobolProgram
                     }
                     __pexit0: ;
                     Int128 __amt0 = (Int128)(3L);
-                    if (CobolIndex.TryAmount(__amt0, 0, SetAmountRule.IndexTo, "SET … TO", out long __set0))
+                    if (CobolIndex.TryAmount(__amt0, 0, SetAmountRule.IndexTo, "SET index-name TO", out long __set0))
                     {
                         _IX_1 = __set0;
                     }

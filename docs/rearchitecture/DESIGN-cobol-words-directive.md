@@ -221,8 +221,10 @@ is the user-word token type.
   STACK, TOP-LEVEL, UCS-4, UTF-8, UTF-16, …) and no directive could name them at all (kb/Work PB250). §8.10's
   own NOTE points the other way: "Words can be added or deleted from this list for a specific compilation
   group by use of the COBOL-WORDS directive." The §8.10 table is generated from the spec section by
-  `scripts/gen-reserved-words.ps1` and drift-tested against it; it needs no per-edition flags because the
-  directive is a COBOL-2023 introduction, so 2023 is the only edition at which SR3/SR4 are ever asked.
+  `scripts/gen-reserved-words.ps1` and drift-tested against it; SR3/SR4 need no per-edition flags because the
+  directive is a COBOL-2023 introduction, so 2023 is the only edition at which they are ever asked. (Each row also
+  carries `ContextSensitiveWordEntry.Introduced`, the edition the word is first a keyword, which only the syntax
+  diagnostics that name the words expected ask: kb/Work PB4174, CONFORMANCE.md D-EXPECT.)
 - **SR4 (lit2/5/6 NOT reserved/context/intrinsic; a valid user-defined word §8.3.2.2)** — Compiler: reject if
   the word is in the same 2023 population (`IsReservedContextOrIntrinsic`); the §8.3.2.1 / §8.3.2.2 well-formedness is a
   Frontend check at parse time (`CobolWordsDirectiveProcessor.UserWord`): the word shape (word characters — letters,

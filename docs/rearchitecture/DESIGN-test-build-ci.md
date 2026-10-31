@@ -2766,8 +2766,8 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    refuses a file it runs or imports that the list does not cover (§3.17.8).
 5. **On `main`**: the merged commit is the tested merge-group tree. The `push` run keeps only `changes` + `ci-gate` (the
    record the probe reads); the matrix runs on `merge_group` and `workflow_dispatch`. On `pull_request` only the cheap
-   jobs run (audits, the DEVLOG and work-register checks), so twenty PRs do not queue eighty matrix jobs behind the
-   20-concurrent-job limit of a public repository.
+   jobs run (audits, the DEVLOG and work-register checks), so twenty PRs do not queue twenty full matrices behind the
+   organization's 60-concurrent-job limit (section 3.17.6).
 
 The implementer's leg-1 gate stays first for every change (the owner's principle); CI is the regression net and the
 only whole-population run.
@@ -2965,6 +2965,18 @@ demand and not committed.
   squashed head is never an ancestor of main, so every lifecycle tool would have to key on the merged-PR record instead.
   Required status check `ci-gate` on the merge group, enforce for administrators (the owner's credentials make every
   push), minimum group size 1, maximum 5, check timeout 60 min. The classic protection is removed in the same change.
+- **The concurrent-job budget and the queue's build width (kb/Work PB3773).** The organization is on GitHub Team since
+  2026-10-25: standard hosted runners run **60 jobs at once** (the Free plan's 20 had saturated: five merge groups of about
+  20 jobs each shared 20 slots, so a 12-14 minute run took 25-30). `max_entries_to_build` stays **5**, re-measured against
+  60 on 2026-10-31 over the day's 60 merge-group runs: a full group is 23 jobs with a peak of 18-19 running at once, an
+  inert-lane group (section 3.18) 13 jobs; the busiest observed moment, five groups at once (two full, three inert-lane,
+  run ids 41231268883, 41231270319, 41231270803, 41231271575, 41231400422), peaked at 40 running jobs, every job started
+  within a second of its run's creation, and a full group's wall was 13-16 minutes, its unthrottled time. The budget holds
+  three full groups at once (about 57 jobs); a fourth and fifth full group would queue part of their jobs behind the
+  budget, which costs no more than the serial order a narrower width would impose, and the day's landings never put more
+  than two full groups in flight (a wave that adds refusals lands one at a time on the driver-file rule, kb/Work PB4147).
+  Narrow the width to 3 only if a measured day shows full groups waiting for runners; `ruleset.py check` binds the
+  committed value.
 - **Cutover (operator review item 4; owner fast track ~12:58, "Why are we still using push-main?" → "Fast track now"):**
   every step of this design lands through the THEN-CURRENT pipeline. **Phase 1 = PB3024, landed FIRST and ALONE (a
   blocking one-cluster landing), as the last landing through the direct-push landing script:** the `merge_group` trigger and the

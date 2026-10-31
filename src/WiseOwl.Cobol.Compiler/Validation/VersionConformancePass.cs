@@ -161,7 +161,8 @@ internal sealed class VersionConformancePass
     /// word reserved in 1985 and gone from §8.9, compiled), and the SR4 test rejected anything the lexer tokenizes (so
     /// <c>RESERVE "AUTHOR"</c>, a fresh word, was refused). The lexer's vocabulary is what this compiler TOKENIZES, which
     /// is not a population of the standard; the §8.9 flag is the 2023 list itself (<c>ReservedWordsDriftTests</c>), the
-    /// §8.10 table carries no flags because it transcribes only 2023, and an intrinsic function is a name of the
+    /// §8.10 table is the 2023 list (every row, whatever edition introduced it:
+    /// <c>ContextSensitiveWordEntry.Introduced</c> serves the diagnostics' edition-aware naming, not this test), and an intrinsic function is a name of the
     /// edition inside its window (<see cref="IntrinsicSig.IsDefinedAt"/>).</summary>
     private static bool IsReservedContextOrIntrinsic(string w) =>
         ReservedWords.Find(w) is { R2023: true } || ContextSensitiveWords.Contains(w)
@@ -2766,14 +2767,15 @@ internal sealed class VersionConformancePass
                 ReservedWordSet.UserWordViolationMessage(word, _p._edition.Year), "", "ISO §8.9"));
         }
 
-        /// <summary>kb/Work PB137/PB300/PB693: the generated <c>reservedGatedWord</c> rule keeps a DECLARATION of
-        /// a reservation-gated word parseable at the editions where §8.9 reserves it, precisely so this funnel can
-        /// NAME the word — it bypasses cobolWord entirely, so the §8.9 check must meet it here.
+        /// <summary>kb/Work PB137/PB300/PB693/PB4206: the generated <c>reservedGatedWord</c> rule keeps a reservation-gated
+        /// word parseable in a USER-DEFINED-WORD slot (a declaration, or a procedure-name reference) at the editions where
+        /// §8.9 reserves it, precisely so this funnel can NAME the word — it bypasses cobolWord entirely, so the §8.9
+        /// check must meet it here.
         /// <para>⛔ SLOT-LIST-FREE AND WORD-LIST-FREE BY CONSTRUCTION. The arm hangs on the SHARED RULE, not on
-        /// the slots that use it: every use of <c>reservedGatedWord</c> is a definition slot by construction (the
+        /// the slots that use it: every use of <c>reservedGatedWord</c> is a user-defined-word slot by construction (the
         /// rule exists only to re-admit a word §8.9 forbids as a user-defined word, so its presence in the tree IS
-        /// the §8.3.2.1 rule-1 violation), which is why <c>dataName</c> and <c>programName</c> both get their 0901
-        /// with no second override — and why the NEXT definition slot needs no C# at all (CLAUDE.md rule 5). It
+        /// the §8.3.2.1 rule-1 violation), which is why <c>dataName</c>, <c>programName</c> and <c>procedureName</c> all
+        /// get their 0901 with no second override — and why the NEXT such slot needs no C# at all (CLAUDE.md rule 5). It
         /// was <c>VisitDataName</c>, reading <c>ctx.reservedGatedWord()</c>, and before that a hand-written
         /// <c>ctx.COMMIT() is not null ? "COMMIT" : …</c> word list that had already gone stale (CRT/CURSOR).
         /// Every alternative of the rule is a SINGLE token, so the subrule's own text IS the word.</para>

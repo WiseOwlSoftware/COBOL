@@ -103,7 +103,7 @@ public sealed class EditionReadDriftTests
             "IsKeywordReadingHere", "NoteGatedOffender", "PrintsKeyword", "ReservedGatedWord",
             "ReservedUserWordViolation", "conditionalPhraseAssociates", "entryNameHere", "facilityWord",
             "gatedDeclaration", "is2002", "is2014",
-            "is2023", "is85", "keywordContinuesHere", "reservedHere", "screenPositionAhead", "setLocaleAhead",
+            "is2023", "is85", "keywordContinuesHere", "procedureHeaderHere", "reservedHere", "screenPositionAhead", "setLocaleAhead",
             "userWordHere",
         ],
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4"] =
@@ -120,7 +120,7 @@ public sealed class EditionReadDriftTests
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4 | performLocationPhrase | is2023"] = (1, Verdict.WordStatus),
         // OPEN's RETRY phrase: RETRY is a §8.9 user word below 2002 and sits in the file-name list.
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4 | openClause | is2002"] = (1, Verdict.WordStatus),
-        // APPLY COMMIT: APPLY is §8.10 context-sensitive at every edition and no edition before 2023 has an APPLY
+        // APPLY COMMIT: APPLY is a §8.10 context-sensitive word only from COBOL-2023 (Introduced) and no edition before 2023 has an APPLY
         // clause, so no earlier program reads `APPLY COMMIT` another way: the gate refuses a construct (COBOL0001)
         // where the conformance pass should name its 2023 introduction.
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4 | ioControlClause | is2023"] = (1, Verdict.ConstructGate),
@@ -152,20 +152,28 @@ public sealed class EditionReadDriftTests
         // The optional entry-name yields to the clause a word §8.9 reserves here begins (kb/Work PB845, PB2501).
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4 | dataDescriptionEntry | entryNameHere"] = (1, Verdict.WordStatus),
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolWords.g4 | reservedGatedWord | gatedDeclaration"] = (1, Verdict.WordStatus),
+        // A paragraph or section header names a word §8.9 reserves here only where its period or SECTION follows it;
+        // elsewhere the word is its keyword (a stray END-DISPLAY beginning a sentence, kb/Work PB4132 review R1-1).
+        ["src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4 | paragraphName | procedureHeaderHere"] = (1, Verdict.WordStatus),
+        ["src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4 | sectionName | procedureHeaderHere"] = (1, Verdict.WordStatus),
         // The lexer: the Annex C spelling of a word at the edition, and whether a '(' after a word the edition
         // reserves can open a subscript (kb/Work PB1465).
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4 | LPAREN | OnDefaultLParen"] = (1, Verdict.WordStatus),
-        // The listeners: the authoritative pass's syntax-error listener reports and retypes a reservation-gated word.
-        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorListener.cs | CobolErrorListener.SyntaxError | ReservedUserWordViolation"] = (1, Verdict.WordStatus),
+        // The error strategy names a syntax error on a reservation-gated word §8.9 reserves here, written where a
+        // user-defined word stands, as that word's §8.9 violation (COBOL0901), ranked with its other diagnoses of the
+        // token (kb/Work PB693, PB4132). Both recoveries of such a word read the same decision: the resynchronization
+        // after the report consumes the word as the operand it stood for, never resuming at it (kb/Work PB3248), and the
+        // single-token deletion, asking it before its report, deletes it (review R3-1 of the PB4133 branch).
+        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.ReservedWordUse | ReservedUserWordViolation"] = (1, Verdict.WordStatus),
         // The error strategy's COBOL5506 sentence names the keywords EXPECTED at a refused token, leaving out each one a
         // general format of the compile edition cannot print (kb/Work PB4174, PrintsKeyword): a word the §8.9 table proves
-        // a LATER edition introduced. Every other word is named, the §8.10 context-sensitive words and the words a format
-        // spells where §8.9 leaves them free (IsKeywordWhereFree) included. It refuses nothing itself and gates no construct.
+        // a LATER edition introduced, or a §8.10 context-sensitive word first listed at a LATER edition
+        // (ContextSensitiveWordEntry.Introduced). Every other word is named: one reserved at the edition, one a later
+        // edition dropped (WORDS at 2023; COBOL and PHYSICAL, which 2023 formats underline though its §8.9 omits them), one in
+        // neither table, and the words a format spells where §8.9 leaves them free (IsKeywordWhereFree). It refuses nothing
+        // itself and gates no construct.
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.GuessCobolIntent | PrintsKeyword"] = (1, Verdict.WordStatus),
-        // The error strategy's recovery asks the same question of a reserved word it recovers at: a reference the
-        // listener re-codes to COBOL0901 is consumed (or deleted) as the operand it stood for, never resumed at (kb/Work
-        // PB3248; review R3-1 of the PB4133 branch: the single-token deletion asks it too).
-        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.IsReservedOperand | ReservedUserWordViolation"] = (1, Verdict.WordStatus),
+        // The listener: the gate's second witness notes a syntax error's offending reservation-gated word.
         ["src/WiseOwl.Cobol.Frontend/Parsing/ReservationGateRewriter.cs | OffenderWitness.SyntaxError | NoteGatedOffender"] = (1, Verdict.WordStatus),
         // The front end's driver decides whether a re-parse lexes differently because a word the program declared is
         // reserved at the edition.

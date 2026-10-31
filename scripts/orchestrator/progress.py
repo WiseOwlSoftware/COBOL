@@ -5,7 +5,7 @@ WHY. The owner, 2026-10-24 ~12:15 PDT: "It's stupid to have work running with no
 hours. Other items simply block and also make no progress." The 10:04 campaign unit of that day wrote two milestones
 in two hours, and the operator learned where the tier-1 PB3612 stood only by reading the wave's files. The supervisor
 (`orchestrate.ps1`) now runs this script every `-ProgressSeconds` while a unit runs, in the background like its other
-ticks, says the line in its log, and posts each NEW stall to the operator's mailbox, once per stalled item (a message
+ticks, says the line in its log, and posts each NEW stall to the mailbox of the lane that dispatched the group (PB4190), once per stalled item (a message
 per tick would wake the attended session every ten minutes for news it already has).
 
 THE LINE, read from the coordination directory only (no git, no GitHub: it runs every few minutes):
@@ -46,12 +46,19 @@ RUNNING_STALL_MIN = 60   # the owner, 2026-10-23: "no wave may take hours; one c
 REVIEW_STALL_MIN = 15    # half the owner's 30-minute dispatch-to-queue bar (kb/Work PB3638, landing_measure.BUDGETS)
 
 
+def stall_lane(g: dict) -> str:
+    """The inbox a stalled group's message goes to (kb/Work PB4190): the lane that dispatched it
+    (dispatch_ledger.record_dispatch's `lane`), the one that can act on it; a group recorded with no lane goes to the
+    operator, the session that runs this loop."""
+    return g.get("lane") or "operator"
+
+
 def progress(cdir: pathlib.Path, since: float, now: float | None = None) -> dict:
     """The progress figures and the stalls, as a dict (render prints the line)."""
     now = time.time() if now is None else now
     reps = reports.load_reports(coord.reports_dir(str(cdir)))
     groups: dict[str, int] = {"running": 0, "clean": 0, "findings": 0, "unreviewed": 0, "other": 0}
-    waiting: list[dict] = []   # {slug, notes, minutes, on}
+    waiting: list[dict] = []   # {slug, notes, minutes, on, limit, lane}
     for g in coord.ledger_groups(cdir):
         slug, notes = reports.ledger_slug(g), list(g.get("notes", []))
         mine = [r for r in reps if reports.answers(r, g)]
@@ -59,7 +66,7 @@ def progress(cdir: pathlib.Path, since: float, now: float | None = None) -> dict
             groups["running"] += 1
             if isinstance(g.get("at"), (int, float)):
                 waiting.append({"slug": slug, "notes": notes, "minutes": (now - g["at"]) / 60, "on": "running",
-                                "limit": RUNNING_STALL_MIN})
+                                "limit": RUNNING_STALL_MIN, "lane": stall_lane(g)})
             continue
         r = mine[-1]   # load_reports' order: the newest last
         if r.status != "DONE":
@@ -72,7 +79,8 @@ def progress(cdir: pathlib.Path, since: float, now: float | None = None) -> dict
             groups["unreviewed"] += 1
             try:
                 waiting.append({"slug": slug, "notes": notes, "minutes": (now - r.path.stat().st_mtime) / 60,
-                                "on": "its branch review", "limit": REVIEW_STALL_MIN})
+                                "on": "its branch review", "limit": REVIEW_STALL_MIN,
+                                "lane": stall_lane(g)})
             except OSError:
                 pass
     recs = landing_measure.read_all(cdir / landing_measure.FILE)
@@ -97,10 +105,16 @@ def render(unit: str, p: dict) -> str:
     return line
 
 
+def stall_line(w: dict) -> str:
+    """One stall's line, its subject (the text before the first colon) stable for one stalled item (the mailbox's
+    --unless-pending key)."""
+    return (f"STALL {w['slug']} ({', '.join(w['notes'])}): {w['minutes']:.0f} min on {w['on']}, past its "
+            f"{w['limit']}-minute limit")
+
+
 def stall_lines(p: dict) -> list[str]:
-    """One line per stall, its subject stable for one stalled item (the mailbox's --unless-pending key)."""
-    return [f"STALL {w['slug']} ({', '.join(w['notes'])}): {w['minutes']:.0f} min on {w['on']}, past its "
-            f"{w['limit']}-minute limit" for w in p["stalls"]]
+    """One line per stall."""
+    return [stall_line(w) for w in p["stalls"]]
 
 
 STALLS_POSTED = "progress-stalls.json"   # {subject: when it was last posted}, in the coordination directory
@@ -108,8 +122,10 @@ REPOST_MIN = 60                          # a stall still open an hour after its 
 
 
 def post_stalls(cdir: pathlib.Path, p: dict, unit_line: str, ref: str, now: float | None = None) -> list[str]:
-    """Post each stall to the operator's mailbox (mailbox.send, kind `info`, from the loop) and return the subjects
-    posted. One message per stalled ITEM: the subject is the stall line's stable head (`STALL <slug> (<notes>)`), sent
+    """Post each stall to the inbox of the lane that dispatched its group (`stall_lane`; mailbox.send, kind `info`,
+    from the loop; kb/Work PB4190: the operator can neither act on the Mythos lane's agents nor speed them, and six
+    messages about one Mythos wave woke it to close each) and return the subjects posted. One message per stalled
+    ITEM: the subject is the stall line's stable head (`STALL <slug> (<notes>)`), sent
     with --unless-pending while one is open, and again only `REPOST_MIN` after the last post (the attended session is
     woken by every message, kb/Work PB2482, so a message per tick would cost it a turn every ten minutes for news it
     has). `ref` is an existing path the message points at (the unit's log)."""
@@ -117,11 +133,12 @@ def post_stalls(cdir: pathlib.Path, p: dict, unit_line: str, ref: str, now: floa
     now = time.time() if now is None else now
     posted = coord.read_json(cdir / STALLS_POSTED, {})
     sent = []
-    for line in stall_lines(p):
+    for w in p["stalls"]:
+        line = stall_line(w)
         subject = line.split(":", 1)[0]
         if now - float(posted.get(subject, 0)) < REPOST_MIN * 60:
             continue
-        if mailbox.send(cdir, to="operator", kind="info", subject=subject, body=f"{line}. {unit_line}"[:mailbox.BODY_MAX],
+        if mailbox.send(cdir, to=w["lane"], kind="info", subject=subject, body=f"{line}. {unit_line}"[:mailbox.BODY_MAX],
                         refs=[ref], sender="loop", session="orchestrate.ps1 progress", unless_pending=True):
             sent.append(subject)
         posted[subject] = now
@@ -143,12 +160,15 @@ def self_test() -> int:
     rd.mkdir(parents=True)
     now = 1_900_000_000.0
     coord.write_json(cdir / coord.DISPATCH_LEDGER, {"groups": [
-        {"wave": "7", "letter": "A", "notes": ["PB701"], "files": [], "at": now - 90 * 60},    # running 90 min: a stall
+        {"wave": "7", "letter": "A", "notes": ["PB701"], "files": [], "at": now - 90 * 60,
+         "lane": "operator"},                                                                  # running 90 min: a stall
         {"wave": "7", "letter": "B", "notes": ["PB702"], "files": [], "at": now - 20 * 60},    # running 20 min
         {"wave": "7", "letter": "C", "notes": ["PB703"], "files": [], "at": now - 80 * 60},    # DONE, CLEAN
         {"wave": "7", "letter": "D", "notes": ["PB704"], "files": [], "at": now - 80 * 60},    # DONE, unreviewed 40 min
         {"wave": "7", "letter": "E", "notes": ["PB705"], "files": [], "at": now - 80 * 60},    # SPLIT
-        {"wave": "7", "letter": "F", "notes": ["PB706"], "files": [], "at": now - 80 * 60}]})  # DONE, FINDINGS
+        {"wave": "7", "letter": "F", "notes": ["PB706"], "files": [], "at": now - 80 * 60},    # DONE, FINDINGS
+        {"wave": "7", "letter": "G", "notes": ["PB707"], "files": [], "at": now - 70 * 60,
+         "lane": "mythos"}]})                                                                  # the Mythos lane's, running 70 min
 
     def report(name: str, status: str, review: str, age_min: float) -> None:
         p = rd / name
@@ -169,16 +189,17 @@ def self_test() -> int:
         {"pr": 3, "branch": "b3", "enqueued": iso(now - 300 * 60).astimezone().isoformat(),
          "merged": iso(now - 200 * 60).astimezone().isoformat()})), encoding="utf-8", newline="\n")
     p = progress(cdir, since, now)
-    check(p["groups"] == {"running": 2, "clean": 1, "findings": 1, "unreviewed": 1, "other": 1},
+    check(p["groups"] == {"running": 3, "clean": 1, "findings": 1, "unreviewed": 1, "other": 1},
           f"each ledger group by its state: {p['groups']}")
     check(p["landings"] == {"enqueued": 2, "merged": 1},
           f"the landings enqueued and merged since the unit started, never an earlier one: {p['landings']}")
     check(p["oldest"] and p["oldest"]["slug"] == "w7a" and round(p["oldest"]["minutes"]) == 90,
           f"the oldest waiting item is the longest-running group: {p['oldest']}")
-    check([(w["slug"], w["on"]) for w in p["stalls"]] == [("w7a", "running"), ("w7d", "its branch review")],
+    check([(w["slug"], w["on"]) for w in p["stalls"]] == [("w7a", "running"), ("w7g", "running"),
+                                                                     ("w7d", "its branch review")],
           f"a group past its running limit and a DONE report past its review limit are stalls: {p['stalls']}")
     line = render("wave", p)
-    check(line.startswith("PROGRESS wave at 100 min: groups running 2") and "oldest waiting: w7a (PB701) 90 min" in line,
+    check(line.startswith("PROGRESS wave at 100 min: groups running 3") and "oldest waiting: w7a (PB701) 90 min" in line,
           f"the line: {line}")
     check(stall_lines(p)[0] == "STALL w7a (PB701): 90 min on running, past its 60-minute limit",
           f"a stall line is stable for its item: {stall_lines(p)}")
@@ -187,8 +208,12 @@ def self_test() -> int:
     again = post_stalls(cdir, p, line, str(ref), now + 10 * 60)
     import mailbox  # noqa: PLC0415
     inbox = [m["subject"] for m in mailbox.listing(cdir, "operator")]
-    check(first == ["STALL w7a (PB701)", "STALL w7d (PB704)"] and again == [] and sorted(inbox) == sorted(first),
-          f"each stalled item is posted once, never once per tick: {first} / {again} / {inbox}")
+    mythos = [m["subject"] for m in mailbox.listing(cdir, "mythos")]
+    check(first == ["STALL w7a (PB701)", "STALL w7g (PB707)", "STALL w7d (PB704)"] and again == [],
+          f"each stalled item is posted once, never once per tick: {first} / {again}")
+    check(sorted(inbox) == ["STALL w7a (PB701)", "STALL w7d (PB704)"] and mythos == ["STALL w7g (PB707)"],
+          f"a stall goes to the lane that dispatched its group, a group with no recorded lane to the operator "
+          f"(PB4190): operator {inbox}, mythos {mythos}")
     cleared = post_stalls(cdir, {**p, "stalls": []}, line, str(ref), now + 20 * 60)
     check(cleared == [] and coord.read_json(cdir / STALLS_POSTED, None) == {},
           "a stall that ended leaves no record behind, so its next episode is posted")
@@ -207,7 +232,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--since", help="the unit's start, an ISO time with offset (default: one hour ago)")
     ap.add_argument("--unit", default="unit", help="the unit's name, for the line")
     ap.add_argument("--json", action="store_true")
-    ap.add_argument("--post", metavar="REF", help="post each new stall to the operator's mailbox, pointing at REF (an "
+    ap.add_argument("--post", metavar="REF", help="post each new stall to its dispatching lane's mailbox, pointing at REF (an "
                                                   "existing path: the unit's log)")
     ap.add_argument("--self-test", action="store_true")
     a = ap.parse_args(argv)
@@ -225,7 +250,7 @@ def main(argv: list[str] | None = None) -> int:
         print(s)
     if a.post:
         for subject in post_stalls(cdir, p, line, a.post):
-            print(f"posted to the operator's mailbox: {subject}")
+            print(f"posted to the dispatching lane's mailbox: {subject}")
     return 0
 
 
