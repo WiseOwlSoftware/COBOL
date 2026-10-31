@@ -53,4 +53,6 @@ is one member. Performance: the new reads run only on a syntax error at a reserv
 parse cannot compute keeps COBOL0901, the earlier behaviour.
 
 **Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` on 1546da903 (run 000001-20261031T174911Z:
-Conformance 10,376, Unit 7,127 and Characterization 6 cases; Linux half (WSL clone of HEAD) GREEN).
+Conformance 10,376, Unit 7,127 and Characterization 6 cases; Linux half (WSL clone of HEAD) GREEN). After the merge with main, the
+same verdict on 0595f7edc (run 000003-20261031T183641Z: Conformance 10,305, Unit 7,153 and Characterization 6 cases; Linux half
+(WSL clone of HEAD) GREEN).
