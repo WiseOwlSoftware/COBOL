@@ -33,8 +33,9 @@ internal readonly record struct TypePair(string From, string To);
 /// in a type is that type's code, so its references fold into it. A type is GENERATED only when every document that
 /// declares it is a generated output (<see cref="GeneratedDocument"/>); a partial with one hand-written document is
 /// authored — which an attribute test cannot see (the ANTLR parser carries <c>[GeneratedCode]</c> on its merged type
-/// although its hand partial makes it authored). A type with no document of its own (a nested type without a method
-/// body) is declared in its declaring type's documents.
+/// although its hand partial makes it authored). A type's documents include its nested types' (a nested type is
+/// declared inside a declaration of its container, in the same document: the parser's hand partial declares only a
+/// member of its nested <c>CompilationUnitContext</c>), and a type with none at all is declared in its declaring type's.
 /// </para>
 /// <para>
 /// <b>What a reference is.</b> Every type named by the base type, the interface implementations, the generic parameter
@@ -805,6 +806,10 @@ internal sealed class TypeReferenceWalk
             return Named(generic < 0 ? typeName : typeName[..generic]);
         }
 
+        /// <summary>A product enum's underlying type is read from its <c>value__</c> field; a framework enum an attribute
+        /// argument names is taken as <c>int</c>, the underlying type of every framework attribute enum the product
+        /// passes. A wrong guess misaligns the rest of that blob, which then usually fails to decode, and
+        /// <see cref="TypeVisit"/> rethrows the failure naming the attribute.</summary>
         public PrimitiveTypeCode GetUnderlyingEnumType(AttributeType type) =>
             enums.TryGetValue(type.FullName, out PrimitiveTypeCode code) ? code : PrimitiveTypeCode.Int32;
 
