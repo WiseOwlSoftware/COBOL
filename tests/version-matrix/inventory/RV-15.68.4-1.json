@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.68.4-1",
+ "section": "15.68.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "NUMVAL-C function",
+ "rule-digest": "b9ce1d908672",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NvScan; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#SenderContext; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#StaticScaleOf",
+ "test-ref": "conformance:cases/15.67.3-Argument-rules/pb60_numval_one_scan",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-09 (PB60, both halves). Half 1 (the unanchored currency Replace destroying validator-certified values): the one-scan unification - NUMVAL-C(\"C123.45CR\",\"C\") / (\"R...CR\",\"R\") / (\"D...DB\",\"D\") all value -123.45 with the currency consumed at its r4a position (golden rows RC/DC). Half 2 (the channel-dependent value - COMPUTE 0.123456789, MOVE 0.123456000, the relation agreeing with the truncated value, DISPLAY 0.123456: four channels, three answers): the value now renders under ONE documented 15.4.1 determination in every channel - the MOVE sender renders at the RECEIVER's scale (MoveEmitter.SenderContext, Receiverless kept true so the float family's binary64 sending is untouched), each relation side renders knowing the OTHER side's static scale (ConditionRenderer.StaticScaleOf), and a genuinely receiver-less DISPLAY renders at the documented 6-digit floor - the determination is recorded on CONFORMANCE.md item 92 and pinned by the golden's CM/MV/EQ legs (all 0.123456789). Fraction digits beyond the native working scale truncate under the 15.4.1 native latitude; STANDARD-DECIMAL exactness is RV-15.67.4-1's open SDIDI half.",
+ "state": "OK"
+}

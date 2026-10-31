@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.37.3-11",
+ "section": "14.9.37.3",
+ "kind": "SR",
+ "ordinal": 11,
+ "subject": "SEARCH statement",
+ "rule-digest": "3c507b9f67a2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/SearchAllFormat2Rules.cs#CheckPrecedingKeys; src/WiseOwl.Cobol.Compiler/Binding/Validation/SearchAllFormat2Rules.cs#CheckConditionNameSide; src/WiseOwl.Cobol.Compiler/Binding/Model/OdoModel.cs#KeyItems; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#ConditionOf",
+ "test-ref": "conformance:cases/14.9.37-SEARCH/pb445-search-all-skips-preceding-key; conformance:cases/14.9.37-SEARCH/pb443-search-all-condition-name-skips-preceding-key; conformance:cases/14.9.37-SEARCH/pb445_search_all_format2_legal; conformance:cases/14.9.37-SEARCH/pb443_search_identifier_1; unit:SearchAllFormat2RuleCoverageDriftTests.TheOccursKeyPhrase_IsOneOrderedList_NotAListPerDirectionWord; unit:SearchOperandResolutionDriftTests.QualifiedConditionName_InAFormat2When_SelectsByTheQualifier",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB443 - RE-RECORDED, verdict unchanged, and the CONDITION-NAME arm was measurably wrong in BOTH directions before. SR11 reads the accumulator CheckConditionNameSide fills in, so a level-88 picked by base word marked the WRONG key position. MEASURED on this tree, with two same-spelled condition-names on two keys of one table: with `ASCENDING KEY IS K1 K2`, `WHEN CN OF K2 (IX)` skipped the more significant K1 and drew NO diagnostic (an under-rejection); with `ASCENDING KEY IS K2 K1` the same written WHEN is LEGAL - it names the most significant key and there is nothing preceding it - and was REJECTED with \"references the key 'K1' but not the more significant key 'K2'\", naming two keys neither of which the source names (rejects_legal_source). Both are now correct, because the 88 is resolved by ISO 8.4.2.2 Format 2 through ConditionBinder.ConditionOf. The new negative pins the under-rejection direction and the 85 positive golden pins the legal one; the drift theory runs both.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.7.3-8",
+ "section": "11.7.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "METHOD-ID paragraph",
+ "rule-digest": "fd61d7eb203d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build",
+ "test-ref": "conformance:cases/11.7-METHOD-ID/l1c18-method-prototype-final",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 11.7.3 \"The FINAL clause shall not be specified in a method prototype.\" -> OK. Same check as SR2 (m.FINAL()). Probe p7b_final_in_prototype (`METHOD-ID. PING IS FINAL.` in an INTERFACE-ID) -> COBOL4212 (kb/Work PB1784) at 2023. Untested — test-needed. || Editions (adjudicator, verbatim): 2002, 2014, 2023 (METHOD-ID is part of the OO facility introduced by COBOL 2002; absent at 1985) || Code sites (adjudicator, verbatim): src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build (interface prototype loop, COBOL4212)",
+ "state": "OK"
+}

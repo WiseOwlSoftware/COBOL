@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.27.4-3",
+ "section": "13.18.27.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "GLOBAL clause",
+ "rule-digest": "268899eaf9a2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#CallBindExternalAndGlobal; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#GlobalBridgesOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#AnchorOf",
+ "test-ref": "conformance:cases/13.18.27-GLOBAL/l1c12_global_redefines_subject; conformance:cases/13.18.27-GLOBAL/l1g4_global_redefines_subject_group; conformance:cases/13.18.27-GLOBAL/l1g4-global-redefines-object-not-global; conformance:cases/13.18.27-GLOBAL/pb1523_global_fd_records_and_redefiners; unit:GlobalBridgeResidenceDriftTests.AContainedProgramReachesTheGlobal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1523 landed (wave 1012 F). cite.py --check 13.18.27.4 'it is only the subject of that REDEFINES clause that possesses the global attribute' -> OK 13.18.27.4 3). Name resolution was right and the program did not compile: a Tier-A (Alias) REDEFINES view owns no emitted member, so its bridge named a member the container never declares (CS1061). GlobalBridgesOf now bridges the view's canonical through AnchorOf, the one rule ReferenceResolver.PlaceForItem applies to every reference. Witnesses: the elementary-subject golden (held since 2026-09-25, now tests/conformance/2002/l1c12_global_redefines_subject), the group-subject golden and the object-not-global negative.",
+ "state": "OK"
+}

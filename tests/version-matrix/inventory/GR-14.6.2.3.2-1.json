@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.2.3.2-1",
+ "section": "14.6.2.3.2",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Initial and last-used states of data",
+ "rule-digest": "c89f05de4930",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/InitialStateBackground.cs; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#InitializerFor",
+ "test-ref": "conformance:cases/11.9.10-INITIALIZE/pb152_options_initialize_background; conformance:cases/11.9.10-INITIALIZE/pb152_options_initialize_local_storage; unit:InitialStateBackgroundDriftTests.TheBackgroundHasExactlyTwoPublicProducers",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-09-02 (PB152). Action 1 is the consumer point 11.9.10.4 GR2/GR3/GR4 route to, and its ORDER against action 2 is structural: the fill is a BACKGROUND laid down first and then OVERWRITTEN by VALUE clauses, never a per-item substitute for a missing VALUE. pb152_options_initialize_background pins the ordering with an item that HAS a VALUE beside one that does not. No sequencing code was added - a field initializer is one expression, and only the expression's no-VALUE case changed - so the re-application sites (RecordStructEmitter's field initializers and __ResetStatics, the LOCAL-STORAGE per-activation re-seed, the OO instance cell) inherit it by construction. DETERMINATION recorded in CONFORMANCE.md and DATA_MODEL_DESIGN D23: 'the storage ... is set to the specified-fill-character' over a typed-native model means CHARACTER-FORMED storage takes the fill, while a NATIVE-NUMERIC carrier and an INDEX cell take their zero - licensed by 13.18.63.4 GR4 c), whose own sentence leaves a VALUE-less item 'undefined and set to a value that may or may not be allowed for that data item or index'. Class object/message-tag/pointer take NULL instead, because that same sentence states it as a positive requirement; USAGE BIT keeps its packed ceil(n/8) zero seed (D19) because its storage is packed bytes rather than character positions.",
+ "state": "OK"
+}

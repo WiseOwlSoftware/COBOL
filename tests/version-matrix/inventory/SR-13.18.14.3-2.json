@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.14.3-2",
+ "section": "13.18.14.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "COLUMN clause",
+ "rule-digest": "93b70d4af3ef",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportRelativeSign; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolScreen.g4#screenColumnClause",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb951_relative_sign_synonyms; unit:GrammarRelativeSignDriftTests.TheReportWriterGrammar_SpellsTheRelativeSignInOneRule",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB951. 'PLUS and + are synonyms' (ALL FORMATS). reportColumnOperand : reportRelativeSign? integerLiteral; the relative COLUMN operand is itself a 2002 form (construct report-multi-column-2002), so the synonym is witnessed at 2002+. COLUMN + 2 and COLUMN PLUS 2 place the item at the same column (§13.18.14.4 GR7-GR9).",
+ "state": "OK"
+}

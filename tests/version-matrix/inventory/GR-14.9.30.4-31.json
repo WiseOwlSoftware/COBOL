@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.30.4-31",
+ "section": "14.9.30.4",
+ "kind": "GR",
+ "ordinal": 31,
+ "subject": "READ statement",
+ "rule-digest": "0b0c13c39e0b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom",
+ "test-ref": "conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/l1_read_key_of_reference",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The alternate is established FIRST so the bare random READ's prime-key establishment is observable: the following READ NEXT gives 02/CC where an unchanged alternate key of reference would give at end '10'.",
+ "state": "OK"
+}

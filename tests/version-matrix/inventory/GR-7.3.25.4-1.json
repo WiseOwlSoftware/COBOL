@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.25.4-1",
+ "section": "7.3.25.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "TURN directive",
+ "rule-digest": "3198cc0382c9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs#Empty; src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs#Enabled",
+ "test-ref": "conformance-test:ExceptionConditionConformanceTests.Raise_CheckingOff_Nonfatal_ActsAsContinue",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "'The default TURN directive is >>TURN EC-ALL CHECKING OFF' (cite.py --check 7.3.25.4 \"The default TURN directive is\" OK). TurnState.Empty / a fold with no matching event returns null -> Enabled false for every name, the zero-scaffolding gate. Probe TRNP4/TRNG5B-style programs with no enabling TURN raise nothing (EXCEPTION-STATUS spaces). The covering test raises EC-USER-DEMO with no TURN and expects 31 spaces — derived from GR1 + §14.6.13.1.1. || editions (adjudicator): 2002, 2014, 2023 (the TURN directive is a COBOL-2002 introduction; §7.3 compiler directives)",
+ "state": "OK"
+}

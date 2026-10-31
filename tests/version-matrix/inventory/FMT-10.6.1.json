@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-10.6.1",
+ "section": "10.6.1",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "COBOL compilation group",
+ "rule-digest": "985639fb1dfa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SourceUnitShape.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programUnit; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#nestedProgram; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#endProgramHeader; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#commonProgramAttribute",
+ "test-ref": "conformance:cases/11.10-PROGRAM-ID/pb1507_source_unit_shapes_legal; conformance:cases/10.6-COBOL-compilation-group/pb1507-function-in-program; conformance:cases/10.6-COBOL-compilation-group/pb1507-program-in-function; conformance:cases/10.6-COBOL-compilation-group/pb1507-function-without-end-marker; conformance:cases/10.6-COBOL-compilation-group/pb1507-end-function-closes-program; conformance:cases/10.6-COBOL-compilation-group/pb1507-contained-program-without-procedure-division",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1507 (wave 1012 J). The printed 10.6.1 page was rendered by the adjudicator (cite.py --check 10.6.1 'procedure-division [ program-definition ]' OK). The source-unit SHAPE is now screened for every unit kind from ONE table (SourceUnitShape, COBOL2274 - the prototype-only screen it generalizes is deleted): a unit is contained only if it is a program definition, only a program definition prints the contained slot, the slot sits inside the procedure-division bracket, END PROGRAM closes the program kinds and END FUNCTION the function kinds, and the end marker is required wherever the format prints it unbracketed (every kind but the program definition). The six findings of the registrar's probes (a function in a program, a program in a function, a function without END FUNCTION, END FUNCTION closing a program and END PROGRAM a function, a nested program with no procedure division) each draw 2274 now; the prototype arms and every conforming part the adjudicator listed are unchanged. retired-witness: src/Cobol.Net.Compiler/Binding/PrototypeUnitRules.cs#ScreenUnitShape (ScreenUnitShape (the prototype-only shape screen) is deleted; SourceUnitShape.Screen, named in this record's code-location, screens every unit kind)",
+ "state": "OK"
+}

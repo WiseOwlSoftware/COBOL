@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.30.4-20",
+ "section": "14.9.30.4",
+ "kind": "GR",
+ "ordinal": 20,
+ "subject": "READ statement",
+ "rule-digest": "8319930b5280",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#HostPath; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseReelUnit",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-14.9.30.4-20",
+ "editions": "2002,2014,2023",
+ "notes": "RULE: 'If the PREVIOUS phrase is specified, the physical file associated with the file connector referenced by file-name-1 shall be a single reel/unit mass storage file.' cite.py --check 14.9.30.4 'shall be a single reel/unit mass storage file' -> OK 14.9.30.4 20). This is a requirement ON THE SOURCE PROGRAM, and in this implementation it is satisfied by every file that can exist: a connector is bound to exactly ONE resolved host path (FileConnector.HostPath) on a disk medium, there is no reel/unit or volume model, and the medium is 14.9.6.4 GR2 category (a) Non-unit (sequential) or (d) Non-sequential (relative, indexed) -- docs/CONFORMANCE.md section 7, A.1 item 24 -- which FileRegistry.CloseReelUnit's successful no-op reporting '07' (9.1.13.2 item 6) already shows. So no program can name a multi-reel physical file and there is no condition to detect or diagnose. VACUOUSLY CONFORMS -- recorded as CONFORMS rather than NOT-IMPLEMENTED because the rule imposes no implementation obligation once no file can span more than one reel/unit, and the medium choice is documented. READ ... PREVIOUS is implemented on every organization the clause admits: on a sequential file it follows GR21 b) and c) (kb/Work PB334; re-probed by PB604: after OPEN INPUT the first PREVIOUS makes the first record available and the second is the at end condition, status 10). test-ref empty -- nothing spec-derived tests a vacuous precondition.",
+ "state": "OK"
+}

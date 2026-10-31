@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.4.5.4-1",
+ "section": "13.4.5.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "File description entry",
+ "rule-digest": "f5573691ab4a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitFileRegistration; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration",
+ "test-ref": "conformance:cases/13.4.5-File-description/pb345_record_less_fd_area_2023",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'A file description entry associates file-name-1 with a file connector.' (cite.py --check 13.4.5.4 -> OK §13.4.5.4 1)). BindFileSection attaches each FD to the FileModel of its SELECT (FilesByName) and the emitters register exactly one connector per FileModel ('CobolFile.Register(\"<prog>::F\", ...)' observed in every probe's .g.cs), including a record-description-less FD (PB345, landed) and a report FD. EXTERNAL makes the association run-unit-wide (probe probe/fde/gr2/gr2.cob: two programs writing through one external connector interleave MAIN1/SUB1/MAIN2 in one file). The FD-without-SELECT direction is SR-13.4.5.3-1's (DIVERGES, separate row). pb345_record_less_fd_area is spec-derived (SR3 + GR6) and exercises the connector association on the hardest shape. || Editions (adjudicator): 85, 2002, 2014, 2023 (the file description entry and this rule exist in every edition; no Annex E item touches 13.4.5)",
+ "state": "OK"
+}

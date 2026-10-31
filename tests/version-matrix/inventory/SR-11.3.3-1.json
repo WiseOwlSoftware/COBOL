@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.3.3-1",
+ "section": "11.3.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "CLASS-ID paragraph",
+ "rule-digest": "cc786170db7e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ExternalizedName.cs#Screen",
+ "test-ref": "conformance:cases/11.3-CLASS-ID/pb303_as_class_id_literal; conformance:cases/11.3-CLASS-ID/pb303_as_class_id_zero_length_accepted",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "11.3.3 SR1 is the one clause of the six that omits the zero-length exclusion while keeping the figurative-constant one - verified against the printed page, not the transcription - and the shared screen honours that through its rejectZeroLength parameter. Both sides are pinned: the negative rejects a figurative constant, the positive golden ACCEPTS the zero-length literal that PROGRAM-ID rejects. kb/Work PB303.",
+ "state": "OK"
+}

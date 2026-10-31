@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.32.3-2",
+ "section": "13.18.32.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "JUSTIFIED clause",
+ "rule-digest": "c93749e00004",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#justifiedClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.18.32-JUSTIFIED/l1c16_justified_spellings",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"JUST is an abbreviation for JUSTIFIED.\" (cite.py --check 13.18.32.3 -> OK §13.18.32.3 2)). JUST and JUSTIFIED are one alternative of justifiedClause and bind identically (DataBinder.cs:3985 tests only justifiedClause() presence). Probe P1: A1 `PIC X(5) JUST` and A2 `PIC X(5) JUSTIFIED` both display [   AB] after MOVE \"AB\"; P12 same at --std 85. No test uses the JUST spelling -> test-ref empty.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.27.2",
+ "section": "13.18.27.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "GLOBAL clause",
+ "rule-digest": "b2f0ce476ecb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#globalClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileGlobalExternalClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGlobalClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#constantEntryBody",
+ "test-ref": "conformance:cases/8.4.6.2-Local-and-global-names/pb163_global_local_storage",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "General format `IS GLOBAL` (cite.py --check 13.18.27.2 \"GLOBAL\" -> OK, general format). Grammar: `IS? GLOBAL` in the data-description clause, FD (fileGlobalExternalClause, no AS phrase on the GLOBAL arm), RD (reportGlobalClause) and the constant entry (`CONSTANT (IS? GLOBAL)?`). IS optional, GLOBAL required: matches. Probes p1 (CONSTANT IS GLOBAL; 01 ... GLOBAL) and p8 (FD IS GLOBAL) parse and run. Screen-description site belongs to A.4.2 screen handling, Not claimed in docs/CONFORMANCE.md sec 5 (witness conformance:wiseowl/cases/_unassigned/a42-screen-global, kb/Work PB260 owns). || Editions (adjudicator): 1985, 2002, 2014, 2023 (constant entry and LOCAL-STORAGE sites from 2002)",
+ "state": "OK"
+}

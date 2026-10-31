@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.87.4-1",
+ "section": "15.87.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "SUBSTITUTE function",
+ "rule-digest": "faeffe2f1140",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Substitute; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#SubstituteFlat",
+ "test-ref": "conformance:cases/15.87.4-Returned-value-rules/pb81_substitute_table_all; conformance:cases/15.3-Arguments/pb58_argument_predicates_legal",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB81 (2026-08-18): a zero-length argument-1 or argument-2 sets EC-ARGUMENT-FUNCTION and returns a zero-length value — and, in the flat form, so do the §15.87.2 shapes only a runtime count can decide (an odd enumerated element count, a keyword before an argument-3 element, FIRST with LAST): the golden's MIX/ODD rows land the zero-length default with checking off.",
+ "state": "OK"
+}

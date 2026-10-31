@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.2.2.3-10",
+ "section": "8.4.2.2.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "Qualification",
+ "rule-digest": "560a5326eadc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CounterReportOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportSectionNameIn",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/pb1456_other_report_counters_85; conformance:cases/8.4.2.2-Qualification/pb1456_counter_in_source_expression; conformance:cases/8.4.2.2-Qualification/pb1049-unqualified-counter-two-reports",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1049 + PB1456 landed. cite.py --check 8.4.2.2.3 'PAGE-COUNTER shall be qualified each time it is referenced in the procedure division if more than one report description entry is specified in the source element' OK (SR10), the PAGE-COUNTER twin of SR9 through the same CounterReportOf: (PAGE-COUNTER OF R1 + 100) = 101 then 140 after MOVE 40 TO PAGE-COUNTER OF R1, and the unqualified (PAGE-COUNTER + 100) in R2's own report section is R2's own counter although the program has two reports (pb1456_counter_in_source_expression).",
+ "state": "OK"
+}

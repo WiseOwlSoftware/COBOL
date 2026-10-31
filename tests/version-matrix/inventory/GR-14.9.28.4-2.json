@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.28.4-2",
+ "section": "14.9.28.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "PERFORM statement",
+ "rule-digest": "868fdbfa9b0d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-14.9.28.4-2",
+ "editions": "85,2002,2014,2023",
+ "notes": "The rule's only implementable requirement is negative - the undefined overlap sets NO exception condition. There is no overlap detection anywhere in the dispatcher and Table 13 defines no exception-name for it, so nothing can be raised; MEASURED (probe gr2_overlap_ecall) with `>>TURN EC-ALL CHECKING ON`: PERFORM PA THRU PB whose PA executes PERFORM PC, PC does GO TO PB (the second PERFORM passes through the first's exit) runs PA/PC/PB and falls past PB, exit 0, no EC and no diagnostic. The resulting control flow is undefined per the rule, so the observed fall-through conforms; note that an inner PERFORM leaving through an outer exit can loop forever in this realization (an earlier probe shape did), which NOTE 1 expressly permits.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod CLOSED ON AN OWNER-SIGNED DERIVATION (docs/CONFORMANCE.md §8 row DRV-GR-14.9.28.4-2, decision Q27 of 2026-09-09): the rule has no observable obligation, so no spec-derived test can cover it.",
+ "state": "OK"
+}

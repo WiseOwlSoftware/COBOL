@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.3.6-L3.2",
+ "section": "9.3.6",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Objects",
+ "rule-digest": "d5e4a981c87d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveStateRegistry.cs; src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-9.3.6-L3.2",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (cite.py --check 9.3.6 'The same calling convention shall be in effect for the invocation as is in effect for the invoked method' -> OK §9.3.6 2)). WiseOwl COBOL provides exactly one convention: ENTRY-CONVENTION accepts only COBOL (non-COBOL names refused COBOL2385, adjudicated in the entry-convention-clause subject), and >>CALL-CONVENTION is recognized-and-ignored with a documented single-convention disposition (docs/CONFORMANCE.md, 'Recognized-and-ignored compiler directives (§7.3)': 'CALL uses the single .NET managed calling convention'). The invocation's and the method's conventions are therefore always the same one, and the condition is satisfied by construction. Probe out/probe/objects-p1/cc.cob: >>CALL-CONVENTION XYZ before INVOKE R \"M\" compiled and ran M-OK — consistent with the documented disposition (§7.3.9.3 GR2 b) leaves call-convention-name-1's meaning to the implementor). Vacuous today; it becomes a live check the day a second convention is provided. Test-needed (nothing observable to golden beyond the documented disposition). || Editions (adjudicator, verbatim): 2002, 2014, 2023 (OO is an ISO/IEC 1989:2002 introduction; absent from 1985 — probe p1.cob at --std 85 is refused COBOL0900)",
+ "state": "OK"
+}

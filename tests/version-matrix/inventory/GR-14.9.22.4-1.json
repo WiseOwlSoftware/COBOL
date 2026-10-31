@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.22.4-1",
+ "section": "14.9.22.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "INSPECT statement",
+ "rule-digest": "48ea7f940950",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsString; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#EmitStore",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/l1p5_inspect_general_rules",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR1 plus 13.18.38.4 GR8b: in-group ODO object, current extent (G2 2BB, G3 1z at the inspected count; G4 BACKWARD FIRST at GC=2 gives 2AB, where a maximum-length extent would give 2AA). Beyond-count content is undefined (13.18.38.4 GR7) and is never displayed.",
+ "state": "OK"
+}

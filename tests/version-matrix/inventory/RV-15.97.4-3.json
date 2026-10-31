@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.97.4-3",
+ "section": "15.97.4",
+ "kind": "RV",
+ "ordinal": 3,
+ "subject": "UPPER-CASE function",
+ "rule-digest": "bc049b533295",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#UpperCase; src/WiseOwl.Cobol.Runtime/Globalization/CharacterClassification.cs#For",
+ "test-ref": "conformance:cases/8.8.4.4-Simple-class-condition/pb64t5_character_classification; conformance:cases/12.3.6-OBJECT-COMPUTER/pb64t5_case_locale_phrase",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T5 (2026-08-19) — LANDED; was DIVERGES (the CHARACTER CLASSIFICATION clause was swallowed silently, then refused by name). Without a LOCALE phrase, in a module whose (own or inherited) CHARACTER CLASSIFICATION puts a locale in effect for the operand's class, the correspondence is that locale's LC_CTYPE — UPPER-CASE(\"i\") → U+0130 under CLASSIFICATION IS TR (UP-I), and under CLASSIFICATION IS LOCALE the locale current at the module's ACTIVATION (INNER = 305 vs OUTER-2 = 74). Rule --check verified at 15.97.4 3).",
+ "state": "OK"
+}

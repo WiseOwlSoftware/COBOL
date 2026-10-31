@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.16.3-15",
+ "section": "13.16.3",
+ "kind": "SR",
+ "ordinal": 15,
+ "subject": "Data description entry",
+ "rule-digest": "8cfc8e4f9d50",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RegisterTypeDecl; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries",
+ "test-ref": "conformance:cases/13.16-Data-description/pb488-typedef-level-77; conformance:cases/13.16-Data-description/pb488-typedef-subordinate; conformance:cases/13.16-Data-description/pb488-typedef-filler; conformance:cases/13.16-Data-description/pb488_condition_name_associations_ok",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB488 -- the row was CONFORMS-BUT-UNTESTED and this landing supplies the spec-derived witnesses, one per arm. LEVEL-NUMBER 1: RegisterTypeDecl rejects a TYPEDEF root whose Level is not 1 (COBOL1529, 'a type declaration shall be a level-01 record-description entry') and BindEntries' non-root arm rejects item.IsTypedef on any entry that lands under an open parent (COBOL1529, 'the TYPEDEF clause shall be specified only in a level-01 record-description entry'), so the level-77 spelling (pb488-typedef-level-77) and the subordinate spelling (pb488-typedef-subordinate) are both refused. DATA-NAME FORMAT OF THE ENTRY-NAME CLAUSE: RegisterTypeDecl rejects a null CobolName -- an omitted or FILLER entry-name, the OTHER format of the entry-name clause (13.18.20) -- with COBOL1529 and returns without registering, so no anonymous type-name can exist (pb488-typedef-filler). Each negative was measured to carry COBOL1529 at 2002, 2014 and 2023; below 2002 the TYPEDEF clause draws its own introduction gate instead, which is why the row's editions are 2002,2014,2023. The WELL-FORMED spelling is exercised positively by 2023/pb488_condition_name_associations_ok, whose `01 T IS TYPEDEF STRONG.` / `01 V TYPE T.` pair compiles and whose member is moved and read through the TYPE reference -- so the rule is pinned in both directions rather than only by rejections.",
+ "state": "OK"
+}

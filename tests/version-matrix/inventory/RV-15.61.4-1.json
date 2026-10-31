@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.61.4-1",
+ "section": "15.61.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "MEDIAN function",
+ "rule-digest": "efd01c95def5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#AllArgs",
+ "test-ref": "conformance:cases/8.4.2.3-Subscripts/pb62_all_subscript_runtime_ranges",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB62 — the ALL subscript as ONE enumerating operand with the standard's three ranges; admissibility from the definition; the summing family on the SDIDI carrier under a standard mode). §15.61.4 r1 (the ODD branch) reached over a genuinely variable occurrence count: golden MEDIAN = 5.0000 over an ODO ALL at WS-N = 3. The FIXED legs (the SDMIXPREC witness, FromDouble) stand as the sweep recorded.",
+ "state": "OK"
+}

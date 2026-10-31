@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.37.3-7",
+ "section": "13.18.37.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "NEXT GROUP clause",
+ "rule-digest": "19762772b7a6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindNextGroupClauses; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#MinimumLastLine",
+ "test-ref": "conformance:cases/13.18.37-NEXT-GROUP/pb957-next-group-report-heading-relative; conformance:cases/13.18.37-NEXT-GROUP/pb957-next-group-page-footing-relative",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB957. a) RH: minimum last line + integer-2 < FIRST DETAIL; b) PF: minimum last line + integer-2 <= page limit — both on COBOL2284.",
+ "state": "OK"
+}

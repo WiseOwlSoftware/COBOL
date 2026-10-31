@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.5-7",
+ "section": "8.3.5",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "Lexical elements",
+ "rule-digest": "64100b25e09b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#COLON; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#COLONCOLON",
+ "test-ref": "conformance:cases/8.3.5-Separators/l1c17_colon_separator",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'The COBOL character colon, except as part of the invocation operator, is a separator and is required when shown in the general formats.' (cite.py --check 8.3.5 OK §8.3.5 7)). COLON is a single-character token (a reference modifier's colon is the one COLON token, kb/Work PB2113; separators — `A(2:3)` with no spaces works); COLONCOLON '::' makes the invocation operator one lexical unit (PB428, landed). Required-when-shown: probe probe/lexical-elements/refmod.cob `A(2:3)`, `A (1 : 2)`, `A( 3 :)` print AAA|AA|AAA; refmodnocolon.cob `A(2 3)` rejected (COBOL2096); litclosecolon `\"AB\":N` rejected where no format shows a colon. || editions as written by the adjudicator: 1985, 2002, 2014, 2023 (§8.3.5 is common to all editions; Annex E lists no change to separators); the invocation-operator exception applies from 2002 (object orientation) retired-witness: src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4#SUB_COLON (kb/Work PB2113 deleted the SUBSCRIPT lexer mode; a reference modifier's colon is the one COLON token)",
+ "state": "OK"
+}

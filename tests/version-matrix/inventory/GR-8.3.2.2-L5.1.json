@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.3.2.2-L5.1",
+ "section": "8.3.2.2",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "COBOL words",
+ "rule-digest": "68d657a56bfd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#ProgramPrototypesOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb237_program_prototype",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: `OK §8.3.2.2 1)` \"If the CALL statement, CANCEL statement, or program-address-identifier specifies a program-prototype-name, the naming convention and mapping used for the program-name is determined by the entry convention indicated by the description of the program to be called, as specified in 12.3.8, REPOSITORY paragraph, General rule 10;\". The only entry convention is COBOL (ENTRY-CONVENTION IS <other> refused COBOL2385, DOC-A.1-64), so the rule reduces to: the prototype's externalized name (literal-3 when written, else the word — §12.3.8.4 GR10 NOTE 1) is what CALL / CANCEL / ADDRESS OF PROGRAM reach. conformance:cases/8.3.2.2-User-defined-words/pb237_program_prototype (expected values derived in its header from §12.3.8.4 GR10 and §14.9.4.4 GR3 b)) exercises CALL PB237ADD, CALL \"PB237ADD\" AS PB237ADD, CALL SCALE-IT where `PROGRAM SCALE-IT AS \"PB237MUL\"` activates PB237MUL, and CANCEL PB237ADD SCALE-IT; conformance:cases/8.4.3.13-Program-address-identifier/pb549_program_address_identifier arm 4 pins ADDRESS OF PROGRAM PB549P reaching externalized name \"PB549X\" (§8.4.3.13.4 GR2). Both goldens state their expected output as derived from the rules, never measured. Not re-probed separately; the same externalized-name resolver (the ProgramTable call path, CallProgram's name lookup) was exercised by out/probe/callconv/cc4.cob. || editions as written by the adjudicator: 2002, 2014, 2023 (program-prototype-names, the REPOSITORY program-specifier and program-address-identifiers are COBOL-2002 additions) retired-witness: src/Cobol.Net.Runtime/Control/ProgramTable.cs#Resolve (ProgramTable declares no Resolve; the externalized-name resolution is its call path (CallProgram, EntryOf, Cancel))",
+ "state": "OK"
+}

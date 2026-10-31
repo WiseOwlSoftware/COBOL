@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.8.3-4",
+ "section": "8.4.3.8.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "SELF and SUPER",
+ "rule-digest": "8c59e59632f5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindByReceiver; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#selfAndSuper",
+ "test-ref": "conformance:cases/8.4.3.8-SELF-and-SUPER/pb1425-super-qualifier-not-inherited; conformance:cases/8.4.3.1-Identifier/pb1425_qualified_super",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1425 (w1014 group S, the qualified-SUPER mechanism). SR4 (cite.py --check 8.4.3.8.3 4) OK): object-class-name-1 shall name a class of the containing class's INHERITS clause. OoBindByReceiver resolves the qualifier through OoNameResolution (REPOSITORY scope) and refuses any class other than the containing class's base COBOL2777 (negative: the containing class itself named before OF SUPER). One receiver dispatch serves the INVOKE statement and the inline invocation (8.4.3.4.4 GR1).",
+ "state": "OK"
+}

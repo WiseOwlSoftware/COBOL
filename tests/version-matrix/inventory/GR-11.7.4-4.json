@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.7.4-4",
+ "section": "11.7.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "METHOD-ID paragraph",
+ "rule-digest": "00a00a5ff545",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs; src/WiseOwl.Cobol.Compiler/Oo/OoClassSymbol.cs#FindMethod",
+ "test-ref": "conformance:cases/11.7-METHOD-ID/oo_hello",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 11.7.4 \"The name of this method may be referenced in the invocation of a method\" -> OK. INVOKE / inline invocation resolve the method by its (externalized) name against the instance/factory roster of the object's class and its superclasses; many 2002 goldens (oo_hello, oo_method_args, oo_self, oo_inherit) invoke methods by name at run time. || Editions (adjudicator, verbatim): 2002, 2014, 2023 (METHOD-ID is part of the OO facility introduced by COBOL 2002; absent at 1985)",
+ "state": "OK"
+}

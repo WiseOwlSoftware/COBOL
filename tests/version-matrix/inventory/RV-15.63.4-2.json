@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.63.4-2",
+ "section": "15.63.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "MIN function",
+ "rule-digest": "e0022846c128",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#Compare; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Select.cs#MinAt",
+ "test-ref": "conformance:cases/15.59.4-Returned-value-rules/pb65_selection_alignment; unit:CobolNumCompareScaledTests.SelectionBodies_39AlignedDigits_PickTheRightArgument",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PB65 (alignment/selection members) LANDED 2026-08-09: comparisons ride the exact non-widening CobolNum.Compare (sign split + overflow-means-greater), selection compares each argument AT ITS OWN SCALE and rescales only the selected value (store semantics into a known receiver; LOUD escape receiverless). RESIDUE, documented: a 39-digit-escape selection through a receiverless MOVE raises EC-SIZE rather than answering - loud, never wrong. PROBED: Selection is now BY INDEX (SelectMin/SelectMax) with the selected argument's CONTENT returned - the computed-value shape this row recorded is gone; CM line proves content fidelity. PRIOR (PARTIAL): REFUTED: CONFORMS → PARTIAL. The STRING half is genuinely verified and I strengthened it — leftmost-on-tie is realized by the strict comparison in ExtremeIndex (`if (max ? c > 0 : c < 0) k = i;`), MinString returns `xs[k || editions 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the MIN function exists from 85 (IntrinsicCatalog.cs, the COBOL1502 edition window).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.12.3-1",
+ "section": "14.9.12.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "DIVIDE statement",
+ "rule-digest": "2155520b68ae",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NonNumericOperandKind",
+ "test-ref": "conformance:cases/14.9.2-ADD/da6-group-numeric-operand; conformance:cases/14.9.2-ADD/da6-alphanumeric-numeric-operand; conformance:cases/14.9.2-ADD/da6-refmod-numeric-operand; conformance:cases/14.9.12-DIVIDE/pb155-add-edited-operand; conformance:cases/14.9.12-DIVIDE/pb155-divide-into-alpha",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB155): SENDING half - NonNumericOperandKind drops its `EditMask: null` guard, so an alphanumeric-edited (or national-edited) operand is category alphanumeric-edited to the screen and rejects under strict with 0844 (the digit-decode leniency stays dialect-gated behind --permissive, where it was previously applied unconditionally); pb155-add-edited-operand pins it, and the DIVIDE slots ride the same OperandContext.Arithmetic screen. RECEIVING half - the adjudication read ResolveReceiving alone and missed PB128's ScreenResultant, which Receivers applies right after it: `DIVIDE 2 INTO <PIC X>` is COBOL1675 at bind (probed at landing; pb155-divide-into-alpha pins the DIVIDE-shaped call site, whose editedOk:false cites SR1).",
+ "state": "OK"
+}

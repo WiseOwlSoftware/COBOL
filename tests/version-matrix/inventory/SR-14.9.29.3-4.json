@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.29.3-4",
+ "section": "14.9.29.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "RAISE statement",
+ "rule-digest": "4bc30aea014c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs",
+ "test-ref": "conformance:cases/14.9.29-RAISE/l1c23-raise-in-perform-when-phrase; conformance:cases/14.9.29-RAISE/l1c23-raise-in-perform-finally",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "\"Within an exception-checking PERFORM statement, the RAISE statement shall not be specified in any imperative statement other than imperative-statement-1.\" (cite.py --check 14.9.29.3 -> OK §14.9.29.3 4)). Region D = every WHEN-phrase statementBlock plus FINALLY; a descendant sweep emits COBOL1611. Probe probe/raise/sr4.cob (RAISE in WHEN EC-SIZE, WHEN OTHER and FINALLY) -> COBOL1611 citing SR4; RAISE in imperative-statement-1 is accepted (conformance-test:PerformFormat3Tests.RaiseInImp1_Accepted_NoBan pins the accept half). Observations, not verdict-changing: the diagnostic is anchored at the PERFORM's position (8,12), not the RAISE's line, and the three violations print once; a RAISE inside a nested inline PERFORM inside a WHEN phrase is caught (descendant sweep), which is the literal reading. No test asserts the REJECT half (no *Rejected1611 test exists) -> test-needed. [editions as adjudicated: 2023 (the exception-checking PERFORM is new in 2023, E.3.3 item 36 / VCR row 79)]",
+ "state": "OK"
+}

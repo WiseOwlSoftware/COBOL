@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.54.4-4",
+ "section": "13.18.54.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "SUM clause",
+ "rule-digest": "d9571f554412",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SumPresentable; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#FieldImage; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#SumCounterDigits",
+ "test-ref": "conformance:cases/13.18.54-SUM/pb1296_sum_counter_digits_85; conformance:cases/13.18.35-LINE/pb1130_report_sum_size_line_overlap",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1296 (with PB1130): the counter is moved to its printable item unless its size error indicator is set, when EC-REPORT-SUM-SIZE is raised and the item is spaces. The capacity the indicator is set against is GR1s digit count PER CATEGORY (SumCounterDigits): ZZ9 / Z(3) / $$$9 are three digits, 9,999 four, X(4) four, XXBX three; 99 overflows at 120 and prints spaces.",
+ "state": "OK"
+}

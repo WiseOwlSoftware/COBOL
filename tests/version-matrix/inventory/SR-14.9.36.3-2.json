@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.36.3-2",
+ "section": "14.9.36.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "ROLLBACK statement",
+ "rule-digest": "e2a87715e6e6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateSortMergeProcedures; src/WiseOwl.Cobol.Compiler/Binding/Model/PcRange.cs#Spans",
+ "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb812-rollback-in-inverted-sort-procedure",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB812 landed (w1031h). cite.py --check 14.9.36.3 \"This statement shall not be specified in the input or output procedure of a MERGE or SORT statement.\" -> OK 14.9.36.3 2). The BoundCommitRollback arm of GateSortMergeProcedures asks the ONE lexical membership test PcRange.Spans (PB1139), so a ROLLBACK written in an INVERTED input procedure (INPUT PROCEDURE IS IN-B THRU IN-A, IN-A physically first) is refused with COBOL1690 - and the diagnostic is now positioned AT the statement (the bound node carries the binder's cursor), where it used to carry no source location. The negative pins both: (31,5): error COBOL1690. The procedure is the text as written; a ROLLBACK reached by a PERFORM out of the procedure is not written in it (the dynamic range is GR10's runtime EC-SORT-MERGE-ACTIVE).",
+ "state": "OK"
+}

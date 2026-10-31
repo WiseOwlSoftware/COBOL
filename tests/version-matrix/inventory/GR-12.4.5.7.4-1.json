@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.7.4-1",
+ "section": "12.4.5.7.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "COLLATING SEQUENCE clause",
+ "rule-digest": "73cf3f78291e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FixedFileAttributes.cs#Fingerprint",
+ "test-ref": "unit:FileBoundaryTests.CollatingFingerprint_SeesADifferenceAboveLatin1",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1093 LANDED via PB1759: the fixed-attribute fingerprint of a key's collating sequence hashes the weight of every one of the 65,536 native characters (it hashed U+0000-U+00FF only), so two sequences that differ only above Latin-1 are different fixed file attributes and a conflicting OPEN is '39' (the conflict arm itself unchanged; the earlier probe p13 measured it). cite.py --check 12.4.5.7.4 \"Each collating sequence is a fixed file attribute\" -> OK 1). Unit: two AlphanumericCollation tables identical over U+0000-U+00FF and differing at U+0100/U+0101 fingerprint differently, and an equal table fingerprints equal.",
+ "state": "OK"
+}

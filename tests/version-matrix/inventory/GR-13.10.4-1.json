@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.10.4-1",
+ "section": "13.10.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Constant entry",
+ "rule-digest": "621c7d730d41",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#BindConstantFrom; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#BindConstantStringLiteral; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#ConstantValueRawText; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveSubscriptName; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#LiteralAliasOf",
+ "test-ref": "conformance:cases/13.10-Constant/constant_entry; conformance:cases/7.3.11-DEFINE/pb1368_constant_from_compilation_variable",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1228 (w1006c). cite.py --check 13.10.4 \"If literal-1 or compilation-variable-name-1 is specified, the effect of specifying\" -> OK GR1. The FROM arm substitutes the text the variable represents: a numeric variable's directive literal (dot-decimal per 12.3.7.4 NOTE 4, rewritten with the comma under DECIMAL-POINT IS COMMA), an expression variable's 7.3.6.3 GR3 integer, an alphanumeric/national/boolean literal re-quoted for the text-plumbed VALUE path. Golden: CN=3 (and PIC X(CN) = 3 positions), CA=ABC, CE=14 (2 + 3 * 4), CR*2=5.0. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#ConstantOperand (kb/Work PB1544 deleted ConstantOperand: a constant-name in a procedure position is resolved by the one ExpressionBinder.LiteralAliasOf, which now witnesses the rule) || editions corrected from '2002' to 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a constant-entry rule; the constant entry (level 01 CONSTANT) is a COBOL-2002 introduction. cite.py --check 13.10.3 \"The length of data-name-1 or data-name-2 shall not be dependent\" OK.",
+ "state": "OK"
+}

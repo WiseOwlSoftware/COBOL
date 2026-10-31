@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.25.3-6",
+ "section": "15.25.3",
+ "kind": "AR",
+ "ordinal": 6,
+ "subject": "DAY-TO-YYYYDDD function",
+ "rule-digest": "2fd66bdf560a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#YearToYyyyAt",
+ "test-ref": "conformance:cases/15.23.3-Argument-rules/pb65_date_windowing; conformance:cases/15.23.3-Argument-rules/pb311_date_day_windowing_r6_bounds; unit:CobolDateWindowingTests.DayToYyyyddd_R6_SumIsArgument2PlusArgument3",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "PB65 (date-windowing members) LANDED 2026-08-09: omitted-ness is the ARITY (two-arg vs three-arg overloads; the renderer emits exactly the arguments present), argument-3 is validated AS WRITTEN, and errored delegations return the documented default whole. PROBED: same r6-from-written fix; R6VIOL line pins the violating sum. PRIOR (DIVERGES): ⛔ OVERTURNED: PARTIAL -> DIVERGES. The adjudicator graded PARTIAL because the only escape it found was inherited from the AR-15.25.3-4 sentinel ('fixing the sentinel closes this row too - no independent change is needed ",
+ "state": "OK"
+}

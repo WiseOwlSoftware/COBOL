@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.3.6-L3.1",
+ "section": "9.3.6",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Objects",
+ "rule-digest": "b50cfdcff473",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindResolvedInvoke; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitCobolInvoke; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitCobolInvokeCase",
+ "test-ref": "conformance-test:OoSpineTests.Trap3_InvokeArityMismatch_0828; conformance:cases/9.3.6-Method-invocation/w67q_pb1500_universal_no_match; conformance-test:OoSpineTests.Universal_ArityMismatch_NoMatch_EcOoMethod; conformance-test:OoSpineTests.Universal_ReturningPresenceMismatch_NoMatch_EcOoMethod",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1500: Rule (cite.py --check 9.3.6 'The number of invocation parameters shall be equal to the number of parameters defined in the invoked method' -> OK §9.3.6 1)): equal count, trailing-OPTIONAL omission counts as equal, RETURNING presence both directions. The CONDITION is computed correctly on both paths: typed — OoBindResolvedInvoke refuses too many arguments or an omitted non-OPTIONAL trailing formal (COBOL0828) and pairs RETURNING both directions (0828, OoSpineTests.InvokeConformanceAndReturningPairing_0828); universal — the emitted arity stop uses minArgs = last non-OPTIONAL formal + 1 (PB757) and checks RETURNING presence both ways. Probe out/probe/objects-p1/e_OPT.cob: one argument against formals (LN, OPTIONAL LX) through a universal receiver bound and ran (TO:007). PARTIAL because the CONSEQUENCE of a failed match through a universal receiver is wrong: e_ARITY.cob and e_RET.cob stop with an EC-less implementor fatal (EC-OO-UNIVERSAL only when checking is on) where a non-matching sole candidate means §9.3.6 step 6, EC-OO-METHOD — finding F1 (GR-9.3.6-L2.6). || Editions (adjudicator, verbatim): 2002, 2014, 2023 (OO is an ISO/IEC 1989:2002 introduction; absent from 1985 — probe p1.cob at --std 85 is refused COBOL0900) || w67q 2026-09-27 (kb/Work PB1500, landed): the CONSEQUENCE of a failed rule-1 match through a universal receiver is now 9.3.6 step 6 (EC-OO-METHOD) - the failed case breaks to the inherited class's search (see GR-9.3.6-L2.6). e_ARITY / e_RET re-probed.",
+ "state": "OK"
+}

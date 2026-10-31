@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.2.4.3-7",
+ "section": "7.2.4.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "REPLACE statement",
+ "rule-digest": "5769f9c02112",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements",
+ "test-ref": "conformance:cases/7.2.4-REPLACE/replace-literal-partial-word; unit:TextManipulationStatementTests.ReplaceOperandContent_IsScreened",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1353 (w68x): 'An alphanumeric, boolean, or national literal shall not be specified as partial-word-1 or partial-word-2' (cite.py OK 7.2.4.3 7)): the pseudo-text half (=='AB'== under LEADING/TRAILING) is now COBOL2572; the bare-literal half stays COBOL1641 (R39).",
+ "state": "OK"
+}

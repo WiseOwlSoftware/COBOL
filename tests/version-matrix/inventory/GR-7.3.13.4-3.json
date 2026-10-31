@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.13.4-3",
+ "section": "7.3.13.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "EVALUATE directive",
+ "rule-digest": "49f73fc82945",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateBoolean; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#MatchWhen",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/l1c07_evaldir_boolean_operands",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR3 (cite.py --check 7.3.13.4 OK): boolean-expression-1/-2 evaluated per 7.3.7 (-> 8.8.2). EvaluateOperand routes a booleanExpression operand through EvaluateBoolean = the ONE BooleanExpressionResolver, leaves restricted to boolean literals / boolean compilation variables per 7.3.7.2 SR1. Probes: >>EVALUATE B\"1010\" B-AND B\"0110\" matched >>WHEN B\"0010\" (not B\"0001\"); >>EVALUATE B-NOT B\"1101\" matched B\"0010\". Subject- and object-side boolean operands both evaluated. The unit ConditionalCompilationDefineTests boolean case covers >>DEFINE, not >>EVALUATE, so test-ref empty. Probe dir out/probe/evaldir2 (pinned cobol.exe, --std 2023; p1 re-run at --std 2002 and 2014 with identical output; --std 85 rejects >>EVALUATE with COBOL0900). || editions (adjudicator): 2002, 2014, 2023 (the 7.3 directive facility is absent from 1985; Annex E.2 item 8 records the 2023 rewording of GR6/GR10 only)",
+ "state": "OK"
+}

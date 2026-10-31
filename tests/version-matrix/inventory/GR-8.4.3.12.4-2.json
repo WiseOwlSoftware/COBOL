@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.12.4-2",
+ "section": "8.4.3.12.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Function-address-identifier",
+ "rule-digest": "93ef168a6bc3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#FunctionAddressOf; src/WiseOwl.Cobol.Runtime/Control/FunctionPointer.cs; docs/CONFORMANCE.md#DOC-A.1-210",
+ "test-ref": "conformance:cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb452_set_function_pointer; conformance:cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb452_function_address_runtime",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "'For a COBOL function, the address is that of the function identified by the externalized function-name in its FUNCTION-ID paragraph' - this implementation's function-pointer representation IS that name (ProgramTable.Node.CallName, the 11.5.4 GR1 AS literal when one is written and the declared word otherwise, kb/Work PB303), so the rule is satisfied by construction rather than by a conversion. 'For a non-COBOL function, the relation between the address and the associated function is defined by the implementor' - this implementation declares support for no non-COBOL function, which is published under A.1 item 210 (docs/CONFORMANCE.md section 7 DOC-A.1-210, the allowable-languages half); such a function has no run-unit registration, so GR4 - EC-FUNCTION-NOT-FOUND and the predefined address NULL - is the defined answer for one.",
+ "state": "OK"
+}

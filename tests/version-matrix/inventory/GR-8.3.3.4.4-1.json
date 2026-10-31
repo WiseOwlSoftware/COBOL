@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.3.3.4.4-1",
+ "section": "8.3.3.4.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Boolean literals",
+ "rule-digest": "d2e59f859279",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#Decode",
+ "test-ref": "conformance-test:NationalBooleanLiteralTests.Display_BooleanLiteral_DecodesPrefixAndQuotes",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "'The separators that delimit the boolean literal are not included in the value of the boolean literal' (cite.py --check 8.3.3.4.4 GR1 OK). SplitLiteral strips the B/BX prefix and the delimiters; Decode returns only the body. Probe bl1: DISPLAY B\"0101\" -> 0101, B'10' -> 10; FUNCTION LENGTH(B\"0101\")=4. || editions as written by the adjudicator: 2002, 2014, 2023 (boolean literals are a COBOL-2002 introduction, gated COBOL0900 at --std 85 - probe bl7; the zero-length-literal introduction edge is not derivable from the in-repo 2023 text, whose Annex E lists only the 2014->2023 delta)",
+ "state": "OK"
+}

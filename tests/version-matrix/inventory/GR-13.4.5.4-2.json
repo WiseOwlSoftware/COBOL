@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.4.5.4-2",
+ "section": "13.4.5.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "File description entry",
+ "rule-digest": "0d9691be082b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs#Describe; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#CheckExternalFileConsistency; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileSection",
+ "test-ref": "conformance:cases/13.4.5-File-description/l1_external_fd_agreement; conformance:cases/13.4.5-File-description/l1_external_fd_report_agreement",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§13.4.5.4 2) a)-e): agreeing external FDs in two programs share one connector (external LINAGE-COUNTER 3 then 4, interleaved records); c) 2. via LINAGE IS <external item> (ZLC=0003); b) with different alphabet-names for the same character set; e) two REPORT-clause FDs accepted and run",
+ "state": "OK"
+}

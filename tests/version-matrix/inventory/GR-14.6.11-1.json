@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.11-1",
+ "section": "14.6.11",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Execution",
+ "rule-digest": "ea17f2dcf2d8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/WiseOwl.Cobol.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CommitSequential; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RollbackSequential; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
+ "test-ref": "unit:CommitRollbackRuntimeTests.Termination_commits_a_normal_ending_and_rolls_back_an_abnormal_one; unit:CommitRollbackRuntimeTests.A_run_unit_boundary_commits_a_normal_ending_and_rolls_back_an_abnormal_one; conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.Normal_termination_commits_and_abnormal_termination_rolls_back",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB3340 (wave 1157): Normal termination commits every file under commit control, sequential included (FileRegistry.CloseAll -> EndTransactions -> Commit). Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5).",
+ "state": "OK"
+}

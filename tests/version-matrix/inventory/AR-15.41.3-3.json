@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.41.3-3",
+ "section": "15.41.3",
+ "kind": "AR",
+ "ordinal": 3,
+ "subject": "FORMATTED-TIME function",
+ "rule-digest": "99c09a46779c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#FormattedTime",
+ "test-ref": "conformance:cases/15.41.3-Argument-rules/l1_formatted_time_seconds_range_ec",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "15.5.5 plus 7.3.17.4 5) bound the form at [0, 86400) under the 7.3.17.4 1) implied OFF; 15.3 14) requires EC-ARGUMENT-FUNCTION, asserted with checking ON at both ends - the low end had no prior witness.",
+ "state": "OK"
+}

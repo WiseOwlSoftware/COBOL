@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.40.5-1",
+ "section": "13.18.40.5",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "PICTURE clause",
+ "rule-digest": "6b4f32800f35",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Format; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#TrySimpleInsertion; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#FormatSimpleInsertion",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb490_simple_insertion_strings_85; conformance:cases/13.18.40-PICTURE/pb490_editing_simple_insertion; unit:CobolEditSimpleInsertionDriftTests.TheSetIsRule3s_AndNothingElseIsSimpleInsertion; unit:CobolEditSimpleInsertionDriftTests.Pass1_PlacesTheInsertionCharacterAtTheSymbolsOwnPosition",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB490 LANDED - the refutation that held this row PARTIAL is answered. It was refuted because one of rule 1's enumerated mechanisms, SIMPLE INSERTION, was written down three times with three different symbol sets (Format pass 1, pass 2's membership test, and the second format-1 editor, now FormatSimpleInsertion), so three of the six enumerated mechanisms - simple insertion, floating insertion and zero suppression with replacement - each carried a wrong-answer defect. There is now ONE definition of the set (CobolEdit.SimpleInsertionSymbols / TrySimpleInsertion) and all four consumers read it, FormatSimpleInsertion included, which also gives it the EDITING character-1 it never had. All six mechanisms exist, each is the mechanism the rule names, and no seventh exists; format 2's locale editing (rules 9-15) remains CobolLocaleEdit's separate path with its own rows. CobolEditSimpleInsertionDriftTests derives its masks FROM the set and fails if any consumer narrows its copy again - the drift was verified to fail the tests by re-injecting it before this row was recorded. retired-witness: src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.cs#FormatAlphanumeric (FormatAlphanumeric is now CobolEdit.FormatSimpleInsertion (kb/Work PB492, fafeadb8b))",
+ "state": "OK"
+}

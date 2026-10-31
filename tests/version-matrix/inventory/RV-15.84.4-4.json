@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.84.4-4",
+ "section": "15.84.4",
+ "kind": "RV",
+ "ordinal": 4,
+ "subject": "SQRT function",
+ "rule-digest": "296e081a2320",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Sqrt",
+ "test-ref": "conformance:cases/10.6-COBOL-compilation-group/pb246_sqrt_absolute_value_and_domain; conformance:cases/15.84.4-Returned-value-rules/float_intrinsic; conformance:cases/15.84.4-Returned-value-rules/pb52_intrinsic_argument_stage; conformance:cases/15.20.4-Returned-value-rule/pb999_log_trig_decimal_range",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "CLOSED by kb/Work PB246. Citation re-derived: cite.py --check 15.84.4 'the returned value is the absolute value of the approximation of the square root of argument-1' -> OK, rule 4 - and the rule's own lead-in is 'When native arithmetic is in effect', so CobolIntrinsics.Float.cs#Sqrt IS this rule's site and the SDIDI lane answers to r2 instead. THE APPROXIMATION HALF WAS ALREADY CONFORMING (Math.Sqrt is IEC 60559 correctly-rounded). THE ABSOLUTE-VALUE HALF WAS NOT IMPLEMENTED AT ALL, only unreachable-by-argument: grep Abs over the file returned nothing. The rule does not say 'made non-negative when negative'; it says the returned value IS the absolute value, and IEEE abs clears the sign bit - |-0.0| is +0.0 while IEC 60559 mandates sqrt(-0) = -0 EXACTLY so that sqrt is not the absolute value there. Negative zero is therefore the unique input on which r4's phrase does work, it is a LEGAL argument-1 (15.84.3 r2 admits zero) that a COMP-1/COMP-2 item reaches by ordinary native underflow, and the receiver-less/float arm renders it unquantized through CobolFloat.Display, which is IEEE-faithful and prints the sign. Math.Abs on the result IS r4. OBSERVABILITY MEASURED, NOT ASSUMED - the row's predecessor reported this as an unverified edge because it was read-only: 2002/pb246_sqrt_absolute_value_and_domain DISPLAYs the argument first (NZ=-0, so the probe demonstrably IS a negative zero and not a plain zero) and then SQL=0 on the receiver-less arm, SQR=0 into a COMP-2 receiver that stores the signed zero bit for bit, and SQ4=00200 on a fixed-point receiver. SIBLING SWEEP: ABS's own body is already Math.Abs; STANDARD-DEVIATION now composes 15.86.4 r1's expression literally - FUNCTION SQRT of FUNCTION VARIANCE - in both carriers, so neither re-decides this rule through a bare Math.Sqrt or CobolDec.Sqrt. float_intrinsic and pb52_intrinsic_argument_stage are retained as the binary64-pipeline evidence they are.",
+ "state": "OK"
+}

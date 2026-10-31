@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.13.3-13",
+ "section": "7.3.13.3",
+ "kind": "SR",
+ "ordinal": 13,
+ "subject": "EVALUATE directive",
+ "rule-digest": "da4b1e0548c8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#FindRangeWord; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#SplitRange",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/l1c07_evaldir_thru_through",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 7.3.13.3 \"The words THROUGH and THRU are equivalent.\" OK. FindRangeWord matches either word, case-insensitive, whole-word, outside string literals. Probe K: `>>EVALUATE 5` with `>>WHEN 1 THRU 4` / `>>WHEN 5 THROUGH 9` -> B, and `>>WHEN 5 THRU 9` -> C (both spellings select identically). directive_expressions uses only THROUGH; tests/conformance/2023/l1_evaluate_thru_through_equivalent is the §14.9.13 STATEMENT, not this directive -- no covering test. || editions (adjudicator): 2002, 2014, 2023 (the §7.3 compiler-directive facility, absent from 1985; Annex E E.2 item 8 shows the EVALUATE directive already in the previous standard)",
+ "state": "OK"
+}

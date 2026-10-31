@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.3.4-5",
+ "section": "11.3.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "CLASS-ID paragraph",
+ "rule-digest": "fb5823973c5d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#classIdParagraph; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#interfaceDefinition; src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#Expand",
+ "test-ref": "conformance:cases/11.3-CLASS-ID/pb759_parameterized_class; conformance-test:ParameterizedClassTests.UnexpandedSkeletons_Compile",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB759.md landed w46i3. USING makes the class parameterized: the definition is a skeleton that binds and emits nothing (kept out of OoClassTable, recorded by IsParameterized); each EXPANDS creates an ordinary class from it per 9.3.12 (OO_DESIGN D12). Golden: PB759HOLD expanded twice, each with its own factory object.",
+ "state": "OK"
+}

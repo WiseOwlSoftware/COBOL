@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.8.2-3",
+ "section": "7.3.8.2",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Constant conditional expression",
+ "rule-digest": "5a6d79f33b3b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateBoolean; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvalRelationOrBoolean",
+ "test-ref": "conformance:cases/7.3.8-Constant-conditional-expression/l1c05_cce_boolean_expression; conformance:cases/7.3.8-Constant-conditional-expression/l1c05-cce-boolean-alnum-operand; conformance:cases/7.3.8-Constant-conditional-expression/l1c05-cce-boolean-numeric-operand",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: boolean expression in a cce formed per §7.3.7 — operands boolean literals only (cite.py --check 7.3.8.2 and 7.3.7.2 OK). Probes (2023): f1 'B\"1\" B-AND \"1\" = B\"1\"' rejected (§7.3.7.2 SR1); f2 'B\"1\" B-AND 1' rejected; f4 undefined name X rejected; e6 'B\"1\" B-XOR B\"1\" = B\"0\"' TRUE; d9 'B\"1\" = B\"1\" B-AND B\"0\"' FALSE; f3 'B-NOT B\"0\"' TRUE. Operator semantics pinned by unit:CompileTimeBooleanCceTests.Boolean_BinaryAndUnary (operand evaluator, not cce context) — no cce-context formation-rejection test, so test-ref empty.",
+ "state": "OK"
+}

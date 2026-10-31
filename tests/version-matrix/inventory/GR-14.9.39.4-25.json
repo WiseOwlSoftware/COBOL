@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-25",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 25,
+ "subject": "SET statement",
+ "rule-digest": "a22f48aea1b7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/LocaleState.cs#LocaleState",
+ "test-ref": "conformance:cases/14.6.6-Locale-identification/pb64t1_set_locale_categories; unit:LocaleStateTests.Set_SwitchesOnlyTheNamedCategories_AndTheyPersist",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T1 (2026-08-19): the state is run-unit-scoped (RunUnit.Locale, never per activation — §14.6.6 r9); a category stays until another SET names it (the GR25 line of the golden). Was DOCUMENTED-NON-SUPPORT (PB92).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.55.4-1",
+ "section": "15.55.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "LOG function",
+ "rule-digest": "f9046dde35ed",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#SignDec; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#WholeRangeBodies; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Log; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#LogOnePlus",
+ "test-ref": "conformance:cases/15.4.1-Numeric-and-integer-functions/pb56_dec_carrier_intrinsics; conformance:cases/15.20.4-Returned-value-rule/pb999_log_trig_decimal_range; unit:WholeRangeBodiesDriftTests.LogFamily_OutsideBinary64_AnswersForTheRealArgument; conformance:cases/15.8.4-Returned-value-rule/pb1041_trig_log_arc_exact_argument; unit:WholeRangeBodiesDriftTests.EveryExactIntakeArm_AnswersForTheExactArgument",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PB56 LANDED 2026-08-09: the Dec-carrier body - the SS15.4.1 r1 EAE evaluates ON the SDIDI (CobolIntrinsics.Dec.cs via IntrinsicRenderer.RenderDec), arguments lifted exactly, never quantized; prose-family results convert in per SS8.8.1.5.1. PROBED: LG=0.000000000: LOG(1)=0 exact; the standard-mode result converts in via CobolDec.FromDouble. PRIOR (PARTIAL): REFUTER: OVERTURNED CONFORMS -> PARTIAL. CITATION RE-VALIDATED: `--check 15.55.4 \"The returned value is the approximation of the logarithm to the base *e* of argument-1.\"` -> OK §15.55.4 1). THE NATIVE-ARITHMETIC HALF IS CORRECT and I confirm the adj",
+ "state": "OK"
+}

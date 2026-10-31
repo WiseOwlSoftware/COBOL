@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.38.3-18",
+ "section": "13.18.38.3",
+ "kind": "SR",
+ "ordinal": 18,
+ "subject": "OCCURS clause",
+ "rule-digest": "f0c10260932e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#DependingAttributeFault; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#IsGlobalRecord; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ResolveReportOccursDepending",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb1261-depending-not-global; conformance:cases/13.18.38-OCCURS/pb1261-report-depending-not-global; conformance:cases/13.18.38-OCCURS/pb1261_depending_attributes_and_area",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1261 (wave 1015 Y). cite.py --check 13.18.38.3 \"If the OCCURS clause is specified in an entry subordinate to one containing the GLOBAL clause, data-name-1, if specified, shall be a global name\" -> OK 18). Format 2: OdoResolve asks DependingAttributeFault; a table in a global record (its own GLOBAL clause or a GLOBAL FD's, 8.4.6.2.2) whose data-name-1 is not in a global record draws COBOL2788. Format 3: ResolveReportOccursDepending applies the same answer under a GLOBAL RD (13.18.27.3 SR1 e)). 'Described in the same data division' holds by construction (OdoResolve runs inside Bind, before a contained program inherits container names).",
+ "state": "OK"
+}

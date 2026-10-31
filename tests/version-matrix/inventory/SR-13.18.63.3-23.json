@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-23",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 23,
+ "subject": "VALUE clause",
+ "rule-digest": "b2d479ddb519",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.TableValue.cs#ScreenTableValueGeometry; src/WiseOwl.Cobol.Compiler/Binding/Model/TableValuePlan.cs#UnboundedBelow; src/WiseOwl.Cobol.Compiler/Binding/Model/TableValuePlan.cs#ElementCount",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb505-table-value-dynamic-span-levels; conformance-test:ValueFormat2Tests.DynamicWithoutTo_HigherSubscriptsShallBeEqual_1946; conformance:cases/13.18.63-VALUE/pb1716-table-value-nested-dynamic-span; conformance:cases/13.18.63-VALUE/pb1716_table_value_element_count; unit:TableValueElementCountTests.UnboundedDimension_CountsOnlyWhereSr23Holds",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "RE-VERDICTED 2026-09-28 (kb/Work PB1716) -- SAME VERDICT, AND NOW TRUE FOR NESTED UNBOUNDED DIMENSIONS. The screen tested only the OUTERMOST OCCURS DYNAMIC clause with no TO phrase, but the rule binds EVERY such clause: with two nested ones, FROM (1 1) TO (2 1) differs at the level above the INNER one and compiled clean (after a 23 s fill to a 64,000,000-element cap). The rule's shape now lives once in TableValueOdometer.UnboundedBelow (a level is constrained when ANY less inclusive dimension is unbounded), read by the COBOL1946 screen and by the fill's ElementCount, which fills nothing for a violating phrase. LANDED 2026-09-09 (kb/Work PB505). THE RULE HAS A POPULATION NOW, AND A SITE. Its antecedent needs a TO phrase AND an OCCURS DYNAMIC with no TO in the same or a superordinate entry, so it speaks only where there is more than one subscript position -- exactly the shape ValidateTableValues staged loud, which is why it could never fire and why ValueFormat2Tests.MultiDimension_StagedGap0899 was GREEN while pinning the STAGE rather than the rule ([[green_test_can_hold_a_gap_open]]; that test is DELETED, replaced by the behaviour it was standing in front of). The multi-dimension odometer landed WITH this rule, not before it: the screen walks the dimension list for the first DynamicWithoutTo member and requires subscript-1 == subscript-2 for every MORE INCLUSIVE dimension -- \"all levels higher than that of the OCCURS clause\" in the COBOL level sense, i.e. the ones to the LEFT, out of which GR12's odometer may not carry because that dimension has no ceiling to carry at. MEASURED: `01 G OCCURS 2. 05 T PIC X OCCURS DYNAMIC CAPACITY IN C1 VALUE \"A\" FROM (1 1) TO (2 3).` draws COBOL1946 naming SR23 and both dimensions, at all four editions; the equal-higher-subscript twin `FROM (1 1) TO (1 3)` compiles and seeds [AAA].",
+ "state": "OK"
+}

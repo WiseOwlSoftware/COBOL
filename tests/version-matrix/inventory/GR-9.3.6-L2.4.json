@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.3.6-L2.4",
+ "section": "9.3.6",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Objects",
+ "rule-digest": "f10952efb1e6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg",
+ "test-ref": "conformance:cases/9.3.6-Method-invocation/pb1051_method_by_value_match",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1051 landed (wave 1011 C): a METHOD formal declared BY VALUE is carried (OoFormal.ByValue). Resolution step 4, the inherited non-exact match, for BY VALUE: ADD2 is declared in CBM and bound from a DBM receiver with a non-exact PIC 9(3) argument (golden pb1051_method_by_value_match: SUM=331).",
+ "state": "OK"
+}

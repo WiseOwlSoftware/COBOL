@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.19.4-4",
+ "section": "14.9.19.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "IF statement",
+ "rule-digest": "a374f6986a5b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitParagraphBody; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#TransferOut",
+ "test-ref": "conformance:cases/14.9.19-IF/pb414_next_sentence_last_sentence_inline; unit:DispatcherTransferIdiomDriftTests.NoDispatcherTransferIsCapturedByALoweredContainer",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB414.md - LANDED (same emitter mechanism as kb/Work PB405, measured and landed together). GR4 transfers control 'to an implicit CONTINUE statement immediately preceding the next separator period' when the condition is true and NEXT SENTENCE is in the THEN phrase. Within a paragraph that implicit CONTINUE is the planted `__sent{pc}_{k}:` label and the transfer was already a goto; in the LAST sentence there is no following boundary, so the transfer is the paragraph fall-through - and THAT arm emitted a bare `break`, which inside an inline PERFORM bound to the lowered loop, resuming after END-PERFORM, inside the very sentence the rule says to leave (measured: `BAD-TAIL / P2` where GR4 requires `P2`). It now renders the ONE dispatcher-transfer idiom `__pc = pc+1; goto __xfer;`, so the last-sentence arm and the labelled arm are the same jump kind and neither can be captured. The citation was also repaired across the ten sites that carried GR6 alone for a lowering BOTH arms share (the node docs, the emitter comments, the kb diagram and lookup tables, and the differential test's doc comment): GR4 governs the THEN phrase, GR6 the ELSE phrase. Witness: the 85 golden measures both arms inside an inline PERFORM in a last sentence, plus the two-sentence control that pins the already-correct labelled arm.",
+ "state": "OK"
+}

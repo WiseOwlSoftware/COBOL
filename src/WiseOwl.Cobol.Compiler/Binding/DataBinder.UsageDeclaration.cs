@@ -62,9 +62,10 @@ namespace WiseOwl.Cobol.Binding;
 /// edition REMOVED, which this is not. GnuCOBOL accepts the shape, but the follow-GnuCOBOL rule covers
 /// implementor-defined LATITUDE, and a syntax rule is not latitude.</para>
 ///
-/// <para><b>Edition axis.</b> The MESSAGE-TAG phrase is a 2023 addition (VCR row 32) and has no <c>Usage</c>
-/// member yet, so SR14's message-tag arm and SR21 (MESSAGE-TAG exclusivity) are forward obligations the drift
-/// test holds open rather than dead code. For POINTER / OBJECT REFERENCE / PROGRAM-POINTER / FUNCTION-POINTER
+/// <para><b>Edition axis.</b> The MESSAGE-TAG phrase is a 2023 addition (VCR row 32) with a <c>Usage</c> member
+/// (<c>Usage.MessageTag</c>, kb/Work PB487), so SR14's message-tag arm and SR21 (MESSAGE-TAG exclusivity) are
+/// live; below 2023 the entry draws the COBOL0900 introduction gate (usage-message-tag-2023, kb/Work PB916) and
+/// these rules are reported beside it, as COBOL1958 is beside FUNCTION-POINTER's. For POINTER / OBJECT REFERENCE / PROGRAM-POINTER / FUNCTION-POINTER
 /// Annex E carries no note on §13.18.60.3 — but Annex E's scope is 2014→2023 only, so its silence is a MISSING
 /// observation, not evidence of no change, and these arms ship UNGATED (the un-narrowed reading) pending the ISO
 /// 2002/2014 texts. Ungated is the safe direction here: it enforces the rule the compiler can actually cite.</para>

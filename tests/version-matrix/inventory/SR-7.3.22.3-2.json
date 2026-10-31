@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.22.3-2",
+ "section": "7.3.22.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "PUSH directive",
+ "rule-digest": "e4e435da3c05",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/DirectivePlacementPass.cs#Run; src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveSiteProcessor.cs#Process",
+ "test-ref": "conformance:cases/7.3.17-LEAP-SECOND/pb1377-push-leap-second-within-unit; conformance:cases/7.3.22-PUSH/pb1377-push-cobol-words-within-unit; unit:PushPopAllPlacementTests.FlagDirectivesAndNamedPushPop_InsideAStatement_Warn_BetweenStatements_DoNot",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1377. The PUSH twin of SR-7.3.20.3-2 (same mechanism, same data).",
+ "state": "OK"
+}

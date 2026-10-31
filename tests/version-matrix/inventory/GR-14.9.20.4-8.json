@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.20.4-8",
+ "section": "14.9.20.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "INITIALIZE statement",
+ "rule-digest": "78d7f71a2d4c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#TableCount; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ExpandInitialize; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#BindInitializeTarget; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#OccurrenceCount",
+ "test-ref": "conformance:cases/14.9.20-INITIALIZE/pb393_initialize_odo_group; conformance:cases/14.9.11-DISPLAY/initialize_phrases",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB393.md landed. SENTENCE 1 (definition order) was already implemented -- ExpandInitialize walks item.Children in declaration order. SENTENCE 2 (\"For a variable-occurrence data item, the number of occurrences initialized is determined by the rules of the OCCURS clause for a receiving data item\") is now implemented as InitializeBinder.TableCount, which resolves 13.18.38.4 GR8 per quadrant: GR8a (data-name-1 OUTSIDE identifier-1) yields AllCount.Odo -- the CURRENT count, clamped to [integer-1, integer-2] with EC-BOUND-ODO outside per GR7 -- and GR8b (data-name-1 INSIDE, and identifier-1 IS a receiving operand per 14.9.20.3 SR7) yields AllCount.Fixed at integer-2, \"the maximum length of the group\". Both arms are pinned by conformance:cases/14.9.20-INITIALIZE/pb393_initialize_odo_group, whose B= line reads occurrences 4 and 5 of a table whose DEPENDING object held 2 when INITIALIZE ran. Before this landing the whole statement aborted the run unit: an occurs-depending group resolves to an OdoGroupPlace (a decorator over the member place) and BindInitializeTarget's storage-form switch met it in its `_ => null` arm; the switch now asks Place.Undecorated, and unit:PlaceStorageFormSwitchDriftTests.StorageFormSwitchesArePlaceDecoratorAware keeps every such switch decorator-aware.",
+ "state": "OK"
+}

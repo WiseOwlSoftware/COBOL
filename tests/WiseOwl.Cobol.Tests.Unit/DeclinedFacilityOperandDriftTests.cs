@@ -57,22 +57,34 @@ public sealed class DeclinedFacilityOperandDriftTests
     /// special register is no name. The census is the other half of <see cref="Roster"/>: an operand there that is a
     /// data-name or a message-server-name (not an identifier) belongs here, so a statement that grows one fails until
     /// the binder screens it or this list says why it need not.</summary>
-    private static readonly string[] ScreenedNames =
+    private static readonly (string Face, string ClauseConstant)[] ScreenedNames =
     [
-        "SEND TO operand",             // message-server-name-1 | data-name-2 (§14.9.38.2)
-        "SEND RETURNING data-name-1",  // Format 1
-        "RECEIVE data-name-1",         // §14.9.31.2
-        "RECEIVE data-name-2",
+        ("SEND TO operand", "SendClause"),             // message-server-name-1 | data-name-2 (§14.9.38.2)
+        ("SEND RETURNING data-name-1", "SendClause"),  // Format 1
+        ("RECEIVE data-name-1", "ReceiveClause"),      // §14.9.31.2
+        ("RECEIVE data-name-2", "ReceiveClause"),
     ];
 
     [Fact]
     public void EveryNameOperandOfTheDeclinedStatements_IsScreenedForItsWrittenShape()
     {
         string facility = CodeOf(DeclinedFacilityBinderPath);
-        foreach (string face in ScreenedNames)
-            Assert.True(Regex.IsMatch(facility, @"ScreenName\([^;]*""" + Regex.Escape(face) + @""""),
-                $"DeclinedFacilityBinder no longer asks ScreenName about '{face}': a name printed by the general format "
-                + "is refused written as a subscripted, reference-modified or special-register reference (kb/Work PB4118).");
+        foreach (var (face, clauseConstant) in ScreenedNames)
+            Assert.True(Regex.IsMatch(facility, @"ScreenName\([^;]*""" + Regex.Escape(face) + @"""[^;]*\b" + clauseConstant + @"\)"),
+                $"DeclinedFacilityBinder no longer asks ScreenName about '{face}' with {clauseConstant}: a name printed by the "
+                + "general format is refused written as a subscripted, reference-modified or special-register reference, and "
+                + "the refusal quotes the ONE clause that prints the operand (kb/Work PB4118, PB4169).");
+    }
+
+    /// <summary>⛔ THE TWO CLAUSE CONSTANTS CITE THE CLAUSES THEIR NAMES SAY (kb/Work PB4169): a RECEIVE operand is told
+    /// RECEIVE's §14.9.31.2 and a SEND operand SEND's §14.9.38.2, never one sentence naming both.</summary>
+    [Fact]
+    public void TheClauseConstants_CiteTheirOwnStatementsAndNeverBothInOneSentence()
+    {
+        string facility = CodeOf(DeclinedFacilityBinderPath);
+        Assert.Matches(@"SendClause\s*=\s*""ISO §14\.9\.38\.2""", facility);
+        Assert.Matches(@"ReceiveClause\s*=\s*""ISO §14\.9\.31\.2""", facility);
+        Assert.DoesNotMatch(@"14\.9\.38\.2[^;]*14\.9\.31\.2|14\.9\.31\.2[^;]*14\.9\.38\.2", facility);
     }
 
     private static string CodeOf(string path)
@@ -99,9 +111,9 @@ public sealed class DeclinedFacilityOperandDriftTests
             sites.Add(current);
         }
 
-        Assert.True(sites.Count >= 2,
-            "the scan found fewer than two BindUnsupportedFacility call sites — VALIDATE (BindDeclinedValidate) and the "
-            + "MCS SEND and RECEIVE (BindDeclinedMcs) route through it; the guard would pass vacuously on a renamed method.");
+        Assert.True(sites.Count >= 1,
+            "the scan found no BindUnsupportedFacility call site — VALIDATE and the MCS SEND and RECEIVE route through it "
+            + "(BindDeclinedStatement); the guard would pass vacuously on a renamed method.");
         var offenders = sites.Where(s => !s.StartsWith("BindDeclined", StringComparison.Ordinal)).Distinct().ToList();
         Assert.True(offenders.Count == 0,
             "BindUnsupportedFacility is called outside a BindDeclined… method (" + string.Join(", ", offenders)

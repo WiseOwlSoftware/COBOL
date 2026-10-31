@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.16.3-4",
+ "section": "13.16.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "Data description entry",
+ "rule-digest": "2d891dac76cc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenLeadingClausePosition; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RegisterTypeDecl",
+ "test-ref": "conformance:cases/13.16-Data-description/pb486-typedef-not-first; conformance:cases/13.16-Data-description/pb1280-redefines-after-picture; conformance:cases/13.16-Data-description/pb1280-redefines-after-global; conformance:cases/13.16-Data-description/pb486_leading_clauses",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB486 (wave 1019 D2). SR4's four obligations (cite.py --check 13.16.3 OK 4)): the entry-name immediately follows the level-number (grammar shape `levelNumber dataName? dataDescriptionBody`); REDEFINES immediately follows the entry-name or level-number (§13.18.44.3 SR1, COBOL2739); TYPEDEF requires the data-name format (RegisterTypeDecl) and immediately follows the entry-name ('If the TYPEDEF clause is specified, ... the TYPEDEF clause shall immediately follow the entry-name clause.'), now asked by the same ordinal screen as REDEFINES, ScreenLeadingClausePosition (COBOL2404) — `01 T PIC X(4) IS TYPEDEF.` used to compile and run. Nine corpus sources that wrote TYPEDEF after another clause were reordered (they were nonconforming).",
+ "state": "OK"
+}

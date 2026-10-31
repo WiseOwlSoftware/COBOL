@@ -125,8 +125,10 @@ public static class DiagnosticDescriptors
         WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.StatementFormatShape.Code,
         DiagnosticSeverity.Error, "{0}");
 
-    // COBOL5506: the element written is not of a kind the general format admits at its position (kb/Work PB3428,
-    // PB3861) — CobolErrorStrategy hint 0i, worded by AdmittedKinds. Same single-sourcing as 2269.
+    // COBOL5506: the element written is not of a kind the parse expects at its position (kb/Work PB3428, PB3861;
+    // what is named is what the PARSE expects, a superset of the general format, less the keywords the compile edition
+    // does not have, kb/Work PB4174, PB4175) — CobolErrorStrategy hint 0i, worded by AdmittedKinds. Same single-sourcing
+    // as 2269.
     public static readonly DiagnosticDescriptor COBOL5506 = new(
         WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.WrittenKindNotAdmitted.Code,
         DiagnosticSeverity.Error, "{0}");

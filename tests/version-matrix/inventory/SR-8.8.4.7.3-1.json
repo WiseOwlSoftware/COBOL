@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.4.7.3-1",
+ "section": "8.8.4.7.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Simple sign condition",
+ "rule-digest": "25711529bf72",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindSignConditionOn; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindComparison; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#IsFormat2FloatSign; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BindOperandExpr",
+ "test-ref": "conformance:cases/8.8.4.7-Simple-sign-condition/pb171_sign_condition_operands; conformance:cases/8.8.4.7-Simple-sign-condition/ca8_float_sign_format2; conformance:cases/8.8.4.7-Simple-sign-condition/pb1471_sign_condition_float_partition",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1471 LANDED (wave 70 A). SR1: 'Arithmetic-expression-1 shall be any single numeric data item described with a usage other than a standard floating-point usage, or any form of arithmetic expression' (cite.py --check 8.8.4.7.3 1) OK). The operand closure was already enforced (non-numeric item COBOL0844, non-numeric literal PB171, ALL literal PB218, address-identifier PB1021; pb171 pins them). The PARTITION half now conforms: ConditionBinder.IsFormat2FloatSign asks UsageFamilies.IsStandardFloat (the ONE §3.166/§3.167 set), so a bare FLOAT-SHORT / FLOAT-LONG / FLOAT-EXTENDED (and COMP-1 / COMP-2) item is arithmetic-expression-1 and takes GR1's algebraic test. Witness: conformance:cases/8.8.4.7-Simple-sign-condition/ca8_float_sign_format2 (FLOAT-LONG/-SHORT/-EXTENDED +0 NOT POSITIVE, -0 NOT NEGATIVE, IS ZERO, EVALUATE WHEN POSITIVE/NEGATIVE -> OTHER) and conformance:cases/8.8.4.7-Simple-sign-condition/pb1471_sign_condition_float_partition (FLOAT-LONG beside FLOAT-BINARY-64 in one program; (FB) parenthesized is Format 1).",
+ "state": "OK"
+}

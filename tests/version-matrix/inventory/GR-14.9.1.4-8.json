@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.1.4-8",
+ "section": "14.9.1.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "ACCEPT statement",
+ "rule-digest": "27eb89e3d51e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#DateYYYYMMDD",
+ "test-ref": "conformance-test:AcceptDifferentialTests.DateYYYYMMDD_RejectedAt85_RunsAt2002; conformance-test:AcceptDifferentialTests.Date_ExactWidthReceivers_ShowEachZeroPaddedImage",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "'DATE with the phrase YYYYMMDD ... EIGHT digits', positions 1-4 four-digit Gregorian year, 5-6 month, 7-8 day. AcceptSource.DateYYYYMMDD() returns `n.Year * 10000L + n.Month * 100L + n.Day`; EmitAcceptTemporal maps AcceptKind.DateYYYYMMDD to width 8 -- the exact positional layout with the required zero fill. Pinned by AcceptDifferentialTests.DateYYYYMMDD_RejectedAt85_RunsAt2002, which at --std 2002 with clock 2026-06-10 displays '20260610' from PIC 9(8). The gate lives in VersionConformancePass.VisitAcceptStatement (`if (ctx.acceptSource() is { } src && (src.YYYYMMDD() ?? src.YYYYDDD()) is not null) _p.Check(Constructs.AcceptFourDigitYear2002, ...)`), which is REACHABLE (unlike the END-ACCEPT gate beside it) because the grammar does carry the YYYYMMDD alternative. || UPHELD: I re-read the gate at VersionConformancePass.cs:1367-1369 and confirmed it sits AFTER the dead END_ACCEPT scan but reads `ctx.acceptSource()` accessors that the grammar really produces (CobolParserCore.g4:1284, `DATE YYYYMMDD` as its own alternative), so it fires; and the arithmetic gives positions 1-4 = 2026, 5-6 = 06, 7-8 = 10 for the pinned clock, matching the observed '20260610'. || REFUTED (evidence chain, same misattribution as GR7): the test's PIC 9(8) receiver takes the numeric arm, so the eight-position rendering it observes is the receiver's own display image, not `CobolNum.FormatUnsignedDisplayU(value, 8)`. || EDITIONS (basis stated, since the batch bans uncited edition claims): 2002,2014,2023 is retained, but the 2023 text carries no per-edition marker for the YYYYMMDD phrase, so this datum cannot be settled from specs/ISO_COBOL.md alone. It is derived from the printed Format 2 diagram's `DATE [ YYYYMMDD ]` bracket against the 1985 standard's ACCEPT format 2, which offers only bare DATE / DAY / DAY-OF-WEEK / TIME and does not reserve the words YYYYMMDD / YYYYDDD; the four-digit-year phrases entered with ISO/IEC 1989:2002. I did NOT take the value from the test's own 85-rejection assertion nor from ConstructRegistry, both of which are code under review.",
+ "state": "OK"
+}

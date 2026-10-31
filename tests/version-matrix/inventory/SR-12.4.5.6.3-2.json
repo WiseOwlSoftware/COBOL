@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.6.3-2",
+ "section": "12.4.5.6.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "ALTERNATE RECORD KEY clause",
+ "rule-digest": "da1f07753f11",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Rules; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#IsAlphanumericOrNational; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#IsInRecordOfFile",
+ "test-ref": "conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb743-alternate-key-numeric; conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb699-alternate-key-outside-record; conformance:wiseowl/cases/12.4.5-File-control/pb742_legal_entry_formats_85; conformance-test:FileControlKeyRuleSpecTests.IndexedEntryRule_ReportsAtEveryEdition_WithOrWithoutAKeyedVerb; conformance-test:FileControlKeyRuleSpecTests.LegalCategories_AGroupRecordKeyAndANumericRelativeKey_AreAccepted; conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb850-alternate-key-national-edited; conformance-test:FileControlKeyRuleSpecTests.SourcePhraseOperandRules_ReachEachDataName2_Once",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-09-06 (kb/Work PB743). RULE (--check 12.4.5.6.3 2): \"Data-name-1 and data-name-2 shall be defined as a data item of category alphanumeric or national within a record description entry associated with the file-name to which the ALTERNATE RECORD KEY clause is subordinate.\" The prime key's twin, worded the same way with the same two obligations, and landed in the same change for the same reason. The asymmetry this closes was visible inside ONE method: KeyedIoBinder.KeyedValidateFile already wrote a CATEGORY screen for the RELATIVE key (12.4.5.13.3 SR2, an unsigned integer) and none for either record key. Both arms are now rows of FileControlKeyRules sharing this rule-id, screened at the ENTRY from DataBinder.ResolveFiles, over the clauses AS WRITTEN (FileModel.AlternateKeyNames) rather than the resolved AlternateKeys - a clause whose data-name-1 resolves to nothing is absent from the resolved list and is exactly the case the location arm speaks about. Boundary measured: a category-alphanumeric alternate key WITH DUPLICATES inside the record is accepted at all four editions, and the relative key's own category rule (which REQUIRES the unsigned integer this rule forbids) is measured beside it so the two cannot leak into each other. kb/Work PB1099 Q1 (w1095i): the record-key SOURCE phrase is PROVIDED (owner rule R65); the data-name-2 arms, the last sentence (\"All occurrences of data-name-2 shall be of the same category\") included, screened per operand.",
+ "state": "OK"
+}

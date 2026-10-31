@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.2-3",
+ "section": "12.4.5.2",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "File control entry",
+ "rule-digest": "7620a6797dae",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenSelectsHaveDescriptions",
+ "test-ref": "conformance:cases/12.4.5-File-control/w73b-pb1077-select-without-fd; conformance:cases/12.4.5-File-control/w73b_pb1077_select_scope_per_program",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1077 landed (w73b). cite.py --check 12.4.5.2 \"For each file-name specified in a SELECT clause, there shall be a file description entry or a sort-merge file description entry\" -> OK 3). DataBinder.ScreenSelectsHaveDescriptions runs once every FD and SD has attached (both set FileModel.HasFd), also for a unit with no FILE SECTION, and reports COBOL2635 at the file control entry. Probe: SELECT F2 with no FD, OPEN OUTPUT F2 -> compiled clean and aborted the run unit in FileRegistry.Require ('never registered - a compiler defect'); now COBOL2635 at --std 2023 and 85.",
+ "state": "OK"
+}

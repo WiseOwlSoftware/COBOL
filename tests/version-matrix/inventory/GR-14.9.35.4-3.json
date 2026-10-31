@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.35.4-3",
+ "section": "14.9.35.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "REWRITE statement",
+ "rule-digest": "fec731aa697c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#MutationOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#MutationTargetRecordId; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RewriteShared",
+ "test-ref": "conformance:cases/14.9.27-OPEN/l1_open_not_open_statements; conformance:cases/14.9.27-OPEN/l1_table20_indexed; conformance:cases/9.1.13.2-Successful-completion/l1_table20_seq_relative; conformance:cases/14.9.10-DELETE/w73b_pb1194_mutation_open_mode_first",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1194 landed (w73b). cite.py --check 14.9.35.4 \"If the open mode is some other value or the file is not open, the I-O status in the rewrite file connector is set to '49'\" -> OK 3). The governed REWRITE asked FileConnector.MutationTargetRecordId for the record to check against other connectors' locks, and the keyed arms named the key-area record whatever the open state, so a REWRITE (or DELETE RECORD) through a CLOSED connector of a record another connector held locked answered '51'. MutationTargetRecordId now identifies no record unless the connector is open in the I-O mode (the contract the READ peeks keep), through the one shared FileConnector.MutationOpenModeGuard that all five REWRITE/DELETE bodies also call; LocksEffective sets no lock for a connector not registered open (9.1.15: the sharing mode holds 'throughout the duration of this OPEN'). Probe on the w73b build, indexed FB holding K001 under AUTOMATIC locking, FA never opened: before REWRITE-NOTOPEN=51 DELETE-NOTOPEN=51; after 49 / 49. For a connector open INPUT, '49' and '51' both apply (9.1.13.1) and DOC-A.1-104 (2) places GR3's '49'. Golden 2002/w73b_pb1194_mutation_open_mode_first (indexed + relative, closed and INPUT, and the I-O '51' control).",
+ "state": "OK"
+}

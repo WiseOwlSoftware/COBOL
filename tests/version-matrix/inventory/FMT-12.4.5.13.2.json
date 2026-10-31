@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-12.4.5.13.2",
+ "section": "12.4.5.13.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "RELATIVE KEY clause",
+ "rule-digest": "f39565f45031",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#relativeKeyClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenClauseOperandShape",
+ "test-ref": "conformance-test:ClauseOperandQualificationSpecTests.RelativeKeyOperand_QualifiedByItsGroup_UsesThatGroupsItem",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Format: '<u>RELATIVE</u> KEY IS data-name-1' (cite.py --check 12.4.5.13.2 \"RELATIVE\" -> OK). Underlining MEASURED on the printed page (figure_extract.py 360, main tree PDF): only RELATIVE is underlined; KEY and IS are plain, so both are optional words (cite.py --check 8.3.2.4.3 \"uppercase words that are not underlined are called optional words\" -> OK). Grammar `relativeKeyClause : RELATIVE KEY? IS? dataReference` spells exactly that. data-name-1 is a qualified-data-name: DataBinder.BindFileControl captures name + qualifiers via ClauseDataName, and ScreenClauseOperandShape rejects a subscript, a reference-modifier (cite.py --check 8.4.3.3.3 \"reference-modification is not permitted\" -> OK) and the special registers. Probes (pinned cobol.exe, out/probe/relkey): rk1 `RELATIVE KEY IS WS-RK OF WS-G` with a same-named WS-RK OF WS-H compiles and binds the qualified item; rk2 `RELATIVE KEY IS WS-RK(1:2)` -> COBOL2024 error (correct rejection, though the message says 'written with a subscript' for a reference-modifier on a non-OCCURS item — wording only); rk3 `RELATIVE WS-RK` (no KEY) compiles clean at --std 2023 and --std 85 — CORRECT, it is conforming source. NB the grammar comment above relativeKeyClause (CobolIO.g4 ~289-297) and the Frontend DiagnosticDescriptors CBL3613/3614 text call the no-KEY form a 'non-standard CCVS leniency ... ISO §12.4.5.13 requires it' — that is false (see finding); behavior is right, the documentation is wrong. Open kb/Work PB481 (ref-modified file key silently accepted) appears SUPERSEDED for RELATIVE KEY by ScreenClauseOperandShape (measured: rk2 rejected) — PB481 should be re-verified/closed by its owner. Syntax rules §12.4.5.13.3 SR1-3 are owned by landed PB699 (not re-adjudicated here). [registrar 14a — editions as adjudicated: 1985, 2002, 2014, 2023 (the RELATIVE KEY clause exists unchanged at every edition; no Annex E delta for its format)]",
+ "state": "OK"
+}

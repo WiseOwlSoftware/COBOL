@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.53.4-2",
+ "section": "13.18.53.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "SOURCE clause",
+ "rule-digest": "5fa892a6553b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#FieldComputeSource; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindReportGroupClauses; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#FieldImage; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#ConvertSource; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportSourceClause; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#KeptOnProhibitedInexact; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitPresenting; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#UnderPresentingChecking",
+ "test-ref": "conformance:cases/13.18.53-SOURCE/pb852_report_source_expression; conformance:cases/13.18.53-SOURCE/pb852_report_source_operand_parens; conformance:cases/13.18.53-SOURCE/pb3964-report-source-rounded-85; conformance:cases/13.18.53-SOURCE/pb3990_report_source_prohibited_keeps_the_item; conformance:cases/13.18.53-SOURCE/pb3990_report_source_rounded_edited; conformance:cases/13.18.53-SOURCE/pb4031_report_source_size_checking; conformance:cases/13.18.53-SOURCE/pb4031_report_source_prohibited_checked; conformance:cases/13.18.53-SOURCE/pb4031-report-turn-size-85; conformance:cases/13.18.53-SOURCE/pb4031_report_overflow_checking",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "arithmetic-expression-1 is the operand of an implicit COMPUTE executed whenever the associated item is printed, and with the ROUNDED phrase that COMPUTE carries the corresponding ROUNDED phrase. The expression binds in the PROCEDURE phase through the one ExpressionBinder.BindExpr (the SUM-addend precedent - a subscript may be an index-name or an expression and has no value at data bind) and the transfer is the one ConvertSource with the clause's rounding mode threaded. Unreachable before kb/Work PB852: the operand had no grammar surface. retired-witness: src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#RaisingImage (folded into ReportWriterEmitter.FieldImage by the PB4031 review finding R1-1 fix (the raising transfer is TransferImage's raiseOnSizeError render under the checked twin); FieldImage is already on the row)",
+ "state": "OK"
+}

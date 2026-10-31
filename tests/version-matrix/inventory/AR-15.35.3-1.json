@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.35.3-1",
+ "section": "15.35.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "EXP10 function",
+ "rule-digest": "5e4a69b9f544",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
+ "test-ref": "conformance:cases/15.35.3-Argument-rule/l1-exp10-class-numeric",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "PIC X(4) is class ALPHANUMERIC by S8.5.2.1 Table 2, so FUNCTION EXP10(W-A) violates S15.35.3 r1 and must draw COBOL1627 at 2002/2014/2023 (85 excluded: EXP10 is IntroducedIn 2002 and would trip COBOL1502 instead).",
+ "state": "OK"
+}

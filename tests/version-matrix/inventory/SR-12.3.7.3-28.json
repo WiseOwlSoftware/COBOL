@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.7.3-28",
+ "section": "12.3.7.3",
+ "kind": "SR",
+ "ordinal": 28,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "d31850886c4f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#SwitchBindCurrency; src/WiseOwl.Cobol.Compiler/Binding/Model/CurrencyDefinition.cs; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ScreenUsageAgainstPicture",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb1089-currency-symbol-literal7-class-usage; conformance:cases/12.3.7-SPECIAL-NAMES/pb1089_currency_literal7_class_pairings; unit:PictureClauseIdentityDriftTests.CurrencySymbols_MatchIffTheirStringsMatch",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1089 landed (wave 1019 E). The currency set is now symbol -> CurrencyDefinition(Text, LiteralClass): literal-7's CLASS is kept at SwitchBindCurrency (OperandLiteralClass: alphanumeric incl. X\"..\", national N\"..\"/NX\"..\", a folded concatenation), travels on PicInfo.CurrencyClass, and the ONE USAGE x PICTURE screen (PictureAnalyzer.ScreenUsageAgainstPicture, asked by the written clause AND by the GR1 group-usage inheritance pass) refuses an alphanumeric symbol on a USAGE NATIONAL numeric-edited item and a national symbol on a USAGE DISPLAY one: COBOL2883. MEASURED before: all three of the registrar's probes ((a) N\"EUR\"/# on display, (b) \"EUR\"/# on national, (c) bare N\"#\" on display) compiled and ran; now COBOL2883 each, controls (national+national, alphanumeric+display) unchanged, and the inherited spelling (`01 G USAGE NATIONAL. 05 E PIC U9.99.`) is refused too. SR21 now compares the whole definition: two clauses binding one symbol to the same characters in different classes are not 'identical currency strings'. DETERMINATION (the standard's text is the only authority; owner may overturn): the implied clause of SR25, CURRENCY SIGN '$' PICTURE SYMBOL '$', has an ALPHANUMERIC literal-7, so SR28's first sentence confines the implied '$' to usage display and `PIC $9.99 USAGE NATIONAL` is COBOL2883 (negative/pb1089-currency-symbol-literal7-class-usage NC5); a national '$' needs CURRENCY SIGN N\"$\" PICTURE SYMBOL \"$\".",
+ "state": "OK"
+}

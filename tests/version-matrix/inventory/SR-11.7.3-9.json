@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.7.3-9",
+ "section": "11.7.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "METHOD-ID paragraph",
+ "rule-digest": "043868f37174",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ValidateOverrideSignatures; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#MethodConformanceMismatches",
+ "test-ref": "conformance:cases/9.3.8.2.3-Conformance-between-interfaces/pb972-raising-override-widens; conformance:cases/9.3.8.2.3-Conformance-between-interfaces/pb972_raising_conformance; conformance-test:MethodOmittedArgumentTests.Override_OptionalPresenceDiffers_0829; unit:MethodConformanceRuleSetDriftTests.EveryAsker_CallsTheOneRuleSet_AndSpellsNoRuleOfItsOwn",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB972.md landed w51e. The override is interface-1 and the overridden method interface-2; ValidateOverrideSignatures asks the ONE 9.3.8.2.3 rule set (MethodConformanceMismatches: parameter declarations, the returning item incl. the rule-5 covariant RETURNING, the OPTIONAL phrase, and the RAISING phrase, the 'exceptions that may be raised' SR9 names) instead of its former private copy of rules 1-6 and 8, which lacked rule 9. COBOL0829, positioned at the overriding method.",
+ "state": "OK"
+}

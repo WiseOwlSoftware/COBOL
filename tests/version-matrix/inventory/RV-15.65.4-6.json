@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.65.4-6",
+ "section": "15.65.4",
+ "kind": "RV",
+ "ordinal": 6,
+ "subject": "MODULE-NAME function",
+ "rule-digest": "b2d3855d8f22",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ModuleStack.cs#Name; docs/CONFORMANCE.md#DOC-A.1-137",
+ "test-ref": "conformance:cases/15.65.4-Returned-value-rules/pb63_module_name_lengths",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB63 — the exception surface: the FD screen, the SELECT-spelled name on the connector, the one access-recording path, the r2b procedure field and element name, the MODULE-NAME determinations). §15.65.4 r6 — an activation from a NESTED program: ACTIVATING = the nested program's OWN name and r9's STACK chain agrees entry for entry (golden X-ACT=[PB63MNINR], X-STK=[PB63MNEXT;PB63MNINR;PB63MNMAIN; ]); the choice is documented as A.1 item 137.",
+ "state": "OK"
+}

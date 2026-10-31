@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-7.3.16.2",
+ "section": "7.3.16.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "IF directive",
+ "rule-digest": "35e0af68562c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#PhraseFrame; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#CheckCceSyntax; src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand",
+ "test-ref": "conformance:cases/7.3.16-IF/conditional_compilation; conformance:cases/7.3.16-IF/pb1363_conditional_compilation_structure_legal; conformance:cases/7.3.13-EVALUATE/pb1363_omitted_branch_directives_legal; conformance:cases/7.3.16-IF/pb1363-else-without-if; conformance:cases/7.3.16-IF/pb1363-else-twice; conformance:cases/7.3.16-IF/pb1363-else-in-evaluate; conformance:cases/7.3.16-IF/pb1363-end-if-without-if; conformance:cases/7.3.16-IF/pb1363-if-not-closed; conformance:cases/7.3.16-IF/pb1363-if-opened-in-library-text; conformance:cases/7.3.16-IF/pb1363-omitted-if-operand-malformed; conformance:cases/7.3-Compiler-directives/pb806-else-trailing-word; conformance:cases/7.3-Compiler-directives/pb806-end-if-trailing-word; conformance:cases/7.3.16-IF/pb806-else-trailing-word-in-omitted-branch; unit:CompilerDirectiveCatalogDriftTests.EveryNoOperandWord_RejectsAnOperandAndAcceptsTheBareWord; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_IsCheckedInAnOmittedBranchToo",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1363 + PB806. cite.py --check 7.3.16.2 'constant-conditional-expression-1 [ text-1 ]' OK (general format). Every part of the general format is now enforced: the constant-conditional-expression is required and fragment-parsed in every branch (COBOL1619; omitted branches by CheckCceSyntax), >>ELSE only after an open >>IF and at most once, >>END-IF required and closing the >>IF of its own text (COBOL2649), and neither >>ELSE nor >>END-IF takes an operand (COBOL1911, 7.3.3 SR3/SR4). The former retired witness (the frame stack with no phase) is gone.",
+ "state": "OK"
+}

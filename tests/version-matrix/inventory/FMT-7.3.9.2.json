@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-7.3.9.2",
+ "section": "7.3.9.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "CALL-CONVENTION directive",
+ "rule-digest": "2cf1a7ff7ba3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/WiseOwl.Cobol.Editions/DirectiveOperandSyntax.cs#DirectiveOperandSyntax",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb794_directive_operands; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_DiagnosesAMalformedOperand; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "The >>CALL-CONVENTION general format { COBOL | call-convention-name-1 } is the call-convention-directive-2002 row's directiveOperand column: plain braces, so exactly one shall be written, COBOL being one admissible word and any COBOL word an implementor-defined call-convention-name-1 (7.3.9.3 GR2 b). A literal or a missing operand is COBOL1911. The directive's EFFECT is the 7.3.9.3 GR1 default in every case - this implementation maps program-names one way - so the format, not the semantics, is what this row records.",
+ "state": "OK"
+}

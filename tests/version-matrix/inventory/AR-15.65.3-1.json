@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.65.3-1",
+ "section": "15.65.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "MODULE-NAME function",
+ "rule-digest": "3ebde1a35684",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindModuleName; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitProcedure; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#InNestedProgram",
+ "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.ModuleName_NestedOutsideNestedProgram_1515",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "Verdict SUSTAINED after an independent attempt to make the gate reject LEGAL source, which is the failure mode CLAUDE.md rule 4 forbids and which a containment predicate is most likely to produce. `InNestedProgram = unit.Parent is not null` is read off the BOUND unit at binder construction (BinderDriver.BindUnitProcedure), so I probed the containment shape most likely to leave Parent unset: a program NESTED INSIDE A FUNCTION DEFINITION. It is accepted and correct, which is the answer the rule requires (the rule says 'within a nested program', not 'within a nested program of a program'). The runtime half cannot desynchronise from the compile-time half either: ProgramTable.CallProgram sets the frame flag from the same registry containment fact (`isNested: n.ParentPath is not null`) that produced BoundUnit.Parent. Rejection inside a METHOD body is the spec answer and not an accident — a method is not a nested program. Also confirmed the cited test is SPEC-DERIVED despite living in a file named ...DifferentialTests: AssertSpec/AssertRejected compare against a fixed expected string and a named diagnostic code, never against the legacy oracle or GnuCOBOL, so the test-ref is admissible. EVIDENCE: New probe E:/Temp/mnref/fnnest.cob: PROGRAM MNRFNN-IN nested inside FUNCTION-ID MNRFNN, called from MNRFNMAIN via `MOVE FUNCTION MNRFNN TO W`. Compiles and runs: 'FI-NST=[MNRFNN-IN]', 'FI-CUR=[MNRFNN]', 'FI-ACT=[MNRFNN]', 'FI-STK=[MNRFNN;MNRFNMAIN; ]', 'W=[OK]'. Keyword-omitted NESTED inside a contained program also accepted (omitnest.cob 'IN-NST=[MNROMNS1-IN]'). Rejection half re-confirmed by the adjudicator's c.cob/p.cob (top-level program and METHOD body -> COBOL1515). Test shape verified by reading IntrinsicFunctionDifferentialTests.cs#AssertSpec / #AssertRejected. Citation re-checked: `cite.py --check 15.65.3 \"The NESTED keyword shall be specified only if the function is specified within a nested program.\"` -> OK §15.65.3 1).",
+ "state": "OK"
+}

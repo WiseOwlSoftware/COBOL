@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.3.4-4",
+ "section": "14.9.3.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "ALLOCATE statement",
+ "rule-digest": "2c95506613d4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/PtrEmitter.cs#EmitAllocate",
+ "test-ref": "conformance:cases/14.9.3-ALLOCATE/pb151_allocate; conformance:cases/14.9.3-ALLOCATE/allocate_initialized; conformance:cases/14.9.3-ALLOCATE/pb231_based_bit_leaf; conformance:cases/14.9.3-ALLOCATE/pb231_based_national_leaf; conformance:cases/14.9.3-ALLOCATE/pb231_based_pointer_leaf; conformance-test:ByteWindowResidueDriftTests.EveryByteWindowSurface_AgreesOnTheSameLeaf; conformance:cases/14.9.3-ALLOCATE/pointer_alloc",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB231 (the POINTER third, 2026-09-05) CLOSES this row: GR4a and GR4b are now observed over a record carrying EVERY leaf kind this compiler admits, the pointer-class one included, and observed to be the SAME storage. conformance:cases/14.9.3-ALLOCATE/pb231_based_pointer_leaf ALLOCATEs 01 P USAGE POINTER BASED RETURNING WS-A (GR4a) and writes through P's own implicit pointer (GR4b), then proves the two addresses are one storage rather than two copies in a way the byte-window goldens cannot: a SECOND based pointer item Q is pointed at the same address, reads P's value back through it (ALIAS=[ABCD]), and SETTING Q TO NULL is then visible through P (SHARED=YES). That is the assertion that the managed slot belongs to the storage AREA and not to the item - which is what GR4a/GR4b together mean for a pointer-class member, and what a per-item field could not have satisfied. There is no remaining leaf kind: the byte-window carriage gate is empty.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.18.3-1",
+ "section": "7.3.18.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "LISTING directive",
+ "rule-digest": "9bee3506d239",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Process; src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveStateRegistry.cs#ListingDirective2002; src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#listing-directive-2002",
+ "test-ref": "conformance:cases/7.3.18-LISTING/pb725_directive_facility",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'Whether the compiler produces a source listing is implementor-defined. If the compiler does not produce a source listing, the LISTING directive shall be ignored.' cite.py --check 7.3.18.3 -> OK §7.3.18.3 1). Half 1 (implementor choice): WiseOwl COBOL produces no listing — no CLI option, no producer in src; the choice is documented in docs/CONFORMANCE.md prose ('>>LISTING / >>PAGE (§7.3.18 / §7.3.19) — no source listing is produced'). Half 2 (ignored): the directive is consumed in ConditionalCompilationProcessor (operand checked against the closed ON/OFF set, ON omissible) and has no effect. Probe out/probe/listing-directive/lst{2002,2014,2023}.cob: >>LISTING OFF (twice), >>LISTING ON, bare >>LISTING, >>LISTING OFF interleaved with DATA/PROCEDURE lines; --std 2002/2014/2023 --run each prints A=1 / B=2 with no diagnostic, i.e. every line after OFF is still compiled and the directive has no effect. Covering goldens: conformance:cases/7.3.18-LISTING/pb725_directive_facility (>>LISTING ON compiles, GR1 cited) and conformance:cases/7.3-Compiler-directives/pb794_directive_operands (bare >>LISTING, PUSH/POP LISTING). Gap noted, not a verdict defect: A.1 item 117 ('Listings (whether and when produced by the compiler, effect of logical conversion). This item is required. This item shall be documented', cite.py --check A.1 -> OK §A.1 117)) has no DOC-A.1-117 determination row in CONFORMANCE.md — only the prose paragraph; the OFF form has no golden. || editions (adjudicator): 2002, 2014, 2023 (the 2023 Annex E does not list the LISTING directive as a change, so it predates 2023; the 2002 introduction of the Clause-7 directive facility is the project VCR's derivation and was not re-derived here from a 2002 annex) || code-location detail: src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Process (directive consume + CompilerDirectiveCatalog.CheckOperand); src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveStateRegistry.cs#ListingDirective2002 row; src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#listing-directive-2002",
+ "state": "OK"
+}

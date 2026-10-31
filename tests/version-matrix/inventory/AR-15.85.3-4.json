@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.85.3-4",
+ "section": "15.85.3",
+ "kind": "AR",
+ "ordinal": 4,
+ "subject": "STANDARD-COMPARE function",
+ "rule-digest": "782ab383c54a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindStandardCompare",
+ "test-ref": "unit:StandardCompareTests.Argument1And2_ObeyTheClassAndZeroLengthRules",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB101 T7: a zero-length literal operand is refused (COBOL1663 cites r4).",
+ "state": "OK"
+}

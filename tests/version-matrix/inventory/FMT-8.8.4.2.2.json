@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.8.4.2.2",
+ "section": "8.8.4.2.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Simple relation conditions",
+ "rule-digest": "29b016a1cc10",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#comparisonOperator; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#comparisonOperand; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#primaryCondition; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckRelationalOperands; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckFormat3Relation",
+ "test-ref": "conformance:cases/8.7.5-Relational-operators/pb1034_printed_relational_operator_set; conformance:cases/8.7.5-Relational-operators/pb1034-not-gteq; conformance:cases/8.7.5-Relational-operators/pb1034-equal-than; conformance:cases/8.8.4.3-Simple-boolean-condition/pb1464_parenthesized_boolean_operands; unit:RelationalOperatorFormatDriftTests.ComparisonOperator_IsTheSpellingsOfThePrintedFormat1_AndNoOther",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1034 LANDED (wave 1005 D). The only recorded defect of this row was the Format 1 operator superset; Format 1's operator set is now exactly the printed one (rendered page PDF p217, printed 187: [NOT] on the first six alternatives only; EQUAL TO, never EQUAL THAN). Format 2 (boolean): equality operators only, ordering refused COBOL0844/1511; its operands include the parenthesized boolean operand (kb/Work PB1464, 8.8.2). Format 3 (message-tag/object/pointer): = / NOT = / <> accepted, ordering refused COBOL0868/0869; the message-tag operand itself cannot be written (USAGE MESSAGE-TAG declined, COBOL1943, docs/CONFORMANCE.md section 5 item 1), a documented non-support and not a divergence of this format's operators. [editions: Format 1 85+, Formats 2 and 3 2002+]",
+ "state": "OK"
+}

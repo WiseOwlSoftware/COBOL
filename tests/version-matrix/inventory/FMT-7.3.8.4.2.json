@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-7.3.8.4.2",
+ "section": "7.3.8.4.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Defined condition",
+ "rule-digest": "a2a51d5636f6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#definedCondition; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#DEFINED; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvalCcePrimary",
+ "test-ref": "unit:CompileTimeBooleanCceTests.Cce_DefinedCondition",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'compilation-variable-name-1 IS [ NOT ] DEFINED' (cite.py --check 7.3.8.4.2 OK). Grammar `definedCondition : cobolWord IS? NOT? DEFINED` matches the diagram (IS optional/not underlined, NOT optional, DEFINED required); DEFINED is a token only in a primed directive-expression fragment, so it stays a legal user word in source. Reachable from ccePrimary so it composes with AND/OR/NOT and parentheses. Probe p1.cob (2002/2014/2023): `VAR-A IS DEFINED`, `var-a DEFINED` (IS omitted, lower case), `VAR-B IS NOT DEFINED`, `VAR-A NOT DEFINED`, `X IS DEFINED AND NOT Y IS DEFINED`, `(X IS DEFINED) OR ...` all parse and select correctly; --std 85 rejects every >> directive with COBOL0900 (facility is 2002+). Unit test covers the IS and IS NOT spellings. Probe dir E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2\\out\\probe\\defined-condition || editions (adjudicator): 2002, 2014, 2023 (the §7.3 compiler-directive facility incl. >>DEFINE/>>IF is not in ISO 1989:1985; no 2023 Annex E change to §7.3.8.4)",
+ "state": "OK"
+}

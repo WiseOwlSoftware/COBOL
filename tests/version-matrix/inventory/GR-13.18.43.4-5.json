@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.43.4-5",
+ "section": "13.18.43.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "RECORD clause",
+ "rule-digest": "1f023b9e2598",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#ImpliesVariableFormat; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMin; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMax; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#AreaRecord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelease",
+ "test-ref": "conformance:cases/13.18.33-Level-number/pb981_fd_variable_length_records; conformance:cases/13.18.43-RECORD/pb1276_varying_unstated_max_dynamic; conformance:cases/13.4.6-Sort-merge-file-description/pb1277_record_size_in_bytes; conformance:cases/13.18.43-RECORD/pb322_release_short_record_fixed_sd",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Re-verdicted by kb/Work PB322 F (w1012h), closing the SD arm PB1276/PB1277 left open. cite.py --check 13.18.43.4 'If format 1 is implied, integer-1 shall be the record size of the largest record description entry in this file description entry.' -> OK §13.18.43.4 5) a). A RECORD-clause-less SD is the implied Format 1 of D-FRA (iv) exactly like an FD, so every record of its sort file is the largest description's size: RELEASE of a shorter record description sends the whole record area (BindRelease sizes the released range by the area, SortEmitter.EmitRelease sends SentRecordImage), and SORT GIVING writes AAAAZZZZZZ, not AAAA plus spaces.",
+ "state": "OK"
+}

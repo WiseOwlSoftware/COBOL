@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.35.3-3",
+ "section": "14.9.35.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "REWRITE statement",
+ "rule-digest": "bb8e9d349065",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveRecordName; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRewrite; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData",
+ "test-ref": "conformance:cases/13.18.27-GLOBAL/pb1193-rewrite-global-record-local-fd; conformance:cases/13.18.27-GLOBAL/pb1193_global_record_under_local_fd",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1193 LANDED (wave 68 Y). SR3 'If record-name-1 is defined in a containing program and is referenced in a contained program, the file description entry for the file associated with record-name-1 shall contain a GLOBAL clause.' (cite.py OK 14.9.35.3 3)). The REWRITE twin of SR21 through the same ResolveRecordName arm (the caller passes its own sentence as containedRule): a contained REWRITE of a GLOBAL record under a non-GLOBAL FD is COBOL1757 naming SR3 (was the false 'not a logical record' reason). ResolveRecordName is called before the sequential/keyed reroute, so every organization is under it.",
+ "state": "OK"
+}

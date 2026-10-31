@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-16",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 16,
+ "subject": "PICTURE clause",
+ "rule-digest": "f4ea063045e9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb528-picture-composition; conformance:cases/13.18.40-PICTURE/pb528_picture_composition_legal_85; unit:PictureCompositionTests.ACompositionViolation_IsCOBOL1934",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-09-09 (kb/Work PB528). BOTH halves of 'The symbol P may appear only as a continuous string of Ps in the leftmost or rightmost digit positions in character-string-1' are measured: one contiguous run (PIC PP9PP is COBOL1934, golden entry PB02) and that run standing at an END of the DIGIT-POSITION sequence (PIC 9P9, entry PB01). The digit positions are 13.18.40.4 GR14's - 9, Z, *, every P ('not counted in the size of the item, but each symbol P is counted in the maximum number of digit positions') AND each occurrence of a floating string's symbol - so PIC $$$$PP, which carries no 9, Z or *, still has its P string at the rightmost digit positions and is ACCEPTED (kb/Work PB155's shape, pinned in the positive golden as L20). Previously PIC 9P9 compiled and lost its P from both the scale and the digit count, rendering MOVE 123456 as '56'. retired-witness: unit:PictureCompositionTests.ACompositionViolation_IsCOBOLNET1934 (the same witness, re-spelled when the diagnostic code prefix became COBOL#### (kb/Work PB3575); the new spelling is recorded in its place)",
+ "state": "OK"
+}

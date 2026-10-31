@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-21",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 21,
+ "subject": "SET statement",
+ "rule-digest": "5928783df555",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/LocaleState.cs#TryResolveSaved; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#LocaleInvalidPtrError",
+ "test-ref": "conformance:cases/14.9.39-SET/pb64t1_save_restore_locale; unit:LocaleStateTests.InvalidPointer_RaisesOnlyWithCheckingOn_AndLeavesTheStateUnchanged",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T1 (2026-08-19): a pointer that is not a live saved-locale handle of this run unit (NULL, an ADDRESS OF pointer, another run unit's handle) sets EC-LOCALE-INVALID-PTR (fatal, checking-gated per §14.6.13.1.1) and the SET is unsuccessful — the state is unchanged. DETERMINATION L4: the saved locale is a managed handle (SavedLocalePointer), never an address. Was DOCUMENTED-NON-SUPPORT (PB92).",
+ "state": "OK"
+}

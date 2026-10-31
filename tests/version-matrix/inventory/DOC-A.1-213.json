@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-213",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 213,
+ "subject": "USAGE NATIONAL (size and representation of characters)",
+ "rule-digest": "dc6b5e437981",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-213; src/WiseOwl.Cobol.Runtime/Values/Text/CobolBits.cs#NatBytes; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#PicInfo",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb646_national_form_numeric_bytes; conformance:cases/8.1.2-Computer-s-coded-character-set/l1_usage_display_character_size",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 13.18.60.4 'Each implementor shall specify the size and representation of characters stored for usage NATIONAL' -> OK §13.18.60.4 8). Probes probe/p213 --std 2023: nt.cob BYTE-LENGTH(PIC N(2))=4, LENGTH=2; sequential record PIC N(3) 'Aé€' on medium = 00 41 00 e9 20 ac; MOVE N'A€😀' TO PIC N(3) keeps A, € and the high surrogate (LENGTH 3); ng.cob group N(2)'AB'+X'C' moved to X(5) -> bytes 00 41 00 42 43; REDEFINES of N'€' -> 20 AC; BYTE-LENGTH(PIC N)=2. Golden pb646_national_form_numeric_bytes pins 2 bytes/position UTF-16BE (BYTES=10, HIGHZEROS=5, EBYTES=12); l1_usage_display_character_size LEQN pins the national size. §8.5.1.4 rule 2 makes each surrogate half a character position. Consistent with DOC-A.1-188 / DOC-A.1-33 (UTF-16, one code unit per position). Owning note: kb/Work/PB1534, A11. REFUTER: code-location gained the symbol-anchored greenfield sites (CobolBits.NatBytes is the ONE UTF-16BE serializer; the bare PicInfo.cs path had no #Symbol). Re-probed refute-probe/p213 at 2023 (identical outputs) and n85.cob: PIC 9(3) USAGE NATIONAL BYTE-LENGTH 6 at 2002, COBOL0900 at 85.",
+ "state": "OK"
+}

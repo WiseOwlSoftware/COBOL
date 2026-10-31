@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.6-4",
+ "section": "9.1.13.6",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "I-O status",
+ "rule-digest": "7dd72d42c921",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#OdoRecordExceedsMaximum; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReadExceedsRecordMaximum",
+ "test-ref": "conformance:cases/9.1.13.6-Permanent-error-condition-with-unsuccessful-completion/pb1513_read_odo_record_exceeds_maximum",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1513 (also PB1192): a) = GR-9.1.13.6-3 (the sequential write boundary, implemented by PB1192, witnessed there). b) A READ whose just-landed record has an OCCURS DEPENDING ON item making it exceed the file's maximum record size is unsuccessful with '34': the generated READ compares the DEPENDING ON item with a compile-time limit AFTER the area store (SequentialIoEmitter.OdoRecordExceedsMaximum; the keyed READ and the SORT/MERGE USING implicit READ share it) and FileRegistry.ReadExceedsRecordMaximum assigns the status through the one status path, which also begins the permanent error of DOC-A.1-105. Determination D-ODO2 (docs/CONFORMANCE.md): asked of a file with exactly one record description. Golden pb1513_read_odo_record_exceeds_maximum: counts 03 and 10 -> 00, 11 -> 34, the error in effect on the next READ, CLOSE ends it; the relative arm and a SORT USING arm likewise.",
+ "state": "OK"
+}

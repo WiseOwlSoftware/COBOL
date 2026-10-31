@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.43.3-3",
+ "section": "13.18.43.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "RECORD clause",
+ "rule-digest": "578f6994fe90",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Screen",
+ "test-ref": "conformance:cases/13.18.43-RECORD/pb721-record-contains-larger-record; conformance:cases/13.18.43-RECORD/pb721_record_bytes_synonym; conformance:cases/13.18.43-RECORD/pb1562-record-contains-unbounded-dynamic; conformance:cases/13.18.43-RECORD/pb1562_variable_group_under_fixed_record_clause; conformance:cases/13.18.43-RECORD/pb1562-record-contains-limit-one-over",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Screened as a row of the RecordClauseRules table, run from DataBinder.ResolveFiles over every declared file once the data forest is indexed - post-build because the size compared is 13.18.43.4 GR8 b)'s, a summation over occurrence counts, redefinition targets and group usage that is not settled while the file description entry is being read. The negative witnesses the rejection (a 20-byte record under RECORD CONTAINS 10); the positive witnesses the boundary where the rule must NOT fire (RECORD CONTAINS 10 BYTES over a record of exactly 10). Nothing screened this rule before kb/Work PB721.",
+ "state": "OK"
+}

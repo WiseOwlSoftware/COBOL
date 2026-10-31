@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.16.3-16",
+ "section": "13.16.3",
+ "kind": "SR",
+ "ordinal": 16,
+ "subject": "Data description entry",
+ "rule-digest": "6e539e1dc62d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ClausePlacementRules; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ResidenceFault; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenComposedBased",
+ "test-ref": "conformance:cases/13.16-Data-description/pb516-based-in-file-section; conformance:cases/13.16-Data-description/pb516-composed-based-in-file-section; conformance:cases/13.16-Data-description/based-level-05; conformance:cases/13.16-Data-description/w66g-pb1300-composed-based-level; conformance:cases/13.16-Data-description/pb516_based_residence; unit:DataClausePlacementDriftTests.Based_OutsideItsResidence_IsRefused; unit:DataClausePlacementDriftTests.Based_InEveryAdmittedResidence_BindsBased",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB516 (wave 1019 D2). Both sentences of SR16 ('The BASED clause may be specified only in data description entries in the linkage section, in the working-storage section, and in the local-storage section. The level number of such data description entries shall be 1 or 77.', cite.py --check 13.16.3 OK 16)) are ONE Residence row of the clause-placement table (admitted levels [1, 77], sections LINKAGE|WS|LS), asked of a WRITTEN BASED clause by ScreenClausePlacement (COBOL2404; the refusal clears IsBased) and of a BASED clause a TYPE or SAME AS clause composes by ScreenComposedBased (COBOL2510) through the same ClausePlacementRule.ResidenceFault. Before: the level half was a private arm of the BASED block and the SECTION half was asked by nothing, so `FD F. 01 R BASED PIC X(10).` compiled.",
+ "state": "OK"
+}

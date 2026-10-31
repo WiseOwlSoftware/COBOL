@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-136",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 136,
+ "subject": "MODULE-NAME Function, (How it is determined whether the program is a main program or not)",
+ "rule-digest": "e293f2c0e507",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-136; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#RunMain",
+ "test-ref": "conformance:cases/15.65.4-Returned-value-rules/pb63_module_name_lengths; unit:ModuleStackInvariantTests.ActivatingInTheMain_IsASingleSpace_TheOneR1Exception",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "editions 2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the MODULE-NAME function is a COBOL-2023 introduction (Annex E.3.3 item 28). cite.py --check E.3.3 \"The MODULE-NAME intrinsic function has been added\" OK.",
+ "state": "OK"
+}

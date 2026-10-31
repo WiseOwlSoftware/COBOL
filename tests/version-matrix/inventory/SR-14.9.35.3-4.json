@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.35.3-4",
+ "section": "14.9.35.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "REWRITE statement",
+ "rule-digest": "9ec8522068cc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/FileLockBinder.cs#CheckRecordLockPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/FileLockBinder.cs#ScreenLockPhraseAgainstAutomatic; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRewrite",
+ "test-ref": "conformance:cases/14.9.35-REWRITE/l1c25-rewrite-lock-phrase-automatic",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"If automatic locking has been specified for the rewrite file, neither the WITH LOCK phrase nor the WITH NO LOCK phrase shall be specified.\" BindRewrite calls CheckRecordLockPhrase before the organization reroute, so every organization is screened; ScreenLockPhraseAgainstAutomatic raises COBOL1512 when file.LockMode is AUTOMATIC. 'Specified' = the LOCK MODE AUTOMATIC clause: the implementor default when the clause is omitted (12.4.5.9.4 GR1 b) 2.) is no record locking (docs/PHASE4_RECONCILIATION.md), so no implicit automatic mode exists to check. Probe pg.cob (INDEXED, LOCK MODE IS AUTOMATIC): `REWRITE R1 WITH NO LOCK` and `REWRITE R1 WITH LOCK` each -> error COBOL1512 citing 14.9.35.3 SR4; ph.cob (LOCK MODE MANUAL) compiles clean. cite.py --check 14.9.35.3 SR4 / 12.4.5.9.4 GR1 b) 2. -> OK. No REWRITE negative fixture found in tests/conformance/negative, so test-ref empty. [editions as adjudicated: 2023 and 2014 (Annex E lists no 2014->2023 change); the record-locking facility it belongs to is post-1985 - the exact introducing edition is not derivable from the 2023 text]",
+ "state": "OK"
+}

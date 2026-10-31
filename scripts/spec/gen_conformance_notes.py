@@ -24,18 +24,16 @@ one (the verdict-evidence invariant, DESIGN-test-build-ci.md §3.10: a view that
 from __future__ import annotations
 
 import argparse
-import json
 import pathlib
 import sys
 from collections import Counter, defaultdict
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import generated_output  # noqa: E402  (the one way a generator clears the directory it writes: never wholesale)
+import inventory_store  # noqa: E402  (the one reader of the inventory)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
-REPO = pathlib.Path(__file__).resolve().parents[2]
-INVENTORY = REPO / "tests" / "version-matrix" / "traceability-inventory.json"
 
 KIND_LABEL = {
     "SR": "syntax rules", "GR": "general rules", "AR": "argument rules",
@@ -81,7 +79,7 @@ def build_notes(rows: list[dict]) -> dict[str, str]:
             "tags: [wiseowl-cobol, conformance, generated]",
             "---", "",
             f"# §{clause} — {len(items)} items, {g} GAP", "",
-            "> ⚙ **Generated** from `tests/version-matrix/traceability-inventory.json`. Do not edit — record",
+            "> ⚙ **Generated** from `tests/version-matrix/inventory/`. Do not edit — record",
             "> verdicts in the inventory and re-render with `python scripts/rendered_views.py conformance-burn-down`.", "",
             "| kind | items |", "|---|---:|",
         ]
@@ -97,9 +95,8 @@ def build_notes(rows: list[dict]) -> dict[str, str]:
                  "first time, and per-item rows drift. Query the inventory instead:",
                  "",
                  "```",
-                 "python -c \"import json;rows=json.load(open(r'tests/version-matrix/traceability-inventory.json'"
-                 ",encoding='utf-8'));"
-                 f"print([r['rule-id'] for r in rows if r['section'].startswith('{clause}.') "
+                 "python -c \"import sys;sys.path.insert(0,'scripts/spec');from inventory_store import load_inventory;"
+                 f"print([r['rule-id'] for r in load_inventory() if r['section'].startswith('{clause}.') "
                  "and r['state']=='GAP'][:40])\"",
                  "```", "",
                  "See also [[kb/Conformance/_Dashboard|the conformance dashboard]].", ""]
@@ -151,10 +148,7 @@ def main() -> int:
     ap.add_argument("--check", action="store_true",
                     help="render in memory and exit non-zero when the inventory no longer produces a view")
     args = ap.parse_args()
-    if not INVENTORY.exists():
-        sys.exit(f"inventory not found: {INVENTORY}\nRun: python scripts/spec/build_inventory.py")
-
-    rows = json.loads(INVENTORY.read_text(encoding="utf-8"))
+    rows = inventory_store.load_inventory()   # refuses an absent or malformed inventory, naming the rebuild
     notes = build_notes(rows)
 
     if args.check:
@@ -163,7 +157,7 @@ def main() -> int:
         # that the inventory stops producing a view: a row without a field `build_notes` reads raises above, and an
         # inventory with no rows renders a dashboard of zeros, which is no view of the standard (train 1063 review).
         if not rows:
-            print(f"the inventory has no rows: {INVENTORY}")
+            print(f"the inventory has no rows: {inventory_store.INVENTORY_DIR}")
             return 1
         print(f"the inventory renders {len(notes)} conformance notes")
         return 0

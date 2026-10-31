@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.2.10-2",
+ "section": "8.5.2.10",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Class and category of data items and literals",
+ "rule-digest": "1387e2c64cee",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ImpliedPicture.cs#SynthesizeImpliedPictures; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ImpliedPicture.cs#Sr9ImpliedFor",
+ "test-ref": "unit:ImpliedPictureTests.Sr9c_NationalLiteral_ImpliesPictureN_WithOrWithoutTheUsageClause",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: '2) An elementary data item described with a VALUE clause containing a national literal and described without a PICTURE clause.' (cite.py OK). §13.16.3 SR9 c) 'PICTURE N(length)'; implied picture analyzed, USAGE NATIONAL implied per §13.18.60.3 SR13 a). Probe p2.cob: '01 N1 VALUE N\"AB\".' -> LENGTH 2, BYTE-LENGTH 4. Figurative in a national context implies N(1) (Sr9ImpliedFor, §8.3.3.6.4 GR1).",
+ "state": "OK"
+}

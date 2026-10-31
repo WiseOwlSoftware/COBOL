@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.30.3-6",
+ "section": "14.9.30.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "READ statement",
+ "rule-digest": "38865d45293e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead",
+ "test-ref": "conformance:cases/14.9.30-READ/read-phrase-random-access",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "First verdict (kb/Work PB144). 'None of the phrases ADVANCING, AT END, NEXT, NOT AT END, or PREVIOUS shall be specified if ACCESS MODE RANDOM is specified in the file control entry for file-name-1.' Previously tolerated with no strict arm as part of the L1-L3 phrase-placement leniency family; now screened through EditionContext.Removed like its two siblings, naming every forbidden phrase the statement actually wrote. Under --permissive it warns and the bind is unchanged - the emitter's status-first branches make a phrase that cannot fire ('1x' on a random read) simply dead, never silently rerouted, which is the property the leniency depends on. SR10/SR11 (the KEY phrase) were already hard COBOL0864 errors and are untouched.",
+ "state": "OK"
+}

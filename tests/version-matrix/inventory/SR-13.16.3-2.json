@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.16.3-2",
+ "section": "13.16.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Data description entry",
+ "rule-digest": "88470f620c31",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#CheckEntryFormat",
+ "test-ref": "conformance:cases/13.16-Data-description/pb485-level-77-filler; conformance:cases/13.16-Data-description/pb485-level-77-unnamed; conformance:cases/13.16-Data-description/pb485_entry_format_legal_forms",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Both spellings of the failure are witnessed, because SR4 makes them one rule: an explicit FILLER at level 77, and an OMITTED entry-name, which SR4 says is 'as though the filler format of the entry-name clause were specified'. A screen testing only for the literal word FILLER would pass the second.",
+ "state": "OK"
+}

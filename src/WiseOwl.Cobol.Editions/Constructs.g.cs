@@ -20,6 +20,7 @@ public static class Constructs
     public const string Free2002 = "free-2002";
     public const string Invoke2002 = "invoke-2002";
     public const string AsyncMessaging2023 = "async-messaging-2023";
+    public const string ValidateStatement2002 = "validate-statement-2002";
     public const string ApplyCommitClause2023 = "apply-commit-clause-2023";
     public const string GobackReturning2002 = "goback-returning-2002";
     public const string StopRunStatus2002 = "stop-run-status-2002";
@@ -99,6 +100,7 @@ public static class Constructs
     public const string ConstantRecord2002 = "constant-record-2002";
     public const string UsageProgramPointer2002 = "usage-program-pointer-2002";
     public const string UsageFunctionPointer2014 = "usage-function-pointer-2014";
+    public const string UsageMessageTag2023 = "usage-message-tag-2023";
     public const string SetFunctionPointer2014 = "set-function-pointer-2014";
     public const string SetProgramPointer2002 = "set-program-pointer-2002";
     public const string UserWordProgramPointer2002 = "user-word-program-pointer-2002";

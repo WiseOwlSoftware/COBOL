@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.2.3-14",
+ "section": "8.4.3.2.3",
+ "kind": "SR",
+ "ordinal": 14,
+ "subject": "Function-identifier",
+ "rule-digest": "4b98994f784c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ParameterConformance.cs#ScreenBitAlignment; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfActivate",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/pb1418-function-arg-bit-unaligned; unit:ActivationConformanceDriftTests.BothActivations_AskTheSharedArgumentConformance",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1418 landed (w61h). SR14 (cite.py --check 8.4.3.2.3 'argument-1 shall be described such that it is aligned on a byte boundary' -> OK §8.4.3.2.3 14)). A BY REFERENCE formal with a bit data item argument runs ParameterConformance.ScreenBitAlignment - the SAME proof CALL's §14.9.4.3 SR6/SR8 asks (moved out of CallBinder): the §8.5.1.6.3 start-bit walk plus literal-only subscripts and ref-mod leftmost position. COBOL2471. Measured: B2 at bit 1 of a GROUP-USAGE BIT group -> COBOL2471 (was R=101).",
+ "state": "OK"
+}

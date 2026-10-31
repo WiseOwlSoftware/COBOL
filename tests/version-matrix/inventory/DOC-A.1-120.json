@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-120",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 120,
+ "subject": "Locale switch (whether a switch by a non-COBOL runtime module is recognized by COBOL)",
+ "rule-digest": "6f3ee98c4ecc",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-120; src/WiseOwl.Cobol.Runtime/Control/LocaleState.cs#LocaleState; src/WiseOwl.Cobol.Runtime/Collation/CollationRuntime.cs#TryCurrent",
+ "test-ref": "conformance-test:DefaultLocaleDeterminationTests.AHostCultureSwitchDuringARunUnit_IsNotUtilized_ButTheNextRunUnitStartsFromIt",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "(kb/Work PB2671, which takes this row from PB1253.) cite.py --check A.1 \"Locale switch (whether a switch by a non-COBOL runtime module is recognized by COBOL)\" -> OK §A.1 120); --check 8.2.1 \"It is implementor-defined whether, and for which locale categories, a switch of current locale by a non-COBOL runtime module is utilized by COBOL\" -> OK. Determination L3 (DESIGN-locale-facility §4.3; CONFORMANCE.md §7): no, for every category; the run unit reads the process culture once, when it starts. PB1253's PARTIAL was that no real .NET host had switched CultureInfo.CurrentCulture mid-run-unit, and whether a .NET host is a supported activator at all, which DOC-A.1-116 and DOC-A.1-141 settle. The witness is that host: with COBOL_USER_LOCALE and COBOL_SYSTEM_LOCALE unset it sets CurrentCulture to es-ES, begins a run unit and calls the program (current and user default both Spanish: nz first), switches CurrentCulture to de-DE and calls again (still Spanish, even after SET LOCALE LC_ALL TO USER-DEFAULT, because the user default is the run unit's own), then begins a second run unit (German: ñu first), which shows the switch itself took effect. The SYSTEM-DEFAULT lines depend on the machine's installed UI culture and are not asserted.",
+ "state": "OK"
+}

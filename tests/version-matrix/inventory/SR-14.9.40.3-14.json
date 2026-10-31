@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.40.3-14",
+ "section": "14.9.40.3",
+ "kind": "SR",
+ "ordinal": 14,
+ "subject": "SORT statement",
+ "rule-digest": "37a25364c205",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortKeyAdmission.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindTable; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#KeyUnderInnerOccurs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#TableSortKey; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortMemberPath",
+ "test-ref": "conformance:cases/14.9.40-SORT/pb1173-sort-table-key-outside-table; conformance:cases/14.9.40-SORT/pb1173-sort-table-key-subscripted; conformance:cases/14.9.40-SORT/pb1173-sort-table-key-boolean; conformance:cases/14.9.40-SORT/pb1173-sort-table-key-variable-group; conformance:cases/14.9.40-SORT/pb1173-sort-table-key-inner-occurs; conformance:cases/13.18.38-OCCURS/pb1018_table_sort_qualified_keys",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1173 landed: SR14 a) is SortBindTable's subtree walk (SubtreeCandidates); b) the one data-name-n shape screen (COBOL2024 - the written subscript is refused, no longer dropped); c) boolean / object / pointer and d) variable-length group / occurs-depending group are SortKeyAdmission.Violation with the TableSort arm, applied to the KEY phrase's keys, the OCCURS KEY phrase's keys and the table element itself (GR23); e) is KeyUnderInnerOccurs. A dynamic-length ELEMENTARY key is admitted (SR14 d) names groups only); no table element can hold a dynamic-length item (COBOL1563). A key behind a REDEFINES view the table is not in remains the typed-array deferral kb/Work PB599 owns.",
+ "state": "OK"
+}

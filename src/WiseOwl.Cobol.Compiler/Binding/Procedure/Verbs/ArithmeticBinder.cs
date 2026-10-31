@@ -108,7 +108,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             // §14.9.26.2 Format 2: ONE `BY {identifier-2 | literal-2}` sending operand, no ROUNDED.
             if (byOps.Length > 1 || byOps[0].roundedPhrase() is not null)
                 ctx.Edition.Error(DiagnosticCatalog.ArithmeticFormatOperand,
-                    "MULTIPLY … BY … GIVING: Format 2 prints ONE `BY {identifier-2 | literal-2}` operand "
+                    "MULTIPLY BY operands with GIVING: Format 2 prints ONE `BY {identifier-2 | literal-2}` operand "
                     + "with no ROUNDED (ISO §14.9.26.2; the extra operands the old binder silently dropped)");
             var b = host.Expr.BindExpr(byOps[0]);
             var recv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, "§14.9.26.3 SR2");
@@ -136,7 +136,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             {
                 // §14.9.12.2 Formats 4–5 print GIVING before REMAINDER — no format has REMAINDER without it.
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ArithmeticFormatOperand,
-                    "DIVIDE … REMAINDER without GIVING: Formats 4–5 print GIVING identifier-3 before "
+                    "DIVIDE REMAINDER without GIVING: Formats 4–5 print GIVING identifier-3 before "
                     + "REMAINDER (ISO §14.9.12.2)");
             }
             var quotients = host.Expr.Receivers(g.receivingArithmeticOperand(), editedOk: true, "§14.9.12.3 SR2");
@@ -145,7 +145,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
                 // §14.9.12.2 Formats 4–5 print exactly ONE identifier-3. It is a GENERAL FORMAT fact and
                 // there is no syntax rule to pair with it — §14.9.12.3 has four (kb/Work PB388).
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ArithmeticFormatOperand,
-                    "DIVIDE … GIVING … REMAINDER: Formats 4–5 print exactly one quotient receiver "
+                    $"DIVIDE REMAINDER with {quotients.Count} GIVING receivers: Formats 4–5 print exactly one quotient receiver "
                     + "(ISO §14.9.12.2)");
             }
             // kb/Work PB128: identifier-4 rides the ONE receiving chokepoint like every other resultant —
@@ -192,7 +192,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         {
             // §14.9.12.2: every BY format (3–5) prints GIVING — `DIVIDE A BY B.` exists in no format.
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ArithmeticFormatOperand,
-                "DIVIDE … BY without GIVING: every BY format of DIVIDE prints the GIVING phrase "
+                "DIVIDE BY without GIVING: every BY format of DIVIDE prints the GIVING phrase "
                 + "(ISO §14.9.12.2 Formats 3–5)");
         }
         return DivideShape();
@@ -211,7 +211,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
     {
         if (recvShaped.Length > 1 || (recvShaped.Length == 1 && recvShaped[0].roundedPhrase() is not null))
             ctx.Edition.Error(DiagnosticCatalog.ArithmeticFormatOperand,
-                $"{verb} … GIVING: Format 2 prints ONE sending operand with no ROUNDED (ISO {cite}); the "
+                $"{verb} GIVING: Format 2 prints ONE sending operand with no ROUNDED (ISO {cite}); the "
                 + "extra operands / the ROUNDED the old binder silently dropped are a format violation");
     }
 

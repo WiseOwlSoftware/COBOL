@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.35.3-1",
+ "section": "14.9.35.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "REWRITE statement",
+ "rule-digest": "cdf892acf77d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveRecordName; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRewrite",
+ "test-ref": "conformance:cases/14.9.35-REWRITE/pb347-rewrite-subordinate-item; conformance:cases/14.9.35-REWRITE/pb347-rewrite-refmod-record; conformance:cases/14.9.32-RELEASE/pb347_record_name_identity",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB347. RULE (cite.py --check 14.9.35.3 'Record-name-1 is the name of a logical record in the file section of the data division and may be qualified.' -> OK, 14.9.35.3 1) -- the same sentence as WRITE 14.9.51.3 SR5, under the same one implementation, StatementValidation.ResolveRecordName. BOTH HALVES ARE WITNESSED. Name-of-a-logical-record: `REWRITE IR-DATA` on a 05 subordinate item and `REWRITE IO-REC(1:3)` on a reference-modified record are both COBOL1757 at every edition, where both used to compile with NO diagnostic and emit CobolFile.Rewrite with an operand of the wrong width -- REWRITE is the verb where that is most destructive, since it REPLACES a record already in the file. May-be-qualified: `REWRITE OUT-REC OF OUTF` binds and replaces the record read, pinned by conformance:cases/14.9.32-RELEASE/pb347_record_name_identity (F1=[999aaaaa] after a READ of 111aaaaa and a MOVE of '999' to the key). Edition-invariant, no gate; the negatives carry `*> reject-at: 85 2002 2014 2023`.",
+ "state": "OK"
+}

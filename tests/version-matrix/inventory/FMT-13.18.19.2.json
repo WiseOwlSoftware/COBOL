@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.19.2",
+ "section": "13.18.19.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "DYNAMIC LENGTH clause",
+ "rule-digest": "7d8026a3c6f1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dynamicLengthClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDynamicLengthClause; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#DynamicLengthClauseContext",
+ "test-ref": "conformance:cases/13.18.19-DYNAMIC-LENGTH/pb695_dynamic_length_omitted",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Format `DYNAMIC LENGTH [ dynamic-length-structure-name-1 ] [ LIMIT IS integer-1 ]` (cite.py --check 13.18.19.2 \"LIMIT\" OK), underlines on DYNAMIC and LIMIT only. Grammar `DYNAMIC LENGTH? cobolWord? (LIMIT IS? integerLiteral)?` matches: optional LENGTH/IS, optional structure name before optional LIMIT. Probes (pinned cobol.exe, --std 2014): `PIC X DYNAMIC LIMIT 5` runs [ABCDE]; `DYNAMIC LENGTH DLS LIMIT 3` [ABC]; `DYNAMIC DLS` accepted; `LIMIT +5` COBOL0001 and `LIMIT IS 0` COBOL2386 (cite.py --check 5.5 \"shall be unsigned and nonzero unless otherwise specified\" OK); `LIMIT 5.0` rejected; --std 2002 COBOL0900. --std 2023 run identical. || Editions (adjudicator): 2014, 2023 (COBOL-2014 introduction per VERSION_CHANGE_REFERENCE; the 2023 Annex E lists only the 2023 SET enhancement for dynamic-length items, E.3 item 17)",
+ "state": "OK"
+}

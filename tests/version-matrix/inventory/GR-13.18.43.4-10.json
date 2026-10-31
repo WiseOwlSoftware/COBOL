@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.43.4-10",
+ "section": "13.18.43.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "RECORD clause",
+ "rule-digest": "d3d8d090b9f6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMax; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordMax; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MaxRecordSize",
+ "test-ref": "conformance:cases/13.18.43-RECORD/pb1276_varying_unstated_max_dynamic; unit:RecordSizeModelTests.UnstatedMaximum_IsTheSameGr10QuantityForTheExplicitAndTheImpliedClause; unit:RecordSizeModelTests.UnstatedRange_IsTheRecordsByteSize",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Landed by kb/Work PB1276 (w61f). cite.py --check 13.18.43.4 'the greatest number of bytes described for a record in that file' -> OK §13.18.43.4 10). FileModel.VaryMax is ONE formula for the explicit clause without integer-3 and the implied Format 2 clause: integer-3 ?? RecordMax (the greatest MaxRecordSize, GR8 b, a dynamic-length member at its maximum). Golden 2014/pb1276_varying_unstated_max_dynamic: X(3) + DYNAMIC LENGTH LIMIT 20 -> max 23 under RECORD IS VARYING (DEPENDING 17/23 -> 00, 24 -> 44), the same answer as with no RECORD clause (was 44 for any 17-byte record: the maximum was taken as the 3-byte character area).",
+ "state": "OK"
+}

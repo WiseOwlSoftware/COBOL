@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.14.4-7",
+ "section": "13.18.14.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "COLUMN clause",
+ "rule-digest": "2d0d656e194a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitCompose",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb951_relative_sign_synonyms",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: a per-line horizontal counter = rightmost occupied column, zero at line start (cite.py --check 13.18.14.4 'At the start of the line, the horizontal counter is zero' -> OK 7)). EmitCompose declares `int __hc = 0;` per compose method (one per line) whenever any placement is relative; every placement updates it. Probe p1.cob line 3: the first printable item `COLUMN PLUS 3` landed at column 3 (0+3). pb951's derivation computes from the zero counter. || Editions (adjudicator): 2002, 2014, 2023 (Format 1 multiple/relative/alignment forms); the absolute single-operand COLUMN NUMBER IS integer-1 form also 85. Annex E records no 2023 change to the clause.",
+ "state": "OK"
+}

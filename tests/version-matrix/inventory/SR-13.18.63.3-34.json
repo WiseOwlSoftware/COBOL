@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-34",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 34,
+ "subject": "VALUE clause",
+ "rule-digest": "db6d002779bd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#FieldImage; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#InitializerFrom; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/DataEmitter.cs#ValueImageOf",
+ "test-ref": "conformance:cases/13.18.53-SOURCE/pb506_report_value_operand_list; conformance:cases/13.18.63-VALUE/pb506_report_operand_lists_2002; conformance:cases/13.18.63-VALUE/pb506_report_operand_lists_2014; unit:ReportOperandListDriftTests.NoFieldValueSource_IsRoutedThroughTheMoveConversion",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-09-13 (kb/Work PB506). THREE DELEGATIONS: TWO NOW CONFORM, THE THIRD IS VACUOUS IN FORMAT 4. SR17 (VALUE and VALUES are equivalent) — CONFORMS, one grammar production accepts both spellings and the 2023 golden writes `VALUES ARE`. SR11 sentence 1 (editing characters ARE used for a numeric-edited item when the literal is numeric) — CONFORMS: `03 COLUMN 46 PIC ZZ9 VALUE 12.` prints ` 12`. SR11 sentence 2 (editing characters for an alphanumeric-edited or national-edited item do NOT cause editing of the initial value) — NOW CONFORMS, and this was the divergence: `03 COLUMN 26 PIC XXBXX VALUE \"AB CD\".` printed `AB  C`, the literal run through the alphanumeric EDIT, and now prints `AB CD` as written. THE ROOT CAUSE WAS A ROUTING, NOT A MISSING CHECK: ReportWriterEmitter.FieldImage turned a FieldValueSource into move.ConvertSource(source, PrintItem) — the SOURCE clause's implicit MOVE, 13.18.53.4 GR1, a real clause answering a different question — and a MOVE applies exactly the transforms a VALUE excludes. A format-4 VALUE operand now renders through ValueInitializer.InitializerFrom, the SAME 13.18.63 recipe the working-storage (format 1) lane uses, reached via DataEmitter.ValueImageOf; the 2023 golden prints the report item AND its identical WORKING-STORAGE twin on adjacent lines for each shape, so the two lanes cannot drift apart unseen. SR25 (no format 3/4/5 VALUE in or under a CONSTANT RECORD entry) is VACUOUS in format 4: CONSTANT RECORD is a data-description clause (13.18.15) and the report group description entry's clause list does not contain it, so the shape SR34 imports SR25 to forbid cannot be written in the report section at all; SR25's own row owns its format-3/5 legs. EDITIONS: MEASURED at 2002, 2014 and 2023 (the three goldens); FieldImage and InitializerFrom carry no version predicate and the 85 leg is reasoned from that, the repetition and COLUMNS/SOURCES spellings used to reach it being 2002-gated (COBOL0900). Annex E carries no 2023 change to SR34.",
+ "state": "OK"
+}

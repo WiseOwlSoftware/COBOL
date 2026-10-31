@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.3.6-L2.5",
+ "section": "9.3.6",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Objects",
+ "rule-digest": "fcc5f47f6b96",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg",
+ "test-ref": "conformance:cases/9.3.6-Method-invocation/pb1051_method_by_value_match",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1051 landed (wave 1011 C): a METHOD formal declared BY VALUE is carried (OoFormal.ByValue). Resolution step 5 (cite.py --check 9.3.6 'steps 3 and 4 are repeated, ignoring the requirements specified in 4c, 4d, 5c and 5d below' -> OK 9.3.6 5)), the 5c/5d half: USING BY VALUE 12345 into PIC 9(3) still matches and delivers 345 (golden pb1051_method_by_value_match, T=345); the 4c/4d BY CONTENT half was verified before.",
+ "state": "OK"
+}

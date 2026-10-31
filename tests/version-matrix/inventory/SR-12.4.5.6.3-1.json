@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.6.3-1",
+ "section": "12.4.5.6.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "ALTERNATE RECORD KEY clause",
+ "rule-digest": "ab11777be5de",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Rules; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#IsSubjectToOccurs",
+ "test-ref": "conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb354-alternate-key-occurs; conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb699-alternate-key-occurs-entry-only; conformance-test:FileControlKeyRuleSpecTests.IndexedEntryRule_ReportsAtEveryEdition_WithOrWithoutAKeyedVerb; conformance-test:FileControlKeyRuleSpecTests.SourcePhraseOperandRules_ReachEachDataName2_Once",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "RE-SITED 2026-09-06 (kb/Work PB699); rule unchanged. RULE (--check 12.4.5.6.3 1): \"Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses.\" Same move as the RECORD KEY twin: the screen is a row of FileControlKeyRules' table, run at the ENTRY from DataBinder.ResolveFiles, and its subject list is FileModel.AlternateKeyNames - the clauses AS WRITTEN - rather than the resolved AlternateKeys, because a clause whose data-name-1 resolves to nothing is absent from the resolved list. As for the RECORD KEY twin, data-name-2 belongs to the SOURCE phrase, which the grammar does not admit and docs/CONFORMANCE.md 2 row 40 declines. kb/Work PB1099 Q1 (w1095i): the record-key SOURCE phrase is PROVIDED (owner rule R65); each data-name-2 is screened by the data-name-1 row. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#KeyedValidateFile (KeyedValidateFile was removed when the file-control KEY rules became one table, FileControlKeyRules (kb/Work PB699, 3c5b4cd4d))",
+ "state": "OK"
+}

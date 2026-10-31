@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.96.4-2",
+ "section": "15.96.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "TRIM function",
+ "rule-digest": "16d8bb371f5d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Trim",
+ "test-ref": "conformance:cases/15.96.4-Returned-value-rules/l1_trim_leading_trailing_multi_arg2; conformance:cases/15.96.4-Returned-value-rules/pb117_trim_sequential; conformance:cases/15.3-Arguments/intrinsics_trim",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "PARTIAL -> CONFORMS, re-verdicted by the kb/Work PB245 golden round (2026-09-09). THE RULE: §15.96.4 r2 'If TRAILING is specified, the returned value is a character string that consists of the characters in argument-1 beginning from the leftmost character position through the rightmost character position after which all characters contain argument-2' (cite.py --check 15.96.4 on that sentence -> OK, rule 2). DERIVED BEFORE THE RUN, read through r5's nesting exactly as its LEADING twin: TRIM('bbxbb' TRAILING 'b') = 'bbx' (r2's base case); TRIM('abcb' TRAILING 'b' 'c') = 'ab' where the set union gives 'a'; the order-reversed TRIM('abcb' TRAILING 'c' 'b') = 'abc', a DIFFERENT answer over the same argument-2 set. MEASURED: all three as derived. ⚠ NO FIXTURE PINNED THE TRAILING SHAPE WITH TWO OR MORE ARGUMENT-2s BEFORE THIS ROUND - pb117_trim_sequential carries the unkeyworded (BOTH) shape and one LEADING case, and the §15.96.4 NOTE's own example TRIM('aabbcc' 'c' 'b') = 'aa' agrees under both readings, so a NOTE-derived golden could not have separated them. WHAT CLOSED IT: kb/Work PB117's sequential fold.",
+ "state": "OK"
+}

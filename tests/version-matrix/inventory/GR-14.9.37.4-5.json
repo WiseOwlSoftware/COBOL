@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.37.4-5",
+ "section": "14.9.37.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "SEARCH statement",
+ "rule-digest": "36cd32937bf3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs",
+ "test-ref": "conformance:cases/14.9.37-SEARCH/l1_search_all_gr5_preconditions",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR5 satisfied on both legs: an ASCENDING two-key table nested under an OCCURS (GR5b, both WHEN conditions naming the same superordinate index, data laid out so ignoring it gives a different answer) and a flat DESCENDING table; outcome defined by GR9 + GR1a, superordinate index unchanged per GR1/GR8. GR5a is satisfied PER KEY, not merely on the composite — both the WS-K1 and the WS-K2 column ascend in each outer occurrence, so the fixture stays off GR6's undefined branch under either reading of §13.18.38.4 GR3.",
+ "state": "OK"
+}

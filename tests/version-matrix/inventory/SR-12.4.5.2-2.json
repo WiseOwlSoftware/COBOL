@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.2-2",
+ "section": "12.4.5.2",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "File control entry",
+ "rule-digest": "0acd4d779c28",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl",
+ "test-ref": "conformance:cases/12.4.5-File-control/w73b-pb1077-select-twice; conformance:cases/12.4.5-File-control/w73b_pb1077_select_scope_per_program",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1077 landed (w73b). cite.py --check 12.4.5.2 \"A given file-name may be specified in only one SELECT clause within a factory, function, object, or program\" -> OK 2). BindFileControl keeps the unit's own SELECTs in DataBinder._selectedFiles and reports a second SELECT of a file-name with COBOL2634 at every edition; the first entry stands (it used to be silently replaced in FilesByName, so the program wrote the last ASSIGN target). A class-level input-output section (bound into both OO halves) is not screened: §12.4.3 SR1 forbids it outright (kb/Work PB1076). Probe: SELECT F1 twice -> compiled clean, wrote b1.dat only; now COBOL2634 at --std 2023 and 85. The per-program scope is witnessed by the 85 golden (containing and contained program each SELECT F).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.3.6-L3.6",
+ "section": "9.3.6",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "Objects",
+ "rule-digest": "d3b7ee30865c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindResolvedInvoke; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ObjectRefAssignmentMismatch; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ReturningSender; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#ReturningMatches; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#MaySet",
+ "test-ref": "conformance:cases/9.3.6-Method-invocation/pb1165_active_class_returning_subclass; conformance:cases/9.3.6-Method-invocation/pb2076_universal_returning_move_match",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1165 LANDED (w1014u, verdict-only). cite.py --check 9.3.6 'may be a sending item in a SET statement' OK 6). An inherited factory or instance method returning ACTIVE-CLASS invoked on the SUBCLASS delivers into a subclass-typed receiver: the sender is re-described by 14.8.3.3 rule 2 b) (OoConformance.ReturningSender) before the SET conformance (ObjectRefAssignmentMismatch), so the batch-15d shapes S5 (INVOKE SB \"MK\" RETURNING OS) and S7 (INVOKE OS \"MA\" RETURNING OS) compile and run - golden pb1165_active_class_returning_subclass lines 1-3 print DERIVED.",
+ "state": "OK"
+}

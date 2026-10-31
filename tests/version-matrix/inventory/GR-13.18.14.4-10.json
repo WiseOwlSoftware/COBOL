@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.14.4-10",
+ "section": "13.18.14.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "COLUMN clause",
+ "rule-digest": "415f87a28eb6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#NewLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Place",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb951_relative_sign_synonyms",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'Any unoccupied columns in each print line are filled with space characters.' (cite.py --check 13.18.14.4 -> OK 10)). ReportWriter.NewLine allocates the line buffer space-filled; Place writes only the item's columns. Probe p1 line 5 ' AABB      CD' - column 1 and columns 6-11 are spaces; pb951's ' Z   ' and 'W XY ' pin interior blanks. (Trailing spaces are dropped by the line-sequential record write, a file-organization matter outside this rule.)",
+ "state": "OK"
+}

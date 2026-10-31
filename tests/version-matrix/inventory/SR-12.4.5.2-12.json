@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.2-12",
+ "section": "12.4.5.2",
+ "kind": "SR",
+ "ordinal": 12,
+ "subject": "File control entry",
+ "rule-digest": "e1d8d923d51a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl",
+ "test-ref": "conformance:cases/12.4.5-File-control/pb781-reserve-on-line-sequential; conformance:cases/12.4.5-File-control/pb781_reserve_beside_line_sequential",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB781 (wave 1021 B). The RESERVE carrier (FileModel.ReserveAreas, PB1079/PB643) now has its SR12 screen: BindFileControl keeps the RESERVE clause's cursor and, once the whole entry is read (the ORGANIZATION clause may follow RESERVE), refuses RESERVE on a file whose organization is LINE SEQUENTIAL with COBOL2921 at the RESERVE clause. The predicate is LINE SEQUENTIAL itself, not FileModel.IsSequential: RECORD SEQUENTIAL and the omitted clause (12.4.5.10.3 GR6) keep RESERVE (NIST IX4014/SQ2034/SQ2264; positive golden writes and reads all three). Editions 2023 only: below it LINE SEQUENTIAL is refused by its introduction gate (COBOL0900).",
+ "state": "OK"
+}

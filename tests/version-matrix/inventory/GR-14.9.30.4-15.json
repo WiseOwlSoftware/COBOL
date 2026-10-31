@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.30.4-15",
+ "section": "14.9.30.4",
+ "kind": "GR",
+ "ordinal": 15,
+ "subject": "READ statement",
+ "rule-digest": "a0e6387613b4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReadPhysicalLine; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#FitRecord; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#TrimRecordEnd; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterNationalArea; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitNationalAreaRegistration",
+ "test-ref": "conformance-test:SequentialFileIoSpecTests.LineSequential_OverLengthRecord_TruncatesWith06_AndContinuesRemainder; conformance:cases/12.4.5.10-ORGANIZATION/pb327_national_line_sequential_fill",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB327 (LANDED 2026-09-05). The rule has three parts and ALL THREE now conform. (1) A short record right-pads the record area with trailing spaces -- the else arm is 'LastReadLength = line.Length; image = Fit(line)'. (2) THE SPACE IS THE RECORD AREA'S OWN: 'If the record-area associated with file-name-1 is specified implicitly or explicitly as alphanumeric, a trailing space is defined to be the alphanumeric space character. If the record-area associated with file-name-1 is specified implicitly or explicitly as national, a trailing space is defined to be the national space character' (cite.py --check 14.9.30.4 OK). FileConnector.FitRecord is the ONE record-area fit and pads a national area with the national space's two bytes 00 20 on the area's own even boundary (13.18.60.4 GR8; D-N1), where it used to pad 20 20 -- which is not a space at all but U+2020. The emitter tells the connector which area it has (EmitNationalAreaRegistration -> CobolFile.RegisterNationalArea), reading the record's OPERAND category so an elementary national record and a GROUP-USAGE NATIONAL one (13.18.29.4 GR2b) answer alike; TrimRecordEnd is the write-side inverse and sheds national spaces in pairs. THE LEG WAS PREVIOUSLY UNREACHABLE: a national record area was refused at COBOL0899 before it could be read. (3) A long record truncates on the right, succeeds with '06', and the next READ serves the remainder. conformance:2002/pb327_national_line_sequential_fill observes part 2 by ORD over the record area's shared byte view: 001/033 pairs (the national space), never 033/033. kb/Work PB688 (2026-09-05): ORGANIZATION IS LINE SEQUENTIAL is a COBOL-2023 INTRODUCTION - the Foreword's list of the main changes this third edition makes over ISO/IEC 1989:2014 names \"Line Sequential file organization\", and 9.1.6 / 9.1.7.1 still name exactly three organizations with 9.1.7.2 splitting the sequential one into its record- and line-delimited types. The organization therefore does not exist below 2023 (the pass now rejects it with COBOL0900, registry row file-organization-line-sequential-2023), the 2002 and 2014 copies of the golden were deleted as programs no edition below 2023 can express, and this row's editions are 2023 alone.",
+ "state": "OK"
+}

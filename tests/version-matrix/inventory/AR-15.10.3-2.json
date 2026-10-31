@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.10.3-2",
+ "section": "15.10.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "ASIN function",
+ "rule-digest": "d64c8a472e1d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolFloat.cs#ScaledToDouble; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#DomainScaled; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#DomainArg; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build",
+ "test-ref": "conformance:cases/15.10.3-Arguments-rules/pb115_asin_scaled_argument; unit:ScaledToDoubleTests.TheAsinWitness_31Nines_IsExactlyOne; conformance:cases/15.8.3-Argument-rules/pb952_argument_domain_bound_adjacent; conformance:cases/15.8.3-Argument-rules/pb952-argument-domain-checking-at-85; unit:IntrinsicArgumentDomainDriftTests.TheScaledScreen_DecidesOnTheExactValue_NotItsDouble; unit:IntrinsicArgumentDomainDriftTests.EveryBinary64RowsArgumentDomain_IsExactlyItsSection15ValueRule",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB115): the ONE correctly-rounded scaled->double conversion (CobolFloat.ScaledToDouble - fast path with exact operands and one IEEE rounding; slow path the correctly-rounded decimal parse), emitted from the singular NumericRenderer.Real funnel; CobolDec.ToDouble rides it; Pow10D deleted. The value rule's enforcement chain (RealResult -> EC-ARGUMENT-FUNCTION per 15.3 item 14) was always intact - it is now fed the argument's correctly-rounded value, so a conforming all-nines |x| <= 1 converts to exactly 1.0 and 15.10.4 r1's approximation is returned. Every all-nines scale 1-31 pinned inside the closed domain; a 600+-pair sweep against the IEEE-parse oracle guards the conversion. kb/Work/PB952 (2026-09-22): RE-ADJUDICATED ON A BOUND-ADJACENT WITNESS. The prior CONFORMS rested on a witness nine decimals out (+/-1.000000001), which binary64 still distinguishes from 1.0; the closest fixed-point argument outside the interval, 1 + 10**-30 in a PIC S9V9(30) item (13.18.40.3 SR14), rounds to 1.0 and the NaN artifact that was the only screen never fired, so ACOS/ASIN answered 0 / pi/2 under ARMED checking with no condition (DIVERGES until this landing). The rule is now decided on the EXACT operand before the binary64 conversion: IntrinsicSig.Domain (ClosedUnit, DomainRule the rule-2 cite) -> IntrinsicRenderer.DomainArg -> CobolIntrinsics.DomainScaled/DomainDec/DomainReal; the bodies carry no test. conformance:cases/15.8.3-Argument-rules/pb952_argument_domain_bound_adjacent raises for +/-(1 + 10**-30) and admits the bound itself; IntrinsicArgumentDomainDriftTests holds the catalog column to the 15.x.3 rule text.",
+ "state": "OK"
+}

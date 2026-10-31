@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.10.4-3",
+ "section": "13.10.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Constant entry",
+ "rule-digest": "a4be894fb380",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#BindConstantLength; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#BindConstantArithmetic; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#ExpandPicConstants; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#IntegerOperandValue",
+ "test-ref": "conformance:cases/13.10-Constant/constant_entry; conformance:cases/13.10-Constant/pb1227_constant_byte_length; conformance:cases/13.10-Constant/l1c05_constant_expr_truncated_integer; conformance:cases/8.4.2.3-Subscripts/pb1016_constant_length_subscripts",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1227 (w1006c). cite.py --check 13.10.4 \"If arithmetic-expression-1, data-name-1, or data-name-2 is specified, the effect of\" -> OK GR3. All three arms now yield an integer literal: arithmetic-expression-1 (GR4, the 7.3.6.3 GR3 truncation), data-name-2 (LENGTH OF) and data-name-1 (BYTE-LENGTH OF, previously staged loud). Each is an integer constant usable where the format specifies an integer: golden BUF PIC X(K2) with K2 = BYTE-LENGTH OF WN = 6 measures 6, and LK2 = LK - 3 (LK a BYTE-LENGTH constant) is a PICTURE repetition in LOCAL-STORAGE. retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.Constants.cs#OccursBoundValue (OccursBoundValue was generalised into IntegerOperandValue (kb/Work PB1947), which still substitutes the constant's integer as if the literal were written) || editions corrected from '2002' to 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a constant-entry rule; the constant entry (level 01 CONSTANT) is a COBOL-2002 introduction. cite.py --check 13.10.3 \"The length of data-name-1 or data-name-2 shall not be dependent\" OK.",
+ "state": "OK"
+}

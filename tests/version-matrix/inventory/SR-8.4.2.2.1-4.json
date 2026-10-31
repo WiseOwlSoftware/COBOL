@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.2.2.1-4",
+ "section": "8.4.2.2.1",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "Qualification",
+ "rule-digest": "6ffeb6a55815",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#WithLapsedTypeMembers; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#WithLapsedTypeConditions; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#WithLapsedTypeIndexes; src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs#TryResolve; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifiedCandidates",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/pb1476-type-member-lapse; conformance:cases/8.4.2.2-Qualification/pb1476-type-condition-and-index-lapse; conformance:cases/8.4.2.2-Qualification/pb1476_type_member_qualification",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1476 (wave 1019 D). Rule 4's antecedent is DataItem.ReferencedByTypeClause, recorded from EVERY written TYPE clause (a storage item's, a linkage item's, another type declaration's member's) before anything expands. Once set, the declaration's members - data-names, condition-names and INDEXED BY index-names alike - join the name's candidates in the ONE lookup (SymbolTable.TryResolve / TryResolveCondition / IndexCandidates) as definitions that count for uniqueness and never resolve alone, except the definition a candidate is itself a copy of (ClonedFrom), which is 13.18.58.4 GR1's one-group case. A type referenced only from a TYPE clause inside another, unreferenced, type declaration therefore lapses the exemption (COBOL1639 for unqualified X; X OF G resolves).",
+ "state": "OK"
+}

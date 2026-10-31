@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.2.10-3",
+ "section": "8.5.2.10",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Class and category of data items and literals",
+ "rule-digest": "7d99adc20826",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#GroupKindsOf; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfItem; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#Table16Operand.Of; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassNameOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NonNumericOperandKind",
+ "test-ref": "conformance:cases/8.5.2.5-Boolean-category/pb522_group_usage_travels_with_the_description; conformance:cases/8.5.2.5-Boolean-category/pb1400_group_usage_operand_class; conformance:cases/8.5.2.5-Boolean-category/pb1400-group-usage-arithmetic-operand; conformance-test:ArithmeticOperandClassTests.TheRefusal_NamesTheSection8521ClassOfTheOperand; unit:ClassSpellingDriftTests.TheArithmeticOperandScreen_AsksTheClassItNames",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1400 LANDED (w1095j). A group explicitly or implicitly described GROUP-USAGE NATIONAL is category and class national everywhere it is asked: LENGTH/MOVE (pb522; pb1400_group_usage_operand_class: MOVE N\"PQR\" TO GN as an elementary PIC N(3), GN = N\"PQR\", subordinate GNS moved as a national sender) and now the arithmetic-operand refusal, which said 'class alphanumeric' (the refuter's residual): COMPUTE N = GN + 1 / GNS + 1 -> 'group item GN of class national (ISO 8.5.2.1)', through IntrinsicArgumentRules.ClassNameOf over ClassOfPlace. The separate group-MOVE lead (a national group moved into an alphanumeric group) belongs to GR-8.5.2.3-3, not this row.",
+ "state": "OK"
+}

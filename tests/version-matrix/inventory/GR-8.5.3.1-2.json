@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.3.1-2",
+ "section": "8.5.3.1",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Types",
+ "rule-digest": "67b92fa146af",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/StrongTypeModel.cs#SameAnalyzedProfile; src/WiseOwl.Cobol.Compiler/Binding/Model/PictureClauseIdentity.cs; src/WiseOwl.Cobol.Compiler/Binding/Model/LocaleSymbol.cs#LocaleEditSpec",
+ "test-ref": "conformance:cases/8.5.3-Types/w66g_pb1475_strong_type_locale_identification; conformance:cases/8.5.3-Types/w66g-pb1475-strong-type-dpc-differs",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1475, DISCHARGED by the PB1166 landing (a38622ede) and re-verified on the w66g build. Rule (cite.py --check 8.5.3.1 'Period picture symbols match if and only if the DECIMAL-POINT IS COMMA clause is in effect for both or for neither of these type declarations' -> OK §8.5.3.1 2); 'both specify the same SIZE phrase in the LOCALE phrase of the PICTURE clause' -> OK; 'where the external identification is the external-locale-name or literal value associated with a locale-name' -> OK). DPC half: PicInfo.Clause (PictureClauseIdentity) carries the DECIMAL-POINT IS COMMA state whenever the picture has a period or comma symbol, and SameAnalyzedProfile's PicInfo record equality includes it - PIC 9.99 with DPC in the callee only is COBOL1688 in both orientations (negative golden), while PIC 9V99 (no symbol) across the same boundary conforms. LOCALE half: LocaleEditSpec's written-out equality is (Size, Picture, LocaleRef.SameIdentificationAs), never the locale-NAME - two locale-names LA/LB bound to \"fr_FR\" with SIZE 16 are equivalent and the CALL compiles and runs (positive golden, G=042). The SameAnalyzedProfile doc comment's 'Exception 3' is corrected to the clause's 'Additionally' paragraph.",
+ "state": "OK"
+}

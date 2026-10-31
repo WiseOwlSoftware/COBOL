@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-219",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 219,
+ "subject": "User-defined words (whether extended letters may be specified in user-defined words externalized to the operating enviro",
+ "rule-digest": "1535950e9b94",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-219; src/WiseOwl.Cobol.Runtime/Control/ExternalizedNames.cs#Comparer; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#EXT_CHAR",
+ "test-ref": "conformance:cases/8.1.3-COBOL-character-repertoire/pb1402_extended_letters",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1402: extended letters are permitted in externalized words (program-name PRUEFUNG with U+00DC reached by CALL of its lowercase spelling in the golden).",
+ "state": "OK"
+}

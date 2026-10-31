@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.67.3-2",
+ "section": "15.67.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "NUMVAL function",
+ "rule-digest": "ffa39eff9e5f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NvScan; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalDec",
+ "test-ref": "conformance:cases/15.67.3-Argument-rules/pb60_numval_one_scan",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-09 (PB60 - the one-scan unification): the NUMVAL value path is now a projection of the SAME positional NvScan that answers 15.93 TEST-NUMVAL, whose ignorable character is the SPACE (U+0020) only - the old body's .NET Trim()/TrimStart()/TrimEnd() sites trimmed the whole IsWhiteSpace set, so a TAB-led argument valued clean where r2's space-string admits only spaces. Measured: NUMVAL(X\"09313233\") now raises EC-ARGUMENT-FUNCTION (default 0, golden row TB) and TEST-NUMVAL reports position 1 (row TT) - the two projections agree by construction.",
+ "state": "OK"
+}

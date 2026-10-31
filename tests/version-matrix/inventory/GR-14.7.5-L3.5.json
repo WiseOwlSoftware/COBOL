@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.5-L3.5",
+ "section": "14.7.5",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Common phrases and features for statements",
+ "rule-digest": "f29bb968fb64",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/FloatResultant.cs#FloatResultant; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolSizeError.cs#ProhibitedInexact",
+ "test-ref": "conformance:cases/14.7.4-ROUNDED/pb1196_float_resultant_rounded_mode; conformance:cases/14.7.4-ROUNDED/pb3990_prohibited_unchecked_keeps_the_resultant",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1147 LANDED (w61e), PB3990. No-phrase rule 5: a nonzero result nearer to zero than the resultant permits under PROHIBITED is EC-SIZE-TRUNCATION (cite.py OK §14.7.5 5)). Every final transfer raises it as CobolSizeError.ProhibitedInexact (DIVIDE 1 BY 30 GIVING D ROUNDED MODE IS PROHIBITED, D PIC 9V9 -> EC-SIZE-TRUNCATION, was EC-SIZE-OVERFLOW), a floating-point resultant's PROHIBITED inexact store too (FloatResultant, kb/Work PB1196); with checking off the resultant is unchanged and execution continues (DOC-A.1-70). retired-witness: src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#DivideOrThrow (kb/Work PB3990 deleted DivideOrThrow: the one rule-7 raise is CobolSizeError.ProhibitedInexact)",
+ "state": "OK"
+}

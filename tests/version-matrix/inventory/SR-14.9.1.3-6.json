@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.1.3-6",
+ "section": "14.9.1.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "ACCEPT statement",
+ "rule-digest": "d604c38bb519",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindAccept",
+ "test-ref": "conformance:cases/14.9.1-ACCEPT/pb139-accept-vlg",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB139): both formats screen a variable-length group receiver with COBOL1691 through the ONE predicate (ReferenceResolver.HasVariableLengthSubordinate - the same one CALL SR12 and the PB124 function-argument screens ask).",
+ "state": "OK"
+}

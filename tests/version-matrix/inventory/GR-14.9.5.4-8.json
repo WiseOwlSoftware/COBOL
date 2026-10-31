@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.5.4-8",
+ "section": "14.9.5.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "CANCEL statement",
+ "rule-digest": "feb33d5f235e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/RecordStructEmitter.cs#EmitStaticReset",
+ "test-ref": "conformance:cases/13.18.22-EXTERNAL/l1_cancel_external_unchanged",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "One CANCEL, two storages: the sub's static counter returns to its VALUE (§14.6.2.3.2 3)) while the shared EXTERNAL record keeps its contents (GR8 / §14.6.2.3.3).",
+ "state": "OK"
+}

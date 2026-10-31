@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.8.3.3-L3.4",
+ "section": "14.8.3.3",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Returning items",
+ "rule-digest": "c086e4369508",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindResolvedInvoke; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#CallReturningViolation; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#ReturningConformance; src/WiseOwl.Cobol.Compiler/Oo/ActivationDescriptions.cs#Of",
+ "test-ref": "conformance:cases/14.8.3.3-Elementary-items/pb1167-returning-fixed-sender-any-length-receiver; conformance:cases/13.18.2-ANY-LENGTH/pb1167_any_length_returning",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1167 (w1013 L). cite.py --check 14.8.3.3 rule 4 'If the receiving operand is described with the ANY LENGTH clause, the sending operand shall also be described with the ANY LENGTH clause': the prohibition is enforced for INVOKE (negative golden: a fixed PIC X(5) method returning item into an ANY LENGTH formal receiver -> COBOL0828) and for CALL AS NESTED (COBOL1736); the conforming pairing, an ANY LENGTH sender into an ANY LENGTH receiver, now compiles and runs (pb1167_any_length_returning: NRET RETURNING AL, NRETLEN=5). retired-witness: src/Cobol.Net.Compiler/Oo/OoConformance.cs#DescriptionMismatch (kb/Work PB3101 (wave 1082): the DataItem comparator family is deleted (OoConformance.DescriptionMismatch, StrongTypeMismatch, AsIfElementaryGroupMismatch, IsCategoryAlphanumeric, PictureClauseIdentity.Mismatch, ObjectRefDescriptor.SameDescriptionAs); every activation and pair-mode question describes its items through ActivationDescriptions and asks ActivationRelations (CallArgumentViolation / CallReturningViolation / MatchViolation / SignatureDifference), the PICTURE identity entering through PictureClauseIdentity.Key)",
+ "state": "OK"
+}

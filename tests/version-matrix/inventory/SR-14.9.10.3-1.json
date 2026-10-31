@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.10.3-1",
+ "section": "14.9.10.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "DELETE statement",
+ "rule-digest": "3a77318796fc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindDelete",
+ "test-ref": "conformance:cases/14.9.10-DELETE/delete-record-sequential-org; conformance:cases/14.9.10-DELETE/l1-delete-record-implicit-sequential-organization; conformance:cases/14.9.10-DELETE/l1-delete-record-sequential-organization",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The rule was ENFORCED but never PROVED: COBOL0865 occurred exactly ONCE in the whole repository, at its own emit site, so nothing anywhere exercised it and the row sat CONFORMS with no test-ref (kb/Work PB144). SR1 is correctly a HARD error at every edition and strictness — deliberately NOT routed through the new COBOL1720 leniency seam, because it is not a documented dialect leniency — and FileModel.IsSequential covers the implicit-sequential (no ORGANIZATION clause) case. The new negative pins it.",
+ "state": "OK"
+}

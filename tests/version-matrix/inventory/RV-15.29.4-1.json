@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.29.4-1",
+ "section": "15.29.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "EXCEPTION-FILE-N function",
+ "rule-digest": "c760e7787da5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Exceptions/EcFunctions.cs#File; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ExceptionFile",
+ "test-ref": "conformance:cases/15.3-Arguments/pb63_exception_file_select_names; conformance-test:ExceptionConditionConformanceTests.IoAtEnd_ExceptionFileN_NationalTwin",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB63 — the exception surface: the FD screen, the SELECT-spelled name on the connector, the one access-recording path, the r2b procedure field and element name, the MODULE-NAME determinations). §15.29.4 r1c — the national twin reads the SAME SelectName through the ONE NationalOf translation: golden ARGN/NOARGN [10MixedExtF], LENGTH 11.",
+ "state": "OK"
+}

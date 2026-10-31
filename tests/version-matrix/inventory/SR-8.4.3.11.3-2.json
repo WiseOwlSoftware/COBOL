@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.11.3-2",
+ "section": "8.4.3.11.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Data-address-identifier",
+ "rule-digest": "36230e5b2faf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AddressOfOperandScreen.cs#Admit",
+ "test-ref": "conformance:cases/8.4.3.11-Data-address-identifier/pb1407-address-of-object-reference-and-strong-leaf; conformance:cases/8.4.3.11-Data-address-identifier/pb665_restricted_pointer_conforming",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1407. AddressOfOperandScreen refuses an object reference and an elementary item subordinate to a strongly-typed group COBOL2785 (SET sender and relation operand pinned); the address of the strong GROUP (8.4.3.11.4 GR2) and of a leaf of a weakly typed record stay legal (positive control in both goldens). StrongTypeModel.AddressOfRestriction's contradicting doc comment is corrected.",
+ "state": "OK"
+}

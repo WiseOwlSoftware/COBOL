@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.8-3",
+ "section": "9.1.13.8",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "I-O status",
+ "rule-digest": "29eb3c8e0530",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#LockRecord; src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#PreflightNewLock; src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#TotalRunUnitLocks",
+ "test-ref": "conformance:cases/9.1.13.8-Record-operation-conflict-condition-with-unsuccessful/l1c13_run_unit_lock_max_53",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§9.1.13.8 3) '53' when a statement requests a record lock and the run unit holds the implementation maximum (cite.py --check OK §9.1.13.8 3)). RunUnitLockMax = 255 summed over every physical file's RecordLocks (TotalRunUnitLocks), tested after the per-connector ceiling in both LockRecord and PreflightNewLock (the order when both apply is §9.1.13.1 latitude). Probe lock53/lk53.cob (18 connectors on one relative file, LOCK MODE MANUAL MULTIPLE, each READ WITH LOCK on 15 records): connectors 1-17 get 255 locks, connector 18's every READ WITH LOCK -> 53. No spec-derived golden reaches the run-unit ceiling (pb338_read_lock_limit_position reaches only '54'). kb/Work PB707 (open) is about where WRITE/REWRITE preflight returns 53/54 relative to RetryLoop; the behaviour is identical. || Editions (adjudicator, verbatim): 2002/2014/2023",
+ "state": "OK"
+}

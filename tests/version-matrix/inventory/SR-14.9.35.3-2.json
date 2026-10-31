@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.35.3-2",
+ "section": "14.9.35.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "REWRITE statement",
+ "rule-digest": "0e9236bbd25c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenForbiddenPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRewrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitInvalid",
+ "test-ref": "conformance:cases/14.9.35-REWRITE/rewrite-invalid-key-sequential-org; conformance:cases/14.9.35-REWRITE/rewrite-invalid-key-relative-sequential; conformance-test:SequentialFileIoSpecTests.Permissive_SequentialRewriteInvalidKey_RunsTheNotArmOnSuccess_AndWarns",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "First verdict (kb/Work PB144). THE RULE HAS TWO ARMS AND ONLY ONE WAS EVEN COMMENTED — the repo's most reproducible defect shape, found again. SR2 reads 'Neither the INVALID KEY phrase nor the NOT INVALID KEY phrase shall be specified for a REWRITE statement that references A FILE WITH SEQUENTIAL ORGANIZATION or a file with relative organization and sequential access mode.' KeyedIoBinder.BindRewrite handled only the relative-sequential arm (bound, undiagnosed); the sequential-ORGANIZATION arm goes through SequentialIoBinder.BindRewrite, which never read the statement's INVALID KEY family of conditionalPhrases AT ALL — parsed and dropped on the floor, a strictly worse shape than its twin. Probed: BOTH arms compiled clean at strict --std 2023 with no diagnostic. Both are now screened through the one seam, and BOTH have a negative fixture, because a fix landing only one of them would reproduce the very shape that made the rule wrong. || PB691 (the identical WRITE arm) found this arm one step short: the screen landed but SequentialIoBinder.BindRewrite still DROPPED the phrase, on the reasoning that a sequential REWRITE has no '2x' condition for it to carry. True of the INVALID arm, false of the NOT INVALID arm -- 9.1.14's final rule item 2 runs it on the SUCCESSFUL completion a sequential REWRITE certainly has -- so under --permissive the tolerated phrase still meant nothing and printed nothing (measured: 'R-NIK' absent). The arm now binds the pair and renders it through the shared SequentialIoEmitter.EmitInvalid, and the behaviour has its own test.",
+ "state": "OK"
+}

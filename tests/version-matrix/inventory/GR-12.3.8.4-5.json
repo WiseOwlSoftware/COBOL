@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.8.4-5",
+ "section": "12.3.8.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "3d79b9c6b851",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#Validate; src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#SubstitutedTokens",
+ "test-ref": "conformance:cases/11.3-CLASS-ID/pb759_parameterized_class; conformance:cases/12.3.8-REPOSITORY/pb759-expands-parameter-count; conformance-test:ParameterizedClassTests.ParameterCountMismatch_2240; conformance-test:ParameterizedClassTests.ExpandsANonParameterizedClass_2240; conformance-test:ParameterizedClassTests.ActualOfTheWrongKind_2240; conformance-test:ParameterizedClassTests.OneNameTwoExpansions_2240; conformance-test:ParameterizedClassTests.OneNameOneExpansion_InTwoSourceElements_Compiles",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB759.md landed w46i3. The class is created by re-parsing the skeleton's tokens with each formal replaced by its actual (FragmentParse.ParseTokens) and enters OoClassTable as an ordinary class. Count mismatch, non-parameterized operand, wrong-kind actual, and one name for two different expansions -> COBOL2240; one name/definition/actuals triple in two source elements is ONE class (9.3.12 identity).",
+ "state": "OK"
+}

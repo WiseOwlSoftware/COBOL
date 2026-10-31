@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.20.4-3",
+ "section": "7.3.20.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "POP directive",
+ "rule-digest": "8d19f46972ee",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveStateStack.cs#Apply",
+ "test-ref": "unit:DirectiveStateStackTests.PopRestoresTheMostRecentSave_Nested; unit:DirectiveStateStackTests.ANamedPush_SavesOnlyThatDirective; conformance:cases/7.3-Compiler-directives/pb941_push_pop_directive_state",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB941 (landed): POP ALL pops every directive with a stored save (one level each); a directive whose state a named PUSH did not store is untouched. Golden L1/L2 (both directions) and L3 (nesting).",
+ "state": "OK"
+}

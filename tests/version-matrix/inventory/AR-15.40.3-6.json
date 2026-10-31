@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.40.3-6",
+ "section": "15.40.3",
+ "kind": "AR",
+ "ordinal": 6,
+ "subject": "FORMATTED-DATETIME function",
+ "rule-digest": "853422d0c46e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#OffsetArgumentIndex; src/WiseOwl.Cobol.Compiler/Binding/DateTimeFormatGrammar.cs#Describe",
+ "test-ref": "conformance:cases/15.40.3-Argument-rules/l1-formatted-datetime-offset-local-format; conformance:cases/15.40.3-Argument-rules/l1_formatted_datetime_offset_magnitude",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "NOT-IMPLEMENTED -> CONFORMS, re-verdicted by the kb/Work PB245 golden round (2026-09-09). THE RULE: §15.40.3 r6 'Argument-4 shall not be specified if the time portion of the format in argument-1 is neither a UTC format nor an offset format' (cite.py --check 15.40.3 on that sentence -> OK, rule 6). DERIVED BEFORE THE RUN: r1 makes argument-1 a literal, so the binder holds the format string and the argument COUNT at one point and the rule is fully compile-time decidable - a DIAGNOSTIC, not a run-time check. 'YYYYMMDDThhmmss' has a COMMON time portion: §15.3.3.5 makes a UTC format 'a common time format followed by Z' and §15.3.3.6 an offset format one carrying an explicit '+hhmm'/'+hh:mm' subformat, so this one is LOCAL and argument-4 is barred. MEASURED: COBOL1633 at --std 2014 and 2023, quoting r6. THE CONVERSE ARM IS MEASURED TOO, in the same round: r7 makes an OMITTED argument-4 legal for a UTC or offset format, and conformance:cases/15.40.3-Argument-rules/l1_formatted_datetime_offset_magnitude writes argument-4 against an offset format and requires a value - a widened screen turns that golden red. WHAT CLOSED IT: kb/Work PB11. The predicate is DateTimeFormatGrammar.Describe's §15.3.1/§15.3.2 zone classifier - the format RECOGNISER the row's own note said the fix would need - and not the 'is there a Z anywhere' proxy it warned against. Before it, this exact reference compiled clean, printed 20210616T123456 and silently discarded argument-4. §15.41.3 r5 is the same rule for FORMATTED-TIME and rides the same arm, keyed by OffsetArgumentIndex.",
+ "state": "OK"
+}

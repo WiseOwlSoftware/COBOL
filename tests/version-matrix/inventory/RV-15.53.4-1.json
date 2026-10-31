@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.53.4-1",
+ "section": "15.53.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "LOCALE-TIME function",
+ "rule-digest": "cd4f605b83af",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#Facts",
+ "test-ref": "unit:CobolLocaleTests.NamedUnavailableLocale_IsMissing_AndTheRootAnswers",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T4: as RV-15.52.4-1 — the named locale else the current LC_TIME; EC-LOCALE-MISSING when unavailable.",
+ "state": "OK"
+}

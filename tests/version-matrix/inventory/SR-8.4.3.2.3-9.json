@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.2.3-9",
+ "section": "8.4.3.2.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "Function-identifier",
+ "rule-digest": "703835812038",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfBindCall",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/pb757-function-omitted-not-optional; conformance:cases/8.4.3.2-Function-identifier/pb757_invoke_omitted",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB757.md landed w46i2. FUNCTION f(... OMITTED ...) against a formal without the OPTIONAL phrase is COBOL2238 (negative); against an OPTIONAL formal it binds to the omitted CALL-ABI argument (golden PB757F). Before PB757 every OMITTED user-function argument was a staged COBOL1506.",
+ "state": "OK"
+}

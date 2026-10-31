@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.43.3-2",
+ "section": "15.43.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "HIGHEST-ALGEBRAIC function",
+ "rule-digest": "a75eaf61fefa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindAlgebraicFold; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#IsStandardBinaryFloat",
+ "test-ref": "conformance:cases/15.43.3-Argument-rules/l1-highest-algebraic-standard-binary-usage; conformance:cases/15.43.3-Argument-rules/l1_algebraic_standard_binary_usage_mode_bar; conformance:cases/15.43.3-Argument-rules/pb122_smallest_algebraic_float",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "NOT-IMPLEMENTED -> CONFORMS, re-verdicted by the kb/Work PB245 golden round (2026-09-09). THE RULE: §15.43.3 r2 'If standard-decimal arithmetic is in effect, argument-1 shall not be a data item whose data description entry specifies a standard binary floating-point usage' (cite.py --check 15.43.3 on that sentence -> OK, rule 2). DERIVED BEFORE THE RUN, as a TABLE rather than a single case, because the rule has two independent axes: the MODE (r2's antecedent) and the USAGE FAMILY (§3.166 - 'usages float-binary-32, float-binary-64, and float-binary-128'). (a) STANDARD-DECIMAL x FLOAT-BINARY-64 -> must be rejected. (b) NATIVE x FLOAT-BINARY-32/-64 -> must be ACCEPTED, because §11.9.5.2 GR4 makes the absent ARITHMETIC clause NATIVE and r2's antecedent is then false. (c) STANDARD-DECIMAL x COMP-1/COMP-2 -> must be ACCEPTED, because neither is a §3.166 usage. MEASURED: (a) COBOL1516 at 2014 and 2023, its message quoting rule 2; (b) values at the binary32/binary64 carriers, bracketed at seven significant digits; (c) green in the pre-existing pb122 golden. FLOAT-BINARY-128 and FLOAT-DECIMAL-16/-34 are Annex A.3 documented non-support (COBOL1564: .NET has no IEEE 754 binary128 or decimal64/128 type), so the reachable cells are the three above. WHAT CLOSED IT: kb/Work R10 then PB122. The row recorded two defects and both are gone - BindAlgebraicFold now READS ctx.Data.Options.Arithmetic, and the COBOL1516 message no longer asserts that COMP-1/COMP-2 are barred by rule 2 (it states the rule it actually enforces, and the code comment keeps the old false claim as recorded history). The usage families come from UsageFamilies.IsStandardBinaryFloat / IsStandardDecimalFloat - the ONE spelling of §3.166 and §3.167 - so a new member cannot make this screen and its r3 sibling disagree.",
+ "state": "OK"
+}

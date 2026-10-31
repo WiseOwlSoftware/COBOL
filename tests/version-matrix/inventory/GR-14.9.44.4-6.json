@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.44.4-6",
+ "section": "14.9.44.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "SUBTRACT statement",
+ "rule-digest": "2633277b8039",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#GuardedStore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#RoundingOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/SendingRef.cs#AlphanumericChecked; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.Image.cs#ParseImageSending",
+ "test-ref": "conformance:cases/14.9.2-ADD/optional_on_size_error; conformance:cases/14.9.44-SUBTRACT/pb395_subtract_incompatible_sender",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB395.md - a POINTER rule, so it is verified by verifying that each of its five referenced specifications applies ON SUBTRACT. 14.7.4 ROUNDED (per-receiver modes), 14.7.5 SIZE ERROR (including the next-receiver-to-the-right rule), 14.7.6 CORRESPONDING and 14.7.7 were measured earlier and hold. 14.6.13.2 Incompatible data was the fifth and did NOT apply - the condition was armed by a statement-KIND test, so SUBTRACT read an incompatible item in silence. It now raises from the sending-operand decode chokepoint (PB230/PB589, 1c81864a3), and the new golden pins it on SUBTRACT with a valid-image CONTROL subtraction in the same program (100 - 7 = 93) so a blanket raise would fail too.",
+ "state": "OK"
+}

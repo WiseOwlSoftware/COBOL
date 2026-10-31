@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.87.3-3",
+ "section": "15.87.3",
+ "kind": "AR",
+ "ordinal": 3,
+ "subject": "SUBSTITUTE function",
+ "rule-digest": "7b2eecaf38fb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckSubstituteZeroLengthArgument2",
+ "test-ref": "conformance:cases/15.87.3-Argument-rules/pb247_substitute_flat_zero_length_arg3; conformance:cases/15.87.3-Argument-rules/pb247-subst-zero-flat; conformance:cases/15.87.3-Argument-rules/pb247-subst-zero-arg1; conformance:cases/15.87.3-Argument-rules/pb58-subst-zero; conformance:cases/15.87.3-Argument-rules/pb58-subst-zero2; conformance:cases/15.3-Arguments/pb58_argument_predicates_legal",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "CLOSED by kb/Work PB247. Citation re-derived: cite.py --check 15.87.3 'Neither argument-1 nor argument-2 shall be of zero length' -> OK, rule 3. THE RESIDUE WAS A TWO-ARM DISPATCH WITH ONE ARM FIXED: the odd-position argument-2 walk sat BELOW BindSubstitute's 'if (flat)' early return, so the moment any operand was a table(ALL) enumeration the rule went unenforced entirely and FUNCTION SUBSTITUTE(X3 \"\" \"Q\" T(ALL)) bound clean although operand[1] was a STATICALLY known zero-length argument-2 - and the mixed written-operand + enumeration shape is real and shipped (2023/pb81_substitute_table_all's MIX line). THE WALK IS NOW ONE PRIVATE METHOD CALLED FROM BOTH EXITS, and it was re-shaped rather than moved: it advances a pair-SLOT counter by each operand's STATIC element count (TableAllPlace.StaticCount, 1 for a written operand) instead of assuming one element per operand, and returns at the first operand whose count is a run-time fact (an OCCURS DEPENDING or DYNAMIC ALL level) - so every operand whose pair role is decidable keeps its compile-time answer, which is strictly more than the old all-or-nothing and makes the next enumeration shape automatic. EVIDENCE, BOTH DIRECTIONS. Rejections: negative/pb247-subst-zero-flat (the flat-path hole itself) and negative/pb247-subst-zero-arg1 (the ARGUMENT-1 half of r3, which no fixture had ever exercised - the two pb58 negatives both target an argument-2), plus the two pb58 negatives, all COBOL1627. Admissions, which matter more because moving the walk above the early return risks over-rejecting: 2023/pb247_substitute_flat_zero_length_arg3 writes a LEGAL zero-length argument-3 before an enumeration - r3 names argument-1 and argument-2 and NOT argument-3 - and FLT=abc proves the slot walk skips the even positions on the flat path; pb58_argument_predicates_legal does the same on the ordinary path. The 15.87.4 r1 run-time twin in CobolIntrinsics.Substitute is unchanged and still answers the genuinely run-time widths.",
+ "state": "OK"
+}

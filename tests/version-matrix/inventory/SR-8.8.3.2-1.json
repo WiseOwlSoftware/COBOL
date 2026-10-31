@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.3.2-1",
+ "section": "8.8.3.2",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Concatenation expressions",
+ "rule-digest": "fda715f89870",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConcatFolder.cs#Walk; src/WiseOwl.Cobol.Compiler/Binding/ConcatFolder.cs#Classify; src/WiseOwl.Cobol.Compiler/Binding/ConcatFolder.cs#Append",
+ "test-ref": "conformance:cases/8.8.3-Concatenation-expressions/concat_class_mismatch; conformance:cases/8.8.3-Concatenation-expressions/pb1406-concat-figurative-pair-class; conformance:cases/8.8.3-Concatenation-expressions/pb1406_concat_word_operands",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1406 (w62k). cite.py --check 8.8.3.2 \"except that a figurative constant may be specified as one or both operands\" -> OK SR1. Asked of EACH (accumulated, next) pair of the flattened chain: SPACE & SPACE & N\"AB\" and ZERO & ZERO & B\"1\" are an alphanumeric concatenation expression (GR1b) concatenated with a national/boolean literal -> COBOL1540 (before: accepted, ran [  AB] / [0010]); a numeric constant-name operand -> 1540; a figurative or symbolic-character with no character value in the pair's class (boolean) -> 1540; ALL figurative -> 1541 unchanged. Every legal chain classifies as before (literal_concat, pb306 goldens green). retired-witness: conformance:2002/pb1406_concat_word_operands (the golden moved to the 2014 corpus: it writes a zero-length literal, a COBOL-2014 introduction gated by kb/Work PB895 (same program, same expected output))",
+ "state": "OK"
+}

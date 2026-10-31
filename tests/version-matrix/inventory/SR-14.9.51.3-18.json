@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.51.3-18",
+ "section": "14.9.51.3",
+ "kind": "SR",
+ "ordinal": 18,
+ "subject": "WRITE statement",
+ "rule-digest": "6cc7b99fed40",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckWriteEopAdvancingPage",
+ "test-ref": "conformance-test:LinageConformanceTests.Sr18_AdvancingPageWithEop_IsRejected; conformance-test:LinageConformanceTests.Sr18_AdvancingPageWithNotFirstEopPair_IsRejected; conformance-test:LinageConformanceTests.Sr18_AdvancingPageWithNotEopOnly_IsLegalAndTheEndOfPageConditionOccurs; conformance:cases/14.9.51-WRITE/pb578-write-advancing-page-at-and-not-eop",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR18: 'The phrases ADVANCING PAGE and END-OF-PAGE shall not both be specified in a single WRITE statement.' (--check OK). RE-VERDICTED by kb/Work PB578: the END-OF-PAGE phrase is GR27 b)'s imperative-statement-1 (the AT phrase); SR19 ('If the END-OF-PAGE or the NOT END-OF-PAGE phrase is specified', --check OK 19)) and GR28 name the NOT END-OF-PAGE phrase separately, so the rule bars only the AT phrase. The earlier record read 'END-OF-PAGE' as the phrase GROUP and rejected AFTER PAGE NOT EOP (ws1pgneop) - legal source refused. Now: the AT phrase beside ADVANCING PAGE -> COBOL0861 whichever phrase is written first (Sr18_AdvancingPageWithEop_IsRejected, Sr18_AdvancingPageWithNotFirstEopPair_IsRejected, negative pb578-write-advancing-page-at-and-not-eop); a NOT-only phrase compiles and its imperative does not run (Sr18_AdvancingPageWithNotEopOnly_IsLegalAndTheEndOfPageConditionOccurs, 85/pb578_advancing_page_overflow_85). Determination: docs/CONFORMANCE.md §4 'WRITE ADVANCING PAGE on a logical page is a page overflow'. [editions as adjudicated: 1985, 2002, 2014, 2023 (base WRITE statement; the 2023 text records no change to this rule in Annex E)]",
+ "state": "OK"
+}

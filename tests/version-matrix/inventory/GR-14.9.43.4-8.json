@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.43.4-8",
+ "section": "14.9.43.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "STRING statement",
+ "rule-digest": "5d2642861c7a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#StringTransfer; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitString; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitOverflow",
+ "test-ref": "conformance-test:StringUnstringDifferentialTests.String_PointerBelowOne_OverflowsWithoutTransfer_SpecPinned; conformance-test:ExceptionConditionConformanceTests.StringOverflow_NoPhrase_RaisesEcOverflowString; conformance:cases/14.9.43-STRING/pb1179_string_receiver_arms",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1179 (registrar 14c; landed w1018h). GR8: before EACH character move, pointer < 1 or > size(identifier-3) => a) no further transfer (the kernel latches overflow and short-circuits every later sender - probe gr8 C: 'QQ' not transferred), b) EC-OVERFLOW-STRING set to exist (EcEmitter.EmitOverflow under enabled checking, per section 14.6.13.1.1 NOTE 3), c) ON OVERFLOW runs, explicit transfer honored (probe gr8 G), d) no phrase -> nonfatal continue (14.6.13.1.4; ECT017 R=ABC), e) NOT ON OVERFLOW ignored. cite.py --check 14.9.43.4 'Before each move of a character to the data item referenced by identifier-3' -> OK 14.9.43.4 8). The national arm: pb1179_string_receiver_arms A (N(3) receiver, 'AB-C' from pointer 1: ON OVERFLOW sees AB- and pointer 04), B (pointer 0: no transfer, receiver and pointer unchanged), D (pointer 4 past N(3): overflow before the first move). [editions as adjudicated: 2023 text (ISO/IEC 1989:2023 section 14.9.43); Annex E lists no STRING change 2014->2023; the earlier-edition edge is not derivable in-repo (no 2002/2014 text); b) EC-OVERFLOW-STRING belongs to the exception-condition model (not at 85)]",
+ "state": "OK"
+}

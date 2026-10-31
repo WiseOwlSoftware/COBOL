@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.4.3-1",
+ "section": "14.7.4.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "ROUNDED phrase",
+ "rule-digest": "67f0e6397efb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#RoundingOf; src/WiseOwl.Cobol.Compiler/Binding/RoundingModes.cs#Map",
+ "test-ref": "conformance:cases/11.9.6-DEFAULT-ROUNDED/options_default_rounded",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "'If the MODE phrase is not specified, the form of rounding is as described in 11.9.6, DEFAULT ROUNDED clause.' RoundingOf returns ctx.Options.DefaultRounding for a bare ROUNDED (NEAREST-AWAY-FROM-ZERO absent the clause, §11.9.6.3 GR2 'DEFAULT ROUNDED MODE IS NEAREST-AWAY-FROM-ZERO is implied'). Probes: bare ROUNDED of -2.5 into S9 at --std 85 and 2002 -> -3; with DEFAULT ROUNDED MODE IS TOWARD-LESSER, COMPUTE R1 ROUNDED = -1.25 into S9V9 -> -1.3. Both halves pinned by goldens: options_default_rounded (clause present, NEAREST-EVEN: 2.5->2, 3.5->4, 0.5->0) and rounded_modes DEFLT (clause absent, 2.25->2.3). cite.py --check 14.7.4.3 -> OK §14.7.4.3 1); --check 11.9.6.3 -> OK §11.9.6.3 2). [editions as adjudicated: ROUNDED phrase: 1985, 2002, 2014, 2023; the MODE phrase and its eight modes: 2014, 2023 (D.17.3: 'In earlier COBOL standards, only two methods of \"final\" rounding were provided')]",
+ "state": "OK"
+}

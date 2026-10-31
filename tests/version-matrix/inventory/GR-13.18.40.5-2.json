@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.40.5-2",
+ "section": "13.18.40.5",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "PICTURE clause",
+ "rule-digest": "aaf3bfa289c8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.Analyze; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeFloatEdited; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#FormatSimpleInsertion; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#IsCharacterEdited",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb490_editing_simple_insertion; conformance:cases/13.18.40-PICTURE/pb490_simple_insertion_strings_85; conformance:cases/13.18.40-PICTURE/pb492_national_edited_2023; conformance:cases/13.18.40-PICTURE/pb492_national_edited_editing; unit:CobolEditSimpleInsertionDriftTests.NationalEdited_RendersIdenticallyToAlphanumericEdited; unit:CobolEditSimpleInsertionDriftTests.Alphanumeric_InsertsTheSameCharacterTheNumericPathDoes",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB492 LANDED 2026-09-12; this row's last open leg is closed. Table 7 gives category NATIONAL-EDITED and category ALPHANUMERIC-EDITED the SAME single type of editing -- 'Simple insertion' -- and the compiler now renders them with ONE method for that reason: CobolEdit.FormatSimpleInsertion (renamed from FormatAlphanumeric), reached only through RuntimeApi.EditFormatSimpleInsertion(value, pic), with the data positions defined as the COMPLEMENT of the insertion positions rather than as a symbol list, so 'N' is a data position without a second arm. The row was PARTIAL because Table 7's national-edited row had no implementation at all (no such item could be defined); measured now at 2023, PIC NNBNN <- N\"ABCD\" renders [AB CD], PIC NN0NN [AB0CD], PIC N/N [A/B], PIC N(2)B0/N(2) [AB 0/CD] and PIC NNTNN EDITING \"T\" IS N\":\" [AB:CD], each byte derived from GR14 + rule 3 in the golden's header. The drift test NationalEdited_RendersIdenticallyToAlphanumericEdited runs the SAME theory data through NN{s}NN and XX{s}XX and asserts the two images are equal, so re-splitting the renderer per category fails the run. The fixed-point numeric-edited row (all six types) and the floating-point row are unchanged and still verified; category alphabetic/alphanumeric/boolean/national/numeric are 'None' and none of them carries an EditMask.",
+ "state": "OK"
+}

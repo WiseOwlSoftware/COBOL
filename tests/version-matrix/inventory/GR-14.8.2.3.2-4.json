@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.8.2.3.2-4",
+ "section": "14.8.2.3.2",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Elementary items",
+ "rule-digest": "272cc1f41991",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ActiveClassFormalMismatch; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#CallArgumentViolation; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#ReferenceGroupViolation; src/WiseOwl.Cobol.Compiler/Oo/ActivationDescriptions.cs#Of",
+ "test-ref": "conformance:cases/14.8.2.3.2-Elementary-items-passed-by-reference/pb1112_active_class_invocation; conformance:cases/14.8.2.3.2-Elementary-items-passed-by-reference/pb1112-active-class-ref-invocation",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1112 (wave 73 E). Rule (cite.py --check 14.8.2.3.2 \"The argument shall be an object reference described with an object-class-name and the ONLY phrase\" -> OK §14.8.2.3.2 4); a)'s \"and the method to be activated shall be invoked with the predefined object references SELF or SUPER, or with an object reference described with the ACTIVE-CLASS phrase\" -> OK 4)). The INVOKE binder now describes the invocation once (\"invoked with\", §14.8.3.3 rule 2 b)'s four cases: class-name -> that class ONLY, SELF/SUPER -> ACTIVE-CLASS, a reference -> its description) and DescriptionMismatch's object-reference arm asks OoConformance.ActiveClassFormalMismatch for an ACTIVE-CLASS formal of an activation: a) ACTIVE-CLASS argument, same FACTORY, invoked through ACTIVE-CLASS; b) class-name ONLY argument, same FACTORY, invoked with that class-name or an ONLY reference to it. Measured: ac.cob / INVOKE X \"M\" USING X (X C1 ONLY) was COBOL0828, now runs (M#1); INVOKE O2 \"M\" USING Y (O2 C1 without ONLY, Y ACTIVE-CLASS) ran, now COBOL0828. retired-witness: src/Cobol.Net.Compiler/Oo/OoConformance.cs#DescriptionMismatch (kb/Work PB3101 (wave 1082): the DataItem comparator family is deleted (OoConformance.DescriptionMismatch, StrongTypeMismatch, AsIfElementaryGroupMismatch, IsCategoryAlphanumeric, PictureClauseIdentity.Mismatch, ObjectRefDescriptor.SameDescriptionAs); every activation and pair-mode question describes its items through ActivationDescriptions and asks ActivationRelations (CallArgumentViolation / CallReturningViolation / MatchViolation / SignatureDifference), the PICTURE identity entering through PictureClauseIdentity.Key)",
+ "state": "OK"
+}

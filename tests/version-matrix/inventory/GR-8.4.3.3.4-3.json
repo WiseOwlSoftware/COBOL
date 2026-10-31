@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.3.4-3",
+ "section": "8.4.3.3.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Reference-modification",
+ "rule-digest": "a8ff42d483bc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#BytesPerPosition; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#PositionBits; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsStorageImage",
+ "test-ref": "conformance:cases/8.4.3.3-Reference-modification/pb646_national_form_numeric_2002; conformance:cases/8.4.3.3-Reference-modification/pb546_national_leaf_one_width; unit:NationalUnitDriftTests.EveryNationalUnitOperation_IsChosenByTheUsage_NeverByTheCategoryAlone; unit:NationalUnitDriftTests.TheUnitReader_AnswersByUsage_ForEveryUsageNationalCategory",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB546 (w1070 A). Rule (cite.py --check 8.4.3.3.4 OK, GR3): a usage-NATIONAL item of category other than national 'is operated upon for purposes of reference modification as if it were redefined as a data item of class and category national of the same size'. The refuter's PARTIAL arm (a BOOLEAN item of usage national, 13.18.60.3 SR12) is fixed: OperandText.AsStorageImage's RefModPlace arm now keys on the usage through the ONE unit reader PicInfo.BytesPerPosition (it tested rmp.Category is National, and GR6 keeps a boolean slice boolean), and RefModPlace.PositionBits reads the same reader. Measured on the w1070 A build: BYTE-LENGTH(BN(1:2)) for BN PIC 1(4) USAGE NATIONAL = 4 (was 2), LENGTH(BN(1:2)) = 2 boolean positions (15.50.4 r1), CONVERT(BN(1:2) ANY ANUM HEX) = 00310030; the numeric, numeric-edited and national-edited slices = 4 bytes for two positions, unchanged. NationalUnitDriftTests keeps every national-unit emission usage-keyed. retired-witness: unit:NationalUnitDriftTests (a class-only test-ref resolves to no test (SpecTraceabilityInventoryDriftTests expects <Class>.<Method>); restated as the two NationalUnitDriftTests methods that witness the rule)",
+ "state": "OK"
+}

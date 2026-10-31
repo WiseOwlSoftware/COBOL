@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.67.3-4",
+ "section": "15.67.3",
+ "kind": "AR",
+ "ordinal": 4,
+ "subject": "NUMVAL function",
+ "rule-digest": "d9a27dcb47d3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#DigitCapExceeded; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#DigitCapFlag; src/WiseOwl.Cobol.Compiler/Binding/OptionsModel.cs#NumvalDigitCap",
+ "test-ref": "conformance:cases/15.67.3-Argument-rules/l1_numval_family_standard_decimal_cap; conformance:cases/15.4.1-Numeric-and-integer-functions/pb60_numval_standard_decimal",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "NOT-IMPLEMENTED -> CONFORMS, re-verdicted by the kb/Work PB245 golden round (2026-09-09). THE RULE IS TWO SENTENCES: §15.67.3 r4 'If standard-binary arithmetic is in effect, the total number of digits in argument-1 shall not exceed 35. If standard-decimal arithmetic is in effect, the total number of digits in argument-1 shall not exceed 34' (cite.py --check 15.67.3 on the second sentence -> OK, rule 4). SENTENCE ONE is unreachable BY CONSTRUCTION: ARITHMETIC IS STANDARD-BINARY is declined at bind (COBOL0806) on §4.2.6 processor-dependence, Annex A.3 item 2 and Annex F.2's 'except for elements that are also optional or processor-dependent' - kb/Work PB198, owner decision D-A, documented in CONFORMANCE.md §1/§2 and witnessed by ArithmeticModeScreenDriftTests - so no compilation can put that mode in effect; ArithmeticModes.NumvalDigitCap records its 35 anyway so the table has no hole. SENTENCE TWO IS IMPLEMENTED AND NOW MEASURED. DERIVED BEFORE THE RUN: under ARITHMETIC IS STANDARD-DECIMAL a 34-digit argument is at the bound and exact on the §8.8.1.5.2 34-digit intermediate, so its value comes back; a 35-digit argument sets EC-ARGUMENT-FUNCTION and, with checking off, §15.3's closing sentence gives the implementor default 0. MEASURED: '1234567890123456789012345.678901234' -> the value, one more fraction digit -> 0. WHAT CLOSED IT: kb/Work PB33/PB34 threaded the cap to the VALUE producers and not only the validators, and IntrinsicRenderer.DigitCapFlag now derives it from ArithmeticModes.NumvalDigitCap - the one table (native 31 / standard-binary 35 / standard-decimal 34 / the 2002 STANDARD mode 34) - interpolated into every NUMVAL, NUMVAL-C, NUMVAL-F and TEST- arm on both lanes. The row's own note ('CobolIntrinsics.Exact.cs#Numval has no digitCap parameter to receive it') is stale: Numval, NumvalDec, NumvalF and NumvalC all declare it and reject through DigitCapExceeded citing this clause. || editions 2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): conditioned on standard-binary or standard-decimal arithmetic, both 2014 introductions.",
+ "state": "OK"
+}

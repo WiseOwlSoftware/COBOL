@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-15.2-3",
+ "section": "15.2",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Intrinsic functions",
+ "rule-digest": "ec80a2fbc25a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#CategoryOf",
+ "test-ref": "conformance:cases/15.2-Types-of-functions/national_intrinsics; conformance:cases/15.2-Types-of-functions/pb15-trim-national-result-to-an; conformance:cases/15.2-Types-of-functions/pb15-concat-national-result-to-an; conformance:cases/15.2-Types-of-functions/max_national_result_to_an",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 15.2 'National functions. These are of the class and category national. National functions have an implicit usage national.' => OK §15.2 3). All three clauses met. (a) CLASS AND CATEGORY NATIONAL: IntrinsicCatalog.cs#CategoryOf maps IntrinsicType.National => PicCategory.National, cited on the member to §15.66.1 ('the type of the function is national'), and it is the SINGLE mapping both the declared and the argument-resolved paths use. The argument-resolved path matters here: IntrinsicResultType.Resolve's FollowsArgument1 / FollowsUniformArguments / FollowsConcatArguments rules turn ten-plus functions national on a national argument-1, and IntrinsicResultTypeDriftTests re-derives that population from specs/ISO_COBOL.md so a §15.x.1 table cannot be missed — the repair of kb/Work PB15, whose measured symptom was MOVE FUNCTION TRIM(national-item) TO alphanumeric-item compiling clean. (b) IMPLICIT USAGE NATIONAL is modelled and read: IntrinsicArgumentRules.cs#StaticUsageOf answers Usage.National for a National-result nested call, the axis §15.18.3 r2 and §15.19.3 r6 key on. (c) 'represented in the national coded character set in effect at runtime': one invariant national repertoire, UTF-16 one code unit per national position, documented in docs/CONFORMANCE.md items 33/188 (D-N1). TESTS: 2002/national_intrinsics is the positive golden; the pb15-* negatives and max_national_result_to_an pin the §14.9.25.3 Table-16 refusal of a national function result into an alphanumeric receiver, which is what the category claim BUYS.",
+ "state": "OK"
+}
