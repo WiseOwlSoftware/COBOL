@@ -20,6 +20,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// regression this test names; the goldens prove today's readers, this proves the next one goes through
 /// <c>.procedureName()</c> and <c>ProcedureNameShape</c>.
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class ProcedureHeaderNameDriftTests
 {
     private static readonly Regex HeaderSlotRead =
