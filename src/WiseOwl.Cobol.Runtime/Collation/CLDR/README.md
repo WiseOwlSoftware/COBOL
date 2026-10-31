@@ -42,7 +42,7 @@ Everything the pinned release uses (a drift test parses every file with **0 unsu
 | `&[before 1|2|3]X` | reset to the position just before X at that level | yes |
 | `&[first/last tertiary ignorable]`, `…secondary ignorable`, `…primary ignorable`, `[first/last variable]`, `[first/last regular]`, `[first/last implicit]`, `[first/last trailing]` | logical reset positions, read from the table | yes |
 | `<`, `<<`, `<<<`, `=` | primary / secondary / tertiary difference / identity, relative to the current position | yes |
-| `<<<<` | quaternary difference (Japanese kana) | as identity at levels 1–3; reported |
+| `<<<<` | quaternary difference (Japanese kana: Hiragana before Katakana) | yes: the same at levels 1–3, a new slot after the position's on a fourth weight line (`CollationElement.Quaternary`) |
 | `<* abc`, `<<* x-z` (also `<<<*`, `=*`) | one relation per character; `-` = a range | yes |
 | `X/Y` | expansion: X's elements followed by Y's | yes |
 | `P\|X` | prefix context: X after P | as the contraction P+X (noted) |
@@ -50,11 +50,11 @@ Everything the pinned release uses (a drift test parses every file with **0 unsu
 | `'…'`, `''`, `\uXXXX`, `\UXXXXXXXX`, `\x{…}` | quoting and escapes | yes |
 | `# …` | comment | yes |
 | `[import loc-u-co-type]` | the imported collation's rules inserted here (recursively; cycle-checked); exactly that type along loc's chain (`FindCollation`, no default-type fallback), and a type the chain lacks imports nothing and is reported | yes |
-| `[strength n]`, `[alternate shifted\|non-ignorable]`, `[maxVariable space\|punct\|symbol\|currency]`, `[caseFirst upper\|lower\|off]`, `[backwards 2]`, `[normalization on\|off]` | settings → `CollationOptions` | yes |
+| `[strength n]`, `[alternate shifted\|non-ignorable]`, `[maxVariable space\|punct\|symbol\|currency]`, `[caseFirst upper\|lower\|off]`, `[caseLevel on\|off]`, `[numericOrdering on\|off]`, `[backwards 2]`, `[normalization on\|off]` | settings → `CollationOptions` | yes |
 | `[reorder code…]` | script/group reordering (§5) | yes |
 | `[suppressContractions [set]]` | remove the root's contractions starting with those code points | yes |
 | `[optimize [set]]` | a hint | accepted, ignored |
-| `[caseLevel on]`, `[numericOrdering on]`, `[hiraganaQ on]` | not implemented | recorded in `Unsupported` |
+| `[hiraganaQ on]` | not implemented (deprecated in CLDR; ICU 53+ ignores it) | recorded in `Unsupported` |
 
 Rule white space is Unicode *Pattern_White_Space* (the Arabic files separate rules with LEFT-TO-RIGHT MARKs).
 
@@ -94,8 +94,8 @@ exactly its type, with no such fallback; a locale no file covers is the **root o
 for English, German, French, Dutch, Italian, Portuguese and many more (their files define only `search`, or nothing).
 
 BCP 47 `-u-` keys (`CldrLocaleTag`, pinned against `bcp47/collation.xml`): `co` type, `ka` alternate, `kb`
-backwards, `kf` caseFirst, `ks` strength, `kv` maxVariable, `kr` reorder codes, `kk` normalization; `kc` caseLevel,
-`kn` numeric, `kh` hiraganaQ are parsed and reported unsupported.
+backwards, `kc` caseLevel, `kf` caseFirst, `kk` normalization, `kn` numeric, `ks` strength, `kv` maxVariable, `kr`
+reorder codes; `kh` hiraganaQ is parsed and reported unsupported.
 
 ## 5. The builder — rules to weights
 
@@ -110,12 +110,17 @@ backwards, `kf` caseFirst, `ks` strength, `kv` maxVariable, `kr` reorder codes, 
    inserted immediately after** the anchor's on line N and the common weights below it; `=` copies; `[before N]` steps
    back one slot; an extension (`x/y`) appends y's elements to x only — the next relation of the chain is placed
    after x's own elements, never after y (`&T<<þ/h<<<Þ/h`: Þ is t h, not t h h); prefixes become contractions;
-   starred relations expand.
+   starred relations expand; a quaternary relation (`<<<<`) copies the position with a new slot after the anchor's on a
+   fourth line (the root has none: every root element's `Quaternary` is 0); a prefix context `p|x` is the contraction
+   p+x whose elements are p's FINAL ones (read when the table is planned: ja.xml places ァ by `&ぁ<<<<ァ` after the
+   rule `ァ|ー`, as ICU matches the prefix against p's own mapping) followed by x's.
 2. **Numbering**: a slot inserted between two adjacent root weights takes a free value between them (root primaries
-   are spaced 16 apart for exactly this); where more slots were inserted than the gap holds, every higher root weight
+   are spaced 16 apart for exactly this; the top value of each primary gap, `root - 1`, is never given away: the
+   numeric-ordering lead stands there under the digit zero); where more slots were inserted than the gap holds, every higher root weight
    is **shifted up** — the table records the root → table `WeightMap`s so a `.tailor` layer (root-scale weights) still
-   lands right. Tertiary lines renumber for almost every `<<<` (root tertiaries are dense); it costs a pass over the
-   pool.
+   lands right. Tertiary lines renumber for almost every `<<<` (root tertiaries are dense); the pool is re-weighted
+   through direct lookup arrays (`ElementRemap`). Numbering is sparse — only the anchors that have inserted slots are
+   visited, the whole line only when a gap overflowed — and the roots of each line are the BASE table's, computed once.
 3. **Reordering**: `[reorder …]` permutes the **reordering groups** (space, punct, symbol, currency, digit, then one
    group per script — read from the table, which the generator derives from CLDR's FractionalUCA markers): the
    special groups stay first unless named; the named codes follow; `others` (or the rest) in root order. The space
@@ -125,7 +130,7 @@ backwards, `kf` caseFirst, `ks` strength, `kv` maxVariable, `kr` reorder codes, 
 4. **Case bits**: a tailored string's `ElementCase` is Upper / Lower / Mixed by its letters (`Aa` is Mixed), which
    is what `[caseFirst upper]` (Danish) orders by, ICU-style: Upper < Mixed < Lower.
 5. Settings become a `CollationOptions` (`[alternate shifted]` Thai, `[caseFirst upper]` Danish, `[backwards 2]`
-   Canadian French, `[strength]`, `[maxVariable]`); `[suppressContractions]` removes root contractions;
+   Canadian French, `[caseLevel on]` Church Slavic, `[numericOrdering on]`, `[strength]`, `[maxVariable]`); `[suppressContractions]` removes root contractions;
    `[import]`s are expanded first (settings: imports', then the importer's own on top).
 
 The output is a `TailoringPlan` and `CollationTable.Rebuild` — the same construction a `.tailor` file goes through,
@@ -139,11 +144,18 @@ a tailored ă reaches ặ — so a text orders the same however it is spelled (`
 fr-CA, cs, hu, vi, ru, hr, th, ar, he, tr, pl, lt, fi, is, sk, ro, nb, et, lv, sl, uk, el, ja, ko, zh, de) with zero
 disagreements except the pairs a documented CLDR release change explains (Latvian y/ī, changed between CLDR 42 and
 48); every locale's `Compare` and keys agree; build times: es < 1 ms, da ~1 ms, vi ~5 ms, zh ~220 ms
-(`CldrBenchmarks`).
+(`CldrBenchmarks`; Spanish builds in 0.7 ms and 2 MB, kb/Work PB107).
 
 **Not implemented** (reported per collation in `CldrCollation.Unsupported` / `LocaleInfo.Unsupported`, never
-silently dropped): `caseLevel`, `numericOrdering`, `hiraganaQ`; a `<<<<` relation is applied as an identity at
-levels 1–3 (Japanese kana length-mark distinctions collapse to equal). Registered as kb/Work PB107.
+silently dropped): `hiraganaQ` only. CLDR's `bcp47/collation.xml` marks the key `deprecated="true"` ("Hiragana to be
+sorted before all non-variable on quaternary level"), ICU 53+ ignores it, and doing it needs the Script property
+(Hiragana is not a block), which the pinned data lacks: an owner question, kb/Work PB107.
+
+**Settings and ICU.** `caseLevel` at primary strength agrees with the host ICU (.NET reaches it as
+`CompareOptions.IgnoreNonSpace`), `numericOrdering` with .NET's `CompareOptions.NumericOrdering` over 20,000 random
+pairs. `<<<<` is not seen by the host ICU at tertiary strength (hiragana = katakana there too); this engine orders it
+at level 4. One deliberate difference: a digit run longer than 254 digits is ONE number here ("sorted … with its
+numeric value"), where ICU splits it into 254-digit numbers and orders a 255-digit number before a 254-digit one.
 
 ## 6. Integration with `CollationTable` and `LocaleManager`
 
