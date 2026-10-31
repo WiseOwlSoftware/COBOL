@@ -39,9 +39,13 @@ public sealed class LocaleManagerTests
         var phone = LocaleManager.GetLocale("de-DE-u-co-phonebk");
         Assert.Equal("phonebook", phone.Cldr.Type);
         Assert.Equal("de-DE-u-co-phonebk", phone.Name);
-        var kn = LocaleManager.GetLocale("en-u-kn-true");                 // a key the engine does not implement
-        Assert.Contains(kn.Unsupported, u => u.Contains("numeric"));
-        Assert.False(kn.IsTailored);
+        var kh = LocaleManager.GetLocale("en-u-kh-true");                 // a key the engine does not implement
+        Assert.Contains(kh.Unsupported, u => u.Contains("hiraganaQ"));
+        Assert.False(kh.IsTailored);
+        var kn = LocaleManager.GetLocale("en-u-kn-true");                 // numericOrdering is implemented (kb/Work PB107)
+        Assert.Empty(kn.Unsupported);
+        Assert.True(kn.Options.NumericOrdering);
+        Assert.False(kn.IsTailored);                                      // the root TABLE, read with the setting
         Assert.Contains("da", LocaleConfig.CldrLocales);
         Assert.Contains("zh-Hant", LocaleConfig.CldrLocales);
         Assert.Contains("da", LocaleConfig.SupportedLocales);
