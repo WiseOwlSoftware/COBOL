@@ -39,3 +39,5 @@ each run with the procedure defined and not); goldens `cases/8.3.2-COBOL-words/p
 and `pb4206-go-to-reserved-verb-as-procedure-name` (refused at 85, 2002 and 2023 with COBOL0901), and
 `pb4206_free_verbs_as_procedure_names` (accepted at 2014, where §8.9 leaves RECEIVE and SEND free; expected output from
 §14.9.28.4 and §14.9.17.4 GR2). No inventory row changes: SR-8.3.2.1-1 already conforms (`closes_rows: []`).
+
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run 000001-20261031T185850Z: Conformance 10,431, Unit 37,624, Characterization 7 cases in leg 1; Linux half GREEN); all 13 rows of the new theory and the 7 golden cases passed in leg 1.
