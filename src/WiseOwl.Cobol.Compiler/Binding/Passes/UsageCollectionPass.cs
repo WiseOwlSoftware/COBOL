@@ -326,6 +326,7 @@ internal static class UsageCollectionPass
         public bool Visit(BoundSetEntry n) => false;
         public bool Visit(BoundSetPointerUpDown n) => false;
         public bool Visit(BoundSetCapacity n) => false;
+        public bool Visit(BoundHoldTableAll n) => false;   // its element Copy is a child statement, walked via StatementChildren
         public bool Visit(BoundSetSize n) => false;
         public bool Visit(BoundSetContent n) => false;
         public bool Visit(BoundAllocate n) => false;

@@ -287,6 +287,35 @@ public sealed partial class DataBinder
     /// can span tiers, so the nearest-tier filter is free for every other unit.</summary>
     internal bool InheritsGlobalData => _inheritedGlobalDepth.Count != 0;
 
+    /// <summary>⛔ THE ONE QUESTION "IS THIS WORD A DATA-NAME THIS SOURCE ELEMENT ITSELF DEFINES?" — the test behind
+    /// every rule that reads "shall not be defined elsewhere in the source element" (§13.18.38.3 SR30 for a CAPACITY
+    /// register, §13.18.64.3 SR2 for a report VARYING counter) and behind the report section's "also declared in
+    /// ordinary storage" screens (§8.4.2.1). A container's GLOBAL data-name is inherited into <see cref="ByName"/>
+    /// before the resolve passes run (<see cref="InheritContainerGlobalData"/>), but it is defined in ANOTHER source
+    /// element: this element's own declaration of the spelling hides it (§8.4.6.2.1 3), so it can neither duplicate
+    /// nor be duplicated by it. Asking <c>ByName.ContainsKey</c> instead refuses a legal program (kb/Work PB3766,
+    /// review finding R2-1).</summary>
+    internal bool DeclaresOwnDataName(string name) =>
+        ByName.TryGetValue(name, out var items) && items.Any(i => DeclaringDepth(i) == 0);
+
+    /// <summary>The containers' named GLOBAL data roots (ISO §13.18.27.4 GR1/GR2), nearest container first, each with
+    /// its containment distance; set by <c>BinderDriver.BindUnitData</c> before the unit binds and inherited by
+    /// <see cref="InheritContainerGlobalData"/> (kb/Work PB3766, review finding R1-1).</summary>
+    internal IReadOnlyList<(DataItem Root, int Depth)> ContainerGlobalRoots { get; init; } = [];
+
+    /// <summary>⛔ THE ONE POINT A CONTAINER'S GLOBAL DATA NAMES BECOME VISIBLE to this unit (ISO §13.18.27.4 GR1/GR2),
+    /// beside <see cref="InheritContainerReports"/>: the end of <see cref="BindDeclarations"/> — after this unit's own
+    /// names are declared, so a name it declares hides the container's (§8.4.6.2.1 3), and BEFORE
+    /// <see cref="BindResolve"/>, so every clause of this unit's own data division that names a data item (FILE
+    /// STATUS, RECORD / RELATIVE KEY, OCCURS … DEPENDING ON, ASSIGN … USING) finds the container's GLOBAL item.
+    /// Inheriting after the whole <c>Bind</c> told a programmer that a name the container declares GLOBAL "is not
+    /// defined" (the data-item twin of kb/Work PB3766's report case).</summary>
+    private void InheritContainerGlobalData()
+    {
+        foreach (var (root, depth) in ContainerGlobalRoots)
+            InheritGlobalSubtree(root, depth);
+    }
+
     /// <summary>Make one container GLOBAL root's whole subtree visible here, <paramref name="depth"/> containment
     /// levels out (ISO §13.18.27.4 GR2 — "may reference that name without describing it again"): every data-name
     /// (§8.4.6.2.2: "All data-names and screen-names subordinate to a global name are global names"), every
@@ -299,8 +328,8 @@ public sealed partial class DataBinder
     /// total: a name index this binder gains is inherited here or excluded there with its reason. Each item carries its depth, so
     /// a nearer declaration of the same spelling wins by §8.4.6.2.1 3) at REFERENCE time
     /// (<see cref="Model.SymbolTable.NearestDeclaring{T}"/>), not by being left out here. Called nearest container
-    /// first, after this unit's own data division has bound, so each name list stays in nearest-first order. The
-    /// cells stay the container's: this unit reaches them through the GLOBAL bridge
+    /// first, after this unit's own names are declared (the end of <see cref="BindDeclarations"/>), so each
+    /// ByName list stays in nearest-first order. The cells stay the container's: this unit reaches them through the GLOBAL bridge
     /// (<see cref="GlobalBridgesOf"/>) and never emits them.</summary>
     internal void InheritGlobalSubtree(DataItem item, int depth)
     {
@@ -316,8 +345,9 @@ public sealed partial class DataBinder
             conds.Add(cond);
         }
         foreach (var idx in item.Indexes) IndexNames.Inherit(idx, depth);
-        // Appended after this element's own register and each nearer container's (nearest first, as called), the
-        // order ReferenceResolver.CapacityRegisterFor reads. A register the container refused (SR30's COBOL1523)
+        // Placed by depth (AddCapacityRegister): this element's own registers, minted later by DynamicResolve, sort
+        // in before it, a nearer container's before a farther one's — the order
+        // ReferenceResolver.CapacityRegisterFor reads. A register the container refused (SR30's COBOL1523)
         // failed that compile and has no CapacityRegister view to inherit.
         if (item.OccursSpec is { CapacityName: { } cap, CapacityRegister: not null }) AddCapacityRegister(_capacityRegisters, cap, item);
         foreach (var child in item.Children) InheritGlobalSubtree(child, depth);
@@ -498,6 +528,7 @@ public sealed partial class DataBinder
         // RETURNING §14.2.3 GR6/SR1 resolution + the RAISING EC semantics (StatementBinder.Exceptions) stay bind-time.
         if (pd.returningClause()?.dataReference() is { } rref)
         {
+            using var returningAt = Edition.At(rref);   // the RETURNING item's own position, as each USING parameter's (kb/Work PB2034)
             // §14.2.3 GR6: the returning item's storage is allocated IN THE ACTIVATED element — it stays an
             // ordinary callee-local field; its value transfers out at termination (GR7, the Call copy-out).
             LinkageReturning = FindLinkageRoot(rref.GetText());
@@ -820,6 +851,13 @@ public sealed partial class DataBinder
     /// carriage gate, shared with the REDEFINES classifier (kb/Work PB231).</para></summary>
     internal RedefinesClass? ForceStringCanonical(DataItem item, string what)
     {
+        // ⛔ ONLY THE DECLARING ELEMENT DECIDES WHERE ITS STORAGE LIVES (§13.18.27.4 GR2: a contained program references a
+        // container's GLOBAL item "without describing it again"). An inherited item's class is the container's, already
+        // classified and emitted there; re-basing it from here would re-classify the container's storage and declare its
+        // cell a second time in this unit's type (merge group 41183181188). Every caller asks with storage it owns.
+        if (DeclaringDepth(item) != 0)
+            throw new InvalidOperationException($"{what} '{item.CobolName}': a container's GLOBAL item reached the "
+                + "cell-backing forcer of a contained unit; only its declaring element may re-base its storage");
         var cls = item.Class;
         if (cls is null)
         {

@@ -691,7 +691,9 @@ with identifier-3's evaluation into the identified-object temporary and the GET 
 (`MOVE X (1:L) TO P OF R (I)` raised R's EC-BOUND-SUBSCRIPT first; golden `2002/pb370_move_property_receiver_order`).
 The bracket's steps and that question read the same `OoPendingPropertyOp` members (`IdentifiedReceiver`,
 `GetsBefore`). The freeze is placed on the pending list at the point the sender finished binding
-(`SendingValueTemp.Positioned`, the one placement `ArgumentOrder` uses for a function argument too), so it also
+(`SendingValueTemp.Positioned`, the one placement `ArgumentOrder` uses for a function argument too - a scalar argument through
+`Materialize`, a table(ALL) argument as a compiler-temporary TABLE of its elements through `MaterializeTableAll`, whose
+`BoundHoldTableAll` pre-op copies them in §15.3's order; kb/Work PB4162), so it also
 precedes a receiver's pre-ops at N > 1. A NUMERIC function-identifier's temporary is described for the MOVE's receivers by the ONE description of the
 intermediate, `SendingValueTemp.IntermediatePic` (above; kb/Work PB3268, which PB370's receiver-shaped sizing merged
 into): the fixed 30-digit, scale-9 description stored `MOVE FUNCTION PI TO S1 S2` into `PIC 9V9(12)` as

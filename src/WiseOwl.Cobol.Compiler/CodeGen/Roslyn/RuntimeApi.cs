@@ -1515,6 +1515,11 @@ internal static class RuntimeApi
         $"{nameof(CobolTable)}.{nameof(CobolTable.AllArgs)}<{csType}>(new Func<long[], long>[] {{ {string.Join(", ", countLambdas)} }}, {elementLambda}"
         + (leadLambda is null ? ")" : $", {leadLambda})");
 
+    /// <summary>The statement that ends the reference when a held table(ALL) argument's copy found no occurrence —
+    /// <c>CobolTable.RequireOccurrences(count)</c> (ISO §15.3 14); kb/Work PB4162).</summary>
+    public static string TableRequireOccurrences(string count) =>
+        $"{nameof(CobolTable)}.{nameof(CobolTable.RequireOccurrences)}({count});";
+
     /// <summary>The intrinsic argument list assembled from written operands and enumerations, in source order —
     /// <c>CobolTable.ArgConcat&lt;T&gt;</c>.</summary>
     public static string TableArgConcat(string csType, IEnumerable<string> parts) =>
