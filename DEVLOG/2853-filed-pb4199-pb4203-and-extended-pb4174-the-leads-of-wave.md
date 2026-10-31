@@ -1,0 +1,4 @@
+## Entry 2853 — 2026-10-31 09:10 PDT — Filed PB4199-PB4203 and extended PB4174: the leads of wave 20261783
+
+Filing only, no code. PB4199 (a contained FILE STATUS naming a container's GLOBAL data item is refused COBOL1639, from the PB3767 report), PB4200 (`DiagnosticBag.AddBeforeEffects` reverses two causes at one position, and its cross-file arm is untested, from PB4131's review), PB4201 (`USAGE 5` draws a bare COBOL0001 with no hint, from PB4174's report), PB4202 (five comments PB916 made false; set `misleads_diagnosis` because the register refuses an open defect with no harm flag) and PB4203 (`constructs.json` is still driver-merged and holds the merge queue, from PB4148's report) are new notes. PB4174 gained a "2026-10-31 review leads" section naming the 2002 and 2009 texts PB3602 already holds and the overstated recorded-read comment. The PB4148 lead "the landing could run carry itself" was not filed, its author judged it not worth building.
+
