@@ -24357,5 +24357,36 @@
    "2023"
   ],
   "expect": "COBOL2024: RECEIVE data-name-2 'WS-LEN(1:2)' is reference-modified"
+ },
+ "pb3245-literal-not-continued-fixed": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL5563"
+ },
+ "pb3245-national-literal-unterminated-free": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL5563"
+ },
+ "pb3245-define-literal-unterminated": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL5563"
+ },
+ "pb3245-free-comment-entry-ends-at-line-end": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL1971"
  }
 }
