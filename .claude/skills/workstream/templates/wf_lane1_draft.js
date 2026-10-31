@@ -32,7 +32,7 @@ const WRITER_OUT = {
   properties: {
     slug: { type: 'string' },
     rows: { type: 'array', items: ROW },
-    refusals: { type: 'object', description: 'test id -> its conformance-suite/wiseowl/diagnostics.json entry, for a program WiseOwl must refuse', additionalProperties: { type: 'object', properties: { 'refuse-at': { type: 'array', items: { type: 'string' } }, expect: { type: 'string' } }, required: ['refuse-at', 'expect'] } },
+    refusals: { type: 'object', description: 'test id -> the content of its conformance-suite/wiseowl/diagnostics/<test id>.json file, for a program WiseOwl must refuse', additionalProperties: { type: 'object', properties: { 'refuse-at': { type: 'array', items: { type: 'string' } }, expect: { type: 'string' } }, required: ['refuse-at', 'expect'] } },
     records: { type: 'array', description: 'record_verdicts.py records for rows that would CLOSE once the goldens are validated', items: { type: 'object', additionalProperties: { type: 'string' } } },
     defects: { type: 'array', items: { type: 'object', properties: { rule_id: { type: 'string' }, repro: { type: 'string' }, expected: { type: 'string' }, observed_or_reasoning: { type: 'string' }, clause: { type: 'string' } }, required: ['rule_id', 'repro', 'expected', 'observed_or_reasoning', 'clause'] } },
     summary: { type: 'string' },
@@ -123,7 +123,7 @@ For the dns-witness file: read kb/Work/PB260.md and kb/Work/PB261.md FIRST — t
 to measure; the witness must prove the compiler DIAGNOSES the declined construct (name the diagnostic you expect
 from docs/DIAGNOSTICS.md, or say that none exists yet and the witness therefore needs a compiler change — that is a
 finding, report it under defects).
-Return the refusals you need merged into conformance-suite/wiseowl/diagnostics.json, and a
+Return the refusals you need written as conformance-suite/wiseowl/diagnostics/<test id>.json files, and a
 record_verdicts.py record per row that would close: {"rule-id","verdict","code-location","test-ref","editions",
 "notes"} — verdict unchanged from the input, test-ref your new/existing ref, editions from the row, notes a
 one-line derivation pointer. Strings only.`,
