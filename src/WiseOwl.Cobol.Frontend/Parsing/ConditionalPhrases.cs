@@ -430,7 +430,7 @@ public static class ConditionalPhraseAssociation
                   + "associated with this statement (ISO §14.5.3.3)"
                 : $"no general format of the {name} statement prints a {kind.Words} phrase, so it may not be "
                   + "syntactically associated with this statement (ISO §14.5.3.3)";
-        return $"{name} … {kind.Words}: {why}; and no other statement open here may take it. A phrase is the next phrase "
+        return $"{name} {kind.Words}: {why}; and no other statement open here may take it. A phrase is the next phrase "
             + "of the most-recently preceding unterminated statement with which it may be syntactically associated "
             + "(ISO §14.5.3.3), and its imperative-statement ends at the next phrase of any containing statement.";
     }
