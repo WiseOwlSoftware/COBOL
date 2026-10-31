@@ -1,4 +1,4 @@
-## PB4156: the COBOL-85 extended-letter gate is decided per character, not per word
+## Entry 2840 — 2026-10-30 21:50 PDT — PB4156: the COBOL-85 extended-letter gate is decided per character, not per word
 
 `WordCharacterScreen.Check` (the §8.3.2.1 word-character screen; PB3845 moved it out of `VersionConformancePass.VisitCobolWord`, where
 the note located it) asked the 2002 extended-letter gate only when `CobolWordRule.CharacterViolation` found nothing. Below 2002 that
@@ -16,3 +16,4 @@ landing (`WordCharacterScreenTests`, parsed and unparsed). Its "present at 2002"
 New pins: golden `pb4156-extended-letter-beside-euro-sign` (refused at 85 with COBOL0900), a conformance test over six edition and
 parse combinations (COBOL0900 only at 85, COBOL2773 always), and a unit test for `HasExtendedLetter`. DESIGN-frontend-grammar.md names the
 per-character rule. No inventory row claimed or closed.
+
