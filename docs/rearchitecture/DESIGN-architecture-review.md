@@ -779,23 +779,36 @@ product assemblies, not a source scan and not an MSBuild workspace, so it costs 
   `BoundNodeAttribute`, `BoundVisitor`, `BoundStatementTree` and seven `I{Root}Visitor<T>` interfaces and the generated
   `WiseOwl.Cobol.Editions.Constructs` carry no `[GeneratedCode]` (the census marks them generated), and the census counts
   `WiseOwl.Cobol.Frontend.Generated.CobolParserCore` as authored (its hand partial `Parsing/CompilationUnitTokenRetypes.cs`)
-  while the merged metadata type carries `[GeneratedCode("ANTLR", …)]`. So the walk reads each type's documents from
-  the portable PDB beside its assembly (the documents of its methods' sequence points, and the `TypeDefinitionDocuments`
-  custom debug information the C# compiler writes for a type with no method body) and applies the census's rule, and
-  its self-test asserts that its authored set equals the newest census record's. The 12 types' edges are intra-layer
-  today, so the difference changes no count in this section. Nested types fold into their outermost type, as the
-  census's `fan` rule does.
+  while the merged metadata type carries `[GeneratedCode("ANTLR", …)]`. So the walk (`TypeReferenceWalk`,
+  `tests/WiseOwl.Cobol.Tests.Unit/Architecture/`) reads each type's documents from the portable PDB beside its assembly
+  (the documents of its methods' sequence points, and the `TypeDefinitionDocuments` custom debug information the C#
+  compiler writes for a type with no method body) and applies the census's rule. A type's documents include its nested
+  types' (a nested type is declared inside a declaration of its container in the same document): `CobolParserCore`'s
+  hand partial declares only a member of its nested `CompilationUnitContext`, so without that rule every document the PDB
+  names for `CobolParserCore` itself is generated and the walk disagreed with the census on exactly that type
+  (kb/Work PB2417, measured at `7cb79581e`). The synthesized types are the census's too (`CompiledPopulation.cs`:
+  `<Module>`, `[CompilerGenerated]` and the types nested in them); a closure or state machine folds into the type it is
+  nested in. Its population test asserts the rule, not the snapshot: every type both the walk and the newest census record
+  name agrees on generated-ness, and the walk reads at least nine in ten of the record's types (a type a landing added
+  or deleted since the record is the next census's drift, never a disagreement of rules; equality with the snapshot would
+  fail every fix-lane landing that adds a type). Nested types fold into their outermost type, as the census's `fan` rule
+  does; so the walk counts `Binding.Bound → Frontend.Generated` as 1 pair (every parse context is nested in
+  `CobolParserCore`) where the census, which keys pairs by the nested types, counts 21.
 - **What a reference is:** every type named by the base type, the interface implementations, the generic parameter
   constraints, the field, property, event and method signatures, each body's local-variable signature, each body's IL
   operand tokens (the opcode table is read from `System.Reflection.Emit.OpCodes`, in-box on net10.0, so the decoder is
-  forty lines and owns no opcode list), and each custom attribute's constructor and its `typeof` arguments (decoded from
-  the blob's serialized type names); a generic instantiation contributes each of its arguments.
+  forty lines and owns no opcode list), each body's exception handlers' catch types, and each custom attribute's
+  constructor and its `typeof` arguments (decoded from the blob's serialized type names); a generic instantiation
+  contributes each of its arguments, and a member reference the type that declares the member (the census's
+  `TargetType`), never the member's signature.
 - **"uses" is defined once:** the number of distinct (outermost source type, outermost target type) pairs between two
   namespaces — the census's unit (`RawEdge.Pairs`, `tools/ArchCensus/RawCensus.cs:64`), counted over the walk's own
   population.
 - **Two observers, two ratchets, one file.** The `uses` column of a tolerated row is the census's count (the values
-  above are its measure at `a02b165da`), and `ArchCensusDriftTests` gains the assertion that every cross-layer entry of
-  the newest record's `namespaceEdges` is allowed, or tolerated with a count no greater than the row's `uses`. The walk
+  in the block above are its measure at `a02b165da`; the landed file's are the record its `census` field names), and
+  `ArchCensusDriftTests.TheNewestRecord_CrossesNoLayerTheEdgesFileDoesNotAllowOrTolerate` asserts that every cross-layer
+  entry of the newest record's `namespaceEdges` is allowed, or tolerated by a row whose `uses` is that count, and that
+  the file is keyed to the newest record: recording a census re-seeds the file in the same change. The walk
   cannot see what the compiler erased — an inlined `const` read (`ConditionRenderer.cs:830` reads
   `ClassConditionModel.Numeric`; `OoEmitter.cs:398` reads a `NamingConvention` const) and a `nameof` — so its count can
   sit below the census's; it therefore keeps its own column, `walkUses`, which its first run writes (the test's seed
@@ -804,16 +817,44 @@ product assemblies, not a source scan and not an MSBuild workspace, so it costs 
   does not. Each observer fails when its count for
   a row grows, and a row is deleted only when BOTH measure zero (a pair whose last uses are consts or `nameof`s is
   still a dependency).
-- **It fails when:** a product namespace is not placed by the file; a cross-layer edge is neither allowed nor
-  tolerated; a tolerated row's `walkUses` grows; a namespace the file names exists in no assembly; an allowed pair that
-  is not from a composition root measures zero in both observers (a dead allowance is deleted, never kept).
-- **The what-if.** The checker takes an optional move map (type → namespace) and re-keys its pairs by it before it
-  aggregates, so the same code that ratchets the rows answers "what would this move do to them"; a move wave's brief
-  records that answer for its map. A rename wave (a folder-equals-namespace move or a root flip) re-keys the file in
-  the same change: the new namespace joins its folder's layer, so no layer pair changes, and each tolerated row it
-  splits is re-measured by the walk, the parts summing to the row (refute 4, lead 1).
+- **It fails when:** a product namespace is not placed by the file, or two layers place it; a cross-layer edge is
+  neither allowed nor tolerated; a type pair inside a tolerated row is not listed in the row's `pairs` (a row never
+  gains a pair, even when its count does not grow; J1); a tolerated row's `walkUses` grows, or a listed pair is no longer
+  measured (the ratchet only falls, so the file stays the code's current picture and a removed pair is deleted in the
+  change that removes it); a listed pair names no remover, or a row's `removedBy` is not the union of its pairs'; a
+  tolerated row is an edge the layers allow, or measures zero in both observers; a namespace the file names exists in no
+  assembly; an allowed pair that is not from a composition root measures zero in both observers (a dead allowance is
+  deleted, never kept). The checker (`ArchitectureEdges`, beside the walk) holds every one of these rules once; the
+  census observer calls the same file model.
+- **The what-if.** The checker takes an optional move map (type → namespace) and cut list (type pairs an Extract
+  ends) and re-keys the pairs by them before they aggregate (`WISEOWL_COBOL_ARCH_EDGES_WHATIF=<map.json>`, the file
+  `{"moves": {type: namespace}, "cuts": [[from, to]]}`), so the same code that ratchets the rows answers "what would
+  this move do to them": a pair re-keyed onto a row that does not list it, or onto a row the file neither allows nor
+  tolerates, fails; a move wave's brief records that answer for its map. A rename wave (a folder-equals-namespace move
+  or a root flip) re-keys the file in the same change: the new namespace joins its folder's layer, so no layer pair
+  changes, and each tolerated row it splits is re-measured by the walk, the parts summing to the row (refute 4, lead 1).
+- **The seed and the removers.** `WISEOWL_COBOL_ARCH_EDGES_SEED=1` on the drift test rewrites every tolerated row from
+  the walk and the newest census record (`uses`, `walkUses`, `pairs`; a listed pair keeps its removers) and then asserts
+  as the gate does. `python scripts/arch/edges.py --assign` names each new pair's removers: the targets file carries no
+  type → namespace move map (schema 2: one step of R0-0001 lists member moves, none a type move), so the replay is its
+  file-level image — of the notes the row's `plan` (R1's account of the row) names, a note REACHES the pair A → B when its
+  computed file set (`member_index.note_file_set`, §8.7) holds a file that declares A (a Move or Extract that ends the pair
+  edits A's file: the reference is cut there, A moves, or B moves and A's `using` changes), and the reaching notes that
+  name A or B among what they move or change are its removers (all reaching ones when none names either end); they are
+  written in `blocked_by` order, and a remover whose `Removes` line does not name the row is reported. A pair no note
+  reaches keeps an empty `removedBy`, and the drift test is red on it until a note that removes it is filed and named.
 - It is seen failing once, on a planted edge, before it lands (`brent-tools:architecture-audit` Phase 3), through a
-  self-test that feeds the checker a synthetic edge set.
+  self-test that feeds the checker a synthetic edge set: a planted edge, a planted pair inside a tolerated row (growth),
+  a pair with no remover, an unplaced namespace, a dead allowance, a vanished pair, a what-if re-key and cut, and the
+  census observer's growth and unadmitted edge (`TheChecker_FailsOnEveryPlantedViolation_AndPassesTheCleanInput`).
+- **The file as measured (kb/Work PB2417, census `7cb79581e`).** The walk and its checks take about half a second of
+  the gate; the file places two namespaces R1 did not know — `WiseOwl.Cobol.Binding.Repository` (the external
+  repository's reader, codec and records, `Binding/Repository/`, which reads the binder: compiler.binding) by its folder,
+  and allows `cli → compiler.binding` by the composition-root rule (the CLI parses `--numeric-display` into the
+  option type `NumericDisplayForm`, `Binding/NumericDisplayForm.cs`). It tolerates 28 rows holding 359 type pairs; 330
+  name their removers from R1's notes, and the 29 pairs of the new row `WiseOwl.Cobol.CodeGen →
+  WiseOwl.Cobol.Binding.Repository` (`HostEntryEmitter`, `OoEmitter` and `RepositoryAttributeRenderer` read the
+  repository records) have none: they wait for the note that moves the record family to compiler.model.
 
 One rule, one file, two observers at two cadences — the per-gate metadata walk and the per-wave census — which is the
 oracle's own shape (§4.1: a hash manifest per gate, the battery per batch).
