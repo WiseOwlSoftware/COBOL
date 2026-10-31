@@ -684,15 +684,16 @@ and a "facade" that "forwards" are rewritten to that statement in the same chang
 ### 4.5 Namespaces and `__CobolModule`
 Every emitted type lives in the namespace `Cobol.<S>`, where `<S>` is the assembly simple name made ONE identifier by
 `DataItem.Sanitize` (each character a C# identifier cannot hold, `.` and `_` included, written `_uXXXX_`; a hyphen
-written `_`; a leading digit prefixed with `_`; a C# keyword escaped with `@` in the source and bare in metadata — an
-INJECTIVE mapping, `DataItem.IdentifierCharacters`, kb/Work PB2839), `CsNames.ModuleNamespaceOf`, so
+written `_`; a leading digit prefixed with `_` — an INJECTIVE mapping, `DataItem.IdentifierCharacters`, kb/Work
+PB2839), `CsNames.ModuleNamespaceOf`; a segment that is a C# keyword stays bare in metadata (`Cobol.class`) and the
+Roslyn backend writes it `@`-escaped in the source (`ProgramEmitter.CSharpNamespace`, kb/Work PB4265), so
 `PAY.V2.dll` is `Cobol.PAY_u002E_V2` and never meets a type `V2` in `Cobol.PAY` (r7-ns: the dotted form is CS0434 in
 a host and CS0437 in a group), and `PAY-ROLL.dll` (`Cobol.PAY_ROLL`) and `PAY_ROLL.dll` (`Cobol.PAY_u005F_ROLL`) are
 two namespaces and two registrars. No emitted type lives directly in `Cobol`, so a namespace never meets a type, and two
 COBOL assemblies referenced by one host never collide on a program or class name or on `__CobolModule`; two needed
 assemblies whose namespaces coincide are REPO-6. `[assembly: CobolRepository(…, Registrar = "Cobol.ACCT.__CobolModule")]`
 tells the run-time probe which type to invoke.
-**The one name allocator.** Every C# name generated from a COBOL word — the internal record structs' members, the
+**The one name allocator.** Every CLR name generated from a COBOL word — the internal record structs' members, the
 host-entry classes, the published record structs and their members, the `Call` parameters, OO classes and interfaces
 — comes from ONE function, `CsNames.Allocate(baseName, scope)` (`Binding/Model/CsNames.cs`): the base name (the
 `DataItem.Sanitize`d word, or a synthesized base such as `_impliedRecordF`) when it is free, else the smallest free
@@ -715,6 +716,11 @@ namespace. `ImportedTypeNameDriftTests` keeps the derivation total: the using di
 `System` type by simple name that the core-library derivation misses (it found `Console.Error.WriteLine`, now
 `global::System.Console…`). OO class, interface, method and property names are `DataItem.WordIdentifier`'s UPPER-CASE
 fold and so spell no imported type (the one all-capitals type, `BASE`, is the OO base class itself).
+**Every scope is also seeded with the C# reserved keywords (kb/Work PB4265):** `CsNames.CSharpReservedKeywords`,
+derived from Roslyn's `SyntaxFacts`, so a lowercase data-name `int` is allocated `int_2`. An allocated name is then the
+same text in metadata and in C# — the names are the module's ABI, the same for a Roslyn-built and a CIL-built module
+(DESIGN-backend-abstraction §2.4) — and a prefix or suffix joined to it stays an identifier (`_redef_int_2`; the `@int`
+spelling it replaced made `_redef_@int`, refused by the C# compiler). OO names are upper-case and spell no keyword.
 **Landed for the internal scopes (kb/Work PB2093):**
 `DataBinder`'s private `Unique`, which left both unseeded (a subordinate named `AsImage` or `Equals` drew CS0102 in
 `_T_0`, a record named `CloseFiles` in the program class), is deleted; a group's members are appended only through
@@ -977,7 +983,7 @@ prototype's formals and entries are joined by the prototype's index and the form
   `[CobolMethod(Accessor, PropertyName)]` beside the same parameter attributes. An interface's members are emitted by the
   same `OoSignatureOf` and carry the same attributes on the interface's own CLR methods. The covariant-return adapters
   (explicit interface implementations, §9.3.8.2.3 5a / 5c2) are no COBOL method: they carry no `[CobolMethod]` and the
-  reader skips every method without one. The FACTORY is its own CLR type (`OoClassSymbol.FactoryCsName`): the class's
+  reader skips every method without one. The FACTORY is its own CLR type (`OoClassSymbol.FactoryClrName`): the class's
   `[CobolUnit]` names it (`FactoryType`, a type-name string, never a `System.Type`), and each factory method carries
   `[CobolMethod(IsFactory = true)]` on the factory type's method.
 
@@ -1052,7 +1058,7 @@ enclosing comparison's `Comparison` assumption set (PB3120); `BitLayout.*`; `Dat
 | `DataItem.RestrictedPrototype`, `PointerRestrictionIdentity` (a restricted program- / function-pointer's resolved prototype and its signature class, PB2464 / PB2495) | `PrototypeSignatures.RestrictionIdentity` / `SameType`, `PrototypeSignatureClasses` | not recorded as such: rebuilt at decode from `RestrictedPrototype` → `ReferencedPrototypes` (§6.4) |
 | `Renames` | `AtomsOf` | not applicable (a formal is level 01/77, §14.2.2 SR1) |
 | `CobolName` | diagnostics; REDEFINES/ODO targets inside the record | `Name` |
-Not recorded (emitter facts): `CsName`, `Uid`, carrier field names, `StoreAsImage`, `RedefinesClass` tiers, VALUEs,
+Not recorded (emitter facts): `ClrName`, `Uid`, carrier field names, `StoreAsImage`, `RedefinesClass` tiers, VALUEs,
 condition-names, index names. The decoded tree is bound into a codec-owned throw-away forest so derived members answer
 as on a bound item (`UsageInheritancePass`, `InheritSignClauses`, group-usage classification, `BitLayout`, and the
 pointer-restriction stamp of §6.4). Invariant (§17.2): `Decode(Encode(x))` is indistinguishable from `x` to every
@@ -1090,7 +1096,7 @@ the group.
   `Name`, and the run-time description's `ObjectName`, `ObjectClasses` and `ObjectInterfaces` become the folded
   EXTERNALIZED names of their classes and interfaces instead of words, so two separately compiled groups describe one
   class with one spelling. That changes the text every module's descriptions carry and the run-time relations compare:
-  a call-ABI bump (`scripts/abi_pin.py bump --call-abi`, §15.4) in slice 8. `ClrTypeName` is `Target.CsName` with its
+  a call-ABI bump (`scripts/abi_pin.py bump --call-abi`, §15.4) in slice 8. `ClrTypeName` is `Target.ClrName` with its
   namespace. ACTIVE-CLASS carries its containing class's identity (excluded from equality by §9.3.8.2.3 rule 2 d) as
   today).
 - **Restricted data-pointers**: `POINTER TO type` → `RestrictedTypeName` (the word as written) and the type
@@ -1472,7 +1478,7 @@ words for two identities. `OoClassTable` therefore stores IMPORTED symbols by ID
 identity), and each source element's `IdentityScope` — `OoRepositoryScope` extended to program prototypes, function
 prototypes and dynamic-length structures — maps word → identity and identity → word. Decoding a record for element E
 maps every identity through E's scope: the first word whose identity it is becomes the symbol's `Name` IN E (the
-`OoClassSymbol` keeps one `CsName`; its word is scope-dependent and `OoNameResolution.Lookup` composes scope + table
+`OoClassSymbol` keeps one `ClrName`; its word is scope-dependent and `OoNameResolution.Lookup` composes scope + table
 as today). An identity E has no word for is imported anonymously (reachable from descriptors, never from `Find(word)`,
 spelled `class "<identity>"` in diagnostics). A prototype identity a signature mentions (a restricted program-pointer)
 maps through the same scope to E's program-prototype word, else stays anonymous.
@@ -1634,7 +1640,7 @@ and identity and otherwise creates the class." **DOC-A.1-162:** the same for int
 `MetadataRepositoryProvider.Class(identity)` decodes the TypeDef's attributes into a `ClassRecord` and builds an
 `OoClassSymbol { Origin = Imported(path, simpleName, fullName) }` (`OoSymbolOrigin { Source, Standard, Imported, Clr }`
 replaces `OoClassSymbol.IsStandard`, today `ctx is null`, and every reader of it; `Ctx` already throws on the standard
-class and throws on an imported one too): `CsName` = the TypeDef's full name (namespace included); `FactoryCsName`; `IsFinal`;
+class and throws on an imported one too): `ClrName` = the TypeDef's full name (namespace included); `FactoryClrName`; `IsFinal`;
 `Base`/`Implements` resolved by identity through the same provider (transitively; the standard class → `StandardBase`;
 unreachable → REPO-11); one `OoMethodSymbol` per `[CobolMethod]` over decoded `DataItem`s; `OverrideOf` re-linked;
 accessors; `Raising`. `OoClassTable.Import(symbol)` registers by IDENTITY (§8.7). Downstream — INVOKE binding,
@@ -1648,7 +1654,7 @@ their `MetadataReference`s to that set. `OutputKind` landed in slice 3 different
 the design adopts it: it is a parameter of `RoslynBackend.Compile(…, OutputKind)` chosen from `ProgramEmitter.MainUnit`
 (a group with no main unit is a library), reported back as `BackendArtifact.Library`, so `BackendOptions` carries no
 `OutputKind`. Imported types are named by full name
-under `global::`, so a source `ACCOUNT` and an imported `ACCOUNT` never meet and two imports of one CsName are
+under `global::`, so a source `ACCOUNT` and an imported `ACCOUNT` never meet and two imports of one ClrName are
 distinct. **Warnings.** The driver surfaces only `Error` diagnostics from the backend, because generated C# for legal
 COBOL draws warnings no emitter change can remove (CS1718 for `IF B = B`, r6-warn), so a warning-free corpus is not a
 property a test can assert. Three warnings are escalated to errors on generated code (`SpecificDiagnosticOptions`):
