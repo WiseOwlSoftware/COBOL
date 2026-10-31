@@ -687,7 +687,8 @@ was already spread across threads.
 **The mechanism** — `tests/_shared/TestPartitioning.cs`, linked into every project under `tests/`.
 
 xUnit v2 offers exactly two levers and only one of them can split: `[Collection]` MERGES classes into a shared
-collection, so it can never divide one. That leaves genuine class splits — and the naive class split duplicates
+collection, so it can never divide one. (A third-party framework that runs a class's rows in parallel was measured
+against the partitions after M6 and rejected: section 3.11.1, kb/Work PB4150.) That leaves genuine class splits — and the naive class split duplicates
 the test bodies, which is how a split rots. So the tests live ONCE in an abstract generic base and each partition
 is one line:
 
@@ -785,27 +786,74 @@ the count N-fold. The StorageForm sweep is the one deliberate count change (6 �
 assertion: the whole-corpus bar was `parsed >= 50`, and each partition now asserts its proportional share rounded
 UP, so a partition that silently stopped binding goes RED instead of green-and-empty (§3.10 corollary 1).
 
-**Measured, same box (24-physical/32-logical i9-13900K), same `Conformance ∥ Unit ∥ Characterization` shape:**
+**What the split bought (battery #41, 2026-09, before M6; same box, 24-physical/32-logical i9-13900K):**
 
 | leg | wall | sum of test time | avg concurrency |
 |---|---|---|---|
 | Conformance | 721 s → **600 s** | 1948 s → 10469 s | 2.7× → **17.4×** |
 | Unit | 171 s → **138 s** | 329 s → 895 s | 1.9× → **6.5×** |
 
-⛔ **THE TAIL IS GONE; THE WALL BARELY MOVED — AND THE SECOND HALF OF THAT SENTENCE IS THE FINDING.** A13
-predicted ~783 s → ~80 s. The split did precisely what it was designed to do, yet bought 17%, because
-`sum-of-test-time ÷ wall` measures COLLECTION concurrency, **not core utilisation**, and the "idle" cores were
-never idle: one WiseOwl COBOL compile is internally parallel (Roslyn `Emit`) and a NIST row spawns a `dotnet` child
-that is too. The proof is in the after-profile itself — the SAME work reports **5.4× more test time** because the
-new collections found contention, not silicon; at 17.4× + 6.5× ≈ 24 threads on 24 physical cores the box is
-saturated. **The class-split lever is therefore EXHAUSTED**, and the remaining lever is to reduce the WORK — the
-persistent compile/run host of §3.10's `guard-fast` row and A13(c), not more parallelism. Kept for the balance
-and for the drift gate, exactly as the `guard-fast` regrouping was kept for correctness rather than speed. ⚠ The
-contention was since NAMED (§3.14.5): for check-only compiles it is one lock in the ANTLR lexer's ATN simulation,
-reached on every token because predicated rules keep its DFA from caching (the start state, and every edge through a
-predicate),
-so the continuity partitions ran at ~3.8 busy cores, not a saturated host; the partition counts are re-measured
-once M6 removes it.
+The split removed the serial tail but moved the wall only 17 %, because one lock in the ANTLR lexer's ATN simulation
+(§3.14.5) serialized every compile in the process. M6 removed that lock, so whether running a class's rows in parallel
+would now beat the partition classes was measured again.
+
+**⭐ Per-row parallelism against the partitions, after M6 (kb/Work PB4150, 2026-10-30).** The Conformance assembly at
+`3abfbbdbb` (Debug, compiled-program cache off, server GC, xunit 2.9.2, 32 threads = the processor count, 19,881
+cases), each run inside a gate slot, the arms alternated round by round on the gate host. The arms: **A** today's
+assembly (32 suite partitions; xunit's default `conservative` algorithm); **Ag** A with `parallelAlgorithm: aggressive`;
+**B** A under `Meziantou.Xunit.ParallelTestFramework` 2.3.0 (the latest; it supports xunit v2), which runs every row of
+a class in parallel, with `aggressive`; **B2** B with the suite collapsed into ONE class; **A64** A at 64 threads.
+Wall seconds:
+
+| round | A | Ag | A64 | B | B2 |
+|---|---|---|---|---|---|
+| 1 | 176 | 154 | – | 291 | 174 |
+| 2 | 187 | 171 | – | 141 | 177 |
+| 3 | 170 | 143 | – | 135 | 131 |
+| 4 | 230 | 149 | – | 391 | 162 |
+| 5 | 277 | 320 | – | 223 | 197 |
+| 6 | 266 | 332 | – | 244 | 380 |
+| 7 | 263 | 218 | 187 | – | – |
+| 8 | 176 | 246 | 212 | – | – |
+| 9 | 197 | 224 | 291 | – | – |
+| **median** | **197** | **218** | **212** | **234** | **176** |
+
+- **The noise is the finding's scale.** The host is shared with the fleet's gates (0–4 other slots held, system CPU
+  55–96 % across runs), so arm A alone ranged 170–277 s (standard deviation 43.5 s over 9 runs). B against A in the
+  same round ran from 54 s faster to 161 s slower (median 29 s faster), inside A's own noise, and B's spread (96 s) is
+  twice A's. Neither the algorithm (Ag) nor twice the threads (A64) beat the noise either.
+- **The pass sets are identical** by name key (section 3.11.2) in every run of every arm, except the two witnesses each
+  variant trips by construction: `GateLegDriftTests.Arm4_ThisAssembly_NamesTheGateFramework` (B and B2 name Meziantou's
+  framework) and `ConformancePartitioningDriftTests.TheSuiteRunner_KeepsItsMeasuredPartitionFloor` (B2). No row failed
+  only under per-row parallelism.
+- **The leg is bound by its threads waiting on child processes, not by the class structure.** Every arm keeps 32 cases
+  in flight until its tail (average concurrency 25–32); a mid-run stack sample of arm B found 32 test threads, 26 of them
+  in `Process.WaitForExit` on a compiled program, and the test host itself used 548–734 s of CPU per run. The GC pause
+  share was 2–5 % in most runs (1.6–13.5 %).
+
+**Determination: keep the partition classes.** Per-row parallelism does not clear run-to-run noise, and the experiment
+showed four costs:
+1. **Under xunit 2.9.2's default algorithm it is unbounded.** Its assembly runner overrides `RunTestCollectionAsync`
+   and so skips the `conservative` algorithm's semaphore of `maxParallelThreads`, and with no
+   `MaxConcurrencySyncContext` it starts every case with `Task.Run`. The first such run reached 1,720 threads, 1,710 of
+   them inside `ProcessObserver.Observe` (most waiting on a child's stdout read, which needs a pool thread the
+   blocked cases hold); a child that had used 0.1 s of CPU never exited, so
+   `DisplayUponTests.Upon_EachOutputDevice_TransfersALongOperandAsOneLine` timed out twice (120 s each), and the run
+   was stopped at 10 minutes. It needs `parallelAlgorithm: aggressive` to keep the cap.
+2. **It names its own `[assembly: Xunit.TestFramework]`**, and an assembly names exactly one framework
+   (`GateTestFramework`, section 3.14.3), so adopting it means re-implementing its runners inside the gate's framework.
+3. **It schedules the long pole last.** `ConformanceSuiteRunnerDriftTests.BothRunners_GiveEverySuiteTestTheSameVerdict`
+   (one case, 50–205 s) is its own collection under the partitions; under B it queues behind thousands of rows,
+   started 113–234 s into four of the six runs, and ended those four runs. It ended one of the nine arm-A runs.
+4. **It removes the bound on a heavy family.** Six NIST partitions run at most six NIST rows at once; per-row
+   parallelism ran three rows of one partition together at 52–56 s each (round 4; the slowest NIST rows take 12–24 s
+   under the partitions).
+
+The Unit assembly was not measured (PB4150's step 4 runs only if B clears the bar). Its `[Collection("process-globals")]`
+classes would stay serial (the framework leaves an explicit collection serial), but a class outside that collection
+that swaps process-wide state in each case would race with its own rows: `AcceptSourceTests` sets `Console.In` in each
+of its five facts. The remaining levers are to
+reduce the WORK (the persistent compile/run host of §3.10's `guard-fast` row and A13(c)) and the long pole above.
 
 #### 3.11.2 ⛔ Filters must key on the METHOD, never on `Class.Method`
 
@@ -820,7 +868,7 @@ the sharded leg, and it was re-run locally against the split tree: 349+349+349+1
 
 ### 3.12 THE COMPILED-PROGRAM CACHE — reducing the WORK of a re-gate (kb/Work PB985)
 
-§3.11 ended with the parallelism lever exhausted and "reduce the WORK" as the one left. The largest repeated work
+§3.11 ends with more parallelism measured and rejected and "reduce the WORK" as the lever left. The largest repeated work
 is the lander's whole-Conformance re-gate after a TEST-ONLY fix (a probe template, a stale test-ref, a pinned
 expectation — the dominant cause of trains 46–48's first-gate reds): ~7,900 cases recompiled although no compiler
 or runtime bit changed. `tests/WiseOwl.Cobol.Tests.Conformance/CompiledProgramCache.cs` makes that re-gate reuse every
@@ -1652,7 +1700,7 @@ token of every compilation recomputes the closure over all default-mode rules an
 - **§3.11's "the class-split lever is exhausted"** was measured under this lock. After M6, the partition counts
   (one `Partitions` constant per family, audited by `TestPartitionAudit`) are re-measured; the first re-measure
   (w1033, kb/Work PB2527) took `CorpusRunnerTests` from 3 partitions to 24 and split `OptionalWordSubsetDriftTests` 8
-  ways (section 3.11.1).
+  ways, and kb/Work PB4150 measured per-row parallelism against the partitions and kept the partitions (section 3.11.1).
 
 **M7 — the long poles.** `pb505-table-value-dynamic-span-levels` (266 s in the battery; **29.6 s alone through the
 `cobol` CLI** for a 26-line program) and `DynamicWithoutTo_HigherSubscriptsShallBeEqual_1946` (116 s) are one
