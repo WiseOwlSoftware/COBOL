@@ -356,7 +356,11 @@ public sealed class ReservedWordPositionConformanceTests
     /// recovery from the COBOL0901 used to resume AT the word, parse it as that statement and refuse the token after it:
     /// <c>DISPLAY RECEIVE.</c> drew COBOL0901 and then "COBOL0001: unexpected '.'". The recovery now consumes the word
     /// the report named, as the operand it stood for. Each statement below is refused with exactly ONE diagnostic, the
-    /// COBOL0901 naming the word.</summary>
+    /// COBOL0901 naming the word.
+    /// <para>The GOBACK, VALIDATE, RAISE and FREE rows (branch review R2-1) are words whose statement needs few or no
+    /// operands, so a statement PARSES as a prefix of what follows them (<c>GOBACK</c> in <c>MOVE GOBACK TO W-X</c>,
+    /// <c>VALIDATE W-N</c> in <c>ADD VALIDATE W-N TO W-N</c>): the recovery must not resume at them, because the token
+    /// after that prefix (TO, '=') can follow no statement — it drew "unexpected 'TO'" / "unexpected '='".</para></summary>
     [Theory]
     [InlineData(2023, "DISPLAY RECEIVE.", "RECEIVE")]
     [InlineData(85, "DISPLAY RECEIVE.", "RECEIVE")]
@@ -367,6 +371,11 @@ public sealed class ReservedWordPositionConformanceTests
     [InlineData(2023, "ADD RECEIVE TO W-N.", "RECEIVE")]
     [InlineData(2023, "IF RECEIVE = 1 DISPLAY \"X\" END-IF.", "RECEIVE")]
     [InlineData(2023, "DISPLAY RECEIVE W-X.", "RECEIVE")]
+    [InlineData(2023, "MOVE GOBACK TO W-X.", "GOBACK")]
+    [InlineData(2023, "IF GOBACK = 1 DISPLAY \"X\" END-IF.", "GOBACK")]
+    [InlineData(2023, "ADD VALIDATE W-N TO W-N.", "VALIDATE")]
+    [InlineData(2023, "MOVE RAISE W-X TO W-Y.", "RAISE")]
+    [InlineData(2023, "MOVE FREE W-X TO W-Y.", "FREE")]
     public void AReservedVerbWrittenAsAnOperand_DrawsOneDiagnostic(int edition, string statement, string word)
     {
         var (ok, diags) = EditionHarness.Compile($"""
@@ -375,6 +384,7 @@ public sealed class ReservedWordPositionConformanceTests
                    DATA DIVISION.
                    WORKING-STORAGE SECTION.
                    01 W-X PIC X(4).
+                   01 W-Y PIC X(4).
                    01 W-N PIC 9(4).
                    PROCEDURE DIVISION.
                    MAIN-P.

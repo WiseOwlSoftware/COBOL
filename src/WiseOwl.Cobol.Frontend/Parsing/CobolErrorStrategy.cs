@@ -259,9 +259,10 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// and the listener re-codes it to COBOL0901 just the same. Consuming it there resumed inside that correct
     /// statement's operands (<c>RECEIVE FROM W-X GIVING W-Y W-N</c> drew "unexpected 'GIVING'"; <c>RESUME AT NEXT
     /// STATEMENT</c> was told to write SENTENCE). The two are told apart by the grammar, never by a list: the word is
-    /// the operand the report named exactly when the statement it would begin does NOT parse
-    /// (<see cref="CobolParserCoreBase.LookaheadBeginsAStatementThatParses"/>); where it parses, the recovery resumes
-    /// at it and the statement is read as written.</para>
+    /// the operand the report named exactly when the statement it would begin is NOT a complete reading
+    /// (<see cref="CobolParserCoreBase.LookaheadBeginsAStatementThatParses"/>); where it is, the recovery resumes
+    /// at it and the statement is read as written. A statement that parses only as a prefix, stopping at a token no
+    /// statement is followed by (<c>GOBACK</c> in <c>MOVE GOBACK TO W-X</c>, review R2-1), is an operand.</para>
     /// Only the token the last report named (<see cref="_lastReported"/>), only where the listener re-codes it to
     /// COBOL0901, and only when it is a resynchronization point at all (the caller asks the set first, so the speculative
     /// parse runs only where its answer decides something): every other refused token keeps the base recovery.</summary>
