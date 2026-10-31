@@ -3,6 +3,7 @@
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.CodeGen.Emit;
+using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.CodeGen;
 
@@ -16,7 +17,7 @@ namespace WiseOwl.Cobol.CodeGen;
 /// table. The held enumeration then ranges over the copy exactly as the source's did over the table.</para>
 /// <para>When the held table is a dynamic-capacity table (a source level has no allocated maximum), the walk runs twice: the first
 /// counts the elements and sets the capacity to the count (§14.9.39 Format 14's <c>SET capacity TO</c>), the second stores them.</para></summary>
-internal sealed class TableHoldEmitter(EmitContext ctx, SetEmitter set)
+internal sealed class TableHoldEmitter(EmitContext ctx, ArithmeticEmitter arith)
 {
     /// <summary>The statement emitter, wired after construction (the copy is any bound statement).</summary>
     internal StatementEmitter Statements { get; set; } = null!;
@@ -44,7 +45,7 @@ internal sealed class TableHoldEmitter(EmitContext ctx, SetEmitter set)
                 Statements.EmitStatement(hold.Copy);
             });
             if (hold.Count is { } count)
-                set.StoreSetTarget(new SetPlaceTarget(count), new NumX(stored, 0));
+                arith.StoreArith(count, new NumX(stored, 0), CobolRounding.Truncation);   // the count is a numeric data item, stored through its PICTURE
             // §15.3 14): an ALL that yields no argument is EC-ARGUMENT-FUNCTION, raised where the argument is evaluated (GR2).
             w.Line(RuntimeApi.TableRequireOccurrences(stored));
         }

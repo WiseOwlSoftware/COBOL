@@ -33,7 +33,8 @@
       *>         elements (§15.72.4 1), cite.py: OK 15.72.4 1))
       *>   ODO    SUM (OD (ALL), 0) = 10 + 20 + 30 = 60 - the range of the ALL subscript is CNT's value when the argument is
       *>          evaluated (§15.3 14)), 3; read after the activation (CNT = 1) it would be 110
-      *>   TEXT   CONCAT (S (ALL), PB4162A) = AABBCC followed by the activation's QQ
+      *>   TEXT   MIN (S (ALL), PB4162A) = AA - "the content of the argument-1 having the least value" (§15.63.4 1), cite.py: OK
+      *>          15.63.4 1)) of AA BB CC and the activation's QQ; read after the activation (S = ZZ ZZ ZZ) it would be QQ
       *>   NEST   MAX (MAX (F (ALL), 1), 0) = 21.5, the nested call naming ALL held as the call it is (the argument to its left)
       *>   NESTOD MIN (MAX (OD (ALL), 1), 99999999) = 30
       *> And the held call answers what the unheld one does: FUNCTION LENGTH of the nested MAX measured with a literal filler
@@ -105,7 +106,7 @@
        01 WS-I  PIC 9(4).
        01 WS-U  PIC 9(4).
        01 WS-H  PIC 9(4).
-       01 WS-X  PIC X(8).
+       01 WS-X  PIC X(2).
        PROCEDURE DIVISION.
        MAIN.
            PERFORM LOAD-DATA
@@ -142,7 +143,7 @@
            COMPUTE WS-R = FUNCTION SUM (WS-OD (ALL), FUNCTION PB4162B (WS-LO))
            DISPLAY "ODO=" WS-R " CNT=" WS-CNT
            PERFORM LOAD-DATA
-           MOVE FUNCTION CONCAT (WS-S (ALL), FUNCTION PB4162A) TO WS-X
+           MOVE FUNCTION MIN (WS-S (ALL), FUNCTION PB4162A) TO WS-X
            DISPLAY "TEXT=" WS-X " S1=" WS-S (1)
            PERFORM LOAD-DATA
            COMPUTE WS-R = FUNCTION MAX (FUNCTION MAX (WS-F (ALL), 1), FUNCTION PB4162B (WS-LO))
