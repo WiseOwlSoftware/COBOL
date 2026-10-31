@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.100.3-6",
+ "section": "15.100.3",
+ "kind": "AR",
+ "ordinal": 6,
+ "subject": "YEAR-TO-YYYY function",
+ "rule-digest": "2fd66bdf560a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#YearToYyyyAt",
+ "test-ref": "conformance:cases/15.100.3-Arguments-rule/l1_year_to_yyyy_defaults_and_sum_window; conformance:cases/15.100.3-Arguments-rule/l1-year-to-yyyy-float-item; conformance:cases/15.23.3-Argument-rules/pb65_date_windowing",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "PARTIAL -> CONFORMS, re-verdicted by the kb/Work PB245 golden round (2026-09-09). THE RULE: §15.100.3 r6 'The sum of the values of argument-2 and argument-3 shall be less than 10000 and greater than 1699' (cite.py --check 15.100.3 on that sentence -> OK, rule 6). DERIVED BEFORE THE RUN as MATCHED PAIRS ONE YEAR APART ON EACH BOUND, written on YEAR-TO-YYYY itself and with argument-3 chosen to satisfy r4 so a raised exception is attributable to r6 alone: (30 50 1650) has maximum-year 1700 and is legal, answering 30 + 100*(17-1) = 1630 by r2b; (30 49 1650) has 1699, which is not greater than 1699, so §15.3 item 14 sets EC-ARGUMENT-FUNCTION; (30 0 9999) has 9999 and is legal, answering 30 + 100*99 = 9930 by r2a; (30 1 9999) has 10000, which is not less than 10000. MEASURED with EC-ARGUMENT-FUNCTION checking ON: both legal values exact, both violations caught, and the receiver still holding the previous probe's value after each. ⚠ NEITHER BOUNDARY WAS PINNED BY ANY FIXTURE ON ANY FUNCTION before this round - pb65_date_windowing writes DAY-TO-YYYYDDD(85365, 9000, 1995), whose sum of 10995 is far outside the window and cannot tell a bound at 10000 from one at 20000; it is kept because it does reach this branch through the §15.25.4 r1 delegation. THE ROW'S RESIDUE - r6's ACCEPT side never being formed on the float carrier for the 1- and 2-argument references - is answered the same way as AR-15.100.3-3's: conforming source cannot reach that lane (COBOL1627, PB248) and the lane itself was fixed by PB119's overload split, measured under --permissive on 2026-09-09.",
+ "state": "OK"
+}

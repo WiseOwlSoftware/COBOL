@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.4.2",
+ "section": "14.9.4.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "CALL statement",
+ "rule-digest": "02ef50f0e383",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#callArgument; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCallStatement",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb130_call_format2_bare; conformance:cases/14.9.4-CALL/pb130-call-by-value-format1; conformance:cases/14.9.4-CALL/pb130-call-content-literal-format1; conformance:cases/14.9.4-CALL/pb46_call_format2_as_nested; conformance:cases/14.9.4-CALL/pb46-call-as-prototype-name; conformance:cases/14.9.4-CALL/pb46-call-format1-content-expression; conformance:cases/8.4.3.13-Program-address-identifier/pb239_call_address_identifier; conformance:cases/14.9.4-CALL/pb239-call-as-phrase-at-85; conformance:cases/14.9.4-CALL/pb239-call-address-identifier-at-85",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB239): both items of the row's STILL OPEN residue are closed. (1) ADDRESS OF as an argument: callArgument, callByReference, callByContent and callByValue each carry the addressIdentifier alternative (8.4.3.1.2 Format 9), so `CALL \"S\" USING [BY REFERENCE|BY CONTENT] ADDRESS OF R`, `USING BY VALUE ADDRESS OF R` (Format 2) and `USING ADDRESS OF PROGRAM \"P\"` parse and run (pb239_call_address_identifier). (2) The AS-phrase edition gate, re-measured: an 85 compile ACCEPTED `CALL \"X\" AS NESTED` with no diagnostic; it is now the recognition gate call-as-phrase-2002 (COBOL0900; negative pb239-call-as-phrase-at-85). Format 2's bare program-prototype-name spelling needs no gate of its own - its REPOSITORY paragraph is already 2002-gated.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.68.4-2",
+ "section": "15.68.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "NUMVAL-C function",
+ "rule-digest": "fb592a84273c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NvScan",
+ "test-ref": "conformance:cases/15.67.3-Argument-rules/pb60_numval_one_scan",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-09 (PB60): both bounds of r2 now hold. The GROUPING bound (separators ignored only PRECEDING the decimal separator) had landed with the positional screen; the CURRENCY bound lands with the one-scan unification - the currency is consumed at its ONE r4a position (golden rows RC/DC/SG/GP) and an occurrence anywhere else is an ERROR at that position (row MD), where the old unanchored, uncounted Replace erased every occurrence including the R of a trailing CR.",
+ "state": "OK"
+}

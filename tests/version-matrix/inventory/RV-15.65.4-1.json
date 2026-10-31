@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.65.4-1",
+ "section": "15.65.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "MODULE-NAME function",
+ "rule-digest": "fa944cddda20",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ModuleStack.cs#Name",
+ "test-ref": "conformance:cases/15.65.4-Returned-value-rules/pb63_module_name_lengths; unit:ModuleStackInvariantTests.NoTrailingSpaces_AndNoTruncation_AtEveryDepth; unit:ModuleStackInvariantTests.TopLevel_WithoutAMainFrame_IsTheDocumentedNonCobolValue",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB63 — the exception surface: the FD screen, the SELECT-spelled name on the connector, the one access-recording path, the r2b procedure field and element name, the MODULE-NAME determinations). §15.65.4 r1 — every keyword's LENGTH equals its content (golden M-CUR 10, M-ACT 1 — r1's stated exception, the main's ACTIVATING — M-TOP 10, M-STK 12 for 'PB63MNMAIN; ', X-ACT 9, S-ACT 4); ModuleStackInvariantTests pins no-trailing-spaces at 60 nested activations.",
+ "state": "OK"
+}

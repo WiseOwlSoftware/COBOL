@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-2",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 2,
+ "subject": "ACCEPT statement (device used when FROM is unspecified)",
+ "rule-digest": "97909ab91462",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-2; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitAcceptDevice; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#MnemonicDevice; src/WiseOwl.Cobol.Editions/ImplementorNames.cs#ImplementorNames",
+ "test-ref": "conformance-test:AcceptDifferentialTests.Device_ShortLine_StoresLeftAlignedSpaceFilled",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§14.9.1.4 GR5 - the FROM-omitted device is the process standard input (docs/CONFORMANCE.md DOC-A.1-2); the test pipes \"ABC\" to stdin, ACCEPTs with NO FROM phrase and asserts the GR4a left-aligned store, which only standard input can produce. A .cob/.out golden cannot witness it: the corpus runner passes no stdin and AcceptSource.Device returns spaces at EOF. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#AcceptInputDevices (kb/Work PB862 deleted the private AcceptInputDevices set; the device capability is now a column of the one implementor-name table (ImplementorNames) read through AcceptDisplayBinder.MnemonicDevice, both already witnesses of this row) retired-witness: src/Cobol.Net.Compiler/Binding/ImplementorNames.cs#ImplementorNames (the pure-data implementor-name table moved to WiseOwl.Cobol.Editions so the front end's DISPLAY directive reads the same device-names as SPECIAL-NAMES (kb/Work PB807); ImplementorNameEntry stayed in the compiler as ImplementorNameEntry.cs) || editions 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a facility that exists at every edition (the COBOL-85 nucleus, I-O, inter-program and SPECIAL-NAMES implementor-names; its arithmetic, the only arithmetic of COBOL-85, is what later editions name native).",
+ "state": "OK"
+}

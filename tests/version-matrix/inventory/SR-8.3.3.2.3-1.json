@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.3.2.3-1",
+ "section": "8.3.3.2.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Alphanumeric literals",
+ "rule-digest": "5d34f280ee4c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#LengthViolation; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#ParseOperandFragment; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#MaxPositions",
+ "test-ref": "conformance-test:LiteralScreenTests.LiteralLength_IsScreenedAtEveryPosition; unit:LiteralScreenDriftTests.LiteralRule_HasOneReportingSite; conformance-test:DirectiveLiteralScreenTests.LiteralLength_IsScreenedAtEveryDirectivePosition; conformance-test:LiteralScreenTests.LiteralLength_BoundIsTheEditions; conformance-test:LiteralScreenTests.LiteralLength_Over8191_IsRefusedAtEveryEdition; unit:CobolLiteralTests.LengthViolation_TheBoundaryFromBothSides_PerEdition; conformance:cases/8.3.3.2-Alphanumeric-literals/pb1615_literal_160_positions; conformance:cases/8.3.3.2-Alphanumeric-literals/pb1615_literal_over_160_positions; conformance:cases/8.3.3.2-Alphanumeric-literals/pb1615-literal-above-160-below-2014",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1393 (w61g). cite.py --check 8.3.3.2.3 \"The length of an alphanumeric literal, excluding the separators that delimit the literal, shall\" -> OK SR1. The rule is asked of EVERY literal token (DEFAULT-mode and SUBSCRIPT-mode twins) by LiteralScreenPass -> COBOL0814: MOVE, VALUE (Format 1 and X\"...\" hex, 8,192 pairs), VALUE ALL, CONSTANT all rejected at 8,192 and accepted at 8,191 (LiteralScreenTests). Before: only the national/boolean procedure-operand arms checked any length; an over-long alphanumeric literal compiled clean everywhere. retired-witness: src/Cobol.Net.Compiler/Validation/LiteralScreenPass.cs (kb/Work PB1616 moved LiteralScreenPass (Compiler/Validation) to LiteralScreen (Frontend/Parsing) so the directive lane asks the same body; the witness is the same code at its new path) kb/Work PB1615: the bound is the EDITION's - 8,191 from COBOL-2014, 160 below it (constructs row literal-length-8191-2014; VCR row 7.43, edge DERIVED from GnuCOBOL 3.2 cobol85.conf/cobol2002.conf literal-length 160 and cobol2014.conf 8191): CobolLiteral.MaxPositions(edition), read by LiteralScreen and ConcatFolder.ResultLengthViolation.",
+ "state": "OK"
+}

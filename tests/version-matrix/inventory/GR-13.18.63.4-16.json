@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.63.4-16",
+ "section": "13.18.63.4",
+ "kind": "GR",
+ "ordinal": 16,
+ "subject": "VALUE clause",
+ "rule-digest": "024ba2cc42f7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/TableValuePlan.cs#InitialCapacity; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.TableValue.cs#ResolveTableValues; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#FieldInit",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb505_table_value_geometry; conformance-test:ValueFormat2Tests.DynamicTable_AnnexD37; conformance-test:ValueFormat2Tests.DynamicOuterDimension_SubordinateTableValue_Gr16Capacity",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "RE-VERDICTED 2026-09-09 (kb/Work PB505) -- THE MISSING ARM LANDED. The same-entry arm was already measured conforming in all four of its sub-cases (kb/Work PB500: GR16a in range, GR16a's out-of-range proviso, GR16b, and the more-than-one-VALUE maximum). What had no implementation was the rule's own opening clause, \"If an OCCURS clause with the DYNAMIC phrase is specified in the same entry as the VALUE clause, OR IN ANY ENTRY SUPERORDINATE TO IT\": a format-2 VALUE on an entry under a dynamic OCCURS drew COBOL0899 and never reached the capacity computation at all. The computation is now TableValueOdometer.InitialCapacity, applied per DYNAMIC dimension of the entry's OCCURS chain, and the \"maximum value thus calculated\" is accumulated on the OCCURS-CARRYING item (DataItem.TableValueInitialCapacity) so two subordinate entries' VALUE clauses over one dynamic table cannot answer separately. MEASURED: `01 G OCCURS DYNAMIC CAPACITY IN C1 FROM 1 TO 4. 05 X PIC X(2) VALUES ARE \"AB\" \"CD\" FROM (1) TO (3).` opens G at capacity 3 with X(1..3) = AB CD AB (golden line 6). The GR16a proviso is enforced as written -- a subscript-2 outside [minimum, expected] leaves the initial capacity unchanged.",
+ "state": "OK"
+}

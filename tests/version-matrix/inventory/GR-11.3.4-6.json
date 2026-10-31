@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.3.4-6",
+ "section": "11.3.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "CLASS-ID paragraph",
+ "rule-digest": "acfe1a044c39",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#AddSkeleton; src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#SubstitutedTokens; src/WiseOwl.Cobol.Compiler/Binding/Model/ObjectRefDescriptor.cs#FormalParameter; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#SetOperands",
+ "test-ref": "conformance:cases/11.3-CLASS-ID/pb759_parameterized_class; conformance-test:ParameterizedClassTests.ParameterNameAsADataName_2239; conformance:cases/11.3-CLASS-ID/pb2937_skeleton_bodies_bind_as_themselves; conformance:cases/11.3-CLASS-ID/pb2937-skeleton-only-receiver",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB759.md landed w46i3; PB2051 (w1053a), PB2937 (w1072b). cite.py --check 11.3.4 'Parameter-name-1 may be specified within this class definition only where an object-class-name or an interface-name is permitted' -> OK §11.3.4 6). In an EXPANSION the formal is honoured in object-class-name positions (USAGE OBJECT REFERENCE, INVOKE receiver, INHERITS - golden PB759LOUD INHERITS B USING B) by GR5 token substitution; a formal written in a DECLARATION slot -> COBOL2239. In a definition nothing expands, bound as itself (OO deep-dive D12 determination 6), a reference typed by the formal takes the alternative its REPOSITORY specifier declares, marked FORMAL (ObjectRefDescriptor.FormalParameter), and the formal is honoured in every statement position as well: INVOKE through a formal-typed reference or the formal class-name, SUPER / B OF SUPER over a formal superclass, SET TO the formal class-name, an inline invocation or object property through a formal - each selects its method in the expansion (BoundDeferredToExpansion; 9.3.8.2.4), while a SET pair is asked with the formal standing for the most favourable actual (OoClassTable.SetOperands), so SET ONE TO X with ONE 'T ONLY' and X 'T' is COBOL0867 in the skeleton (SR12 a)1.: every expansion refuses it). Golden 2002/pb2937_skeleton_bodies_bind_as_themselves compiles every such position clean and prints PI-OK / PB2937-OK.",
+ "state": "OK"
+}

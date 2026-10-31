@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.44.3-9",
+ "section": "13.18.44.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "REDEFINES clause",
+ "rule-digest": "b177a1a7b17f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ValuePlacement.cs",
+ "test-ref": "conformance:cases/13.18.44-REDEFINES/pb550-value-in-redefining-entry",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "REGISTRAR 14e RE-VERDICT on main 071ff04ea (PB550 landed in train 58 after the pin): `01 B REDEFINES A PIC X(4) VALUE \"WXYZ\".` and a VALUE on an entry subordinate to a REDEFINES entry each draw COBOL2406 (§13.18.63.3 SR12, the same prohibition SR9 states from the REDEFINES side); golden negative/pb550-value-in-redefining-entry pins both shapes. Pinned-tree record follows: SR9 (cite.py --check 13.18.44.3 'Neither this entry nor any entry subordinate to it shall contain a VALUE clause, unless that VALUE clause is specified in an entry with the level-number 88.' OK). No rejection site: ClassifyRedefinesClasses only SUPPRESSES a view's VALUE ('propagate view-suppression ... SR9'). Probes: sr9_value_subject `01 B REDEFINES A PIC X(4) VALUE \"WXYZ\".` compiles clean at --std 85 and 2023 and the VALUE is silently dropped (A=ABCD); sr9_value_sub (VALUE on a subordinate of the redefiner) likewise; the legal 88 control works (sr9_88_ok -> Y). ALREADY OWNED: kb/Work PB550 (open, under_rejects) measures exactly this mechanism under §13.18.63.3 SR12/SR16; SR-13.18.44.3-9 should be added to PB550's inventory_rows - no new finding filed here. || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): 1985, 2002, 2014, 2023 (the REDEFINES clause is in the base language of every edition; the 2023 Annex E lists no change to this rule)",
+ "state": "OK"
+}

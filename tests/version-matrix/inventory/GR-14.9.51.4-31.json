@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-31",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 31,
+ "subject": "WRITE statement",
+ "rule-digest": "c45a4855de19",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#NextSequentialSlot; src/WiseOwl.Cobol.Runtime/IO/KeyedStore.cs#RelativeStore; src/WiseOwl.Cobol.Runtime/IO/KeyedStore.cs#Edge",
+ "test-ref": "conformance:cases/14.9.51-WRITE/pb739_shared_extend_write_2023; conformance:cases/14.9.51-WRITE/pb739_shared_extend_write_2002; unit:SharedExtendWriteDriftTests.TwoSharedExtendConnectors_KeepBothRecords_ForTheRelativeOrganization; unit:SharedExtendWriteDriftTests.TheExtendReleaseIsOneAboveTheHighestRecordAfterEveryChange",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "The relative key values two sharing extend connectors receive are ascending: the slot is Highest+1 read from the shared store at the moment of the release, clamped to this connector's own last release so a sibling's DELETE cannot make them regress. Over a file holding RRN 1 the goldens display R-KA=0002 and R-KB=0003, and both records read back. The number used to be captured once at OPEN, which made both connectors mint 2 and the second store write replace the first record. COBOL-85 has no file sharing, so the rule's antecedent cannot arise there. retired-witness: unit:SharedExtendWriteDriftTests.RelativeStoreHighWaterTracksEveryMutation (the high-water mark is the tree's last key since kb/Work PB3333; the test was rewritten as the release after a DELETE of the maximum) retired-witness: src/Cobol.Net.Runtime/IO/KeyedStoreTable.cs#Edge (the whole-store model's remains are deleted (kb/Work PB3335; DESIGN-runtime-library 2.2.1.13): KeyedStoreTable.cs is split: the engine handle and its two views are KeyedStore.cs (kb/Work PB3335)) retired-witness: src/Cobol.Net.Runtime/IO/KeyedStoreTable.cs#RelativeStore (the whole-store model's remains are deleted (kb/Work PB3335; DESIGN-runtime-library 2.2.1.13): KeyedStoreTable.cs is split: the engine handle and its two views are KeyedStore.cs (kb/Work PB3335))",
+ "state": "OK"
+}

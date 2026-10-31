@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-109",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 109,
+ "subject": "I-O status 52 (conditions under which deadlock is detected)",
+ "rule-digest": "fde965acf7a7",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-109; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ExhaustionStatus",
+ "test-ref": "unit:CobolFileLockTests.RetryLoop_LandsTheConflictsOwnStatus_ByClass; conformance:cases/14.9.6-CLOSE/file_sharing_seq; conformance:cases/9.1.13.8-Record-operation-conflict-condition-with-unsuccessful/file_sharing_mutate; conformance:cases/14.9.10-DELETE/pb142_retry_open_sharing; conformance:cases/14.9.10-DELETE/pb142_retry_conflict_class_ec; unit:CrossRunUnitKeyedStoreDriftTests.ARetryWaitsForTheOtherRunUnit_OutsideTheStoreMutex",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GAP -> CONFORMS, recorded by the LANDER (see DOC-A.1-165 for why the implementer could not). §9.1.13.8 item 2 leaves the conditions under which a deadlock is detected to the implementor, and until cluster E there was no answer to state: the runtime manufactured '52' for every exhausted retry of every conflict class. The determination now has exactly one circumstance -- a RETRY FOREVER waiting on a record locked by another file connector, where §14.7.9.3 GR3's 'until the input-output operation has been completed' can never terminate because the holder is inside the executing run unit. No FILE SHARING conflict ever answers '52', because §9.1.13.9 defines only '61' and '62' and no deadlock value, and §9.1.13.1 keys the exception-name on the first digit. Decided in ONE place (ExhaustionStatus) rather than improvised at six RetryLoop call sites.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.10.2",
+ "section": "14.9.10.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "DELETE statement",
+ "rule-digest": "ad6cca12edf9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#deleteFileStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindDeleteFile",
+ "test-ref": "conformance:cases/14.9.10-DELETE/pb134_delete_file_format2; conformance:cases/9.1.13.2-Successful-completion/delete_file_absent",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB134): Format 2's three measured divergences closed - `DELETE FILE [OVERRIDE] {file-name-1}...` parses (OVERRIDE was consumed AS the file-name before; the repetition was absent), and the exception phrases take the OPTIONAL word ON (5.2.3 - the ON SIZE ERROR underline measurement's missed sibling). GR18/GR19: OVERRIDE skips the fixed-file-attribute match, and THIS implementation validates no fixed-file attributes (the GR19 implementor definition, documented here), so accepting the word is the whole obligation. Format 1 was already exact. Editions: Format 2 is the 2023 introduction (gated, unit-pinned).",
+ "state": "OK"
+}

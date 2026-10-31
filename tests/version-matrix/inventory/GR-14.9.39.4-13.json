@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-13",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 13,
+ "subject": "SET statement",
+ "rule-digest": "3f6a0ed288d0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/PtrEmitter.cs#EmitSetAddressOfBased",
+ "test-ref": "conformance:cases/14.9.39-SET/pb450_set_format7_receiving_list; conformance:cases/13.18.5-BASED/based_pointer; conformance:cases/14.9.39-SET/set-address-non-based",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB450 half 2. GR13 - \"If data-name-1 is specified, the address identified by identifier-6 is assigned to each based item referenced by data-name-1 in the order specified\" (cite.py --check 14.9.39.4 OK) - says EACH, and the grammar admitted exactly one: `SET ADDRESS OF based TO pointer` was a fixed production with `dataReference(0)` as the receiver, so `SET ADDRESS OF B1 ADDRESS OF B2 TO P1` was `COBOL0001: unexpected 'ADDRESS'`. The receiver is now one element of the same list GR12 loops over, each element carrying its kind, so the two rules are one loop and the emitter renders the sender once and then a store per receiver in WRITTEN order. MEASURED: two ADDRESS OF receivers over one sender rebase both based items (T1 AAAA AAAA); a THREE-operand mixed list rebases both based receivers and stores into the pointer receiver (T4 BBBB BBBB BBBB); `SET ADDRESS OF B1 TO ADDRESS OF REC-A` - both operands data-address-identifiers, a shape neither old production could express - gives T3 AAAA. SR18 reaches the second and later ADDRESS OF operands now, measured: `SET ADDRESS OF B1 ADDRESS OF NOT-BASED TO P1` draws COBOL0869 against NOT-BASED.",
+ "state": "OK"
+}

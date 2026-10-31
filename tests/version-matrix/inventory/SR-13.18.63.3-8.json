@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-8",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "VALUE clause",
+ "rule-digest": "f40cdbc854d6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#EditedImageOfNumericValue; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.Analyze",
+ "test-ref": "conformance:cases/8.4.3.3-Reference-modification/pb646_national_form_numeric_2002; conformance:cases/13.18.40-PICTURE/pb646_national_form_numeric_2014; conformance:cases/13.18.40-PICTURE/pb646_national_form_numeric_2023",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB646 LANDED the leg this row was held open on, 2026-09-13. SR8's NATIONAL half needed a numeric-edited item of usage national, which was COBOL0899; it exists now, and 13.18.8.3 SR2 admits the BLANK WHEN ZERO clause on it by name ('The subject of the entry shall be implicitly or explicitly described as usage display or usage national'). MEASURED at --std 2023: `01 NBZ PIC ZZ9 USAGE NATIONAL BLANK WHEN ZERO VALUE N\"  0\".` initializes to [  0] - the clause has NO effect, which is SR8 - while `01 NBZN PIC ZZ9 USAGE NATIONAL BLANK WHEN ZERO VALUE 0.` initializes to [   ], which is SR8's NOTE 2 and 13.18.8.4 GR1; a zero STORED into either afterwards blanks both. A second defect of the same arm was found and fixed on the way: 13.18.8.4 GR2 ('If the subject of the entry is described by its picture character-string as category numeric, the BLANK WHEN ZERO clause defines the item as numeric-edited') was conditioned on usage DISPLAY alone, so `01 BN PIC 9(3) USAGE NATIONAL BLANK WHEN ZERO VALUE 0.` silently ignored the clause and stored 000 where GR1 requires spaces. The alphanumeric half is unchanged and verified at all four editions.",
+ "state": "OK"
+}

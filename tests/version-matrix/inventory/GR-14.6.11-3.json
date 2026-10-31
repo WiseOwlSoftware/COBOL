@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.11-3",
+ "section": "14.6.11",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Execution",
+ "rule-digest": "f8661eb21261",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#Terminate; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#AdoptStaticStorage; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#FactoryObject; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Register; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitClassUnit; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/RecordStructEmitter.cs#EmitStaticReset",
+ "test-ref": "unit:RunUnitStateDriftTests.EveryMember_IsFreshInTheNextRunUnit; unit:RunUnitStateDriftTests.StaticStorage_IsResetAtAdoption_OnceEach_AndAgainAtTermination",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1069 LANDED (wave 73 D). cite.py --check 14.6.11 'Any storage obtained with an ALLOCATE statement and not yet released by a FREE statement is released' -> OK §14.6.11 3). Everything the run unit owns except STATIC storage hangs off the RunUnit object (w68w). The static residue is closed by ONE adoption mechanism: every unit's static reset (a RECURSIVE program's / FUNCTION-ID's WS through ProgramTable.Register, a class's METHOD WS through its factory's __AdoptRunUnitStorage, called by RunUnit.FactoryObject when the run unit creates the factory) is adopted by the run unit, run at adoption (§14.6.2.3.2 1) and run again by RunUnit.Terminate - the ONE termination epilogue ProgramTable.RunMain's and RunUnit.Run's finally both call - so a POINTER in static WS no longer keeps its ALLOCATEd storage reachable past termination. Witness: a host runs a class with method WS twice in one process; after each run unit the host reads the static MC back at 0 (was 2 then 4; mutant without the adoption measured AFTER MC=2 / COUNT 3). retired-witness: conformance-test:RunUnitScopeHostTests.ASecondRunUnitInOneProcess_FindsMethodWorkingStorageInItsInitialState (a method's WORKING-STORAGE is illegal at every edition (kb/Work PB1308), so the test's program no longer compiles; the run-unit scope facts stay witnessed by the row's other references) || editions 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the ALLOCATE and FREE statements are COBOL-2002 introductions.",
+ "state": "OK"
+}

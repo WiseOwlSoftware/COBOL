@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.7.4-12",
+ "section": "12.3.7.4",
+ "kind": "GR",
+ "ordinal": 12,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "59771e7c597f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#SwitchBindClass; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#CodedCharacterSet; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#LiteralPhraseOperand",
+ "test-ref": "conformance:cases/8.3.3.6-Figurative-constant-values/pb110_symbolic_and_class_in; conformance:cases/12.3.7-SPECIAL-NAMES/pb110-class-ordinal-range; conformance:cases/12.3.7-SPECIAL-NAMES/pb976_class_for_phrase_rules; conformance-test:ClassClauseForPhraseTests.LegalClauses_AreAccepted",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB976 (2026-09-22): the class is the exclusive set of the characters its literals specify, in the class the FOR phrase names (UserClassDef records it). a) a numeric literal is the ordinal within the relevant native set or, under IN, alphabet-name-4's set (the golden: 66 THRU 68 IN STANDARD-1 = A..C; 946 THRU 970 IN a national NATIVE alphabet = U+03B1..U+03C9); b) any other literal contributes each of its characters — ⛔ a figurative constant used to contribute the characters of its own SPELLING (CLASS C IS SPACE was {S,P,A,C,E}) and ALL literal-1 its source text; SPACE is now the space (§8.3.3.6.4 GR1), HIGH-VALUE/LOW-VALUE the native extremes (§12.3.7.4 GR10), ALL literal-1 the characters of literal-1 (§8.3.3.6.4 GR3 c). THROUGH spans the NATIVE set in either direction (a range ending at U+FFFF no longer loops forever). retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#LiteralChars (kb/Work PB976: the CLASS clause's private operand decoder is deleted; LiteralPhraseOperand (named above) decodes every CLASS operand)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-2",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "SET statement",
+ "rule-digest": "b393da6fdb8b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#IndexAssignmentSenderOf",
+ "test-ref": "conformance:cases/14.9.39-SET/pb155-set-to-edited; conformance:cases/14.9.17-GO-TO/pb212_operand_class_screens",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB212 (landed). DETERMINATION from the rendered 14.9.39.2 Format-1 figure (three sending alternatives): SR2 governs the identifier-2 ALTERNATIVE; a bare numeric identifier is arithmetic-expression-1 (8.8.1.1: 'An arithmetic expression may be an identifier referencing a numeric data item'). A bare identifier that is neither of class index nor numeric is no alternative and is refused in SR2's own words (COBOL2326), no longer only incidentally by the 8.8.1.1 screen.",
+ "state": "OK"
+}

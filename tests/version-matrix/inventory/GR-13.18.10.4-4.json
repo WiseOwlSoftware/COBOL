@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.10.4-4",
+ "section": "13.18.10.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "BLOCK CONTAINS clause",
+ "rule-digest": "ec57d2e08f8c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#blockContainsClause",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-13.18.10.4-4",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 13.18.10.4 \"If integer-1 is not specified, integer-2 represents the exact size of the physical record.\" -> OK GR4. Exact vs min/max physical record size has no runtime effect under the documented inert claim (A.3 item 5). The one compile-time consequence of the min/max reading - their ordering - is SR1 (DIVERGES, separate row); §13.4.5.4 GR2a's EXTERNAL agreement on min/max is a different rule, not adjudicated here. docs/CONFORMANCE.md A.3 row 5 = Claimed (inert): 'Accepted; no effect on the managed I-O model'. cite.py --check A.3 \"The BLOCK CONTAINS clause has no effect if the operating environment does not support the required features\" -> OK §A.3 5). No binder/emitter/runtime site reads blockContainsClause (grep of src: only CobolData.g4 and IntegerOperandPass.Slots reference it); the managed I-O model does no blocking. || Editions (adjudicator): 1985, 2002, 2014, 2023 (clause present unchanged in every edition; Annex E records no change to 13.18.10)",
+ "state": "OK"
+}

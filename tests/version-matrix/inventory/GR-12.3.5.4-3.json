@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.5.4-3",
+ "section": "12.3.5.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "SOURCE-COMPUTER paragraph",
+ "rule-digest": "0005cea25868",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sourceComputerParagraph",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-12.3.5.4-3",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'When the SOURCE-COMPUTER paragraph is specified, but computer-name-1 is not specified, the computer upon which the source unit is being compiled is the source computer.' (cite.py --check 12.3.5.4 -> OK §12.3.5.4 3)). Grammar: SOURCE_COMPUTER DOT ((computerName debuggingModeClause? unrecognizedClause?)? DOT)? — computer-name-1 optional, second period optional. Since computer-name-1 is never consumed, a name-less paragraph yields the compiling host as source computer, same as a named one. conformance:cases/12.3.5-SOURCE-COMPUTER/pb78_object_computer_optional_name compiles a name-less 'SOURCE-COMPUTER.' but is a test of OBJECT-COMPUTER, so it is not cited as closing this row. Whether a name-less SOURCE-COMPUTER is correctly gated/accepted at 1985 was not verified here (outside this GR's content). [registrar 14a — editions as adjudicated: 1985, 2002, 2014, 2023 (name-less paragraph form per the 2023 format; the '85 format required computer-name, see the grammar comment)]",
+ "state": "OK"
+}

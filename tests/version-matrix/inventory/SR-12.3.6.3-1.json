@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.6.3-1",
+ "section": "12.3.6.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "OBJECT-COMPUTER paragraph",
+ "rule-digest": "ce36947e08d3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#ResolveProgramCollating; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CollatingAlphabetFault; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#SwitchBindSpecialNames",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/pb1082-pcs-undeclared-alphabet; conformance:cases/12.3.6-OBJECT-COMPUTER/pb1082-pcs-class-name-is-no-alphabet; conformance:cases/12.3.6-OBJECT-COMPUTER/pb1082_pcs_forward_alphabet",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1082 LANDED. SR1 (cite.py --check 12.3.6.3 \"Alphabet-name-1 shall reference an alphabet that defines an alphanumeric collating sequence\" -> OK 12.3.6.3 1)). ResolveProgramCollating now asks the ONE class test every COLLATING SEQUENCE operand shares (DataBinder.CollatingAlphabetFault - the file-control clause, the PROGRAM COLLATING SEQUENCE clause and the SORT/MERGE phrase) for BOTH slots: a FOR NATIONAL alphabet, an undeclared word, a class-name or a data-name in the alphabet-name-1 slot is COBOL0898 at every edition (it was inert: the program ran on the native order). A name whose ALPHABET clause declared it but failed its own screens is silent (one fault, one verdict). Negatives pb1082-pcs-undeclared-alphabet / pb1082-pcs-class-name-is-no-alphabet; positive pb1082_pcs_forward_alphabet (the alphabet declared AFTER the OBJECT-COMPUTER paragraph still binds). The NIST corpus declares every name its PROGRAM COLLATING SEQUENCE clause uses (the whole NIST population ran at the gate).",
+ "state": "OK"
+}

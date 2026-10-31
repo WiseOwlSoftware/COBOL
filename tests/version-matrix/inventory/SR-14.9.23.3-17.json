@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.23.3-17",
+ "section": "14.9.23.3",
+ "kind": "SR",
+ "ordinal": 17,
+ "subject": "INVOKE statement",
+ "rule-digest": "1df3c80f845e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg",
+ "test-ref": "conformance:cases/14.9.23-INVOKE/pb1137-invoke-zero-length-literal; conformance:cases/8.4.3.7-NULL-object-reference/pb1137_invoke_argument_forms",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1137 (landed w61j). 'Literal-2 shall not be a zero-length literal' (cite.py --check 14.9.23.3 OK, SR17). OoBindInvocationArg's private literal decode is gone: literal-2 binds through the ONE ExpressionBinder.NonNumericLiteralOperand mapping, and a BoundStringLiteral of length 0 (\"\", X\"\", N\"\", a zero-length concatenation or constant) draws COBOL2454 (negative pb1137-invoke-zero-length-literal; probes pd7/pd8/pd11). The same mapping ADMITS the legal forms the old decode refused: hexadecimal X\"4142434445\" -> ABCDE and national N\"ABCDE\" into PIC N(5) (golden pb1137_invoke_argument_forms). The inline form's arguments share the body (8.4.3.4.3 SR3).",
+ "state": "OK"
+}

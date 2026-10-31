@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.3-8",
+ "section": "7.3.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "Compiler directives",
+ "rule-digest": "838503efc54d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#OpenStatementAt; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#WithinStatement; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#IsDiscardedFormatDirective; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatMap.cs#HoldsDirectiveAt",
+ "test-ref": "conformance:cases/7.2.3-COPY/pb1384-directive-within-copy; conformance:cases/7.2.4-REPLACE/pb1384-directive-within-replace; unit:DirectiveWithinStatementTests.DirectiveInsideAStatement_IsDiagnosedByName; unit:DirectiveWithinStatementTests.DirectiveOutsideAStatement_IsNotDiagnosed; unit:DirectiveWithinStatementTests.TheStatementTheTextEndsInside_IsNamedByTheDirectiveThatInterruptsIt; conformance:cases/7.2.3-COPY/pb1353-source-format-in-copy-pseudo-text; conformance:cases/7.2.4-REPLACE/pb1353-source-format-in-replace-pseudo-text; unit:DirectiveWithinStatementTests.SourceFormatDirectiveInsideAStatement_IsDiagnosed; unit:DirectiveWithinStatementTests.StatementSplitByTwoSourceFormatDirectives_IsReportedAtEach; unit:DirectiveWithinStatementTests.SourceFormatDirectiveInsideAStatementOfLibraryText_IsDiagnosed; unit:DirectiveWithinStatementTests.SourceFormatDirectiveOutsideAStatement_IsNotDiagnosed",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1384 landed (w1004b). b) within a source text manipulation statement: the merged driver asks, at each directive line and before it flushes its block, whether the text since a COPY or REPLACE keyword has reached its separator period (CopyProcessor.OpenStatementAt, pseudo-text aware) and reports COBOL2697 at the directive; a COPY or REPLACE split by one or several directives is reported at each. The truncated COPY still draws its own COBOL2449 after the new diagnostic (superset-continue). a) is each directive's own row; c) a directive between the lines of a continued literal was already rejected. kb/Work PB1353 (w1032c) extended the same question to the one directive logical conversion consumes before the driver runs: a >>SOURCE FORMAT line leaves a blank (6.5 1)), recognized by its origin in the text's ReferenceFormatMap (IsDiscardedFormatDirective) and reported at the directive's line without flushing the block. || editions 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a compiler-directive rule; the 7.3 compiler-directive facility is a COBOL-2002 introduction (COBOL-85 has no >> directive line: docs/VERSION_CHANGE_REFERENCE.md Table 7 row 7.21, a derived edge). cite.py --check 7.3.3 \"A compiler directive may be specified anywhere in a compilation group\" OK.",
+ "state": "OK"
+}

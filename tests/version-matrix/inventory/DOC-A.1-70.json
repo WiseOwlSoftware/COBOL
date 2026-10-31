@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-70",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 70,
+ "subject": "Fatal exception condition (whether or not execution will continue, how it will continue, and how any receiving operands ",
+ "rule-digest": "745392b3be80",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-70; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#Store; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolFloat.cs#ToScaledUnchecked; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolSizeError.cs#ZeroDivide; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitDivideRemainder; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#KeepsOnProhibitedInexact; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#WriteSizeCatches; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitPresenting",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/pb77_move_past_the_carrier; conformance:cases/8.8.1.5.2-Standard-decimal-intermediate-data-item/pb75_sdidi_overflow_outside_arithmetic; unit:CarrierLandingFormTests.LowOrderDigits_PastTheCarrier_AreTheExactExpansions; conformance-test:SizeErrorDispositionTests.ZeroDivisor_CheckingOff_TerminatesNamingEcSizeZeroDivide; unit:ZeroDivisorLaneTests.Binary64_BothKernels_RaiseAZeroDivisor; conformance:cases/14.9.12-DIVIDE/pb3975_remainder_after_quotient_size_error; conformance:cases/14.9.12-DIVIDE/pb3975_remainder_after_quotient_size_error_standard_decimal; conformance:cases/8.8.1.2-Native-standard-binary-and-standard-decimal/pb129_remainder_no_phrase; conformance:cases/14.7.4-ROUNDED/pb3990_prohibited_unchecked_keeps_the_resultant; conformance-test:SizeErrorDispositionTests.Prohibited_CheckingOff_NoPhrase_KeepsTheResultantOnAnInexactValue; conformance:cases/13.18.53-SOURCE/pb3990_report_source_prohibited_keeps_the_item; conformance:cases/13.18.53-SOURCE/pb4031_report_source_size_checking; conformance:cases/13.18.53-SOURCE/pb4031_report_source_prohibited_checked; conformance:cases/13.18.53-SOURCE/pb4031_report_overflow_checking; conformance:cases/14.7.5-SIZE-ERROR-phrase-and-size-error/pb4092_size_checking_is_per_name; conformance:cases/14.7.5-SIZE-ERROR-phrase-and-size-error/pb4093_truncation_not_enabled_stores_low_order_digits; conformance:cases/13.18.53-SOURCE/pb4092_report_compose_per_name; conformance-test:SizeErrorDispositionTests.SizeCondition_OtherNameEnabled_TerminatesLikeCheckingOff",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "editions 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): conditioned on the exception-condition (EC-) facility, a COBOL-2002 introduction.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.13-1",
+ "section": "8.8.4.13",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Conditional expressions",
+ "rule-digest": "7f69a7ca9913",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindFlatSequence; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#Visit; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#DrainPending; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#EmitStatement; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#ResumeTransfer",
+ "test-ref": "conformance:cases/8.8.4.13-Order-of-evaluation-of-conditions/udf_per_eval; conformance:cases/8.8.4.13-Order-of-evaluation-of-conditions/pb1432_operand_eval_resume",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1432 LANDED (wave 68 T). Rule: cite.py --check 8.8.4.13 \"The constituent connected conditions within a hierarchical level are evaluated in order from left\" -> OK 8.8.4.13 1) (\"... terminates as soon as a truth value for it is determined\"). The order and short-circuit were already right (BindFlatSequence -> C# && / ||; a non-first operand's pre-ops ride a per-evaluation lambda). The mechanism that defers a non-first operand's steps failed on one legal shape: under >>TURN EC-ALL CHECKING ON a function-bearing subscript's 15.4 temporary STORE in that operand rendered its size-error RESUME landing as `goto __xfer` inside the lambda (CS0159), so `IF WS-A = 0 OR EL(FUNCTION TRC(\"C\", 1)) = 1` and `IF WS-A = 1 OR EL(FUNCTION INTEGER(ONE / Z)) = 1` were rejected by the backend; hoisted before a FIRST operand the same landing fell back into the IF (14.9.33.4 GR2 a) 1. and NOTE 1 place it after the END-IF; measured: subscript 0 -> fatal EC-BOUND-SUBSCRIPT). Every drained step is now BoundStatement.OperandEvaluation; StatementEmitter.EmitStatement opens DispatchState's operand-evaluation scope and the ONE landing (ResumeTransfer) unwinds to the statement's BoundActivationSite. Measured on 2002/pb1432_operand_eval_resume: OR-T (no ACT-C), ACT-D OR2-T, DECL-ZD AFTER-A, DECL-ZD AFTER-B, C-T AFTER-C.",
+ "state": "OK"
+}

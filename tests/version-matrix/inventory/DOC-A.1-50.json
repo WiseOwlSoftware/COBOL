@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-50",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 50,
+ "subject": "DELETE FILE statement (validation of fixed file attributes)",
+ "rule-digest": "42a205a22849",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-50; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#DeleteFile",
+ "test-ref": "conformance:cases/9.1.13.6-Permanent-error-condition-with-unsuccessful-completion/delete_file_attribute_set_empty",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "editions 2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the DELETE FILE statement is a COBOL-2023 introduction (Annex E.3.3 item 15). cite.py --check E.3.3 \"The DELETE FILE statement causes the removal\" OK.",
+ "state": "OK"
+}

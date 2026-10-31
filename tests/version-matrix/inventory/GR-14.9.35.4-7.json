@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.35.4-7",
+ "section": "14.9.35.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "REWRITE statement",
+ "rule-digest": "1e70c8697127",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs",
+ "test-ref": "conformance:cases/14.9.32-RELEASE/pb348_from_into_move_rules_2023; conformance:cases/14.9.35-REWRITE/pb2650_from_literal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: REWRITE record-name-1 FROM x == MOVE x TO record-name-1 per the MOVE rules, then the same REWRITE without FROM. cite.py --check 14.9.35.4 -> OK 7) b). Both emitters emit rw.FromMove (a BOUND MoveStatement, so every MOVE screen and category rule applies) and only then the rewrite call. Probe probe/rewrite-statement-p2/p2.cob: FROM WS (identifier) -> WSWSWS; FROM \"XY\" (literal) -> [XY    ] space-padded per alphanumeric MOVE; FROM WN (PIC 99 = 42 to a group) -> [42    ] (group move); all read back identically. The pb348 golden (85/2002/2014/2023 legs) pins the identifier arm with spec-derived expected values; the literal arm is probe-verified only. The literal arm is now pinned with spec-derived values by conformance:cases/14.9.35-REWRITE/pb2650_from_literal (REWRITE FROM \"WORLD\" -> [WORLD], FROM SPACE -> [     ]); its --std 85 under-rejection (general format 14.9.35.2, not this rule) is closed by kb/Work PB2650 (from-literal-2002, COBOL0871). [editions as adjudicated: 1985, 2002, 2014, 2023 (the identifier-1 arm; the literal-1 arm exists only where the general format prints literal-1)]",
+ "state": "OK"
+}

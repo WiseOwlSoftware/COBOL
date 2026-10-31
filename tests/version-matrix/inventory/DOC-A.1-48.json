@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-48",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 48,
+ "subject": "Default endianness specifications (for standard floating-point usages)",
+ "rule-digest": "a50fb3d71c1a",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-48; src/WiseOwl.Cobol.Compiler/Binding/OptionsModel.cs#FloatEndianness; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ByteWidth",
+ "test-ref": "conformance:cases/13.18.60-USAGE/pb174_float_item_endianness_default; conformance:cases/13.18.60-USAGE/pb174_float_item_endianness; conformance:cases/13.18.60-USAGE/pb174-float-decimal-encoding-nonsupport",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "§11.9.8.3 SR1's implied phrase measured by the D leg of pb174_float_item_endianness_default (no OPTIONS paragraph, no item endianness-phrase -> D=[64 1] = big-endian), with pb164_float_hor_image as the specified-clause mirror (SR3) and pb174_float_item_endianness as the item-beats-OPTIONS arm; §11.9.9.3 SR6 never arises (COBOL1564 non-support). l1_float_binary_default_endianness is optional strengthening landed alongside — it adds the FLOAT-BINARY-64 default leg and a COMP-1 control under the same implied phrase — and is not required for this verdict. || editions 2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the default endianness of the standard floating-point usages, set by the FLOAT-BINARY and FLOAT-DECIMAL clauses: 2014 introductions. retired-witness: src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#ByteWidth (ByteWidth is a member of DataItem (Binding/Model/DataItem.cs); PicInfo.cs names it only in comments)",
+ "state": "OK"
+}

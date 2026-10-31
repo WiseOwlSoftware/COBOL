@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.42.2",
+ "section": "13.18.42.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "PROPERTY clause",
+ "rule-digest": "a8f494071dc4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#propertyClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoBindPropertyClauses",
+ "test-ref": "conformance:cases/13.18.42-PROPERTY/l1c21_property_clause_format; conformance:cases/13.18.42-PROPERTY/l1c21-property-no-get-and-set",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Format: PROPERTY [WITH NO {GET|SET}] [IS FINAL]; WITH and IS are not underlined (optional words), so they may be omitted. Grammar `PROPERTY (WITH? NO (GET | SET))? (IS? FINAL)?` matches it exactly. Probes with the pinned compiler at --std 2023: `PROPERTY WITH NO GET SET` -> COBOL0307 (correct: exactly one of GET/SET); `PROPERTY IS FINAL WITH NO GET` -> COBOL0307 (correct: phrase order is as printed); `PROPERTY NO SET.` (WITH omitted), `PROPERTY WITH NO SET IS FINAL`, `PROPERTY FINAL` all compile and run (probe gr_positive). The binder reads pc.NO()/GET()/SET()/FINAL() directly. cite.py --check 13.18.42.2 \"PROPERTY\" -> OK (General format). No test covers the FINAL phrase or the WITH-less spelling as a golden, so test-ref is empty. || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (the PROPERTY clause is part of the OO facility; not in 1985)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.6.3-1",
+ "section": "13.6.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Local-storage section",
+ "rule-digest": "2dc51316bc28",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OoDefinitionRules.cs#RefusedBy; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoBindMethodData; src/WiseOwl.Cobol.Compiler/Oo/OoDriver.cs#BindClassData",
+ "test-ref": "conformance:cases/13.6-Local-storage-section/pb1251-object-local-storage; conformance:cases/13.6-Local-storage-section/pb1251-factory-local-storage; unit:OoDefinitionRulesDriftTests.TheVerdicts_AreTheStandards",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1251 landed (wave 1011 C). cite.py --check 13.6.3 'The local-storage section may be specified in a program definition or function definition or in a method definition contained in a class definition.' -> OK 13.6.3 1). The positive arms (program, function, method) were verified before; a LOCAL-STORAGE SECTION in a FACTORY or OBJECT paragraph compiled clean and bound as persistent instance or factory data. The same OoDefinitionRules table refuses it (COBOL1519); negatives pb1251-object-local-storage and pb1251-factory-local-storage.",
+ "state": "OK"
+}

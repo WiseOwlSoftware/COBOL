@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.30.4-23",
+ "section": "14.9.30.4",
+ "kind": "GR",
+ "ordinal": 23,
+ "subject": "READ statement",
+ "rule-digest": "46b58531e530",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/CloseTable14.cs#PhysicalFileCategory",
+ "test-ref": "unit:CloseTable14Tests.Category_PlacesEverySupportedConnectorKind",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work R43 item 3 (owner, 2026-09-24): a rule whose trigger can only arise through an unsupported capability closes as DOCUMENTED-NON-SUPPORT, CONTINGENT: re-adjudicate if the capability is ever added. §14.9.30.4 GR23 (cite.py --check 14.9.30.4 'a reel/unit swap occurs and the current volume pointer is updated' → OK 23)) is the READ twin of §14.9.51.4 GR24 (WRITE), already recorded DOCUMENTED-NON-SUPPORT on the same ground: its trigger — an end of reel/unit recognized before the logical end of file — exists only for a multi-reel/unit physical file, which no WiseOwl COBOL connector is (every connector answers the non-reel/unit category, CloseTable14.PhysicalFileCategory; docs/CONFORMANCE.md §2 A.3 items 26, 28–30, 33–34). One disposition for both twins (orchestrator, wave 59 H); its §8 derivation DRV-GR-14.9.30.4-23 is retired in the same change set.",
+ "state": "OK"
+}

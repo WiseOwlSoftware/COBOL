@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.3.6.3-2",
+ "section": "8.3.3.6.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Figurative constant values",
+ "rule-digest": "3ad7eeffc970",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#allLiteral; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#Of; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFigurativeConstant",
+ "test-ref": "conformance:cases/8.3.3.6-Figurative-constant-values/pb71_all_national_boolean_figurative; conformance:cases/8.3.3.6-Figurative-constant-values/pb71-all-literal-zero-length; conformance:cases/8.3.3.6-Figurative-constant-values/pb71-all-literal-mixed-class-concatenation; conformance:cases/8.3.3.6-Figurative-constant-values/pb71-value-all-alphanumeric-on-national",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB71 (2026-08-18): literal-1 is an alphanumeric (plain or hexadecimal), boolean or national literal, or a concatenation of them - ONE grammar arm (ALL allLiteral), ONE constructor (BoundAllLiteral.Of - the category rides on literal-1's class through CobolLiteral.ClassOf), the & fold per 8.8.3.3 GR2; a zero-length literal-1 is COBOL1648 and a mixed-class concatenation COBOL1540 (the version pass); the national/boolean literal-1 is the COBOL-2002 introduction below 2002 (COBOL0900). Before: ALL N\"...\" had no grammar arm, ALL B\"...\" parsed and died at run time, VALUE refused NX\"...\"/BX\"...\" and every ALL literal (a raw-text classifier).",
+ "state": "OK"
+}

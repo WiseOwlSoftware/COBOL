@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.3.4-2",
+ "section": "8.8.4.3.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Simple boolean condition",
+ "rule-digest": "eb8b659e5c2e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#unaryLogicalExpression; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs",
+ "test-ref": "conformance:cases/8.8.4.3-Simple-boolean-condition/l1_search_when_boolean_omitted; conformance:cases/8.8.2-Boolean-expressions/pb1465_boolean_paren_after_operator; conformance:cases/8.8.2-Boolean-expressions/pb1412_shift_only_boolean_conditions; conformance:cases/8.8.4.3-Simple-boolean-condition/pb1464_parenthesized_boolean_operands",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1412 + PB1464 LANDED (wave 1005 D). Rule: the condition NOT boolean-expression-1 evaluates to the reverse truth-value (cite.py --check 8.8.4.3.4 OK 2)). The refused legal NOT forms are bound: IF NOT BW B-SHIFT-LC 1 (false, the reverse of true) and IF NOT (BZ) / NOT (BW) (pb1412 and pb1464 goldens, the parenthesized-after-operator form by PB1465).",
+ "state": "OK"
+}

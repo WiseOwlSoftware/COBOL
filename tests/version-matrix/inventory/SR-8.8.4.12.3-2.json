@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.4.12.3-2",
+ "section": "8.8.4.12.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Abbreviated combined relation conditions",
+ "rule-digest": "ddec636d11ad",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#logicalOrExpression; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#unaryLogicalExpression; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindFlatSequence; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindAbbreviatedRelation",
+ "test-ref": "conformance:cases/8.8.4.12-Abbreviated-combined-relation-conditions/l1-abbrev-relation-insertion-not-not",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "A = B AND NOT NOT C inserts to NOT NOT A = C, which Table 5 (NOT row and its NOTE) forbids; rejected with COBOL0001",
+ "state": "OK"
+}

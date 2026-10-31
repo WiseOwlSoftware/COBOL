@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.7.3-7",
+ "section": "12.4.5.7.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "COLLATING SEQUENCE clause",
+ "rule-digest": "23b7145acfb7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveFileCollating; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CollatingAlphabetFault",
+ "test-ref": "conformance:cases/12.4.5.7-COLLATING-SEQUENCE/pb1074-file-collating-alphabet-class",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1074 landed (w61c). cite.py --check 12.4.5.7.3 'When the class of data-name-1 or record-key-name-1 is national, alphabet-name-3 shall reference an alphabet that defines a national collating sequence' -> OK SR7. Each Format-2 clause's alphabet-name-3 is tested against the class of EACH key it names: an alphanumeric alphabet on a national key (p5, formerly accepted and applied) and a national alphabet on an alphanumeric key (p6, formerly the 1584 decline) draw COBOL1583 citing SR7; an undeclared alphabet-name-3 (p12) now cites SR7, not SR1. retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveKeyCollating (SR7 is screened per Format-2 clause against each named key's class in ResolveFileCollating (kb/Work PB1074))",
+ "state": "OK"
+}

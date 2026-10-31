@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.13.3-1",
+ "section": "7.3.13.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "EVALUATE directive",
+ "rule-digest": "d94a1a883775",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/directive_expressions",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Descriptive rule (cite.py --check 7.3.13.3 \"operand-1 refers to literal-1, arithmetic-expression-1, or boolean-expression-1 in format 1 and to the TRUE keyword in format 2\" OK). The EVALUATE arm maps operand-1 to Frame.TruthForm (the TRUE keyword) or Frame.Subject (a compileTimeOperand: literal / arithmeticExpression / booleanExpression, CobolExpressions.g4 compileTimeOperand); the WHEN arm maps operand-2 to a cce (TruthForm) or MatchWhen's lo operand, operand-3 to SplitRange's hi. directive_expressions.cob exercises Format 1 with operand-2 THROUGH operand-3 with spec-derived expected output (MID). || editions (adjudicator): 2002, 2014, 2023 (the §7.3 compiler-directive facility, absent from 1985; Annex E E.2 item 8 shows the EVALUATE directive already in the previous standard)",
+ "state": "OK"
+}

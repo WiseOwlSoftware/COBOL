@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-6",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "SET statement",
+ "rule-digest": "540d0231cd4e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetCondition; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#RejectSetConditionName",
+ "test-ref": "conformance:cases/14.9.39-SET/pb390-set-switch-status-condition-name; conformance:cases/8.4.4-Condition-name/pb390_procedure_and_condition_operands; unit:DecidedRuleStageDriftTests.DecidedRule_IsACompileTimeError_NamingTheRule_AndNeverTheDeferralWarning",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB390.md — The rule's DISCRIMINATING case now decides it, at bind. §8.4.4.1: 'There are two kinds of condition-names' — the level-88 kind, associated with a conditional variable, and the SPECIAL-NAMES kind, associated with the on/off status of an implementor-defined switch — and SR6 admits only the first. A switch-status condition-name draws COBOL1757 quoting SR6 and pointing at Format 3 (SET mnemonic-name-1 TO ON|OFF, SR5, whose sibling refusal moved to bind time in the same change set); a word that names nothing draws COBOL1639. The old message was worse than late: it read 'SET SW-ON TO TRUE (not a condition-name)' while SW-ON IS a condition-name, denying the fact the rule turns on, and it was staged to a run-time abort so the program compiled and shipped. The satisfied half is pinned by the positive golden's `SET WS-FLAG-YES TO TRUE` (§14.9.39.4 moves the VALUE literal to the conditional variable: FLAG=Y). DETERMINATION, owner-overturnable: §8.4.4.1's closing sentence about the switch kind — 'This condition-name may also be used in a SET statement to set the associated switch' — was read as describing the ABILITY to alter the switch (through Format 3 on its mnemonic) rather than as admitting condition-name-1 into a SET format, because Format 3's general format, rendered from the printed page rather than the transcription (PDF p759), prints `{ mnemonic-name-1 } … TO { ON | OFF }` with no condition-name alternative, and Format 4's SR6 excludes the switch kind by name. Nothing that used to RUN is refused by this reading: the statement aborted the run unit before.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.9.3-5",
+ "section": "8.4.3.9.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "Object property",
+ "rule-digest": "15e2de6df6fc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundStores.cs#StoreKindOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoWrapPropertyOps; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.ObjectProperty.cs#ResolveObjectProperty",
+ "test-ref": "conformance:cases/8.4.3.9-Object-property/pb1275_property_set_formats; conformance:cases/8.4.3.9-Object-property/oo_property_explicit_ref",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1275 LANDED (w1014u). cite.py --check 8.4.3.9.3 'This object property may be specified wherever a data item with that description would be valid as a sending item' OK 5). BoundStores.StoreKindOf is now TOTAL (non-nullable, exhaustive visitor): the SET Format 5/7/8/9/10/12 receivers are stores and their senders sending, ALLOCATE RETURNING a store, FREE read-and-write, RAISE and SET LOCALE sending, the universal INVOKE's identifier-3 a crossing - so OoWrapPropertyOps no longer stages the 'outside the classified store taxonomy' COBOL0843. A property sends in every SET: SET B TO R OF A (object reference, golden line 2), SET P2 TO Q OF A (pointer, line 3), SET D2 TO INNER OF A (typed, line 4); the relation sender R OF A = A (line 1). The group-valued half was kb/Work PB1448 (landed). A property as identifier-1 of another property (X OF INNER OF B) is the identifier-1 FORMAT (FMT-8.4.3.9.2, kb/Work PB1449), not this description rule. retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#OoTryBindPropertyReference (the one-word property binder ReferenceResolver.OoTryBindPropertyReference is deleted by kb/Work PB1425 (w1021a): a property reference is resolved by ReferenceResolver.ResolveObjectProperty, which splits the chain and resolves identifier-3 through the ordinary resolver)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.25.3-4",
+ "section": "14.9.25.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "MOVE statement",
+ "rule-digest": "f9711d053cd0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveTargets; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundMove",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb429_page_counter_receiving; conformance:cases/8.4.3.15-Report-counters/pb429-line-counter-receiving",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR4 designates identifier-2 as MOVE's receiving operand. The NEGATIVE direction was already measured (the position admits only a data reference: a literal receiver is COBOL0308, a function-identifier receiver a parse error, which is 8.4.3.2.3 SR1 holding structurally; ref-mod and subscripted receivers work; LINE-COUNTER is refused by 8.4.3.15.3 SR3). The POSITIVE direction - that EVERY legal identifier-2 is accepted - was the half that was asserted and never probed, and it was false: PAGE-COUNTER, which 8.4.3.15.3 SR1 admits wherever an integer data item may appear, was refused COBOL0899. It is now a receiving-capable place resolved at the one chokepoint ResolveTargets calls, so `MOVE 7 TO PAGE-COUNTER OF RPT1` is the golden's first line and stores 7.",
+ "state": "OK"
+}

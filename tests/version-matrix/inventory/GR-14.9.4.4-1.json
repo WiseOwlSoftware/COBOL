@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.4.4-1",
+ "section": "14.9.4.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "CALL statement",
+ "rule-digest": "cfb396b1a16c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram",
+ "test-ref": "conformance:cases/11.10-PROGRAM-ID/l1_call_activating_instance_per_activation; conformance:cases/14.9.4-CALL/pb133_instance_restore; conformance:cases/8.4.6.3-Scope-of-program-names/pb133_recursive_containee; conformance:cases/14.9.4-CALL/pb36_module_name_invoke_activation",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "CLOSED 2026-09-09 (kb/Work PB258 golden round) - the REFUTED half of this row has LANDED and is now MEASURED, not read. Citation re-validated from the clause, not inherited: cite.py --check 14.9.4.4 'The instance of the program, function, or method that executes the CALL statement is the activating runtime element.' -> OK, General rules 1. || DERIVED BEFORE MEASURING: the activating runtime element is an INSTANCE, not a compilation unit, so (a) the callee is located in the ACTIVATOR's 8.4.6.3 scope, (b) control returns to THAT instance, whose automatic data (LOCAL-STORAGE, 13.6.4 GR1 / 14.6.2.3.2) is per-activation, and (c) anything that reaches the activating element - including the container handle through which a CONTAINED callee reads a GLOBAL item of its container (13.18.27 GR2, legal on a level-1 LOCAL-STORAGE entry per 13.18.27.3 SR1b) - answers PER ACTIVATION. || WHAT WAS REFUTED IS NOW FIXED, on BOTH of the row's two independent halves (kb/Work PB133). (i) ProgramTable.CallProgram's finally restored only n.Active, the module frame and the EC masks, leaving n.Instance naming a TERMINATED activation; it now captures displacedInstance = n.Instance before inst = n.Factory(ParentInstance(n)) and restores it - 'if (freshInstance) n.Instance = displacedInstance;'. (ii) BinderDriver.MakeUnit derived the recursive attribute from the unit's OWN PROGRAM-ID clause only, against 11.10.4 GR4 ('the program and any programs contained within it are recursive'); it now carries 'if (parent is { Recursive: true }) recursive = true;', so a containee of a RECURSIVE container is per-activation instead of a cached singleton bound to whichever container instance built it first. || MEASURED on this worktree's own built compiler: conformance:cases/11.10-PROGRAM-ID/l1_call_activating_instance_per_activation is exactly the composition the row named as what would close it - a RECURSIVE container, a level-1 GLOBAL LOCAL-STORAGE item, a contained callee printing it at two depths - and its eight lines are the derived trace: R-ENTER D=1 TAG=11 / C-SEES=11 / R-ENTER D=2 TAG=22 / C-SEES=22 / R-RESUME D=2 TAG=22 / C-SEES=22 / R-RESUME D=1 TAG=11 / C-SEES=11. The last two lines are the discriminators: a registry slot left naming the dead depth-2 instance prints C-SEES=22 last, and a container handle bound once at construction prints C-SEES=11 in the middle. || Editions: no Annex E delta touches this rule (E.2's only CALL entry is item 1 bullet 3, the ON OVERFLOW removal), so the batch default stands.",
+ "state": "OK"
+}

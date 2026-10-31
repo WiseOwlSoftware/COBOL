@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.11.4-3",
+ "section": "13.18.11.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "CLASS clause",
+ "rule-digest": "cc29a848cb50",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause",
+ "test-ref": "conformance:wiseowl/cases/13.18.11-CLASS/declined-validate-class",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "docs/CONFORMANCE.md §5 row A.4.14 (VALIDATE — Not claimed) + §4 item 3. Licence: Annex A.4.1 and its second sentence. OWNER DECISION kb/Work PB375, 2026-09-02. ⚠ The rule DELEGATES to §8.8.4.4, Simple class condition — a CLAIMED facility — but what it states is the setting of the item's internal indicator to invalid on content, which only a VALIDATE statement has. The class CONDITION's own rows are separate and unaffected; §12.3.7's SPECIAL-NAMES CLASS clause, which defines class-name-1, likewise stays claimed and implemented.",
+ "state": "OK"
+}

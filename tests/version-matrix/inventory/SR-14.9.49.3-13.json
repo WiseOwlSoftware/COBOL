@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.49.3-13",
+ "section": "14.9.49.3",
+ "kind": "SR",
+ "ordinal": 13,
+ "subject": "USE statement",
+ "rule-digest": "e9af105bc77e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUseF3; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionCatalog.cs#IsIoName",
+ "test-ref": "conformance-test:ExceptionConditionConformanceTests.UseF3_FileWithNonIoName_Diagnosed",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "DeclBindUseF3 applies the test on exactly the operand the format calls exception-name-2 -- `entry.fileName().Length > 0`, i.e. only the `exception-name-2 {FILE file-name-2}...` alternative, never the bare exception-name-1 alternative -- and raises COBOL0715 \"FILE may be specified only with an exception-name beginning 'EC-I-O'\" citing 14.9.49.3 SR13. The predicate is `name.StartsWith(\"EC-I-O\", OrdinalIgnoreCase)`, which is literally 'beginning with EC-I-O' and correctly admits the level-2 name EC-I-O itself as well as every EC-I-O-* level-3 name. Probes: SR13BAD.cob (`USE AFTER EC EC-BOUND FILE F1.`) -> COBOL0715, correct; SR5F3.cob (`USE AFTER EC EC-I-O FILE F1 FILE F2.`) -> clean, so the level-2 EC-I-O head is not over-rejected; SR14DUP.cob (`... EC-I-O-AT-END FILE F1.`) -> accepted on the first occurrence. The name itself is resolved through the one EcNameResolution funnel before this test, so a misspelt name draws its own 0711/0878/1636 rather than a misleading SR13. The named test is spec-derived (asserts the SR13 diagnostic on `USE AFTER EXCEPTION CONDITION EC-SIZE FILE TF.`).",
+ "state": "OK"
+}

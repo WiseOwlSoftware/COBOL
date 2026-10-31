@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.24.4-9",
+ "section": "14.9.24.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "MERGE statement",
+ "rule-digest": "6eb623a789ab",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitMerge; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitInputClose",
+ "test-ref": "conformance:cases/14.9.24-MERGE/pb1141_merge_using_close_after_output_procedure; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_sort_merge_procedure_ends_at_last_paragraph; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_sort_merge_called_program",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1141: with an OUTPUT PROCEDURE each USING file's as-if CLOSE (GR7 c) follows the procedure's last statement - FILE STATUS reads 10 inside it - so the termination the return mechanism provides includes the USING CLOSE.",
+ "state": "OK"
+}

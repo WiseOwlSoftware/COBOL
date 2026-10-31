@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.14.4-2",
+ "section": "7.3.14.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "FLAG-02 directive",
+ "rule-digest": "f3dad2792e2b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FlagState.cs#IsOnAt; src/WiseOwl.Cobol.Frontend/Preprocessor/FlagDirectiveProcessor.cs#Process",
+ "test-ref": "unit:Flag02DirectiveScopeTests.Gr2_On_EnablesThatOptionForTheTextThatFollows; unit:Flag02DirectiveScopeTests.Gr2_On_DoesNotReachTextBeforeTheDirective; unit:Flag02DirectiveScopeTests.Gr2_On_LastsToTheEndOfTheCompilationGroup; unit:Flag02DirectiveScopeTests.Gr2_On_IsNotEndedByTurningADifferentOptionOff",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "§7.3.14.4 2): explicit or implicit ON flags only that option and only following text (not text before the directive); lasts across the compilation group and past another option's OFF",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.25.3-9",
+ "section": "14.9.25.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "MOVE statement",
+ "rule-digest": "67113c6a0617",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindMoveOf; src/WiseOwl.Cobol.Compiler/Binding/Model/VariableLengthCompatibility.cs#Mismatch; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#VariableLengthRefusal; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#OperandItem; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#MoveCategoryLegality",
+ "test-ref": "conformance:cases/14.9.25-MOVE/pb393-move-varlen-to-elementary; conformance:cases/14.9.25-MOVE/pb393-move-varlen-position-mismatch; conformance:cases/14.9.25-MOVE/pb393_move_varlen_group",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work/PB393.md landed. SR9's screen now exists as StatementValidation.CheckVariableLengthMove, applied from MoveBinder.BindMoveOf -- the ONE application of the MOVE statement's own rules -- so every implicit move a phrase defines (READ/RETURN ... INTO, WRITE/REWRITE/RELEASE ... FROM) inherits it. The relation itself is the ONE VariableLengthCompatibility module built for the 14.8.2.2 boundary crossing (kb/Work PB204); this is its application to MOVE, never a second copy. A NON-GROUP other operand is refused outright because 8.5.1.12.1 states the prohibition over the other operand (\"unless the other operand is a compatible group\"), which covers a literal, a figurative constant, a function result, a reference-modified operand (8.4.3.3.4 GR6 makes it elementary) and a level-66 alias (13.18.45). The two negatives pin both halves: the non-group arm and the positional-correspondence arm (8.5.1.12.2, two variable-length groups of equal collapsed length whose dynamic items start at different relative byte positions). conformance:cases/14.9.25-MOVE/pb393_move_varlen_group is the POSITIVE control that the screen does not reject compatible source. No edition gate is written and none is needed: a variable-length group can only be declared from COBOL-2014. SR9's screen and GR9's transfer landed in ONE change set, as the note required -- screening on top of a run-time abort would only have moved the refusal earlier for programs that still could not execute. retired-witness: src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs#CheckVariableLengthMove (kb/Work PB878 deleted StatementValidation.CheckVariableLengthMove; SR9 is MoveTable16.VariableLengthRefusal over MoveTable16.OperandItem (which carries PB907's level-66 THROUGH alias reading), framed as COBOL1931 by MoveBinder.MoveCategoryLegality)",
+ "state": "OK"
+}

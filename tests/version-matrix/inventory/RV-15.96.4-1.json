@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.96.4-1",
+ "section": "15.96.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "TRIM function",
+ "rule-digest": "69f7ee7fa753",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Trim",
+ "test-ref": "conformance:cases/15.96.4-Returned-value-rules/l1_trim_leading_trailing_multi_arg2; conformance:cases/15.96.4-Returned-value-rules/pb117_trim_sequential; conformance:cases/15.3-Arguments/intrinsics_trim",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "PARTIAL -> CONFORMS, re-verdicted by the kb/Work PB245 golden round (2026-09-09). THE RULE: §15.96.4 r1 'If LEADING is specified, the returned value is a character string that consists of the characters in argument-1 beginning from the leftmost character position that does not contain any argument-2' (cite.py --check 15.96.4 on that sentence -> OK, rule 1). DERIVED BEFORE THE RUN, and the derivation is the row's whole point: read alone, r1's 'does not contain ANY argument-2' is a SET UNION over the argument-2s, which is what this compiler used to compute; r5 ('each argument-2 is processed completely in the order that they are specified') and its NOTE (TRIM(a b c) = TRIM(TRIM(a b) c)) make r1 a rule about ONE argument-2 applied at each level of a nesting. The two readings differ whenever the argument-2 characters INTERLEAVE at the edge. Hand-derived: TRIM('bbxbb' LEADING 'b') = 'xbb' (r1's base case); TRIM('bcba' LEADING 'b' 'c') = 'ba' where the union gives 'a'; the order-reversed TRIM('bcba' LEADING 'c' 'b') = 'cba', a DIFFERENT answer over the same argument-2 set, which no order-blind reading can produce; TRIM('abcb' LEADING 'a' 'b' 'c') = 'b' where the union gives a zero-length result. MEASURED: all four as derived. WHAT CLOSED IT: kb/Work PB117 replaced the one char[] union and single TrimStart(set) with the sequential fold. The pre-existing witness pb117_trim_sequential holds ONE LEADING case and is kept; this row's rule is now measured with one argument-2 and with several, against the union answer written beside every line.",
+ "state": "OK"
+}

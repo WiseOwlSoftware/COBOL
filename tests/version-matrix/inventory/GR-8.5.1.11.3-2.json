@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.1.11.3-2",
+ "section": "8.5.1.11.3",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Variable-length data items",
+ "rule-digest": "eae971e2dcf0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelContained; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode; src/WiseOwl.Cobol.Runtime/Values/Text/CobolDynString.cs#CobolDynString; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#CobolDynTable",
+ "test-ref": "conformance:cases/8.5.1.11.3-Availability-and-persistence-of-variable-length/l1_vldi_initial_program_reverts",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "§8.6.4 + §11.10.4 GR3 + §8.5.1.9.1: an INITIAL program returning by GOBACK (L1VL2I) or by EXIT PROGRAM (L1VL2E, §14.9.14.4 GR3) restarts its dynamic table and dynamic-length item at CAP=00 LEN=00 on every CALL; the non-initial control keeps CAP=05 LEN=04.",
+ "state": "OK"
+}

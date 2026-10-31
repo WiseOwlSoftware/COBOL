@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.2-5",
+ "section": "9.1.13.2",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "I-O status",
+ "rule-digest": "8d1eec466aab",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#LineRecordTooLong",
+ "test-ref": "conformance-test:SequentialFileIoSpecTests.LineSequential_OverLengthRecord_TruncatesWith06_AndContinuesRemainder",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "Rule (cite.py --check 9.1.13.2 \"A READ statement for a line sequential file has successfully executed but a line delimiter or the end-of-file has not been detected\" -> OK §9.1.13.2 5)). SequentialConnector.Read line arm: a physical line longer than MaxRecordSize is truncated, the remainder kept as the FPI (_lineRemainder, §14.9.30.4 GR15 NOTE 3) and the status is '06'; a line of exactly the maximum size has its delimiter detected and is '00'. Probe out/probe/iostat-rel: line 'ABCDEFG' into X(5) -> 06 [ABCDE], next READ -> 00 [FG] (the delimiter is detected on the remainder read); out/probe/iostat-seq: an undelimited 27-char stream gives 06 on every READ until the tail. '09' outranks '06' when both apply (GR16 stated after GR15) - see GR-9.1.13.2-7. || Editions (adjudicator, verbatim): 2023 (line sequential organization is new in 2023 - §12.4.5.10.3; ConstructRegistry file-organization-line-sequential-2023)",
+ "state": "OK"
+}

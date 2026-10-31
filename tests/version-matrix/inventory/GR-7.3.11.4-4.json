@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.11.4-4",
+ "section": "7.3.11.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "DEFINE directive",
+ "rule-digest": "410df835d864",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#ApplyDefine; src/WiseOwl.Cobol.Frontend/Pipeline/CompilationInputs.cs#GetEnvironmentVariable",
+ "test-ref": "unit:ConditionalCompilationDefineTests.Parameter_SourcesFromEnvironment; unit:ConditionalCompilationDefineTests.Parameter_Unavailable_NotDefined",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 7.3.11.4 \"If no value is made available from the operating environment, compilation-variable-name-1 is not defined.\" -> OK GR4. Both halves: the value is the process environment variable of the same name, read when the directive is processed (numeric if it parses as a number, else alphanumeric) - r1.cob PVAR=42 / PSTR=HELLO select; an unset variable leaves the name undefined (PNONE IS NOT DEFINED selects; OFF-like removal of any earlier value). The implementor-defined METHOD is an Annex A.1 item 49 'required + documented' obligation; docs/CONFORMANCE.md §7 carries no DOC-A.1-49 row - that is the DOC-A.1-49 inventory row's debt, not this GR's. || editions (adjudicator): 2002, 2014, 2023 - §7.3 compiler-directive facility; ISO/IEC 1989:2023 Annex E lists no change to §7.3.11 against 2014 (the 2002 introduction is not stated in the 2023 text itself; below 2002 the directive is COBOL0900)",
+ "state": "OK"
+}

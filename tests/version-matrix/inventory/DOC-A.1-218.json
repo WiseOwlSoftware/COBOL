@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-218",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 218,
+ "subject": "USE statement (action taken following execution of the USE procedure when I-O status value indicates a fatal exception c",
+ "rule-digest": "ab3bb1fac255",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-218; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc",
+ "test-ref": "conformance-test:DocA1Item218WitnessTests.CheckedFatalIo_Format1UseCompletesNormally_TerminatesAbnormally; conformance-test:DocA1Item218WitnessTests.CheckedFatalIo_Format3UseCompletesNormally_TerminatesAbnormally; conformance:cases/14.9.49-USE/pb344_use_mode_read_exception_85; conformance:cases/14.9.49-USE/pb344_use_mode_read_exception_2002; conformance:cases/14.9.49-USE/pb344_use_mode_read_exception_2014; conformance:cases/14.9.49-USE/pb344_use_mode_read_exception_2023",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Unchecked: continues (pb344 x4). Checked with the declarative completing normally: '35' leads to abnormal termination (§14.6.13.1.3 rules 3, 5 and 7; §14.6.12), pinned by the two new facts. A checked RESUME leg is not a witness, because its continuation is fixed for every implementation (§14.9.33.4 GR2 a)).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.42.3-1",
+ "section": "15.42.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "FRACTION-PART function",
+ "rule-digest": "a7196404c84f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#FieldNumCore; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#FieldNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
+ "test-ref": "conformance:cases/15.42.3-Argument-rule/l1-fraction-part-class; conformance:cases/15.42.3-Argument-rule/l1_integer_family_notes",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§15.42.3 r1 class numeric via §15.3 type 10 and §8.5.2.1 Table 2: a PIC X(4) argument (content \"12.5\") draws COBOL1627; accept side is the seven F-* lines over PIC S9V99.",
+ "state": "OK"
+}

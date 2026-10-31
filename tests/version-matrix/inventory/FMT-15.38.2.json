@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.38.2",
+ "section": "15.38.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "FORMATTED-CURRENT-DATE function",
+ "rule-digest": "7bd3ec04b9be",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall",
+ "test-ref": "conformance:cases/15.38.3-Argument-rules/l1_datetime_general_formats; conformance:cases/15.3.3.6.1-Offset-subformats/formatted_datetime; conformance:cases/15.38-FORMATTED-CURRENT-DATE/l1-formatted-current-date-no-function-word; conformance:cases/15.38-FORMATTED-CURRENT-DATE/l1-formatted-current-date-two-arguments",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "One-argument printed form accepted and its result valid under its own combined format (FCD-VALID=00 per §15.92.4 r1); FUNCTION omitted → COBOL1543 (§8.4.3.2.3 SR2); a second argument → COBOL1504, the format printing none where §15.40.2/§15.41.2 print a bracketed one.",
+ "state": "OK"
+}

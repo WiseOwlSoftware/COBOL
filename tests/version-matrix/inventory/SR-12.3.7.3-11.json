@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.7.3-11",
+ "section": "12.3.7.3",
+ "kind": "SR",
+ "ordinal": 11,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "99467bdc037c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#OrderTableBind; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#TryClauseTextLiteral; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#LiteralPhraseOperand",
+ "test-ref": "unit:StandardCompareTests.Literal9_ObeysSr10AndSr11; conformance-test:ClassClauseForPhraseTests.ZeroLengthLiteral_IsSR11",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB226 (wave 56). All SEVEN literals SR11 names are screened: literal-4 (LOCALE) and literal-9 (ORDER TABLE) through TryClauseTextLiteral (COBOL0898); literal-1/-2/-3 (ALPHABET literal phrase) and literal-5/-6 (CLASS range) through the ONE SPECIAL-NAMES operand decoder LiteralPhraseOperand, which kb/Work PB976 (79b438d82) made shared by both clauses and which already refused the zero-length half (COBOL1906 / COBOL1671). The residue this landing closed: a symbolic-character name in an ALPHABET literal phrase drew the CLASS rule (SR14 b2) instead of SR11; it is now refused under SR11 in either clause order (the paragraph's symbolic names are read syntactically before any clause binds). In a CLASS range a symbolic-character name cannot be written at all - the grammar admits only literals there - so it is refused at parse.",
+ "state": "OK"
+}

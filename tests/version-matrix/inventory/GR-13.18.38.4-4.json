@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.38.4-4",
+ "section": "13.18.38.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "OCCURS clause",
+ "rule-digest": "a1869bf7d2d2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#FieldInit; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#At",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/l1c20_occurs_clauses_per_occurrence",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py OK §13.18.38.4 4)): 'The value of integer-2 represents the fixed number of occurrences of the subject of the entry.' Code: FieldInit emits a C# array of exactly item.Occurs (= integer-2) element initializers; CobolTable.At bounds occurrences to 1..table.Length. Probes: gr1.cob group T of five OCCURS 3 tables images as 3 occurrences each; gr14b.cob a fixed OCCURS 2 table raises EC-BOUND-SUBSCRIPT for occurrence 5 (the fixed count is the highest permissible occurrence number). Constant-name bound (§13.10.3 SR2) accepted per the grammar's integerOperand (the OCCURS bound: an integer literal or a constant-name). No spec-derived golden asserts the occurrence count of a Format 1 table as such (char_occurs is characterization only) -> test-needed. || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): 1985, 2002, 2014, 2023",
+ "state": "OK"
+}

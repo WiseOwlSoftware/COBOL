@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.5.4-3",
+ "section": "8.4.3.5.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Object-view",
+ "rule-digest": "104a9b48849f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectView; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectReferenceAtom; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.ObjectView.cs#OoBindObjectView; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoCreateObjectViewTemp; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitObjectView; src/WiseOwl.Cobol.Runtime/Control/CobolObject.cs#ObjectView",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1425_object_view",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1425 (w1019a). FACTORY without ONLY: USAGE OBJECT REFERENCE FACTORY OF class; not the factory of the class or a subclass sets EC-OO-CONFORMANCE (OK 3)). The descriptor's CLR type is the D11 factory singleton type, which mirrors the INHERITS chain, so `is C__FACTORY` is the check. Golden: PB1425VD's factory viewed AS FACTORY OF PB1425VA, then New -> DERIVED. [editions: the OO facility, 2002+]",
+ "state": "OK"
+}

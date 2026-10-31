@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-12",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 12,
+ "subject": "Byte (number of bits in)",
+ "rule-digest": "05d9cd586fb9",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-12; src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#BitsPerCharacter",
+ "test-ref": "conformance:cases/8.5.1.6.4-Item-alignment-for-increased-object-code/l1_byte_length_implicit_filler",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "BitLayout.cs:30 BitsPerCharacter = 8; Characters(bits) = ceil(bits/8). The golden l1_byte_length_implicit_filler DISCRIMINATES the number: L77 legs PIC 1(12) BIT -> 2 and PIC 1(8) BIT -> 1 (so 8 <= bits-per-byte < 12) and ADJ3 (9 shared bits) -> 2 (so bits-per-byte < 9) — only 8 satisfies all three; its header already names Annex A.1 item 12. Staged probe: BYTE-LENGTH PIC X(4)=4, 9(4) COMP=2, N(2)=4. cite.py --check 8.1.2 'The implementor shall specify the number of bits in a byte for each supported computer' OK (3). Owning note: A11 umbrella (PB1534 staged).",
+ "state": "OK"
+}

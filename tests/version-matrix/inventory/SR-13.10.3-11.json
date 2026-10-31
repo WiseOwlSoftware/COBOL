@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.10.3-11",
+ "section": "13.10.3",
+ "kind": "SR",
+ "ordinal": 11,
+ "subject": "Constant entry",
+ "rule-digest": "e72f0b7712bd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#ReportLengthOperand; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#LengthOperandItem; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.EntryOrder.cs#ReportEntryCandidates; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.EntryOrder.cs#DeclareReportEntries",
+ "test-ref": "conformance:cases/13.10-Constant/pb1226_constant_length_report_item; conformance:cases/13.10-Constant/pb1226-constant-length-report-group",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1226 (w1007c). cite.py --check 13.10.3 \"Data-name-1 and data-name-2, if defined in the report section, shall reference elementary report items\" -> OK SR11. Report group description entries are not DataItems FindItem sees, so every named entry is declared before binding (DataBinder.DeclareReportEntries: its RD's entry list, index, report-name) and a length phrase's operand that FindItem misses resolves through ReportEntryCandidates (qualifiers matched outward through the entry's superior named entries and its report-name, 8.4.2.2.3 SR4; more than one candidate -> 8.4.2.2.3 SR1). A report group with subordinate entries -> COBOL1547 '... shall reference elementary report items (ISO 13.10.3 SR11)' (negative pb1226-constant-length-report-group at 2002/2014/2023; it used to be 'not defined'). An elementary report item is measured as its printable item's description: LENGTH OF EL IN RP (PIC X(5)) = 5 from the REPORT SECTION and from WORKING-STORAGE, BYTE-LENGTH OF EN OF DL (PIC N(3)) = 6, and LENGTH OF EF written before EF's report group = 5, with EF's own PICTURE X(KL) naming a constant written after it (golden pb1226_constant_length_report_item). A report item whose group the report binder has not reached when the value is first needed is COBOL0899 constant-length-operand-bound-later (recognized-not-implemented).",
+ "state": "OK"
+}

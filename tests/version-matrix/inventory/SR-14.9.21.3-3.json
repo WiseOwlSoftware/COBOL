@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.21.3-3",
+ "section": "14.9.21.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "INITIATE statement",
+ "rule-digest": "c498b6d18cd3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs",
+ "test-ref": "conformance:cases/14.9.21-INITIATE/l1c13-initiate-multi-in-exception-perform",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "Rule: 'An INITIATE statement that specifies more than one report-name-1 shall not be specified in an exception checking PERFORM statement.' (cite.py --check 14.9.21.3 -> OK §14.9.21.3 3)). CODE: over region B (imperative-statement-1 + every WHEN / WHEN OTHER / WHEN COMMON body + FINALLY) every descendant InitiateStatementContext with reportName().Length > 1 -> error COBOL1605. PROBES s1-s6 (2023): multi-name INITIATE in imperative-statement-1 (s1), a WHEN body (s2), FINALLY (s3), nested inside IF + inline PERFORM (s4), WHEN OTHER / WHEN COMMON (s6) -> COBOL1605 each; two single-name INITIATEs (s5) and a multi-name INITIATE AFTER END-PERFORM (s2, s6) accepted and run. The rule counts operands, which is what the check counts. Hygiene only: COBOL1605 (and siblings 1606/1607/1612/1613) is a raw string code absent from docs/DIAGNOSTICS.md and DiagnosticCatalog, and it is reported at the PERFORM's position rather than the INITIATE's - see dossier_gaps. No test references COBOL1605 - test-needed (negative). [code-location note: B INITIATE check, COBOL1605)] || editions as adjudicated: 2023 only (the exception-checking PERFORM, Format 3, is new in 2023 - Annex E 'PERFORM Statement. An exception checking variant of this statement has been added.')",
+ "state": "OK"
+}

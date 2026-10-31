@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.3.3-3",
+ "section": "11.3.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "CLASS-ID paragraph",
+ "rule-digest": "dcc6f8223bae",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build",
+ "test-ref": "conformance:cases/11.3-CLASS-ID/pb1505-class-inherits-itself; conformance:cases/11.3-CLASS-ID/pb1505-parameterized-class-inherits-itself",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1505 LANDED (wave 1015 Z). cite.py --check 11.3.3 'Object-class-name-2 shall not be the name of the class declared by this class definition.' OK 3). Its own descriptor COBOL2791 (inherits-clause-rule) citing §11.3.3 SR3 — it was COBOL0820 shared with duplicate-class-definition and cited §11.3.2 (the general format). Asked over the RESOLVED link for a table class (an AS-literal alias of the class's own name is still itself) and over the WRITTEN name for a parameterized (USING) class definition, which OoExpansion keeps out of the table and which compiled silently before (pb1505-parameterized-class-inherits-itself).",
+ "state": "OK"
+}

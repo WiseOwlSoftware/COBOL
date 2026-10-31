@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.4-4",
+ "section": "14.6.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Execution",
+ "rule-digest": "4e598b8c3d07",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs",
+ "test-ref": "conformance:cases/14.6.4-Item-identification/l1c09_item_ident_func_subscript",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: step 4 'subscript evaluation' precedes step 7 'reference modification' (cite.py --check 14.6.4 -> OK). Probe E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d1\\out\\probe\\iid\\iid3.cob: MOVE E(FUNCTION CTR)(FUNCTION CTR:1) TO X with E = abcd/efgh/ijkl and CTR incrementing an EXTERNAL K from 0 -> X='b', K=2 (subscript 1 evaluated first, refmod start 2 second). Correct order. No named covering test.",
+ "state": "OK"
+}

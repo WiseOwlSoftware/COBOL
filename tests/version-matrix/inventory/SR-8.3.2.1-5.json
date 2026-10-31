@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.2.1-5",
+ "section": "8.3.2.1",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "COBOL words",
+ "rule-digest": "1a927ffa677c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#DeclareUserWord",
+ "test-ref": "conformance:cases/8.3.2-COBOL-words/pb65_repository_r5_intrinsic_names; conformance:cases/8.3.2-COBOL-words/pb65-repository-intrinsic-name-as-data-name; conformance:cases/8.3.2-COBOL-words/pb65-repository-all-intrinsic-name-as-user-word",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB65 (2026-08-18): ONE screen (DataBinder.ScreenRepositoryIntrinsicName) asked by every declaration funnel — data-name, condition-name, index-name, file-name, paragraph/section name — rejects (COBOL1649) a user-defined word spelling an intrinsic-function-name the REPOSITORY identifies (FUNCTION name INTRINSIC, or every catalogued name under FUNCTION ALL INTRINSIC); LENGTH/RANDOM/SIGN/SUM are reserved words already. A catalogued name the REPOSITORY does not identify stays a legal user-defined word (SQRT as a table, MOD as an item — the golden's control) and its FUNCTION-less spelling a data reference. Editions: the REPOSITORY function-specifier is 2002+ (85 has no REPOSITORY). retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.cs#ScreenRepositoryIntrinsicName (kb/Work PB1083 renamed the screen to the one declaration funnel DataBinder.DeclareUserWord)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.38.3-2",
+ "section": "13.18.38.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "OCCURS clause",
+ "rule-digest": "49fef9b0e657",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#OdoBindOccursSpec; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportOccursOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenClauseOperandShape",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb885-odo-depending-subscripted; conformance:cases/13.18.38-OCCURS/pb885-report-depending-subscripted; conformance:cases/13.18.38-OCCURS/pb885-occurs-key-subscripted",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB885. 'Data-name-1 and data-name-2 shall not be subscripted': every OCCURS data-name operand (DEPENDING in formats 2 and 3, KEY) is captured through the ONE data-name-n screen ClauseDataName and a written subscript draws COBOL2024. The report arm used to DROP the subscript in silence (wrong repetition count); the data-division arm glued it into an undefined name. The report-writer witness runs at 2002+ (format 3 is COBOL-2002).",
+ "state": "OK"
+}

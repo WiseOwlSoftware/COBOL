@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.40.4-7",
+ "section": "14.9.40.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "SORT statement",
+ "rule-digest": "94d72537c9fa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitInputFile; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#ShortRecordFillNational; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#FillTo; src/WiseOwl.Cobol.Runtime/IO/RecordFill.cs#Fit",
+ "test-ref": "conformance:cases/14.9.24-MERGE/pb1140_sort_merge_short_record_fill",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1140 landed (w1003b). The fixed-SD arm of EmitInputFile releases CobolSort.FillTo(tmp, sdWidth, input.ShortRecordFillNational) in place of the unconditional alphanumeric CobolString.Store pad. Golden legs U1 (FD one record N(2) into a 6-byte SD: the 2 bytes after the 4-byte record are 00 20, ORD 001 033) and U2 (FD one record X(4): 20 20, ORD 033 033). Arm b) cannot arise (SELECT WHEN declined, A.4.8). editions: 1985 (c), 2002 (a).",
+ "state": "OK"
+}

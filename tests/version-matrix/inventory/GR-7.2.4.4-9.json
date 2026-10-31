@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.2.4.4-9",
+ "section": "7.2.4.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "REPLACE statement",
+ "rule-digest": "dd64d9a5e61c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ForbiddenIn; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#HoldsComment",
+ "test-ref": "conformance:cases/7.2.4-REPLACE/pb1356-replace-produces-replace; unit:TextManipulationStatementTests.ReplaceResult_ShallNotHoldCopyOrReplace; unit:TextManipulationStatementTests.ReplaceResult_ABlankLineInPseudoText2_IsDiscarded_AndAnUnmatchedOperandProducesNothing; conformance:cases/7.2.4-REPLACE/pb1356-replace-produces-comment; unit:TextManipulationStatementTests.ReplaceResult_ShallNotHoldAComment_ButALiteralMayHoldItsCharacters",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1356 finisher (w69x): the comment arm was dead - ForbiddenIn asked whether a TEXT-WORD starts with *>, and TextWordScanner never yields one (it skips a comment). 'The text produced as a result of processing a REPLACE statement shall not contain ... a comment' (cite.py OK 7.2.4.4 9)) is now asked of the produced TEXT (TextWordScanner.HoldsComment over the gaps between text-words, one CommentStartsAt shared with TryNext): REPLACE LEADING ==Q== BY ==*== on Q>1 is COBOL2574 (probe w69x gr9c; before: silent, the rest of the line swallowed); a *> inside a produced literal is not a comment.",
+ "state": "OK"
+}

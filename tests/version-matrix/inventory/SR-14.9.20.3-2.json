@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.20.3-2",
+ "section": "14.9.20.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "INITIALIZE statement",
+ "rule-digest": "79d78e0a2e31",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs#CheckCrossStatementBans",
+ "test-ref": "conformance-test:PerformFormat3Tests.MultiIdentifierInitializeInImp1_Rejected1614; conformance-test:PerformFormat3Tests.InitializeDupInImp1_Rejected1614; conformance:cases/14.9.20-INITIALIZE/pb330_open_single_file_imp1",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB417 LANDED with PB330 (wave 56) — the same mechanism in the same method, the sibling arm ten lines above. RULE (cite.py --check 14.9.20.3 'Identifier-1 shall be specified only once if the INITIALIZE statement is specified in imperative-statement-1' -> OK 14.9.20.3 2)). 'Identifier-1' is the format term; 14.9.20.4 GR3 (cite.py --find -> 14.9.20.4 3)) names the multi-operand form 'If more than one identifier-1 is specified in an INITIALIZE statement'. COBOL1614 now counts the operands instead of grouping their parse TEXT, which closes BOTH holes PB417 measured: `INITIALIZE G H` (two distinct items) and one item spelled two ways (`N OF G N IN G`, `E(1) E(2)`), all of which are more than one identifier-1. Single-operand INITIALIZE in imp-1 compiles and runs (pb330_open_single_file_imp1: N and M initialized to 0 per 14.9.20.4 GR6 c)). 2023 only, as for the whole exception-checking PERFORM.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.3.5.3-3",
+ "section": "8.3.3.5.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "National literals",
+ "rule-digest": "6cabe51556ef",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#NAT_BODY; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#Decode",
+ "test-ref": "conformance:cases/8.3.3.5-National-literals/l1c19_national_literal_quotes_class",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 8.3.3.5.3 \"Two contiguous quotation symbol characters matching the quotation symbol used in the opening delimiter\" -> OK (rule 3). STR_BODY lexes '\"\"' inside a quote-delimited body and '\\'\\'' inside an apostrophe-delimited one; Decode collapses the doubled OPENING delimiter only. Probe p1: N\"A\"\"B\" -> A\"B (LENGTH 3), N'A''B' LENGTH 3, VALUE N'a''b' -> a'b, and the non-matching quote N'A\"B' is ordinary content (LENGTH 3). Second sentence (same coded character set representation as the opening quote): only the basic quotation mark/apostrophe are delimiters, so a doubled pair is necessarily in the opening delimiter's representation; a full-width quote is plain content. No spec-derived test pins the doubled delimiter inside N\"..\" - test-needed. [editions as adjudicated: COBOL-2002, COBOL-2014, COBOL-2023 (national literals are a COBOL-2002 introduction; absent from COBOL-85, where the construct is rejected COBOL0900 via Constructs.NationalData2002)]",
+ "state": "OK"
+}

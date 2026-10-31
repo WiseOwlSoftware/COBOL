@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.33.4-1",
+ "section": "14.9.33.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "RESUME statement",
+ "rule-digest": "700579ec37cf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitResume; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#InGlobalDeclarativeRangeTest; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitRunGlobalUse",
+ "test-ref": "conformance:cases/14.9.33-RESUME/pb1160_resume_in_global_scope",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1160 LANDED. A RESUME executed within a GLOBAL declarative's scope of execution (reached through the PERFORM of §14.9.49.3 SR4) is a CONTINUE: EcEmitter.EmitResume renders `if (!(__useActive[global ids])) throw new ResumeSignal(...)` in a unit that declares a GLOBAL declarative, the same per-instance test §14.9.18.4 GR6 uses. Witness covers the NEXT STATEMENT arm, the procedure-name arm (no GO TO is performed) and the contained-program arm through __RunGlobalUse. The scope is per program instance (docs/CONFORMANCE.md §3).",
+ "state": "OK"
+}

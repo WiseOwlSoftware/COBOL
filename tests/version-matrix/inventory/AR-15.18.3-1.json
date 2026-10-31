@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.18.3-1",
+ "section": "15.18.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "CONCAT function",
+ "rule-digest": "29ce3f4a0122",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+ "test-ref": "conformance:cases/15.3-Arguments/pb58_argument_predicates_legal; conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). CONCAT's new 'c' kind (§15.18.3 r1 'class alphabetic, alphanumeric, boolean, numeric or national' — everything Table 2 names but index/object/pointer): a USAGE POINTER argument is rejected (negative pb58-concat-pointer); numeric literals, numeric items, string literals and figuratives are admitted (golden legs CAT/CATN). The DeliberatelyUnscreened CONCAT entry is gone — the class half is a row. retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

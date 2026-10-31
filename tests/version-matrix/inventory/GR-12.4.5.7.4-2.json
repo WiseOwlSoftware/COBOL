@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.7.4-2",
+ "section": "12.4.5.7.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "COLLATING SEQUENCE clause",
+ "rule-digest": "e50efa219369",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveKeyCollating",
+ "test-ref": "conformance:cases/12.4.5.7-COLLATING-SEQUENCE/pb1074_file_collating_key_class; conformance:cases/12.4.5.7-COLLATING-SEQUENCE/file_collating_seq",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1074 landed (w61c). cite.py --check 12.4.5.7.4 'An alphanumeric collating sequence referenced by alphabet-name-1 applies to any record keys of class alphanumeric' -> OK GR2. ResolveKeyCollating takes the resolved key item and gives alphabet-name-1 only to keys of class alphanumeric: golden pb1074 FOR ALPHANUMERIC IS REV reverses the alphanumeric alternate key (Z M A) and leaves the national prime key alone (A M Z); probe p1 now A,M,Z.",
+ "state": "OK"
+}

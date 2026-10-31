@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.13.3-8",
+ "section": "7.3.13.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "EVALUATE directive",
+ "rule-digest": "80bea5a0e341",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/gl2m2_evaldir_directives_in_text",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "text-1/text-2 hold DEFINE, nested IF and nested EVALUATE (both formats) and span several lines; included directives take effect, omitted DEFINEs do not (GR4/GR9, SR9, §7.2.1 step 2); every EVALUATE has a WHEN OTHER so E.2 8) (GR6/GR10 change) cannot vary the output by edition",
+ "state": "OK"
+}

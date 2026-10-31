@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-7",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 7,
+ "subject": "Alignment of data for increased efficiency (special or automatic alignment: interpretation, implicit filler, semantics o",
+ "rule-digest": "21ccd038acc9",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-7; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#PhysicalWidth",
+ "test-ref": "conformance:wiseowl/cases/A.1-Implementor-defined-language-element-list/l1c40_no_automatic_alignment",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Derived: a1-optional-not-provided (kb/Work PB280 Q1 — an A.1-OPTIONAL item whose §7 row opens 'Not provided.' is DOCUMENTED-NON-SUPPORT). Determination evidence (PB1522 step 3): Optional element not provided; row opens 'Not provided.' so the PB280 Q1 a1-optional-not-provided selector derives DOCUMENTED-NON-SUPPORT once recorded (the integrator may record that verdict instead). Verified: RecordLayout.PhysicalWidth sums widths with no alignment term; probe /tmp/adj/doc/doc-w1-s1/probe/i7.cob (X, S9(9) COMP-5, X, COMP-2 without SYNCHRONIZED) BYTE-LENGTH=14 at --std 2002 and 2023 (1+4+1+8, no automatic alignment). With SYNCHRONIZED also no padding (conformance:cases/8.5.1.6.4-Item-alignment-for-increased-object-code/l1_byte_length_implicit_filler SYNC=3, which pins item 195, not this item — so Pinned-by is —). cite.py --check 8.5.1.6.4 OK (2), 13.18.55.4 OK (10). Owning note: A11.",
+ "state": "OK"
+}

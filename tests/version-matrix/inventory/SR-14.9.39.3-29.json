@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-29",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 29,
+ "subject": "SET statement",
+ "rule-digest": "ea323ebbb6d6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#CapacityRegisterFor; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#CapacityPlaceOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetCapacity",
+ "test-ref": "conformance:cases/14.9.39-SET/dyn_capacity_set; conformance:cases/14.9.39-SET/pb457_capacity_register_qualified; conformance:cases/14.9.39-SET/pb457-capacity-register-subscripted; conformance:cases/13.18.38-OCCURS/pb457-capacity-register-under-table; conformance:cases/14.9.39-SET/pb457-capacity-register-bad-qualifier; unit:CapacityRegisterReferenceDriftTests.TheCapacityRegisterNameLookup_IsWrittenInExactlyOnePlace",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB457 (unchanged verdict) - the CODE LOCATION only. PB457's batch pinned the SET arm at SetBinder.cs#DynTryBindSetCapacity; this cluster folds that method into BindSetCapacity (one bind for Format 14, reached from the format selection rather than from a null-returning re-route probe), so the pinned location would no longer resolve in the tree and SpecTraceabilityInventoryDriftTests.EveryCodeLocation_ResolvesInTheTree would red. That red is what train 40's lander measured on the MERGED tree while neither cluster's own gate could see it; it is repaired HERE, in a batch, because inventory rows are never hand-edited. PB457's reporting arm is carried into the new method intact - a target that NAMES a register but breaks one of its reference rules still consumes the format and lets Refs.Resolve state the rule.",
+ "state": "OK"
+}

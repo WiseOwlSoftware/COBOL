@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.7.4-2",
+ "section": "12.3.7.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "a59a27a4fa5b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#BindImplementorNameEntry; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb862_implementor_names; conformance-test:AlterSwitchesDifferentialTests.Switch_DefaultOff_ThenSetToOn_FlipsBothStatusConditions",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR2 - a switch-name identifies an external switch whose on/off status may each carry a condition-name interrogated as a switch-status condition: the golden writes the status phrases OFF-first (choice indicators, 5.2.6.4) and on a mnemonic-less entry, and reads both. kb/Work PB862 / PB716.",
+ "state": "OK"
+}

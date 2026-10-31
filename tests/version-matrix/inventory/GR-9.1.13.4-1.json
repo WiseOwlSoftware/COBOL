@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.4-1",
+ "section": "9.1.13.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "I-O status",
+ "rule-digest": "490fead5c8fb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#AtEnd",
+ "test-ref": "conformance:cases/9.1.11-File-position-indicator/pb336_optional_absent_read_46; conformance:cases/9.1.13.4-At-end-condition-with-unsuccessful-completion/pb336_optional_absent_read_46_85; conformance:cases/9.1.13.2-Successful-completion/l1_read_alt_dup_walk; conformance:cases/9.1.13.2-Successful-completion/l1_open_optional_create",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 9.1.13.4 \"a sequential READ statement is attempted for the first time on a file described as optional and the physical file is not present\" -> OK §9.1.13.4 1)). a) end of file: every connector's no-next-record arm returns AtEnd and invalidates the FPI (§14.9.30.4 GR24 b). b) PREVIOUS at the beginning: SequentialConnector target<1 arm, keyed SelectSequentialRecord none. c) FileConnector.SequentialReadGuard returns '10' for OptionalAbsent AFTER the GR21 '46' poison test, so only the FIRST sequential READ gets '10' (kb/Work PB336 landed; the ordering is pinned by unit ReadPreconditionOrderDriftTests). Probes: iostat-seq OA-R1=10 then OA-R2=46; iostat-ix SR-EOF=10; iostat-rel LR=10 at end. Where a failed START/random READ precedes the first sequential READ of an absent optional file, the READ answers '46' (probe O-SREAD=46): both values apply and §9.1.13.1 lets the implementor choose (cite.py --check 9.1.13.1 \"If more than one value applies, the implementor determines which of the applicable values to place in the I-O status\" -> OK), and §14.9.30.4 GR21 (cite.py OK) states the '46' as the statement's own rule. Goldens are spec-derived (l1_read_alt_dup_walk A5/B5=10 for NEXT/PREVIOUS). || Editions (adjudicator, verbatim): 85,2002,2014,2023 (arm b PREVIOUS: 2002+, plus COBOL-85 OPEN REVERSED at 85 via MovesBackward)",
+ "state": "OK"
+}

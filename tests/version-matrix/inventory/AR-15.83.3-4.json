@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.83.3-4",
+ "section": "15.83.3",
+ "kind": "AR",
+ "ordinal": 4,
+ "subject": "SMALLEST-ALGEBRAIC function",
+ "rule-digest": "d56c0aba2722",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindAlgebraicFold",
+ "test-ref": "conformance:cases/15.43.3-Argument-rules/pb122_smallest_algebraic_float; conformance-test:IntrinsicFunctionDifferentialTests.Algebraic_SmallestFloat_FoldsToCarrierSubnormal",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED (kb/Work PB122): the r4 half-divergence is closed by REMOVING the restriction rather than conditioning it - A.1 item 180's documented determination is now 'no restriction beyond rules 2 and 3' (CONFORMANCE.md rewritten; the old rationale confused ULP-of-a-value with the format minimum 15.83.1 asks for). No conforming program is rejected under any mode; strictly more legal source is accepted; the fixed-point 10^(-scale) fold is unchanged.",
+ "state": "OK"
+}

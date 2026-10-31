@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.5.3-4",
+ "section": "12.4.5.5.3",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "General",
+ "rule-digest": "28d8c9eb6530",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#KeyedAccess",
+ "test-ref": "conformance:cases/12.4.5-File-control/l1c12_access_mode_random_dynamic",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: \"If the access mode is dynamic, records in the file may be accessed sequentially, randomly, or both.\" (cite.py --check 12.4.5.5.3 -> OK §12.4.5.5.3 4)). Probes at --std 85 and 2023: INDEXED DYNAMIC -- random WRITEs out of key order succeed (C1,A3,B2 status 00), READ KEY IS IXD-KEY='B' -> B2 00, then READ NEXT -> C1 00 (gA.cob); RELATIVE ACCESS IS DYNAMIC -- RK=2 random READ -> R2 00, READ NEXT -> R5 00 with RK updated to 05 (gB.cob). Both sequential and random access, mixed on one open, work for both keyed organizations. No spec-derived golden cited. [registrar 14a — editions as adjudicated: 1985, 2002, 2014, 2023 (Annex E lists no substantive change to the ACCESS MODE clause)]",
+ "state": "OK"
+}

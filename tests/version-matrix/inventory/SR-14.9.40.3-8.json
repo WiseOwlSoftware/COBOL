@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.40.3-8",
+ "section": "14.9.40.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "SORT statement",
+ "rule-digest": "e75720871a44",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortMapIoFiles; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveFile",
+ "test-ref": "conformance:cases/13.4.5-File-description/pb1171-sort-merge-report-file",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1171 LANDED (wave 68 Y). SR8 'File-name-2 and file-name-3 shall be described in a file description entry that is not for a report file and is not a sort-merge file description entry.' (cite.py OK 14.9.40.3 8)). SortMapIoFiles resolves each USING / GIVING name through ResolveFile with this sentence as the statement rule, so a report file is COBOL2577 naming SR8 (probes s8grp SORT … GIVING RPF and s8urp USING RPF were rc 0); the sort-merge half stays the SD refusal (COBOL1757). An undeclared USING / GIVING name is now the ONE §8.4.2.1 verdict (COBOL1639) rather than a private 'is not declared' message.",
+ "state": "OK"
+}

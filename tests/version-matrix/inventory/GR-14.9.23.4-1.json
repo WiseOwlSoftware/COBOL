@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.23.4-1",
+ "section": "14.9.23.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "INVOKE statement",
+ "rule-digest": "b50f98249abc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitMethod; src/WiseOwl.Cobol.Runtime/Control/CobolObject.cs#RequireNonNull",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb36_module_name_invoke_activation",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'The instance of the program, function, or method that executes the INVOKE statement is the activating runtime element.' (cite.py --check 14.9.23.4 'is the activating runtime element' -> GR1 OK). The method activation pushes a module frame whose activator is the element that executed the INVOKE (OoEmitter.EmitMethod: __ms.Push ... '§15.65.4 r5 — INVOKE is an activation'); the golden pins I-ACT=[PB36MODNAME] for a program's INVOKE and D-ACT=[SHOW] for a method's INVOKE of another method. The both-elements checking gates of GR7c (ExceptionConditionConformanceTests.OoUniversal_EnabledInActivatorOnly_StopsWithoutAttributingTheCondition) read the same activator/activated pair. || editions as adjudicated: 2002, 2014, 2023 (INVOKE / OO is a COBOL-2002 introduction)",
+ "state": "OK"
+}

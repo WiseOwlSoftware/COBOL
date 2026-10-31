@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.2.2-12",
+ "section": "14.2.2",
+ "kind": "SR",
+ "ordinal": 12,
+ "subject": "Procedure division structure",
+ "rule-digest": "aac3f94b2af7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#methodDefinition; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#procedureDivision",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/l1c22-format3-in-program; conformance:cases/14.2-Procedure-division-structure/l1c22-format3-in-method",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§14.2.2 SR12 (cite.py --check 14.2.2 \"Format 3 may be specified in a source element if and only if that source element is a factory definition, an instance definition, or an interface definition, but not in a method definition\" -> OK §14.2.2 12)). Structural: Format 3 (PROCEDURE DIVISION. methodDefinition*) exists only in the CobolOO.g4 FACTORY / OBJECT / INTERFACE productions; a method's procedureDivision is the Format 1/2 rule. Probes: a METHOD-ID nested inside a method's PD (b2/sr12_nested_method.cob) and inside a PROGRAM's PD (b2/sr12_prog_method.cob) are both refused (COBOL0001 parse errors - loud, though not a rule-naming diagnostic). Interface/object Format 3 accepted (b5/gr2_oo.cob, b2/sr13_ifacestmts.cob).",
+ "state": "OK"
+}

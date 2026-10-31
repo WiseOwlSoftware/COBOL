@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.23.3-12",
+ "section": "14.9.23.3",
+ "kind": "SR",
+ "ordinal": 12,
+ "subject": "INVOKE statement",
+ "rule-digest": "c36e126fa43f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ParameterConformance.cs#ScreenBitAlignment; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoScreenReturning; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindUniversalInvoke",
+ "test-ref": "conformance:cases/14.9.23-INVOKE/pb1137-invoke-bit-unaligned",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1137 (landed w61j). 'If identifier-3 or identifier-4 references a bit data item, it shall be described such that it is aligned on a byte boundary ...' (cite.py --check 14.9.23.3 OK, SR12). Every INVOKE BY REFERENCE argument (typed, bare-assumed or explicit, and universal) and the RETURNING item now run the ONE byte-boundary proof CALL (14.9.4.3 SR6/SR8) and the function-identifier (8.4.3.2.3 SR14) run: ParameterConformance.ScreenBitAlignment -> COBOL2453. Negative pb1137-invoke-bit-unaligned: B2 starts at bit 1 of BG (8.5.1.6.3), refused at 2002/2014/2023.",
+ "state": "OK"
+}

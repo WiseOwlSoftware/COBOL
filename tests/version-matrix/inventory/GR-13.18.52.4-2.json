@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.52.4-2",
+ "section": "13.18.52.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "SIGN clause",
+ "rule-digest": "695c01719bec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritSignWalk; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ReportItemDescription.cs#EnclosingReportItem",
+ "test-ref": "conformance:cases/13.18.52-SIGN/pb493_report_group_sign_inherited",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB493 (landed, wave 20261032). The refuted REPORT SECTION half is fixed: a report entry inherits its IMMEDIATELY enclosing entry's own clause, else what that entry inherited (EnclosingReportItem), so a subordinate group's clause takes precedence for its subtree by construction, the same shape as the data division's InheritSignWalk. Golden 2002/pb493_report_group_sign_inherited: level 1 SIGN TRAILING SEPARATE over a LINE entry with SIGN LEADING SEPARATE prints `-005` on that line and `005-` on the sibling LINE with no clause (GR2), and an elementary entry's own TRAILING clause prints `005-` inside the LEADING line (GR3).",
+ "state": "OK"
+}

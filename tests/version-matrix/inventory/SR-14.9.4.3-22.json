@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.4.3-22",
+ "section": "14.9.4.3",
+ "kind": "SR",
+ "ordinal": 22,
+ "subject": "CALL statement",
+ "rule-digest": "1f062b8e2c76",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ValueClassScreen",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb6-call-by-value-alphanumeric; conformance:cases/14.9.4-CALL/pb132-call-byvalue-index-name; conformance:cases/14.9.4-CALL/pb132-call-byvalue-implied-class",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB132): both arms of the rule's own disjunction now run ONE screen (ValueClassScreen) - the EXPLICIT BY VALUE phrase (classifying BoundIndexRef as class index, which slipped the old BoundNumRef-only guard and let an index-name pass by value) and the IMPLIED side ('or its corresponding formal parameter'), where a keyword-less Format-2 argument whose formal is BY VALUE (GR9 b, resolved through PB131's callee table) meets the same class law. --permissive downgrades to a warning on both arms identically.",
+ "state": "OK"
+}

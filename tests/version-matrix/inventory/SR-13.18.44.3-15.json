@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.44.3-15",
+ "section": "13.18.44.3",
+ "kind": "SR",
+ "ordinal": 15,
+ "subject": "REDEFINES clause",
+ "rule-digest": "a43ce7451f46",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveRedefines; src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.RedefinesEntry.cs#ScreenRedefinesEntry; src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#StartBitOf",
+ "test-ref": "conformance:cases/13.18.44-REDEFINES/pb1280-redefines-character-over-mid-byte-bits; conformance:cases/13.18.44-REDEFINES/pb1280-redefines-aligned-over-mid-byte-bits; conformance:cases/8.4.2.2-Qualification/pb1280_redefines_entry_rules_legal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1280 (wave 1011 B2). cite.py --check 13.18.44.3 'The description of the subject of the entry shall be such that its required alignment is the same as the alignment' OK SR15. Determination: the subject's required alignment is a byte boundary unless it is a bit item placed by 8.5.1.6.3 rule 1 (the next bit position); a subject that needs a byte boundary over a data-name-2 that begins mid-byte (BitLayout.StartBitOf) has no storage association 13.18.44.4 GR1 can make ('starts at the first bit of the data item referenced by data-name-2'); COBOL2739. A bit-aligned subject fits any bit; a character subject over a bit item that begins a byte is legal (positive golden).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.1.3-11",
+ "section": "8.4.3.1.3",
+ "kind": "SR",
+ "ordinal": 11,
+ "subject": "Identifier",
+ "rule-digest": "e99598e64e46",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#dataReference; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#LinageFileOf",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/l1c15_linage_counter_qualified",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR11 (cite.py --check 8.4.3.1.3 11) OK): qualified-linage-counter is defined in 8.4.2.2 (LINAGE-COUNTER [ {OF|IN} file-name ]). Grammar arm `LINAGE_COUNTER ((OF | IN) cobolWord)?`; LinageFileOf resolves the file. Probe l5.cob (--std 85): two LINAGE files, 3 and 1 WRITEs: MOVE LINAGE-COUNTER OF F1 / IN F2 -> 04 / 02 (each file's own counter). The run-time abort of this identifier in string contexts is recorded against FMT-8.4.3.1.2 (it is the operand binding, not the qualification this rule defines). Probes under out/probe/ident with the pinned cobol.exe. [code-location note: (LINAGE_COUNTER arm)] || editions as written by the adjudicator: 1985, 2002, 2014, 2023",
+ "state": "OK"
+}

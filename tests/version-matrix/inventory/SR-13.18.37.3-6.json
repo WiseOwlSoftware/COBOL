@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.37.3-6",
+ "section": "13.18.37.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "NEXT GROUP clause",
+ "rule-digest": "8531250d19f2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindNextGroupClauses; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#MinimumLastLine",
+ "test-ref": "conformance:cases/13.18.37-NEXT-GROUP/pb957-next-group-report-heading-absolute; conformance:cases/13.18.37-NEXT-GROUP/pb957-next-group-body-outside-region; conformance:cases/13.18.37-NEXT-GROUP/pb957-next-group-page-footing-absolute",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB957. a) RH: integer-1 above the minimum last line and below FIRST DETAIL; b) body: FIRST DETAIL <= integer-1 <= FOOTING; c) PF: integer-1 above the minimum last line — each witnessed by its own negative on COBOL2284. The minimum last line number is the GR5/GR7 placement over the group's unconditional lines (PRESENT WHEN / OCCURS DEPENDING lines may be absent).",
+ "state": "OK"
+}

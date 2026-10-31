@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.18.3-2",
+ "section": "7.3.18.3",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "LISTING directive",
+ "rule-digest": "c7fbe9db35ec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Process; src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveStateRegistry.cs#ListingDirective2002; src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#listing-directive-2002",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-7.3.18.3-2",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'The default LISTING directive is '>>LISTING ON'.' cite.py --check 7.3.18.3 -> OK §7.3.18.3 2). The CLI (cobol --help) has no listing option and a case-insensitive search of src/WiseOwl.Cobol.* for a listing producer finds none; DirectiveStateRegistry records 'NONE HELD: ... this compiler produces none' and docs/CONFORMANCE.md (recognized-and-ignored directives paragraph) says 'no source listing is produced, so listing on/off and page ejects are inert'. GR1 ('If the compiler does not produce a source listing, the LISTING directive shall be ignored. Otherwise, the following general rules apply.') makes this rule apply only to a compiler that produces a listing, so it is satisfied vacuously; it becomes live the day a listing is added. Probe out/probe/listing-directive/lst{2002,2014,2023}.cob: >>LISTING OFF (twice), >>LISTING ON, bare >>LISTING, >>LISTING OFF interleaved with DATA/PROCEDURE lines; --std 2002/2014/2023 --run each prints A=1 / B=2 with no diagnostic, i.e. every line after OFF is still compiled and the directive has no effect. No test can observe a listing that does not exist, so test-ref is empty; the vacuous conformance rests on GR-7.3.18.3-1. || editions (adjudicator): 2002, 2014, 2023 (the 2023 Annex E does not list the LISTING directive as a change, so it predates 2023; the 2002 introduction of the Clause-7 directive facility is the project VCR's derivation and was not re-derived here from a 2002 annex) || code-location detail: src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Process (directive consume + CompilerDirectiveCatalog.CheckOperand); src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveStateRegistry.cs#ListingDirective2002 row; src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#listing-directive-2002",
+ "state": "OK"
+}

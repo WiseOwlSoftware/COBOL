@@ -676,13 +676,24 @@ def removal_of(path, removed, after):
 
 
 def data_files(rows):
-    """The DATA files the drift tests read by name — every non-C# file a row's paths name exactly — each with the
-    classes that govern it specifically: the registers that cite tree symbols (the traceability inventory's
-    code-locations and test-refs, docs/CONFORMANCE.md's pins) and the tests that check those citations resolve."""
+    """The DATA files the drift tests read by name — every non-C# file a row's paths name exactly, and every JSON file under a
+    directory they name (the traceability inventory is one file per row, kb/Work PB4148) — each with the classes that
+    govern it specifically: the registers that cite tree symbols (the inventory's code-locations and test-refs,
+    docs/CONFORMANCE.md's pins) and the tests that check those citations resolve."""
     out = {}
     for p in sorted({p for r in rows for p in reads(r) if not p.endswith(".cs")}):
         if (ROOT / p).is_file():
             out[p] = sorted(r["test"] for r in governing(rows, p)[0])
+        elif (ROOT / p).is_dir():
+            # A register kept one row per file is JSON (corpora, goldens and build outputs are not registers). The files of
+            # one directory sit under the same read paths at one depth, so the first stands for them all.
+            by_parent = {}
+            for f in sorted((ROOT / p).rglob("*")):
+                rel = f.relative_to(ROOT).as_posix()
+                if f.is_file() and rel.endswith(".json"):
+                    if f.parent not in by_parent:
+                        by_parent[f.parent] = sorted(r["test"] for r in governing(rows, rel)[0])
+                    out.setdefault(rel, by_parent[f.parent])
     return out
 
 

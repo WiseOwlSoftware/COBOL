@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.6.4.4-5",
+ "section": "12.4.6.4.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "SAME clause",
+ "rule-digest": "4c2ecd3792f4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#BindIoControl",
+ "test-ref": "conformance:cases/12.4.6.4-SAME/l1c28_same_sort_merge_area",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The existing golden cites GR5: F3/F4 are closed during every SORT and read back intact afterwards, and the sorts are correct.",
+ "state": "OK"
+}

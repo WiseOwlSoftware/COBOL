@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.35.3-9",
+ "section": "14.9.35.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "REWRITE statement",
+ "rule-digest": "d6d62157f88f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#Rewrite; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs",
+ "test-ref": "conformance:cases/14.9.32-RELEASE/pb348-rewrite-from-integer-function",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"If identifier-1 references a function and the FILE phrase is not specified, identifier-1 shall reference an alphanumeric, boolean, or national function.\" FromPhraseRules.Rewrite carries the WIDER admitted set (alphanumeric, boolean, national) -> COBOL1914 otherwise. Probe pk.cob: `FROM FUNCTION INTEGER(2.5)` -> error COBOL1914 citing 14.9.35.3 SR9; `FROM FUNCTION UPPER-CASE(\"ab\")` accepted; pj.cob `REWRITE R1 FROM FUNCTION BOOLEAN-OF-INTEGER(5, 8)` into a boolean record compiles clean (the boolean half REWRITE admits and WRITE/RELEASE do not). The negative fixture pins the rejection half at all four editions; the boolean-admitted half has no positive fixture. cite.py --check 14.9.35.3 SR9 -> OK. [editions as adjudicated: 2023; ISO 1989:2023 Annex E lists no 2014->2023 change to this rule (E.3.3 item 41 touches GR10 only), so 2014 identically; the 1985/2002 wording is not derivable from the 2023 text]",
+ "state": "OK"
+}

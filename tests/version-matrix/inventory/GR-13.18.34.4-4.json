@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.34.4-4",
+ "section": "13.18.34.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "LINAGE clause",
+ "rule-digest": "8ad74b59f9c6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs",
+ "test-ref": "conformance:cases/13.18.34-LINAGE/pb523_linage_margins_on_the_medium; conformance:cases/13.18.34-LINAGE/pb523_linage_margins_on_the_medium_85; conformance-test:LinageConformanceTests.Bytes_TopAndBottomMarginsAreLinesOfTheLogicalPage; conformance-test:LinageConformanceTests.Bytes_AdvancingPage_RepositionsToTheNextLogicalPage_NotAFormFeed; conformance-test:LinageConformanceTests.Bytes_LineSequentialLinageFile_GetsTheSameMargins",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB523 LANDED - THE TOP MARGIN IS A LINE OF THE LOGICAL PAGE AND REACHES THE MEDIUM. _top is read by EmitTopMarginIfPending, which every travel (PositionOnLogicalPage) and every presentation (Present) calls FIRST, so no record can reach a page body without the top margin ahead of it and no write arm can be added that skips it. MEASURED on LINES AT TOP 3 with page size 2: the first record lands on physical line 5 (three margin lines, then body line 1, then the AFTER ADVANCING 1 travel to body line 2) and the record after the page wrap on physical line 11, three lines past the start of page 2. The ADVANCING PAGE arm is fixed with it: 14.9.51.4 GR25 g) requires the repositioning to be 'to the first line that may be written on the next logical page as specified in the LINAGE clause', so BeginNextLogicalPage runs there too and the bare form feed is gone (GR25 h) is the NO-LINAGE arm, and Advance's form feed is now reachable only from it) - Bytes_AdvancingPage_RepositionsToTheNextLogicalPage_NotAFormFeed pins eight leading blank lines and no 0x0C. Both WRITE arms were fixed, not one: the LINE SEQUENTIAL twin (Bytes_LineSequentialLinageFile_GetsTheSameMargins) had emitted its record and a bare newline, which is the two-arm dispatch this repository's rule 4 sweep looks for. THE ONE LATITUDE, and the rule that grants it: the margin is materialized at the first thing written on the page rather than at OPEN OUTPUT, which 14.9.27.4 GR18 permits ('the positioning of the output medium with respect to physical page boundaries is implementor-defined following the successful execution of the OPEN statement, whether or not the LINAGE clause is specified'); it makes an OPEN OUTPUT + CLOSE with no WRITE leave an empty file (14.9.51.4 GR12 released nothing) and is byte-identical to the eager reading whenever any record is presented. GnuCOBOL defers it the same way. NIST corroboration, independent of this implementation: SQ201M's own visual-check text asks for 50 body lines 'FOLLOWED BY 16 TOP AND BOTTOM BLANK LINES' on LINAGE 50 TOP 10 BOTTOM 6, SQ209M's for 'TWO BLANK LINES SHOULD FOLLOW ... IT SHOULD BE THREE LINES BELOW THE PREVIOUS LINE' on TOP 2 BOTTOM 0, and SQ210M's for pages 'SEPARATED BY 5 BLANK LINES' on TOP 5 - all three now hold and none did before.",
+ "state": "OK"
+}

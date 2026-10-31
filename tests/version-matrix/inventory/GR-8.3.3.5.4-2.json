@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.3.3.5.4-2",
+ "section": "8.3.3.5.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "National literals",
+ "rule-digest": "70b02872227a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#ClassOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NationalLiteralOperand; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundStringLiteral",
+ "test-ref": "conformance:cases/8.3.3.5-National-literals/l1c19_national_literal_quotes_class; conformance:cases/8.3.3.5-National-literals/l1c19-national-literal-not-alphanumeric; conformance:cases/8.3.3.5-National-literals/l1c19-national-hex-literal-not-alphanumeric",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"National literals are of the class and category national\" (cite.py --check 8.3.3.5.4 -> OK, rule 2). ClassOf maps both prefixes N and NX to LiteralClass.National, NationalLiteralOperand binds Category = PicCategory.National, ConcatOperand keeps National. Probe e1 (--std 2002/2014): MOVE N\"AB\" TO PIC X and MOVE NX\"0041\" TO PIC X both refused COBOL0819 (national sender to alphanumeric receiver, Table 16) - the category is observed for both formats. No test found that asserts class/category for BOTH formats from this rule (NationalLiteral_InNumericContext_Rejects0844 pins only the not-numeric half of F1), so test-ref left empty. [editions as adjudicated: COBOL-2002, COBOL-2014, COBOL-2023 (national literals are a COBOL-2002 introduction; absent from COBOL-85, where the construct is rejected COBOL0900 via Constructs.NationalData2002)]",
+ "state": "OK"
+}

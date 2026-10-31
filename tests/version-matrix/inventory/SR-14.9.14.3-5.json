@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.14.3-5",
+ "section": "14.9.14.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "EXIT statement",
+ "rule-digest": "5297b2433db9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcBindRaising; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#RaisingObjectMismatch; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#InterfaceConformsTo",
+ "test-ref": "conformance-test:RaisingPhraseTupleTests.ExitProgramRaising_FactoryOnBothEnds_Compiles; conformance-test:RaisingPhraseTupleTests.ExitProgramRaising_FactoryPresenceDiffers_4211; conformance:cases/14.9.14-EXIT/pb814-raising-interface-not-conforming",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB815.md landed w46. EXIT PROGRAM RAISING identifier-1 binds through the SAME EcBindRaising / RaisingObjectMismatch as GOBACK (EcRaiseSite.Exit carries the 14.9.14.3 ordinals, so the message cites SR5a/b/c/d): a) class + FACTORY sameness (RaisingPhraseTupleTests.ExitProgramRaising_*); b) interface conformance (the shared check; GOBACK negative); d) universal. DETERMINATION c) ACTIVE-CLASS: no reachable subject for EXIT PROGRAM - SR7 confines EXIT PROGRAM to a program procedure division and 13.18.60.3 SR16 confines ACTIVE-CLASS to a factory/instance definition or a method's linkage/local-storage, so no EXIT-PROGRAM-specific screen is written; the shared walk answers c) for GOBACK and EXIT METHOD. retired-witness: conformance-test:RaisingPhraseTupleTests.ExitProgramRaising_FactoryPresenceDiffers_0849 (renamed: kb/Work PB1784 branch review R2-1 - the RAISING-operand rule is its own descriptor COBOL4211, no longer the A.4.10 decline 0849).",
+ "state": "OK"
+}

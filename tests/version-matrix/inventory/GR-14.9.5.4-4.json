@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.5.4-4",
+ "section": "14.9.5.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "CANCEL statement",
+ "rule-digest": "b320a1c22b30",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode",
+ "test-ref": "conformance:cases/11.10-PROGRAM-ID/pb154_cancel_cascade; unit:CancelCascadeOrderTests.Cancel_CascadesOverContainees_InReverseSourceOrder_BeforeTheContainer",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB234): the reverse-SOURCE-ORDER half is now RUN-verified. The order among sibling containees has no COBOL-printable witness (GR9's implicit closes run no USE procedure; the 14.6.2.3.2 resets are assignments), so CancelCascadeOrderTests observes it at the one surface that performs it - ProgramTable's cascade on a real run unit whose programs were really CALLed (GR7), through each node's GR9 close hook and GR3 static-reset hook: CANCEL OUTER over containees A, B(B1), C yields C, B1, B, A, then OUTER. pb154_cancel_cascade still runs the cascade both ways (the 14.9.18 GR2 implicit cancel and an explicit CANCEL with a GR7-skipped never-called containee).",
+ "state": "OK"
+}

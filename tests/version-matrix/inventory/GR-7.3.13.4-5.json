@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.13.4-5",
+ "section": "7.3.13.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "EVALUATE directive",
+ "rule-digest": "3db83c9988e4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/l1c07_evaldir_fmt1_other_nomatch",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR5 (cite.py --check 7.3.13.4 5) OK): if no WHEN is TRUE, text-2 of WHEN OTHER is included and all WHEN text-1 omitted. Render's WHEN-OTHER arm: Emitting = ParentActive && !BranchTaken. Probes: >>EVALUATE 5 / WHEN 1 / WHEN OTHER -> GR5-OK only; a matched WHEN suppresses OTHER (GR4 probes); a nested EVALUATE's OTHER inside an omitted enclosing WHEN stays omitted (p2 NEST). No golden takes the WHEN OTHER branch of a Format-1 >>EVALUATE (directive_expressions takes MID, pb725 takes THREE), so test-ref empty. Probe dir out/probe/evaldir2 (pinned cobol.exe, --std 2023; p1 re-run at --std 2002 and 2014 with identical output; --std 85 rejects >>EVALUATE with COBOL0900). || editions (adjudicator): 2002, 2014, 2023 (the 7.3 directive facility is absent from 1985; Annex E.2 item 8 records the 2023 rewording of GR6/GR10 only)",
+ "state": "OK"
+}

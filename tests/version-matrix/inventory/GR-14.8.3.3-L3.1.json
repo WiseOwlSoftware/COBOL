@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.8.3.3-L3.1",
+ "section": "14.8.3.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Returning items",
+ "rule-digest": "a9b2b7c4f1a6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/LocaleSymbol.cs#SameExternalIdentificationAs; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#CallReturningViolation; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#ReturningConformance; src/WiseOwl.Cobol.Compiler/Oo/ActivationDescriptions.cs#Of",
+ "test-ref": "conformance:cases/9.3.5.3-Parametric-polymorphism/w61b-pb1166-locale-identification-as-written",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1166 landed (w61b): the LOCALE phrase compares the external identification AS WRITTEN (literal values ordinal, a word case-insensitively, §8.1.3.2 GR3 a)); 'en-US' vs 'EN_us.UTF-8' is COBOL0828 although both select en-US at run time; SIZE and the named/unnamed legs unchanged. retired-witness: src/Cobol.Net.Compiler/Oo/OoConformance.cs#DescriptionMismatch (kb/Work PB3101 (wave 1082): the DataItem comparator family is deleted (OoConformance.DescriptionMismatch, StrongTypeMismatch, AsIfElementaryGroupMismatch, IsCategoryAlphanumeric, PictureClauseIdentity.Mismatch, ObjectRefDescriptor.SameDescriptionAs); every activation and pair-mode question describes its items through ActivationDescriptions and asks ActivationRelations (CallArgumentViolation / CallReturningViolation / MatchViolation / SignatureDifference), the PICTURE identity entering through PictureClauseIdentity.Key)",
+ "state": "OK"
+}

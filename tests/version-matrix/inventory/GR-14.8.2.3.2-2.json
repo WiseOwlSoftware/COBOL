@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.8.2.3.2-2",
+ "section": "14.8.2.3.2",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Elementary items",
+ "rule-digest": "effe4d436ffa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ParameterConformance.cs#CheckArgument",
+ "test-ref": "conformance:cases/14.8.2.3.2-Elementary-items-passed-by-reference/pb1115-function-arg-interface-mismatch",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1115 landed (w61h). Rule 2 (cite.py --check 14.8.2.3.2 'described with an interface-name, the corresponding formal parameter or argument shall be described with the same interface-name' -> OK §14.8.2.3.2 2)). Function arm now asks the shared comparator at bind. Measured: interface-named formal with a class-typed argument (the class implements the interface) -> COBOL2470.",
+ "state": "OK"
+}

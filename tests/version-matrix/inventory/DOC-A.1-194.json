@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-194",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 194,
+ "subject": "Subscripts (mapping indexes to occurrence numbers)",
+ "rule-digest": "4fe89121e12a",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-194; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Visit; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundIndexRef",
+ "test-ref": "conformance:cases/13.18.60-USAGE/pb215_index_windows",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Voluntary row (A.1 194 internal procedure need not be documented). cite.py --check 8.4.2.3.4 'The mapping of the value of the index referenced by index-name-1 to an occurrence number is defined by the implementor' -> OK §8.4.2.3.4 1) c). NumericRenderer.Visit(BoundIndexRef) returns the index field itself ('an index IS its 1-based occurrence number'); BoundTree.BoundIndexRef 'the C# long index field'. Probe probe/p194/ix.cob --std 85: E(I) E(I+1) E(I-2) -> CDA; SET N TO I -> 3; SET J TO I, UP BY 2 -> E. Golden pb215_index_windows: SET IX TO 3 / SET IDX TO IX / SET IX TO IDX -> REL=EQ, E(IX + 1) -> SUB=D. Owning note: kb/Work/PB1535.",
+ "state": "OK"
+}

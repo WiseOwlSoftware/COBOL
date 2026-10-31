@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.2.3-2",
+ "section": "8.4.3.2.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Function-identifier",
+ "rule-digest": "88a428df1301",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/pb969_empty_argument_list; conformance:cases/8.4.3.2-Function-identifier/pb969_function_pointer_empty_arguments; conformance:cases/8.4.3.2-Function-identifier/kof-undeclared-intrinsic-args; conformance:cases/8.4.3.2-Function-identifier/kof-undeclared-intrinsic-bare",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "FUNCTION may be omitted for a function-prototype-name (2002), a function-pointer-name (2014) and a REPOSITORY-declared intrinsic (ALL INTRINSIC or by name), with and without an argument list - including the EMPTY list F() (kb/Work PB969); otherwise FUNCTION is required (COBOL1543). Below 2002 there is no REPOSITORY, so the omission cannot arise.",
+ "state": "OK"
+}

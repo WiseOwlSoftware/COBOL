@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-111",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 111,
+ "subject": "LEAP-SECOND directive (whether a value greater than 59 seconds may be reported and, if so, the maximum number of seconds",
+ "rule-digest": "6a0562cd0d9e",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-111; src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#Time; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#CurrentDate; src/WiseOwl.Cobol.Frontend/Preprocessor/LeapSecondDirectiveProcessor.cs#LeapSecondDirectiveProcessor; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#FormattedCurrentDate; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#ProgramEmitter",
+ "test-ref": "conformance-test:LeapSecondReportedSecondsPinTests.ReportedSeconds_On_LastTickBeforeLeapSecond_NeverExceeds59; conformance-test:LeapSecondReportedSecondsPinTests.ReportedSeconds_ImpliedOn_BareDirective_LastTickBeforeLeapSecond_NeverExceeds59; unit:WhenCompiledStampTests.WhenCompiled_LeapSecondOn_LastTickBeforeLeapSecond_Bakes59; unit:WhenCompiledStampTests.WhenCompiled_LeapSecondImpliedOn_BareDirective_LastTickBeforeLeapSecond_Bakes59",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "A.1 item 111 (cite OK) is documented in CONFORMANCE.md as 'never >59, maximum 59'. The observable is the ON-mode pins for every source A.1 111 cites: run time through WISEOWL_COBOL_CLOCK, and the WHEN-COMPILED bake (15.99 Returned value rule 1, cite OK) through IntrinsicBinder.CompileClock. Both expect 59 at the tick before a leap second. The CONFORMANCE.md Test cell is filled only once the Unit fact is in the tree.",
+ "state": "OK"
+}

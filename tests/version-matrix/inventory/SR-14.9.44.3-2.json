@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.44.3-2",
+ "section": "14.9.44.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "SUBTRACT statement",
+ "rule-digest": "a11e62bb2996",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#RefExpr; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ScreenResultant; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindSubtract",
+ "test-ref": "conformance:cases/14.9.44-SUBTRACT/l1-subtract-sr2-sending-alphanumeric; conformance:cases/14.9.44-SUBTRACT/l1-subtract-sr2-receiver-numeric-edited; conformance:cases/14.9.44-SUBTRACT/l1-subtract-sr2-format2-minuend-alphanumeric",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR2 heads FORMATS 1 AND 2, so its two identifiers occupy THREE positions on three binder paths, one fixture each: format-1 identifier-1 (alphanumeric, operand-list walk -> COBOL0844), format-1 identifier-2 (numeric-edited in-place receiver, Receivers/ScreenResultant(editedOk:false) -> COBOL1675 -- excluded because SR4 spells that category out and SR2 does not), and format-2 identifier-2 (the SENDING minuend, ArithmeticBinder.BindSubtract's host.Expr.BindExpr(from) -> COBOL0844). The third was added on refuter correction; without it the row rested on two of the three positions the rule names.",
+ "state": "OK"
+}

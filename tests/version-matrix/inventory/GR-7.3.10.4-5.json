@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.10.4-5",
+ "section": "7.3.10.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "COBOL-WORDS directive",
+ "rule-digest": "c4b6ec5fba90",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/ReservedWords.cs#Compose; src/WiseOwl.Cobol.Editions/CobolWordsMap.cs#Reserved; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#Run",
+ "test-ref": "conformance:cases/7.3.10-COBOL-WORDS/cobol-words-reserve-rejects",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "GR5 'the content of literal-6 shall not be used as a user-defined word within this compilation group' (cite.py OK §7.3.10.4 5)). ReservedWordSet.Compose adds CobolWordsMap.Reserved to the §8.9 funnel, so every user-defined-word position rejects it with COBOL0901. Probed beyond the data-name golden: RESERVE \"ZQX\" then paragraph-name ZQX -> COBOL0901; RESERVE \"ZQY\" then PROGRAM-ID. ZQY -> COBOL0901. Case-insensitive via OrdinalIgnoreCase. || editions (adjudicator): 2023 only (new in COBOL-2023: Foreword list 'Additional compiler directives were added: COBOL-WORDS directive'; Annex E.3.3 item 12, cite.py OK §E.3.3 12)); below 2023 the directive word is COBOL0900",
+ "state": "OK"
+}

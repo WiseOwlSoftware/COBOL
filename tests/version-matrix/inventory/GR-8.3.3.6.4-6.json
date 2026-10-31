@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.3.3.6.4-6",
+ "section": "8.3.3.6.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "Figurative constant values",
+ "rule-digest": "61feedf29584",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/StorageByte.cs#NativeCollatingSequence; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#FillChar",
+ "test-ref": "conformance:cases/8.3.3.6-Figurative-constant-values/pb1759_high_value_is_the_highest_native_character; conformance:cases/8.3.3.6-Figurative-constant-values/pb1759_high_value_record_round_trip_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1093 -> PB1759 LANDED (owner decision R52): HIGH-VALUE is U+FFFF, the highest of the 65,536 native characters, in both classes and at every site (NativeCollatingSequence.HighValue, read by FigurativeConstants.FillChar/Fill, AlphabetDef/NationalAlphabetDef.HighValue, LiteralEnvironment, AlphabetFigurative, the runtime collation defaults). cite.py --check 8.3.3.6.4 \"that has the highest ordinal position in the runtime collating sequence\" -> OK 6). Golden pins: ORD(HIGH-VALUE)=65536, CHAR(20001) < HIGH-VALUE, national HIGH-VALUE = NX\"FFFF\", X\"FF\" is not HIGH-VALUE; a record file round trip keeps HIGH-VALUE through the one-byte medium (the storage-byte law, byte 0xFF <-> U+FFFF, design WISEOWL_COBOL_FILES D29).",
+ "state": "OK"
+}

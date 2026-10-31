@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.14.4-1",
+ "section": "13.18.14.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "COLUMN clause",
+ "rule-digest": "a789812ee06e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportColumnSpec; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportFieldModel; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/l1c03_report_column_absent_not_printed",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'The COLUMN clause defines one or more printable items. If a COLUMN clause is not specified, the items are not printed.' (cite.py --check 13.18.14.4 -> OK §13.18.14.4 1)). Only entries with a COLUMN clause become ReportFieldModel placements; the compose method places only those. Probe p1.cob (2002): a `03 PIC 999 SOURCE WS-X.` entry with no COLUMN on a line alongside `COLUMN PLUS 3 PIC XX VALUE \"QQ\"` printed only '  QQ' (the SOURCE item not printed, and QQ is the line's first printable item at column 3). The VALUE-without-COLUMN shape is separately refused per §13.15.3 SR13 (conformance:cases/13.15-Report-group-description/pb853-report-value-without-column). No spec-derived golden pins the not-printed half; test-needed.",
+ "state": "OK"
+}

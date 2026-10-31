@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.8.2.3.3-L2.1",
+ "section": "14.8.2.3.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Elementary items",
+ "rule-digest": "f85b0fa7919a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#BoundaryItem; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#ArgumentLength; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#TextValue; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#WithPointerContent; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#DescribesOperands; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#CallArgumentViolation",
+ "test-ref": "conformance:cases/14.8.2.3.2-Elementary-items-passed-by-reference/pb165_dynamic_call_description_check; unit:BoundaryItemConformanceTests.Rule1_Elementary_SameLengthOnly_InEveryMode; conformance:cases/14.8.2.3.2-Elementary-items-passed-by-reference/pb165_repository_prototype_description_check",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "14.8.2.3.3 rule 1, the BY CONTENT / BY VALUE twin of 14.8.2.3.2 rule 1 (cite.py --check 14.8.2.3.3 'the formal parameter shall be of the same length as the corresponding argument' OK 1)). The same mechanism as GR-14.8.2.3.2-L2.1, mode-blind for an elementary item: golden cases 3 (BY CONTENT X(4)->X(6)) and 8 (BY CONTENT 9(4)->9(3)) raise EC-PROGRAM-ARG-MISMATCH where they ran silently before; a BY CONTENT group argument follows 14.8.2.2 2) (the rules of a MOVE, no length relation: case 9 conforms). Rule 2's conversions on a function, NESTED or program-specifier lane stay with the binder (case 10 UDF, case 11 NESTED: no exception). kb/Work PB165 w1015w. retired-witness: src/Cobol.Net.Compiler/CodeGen/Verbs/CallEmitter.cs#IsDynamicLane (kb/Work PB165 (w1037a): IsDynamicLane is replaced by CallEmitter.DescribesOperands plus the run-time lane decision in ProgramTable.CallProgram; the unit fact was rewritten over ActivationDescription as Rule1_Elementary_SameLengthOnly_InEveryMode) retired-witness: unit:BoundaryItemConformanceTests.Elementary_SameLengthOnly_ByReferenceAndByContent (kb/Work PB165 (w1037a): IsDynamicLane is replaced by CallEmitter.DescribesOperands plus the run-time lane decision in ProgramTable.CallProgram; the unit fact was rewritten over ActivationDescription as Rule1_Elementary_SameLengthOnly_InEveryMode)",
+ "state": "OK"
+}

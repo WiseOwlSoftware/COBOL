@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.40.3-10",
+ "section": "14.9.40.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "SORT statement",
+ "rule-digest": "872838d78808",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#ScreenSameClauses; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#SameClauses; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#BindIoControl",
+ "test-ref": "conformance:cases/14.9.24-MERGE/pb1139-sort-same-sort-area; conformance:cases/14.9.40-SORT/pb1139-sort-giving-same-area; conformance:cases/14.9.24-MERGE/pb1139_same_clauses_legal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1139 landed: ScreenSameClauses refuses a pair of the SORT's file-names (file-name-1 included) in one SAME SORT AREA or SAME SORT-MERGE AREA clause, and two GIVING files in one SAME AREA clause (COBOL1757 naming SR10); SAME RECORD AREA is not restricted by SR10 (golden 85/pb1139_same_clauses_legal).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.43.4-7",
+ "section": "14.9.43.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "STRING statement",
+ "rule-digest": "189aa1412ff1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitString; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#StringTransfer; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#WriteImage",
+ "test-ref": "conformance:cases/14.9.43-STRING/pb871_dynamic_length_receivers; conformance:cases/14.9.43-STRING/pb1179_string_receiver_arms; conformance:cases/14.9.43-STRING/pb1179_string_into_national_receiver",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1179 (registrar 14c; landed w1018h). GR7: only the referenced portion of identifier-3 changes. The emitter materializes the receiver's CURRENT image, the kernel overwrites only moved positions (ToCharArray, no fill), and WriteImage stores the full image back through the receiver's own store (group image / numeric-display decode / the image writer for an alphanumeric, NATIONAL or USAGE DISPLAY boolean receiver). There is no loud arm: every receiver SR1/SR4/SR5 refuse is rejected at bind, so the run-time stage that mislabelled legal national AND legal display-boolean receivers as an SR1 violation is deleted. Verified: pb871 golden STR1 [XYCDEFGH]; pb1179_string_into_national_receiver A/B/C/G/F (national unwritten positions kept, GROUP-USAGE NATIONAL receiver, national figurative); pb1179_string_receiver_arms C (.XY), E (A2345), H (dynamic national CDEF) and I (boolean B'101' into PIC 1(8) -> 10100000). [editions as adjudicated: 2023 text (ISO/IEC 1989:2023 section 14.9.43); Annex E lists no STRING change 2014->2023; the earlier-edition edge is not derivable in-repo (no 2002/2014 text)]",
+ "state": "OK"
+}

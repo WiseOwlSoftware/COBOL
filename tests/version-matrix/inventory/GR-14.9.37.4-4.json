@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.37.4-4",
+ "section": "14.9.37.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "SEARCH statement",
+ "rule-digest": "8608966e14b2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs",
+ "test-ref": "conformance:cases/14.9.9-CONTINUE/ec_range_search",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Every sentence of GR4 measured. 'Serial, starting from the occurrence number that corresponds to the value of the search index at the beginning of the execution' -- FromStart is false for Format 1, so no reset is emitted (ControlFlowEmitter.cs:383); probe l41_same_table_ix2 starts at 2 and finds occurrence 4. 'Negative, zero, or greater than the highest permissible occurrence number ... unsuccessful ... EC-RANGE-SEARCH-INDEX' -- the guard is `IndexField < 1 || IndexField > bound` and is emitted UNCONDITIONALLY (only the ExceptionState.Set call is checking-gated), so a zero or negative start cannot read a phantom occurrence 0; conformance:cases/14.9.9-CONTINUE/ec_range_search pins both legs (ATEND-LOW / LOW[EC-RANGE-SEARCH-INDEX] and ATEND-HIGH / HIGH[...]). 'The number of occurrences of identifier-1, the last of which is permissible, is specified in the OCCURS clause' -- the bound at :410-412 is a dynamic table's current Capacity, else an occurs-depending table's CURRENT count via RuntimeApi.TableOcc, else the fixed count; probe gr4_odo_bound (OCCURS 1 TO 5 DEPENDING ON WS-N, WS-N cut to 3 after the table was filled) prints ATEND-AS-EXPECTED for a value living at occurrence 4 and ATEND-INITIAL-OUT-OF-RANGE for a start of 4, so the permissible range tracks the depending item, not the maximum. 'Evaluating the conditions in the order they are written' -- probe gr1a_terminates puts the matching arm second and prints ARM-A only. 'The search index is incremented by one occurrence number ... unless the new value ... is outside the permissible range ... EC-RANGE-SEARCH-NO-MATCH' -- pinned by ec_range_search (ATEND-NM / NM[EC-RANGE-SEARCH-NO-MATCH]). GR4 explicitly contemplates the index taking a value outside the range on the failing advance, so the N+1 left behind by an unsuccessful serial search (probe gr4_serial_final_index prints ATEND IX1=06 for OCCURS 5) is CONFORMING here -- it is the FORMAT 2 arm of the same shared loop that is not (finding search-p2-F1). Edition note: the two EC-setting sentences are expressible only from 2002; the serial semantics are 85+ and probe edsweep_85/2002/2014/2023 are byte-identical.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs:407-455 (EmitSearchScan: the bound at :410-412, the initial-index guard at :427-439, the in-order WHEN tests at :442-446, the +1 advance and past-end test at :448-454); the checking gates come from src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs:73-74",
+ "state": "OK"
+}

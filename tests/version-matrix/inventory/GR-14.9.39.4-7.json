@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-7",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "SET statement",
+ "rule-digest": "e47af5f17bdc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetCondition; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSet; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#InitializerFrom",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb555_value_false_phrase; conformance:cases/13.18.63-VALUE/pb455_set_false_group_length; conformance:cases/13.18.63-VALUE/pb560_condition_value_float_and_false_2002; conformance:cases/13.18.63-VALUE/pb560_condition_value_numeric_edited_2023",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB455 + PB561 - LANDED, RE-MEASURED on the wave-42 worktree. GR7 has THREE sentences and all three are now witnessed. (1) THE STORE. `SET condition-name TO FALSE` places literal-4 'according to the rules for the VALUE clause' - the SAME recipe GR6 names, so SetEmitter.EmitSet selects `set.ToTrue ? cond.Values[0].Low : cond.FalseValue!` and hands it to DataEmitter.ValueImageOf -> ValueInitializer.InitializerFrom, one recipe with a selector rather than two stores (kb/Work PB560; ConditionValueRecipeDriftTests pins that the SET emitter spells no part of the recipe). Measured: `01 WF PIC X VALUE \"Y\". 88 WF-YES VALUE \"Y\" WHEN SET TO FALSE \"N\".` + `SET WF-YES TO FALSE` prints WF=N at --std 2023, where the row's own repro used to compile clean and then abort with NotImplementedCobolFeatureException after the program had already produced output. (2) THE GROUP-LENGTH EXCEPTION - 'when the conditional variable is an alphanumeric group item ... to which a table is subordinate, its length is determined as specified in 13.18.38' - is the group-image splice PlaceRenderer.WriteGroupImage already carries: measured on pb455_set_false_group_length, literal-4 \"BBBB\" into a group whose OCCURS 0 TO 4 DEPENDING ON is 2 stores \"BB\". (3) THE ZERO-LENGTH SENTENCE - 'If the length of the conditional variable is zero, the SET statement leaves it unchanged' - measured on the same program at DEPENDING ON = 0, on BOTH arms: the prior content survives. The COBOL-2002 introduction gate is recognition-fired (COBOL0900 at --std 85, pinned by conformance:cases/_unassigned/pb555-set-false-below-2002). Landed by e76c275d0 (kb/Work PB555) plus the group/zero-length witness added here.",
+ "state": "OK"
+}

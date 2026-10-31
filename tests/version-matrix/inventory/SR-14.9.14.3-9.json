@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.14.3-9",
+ "section": "14.9.14.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "EXIT statement",
+ "rule-digest": "7573c12eddc2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindExit",
+ "test-ref": "conformance-test:SectionDifferentialTests.ExitSection_OutsideSection_IsRejected",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "CODE SITE DETAIL: ControlFlowBinder.cs#BindExit lines 258-267 - `if (ctx.CurrentSection is not { } sec) -> COBOL0827 'EXIT SECTION may be specified only in a section (ISO 14.9.14.3 SR9)'`. EDITIONS NOTE: EXIT SECTION is a COBOL-2002 introduction; ConstructRegistry row exit-section-2002 gates it below 2002 with COBOL0900. The only violating site the language admits is a paragraph that precedes every section header (§14.4.2: a section is a section header plus its paragraphs), and ctx.CurrentSection is exactly null there. The covering test compiles EXIT SECTION in MAIN before any SECTION header at 2023 and asserts the compile fails with COBOL0827 — expectation derived from the rule text, not from an oracle.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindExit",
+ "state": "OK"
+}

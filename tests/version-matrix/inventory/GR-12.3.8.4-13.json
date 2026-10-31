@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.8.4-13",
+ "section": "12.3.8.4",
+ "kind": "GR",
+ "ordinal": 13,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "4b7c9cd32325",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#IsFunctionBearing; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#InheritConfiguration",
+ "test-ref": "conformance:cases/12.3.8-REPOSITORY/udf_keyword_omitted; conformance:cases/12.3.8-REPOSITORY/l1_repository_bare_intrinsic_names; conformance:cases/12.3.8-REPOSITORY/pb924_sum_function_arms_beside_report",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (cite.py --check 12.3.8.4 'intrinsic-function-name-1 may be specified as a function-identifier without being preceded by the keyword FUNCTION' -> OK §12.3.8.4 13)): within the scope of the containing environment division the named intrinsic may be written without FUNCTION, 'unless specific rules require the use of the keyword FUNCTION'. Code: DataBinder.BindDeclarations fills RepositoryIntrinsics (per-name list, PB974 widened to a list) / RepositoryAllIntrinsic; InheritConfiguration (DataBinder.Switches.cs:472-473) unions the container's sets into contained units (the 'scope of the containing environment division'); IntrinsicBinder.KeywordOmittedFunction + ReferenceResolver.IsFunctionBearing route a bare NAME / NAME(args) to the intrinsic, and the reserved RANDOM/SIGN/SUM alternative in BindIntrinsic. The one 'specific rule' requiring FUNCTION found in the spec (grep 'keyword FUNCTION') is §13.18.54.3 SR9 (SUM in a report description entry is the RW SUM clause unless preceded by FUNCTION) - honored, pinned by pb924_sum_function_arms_beside_report (FUNCTION SUM INTRINSIC declared; bare SUM in the RD is the clause, FUNCTION SUM is the function, bare SUM(4 5) after the report section is the intrinsic). Probes (out/probe/repo): sr12a.cob FUNCTION PI E ABS INTRINSIC then DISPLAY PI -> 3.141592653589793; gr13n.cob container REPOSITORY FUNCTION MAX ABS INTRINSIC, contained program COMPUTE R = MAX(3, 9, 4) + ABS(S) with S=-7 -> R=16 at 2023 (correct; at 2002 ABS draws COBOL1502 because ABS is a 2014 intrinsic - correct edition window). Not probed: GR13 interaction with >>COBOL-WORDS synonyms, which is GR14's own clause (see GR-12.3.8.4-14). The goldens' header comments cite '§12.3.8 GR13-GR14' without the subclause - imprecise but the numbered GR is right. [registrar 14a — editions as adjudicated: 2002, 2014, 2023 (the REPOSITORY paragraph is a COBOL-2002 introduction; not in 1985)]",
+ "state": "OK"
+}

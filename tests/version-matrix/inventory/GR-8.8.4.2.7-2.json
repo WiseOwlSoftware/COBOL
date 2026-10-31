@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.2.7-2",
+ "section": "8.8.4.2.7",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Simple relation conditions",
+ "rule-digest": "43e17577c7d2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#Compare",
+ "test-ref": "conformance:cases/8.4.3.3-Reference-modification/pb297_figurative_refmod_relation; conformance-test:FigurativeSizingTests.TwoAllLiterals_KeepTheirOwnLengths",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The unequal-length space extension, observed where it DECIDES the answer rather than merely being available: pb297 T16 compares ALL \"ab\" with ALL \"aba\", whose 8.3.3.6.4 GR3 c) lengths are 2 and 3, and the answer is FALSE only because the shorter operand is extended with a SPACE that differs from 'a' at position 3. T10 is the complementary guard - the same space extension must NOT make a one-position slice of a spaces item differ from SPACE.",
+ "state": "OK"
+}

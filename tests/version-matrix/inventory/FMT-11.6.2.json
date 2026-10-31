@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-11.6.2",
+ "section": "11.6.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "INTERFACE-ID paragraph",
+ "rule-digest": "fc29d6c22d92",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#classIdParagraph; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#interfaceDefinition",
+ "test-ref": "conformance:cases/11.3-CLASS-ID/pb759_parameterized_class; conformance:cases/11.6-INTERFACE-ID/pb303_as_interface_id_literal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB759.md landed w46i3. Every phrase of the printed format parses: AS literal-1 (PB303), INHERITS [FROM] {interface-name-2}..., and USING {parameter-name-1}... (PB759).",
+ "state": "OK"
+}

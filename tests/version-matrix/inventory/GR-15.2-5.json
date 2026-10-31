@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-15.2-5",
+ "section": "15.2",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Intrinsic functions",
+ "rule-digest": "58b2f2e219dc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#IsIntegerOperand; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#MoveCategoryLegality",
+ "test-ref": "conformance:cases/8.4.3.3-Reference-modification/pb73_table16_function_type_and_boolean_view; conformance-test:MoveTable16FunctionTypeTests.IntegerFunction_ToAlphanumeric_IsLegalStrict; conformance:cases/14.9.28-PERFORM/pb86_perform_times_function_count",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB73 (adjudicated 2026-08-18): an INTEGER function ('an operational sign and no digits to the right of the decimal point') is Table 16's Integer row — ORD, LENGTH, INTEGER-PART, ABS/MAX over integers (the type resolved per call by the ONE IntrinsicResultType reader) move to an alphanumeric receiver in the item-92 text form (MOVE FUNCTION ORD(\"A\") TO PIC X(10) → 66); the same classifier admits an integer function where an integer operand is required (PERFORM … TIMES, PB86).",
+ "state": "OK"
+}

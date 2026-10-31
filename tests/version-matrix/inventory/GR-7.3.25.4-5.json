@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.25.4-5",
+ "section": "7.3.25.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "TURN directive",
+ "rule-digest": "8fd1a00844a5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs#After; src/WiseOwl.Cobol.Frontend/Preprocessor/TurnDirectiveProcessor.cs#Process",
+ "test-ref": "conformance:cases/7.3.25-TURN/l1c33_turn_within_statement; conformance:cases/7.3.25-TURN/pb963_turn_file_name_arms",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 7.3.25.4 \"the TURN directive does not apply to any phrase of that statement\" OK. Enablement is keyed on the statement's START line with strict eventLine < statementLine (directive lines are blanked, line-count preserving). Probe TRNG5: 'ADD 1 TO A' / '>>TURN EC-SIZE CHECKING ON' / 'ON SIZE ERROR DISPLAY ... ADD 1 TO B ON SIZE ERROR DISPLAY ...' -> P1 [spaces] (the ADD whose phrase follows the TURN is NOT checked) and P2 [EC-SIZE-TRUNCATION] (the nested ADD inside the phrase, a succeeding statement, IS checked). TRNG5B: OFF written inside an IF disables the nested ADD and the ADD after END-IF (both spaces). Both sentences verified. Witnessed by conformance:cases/7.3.25-TURN/l1c33_turn_within_statement (ADD / ON SIZE ERROR) and conformance:cases/7.3.25-TURN/pb963_turn_file_name_arms phases 7-8 (a file-name TURN between READ F1 and its AT END leaves that READ unchecked and checks the READ nested in the phrase and the statements after it; kb/Work PB963). || editions (adjudicator): 2002, 2014, 2023 (the TURN directive is a COBOL-2002 introduction; §7.3 compiler directives)",
+ "state": "OK"
+}

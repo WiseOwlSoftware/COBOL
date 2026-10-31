@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.6.4-1",
+ "section": "12.4.5.6.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "ALTERNATE RECORD KEY clause",
+ "rule-digest": "3f37f5d35a22",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#AddAlternateKey",
+ "test-ref": "conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/l1_read_key_of_reference",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 12.4.5.6.4 \"An ALTERNATE RECORD KEY clause specifies an alternate record key for the file\" -> OK GR1. The clause is bound into FileModel.AlternateKeyNames (DataBinder.BindFileControl), emitted as CobolFile.AddAlternateKey per key in declaration order (KeyedIoEmitter / RuntimeApi.FileAddAlternateKey) and registered on the IndexedConnector as an ordered access path. Probes gr4.cob/gr5.cob: READ KEY IS alt and START KEY >= alt walk the alternate order. The covering golden l1_read_key_of_reference derives its expected output (prime order 01..04 vs alternate order AA(04)..DD(01)) from §14.9.30.4 GR30/GR31, so it witnesses that the clause established a distinct key path.",
+ "state": "OK"
+}

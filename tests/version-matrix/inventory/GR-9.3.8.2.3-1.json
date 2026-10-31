@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.3.8.2.3-1",
+ "section": "9.3.8.2.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Conformance for object orientation",
+ "rule-digest": "bb6aae50902a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#MethodConformanceMismatches",
+ "test-ref": "conformance:cases/9.3.8.2.3-Conformance-between-interfaces/pb1051-implements-by-reference-vs-prototype-by-value; conformance:cases/8.4.3.4-Inline-method-invocation/pb1051_method_by_value",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1051 landed (wave 1011 C): a METHOD formal declared BY VALUE is carried (OoFormal.ByValue). cite.py --check 9.3.8.2.3 'The number of parameters are the same, with consistent BY REFERENCE and BY VALUE specifications' -> OK 9.3.8.2.3 1). MethodConformanceMismatches compares the passing MODE per formal pair (OoFormal.ByValue) next to the count, for IMPLEMENTS, override and interface-to-interface conformance alike; negative pb1051-implements-by-reference-vs-prototype-by-value (COBOL0841); golden pb1051_method_by_value implements a BY VALUE prototype identically.",
+ "state": "OK"
+}

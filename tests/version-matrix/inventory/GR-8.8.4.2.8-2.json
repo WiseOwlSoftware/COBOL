@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.2.8-2",
+ "section": "8.8.4.2.8",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Simple relation conditions",
+ "rule-digest": "c98f62d8a368",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#Compare; src/WiseOwl.Cobol.Runtime/Values/Text/CobolBool.cs#Equal; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderRelationalCore; src/WiseOwl.Cobol.Frontend/Expressions/BitString.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs",
+ "test-ref": "unit:CobolStringPadTests.Compare_PadZero_ZeroExtends",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (cite.py --check 8.8.4.2.8 \"shorter operand were extended on the right by sufficient boolean zeros\" -> OK §8.8.4.2.8 2)): unequal lengths compare as though the shorter were right-extended with boolean zeros. Code: every boolean relation carrier right-pads with '0' — CobolString.Compare(pad:'0') for item/literal relations (ConditionRenderer.RenderRelationalCore, the figurative arm's `pad: '0'`, the level-88 arm ~line 793), CobolBool.Equal (Bit(a,i) past the end = '0') for boolean-expression relations, BitString.RelationalEquals for compile-time >>IF, and SortEmitter's boolean key pad. Probe E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2\\out\\probe\\srcp2\\bool1.cob: B3=101 vs B5=10100 -> equal (both operand orders); B3 vs B5X=10101 -> unequal; B3 = B\\\"1\\\" -> unequal (100 != 101); B3 = B\\\"1010000\\\" -> equal, = B\\\"1010001\\\" -> unequal; USAGE BIT 101 vs BIT 10100 -> equal; ref-mod B3B(1:2) = B\\\"10\\\" -> equal; 88 VALUE B\\\"11\\\" over 110 -> TRUE; EVALUATE B3 WHEN B5 -> match; bool2.cob: >>IF B\\\"10\\\" = B\\\"100\\\" -> true; bit group 10100 vs BIT item 101 -> equal. Same results at --std 2002. Test: CobolStringPadTests.Compare_PadZero_ZeroExtends (\\\"11\\\" vs \\\"1100\\\" = 0, \\\"11\\\" vs \\\"1101\\\" != 0, \\\"\\\" vs \\\"000\\\" = 0) is derived from the rule text; CobolBoolTests.Equal_ZeroExtends covers the expression carrier. [editions as adjudicated: 2002, 2014, 2023 (class boolean introduced by ISO/IEC 1989:2002)]",
+ "state": "OK"
+}

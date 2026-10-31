@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.22.4-9",
+ "section": "14.9.22.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "INSPECT statement",
+ "rule-digest": "889a99d2386d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Region; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Tally; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Replace; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Convert",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/l1p5_inspect_before_regions; conformance:cases/14.9.22-INSPECT/pb1152_inspect_backward_leftmost_match_at_current_position; conformance:cases/14.9.22-INSPECT/l1c14_inspect_backward_after; conformance:cases/14.9.22-INSPECT/l1p5_inspect_general_rules",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PB55 FOLD (2026-10-15, owner decision 2026-08-08 'THE RULE IS THE UNIT'): the transcription printed this rule's nested list(s) at column 0, so 2 sub-item(s) held rows of their own; indented at their measured printed level, they are this rule's body and their adjudications are folded here, nothing dropped.\n\n[the rule's own record before the fold]\nGR9a/b: whole item, zero-length identifier-4, BEFORE found/absent/fixed-before-first-cycle/ineligible, BACKWARD NOTE 1 (R1-R8)\n\n[folded GR-14.9.22.4-L3.1 = §14.9.22.4 9) c) 1.: CONFORMS]\ncite.py --check 14.9.22.4 \"from the character position immediately to the left of the leftmost character position of the first occurrence of literal-2\" -> OK GR9 c) 1. With BACKWARD the text and delimiter are reversed and Region applies AFTER in that frame: the first occurrence in scan direction (the rightmost) and the region is everything to its left down to the leftmost character. Probe misc.cob: INSPECT BACKWARD 'A12C21D12EF' TALLYING ALL \"12\" AFTER \"C\" -> 1 (only 'A12' eligible). conformance:cases/_unassigned/inspect_backward covers BEFORE only, so this row has no covering test.\n\n[folded GR-14.9.22.4-L3.2 = §14.9.22.4 9) c) 2.: CONFORMS]\nGR9c2: forward AFTER region, never-eligible when absent, ineligible operand does not match (F1-F5)",
+ "state": "OK"
+}

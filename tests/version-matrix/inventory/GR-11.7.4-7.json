@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.7.4-7",
+ "section": "11.7.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "METHOD-ID paragraph",
+ "rule-digest": "0fff51e35831",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.ObjectProperty.cs#ResolveObjectProperty",
+ "test-ref": "conformance:cases/8.4.3.9-Object-property/oo_property_explicit_ref; conformance:cases/11.7-METHOD-ID/pb1449_interface_property",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1449 LANDED (wave 1015 Z). cite.py --check 11.7.4 'If the SET phrase is specified, this method is a set property method for property-name-1.' OK 7). An interface's SET PROPERTY prototype is a set property method: MOVE 42 TO BAL OF I runs the implementing object's SET (A=00042 through the clause SET, B=00021 through the explicit SET, which stores 2*10). The class half stays witnessed by oo_property_explicit_ref. retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#OoTryBindPropertyReference (the one-word property binder ReferenceResolver.OoTryBindPropertyReference is deleted by kb/Work PB1425 (w1021a): a property reference is resolved by ReferenceResolver.ResolveObjectProperty, which splits the chain and resolves identifier-3 through the ordinary resolver)",
+ "state": "OK"
+}

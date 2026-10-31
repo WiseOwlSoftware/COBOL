@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.44.4-2",
+ "section": "13.18.44.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "REDEFINES clause",
+ "rule-digest": "a2e120fc819d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#PlaceForItem; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#BuildBackingPath",
+ "test-ref": "conformance:cases/13.18.44-REDEFINES/pb203_redefines_bit_window; conformance:cases/13.18.44-REDEFINES/pb1279_redefines_within_occurs",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1279 landed (w1005e): every member name of a class nested inside an OCCURS reads and writes the occurrence's one storage area (MOVE to A(2,3) seen through B1/B2(2,3); GB1(2) over the table GA(2,*); VB(2) over VA(2)).",
+ "state": "OK"
+}

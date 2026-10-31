@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.28.4-1",
+ "section": "15.28.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "EXCEPTION-FILE function",
+ "rule-digest": "01be6164b900",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Exceptions/EcFunctions.cs#File; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#SelectName",
+ "test-ref": "conformance:cases/15.3-Arguments/pb63_exception_file_select_names; conformance-test:ExceptionConditionConformanceTests.IoAtEnd_NoPhrase_RaisesEcIoAtEnd_ExceptionFile",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB63 — the exception surface: the FD screen, the SELECT-spelled name on the connector, the one access-recording path, the r2b procedure field and element name, the MODULE-NAME determinations). §15.28.4 r1c 'the file-name exactly as specified in the SELECT clause': the connector is registered with FileModel.SelectName (never qualified, never case-folded) and both EXCEPTION-FILE forms read it — golden ARG=[10MixedExtF] / NOARG=[10MixedExtF] for `SELECT MixedExtF … FD … IS EXTERNAL` (it was 10MIXEDEXTF, the uppercased external KEY tail; an OBJECT file's per-instance '#N' suffix is gone with the strip).",
+ "state": "OK"
+}

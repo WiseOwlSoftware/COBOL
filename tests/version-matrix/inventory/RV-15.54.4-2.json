@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.54.4-2",
+ "section": "15.54.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "LOCALE-TIME-FROM-SECONDS function",
+ "rule-digest": "9d7e4aa66fd4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#TimeFromSeconds",
+ "test-ref": "conformance:cases/14.6.6-Locale-identification/pb64t4_locale_functions; unit:CobolLocaleTests.TimeFromSeconds_CarriesTheFraction_AndScreensTheStandardForm",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB64 T4: hours/minutes/seconds from the seconds past midnight, per t_fmt; a scaled argument's fraction follows the seconds with the locale's decimal separator (Annex D.31.4.5's nanosecond note — a determination; the SEC-FRAC / SEC-FR lines).",
+ "state": "OK"
+}

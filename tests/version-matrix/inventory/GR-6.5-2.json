@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-6.5-2",
+ "section": "6.5",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Reference format",
+ "rule-digest": "2121317b3c52",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#FixedFormConverter; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#ConvertFreeLines; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#Add",
+ "test-ref": "conformance:cases/6-Reference-format/pb1491_continued_literal_logical_line; conformance:cases/6-Reference-format/pb1493_floating_comment_fixed; conformance:cases/6.2.3-Floating-indicators/pb1493_floating_comment_free; unit:ReferenceFormatLogicalConversionTests.ContinuedLiteral_JoinsAcrossADiscardedLine; unit:ReferenceFormatLogicalConversionTests.CommentLines_BecomeEmpty_InBothReferenceFormats",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1491/PB1493: a comment line or blank line is logically discarded in BOTH reference formats - it becomes an empty line (slot kept for the line map), is never the continuation join target and never resets a continued literal; no later stage (lexer picture mode, COPY/REPLACE scanner) sees comment-text. retired-witness: src/Cobol.Net.Frontend/Preprocessor/ReferenceFormatProcessor.cs#HandleContinuation (moved or replaced by the ONE §6.5 logical conversion in ReferenceFormatProcessor.LogicalConversion.cs (kb/Work PB1491)) retired-witness: src/Cobol.Net.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#ConvertFreeLine (kb/Work PB1804: the free arm is ConvertFreeLines feeding LogicalLineBuilder.Add)",
+ "state": "OK"
+}

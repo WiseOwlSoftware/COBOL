@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.14.3-4",
+ "section": "13.18.14.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "COLUMN clause",
+ "rule-digest": "a5be4cefe050",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportColumnClause",
+ "test-ref": "unit:ReportClauseKeywordPrefixTests.ColumnPrefix_ParsesExactlyWhenPrinted; conformance:cases/13.18.14-COLUMN/pb1221-column-are-singular; conformance:cases/13.18.14-COLUMN/pb1221_report_keyword_prefixes",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "(kb/Work PB1221, wave 1021 F). cite.py --check 13.18.14.3 \"The keyword ARE may be specified only if COLUMNS, COLS, or NUMBERS is specified\" -> OK SR4. reportColumnClause now opens with two closed halves: a PLURAL half ((COLUMN | COL) NUMBERS | COLUMNS | COLS) reportColumnAlignment? ARE? and a SINGULAR half (COLUMN | COL) NUMBER? reportColumnAlignment? IS?, so ARE is grammatical only after COLUMNS, COLS or NUMBERS, across the alignment word that sits between them. Probes at 2023: COLUMN ARE 5, COL NUMBER ARE 5 and COLUMN RIGHT ARE 5 are COBOL0001; COLUMN NUMBERS ARE, COLS ARE, COLUMNS RIGHT ARE and COL NUMBERS LEFT ARE compile and place their items (conformance:cases/13.18.14-COLUMN/pb1221_report_keyword_prefixes). ReportClauseKeywordPrefixTests enumerates all 72 (spelling, NUMBER|NUMBERS, alignment, IS|ARE) combinations against the printed set. || Editions: ARE is a 2002 spelling (COBOL0900 at 85 through report-multi-column-2002); the parse refusal itself holds at every edition.",
+ "state": "OK"
+}

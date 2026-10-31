@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.69.2",
+ "section": "15.69.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "NUMVAL-F function",
+ "rule-digest": "28e4e6fb914e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Add; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#StrArgVisitor",
+ "test-ref": "conformance:cases/15.69-NUMVAL-F/l1-numvalf-arity; conformance:cases/15.69-NUMVAL-F/l1-numvalf-arity-zero; conformance:cases/15.69.3-Argument-rules/numvalf_decimal_comma_and_spaces",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "The format FUNCTION NUMVAL-F ( argument-1 ) pinned on all three sides: the existing positive writes the reference exactly as 15.69.2 prints it and evaluates it against 15.69.3 r1/r4 and 15.69.4 r1 values, and two negatives make the figure's single argument position a checked bound in BOTH directions - two arguments and zero arguments, each drawing COBOL1504 (ISO 15.3), kept in separate files so a parse abort in one cannot mask the other. || editions 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the NUMVAL-F function exists from 2002 (IntrinsicCatalog.cs, the COBOL1502 edition window).",
+ "state": "OK"
+}

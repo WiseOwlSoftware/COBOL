@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-12.4.5.8.2",
+ "section": "12.4.5.8.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "FILE STATUS clause",
+ "rule-digest": "e6095ecf1b9f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileStatusClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ClauseDataName; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveFiles; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveClauseOperand",
+ "test-ref": "conformance-test:ClauseOperandQualificationSpecTests.FileStatusOperand_QualifiedByItsGroup_UsesThatGroupsItem",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Format 'FILE STATUS IS data-name-1' with only STATUS underlined (cite.py --check 12.4.5.8.2 \"IS data-name-1\" -> OK; the figure note at the SELECT Format 1 states FILE is not underlined). Grammar `FILE? STATUS IS? dataReference`; ClauseDataName refuses a written subscript (COBOL2024, probe p1c.cob) since data-name-1 is a qualified-data-name; qualification resolves through the one §8.4.2.2 resolver (probe qual.cob: `FILE STATUS IS FS OF G1` -> status 35 lands in G1's FS, G2's untouched); bare `STATUS FS` accepted and works (probe gr1.cob). Probes under probe/fs/ [registrar 14a — editions as adjudicated: 1985, 2002, 2014, 2023]",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.75.3-1",
+ "section": "15.75.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "RANDOM function",
+ "rule-digest": "5e4a69b9f544",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+ "test-ref": "conformance:cases/15.3-Arguments/pb1-numeric-arg-family; conformance:cases/8.4.3.2-Function-identifier/pb1420-random-numeric-function-seed; unit:IntrinsicArgumentClassDriftTests.EveryTable21IntegerPosition_IsTypedInteger_InTheVerifiedTable",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PB1; 15.75.3 r1 (class numeric) covered. The VALUE half of RANDOM's rules (r2, zero-or-positive-integer) is a separate, still-open EC-ARGUMENT-FUNCTION question. || kb/Work PB1420 (2026-10-03): the argument is 15.3 type 6 (Table 21 Int1), so the row is kind i, not n: a numeric function or a non-integer item/literal at the seed position is rejected at bind (SR11 / 15.3 type 6). The VALUE half of r2 (zero or positive) stays the run-time EC-ARGUMENT-FUNCTION question noted above.",
+ "state": "OK"
+}

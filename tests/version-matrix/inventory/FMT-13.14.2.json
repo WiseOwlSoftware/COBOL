@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.14.2",
+ "section": "13.14.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Report description entry",
+ "rule-digest": "ea5cb9d68278",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportDescriptionClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindReportDescriptionClauses",
+ "test-ref": "conformance:cases/13.18.12-CODE/pb1129_rd_code_literal; conformance:cases/13.18.12-CODE/pb1129_rd_code_identifier",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "(kb/Work PB1129, wave 1005 A; PB1286's two defects). (1) The CODE clause, a printed alternative of the RD format, is accepted and bound (BindCodeClause; pb1129_rd_code_literal / pb1129_rd_code_identifier). (2) Each clause is printed once in its bracket with no ellipsis (5.2.6.2, 5.2.7): UnrepeatedElements.AtMostOnce in BindReportDescriptionClauses refuses a repeated GLOBAL, CODE, CONTROL or PAGE clause (COBOL2423, landed earlier). cite.py --check 13.14.2 OK.",
+ "state": "OK"
+}

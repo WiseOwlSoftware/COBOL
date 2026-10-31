@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.37.3-13",
+ "section": "14.9.37.3",
+ "kind": "SR",
+ "ordinal": 13,
+ "subject": "SEARCH statement",
+ "rule-digest": "59ee7350446b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/SearchAllFormat2Rules.cs#IsZeroLengthLiteral; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#IsZeroLength",
+ "test-ref": "conformance:cases/14.9.37-SEARCH/pb445-search-all-zero-length-literal; conformance:cases/14.9.37-SEARCH/pb445_search_all_format2_legal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB445.md LANDED. \"Neither literal-1 nor literal-2 shall be zero-length literals\" (cite.py --check 14.9.37.3 -> OK, Syntax rules 13). The predicate is the standard's own structural test, added to the ONE literal module as CobolLiteral.IsZeroLength: 3.178 defines a zero-length literal as an \"alphanumeric, boolean, or national literal that contains zero characters\" and 8.3.3.1 makes contiguous delimiters the spelling of one (both cite.py -> OK), so every format answers -- \"\", '', N\"\", B\"\", X\"\", NX\"\", BX\"\". It is deliberately NOT Decode(raw).Length == 0, which also answers true for an ill-formed hexadecimal literal and would report the wrong rule. A figurative constant is never zero-length (8.3.3.6.4 GR3 b, with 8.3.3.6.3 SR2 closing the ALL form) and a concatenation expression is zero-length exactly when every operand is (8.8.3.3 GR2 c 2). pb445-search-all-zero-length-literal is COBOL1966 at all four editions.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.98.3-1",
+ "section": "15.98.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "VARIANCE function",
+ "rule-digest": "5e4a69b9f544",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+ "test-ref": "conformance:cases/15.98.3-Argument-rule/stat-variance-arg-class-numeric",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "New negative: PIC X(3) at argument-1 of FUNCTION VARIANCE - the shape the adjudicator named as the one that would close the row. 15.98.3 r1 is the clause's only argument rule; the numeric-edited axis of the same Table 2 row is pinned for the family by pb1-numeric-arg-numeric-edited.",
+ "state": "OK"
+}

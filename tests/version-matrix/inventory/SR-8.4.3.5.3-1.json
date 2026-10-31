@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.5.3-1",
+ "section": "8.4.3.5.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Object-view",
+ "rule-digest": "c2cc00a7c895",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectView; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectReferenceAtom; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.ObjectView.cs#OoBindObjectView; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoCreateObjectViewTemp; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitObjectView; src/WiseOwl.Cobol.Runtime/Control/CobolObject.cs#ObjectView",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1425_object_view; conformance:cases/8.4.3.5-Object-view/pb1425-object-view-subject",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1425 (w1019a). \"Identifier-1 shall be of class object; the predefined object references SUPER and NULL shall not be specified\" (cite.py --check 8.4.3.5.3 -> OK 1)). OoBindObjectView refuses NULL, SUPER and an identifier-1 whose item is not an object reference (a data item, or a function-identifier's temporary) with COBOL2870 naming identifier-1 as written; SELF (class object, 8.4.3.8.3 SR7) is admitted and viewed (golden: INVOKE SELF AS PB1425VA). [editions: the OO facility, 2002+]",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.2.2.5-1",
+ "section": "7.2.2.5",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Text manipulation elements",
+ "rule-digest": "e6135fcdfa31",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#SeparatorFollows; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#MatchWords",
+ "test-ref": "unit:TextManipulationTextWordTests.Colon_SeparatesTextWords; unit:TextManipulationTextWordTests.PictureStrings_AreSingleTextWords; conformance:cases/7.2.2.5-Text-words/pb1350_text_words_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1350 landed (w61a): The colon and parentheses are separator text-words outside literals; period/comma/semicolon separate only when a space follows (8.3.5 2)/3)). Probe tw1: WA(1:5) under ==5== BY ==2== -> [AB    ]; tw2 ZZ.ZZ stays one word -> [ 5.00]. Spec re-derived and re-cited by the implementer; every probe of the note re-run on the fixed build. retired-witness: src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#IsSeparatorPunctuation (the symbol was removed by kb/Work PB1350/PB1354 (one TextWordScanner + a parsed COPY/REPLACE statement); its successor is named in code-location) retired-witness: src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#IsSpaceEquivalentSeparator (the symbol was removed by kb/Work PB1350/PB1354 (one TextWordScanner + a parsed COPY/REPLACE statement); its successor is named in code-location) retired-witness: src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#TokenizeTextWords (the symbol was removed by kb/Work PB1350/PB1354 (one TextWordScanner + a parsed COPY/REPLACE statement); its successor is named in code-location)",
+ "state": "OK"
+}

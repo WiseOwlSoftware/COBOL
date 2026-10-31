@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.6.3-1",
+ "section": "8.4.6.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Scope of names",
+ "rule-digest": "8217603f4909",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ResolveVisible; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Cancel; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit",
+ "test-ref": "conformance:cases/8.4.6.3-Scope-of-program-names/pb1133_recursive_attribute_scope",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1133 (wave 1012 J). cite.py --check 8.4.6.3 'if the program possesses the recursive attribute, in the program itself' OK rule 1. The rule's recursive half is exercised in the shape the refuter could not compile: XC carries no RECURSIVE clause, inherits it from its container XR (11.10.4 GR4), owns working-storage and contains XC1. pb1133_recursive_attribute_scope: the container calls XC (visible), XC calls itself three times (visible - the recursive attribute), XC1 - contained in XC, neither XC's container nor XC itself - cannot reach XC (the exception path runs).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.14.4-2",
+ "section": "13.18.14.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "COLUMN clause",
+ "rule-digest": "63dd5304ec6c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#DisplayTextWidth; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements; docs/CONFORMANCE.md#DOC-A.1-160",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb541_report_national_item",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB929 sweep (2026-10-25): re-verdicted PARTIAL -> CONFORMS because the reason the row carried no longer reproduces on this tree. Rule: cite.py --check 13.18.14.4 \"There is a fixed correspondence, specified by the implementor, between a column and a character in a national character set\" -> OK 13.18.14.4 2); Annex A.1 item 160 (required, documented). BEHAVIOUR: one column per national character position (one UTF-16 code unit): a PIC N(2) item occupies two columns and the next relative item follows at +1 (pb541_report_national_item). It is now documented: docs/CONFORMANCE.md DOC-A.1-160 (CONFORMS) states the one-to-one correspondence and `DataItem.DisplayTextWidth`. The earlier PARTIAL said that row did not exist.",
+ "state": "OK"
+}

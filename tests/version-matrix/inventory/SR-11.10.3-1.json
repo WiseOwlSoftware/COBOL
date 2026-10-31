@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.10.3-1",
+ "section": "11.10.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "PROGRAM-ID paragraph",
+ "rule-digest": "9df61c0a1e3e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ExternalizedName.cs#Screen",
+ "test-ref": "conformance:cases/11.10-PROGRAM-ID/pb303_as_literal_figurative; conformance:cases/11.10-PROGRAM-ID/pb303_as_literal_zero_length",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "The AS phrase's literal-1 class screen for PROGRAM-ID. ONE screen serves all five identification-division paragraphs plus the REPOSITORY program-specifier, because the six clauses state one rule. The phrase is a 2002 introduction (constructs.json externalized-name-as-2002), so 85 is out of scope for this rule and negative/pb303_as_phrase_below_2002 pins the gate instead. kb/Work PB303.",
+ "state": "OK"
+}

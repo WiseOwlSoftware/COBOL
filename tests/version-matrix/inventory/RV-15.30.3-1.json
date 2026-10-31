@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.30.3-1",
+ "section": "15.30.3",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "EXCEPTION-LOCATION function",
+ "rule-digest": "a07795e5c710",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcWrap; src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs#WithLocation; src/WiseOwl.Cobol.Runtime/Exceptions/EcFunctions.cs#Location; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#LastLocation",
+ "test-ref": "conformance:cases/7.3.25-TURN/l1_exception_no_location_arms; conformance:cases/7.3.25-TURN/exception_statement_ambient; conformance-test:ExceptionConditionConformanceTests.WithoutLocation_StatementAndLocationAreSpaces",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "r1's antecedent names TWO enabling mechanisms; A-L/B-L pin one alphanumeric space on the TURN leg AND the PERFORM leg (14.9.28.4 GR14 implicit TURN without LOCATION); exception_statement_ambient C2 is the pre-existing TURN-leg pin. retired-witness: src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EcStmtLoc (EcStmtLoc was deleted: the (statement, location) pair travels on an ambient statement context (kb/Work R14, b0bcc3b89))",
+ "state": "OK"
+}

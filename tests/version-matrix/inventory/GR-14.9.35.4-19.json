@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.35.4-19",
+ "section": "14.9.35.4",
+ "kind": "GR",
+ "ordinal": 19,
+ "subject": "REWRITE statement",
+ "rule-digest": "800ae5d57e7f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitInvalid; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRewrite",
+ "test-ref": "conformance:cases/14.9.35-REWRITE/l1c26_rewrite_relative_invalid_key",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"Transfer of control following the successful or unsuccessful execution of the REWRITE operation depends on the presence or absence of the optional INVALID KEY and NOT INVALID KEY phrases ... (See 9.1.14, Invalid key condition.)\" KeyedIoEmitter.EmitRewrite captures the status, stores FILE STATUS, calls EmitUseHook(invalidKeyHandled: INVALID phrase present) and EmitInvalid(status, phrase) - INVALID arm on the invalid-key class, NOT INVALID arm on success. Probe pd.cob: absent slot -> 'IK7 ST=23' (INVALID arm only), success -> 'NIK1 ST=00' (NOT arm only), 44 -> neither arm (9.1.14: not an invalid key and not successful). Sequential-organization phrases are screened by SR2 (part 2's row). KeyedIoDifferentialTests.Keyed_NotInvalidKey_RunsOnlyOnSuccess is a legacy-differential (AssertSameAsLegacy) and does not qualify, so test-ref empty. cite.py --check 14.9.35.4 GR19 / 9.1.14 -> OK. [editions as adjudicated: 2023; ISO 1989:2023 Annex E lists no 2014->2023 change to this rule (E.3.3 item 41 touches GR10 only), so 2014 identically; the 1985/2002 wording is not derivable from the 2023 text]",
+ "state": "OK"
+}

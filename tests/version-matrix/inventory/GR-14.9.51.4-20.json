@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-20",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 20,
+ "subject": "WRITE statement",
+ "rule-digest": "d50788039873",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#WriteAdvancing; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#ForWriteFailure; src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#IsMediumBoundary",
+ "test-ref": "unit:FileBoundaryTests.SequentialWrite_OnAFullMedium_Is34_AtTheWrite; unit:FileBoundaryTests.WriteFailure_MediumExhaustionIs34_AnyOtherFailureIs30",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1192 (w61d). GR20 (cite.py --check 14.9.51.4 'When an attempt is made to write beyond the externally-defined boundaries of the physical file' -> OK 20)). The boundary of a sequential file is the host medium's capacity (Annex A.1 item 108, docs/CONFORMANCE.md DOC-A.1-108). HostFile.IsMediumBoundary classifies the host's refusal (Windows ERROR_HANDLE_DISK_FULL/DISK_FULL/FILE_TOO_LARGE/DISK_QUOTA_EXCEEDED; Unix EFBIG/ENOSPC/EDQUOT) and FileStatusCode.ForWriteFailure answers '34' (else '30'); SequentialConnector.Write, WriteAdvancing and Rewrite are the three entry points a record reaches the medium through and each wraps its body in that one catch, so the WRITE is unsuccessful with '34' instead of an escaping IOException. The writer buffers, so the refusal lands on the WRITE whose record fills the buffer. Witness: the classifier unit test, and an end-to-end WRITE loop on Linux /dev/full (ENOSPC by construction) that must end in '34'. IoStatusClass.WriteBoundary (SORT GR15 / MERGE GR12) now has a sequential producer.",
+ "state": "OK"
+}

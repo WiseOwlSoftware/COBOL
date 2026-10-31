@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.20.4-7",
+ "section": "14.9.20.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "INITIALIZE statement",
+ "rule-digest": "137cae5af3e7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ElementaryAction",
+ "test-ref": "conformance:cases/14.9.20-INITIALIZE/initialize_dynamic_length; conformance:cases/14.9.20-INITIALIZE/pb418_initialize_dynamic_length_senders; conformance:cases/14.9.20-INITIALIZE/pb418-initialize-dynamic-length-2002",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work/PB418.md - THE OPEN OWNER DETERMINATION IS ANSWERED AND IMPLEMENTED (DETERMINATION D-DL1, docs/CONFORMANCE.md section 3). GR7 is printed unconditionally and was implemented unconditionally, which erased the sending operand GR6a and GR6b had just designated; it is now applied only on the GR6c arm (the item qualified through GR5c3 DEFAULT or GR5c4 neither-phrase), which is the one arm on which GR7 is NECESSARY. The four grounds, each citation --check'd: (i) 14.6.2.3.2 GR7 states the SAME action at the other occasion with the carve-out spelled out ('the length of each dynamic-length elementary item that is specified without a VALUE clause is set to zero'); (ii) 8.6.4 makes the initial-state length the VALUE clause's length and GR6a3 demands a sender that 'produces the same result as the initial value of the data item as produced by the application of the VALUE clause', so the unconditional reading makes GR6a3 UNSATISFIABLE for the whole dynamic-length population; (iii) 14.9.20.3 SR8's designation of literal-1/identifier-2 is inert under the unconditional reading; (iv) 8.3.3.6.4 GR3b makes a bare figurative ONE character, so GR6c's alphanumeric SPACES would leave the item at length 1 rather than 13.18.19.4 GR1's minimum of zero - which is the only thing GR7 adds that no other rule already says. BOTH POLES WITNESSED: initialize_dynamic_length pins the GR6c arm at LEN=00 (unchanged, still green) and pb418_initialize_dynamic_length_senders pins the GR6a arm (LEN=05 'hello'), the GR6b arm (LEN=03 'ABC'), the figurative-VALUE one-character case (LEN=01, the line that separates this determination from the rejected reading most sharply), the group walk, and the GR5c ordering against THEN TO DEFAULT in both directions. The edition floor is the negative pb418-initialize-dynamic-length-2002 (COBOL0900 at 85 and 2002 - DYNAMIC LENGTH is COBOL-2014, so below it the rule has no population).",
+ "state": "OK"
+}
