@@ -34,6 +34,13 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// a value: <see cref="Hold"/> holds ITS arguments and the call is read over them, a pure selection reading what it read at its
 /// place. Any other held argument is described by its value (<c>FunctionDeviceText.Field</c>).</para>
 ///
+/// <para><b>A table(ALL) argument is a sequence of arguments, and is held as a table (kb/Work PB4162).</b> §15.3 14): "When ALL is
+/// specified as a subscript, the effect is as if each table element associated with that subscript position were specified", each
+/// evaluated where it stands in the list. <c>IntrinsicBinder.TryBindAllArgument</c> records the operand it builds like any other, and
+/// <see cref="StoreAt"/> holds it with <see cref="SendingValueTemp.MaterializeTableAll"/>: a compiler-temporary TABLE of the element's
+/// own description, copied from the enumeration at the argument's place, which the call then enumerates in its stead - so a nested call
+/// naming an ALL is held by holding its arguments (<see cref="Hold"/>) like every other selecting call.</para>
+///
 /// <para><b>An object property is an argument evaluated IN ITS PLACE (kb/Work PB1932).</b> Its value is temp-1,
 /// "determined as though the associated get property method were invoked" (§8.4.3.9.4 GR1), so the GET IS the
 /// argument's evaluation. Every property reference in a function argument is SENDING — an intrinsic argument always
@@ -200,10 +207,7 @@ internal sealed class ArgumentOrder(BinderContext ctx, SendingValueTemp temps,
     private BoundOperand? Hold(BoundOperand operand, int index, bool describedValue, out int added)
     {
         added = 0;
-        // A table(ALL) argument is no recorded operand (IntrinsicBinder.TryBindAllArgument): the backend ENUMERATES it where the call
-        // is rendered, so it cannot be held on its own and the call that names it is held as a value, as it always was.
-        if (!describedValue || !NeedsItsArguments(operand, out var computed, out var call)
-            || call.Args.Any(a => a is BoundFieldOperand { Place: TableAllPlace }))
+        if (!describedValue || !NeedsItsArguments(operand, out var computed, out var call))
             return StoreAt(operand, index, out added);
         var args = new List<BoundOperand>(call.Args.Count);
         bool changed = false;
@@ -229,11 +233,15 @@ internal sealed class ArgumentOrder(BinderContext ctx, SendingValueTemp temps,
         added = 0;
         // A boolean-expression argument has its own store (COMPUTE Format 2's) and its own length (§8.8.2 rule 10); a
         // run-time length is the one shape no intermediate item can describe, and stays where it was.
-        var held = operand is BoundBoolOperand { Expr: var boolean }
-            ? ConditionBinder.BoolResultLength(boolean) is int positions and > 0
+        var held = operand switch
+        {
+            BoundBoolOperand { Expr: var boolean } => ConditionBinder.BoolResultLength(boolean) is int positions and > 0
                 ? temps.MaterializeBoolean(boolean, positions, "fnarg", index)
-                : null
-            : temps.Materialize(operand, "fnarg", index);
+                : null,
+            // A table(ALL) argument is a SEQUENCE of arguments (§15.3), held as a table of its elements (kb/Work PB4162).
+            BoundFieldOperand { Place: TableAllPlace all } => temps.MaterializeTableAll(all, "fnarg", index),
+            _ => temps.Materialize(operand, "fnarg", index),
+        };
         if (held is not { } place) return null;
         added = Pending.Count - start;
         return new BoundFieldOperand(place);

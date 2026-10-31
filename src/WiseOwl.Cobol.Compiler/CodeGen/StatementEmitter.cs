@@ -35,6 +35,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     private readonly StringEmitter _strings;
     private readonly PtrEmitter _ptr;
     private readonly SetEmitter _set;
+    private readonly TableHoldEmitter _tableHold;
     private readonly KeyedIoEmitter _keyedIo;
     private readonly SequentialIoEmitter _seqIo;
     private readonly SortEmitter _sort;
@@ -62,6 +63,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         _strings = u.Strings;
         _ptr = u.Ptr;
         _set = u.Set;
+        _tableHold = u.TableHold;
         _keyedIo = u.KeyedIo;
         _seqIo = u.SeqIo;
         _sort = u.Sort;
@@ -321,6 +323,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     public bool Visit(BoundSetTo n) { _set.EmitSetTo(n); return false; }
     public bool Visit(BoundSetUpDown n) { _set.EmitSetUpDown(n); return false; }
     public bool Visit(BoundSetCapacity n) { _set.EmitSetCapacity(n); return false; }
+    public bool Visit(BoundHoldTableAll n) { _tableHold.Emit(n); return false; }
     public bool Visit(BoundSetSize n) { _set.EmitSetSize(n); return false; }
     public bool Visit(BoundSetContent n) { _set.EmitSetContent(n); return false; }
     public bool Visit(BoundSearch n) { _controlFlow.EmitSearch(n); return false; }

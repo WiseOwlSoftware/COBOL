@@ -341,5 +341,6 @@ public static class BoundStores
         // SET capacity names a dynamic-capacity TABLE (an AccessPath, never a Place) — and a property subject cannot
         // carry OCCURS (COBOL0842) — so it can store into no property temp.
         public StoreKind Visit(BoundSetCapacity n) => StoreKind.None;
+        public StoreKind Visit(BoundHoldTableAll n) => StoreOrKids(Hit(n.Count), StoreKind.Write, [n.Copy]);   // writes its element temporaries (the Copy child) and the count
     }
 }

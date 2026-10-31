@@ -854,6 +854,37 @@ public sealed partial class DataBinder
         return t;
     }
 
+    /// <summary>A compiler-temp TABLE (kb/Work PB4162): a level-1 group holding ONE table whose element is a clone of
+    /// <paramref name="element"/>'s description - the held form of a table(ALL) function argument (<c>BoundHoldTableAll</c>). The
+    /// table has <paramref name="occurs"/> occurrences, or - when that is null - is a dynamic-capacity table (§8.5.1.9) whose
+    /// capacity the holder sets. It goes through <see cref="CreateCompilerTemp"/> like every other temporary, over a scratch group
+    /// model whose one member is <see cref="CloneTempNode"/>'s clone of the element with this table's OCCURS clause in place of the
+    /// element's own, so the description clauses are copied by the one <see cref="CopyEntryDescription"/> and none is listed here.
+    /// <paramref name="cell"/> is the table's member, the item an occurrence of it is addressed by; a dynamic table's CAPACITY
+    /// register (the view <c>DynamicResolve</c> mints for every declared one, §13.18.38.4 GR15) is minted here the same way.</summary>
+    internal DataItem CreateCompilerTempTable(DataItem element, int? occurs, string cobolPrefix, string csPrefix, string tag, out DataItem cell)
+    {
+        var model = new DataItem { Level = 1, CobolName = cobolPrefix + "MODEL", CsName = csPrefix + "model" };
+        // the element's own OCCURS clause belongs to the table it came from, not to this one
+        (int? Occurs, OccursSpec? Spec) table = occurs is null
+            ? (null, new OccursSpec { Min = 0, Max = 0, IsDynamic = true })
+            : (occurs, null);
+        model.AddMember(CloneTempNode(element, model, table));
+        var temp = CreateCompilerTemp(model, cobolPrefix, csPrefix, tag);
+        cell = temp.Children[0];
+        if (cell.OccursSpec is { IsDynamic: true } spec)
+            spec.CapacityRegister = new DataItem
+            {
+                Level = 49,
+                CsName = NamingConvention.CapacityRegisterName(cell.CsName),
+                Pic = PicInfo.BinaryItem(Usage.BinaryLong, signed: false),
+                Parent = cell.Parent,
+                Uid = _uidCounter++,
+            };
+        CompilerTempClones.Add((cell, element));   // the member's storage form follows the element's (StorageFormPass)
+        return temp;
+    }
+
     /// <summary>Deep-clone one description node under a compiler temp (see <see cref="CreateCompilerTemp"/>):
     /// fresh <see cref="DataItem.Uid"/> (StructName/ProfileName ride on it), the immutable
     /// <see cref="DataItem.Pic"/> shared, the <see cref="DataItem.CsName"/> uniquified among siblings — and,
@@ -863,7 +894,9 @@ public sealed partial class DataBinder
     /// data description CLAUSE goes through <see cref="CopyEntryDescription"/>, the same ONE copy the TYPE /
     /// SAME AS clone uses, so the temp's subtree cannot lose a clause the model's has (kb/Work PB888 — it had
     /// lost GROUP-USAGE, SYNCHRONIZED and ALIGNED, the last two of which decide a group's slack bytes).</summary>
-    private DataItem CloneTempNode(DataItem src, DataItem newParent)
+    /// <param name="table">When given, the clone carries this OCCURS clause in place of the source's own
+    /// (<see cref="CreateCompilerTempTable"/>); a subordinate always keeps its own.</param>
+    private DataItem CloneTempNode(DataItem src, DataItem newParent, (int? Occurs, OccursSpec? Spec)? table = null)
     {
         var clone = new DataItem
         {
@@ -871,8 +904,8 @@ public sealed partial class DataBinder
             DeclaredAt = src.DeclaredAt,
             CobolName = src.CobolName,
             CsName = src.CsName,   // the base name: newParent.AddMember allocates it among the NEW siblings (PB2093)
-            Occurs = src.Occurs,
-            OccursSpec = src.OccursSpec is { } os ? CloneOccursSpec(os) : null,
+            Occurs = table is { } t ? t.Occurs : src.Occurs,
+            OccursSpec = table is { } u ? u.Spec : src.OccursSpec is { } os ? CloneOccursSpec(os) : null,
         };
         CopyEntryDescription(src, clone, DescriptionCopyScope.CompilerTemp);
         clone.Uid = _uidCounter++;
