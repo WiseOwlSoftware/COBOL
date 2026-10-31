@@ -133,6 +133,25 @@ public static class EditionHarness
             $"expected a diagnostic containing '{expectedSubstring}'; got:\n{string.Join("\n", all.DefaultIfEmpty("(none)"))}");
     }
 
+    /// <summary>A diagnostic line with no <c>file(line,col): </c> prefix — it begins with its severity.</summary>
+    private static readonly System.Text.RegularExpressions.Regex UnpositionedDiagnostic =
+        new(@"^\s*(error|warning) COBOL\d{4}:", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    /// <summary>⛔ EVERY DIAGNOSTIC OF A REFUSED PROGRAM NAMES THE FILE AND LINE THE USER EDITS (kb/Work PB2034; the
+    /// reading of kb/Work PB82, PB1925). A diagnostic is positioned by the cursor a walker sets
+    /// (<c>edition.At(context)</c>); a producer that runs outside every walker — a group-level pass, a post-build
+    /// resolver — prints it BARE unless it sets the cursor itself, and nothing else notices: the type that carries
+    /// the diagnostic (<c>EditionDiagnostic</c>) cannot hold a location. This is the net that does: asked of every
+    /// refusal of <c>conformance-suite/wiseowl/diagnostics.json</c> at every edition it names, so the next producer
+    /// that forgets its position fails HERE, at the first program that exercises it.</summary>
+    public static void AssertEveryDiagnosticPositioned(IEnumerable<string> diagnostics, string subject)
+    {
+        var bare = diagnostics.Where(d => UnpositionedDiagnostic.IsMatch(d)).ToList();
+        Assert.True(bare.Count == 0,
+            $"{subject}: {bare.Count} diagnostic(s) carry no file(line,col) — the producer runs outside every cursor-"
+            + "setting walker and shall position the sink itself (edition.At(context)):\n" + string.Join("\n", bare));
+    }
+
     /// <summary>Assert NO diagnostic contains <paramref name="substring"/> (P2.7 — e.g. a permissive compile of
     /// a construct the edition still HAS must not carry its removal warning).</summary>
     public static void AssertNoDiagnostic(IEnumerable<string> diagnostics, string substring)

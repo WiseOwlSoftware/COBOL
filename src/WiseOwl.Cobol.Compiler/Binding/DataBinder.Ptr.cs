@@ -249,21 +249,33 @@ public sealed partial class DataBinder
     /// the whole container scope took the local one (candidate 0, or one of two) and dropped it as not global, so the
     /// global record was never put on a cell and the contained <c>SET P TO ADDRESS OF X</c> was refused with a reason
     /// that was false. A qualified head resolves through the one §8.4.2.2 qualification machinery, which the written
-    /// qualifiers already narrow to the record they name.</para></summary>
+    /// qualifiers already narrow to the record they name.</para>
+    /// <para>⛔ A HEAD THAT NAMES A CONTAINER'S GLOBAL ITEM IS NOT THIS UNIT'S TO CLAIM. The containers' GLOBAL names are
+    /// visible here before this pass runs (<see cref="InheritContainerGlobalData"/>, at the end of the declaration half,
+    /// kb/Work PB3766), but the storage they name is the container's (§13.18.27.4 GR2), and the container claims it from
+    /// its own scan of its contained programs (the <c>contained</c> arm above). Claiming it here as well declared the
+    /// record's cell and backing a second time in this unit's C# type beside the GLOBAL bridge to the container's
+    /// (CS0102 on <c>_scell_R2</c> / <c>_redef_R2</c>, merge group 41183181188), so the answer is the head's own
+    /// element only: <see cref="DeclaringDepth"/> 0.</para></summary>
     private DataItem? ResolveStorageClaimHead(string name, List<string> quals, OoMethodSymbol? method, bool contained,
         bool firstOfSeveral)
     {
         var scope = method is null ? Model.Scope.Program : new Model.Scope(method.DataScope);
+        DataItem? hit;
         if (quals.Count == 0)
         {
             if (!Symbols.TryResolveUnqualified(name, scope, out var candidates)) return null;
             if (contained) candidates = candidates.FindAll(c => CallGlobalRoots.Contains(c.Root));
-            return candidates.Count == 1 || (firstOfSeveral && candidates.Count > 0) ? candidates[0] : null;
+            hit = candidates.Count == 1 || (firstOfSeveral && candidates.Count > 0) ? candidates[0] : null;
         }
-        var saved = ActiveMethodScope;
-        ActiveMethodScope = method?.DataScope;
-        try { return new ReferenceResolver(this).FindItem(name, quals); }
-        finally { ActiveMethodScope = saved; }
+        else
+        {
+            var saved = ActiveMethodScope;
+            ActiveMethodScope = method?.DataScope;
+            try { hit = new ReferenceResolver(this).FindItem(name, quals); }
+            finally { ActiveMethodScope = saved; }
+        }
+        return hit is not null && DeclaringDepth(hit) == 0 ? hit : null;
     }
 
     /// <summary>The data-name heads of every operand an activation may pass BY REFERENCE under one parse subtree, each tagged

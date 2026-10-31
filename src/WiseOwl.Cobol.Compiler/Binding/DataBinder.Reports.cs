@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
@@ -32,6 +33,11 @@ using WiseOwl.Cobol.Runtime;
 public sealed class ReportModel
 {
     public required string Name { get; init; }
+
+    /// <summary>The report description entry's own source position — the cursor every post-build rule about the report
+    /// (<c>DataBinder.ResolveReports</c>) is reported at when no finer position is known, so an RD diagnostic is never
+    /// printed without a file and line (kb/Work PB2034).</summary>
+    public WiseOwl.Cobol.Editions.DiagnosticCursor At { get; init; }
 
     /// <summary>The report file whose FD names this report in a REPORT(S) clause (ISO §13.18.46), resolved
     /// post-build; a report named by NO file description entry is a bind error.</summary>
@@ -1064,11 +1070,29 @@ public sealed partial class DataBinder
         return nearest;
     }
 
+    /// <summary>The containers' GLOBAL reports (ISO §13.18.27.4 GR1/GR2), nearest container first, each with its
+    /// <see cref="ReportDepth"/>; set by <c>BinderDriver.BindUnitData</c> before the unit binds and inherited by
+    /// <see cref="InheritContainerReports"/> (kb/Work PB3766).</summary>
+    internal IReadOnlyList<(ReportModel Report, int Depth)> ContainerGlobalReports { get; init; } = [];
+
+    /// <summary>⛔ THE ONE POINT A CONTAINER'S GLOBAL REPORTS BECOME VISIBLE to this unit (ISO §13.18.27.4 GR1/GR2):
+    /// the end of <see cref="BindDeclarations"/> — after this unit's own report-name and data-names are declared, so
+    /// a name it declares hides the container's (§8.4.6.2), and BEFORE <see cref="BindResolve"/>, so every clause of
+    /// this unit's own data division that names a report item (FILE STATUS, RELATIVE KEY, OCCURS … DEPENDING ON,
+    /// ASSIGN … USING) finds the inherited report when it asks <see cref="ReportEntryReferenceRefused"/> (§13.8.6.2.3).
+    /// Inheriting after the whole <c>Bind</c> left those clauses telling a programmer that a name the container's
+    /// report declares is "not defined" (kb/Work PB3766).</summary>
+    private void InheritContainerReports()
+    {
+        foreach (var (report, depth) in ContainerGlobalReports)
+            InheritGlobalReport(report, depth);
+    }
+
     /// <summary>Make a container's GLOBAL report visible here (ISO §13.18.27.4 GR1/GR2): its report-name, its
     /// report groups (reached through the report), and its sum counters (GR1 — "All data-names subordinate to a
-    /// global name are global names"). Called by <c>BinderDriver.BindUnitData</c> AFTER this unit's own data
-    /// division has bound, nearest container first, so a name this unit declares — or a nearer container already
-    /// supplied — hides the farther one (§8.4.6.2). Returns false when the report-name is hidden.</summary>
+    /// global name are global names"). Called by <see cref="InheritContainerReports"/>, nearest container first, so
+    /// a name this unit declares — or a nearer container already supplied — hides the farther one (§8.4.6.2).
+    /// Returns false when the report-name is hidden.</summary>
     internal bool InheritGlobalReport(ReportModel report, int depth)
     {
         if (VisibleReports.Any(r => CobolNames.Same(r.Name, report.Name))) return false;
@@ -1103,6 +1127,7 @@ public sealed partial class DataBinder
             var model = new ReportModel
             {
                 Name = name,
+                At = Edition.Cursor,   // positioned at the RD by the `using var _ = Edition.At(rd)` above
                 WrittenEntries = rd.reportGroupEntry(),
                 CsIndex = Reports.Count,
                 Uid = _uidCounter++,
@@ -1394,6 +1419,7 @@ public sealed partial class DataBinder
         // resolver also asks §8.4.2.3.3 SR3's subscript count — so an unsubscripted reference to a table element is
         // refused THERE (SR5), and a subscripted one is legal source (kb/Work PB1292).
         var (codeName, codeQuals) = KeyReference(code.Reference!);
+        using var codeAt = Edition.At(code.Reference!);   // identifier-1 as written (kb/Work PB2034)
         string where = $"RD '{model.Name}': the CODE clause";
         code.Item = LookupQualified(codeName, codeQuals, where, out bool ambiguous);
         if (code.Item is not { } item)
@@ -2863,7 +2889,13 @@ public sealed partial class DataBinder
             using var _ = Edition.At(ge);
             int.TryParse(ge.levelNumber().GetText(), out int level);
             string? entryName = ge.dataName().NameOrNull();
-            if (level == 1)
+            // ⛔ A level-01 entry that repeats (the multiple LINE clause, the only vehicle a level-01 entry may carry:
+            // §13.18.38.3 SR1 a) refuses its OCCURS) is still ONE report group — one name, one TYPE, one set of lines
+            // — whose report lines the replay multiplies (§13.18.35.4 GR9; kb/Work PB4109). Only the FIRST repetition
+            // opens the group, so a GENERATE names exactly one group (a replay used to add one per operand, and
+            // ReportGroupResolution then found the name twice in one RD: a false COBOL1920).
+            bool opensGroup = level == 1 && ordinal == 0;
+            if (opensGroup)
             {
                 st.Group = new ReportGroupModel { Name = entryName, Entry = ge };
                 model.Groups.Add(st.Group);
@@ -2927,7 +2959,7 @@ public sealed partial class DataBinder
                 {
                     // §13.15.3 SR5 — the TYPE clause belongs to the level 1 entry alone (ScreenReportEntryClausePresence
                     // refuses it anywhere else), so a stray one never retypes the group it is written inside.
-                    if (level == 1) BindGroupType(t, group, model);
+                    if (opensGroup) BindGroupType(t, group, model);
                 }
                 else if (clause.reportLineClause() is { } lc)
                 {
@@ -2945,7 +2977,7 @@ public sealed partial class DataBinder
                 {
                     // Captured on the level 1 entry's group; its syntax rules (and §13.15.3 SR6 for any other
                     // level) are screened once the group is complete — BindNextGroupClauses (kb/Work PB957).
-                    if (level == 1) group.NextGroupClause = ngc;
+                    if (opensGroup) group.NextGroupClause = ngc;
                 }
                 else if (clause.reportColumnClause() is { } cc)
                 {
@@ -4128,8 +4160,9 @@ public sealed partial class DataBinder
         var rdNames = new HashSet<string>(Reports.Select(r => r.Name), CobolNames.Comparer);
         var firstClause = new Dictionary<string, FileModel>(CobolNames.Comparer);
         foreach (var file in Files)
-            foreach (var name in file.ReportNames)
+            foreach (var (name, at) in file.ReportNames)
             {
+                using var _ = Edition.At(at);   // each rule is about the report-name as written (kb/Work PB2034)
                 if (!rdNames.Contains(name))
                     Edition.Error(DiagnosticCatalog.ReportClauseNameRule, $"file '{file.CobolName}': the REPORT clause names "
                         + $"'{name}', which is not the subject of a report description entry in the report section: each "
@@ -4152,13 +4185,17 @@ public sealed partial class DataBinder
         foreach (var file in Files)
         {
             if (file.ReportNames.Count < 2) continue;
-            var members = Reports.Where(r => file.ReportNames.Any(n => CobolNames.Same(n, r.Name))).ToList();
+            var members = Reports.Where(r => file.ReportNames.Any(n => CobolNames.Same(n.Name, r.Name))).ToList();
             if (members.Any(r => r.CodeWritten) && members.Any(r => !r.CodeWritten))
+            {
+                // At the first report that omits the clause, the one the rule is violated by (kb/Work PB2034).
+                using var _ = Edition.At(members.First(r => !r.CodeWritten).At);
                 Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"file '{file.CobolName}': the CODE clause is specified for "
                     + $"{string.Join(", ", members.Where(r => r.CodeWritten).Select(r => $"'{r.Name}'"))} but not for "
                     + $"{string.Join(", ", members.Where(r => !r.CodeWritten).Select(r => $"'{r.Name}'"))}: if the CODE clause is "
                     + "specified for any report, it shall be specified for each report associated with the same report file "
                     + "(ISO §13.18.12.3 SR3)");
+            }
         }
     }
 
@@ -4171,11 +4208,16 @@ public sealed partial class DataBinder
         ScreenReportCodeAgreement();
         foreach (var model in Reports)
         {
+            // ⛔ EVERY POST-BUILD RULE OF THE REPORT IS POSITIONED (kb/Work PB2034): the walkers that position the cursor
+            // (BindReportSection, BindReportEntry) have finished by now, so without this scope each rule below printed
+            // with no file and line. The report's own position is the floor; the loops below narrow it to the entry,
+            // the printable item, the CODE clause or the SUM addend the rule is about.
+            using var reportAt = Edition.At(model.At);
             // The owning file: the FD whose REPORT(S) clause names this report (§13.14.3 SR1 — one and only one such
             // clause; a name in none is reported here, a name in several by ScreenReportClauseNames). A report may
             // share its file with others (§13.18.46.4 GR1 — each has its own engine over the one connector).
             model.File = Files.FirstOrDefault(f =>
-                f.ReportNames.Any(rn => CobolNames.Same(rn, model.Name)));
+                f.ReportNames.Any(rn => CobolNames.Same(rn.Name, model.Name)));
             if (model.File is null)
                 Edition.Error(DiagnosticCatalog.ReportClauseNameRule, $"RD '{model.Name}' is not named in any file description "
                     + "entry's REPORT clause: there shall be one and only one REPORT clause specifying report-name-1 "
@@ -4243,6 +4285,7 @@ public sealed partial class DataBinder
                 foreach (var ln in group.Lines)
                     foreach (var f in ln.Fields)
                     {
+                        using var fieldAt = Edition.At(f.Entry);   // the printable item's entry (kb/Work PB2034)
                         foreach (var fs in f.Sources)   // EVERY operand of a multi-operand SOURCE clause (§13.18.53.2)
                             switch (fs)
                             {
@@ -4320,7 +4363,7 @@ public sealed partial class DataBinder
             // item or constant is in ByName; a report group entry, printable item or sum counter is a report section
             // name of some report of the source element, all of which are described by now.
             foreach (var name in model.VaryingNames)
-                if (ByName.ContainsKey(name) || IsReportSectionOnlyName(name))
+                if (DeclaresOwnDataName(name) || IsReportSectionOnlyName(name))
                     Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"RD '{model.Name}' VARYING '{name}': the counter "
                         + "data-name shall not be defined elsewhere in the source element (ISO §13.18.64.3 SR2)");
 
@@ -4338,10 +4381,13 @@ public sealed partial class DataBinder
                         // GR6 c)/d): integer-1 and the printable-size fix the leftmost column, and a line has no
                         // column before 1 — the standard states no outcome for it, so it is refused here (COBOL2712).
                         if (p.Left < 1 && p.Spec.Kind == ReportColumnKindModel.Absolute && p.Spec.Alignment != ReportColumnAlignment.Left)
+                        {
+                            using var placementAt = Edition.At(p.Field.Entry);   // the entry whose COLUMN clause it is (kb/Work PB2034)
                             Edition.Error(DiagnosticCatalog.ReportColumnLeftOfLine, $"RD '{model.Name}' entry "
                                 + $"'{p.Field.PrintItem.CobolName ?? "FILLER"}': COLUMN {p.Spec.Alignment.ToString().ToUpperInvariant()} "
                                 + $"{p.Spec.Value} with a printable-size of {p.Size} puts the item's leftmost column at {p.Left}, "
                                 + "before column 1 (ISO §13.18.14.4 GR6 c)/d))");
+                        }
                         widest = Math.Max(widest, p.Right);
                     }
                     ScreenReportColumnArrangement(model, ln, arrangementReported);
@@ -4550,6 +4596,7 @@ public sealed partial class DataBinder
     private void ResolveSumAddend(ReportSumAddend addend, ReportSumTerm term, ReportSumModel sum, ReportModel model)
     {
         if (addend.Rejected) return;
+        using var addendAt = Edition.At(addend.Ctx);   // every rule below is about this addend as written (kb/Work PB2034)
         addend.Rejected = true;   // cleared only by the one success path at the end
         // ⛔ AN ARITHMETIC-EXPRESSION ADDEND TAKES SR6, NOT SR4/SR5 (ISO §13.18.54.3 SR6 — "If the addend is
         // arithmetic-expression-1, any identifiers it contains may reference entries in any section of the data
@@ -4804,6 +4851,8 @@ public sealed partial class DataBinder
     private void ScreenRolledChains()
     {
         var edges = new Dictionary<ReportSumFamily, List<ReportSumFamily>>(ReferenceEqualityComparer.Instance);
+        // The first rolled addend each counter writes: where a cycle through the counter is reported (kb/Work PB2034).
+        var firstAddend = new Dictionary<ReportSumFamily, ReportSumAddend>(ReferenceEqualityComparer.Instance);
         foreach (var r in Reports)
             foreach (var sum in r.Sums)
                 foreach (var a in sum.Terms.SelectMany(t => t.Addends).Where(a => a.Rolled))
@@ -4812,6 +4861,7 @@ public sealed partial class DataBinder
                         {
                             if (!edges.TryGetValue(sum.Family, out var outgoing)) edges[sum.Family] = outgoing = [];
                             if (!outgoing.Contains(s.Family)) outgoing.Add(s.Family);
+                            firstAddend.TryAdd(sum.Family, a);
                         }
         var done = new HashSet<ReportSumFamily>(ReferenceEqualityComparer.Instance);
         var path = new List<ReportSumFamily>();
@@ -4821,6 +4871,7 @@ public sealed partial class DataBinder
             if (at >= 0)
             {
                 var cycle = path.Skip(at).Append(f).Select(x => $"'{x.Name ?? "FILLER"}' of report '{x.Report.Name}'");
+                using var cycleAt = Edition.At(firstAddend[f].Ctx);
                 Edition.Error(DiagnosticCatalog.ReportSumDataNameRule, "a chain of SUM data-name-1 references never terminates: "
                     + $"{string.Join(" → ", cycle)} — any chain of reference shall terminate at an entry that does not contain a SUM "
                     + "clause referring to a data-name-1 defined in the report section (ISO §13.18.54.3 SR4 e))");
@@ -5002,7 +5053,7 @@ public sealed partial class DataBinder
     /// are not subscripts (§8.4.3.2.3 SR2) — and a reference modification (<c>refModPart</c>) has none.</summary>
     private IEnumerable<string> SubscriptWordsOfReference(Core.DataReferenceContext dref)
     {
-        if (dref.cobolWord()?.GetText() is not { } baseWord || !(ByName.ContainsKey(baseWord) || IsReportSectionOnlyName(baseWord)))
+        if (dref.cobolWord()?.GetText() is not { } baseWord || !(DeclaresOwnDataName(baseWord) || IsReportSectionOnlyName(baseWord)))
             yield break;
         foreach (var suffix in dref.dataReferenceSuffix())
         {
@@ -5031,7 +5082,7 @@ public sealed partial class DataBinder
     private bool IsReportSubscriptCounter(string word) =>
         CobolNames.Same(word, "LINE-COUNTER")
         || CobolNames.Same(word, "PAGE-COUNTER")
-        || (!ByName.ContainsKey(word) && Reports.Any(r => r.NamedEntries.Any(e =>
+        || (!DeclaresOwnDataName(word) && Reports.Any(r => r.NamedEntries.Any(e =>
             e.IsSumCounter && CobolNames.Same(e.Name, word))));
 
     /// <summary>⛔ ISO §8.4.2.3.3 SR8 (kb/Work PB1474) — "In the report section, neither a sum counter nor the LINE-COUNTER
@@ -5080,7 +5131,7 @@ public sealed partial class DataBinder
     {
         var names = new List<string>();
         foreach (var entry in model.NamedEntries)
-            if (!ByName.ContainsKey(entry.Name) && !names.Contains(entry.Name, CobolNames.Comparer))
+            if (!DeclaresOwnDataName(entry.Name) && !names.Contains(entry.Name, CobolNames.Comparer))
                 names.Add(entry.Name);
         return names;
     }
@@ -5111,10 +5162,11 @@ public sealed partial class DataBinder
     /// is the referenced item (ISO §8.4.6.2.1 3) a): "If the name is declared in source element B, the item in source
     /// element B is the referenced item"), however many farther GLOBAL data items spell the same, so the report-item
     /// refusal (§13.8.6.2.3) stands. <paramref name="dataItems"/> is the nearest tier already
-    /// (<see cref="QualifiedCandidates"/>), so its depth is any member's. Read by every site that counts data items
-    /// before it refuses a report entry: the procedure division's unidentified reference and a data division clause
-    /// operand.</summary>
-    internal bool DataItemsAmbiguousBeforeReportEntry(NameCandidates<DataItem> dataItems, string name, IReadOnlyList<string> qualifiers)
+    /// (<see cref="QualifiedCandidates"/>), so its depth is any member's. Read by <see cref="ReportEntryReferenceRefused"/>
+    /// itself, so every arm that asks the refusal takes the one order by passing its candidates: the order cannot be
+    /// left out of an arm (it was, at three arms, when kb/Work PB3766 made a container's GLOBAL data items reach a
+    /// contained program's FILE-CONTROL and OCCURS clauses and the arms PB3768 added counted first).</summary>
+    private bool DataItemsAmbiguousBeforeReportEntry(NameCandidates<DataItem> dataItems, string name, IReadOnlyList<string> qualifiers)
     {
         if (dataItems.Count <= 1) return false;
         return ReportEntriesNamed(name, qualifiers) is not [var (report, _), ..]
@@ -5145,10 +5197,16 @@ public sealed partial class DataBinder
     /// counter resolves before name lookup fails), so a word that reaches an unidentified-reference report AND names a
     /// report entry is a reference the standard forbids — and saying "not defined" about a name the report section
     /// declares is false and sends the reader hunting a declaration that is right there. Returns true having
-    /// reported; false when the written reference names no report entry, leaving the caller's own verdict.</summary>
+    /// reported; false when the written reference names no report entry, or when it reaches several
+    /// <paramref name="dataItems"/> that no nearer report entry hides (<see cref="DataItemsAmbiguousBeforeReportEntry"/>,
+    /// kb/Work PB3767: §8.4.2.2.3 SR1's ambiguity is then the verdict), leaving the caller's own verdict.</summary>
+    /// <param name="dataItems">The data items the written reference reaches (<see cref="QualifiedCandidates"/>, the
+    /// nearest tier): none, or several when the caller found no unique one.</param>
     /// <param name="subject">The reference as the caller words it: <c>'PV OF DL'</c>, or <c>FILE STATUS 'PN'</c>.</param>
-    internal bool ReportEntryReferenceRefused(string subject, string name, IReadOnlyList<string> qualifiers)
+    internal bool ReportEntryReferenceRefused(NameCandidates<DataItem> dataItems, string subject, string name,
+                                              IReadOnlyList<string> qualifiers)
     {
+        if (DataItemsAmbiguousBeforeReportEntry(dataItems, name, qualifiers)) return false;
         if (ReportEntriesNamed(name, qualifiers) is not [var (report, entry), ..]) return false;
         Edition.Error(DiagnosticCatalog.ReportItemReference,
             $"{subject} names the report group description entry '{entry.Name}' of report '{report.Name}', which a reference "
