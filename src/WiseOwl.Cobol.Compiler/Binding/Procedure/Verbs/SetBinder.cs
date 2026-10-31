@@ -603,7 +603,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     private BoundStatement BindMessageTagSet(IReadOnlyList<Core.DataReferenceContext> receivers, string senderText)
     {
         if (!ConstructRegistry.IsAvailable(ctx.Edition.Edition, Constructs.UsageMessageTag2023))
-            return new BoundNop();
+            return new BoundNop();   // no-op: the operands' usage-message-tag-2023 gate (COBOL0900) refuses this compile (kb/Work PB916)
         ctx.Edition.Declined(DiagnosticCatalog.McsMessageTagSetUnsupported,
             $"SET {SetFormatSelection.Written(receivers)} TO {senderText}");
         return BoundRejected.Reported(ctx.Edition);
