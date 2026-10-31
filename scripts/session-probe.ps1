@@ -38,8 +38,7 @@ Write-Host "VCR    : $todo todo anchors remaining (P14 Step 1 drives to zero)"
 # 4. Conformance suite counts (drift signal, not a gate): the tests of the clause folders and WiseOwl's refusals
 $tests = @('conformance-suite/cases', 'conformance-suite/wiseowl/cases' | ForEach-Object {
     Get-ChildItem $_ -Directory | ForEach-Object { Get-ChildItem $_.FullName -File -Filter *.cob } }).Count
-$refusals = @((Get-Content 'conformance-suite/wiseowl/diagnostics.json' -Raw | ConvertFrom-Json).PSObject.Properties |
-    Where-Object { -not $_.Name.StartsWith('$') }).Count
+$refusals = @(Get-ChildItem 'conformance-suite/wiseowl/diagnostics' -File -Filter *.json).Count
 Write-Host "suite  : $tests tests · $refusals WiseOwl refusals (conformance-suite/)"
 
 # 5. Traceability inventory (exists after P14 Step 0)

@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "(21,30): error COBOL0900: the SOURCE phrase of the RECORD KEY or ALTERNATE RECORD KEY clause"}
