@@ -445,10 +445,12 @@ public sealed class Frontend
         // The debugging lines that stay SOURCE: the region lines blanked on the way (their marker is gone from the final
         // stream) and the final stream's own (kb/Work PB2490).
         var sourceDebuggingLines = new List<IToken>();
+        LexerErrorListener lexErrors;
         while (true)
         {
             var lexer = new CobolLexer(new AntlrInputStream(text));
             retypes.PrimeLexer(lexer, edition);
+            lexErrors = LexerErrorListener.AttachTo(lexer);
             tokens = new CommonTokenStream(lexer);
             var streamSourceLines = new List<IToken>();
             if (DebuggingLineRewriter.Rewrite(tokens, streamSourceLines) is not { } sourceRegionLine)
@@ -459,6 +461,9 @@ public sealed class Frontend
             sourceDebuggingLines.Add(sourceRegionLine);
             text = DebuggingLineRewriter.WithCarrierBlanked(text, sourceRegionLine);
         }
+        // Only the LAST lexer's errors describe the text the parse reads (kb/Work PB4233): an earlier one lexed a debugging
+        // line's carrier this loop has since blanked.
+        lexErrors.ReportInto(diagnostics, sourcePath, LineMap);
         ZeroTokenRewriter.Rewrite(tokens);
         // The §8.9 reservation gate's retype of the words the program declares where the edition frees them (kb/Work PB655).
         // (The >>COBOL-WORDS retype was applied by the lexer itself.) A no-op when no such word is declared.

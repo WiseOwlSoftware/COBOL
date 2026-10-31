@@ -6981,6 +6981,18 @@ public static class DiagnosticCatalog
         + "continuation line continues it.",
         "ISO §6.3.5 1) · §6.4.2 · §8.3.3.2.2");
 
+    /// <summary>COBOL5704 — text at which no rule of the lexer's current mode matches (kb/Work PB4233). Every mode of
+    /// <c>CobolLexer.g4</c> is total — DEFAULT ends in its one-character <c>ANY_CHAR</c>, PICMODE takes the separator
+    /// period as well as the picture character-string, COMMENT_MODE takes every character — so this is a compiler defect
+    /// and never a diagnosis of the source. It is reported, through the compilation's diagnostics, so the defect fails
+    /// the compile where it would otherwise drop the text it could not read: ANTLR's default lexer listener printed the
+    /// error on the console and went on, and <c>01 X PIC.</c> compiled with the next line's text as its picture.
+    /// <c>LexerTotalityDriftTests</c> holds the lexer to reporting nothing on the suite's sources.</summary>
+    public static readonly DiagnosticDescriptor LexerTextUnrecognized = new(
+        "COBOL5704", "lexer-text-unrecognized", EditionSeverity.Error,
+        "Internal: no rule of the lexer matches the source text here (a compiler defect: every lexer mode is total).",
+        "ISO §8.3.1");
+
     /// <summary>COBOL2993 — an operator not immediately preceded and followed by a separator space (kb/Work PB1430,
     /// PB2017). §8.7.3: "The concatenation operator is the COBOL character '&amp;', which shall be immediately preceded
     /// and followed by a separator space"; §8.7.4 says the same of the invocation operator '::'; §8.7.1 says it of the

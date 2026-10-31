@@ -797,8 +797,16 @@ binder-side subscript re-parse (`ReferenceResolver.SplitSubscriptTokens`) is add
 rearchitecture (structured `Place` path segments), not here; the frontend's contribution is to preserve the
 captured token run faithfully.
 
-**3.3c Mode inventory** stays: DEFAULT, PICMODE, SUBSCRIPT, COMMENT_MODE (`CobolLexer.g4:497,651,726,782`).
-No change to mode semantics; only the shared-fragment factoring in 3.3b.
+**3.3c Mode inventory:** DEFAULT, PICMODE and COMMENT_MODE (the SUBSCRIPT mode is gone, kb/Work PB2113, §9).
+⛔ **Every mode is TOTAL, and a lexer error is a diagnostic (kb/Work PB4233).** DEFAULT ends in its one-character
+`ANY_CHAR`; PICMODE takes the separator period where the picture character-string should be (`PIC_PERIOD`, the DOT
+token, which ends the mode) as well as the character-string itself; COMMENT_MODE takes every character. Without
+`PIC_PERIOD`, `01 X PIC.` matched no PICMODE rule, ANTLR's default console listener printed the error outside the
+diagnostics, the period was dropped and the mode stayed open, so the next line's `X(3)` became the entry's picture
+and the program compiled. Every `CobolLexer` the front end creates carries a listener of its own: the main lex
+`LexerErrorListener` (reported, from the LAST lexer of the debugging-line loop only, as COBOL5704 — a compiler defect,
+never a diagnosis of the source), a fragment lex `FragmentParse`'s flag and the keyword probe `CobolKeywordTokens`'
+counter. `LexerTotalityDriftTests` holds the lexer to reporting nothing on the suite's sources.
 
 **3.3e ⛔ The lexer carries NO semantic predicate — context the lexer needs goes in an ACTION (kb/Work PB1715).**
 ANTLR 4.13.2 caches a mode's start state only when no predicate is in its closure (`LexerATNSimulator.MatchATN`),

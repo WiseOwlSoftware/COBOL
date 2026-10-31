@@ -1345,6 +1345,13 @@ PIC_STRING  : ( ~[ \n.] | '.' ~[ \n] )+
     // Post-action: if PIC string ends with '.', the greedy match consumed a
     //   sentence-ending period — back up one char so it tokenizes as DOT;
     //   likewise a trailing ','/';' clause separator (§8.3.5 r2) backs up and re-lexes as a skip token.
+// ⛔ THE MODE IS TOTAL: A SEPARATOR PERIOD WHERE THE CHARACTER-STRING SHOULD BE ENDS IT (kb/Work PB4233). A '.' followed
+// by a space, a line end or the end of the text is the separator period (§8.3.5 3)), which PIC_STRING cannot start, so
+// `01 X PIC.` matched no rule here: ANTLR reported it on the console, outside the diagnostics, dropped the period and
+// stayed in PICMODE, and the next line's `X(3)` became the picture of an entry the source left without one. It is the
+// DOT token the parser reads, and the mode ends with it, so the PICTURE clause with no character-string is the parse
+// error it is. PIC_STRING still takes every '.' a picture character follows: the longest match decides.
+PIC_PERIOD  : '.' -> type(DOT), popMode ;
 
 // ==========================================
 // COMMENT_MODE — *> to end of line
