@@ -1542,19 +1542,23 @@ joined the table the same way, which is the table doing its job: a tenth format 
   (a negated predicate, or MEMORY without SIZE, matched a word and contributes none). `AdmittedKinds` names the
   result in the standard's terms (keywords and context words, the §8.3.3.1 literal categories through
   `LiteralTokens.CategoryOf`, literal families read from the grammar's literal rules, figurative constants) in three
-  shapes: a CLOSED position (no user-defined word, period, end of input or statement start) names everything; a
+  shapes: a CLOSED position (no user-defined word, period, end of input or statement start — a statement start is
+  every statement's opening word expected, `AdmittedKinds.BeginsAStatement`, never one verb another clause shares:
+  DISPLAY is a USAGE keyword, so `USAGE 5` is closed and names the usages, kb/Work PB4201) names everything; a
   literal at an open position that takes an operand names the literal categories taken, or none; a user-defined word
   where only literals are taken says both. An open position that takes a period yields to the missing-period reading
   where a period would let the sentence or entry starting at the token follow (`01 W-X PIC X` then `05 W-Y`). The
   sentence says "expected", the parser's word: the grammar parses a superset of each format wherever a later check
   names the departure (INSPECT tallying FIRST/TRAILING for COBOL2269). **The keywords are the compile edition's own
   (kb/Work PB4174):** the parse holds a later edition's words at every edition, so `AdmittedKinds.Refusal` takes a
-  `theEditionPrints` test, `CobolParserCoreBase.PrintsKeyword`, and names a keyword unless the §8.9 table
-  (`ReservedWords.AdmitsAsKeyword`) shows a LATER edition introduced it (§8.3.2.1 1: a word not yet reserved is a
-  user-defined word) — `(1 + 2.` expects B-AND, B-OR and B-XOR from 2002 and the shift operators from 2023, none at
-  85. An older edition's dropped word, a `keywordWhereFree` word (generated into `CobolLexer.IsKeywordWhereFree` by
-  `gen-cobol-words.ps1`) and a §8.10 context-sensitive word are named whatever the table says; §8.10 has no
-  per-edition flag, so the ROUNDED MODE names are still named at 85 (residue recorded in CONFORMANCE.md D-EXPECT). The
+  `theEditionPrints` test, `CobolParserCoreBase.PrintsKeyword`, and names a keyword unless a table shows a LATER
+  edition introduced it (`ReservedWords.AdmitsAsKeyword`: the §8.9 flags, or a §8.10 row's `Introduced` edition; §8.3.2.1
+  1: a word not yet reserved or listed is a user-defined word) — `(1 + 2.` expects B-AND, B-OR and B-XOR from 2002 and
+  the shift operators from 2023, none at 85, and `ROUNDED MODE IS FOO` names the eight mode names from 2014 only. An
+  older edition's dropped word and a `keywordWhereFree` word (generated into `CobolLexer.IsKeywordWhereFree` by
+  `gen-cobol-words.ps1`) are named whatever the table says. A §8.10 word's `Introduced` edition is generated
+  (`gen-reserved-words.ps1` step 7c) from the 2002 list (`tests/version-matrix/context-sensitive-words-2002.json`) and
+  Annex E.3.3 item 13, and held to that derivation by `ContextSensitiveWordsDriftTests` (CONFORMANCE.md D-EXPECT). The
   arm stands after 0h and behind `HasStructuralHint`, so a residue, an empty block or a statement that ended keeps its
   own code; it replaced the two guesses that named a kind in two shapes (COBOL0308 "a data-name is expected here",
   COBOL0309 its converse). `WrittenKindRefusalTests` pins the shapes and the controls.

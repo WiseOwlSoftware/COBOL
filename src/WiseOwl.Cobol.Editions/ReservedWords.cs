@@ -51,21 +51,30 @@ public static partial class ReservedWords
     /// targeted edition does not have (ISO §8.3.2.1 1: "Reserved words shall not be used as user-defined words or
     /// system-names", so a word §8.9 has not reserved yet is a user-defined word there), and that edition-blind sentence
     /// was the whole of the defect.
-    /// <para>False only for the one shape the table PROVES: a word the edition does not reserve, no OLDER edition
-    /// reserved, and a LATER edition does — a word introduced after <paramref name="edition"/>. Every other word is
+    /// <para>False only for the two shapes the tables PROVE. A §8.9 word the edition does not reserve, no OLDER edition
+    /// reserved, and a LATER edition does: a word introduced after <paramref name="edition"/>. A §8.10 context-sensitive
+    /// word (a word §8.9 does not reserve at or before the edition) whose first listing is a LATER edition
+    /// (<see cref="ContextSensitiveWordEntry.Introduced"/>: <c>ROUNDED MODE</c>'s words are 2014's). Every other word is
     /// printable: one reserved at the edition, one an older edition reserved and this one dropped (the migration
     /// mode's removed clause, and the standard's own anomalies — COBOL and PHYSICAL are underlined in 2023 formats
-    /// that §8.9 does not list), one reserved at no edition (the §8.10 context-sensitive words carry no per-edition
-    /// flag, <see cref="ContextSensitiveWords"/>), and one whose row may not reject (anything but high confidence is
-    /// inert, the conservative policy). A word wrongly named costs the user a sentence; a word wrongly left out of
-    /// one costs them the right keyword, so the doubtful cases name.</para></summary>
+    /// that §8.9 does not list), one in neither table, and one whose §8.9 row may not reject (anything but high
+    /// confidence is inert, the conservative policy). A word wrongly named costs the user a sentence; a word wrongly
+    /// left out of one costs them the right keyword, so the doubtful cases name.</para></summary>
     public static bool AdmitsAsKeyword(string word, int edition)
     {
-        if (Find(word) is not { Confidence: "high" } row || row.IsReservedAt(edition)) return true;
-        foreach (int older in EditionInfo.Before(edition))
-            if (row.IsReservedAt(older)) return true;
-        foreach (int later in EditionInfo.All)
-            if (later > edition && row.IsReservedAt(later)) return false;
+        var row = Find(word) is { Confidence: "high" } high ? high : null;
+        if (row is not null)
+        {
+            if (row.IsReservedAt(edition)) return true;
+            foreach (int older in EditionInfo.Before(edition))
+                if (row.IsReservedAt(older)) return true;
+        }
+        // §8.10 and §8.9 are disjoint at 2023 (ContextSensitiveWordsDriftTests); a context word an older edition
+        // RESERVED outright (MULTIPLE, a 1985 reserved word) was answered above.
+        if (ContextSensitiveWords.Find(word) is { } context) return edition >= context.Introduced;
+        if (row is not null)
+            foreach (int later in EditionInfo.All)
+                if (later > edition && row.IsReservedAt(later)) return false;
         return true;
     }
 }
