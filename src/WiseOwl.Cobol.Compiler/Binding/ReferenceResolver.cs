@@ -257,7 +257,14 @@ public sealed partial class ReferenceResolver(DataBinder data)
         // lookup above reads, so `MOVE PV TO W` and `DISPLAY DL` were told "no declaration gives the name" about names
         // the REPORT SECTION declares. The reference is refused for its position (§13.8.6.2.3, §13.15.3 SR7); the
         // admitted ones — a sum counter, resolved before name lookup, and a DETAIL group named by GENERATE — never get here.
-        if (data.ReportEntryReferenceRefused($"'{text}'", name, qualifiers)) return;
+        // ⛔ AN AMBIGUOUS ORDINARY REFERENCE IS TOLD ITS AMBIGUITY FIRST (kb/Work PB3767): when the written qualifiers reach
+        // SEVERAL data items, §8.4.2.2.3 SR1 ("uniqueness shall be established through a sequence of qualifiers that precludes
+        // any ambiguity of reference") is the rule the reference breaks whether or not a report entry spells the same, and the data-name candidates are the ones the programmer
+        // can write more qualifiers to single out. The report entry is the verdict only when no ambiguity among data items
+        // stands in its way: the same count (QualifiedCandidates) the data division's clause operands and OCCURS DEPENDING
+        // ON take before they ask ReportEntryReferenceRefused.
+        if (data.QualifiedCandidates(name, qualifiers, data.ActiveScope).Count <= 1
+            && data.ReportEntryReferenceRefused($"'{text}'", name, qualifiers)) return;
         string msg;
         // ⛔ A DECLARED CONDITION-NAME (kb/Work PB567): one qualified by a data-name it is NOT subordinate to (`IS-A OF
         // H1`, H1 an unrelated record; `IS-A OF G1 OF S`, real ancestors in reversed order) is worded by the one
