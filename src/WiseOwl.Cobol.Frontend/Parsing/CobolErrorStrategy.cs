@@ -124,11 +124,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// <item>no user-defined word could stand at the token (<see cref="OffendingPosition.TakesAUserWord"/>): a misplaced
     /// phrase word (<c>READ F ADVANCING ON LOCK RETRY 3 TIMES</c>: the READ has ended, and no statement begins with a
     /// user word) is the keyword out of place, which the strategy's own diagnosis names (hint 0h, COBOL2269);</item>
-    /// <item>the word begins a statement that parses (<see cref="CobolParserCoreBase.BeginsAStatementThatParses"/>): after
-    /// an incomplete statement (<c>MOVE W-X TO</c>, its receiver missing) the error falls AT the verb of the NEXT statement,
+    /// <item>the word begins the next statement (<see cref="NextStatementBegins"/>): after an incomplete statement
+    /// (<c>MOVE W-X TO</c>, its receiver missing) the error falls AT the verb of the NEXT statement,
     /// <c>RECEIVE FROM W-X GIVING W-Y W-N</c>, a verb written correctly. The error is the missing receiver, and calling the
     /// verb a misused name is the wrong cause (kb/Work PB4207). The ordinary report stands, and the recovery resumes AT
-    /// the verb, so the statement is read as written. A statement that parses only as a prefix, stopping at a token no
+    /// the verb, so the statement is read as written. So does a statement with an operand missing of its own
+    /// (<c>ADD 1 TO.</c>) where the word read as a name would not let the source go on; its own fault is not lost to a
+    /// COBOL0901 that consumed the verb (review R1-1). A statement that parses only as a prefix, stopping at a token no
     /// statement is followed by (<c>GOBACK</c> in <c>MOVE GOBACK TO W-X</c>), is an operand.</item>
     /// </list>
     /// So END-ACCEPT, END-DISPLAY, END-RECEIVE and END-SEND, gated because some edition leaves them free, draw at an edition
@@ -151,8 +153,24 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // refusal names (hint 0g, COBOL1941 and its twins, kb/Work PB2533): it is not used as a name, whatever the value
         // clause before it could still take (PROPERTY WITH NO GET SET.).
         if (ClosedFormatResidue(recognizer, at, at.PredictionFailedAt) is not null) return null;
-        return at.TakesAUserWord() && !parser.BeginsAStatementThatParses(at.Token) ? violation : null;
+        return at.TakesAUserWord() && !NextStatementBegins(parser, at) ? violation : null;
     }
+
+    /// <summary>⛔ DOES THE REFUSED VERB BEGIN THE NEXT STATEMENT, NOT STAND FOR AN OPERAND (kb/Work PB4207)? Where the
+    /// statement it would begin is complete (<see cref="CobolParserCoreBase.ReadStatementAt"/>) it does. Where that statement
+    /// is cut short by the sentence's end (<c>MOVE W-X TO</c> then <c>ADD 1 TO.</c>, <c>DISPLAY W-Y UPON.</c>) it does when
+    /// the word read as the user-defined word it would stand for does not carry the sentence
+    /// (<see cref="OffendingPosition.NameCarriesTheSentence"/>: <c>ADD 1</c> is no receiver list, <c>DISPLAY W-Y UPON</c>
+    /// no receiver list either, while <c>DISPLAY RECEIVE W-X.</c> is a DISPLAY of two operands): the reading that goes
+    /// further wins. Both readings of a source such as <c>MOVE W-X TO MOVE W-Y.</c> are faults; the name reading is the one
+    /// §8.3.2.1 1) names, and it is a whole sentence.</summary>
+    private static bool NextStatementBegins(CobolParserCoreBase parser, OffendingPosition at)
+        => parser.ReadStatementAt(at.Token) switch
+        {
+            CobolParserCoreBase.StatementReading.Complete => true,
+            CobolParserCoreBase.StatementReading.CutShort => !at.NameCarriesTheSentence(),
+            _ => false,
+        };
 
     /// <summary>Did the last report name a fault whose tail the recovery cannot place (<see cref="OrphansItsTail"/>)?
     /// The recovery that follows it discards the rest of the sentence or entry (<see cref="ConsumeUntil"/>).</summary>
@@ -515,7 +533,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// first, as the operand it stood for, and the resynchronization goes on from the token after it.
     /// <para>A verb that correctly begins the NEXT statement after an incomplete one (<c>MOVE W-X TO</c>, its receiver
     /// missing) is not that word: <see cref="ReservedWordUse"/> asks the grammar, never a list, whether the statement it
-    /// would begin is a complete reading (<see cref="CobolParserCoreBase.BeginsAStatementThatParses"/>), and where it is the
+    /// would begin is the next statement written (<see cref="NextStatementBegins"/>), and where it is the
     /// report is the ordinary one for the missing receiver (kb/Work PB4207) and the recovery resumes at the verb, so the
     /// statement is read as written (review R1-1 of PB3248).</para>
     /// Only the token the last report named (<see cref="_lastReported"/>), only where that report named it COBOL0901
@@ -2193,11 +2211,26 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         /// and this one moves), wherever the parser stands, so a prediction that failed at the token while the parser
         /// stands at the decision's first (<c>PERFORM VARYING RECEIVE FROM 1 BY 1 UNTIL …</c>) is answered like a
         /// mismatch at it. False where the walk cannot reach the token.</summary>
-        public bool NameLetsTheSourceContinue()
-            => !CarriedForward && ResimulationWalk.To(_recognizer, Token) is { } walk
-               && walk.Consume(CobolKeywordTokens.IdentifierType)
-               && (NextDefault((ITokenStream)_recognizer.InputStream, Token.TokenIndex) is not { Type: not TokenConstants.EOF } next
-                   || walk.Takes(next.Type));
+        public bool NameLetsTheSourceContinue() => NameCarries(throughTheSentence: false);
+
+        /// <summary>⛔ WOULD THE WHOLE SENTENCE GO ON IF THE WORD WERE THE USER-DEFINED WORD IT STANDS FOR (kb/Work PB4207)? Does
+        /// the parse take the name and every token after it up to the separator period, and the period? <c>MOVE W-X TO MOVE
+        /// W-Y.</c> and <c>DISPLAY RECEIVE W-X.</c> are whole statements of two receivers and two operands; <c>MOVE W-X TO
+        /// DISPLAY W-Y UPON.</c> stops at UPON, as <c>MOVE W-X TO ADD 1 TO.</c> stops at 1. Where the name reading breaks
+        /// inside the sentence and the statement the word begins ran to its end (<see cref="CobolParserCoreBase.StatementReading.CutShort"/>),
+        /// the statement reading went further and is the one the report names.</summary>
+        public bool NameCarriesTheSentence() => NameCarries(throughTheSentence: true);
+
+        private bool NameCarries(bool throughTheSentence)
+        {
+            if (CarriedForward || ResimulationWalk.To(_recognizer, Token) is not { } walk
+                || !walk.Consume(CobolKeywordTokens.IdentifierType)) return false;
+            var stream = (ITokenStream)_recognizer.InputStream;
+            var next = NextDefault(stream, Token.TokenIndex);
+            for (; throughTheSentence && next is { Type: not (CobolLexer.DOT or TokenConstants.EOF) }; next = NextDefault(stream, next.TokenIndex))
+                if (!walk.Consume(next.Type)) return false;
+            return next is not { Type: not TokenConstants.EOF } || walk.Takes(next.Type);
+        }
 
         /// <summary>The construct the parser completed at token <paramref name="previous"/>, the last token before the
         /// one it stands at: the last child of the innermost open rule that holds one (a rule entered at the reported

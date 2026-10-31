@@ -12,10 +12,17 @@ instead of COBOL1941, because a value clause before the verb could still take a 
 declines a word where `ClosedFormatResidue` names a closed format's clause list.
 
 **PB4207, one decision for the report and every recovery.** The report named the wrong cause (the listener no longer re-codes since PB4132; the strategy's
-`ReservedWordUse` did not ask the question only the recovery asked). `ReservedWordUse` now also asks `BeginsAStatementThatParses(offendingToken)` (from the
+`ReservedWordUse` did not ask the question only the recovery asked). `ReservedWordUse` now also asks `ReadStatementAt(offendingToken)` (from the
 offending token, never the lookahead: a failed prediction reports a token the parser has not reached), and the recovery's second copy of the question is
 deleted. `MOVE W-X TO` then `RECEIVE FROM W-X GIVING W-Y W-N` is the ordinary `unexpected 'RECEIVE'`. Consequence, deliberate and measured: `DISPLAY GOBACK.`
-(a verb that is a complete statement alone) is the next statement, as its recovery already read it.
+(a verb that is a complete statement alone) is the next statement, as its recovery already read it. **Review round 1 (R1-1, blocking):** the statement
+question was "does it parse completely", so a correct verb beginning a next statement with an operand missing of its own (`MOVE W-X TO` then `ADD 1 TO.`,
+`DISPLAY W-Y UPON.`) was called a misused name and consumed as the MOVE's receiver, and the second statement's fault was lost, for all ~55 verbs. The
+reading is now three-valued (`ReadStatementAt`: None, Complete, CutShort, the last being refused only by the sentence's end after the verb and one token or
+more), and a CutShort reading is the next statement unless the word read as a name carries the whole sentence to its period
+(`OffendingPosition.NameCarriesTheSentence`): the reading that goes further is named. `DISPLAY RECEIVE W-X.` and `MOVE W-X TO MOVE W-Y.` stay COBOL0901
+(both are whole sentences as names); `SEND TO W-X.` after an incomplete MOVE, the old "control" row, is now the next statement (a SEND cut short). R1-2
+(a doc comment of `facilityWord` the insertion had cut in two) repaired.
 
 **PB4218, single-token substitution.** `PERFORM UNTIL RECEIVE = 1 DISPLAY "X" END-PERFORM.` drew a false COBOL5506 "expected TIMES": nothing remains of the
 condition once the word is deleted, and the resynchronization stopped at the `1`. The re-probe traced it to a `Sync` mismatch, and the note's fix direction

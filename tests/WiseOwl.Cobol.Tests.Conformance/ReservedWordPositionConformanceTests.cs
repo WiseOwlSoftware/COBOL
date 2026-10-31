@@ -446,7 +446,8 @@ public sealed class ReservedWordPositionConformanceTests
     /// once; and the REPORT is the ordinary one for the parse at that token ("unexpected 'RECEIVE'", exactly what ADD or
     /// DISPLAY there draws), never COBOL0901, which says the verb was misused as a name (§8.3.2.1 1)), when the fault is the
     /// missing receiver (PB4207). The last row is the arm's control: a reserved verb whose statement does NOT parse
-    /// (<c>SEND TO W-X.</c>, no FROM phrase) stands for the operand, is refused as the name (COBOL0901) and consumed. Each
+    /// (<c>ADD.</c>, the verb alone) or is cut short by the sentence's end where the word read as a name goes on (<c>MOVE W-Y.</c>,
+    /// <c>DISPLAY RECEIVE W-X.</c>) stands for the operand, is refused as the name (COBOL0901) and consumed. Each
     /// row asserts exactly one diagnostic, at the verb's line.</summary>
     [Theory]
     [InlineData("MOVE W-X TO", "RECEIVE FROM W-X GIVING W-Y W-N", "DISPLAY \"A\".", "RECEIVE", false)]
@@ -458,7 +459,12 @@ public sealed class ReservedWordPositionConformanceTests
     [InlineData("MOVE W-X TO", "ADD 1 TO W-N", "DISPLAY \"A\".", "ADD", false)]
     [InlineData("MOVE W-X TO", "CONTINUE", "DISPLAY \"A\".", "CONTINUE", false)]
     [InlineData("MOVE W-X TO", "GOBACK", "DISPLAY \"A\".", "GOBACK", false)]
-    [InlineData("MOVE W-X TO", "SEND TO W-X.", "DISPLAY \"A\".", "SEND", true)]
+    // The verb alone before the period shows nothing was written beyond the word (kb/Work PB4207 review R1-1): the operand.
+    [InlineData("MOVE W-X TO", "ADD.", "DISPLAY \"A\".", "ADD", true)]
+    // A statement cut short by the sentence's end that the word read as a name does not exclude: MOVE W-X TO MOVE W-Y is a
+    // MOVE with two receivers and DISPLAY RECEIVE W-X a DISPLAY of two operands, and §8.3.2.1 1) names that reading.
+    [InlineData("MOVE W-X TO", "MOVE W-Y.", "DISPLAY \"A\".", "MOVE", true)]
+    [InlineData("DISPLAY", "RECEIVE W-X.", "DISPLAY \"A\".", "RECEIVE", true)]
     public void AReservedVerbBeginningTheNextStatement_DrawsOneDiagnostic(
         string incomplete, string statement, string rest, string word, bool standsForTheOperand)
     {
@@ -483,6 +489,41 @@ public sealed class ReservedWordPositionConformanceTests
                                      && diags[0].Contains("(11,", StringComparison.Ordinal),
             $"expected exactly one diagnostic, at '{word}' on line 11, got:\n{string.Join("\n", diags)}");
         Assert.Equal(standsForTheOperand, diags[0].Contains("COBOL0901", StringComparison.Ordinal));
+    }
+
+    /// <summary>⛔ THE SAME ARM, THE NEXT STATEMENT CARRYING A FAULT OF ITS OWN (kb/Work PB4207, review R1-1). The verb after
+    /// an incomplete statement begins a statement the writer meant even when that statement is itself incomplete, and the
+    /// word read as a name would not let the source go on: ADD, SEND and DISPLAY below each lack something of their own (ISO
+    /// §14.9.2.2 prints "TO identifier-2", §14.9.11.2 a mnemonic-name after UPON, and the SEND statement its FROM phrase).
+    /// Calling the verb a misused name (COBOL0901) consumed it as the MOVE's receiver and lost the second statement's fault.
+    /// Each row asserts BOTH faults: the ordinary refusal at the verb (line 10, never COBOL0901) and the second statement's
+    /// own refusal after it.</summary>
+    [Theory]
+    [InlineData("ADD 1 TO.", "ADD")]
+    [InlineData("SEND TO W-X.", "SEND")]
+    [InlineData("DISPLAY W-Y UPON.", "DISPLAY")]
+    public void AReservedVerbBeginningAnIncompleteNextStatement_IsNotCalledAMisusedName(string statement, string word)
+    {
+        var (ok, diags) = EditionHarness.Compile($"""
+                   IDENTIFICATION DIVISION.
+                   PROGRAM-ID. PB4207R1.
+                   DATA DIVISION.
+                   WORKING-STORAGE SECTION.
+                   01 W-X PIC X(4).
+                   01 W-Y PIC X(4).
+                   PROCEDURE DIVISION.
+                   MAIN-P.
+                       MOVE W-X TO
+                       {statement}
+                       DISPLAY W-Y.
+                       STOP RUN.
+
+               """, 2023);
+        Assert.False(ok);
+        Assert.True(diags.Count == 2 && diags[0].Contains($"unexpected '{word}'", StringComparison.Ordinal)
+                                     && diags[0].Contains("(10,", StringComparison.Ordinal)
+                                     && diags.All(d => !d.Contains("COBOL0901", StringComparison.Ordinal)),
+            $"expected the refusal at '{word}' on line 10 and the statement's own, no COBOL0901, got:\n{string.Join("\n", diags)}");
     }
 
     // ── A reserved word in a procedure-name slot (kb/Work PB4206) ─────────────────────────────────────────────────

@@ -462,20 +462,46 @@ public abstract class CobolParserCoreBase : Parser
     protected bool procedureHeaderHere(int follower)
         => TokenStream.LT(1) is not { } word || ReservedGatedWord(word) is null || TokenStream.LA(2) == follower;
 
-    /// <summary>⛔ DOES THE WORD <paramref name="from"/> BEGIN A <c>statement</c> THAT PARSES (kb/Work PB3248, PB4207;
+    /// <summary>What the tokens from a verb say about the statement that verb would begin
+    /// (<see cref="ReadStatementAt"/>).</summary>
+    internal enum StatementReading
+    {
+        /// <summary>No statement was written there: the token begins none, the grammar refuses the reading at the token
+        /// after the verb or mid-sentence, or only a PREFIX of it parses and the token after the prefix is one no
+        /// statement is followed by.</summary>
+        None,
+
+        /// <summary>A complete statement, followed by the period, a statement, a scope terminator or a phrase of the
+        /// enclosing statement.</summary>
+        Complete,
+
+        /// <summary>The verb and at least one more token, and the sentence ends before the statement does: a statement
+        /// written with an operand missing (<c>ADD 1 TO.</c>, <c>DISPLAY W-Y UPON.</c>).</summary>
+        CutShort,
+    }
+
+    /// <summary>⛔ WHAT STATEMENT DOES THE WORD <paramref name="from"/> BEGIN, AS WRITTEN (kb/Work PB3248, PB4207;
     /// <see cref="CobolErrorStrategy"/>)? The question that tells a reserved verb written as an OPERAND from one that
     /// correctly begins the NEXT statement after an incomplete one (<c>MOVE W-X TO</c> then <c>RECEIVE FROM W-X GIVING W-Y
-    /// W-N</c>): the syntax error falls AT the verb either way, and only the statement reading tells them apart. Where it is
-    /// a complete reading (<see cref="ReadingParses"/>) the verb is the next statement, read as written, and the error is
-    /// the missing receiver; where it is not, the word stood for the operand the report names. A statement that merely
+    /// W-N</c>): the syntax error falls AT the verb either way, and only the statement reading tells them apart. A COMPLETE
+    /// reading (<see cref="ReadingParses(int, IToken?)"/>) is the next statement, read as written, and the error is the
+    /// missing receiver. A reading <see cref="StatementReading.CutShort"/> by the end of the sentence is a statement with an
+    /// operand missing of its own (<c>ADD 1 TO.</c>): the caller weighs it against the word read as a name, which a
+    /// statement that merely lacks its tail does not exclude (<c>DISPLAY RECEIVE W-X.</c> is a DISPLAY of two operands).
+    /// A reading refused at the token after the verb (<c>ADD TO W-X</c> in <c>MOVE ADD TO W-X.</c>), or mid-sentence, shows
+    /// nothing was written beyond the word, and it stood for the operand the report names. A statement that merely
     /// parses as a PREFIX is not enough (review R2-1 of PB3248): GOBACK alone, or VALIDATE, RAISE and FREE with one
     /// operand, parse in <c>MOVE GOBACK TO W-X</c> and <c>ADD VALIDATE W-N TO W-N</c>, and only the token after them (TO,
     /// which no statement is ever followed by) shows the word was an operand. <paramref name="from"/> is the OFFENDING
     /// token, never the parser's lookahead: a failed prediction reports a token the parser has not reached
     /// (<c>MOVE CONTINUE TO W-X</c> fails at CONTINUE while the parser stands at MOVE). A token no statement begins with
-    /// answers false without a parse. Read-only.</summary>
-    internal bool BeginsAStatementThatParses(IToken from)
-        => StatementOpeners(Atn).Contains(from.Type) && ReadingParses(CobolParserCore.RULE_statement, from);
+    /// answers <see cref="StatementReading.None"/> without a parse. Read-only.</summary>
+    internal StatementReading ReadStatementAt(IToken from)
+    {
+        if (!StatementOpeners(Atn).Contains(from.Type)) return StatementReading.None;
+        if (ReadingParses(CobolParserCore.RULE_statement, from, out int endedAfter)) return StatementReading.Complete;
+        return endedAfter >= 2 ? StatementReading.CutShort : StatementReading.None;
+    }
 
     /// <summary>⛔ THE TOKEN TYPES A <c>statement</c> CAN BEGIN WITH — THE VERBS — read off the generated ATN (kb/Work
     /// PB4208), once per process: a statement the grammar gains tomorrow is in it.</summary>
@@ -499,14 +525,20 @@ public abstract class CobolParserCoreBase : Parser
     /// token parsed only a prefix of what is written, and the token it stopped at is the one the outer parse would
     /// refuse next. For the no-entry-name reading of <see cref="entryNameHere"/> (<c>dataDescriptionBody</c>, whose one
     /// call site is followed by the period alone) that is every token up to the period; for one statement of a sentence
-    /// (<see cref="BeginsAStatementThatParses"/>) it is the statement up to the next statement, a scope
+    /// (<see cref="ReadStatementAt"/>) it is the statement up to the next statement, a scope
     /// terminator, a phrase of the enclosing statement or the period. A speculative parse by a
     /// <see cref="ParserInterpreter"/> over THIS grammar's ATN on a copy of the tokens up to the period, so the outer
     /// parse's stream, prediction and actions are untouched. The interpreter evaluates every semantic predicate as
     /// true, which only ever widens the reading — the authoritative parse that follows still applies them.
     /// Read-only.</summary>
-    private bool ReadingParses(int rule, IToken? from = null)
+    private bool ReadingParses(int rule, IToken? from = null) => ReadingParses(rule, from, out _);
+
+    /// <summary><see cref="ReadingParses(int, IToken?)"/>, and where the speculative parse is refused ONLY BY THE END OF THE
+    /// SENTENCE (the reading took every token written and wanted more), how many tokens from <paramref name="from"/> it
+    /// took (<paramref name="endedAfter"/>); -1 where it parsed, parsed only a prefix, or was refused at a token written.</summary>
+    private bool ReadingParses(int rule, IToken? from, out int endedAfter)
     {
+        endedAfter = -1;
         var tokens = new List<IToken>();
         for (int i = (from ?? TokenStream.LT(1)).TokenIndex; TokenStream.Get(i) is { } t && t.Type != TokenConstants.EOF && t.Type != CobolLexer.DOT; i++)
             if (t.Channel == Lexer.DefaultTokenChannel) tokens.Add(new CommonToken(t));
@@ -522,8 +554,10 @@ public abstract class CobolParserCoreBase : Parser
             int next = stream.LA(1);
             return next == TokenConstants.EOF || FollowSet(Atn, rule).Contains(next);
         }
-        catch (Antlr4.Runtime.Misc.ParseCanceledException)
+        catch (Antlr4.Runtime.Misc.ParseCanceledException refused)
         {
+            // The token stream numbers the copies as it fetches them, so the refused token's index is its position.
+            if (refused.InnerException is RecognitionException { OffendingToken: { Type: TokenConstants.EOF } at }) endedAfter = at.TokenIndex;
             return false;
         }
     }
@@ -728,7 +762,7 @@ public abstract class CobolParserCoreBase : Parser
     /// one (kb/Work PB792, <see cref="ReservedWordSet.AdmitsAsUserWord"/>); for a word an edition merely ADDED the gate
     /// still stands down and this is unreachable. WHETHER the word stands for a user-defined word, rather than being a
     /// verb written correctly, is the strategy's decision (<c>CobolErrorStrategy.ReservedWordUse</c>), which asks
-    /// <see cref="BeginsAStatementThatParses"/>.</para></summary>
+    /// <see cref="ReadStatementAt"/>.</para></summary>
     internal string? ReservedUserWordViolation(IToken? offendingSymbol)
         => ReservedWord(offendingSymbol, includeVerbs: true) is { } w ? ReservedWordSet.UserWordViolationMessage(w, Edition.Year) : null;
 
@@ -780,6 +814,8 @@ public abstract class CobolParserCoreBase : Parser
     }
 
     private List<(IWritableToken Token, int Type)>? _readAsUserWord;
+
+    /// <summary>True when the current token spells <paramref name="keyword"/> AND §8.9 reserves it at the targeted
     /// edition — the predicate on the recognize-and-name statement arms of COMMIT / ROLLBACK (§14.9.7 / §14.9.36,
     /// Annex A.3 items 6–7). For these verbs the reservation begins at the statement's introduction (2023) and never
     /// lapses, so "reserved here" is exactly "the statement exists here", and where the word is a user word the arm

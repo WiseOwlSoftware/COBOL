@@ -427,11 +427,16 @@ TO W-X.` three. Only a gated word or a verb is named so: a reserved word that be
 sender) keeps the strategy's own diagnosis. **The decision is ONE for the report and for every recovery of the word:** a verb
 that correctly begins the NEXT statement after an incomplete one (`MOVE W-X TO` then `RECEIVE FROM W-X GIVING W-Y W-N`) is not a
 misused name, the fault is the missing receiver (kb/Work PB4207), so `ReservedWordUse` also asks the grammar, never a list, whether
-the statement the word would begin is a complete reading (`CobolParserCoreBase.BeginsAStatementThatParses`, a speculative
+the statement the word would begin is a complete reading (`CobolParserCoreBase.ReadStatementAt`, a speculative
 `ParserInterpreter` parse of `statement` from the OFFENDING token up to the separator period, which a failed prediction has not
 reached — the one helper, `ReadingParses`, that also answers `entryNameHere`'s clause reading). Where it parses the report is the
 ordinary one and the recovery resumes at the verb, the statement read as written; where it does not (`GOBACK` in `MOVE GOBACK TO
-W-X`, a prefix that stops at a token no statement is followed by) the word is the operand. **Three recoveries read that
+W-X`, a prefix that stops at a token no statement is followed by) the word is the operand. A statement the sentence's end cuts short
+(`StatementReading.CutShort`: the verb and one token or more, then the period: `MOVE W-X TO` then `ADD 1 TO.`, `DISPLAY W-Y UPON.`,
+a statement with an operand missing of its own, review R1-1) is also the next statement, unless the word read as a user-defined
+word carries the whole sentence to its period (`OffendingPosition.NameCarriesTheSentence`: `DISPLAY RECEIVE W-X.`, `MOVE W-X TO
+MOVE W-Y.`): of two readings of the tokens, the one that goes further is the one the report names, and where both are whole
+sentences the name reading is the one §8.3.2.1 1) forbids. **Three recoveries read that
 decision.** The resynchronization after the report (`ConsumeUntil`, `IsReportedReservedOperand`) consumes the word as the
 operand it stood for, before resynchronizing, because a verb is in every statement-level recovery set and the base recovery resumed
 AT it, parsed it as its statement and refused the next token — `DISPLAY RECEIVE.` drew COBOL0901 and a second `unexpected '.'`
