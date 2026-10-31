@@ -997,7 +997,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         for (DataItem? n = key; n is not null && !ReferenceEquals(n, table); n = n.Parent)
         {
             if (n.Occurs is not null) return null;   // §14.9.40.3 SR14 e — refused earlier by KeyUnderInnerOccurs
-            segs.Add(n.CsName);
+            segs.Add(n.ClrName);
             if (n.Parent is null) return null;        // ran off the root without meeting the table
         }
         segs.Reverse();

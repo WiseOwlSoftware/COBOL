@@ -58,7 +58,7 @@ internal static class SortKeyAdmission
     /// rules are printed (b/f, c, d); one is enough to refuse, and naming the others would only restate it.</summary>
     public static string? Violation(DataItem key, SortKeyRules rules)
     {
-        string name = key.CobolName ?? key.CsName;
+        string name = key.CobolName ?? key.ClrName;
         string clause = Clause(rules);
         string verb = rules == SortKeyRules.Merge ? "MERGE" : "SORT";
 
@@ -68,7 +68,7 @@ internal static class SortKeyAdmission
             // The level nearest the key — the table levels come from DataItem (the one arity walk, kb/Work PB877).
             var n = key.SubscriptLevels()[^1];
             return $"{verb} key '{name}' is "
-                + (ReferenceEquals(n, key) ? "described with an OCCURS clause" : $"subordinate to '{n.CobolName ?? n.CsName}', "
+                + (ReferenceEquals(n, key) ? "described with an OCCURS clause" : $"subordinate to '{n.CobolName ?? n.ClrName}', "
                     + "which carries an OCCURS clause")
                 + ": \"Key data names shall not be subject to any OCCURS clauses\" and \"None of the data items "
                 + "identified by key data-names may be described by an entry that either contains an OCCURS clause "

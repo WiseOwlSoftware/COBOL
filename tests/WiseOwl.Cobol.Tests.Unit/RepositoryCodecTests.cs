@@ -257,7 +257,7 @@ public sealed class RepositoryCodecTests
         Assert.Equal("BASE", c.BaseIdentity);
         Assert.Equal(["ROI"], c.Implements);
         Assert.Empty(c.FactoryImplements);
-        Assert.Equal(comp.ClassUnits.Single().Symbol.FactoryCsName, c.FactoryType);
+        Assert.Equal(comp.ClassUnits.Single().Symbol.FactoryClrName, c.FactoryType);
         Assert.Equal([new PropertyRecord("TAG", "TAG", false, true, true), new PropertyRecord("F-COUNT", "F-COUNT", true, true, true)], c.Properties);
         // The object roster, then the factory roster; an accessor carries its property's externalized name (ISO §12.3.8.4 GR2).
         Assert.Equal([("SCALE", false), ("FILL-IN", false), ("TAG", false), ("TAG", false), ("MAKE", true), ("F-COUNT", true), ("F-COUNT", true)],

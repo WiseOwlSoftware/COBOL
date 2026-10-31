@@ -122,4 +122,35 @@ public sealed class CsNameReservationDriftTests
         Assert.Equal("CloseFiles_2", CsNames.Allocate("CloseFiles", program));
         Assert.Equal("AsImage", CsNames.Allocate("AsImage", program));   // a record struct's member, not the class's
     }
+
+    /// <summary>⛔ AN ALLOCATED NAME IS NEVER A C# KEYWORD, AND NO NAME CARRIES A C#-ONLY <c>@</c> (kb/Work PB4265). The
+    /// model's names are CLR names, the same for every backend (DESIGN-backend-abstraction §1.2, §2.4); the <c>@int</c>
+    /// escape <see cref="DataItem.Sanitize"/> used to append was a C# spelling stored on the model, and every name built
+    /// from it — <c>_redef_@int</c>, <c>_scell_@int</c>, <c>__cap_@int</c>, <c>__sum_@int_1</c> — was refused by the C#
+    /// compiler on legal COBOL. Every scope kind refuses every reserved keyword the Roslyn the compiler builds against
+    /// knows, so the derivation cannot fall behind a new C# version.</summary>
+    [Fact]
+    public void EveryScopeKind_RefusesEveryCSharpReservedKeyword_AndSanitizeNeverEscapes()
+    {
+        var keywords = Microsoft.CodeAnalysis.CSharp.SyntaxFacts.GetReservedKeywordKinds()
+            .Select(Microsoft.CodeAnalysis.CSharp.SyntaxFacts.GetText).ToList();
+        Assert.Contains("int", keywords);   // the probe sees what it guards
+        Assert.Equal(keywords.Count, CsNames.CSharpReservedKeywords.Count);
+        var scopes = new (string Kind, Func<CsNameScope> Make)[]
+        {
+            ("record struct", CsNameScope.RecordStruct), ("program class", CsNameScope.ProgramClass),
+            ("host entry", () => CsNameScope.HostEntry("Host")), ("module types", () => CsNameScope.ModuleTypes(["Registrar"])),
+        };
+        var bad = new List<string>();
+        foreach (var (kind, make) in scopes)
+        {
+            var scope = make();
+            foreach (string k in keywords)
+                if (CsNames.Allocate(k, scope) is var got && got != k + "_2") bad.Add($"{kind}: {k} -> {got}");
+        }
+        Assert.True(bad.Count == 0, "a scope allocated a C# keyword as a CLR name: " + string.Join(", ", bad));
+        foreach (string k in keywords)
+            Assert.Equal(k, DataItem.Sanitize(k));   // the base is the CLR spelling; the scope, not an '@', keeps it legal
+        Assert.Equal("_redef_int_2", "_redef_" + CsNames.Allocate(DataItem.Sanitize("int"), CsNameScope.ProgramClass()));
+    }
 }

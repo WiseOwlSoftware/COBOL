@@ -172,14 +172,14 @@ internal sealed class PhysicalModel(EmitContext ctx)
                     if (runs.IsInRun(c))
                     {
                         var run = runs.RunLedBy(c);
-                        yield return new Physical(cls.BackingCsName, "string", run is null ? 0 : BitLayout.RunCharacters(run), false,
+                        yield return new Physical(cls.BackingClrName, "string", run is null ? 0 : BitLayout.RunCharacters(run), false,
                             backingInit, $"REDEFINES backing for {c.CobolName}", 0, null, run);
                         // The canonical may LEAD a run whose tail follows its bits in THIS group's layout (kb/Work PB3597).
                         foreach (var filler in FillerFieldsOf(fillers, c, c.CobolName ?? "FILLER"))
                             yield return filler;
                     }
                     else
-                        yield return new Physical(cls.BackingCsName, "string", cls.Width, false, backingInit, $"REDEFINES backing for {c.CobolName}");
+                        yield return new Physical(cls.BackingClrName, "string", cls.Width, false, backingInit, $"REDEFINES backing for {c.CobolName}");
                 }
                 continue;
             }
@@ -226,7 +226,7 @@ internal sealed class PhysicalModel(EmitContext ctx)
                 var run = runs.RunLedBy(c);
                 // A bit GROUP member keeps its record-struct type (IsGroupStruct) — its own AsImage/FromImage still exist
                 // for the standalone (record) case — but inside the run its slice is the run's (D20/PB79).
-                yield return new Physical(c.CsName, c.FieldType, run is null ? 0 : BitLayout.RunCharacters(run),
+                yield return new Physical(c.ClrName, c.FieldType, run is null ? 0 : BitLayout.RunCharacters(run),
                     c.IsGroup, Values.FieldInit(c, subs, recipe), comment, occurs, null, run);
                 // ⛔ THE IMPLICIT FILLER THIS MEMBER OPENS OR PADS HAS A FIELD OF ITS OWN (§8.5.1.6.3, kb/Work PB3564) — see
                 // Physical.FillerBits: the positions after the run's last member (asked of its LEADER) and the ones
@@ -238,7 +238,7 @@ internal sealed class PhysicalModel(EmitContext ctx)
             // A class pointer/object leaf (kb/Work PB244): its slice of the one-way transfer image is its pointer image
             // (PB1071) or its reserved placeholder positions (D-SLOT) - GroupImageCodec.SlotImageOf, the same recipe
             // the storage seed uses.
-            yield return new Physical(c.CsName, c.FieldType, width, c.IsGroup, Values.FieldInit(c, subs, recipe), comment, occurs, numLeaf, null, natLeaf,
+            yield return new Physical(c.ClrName, c.FieldType, width, c.IsGroup, Values.FieldInit(c, subs, recipe), comment, occurs, numLeaf, null, natLeaf,
                 SlotWindow.CarriedBySlot(c) ? c : null);
         }
     }

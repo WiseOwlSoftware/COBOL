@@ -372,7 +372,7 @@ public sealed partial class DataBinder
     }
 
     /// <summary>Reserve the names the C# class this binder's data is emitted into already holds, BEFORE the data
-    /// division binds: its own type name <paramref name="classCsName"/> (the instance class beside the object data,
+    /// division binds: its own type name <paramref name="classClrName"/> (the instance class beside the object data,
     /// the factory singleton class beside the factory data) and the C# member names of the methods emitted into it.
     /// A data root spelled like one of them takes a distinct field name (<c>PQ_2</c>) instead of a member named like
     /// its enclosing type (CS0542) or a second member <c>PQ</c> (CS0102). The COBOL is legal: the METHOD-ID's
@@ -380,8 +380,8 @@ public sealed partial class DataBinder
     /// object-class-name to the class definition's (kb/Work PB3154), and §8.3.2.2 bars one word as two types only
     /// within one source element. The data root is private, so its C# name is free to move; the type's and the
     /// methods' are their contract.</summary>
-    internal void ReserveClassMemberNames(string classCsName, IEnumerable<OoMethodSymbol> methods) =>
-        _rootNames.Reserve([classCsName, .. methods.Select(static m => m.CsName)]);
+    internal void ReserveClassMemberNames(string classClrName, IEnumerable<OoMethodSymbol> methods) =>
+        _rootNames.Reserve([classClrName, .. methods.Select(static m => m.ClrName)]);
 
     /// <summary>True when <paramref name="item"/> is OBJECT data of a class unit (§14.9.23.3 SR 10): its 01/77
     /// root is not method-scoped. Always false outside a class unit.</summary>
@@ -465,7 +465,7 @@ public sealed partial class DataBinder
         // LINKAGE + LOCAL-STORAGE roots are C# LOCALS of the emitted method (their struct types and numeric
         // profiles still emit at class level) — never instance fields.
         foreach (var root in m.Binding!.LocalRoots.Concat(m.Binding!.LinkageRoots))
-            _callSuppressedRootFields.Add(root.CsName);
+            _callSuppressedRootFields.Add(root.ClrName);
 
         // The PD header formals (§14.2.2 SR1 — level-01/77 LINKAGE entries; correspondence is positional).
         // The using-phrase modes (§14.2.1: { [BY REFERENCE] { [OPTIONAL] d }… | BY VALUE { d }… }…) are TRANSITIVE
@@ -516,8 +516,8 @@ public sealed partial class DataBinder
                 var formal = new OoFormal(item, pos, OoParamName(m, item, pos), optional, byValue, resident);
                 if (resident)
                 {
-                    item.CsName = formal.CarrierLocal + ".Value";
-                    _callSuppressedRootFields.Add(item.CsName);
+                    item.ClrName = formal.CarrierLocal + ".Value";
+                    _callSuppressedRootFields.Add(item.ClrName);
                 }
                 m.Binding!.Formals.Add(formal);
             }
@@ -627,7 +627,7 @@ public sealed partial class DataBinder
 
     /// <summary>The C# parameter name for a formal: the TAGGED family <see cref="NamingConvention.FormalParameterName"/>
     /// (<c>__formal_</c> + the sanitized COBOL name), uniquified within the method. The <c>__</c> head keeps it
-    /// off the item's own <see cref="DataItem.CsName"/> (a user word never sanitizes to a leading <c>__</c>), which
+    /// off the item's own <see cref="DataItem.ClrName"/> (a user word never sanitizes to a leading <c>__</c>), which
     /// becomes the capturable LOCAL the body reads and writes (a C# local may not shadow a parameter — CS0136);
     /// the non-empty TAG keeps it off the emitter's fixed <c>__X</c> members — the untagged <c>"__" + word</c>
     /// shape turned a formal named N into <c>__N</c>, the paragraph-count constant (kb/Work PB973).</summary>
@@ -644,7 +644,7 @@ public sealed partial class DataBinder
     /// <c>prop OF Class-name</c> factory form and for SELF / SUPER, which invoke on the current object — §8.4.3.8.4), the
     /// accessor symbols found on the pinned-name roster (either may be null — SR3/SR4 checked against the CLASSIFIED
     /// polarity, not eagerly), and the source names for diagnostics. Registered by ReferenceResolver at resolution time,
-    /// drained by StatementBinder.OoWrapPropertyOps after the carrying statement binds. <paramref name="InterfaceCsName"/>
+    /// drained by StatementBinder.OoWrapPropertyOps after the carrying statement binds. <paramref name="InterfaceClrName"/>
     /// is the emitted C# interface of an INTERFACE-typed receiver (kb/Work PB1449) — the accessors are then the
     /// interface's prototypes, which have no owning class, and the interface carries their formals' statics exactly as
     /// it does for an INVOKE through the same reference; null for a class receiver (each accessor's own class).
@@ -655,12 +655,12 @@ public sealed partial class DataBinder
     /// hoisted ahead of every pre-op of the statement (<c>OoWrapPropertyOps</c>), so left on that list they would run
     /// after the accessor that reads their result.</para></summary>
     internal sealed record OoPendingPropertyOp(
-        DataItem Temp, Bound.InvokeForm Form, Place? Receiver, string ClassCsName,
+        DataItem Temp, Bound.InvokeForm Form, Place? Receiver, string ClassClrName,
         OoMethodSymbol? Get, OoMethodSymbol? Set, string PropName, string ReceiverName,
-        IReadOnlyList<Bound.BoundStatement> Prelude, string? InterfaceCsName = null)
+        IReadOnlyList<Bound.BoundStatement> Prelude, string? InterfaceClrName = null)
     {
         /// <summary>The emitted type that qualifies <paramref name="accessor"/>'s formal statics at the call site.</summary>
-        public string? OwnerCsNameOf(OoMethodSymbol accessor) => InterfaceCsName ?? accessor.Owner?.CsName;
+        public string? OwnerClrNameOf(OoMethodSymbol accessor) => InterfaceClrName ?? accessor.Owner?.ClrName;
 
         /// <summary>True once the binder that built the statement's receiver list CLAIMED this property as one of its
         /// receivers (<see cref="DataBinder.OoClaimInterleavedReceiver"/>): that statement's emitter accesses each
@@ -802,7 +802,7 @@ public sealed partial class DataBinder
     {
         var model = new DataItem
         {
-            Level = 1, CobolName = "__OREF", CsName = "__oref",
+            Level = 1, CobolName = "__OREF", ClrName = "__oref",
             Pic = PicInfo.ObjectReferenceItem(description),
         };
         return CreateCompilerTemp(model, cobolPrefix, csPrefix, description.Name ?? "UNIVERSAL");
@@ -839,7 +839,7 @@ public sealed partial class DataBinder
         {
             Level = 1,
             CobolName = cobolPrefix + _uidCounter,
-            CsName = csPrefix + _uidCounter + "_" + DataItem.WordIdentifier(tag),
+            ClrName = csPrefix + _uidCounter + "_" + DataItem.WordIdentifier(tag),
             IsCompilerTemp = true,   // kb/Work R26 — the positive is-a-declared-item discrimination
             // (P5.7: the clone-time StoreAsImage seed is gone — StorageFormPass's promoted-set re-sync derives
             //  the temp's storage from its model's PRE-whole-group facts, the fused pipeline's re-sync ordering.)
@@ -864,7 +864,7 @@ public sealed partial class DataBinder
     /// register (the view <c>DynamicResolve</c> mints for every declared one, §13.18.38.4 GR15) is minted here the same way.</summary>
     internal DataItem CreateCompilerTempTable(DataItem element, int? occurs, string cobolPrefix, string csPrefix, string tag, out DataItem cell)
     {
-        var model = new DataItem { Level = 1, CobolName = cobolPrefix + "MODEL", CsName = csPrefix + "model" };
+        var model = new DataItem { Level = 1, CobolName = cobolPrefix + "MODEL", ClrName = csPrefix + "model" };
         // the element's own OCCURS clause belongs to the table it came from, not to this one
         (int? Occurs, OccursSpec? Spec) table = occurs is null
             ? (null, new OccursSpec { Min = 0, Max = 0, IsDynamic = true })
@@ -876,7 +876,7 @@ public sealed partial class DataBinder
             spec.CapacityRegister = new DataItem
             {
                 Level = 49,
-                CsName = NamingConvention.CapacityRegisterName(cell.CsName),
+                ClrName = NamingConvention.CapacityRegisterName(cell.ClrName),
                 Pic = PicInfo.BinaryItem(Usage.BinaryLong, signed: false),
                 Parent = cell.Parent,
                 Uid = _uidCounter++,
@@ -887,7 +887,7 @@ public sealed partial class DataBinder
 
     /// <summary>Deep-clone one description node under a compiler temp (see <see cref="CreateCompilerTemp"/>):
     /// fresh <see cref="DataItem.Uid"/> (StructName/ProfileName ride on it), the immutable
-    /// <see cref="DataItem.Pic"/> shared, the <see cref="DataItem.CsName"/> uniquified among siblings — and,
+    /// <see cref="DataItem.Pic"/> shared, the <see cref="DataItem.ClrName"/> uniquified among siblings — and,
     /// unlike the TYPEDEF <c>CloneItem</c>, NOT registered (no by-name entry, no 88s, no index-names: a temp's
     /// subordinates are unreachable by reference). The initializer carries only identity and the
     /// <see cref="DescriptionCopyKind.MemberOnly"/> fields a subordinate reproduces (level, name, OCCURS); every
@@ -903,7 +903,7 @@ public sealed partial class DataBinder
             Level = src.Level,
             DeclaredAt = src.DeclaredAt,
             CobolName = src.CobolName,
-            CsName = src.CsName,   // the base name: newParent.AddMember allocates it among the NEW siblings (PB2093)
+            ClrName = src.ClrName,   // the base name: newParent.AddMember allocates it among the NEW siblings (PB2093)
             Occurs = table is { } t ? t.Occurs : src.Occurs,
             OccursSpec = table is { } u ? u.Spec : src.OccursSpec is { } os ? CloneOccursSpec(os) : null,
         };
@@ -1010,7 +1010,7 @@ public sealed partial class DataBinder
                     HasUsing: kind == 'S', HasReturning: kind == 'G',
                     Ctx: null!)
                 {
-                    CsName = csName, Owner = cls, IsFactory = factory,
+                    ClrName = csName, Owner = cls, IsFactory = factory,
                     Accessor = kind, PropertyName = subjName, PropertySubject = subject,
                     IsFinal = pc.IsFinal,
                 };
@@ -1045,6 +1045,6 @@ public sealed partial class DataBinder
     {
         foreach (var root in OoMethodScopedRoots)
             if (root.Class is { Tier: RedefinesTier.StringCanonical } cls && ReferenceEquals(cls.Canonical, root))
-                _callSuppressedRootFields.Add(cls.BackingCsName);   // emitted as a method local
+                _callSuppressedRootFields.Add(cls.BackingClrName);   // emitted as a method local
     }
 }
