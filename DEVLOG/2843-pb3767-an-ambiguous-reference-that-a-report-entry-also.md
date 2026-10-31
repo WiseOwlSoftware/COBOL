@@ -1,4 +1,4 @@
-## PB3767: an ambiguous reference that a report entry also spells is told its ambiguity
+## Entry 2843 — 2026-10-31 00:10 PDT — PB3767: an ambiguous reference that a report entry also spells is told its ambiguity
 
 **Mechanism.** `ReferenceResolver.ReportUnidentified` asked `DataBinder.ReportEntryReferenceRefused` before any
 ambiguity arm. A procedure division reference to a name declared under two groups (COBOL1639, ISO §8.4.2.2.3 SR1) that a
@@ -30,3 +30,4 @@ exists), read by `ReportUnidentified` and `ResolveClauseOperand`; the golden is
 the data items' source element (R1-2, `ReportEntriesInTierOf`). Probing the clause-operand sibling found that a contained
 program's `FILE STATUS IS` a container's GLOBAL data item is refused as undefined (COBOL1639): the contained data
 division binds before the globals are inherited, the PB3766 mechanism, reported as a lead.
+
