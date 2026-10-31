@@ -458,7 +458,8 @@ public sealed class CldrLocaleLoaderTests(ITestOutputHelper output)
         sw.Restart();
         var ja = L("ja");
         output.WriteLine($"ja built in {sw.ElapsedMilliseconds} ms; unsupported: {string.Join(" | ", CollationEngine.ResolveLocale("ja").Unsupported)}");
-        Assert.Contains(CollationEngine.ResolveLocale("ja").Unsupported, u => u.Contains("quaternary"));
+        Assert.Empty(CollationEngine.ResolveLocale("ja").Unsupported);   // the <<<< relations are applied (kb/Work PB107), not reported
+        Assert.True(CollationEngine.ResolveLocale("ja").Table.HasQuaternary);
         Less(ja, "あ", "い");
         Less(ja, "a", "あ");                                    // [reorder Latn Kana Hani]
         sw.Restart();
