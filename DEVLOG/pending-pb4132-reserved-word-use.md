@@ -78,3 +78,7 @@ sentence starts at the default edition (`AStrayTerminatorBeginningASentence_Draw
 all three positions at every OTHER edition that reserves the word (`RecoverySources.DefaultEdition` names the split). R1-2: the
 generated `CobolLexer.IsReservationGated` summary (written by `scripts/gen-cobol-words.ps1`) no longer says every error on a gated
 word is COBOL0901 from the listener; it names `ReservedWordUse`. `EditionReadDriftTests` records the two new word-status sites.
+Self-review: the predicate costs one token lookup and one hash probe per header prediction; the section-header citation in its
+summary was corrected to the §14.2.1 general format. Gate on 0eebca4b8: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating,
+PB2515): GREEN` (run 000001-20261031T195428Z: Conformance 10,551, Unit 35,181 and Characterization 8 cases; Linux half (WSL clone
+of HEAD) GREEN).
