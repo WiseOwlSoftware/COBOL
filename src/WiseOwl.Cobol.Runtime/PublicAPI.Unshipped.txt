@@ -796,3 +796,4 @@ static WiseOwl.Cobol.Runtime.UniversalGroupCarrier.WriteBackVariable(object? box
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
+static WiseOwl.Cobol.Runtime.CobolTable.RequireOccurrences(long count) -> void

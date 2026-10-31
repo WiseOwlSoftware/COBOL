@@ -262,7 +262,7 @@ internal static class RecordClauseRules
         // No RECORD clause ⇒ §13.18.43.4 GR5 implies one FROM the record descriptions, and an implied clause
         // cannot contradict the descriptions it was derived from. Nothing in this subclause speaks about it.
         if (file.RecordClause is not { } clause) return;
-        using var _ = edition.At(clause.At.IsSet ? clause.At : file.EntryAt);
+        using var _ = edition.At(file.ClauseOrEntryAt(clause.At));
 
         // Subject-outer: the record descriptions are enumerated ONCE for all of the record-level rules.
         foreach (var rule in Rules)
@@ -275,7 +275,7 @@ internal static class RecordClauseRules
         // the phrase is absent or its resolution failed and was reported there), reported at the phrase.
         if (file.VaryingDependingItem is { } depending)
         {
-            using var at = edition.At(file.Varying!.DependingAt.IsSet ? file.Varying.DependingAt : file.EntryAt);
+            using var at = edition.At(file.ClauseOrEntryAt(file.Varying!.DependingAt));
             var subject = new RecordClauseSubject(null, 0, 0, depending);
             foreach (var rule in Rules)
             {
