@@ -1,0 +1,1 @@
+{"refuse-at": ["2002"], "expect": "the relational operator <> requires COBOL-2014 (targeting COBOL-2002)"}
