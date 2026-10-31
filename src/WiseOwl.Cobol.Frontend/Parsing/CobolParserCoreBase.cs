@@ -412,7 +412,7 @@ public abstract class CobolParserCoreBase : Parser
     /// word an edition ADDED as a user word, but a source conforming to the TARGETED edition has one reading, and
     /// <c>--permissive</c> never changes the meaning of conforming source (`05 BIT PIC 1(8).` under --permissive at
     /// 2023 used to become an 8-byte item named BIT).</para>
-    /// <para>The clause reading is asked of the grammar itself (<see cref="ClauseReadingParses"/>), never of a list,
+    /// <para>The clause reading is asked of the grammar itself (<see cref="ReadingParses"/>), never of a list,
     /// so every gated word that begins a clause — every USAGE keyword (BINARY-LONG, FLOAT-LONG, PROGRAM-POINTER …),
     /// ALIGNED, BASED, GROUP-USAGE — is covered by construction. It runs only for a gated word §8.9 reserves here
     /// at the head of an entry, which conforming source writes only as an unnamed clause.</para></summary>
@@ -420,7 +420,7 @@ public abstract class CobolParserCoreBase : Parser
     {
         if (TokenStream.LT(1) is not { } word || ReservedGatedWord(word) is null) return true;
         if (_entryClauseProbe is { } p && p.Index == word.TokenIndex) return !p.Parses;
-        bool parses = ReadingParses(CobolParserCore.RULE_dataDescriptionBody, wholeSentence: true);
+        bool parses = ReadingParses(CobolParserCore.RULE_dataDescriptionBody);
         _entryClauseProbe = (word.TokenIndex, parses);
         return !parses;
     }
@@ -428,23 +428,32 @@ public abstract class CobolParserCoreBase : Parser
     private (int Index, bool Parses)? _entryClauseProbe;
 
     /// <summary>Whether the lookahead word begins a <c>statement</c> that parses — the question the error recovery
-    /// asks of a reserved verb it has just reported as a reference (kb/Work PB3248, review R1-1;
+    /// asks of a reserved verb it has just reported as a reference (kb/Work PB3248, reviews R1-1 and R2-1;
     /// <see cref="CobolErrorStrategy"/>). A syntax error AT a reservation-gated word is reported as its §8.9 violation
     /// (COBOL0901) whether the word was written as an operand (<c>DISPLAY RECEIVE.</c>) or correctly begins the next
     /// statement after an incomplete one (<c>MOVE W-X TO</c> then <c>RECEIVE FROM W-X GIVING W-Y W-N</c>). Only the
-    /// statement reading tells them apart: where it parses, the recovery resumes AT the word and the statement is read
-    /// as written; where it does not, the word stood for the operand the report named. Read-only.</summary>
+    /// statement reading tells them apart: where it is a complete reading (<see cref="ReadingParses"/>), the recovery
+    /// resumes AT the word and the statement is read as written; where it is not, the word stood for the operand the
+    /// report named. A statement that merely parses as a PREFIX is not enough (R2-1): GOBACK alone, or VALIDATE, RAISE
+    /// and FREE with one operand, parse in <c>MOVE GOBACK TO W-X</c> and <c>ADD VALIDATE W-N TO W-N</c>, and only the
+    /// token after them (TO, which no statement is ever followed by) shows the word was an operand. Read-only.</summary>
     internal bool LookaheadBeginsAStatementThatParses()
-        => ReadingParses(CobolParserCore.RULE_statement, wholeSentence: false);
+        => ReadingParses(CobolParserCore.RULE_statement);
 
-    /// <summary>Whether the tokens from the lookahead up to the separator period parse as the rule
-    /// <paramref name="rule"/>: with <paramref name="wholeSentence"/>, every one of them (the no-entry-name reading of
-    /// <see cref="entryNameHere"/>), else a prefix of them (one statement of a sentence,
-    /// <see cref="LookaheadBeginsAStatementThatParses"/>). A speculative parse by a <see cref="ParserInterpreter"/> over THIS
-    /// grammar's ATN on a copy of those tokens, so the outer parse's stream, prediction and actions are untouched. The
-    /// interpreter evaluates every semantic predicate as true, which only ever widens the reading — the authoritative
-    /// parse that follows still applies them. Read-only.</summary>
-    private bool ReadingParses(int rule, bool wholeSentence)
+    /// <summary>Whether the tokens from the lookahead begin a COMPLETE reading of the rule <paramref name="rule"/>
+    /// within the sentence: they parse as the rule, and the reading ends at the separator period or at a token that can
+    /// follow the rule somewhere in the grammar (its context-free FOLLOW set, <see cref="FollowSet"/>, read off the
+    /// generated ATN, so a construct the grammar gains is covered by construction). A reading that stops at any other
+    /// token parsed only a prefix of what is written, and the token it stopped at is the one the outer parse would
+    /// refuse next. For the no-entry-name reading of <see cref="entryNameHere"/> (<c>dataDescriptionBody</c>, whose one
+    /// call site is followed by the period alone) that is every token up to the period; for one statement of a sentence
+    /// (<see cref="LookaheadBeginsAStatementThatParses"/>) it is the statement up to the next statement, a scope
+    /// terminator, a phrase of the enclosing statement or the period. A speculative parse by a
+    /// <see cref="ParserInterpreter"/> over THIS grammar's ATN on a copy of the tokens up to the period, so the outer
+    /// parse's stream, prediction and actions are untouched. The interpreter evaluates every semantic predicate as
+    /// true, which only ever widens the reading — the authoritative parse that follows still applies them.
+    /// Read-only.</summary>
+    private bool ReadingParses(int rule)
     {
         var tokens = new List<IToken>();
         for (int i = 1; TokenStream.LT(i) is { } t && t.Type != TokenConstants.EOF && t.Type != CobolLexer.DOT; i++)
@@ -458,7 +467,8 @@ public abstract class CobolParserCoreBase : Parser
         try
         {
             probe.Parse(rule);
-            return !wholeSentence || stream.LA(1) == TokenConstants.EOF;
+            int next = stream.LA(1);
+            return next == TokenConstants.EOF || FollowSet(Atn, rule).Contains(next);
         }
         catch (Antlr4.Runtime.Misc.ParseCanceledException)
         {
@@ -768,8 +778,6 @@ public abstract class CobolParserCoreBase : Parser
         return t == CobolLexer.IDENTIFIER || !UsageFollowSet(Atn).Contains(t);
     }
 
-    private static Antlr4.Runtime.Misc.IntervalSet? s_usageFollow;
-
     /// <summary>FOLLOW(<c>usageKeyword</c>) — every token that can come next after a usage keyword in ANY context
     /// that invokes it — read off the GENERATED ATN rather than listed by hand: the union, over every call site of
     /// the rule, of what the ATN can match after it, climbing to the caller's own call sites wherever the caller
@@ -777,10 +785,18 @@ public abstract class CobolParserCoreBase : Parser
     /// USAGE clause, is excluded from the TO-less pointer operand the moment the grammar gains it
     /// (<see cref="pointerOperandHere"/>; pinned by PointerUsageOperandDriftTests). Computed once per process.</summary>
     public static Antlr4.Runtime.Misc.IntervalSet UsageFollowSet(Antlr4.Runtime.Atn.ATN atn)
-        => s_usageFollow ??= Follow(atn, CobolParserCore.RULE_usageKeyword);
+        => FollowSet(atn, CobolParserCore.RULE_usageKeyword);
+
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<int, Antlr4.Runtime.Misc.IntervalSet>
+        s_follow = new();
+
+    /// <summary>The context-free FOLLOW set of <paramref name="rule"/> over the one generated grammar's
+    /// <paramref name="atn"/> (<see cref="Follow"/>), computed once per rule per process and read-only after.</summary>
+    internal static Antlr4.Runtime.Misc.IntervalSet FollowSet(Antlr4.Runtime.Atn.ATN atn, int rule)
+        => s_follow.GetOrAdd(rule, static (r, a) => Follow(a, r), atn);
 
     /// <summary>The context-free FOLLOW set of <paramref name="rule"/> over <paramref name="atn"/>.</summary>
-    internal static Antlr4.Runtime.Misc.IntervalSet Follow(Antlr4.Runtime.Atn.ATN atn, int rule)
+    private static Antlr4.Runtime.Misc.IntervalSet Follow(Antlr4.Runtime.Atn.ATN atn, int rule)
     {
         var result = new Antlr4.Runtime.Misc.IntervalSet();
         var seen = new HashSet<int>();
@@ -804,6 +820,7 @@ public abstract class CobolParserCoreBase : Parser
             }
         }
         result.Remove(Antlr4.Runtime.TokenConstants.EPSILON);
+        result.SetReadonly(true);
         return result;
     }
 

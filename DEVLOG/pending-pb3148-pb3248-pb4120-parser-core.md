@@ -30,6 +30,17 @@ does not parse (`CobolParserCoreBase.LookaheadBeginsAStatementThatParses`, a spe
 `ReadingParses` with `entryNameHere`'s clause probe). Witness: `AReservedVerbBeginningTheNextStatement_DrawsOneDiagnostic` (six
 rows, four of which fail without the probe).
 
+**Review finding R2-1 (the round-2 review finisher).** R1-1's probe accepted a statement that parsed as any PREFIX of the tokens
+up to the period, so a reserved verb whose statement needs few or no operands was resumed at although written as an operand:
+`MOVE GOBACK TO W-X.` drew `COBOL2269: unexpected 'TO'` after the COBOL0901, `IF GOBACK = 1 ...` `unexpected '='`, and `ADD
+VALIDATE W-N TO W-N.` / `MOVE RAISE W-X TO W-Y.` the same TO. `ReadingParses` now asks for a COMPLETE reading: the rule parses
+and stops at the period or at a token in the rule's context-free FOLLOW set, read off the generated ATN (`FollowSet`, the one
+cached FOLLOW computation, now also behind `UsageFollowSet`). That one semantic serves both callers, so the `wholeSentence`
+flag is gone: `dataDescriptionBody` is followed by the period alone, so its complete reading is still the whole entry. Witness:
+five new rows of `AReservedVerbWrittenAsAnOperand_DrawsOneDiagnostic` (GOBACK x2, VALIDATE, RAISE, FREE; each drew two
+diagnostics on the round-2 head fff655202) and `ReadingParsesFollowDriftTests` (FOLLOW(dataDescriptionBody) = {DOT};
+FOLLOW(statement) holds the period, DISPLAY, END-IF and ELSE and never TO, '=', GIVING or FROM).
+
 **PB4120 (and PB4172, the same defect filed from the slot side) — a bare ZERO in an arithmetic-expression-only slot.** Re-probe:
 `SET IX UP BY ZERO`, `SET IX TO ZERO`, `CONTINUE AFTER ZERO SECONDS`, `ALLOCATE ZERO CHARACTERS` each drew `COBOL0001: unexpected
 'ZERO'`, legal by ISO §8.8.1.1 ("the figurative constant ZERO (ZEROS, ZEROES)"). Fix, derived from the grammar rather than a slot
