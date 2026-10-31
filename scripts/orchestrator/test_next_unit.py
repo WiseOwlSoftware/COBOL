@@ -11,7 +11,11 @@ Proves, against a coordination directory built from units.jsonl and readings.jso
   - a meter that read (no environment_failure) ends the run; another account's attempts never count;
   - the gate opens again once the newest attempt is a maximum reading age old, and a failed probe closes it again under
     the SAME `since` (one owner question per streak);
-  - an explicit name (a handoff, the operator's steer) outranks the gate: the gate stops the automatic retry only.
+  - an explicit name (a handoff, the operator's steer) outranks the gate: the gate stops the automatic retry only;
+  - a handoff's `enqueue` is a request (kb/Work PB4180): it runs the unit only while rule 6 finds agent work, so a
+    handoff that names it to wait for a merge, with only WAITING TO LAND / ENQUEUED / NOT QUEUED rows in the survey,
+    runs the wave and yields to rules 3 and 5; every other named unit is still an order;
+  - `enqueue_chains` finds the runs of consecutive enqueue units (the drift measure).
 Run: python scripts/orchestrator/test_next_unit.py"""
 import datetime as dt
 import json
@@ -129,29 +133,32 @@ steer = {"schema_version": 1, "unit": "operator", "outcome": "done", "summary": 
 c = choose(coord("steered", lines), operator=steer)
 check("the operator's steer for the meter runs it", (c["unit"], c.get("operator")), ("meter", True))
 
-# the gate does not hide the rest of the chain: a handoff naming enqueue still wins, and the gate rides along
+# the gate does not hide the rest of the chain: a handoff naming enqueue for work only the unit can do still wins, and the
+# gate rides along (a branch DONE while the landing lane has no survey: the unit ticks the lane, rule 6)
 enq = {"schema_version": 1, "unit": "resume", "outcome": "done", "summary": "x", "next_unit": "enqueue",
-       "next_unit_reason": "branch ready"}
+       "next_unit_reason": "branch ready", "branches_pending": [{"branch": "w1a", "status": "DONE"}]}
 c = choose(coord("enqueue", lines), handoff=enq)
 check("a named enqueue is chosen while the meter is unreadable", (c["unit"], c["meter_unreadable"]["failures"]),
       ("enqueue", 3))
 
 # rule 6 and the REVIEW LANE (kb/Work PB3608): a branch WAITING FOR REVIEW is the review lane's while it ticks; the enqueue
 # unit starts for its holds, or for the branch while the lane is not ticking (the unit then ticks it once).
-def lane_case(case: str, ticked_min_ago: float | None, holds: list[dict]) -> dict:
+def lane_case(case: str, ticked_min_ago: float | None, holds: list[dict], handoff: dict | None = None,
+              rows: list[dict] | None = None) -> dict:
     cdir = coord(case, [], reading_hours_ago=0.1)
     real = dt.datetime.now(dt.timezone.utc)
     (cdir / "land-lane").mkdir()
-    (cdir / "land-lane" / "survey.json").write_text(json.dumps({"at": real.isoformat(), "landing_order": [], "rows": [
-        {"name": "w1a", "state": "WAITING FOR REVIEW", "tip": "a1", "worktree": "wt", "conflicts": False}]}),
-        encoding="utf-8", newline="\n")
+    rows = rows if rows is not None else [
+        {"name": "w1a", "state": "WAITING FOR REVIEW", "tip": "a1", "worktree": "wt", "conflicts": False}]
+    (cdir / "land-lane" / "survey.json").write_text(json.dumps({"at": real.isoformat(), "landing_order": [], "rows": rows}),
+                                                    encoding="utf-8", newline="\n")
     (cdir / "review-lane" / "holds").mkdir(parents=True)
     if ticked_min_ago is not None:
         (cdir / "review-lane" / "last-tick.json").write_text(json.dumps({"at": (real - dt.timedelta(minutes=ticked_min_ago)).isoformat()}),
                                                               encoding="utf-8", newline="\n")
     for h in holds:
         (cdir / "review-lane" / "holds" / f"{h['branch']}.json").write_text(json.dumps(h), encoding="utf-8", newline="\n")
-    return choose(cdir)
+    return choose(cdir, handoff=handoff)
 
 
 c = lane_case("lane-ticking", 1, [])
@@ -165,6 +172,51 @@ check("a review lane that is not ticking hands its waiting branch to the unit, w
       (c["unit"], "not ticking" in c["reason"]), ("enqueue", True))
 c = lane_case("lane-never", None, [])
 check("a review lane that never ticked does the same", c["unit"], "enqueue")
+
+# a handoff's `enqueue` is a request, not an order (kb/Work PB4180): the unit waits for no merge, because the landing
+# lane lands every branch WAITING TO LAND and the review lane reviews the rest. Replay the 2026-10-30 chain: a handoff
+# names enqueue ("f7f-29 lands once #811 merges") while the survey holds nothing but lane-owned rows.
+waiting = [{"name": "f7f-29", "state": "WAITING TO LAND", "tip": "b1", "worktree": "wt", "conflicts": False},
+           {"name": "17b-15", "state": "ENQUEUED", "tip": "b2", "worktree": "wt", "conflicts": False},
+           {"name": "468-1", "state": "NOT QUEUED", "tip": "b3", "worktree": "wt", "conflicts": False}]
+wait_handoff = {"schema_version": 1, "unit": "enqueue", "outcome": "done", "summary": "x", "next_unit": "enqueue",
+                "next_unit_reason": "f7f-29 lands once #811 merges",
+                "branches_pending": [{"branch": "f7f-29", "status": "DONE"}, {"branch": "17b-15", "status": "DONE"}]}
+c = lane_case("wait-for-merge", 1, [], handoff=wait_handoff, rows=waiting)
+check("a handoff naming enqueue to wait for a merge runs the wave", c["unit"], "wave")
+check("the choice says the named enqueue was declined", "named enqueue for work the lanes own" in c["reason"], True)
+c = lane_case("wait-hold", 1, [{"branch": "w1a", "head": "a1", "why": "2 reviewers ended with no verdict", "collected": False}],
+              handoff=wait_handoff, rows=waiting)
+check("a handoff naming enqueue while a hold stands runs the unit, naming the handoff and the hold",
+      (c["unit"], "named by the last handoff" in c["reason"], "review lane holds: w1a" in c["reason"]), ("enqueue", True, True))
+c = lane_case("wait-stale", 500, [], handoff=wait_handoff)
+check("a handoff naming enqueue while the review lane is not ticking and a branch waits for review runs the unit",
+      c["unit"], "enqueue")
+# a declined enqueue falls through to the rules after it, not to the wave alone
+bare = {**wait_handoff, "branches_pending": []}   # no DONE branch, so no unticking-lane work either
+c = choose(coord("wait-meter", [], reading_hours_ago=4), handoff=bare)
+check("a declined enqueue yields to rule 3: a stale meter reading", c["unit"], "meter")
+c = choose(coord("wait-failed", [], reading_hours_ago=0.1), handoff={**bare, "outcome": "failed"})
+check("a declined enqueue yields to rule 5: the last unit failed", c["unit"], "resume")
+# every other named unit is still an order
+for name in ("resume", "wave", "meter"):
+    c = choose(coord("named-" + name, [], reading_hours_ago=0.1), handoff={**wait_handoff, "next_unit": name})
+    check(f"a handoff naming {name} still runs it", c["unit"], name)
+
+
+# the drift measure: runs of consecutive enqueue units (a meter between two is invisible, any other unit ends the run)
+def timed(name, minutes_ago, minutes):
+    return {**unit(name, minutes_ago), "duration_s": minutes * 60, "reason": name + " reason"}
+
+
+chain_lines = [timed("wave", 600, 30), timed("enqueue", 500, 20), timed("meter", 470, 1), timed("enqueue", 440, 40),
+               timed("enqueue", 380, 10), timed("wave", 300, 30), timed("enqueue", 200, 15), timed("resume", 150, 5),
+               timed("enqueue", 100, 10), timed("enqueue", 50, 10)]
+chains = next_unit.enqueue_chains(chain_lines)
+check("enqueue_chains finds the runs of two or more", [(x["units"], x["hours"]) for x in chains], [(3, 1.17), (2, 0.33)])
+check("enqueue_chains names each run by its first unit's start", chains[0]["started_at"], chain_lines[1]["started_at"])
+check("enqueue_chains reports a lone enqueue as no chain", next_unit.enqueue_chains(chain_lines[:2]), [])
+check("enqueue_chains ends a run at the history's end", len(next_unit.enqueue_chains(chain_lines[-2:])), 1)
 
 if fails:
     print("\n".join("FAIL: " + f for f in fails))

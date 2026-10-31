@@ -26,7 +26,12 @@ namespace WiseOwl.Cobol.Runtime.Collation;
 /// (<see cref="IsUpperTertiary"/>); for a CLDR-tailored element, the case of the tailored string, which may be
 /// <see cref="ElementCase.Mixed"/> ("Aa"). Read only by <see cref="CaseFirst"/>; without it the tertiary weight alone
 /// orders lowercase before uppercase.</param>
-public readonly record struct CollationElement(int Primary, int Secondary, int Tertiary, bool IsVariable = false, ElementCase Case = ElementCase.Lower)
+/// <param name="Quaternary">The LEVEL-4 tailoring weight (UTS #35 Part 5, the <c>&lt;&lt;&lt;&lt;</c> quaternary
+/// difference — in CLDR's Japanese <c>private-kana</c>, Hiragana before Katakana): 0 = none, which every element of the
+/// root table carries; a CLDR collation that tailors with <c>&lt;&lt;&lt;&lt;</c> gives the tailored string a positive
+/// slot placed after its anchor's. Compared at <see cref="CollationStrength.Quaternary"/> and above (<see
+/// cref="Collator"/>); under <see cref="AlternateHandling.Shifted"/> it refines the "no variable here" weight.</param>
+public readonly record struct CollationElement(int Primary, int Secondary, int Tertiary, bool IsVariable = false, ElementCase Case = ElementCase.Lower, int Quaternary = 0)
 {
     /// <summary>Convenience: the case bits say uppercase.</summary>
     public bool IsUpper => Case == ElementCase.Upper;
@@ -47,7 +52,7 @@ public readonly record struct CollationElement(int Primary, int Secondary, int T
     public bool IsPrimaryIgnorable => Primary == 0;
 
     public override string ToString() =>
-        $"[{(IsVariable ? '*' : '.')}{Primary:X4}.{Secondary:X4}.{Tertiary:X4}{Case switch { ElementCase.Upper => "^", ElementCase.Mixed => "~", _ => "" }}]";
+        $"[{(IsVariable ? '*' : '.')}{Primary:X4}.{Secondary:X4}.{Tertiary:X4}{(Quaternary == 0 ? "" : $".{Quaternary:X}")}{Case switch { ElementCase.Upper => "^", ElementCase.Mixed => "~", _ => "" }}]";
 }
 
 /// <summary>The case bits of an element (UTS #35 / ICU "case bits"): what <see cref="CaseFirst"/> orders by, before the
@@ -78,8 +83,9 @@ public enum CollationStrength
     /// <summary>The fourth level: under <see cref="AlternateHandling.Shifted"/> the position weight of the variable
     /// (space/punctuation/symbol) elements the first three levels ignored — the ISO/IEC 14651 default four-level
     /// ordering ("ISO 14651_2020_TABLE1" as STANDARD-COMPARE names it). Under
-    /// <see cref="AlternateHandling.NonIgnorable"/> the fourth level never distinguishes anything (every element
-    /// already counted at level 1) and this strength behaves as <see cref="Tertiary"/>.</summary>
+    /// <see cref="AlternateHandling.NonIgnorable"/> the fourth level distinguishes only what a CLDR <c>&lt;&lt;&lt;&lt;</c>
+    /// tailoring put there (<see cref="CollationElement.Quaternary"/>; the root has none), so on an untailored table this
+    /// strength behaves as <see cref="Tertiary"/>.</summary>
     Quaternary = 4,
     /// <summary>All four levels, then the canonically-decomposed code point sequence as a final tie-break — a TOTAL
     /// order over distinct (canonically inequivalent) strings.</summary>

@@ -87,8 +87,12 @@ Check 'the fix-lane choice keeps the handoff''s reason' ($h2.reason -match 'a wa
 $hcm = Set-Handoff $hc 'campaign' @{ next_unit = 'campaign'; next_unit_reason = 'the campaign again' }
 Check 'a handoff naming campaign right after a campaign wave: the fix-lane wave' ((Next-Unit $hc @('--handoff', $hcm, '--cluster', 'CAMP', '--work', $fxWork)) | ConvertFrom-Json).unit 'wave'
 Add-Content -Path (Join-Path $hc 'units.jsonl') -Encoding utf8 -Value '{"unit":"wave"}'
-$hl = Set-Handoff $hc 'enqueue' @{ next_unit = 'enqueue'; next_unit_reason = 'three branches are DONE' }
-Check 'a handoff naming enqueue outranks the campaign' ((Next-Unit $hc @('--handoff', $hl, '--cluster', 'CAMP', '--work', $fxWork)) | ConvertFrom-Json).unit 'enqueue'
+$hl = Set-Handoff $hc 'enqueue' @{ next_unit = 'enqueue'; next_unit_reason = 'three branches are DONE'; branches_pending = @(@{ branch = 'w9a'; status = 'DONE' }) }
+Check 'a handoff naming enqueue for agent work (a DONE branch, no lane survey) outranks the campaign' ((Next-Unit $hc @('--handoff', $hl, '--cluster', 'CAMP', '--work', $fxWork)) | ConvertFrom-Json).unit 'enqueue'
+# kb/Work PB4180: a handoff naming enqueue with no agent work to do is declined, and the campaign rule decides
+$hq = Set-Handoff $hc 'enqueue-wait' @{ next_unit = 'enqueue'; next_unit_reason = 'f7f-29 lands once #811 merges' }
+$q1 = Next-Unit $hc @('--handoff', $hq, '--cluster', 'CAMP', '--work', $fxWork) | ConvertFrom-Json
+Check 'a handoff naming enqueue to wait for a merge is declined: the campaign lane decides' "$($q1.unit) $($q1.campaign)" 'campaign run'
 $hr = Set-Handoff $hc 'resume' @{ next_unit = 'resume'; next_unit_reason = 'finish the gates' }
 Check 'a handoff naming resume outranks the campaign' ((Next-Unit $hc @('--handoff', $hr, '--cluster', 'CAMP', '--work', $fxWork)) | ConvertFrom-Json).unit 'resume'
 $ho = Set-Handoff $hc 'owner' @{ outcome = 'owner-question'; next_unit = 'wave'; owner_question = @{ question = 'A or B?'; context = 'fixture' } }
@@ -124,7 +128,7 @@ Set-Content -Path (Join-Path $sv 'units.jsonl') -Encoding utf8 -Value @(
     (@{ unit = 'wave'; started_at = $t0.AddHours(-9).AddMinutes(2).ToString('o'); campaigns = @{ CAMP = 'ready' } } | ConvertTo-Json -Compress),
     (@{ unit = 'enqueue'; started_at = $t0.AddHours(-6).ToString('o'); campaigns = @{ CAMP = 'ready' } } | ConvertTo-Json -Compress),
     (@{ unit = 'wave'; started_at = $t0.AddHours(-5).ToString('o'); campaigns = @{ CAMP = 'ready' } } | ConvertTo-Json -Compress))
-$hs = Set-Handoff $sv 'starved' @{ next_unit = 'enqueue'; next_unit_reason = 'a train is ready' }
+$hs = Set-Handoff $sv 'starved' @{ next_unit = 'enqueue'; next_unit_reason = 'a train is ready'; branches_pending = @(@{ branch = 'w9a'; status = 'DONE' }) }
 $s1 = Next-Unit $sv @('--handoff', $hs, '--cluster', 'CAMP', '--work', $fxWork) | ConvertFrom-Json
 $st1 = @($s1.starved | Where-Object { $_ })   # absent before the change: an empty list, never an error
 Check 'a starved campaign is reported even when another unit is chosen' "$($s1.unit) $($st1.Count) $(if ($st1) { "$($st1[0].cluster) $($st1[0].waves)" })" 'enqueue 1 CAMP 2'
@@ -149,11 +153,14 @@ New-Item -ItemType Directory -Force -Path $lc | Out-Null
 & $fresh $lc
 $doneHandoff = Join-Path $lc 'handoff-done.json'
 Set-Content -Path $doneHandoff -Encoding utf8 -Value '{"outcome": "done", "branches_pending": [{"branch": "w9a", "status": "DONE"}]}'
+$namedDone = Join-Path $lc 'handoff-named-done.json'
+Set-Content -Path $namedDone -Encoding utf8 -Value '{"outcome": "done", "next_unit": "enqueue", "next_unit_reason": "branches ready", "branches_pending": [{"branch": "w9a", "status": "DONE"}]}'
 $landHandoff = Join-Path $lc 'handoff-land.json'
 Set-Content -Path $landHandoff -Encoding utf8 -Value '{"outcome": "done", "next_unit": "enqueue", "next_unit_reason": "branches ready"}'
 $l1 = (Next-Unit $lc @('--handoff', $doneHandoff)) | ConvertFrom-Json
 Check 'finished branches and no lane survey: an enqueue unit, which ticks the lane' "$($l1.unit) $($l1.reason -match '^finished branches waiting: w9a; the landing lane has no survey')" 'enqueue True'
-Check 'a handoff naming enqueue starts one' ((Next-Unit $lc @('--handoff', $landHandoff)) | ConvertFrom-Json).unit 'enqueue'
+Check 'a handoff naming enqueue with no agent work to do starts none (kb/Work PB4180)' ((Next-Unit $lc @('--handoff', $landHandoff)) | ConvertFrom-Json).unit 'wave'
+Check 'a handoff naming enqueue for a DONE branch while the lane has no survey starts one' ((Next-Unit $lc @('--handoff', $namedDone)) | ConvertFrom-Json).unit 'enqueue'
 Check 'finished branches in the campaign lane, no lane survey: the enqueue runs first' ((Next-Unit $lc @('--handoff', $doneHandoff, '--cluster', 'CAMP', '--work', $fxWork)) | ConvertFrom-Json).unit 'enqueue'
 $laneDir = Join-Path $lc 'land-lane'
 New-Item -ItemType Directory -Force -Path (Join-Path $laneDir 'attempts') | Out-Null

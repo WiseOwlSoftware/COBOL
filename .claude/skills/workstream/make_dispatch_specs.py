@@ -64,6 +64,7 @@ sys.path.insert(0, str(REPO / 'scripts' / 'spec'))
 import coord  # noqa: E402  (the one definition of the stop files and the reports directory)
 import dispatch_ledger  # noqa: E402  (record_dispatch: THE ledger writer, kb/Work PB3186)
 import inflight  # noqa: E402  (computed_file_set: THE computed file set; Claim, IndexPolicy)
+import mailbox  # noqa: E402  (account_lane: the lane that dispatches the wave, kb/Work PB4190)
 import work  # noqa: E402  (the register: which notes are terminal)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[3] / "scripts"))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -141,7 +142,8 @@ def record(cfg, coord_dir, terminal=None, claim_of=None):
     groups = [{'letter': g['letter'], 'slug': g.get('slug'), 'notes': list(dict.fromkeys(PB.findall(g.get('notes', '')))),
                'files': sorted(c.files), 'members': c.member_lists()}
               for g in cfg['groups'] for c in [group_claim(g, claim_of)]]
-    return dispatch_ledger.record_dispatch(coord_dir, str(cfg['wave']), groups, terminal)
+    return dispatch_ledger.record_dispatch(coord_dir, str(cfg['wave']), groups, terminal,
+                                           lane=mailbox.account_lane(coord_dir))
 
 
 def computed_claims(coord_dir):
