@@ -24,12 +24,16 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
 
 ### Where we are
 
-- **▶ WHO RUNS WHAT (2026-10-30).** The operator's loop runs `-Cluster PB1957,PB3838` (CI parity, the GnuCOBOL
-  upstream records) beside the fix lane's waves; it stopped for the night's differential fuzz run (2026-10-29 22:30 PDT)
-  and restarted at 09:17. The Mythos lane runs the GAP campaign (PB2911), each fuzz night's triage, PB4075 (MEAN
-  rounding twice for an argument wider than 38 digits) and PB4092/PB4093 (EC-SIZE per-name checking). The loop plans
-  nothing a Mythos dispatch holds (`inflight-groups.json`). Still in force: `blocked_by` holds on PB4047, PB4012 and
-  PB2103 until the Mythos A.1 chain (PB2556, PB1253) lands, so the loop plans nothing else on `docs/CONFORMANCE.md`.
+- **▶ WHO RUNS WHAT (owner 2026-10-30: "Focus on fixing compiler bugs and getting to 100% deliverable"; "We should
+  try and fix all single point bottlenecks").** The operator's loop runs the fix lane (`work.py next`'s harm notes)
+  with `-Cluster PB4147,PB2911`: PB4147 is the landing pipeline's single-point bottlenecks, measured (the shared refusal
+  registry, landed: one file per test; the traceability inventory PB4148; chained enqueue units PB4180; stall routing
+  PB4190; the merge queue's build width PB3773). PB2911 is the GAP campaign's notes in the operator's partition, PB1253
+  included. The Mythos lane runs the inventory's GAP-row notes (PB1086, PB3278, PB593, PB597, A11, PB1547, PB596,
+  PB851, PB3738, PB4053), the GnuCOBOL tickets (PB3838), the partition redesign (PB4146) and each fuzz night's triage,
+  and runs fix-lane waves on its own quota. Neither lane plans what the other's dispatch holds (`inflight-groups.json`).
+  The `blocked_by` holds on PB4047, PB4012 and PB2103 last until PB1253 lands, so the loop plans nothing else on
+  `docs/CONFORMANCE.md`.
 - **▶ PRIORITY (owner 2026-10-10, kb/Work PB2911): THE COMPILER AND ZERO GAP COME FIRST.** The loop runs
   `-Cluster PB2911,PB1086`: the GAP campaign (the 51 open notes holding the inventory's 103 GAP rows, which the fix
   lane never planned: 34 are analyses and 29 process-only, and GAP had not moved since 2026-10-08) and the §8.13
