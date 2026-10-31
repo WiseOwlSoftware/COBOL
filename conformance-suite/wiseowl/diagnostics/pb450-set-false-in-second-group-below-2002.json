@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "SET condition-name TO FALSE requires COBOL-2002"}

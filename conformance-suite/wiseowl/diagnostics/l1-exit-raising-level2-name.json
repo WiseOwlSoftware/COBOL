@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "COBOL0710: EXIT PROGRAM RAISING: exception-name 'EC-BOUND' is a level-2 name; only a LEVEL-3 exception-name may be raised (ISO §14.9.14.3 SR3)"}

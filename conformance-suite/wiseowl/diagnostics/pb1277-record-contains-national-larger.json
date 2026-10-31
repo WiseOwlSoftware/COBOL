@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "COBOL2010: file description entry 'F': record 'F-REC' describes 20 bytes, but the RECORD clause states integer-1 = 10"}
