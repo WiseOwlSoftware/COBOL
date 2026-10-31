@@ -1,4 +1,4 @@
-## PB4155, PB4160: a CALL argument's NULL at COBOL-85 is the undefined reference, and no diagnostic opens with an elided statement
+## Entry 2835 — 2026-10-30 21:11 PDT — PB4155, PB4160: a CALL argument's NULL at COBOL-85 is the undefined reference, and no diagnostic opens with an elided statement
 
 Two mechanisms in the CALL binder's neighbourhood, landed together.
 
@@ -33,3 +33,4 @@ Left unfixed and reported: the runtime messages of `SetEmitter` / `ControlFlowEm
 `FileRegistry.MisroutedVerb` open with an ellipsis too, but they are exceptions of the running program, not compile diagnostics.
 
 Branch review round 1 (R1-1) found the source scan blind to the three `EditionContext` seams whose caller string is the head of the message they write (`Extension(id, seen)`, `Removed(code, message)`, `Declined(descriptor, seen)`) and the rendered half blind to warnings. `ElidedMessageOpening.Source` now names those three forms (defect and repaired-twin fixtures added), the conformance refusal test asserts `Rendered` over `Errors` and `Warnings`, and `NonstandardExtensionWarningTests` asserts the flagged COBOL2894 warning for `SET PP TO ENTRY` does not open with an elided head. Merging main also moved the suite from one `diagnostics.json` to a file per test (PB4147): the eight expects and three new refusals were re-applied as `conformance-suite/wiseowl/diagnostics/<id>.json`.
+
