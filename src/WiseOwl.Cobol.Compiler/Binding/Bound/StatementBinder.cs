@@ -732,7 +732,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private BoundStatement BindDeclinedStatement<TStatement>(string construct, DiagnosticDescriptor declined,
         Action<TStatement> bindOperands, TStatement statement)
     {
-        if (!ConstructRegistry.IsAvailable(Ctx.Edition.Edition, construct)) return new BoundNop();
+        if (!ConstructRegistry.IsAvailable(Ctx.Edition.Edition, construct))
+            return new BoundNop(); // no-op: the edition pass refuses it (COBOL0900); this edition declines nothing
         bindOperands(statement);
         return BindUnsupportedFacility(declined);
     }
