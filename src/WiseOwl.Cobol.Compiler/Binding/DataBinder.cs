@@ -685,8 +685,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // binds here, with its operand bound (kb/Work PB1231).
         BindRemainingConstants();
 
-        // The containers' GLOBAL reports (§13.18.27.4 GR1/GR2), now that this unit's own names are all declared.
+        // The containers' GLOBAL data and reports (§13.18.27.4 GR1/GR2), now that this unit's own names are all
+        // declared and before any clause of this data division resolves the names it uses (BindResolve).
         InheritContainerReports();
+        InheritContainerGlobalData();
     }
 
     /// <summary>The C#-field-name scope at the class level, shared by FILE SECTION records, WORKING-STORAGE
