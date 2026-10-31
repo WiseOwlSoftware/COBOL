@@ -707,6 +707,11 @@ internal sealed class BinderDriver
             // division at the end of its declaration half (DataBinder.InheritContainerReports), so the unit's own
             // clauses that name a report item (FILE STATUS, ODO, ASSIGN USING) see them (kb/Work PB3766).
             ContainerGlobalReports = ContainerGlobalReportsOf(unit),
+            // …and the containers' GLOBAL data roots, offered the same way and inherited at the same point
+            // (DataBinder.InheritContainerGlobalData): FILE STATUS, RECORD / RELATIVE KEY, OCCURS … DEPENDING ON and
+            // ASSIGN … USING of the unit's own data division resolve inside data.Bind, so a container's GLOBAL item
+            // they name (§13.18.27.4 GR1/GR2) must already be visible (kb/Work PB3766, review finding R1-1).
+            ContainerGlobalRoots = ContainerGlobalRootsOf(unit).Select(r => (r.Root, r.Depth)).ToList(),
         };
         data.CallSeedUids(session.TakeUidBand());
 
@@ -789,40 +794,51 @@ internal sealed class BinderDriver
         // binds before its children), so the GLOBAL bridge below can carry a guarded root's presence member.
         Procedure.EcBinder.MarkFormals(data.LinkageFormals, SourceElementKindOf(unit), session.Turn);
 
-        int depth = 0;
         var bridgedMembers = new HashSet<string>(StringComparer.Ordinal);
-        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
+        foreach (var (anc, g, depth) in ContainerGlobalRootsOf(unit))
         {
-            depth++;
-            foreach (var g in anc.Data.CallGlobalRoots)
-            {
-                if (g.CobolName is null) continue;
-                // EVERY global root joins, shadowed spelling or not (kb/Work PB1047 / PB1243): §8.4.6.2.1 1) puts
-                // "all global names that are defined in source element A and in any source elements that directly
-                // or indirectly contain source element A" in the set, and §8.4.6.2.2 makes every data-name
-                // subordinate to a global name a global name in its own right — so a local 01 G hides the
-                // container's G, never its subordinate Y. WHICH candidate a reference names is §8.4.6.2.1 3)'s
-                // nearest-declaring-element rule, applied after qualification (SymbolTable.NearestDeclaring); the
-                // depth recorded here is what it reads. (This loop used to skip a root whose SPELLING was already
-                // present, dropping its whole subtree, and to merge the rest into one flat tier.)
-                data.InheritGlobalSubtree(g, depth);
-                // Every container member a reference to the root can render, from the ONE list the container's
-                // binder owns (kb/Work PB1009 — the per-residence arms used to be spelled here, and the
-                // carrier-resident formal and the BASED item's address pointer were missing from them). A local
-                // root never collides with a bridge's member name: ReserveInheritedMemberNames ran before Bind.
-                // A SET keyed on the emitted member (kb/Work PB1523): two global roots can name ONE member — the records of
-                // a GLOBAL FD share a Tier-B class's backing, a GLOBAL redefiner and its anchor share one field — and a
-                // member declared twice is CS0102. The member names are unique along the container chain
-                // (ReserveInheritedMemberNames), so equal names are the same member.
-                foreach (var bridge in anc.Data.GlobalBridgesOf(g, member => anc.AnchorOf(member, depth)))   // consumed here, within this iteration
-                    if (bridgedMembers.Add(bridge.Field)) unit.Bridges.Add(bridge);
-            }
+            // The root's NAMES are inherited already, at the end of the unit's declaration half
+            // (DataBinder.InheritContainerGlobalData, offered through ContainerGlobalRoots above); what is left here
+            // is the C# half. Every container member a reference to the root can render, from the ONE list the
+            // container's binder owns (kb/Work PB1009 — the per-residence arms used to be spelled here, and the
+            // carrier-resident formal and the BASED item's address pointer were missing from them). A local
+            // root never collides with a bridge's member name: ReserveInheritedMemberNames ran before Bind.
+            // A SET keyed on the emitted member (kb/Work PB1523): two global roots can name ONE member — the records of
+            // a GLOBAL FD share a Tier-B class's backing, a GLOBAL redefiner and its anchor share one field — and a
+            // member declared twice is CS0102. The member names are unique along the container chain
+            // (ReserveInheritedMemberNames), so equal names are the same member.
+            foreach (var bridge in anc.Data.GlobalBridgesOf(g, member => anc.AnchorOf(member, depth)))   // consumed here, within this iteration
+                if (bridgedMembers.Add(bridge.Field)) unit.Bridges.Add(bridge);
         }
 
         // Every tier is in place now — this unit's own names and every container's globals — so an inherited
         // constant a NEARER data-name hides can leave (§8.4.6.2.1 3); kb/Work PB1009 / PB1047).
         data.DropShadowedConstants();
         unit.Refs = new ReferenceResolver(data);
+    }
+
+    /// <summary>⛔ THE ONE LIST OF A UNIT'S INHERITED GLOBAL DATA ROOTS: every named GLOBAL root of every container of
+    /// <paramref name="unit"/>, nearest container first, each with its container and how many containment levels out
+    /// it lives (the nesting distance ISO §8.4.6.2.1 3) selects on). EVERY global root joins, shadowed spelling or not
+    /// (kb/Work PB1047 / PB1243): §8.4.6.2.1 1) puts "all global names that are defined in source element A and in
+    /// any source elements that directly or indirectly contain source element A" in the set, and §8.4.6.2.2 makes
+    /// every data-name subordinate to a global name a global name in its own right — so a local 01 G hides the
+    /// container's G, never its subordinate Y. WHICH candidate a reference names is §8.4.6.2.1 3)'s
+    /// nearest-declaring-element rule, applied after qualification (SymbolTable.NearestDeclaring); the depth is what
+    /// it reads. The names are inherited from it by <c>DataBinder.InheritContainerGlobalData</c>, the C# bridges
+    /// are built from it in <see cref="BindUnitData"/>.</summary>
+    private static List<(BoundUnit Container, DataItem Root, int Depth)> ContainerGlobalRootsOf(BoundUnit unit)
+    {
+        var roots = new List<(BoundUnit Container, DataItem Root, int Depth)>();
+        int depth = 0;
+        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
+        {
+            depth++;
+            foreach (var g in anc.Data.CallGlobalRoots)
+                if (g.CobolName is not null)
+                    roots.Add((anc, g, depth));
+        }
+        return roots;
     }
 
     /// <summary>The GLOBAL report description entries of every container of <paramref name="unit"/>, nearest container
