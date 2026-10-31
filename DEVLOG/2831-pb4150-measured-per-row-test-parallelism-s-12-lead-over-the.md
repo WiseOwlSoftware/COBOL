@@ -1,4 +1,4 @@
-## PB4150 measured: per-row test parallelism's 12 % lead over the partition classes does not clear the shared host's noise, so the partitions stay until a reserved-host measurement
+## Entry 2831 — 2026-10-30 20:35 PDT — PB4150 measured: per-row test parallelism's 12 % lead over the partition classes does not clear the shared host's noise, so the partitions stay until a reserved-host measurement
 
 kb/Work PB4150 asked whether a framework that runs a test class's rows in parallel (Meziantou.Xunit.ParallelTestFramework)
 now beats the hand-written partition classes, since DESIGN-test-build-ci.md section 3.11's verdict that the class-split
@@ -59,3 +59,4 @@ of 2 leg(s) · Linux half (WSL clone of HEAD) GREEN …`. The review finisher's 
 `TestResults/build-local/000001-20261031T024558Z` on `ddb28478f`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating,
 PB2515): GREEN — … Conformance 81/19,961 · Unit 5,585/38,730 · Characterization 3/36 cases ran (skipped 0) in 1 of 2
 leg(s) · Linux half (WSL clone of HEAD) GREEN …`. The commit after it changes only this entry.
+
