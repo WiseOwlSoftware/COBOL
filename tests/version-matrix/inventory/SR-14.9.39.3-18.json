@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.39.3-18",
+ "section": "14.9.39.3",
+ "kind": "SR",
+ "ordinal": 18,
+ "subject": "SET statement",
+ "rule-digest": "b213ce09889b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#PtrResolveBased; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Ptr.cs#PtrBindBasedAndAddressables",
+ "test-ref": "conformance:cases/14.9.39-SET/set-address-non-based; conformance:cases/14.9.39-SET/pb450_set_format7_receiving_list; conformance:cases/14.9.39-SET/oo_based_class_data; conformance-test:BasedItemScopeTests.MethodLocalBasedItem_SatisfiesSr18; conformance-test:BasedItemScopeTests.MethodLocalNonBasedItem_ShadowingABasedOne_ViolatesSr18",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB956 - the third ground (BASED data / ADDRESS OF in a CLASS definition's data divisions refused whole-unit by COBOL0899) is gone: the OO type-halves render the program path's cell/bridge members (OoEmitter.EmitPointerBackings), the ADDRESS-OF pre-scan walks each method body in its own scope, and method LOCAL-STORAGE members are per activation. SR18 (\"Data-name-1 shall be a based data item\", cite.py --check 14.9.39.3 OK) now has its whole domain in a class: a method's own BASED item and an object-level one satisfy it and COMPILE (BasedItemScopeTests asserts ok), a non-based shadow violates it (COBOL0869), and the 2002 golden runs SET ADDRESS OF over factory, object, method WORKING-STORAGE and recursive LOCAL-STORAGE based items. Grounds (i) and (iii) were closed by PB467 and PB450.",
+ "state": "OK"
+}

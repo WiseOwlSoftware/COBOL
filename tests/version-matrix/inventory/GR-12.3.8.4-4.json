@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.8.4-4",
+ "section": "12.3.8.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "e2c51d2684bd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#Validate; src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#SubstitutedTokens",
+ "test-ref": "conformance:cases/11.3-CLASS-ID/pb759_parameterized_class",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB759.md landed w46i3. The interface-specifier twin: PB759BOX replaces T in PB759IPUT-BOX.",
+ "state": "OK"
+}

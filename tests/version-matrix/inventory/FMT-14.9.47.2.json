@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.47.2",
+ "section": "14.9.47.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "UNLOCK statement",
+ "rule-digest": "ea8081da7dca",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#unlockStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/FileLockBinder.cs#BindUnlock; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveFile; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUnlockStatement",
+ "test-ref": "conformance:cases/9.1.13.9-File-sharing-conflict-condition-with-unsuccessful/file_sharing; conformance:cases/14.9.6-CLOSE/file_sharing_seq; conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_read_gate; conformance:cases/14.9.47-UNLOCK/unlock_below_2002; conformance:cases/14.9.47-UNLOCK/pb236-unlock-undeclared-file-unreached",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB236 (landed). SHAPE: unchanged and correct -- `UNLOCK file-name-1 [ RECORD | RECORDS ]` with only UNLOCK underlined, rendered from the printed page (scripts/render-spec-page.py 798) and matched exactly by `unlockStatement : UNLOCK fileName (RECORD | RECORDS)? ;`; RECORD/RECORDS are optional words carrying no semantics (5.2.3), the whole bracketed group is omissible (5.2.6.2), and all three spellings were measured behaviourally identical. Edition identity: recognition-gated at COBOL-2002 (COBOL0900 at --std 85). THE OPERAND HALF -- THE ONE REASON THIS ROW WAS PARTIAL -- IS NOW ENFORCED. The format writes file-name-1 and cite.py --check 8.4.2.1 'In order to use a resource, a statement shall contain a reference that uniquely identifies that resource.' -> OK; `UNLOCK NOSUCH.` used to compile clean (exit 0, zero diagnostics) and abort at run time with 'a COBOL feature that is not yet implemented ... UNLOCK of undeclared file'. The finding said the mechanism was shared with six sibling binder sites and the fix was one dispatch change rather than seven -- and that is what landed: StatementValidation.ResolveFile is the ONE file-name resolution step for a statement operand, reporting the EXISTING undefined-reference descriptor COBOL1639, and the seven sites now have no BoundUnsupported arm at all. Measured: `error COBOL1639: 'NOSUCH' is not defined as a file -- UNLOCK names file-name-1 in its general format ...`. The witness deliberately puts the UNLOCK on a path the flow GO TOs past, because that is the shape on which the defect was worst: the run-time loud never fired either, so illegal source compiled AND ran to normal completion. Witness: conformance:cases/14.9.47-UNLOCK/pb236-unlock-undeclared-file-unreached.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.38.3-3",
+ "section": "14.9.38.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "SEND statement",
+ "rule-digest": "713ed7706629",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
+ "test-ref": "conformance:wiseowl/cases/14.6.11-Normal-run-unit-termination/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOL1578 at every SEND/RECEIVE and the refusals COBOL1943 (USAGE MESSAGE-TAG) and COBOL2205 (SET format 17). || editions 2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): an asynchronous-messaging (MCS) rule; the facility, its message-tag class and USAGE MESSAGE-TAG are a COBOL-2023 introduction (Annex E.3.2 item 1; MESSAGE-TAG first reserved at 2023). cite.py --check E.3.2 \"A method of allowing communication between run units via messages is provided\" OK.",
+ "state": "OK"
+}

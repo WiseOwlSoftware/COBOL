@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.8-2",
+ "section": "14.7.8",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Common phrases and features for statements",
+ "rule-digest": "9dcaa25d885d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#IsCollatedThroughRange; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#TryResolveRangeAlphabet; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#Visit; src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#ThruMember",
+ "test-ref": "conformance:cases/14.7.8-THROUGH/pb401_range_invalid_by_class; conformance-test:ThroughRangeExceptionTests.ThroughRange_RaisesRangeInvalidByClassNotByOperandForm; conformance-test:ThroughRangeExceptionTests.NotRange_IsStillTheSameRange_ForTheException; conformance:cases/13.18.63-VALUE/pb398_range_in_alphabet; conformance:cases/14.7.8-THROUGH/pb401-evaluate-range-alphabet-numeric-ends; conformance:cases/13.18.63-VALUE/ec_range_invalid",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB401.md - rule 2, all four of its sentences, for BOTH clauses 14.7.8's opening sentence governs ('This specification applies to THROUGH phrases specified in the VALUE clause and the EVALUATE statement'). (1) No IN phrase: the sequence is the implementor's, and this implementation's is the PROGRAM COLLATING SEQUENCE, reached through the ONE comparison-class rule over both ends. (2) IN alphabet-name-1: TryResolveRangeAlphabet is the single resolver both clauses take, it registers the named sequence as a runtime carrier and it DISPLACES the program sequence - measured both directions against a reversed alphabet on the EVALUATE range (probe pM) and on the level-88 VALUE range (probe pN). (3) The inclusive ascending membership, and (4) the EC-RANGE-INVALID raise on an inverted range followed by 'execution proceeds as if the range of values were empty' - now keyed on the range's CLASS rather than on its operands' written form, so an identifier-, function-result-, group- or national-ended range raises exactly as a literal pair does. A figurative end is materialized to the tested item's own width first (8.3.3.6.4 GR2, CobolString.ThruMember's loFig/hiFig overload); a signed numeric operand drops its operational sign as 8.8.4.2.5 -> 14.9.25.4 GR6a require of the alphanumeric comparison this rule orders. || RESIDUAL, recorded elsewhere: `identifier-4 IN alphabet-name-1` is parsed as 8.4.2.2 qualification and rejected COBOL1639, so the phrase is reachable only when the range's ending operand is a literal - a general-format defect owned by FMT-14.9.13.2 (DIVERGES).",
+ "state": "OK"
+}

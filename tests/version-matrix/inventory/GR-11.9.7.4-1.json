@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.9.7.4-1",
+ "section": "11.9.7.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "ENTRY-CONVENTION clause",
+ "rule-digest": "6108b850ca95",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#ScreenEntryConvention",
+ "test-ref": "conformance:cases/11.9.7-ENTRY-CONVENTION/pb232_entry_convention_cobol",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Rule (cite.py --check 11.9.7.4 \"The ENTRY-CONVENTION clause specifies the convention to be used for activating the runtime element\" -> OK GR1). The implementation provides exactly one convention (COBOL = the uniform ICobolProgram.Call ABI, DOC-A.1-64); the clause is accepted in every SR1-permitted element and a non-COBOL name is refused rather than silently mapped (PB232 landed). Probed: outermost program (p1), function definition activated via REPOSITORY FUNCTION (p2 prints 'P2 042'), program prototype + function prototype (p3), class (p4, methods invoked), interface (p5, p6) -- all accept and run; method/FACTORY/OBJECT placement refused COBOL2385 (n1). With one convention there is nothing to select, so the clause has no model field: OptionsBinder.ScreenEntryConvention applies SR1 and GR3 and nothing else reads the clause, and the program is activated with the COBOL convention (kb/Work PB298 deleted the producer-only OptionsModel.EntryConvention; OptionsModelConsumerDriftTests refuses an OPTIONS model field that has no consumer). || Editions (adjudicator, verbatim): 2014, 2023 (the 2023 Annex E lists no introduction or change of the clause, so it predates 2023; whether ISO 1989:2002 carried it is not derivable from specs/ISO_COBOL.md -- the code gates it 2014 as a recorded conservative choice, constructs.json options-entry-convention-2014) retired-witness: src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#EntryConventionOf (kb/Work PB298: the ENTRY-CONVENTION screen returns nothing now that the clause has no model field, so EntryConventionOf became ScreenEntryConvention (the same SR1 + GR3 checks, COBOL2385); kb/Work PB298: OptionsModel.EntryConvention was read by nobody (the screen admits only COBOL, the implied convention of GR4 c), so the field is deleted; OptionsModelConsumerDriftTests keeps a producer-only OPTIONS field out) retired-witness: src/Cobol.Net.Compiler/Binding/OptionsModel.cs#EntryConvention (kb/Work PB298: the ENTRY-CONVENTION screen returns nothing now that the clause has no model field, so EntryConventionOf became ScreenEntryConvention (the same SR1 + GR3 checks, COBOL2385); kb/Work PB298: OptionsModel.EntryConvention was read by nobody (the screen admits only COBOL, the implied convention of GR4 c), so the field is deleted; OptionsModelConsumerDriftTests keeps a producer-only OPTIONS field out)",
+ "state": "OK"
+}

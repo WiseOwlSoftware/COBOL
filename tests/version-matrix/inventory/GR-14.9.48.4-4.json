@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.48.4-4",
+ "section": "14.9.48.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "UNSTRING statement",
+ "rule-digest": "3393f71c9567",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringExtract; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/pb979_unstring_any_length_national",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR4 identifier-6 is the count of characters isolated by the delimiters; 'This value does not include a count of the delimiter character(s)' (cite.py --check -> OK 14.9.48.4 4)). Kernel returns extractLen (delimiter/ALL-run characters are in 'consumed', not in the count); emitter StoreArith(COUNT IN, cnt). Probe p2: T1 C1=01 C2=02, T2 C1=01 (2-char delimiter AB excluded), T3 C2=00 on two contiguous delimiters. Golden pb979_unstring_any_length_national pins COUNT IN C for \"PQ,RSTUVW\" -> 2 derived from the rule.",
+ "state": "OK"
+}

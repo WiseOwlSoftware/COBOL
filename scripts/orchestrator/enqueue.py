@@ -33,7 +33,7 @@ cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
      rebase: a branch that merged a same-file predecessor or a sibling carries conflict resolutions in its merge
      commits, which a rebase throws away and asks for again; the queue lands by merge commit anyway, so the branch's
      history stays as written). THROUGH THE MERGE DRIVERS (scripts/merge_drivers.py, kb/Work PB3610): the keyed
-     catalogues two landings both add to (the traceability inventory, constructs.json), the work
+     catalogues two landings both add to (constructs.json), the work
      notes they both append to and the runtime ABI pin are merged by key, not by line, and a merge that changed the pin
      measures the merged tree (abi_pin.py settle) before its merge commit, so none of those is a conflict. A conflict
      is aborted, the branch's report gains `BLOCKED: … conflict in <files>`, and the exit is 4: a finisher resolves it.

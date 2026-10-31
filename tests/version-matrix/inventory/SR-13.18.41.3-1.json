@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.41.3-1",
+ "section": "13.18.41.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "PRESENT WHEN clause",
+ "rule-digest": "4066f20f767a",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause",
+ "test-ref": "conformance:cases/13.18.41-PRESENT-WHEN/declined-validate-present-when",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "docs/CONFORMANCE.md §5 row A.4.14 (VALIDATE — Not claimed) + §4 item 3. Licence: Annex A.4.1, \"An implementation shall accept the syntax and provide the functionality for an optional element only when support for that language element is claimed by the implementor\", and its second sentence carrying the licence to the module's unlisted rules. Obsolescence (F.2 item 5) is corroboration, never the licence (kb/Work PB198). ⚠ Also FORMAT-heading-scoped and unreachable by the selector: §13.18.41.3 prints \"FORMAT 2\" immediately before its single syntax rule, and §13.18.41 is a SHARED clause that cannot go in requires-sections.",
+ "state": "OK"
+}

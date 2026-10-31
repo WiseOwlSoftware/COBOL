@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.2.10-4",
+ "section": "8.5.2.10",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Class and category of data items and literals",
+ "rule-digest": "d3ea253db61a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#FunctionResultLength",
+ "test-ref": "conformance:cases/8.5.2.3-Alphanumeric-category/pb1398_length_of_function_result",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1398 landed (wave 1004 D). A national function result is the data item of category national with an implicit usage national (cite.py --check 8.5.2.10 'an item is referred to as a national' OK; 15.2 item 3), admitted by 15.50.3 r1 / 15.14.3 r1 through 8.4.3.2.1. LENGTH counts national positions (15.50.4 r2): NATIONAL-OF(X) over a 3-character item is 3; BYTE-LENGTH is 2 bytes per national position (D-N1), 6 (CobolIntrinsics.ByteLengthNational).",
+ "state": "OK"
+}

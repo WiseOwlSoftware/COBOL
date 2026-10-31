@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.3.4-9",
+ "section": "14.9.3.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "ALLOCATE statement",
+ "rule-digest": "a46be8e7f5f2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/PtrEmitter.cs#OptionsFillCharLiteral",
+ "test-ref": "conformance:cases/14.9.3-ALLOCATE/pb151_options_fill; conformance:cases/14.9.3-ALLOCATE/pb231_based_pointer_leaf; conformance-test:ByteWindowResidueDriftTests.ThePointerClassLeafRides_AndTheTwoNonconformingShapesAreRefusedByTheirOwnRules",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB231 (the POINTER third, 2026-09-05) CLOSES this row by landing the half it had never had: 'data items of class object or class pointer in the allocated storage are initialized to null'. Until now that half had NO realization at all - a pointer-class leaf could not be in allocated storage, because the record carrying it drew the bind-time COBOL1695. It now IS in allocated storage, on the area's MANAGED SLOT beside the byte image (StorageCell.SlotAt / Place.SlotWindow), and the null-seeding is a property of that slot rather than of a seeding loop: an unwritten slot READS null, so every allocation path that exists or will ever exist satisfies GR9 by construction, and the read renders the item's own PicInfo.DefaultInitializer as the null state - the same expression an ordinary declared pointer field is seeded from. conformance:cases/14.9.3-ALLOCATE/pb231_based_pointer_leaf observes it on both reachable 13.18.60.3 SR14 spellings, without the INITIALIZED phrase as the rule requires: the level-1 elementary 01 P USAGE POINTER BASED reads NULL immediately after its plain ALLOCATE (GR9=NULL), and so does the pointer MEMBER of the strongly-typed 01 R TYPE T-PTR BASED (MGR9=NULL). The OTHER half of GR9 - the OPTIONS INITIALIZE dependence for the remaining data items - was already pinned by conformance:cases/14.9.3-ALLOCATE/pb151_options_fill and is unchanged. The editions field stays 2023 deliberately: this landing observed the null-seeding half at 2002, 2014 and 2023 alike, but the row's edition claim is about the OPTIONS INITIALIZE clause's own introduction and re-deciding it is a separate adjudication, not an implementation fact.",
+ "state": "OK"
+}

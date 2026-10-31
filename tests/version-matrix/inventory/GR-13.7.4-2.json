@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.7.4-2",
+ "section": "13.7.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Linkage section",
+ "rule-digest": "78ac0de50687",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#LinkageFormal; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#Call",
+ "test-ref": "conformance:cases/13.7-Linkage-section/l1c17_linkage_index_separate",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 13.7.4 \"index-names in the activated and activating source elements always refer to separate indices\" -> OK §13.7.4 2)): correspondence per §14.2.3 (positional carriers, LinkageFormal.Position / ICobolProgram.Call), and index-names are NEVER shared. Probe gr2.cob: caller W-T OCCURS 5 INDEXED BY W-IX, SET W-IX TO 3, CALL with the group; callee L-T INDEXED BY L-IX tests L-IX = 3 -> 'SEPARATE', SETs L-IX TO 5 -> CALLEE-ELT=E; back in caller W-T(W-IX) = C (caller index untouched). The correspondence half is the §14.2.3 rows' subject (the NIST IC-series and pb663/pb1009 goldens exercise it). No golden asserts the index-name separation; test-needed. Probe: out13/probe/linkage-section/gr2.cob. || Editions (adjudicator): 85, 2002, 2014, 2023 (the LINKAGE SECTION exists at every edition; the constant-entry and type-declaration-entry alternatives, function/method/prototype definitions are 2002+ per the clauses they reference) || Code sites (adjudicator detail): src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#LinkageFormal; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#(LINKAGE formal carrier emission); src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#ICobolProgram.Call",
+ "state": "OK"
+}

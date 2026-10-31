@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.7.3-22",
+ "section": "12.3.7.3",
+ "kind": "SR",
+ "ordinal": 22,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "74d67063ff7b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#SwitchBindCurrency; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#ValidateCurrencyChar",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb60_currency_sign_bare_implied_dollar; conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-17 (with PB60 / AR-15.68.3-3). Without PICTURE SYMBOL literal-7 is both string and symbol and shall be ONE character outside the a/b/c forbidden set: a multi-character bare literal → COBOL0890 (negative currency-sign-r22-bare-multichar), a forbidden character → COBOL0891 (ValidateCurrencyChar); the legal bare '#' edits and parses (golden pb60_currency_sign_bare_implied_dollar). retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

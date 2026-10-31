@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.8.4-3",
+ "section": "12.3.8.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "d37d854bcbe7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#Validate; src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#SubstitutedTokens",
+ "test-ref": "conformance:cases/11.3-CLASS-ID/pb759_parameterized_class",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB759.md landed w46i3. The USING operands of a class-specifier EXPANDS are the actual parameters substituted for the formals, in order.",
+ "state": "OK"
+}

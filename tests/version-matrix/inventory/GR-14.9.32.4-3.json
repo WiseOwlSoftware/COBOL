@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.32.4-3",
+ "section": "14.9.32.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "RELEASE statement",
+ "rule-digest": "9e0db4f00a19",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelease; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Release; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#BindIoControl",
+ "test-ref": "conformance:cases/14.9.32-RELEASE/l1_release_same_record_area; conformance:cases/14.9.32-RELEASE/pb1195_released_record_also_available_out_of_line",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SAME RECORD AREA FOR SRTF OUTF: after RELEASE, SRT-REC still reads the released bytes (GR3 sentence 1's 'unless' branch) and OUT-REC reads the same bytes (sentence 2, leftmost-aligned per 12.4.6.4.4 GR2); the sorted RETURN order proves the release was real.",
+ "state": "OK"
+}

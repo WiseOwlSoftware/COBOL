@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.31.3-1",
+ "section": "15.31.3",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "EXCEPTION-LOCATION-N function",
+ "rule-digest": "c0d921add7ad",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcWrap; src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs#WithLocation; src/WiseOwl.Cobol.Runtime/Exceptions/EcFunctions.cs#LocationN",
+ "test-ref": "conformance:cases/7.3.25-TURN/l1_exception_no_location_arms; conformance:cases/15.31.3-Returned-value-rules/exception_file_n; conformance-test:ExceptionConditionConformanceTests.IoAtEnd_ExceptionFileN_NationalTwin",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "A-NL/B-NL are FUNCTION LENGTH of EXCEPTION-LOCATION-N = 1 national character position (15.50.4 r2) and A-N/B-N are DISPLAY-OF showing that character is a space: one national space, on both enabling legs. 2002/exception_file_n LEN-LN=01 is the pre-existing 2002-edition pin of the same rule on the TURN leg (its own header derives it from r1); the new golden adds the PERFORM leg and the DISPLAY-OF content observation, which exception_file_n does not have. retired-witness: src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EcStmtLoc (EcStmtLoc was deleted: the (statement, location) pair travels on an ambient statement context (kb/Work R14, b0bcc3b89))",
+ "state": "OK"
+}

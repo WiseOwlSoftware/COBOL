@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.2.3-13",
+ "section": "14.2.3",
+ "kind": "GR",
+ "ordinal": 13,
+ "subject": "Procedure division structure",
+ "rule-digest": "ca28c6ac18f9",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-141; src/WiseOwl.Cobol.Compiler/CodeGen/HostEntryEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/PublishedRecordEmitter.cs; src/WiseOwl.Cobol.Runtime/Control/HostLanding.cs",
+ "test-ref": "conformance-test:HostEntryTests.AHost_CallsTheGeneratedEntries_LandingExactlyAndDecodingByTheValidityRule; conformance-test:HostEntryTests.AHost_PassesGroupsAsPublishedRecords_LandingEachMemberExactlyAndDecodingByTheValidityRule; conformance-test:HostEntryTests.AHost_PassesVariableLengthGroups_AsTheCallLanesVariableLengthCarrier; unit:HostEntryShapeDriftTests.EveryHostEntry_IsACaller_OfTheOneBoundary",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB2099 (slice 3 of DESIGN-external-repository, §4.3, §21 item 3) lands PB1149's GR13 half. §14.2.3 GR13 (cite.py --check 14.2.3 \"the implementor shall specify the restrictions and mechanisms for all supported language products\" -> OK §14.2.3 13)). The specification is docs/CONFORMANCE.md DOC-A.1-141, covering NOTE 2's four subjects: parameter matching (positional, one Call parameter per USING formal), data type representation (HostSurface.TypeOf's table: long/Int128/UInt128/decimal/CobolDec/string/arrays/published record structs, a variable-length group's dynamic-length item as string and dynamic-capacity table as an array of its current capacity), return of a value (the RETURNING item is Call's return value; content failing the NUMERIC class test is refused with FormatException) and omission of parameters (an OPTIONAL formal is a nullable parameter, null passes OMITTED). Restrictions stated: a landing loses nothing (HostLanding refuses it before activation), one variable to two formals of different descriptions is refused, a group holding both a variable-length component and a pointer or object reference publishes no entry. Mechanism: HostEntryEmitter's Call/Cancel over ProgramTable.CallProgram with callerPath null (the CALL lane's renderer), witnessed by HostEntryTests (5 Facts, out of process) and HostEntryShapeDriftTests. retired-witness: docs/CONFORMANCE.md#DOC-A.1-19 (kb/Work PB2099: the GR13 specification for the one supported non-COBOL language product (.NET) is DOC-A.1-141's determination, implemented by the generated host entry; items 64 and 19 are its return and the operating-system activation, not the GR13 mechanism) retired-witness: docs/CONFORMANCE.md#DOC-A.1-64 (kb/Work PB2099: the GR13 specification for the one supported non-COBOL language product (.NET) is DOC-A.1-141's determination, implemented by the generated host entry; items 64 and 19 are its return and the operating-system activation, not the GR13 mechanism)",
+ "state": "OK"
+}

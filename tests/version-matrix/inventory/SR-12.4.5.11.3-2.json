@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.11.3-2",
+ "section": "12.4.5.11.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "RECORD DELIMITER clause",
+ "rule-digest": "3cedfc495d7f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported",
+ "test-ref": "conformance:cases/12.4.5.11-RECORD-DELIMITER/pb292_record_delimiter_witness; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterFeatureName_NamedNonSupportWarning_PinnedToSpec",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"The implementor shall specify the names available for use as feature-name-1\" is DISCHARGED, and discharged in the negative: the set specified is EMPTY, filed as docs/CONFORMANCE.md §7 Annex A.1 item 150. That is a specification and not an omission — A.1's preamble classes item 150 as optional and defines the class as \"Optional: The element may be provided at the implementor's option\" (cite.py --check A.1 OK). The compiler agrees with the register: every spelling written in the feature-name-1 position draws COBOL1778 naming the clause as unsupported, so no word is silently accepted as a delimiter selector and §12.4.5.11.4 GR4 never has a method to look up. The DOC row for the same obligation is DOC-A.1-150, whose verdict differs by design — that row asks whether the OPTIONAL ELEMENT is provided (it is not), this row asks whether the implementor answered the question (it did).",
+ "state": "OK"
+}

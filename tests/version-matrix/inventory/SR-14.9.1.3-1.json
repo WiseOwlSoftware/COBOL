@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.1.3-1",
+ "section": "14.9.1.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "ACCEPT statement",
+ "rule-digest": "b655450486b0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindAccept",
+ "test-ref": "conformance:cases/14.9.1-ACCEPT/pb139-accept-object-receiver; conformance:cases/14.9.1-ACCEPT/pb139-accept-pointer-receiver; conformance:cases/14.9.1-ACCEPT/pb139-accept-strong-group; conformance:cases/14.9.1-ACCEPT/pb139-accept-index-name",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB139): every SR1 exclusion is a bind screen - class index (COBOL0818, the pre-existing leg), class object (PicCategory.ObjectReference), class pointer (Pointer AND ProgramPointer - class pointer spans both categories), and a strongly-typed group (StrongTypeModel.IsStrongGroup); message-tag has no declarable shape in this data model, so no program can present one. An index-NAME receiver now draws the R16 context diagnostic COBOL1637 (an index-name is not an identifier, 8.4.3.1.2; 13.18.38.3 r7 closes the contexts) instead of the misleading UNDEFINED report. The complement is probed: the device format still admits a class-alphabetic receiver (AcceptDifferentialTests.Device_AlphabeticReceiver_Permitted).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.15.3-14",
+ "section": "13.15.3",
+ "kind": "SR",
+ "ordinal": 14,
+ "subject": "Report group description entry",
+ "rule-digest": "9e44968aa8d2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindReportGroups; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ImpliedPicture.cs#ImpliedReportPicture; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ImpliedPicture.cs#Sr9ImpliedFor",
+ "test-ref": "unit:ImpliedPictureTests.Sr14_ReportGroupEntry_TakesTheSameImpliedPicture",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED with kb/Work PB504 as its SIBLING ARM. SR14 states 13.16.3 SR9 word for word for the REPORT GROUP description entry - 'The PICTURE clause may be omitted for an elementary item when an alphanumeric, boolean or national literal that is not a zero-length literal is specified in the VALUE clause', implying X(length) / 1(length) / N(length) with the length 'as specified in 8.3.3, Literals' - and the report binder REJECTED it: `02 COLUMN 1 VALUE \"HELLO\".` drew COBOL0899 'printable item at COLUMN 1 has no PICTURE clause' on legal source, while the byte-identical data-division entry compiled. The feedback_two_arm_dispatch shape, found by the sibling sweep CLAUDE.md rule 4 requires (grep 'PICTURE clause may be omitted' over specs/ISO_COBOL.md returns exactly three hits: this rule, 13.16.3 SR9, and 13.17.3 SR10). Both live arms now share ONE classifier (Sr9ImpliedFor) and ONE edition gate (value-implied-picture-2002, COBOL0900 below 2002), and the implied string goes through the same PictureAnalyzer.Analyze call a written PICTURE takes. 13.18.60.3 SR7 admits only DISPLAY or NATIONAL in a report group item's USAGE clause, so 8.3.3.6.4 GR4's boolean context cannot arise here; GR1's national one can. The THIRD arm, 13.17.3 SR10 (screen description entry), needs no site: the whole SCREEN SECTION is a declined Annex A.4.2 module (SR-13.17.3-10 = DOCUMENTED-NON-SUPPORT), so the entry never binds. Measured: `02 COLUMN 1 VALUE \"HELLO\". 02 COLUMN 10 PIC 99 SOURCE IS WS-SRC.` now prints `HELLO    07`, which is the implied X(5) occupying columns 1-5. The COBOL0899 message also had a MISFILED citation ('ISO 13.16', a data-division clause, on a report group entry); it now names 13.15.3 SR12 and SR14.",
+ "state": "OK"
+}

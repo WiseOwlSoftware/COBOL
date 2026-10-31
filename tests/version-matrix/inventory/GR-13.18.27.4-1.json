@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.27.4-1",
+ "section": "13.18.27.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "GLOBAL clause",
+ "rule-digest": "e93e0cf67501",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#GlobalBridgesOf",
+ "test-ref": "conformance:cases/13.18.27-GLOBAL/pb1523_global_fd_records_and_redefiners; unit:GlobalBridgeResidenceDriftTests.AContainedProgramReachesTheGlobal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1523 landed (wave 1012 F). cite.py --check 13.18.27.4 'All data-names subordinate to a global name are global names' -> OK 13.18.27.4 1). The records of a GLOBAL FD with SEVERAL record descriptions are global names; they share one Tier-B backing, and BindUnitData now collects every root's bridges into a SET keyed on the emitted member (it used to declare the shared _redef_ backing once per root: CS0102). Golden pb1523_global_fd_records_and_redefiners (FD with two records, reached two containment levels down) runs at --std 85.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.8.3-1",
+ "section": "14.6.8.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Alignment and transfer of data into data items",
+ "rule-digest": "90883a7a93dd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#ConvertSource; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#ScaledSingle; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolFloat.cs#ScaledToSingle; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolDec.cs#ToSingle; src/WiseOwl.Cobol.Runtime/Values/Numeric/FloatResultant.cs; src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#DeviceFloat; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalFSingle",
+ "test-ref": "conformance:cases/14.6.8.3-Floating-point-numeric-receiving-data-items/pb1110_float_short_every_landing",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "OWNED BY kb/Work PB1110 (landed). Rule: 'If the receiving data item is described with a FLOAT-SHORT, FLOAT-LONG, or FLOAT-EXTENDED usage, the implementor specifies any exception conditions that might be set to exist during data conversion. If no fatal exception conditions have been set to exist during data conversion, the content of the receiving operand is set to the algebraic value of the sending operand.' cite.py --check 14.6.8.3 'the content of the receiving operand is set to the algebraic value of the sending operand' -> OK 14.6.8.3 1). HALF 1 (implementor-specified EC): docs/CONFORMANCE.md specifies EC-DATA-OVERFLOW for every float usage; pinned by conformance:cases/_unassigned/pb271_float_receiver_overflow. HALF 2 (content = the algebraic value, one correctly rounded conversion into the receiver's own format): every landing of a binary32 receiver now converts the sender's exact value ONCE: MOVE from a fixed-point, packed, binary, edited, national, literal or standard-decimal sender via CobolFloat.ScaledToSingle / CobolDec.ToSingle (kb/Work PB1110 earlier landing), a ROUNDED arithmetic resultant via FloatResultant (kb/Work PB1196), INITIALIZE and the VALUE clause (conformance:cases/14.6.8.3-Floating-point-numeric-receiving-data-items/pb1110_float_short_every_landing: every one prints 1+2^-23 for 1.0000000596046448, which lies above the binary32 midpoint), and the ACCEPT device transfer via NumvalFSingle (this landing: AcceptDisplayEmitter passed the binary64 NUMVAL-F value through a (float) cast, the same double rounding). Re-probed on this build: a FUNCTION NUMVAL-F result moved into FLOAT-SHORT, a no-ROUNDED COMPUTE, a CALL BY CONTENT crossing and a PERFORM VARYING FROM store 1.0 BY DESIGN: a function result is a binary64 sender (15.69.4 rule 2) and a no-ROUNDED resultant truncates (14.7.4.3 rule 2); each is one rounding of the value it receives. FLOAT-LONG / FLOAT-EXTENDED (binary64) were already single-rounded (CobolFloat.ScaledToDouble).",
+ "state": "OK"
+}

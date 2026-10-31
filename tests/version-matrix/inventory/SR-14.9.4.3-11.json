@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.4.3-11",
+ "section": "14.9.4.3",
+ "kind": "SR",
+ "ordinal": 11,
+ "subject": "CALL statement",
+ "rule-digest": "f599fce46826",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ScreenCallOperand",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb240-call-any-length-format1; conformance:cases/14.9.4-CALL/pb240-call-any-length-content-format2; conformance:cases/14.9.4-CALL/pb240-call-any-length-formal-mismatch; conformance:cases/14.9.4-CALL/pb240_call_operand_screens",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB240): the format scope was re-derived and re-measured. SR11 (FORMAT 1) bans an ANY LENGTH identifier-2 in every mode and identifier-3; SR18 (FORMAT 2) bans identifier-4 only - the BY CONTENT / BY VALUE operand. The screen fired for EVERY Format-2 operand, so a contained program forwarding its own ANY LENGTH formal `CALL \"C\" AS NESTED USING BY REFERENCE L` to another ANY LENGTH formal drew COBOL1542 on legal source; it now fires on !formatTwo || (USING and Content/Value). The Format-2 BY REFERENCE and RETURNING operands are 14.8's (SR25): 14.8.2.3.2 rules d/e and 14.8.3.3 rule 4. The CALL BY REFERENCE conformance check used PAIR mode (both sides must carry ANY LENGTH), so a plain argument meeting an ANY LENGTH formal - rule d's whole purpose - was refused at every AS NESTED call (COBOL1688); it now uses the activation mode its INVOKE twin already used. Evidence: SR11 Format-1 negative, SR18 BY CONTENT negative, rule-e mismatch negative, and the positive forwarding chain in pb240_call_operand_screens (L=ABCDEF, M=ABCDEF, X=ZZZZZZ).",
+ "state": "OK"
+}

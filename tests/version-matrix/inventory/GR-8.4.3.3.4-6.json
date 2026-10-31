@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.3.4-6",
+ "section": "8.4.3.3.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "Reference-modification",
+ "rule-digest": "c177b8bf194a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#CategoryOf; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#Category; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/Bound/MoveClassifier.cs#Kind; src/WiseOwl.Cobol.Compiler/Binding/Bound/MoveClassifier.cs#ReceivingCategory",
+ "test-ref": "conformance:cases/8.4.3.3-Reference-modification/pb70_group_reference_modification; conformance:cases/8.4.3.3-Reference-modification/pb73_table16_function_type_and_boolean_view; conformance:cases/8.4.3.3-Reference-modification/pb72_table16_admitted_cells; conformance:cases/8.4.3.3-Reference-modification/pb73-move-alphabetic-view-to-boolean; conformance:cases/8.4.3.3-Reference-modification/pb73-move-display-boolean-view-to-numeric; conformance:cases/8.4.3.3-Reference-modification/pb70-refmod-group-noninteger-numeric-sender; conformance:cases/14.9.25-MOVE/pb3512_numeric_sender_national_slice; unit:RefModMoveClassificationDriftTests.MoveClassifier_Kind_AsksNoPlaceShapeQuestion",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB70 + PB73 (2026-08-18): the unique data item is elementary, without JUSTIFIED, and has the same class, category, and usage as that DEFINED for identifier-1 except the EXHAUSTIVE list — (a) alphanumeric-edited → alphanumeric (the RB leg: an edited slice moves to a boolean receiver), (b) national-edited → national (a staged skeleton), (c) numeric / numeric-edited → national under a national usage, alphanumeric otherwise (RefModPlace.CategoryOf's one rewrite arm) — so a boolean slice (bit- or display-form) stays boolean and an alphabetic slice stays alphabetic (Table16Operand.Of(Place)'s rider); PB72's 2026-08-09 reading (every display-form view alphanumeric) is reversed by PB73. RefModPlace.Category is the ONE reader every consumer asks.",
+ "state": "OK"
+}

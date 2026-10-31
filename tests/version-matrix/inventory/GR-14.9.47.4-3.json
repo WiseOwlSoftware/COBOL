@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.47.4-3",
+ "section": "14.9.47.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "UNLOCK statement",
+ "rule-digest": "f35b29da4287",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#Unlock; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUnlock; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitStoreFileStatus",
+ "test-ref": "conformance:cases/13.4.5-File-description/pb345_record_less_fd_area_2023; conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_read_gate",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB345 (landed); PB360 (open). RULE: 'The execution of the UNLOCK statement causes the value of the I-O status of the file connector referenced by file-name-1 to be updated.' - cite.py --check 14.9.47.4 'The execution of the UNLOCK statement causes the value of the I-O status of the file connector referenced by file-name-1 to be updated.' -> OK 14.9.47.4 3). EmitUnlock renders the runtime call, then EmitStoreFileStatus and the USE hook - the same post-status shape every I-O verb uses. Both directions are measured on a record-description-less RELATIVE connector: U1=42 (not open, 9.1.13.7 item 2) and U2=00 (open; 14.9.47.4 GR1 makes the presence or absence of locks irrelevant to success), each preceded by seeding the FILE STATUS item with 'ZZ' so the value is measured and not left over.",
+ "state": "OK"
+}

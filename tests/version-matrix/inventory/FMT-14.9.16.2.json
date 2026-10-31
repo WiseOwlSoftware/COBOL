@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.16.2",
+ "section": "14.9.16.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "GENERATE statement",
+ "rule-digest": "94fc90b7939e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#generateStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupReference; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate",
+ "test-ref": "conformance:cases/14.9.16-GENERATE/l1c12_generate_detail_and_summary",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Format: GENERATE {data-name-1 | report-name-1} (cite.py --check 14.9.16.2 \"GENERATE\" OK). The grammar parses one operand, `GENERATE reportGroupReference` = cobolWord [(IN|OF) reportName]. The optional qualifier is SR1's \"It may be qualified by a report-name\". BindGenerate tells the two alternatives apart by resolution. An unqualified name that resolves to a report is report-name-1 (summary reporting); otherwise it resolves through ReportGroupResolution to a report group (data-name-1). A name that matches neither is COBOL1757. Both alternatives were compiled and run in probe out/probe/generate/g1.cob (pinned cobol.exe, --std 2023): `GENERATE DE-1` and `GENERATE R-1`. The data-name alternative is also exercised by conformance:cases/14.9.49-USE/pb365_report_group_qualified and 85/pb365_report_group_qualified_85, which include the qualified form. No spec-derived test exercises the report-name alternative, so test-ref is left empty. || editions as adjudicated: 85, 2002, 2014, 2023 (Report Writer is present in every edition; the 2023 Annex E lists no change to GENERATE)",
+ "state": "OK"
+}

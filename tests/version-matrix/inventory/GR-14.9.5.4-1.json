@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.5.4-1",
+ "section": "14.9.5.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "CANCEL statement",
+ "rule-digest": "02d55b723178",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCancel",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb237_program_prototype; conformance:cases/13.5-Working-storage-section/recursive_ws",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB237) - the third of the rule's three identification forms is now present, which is the only reason this row was PARTIAL. (a) identifier-1's CONTENT stays a run-time read (BoundFieldOperand rendered through OperandText.AsString with the emit-site Trim); (b) literal-1 stays a compile-time decode through CobolLiteral.Decode with ConcatFolder.Fold for 8.8.3.3 GR3; (c) program-prototype-name-1 now resolves through BindCancel's prototype arm to the externalized name 12.3.8.4 GR10 NOTE 1 defines. The cross-reference half - 8.3.2.2's implementor-defined word mapping for the identifier/literal forms - was matched already by ProgramTable.NameEquals (OrdinalIgnoreCase) plus the emit-site Trim and is unchanged. The prototype form carries NO 8.3.2.2 mapping question: GR1's sentence scopes that clause to \"If identifier-1 or literal-1 is specified\", and 8.3.2.2 item 1) routes a prototype-name through the entry convention of 12.3.8 GR10 instead - which is the externalized name this implementation uses verbatim. Golden: pb237_program_prototype cancels a literal-named program and a prototype-named one in ONE statement and observes the 14.9.5.4 GR3 initial-state effect on the following call (CALL-3 =0001 after CALL-2 =0002); recursive_ws keeps the literal-1 arm.",
+ "state": "OK"
+}

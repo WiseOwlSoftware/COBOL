@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.21.4-4",
+ "section": "14.9.21.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "INITIATE statement",
+ "rule-digest": "fd644e9523b7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate",
+ "test-ref": "conformance:cases/14.9.16-GENERATE/pb326_ec_report_active_inactive",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'A successful INITIATE statement places the report in the active state.' (cite.py --check 14.9.21.4 -> OK §14.9.21.4 4)). CODE: `_active = true; // GR4` only on the success path; the three unsuccessful paths (EC-FLOW-REPORT §14.9.49.4 GR10, EC-REPORT-ACTIVE GR2, EC-REPORT-FILE-MODE GR3) each return before it. PROBE p2.cob: after INITIATE, GENERATE runs without EC-REPORT-INACTIVE; pb326_ec_report_active_inactive (spec-derived DERIVATION) proves the first INITIATE activated (the second raises EC-REPORT-ACTIVE) and pb326_ec_report_file_mode proves an unsuccessful INITIATE does not activate. || editions as adjudicated: 1985, 2002, 2014, 2023",
+ "state": "OK"
+}

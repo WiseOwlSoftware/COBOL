@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.55.4-7",
+ "section": "13.18.55.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "SYNCHRONIZED clause",
+ "rule-digest": "995ba4f93651",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
+ "test-ref": "conformance:cases/13.18.55-SYNCHRONIZED/l1_sync_sign_position",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Explicit arm pinned character-exact from 13.18.52.4 GR6 a/b across all three SYNCHRONIZED forms; the implicit arm is the GROUP-INHERITED clause (13.18.52.4 GR1), printed character-exact because inheritance of a SEPARATE clause is fully spec-defined, plus a written-but-not-SEPARATE arm asserted as an image EQUALITY so the undocumented GR5 b) representation is never pinned. ROUND-4 REWRITE: the first draft's no-SIGN-clause leg did not exercise GR7 at all, because 13.18.52.4 GR4 disapplies GR5 and GR6 to such items and leaves GR7's consequent no referent.",
+ "state": "OK"
+}

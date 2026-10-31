@@ -1,1 +1,1 @@
-{"refuse-at": ["2023"], "expect": "COBOL2024: SEND RETURNING data-name-1 'TBL(1)' is written with a subscript"}
+{"refuse-at": ["2023"], "expect": "COBOL2024: SEND RETURNING data-name-1 'TBL(1)' is written with a subscript; the clause's general format prints data-name-n, which is a qualified-data-name (ISO §8.4.2.2.2 Format 1) and carries no subscript — subscripting is §8.4.2.3's qualified-data-name-with-subscripts, an identifier form, and a name is what the statement's general format prints here (ISO §14.9.38.2)"}

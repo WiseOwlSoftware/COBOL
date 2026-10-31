@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.6-6",
+ "section": "14.7.6",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "Common phrases and features for statements",
+ "rule-digest": "e0387b57bc28",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrMatch; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#NamesakeCounts",
+ "test-ref": "conformance:cases/14.7.6-CORRESPONDING/pb1111_corresponding_unique_name_counts_ineligible_namesakes",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1111: rule 6's uniqueness is counted over every namesake at the qualification level (ineligible twins and FILLER-nested items included), on both operands, for MOVE, ADD and SUBTRACT.",
+ "state": "OK"
+}

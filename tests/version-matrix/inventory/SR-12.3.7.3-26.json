@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.7.3-26",
+ "section": "12.3.7.3",
+ "kind": "SR",
+ "ordinal": 26,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "0b3c97978fbc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#SwitchBindCurrency",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb60_currency_sign_set; conformance:cases/12.3.7-SPECIAL-NAMES/pb791-currency-figurative-literal-8; conformance:cases/12.3.7-SPECIAL-NAMES/pb791-currency-hexadecimal-literal-8",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-17 (with PB60 / AR-15.68.3-3). Literal-8 shall be a single character (COBOL0892 otherwise — the pre-existing check, kept); the golden's 'U' and 'G' symbols bind and edit their strings.",
+ "state": "OK"
+}

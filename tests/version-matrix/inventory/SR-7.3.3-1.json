@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.3-1",
+ "section": "7.3.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Compiler directives",
+ "rule-digest": "49908ccadba6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveLine.cs#TryParse; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#DropDirectiveContinuation; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#IsDirectiveLine; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatDiagnostics.cs#OnDirectiveContinued",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb1360-define-directive-continued-fixed; conformance:cases/7.3-Compiler-directives/pb1360-display-directive-continued-fixed; conformance:cases/7.3-Compiler-directives/pb1360-evaluate-operand-continued; unit:LogicalLineBuilderTests.FloatingContinuation_AfterADirectiveLine_IsDiagnosedAndNotJoined; unit:LogicalLineBuilderTests.FixedContinuation_AfterADirectiveLine_IsDiagnosedAndNotJoined",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1360 landed (w1004b). A directive line is never a join target: the logical-line builder records whether the latest logical line is a directive line and a fixed-form hyphen line, or the line after a floating literal continuation indicator, that follows one is COBOL2696 and is not joined, in both reference formats. A directive whose words run onto a following ordinary line was already rejected by every directive stage (S1A-S1D); IF and EVALUATE lines are directive lines like the rest (7.3.16.3 SR1, 7.3.13.3 SR2).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-10.6.2-3",
+ "section": "10.6.2",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "COBOL compilation group",
+ "rule-digest": "6ec27430c445",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#CheckPrototypeSignaturePairs; src/WiseOwl.Cobol.Compiler/Binding/PrototypeSignatures.cs#Same",
+ "test-ref": "conformance-test:UdfInvocationTests.PrototypeDefinitionSignatureMismatch_1513",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB894 (the sibling arm of SR2): the function pair used to be an argument-COUNT comparison keyed on the declared word; it is now SR2's check — externalized name, full signature.",
+ "state": "OK"
+}

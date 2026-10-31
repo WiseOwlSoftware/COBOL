@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.15.4-4",
+ "section": "7.3.15.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "FLAG-14 directive",
+ "rule-digest": "7a097cae6d79",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/FlagConformancePass.cs#FlagConformancePass; src/WiseOwl.Cobol.Compiler/Validation/FlagConformancePass.cs#VisitConstantEntryBody; src/WiseOwl.Cobol.Compiler/Validation/FlagConformancePass.cs#AdmitsInvalidKey; src/WiseOwl.Cobol.Compiler/Validation/FlagConformancePass.cs#IsNumericEditedPicture; src/WiseOwl.Cobol.Compiler/Validation/FlagConformancePass.cs#VisitWriteStatement; src/WiseOwl.Cobol.Compiler/Validation/FlagConformancePass.FileStatus.cs#VisitCondition; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#FlagArithmetic; src/WiseOwl.Cobol.Frontend/Preprocessor/FlagDirective.cs#FlagOptions",
+ "test-ref": "unit:FlagPopulationTests.CompileTimeArithmetic_ConstantEntryExpression_IsFlagged_ALiteralIsNot; unit:FlagPopulationTests.CompileTimeArithmetic_ConstantEntryExpression_IsNotFlagged_WhenTheOptionIsOff; unit:FlagPopulationTests.IoDeclarative_FlagsOnlyTheStatementsThatCanTakeAnInvalidKeyPhrase; unit:FlagPopulationTests.IoStatus_FlagsEveryConditionThatTestsTheFileStatusItem; unit:FlagPopulationTests.IoStatus_AbbreviatedObjectOnALaterLine_IsFlaggedAtItsOwnLine; unit:FlagPopulationTests.NumericEdited_ANumericPictureWithBlankWhenZero_IsNumericEdited; unit:FlagPopulationTests.NumericEdited_ANumericPictureWithoutBlankWhenZero_IsNotNumericEdited; unit:FlagPopulationTests.NumericEdited_AnEditingSymbolThatIsTheUnitsCurrencySign_IsNumericEdited; unit:FlagPopulationTests.WriteEndOfPage_IsFlaggedUnlessThePositivePhraseIsSpecified; unit:FlagPopulationTests.RefModZeroLength_FlagsAReferenceModificationOfADataItem_NotOfAFunctionResult",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1375 (w1012k). All twelve options (a-m) flag their GR4 population. (b) the CONSTANT entry's arithmetic-expression-1 is a compile-time arithmetic expression (7.3.6.1; 13.10.3 SR7) and is flagged through FlagOptions.IsFlaggableCompileTimeArithmetic, the one predicate the directive operands use. (d) AdmitsInvalidKey decides per statement: REWRITE on a relative file in sequential access (14.9.35.3 SR2) and DELETE RECORD on a file in sequential access (14.9.10.3 SR2) cannot carry the phrase and are not flagged; an indexed file REWRITE and every keyed WRITE are. (e/f) every condition that tests the FILE STATUS item: a relation, an abbreviated combined relation (8.8.4.12.4 GR1), a level-88 condition-name, an EVALUATE subject/object pair and partial expression (14.9.13.3 SR2/SR8). (g/j/l) 13.18.8.4 GR2: BLANK WHEN ZERO on a numeric picture makes the item numeric-edited, and the unit's CURRENCY SIGN set reaches the analyzer. (m) 14.9.51.3 SR19 names END-OF-PAGE and NOT END-OF-PAGE separately, so a WRITE with only NOT AT END-OF-PAGE is flagged. (i) a function result's reference modification is not a data item's. Known advisory edge: an OO method body's operands are not name-resolved.",
+ "state": "OK"
+}

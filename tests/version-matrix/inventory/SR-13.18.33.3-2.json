@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.33.3-2",
+ "section": "13.18.33.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Level-number",
+ "rule-digest": "609967890da1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#Classify",
+ "test-ref": "conformance:cases/8.5.1.3.2-Level-numbers/pb485-level-77-file-section; unit:LevelNumberArmDriftTests.EverySectionHostingADataDescriptionEntry_IsClassifiedByThePass",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The FileRecord arm: an entry subordinate to an FD or SD takes {66, 88, 1-49} and NOT 77, which SR5 admits. The witness is a 77 under an FD -- the case a flat section-blind range test accepts, and the reason the screen classifies from the entry's section ancestry. kb/Work PB485.",
+ "state": "OK"
+}

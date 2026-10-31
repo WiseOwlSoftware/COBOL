@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.85.4-5",
+ "section": "15.85.4",
+ "kind": "RV",
+ "ordinal": 5,
+ "subject": "STANDARD-COMPARE function",
+ "rule-digest": "945ba55f9b56",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#StandardCompare; src/WiseOwl.Cobol.Runtime/Collation/CollationEngine.cs#StandardAtLevel",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb101_standard_compare; unit:StandardCompareTests.Level1_ComparesBaseLettersOnly; unit:StandardCompareTests.Level2_AddsAccents_NotCase; unit:StandardCompareTests.Level3_AddsCase; unit:StandardCompareTests.Level4_WeighsPunctuation_WhichLevels1To3Ignore; unit:StandardCompareTests.ALocaleTag_NamesItsTailoredOrderingTable",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB101 T7: the comparison is the derived CLDR/UCA engine (Runtime/Collation/) at the ordering level: primary / secondary / tertiary / the shifted fourth level where variable characters weigh — the ISO/IEC 14651 default treatment; a locale-tag literal-9 selects that locale's tailored table. Conformance statement (owner, verbatim): \"Implements collation behavior consistent with ISO/IEC 14651 through derived tables and CLDR/UCA data.\"",
+ "state": "OK"
+}

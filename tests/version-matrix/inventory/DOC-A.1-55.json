@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-55",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 55,
+ "subject": "DISPLAY directive (mechanism for providing the value of a compilation-variable-name from the operating environment)",
+ "rule-digest": "d1e523e806fe",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-55; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.Display.cs#ParameterText; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.Display.cs#ApplyDisplay",
+ "test-ref": "unit:DisplayDirectiveTests.Parameter_IsReadFromTheEnvironment_ByTheUpperCaseName; unit:DisplayDirectiveTests.AbsentParameter_TransfersNothingAtAll",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1538 landed (w1004b). The DISPLAY directive's PARAMETER phrase reads the same environment variable the DEFINE PARAMETER phrase does (upper-cased name), transfers its text unchanged, and an absent variable makes that directive transfer nothing at all.",
+ "state": "OK"
+}

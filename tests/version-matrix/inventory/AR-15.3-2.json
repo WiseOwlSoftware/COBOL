@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.3-2",
+ "section": "15.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "Intrinsic functions",
+ "rule-digest": "8bdc3da09361",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfPlace",
+ "test-ref": "conformance:cases/15.3-Arguments/pb58_argument_predicates_legal; conformance:cases/15.3-Arguments/pb58-max-strong; conformance:cases/15.3-Arguments/pb1-string-arg-numeric",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 15.3 'A data item of the class alphabetic or alphanumeric or an alphanumeric literal shall be specified' => OK §15.3 2). READ: IntrinsicArgumentRules.cs#ClassOfPlace — a GROUP answers AsIfPic?.Category switch { National => National, Boolean => Boolean, _ => Alphanumeric }, and the arm is UNCONDITIONAL on strength, so a STRONGLY-TYPED group answers class Alphanumeric exactly as §15.3 item 2's second sentence requires ('treated as though they were of class and category alphanumeric'); no other screen intercepts a strong group as a function argument (grepped every StrongTypeModel.IsStrongGroup call site: DataBinder GROUP-USAGE SR1, ConditionBinder relation, StringUnstringBinder INTO, ReferenceResolver ref-mod, StatementValidation MOVE — none is an argument screen). The 'unless they are prohibited' exception is modelled as ArgPredicateKind.NotStrongGroup, attached to MAX/MIN/ORD-MAX/ORD-MIN (§15.59.3/§15.63.3/§15.71.3/§15.72.3 r1 — cite.py --check 15.59.3 'shall not be of class boolean' => OK, and its clause names the strongly-typed-group leg). ClassOfPlace also routes a ref-mod view through RefModPlace.Category (§8.4.3.3.4 GR6) and a literal through BoundStringLiteral.Category. OVER-PERMISSIVENESS CHECKED AND NOT REACHABLE: the 's' kind is the union of types 1/2/9, so a type-2-ONLY position could wrongly admit a national operand — Table 21 has exactly two such positions (DISPLAY-OF argument-2 'Alph2 or Anum2', NATIONAL-OF argument-1 'Alph1 or Anum1') and BOTH are screened bespoke by IntrinsicBinder.cs#CheckRepertoireArgs, which errors COBOL1546 when the category is not Alphanumeric/NumericEdited. TESTS: pb58_argument_predicates_legal line 49 MAX(GRP \"AAAA\") over an ordinary group; pb58-max-strong / pb58-min-strong / pb58-ordmax-strong / pb58-ordmin-strong pin the prohibition arm; pb1-string-arg-numeric pins the complement (a numeric operand refused in a string position). NOT COVERED BY A TEST (code arm is direct, so no verdict cost): a strongly-typed group ADMITTED as an alphanumeric argument to a non-MAX function.",
+ "state": "OK"
+}

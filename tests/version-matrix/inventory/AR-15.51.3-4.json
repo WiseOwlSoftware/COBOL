@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.51.3-4",
+ "section": "15.51.3",
+ "kind": "AR",
+ "ordinal": 4,
+ "subject": "LOCALE-COMPARE function",
+ "rule-digest": "54eb4443769a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLocaleFunction; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#ResolveLocaleName",
+ "test-ref": "conformance:cases/15.3-Arguments/pb64t4-locale-function-name-undeclared; conformance-test:LocaleDispositionTests.LocaleFunctions_AreLive",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T4: locale-name-1 resolves in the SPECIAL-NAMES locale table; an undeclared name is COBOL1664 citing this rule.",
+ "state": "OK"
+}

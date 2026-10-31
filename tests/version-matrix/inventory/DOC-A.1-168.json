@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-168",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 168,
+ "subject": "Run unit termination (whether locale reset)",
+ "rule-digest": "cfc0375f0b6d",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-168; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#Begin; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#Locale",
+ "test-ref": "unit:RunUnitStateDriftTests.EveryMember_IsFreshInTheNextRunUnit; conformance-test:RunUnitScopeHostTests.ASecondRunUnitInOneProcess_InheritsNoSwitchAndNoFactoryData",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "w68w (kb/Work PB1069): the determination (yes - a run unit's locale never leaves the run unit) is now true on BOTH run-unit paths: the ambient path's hand reset list (RunUnit.ResetCurrent, which left RunUnit.Locale) is replaced by RunUnit.Begin, which constructs a new RunUnit. docs/CONFORMANCE.md DOC-A.1-168 carries the determination, the implementing site and the witnesses. retired-witness: src/Cobol.Net.Runtime/Control/RunUnit.cs#ResetCurrent (ResetCurrent is deleted; RunUnit.Begin constructs a new run unit instead (kb/Work PB1069))",
+ "state": "OK"
+}

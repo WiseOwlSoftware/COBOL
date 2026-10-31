@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.3.6-L3.4",
+ "section": "9.3.6",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Objects",
+ "rule-digest": "37bbe1a34024",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#PointerAssignmentReason",
+ "test-ref": "conformance:cases/9.3.6-Method-invocation/pb1113_content_compute_move_regime; conformance:cases/9.3.6-Method-invocation/pb1114_invoke_content_float_formal; conformance:cases/9.3.6-Method-invocation/pb1063_restricted_pointer_by_content; conformance:cases/9.3.6-Method-invocation/pb1063-restricted-pointer-by-content; conformance:cases/9.3.6-Method-invocation/pb1063-restricted-pointer-call-by-content; conformance:cases/9.3.6-Method-invocation/pb1063-program-pointer-by-content-sr22",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (9.3.6 match rule 4 d), cite.py OK 4) d)): a BY CONTENT parameter matches a non-index/object/pointer formal that 'may be a receiving data item in a MOVE statement with the parameter of the invocation as a sending data item'. The five MOVE-legal pairs refused before are admitted (w1006a, kb/Work PB1113; A1/A2 float by PB1114): A3 literal 123 into PIC ZZ9.99 -> [123.00], A4 literal 12 into PIC N(4) -> [12  ], A5 B\"1\" into PIC N(4) -> [1   ], plus the boolean expression and the signed literal into PIC X. The class-pointer leg (14.8.2.3.3 2), cite.py OK: 'the conformance rules shall be the same as if a SET statement were performed') now asks the WHOLE SET question, not its category screen alone (w1007b, kb/Work PB1063): OoConformance.ContentMismatch's pointer arm calls SetBinder.PointerAssignmentReason, the one 14.9.39.3 SR19/SR20/SR22 pair verdict SET Formats 8/9 also use. A restricted data-pointer BY CONTENT into an unrestricted formal is refused (INVOKE COBOL0828, CALL AS NESTED COBOL1688; SR19 third sentence), an unrestricted program-pointer into a restricted one is refused (SR22), and the legal shapes run: same-type restricted -> MR:OK, NULL -> MR:NULL, restricted program-pointer into an unrestricted formal -> MQ:SET (SR22 conditions only a restricted receiver). retired-witness: src/Cobol.Net.Compiler/Oo/OoConformance.cs#ContentArithmeticMismatch (kb/Work PB1113 deleted the three hand-written admission lists; OoConformance.ContentValueMismatch (already on the row) is their one replacement) retired-witness: src/Cobol.Net.Compiler/Oo/OoConformance.cs#ContentBooleanMismatch (kb/Work PB1113 deleted the three hand-written admission lists; OoConformance.ContentValueMismatch (already on the row) is their one replacement) retired-witness: src/Cobol.Net.Compiler/Oo/OoConformance.cs#ContentNumericLiteralMismatch (kb/Work PB1113 deleted the three hand-written admission lists; OoConformance.ContentValueMismatch (already on the row) is their one replacement)",
+ "state": "OK"
+}

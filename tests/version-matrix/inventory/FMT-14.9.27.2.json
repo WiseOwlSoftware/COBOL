@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.27.2",
+ "section": "14.9.27.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "OPEN statement",
+ "rule-digest": "ba0f3d6b7e89",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#openStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#openClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#openFileSpec; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#openMode; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sharingPhrase; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundOpenFile; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveFile",
+ "test-ref": "conformance:cases/14.9.27-OPEN/pb316_open_group_scope; conformance:cases/14.9.27-OPEN/open-reversed; conformance:cases/14.9.27-OPEN/pb236-open-undeclared-file; conformance:cases/14.9.27-OPEN/pb316-open-sharing-group-below-2002; unit:OpenGroupScopeDriftTests.EachOpenEntry_CarriesOnlyItsOwnGroupsPhrases",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB316 (LANDED) after kb/Work PB236 (landed). The general format's OUTER brace pair, with its own trailing ellipsis, encloses the whole group '{open-mode} [sharing-phrase] [retry-phrase] {file-name-1 [WITH NO REWIND]}' - re-verified this session by RENDERING the printed page (PDF p.705) rather than reading the transcription, and the transcription's figure note matches it. The grammar was already that format's exact image (openStatement: OPEN openClause+; openClause: openMode (sharingPhrase)? (retryPhrase)? openFileSpec+), and REVERSED is edition-gated out at >=2002 (conformance:cases/14.9.27-OPEN/open-reversed). Defect (b), file-name-1 resolution, was fixed by PB236 (COBOL1639; conformance:cases/14.9.27-OPEN/pb236-open-undeclared-file). Defect (a) - the repeated group's SCOPE discarded at bind - is FIXED HERE: the binder no longer hoists the two phrases out of the openClause loop, and the bound tree carries the format's own shape as BoundOpenFile(File, Mode, Sharing, Retry, Unsupported), one entry per file-name, which is 14.9.27.4 GR20's normal form. The two-group probes that motivated the row now agree with their GR20 reference forms: 'OPEN INPUT FA INPUT SHARING WITH NO OTHER FB' prints A=00 B=00, the same as the two-statement form (it printed A=00 B=61 before), and 'OPEN OUTPUT SHARING WITH ALL OTHER F1 OUTPUT F2' with an unlocked F2 now compiles, as its reverse ordering always did. Witness: conformance:cases/14.9.27-OPEN/pb316_open_group_scope pins both orderings of the SHARING phrase (its RETRY parts (1) and (2) no longer discriminate, kb/Work PB675), and unit:OpenGroupScopeDriftTests.EachOpenEntry_CarriesOnlyItsOwnGroupsPhrases pins both phrases' scope on the bound tree; conformance:cases/14.9.27-OPEN/pb316-open-sharing-group-below-2002 pins the 2002 introduction gate on a phrase written on a group OTHER than the first.",
+ "state": "OK"
+}

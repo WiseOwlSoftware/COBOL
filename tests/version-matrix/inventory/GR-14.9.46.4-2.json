@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.46.4-2",
+ "section": "14.9.46.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "TERMINATE statement",
+ "rule-digest": "8b2f5f52e559",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore",
+ "test-ref": "conformance-test:ReportWriterConformanceTests.Terminate_Gr2_NoGenerate_NothingPrints",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 14.9.46.4 \"has the sole effect of changing the state of the report to inactive\" -> OK §14.9.46.4 2). TerminateCore guards all group processing with `if (_started)` (set only by GenerateCore's first successful GENERATE, cleared by Initiate) and unconditionally sets `_active = false`. Both halves verified: (1) no processing — p1.cob's second INITIATE/TERMINATE pair adds no line though RF/CF are defined; Terminate_Gr2 pins the empty file with PH+RF defined; (2) state inactive — p3.cob (>>TURN EC-REPORT-INACTIVE EC-REPORT-ACTIVE CHECKING ON): INITIATE; TERMINATE; GENERATE -> HANDLED-I (EC-REPORT-INACTIVE, so the report went inactive); a following INITIATE raises no EC-REPORT-ACTIVE; report file empty. The test covers half (1); half (2) was probed only. [editions as adjudicated: 1985 (Report Writer module), 2002, 2014, 2023]",
+ "state": "OK"
+}

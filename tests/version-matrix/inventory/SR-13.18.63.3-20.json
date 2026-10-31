@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-20",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 20,
+ "subject": "VALUE clause",
+ "rule-digest": "bd4dc782ae3c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.TableValue.cs#ScreenTableValueGeometry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.TableValue.cs#OccursChainOf",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb505-table-value-subscript-count; conformance:cases/13.18.63-VALUE/pb505_table_value_geometry; conformance-test:ValueFormat2Tests.SubscriptCountMismatch_Rejected1945; conformance-test:ValueFormat2Tests.SubscriptOutOfRange_Rejected1586; conformance-test:ValueFormat2Tests.MultiDimension_OdometerFill",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-09-09 (kb/Work PB505). BOTH SENTENCES NOW LAND, AT EVERY DIMENSION COUNT. Sentence 2 (\"Each instance of subscript-1 shall not exceed the maximum number of occurrences specified in the OCCURS clause associated with that instance\") was implemented for ONE dimension and is now checked per instance against ITS OWN dimension's ceiling -- OccursChainOf supplies the ceiling per dimension (the fixed/ODO allocated maximum, a dynamic table's OCCURS TO expected capacity, and for a dynamic table that declares none this implementation's 8.5.1.9.1 maximum capacity, which the message names as its own rather than passing off as the program's). Sentence 1 (\"there shall be ONE subscript-1 specified for EACH OCCURS clause for the subject of the entry OR SUPERORDINATE to that entry, specified in the SAME ORDER\") had NO SITE: a wrong count drew the not-implemented stage COBOL0899. It is now COBOL1945, naming both counts and listing the dimensions. The ORDER obligation is realized rather than checked -- the tuple is keyed against OccursChainOf, which is built root-downward, so subscript k IS the k-th OCCURS a subscripted reference would write. MEASURED: too many subscripts on a one-dimension table, too few on a two-dimension one, and a TO count disagreeing with its FROM all draw COBOL1945 at all four editions; the two-dimension conforming fill runs ([123|456], golden line 2).",
+ "state": "OK"
+}

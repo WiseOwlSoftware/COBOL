@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.5-2",
+ "section": "14.7.5",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Common phrases and features for statements",
+ "rule-digest": "b371e9837157",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#Divide; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolFloat.cs#Div; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolSizeError.cs#ZeroDivide; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#RangeChecks",
+ "test-ref": "conformance:cases/14.7.5-SIZE-ERROR-phrase-and-size-error/pb91_native_overflow_outside_arithmetic; conformance:cases/8.8.1.5.2-Standard-decimal-intermediate-data-item/pb75_sdidi_overflow_outside_arithmetic; conformance-test:SizeErrorDispositionTests.ZeroDivisor_UnderThePhrase_LeavesTheResultantsAndContinues; unit:ZeroDivisorLaneTests.StandardDecimal_RaisesAZeroDivisor; conformance:wiseowl/cases/14.9.12-DIVIDE/pb3829_remainder_float_sender",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB91 + PB75), re-sited by PB1605 and PB3990. A zero divisor 'in a divide operation or in a DIVIDE statement' is the size error condition, and every quotient kernel raises it checked or not (CobolSizeError.ZeroDivide from CobolNum.Divide, CobolFloat.Div, CobolDec.Div); checking decides its disposition: the arithmetic statement's phrase or EC checking takes it, and every receiver-less divide of an EC-SIZE-checked statement (a condition, an argument, a subscript: NumericRenderer.RangeChecks and EcState.EnabledChecks, per condition name since kb/Work PB4092 - a zero divisor is raised whatever is enabled, and a statement that does not enable EC-SIZE-ZERO-DIVIDE lets it terminate the run unit as with checking off) dispatches it as the fatal EC (14.6.13.1.3). Checking off and no phrase: the run unit terminates naming EC-SIZE-ZERO-DIVIDE (DOC-A.1-70, kb/Work PB1605). retired-witness: src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#DivideOrThrow (kb/Work PB3990 deleted DivideOrThrow: CobolNum.Divide raises the zero divisor (and PROHIBITED's inexact quotient) in every context) retired-witness: src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Checked (NumericRenderer.Checked (one family-wide bool) is replaced by the per-condition-name RangeChecks / Taken / CheckedLanding (kb/Work PB4092); the divide kernels it selected are chosen by RangeChecks now)",
+ "state": "OK"
+}

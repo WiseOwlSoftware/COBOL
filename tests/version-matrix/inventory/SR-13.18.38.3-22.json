@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.38.3-22",
+ "section": "13.18.38.3",
+ "kind": "SR",
+ "ordinal": 22,
+ "subject": "OCCURS clause",
+ "rule-digest": "1a8ab7414a38",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#OdoResolve",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/l1c20-odo-followed-by-sibling",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 13.18.38.3 \"The subject of the entry may be followed within that record description only by data description entries that are subordinate to it\" -> OK. OdoResolve walks every ancestor level and refuses any later non-REDEFINES sibling, COBOL0856: a direct follower (probe/occurs-p1/sr22_follow) and a follower one level up (sr22_nested_follow) are both rejected. The REDEFINES exemption admits nothing illegal: a following REDEFINES sibling can only redefine the ODO table (§13.18.44 placement), which COBOL0855 rejects. A trailing level-66 RENAMES is accepted (sr22_renames_after), consistent with §13.18.45 placing 66 entries after the record's last data description entry. No negative golden pins COBOL0856.",
+ "state": "OK"
+}

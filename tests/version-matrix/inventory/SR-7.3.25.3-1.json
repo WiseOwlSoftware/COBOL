@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.25.3-1",
+ "section": "7.3.25.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "TURN directive",
+ "rule-digest": "fee40bc7e4e9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TurnDirectiveProcessor.cs#ParseTurn",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb1365-turn-file-name-is-directive-word",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1365. cite.py --check 7.3.25.3 'Any user-defined word that duplicates a compiler-directive word is interpreted as a compiler-directive word rather than as file-name-1' OK 1): ON/LOCATION/ALL... after an EC-I-O name make the directive match no format (COBOL0718).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.6.4-10",
+ "section": "12.3.6.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "OBJECT-COMPUTER paragraph",
+ "rule-digest": "f2982f8000fe",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#InheritConfiguration; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/ObjectComputerEmit.cs#EmitMembers",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/l1c19_native_collating_default",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR10 (cite.py --check 12.3.6.4 \"the initial program collating sequences are the native alphanumeric collating sequence and the native national collating sequence\" -> OK §12.3.6.4 10)). No PCS clause leaves DataBinder.Collating / NationalCollating null (the native fast path; no __COLLATE / __COLLATE_NAT member is emitted); a contained unit copies the container's pair in InheritConfiguration, so the 'not contained within a source unit for which a PCS is specified' condition is honoured (pb60_nested_configuration_inheritance pins the inherited arm). Probe gr10.cob (no PCS anywhere, outer + nested program): \"a\" > \"B\" and N\"a\" > N\"B\" both TRUE (native code order) in outer and contained program; ORD(\"A\")=66, ORD(N\"B\")=67. pb373 asserts the default (GR10) alphanumeric arm by relation/ORD; the national native arm is pinned by conformance:cases/15.16.3-Argument-rules/l1_char_national_argument_bound (65 536 native national positions). || REFUTED: CONFORMS (test-ref must be empty: conformance:cases/A.1-Implementor-defined-language-element-list/pb373_object_computer_name_inert does not pin GR10) — The code conforms: with no PCS anywhere both sequences stay null (native code order) and emit no __COLLATE members. My probe added a sibling-pollution attack: a separate program with PCS REV in the same compilation group does not leak into the PCS-less outer program or its contained program; relation, MAX and table SORT stay native, and national stays native. BUT the cited test does not pin this rule. pb373 runs all four legs under GR10 and compares their signatures to EACH OTHER. Its header says 'No implementor-defined VALUE is pinned - only that all four legs agree'. A non-native default applied uniformly would still pass. So it pins GR2-GR4 invariance, not GR10's native sequence. The rule is CONFORMS-but-untested. [registrar 14a — editions as adjudicated: 1985, 2002, 2014, 2023 (the national half from 2002)]",
+ "state": "OK"
+}

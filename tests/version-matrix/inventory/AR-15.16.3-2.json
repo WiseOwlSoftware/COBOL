@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.16.3-2",
+ "section": "15.16.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "CHAR-NATIONAL function",
+ "rule-digest": "72e4f2d6249f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AsInt; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#ArgInt; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.cs#IntegerArg; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#CharNational; src/WiseOwl.Cobol.Runtime/Values/Text/LiteralPhraseCollation.cs#PositionCount; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ArgumentError",
+ "test-ref": "conformance:cases/15.16.3-Argument-rules/l1_char_national_argument_bound",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Both bounds on both dispatch arms: native 1..65536 (12.3.6.4 GR10 + A.1 item 188), ALSO-reduced 1..65534 (12.3.7.4 GR7 k3) in l1_char_national_also_positions; the WRAP leg 2**64+65536 proves the 15.3 screen sees the true value, not a narrowed alias of the legal maximum. The out-of-range result is the newly documented A.1 item-90 determination (CONFORMANCE.md section 7), not an undocumented implementation value.",
+ "state": "OK"
+}

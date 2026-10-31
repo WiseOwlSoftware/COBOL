@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.6.4.4-1",
+ "section": "12.4.6.4.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "SAME clause",
+ "rule-digest": "a9a0d9d82c17",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#BindIoControl",
+ "test-ref": "conformance:cases/12.4.6.4-SAME/l1c28_same_area_mixed_org",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The existing golden cites GR1: files under SAME AREA are opened strictly one at a time and each keeps its own records (sharing is unobservable; §14.9.6.4 7)).",
+ "state": "OK"
+}

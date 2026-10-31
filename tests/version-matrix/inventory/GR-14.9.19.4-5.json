@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.19.4-5",
+ "section": "14.9.19.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "IF statement",
+ "rule-digest": "eeb1c3b2b577",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
+ "test-ref": "conformance:cases/14.9.19-IF/l1_if_format2_arms",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Format 2, condition false with an ELSE: GR5-E1/GR5-E2/GR5-C=1, the THEN phrase ignored and statement-2 run through in order.",
+ "state": "OK"
+}

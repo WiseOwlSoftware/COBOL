@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.7.3-4",
+ "section": "11.7.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "METHOD-ID paragraph",
+ "rule-digest": "9e20f6fd7c74",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build; src/WiseOwl.Cobol.Compiler/Oo/OoInterfaceSymbol.cs#InheritedClosure",
+ "test-ref": "conformance:cases/11.7-METHOD-ID/pb1502-interface-prototype-redeclares-inherited; conformance:cases/11.7-METHOD-ID/pb1502-interface-prototype-contradicts-inherited",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1502 (w1013 L). cite.py --check 11.7.3 SR4 b) 'if this method definition is contained in an interface definition, no inherited method prototype shall have the same method resolution signature as the method prototype declared by this method definition': the interface arm now refuses a prototype whose roster key matches any prototype of the INHERITS closure (COBOL2761), the twin of the class arm's SR4 a) (COBOL0837); SR2 forbids OVERRIDE in a prototype, so there is no legal redeclaration.",
+ "state": "OK"
+}

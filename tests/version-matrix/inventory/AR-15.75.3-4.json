@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.75.3-4",
+ "section": "15.75.3",
+ "kind": "AR",
+ "ordinal": 4,
+ "subject": "RANDOM function",
+ "rule-digest": "0225aa1e4349",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/RandomSequence.cs#RandomSequence; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#Begin",
+ "test-ref": "conformance:cases/15.75.3-Argument-rules/l1_random_unseeded_first_reference; unit:RunUnitStateDriftTests.Random_DoesNotContinueAcrossARunUnitReset; unit:RunUnitStateDriftTests.Random_IsScopedToTheRunUnit_AndContinuesWithinIt",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "15.75.3 r4 - the run unit's FIRST reference omits argument-1, so the implementor's seed applies: the value is in 15.75.4 r1's codomain, r5's next number continues that sequence, and an explicit RANDOM(7) then REPLACES it and reproduces per r3 + 15.75.4 r2. The seed VALUE stays unpinned (DOC-A.1-144: per-process OS entropy). The sequence is RUN-UNIT state (kb/Work PB307): RunUnit.Random, reset by RunUnit.ResetCurrent and fresh in every RunUnit.Run scope, so a second run unit in one process begins the implementor's sequence instead of continuing the first's - witnessed in-process by the unit tests (the conformance runner is one process per run unit, so no golden can observe the boundary). retired-witness: src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Float.cs#_random (kb/Work PB307: the process-global static is deleted; the sequence is run-unit state on RunUnit.Random) retired-witness: src/Cobol.Net.Runtime/Control/RunUnit.cs#ResetCurrent (ResetCurrent is deleted; the new run unit RunUnit.Begin constructs carries a fresh RandomSequence (kb/Work PB1069))",
+ "state": "OK"
+}

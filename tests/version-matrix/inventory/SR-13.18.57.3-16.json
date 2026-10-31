@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.57.3-16",
+ "section": "13.18.57.3",
+ "kind": "SR",
+ "ordinal": 16,
+ "subject": "TYPE clause",
+ "rule-digest": "f03c35935d36",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ResolveReports",
+ "test-ref": "conformance:cases/13.18.57-TYPE/l1c34_report_without_detail",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "'If no GENERATE data-name statements are specified in the procedure division, the report description need not contain a DETAIL.' A permission: no code demands a DETAIL. Probe sr16_no_detail_ok (CONTROL IS CX, only TYPE CF CX, GENERATE R1) compiles and prints the footing 'FFF' at TERMINATE. The converse (GENERATE data-name naming a non-DETAIL) is rejected by §14.9.16.3 SR1 (probe sr16_gen_dataname_no_detail), which is GENERATE's rule, not this one. cite.py --check OK. probes under out13/probe/type-clause-p1/ (pinned adj-d1 cobol.exe, --std 2023) || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): Format 2 (report writer): COBOL-85 optional Report Writer module; ISO 2023 optional language element A.4.11; 2002/2014 availability not derivable from the 2023 text (VERSION_CHANGE_REFERENCE row 130d); Annex E lists no 2014->2023 change to the TYPE clause",
+ "state": "OK"
+}

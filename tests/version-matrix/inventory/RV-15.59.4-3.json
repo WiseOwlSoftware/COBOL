@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.59.4-3",
+ "section": "15.59.4",
+ "kind": "RV",
+ "ordinal": 3,
+ "subject": "MAX function",
+ "rule-digest": "3dbb65e90802",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#OperandCategory",
+ "test-ref": "conformance:cases/15.3-Arguments/pb58_argument_predicates_legal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). §15.59.4 r3 — the alphanumeric MAX returns a value the size of the selected argument: golden MAXG (MAX of a 4-character group and a 4-character literal → ABCD, 4 characters). The sweep's premise correction stands (§13.18.29.4 GR3: a group without GROUP-USAGE is alphanumeric); GROUP-USAGE NATIONAL is unparsed (PB61's grammar gap), so no national-group counter-example can be written yet.",
+ "state": "OK"
+}

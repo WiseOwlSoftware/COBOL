@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.27.4-15",
+ "section": "14.9.27.4",
+ "kind": "GR",
+ "ordinal": 15,
+ "subject": "OPEN statement",
+ "rule-digest": "beca4abe5664",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Opened",
+ "test-ref": "conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/l1_open_extend_position",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "EXTEND appends after the last record written (sequential), releases highest-EXISTING-RRN+1 = 0005 on a file sparse at 1 and 4 (14.9.51.4 GR29a), and positions after the highest prime key - a first EXTEND write of K004 over K002/K006/K008 is refused '21' (14.9.51.4 GR38 / 9.1.13.5 1). retired-witness: src/Cobol.Net.Runtime/IO/IndexedConnector.cs#OpenCore (the keyed OPEN arms are written once, in KeyedConnector.OpenCore, since both organizations drive the keyed store engine (kb/Work PB3334, PB2753)) retired-witness: src/Cobol.Net.Runtime/IO/RelativeConnector.cs#OpenCore (the keyed OPEN arms are written once, in KeyedConnector.OpenCore, since both organizations drive the keyed store engine (kb/Work PB3334, PB2753))",
+ "state": "OK"
+}

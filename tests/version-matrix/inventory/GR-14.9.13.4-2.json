@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.13.4-2",
+ "section": "14.9.13.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "EVALUATE statement",
+ "rule-digest": "71ba0d6ef864",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BindWhenItem; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#ThroughRangeClass; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#IsCollatedThroughRange; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#Visit",
+ "test-ref": "conformance:cases/14.7.8-THROUGH/pb401_range_invalid_by_class; conformance-test:ThroughRangeExceptionTests.ThroughRange_RaisesRangeInvalidByClassNotByOperandForm; conformance-test:ThroughRangeExceptionTests.NotRange_IsStillTheSameRange_ForTheException; conformance-test:ThroughRangeExceptionTests.TurnIsHonouredPerStatement_NotOncePerUnit; conformance:cases/13.18.63-VALUE/ec_range_invalid; conformance:cases/13.18.63-VALUE/pb398_range_in_alphabet",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB401.md - LANDED; the row's two open halves are both closed. (a) 14.7.8 rule 2's EC-RANGE-INVALID is now keyed on the range's CLASS, through the ONE predicate CollatingSelection.IsCollatedThroughRange that TryResolveRangeAlphabet's SR3 screen and the level-88 VALUE range's EC gate also ask. It used to be keyed on the operands' written FORM (`lo is BoundStringLiteral{Alphanumeric or National} && hi is BoundStringLiteral`), so the exception fired only where a reader can already see the inversion and never in the run-time case rule 2's 'in the collating sequence in effect at runtime' is written for; identifier, mixed literal/identifier, function-result, alphanumeric-group and national ends all raise now, and a numeric or arithmetic-expression range still takes rule 1 and raises nothing. Rule 2's 'literals' is not an operand-form restriction: 14.7.8 introduces the phrase as 'a range of values, literal-1 through literal-2' while 14.9.13.2's range-expression has no literal-1/literal-2 at all, and 14.9.13.3 SR3 - a rule about this very phrase - says 'the literals or identifiers specified in the THROUGH phrase are of class alphabetic, alphanumeric, or national'. (b) The IN alphabet-name-1 sentence is reachable and measured both directions (probe pM: ALPHABET AL IS the reverse Latin alphabet; \"P\" THRU \"D\" IN AL holds M where the native pair is inverted, and \"D\" THRU \"P\" IN AL sets EC-RANGE-INVALID). Two sibling repairs landed with it: the carrier now drops a signed numeric operand's operational sign as the relation pair it lowers to does (8.8.4.2.5 -> 14.9.25.4 GR6a), and a FIGURATIVE range end is sized to the tested item by 8.3.3.6.4 GR2 instead of being compared as one character. || RESIDUAL, recorded elsewhere: `identifier-4 IN alphabet-name-1` is parsed as 8.4.2.2 QUALIFICATION (`WS-D IN AL`) and reported COBOL1639, so that one spelling of the phrase is unreachable - a general-format defect owned by FMT-14.9.13.2 (DIVERGES), not by this general rule, which governs the determination and not the written form.",
+ "state": "OK"
+}

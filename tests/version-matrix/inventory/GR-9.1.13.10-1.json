@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.10-1",
+ "section": "9.1.13.10",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "I-O status",
+ "rule-digest": "304b433881a3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#WriteAdvancing; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/LineSequentialCharacterSet.cs",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/pb329_line_sequential_charset_2023",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "§9.1.13.10 1) '71' when a WRITE or REWRITE to a line sequential file has a record area character outside the implementor-defined set; unsuccessful, record area unchanged (cite.py --check OK §9.1.13.10 1)). The set is DOC-A.1-115 (U+0020 and above). Both WRITE entries (Write, WriteAdvancing) and the line-sequential REWRITE arm test RecordAreaOutsideLineCharacterSet before any stream traffic, and none writes the record area. Probe s44/p44.cob WRITE with X\"01\" -> 71; s44/p44d.cob REWRITE with X\"07\" -> 71, lf2.dat byte-identical afterwards and the record area still holds the program's value. conformance:cases/9.1.13.2-Successful-completion/pb329_line_sequential_charset_2023 pins W2=71 and X2=71. || Editions (adjudicator, verbatim): 2023 (line sequential organization; Annex E.3.2 item 3 adds EC-I-O-RECORD-CONTENT for '7x')",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.40.4-14",
+ "section": "13.18.40.4",
+ "kind": "GR",
+ "ordinal": 14,
+ "subject": "PICTURE clause",
+ "rule-digest": "afd0f88fdb6d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#Analyze; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#CharacterPositions; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#EditingPositions; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Materialize",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb60_currency_sign_set; conformance:cases/13.18.40-PICTURE/pb491_editing_variable_width; unit:CobolEditCurrencyStringTests.Format_ExpandsTheCurrencyString",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Extended 2026-09-19 (kb/Work PB491): GR14's 'es' entry now has a site of its own, EditingPositions, beside the 'cs' entry's currencyExtra. Both are the SAME remainder over CharacterPositions' one-per-symbol count, so the two variable-width symbols are sized by one shape: 'es' counts literal-1's size at EVERY occurrence of a simple- or fixed-insertion character-1 and, for floating insertion, 'one occurrence of literal-2 or literal-3 ... plus one character for each repetition of character-1'. MEASURED against Annex D.24's stated arithmetic (PIC LLLL9,88 with \"DEBIT \" = 13 characters: 6 for the first L, 3 for the next three, 4 for the numbers) and against the alphanumeric-edited IS form (PIC XXTXX EDITING T IS \"::\" = 6). The ExpandCurrency code-location this row carried is gone; the currency half of the same rule is now Materialize.",
+ "state": "OK"
+}

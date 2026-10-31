@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.24.3-1",
+ "section": "15.24.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "DAY-OF-INTEGER function",
+ "rule-digest": "8c79c8127533",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation",
+ "test-ref": "conformance:cases/15.3-Arguments/pb58_argument_predicates_legal; conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). DAY-OF-INTEGER's new 'i' row (§15.24.3 r1): a scaled argument is rejected (pb58-dayofint-frac), a nested numeric function by the SR11 arm; an integer item binds (golden DAYOI). retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

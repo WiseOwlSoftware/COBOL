@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.46.4-1",
+ "section": "14.9.46.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "TERMINATE statement",
+ "rule-digest": "11dd57160a66",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Terminate; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ReportInactiveError",
+ "test-ref": "conformance:cases/14.9.16-GENERATE/pb326_ec_report_active_inactive; conformance:cases/14.9.21-INITIATE/pb326_ec_report_file_mode",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB326, landed. 'The TERMINATE statement may be executed only for a report that is in the active state. If the report is not in the active state, the EC-REPORT-INACTIVE exception condition is set to exist and the execution of the statement is unsuccessful.' Two goldens reach it from two directions: a second TERMINATE after a successful one, and a TERMINATE after an INITIATE that §14.9.21.4 GR3 refused (which is also the witness that GR3 took no action on the report). kb/Work PB688 (2026-09-05): the golden moved from tests/conformance/2002 to tests/conformance/2023 - it observes the report by re-reading the report file through ORGANIZATION IS LINE SEQUENTIAL, which is a COBOL-2023 introduction (12.4.5.10.3 GR2; the Foreword's main-changes list over ISO/IEC 1989:2014), so the program is not expressible at 2002. The RULE's editions are unchanged.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.5.3.2-1",
+ "section": "14.5.3.2",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Scope of statements",
+ "rule-digest": "3b121c04bafc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#addStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#ifStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#evaluateStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#readStatement; src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs#COBOL0306",
+ "test-ref": "conformance:cases/14.5.3.2-Explicit-scope-termination/l1_if_nested_else_endif_match",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: an explicit scope terminator terminates 'the most-recently preceding unterminated statement having the statement-name for which that scope terminator is defined' (cite.py --check 14.5.3.2 -> OK §14.5.3.2 1)). Implementation is structural: every Table-12 statement rule ends in an optional END_x token (END_ADD?, END_IF?, END_READ?, ...) and ANTLR's greedy optional binds the terminator to the INNERMOST open statement of that name. Probes: nested ADD ... ON SIZE ERROR ADD ... END-ADD END-ADD binds innermost (sc1 T5 -> 'T5 B-SE','T5 IN-A-SE','T5 END'); an inner ADD already implicitly terminated by the outer's NOT ON SIZE ERROR phrase is skipped and END-ADD closes the outer (sc1 T1); nested inline PERFORMs (sc4 U3 -> 8); END-IF closes the innermost IF only (sc1 T7, sc4 U9); an END-ADD whose ADD was already implicitly terminated by ELSE is rejected COBOL0306 (sc5). The golden's S2/S4 pin END-IF-to-nearest-IF (IF instance only). Observation, not a verdict change: the grammar/lexer also accept END-SORT and END-MERGE as terminators of SORT/MERGE (Core/CobolIO.g4:846,921) and END-INVOKE for INVOKE (PB758) although Table 12 defines none; `SORT E ASCENDING END-SORT` compiles and runs at 2023 with no diagnostic (sc2). The reservation is documented (CONFORMANCE.md D-RW1, §4.2.10) but no §4.2.10 3) warning flags the extension - see finding F1. probe dir out/probe/scope-of-statements (sc1/sc4/sc5, pinned cobol.exe; sc1 identical output at --std 85/2002/2014/2023, sc4 at 85 and 2023) [editions as adjudicated: 85, 2002, 2014, 2023 (explicit/implicit scope termination is COBOL-85 surface; Annex E records no change to 14.5.3)]",
+ "state": "OK"
+}

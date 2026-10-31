@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.38.4-17",
+ "section": "13.18.38.4",
+ "kind": "GR",
+ "ordinal": 17,
+ "subject": "OCCURS clause",
+ "rule-digest": "43835dbe6362",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#RaiseImplicitOverflow",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/dyn_capacity_bounds; conformance:cases/8.5.1.9.6-Exceeding-capacity/pb1269_dyn_overflow_resume_next; conformance:cases/8.5.1.9.6-Exceeding-capacity/ec_bound_overflow",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1269 (landed w67o). GR17: integer-5 is the expected capacity - which 8.5.1.9.1 says 'may be exceeded with a nonfatal exception'. Exceeding it now works on every path including a declarative that RESUMEs NEXT STATEMENT (8.5.1.9.6 1)); before, that path abandoned the growth and the capacity stayed at FROM.",
+ "state": "OK"
+}

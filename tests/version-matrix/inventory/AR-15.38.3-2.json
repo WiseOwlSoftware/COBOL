@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.38.3-2",
+ "section": "15.38.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "FORMATTED-CURRENT-DATE function",
+ "rule-digest": "0ceb2d4ffd85",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#FormatKindsAdmittedBy",
+ "test-ref": "conformance:cases/15.38.3-Argument-rules/pb11-format-kind-chimera",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Was NOT-IMPLEMENTED. 15.38.3 r2 requires a COMBINED format for FORMATTED-CURRENT-DATE and it is now screened by the same table and recogniser. ⚠ Corroborated rather than directly covered: the golden cannot pin FORMATTED-CURRENT-DATE's VALUE (it reads the clock), so the format-content rule is exercised through the shared screen, whose reject path the chimera fixture covers.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.43.3-2",
+ "section": "13.18.43.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "RECORD clause",
+ "rule-digest": "8652215268c0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#recordClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#BYTES; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordClause",
+ "test-ref": "conformance:cases/13.18.43-RECORD/pb721_record_bytes_synonym; conformance:cases/13.18.43-RECORD/pb721-record-bytes-below-2023; conformance:cases/_unassigned/pb721_bytes_user_word_85",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "SR2 is a LEXICAL permission, so it is discharged by the general format admitting both words rather than by a screen: all three formats of 13.18.43.2 print the same { BYTES | CHARACTERS } brace group and recordClause now writes (CHARACTERS | BYTES) in both of its alternatives. Before kb/Work PB721 BYTES had no lexer token at all and `RECORD CONTAINS 20 BYTES` was refused COBOL1970 as an unrecognized file description clause. EDITIONS = 2023 ONLY, derived not assumed: Annex E.3.3 item 13 lists BYTES among the words 'added to the list of context-sensitive words or the context in which they are reserved has been expanded' at 2023, and 8.10 gives BYTES exactly ONE construct - the RECORD clause - so there is no earlier context for that sentence's second arm to name and the spelling did not exist below 2023. VersionConformancePass.VisitRecordClause refuses it at 85/2002/2014 (COBOL0900, constructs.json row record-clause-bytes-2023), the CONTINUE AFTER ... SECONDS precedent from the same item-13 list; the gate is a parse arm rather than a {is2023()}? predicate because the word sits mid-alternative, where a semantic predicate does not steer prediction. ONLY THE CLAUSE IS GATED: CHARACTERS is 1985-continuous, and BYTES stays a nameSlot user word (cobol-words.json), so `01 BYTES PIC X.` and a table and a paragraph named BYTES are legal COBOL-85 - conformance:cases/_unassigned/pb721_bytes_user_word_85 is that over-rejection twin.",
+ "state": "OK"
+}

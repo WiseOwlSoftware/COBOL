@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-7.3.12.2",
+ "section": "7.3.12.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "DISPLAY directive",
+ "rule-digest": "df09c5ac6bbe",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#displayDirectiveFragment; src/WiseOwl.Cobol.Frontend/Parsing/DirectiveExpressionFragment.cs#ParseDisplay; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.Display.cs#ApplyDisplay; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.Display.cs#DisplayDestinations",
+ "test-ref": "conformance:cases/7.3.12-DISPLAY/pb807_display_directive_operands; conformance:cases/7.3.12-DISPLAY/pb807-display-directive-junk-operand; conformance:cases/7.3.12-DISPLAY/pb807-display-directive-upon-input-device; conformance:cases/7.3.12-DISPLAY/pb807-display-directive-upon-listing-twice; unit:DisplayDirectiveTests.AMalformedOperand_IsDiagnosedAndTransfersNothing; unit:DisplayDirectiveTests.Upon_BreakingItsFormat_IsDiagnosedAndTransfersNothing; unit:DisplayDirectiveTests.Upon_NamesTheDestinations; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_DiagnosesAMalformedOperand",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB807 landed (w1004b). The operand list is a grammar: displayDirectiveFragment is displayDirectiveOperand+ displayUponPhrase?, each operand the compileTimeOperand a DEFINE value reads or PARAMETER plus a word; the UPON words are resolved by the stage against the ONE implementor-name table, with the 5.2.6.4 choice-indicator discipline (the device group and LISTING each at most once, any order). A phrase that matches no alternative is COBOL1619, an UPON violation COBOL2698, a missing operand COBOL1911 (presence is checked centrally for stage rows too).",
+ "state": "OK"
+}

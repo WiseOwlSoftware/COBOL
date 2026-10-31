@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.55.4-2",
+ "section": "13.18.55.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "SYNCHRONIZED clause",
+ "rule-digest": "5dfac64bd6a0",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-195; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs",
+ "test-ref": "conformance:cases/8.5.1.6.4-Item-alignment-for-increased-object-code/l1_byte_length_implicit_filler",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR2 is parameterised by 'natural boundaries', which ISO 8.5.1.6.4 makes a property of the machine and of the implementor ('The way in which data is stored is determined by the runtime module, and need not respect these natural boundaries'; 'Each implementor who provides for special types of alignment shall specify the precise interpretations that are to be made'), and GR9 hands the clause's effect to the implementor outright. WiseOwl COBOL provides for no special alignment, so no bytes are ever left unused between an item's boundaries and GR2's sentences a) and b) are VACUOUS - and the vacuity is EARNED, not assumed: the shipped golden's SYNC leg discriminates (`01 SYG. 05 SYA PIC X. 05 SYN PIC 9(4) COMP SYNCHRONIZED.` -> BYTE-LENGTH 3; an implementation aligning SYN to a 2-byte boundary answers 4). Confirmed independently here: probe sy_layout (X + S9(4) COMP SYNC + X = 0004, identical to the unsynchronized group and to the SYNC LEFT and SYNC RIGHT forms) and probe sy_redef, where the REDEFINES halves are exercised directly - `05 R REDEFINES B` over a SYNCHRONIZED `PIC S9(4) COMP` allocates R=0002 (the item's own bytes, no boundary slack), and `01 GR REDEFINES G PIC X(4)` over the containing group allocates GR=0004 (= the group's own size). The one thing DOC-A.1-195 does not say in words is the natural-boundary GRANULARITY that makes this vacuity true; see finding sync-left-right-phrase-discarded, which asks for it to be stated. || code sites, verbatim from the adjudication: The determination that discharges it: docs/CONFORMANCE.md DOC-A.1-195 ('WiseOwl COBOL performs NO physical alignment for SYNCHRONIZED and generates NO implicit FILLER for it ... it changes no offset and no width'). Enforced by ABSENCE in the one layout law - src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs:249-253 records the flag and nothing in the byte-length/REDEFINES path reads it (the sole `syncClause()`/`Synchronized` readers are DataBinder.cs:725, 1705, 3318 and DataBinder.GroupValue.cs:136, none of them layout). || editions, verbatim from the adjudication: 85, 2002, 2014, 2023 - the rule and the determination are edition-independent; only the group subject is gated (SR-13.18.55.3-1)",
+ "state": "OK"
+}

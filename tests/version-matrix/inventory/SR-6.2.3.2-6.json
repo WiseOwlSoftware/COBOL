@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-6.2.3.2-6",
+ "section": "6.2.3.2",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "Floating indicators",
+ "rule-digest": "a5d3415eb552",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#AfterOpeningQuote",
+ "test-ref": "conformance:cases/6.2.3-Floating-indicators/pb1492-continuation-no-quotation-symbol; conformance:cases/6.2.3-Floating-indicators/pb1492-continuation-other-quotation-symbol; conformance:cases/6.2.3-Floating-indicators/pb1359-floating-continuation-no-quotation-symbol; conformance:cases/_unassigned/pb1492_continued_literal_other_quote_content; unit:LogicalLineBuilderTests.RuleViolations_AreDiagnosedByName_InBothFormats",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1492 / PB1359 landed: the first nonblank character of EVERY continuation line (the fixed indicator's and the floating one's, in both reference formats) shall be the quotation symbol that opened the literal, else COBOL2684; the literal state carries the opening quotation symbol across lines (PB1491), so an apostrophe inside a quotation-mark literal continued by the fixed indicator is content (85/pb1492_continued_literal_other_quote_content).",
+ "state": "OK"
+}

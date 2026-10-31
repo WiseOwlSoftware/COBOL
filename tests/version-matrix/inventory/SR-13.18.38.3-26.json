@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.38.3-26",
+ "section": "13.18.38.3",
+ "kind": "SR",
+ "ordinal": 26,
+ "subject": "OCCURS clause",
+ "rule-digest": "adef351a29aa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportOccursOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportEntryLineSpan; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#DisplayTextWidthOf",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb565_report_vertical_repetition; conformance:cases/13.15-Report-group-description/pb565_report_repeating_entry; conformance:cases/13.18.35-LINE/pb565-multiple-line-with-occurs",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB565 (vertical axis). The rule names BOTH axes - 'the overlapping of any line (in the case of vertical repetition) or column (in the case of horizontal repetition)' - and integer-3 is now measured on the axis the entry actually repeats on. Horizontally the span is the repeated item's printed width through the ONE width rule; vertically it is the number of lines one occurrence occupies (ReportEntryLineSpan: all-relative lines span 1 + the sum of integer-2 over every line but the first, all-absolute lines max - min + 1, a mixed entry is not measurable at bind and 13.18.35.3 SR6e already confines that shape to lines under different PRESENT WHEN clauses). The golden's vertical STEPs are each at or above the span (STEP 2 over a one-line occurrence, STEP 4 over a two-line one).",
+ "state": "OK"
+}

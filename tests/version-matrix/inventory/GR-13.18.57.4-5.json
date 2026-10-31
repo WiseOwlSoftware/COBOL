@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.57.4-5",
+ "section": "13.18.57.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "TYPE clause",
+ "rule-digest": "5bf65e328209",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody",
+ "test-ref": "conformance-test:ReportWriterConformanceTests.FirstGenerate_Gr4_RhOncePhPerPage",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 13.18.57.4 \"Report groups are printed only during the execution of a GENERATE or a TERMINATE statement\" -> OK, GR5). Every group presentation (PresentBody / PresentPageHeading / PresentPageFooting / PresentHeadingFooting, and AdvancePage) is reached only from GenerateCore or TerminateCore; Initiate prints nothing. A DETAIL is presented only by `_details.TryGetValue(detailName)` in GenerateCore (the explicit GENERATE data-name); RH/PH/CH/CF/PF/RF are presented implicitly by the GR6 sequencing. Probe r3 (E:/Temp/claude/E--COBOL/a700c052-f9e4-4942-84ff-a13c7505d6ec/scratchpad/adj-d1/out13/probe/type-clause-p2/r3.cob) shows each DETAIL line exactly once per GENERATE DET and every other group implicit. ReportWriterConformanceTests.FirstGenerate_Gr4_RhOncePhPerPage (expected values derived from 14.9.16.4 GR4/GR6 and this clause) and Terminate_Gr2_NoGenerate_NothingPrints pin it. || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): 85, 2002, 2014, 2023 (Report Writer module, Annex A.4.11; Annex E records no 2014->2023 change to 13.18.57.4 Format 2, and the 2023 text alone does not derive an earlier introducing edition for any sentence)",
+ "state": "OK"
+}

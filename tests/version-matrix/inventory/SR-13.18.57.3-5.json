@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.57.3-5",
+ "section": "13.18.57.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "TYPE clause",
+ "rule-digest": "a7eda9e258d6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandType; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#SuperordinateWithRepresentationClause",
+ "test-ref": "conformance:cases/13.18.57-TYPE/pb889-group-usage-over-type; conformance:cases/13.18.49-SAME-AS/pb889_type_to_optional_word",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB889 LANDED. 'No group item to which the subject of the entry is subordinate shall contain a GROUP-USAGE, SIGN, or USAGE clause' (the SR9 twin's obligation in a DIFFERENT sentence - the source report had carried SR9's wording across, and cite.py --check FAILs it here). ExpandType's walk tested USAGE and SIGN only and its COBOL1538 text named only those two; it now reads the same ONE predicate as ExpandSameAs and names all three. The TYPE arm could not be measured end to end before this landing because the grammar rejected the standard's own Format 1 spelling `TYPE TO type-name-1` (13.18.57.2, rendered PDF page 524: TYPE underlined, TO not - an optional word by 5.2.3); typeClause is now `TYPE TO? IDENTIFIER` (it read `TYPE IS?`, a spelling Format 1 does not print). MEASURED at 2002 and 2023: `01 OUTER GROUP-USAGE NATIONAL. 02 INNER TYPE TO TSRC.` -> COBOL1538 naming OUTER; the positive compiles and runs both `TYPE TO TSRC` and `TYPE TSRC` to the same description (LEN-TO=8 LEN-NOTO=8). EDITIONS 2002/2014/2023.",
+ "state": "OK"
+}

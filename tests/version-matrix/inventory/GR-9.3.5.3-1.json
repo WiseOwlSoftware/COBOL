@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.3.5.3-1",
+ "section": "9.3.5.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Polymorphism",
+ "rule-digest": "ebd121539032",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#MarkRoster",
+ "test-ref": "conformance:cases/9.3.5.3-Parametric-polymorphism/l1c21_method_name_signature",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "CONTEXT (applies to every 9.3.5.3 row): the seven items define the METHOD RESOLUTION SIGNATURE. The feature that DISTINGUISHES methods by it (overloading) is optional -- cite.py OK 9.3.5.3 7) 'Parametric polymorphism is an optional feature' -- and is NOT claimed (docs/CONFORMANCE.md 5 A.4.10 item 3; refused COBOL0822 in OoClassTable.Build, both instance and factory arms). But the signature is consumed by MANDATORY rules: cite.py OK 8.4.6.5 'The methods declared in an object class definition shall have unique method resolution signatures', OK 11.7.3 3) 'If the OVERRIDE phrase is specified, there shall be a method with the same method resolution signature', OK 11.7.3 9) (conformance of an inherited/implemented same-named method). inventory-schema.json derived-verdicts.oo-optional-items-only deliberately EXCLUDES these rows and asks for per-row adjudication, so no selector covers them. WiseOwl COBOL's signature is the degenerate one (the NAME: roster key ExternalizedName) and the remaining components are enforced as SR9 conformance by OoConformance.ValidateOverrideSignatures -> MethodConformanceMismatches -> DescriptionMismatch (COBOL0829); for any program that does not overload, a component is conforming iff that comparator rejects every override the component distinguishes. Probes: out/probe/polymorphism/p*.cob, pinned cobol.exe, --std 2023 default. Rule: cite.py OK 9.3.5.3 1) 'The method name'. The name (the externalized name, PB303 roster key) IS the implemented signature: TryAddMethod/TryAddFactoryMethod refuse a second same-named method (COBOL0822 -- for identical parameters that is exactly 8.4.6.5's duplicate-signature error; for differing parameters it is the declined overloading), and MarkRoster pairs an override with its base by that key (0838 when OVERRIDE finds no base, 0837 when a same-named base method lacks OVERRIDE per 11.7.3 SR4a). Probe p1 (sub OVERRIDE M, PIC X(4) vs base PIC 9(4)) pairs by name and is rejected 0829. No spec-derived test targets this component as such (conformance:cases/9.3.5.3-Parametric-polymorphism/oo-parametric-polymorphism witnesses the overloading decline, not this row). || Editions (adjudicator, verbatim): 2002, 2014, 2023 (the OO module, and with it the method resolution signature, is a COBOL-2002 introduction -- Annex D.19.5.4.3 describes parametric polymorphism as part of the OO facility; none before 2002)",
+ "state": "OK"
+}

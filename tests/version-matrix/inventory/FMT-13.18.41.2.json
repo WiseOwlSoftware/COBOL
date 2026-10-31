@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.41.2",
+ "section": "13.18.41.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "PRESENT WHEN clause",
+ "rule-digest": "6caa522fad59",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportPresentWhenClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolDeclined.g4#validatePresentWhenClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportPresentWhenClause; src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/rw_present_when; conformance:cases/13.18.41-PRESENT-WHEN/declined-validate-present-when; conformance:cases/13.18.41-PRESENT-WHEN/present-when-at-85",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1272 + owner decision kb/Work R43 item 2: format 1 (reportPresentWhenClause, 2002+, negative/present-when-at-85) conforms and its semantics now do too (PB1272); format 2 is the declined VALIDATE facility half (COBOL1708, docs/CONFORMANCE.md section 5 item 3, kb/Work PB283), non-support by R43 item 1, so the row takes the live half verdict.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-125",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 125,
+ "subject": "NULL (value of NULL)",
+ "rule-digest": "222bf4d6747e",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-125; src/WiseOwl.Cobol.Runtime/Control/ProgramPointer.cs#Null; src/WiseOwl.Cobol.Runtime/Control/FunctionPointer.cs#FunctionPointer; src/WiseOwl.Cobol.Runtime/Control/CobolPtr.cs#CobolPtr",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb557_pointer_class_initial_value_is_null; unit:PointerImageTests.Null_OfEveryCategory_IsTheZeroAddress; conformance:cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb452_function_address_runtime",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§8.4.3.7.4 1) (cite.py OK 'guaranteed to never reference an object') and §8.4.3.10.4 1) (cite.py OK 'The null data address is an implementor-defined value that is guaranteed not to represent the address of any data item'). A.1-125 need not be documented: VOLUNTARY row. Verified: ProgramPointer.Null = default (IsNull => Name is null); FunctionPointer(string? Name) null name; ManagedPointer.Null for data pointers; DOC-A.1-216's storage-image paragraph states NULL of every category = eight X\"00\", pinned by PointerImageTests.Null_OfEveryCategory_IsTheZeroAddress. Probe /tmp/adj/doc/doc-w1-s4/probe/p125.cob (--std 2023): 'ALL NULL' (P, PP, O initial), 'ADDR NOT NULL' after SET P TO ADDRESS OF X, 'RESET NULL' after SET P TO NULL. Golden 2002/pb557 pins initial NULL and ADDRESS OF not NULL; 2023/pb452 (B-NULL) pins a function-pointer NULL.",
+ "state": "OK"
+}

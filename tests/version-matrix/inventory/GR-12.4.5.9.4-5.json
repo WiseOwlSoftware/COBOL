@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.9.4-5",
+ "section": "12.4.5.9.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "LOCK MODE clause",
+ "rule-digest": "4a072a214e4e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReadSetsRecordLock; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#WriteShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RewriteShared",
+ "test-ref": "conformance:cases/12.4.5.9-LOCK-MODE/l1c17_lock_mode_manual_explicit_only",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 12.4.5.9.4 5) 'Records locks are obtained only when the LOCK phrase is explicitly specified on an I-O statement.' OK. Under MANUAL, ReadSetsRecordLock returns true only for FileRecordLock.WithLock. WriteShared/RewriteShared set wantLock only when phrase == WithLock. Probe rt1.cob phase 1 checks both halves. (i) B (MANUAL) read record 1 with a plain READ and got '00'; A then read record 1 and got '00' (A-READ1-B-MANUAL-NOLOCK), so the unphrased MANUAL READ set no lock. (ii) `READ B WITH LOCK` on record 3 got '00' and A's read of record 3 got '51', so the explicit phrase does lock. Existing goldens witness only half (ii) (pb683_open_sharing_read_only, pb338_read_conflict_position, 2002/file_sharing). None witnesses half (i), so test-ref is empty (test-needed). [registrar 14a — editions as adjudicated: 2002, 2014, 2023 (the clause is absent from ISO 1989:1985; it arrives with the 2002 file sharing / record locking facility, D.2.4 / A.4.7; no later change to 12.4.5.9 located)]",
+ "state": "OK"
+}

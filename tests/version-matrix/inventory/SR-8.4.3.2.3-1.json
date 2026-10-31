@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.2.3-1",
+ "section": "8.4.3.2.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Function-identifier",
+ "rule-digest": "77b9dde860c8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#addToPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/pb10-inspect-fn-replacing",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR1 (cite.py --check 8.4.3.2.3 'A function-identifier shall not be specified as a receiving operand' -> OK §8.4.3.2.3 1)). The receiving grammar rules do not admit functionCall, and ArithmeticSendingOperandDriftTests guards that. Where a slot is format-dependent, the binder screens it (INSPECT gets COBOL1632; ADD TO without GIVING gets COBOL1689). Probes out/probe/function-identifier/p12_sr1_00..11: MOVE TO, STRING INTO, INSPECT REPLACING, INITIALIZE, ADD TO, ACCEPT, UNSTRING INTO, SET, COMPUTE target, UNSTRING COUNT IN and DIVIDE REMAINDER are ALL refused. INSPECT FUNCTION UPPER-CASE(W) TALLYING N (Format 1, sending) compiles, which is correct. Several refusals are the generic COBOL0001 parse error rather than a named SR1 diagnostic, which is diagnostic quality only. || editions as written by the adjudicator: 1985 (Amendment 1), 2002, 2014, 2023 - applies to every function-identifier. Annex E (2014->2023) lists no change to 8.4.3.2",
+ "state": "OK"
+}

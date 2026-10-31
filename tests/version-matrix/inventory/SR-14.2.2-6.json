@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.2.2-6",
+ "section": "14.2.2",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "Procedure division structure",
+ "rule-digest": "80838502a74a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ProcedureHeaderScreen.cs#CheckReturning",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/pb1145-function-returning-is-a-formal; conformance:cases/14.2-Procedure-division-structure/pb1145-method-header-redefines-formal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1145: a RETURNING item that is also a formal is COBOL2648 on the program, function and method arms alike (the method arm mis-cited SR4).",
+ "state": "OK"
+}

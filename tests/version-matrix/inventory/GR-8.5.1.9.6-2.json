@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.1.9.6-2",
+ "section": "8.5.1.9.6",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Dynamic-capacity tables",
+ "rule-digest": "04c8acd47f6f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#GrowTo; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#Enlarged; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#FromCurrentImage",
+ "test-ref": "unit:CobolDynTableTests.SetCapacity_BeyondRuntimeResources_LeavesTheCapacityUnchanged; conformance:cases/8.5.1.9.6-Exceeding-capacity/pb463_dyn_implementor_maximum",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1410 (landed w67o). 8.5.1.9.6 2): the fatal EC-BOUND-TABLE-LIMIT exists when an operation attempts to increase the capacity past the maximum capacity 'based on the resources available at runtime'. GrowTo and the FromCurrentImage recreation catch the allocation failure (Enlarged falls back from the doubled size to the exact request first) and raise BoundTableLimitError with the table unchanged. Probe (DOTNET_GCHeapHardLimit=2GB, SET K TO 1000000000 over a 40 x PIC 9(18) element): checking on -> abnormal termination on EC-BOUND-TABLE-LIMIT; checking off -> K stays 0 and the run continues (was: process killed by 'Out of memory.').",
+ "state": "OK"
+}

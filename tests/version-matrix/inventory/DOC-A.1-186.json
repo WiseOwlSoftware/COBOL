@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-186",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 186,
+ "subject": "SPECIAL-NAMES paragraph, ALPHABET clause, literal phrase (ordinal number of characters not specified)",
+ "rule-digest": "4f051965ac26",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-186; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#CharAt; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#OrdinalCount",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1c30_literal_alphabet_unspecified_ordinals",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 12.3.7.4 'the implementor defines the ordinal number within the character code set being specified for each character within the native character set that is not specified by the literal-1 phrase' -> OK §12.3.7.4 7) (k 4.). Read CollatingModel.CodedCharacterSet.CharAt (ordinal <= NextFree -> RepByPos; else the want-th unspecified code unit in native order) and OrdinalCount (65536 for a literal-phrase set). Probe probe/p186/k4.cob at --std 85 and 2023: S1=Z S2=Y S3=X S4=00 S5=01 S70=B; CLASS 1 THRU 3 IN AL excludes W (native contiguous X..Z, GR12) — consistent. kb/Work/PB1092 (open, process_only, claims DOC-A.1-186) owes exactly this row; integrator must also correct docs/CONFORMANCE.md §2 row 27's sentence 'GR7 k4 leaves that correspondence to the implementor and this one does not define it' (PB1092's second deliverable). No spec-derived test pins the scheme. Owning note: kb/Work/PB1092. REFUTER: headline 'collating position plus one' corrected (spec positions are 1-based, so 'plus one' read as an off-by-one; the code's '+1' is over 0-based positions); added the ALSO-reduced upper bound, probed refute-probe/p186/o.cob: ordinals 65534/65535 -> U+FFFE/U+FFFF, 65536 -> COBOL1670. k4.cob re-run at 85/2002/2014/2023 identical.",
+ "state": "OK"
+}

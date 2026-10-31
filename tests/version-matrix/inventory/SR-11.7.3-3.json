@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.7.3-3",
+ "section": "11.7.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "METHOD-ID paragraph",
+ "rule-digest": "4ace4416e900",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs",
+ "test-ref": "conformance-test:OoSpineTests.OverrideFinal_0838_0839_FinalBase_2791",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 11.7.3 \"The method in the superclass shall not be defined with the FINAL clause.\" -> OK §11.7.3 3). First sentence: OVERRIDE with no superclass method of that name -> COBOL0838 (incl. no INHERITS). The resolution signature is the name alone (parametric polymorphism not claimed, CONFORMANCE.md A.4.10 item 3); a same-name base with a different parameter list is then rejected by the §11.7.3 SR9 / §9.3.8.2.3 override conformance (OoConformance) — rejected either way. Second sentence: base FINAL -> COBOL0839, including an indirect FINAL ancestor (probe p6, 2002/2023). An OVERRIDE whose only same-named method is an IMPLEMENTED interface prototype (not a superclass method) is correctly 0838 because the lookup is superclass-only. Both sentences asserted by OoSpineTests.OverrideFinal_0838_0839_FinalBase_2791. || Editions (adjudicator, verbatim): 2002, 2014, 2023 (METHOD-ID is part of the OO facility introduced by COBOL 2002; absent at 1985) || Code sites (adjudicator, verbatim): src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build (MarkRoster 0838/0839); src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs retired-witness: conformance-test:OoSpineTests.OverrideFinal_0838_0839 (renamed: kb/Work PB1784 branch review R1-1 - the fact also asserts the FINAL-base rule, now COBOL2791, so it is OverrideFinal_0838_0839_FinalBase_2791)",
+ "state": "OK"
+}

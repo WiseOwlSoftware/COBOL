@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.17.4-1",
+ "section": "15.17.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "COMBINED-DATETIME function",
+ "rule-digest": "6f99e82d6a83",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#StoreExpr; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#Store",
+ "test-ref": "conformance:cases/15.17.4-Returned-value-rule/pb65_dec_move_channel; conformance:cases/15.4.1-Numeric-and-integer-functions/pb620_combined_datetime_eae; unit:ExactCarrierBoundaryDriftTests.EveryArmThatCanTakeADecArgument_HasADecBody; conformance:cases/15.3.3.6.1-Offset-subformats/formatted_datetime",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "PB65 (Dec MOVE-channel members) LANDED 2026-08-09: MOVE was the one numeric consumer without the Dec-carrier store case; both edited and plain arms now land through the SDIDI final transfer. PROBED: MOVE13 == COMP13: the two receiver channels agree for a COMP-2 argument under the mode - the RenderDec dispatch is receiver-independent and the MOVE store carries the Dec case. PRIOR (PARTIAL): VERDICT RETAINED, NOTES OVERTURNED - the prior record's root cause and BOTH of its failing inputs are FALSE against the current tree, and a fixer sent to them would find nothing. Citation validated: ` kb/Work PB620 (2026-09-21): COMBINED-DATETIME was the one §15.4.1 r1 function still consuming its argument through the LANDED intake, which truncates an SDIDI operand at max(receiver scale, 6) — COMBINED-DATETIME(1, WS-S + 0) answered 1.03661123456 where COMBINED-DATETIME(1, WS-S) answered 1.0366112345678 in the same program, and NOTE 2's relation condition evaluated FALSE. §15.17.3 r2 admits any value in standard numeric time form and §15.5.5 bounds that form by MAGNITUDE only, so no working scale may stand in front of argument-2: the function now has a RenderDec arm over CobolDate.CombinedDatetimeDec (the EAE on the SDIDI), the exact arm takes RawArg, both carriers share ONE §15.17.3 screen, and ExactCarrierBoundaryDriftTests.EveryArmThatCanTakeADecArgument_HasADecBody holds the shape for the next function.",
+ "state": "OK"
+}

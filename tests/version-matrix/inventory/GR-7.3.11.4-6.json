@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.11.4-6",
+ "section": "7.3.11.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "DEFINE directive",
+ "rule-digest": "0ce293910405",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateOperand",
+ "test-ref": "unit:ConditionalCompilationDefineTests.Define_ArithmeticExpressionOperand_Evaluated",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 7.3.11.4 \"is evaluated according to 7.3.6, Compile-time arithmetic expressions\" -> OK GR6; --check 7.3.6.3 \"shall be truncated to the integer part of the value\" -> OK GR3. p1b: '7 + 2 * 3' = 13 (precedence), '7 / 2' = 3 (truncated), '1.5 + 1' evaluates; a name operand (>>DEFINE Q N) resolves the earlier value. || editions (adjudicator): 2002, 2014, 2023 - §7.3 compiler-directive facility; ISO/IEC 1989:2023 Annex E lists no change to §7.3.11 against 2014 (the 2002 introduction is not stated in the 2023 text itself; below 2002 the directive is COBOL0900)",
+ "state": "OK"
+}

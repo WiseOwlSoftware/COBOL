@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.43.3-4",
+ "section": "13.18.43.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "RECORD clause",
+ "rule-digest": "7fddd86b10a4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Screen",
+ "test-ref": "conformance:cases/13.18.43-RECORD/pb721-record-varying-below-minimum; conformance:cases/13.18.43-RECORD/pb721-record-varying-above-maximum; conformance:cases/8.5.4-Zero-length-items/pb721_zero_length_record; conformance:cases/13.18.43-RECORD/pb1562-record-varying-range-unbounded-dynamic; conformance:cases/13.18.43-RECORD/pb1562-record-varying-range-below-dynamic-minimum",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "ONE printed sentence, TWO obligations, TWO rows - 'neither records that contain a lesser number of bytes than that specified by integer-2 NOR records that contain a greater number of bytes than that specified by integer-3' - and a negative golden per arm, because a rule read as one predicate gets one screen and the other arm ships silent (the kb/Work PB743 shape, applied before the defect). The sizes compared are 13.18.43.4 GR8 a) for the lower arm (every occurs-depending table at its MINIMUM occurrences) and GR8 b) for the upper. RecordClauseRuleDriftTests.Sr4StatesTwoObligations_AndTheTableHasARowForEachArm re-derives the split from the printed rule, so a rule that grows a third obligation turns red. The positive golden pins the upper boundary where the rule must NOT fire (a 20-byte record under FROM 0 TO 20).",
+ "state": "OK"
+}

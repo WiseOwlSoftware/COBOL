@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-44",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 44,
+ "subject": "Currency symbol (implementor-defined prohibition of non-COBOL characters)",
+ "rule-digest": "97a646e69e95",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-44; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#ValidateCurrencyChar",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1c06_currency_non_cobol_symbols; conformance:cases/A.1-Implementor-defined-language-element-list/l1c06-currency-long-s-prohibited",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§8.1.2 (cite.py --check 8.1.2 'the implementor shall specify any such additional characters that are prohibited from use as a currency symbol' -> OK §8.1.2 3)). Code: DataBinder.Switches.cs ValidateCurrencyChar forbids char.IsAsciiDigit, char.ToUpperInvariant(c) in A B C D E N P R S V X Z, and ' ' + - , . * / ; ( ) \\\" =. Because the letter test goes through ToUpperInvariant, a non-COBOL character whose invariant uppercase is one of those letters is prohibited too; probe enum.cob (every code unit 129..65535 through UPPER-CASE, which is ToUpperInvariant) finds exactly one: U+017F. Probe i44.cob at 85/2023: 'ſ' -> COBOL0891; '€', '£', 'ｚ', 'Ω', 'ω' -> accepted and edit (2023: E=[€1.50] etc.); full-width digit '０' -> accepted, E=[０1.50]. The staged adjudication said 'the empty set' - corrected to {U+017F}. No golden pins it (Pinned by '-'). Owning note: kb/Work PB1397 (open, documentation-only; lists item 44).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-185",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 185,
+ "subject": "SPECIAL-NAMES paragraph, ALPHABET clause, code-name-2 (national coded character set and collating sequence; ordinal numb",
+ "rule-digest": "1afc926d9156",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-185; src/WiseOwl.Cobol.Compiler/Binding/ImplementorCodeNames.cs#All; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#AlphabetCodeName",
+ "test-ref": "conformance-test:AlphabetLiteralPhraseTests.NationalUnsupportedCodeName_IsSR15",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "A.1 item 185 - the code-name-2 national coded character set and collating sequence, ordinal count and native correspondence (12.3.7.4 GR7 j). CONDITIONALLY REQUIRED 'because it is conditioned upon the existence of a code-name', and after owner decision kb/Work PB793 the NATIONAL half of SR15's set is still empty (item 184), so the condition is false and there is nothing for this item to describe. Closed the way kb/Work PB280 Q1 closes an element that is not provided: the docs/CONFORMANCE.md section 7 row STATES the vacuity and is the row's evidence, and the witness is the refusal that proves the class is empty. It is stated rather than omitted because the emptiness is a DECISION that could change - the code-name table is keyed by class and the binder asks it for both, so a national row would wake this item with no code change. || editions 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): about national characters / national data, a COBOL-2002 introduction.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.40.4-1",
+ "section": "14.9.40.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "SORT statement",
+ "rule-digest": "c80110c16934",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortAddFileKeys; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindTable",
+ "test-ref": "conformance-test:SortMergeDifferentialTests.Sort_InputOutputProcedures_MultiKeyMixedDirections",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'The words ASCENDING and DESCENDING are transitive across all occurrences of data-name-1 until another word ASCENDING or DESCENDING is encountered.' (cite.py --check 14.9.40.4 OK, GR1). The general format braces {ASCENDING|DESCENDING} inside each repeated key phrase, so every phrase opens with its own direction word; both binders apply `phrase.DESCENDING() is not null` to every data-name of that phrase's dataReferenceList, which is exactly GR1. Spec-pinned test: 'ON ASCENDING KEY S-K1 ON DESCENDING KEY S-K2 S-K3' -> S-K3 descends too (R=1BB5R1 before R=1BB2R4). Table arm: pb846 leg X (conformance:cases/13.18.38-OCCURS/pb846_sort_table_occurs_keys). [editions as adjudicated: 1985, 2002, 2014, 2023 (file format); 2002, 2014, 2023 (table format); no 2014->2023 change in Annex E]",
+ "state": "OK"
+}

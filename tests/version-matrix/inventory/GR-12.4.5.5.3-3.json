@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.5.3-3",
+ "section": "12.4.5.5.3",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "General",
+ "rule-digest": "109b123a8096",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs",
+ "test-ref": "conformance:cases/12.4.5-File-control/l1c12_access_mode_random_dynamic",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (cite.py --check 12.4.5.5.3 OK for 3) a) and 3) b)): under random access, a) relative: the relative key data item selects the record; b) indexed: the record key data item selects it. KeyedIoBinder maps FileAccessMode.Random to ReadKind.Random (KeyedIoBinder.cs:73). Probes at --std 85 and 2023: a) RELATIVE ACCESS RANDOM, RK=9 READ -> 'R9' status 00; RK=3 (no record) -> INVALID KEY status 23 (gB.cob). b) INDEXED ACCESS RANDOM, IXR-KEY='B' READ -> 'B2'; 'Z' -> INVALID KEY 23 (gA.cob). Random WRITE by relative key (RRN 5,2,9 out of order) also lands each record at its key (gB.cob). Both halves verified. No spec-derived golden cited for this rule. [registrar 14a — editions as adjudicated: 1985, 2002, 2014, 2023 (Annex E lists no substantive change to the ACCESS MODE clause)]",
+ "state": "OK"
+}

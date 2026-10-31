@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.4.3-1",
+ "section": "11.4.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "FACTORY paragraph",
+ "rule-digest": "5082aca9004a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build; src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Resolve",
+ "test-ref": "conformance:cases/11.4-FACTORY/l1c09-factory-implements-not-in-class-repository",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (cite.py --check 11.4.3 \"Interface-name-1 shall be the name of an interface specified in the REPOSITORY paragraph of the containing class definition\" -> OK §11.4.3 1)). Code: Build's CaptureImplements resolves each FACTORY IMPLEMENTS name through OoNameResolution.Resolve(Want.Interface) against the CLASS definition's REPOSITORY scope, COBOL0840 citing ISO §11.4.3 SR1. Probes: p1 - FPI defined in the group and in the PROGRAM's repository but NOT the class's -> COBOL0840 '(FACTORY): IMPLEMENTS FPI ... not declared in the REPOSITORY paragraph ... (ISO §11.4.3 SR1)'; p8 - IMPLEMENTS names a CLASS (FPC, in the class REPOSITORY) -> COBOL0840 'no such an interface' (both halves: 'an interface' and 'specified in the REPOSITORY'). Legal cases (p5/p6) accepted. No existing test exercises the FACTORY arm (OoClassTablePositionTests INTERFACES covers the OBJECT arm's 0840 only) -> test-ref empty (test-needed). Cosmetic only: the 0840 message reads 'no such an interface'. || Editions (adjudicator, verbatim): 2002, 2014, 2023 (OO - the FACTORY paragraph - is new in ISO/IEC 1989:2002; absent from 1985; Annex E of 2023 lists no change to §11.4)",
+ "state": "OK"
+}

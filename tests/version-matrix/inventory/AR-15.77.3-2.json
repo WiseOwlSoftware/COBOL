@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.77.3-2",
+ "section": "15.77.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "REM function",
+ "rule-digest": "f30f3288787a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#RemScaled; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#RemReal; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#RemDec; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ArgumentError",
+ "test-ref": "conformance:cases/15.64.3-Argument-rules/l1_mod_rem_zero_divisor; unit:IntrinsicCarrierAgreementDriftTests.ZeroDivisor_RaisesFromEveryCarrier; unit:IntrinsicCarrierAgreementDriftTests.EveryModRemBody_RaisesItsOwnFunctionsZeroDivisorRule",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Zero argument-2 raises EC-ARGUMENT-FUNCTION (15.3) on ALL THREE carriers, each with its own argument shape in one run: a fixed-point zero (RemScaled), a COMP-2 zero (RemReal - legal source because 15.77.3 r1 admits class numeric and 8.5.2.1 Table 2 puts float usages there), and the same fixed-point zero under OPTIONS ARITHMETIC IS STANDARD-DECIMAL with a 15.3 type-6 expression argument (RemDec). Controls from 15.77.4 r1: REM(-11,5) = -1 on the exact and SDIDI carriers, REM(11.0,5.0) = 1 on binary64, all distinct from MOD's 4 in the same run. ⚠ RemDec's raise site names the WRONG clause - see the defect filed against this row; the condition is still raised, so the rule is enforced.",
+ "state": "OK"
+}

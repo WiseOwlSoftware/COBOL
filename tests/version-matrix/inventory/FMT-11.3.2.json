@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-11.3.2",
+ "section": "11.3.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "CLASS-ID paragraph",
+ "rule-digest": "41d5db7cd3d9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#classIdParagraph; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#interfaceDefinition",
+ "test-ref": "conformance:cases/11.3-CLASS-ID/pb759_parameterized_class; conformance:cases/11.3-CLASS-ID/pb303_as_class_id_literal; conformance:cases/11.3-CLASS-ID/oo-multi-base-inherits",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB759.md landed w46i3. Every phrase of the printed format parses: AS literal-1 (PB303), IS FINAL, INHERITS [FROM] {name}... (PB695; repetition semantics are the documented 0849), and now USING {parameter-name-1}... (PB759).",
+ "state": "OK"
+}

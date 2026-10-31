@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.1.11.3-5",
+ "section": "8.5.1.11.3",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Variable-length data items",
+ "rule-digest": "9ba5e8931667",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/CobolDynString.cs#CobolDynString; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#CobolDynTable; src/WiseOwl.Cobol.Runtime/Control/Signals/ResumeSignal.cs#ResumeSignal; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#RefReceiving; src/WiseOwl.Cobol.Runtime/Values/Text/CobolDynString.cs#Store",
+ "test-ref": "conformance:cases/8.5.1.11.3-Availability-and-persistence-of-variable-length/l1_vldi_fatal_exception_resumed",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "§14.7.5 + Table 13 + §14.6.13.1.3 5) + §14.9.33.4 GR2 a): after a fatal EC-SIZE-ZERO-DIVIDE handled by a declarative that RESUMEs, the dynamic table still reads CAP=02 111222 and the dynamic-length item D=[ABCD] 04 (§8.5.1.11.3 persistence, §8.6.4 static).",
+ "state": "OK"
+}

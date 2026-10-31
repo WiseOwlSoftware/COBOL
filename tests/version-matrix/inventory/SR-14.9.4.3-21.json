@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.4.3-21",
+ "section": "14.9.4.3",
+ "kind": "SR",
+ "ordinal": 21,
+ "subject": "CALL statement",
+ "rule-digest": "25406eb7e09c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb133-arg-mode-value",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB133 wave C2a): a written BY VALUE argument whose corresponding formal is not BY VALUE draws COBOL1687 at bind under AS NESTED (the same SR19/SR21 loop; the prototype lane is P13).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.63.4-14",
+ "section": "13.18.63.4",
+ "kind": "GR",
+ "ordinal": 14,
+ "subject": "VALUE clause",
+ "rule-digest": "5679c76e19c8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/TableValuePlan.cs#DefaultTo; src/WiseOwl.Cobol.Compiler/Binding/Model/TableValuePlan.cs#Resolve",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb505_table_value_geometry; conformance:cases/13.18.63-VALUE/pb505_table_value_subordinate_odometer; conformance:cases/13.18.63-VALUE/pb208_table_value_image_seed; conformance-test:ValueFormat2Tests.FixedTable_NoTo_CyclicFill; conformance-test:ValueFormat2Tests.SubordinateToOccurs_IsConforming_Sr18",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "RE-VERDICTED 2026-09-09 (kb/Work PB505) -- \"with EACH subscript-2\", plural, is now what the code computes. TableValueOdometer.DefaultTo supplies one implied subscript-2 per dimension: the fixed/ODO allocated maximum, or \"in the case of a dynamic-capacity table, the expected number of occurrences\". It returns null when a dimension has neither, which is exactly the source 13.18.63.3 SR22 rejects, so the caller has already diagnosed it and the fill is never unbounded. MEASURED: `05 X PIC X(2) VALUES ARE \"AB\" \"CD\" FROM (1).` subordinate to `01 T OCCURS 3.` fills all three occurrences (AB CD AB) -- a shape the previous staging refused outright.",
+ "state": "OK"
+}

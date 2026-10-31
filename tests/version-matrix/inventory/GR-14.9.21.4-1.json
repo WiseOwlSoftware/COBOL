@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.21.4-1",
+ "section": "14.9.21.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "INITIATE statement",
+ "rule-digest": "87891f7e9b5f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SumEntry; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SumPresentable",
+ "test-ref": "conformance:cases/13.18.35-LINE/pb1130_report_sum_size_line_overlap",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1130: each SUM entry carries its PICTURE's digit bound and a size error indicator (§13.18.54.4 GR1/GR3); INITIATE zeroes the counters AND unsets the indicators (GR1 a)); the golden re-INITIATEs after a size error and prints S=05.",
+ "state": "OK"
+}

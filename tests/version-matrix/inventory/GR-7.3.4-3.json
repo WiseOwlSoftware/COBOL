@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.4-3",
+ "section": "7.3.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Compiler directives",
+ "rule-digest": "d9fe1d73bd38",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveStateStack.cs; src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveStateRegistry.cs; src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveSiteProcessor.cs; src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#PushableRows",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb941_push_pop_directive_state; unit:DirectiveStateStackTests.PopRestoresTheMostRecentSave_Nested",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "§7.3.4 GR3 'The state of compiler directives may be saved and restored with PUSH and POP directives. A 'stack' is maintained that the state of a directive may be pushed on to. A subsequent POP directive removes the item from the stack and restores the state of the directive to that when it was pushed.' (cite.py --check 7.3.4 OK). PB941 (landed) gave PUSH/POP state semantics: DirectiveStateStack per stage with carriers registered by DirectiveStateRegistry, the pushable set derived from the catalog. Probes: PP1 named PUSH/POP DEFINE restores VV=1; PP2 PUSH ALL/POP ALL restores; PT1/PT2 PUSH/POP TURN restores ON (abnormal termination on 1/0) and OFF (continues); PP3/PP8 depth-2 nesting pops 3->2->1 in LIFO order; PP4/PP6 the GR3 NOTE's case - a copybook that does PUSH DEFINE / DEFINE 9 / POP DEFINE leaves VV=1 for the text after the COPY; PP9 an extra POP is unsuccessful (COBOL2297 warning, DOC-A.1-140) and restores nothing. kb/Work PB1066 (open: the implicit POP ALL before END-PERFORM, §14.9.28.4 GR14, does not reach >>DEFINE) is a §7.3.22.4 / §14.9.28 residue, not this general stack rule. The golden derives its expected output from §7.3.22.4 GR1-3 and §7.3.20.4 GR1-3. || editions (adjudicator): 2023 only (PUSH and POP added by ISO/IEC 1989:2023 - Annex E.3.3 item 38; E.2 item 5 lists POP and PUSH as added compiler-directive words); COBOL0900 below 2023",
+ "state": "OK"
+}

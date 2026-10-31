@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.32.3-3",
+ "section": "14.9.32.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "RELEASE statement",
+ "rule-digest": "e888b9f7c537",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFromPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindMoveOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#MoveCategoryLegality; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease",
+ "test-ref": "conformance:cases/14.9.32-RELEASE/pb348-release-from-invalid-move-sender; conformance:cases/14.9.32-RELEASE/pb348-write-from-invalid-move-sender; conformance:cases/14.9.32-RELEASE/pb348_from_into_move_rules_85; conformance:cases/14.9.32-RELEASE/pb348_from_into_move_rules_2002; conformance:cases/14.9.32-RELEASE/pb348_from_into_move_rules_2014; conformance:cases/14.9.32-RELEASE/pb348_from_into_move_rules_2023",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB348 LANDED. RULE (`--check 14.9.32.3 \"Identifier-1 or literal-1 shall be valid as a sending operand in a MOVE statement specifying record-name-1 as the receiving operand.\"` => OK). WHAT WAS ABSENT: the MOVE statement's own screens. They run at BIND time in MoveBinder -- the 14.9.25.3 Table-16 legality arms, the SR1 class-index test, the SR5 figurative edition gates and CheckStrongMove -- and RELEASE reached none of them, because SortBinder.BindRelease only bound the OPERAND and the implicit MOVE was FIRST CONSTRUCTED AT EMIT TIME (`SortEmitter.EmitRelease: move.Emit(new BoundMove(from, [rl.Record]))`), downstream of every one. DECISIVE PAIR, measured: `MOVE WS-NUM TO SRT-REC` (PIC 9(3) into PIC A(8)) drew COBOL0819 while the equivalent `RELEASE SRT-REC FROM WS-NUM` compiled clean and printed R=[123     ]. WHAT IS THERE NOW: BindFromPhrase routes the operand through MoveBinder.BindMoveOf -- THE one application of the MOVE statement's rules to a sender/receiver pair, shared with the explicit MOVE statement -- so the same rules reach the phrase by construction rather than by an edit, and the diagnostic names the statement the programmer wrote ('the implicit MOVE of RELEASE ... FROM to SRT-REC (ISO 14.9.32.4 GR4 a); 14.9.32.3 SR3)'). The drift test ImplicitMoveConstructionDriftTests keeps `new BoundMove` out of the I-O and sort emitters. || EDITIONS AS ADJUDICATED: 1985 . 2002 . 2014 . 2023",
+ "state": "OK"
+}

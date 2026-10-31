@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.3-9",
+ "section": "15.3",
+ "kind": "AR",
+ "ordinal": 9,
+ "subject": "Intrinsic functions",
+ "rule-digest": "2f97353797ac",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfPlace",
+ "test-ref": "conformance:cases/13.16-Data-description/pb79_group_usage_national; conformance:cases/15.2-Types-of-functions/national_intrinsics; conformance:cases/15.3-Arguments/national-of-wrong-category",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 15.3 'National. A national group item, a national literal, or an elementary data item of class national shall be specified' => OK §15.3 9). All THREE shapes classify as CobolClass.National and are admitted by the 's' kind (Admissible('s') includes National): (1) NATIONAL GROUP ITEM — ClassOfPlace's group arm reads DataItem.AsIfPic and returns National for GroupUsage.National, which is LIVE (DataBinder.cs binds GROUP-USAGE NATIONAL with §13.18.29.3 SR1/SR3, and 2023/pb79_group_usage_national line 23 passes such a group to FUNCTION LENGTH / BYTE-LENGTH); (2) NATIONAL LITERAL — N\"…\" arrives as BoundStringLiteral{Category: National} and ClassOf1 routes it through ClassOfCategory; (3) ELEMENTARY class national — PicCategory.National => CobolClass.National. The reciprocal half is real too: where a rule admits type 9 but NOT type 2 (or vice versa), a bespoke arm decides — IntrinsicBinder.cs#CheckRepertoireArgs errors COBOL1546 for a non-national DISPLAY-OF argument-1 (§15.26.3 r1) and for a national NATIONAL-OF argument-1 (§15.66.3 r1), and enforces the one-character width of each substitution character. IntrinsicArgumentRules.StaticUsageOf also gives a national literal / national item / national-result intrinsic Usage.National, which is the axis §15.18.3 r2 and §15.19.3 r4/r6 read. TESTS: pb79_group_usage_national (national group argument), 2002/national_intrinsics (the repertoire pair over national operands), negative/national-of-wrong-category (the class refusal).",
+ "state": "OK"
+}

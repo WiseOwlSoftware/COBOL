@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.10.4-15",
+ "section": "14.9.10.4",
+ "kind": "GR",
+ "ordinal": 15,
+ "subject": "DELETE statement",
+ "rule-digest": "67b8cf96ec7c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#DeleteFile",
+ "test-ref": "conformance:cases/9.1.13.9-File-sharing-conflict-condition-with-unsuccessful/delete_file_sharing; conformance:cases/14.9.10-DELETE/pb142_retry_conflict_class_ec; unit:CobolFileLockTests.RetryLoop_LandsTheConflictsOwnStatus_ByClass; unit:CobolFileLockTests.DeleteFile_OpenByAnotherConnector_62_ThenCloseFrees",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "DIVERGES -> CONFORMS (kb/Work PB142). The DELETE FILE file-sharing conflict now answers '62' under EVERY retry form. Previously the SECONDS/FOREVER arm of FileRegistry.RetryLoop manufactured '52', and a GREEN golden (2023/delete_file_sharing, DELFV=52) RATIFIED that divergence -- corrected in the same change set, per the rule that a green golden pinning a divergence cannot close its row. The value is established NOT from GR15b's own sentence, which the PRINTED standard garbles as 'The valu62' is placed' (an ISO defect transcribed faithfully; LEDGER.json:4277 adjudicated it identically -- do not 'repair'), but from 9.1.13.9 item 2 and Annex E.3.3 item 35, both of which read cleanly and neither of which admits '52' for DELETE FILE. WHY IT WAS A WRONG-ANSWER DEFECT AND NOT TWO COSMETIC DIGITS: 9.1.13.1 keys the exception-name on the first digit ('5' -> EC-I-O-RECORD-OPERATION, '6' -> EC-I-O-FILE-SHARING), so a handler keyed on the file-sharing condition silently did not fire; 2023/pb142_retry_conflict_class_ec IS that handler and asserts EC-I-O-FILE-SHARING on all five retry forms. Two further legs pin the A.1 item 166 determination (maximum meaningful timeout value = 0): DELSC0 and DELSC30 must AGREE, which is the observable form of the clamp.",
+ "state": "OK"
+}

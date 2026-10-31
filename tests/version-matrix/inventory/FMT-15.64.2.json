@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.64.2",
+ "section": "15.64.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "MOD function",
+ "rule-digest": "56e79a468599",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#RepeatsAnArgument",
+ "test-ref": "unit:IntrinsicRepeatedArgumentDriftTests.RepeatsAnArgument_IsExactly_TheFormatsEllipsis; conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB62 — the ALL subscript as ONE enumerating operand with the standard's three ranges; admissibility from the definition; the summing family on the SDIDI carrier under a standard mode). `FUNCTION MOD ( argument-1 argument-2 )` repeats no argument, so §15.3's ALL is inadmissible: `MOD(E(ALL) B)` is COBOL1645 at ANY cardinality (negative pb62-all-subscript-mod, a one-occurrence table — the shape that bound and evaluated before; the three-occurrence twin was rejected only through the expansion's arity count). Decided from IntrinsicSig.RepeatsAnArgument, pinned to the §15.x.2 formats' ellipsis by IntrinsicRepeatedArgumentDriftTests. retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

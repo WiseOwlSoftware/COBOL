@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-165",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 165,
+ "subject": "RETRY phrase (interval between attempts to obtain access to a locked file or record)",
+ "rule-digest": "c4d38648fe24",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-165; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RetryLoop",
+ "test-ref": "unit:CobolFileLockTests.RetryLoop_AttemptCount_FollowsGR1AndGR4",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GAP -> CONFORMS, recorded by the LANDER, not by the implementer: cluster E wrote the §14.7.9.3 GR1 determination into docs/CONFORMANCE.md §7 while its worktree was cut from a main on which an A.1 DOC row could not yet carry a verdict at all. The DOC-row mechanism (kb/Work A11 / PB280) landed afterwards, so the row is closable now and leaving it GAP would understate what is documented. The determination: the interval between the `n TIMES` re-attempts is ZERO — every lock this implementation arbitrates is held by a file connector of the EXECUTING run unit, which cannot release while another statement of that run unit runs, so no releaser can execute between two attempts and a nonzero interval could only delay an identical answer. The attempt count itself is pinned cell by cell by the drift test (RETRY n TIMES makes exactly n re-attempts, GR1's round-up applied).",
+ "state": "OK"
+}

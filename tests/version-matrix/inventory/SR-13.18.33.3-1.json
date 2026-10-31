@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.33.3-1",
+ "section": "13.18.33.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Level-number",
+ "rule-digest": "fee42dedb0a3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolScreen.g4#screenDescriptionEntry",
+ "test-ref": "conformance:cases/13.18.33-Level-number/pb485-level-number-missing",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Enforced STRUCTURALLY: every grammar rule that spells an entry opens with a mandatory levelNumber (dataDescriptionEntry, reportGroupEntry, screenDescriptionEntry), so an entry with no level-number cannot parse. Witnessed because a rule enforced by the grammar's shape has no code site to point at, and an unwitnessed structural claim is indistinguishable from an unchecked one.",
+ "state": "OK"
+}

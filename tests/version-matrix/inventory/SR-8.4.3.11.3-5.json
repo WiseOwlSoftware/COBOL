@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.11.3-5",
+ "section": "8.4.3.11.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "Data-address-identifier",
+ "rule-digest": "bb75159da8ab",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#dataAddressIdentifier; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#setAddressReceiver; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#addressIdentifier; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#receivingIdentifier; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ReceivingOperandForms.cs#Rules",
+ "test-ref": "conformance:cases/8.4.3.11-Data-address-identifier/gn1-data-address-receiving-set-up-by; conformance:cases/8.4.3.11-Data-address-identifier/gn1-data-address-receiving-initialize",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "ADDRESS OF W, with W BASED, used as the receiving operand of SET ... UP BY (SR23 data-pointer category fits) and of INITIALIZE (SR1 and SR7). Only SR5 forbids these. INITIALIZE (and every non-SET receiving position) is refused by SR5 itself, COBOL3979, from the receiving chokepoint's form table (kb/Work PB1551, w1097d; it was COBOL0901); SET ... UP BY is still a parse error (COBOL0001) because SET's receiving identifier carries no data-address alternative. Controls on a pointer item P compile.",
+ "state": "OK"
+}

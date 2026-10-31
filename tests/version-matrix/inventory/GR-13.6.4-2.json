@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.6.4-2",
+ "section": "13.6.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Local-storage section",
+ "rule-digest": "cf1ab0fbe6ab",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitMethod; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/InitialStateBackground.cs#FillFor; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/EmitCore.cs#EmitContext",
+ "test-ref": "conformance:cases/13.6-Local-storage-section/w67q_pb1132_ls_activation_reseed; conformance:cases/13.6-Local-storage-section/pb1215_method_local_storage_options_initialize",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1215: a method's LOCAL-STORAGE initial state takes the OPTIONS INITIALIZE clause of the method's own OPTIONS paragraph, else the class's (11.9.4 GR1) - EmitMethod swaps the method's options and its LocalRoots into the background's view for the initializers.",
+ "state": "OK"
+}

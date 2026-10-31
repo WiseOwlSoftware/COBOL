@@ -499,6 +499,7 @@ public sealed class Frontend
 
         // ⛔ THE TOKEN-LEVEL §8.9 GATE (kb/Work PB655): the ONE loop both front ends share —
         // ReservationGateRewriter.ParseToFixpoint re-parses until no newly declared free gated word remains.
+        int parseStart = diagnostics.Diagnostics.Count;   // the parse's own reports start here (the cause below is placed among them)
         var tree = ReservationGateRewriter.ParseToFixpoint(parser, tokens, retypes, diagnostics,
             (bag, witness) => ParsePass(parser, tokens, bag, witness, sourcePath));
 
@@ -516,9 +517,17 @@ public sealed class Frontend
         // token), so for a compilation the binder will not see, the lexer's whole stream is screened here and the cause is
         // named beside the error (kb/Work PB3845). The tree, partial as it may be, only says which tokens are a comment-entry's
         // text rather than words. Placed after every other reader of the stream so the bag holds all of this attempt's errors.
+        // ⛔ A CAUSE READS BEFORE ITS EFFECT (kb/Work PB4131): the screen needs the parse that failed, so it reports last, yet the
+        // word it names is why the parser died at the NEXT token. It reports into a bag of its own and is placed among the parse's
+        // reports by source position, a tie going to the cause (DiagnosticBag.AddBeforeEffects) — the one place, for every
+        // diagnosis the screen makes.
         if (parser.NumberOfSyntaxErrors != 0 || priorErrors || diagnostics.HasErrors)
+        {
+            var screened = new DiagnosticBag();
             WordCharacterScreen.RunOnTokens(tokens.GetTokens(), tree, edition,
-                new BagSink(diagnostics, (line, column) => LineMap.Locate(line, column, sourcePath)));
+                new BagSink(screened, (line, column) => LineMap.Locate(line, column, sourcePath)));
+            diagnostics.AddBeforeEffects(screened.Diagnostics, parseStart);
+        }
 
         return (tree, parser.NumberOfSyntaxErrors == 0, sourceDebuggingLines);
     }

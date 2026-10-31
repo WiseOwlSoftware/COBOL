@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-41",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 41,
+ "subject": "WRITE statement",
+ "rule-digest": "46711ab53fed",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#KeySuppressionOf",
+ "test-ref": "conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1072_suppress_when_forms",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1072 landed (w61c). GR41: suppressed entries shall not cause a duplicate key condition and are not found under the alternate key: golden W3 writes a second record with R-SP = SPACES on a no-DUPLICATES SUPPRESS WHEN SPACES key -> not '22' (W3 02 comes from an unsuppressed WITH DUPLICATES key), and every walk omits the suppressed records.",
+ "state": "OK"
+}

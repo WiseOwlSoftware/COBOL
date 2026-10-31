@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.4.4-1",
+ "section": "13.4.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "File section",
+ "rule-digest": "b8690ffc5909",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#InFileSection",
+ "test-ref": "conformance:cases/13.4-File-section/pb1241_file_section_dynamic_length_value_ignored",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1241: a file-section VALUE clause takes no effect at initial state, so a dynamic-length item there starts at length zero; INITIALIZE ... TO VALUE still applies it.",
+ "state": "OK"
+}

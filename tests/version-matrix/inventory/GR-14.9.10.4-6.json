@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.10.4-6",
+ "section": "14.9.10.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "DELETE statement",
+ "rule-digest": "cc46b60f9458",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ExhaustionStatus",
+ "test-ref": "conformance:cases/9.1.13.8-Record-operation-conflict-condition-with-unsuccessful/file_sharing_mutate; conformance:cases/14.9.10-DELETE/pb142_retry_open_sharing; unit:CobolFileLockTests.RetryLoop_LandsTheConflictsOwnStatus_ByClass; unit:CobolFileLockTests.RetryLoop_AttemptCount_FollowsGR1AndGR4; unit:CobolFileLockTests.RewriteAndDelete_HonorAnotherConnectorsLock_51_ThenUnlockFrees",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "DIVERGES -> CONFORMS (kb/Work PB142). GR6's record-operation conflict says 'The I-O status is set in accordance with the rules for the RETRY phrase', and GR6b says only 'A value is placed ... to indicate the record operation conflict condition' -- implementor latitude among the values 9.1.13.8 defines. That latitude is now exercised in ONE place, FileRegistry.ExhaustionStatus, rather than improvised at the six RetryLoop call sites: an exhausted retry lands the CONFLICT'S OWN 9.1.13 status ('51'), with the single documented exception that a RETRY FOREVER waiting on a record locked by another file connector is the 9.1.13.8 item 2 deadlock ('52') this implementation detects, since the holder is inside the executing run unit and 14.7.9.3 GR3's 'until the input-output operation has been completed' can never terminate. The detection conditions are now the Annex A.1 item 109 determination in docs/CONFORMANCE.md 7 (audit_annex_a1.py counts it discharged), and the design is FILES_DESIGN.md D8, which the deep-dive previously did not mention at all (grep -c RETRY was 0). TWO ROOT DEFECTS WERE FIXED, not one: (1) the Seconds/Forever arm never read its amount and manufactured '52' for every conflict class; (2) NEWLY FOUND AND NOT IN THE FILED NOTE -- RetryLoop engaged on ANY non-Success status, where 14.7.9.3 GR4 scopes the whole discipline to 'a file sharing conflict condition or a record operation conflict condition', so an OPEN of an absent file under RETRY FOREVER answered '52' instead of '35' (measured, then fixed by the IsConflict gate). The drift test asserts every retry-form x conflict-class cell INCLUDING the not-a-conflict row.",
+ "state": "OK"
+}

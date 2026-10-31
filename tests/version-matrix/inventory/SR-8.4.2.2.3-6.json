@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.2.2.3-6",
+ "section": "8.4.2.2.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "Qualification",
+ "rule-digest": "0be8dad91151",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#IndexQualifierChainMatches; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#IndexFieldOf; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveSubscriptName",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/pb919_index_name_qualified; conformance-test:IndexNameUniquenessTests.DuplicatedIndexName_QualifiedThroughItsTable_IsSR6; conformance-test:IndexNameUniquenessTests.QualifierNamingNoDeclaringTable_IsNotDefined; conformance-test:IndexNameUniquenessTests.OtherTablesQualifiedIndex_AsSubscript_IsSR4",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB919, wave 57. The 8.4.2.2.2 Format 3 qualified-index-name 'index-name-1 [data-qualifier]... [file-report-qualifier]' is accepted in every position that admits an index-name - SET, PERFORM/SEARCH VARYING, a relation condition, a subscript - with the qualifier chain starting AT the table (SR6: 'may include the name of the table with which the index-name is associated, as well as any name by which that table may be qualified'), IN and OF equivalent (SR3). A qualifier that names no declaring table is COBOL1639 citing SR6. Before: every qualified form was 'not defined'.",
+ "state": "OK"
+}

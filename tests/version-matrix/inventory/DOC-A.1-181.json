@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-181",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 181,
+ "subject": "SPECIAL-NAMES paragraph (allowable locale-names and literal values)",
+ "rule-digest": "abe3b4519e99",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-181; src/WiseOwl.Cobol.Runtime/Control/LocaleState.cs#LocaleIdentification; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#LocaleBind; src/WiseOwl.Cobol.Compiler/Binding/Model/LocaleSymbol.cs#LocaleSymbol; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#TryClauseTextLiteral",
+ "test-ref": "unit:LocaleStateTests.ExternalIdentification_IsNormalized_PerDeterminationL1; unit:LocaleStateTests.Availability_IsTheOneKnownLocaleRule; conformance:cases/12.3.6-OBJECT-COMPUTER/pb64t1_locale_declare; conformance:cases/A.1-Implementor-defined-language-element-list/pb1537_figurative_literal_clauses",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 12.3.7.4 'The implementor specifies the allowable external-locale-names and the allowable content of literal-4' -> OK §12.3.7.4 5). Read LocaleIdentification.Normalize (LocaleState.cs:108-134): INVARIANT/ROOT/C/POSIX/und -> root; @modifier CLDR collation type -> -u-co-; .codeset dropped; _ -> -. DataBinder.Switches.LocaleBind: both branches build LocaleSymbol whose Tag = Normalize(External); SR10/SR11 via TryClauseTextLiteral COBOL0898; duplicate COBOL1665. Probes probe/p181: l1.cob --std 2002 fr_FR.UTF-8 -> 24/09/2026, de-DE word -> 24.09.2026; l2.cob --std 2023 checked zz_QQ -> EC-LOCALE-MISSING fatal; l3.cob fr_FR word = fr-FR literal = 24/09/2026, INVARIANT -> 09/24/2026, de_DE@phonebook -> 24.09.2026. pb64t1_locale_declare golden pins es_ES.UTF-8 / es_ES / es-ES as one locale. The §4 A.4.9 prose (L1) agrees. Owning note: kb/Work/PB1534, PB1535. Refuter: added the unchecked-unavailable fallback (root conventions; refute-probe/p181/a.cob fr_FR@euro and e.cob zz_QQ -> 09/24/2026, EXC blank) and the pre-2002 diagnostic COBOL0900 (refute-probe/p181/g.cob --std 85); 0898 (SPACE, \"\", 12) and 1665 re-probed. kb/Work PB1537 LANDED: literal-4 is read by the same TryClauseTextLiteral as ORDER TABLE literal-9 - a figurative constant other than a symbolic-character one is a literal (8.3.3.6.3 SR1), so LOCALE XX IS QUOTE is legal source whose locale is simply not available (EC-LOCALE-MISSING at the SET, pinned by 2002/pb1537_figurative_literal_clauses); NULL is COBOL2576. Row text updated in docs/CONFORMANCE.md section 7. kb/Work PB1537 LANDED: literal-4 is read by the same TryClauseTextLiteral as ORDER TABLE literal-9 - a figurative constant other than a symbolic-character one is a literal (8.3.3.6.3 SR1), so LOCALE XX IS QUOTE is legal source whose locale is simply not available (EC-LOCALE-MISSING at the SET, pinned by 2002/pb1537_figurative_literal_clauses); NULL is COBOL2576. Row text updated in docs/CONFORMANCE.md section 7.",
+ "state": "OK"
+}

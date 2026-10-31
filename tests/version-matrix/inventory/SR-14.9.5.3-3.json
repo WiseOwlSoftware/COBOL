@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.5.3-3",
+ "section": "14.9.5.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "CANCEL statement",
+ "rule-digest": "4840adbcb7ec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCancel; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ResolvePrototype",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb237_program_prototype; conformance:cases/14.9.5-CANCEL/pb237-cancel-prototype-undeclared",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB237). BindCancel now has the third arm the rule needs. A bare-word CANCEL target is probed as a data reference FIRST (Refs.Probe, which reports nothing on a miss, so no program that binds today changes meaning); a word that is not a data item is then looked up through the SAME CallBinder.ResolvePrototype the CALL side uses, because 14.9.4.3 SR16 and 14.9.5.3 SR3 state one obligation about one subject and 8.4.6.8 gives both the same second spelling. A hit becomes a static-name cancel keyed on the prototype's externalized name; a miss draws COBOL1760 naming BOTH alternatives of 14.9.5.2's operand brace, which is what the previous 8.4.2.1 not-defined report could not do. The negative fixture pins it; the positive golden cancels through a prototype and observes 14.9.5.4 GR3's initial-state effect on the next call. EDITIONS 2002+ : the rule's subject is a program-prototype-name, and the REPOSITORY program-specifier that declares one is a COBOL-2002 addition (constructs.json repository-program-2002); below 2002 no conforming source can name a prototype at all. That is a narrowing of the previous batch-default 85 claim, with a citable basis - 12.3.8 does not exist in X3.23-1985.",
+ "state": "OK"
+}

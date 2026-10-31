@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.2.2-8",
+ "section": "14.2.2",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "Procedure division structure",
+ "rule-digest": "7bbb6f4e40c9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RaisingPhrase.cs#Partition; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#raisingTarget",
+ "test-ref": "conformance-test:RaisingPhraseTupleTests.MethodHeaderRaising_FactoryOfUndeclaredClass_0858; conformance-test:RaisingPhraseTupleTests.HeaderRaising_FactoryOfInterface_0858; conformance:cases/14.2-Procedure-division-structure/pb815_raising_factory_interface",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB815.md landed w46. object-class-name-1, with or without [FACTORY OF] (OF an optional word), is accepted only when it resolves to a class in this element's REPOSITORY scope (8.4.6.4); a FACTORY OF operand that is not such a class, or that names an interface (the FACTORY phrase is printed on the class alternative only), is COBOL0858.",
+ "state": "OK"
+}

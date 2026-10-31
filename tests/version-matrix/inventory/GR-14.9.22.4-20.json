@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.22.4-20",
+ "section": "14.9.22.4",
+ "kind": "GR",
+ "ordinal": 20,
+ "subject": "INSPECT statement",
+ "rule-digest": "08c20abda691",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Convert; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#WriteGroupValue; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#InspectCharOperandOf",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/pb1128_inspect_identifier1_class_store",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1128 (landed w66k). The two failing shapes are fixed at their roots: (1) a NATIONAL GROUP identifier-1 is stored back through PlaceRenderer.WriteGroupValue, the receiving twin of SendingGroupValue, in national positions (13.18.29.4 GR2 b) - it was stored through the group BYTE-image writer, so CONVERTING N\"A\" TO N\"Z\" over five N\"A\" gave mojibake; witness N1 ZZZZZ, N2 QBQCQ, N3 the occurs-depending splice over the SENDING extent (GR1) 5ZZZAA; (2) SR3 bars ALL only from literal-1..4, so CONVERTING \"ABC\" TO ALL \"Q\" binds (was COBOL1757) and the runtime repeats the ALL literal to literal-4's size (GR22, 8.3.3.6.4 GR2) - witness N6 QQQDEF QRQDEF.",
+ "state": "OK"
+}

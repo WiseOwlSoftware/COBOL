@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-146",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 146,
+ "subject": "RECORD clause (calculations to derive size of records on storage medium)",
+ "rule-digest": "4eeb6f8ea988",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-146; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#LineSequentialDelimiter; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReadRecord; src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#EncodeFrame; src/WiseOwl.Cobol.Runtime/IO/Store/PageHeader.cs#PageHeader",
+ "test-ref": "conformance:cases/13.18.43-RECORD/pb1276_record_contains_sizes_file; conformance:cases/9.1.13.2-Successful-completion/io_status_04; conformance:cases/A.1-Implementor-defined-language-element-list/pb1540_ls_lone_cr_is_data; unit:RelativeEngineTests.A_relative_records_size_on_the_medium_is_the_documented_leaf_entry_in_a_file_of_whole_pages",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Re-verdicted by kb/Work PB1540 (w67p). Arm (c)'s delimiter is now the host newline the determination states (the row's remaining ⚠ is gone). The determination also gains the fixed-length physical record rule (kb/Work PB1514: no record boundaries on the medium; the reading description's integer-1 bytes) and arm (c′), the record sequential print stream (CR LF line controls, a variable-length record presented at its GR13 length and refused '44' outside the VARYING bounds - kb/Work PB1190). Arm (a) holds (golden 85/pb1276_record_contains_sizes_file). || kb/Work PB1278 (wave 1140 A): arm (d), relative and indexed, rewritten for the keyed store engine's paged store format 6 (DESIGN-runtime-library 2.2.1.4; kb/Work PB3333-PB3335 deleted the whole-store header and its 0xFFFFFFFF empty-slot tag the arm still described): the file is a whole number of 4,096-byte pages; a relative record is one leaf entry of 6 + 8 + F bytes (F = 4 + the record's size, RecordFraming.EncodeFrame), an indexed record 6 + k + F in the prime tree (F carrying 8 bytes per key) and 6 + a + 8 + k in each alternate tree; a full leaf holds floor(4,064 / entry bytes); a frame over 1,016 bytes (or an entry over 2,032) goes to overflow pages. Witness unit:RelativeEngineTests.A_relative_records_size_on_the_medium_is_the_documented_leaf_entry_in_a_file_of_whole_pages pins the determination's example (100 80-byte records: 98-byte entries, 41 to a full leaf, 11 pages = 45,056 bytes).",
+ "state": "OK"
+}

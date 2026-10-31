@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.53.4-2",
+ "section": "15.53.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "LOCALE-TIME function",
+ "rule-digest": "9d7e4aa66fd4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#FormatTime; src/WiseOwl.Cobol.Runtime/Globalization/LocaleFacts.cs#TimeFormat",
+ "test-ref": "conformance:cases/14.6.6-Locale-identification/pb64t4_locale_functions; unit:CobolLocaleTests.FormatTime_HandlesTheTokenVocabulary",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T4 — DETERMINATION L10: t_fmt is the culture's LONG time pattern (hours, minutes AND seconds — the short pattern omits seconds), rendered over its tokens (H/h/m/s/t, the time separator, quoted literals; the TIME-ROOT / TIME-DE / TIME-US lines).",
+ "state": "OK"
+}

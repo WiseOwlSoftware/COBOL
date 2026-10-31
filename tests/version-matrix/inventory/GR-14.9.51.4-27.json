@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-27",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 27,
+ "subject": "WRITE statement",
+ "rule-digest": "a4d813716e72",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#PositionOnLogicalPage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#WriteSucceeded; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionCatalog.cs#IoMaskNames; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitWrite",
+ "test-ref": "conformance:cases/14.9.51-WRITE/pb854_write_eop_exception_conditions; conformance:cases/14.9.51-WRITE/pb854_eop_perform_when; conformance:cases/14.9.51-WRITE/pb854-eop-use-name-below-2002; unit:TurnStateTests.EveryCataloguedEcIoName_HasAMaskBit; conformance:cases/8.4.3.14-LINAGE-COUNTER/pb578_advancing_page_eop_overflow",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB854. a) PositionOnLogicalPage records WHICH arm caused the end-of-page condition (GR26 a) -> EC-I-O-EOP-OVERFLOW, GR26 b) -> EC-I-O-EOP) and WriteSucceeded reports the name beside the successful '00' through the connector's rule-named condition channel (the one EC-I-O-LINAGE uses); both names now have mask bits. b) the END-OF-PAGE phrase runs on the success guard, and __IoCheckEc's success arm dispatches nothing for an EOP name when the phrase is present, while the condition is still SET (EXCEPTION-STATUS names it inside the phrase). c) the exception-checking PERFORM's WHEN takes it and the matching USE is ignored (2023 golden). d)/e) the USE declarative, or nothing. RELATIVE/INDEXED connectors present no page and raise neither name. COBOL-85 has the phrase but not the names (negative: COBOL0878).",
+ "state": "OK"
+}

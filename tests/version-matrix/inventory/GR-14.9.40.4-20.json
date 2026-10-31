@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.40.4-20",
+ "section": "14.9.40.4",
+ "kind": "GR",
+ "ordinal": 20,
+ "subject": "SORT statement",
+ "rule-digest": "d90df50a1be3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindTable; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#CurrentOccurrenceCount; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitTableSort; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#SortInPlace; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#CurrentOccurrences",
+ "test-ref": "conformance:cases/14.9.40-SORT/w70c_pb1174_table_sort_odo_count; conformance:cases/14.9.40-SORT/w70c_pb1174_table_sort_dynamic_capacity; conformance:cases/14.9.40-SORT/w70c-pb1174-table-sort-below-2002",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "w70c (kb/Work PB1174 landed). cite.py --check 14.9.40.4 'The number of occurrences of table elements referenced by data-name-2 is determined by the rules in the OCCURS clause' -> OK 14.9.40.4 20); cite.py --check 13.18.38.4 'The value of the data item referenced by data-name-1 represents the current number of occurrences of the subject of the entry' -> OK 13.18.38.4 7). BoundTableSort now carries the table's CURRENT occurrence count (the AllCount model, from the one ReferenceResolver.CurrentOccurrenceCount that table(ALL) also reads) and EmitTableSort sorts only that span in place: CobolTable.SortInPlace over AsSpan(table, 0, OdoExtent(N...)) for OCCURS DEPENDING (clamped, EC-BOUND-ODO outside per GR7), the whole array for a fixed table, CobolDynTable.CurrentOccurrences for a dynamic-capacity table. Measured on the w70c build: podo (N = 3 of 1 TO 5, 30 10 50 05 01) -> 10 30 50 05 01 (pre-fix 01 05 10 30 50); DESCENDING at N = 4 -> 50 30 10 05; N = 7 under EC-BOUND-ODO checking -> RAISED, table unchanged. Sibling: a dynamic-capacity table (OCCURS DYNAMIC, 2023) was REFUSED as data-name-2 (COBOL1757, the binder asked for a fixed integer) though SR13 requires only an OCCURS clause; it now sorts its current capacity (golden 2023/w70c_pb1174_table_sort_dynamic_capacity). || editions: 2002, 2014, 2023",
+ "state": "OK"
+}

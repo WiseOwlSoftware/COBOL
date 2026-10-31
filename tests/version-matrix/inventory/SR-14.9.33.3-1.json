@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.33.3-1",
+ "section": "14.9.33.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "RESUME statement",
+ "rule-digest": "46c3cff38ed8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#BindResume; src/WiseOwl.Cobol.Compiler/Binding/Procedure/EnclosingContext.cs#InPerformWhen",
+ "test-ref": "conformance-test:ExitPlacementContextDriftTests.Resume_PlacementVerdicts_AreUnchangedByTheSharedProbe",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'The RESUME statement may be specified only in a declarative or in an imperative statement in a WHEN phrase of an exception-checking PERFORM statement. In the latter case, the NEXT STATEMENT phrase shall be specified.' (cite.py --check 14.9.33.3 'In the latter case, the NEXT STATEMENT phrase shall be specified' -> OK §14.9.33.3 1)). BindResume asks the ONE bind-position probe ctx.Enclosing: InPerformWhen admits NEXT STATEMENT and refuses procedure-name with COBOL1610; outside any declarative (ordinary paragraph, imperative-statement-1, FINALLY) it refuses with COBOL0712. Both halves verified: the theory PBRS01-05 covers a WHEN phrase, a statement nested inside a WHEN phrase, imp-1 and FINALLY (rejected) and a plain paragraph (rejected), all with SR1-quoted expectations; Resume_AtProcedureNameInAWhenPhrase_IsRejected covers the second sentence; ExceptionConditionConformanceTests.Resume_OutsideDeclaratives_Diagnosed and PerformFormat3Tests' imp-1 case also pin 0712. PROBED in addition: RESUME NEXT STATEMENT in WHEN OTHER and in WHEN COMMON (both WHEN phrases of the general format) is admitted and runs (sr1w.cob -> SIZE / COMMON / END). A RESUME inside a WHEN phrase that is itself inside a declarative is treated under the WHEN branch (NEXT STATEMENT required) - a reading the text supports, since the statement is then 'in a WHEN phrase'.",
+ "state": "OK"
+}

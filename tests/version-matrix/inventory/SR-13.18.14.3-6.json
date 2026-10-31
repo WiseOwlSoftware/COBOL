@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.14.3-6",
+ "section": "13.18.14.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "COLUMN clause",
+ "rule-digest": "257ee18df50f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindReportEntry",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb1059-column-beyond-page-width; conformance:cases/13.18.14-COLUMN/pb1059-column-beyond-assumed-page-width",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1059: COBOL2710 refuses a COLUMN operand (absolute column or relative offset) greater than the page width, written or assumed. || editions corrected from '85' to 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a facility that exists at every edition (the COBOL-85 nucleus, I-O, inter-program and SPECIAL-NAMES implementor-names; its arithmetic, the only arithmetic of COBOL-85, is what later editions name native).",
+ "state": "OK"
+}

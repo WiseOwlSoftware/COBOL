@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.72.2",
+ "section": "15.72.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "ORD-MIN function",
+ "rule-digest": "89da3d001e93",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall",
+ "test-ref": "conformance:cases/15.75.3-Argument-rules/pb1_intrinsic_formats",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "15.72.2 FUNCTION ORD-MIN ( {argument-1} ... ) - variadic format covered by a spec-derived golden, replacing a NIST-only cover.",
+ "state": "OK"
+}

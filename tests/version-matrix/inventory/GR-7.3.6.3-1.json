@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.6.3-1",
+ "section": "7.3.6.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Compile-time arithmetic expressions",
+ "rule-digest": "7527e0125579",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvalArith; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#arithmeticExpression",
+ "test-ref": "unit:CompileTimeExpressionEvaluatorTests.Evaluates_ArithmeticAndReclassification",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'The order of precedence and the rules for evaluation of compile-time arithmetic expressions are shown in 8.8.1' (cite.py --check 7.3.6.3 -> OK §7.3.6.3 1)). Precedence is carried by the shared arithmeticExpression grammar spine (additive > multiplicative > power > unary > primary); EvalArith folds each additive/multiplicative level LEFT TO RIGHT (§8.8.1.2 3) --check OK). Intermediates are not truncated (only the final result, at EvaluateArithmeticOperand). Probed with the pinned cobol.exe (probe/ctae/p1.cob, p2.cob, --std 2002/2014/2023): CONSTANT AS 2 + 3 * 4 = 14; 10 - 3 - 2 = 5; 12 / 2 * 3 = 18; (1 + 2) * 3 = 9; - 2 * - 3 = 6; 5 - 10 / 4 = 2 (2.5 untruncated intermediate); 7 / 2 + 0.5 = 4 (3.5 + 0.5, intermediate not truncated); >>IF 10 - 3 - 2 = 5 AND 12 / 2 * 3 = 18 selects; identical across editions. The unit Theory pins 2+3*4=14 and (2+3)*4-6/2=17 (spec-derived); the same-level left-to-right case has no test (probe only). || editions (adjudicator): 2002, 2014, 2023 (compile-time arithmetic in DEFINE/EVALUATE/IF directives and constant entries; not 1985)",
+ "state": "OK"
+}

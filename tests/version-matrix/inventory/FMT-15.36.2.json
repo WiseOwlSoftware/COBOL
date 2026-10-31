@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.36.2",
+ "section": "15.36.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "FACTORIAL function",
+ "rule-digest": "7c4731199004",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs",
+ "test-ref": "conformance:cases/15.7-ABS/pb40_integer_argument_positions",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "FUNCTION FACTORIAL(W-I - 62) writes the printed format with a S15.3 type-6 always-integral expression argument and the S15.36.4 r1c value 3! = 6.",
+ "state": "OK"
+}

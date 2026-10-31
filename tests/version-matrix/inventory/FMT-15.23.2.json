@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.23.2",
+ "section": "15.23.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "DATE-TO-YYYYMMDD function",
+ "rule-digest": "6abe5bfd4026",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#TryGet; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+ "test-ref": "conformance:cases/15.23.4-Returned-value-rule/intrinsics_date_window",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SUSTAINED. PRINTED PAGE RE-RENDERED INDEPENDENTLY (python scripts/render-spec-page.py 867 = printed folio 837) because of the falsely-restrictive OCR risk: the printed format is character-for-character the transcription - FUNCTION and DATE-TO-YYYYMMDD underlined (required words), argument-1 unbracketed, argument-3 NESTED inside argument-2's brackets, so the optional arguments are strictly trailing. No alternative was lost. Grammar side: the reference is the GENERIC `FUNCTION functionName (LPAREN functionArgList? RPAREN)?` in CobolExpressions.g4, so no per-function rule can be falsely restrictive, and the arity comes from the catalog row via IntrinsicBinder's `if (args.Count < sig.MinArgs || args.Count > sig.MaxArgs)` -> COBOL1504. Verified by running the built CLI: 0 arguments and 4 arguments are both rejected ('FUNCTION DATE-TO-YYYYMMDD takes 1..3 argument(s)'); the 1-, 2- and 3-argument forms all compile and evaluate; SPACE-separated arguments `(851003 10 2002)` are accepted as well as comma-separated; arithmetic-expression arguments `(850000 + 1003, 5 + 5, 2000 + 2)` are accepted, as 8.4.3.2.3 SR8 requires ('Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression'); the FUNCTION word is correctly optional under `REPOSITORY. FUNCTION ALL INTRINSIC.` (`DATE-TO-YYYYMMDD(851003, 10, 2002)` -> 19851003), per 8.4.3.2.3 SR2; and OMITTED is correctly not applicable here (8.4.3.2.3 SR7 forbids it for an intrinsic-function-name). COVERAGE CAVEAT (not a downgrade): tests/conformance/2002/intrinsics_date_window.cob is on disk and exercises the 3-argument shape of this format through the real grammar with hand-derived values, but the 1- and 2-argument shapes and the arity rejection have no COBOL-level test - a narrow additional test-needed.",
+ "state": "OK"
+}

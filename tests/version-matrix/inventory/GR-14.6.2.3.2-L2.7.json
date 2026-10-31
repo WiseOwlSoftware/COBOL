@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.2.3.2-L2.7",
+ "section": "14.6.2.3.2",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "Initial and last-used states of data",
+ "rule-digest": "72393d3779be",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/RecordStructEmitter.cs#EmitStaticReset; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitCallMethod; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#ResolveProgramCollating; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/ObjectComputerEmit.cs",
+ "test-ref": "conformance:cases/14.6.2.3.2-Initial-state/pb1133_recursive_container_dynamic_initial",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1133 (wave 1012 J). Both halves, one golden, on the shape the refuter could not compile: pb1133_recursive_container_dynamic_initial - a RECURSIVE container with a contained program, a dynamic-length item WITHOUT a VALUE (length 0 on the first activation and again after CANCEL: action 7), one WITH a VALUE (back to the VALUE's length), the contained program's own dynamic item, and LOW-VALUE under PROGRAM COLLATING SEQUENCE IS S1 (ALPHABET S1 IS \"B\" \"A\") giving BB on the first activation and after CANCEL (the lead-in sentence: the program collating sequence is determined before data is placed in the initial state; 12.3.7.4 GR9). cite.py --check 14.6.2.3.2 'The length of each dynamic-length elementary item that is specified without a VALUE clause is set to zero' OK; --check 14.6.2.3.2 'Before data is placed in the initial state, the initial alphanumeric and national program collating sequences are determined as specified in 12.3.6' OK.",
+ "state": "OK"
+}

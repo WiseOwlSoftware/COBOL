@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-25",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 25,
+ "subject": "VALUE clause",
+ "rule-digest": "9f070c3060e2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ValuePlacement.cs#ScreenConditionValuePlacement",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb551-condition-name-under-constant-record; conformance:cases/13.18.63-VALUE/pb551_constant_record_value_content; conformance-test:ValueClauseScreenTests.ConditionName_UnderAConstantRecord_IsRejected; conformance-test:ValueClauseScreenTests.ConstantRecord_Format1Content_Compiles",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB551, LANDED (wave 58). \"A format 3, 4, or 5 VALUE clause shall not be specified in any data description entry that contains the CONSTANT RECORD clause, or in any data description entry subordinate to a data description entry that contains the CONSTANT RECORD clause\" (cite --check OK, §13.18.63.3 25)). FORMAT 3: BindCondition asks the ONE placement screen (DataBinder.ValuePlacement, COBOL2406) over the conditional variable's ancestor chain; a level-88 under a CONSTANT RECORD entry, at any depth, is refused (before: compiled clean and the condition-name was live). The record's FORMAT-1 content stays legal (2002/pb551_constant_record_value_content). FORMAT 4 IS VACUOUS under today's grammar: a report group description entry admits no CONSTANT RECORD clause (reportGroupClause has no such alternative), so the shape cannot be written - this row is NOT closed on a format-4 witness; if the report group entry ever gains the clause, the leg stops being vacuous. FORMAT 5 belongs to the owner-declined VALIDATE facility (A.4.14), refused by name (COBOL1708).",
+ "state": "OK"
+}

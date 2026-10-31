@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.54.2",
+ "section": "15.54.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "LOCALE-TIME-FROM-SECONDS function",
+ "rule-digest": "a91f6888bec1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog",
+ "test-ref": "conformance:cases/14.6.6-Locale-identification/pb64t4_locale_functions; conformance-test:LocaleDispositionTests.LocaleFunctions_AreLive",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB64 T4: FUNCTION LOCALE-TIME-FROM-SECONDS ( argument-1 [ locale-name-1 ] ); 2014 per the catalog's provisional window (kb/Work R28). Was NOT-IMPLEMENTED.",
+ "state": "OK"
+}

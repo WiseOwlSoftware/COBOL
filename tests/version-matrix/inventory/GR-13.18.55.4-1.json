@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.55.4-1",
+ "section": "13.18.55.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "SYNCHRONIZED clause",
+ "rule-digest": "09852d42d00b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#InheritSynchronized; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandTemplate; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandTypes",
+ "test-ref": "conformance:cases/13.18.55-SYNCHRONIZED/pb539_sync_group_as_if_leaves",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB539 (landed, wave 20261032). Both halves of GR1's as-if now hold. LAYOUT: the clause changes no offset (DOC-A.1-195/197), so a group-level clause and the clause on each leaf give one record. FLAG: DataBinder.InheritSynchronized writes the group's clause (its LEFT/RIGHT phrase included) onto each subordinate elementary item for which the clause is permitted, stopping below a group-level VALUE (13.18.63.3 SR14) and a CONSTANT RECORD (13.16.3 SR13); an item's own clause wins. A TYPE declaration takes it when completed (ExpandTemplate), before any TYPE subject copies its members (13.18.57.4 GR1 excludes only the declaration's own alignment); the storage forest after every TYPE and SAME AS expansion. Golden 2023/pb539_sync_group_as_if_leaves: a TYPEDEF STRONG with SYNC (and SYNC LEFT) on the group is equivalent to the same declaration with the clause on each leaf, so the 14.8.2.2 2) CALL is legal (was COBOL1688), and `01 G SYNC VALUE \"AB\".` stays legal. The 13.16.3 SR24 d) screen reads the members. A group-level clause exists only at 2023 (Annex E.3.2 item 6); below it the group is refused (SR-13.18.55.3-1).",
+ "state": "OK"
+}

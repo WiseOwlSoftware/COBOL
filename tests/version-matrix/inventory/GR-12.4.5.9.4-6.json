@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.9.4-6",
+ "section": "12.4.5.9.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "LOCK MODE clause",
+ "rule-digest": "ed517018fb69",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#MapLockMode; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReleasePriorRecordLocks; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReadShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#WriteShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RewriteShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#DeleteShared",
+ "test-ref": "conformance:cases/12.4.5.9-LOCK-MODE/pb338_read_releases_prior_lock",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 12.4.5.9.4 6) 'Execution of any I-O statement except START releases any previously locked record in that file for that file connector' OK. Mode selection: MapLockMode sets Multiple only when the MULTIPLE token is present. So both `LOCK ON RECORD` (explicit single) and an omitted LOCK ON phrase (implicit single) give single locking, as the rule states. Release: ReleasePriorRecordLocks is the one site (skipped only when meta.Multiple). It runs at the top of ReadShared, ReadKeyedShared (l.1396), WriteShared (l.1428), RewriteShared (l.1455, except target) and DeleteShared (l.1499, except target), so it is tied to execution, not success (PB338 landed). The mutating verbs' 'except target' comes from their own statement rules (§14.9.35.4 GR12 a), §14.9.10.4 GR7 a)): the target's lock is released at completion instead. START is not routed through any release. CLOSE and UNLOCK release everything. Probe rt1.cob phase 1: A (AUTOMATIC single) read 1, then read 2, and B's read of 1 went from '51' to '00' (READ releases). A re-locked 1 and then did a WRITE of record 21; B's read of 1 was '00' (WRITE releases). The START exemption is witnessed by conformance:cases/14.9.41-START/l1_start_no_record_locks. conformance:cases/12.4.5.9-LOCK-MODE/pb338_read_releases_prior_lock witnesses the READ release on all three organizations. unit:CobolFileLockTests.WriteShared_WithLock_LocksTheWrittenRecord_AndSingleLockingReleasesItOnTheNextWrite covers WRITE. The 'only one record locked at a time' consequence follows because every non-START statement releases first. kb/Work PB671 (open) owns the '§12.4.5.9 GR6' mis-citations (FileModel.cs:18, CobolFile.cs:296, PhysicalFileTable.cs:128 are sibling sites). [registrar 14a — editions as adjudicated: 2002, 2014, 2023 (the clause is absent from ISO 1989:1985; it arrives with the 2002 file sharing / record locking facility, D.2.4 / A.4.7; no later change to 12.4.5.9 located)]",
+ "state": "OK"
+}

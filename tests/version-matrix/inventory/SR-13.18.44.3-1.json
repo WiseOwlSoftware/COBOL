@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.44.3-1",
+ "section": "13.18.44.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "REDEFINES clause",
+ "rule-digest": "b6043fe653e1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionClauses; src/WiseOwl.Cobol.Frontend/Cst/DataClauseKind.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenLeadingClausePosition",
+ "test-ref": "conformance:cases/13.16-Data-description/pb1280-redefines-after-picture; conformance:cases/13.16-Data-description/pb1280-redefines-after-global; conformance:cases/8.4.2.2-Qualification/pb1280_redefines_entry_rules_legal; conformance:cases/13.16-Data-description/pb486_leading_clauses",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1280, re-sited by kb/Work PB486 (wave 1019 D2): SR1 ('The REDEFINES clause shall immediately follow the entry-name clause; if the entry-name clause is not specified, the REDEFINES clause shall immediately follow the level-number.', cite.py OK 1)) is asked by ScreenLeadingClausePosition (DataBinder.ClausePlacement.cs), the one ordinal screen it now shares with §13.16.3 SR4's TYPEDEF position; the message and COBOL2739 are unchanged. retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.RedefinesEntry.cs#ScreenRedefinesPosition (renamed and moved: the REDEFINES position screen is ScreenLeadingClausePosition in DataBinder.ClausePlacement.cs (kb/Work PB486), named by this record)",
+ "state": "OK"
+}

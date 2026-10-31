@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.8.3.1",
+ "section": "8.8.3.1",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Concatenation expressions",
+ "rule-digest": "40ce57a61c30",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#concatOperand; src/WiseOwl.Cobol.Compiler/Binding/ConcatFolder.cs#Classify; src/WiseOwl.Cobol.Compiler/Binding/LiteralEnvironment.cs",
+ "test-ref": "conformance:cases/8.8.3-Concatenation-expressions/literal_concat; conformance:cases/8.8.3-Concatenation-expressions/pb1406-concat-operand-not-literal; conformance:cases/8.8.3-Concatenation-expressions/concat_below_2002; conformance:cases/8.8.3-Concatenation-expressions/pb1406_concat_word_operands",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1406 (w62k). cite.py --check 8.8.3.1 \"exactly one of `literal-1` or `concatenation-expression-1` shall be selected as the left operand\" -> OK. literal-1/literal-2 admit the two WORDS that stand for a literal: a constant-name (--check 13.10.3 \"constant-name-1 may be used anywhere that a format specifies a literal of the class and category of constant-name-1\" -> OK SR2) and a symbolic-character (--check 12.3.7.4 \"Symbolic-character-1 defines a figurative constant\" -> OK GR11). concatOperand gained a cobolWord arm; ConcatFolder resolves it through LiteralEnvironment (constant first, then symbolic-character), a word naming neither -> COBOL2473. Before: \"X\" & SYM-A / \"X\" & K were COBOL0309 and SYM-A & \"X\" COBOL0001 (probes w62k/probe/q01-q03); after: XA / AX / XQ. At 85 the & operator is refused COBOL0900 (concat_below_2002). The ALL literal-1 concatenation (§8.3.3.6.3 SR2) is a separate arm reported as a lead, not this row. retired-witness: conformance:2002/pb1406_concat_word_operands (the golden moved to the 2014 corpus: it writes a zero-length literal, a COBOL-2014 introduction gated by kb/Work PB895 (same program, same expected output))",
+ "state": "OK"
+}

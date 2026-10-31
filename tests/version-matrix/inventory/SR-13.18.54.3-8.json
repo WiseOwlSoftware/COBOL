@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.54.3-8",
+ "section": "13.18.54.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "SUM clause",
+ "rule-digest": "0e1fb517cf9d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ControlLevelOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ControlOperandRef",
+ "test-ref": "conformance:cases/13.18.16-CONTROL/pb205_control_ref_mod; conformance:cases/13.18.54-SUM/pb205-sum-reset-operand-other-slice",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB205 - SR8 is SR10's twin over the same written reference, and it is screened by the same two helpers: data-name-3 may be qualified and reference-modified, its ref-mod positions shall be integer literals, and it shall be an operand of the CONTROL clause of the current report description. The golden's minor control footing carries SUM ... RESET ON CX(1:3) - the major level - which is also SR8's last sentence, the printing footing's level being lower than data-name-3's.",
+ "state": "OK"
+}

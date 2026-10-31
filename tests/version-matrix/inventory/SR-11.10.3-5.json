@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.10.3-5",
+ "section": "11.10.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "PROGRAM-ID paragraph",
+ "rule-digest": "ef249f4c6905",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram",
+ "test-ref": "conformance:cases/11.10-PROGRAM-ID/pb1507-initial-in-recursive-program; conformance:cases/11.10-PROGRAM-ID/pb1507-initial-indirectly-in-recursive-program; conformance:cases/11.10-PROGRAM-ID/pb1507_source_unit_shapes_legal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1507 (wave 1012 J). cite.py --check 11.10.3 'The INITIAL clause shall not be specified if any program that directly or indirectly contains this program is a recursive program' OK. MakeUnit walks the whole container chain and reads each container's EFFECTIVE recursive attribute (the one 11.10.4 GR4 hands down is still 'a recursive program'): COBOL2755 at the INITIAL clause, directly or through a plain intermediate program. The comment that called an INITIAL containee of a recursive container legal is corrected, and ProgramTable's Active==0 guard on the implicit CANCEL, which served exactly that nonconforming shape, is removed.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.44.3-4",
+ "section": "13.18.44.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "REDEFINES clause",
+ "rule-digest": "d91a7f22766e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveRedefines; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#TemplateItems",
+ "test-ref": "conformance:cases/13.18.44-REDEFINES/pb93-redefines-undefined-target; conformance:cases/13.18.44-REDEFINES/pb93-redefines-later-sibling; conformance-test:RedefinesTargetTests.UndefinedRedefinesTarget_IsRejected; conformance:cases/13.18.44-REDEFINES/pb2071-template-redefines-outside-group",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB93). data-name-2 resolves among the PRECEDING same-level siblings only (TakeWhile before the subject, nearest match — NOTE 1) — an entry with a lower level number cannot intervene by construction (it would end the sibling list); a name that resolves to nothing, or only to a LATER sibling, is COBOL1654 and the entry binds as an ordinary item (no half-state).",
+ "state": "OK"
+}
