@@ -25,17 +25,30 @@ correctly, which is why the PB2739 rule looked shared when its text was not.
 3. *Conditional groups.* §6.5 converts "before the application of replacing and conditional compilation actions", so the
    converter cannot see which branch of a `>>IF` / `>>EVALUATE` survives. The cursor follows the group structure
    (`ConditionalGroup`) and counts a division word in it only when every branch ends in the same division (the branch no
-   condition selects counted, absent `>>ELSE` / `>>WHEN OTHER`), else the text stays where it was before the group. No edition
-   has both a comment-entry (removed by 2002) and a `>>IF`, so this is the implementor's determination (docs/CONFORMANCE.md
-   D-CE2). Its residue is stated there: a selected branch that alone changes the division is not followed by the converter. The
-   exact reading needs the comment-entry decision made after conditional compilation, a stage-order redesign this change does
-   not take; it is registered in the branch report for the registrar.
+   condition selects counted, absent `>>ELSE` / `>>WHEN OTHER`), else the text is taken for no IDENTIFICATION DIVISION. No
+   edition has both a comment-entry (removed by 2002) and a `>>IF`, so this is the implementor's determination
+   (docs/CONFORMANCE.md D-CE2). The first reading kept the division the text was in before the group, which traded the
+   omitted-branch rejection for a new one (review round 1, R1-3): a SELECTED branch that alone leaves the IDENTIFICATION
+   DIVISION was not followed, so a legal program that main accepted (and GnuCOBOL 3.2 accepts) drew COBOL0001 on its first
+   REMARKS paragraph. A standard program (2002 on, where the group exists) has no comment-entry, so the reading that rejects
+   none is the one that finds none after an undecidable group; the residue is a non-standard comment-entry directly after such
+   a group. The exact reading needs the comment-entry decision made after conditional compilation, a stage-order redesign this
+   change does not take; it is registered in the branch report for the registrar.
+4. *Review round 1, the other two findings.* R1-1: `ReadInto` was asked before a blank or floating-comment line, which are
+   discarded and leave the latest logical line the join target of a later continuation line, so a header continued across a
+   blank line (§6.3.6, §6.5 2) and 6) b)) was still read as `PROCEDURE` + `DIVI`; the converters now ask only for a line that
+   holds text (`LogicalLineBuilder.TryFirstText`, which the free-form converter's guard also uses). R1-2: the cursor tested
+   `>>WHEN OTHER` with a bare prefix match, a second rule beside the conditional-compilation stage's word test (§7.3.13.3
+   SR5/SR6), so `>>WHEN OTHERV` was taken for the default branch; both now ask `CompilerDirectiveLine.StartsWithWord` and the
+   stage's private copy is deleted.
 
 **Goldens** (`cases/6.5-Logical-conversion/`): `pb4241_continued_division_header` (accept 85-2014; 2023 removed the continuation
 of a word, Annex E.2), `pb4241_copy_operand_names_division` (85; a COPY on one line, one across two, and a REPLACE, all naming
 a division, then comment-entry paragraphs holding an unclosed quotation mark), `pb4241_omitted_branch_division_header`
-(2002-2023) and its 85 refusal `pb4241_omitted_branch_division_header_at_85` (`>>IF` is a 2002 introduction, COBOL0900). Each
-positive was run against the pre-fix source and failed there (COBOL0001, COBOL5563, COBOL0001). Unit: `DivisionCursorTests` gains
+(2002-2023) and its 85 refusal `pb4241_omitted_branch_division_header_at_85` (`>>IF` is a 2002 introduction, COBOL0900), and
+from round 1 `pb4241_selected_branch_division_header` (2002-2023), `pb4241_continued_division_header_across_blank_line` (85-2014)
+and `pb4241_when_other_word_is_not_the_default` (2002-2023) with the 85 refusals of the first and last. Each
+positive was run against the pre-fix source and failed there (COBOL0001, COBOL5563, COBOL0001; the three round-1 ones COBOL0001). Unit: `DivisionCursorTests` gains
 the statement-skip, line-by-line, continued-header and eight conditional-group cases.
 
 **Register.** PB4241 landed; it claimed and closes no inventory row (the rule, §6.5, was already verdicted).

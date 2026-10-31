@@ -58,7 +58,10 @@ internal sealed class DivisionCursor(bool startsInIdentificationDivision)
     /// words in the branches are evidence of the division the text is in AFTER the group only if every branch — the one
     /// no condition selects included, when there is no <c>&gt;&gt;ELSE</c> or <c>&gt;&gt;WHEN OTHER</c> — ends in the same
     /// division; otherwise which division the text stands in depends on a condition only the conditional-compilation
-    /// stage evaluates, and the converter keeps the division it was in before the group (kb/Work PB4241).</summary>
+    /// stage evaluates, and the converter takes it for NO IDENTIFICATION DIVISION: a comment-entry paragraph exists only
+    /// where an IDENTIFICATION DIVISION is certain, and every edition that has the group (2002 on) has no comment-entry,
+    /// so the reading that rejects nothing a standard program writes is the one that finds none (docs/CONFORMANCE.md D-CE2;
+    /// kb/Work PB4241).</summary>
     private sealed class ConditionalGroup(bool entry, bool branchOpen)
     {
         /// <summary>The division the group began in — where every branch starts.</summary>
@@ -81,13 +84,13 @@ internal sealed class DivisionCursor(bool startsInIdentificationDivision)
             _hasDefault |= isDefault;
         }
 
-        /// <summary>The group ends after a branch that ended in <paramref name="inIdentification"/>: the division the text
-        /// is in now — the one every branch agreed on, else the one before the group.</summary>
+        /// <summary>The group ends after a branch that ended in <paramref name="inIdentification"/>: whether the text is in
+        /// an IDENTIFICATION DIVISION now — only when every branch agreed that it is.</summary>
         public bool After(bool inIdentification)
         {
             EndBranch(inIdentification);
             if (!_hasDefault) Record(Entry);   // no branch selected: the text goes on as it was
-            return _agrees ? _end : Entry;
+            return _agrees && _end;
         }
 
         private void EndBranch(bool inIdentification)
@@ -123,7 +126,7 @@ internal sealed class DivisionCursor(bool startsInIdentificationDivision)
                 break;
             case "ELSE" or "WHEN" when group is not null:
                 group.NextBranch(InIdentificationDivision,
-                    isDefault: directive.Word == "ELSE" || CobolNames.StartsWith(directive.Operand, "OTHER"));
+                    isDefault: directive.Word == "ELSE" || CompilerDirectiveLine.StartsWithWord(directive.Operand, "OTHER"));
                 InIdentificationDivision = group.Entry;   // the next branch starts where the group did
                 break;
             case "END-IF" or "END-EVALUATE" when group is not null:

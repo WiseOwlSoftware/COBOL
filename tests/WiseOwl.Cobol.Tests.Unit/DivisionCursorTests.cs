@@ -139,6 +139,20 @@ public sealed class DivisionCursorTests
         Assert.Contains(lines, l => l.Trim() == "DISPLAY \"X\".");
     }
 
+    [Theory] // R1-1: a blank line or a comment line is logically discarded (§6.5 2)) and the continuation line after it still
+             // joins the latest logical line (§6.5 6) b)), so the cursor must not read that line before the join
+    [InlineData("")]
+    [InlineData("      ")]
+    [InlineData("      *> a floating comment line")]
+    [InlineData("000350*  a fixed comment line")]
+    public void ContinuedDivisionHeader_AcrossADiscardedLine_LeavesTheIdentificationDivision(string between)
+    {
+        string[] lines = Convert("000100 IDENTIFICATION DIVISION.\n000200 PROGRAM-ID. P.\n000300     PROCEDURE DIVI\n"
+                                 + between + "\n000400-    SION.\n000500 REMARKS.\n000600     DISPLAY \"X\".\n");
+        Assert.Contains(lines, l => l.Trim() == "REMARKS.");
+        Assert.Contains(lines, l => l.Trim() == "DISPLAY \"X\".");
+    }
+
     [Fact] // a COPY statement's REPLACING operand in the SOURCE text, read by the converter, moves nothing
     public void CopyReplacingOperandNamingADivision_InTheSourceText_LeavesTheDivisionAlone()
     {
@@ -151,14 +165,17 @@ public sealed class DivisionCursorTests
 
     [Theory] // kb/Work PB4241: §6.5 converts BEFORE conditional compilation, so which branch of a >>IF the text keeps is not
              // known to the converter. A division word in a group's branches counts only when every branch (the one no
-             // condition selects included, when there is no >>ELSE or >>WHEN OTHER) ends in the same division; otherwise the
-             // text is in the division it was in before the group. Lines are separated by '|'
+             // condition selects included, when there is no >>ELSE or >>WHEN OTHER) ends in the same division; otherwise
+             // which division the text is in depends on a condition, and it is taken for no IDENTIFICATION DIVISION (a
+             // comment-entry needs one certain). Lines are separated by '|'
     [InlineData(false, ">>IF X IS DEFINED|IDENTIFICATION DIVISION.|>>END-IF", false)]   // the omitted branch enters: nothing moves
-    [InlineData(true, ">>IF X IS DEFINED|PROCEDURE DIVISION.|>>END-IF", true)]          // … or leaves
+    [InlineData(true, ">>IF X IS DEFINED|PROCEDURE DIVISION.|>>END-IF", false)]         // … or leaves: the SELECTED branch may be it (R1-3)
     [InlineData(true, ">>IF X|PROCEDURE DIVISION USING A.|>>ELSE|PROCEDURE DIVISION.|>>END-IF", false)]   // both leave
     [InlineData(false, ">>IF X|ID DIVISION.|>>ELSE|IDENTIFICATION DIVISION.|>>END-IF", true)]            // both enter
     [InlineData(true, ">>EVALUATE X|>>WHEN 1|PROCEDURE DIVISION.|>>WHEN OTHER|PROCEDURE DIVISION.|>>END-EVALUATE", false)]
-    [InlineData(true, ">>EVALUATE X|>>WHEN 1|PROCEDURE DIVISION.|>>WHEN 2|PROCEDURE DIVISION.|>>END-EVALUATE", true)]   // no OTHER
+    [InlineData(true, ">>EVALUATE X|>>WHEN 1|PROCEDURE DIVISION.|>>WHEN 2|PROCEDURE DIVISION.|>>END-EVALUATE", false)]   // no OTHER
+    [InlineData(true, ">>EVALUATE X|>>WHEN 1|PROCEDURE DIVISION.|>>WHEN OTHERV|PROCEDURE DIVISION.|>>END-EVALUATE", false)]   // OTHERV is no default (R1-2)
+    [InlineData(true, ">>EVALUATE X|>>WHEN 1|IDENTIFICATION DIVISION.|>>WHEN OTHER|ID DIVISION.|>>END-EVALUATE", true)]   // all agree, OTHER is the default
     [InlineData(false, ">>IF A|>>IF B|IDENTIFICATION DIVISION.|>>END-IF|>>ELSE|IDENTIFICATION DIVISION.|>>END-IF", false)]
     [InlineData(true, ">>END-IF|>>ELSE|PROCEDURE DIVISION.", false)]   // a phrase with no group open moves nothing
     public void ConditionalGroup_CountsOnlyWhenEveryBranchAgrees(bool startsInIdentification, string lines, bool expected)

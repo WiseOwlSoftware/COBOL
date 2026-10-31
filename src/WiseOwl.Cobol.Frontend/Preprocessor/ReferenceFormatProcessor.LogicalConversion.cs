@@ -186,7 +186,9 @@ public static partial class ReferenceFormatProcessor
             // Area A / Area B line matters here. WHERE the text is (the division) is read from the words of the LOGICAL
             // lines before this one, wherever they begin (§6.3.1: the program-text area has no such line), by the one
             // DivisionCursor rule.
-            _builder.ReadInto(_division);
+            // A blank or comment line is a new logical line of nothing (§6.5 2)): a continuation line after it still joins
+            // the latest logical line, so that line is not complete and the cursor must not read it yet (kb/Work PB4241).
+            if (LogicalLineBuilder.TryFirstText(area, out _)) _builder.ReadInto(_division);
             string? firstAreaAWord = FirstAreaAWord(line, area);
             if (_division.InIdentificationDivision && firstAreaAWord is not null && CommentEntryParagraphs.Contains(firstAreaAWord))
             {
@@ -256,8 +258,7 @@ public static partial class ReferenceFormatProcessor
                 if (positions > FreeFormMaxPositions) gates?.OnFreeFormLineTooLong(file, line.Number, positions);
                 var site = new TextSite(line.Number, Index: 0, line.Columns);
                 // A comment line (§6.5 2)) is neither a header nor words of a division, as in fixed form.
-                int first = FirstNonSpace(line.Text);
-                if (first >= 0 && !CobolSourceText.CommentIndicatorAt(line.Text, first) && BeginsCommentEntry(line.Text, first))
+                if (LogicalLineBuilder.TryFirstText(line.Text, out int first) && BeginsCommentEntry(line.Text, first))
                 {
                     _builder.Emit(CommentEntryHeader(line.Text), site);
                     continue;
