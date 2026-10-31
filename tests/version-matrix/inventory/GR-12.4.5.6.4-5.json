@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.6.4-5",
+ "section": "12.4.5.6.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "ALTERNATE RECORD KEY clause",
+ "rule-digest": "f80752b869f7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#KeyWindowOf; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#AddAlternateKey",
+ "test-ref": "conformance-test:KeyedOffsetSpecTests.Start_KeyOperandInSiblingRecord_MatchesByBytePosition",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 12.4.5.6.4 \"are implicitly referenced as keys for all other record description entries of that file\" -> OK GR5. Keys are registered as a byte WINDOW (offset,length) over the shared record area, so every record description of the FD is keyed at those positions by construction. Probe gr5.cob: FD with 01 R (R-ALT at bytes 3-5) and 01 S; records WRITTEN THROUGH S are indexed on bytes 3-5 (READ KEY IS R-ALT \"CCC\" finds the S-written record 02; a second S-written record with the same bytes 3-5 -> '22'; the START/READ NEXT walk orders S-written and R-written records by those bytes). The covering test writes through REC-A and STARTs by a sibling-record operand at the same byte position, expected record derived from the spec.",
+ "state": "OK"
+}

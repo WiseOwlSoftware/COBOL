@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-65",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 65,
+ "subject": "EXIT and GOBACK statements (execution continuation in a non-COBOL runtime element)",
+ "rule-digest": "c32f63a49037",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-65; src/WiseOwl.Cobol.Runtime/Control/ProgramRegistry.cs#CallProgram; src/WiseOwl.Cobol.Compiler/CodeGen/HostEntryEmitter.cs",
+ "test-ref": "conformance-test:NonCobolActivatorReturnTests.GobackAndExitProgram_ReturnToANonCobolHost_WhichContinuesAtItsCallSite",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§14.9.18.4 1) a) + §14.9.14.4 3): a Roslyn-built C# host calls GOBACK and EXIT PROGRAM modules via ProgramRegistry.CallProgram; the host resumes at each call site, exit 0",
+ "state": "OK"
+}

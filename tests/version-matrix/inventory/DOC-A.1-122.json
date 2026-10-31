@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-122",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 122,
+ "subject": "National literals (number of hexadecimal digits that map to a national character)",
+ "rule-digest": "d6f6f27caa64",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-122; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#HexGroupViolation",
+ "test-ref": "conformance:cases/8.3.3.2-Alphanumeric-literals/r03_hexadecimal_national_and_boolean_literals",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§8.3.3.5.3 SR5 (cite.py OK §8.3.3.5.3 5)) leaves the digits-per-national-character count to the implementor; WiseOwl COBOL's is 4 (determination D-N1, one UTF-16 code unit). Probes /tmp/adj/doc/doc-w1-s4/probe/p122.cob at --std 2002 and 2023: VALUE NX\"004100420043\" -> ABC; LENGTH(NX\"00410042\") -> 0002; LENGTH(NX\"D83DDE00\") -> 0002; ORD(NX\"00E9\") -> 234; --std 85 -> COBOL0900. p122b.cob: NX\"414\" and NX\"004100\" -> COBOL1635. Golden 2023/r03_hexadecimal_national_and_boolean_literals pins the 4-digit decode (MOVE NX\"00410042\", LENGTH = 0002). The adjacent under-rejection (keyword-omitted intrinsic argument skips the check) is open under kb/Work PB1393 and stated in the row; PB160 recorded this row as missing.",
+ "state": "OK"
+}

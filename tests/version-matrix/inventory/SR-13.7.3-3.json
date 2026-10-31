@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.7.3-3",
+ "section": "13.7.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Linkage section",
+ "rule-digest": "2f4a35f5a87c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ParameterConformance.cs#CheckArgument; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfActivate",
+ "test-ref": "conformance:cases/13.7-Linkage-section/pb133-arg-conformance; conformance:cases/8.5.1.12-Variable-length-groups/pb204-nested-returning-incompatible; conformance:cases/8.4.3.2-Function-identifier/pb1418-function-arg-picture-mismatch; conformance:cases/8.4.3.2-Function-identifier/pb1115-function-arg-only-mismatch",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1115 landed (w61h; folded PB1254). SR3 (cite.py --check 13.7.3 'shall follow the rules specified in 14.8.2, Parameters and 14.8.3, Returning items' -> OK §13.7.3 3)). Wherever the activated element's linkage descriptions are statically known the §14.8.2/§14.8.3 regime is checked: CALL AS NESTED / program prototype (unchanged, COBOL1688/1736) and now the function-identifier arm (COBOL2470) through the shared ParameterConformance.CheckArgument; a function's RETURNING half conforms by construction (the caller temp clones the RETURNING item, §8.4.3.2.4 GR1). Measured: FUNCTION RLKG-shape PIC 9(4) argument into a PIC 9(3) formal -> COBOL2470 (was 00004). The dynamic Format-1 CALL arm is resolved at run time (§14.9.4 rows), not this row.",
+ "state": "OK"
+}

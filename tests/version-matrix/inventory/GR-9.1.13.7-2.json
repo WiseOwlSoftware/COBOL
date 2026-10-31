@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.7-2",
+ "section": "9.1.13.7",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "I-O status",
+ "rule-digest": "6ad5edf369fc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseByFormat; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#Unlock",
+ "test-ref": "conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_close_status",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§9.1.13.7 2) '42' for CLOSE or UNLOCK on a connector that is not open (cite.py --check OK §9.1.13.7 2)). CLOSE: FileConnector.Close `if (!IsOpen) return Status = FileNotOpen`, and FileRegistry.Close tests it first on both the CLOSE-UNIT arm and the close-file arm (§14.9.6.4 GR1). UNLOCK: FileRegistry.Unlock `if (!c.IsOpen) { c.SetStatus(FileStatusCode.FileNotOpen); return; }` (PB360 landed; goes through Require). Probe logic4x/p1.cob: CLOSE not open -> 42, UNLOCK not open -> 42. Tests: conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_close_status (CLOSE2=42) covers the CLOSE half; unit:CobolFileLockTests.Unlock_OfANotOpenFile_Is42 covers the UNLOCK half. || Editions (adjudicator, verbatim): 1985/2002/2014/2023 for CLOSE; the UNLOCK arm 2002+ (UNLOCK belongs to the 2002 record-locking facility)",
+ "state": "OK"
+}

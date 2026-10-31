@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.3-2",
+ "section": "14.6.3",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Execution",
+ "rule-digest": "e33321d9b0bb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs",
+ "test-ref": "conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/l1c09_sort_merge_procedure_transfer",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'When a SORT or MERGE statement is executed, an implicit transfer of control occurs to any associated input or output procedures.' (cite.py --check 14.6.3 -> OK, rule 2). Probe E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d1\\out\\probe\\xfer\\xsort.cob: SORT SF ... INPUT PROCEDURE IS IN-PROC OUTPUT PROCEDURE IS OUT-PROC -> the input procedure's RELEASEs of CCC/AAA/BBB and the output procedure's RETURN loop print OUT AAA / OUT BBB / OUT CCC then O2-LAST then AFTER-SORT. Probe xmerge.cob: MERGE MF ... USING F1 F2 OUTPUT PROCEDURE IS OUT-PROC -> OUT AAA/BBB/CCC/DDD, O2-LAST, AFTER-MERGE. Both transfers happen. Many SORT/MERGE goldens exercise the procedures (e.g. pb349_sort_merge_flow_ec) but none is derived for THIS rule, so test-ref is left empty.",
+ "state": "OK"
+}

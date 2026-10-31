@@ -14,7 +14,7 @@ estimating the quota, checking the inventory did not regress, deciding which uni
 local CPU time is free and tokens are not. The LLM is used for judgment only: reading agent reports, resolving a
 dropped cluster or a merge conflict, adjudication, and recognising a decision only the owner can make.
 
-The metric is the one the project already has: GAP rows in `tests/version-matrix/traceability-inventory.json`
+The metric is the one the project already has: GAP rows in `tests/version-matrix/inventory/` (one JSON file per row)
 closed per weekly-quota point.
 
 ## 2. Components

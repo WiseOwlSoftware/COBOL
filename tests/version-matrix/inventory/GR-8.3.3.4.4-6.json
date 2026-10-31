@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.3.3.4.4-6",
+ "section": "8.3.3.4.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "Boolean literals",
+ "rule-digest": "ed0204f8c9e6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#Decode; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BooleanLiteralOperand",
+ "test-ref": "conformance:cases/8.3.3.2-Alphanumeric-literals/r03_hexadecimal_national_and_boolean_literals",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "'The value of the literal at runtime is the value of an equivalent boolean literal formed by replacing each hexadecimal digit by its boolean equivalent value, and replacing the leading BX\" separator with the B\" separator' (cite.py --check 8.3.3.4.4 GR6 OK). Decode materializes the equivalent B\"...\" value once, so every consumer sees it. Probe bl1: IF BX\"4\" = B\"0100\" -> EQ; VALUE BX\"A5\" -> 10100101; LENGTH(BX\"A\")=4, LENGTH(BX\"0123456789ABCDEF\")=64; bl5b BX of 2047 F's displays 8188 ones. r03 row 3 MOVE BX\"5A\" -> 01011010. || editions as written by the adjudicator: 2002, 2014, 2023 (boolean literals are a COBOL-2002 introduction, gated COBOL0900 at --std 85 - probe bl7; the zero-length-literal introduction edge is not derivable from the in-repo 2023 text, whose Annex E lists only the 2014->2023 delta)",
+ "state": "OK"
+}

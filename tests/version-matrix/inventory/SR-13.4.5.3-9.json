@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.4.5.3-9",
+ "section": "13.4.5.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "File description entry",
+ "rule-digest": "a92facb5c44a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenReportFileReference; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveFile",
+ "test-ref": "conformance:cases/13.4.5-File-description/pb1171-report-file-io-reference; conformance:cases/13.4.5-File-description/pb1171-sort-merge-report-file; conformance:cases/13.4.5-File-description/pb1171_report_file_legal_references",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1171 LANDED (wave 68 Y). SR9 'The subject of a file description entry that specifies a REPORT clause may be referenced in the procedure division only by the USE statement, the WHEN phrase of a PERFORM statement, the CLOSE statement, or the OPEN statement with the OUTPUT or EXTEND phrase' (cite.py OK 13.4.5.3 9)). ONE screen, StatementValidation.ScreenReportFileReference (COBOL2577), asked by ResolveFile — THE statement file-name resolution — for every statement except OPEN and CLOSE (admitsReportFile; OPEN's INPUT / I-O half stays §14.9.27.3 SR1, COBOL2371), so READ, START, UNLOCK, DELETE, DELETE FILE, MERGE / RETURN file-name-1 and any future file statement are refused by construction; SORT / MERGE USING-GIVING now resolve through ResolveFile; FUNCTION EXCEPTION-FILE asks it of its argument; USE and PERFORM WHEN do not resolve through it and stay admitted. Measured on the w68y build: READ / START FIRST / UNLOCK / DELETE FILE / SORT GIVING / SORT USING / MERGE USING / EXCEPTION-FILE of a report file each COBOL2577 (were clean and ran); OPEN OUTPUT / EXTEND, INITIATE / GENERATE / TERMINATE, CLOSE and a USE declarative on the file still compile and run (golden OPENED / CLOSED WORLD).",
+ "state": "OK"
+}

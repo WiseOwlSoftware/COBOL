@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.3.3-3",
+ "section": "8.4.3.3.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Reference-modification",
+ "rule-digest": "abb088585584",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic",
+ "test-ref": "conformance:cases/8.4.3.3-Reference-modification/pb8-refmod-of-refmod-data; conformance:cases/8.4.3.3-Reference-modification/pb8-refmod-of-refmod-function",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Found unenforced by the PB8 sibling sweep, not by PB8's own repro: MOVE A (3:4)(2:2) COMPILED CLEAN and silently returned A(2:2), because dataReferenceSuffix* admits unlimited ref-mods and the resolver kept only the first of each carrier while the DEFAULT-mode form outranked the SUBSCRIPT-mode one. Now counted in ONE place per reference kind and rejected with COBOL1630. A subscript followed by a ref-mod (the legal 8.4.3.1.4 GR1 a-to-g order) is unaffected.",
+ "state": "OK"
+}

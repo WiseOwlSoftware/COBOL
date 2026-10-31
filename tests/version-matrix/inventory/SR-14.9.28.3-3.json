@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.28.3-3",
+ "section": "14.9.28.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "PERFORM statement",
+ "rule-digest": "86829678e1d6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindVaryingOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NonNumericInNumericContext; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BindIndexNameWindowOperandExpr",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/pb432_varying_brace_group; conformance:cases/14.9.28-PERFORM/pb432-varying-from-nonnumeric-literal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB432 (landed). BOTH halves now hold and both are witnessed. ADMISSION: the figurative ZERO (and its ZEROS/ZEROES spellings) is a numeric literal here - 8.3.3.6.3 SR1 a) permits it precisely BECAUSE SR3 restricts every literal in this phrase to numeric - and it used to be a hard parse error, because primaryExpression's only figurative arm is the ZERO_ARITH token ZeroTokenRewriter mints by ADJACENCY to an operator and a bare operand has no neighbour (the isolating probe: FROM ZERO + 0 parsed, FROM ZERO did not). The slot is now the shared valueOperand rule, so the figurative reaches the ONE numeric-context literal reading; golden legs A and B initialize the induction variable to 0 and run 4 and 3 iterations. PROHIBITION: a non-numeric literal is refused at bind with COBOL0844, and the diagnostic now names SR3 as the rule that closes this operand list rather than citing 8.8.1.1 alone (the position-rule thread through BindIndexWindowOperandExpr). A legal non-INTEGER numeric literal is still correctly admitted where no index-name is involved (SR4/SR5 are the rules that would narrow it, and their premises are computed - see SR-14.9.28.3-4 and -5). retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#BindIndexWindowOperandExpr (renamed to BindIndexNameWindowOperandExpr by kb/Work PB215 (the r7-only operand context split from the SET/relation one))",
+ "state": "OK"
+}

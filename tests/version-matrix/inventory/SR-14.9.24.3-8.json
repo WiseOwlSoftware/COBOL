@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.24.3-8",
+ "section": "14.9.24.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "MERGE statement",
+ "rule-digest": "da4b1e0548c8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#mergeStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortRange",
+ "test-ref": "conformance:cases/14.9.24-MERGE/l1c18_merge_key_order_ties",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 14.9.24.3 \"The words THROUGH and THRU are equivalent\" -> OK §14.9.24.3 8). Both spellings parse to the same output-procedure phrase and SortRange composes procedure-name-1 THRU procedure-name-2 identically: probes mthru and mthrough (OUTPUT PROCEDURE IS OP1 THRU/THROUGH OP2) both compile rc=0. || editions as adjudicated: 85/2002/2014/2023 (clause text)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.57.4-2",
+ "section": "13.18.57.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "TYPE clause",
+ "rule-digest": "c5e2b6c73923",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandType; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CloneItem; src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#SharesByteWith",
+ "test-ref": "conformance:cases/13.18.57-TYPE/l1c34_type_group_hierarchy; conformance:cases/13.18.1-ALIGNED/pb1569_type_subject_level1_bit_alignment",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (cite.py --check 13.18.57.4 \"the subject of the entry is aligned as though it were a level 1 item\" -> OK §13.18.57.4 2) d)). a) CloneItem reproduces each subordinate with its name, full entry description (CopyEntryDescription scope Entry), OCCURS, REDEFINES, INDEXED BY and 88s; b)/c) the hierarchy is carried structurally and TYPE clones level-verbatim, so a level-49 subject's members sit past 49 and a level-05 subject's 05/10 members stay below it (l1c34_type_group_hierarchy: LX=09, D2=34, LR2=11). d) the only level-1 placement this implementation has is bit alignment (§8.5.1.6.3 \"a level 1 bit group are at the first bit of a byte\" -> OK; no word-boundary slack at any level, §8.5.1.6.4): ExpandType sets DataItem.AlignedAsLevelOne for a group type and BitLayout.SharesByteWith — the one predicate the extent, offset, REDEFINES-class and image-run walks read — never lets that subject share its predecessor's byte (kb/Work PB1569). Pinned: BLR3=02 in l1c34_type_group_hierarchy; pb1569_type_subject_level1_bit_alignment adds the member image (RV), the elementary-type control (no GR2: shares the byte, BLE=01), a byte-aligned control (BLK=02), a SAME AS of a TYPE subject (carries d), BLR2=02) and a SAME AS of a plain level-1 bit group (no d), BLR3=01).",
+ "state": "OK"
+}

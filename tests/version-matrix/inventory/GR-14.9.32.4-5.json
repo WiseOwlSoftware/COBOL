@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.32.4-5",
+ "section": "14.9.32.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "RELEASE statement",
+ "rule-digest": "3a0810477a1e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelease; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#BindIoControl",
+ "test-ref": "conformance:cases/14.9.32-RELEASE/l1_release_from_sender_available",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "RELEASE SRT-REC FROM WS-SEND then DISPLAY WS-SEND, twice inside the input procedure and once after the SORT: identifier-1's area is available exactly as GR5 requires; the ascending RETURN order pins GR4's implicit MOVE.",
+ "state": "OK"
+}

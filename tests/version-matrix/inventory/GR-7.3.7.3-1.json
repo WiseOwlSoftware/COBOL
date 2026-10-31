@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.7.3-1",
+ "section": "7.3.7.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Compile-time boolean expressions",
+ "rule-digest": "cca1200d90c3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateBoolean; src/WiseOwl.Cobol.Frontend/Expressions/BooleanExpressionResolver.cs#Resolve; src/WiseOwl.Cobol.Frontend/Expressions/BitString.cs#Combine; src/WiseOwl.Cobol.Frontend/Expressions/BitString.cs#Not; src/WiseOwl.Cobol.Frontend/Expressions/BitString.cs#Shift",
+ "test-ref": "conformance:cases/7.3.7-Compile-time-boolean-expressions/boolean_expression_formation; unit:BooleanExpressionFormationTests.Shift_AfterBNot_TakesNegationPrecedence; unit:BooleanExpressionFormationTests.PrecedenceLadder_NotAndXorOr",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1370 landed (wave 66 h). Rule (cite.py --check 7.3.7.3 'The order of precedence and the rules for evaluation of compile-time boolean expressions are shown in 8.8.2' -> OK §7.3.7.3 1)). The refuted half is fixed in the ONE shared resolver: §8.8.2 7) b) 'The precedence of boolean shift operations ... is the same as that of the preceding operation, if any' (--check OK) and the ladder's '1st - negation (B-NOT)' (--check OK) make a B-NOT the preceding operation of a following shift, so A B-AND B-NOT B B-SHIFT-R 1 = A B-AND ((B-NOT B) B-SHIFT-R 1): 1010 B-AND B-NOT 0011 B-SHIFT-R 1 = 0010 (was 0100), in the compile-time fold AND the runtime COMPUTE (same resolver). The full ladder B-NOT > B-AND > B-XOR > B-OR is now pinned: B-NOT 1100 B-OR 0101 B-XOR 0110 B-AND 0011 = 0111 (both lanes). Combine/Not/Shift semantics unchanged (verified by the adjudicator).",
+ "state": "OK"
+}

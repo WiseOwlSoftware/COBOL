@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.6.3-2",
+ "section": "12.3.6.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "OBJECT-COMPUTER paragraph",
+ "rule-digest": "7af61d2451db",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#ResolveProgramCollating; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitProgramCollatingSequenceClause",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/alphabet-utf8-collating",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR2 (cite.py --check 12.3.6.3 \"Alphabet-name-2 shall reference an alphabet that defines a national collating sequence\" -> OK §12.3.6.3 2)). ResolveProgramCollating resolves alphabet-name-2 (two-name IS form and FOR NATIONAL form) ONLY against NationalAlphabets and then requires HasCollatingSequence (Table 6: UTF-8/UTF-16 have no collating sequence). Probes: sr2a.cob FOR NATIONAL IS <alphanumeric alphabet> -> COBOL0898; sr2b.cob two-name form with undeclared name-2 -> COBOL0898; sr2c.cob name-2 = ALPHABET FOR NATIONAL IS UTF-16 -> COBOL0898; sr2d.cob FOR NATIONAL IS LOCALE alphabet (Table 6 LOCALE = Y) accepted and collates by locale (prints LOCALE-ORDER); at --std 85 the national surface is edition-gated (COBOL0900). Unlike the SR1 slot, the undeclared-name arm here is strict. The existing negative golden alphabet-utf8-collating is SR2-derived (the UTF-8 arm); the alphanumeric-alphabet and undeclared arms are verified by probe only. [registrar 14a — editions as adjudicated: 2002, 2014, 2023 (alphabet-name-2 / the national program collating sequence arrive with the national class in 2002; Annex E records no 2014->2023 change)]",
+ "state": "OK"
+}

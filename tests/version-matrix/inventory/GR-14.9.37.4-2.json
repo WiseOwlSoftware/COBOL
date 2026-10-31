@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.37.4-2",
+ "section": "14.9.37.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "SEARCH statement",
+ "rule-digest": "3f24b9ff4dad",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs",
+ "test-ref": "conformance:cases/14.9.37-SEARCH/l1_search_when_comparison_rules",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The WHEN comparison's truth value derived from 8.8.4.2.4 (algebraic, usage- and length-independent) and 8.8.4.2.7 2) (shorter operand space-extended), in BOTH formats since GR2 is an ALL FORMATS rule.",
+ "state": "OK"
+}

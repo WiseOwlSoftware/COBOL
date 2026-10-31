@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.4.5.3-7",
+ "section": "13.4.5.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "File description entry",
+ "rule-digest": "b9a7373b54e4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#MaterializeImpliedRecord; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#FileDescriptionClauseAdmitted",
+ "test-ref": "conformance:cases/13.4.5-File-description/pb345-indexed-no-record; conformance:cases/13.4.5-File-description/pb345_record_less_fd_area_2023; conformance:cases/13.4.5-File-description/pb1238-fd-linage-relative; conformance:cases/13.4.5-File-description/pb1238_fd_formats_admitted",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB345 (landed). RULE: 'Format 2 is the file description entry for a relative file or an indexed file. For an indexed file, one or more record description entries shall be associated with the file description entry.' - cite.py --check 13.4.5.3 'For an indexed file, one or more record description entries shall be associated with the file description entry.' -> OK 13.4.5.3 7). Enforced as COBOL1837 at the file description entry. The rule has TWO halves and both are witnessed: the negative pins the INDEXED rejection at all four editions, and the positive pins that the RELATIVE half of the same sentence is NOT rejected - a record-description-less RELATIVE FD registers, UNLOCKs and READs. Before PB345 neither half held: the indexed program was accepted and aborted at run time, and the legal relative program was accepted and aborted with it. || kb/Work PB2503: the rule's FIRST sentence ('Format 2 is the file description entry for a relative file or an indexed file', cite.py --check 13.4.5.3 'Format 2 is the file description entry for a relative file or an indexed file.' -> OK 13.4.5.3 7)) is enforced where the format is decided: FileDescriptionFormats.Of maps a RELATIVE or INDEXED organization to Format 2 whatever else the FD says (a REPORT clause on it is a Format 2 violation, section 9.1.22 making a report file sequential), and DataBinder.FileDescriptionClauseAdmitted then asks every written clause against the rendered 13.4.5.2 Format 2 list (IS EXTERNAL, IS GLOBAL, BLOCK CONTAINS, the record clause, and the deleted-at-2002 clauses), refusing LINAGE, CODE-SET, FORMAT and REPORT on it as COBOL2604 before they bind. Pinned by conformance:cases/13.4.5-File-description/pb1238-fd-linage-relative (refused at all four editions) and the positive pb1238_fd_formats_admitted; FileDescriptionFormatDriftTests holds the table total over the grammar. Re-probed on a fresh build 2026-10-19: LINAGE on a RELATIVE FD draws COBOL2604 at --std 85 and 2023, an INDEXED FD with no record description draws COBOL1837.",
+ "state": "OK"
+}

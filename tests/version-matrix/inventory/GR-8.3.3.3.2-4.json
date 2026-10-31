@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.3.3.3.2-4",
+ "section": "8.3.3.3.2",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Numeric literals",
+ "rule-digest": "a83fee6e0e06",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#numericLiteralCore; src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#tokensAreContiguous; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/EmitCore.cs#TryUnscaledParts; src/WiseOwl.Cobol.Frontend/Common/NumericLiteral.cs#NumericLiteral.Normalize; src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#CheckDigitCapacity",
+ "test-ref": "conformance:cases/8.3.3.3.2-Fixed-point-numeric-literals/pb1446_comma_point_literal_value_and_size; conformance:cases/8.3.3.3.2-Fixed-point-numeric-literals/pb1446-leading-zeros-count-toward-literal-size; conformance:cases/8.3.3.3.2-Fixed-point-numeric-literals/pb1446_comma_decimal_leftmost_literal_stands_alone",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1446 landed (w1018d). \"The value of a fixed-point numeric literal is the algebraic quantity represented by the characters in the fixed-point numeric literal. The size of a fixed-point numeric literal is equal to the number of digits in the string of characters in the literal.\" (cite.py --check 8.3.3.3.2 -> OK §8.3.3.3.2 4)). The refuter's one gap (`1 ,5` valued 1.5, the value of characters outside the literal) is closed by the contiguity predicate. VALUE: the COBOL-85 golden pins -,5 = -0.50, +000123,4500 = 123.45, 1,25 * -2 = -2.50, 10 - -1,5 = 11.50 under DECIMAL-POINT IS COMMA. SIZE: leading zeros count -- -000000000000000012 (18 digits) is accepted at COBOL-85 and -0000000000000000001 (19 digits, value -1) is refused COBOL0802 at COBOL-85 (negative). The PB1230 constant-entry check: `01 K1 CONSTANT AS 1 ,5.` is refused (COBOL0307), not normalized to 1,5.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-12.4.6.2",
+ "section": "12.4.6.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "I-O-CONTROL paragraph",
+ "rule-digest": "bea3f5dbe52a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#ioControlClause; src/WiseOwl.Cobol.Frontend/Cst/ClosedFormats.cs#ByContext; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedClause; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenParagraphPeriods",
+ "test-ref": "conformance:cases/12.4.6-I-O-CONTROL/pb829-io-control-unrecognized-clause; conformance:cases/11.2-Identification-division-structure/pb829_closed_formats_legal; unit:ClosedFormatDriftTests.EveryContextCarryingTheErrorProduction_HasAClosedFormatRow; conformance:cases/12.4.6-I-O-CONTROL/pb2727-io-control-period-per-clause; conformance:cases/12.4.6-I-O-CONTROL/pb2727-io-control-period-missing; conformance:cases/12.3.7-SPECIAL-NAMES/pb2727_paragraph_single_period; unit:ParagraphPeriodDriftTests.EveryRuleWritingAnOptionalPeriod_HasAParagraphPeriodRow",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The format is `I-O-CONTROL . [[apply-commit-clause].] [[{same-clause}...].]`, RENDERED from the printed page (PDF p363 / printed folio 333); the prose under the figure adds that the two clauses may be specified in any order. kb/Work PB2727: the run of SAME clauses is ONE sentence closed by ONE separator period and the APPLY COMMIT clause a sentence of its own; the grammar's `(ioControlClause DOT?)*` is a punctuation superset read by ClosedFormatPass through ParagraphPeriods, which refuses a period splitting a sentence (COBOL3407) or a missing closing one (COBOL3408) at every edition — a period after each clause used to compile clean. Both clauses are modelled: same-clause with all of its RECORD / SORT / SORT-MERGE variants, and apply-commit-clause bound for every file 9.1.18.2 admits (Annex A.4.3; kb/Work PB3338, PB3340: COBOL1709, the earlier refusal by name, is retired). The COBOL-85 RERUN and MULTIPLE FILE TAPE clauses removed at COBOL-2002 are superset-parsed and removal-gated post-bind. The residue is now DIAGNOSED: this alternative list ended in an INLINE generic-clause catch-all, which is why kb/Work PB487's sibling sweep — reading the grammar by rule NAME — never counted it, and `I-O-CONTROL.` followed by `WIBBLE WOBBLE.` compiled and ran in silence. It is now the shared `unrecognizedClause` error production, COBOL1970.",
+ "state": "OK"
+}

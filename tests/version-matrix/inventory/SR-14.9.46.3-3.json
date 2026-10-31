@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.46.3-3",
+ "section": "14.9.46.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "TERMINATE statement",
+ "rule-digest": "60b4bb467c69",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs#CheckCrossStatementBans",
+ "test-ref": "conformance:cases/14.9.46-TERMINATE/l1c33-terminate-multi-in-exc-perform; conformance:cases/14.9.46-TERMINATE/l1c33_terminate_single_in_exc_perform",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "cite.py --check 14.9.46.3 \"shall not be specified in an exception checking PERFORM statement\" -> OK §14.9.46.3 3). CheckCrossStatementBans scans region B (imperative-statement-1 plus every WHEN/FINALLY body — the whole PERFORM) for terminateStatement with reportName().Length > 1 -> COBOL1606. The ban counts report-name OCCURRENCES, matching the rule's 'specifies more than one report-name'. Probed out/probe/terminate-statement: s1.cob (TERMINATE R-A R-B in imperative-statement-1, WHEN EC-ALL) -> COBOL1606; s2.cob (in the WHEN body) -> COBOL1606; s3.cob (two single-name TERMINATEs in imperative-statement-1) compiles and runs (OK). At --std 2014 the PERFORM itself is refused by COBOL0900 (s4.cob). No negative golden for COBOL1606 exists (grep tests/conformance/negative). [editions as adjudicated: 2023 (the exception-checking PERFORM is new in 2023 — VERSION_CHANGE_REFERENCE row 79, Annex E.3.3 item 36)]",
+ "state": "OK"
+}

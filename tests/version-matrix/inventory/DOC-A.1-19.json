@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-19",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 19,
+ "subject": "CANCEL statement (result of canceling a non-COBOL program)",
+ "rule-digest": "3faf9461dccc",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-19; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Cancel; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-DOC-A.1-19",
+ "editions": "85,2002,2014,2023",
+ "notes": "§14.9.5.4 GR10's branch is UNREACHABLE from COBOL source in this implementation, so the row stays a GAP and this record deliberately carries NO test-ref. GR10's premise is a program the runtime system LOCATED per GR2 (§8.4.6/§8.4.6.3); ProgramTable.Cancel resolves every target with probe:false and returns on a null node, so CANCEL performs no locate step that could reach a sibling module and the named module's LANGUAGE is never consulted — a foreign module name and a nonexistent name take the byte-identical not-located path. No CALL-CONVENTION directive exists (§7.3.9), so a non-COBOL program cannot be declared either. A corpus golden therefore cannot exercise this determination: any such program's output is invariant under it. What is observable — GR3 re-initialization and GR7's never-called/not-located/already-canceled no-ops with its control-transfer sentence — is already pinned by conformance:cases/14.9.5-CANCEL/pb154_cancel_scope and conformance:cases/11.10-PROGRAM-ID/pb154_cancel_cascade and belongs to items 18/other GR rows, not to item 19. Closing item 19 needs an owner decision: re-file the row as an unreachable-branch determination, or add a harness that deploys a companion non-COBOL module and drives ProgramTable.Cancel directly (a unit: ref). || CLOSED 2026-09-04 ON AN OWNER-SIGNED DERIVATION. The owner decision this note asks for is kb/Work PB386, and the determination is filed at docs/CONFORMANCE.md#DRV-DOC-A.1-19 under the indistinguishable-consequent arm: item 19's consequent cannot be told apart from GR-14.9.5.4-7's not-located no-op, which is already witnessed. The row is no longer a GAP, and no harness is owed. || editions 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a facility that exists at every edition (the COBOL-85 nucleus, I-O, inter-program and SPECIAL-NAMES implementor-names; its arithmetic, the only arithmetic of COBOL-85, is what later editions name native).",
+ "state": "OK"
+}

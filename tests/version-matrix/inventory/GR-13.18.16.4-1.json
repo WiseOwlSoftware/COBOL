@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.16.4-1",
+ "section": "13.18.16.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "CONTROL clause",
+ "rule-digest": "c55026a8e3c7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindReportDescriptionClauses; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AddControl",
+ "test-ref": "conformance:cases/13.18.16-CONTROL/pb205_control_ref_mod",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The operands are captured in written order into ReportModel.Controls and emitted in that order as AddControl calls, so index 0 is the major control and the last is the minor. The golden proves the ordering behaviourally: its first operand CX(1:3) is the level whose footing prints last at a break and whose SUM covers both minor groups, while its second operand CX(4:) breaks on its own.",
+ "state": "OK"
+}

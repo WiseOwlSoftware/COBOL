@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.7.4-4",
+ "section": "12.3.7.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "4bbdad26fcb2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/SwitchStore.cs#SwitchStore; docs/CONFORMANCE.md#DOC-A.1-191",
+ "test-ref": "conformance-test:AlterSwitchesDifferentialTests.Switch_EnvironmentVariableSuppliesInitialState",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR4 - the implementor defines each switch's scope and the external facility: run-unit scope; the COBOL_<SWITCH-NAME> environment variable supplies the initial status (DOC-A.1-191). kb/Work PB862.",
+ "state": "OK"
+}

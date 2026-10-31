@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.7.4-9",
+ "section": "12.3.7.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "eb1c566f75ff",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#Extremes; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#AlphabetLiteralPhrase; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#LowValue",
+ "test-ref": "conformance:cases/8.3.3.6-Figurative-constant-values/da1_alphabet_hex_thru",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 12.3.7.4 \"If more than one character has the lowest position in the program collating sequence, the first character specified is associated with the figurative constant LOW-VALUE\" -> OK §12.3.7.4 9)): lowest ordinal position in the PCS -> LOW-VALUE; tie -> first character specified. CODE: Extremes takes specOrder[0] - the first character specified always occupies position 0 (AlphabetLiteralPhrase assigns positions in source order; a refused duplicate (SR14 a) never enters specOrder; a THRU+ALSO entry refused by COBOL2242 contributes nothing), and a position-0 ALSO tie resolves to that same character. Identity sequences (NATIVE / STANDARD-1/2 / UCS-4 / ASCII) -> U+0000, the lowest native code unit. MEASURED (probe/snp3/g9also.cob): ALPHABET AL IS \"B\" ALSO \"A\" ALSO \"Z\", ... -> LOW-VALUE = 'B' (tie, first specified); (probe/snp3/g9loc.cob) ALPHABET LOC IS LOCALE as PCS -> ORD(LOW-VALUE) = 1 and X\"01\" = LOW-VALUE (U+0000 shares the lowest, completely-ignorable rank with other C0 controls; U+0000 is the lowest code among them - the locale sequence has no 'specified' order, CONFORMANCE.md §3 L7 documents LOW-VALUE U+0000 under a locale sequence). da1_alphabet_hex_thru derives LOW-VALUE = 'Z' for ALPHABET AL IS X\"5A\" THRU X\"41\" from the lowest position (spec-derived expected). [registrar 14a — editions as adjudicated: 85, 2002, 2014, 2023 (the national program collating sequence half from 2002)]",
+ "state": "OK"
+}

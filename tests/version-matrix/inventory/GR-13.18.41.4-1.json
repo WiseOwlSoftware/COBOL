@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.41.4-1",
+ "section": "13.18.41.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "PRESENT WHEN clause",
+ "rule-digest": "abdcae19628e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportPresentWhenClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolDeclined.g4#validatePresentWhenClause; src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/rw_present_when; conformance:cases/13.18.41-PRESENT-WHEN/declined-validate-present-when",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1272 + owner decision kb/Work R43 item 2 (a rule half inside a declined facility takes its LIVE half verdict): the dispatch by placement is right (report group entry -> format 1, any other data description entry -> format 2); the format-1 arm now conforms (PB1272, GR-13.18.41.4-2); the format-2 arm is the declined VALIDATE facility (COBOL1708, docs/CONFORMANCE.md section 5 item 3; rows GR-13.18.41.4-4..6 DOCUMENTED-NON-SUPPORT, kb/Work PB283) and is non-support by R43 item 1.",
+ "state": "OK"
+}

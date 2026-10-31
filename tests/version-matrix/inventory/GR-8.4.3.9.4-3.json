@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.9.4-3",
+ "section": "8.4.3.9.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Object property",
+ "rule-digest": "34d4697843d0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoWrapPropertyOps; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.ObjectProperty.cs#ResolveObjectProperty",
+ "test-ref": "conformance:cases/8.4.3.9-Object-property/pb1448_group_valued_property",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1448 landed (w1005e): a read-modify-write occurrence wraps ONE temp with the GET before and the SET after; the golden's INSPECT over the group property prints GET-CALLED then SET-CALLED with the replaced content. retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#OoTryBindPropertyReference (the one-word property binder ReferenceResolver.OoTryBindPropertyReference is deleted by kb/Work PB1425 (w1021a): a property reference is resolved by ReferenceResolver.ResolveObjectProperty, which splits the chain and resolves identifier-3 through the ordinary resolver)",
+ "state": "OK"
+}

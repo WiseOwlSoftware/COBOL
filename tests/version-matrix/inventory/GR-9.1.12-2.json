@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.12-2",
+ "section": "9.1.12",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Files",
+ "rule-digest": "14a7b0ec289f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc",
+ "test-ref": "conformance:cases/9.1.12-Input-output-exception-processing/pb344_use_f3_perform_preempt",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (9.1.12 item 2 + closing sentence): \"Statements in a file-exception or exception-name format of a USE declarative as specified in General rule 3 of the USE statement\" / \"The first one in the list that matches is the one selected. Any others that match are ignored.\" [cite.py --check PASS 9.1.12]. The file-name tier then the open-mode tier are rendered by the ONE UseTierEmitter shared by __IoCheck, __IoCheckEc and __RunGlobalUse; the exception-name (Format 3) tiers follow in __IoCheckEc; at most one declarative runs. Annex E.2 item 19 a)/b) (open-mode declaratives now reached by an unphrased invalid key / other READ exceptions) is applied at every edition — a documented determination on UseTierEmitter (kb/Work PB344, landed) pinned by conformance:{85,2002,2014,2023}/pb344_use_mode_invalid_key and pb344_use_mode_read_exception. Probe E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2b\\out\\probe\\p912\\p1.cob Q4 (no WHEN matches -> DECL-IN 10); E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2b\\out\\probe\\p914\\k1.cob/k2.cob at 85 and 2023 (file-name and I-O-mode declaratives run on an unphrased '22' and a '48'; a closed file does not reach the I-O-mode tier). Covering test: pb344_use_f3_perform_preempt Q2 (USE selected when no WHEN matches); conformance:cases/14.9.49-USE/pb367_use_procedure_is_the_section_ec_io covers the exception-name format. || Editions (adjudicator, verbatim): 1985, 2002, 2014, 2023 (file-exception USE formats from 1985; exception-name USE format from 2002; the 'first in the list' ordering against a PERFORM WHEN is 2023-only) || Code sites (adjudicator, verbatim): src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery (__IoCheck); src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc (__EcDispatch F3 tiers GR3c-g, outward GLOBAL walk)",
+ "state": "OK"
+}

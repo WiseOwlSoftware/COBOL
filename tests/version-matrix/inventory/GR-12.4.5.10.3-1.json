@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.10.3-1",
+ "section": "12.4.5.10.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "ORGANIZATION clause",
+ "rule-digest": "9fbca6b4cf54",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#MapOrganization; src/WiseOwl.Cobol.Runtime/IO/FixedFileAttributes.cs#Conflicts; src/WiseOwl.Cobol.Runtime/IO/Store/MetaPage.cs#Describes; src/WiseOwl.Cobol.Runtime/IO/Store/MetaPage.cs#Encode",
+ "test-ref": "conformance:cases/9.1.13.6-Permanent-error-condition-with-unsuccessful-completion/open_fixed_attribute_conflict; conformance:wiseowl/cases/12.4.5.10-ORGANIZATION/pb1098_organization_permanence_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1098 (w61d). Half 2 ('cannot subsequently be changed') now holds for the sequential view too: a SEQUENTIAL description's OPEN I-O or EXTEND over a physical file whose store header records RELATIVE or INDEXED is the '39' file attribute conflict (SequentialConnector.FixedAttributeConflict; DOC-A.1-129 arm (4)), so its REWRITE can no longer overwrite the header and its records can no longer follow the frames. OPEN INPUT stays unvalidated (PB802's determination) and OPEN OUTPUT creates a new file. MEASURED (golden): SQ-IO=39, SQ-EXT=39, SQ-IN=00, the relative store then reads RRN 7 intact; relative<->indexed swap '39' both ways; sequential I-O over the indexed store '39'. retired-witness: src/Cobol.Net.Runtime/IO/RecordFraming.cs#ReadHeader (the whole-store model's remains are deleted (kb/Work PB3335; DESIGN-runtime-library 2.2.1.13): the organization the file records is read from its committed meta page (MetaPage.Describes); the whole store's header went with it; the organization the file records is written in its meta pages (MetaPage.Encode) at its creation; the whole store's header went with it) retired-witness: src/Cobol.Net.Runtime/IO/RecordFraming.cs#WriteHeader (the whole-store model's remains are deleted (kb/Work PB3335; DESIGN-runtime-library 2.2.1.13): the organization the file records is read from its committed meta page (MetaPage.Describes); the whole store's header went with it; the organization the file records is written in its meta pages (MetaPage.Encode) at its creation; the whole store's header went with it)",
+ "state": "OK"
+}

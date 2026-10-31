@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.46.4-1",
+ "section": "13.18.46.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "REPORT clause",
+ "rule-digest": "49e5634f6c6d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ResolveReports; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+ "test-ref": "conformance:cases/13.18.12-CODE/pb1050_reports_share_file",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "(kb/Work PB1050, wave 1005 A). 'The presence of more than one report-name-1 indicates that more than one report may be written to the file' (cite.py --check 13.18.46.4 OK 1)). A multi-report FD is no longer refused: ResolveReports binds each report to its FD (model.File) and EmitReportConstruction gives each its own CobolReport engine over the one connector (the held-back-line claim of kb/Work PB1247 orders the records). pb1050_reports_share_file interleaves GENERATEs of two reports and asserts the records in GENERATE order, told apart by their CODE characters. retired-witness: src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#ReportMultipleOnFile (the descriptor was deleted: a file description entry may name several reports and each has its own engine)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.29.3-3",
+ "section": "13.18.29.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "GROUP-USAGE clause",
+ "rule-digest": "84e6e796f9f2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UsageInheritanceGroup; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#GroupUsagePairIsTheDeclarations",
+ "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb79-group-usage-explicit-usage; conformance:cases/13.16-Data-description/pb79_group_usage_national; conformance:cases/13.18.29-GROUP-USAGE/pb3682-typedef-group-usage-national-over-bit; conformance:cases/13.18.29-GROUP-USAGE/pb3682-type-subject-group-usage-from-enclosing-group; conformance:cases/13.18.29-GROUP-USAGE/pb3682-same-as-subject-group-usage-from-enclosing-group",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (PB79). USAGE NATIONAL implied for the subject (the PicPending.NationalUsage adjudication: every subordinate leaf must be usage national — a boolean/numeric leaf is the national-FORM staged leg (0899, Phase 4a residue), an alphabetic/alphanumeric one COBOL0881); an explicit USAGE on the subject and a conflicting subordinate GROUP-USAGE are COBOL1653. The SIGN IS SEPARATE half rides the numeric-national leg (staged with it).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.10.3-12",
+ "section": "13.10.3",
+ "kind": "SR",
+ "ordinal": 12,
+ "subject": "Constant entry",
+ "rule-digest": "f5207160c929",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#BindConstantLength; src/WiseOwl.Cobol.Compiler/Binding/Model/VariableLengthCompatibility.cs#DynamicLengthOrVariableLengthGroup",
+ "test-ref": "conformance:cases/13.10-Constant/pb1213-constant-length-variable-group; conformance:cases/13.10-Constant/pb1213_varlen_neighbours",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1213: LENGTH OF a dynamic-length elementary item or a variable-length group (including one made variable by a DYNAMIC LENGTH leaf) is refused citing SR12; an item that IS a dynamic-capacity table (its element, e.g. LENGTH OF T (1)) and an occurs-depending group are neither shape and stay legal (the private table walk had refused the former).",
+ "state": "OK"
+}

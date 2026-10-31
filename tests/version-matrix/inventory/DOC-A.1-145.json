@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-145",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 145,
+ "subject": "RANDOM function (subset of the domain of argument-1)",
+ "rule-digest": "5718609a102e",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-145; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Random",
+ "test-ref": "unit:RandomSeedSubsetTests.Seeds_0_Through_65535_YieldPairwiseDistinctSequences; unit:RandomSeedSubsetTests.SeedsAtOrAbove2Pow31_AliasToTheirMaskedValue",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "editions 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the RANDOM function exists from 85 (IntrinsicCatalog.cs, the COBOL1502 edition window).",
+ "state": "OK"
+}

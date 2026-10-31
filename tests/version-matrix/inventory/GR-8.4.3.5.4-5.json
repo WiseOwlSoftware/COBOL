@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.5.4-5",
+ "section": "8.4.3.5.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Object-view",
+ "rule-digest": "32095a439909",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectView; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectReferenceAtom; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.ObjectView.cs#OoBindObjectView; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoCreateObjectViewTemp; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitObjectView; src/WiseOwl.Cobol.Runtime/Control/CobolObject.cs#ObjectView",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1425_object_view",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1425 (w1019a). FACTORY and ONLY: exactly the class's factory object (OK 5)). Golden: PB1425VD's factory AS FACTORY OF PB1425VD ONLY conforms (New -> DERIVED); AS FACTORY OF PB1425VA ONLY -> HANDLED=EC-OO-CONFORMANCE. [editions: the OO facility, 2002+]",
+ "state": "OK"
+}

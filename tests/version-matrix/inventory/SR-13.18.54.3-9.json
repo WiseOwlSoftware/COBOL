@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.54.3-9",
+ "section": "13.18.54.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "SUM clause",
+ "rule-digest": "4d6e1819ba15",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#IsReportSumClauseKeyword; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#TrackReportSection; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportSumClause",
+ "test-ref": "conformance:cases/13.18.54-SUM/pb924_report_sum_paren_addend; conformance:cases/12.3.8-REPOSITORY/pb924_sum_function_arms_beside_report; unit:CobolLexerModeDriftTests.ReportSumClause_ParenthesisedAddend_LexesInDefaultMode; unit:CobolLexerModeDriftTests.ReportSumRegion_LeavesTheFunctionArmsIntact",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB924 (2026-09-22). --check 13.18.54.3 \"Otherwise, SUM refers to the report writer SUM clause\" -> OK 9). SUM carries subscriptTrigger for the keyword-omitted intrinsic SUM(...) (8.4.3.2.3 SR2), and the lexer pushed SUBSCRIPT mode at the '(' after a bare SUM everywhere, so `SUM (WS-K * WS-M)` in a report description entry died at the token inside the parens. SR9's discriminator is the REGION: the lexer now tracks the REPORT SECTION (opened by its header, closed by the next section/division header) and a SUM there no longer triggers SUBSCRIPT, so the '(' is an arithmetic LPAREN and the addend parses through reportValueOperand. FUNCTION SUM( stays FNARG_LPAREN in the report section, and the keyword-omitted SUM(...) outside it still captures (both arms pinned by the drift tests and the 2023 golden). Editions 85+: the report writer SUM clause with an expression addend is an 85 construct (PB883).",
+ "state": "OK"
+}

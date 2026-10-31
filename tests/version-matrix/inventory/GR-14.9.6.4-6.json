@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.6.4-6",
+ "section": "14.9.6.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "CLOSE statement",
+ "rule-digest": "5d7f59e11cc8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#IsOpen; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseReelUnit",
+ "test-ref": "conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_close_status; unit:FileStatusDisciplineTests.CloseReelUnit_AbsentOptional_NoUnitProcessing",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB140) at the ROOT CAUSE the refuter named: openness and the file position indicator are separate state now - FileConnector._openMode (one base bit, set by a success-family OPEN, cleared by any completed CLOSE) replaces the three per-connector predicates, and SequentialConnector.IsOpen no longer folds OptionalAbsent in. Consequences, both directions: CLOSE REEL/UNIT on an absent optional input file performs NO unit processing and answers the plain-successful '00' (GR6; pb140_close_status GUNIT=00, plus the unit fact), and NO CloseCore clears OptionalAbsent any more - the FPI survives the CLOSE unchanged exactly as GR6 states, reset by the next OPEN. The current-volume-pointer clause stays vacuous (no volume model - GR-14.9.6.4-2's residue, not this row's).",
+ "state": "OK"
+}

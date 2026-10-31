@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.84.4-1",
+ "section": "15.84.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "SQRT function",
+ "rule-digest": "e2b564b4122d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolDec.cs#Sqrt",
+ "test-ref": "conformance:cases/11.9.5-ARITHMETIC/pb116_sqrt_standard_decimal; unit:CobolDecSqrtTests.Sqrt2_Is34DigitsCorrect",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "LANDED (kb/Work PB116): under a standard mode the EXACT argument enters CobolDec.Sqrt unrounded (r1) - a fixed-point operand lifts exactly per 8.8.1.5.2, and the root is an exact integer floor square root over the significand scaled to >= 71 digits. Under NATIVE the binary64 funnel stands under r4's approximation licence (the argument now correctly rounded per PB115); r1's mode-independent reading under native is subsumed by r4 - documented in the note.",
+ "state": "OK"
+}

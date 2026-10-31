@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.43.4-9",
+ "section": "13.18.43.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "RECORD clause",
+ "rule-digest": "8f38fb7a819d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMin; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MinRecordSize",
+ "test-ref": "conformance:cases/13.4.6-Sort-merge-file-description/pb1277_record_size_in_bytes; unit:RecordSizeModelTests.UnstatedRange_IsTheRecordsByteSize",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Landed by kb/Work PB1277 (w61f). cite.py --check 13.18.43.4 'the least number of bytes described for a record in that file' -> OK §13.18.43.4 9). FileModel.VaryMin is integer-2 ?? the least MinRecordSize, in bytes, one formula for the explicit and implied clauses. Golden 2002/pb1277_record_size_in_bytes: PIC N(10) under RECORD IS VARYING DEPENDING ON L -> L=12 answers 44 (min 20, was 10: accepted); two PIC 1(3) USAGE BIT items -> min = max = 1, L=1 answers 00 (was min 2 > max 1: every WRITE 44).",
+ "state": "OK"
+}

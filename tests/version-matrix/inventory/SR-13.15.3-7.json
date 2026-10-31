@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.15.3-7",
+ "section": "13.15.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "Report group description entry",
+ "rule-digest": "1850002beb1a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportEntriesNamed; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportEntryReferenceRefused; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportNamedEntry; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ReportUnidentified; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveClauseOperand; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs; src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs",
+ "test-ref": "conformance:cases/13.8.6.2.3-Report-Items/pb1046-report-item-referenced-in-procedure-division; conformance:cases/13.8.6.2.3-Report-Items/pb1046-report-group-referenced-in-procedure-division; conformance:cases/13.8.6.2.3-Report-Items/pb1046-global-report-item-referenced-in-contained-program; conformance:cases/13.8.6.2.3-Report-Items/pb1046-report-item-referenced-by-file-status; conformance:cases/13.8.6.2.3-Report-Items/pb1046-report-item-as-occurs-depending-object; conformance:cases/13.8.6.2.3-Report-Items/pb1046_report_sum_counter_in_contained_program; unit:ReportItemReferenceTests.AReportEntryReferencedByAProcedureStatement_IsRefusedAsAReportItem; unit:ReportItemReferenceTests.AReportEntryNamedByAClauseOfAnotherSection_IsRefusedAsAReportItem",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR7 has two halves. The first (the entry-name format shall be specified when the data-name is referenced in a GENERATE statement, a USE BEFORE REPORTING statement, as a qualifier for a SUM counter, in the UPON phrase of the SUM clause, or as an operand in a SUM clause) holds by construction: those references resolve by name through ReportGroupResolution and the SUM resolvers, and an unnamed entry has no name to resolve. The second (the data-name shall not be referenced in any other way) is enforced as its own rule: a reference that reaches an unidentified-name report AND names a report section entry (DataBinder.ReportEntriesNamed - the entry's real qualification, the report-name last, the GLOBAL reports of containers included) draws COBOL5092 citing 13.8.6.2.3 and 13.15.3 SR7 instead of the false COBOL1639 'not defined', from a procedure division statement, a FILE STATUS / RELATIVE KEY / LINAGE / APPLY COMMIT clause, and an OCCURS DEPENDING ON of another section. A sum counter (13.8.6.2.3 1) and a DETAIL group named by GENERATE (13.8.6.2.3 2) never reach it. Closed by kb/Work PB1046.",
+ "state": "OK"
+}

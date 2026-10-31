@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.53.2",
+ "section": "15.53.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "LOCALE-TIME function",
+ "rule-digest": "037a5ab80cdc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog",
+ "test-ref": "conformance:cases/14.6.6-Locale-identification/pb64t4_locale_functions; conformance-test:LocaleDispositionTests.LocaleFunctions_AreLive",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T4: FUNCTION LOCALE-TIME ( argument-1 [ locale-name-1 ] ). Was NOT-IMPLEMENTED.",
+ "state": "OK"
+}

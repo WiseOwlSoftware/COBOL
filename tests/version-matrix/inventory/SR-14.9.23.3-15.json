@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.23.3-15",
+ "section": "14.9.23.3",
+ "kind": "SR",
+ "ordinal": 15,
+ "subject": "INVOKE statement",
+ "rule-digest": "e5914c424e3e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#InvokeByValueOperandClass",
+ "test-ref": "conformance:cases/8.4.3.4-Inline-method-invocation/pb1051-by-value-argument-alphanumeric; conformance:cases/8.4.3.4-Inline-method-invocation/pb1051-inline-by-value-formal-alphanumeric; conformance:cases/8.4.3.4-Inline-method-invocation/pb1051_method_by_value; conformance:cases/14.9.23-INVOKE/pb1136-invoke-null-by-value-alphanumeric",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1051 landed (wave 1011 C): a METHOD formal declared BY VALUE is carried (OoFormal.ByValue). cite.py --check 14.9.23.3 'If identifier-5 or its corresponding formal parameter is specified with the BY VALUE phrase, identifier-5 shall be of class message-tag, numeric, object or pointer' -> OK 14.9.23.3 15). COBOL2741 (InvokeByValueOperandClass), asked of an explicit BY VALUE argument and of a bare argument whose formal is BY VALUE (INVOKE form and inline form); numeric, pointer and object-reference arguments pass (golden pb1051_method_by_value). Class message-tag is not modeled.",
+ "state": "OK"
+}

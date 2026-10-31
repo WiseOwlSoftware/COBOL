@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.58.4-1",
+ "section": "13.18.58.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "TYPEDEF clause",
+ "rule-digest": "c9603274c4ba",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandType; src/WiseOwl.Cobol.Compiler/Binding/Model/DescriptionCopy.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CloneRenamesOnto; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindRenames",
+ "test-ref": "conformance:cases/13.18.58-TYPEDEF/pb1304_typedef_renames; conformance:cases/13.18.58-TYPEDEF/typedef_88; conformance:cases/13.18.58-TYPEDEF/pb1304-typedef-renames-unresolved-operand; conformance:cases/13.18.57-TYPE/pb1304-typedef-strong-renames",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1304 (wave 1011 B). cite.py --check 13.18.58.4 'RENAMES clauses are part of the type declaration of that type' OK. REFERENCE half CONFORMS (registrar 14e's probes: template members off ByName, clones registered; single group bare name, two groups ambiguous COBOL1639, qualified resolves, no group invalid reference, another resource named A resolves to it). RENAMES half now CONFORMS: BindEntries tracks the template root and BindRenames hangs a template's level-66 entries on it (off the by-name index); ExpandType calls CloneRenamesOnto, giving each group the type is applied to - a record or a group inside one, nested types included - its own alias with the same operand names, resolved and screened per owner by the one RENAMES pass (RenamesOwners). Golden conformance:cases/13.18.58-TYPEDEF/pb1304_typedef_renames prints XY-- / zYPQ / [zY][PQ] / 1234[12][34] / [abc][dd ] / abdd; the clone skips no screen: an unresolved operand is COBOL1655 at the group built from the type, a STRONG type's alias is COBOL1532 (SR3 of 13.18.57.3). The duplicate-code state of COBOL1535 (PB608) ends with the staged descriptor's deletion.",
+ "state": "OK"
+}

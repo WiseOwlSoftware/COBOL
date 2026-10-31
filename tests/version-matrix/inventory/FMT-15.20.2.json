@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.20.2",
+ "section": "15.20.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "COS function",
+ "rule-digest": "bfb6bbb5ad7b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgument",
+ "test-ref": "conformance:cases/15.8-ACOS/general_format_intrinsics_batch1",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Verdict unchanged; supplies the missing spec-derived test. cos(0)=1 per 15.20.4 r1, pinned by an inclusive range for the same 15.4.1 approximation reason as ACOS.",
+ "state": "OK"
+}

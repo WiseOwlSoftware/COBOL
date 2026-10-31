@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.4.3-2",
+ "section": "8.4.3.4.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Inline method invocation",
+ "rule-digest": "323c718fb0dd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.InlineInvocation.cs#OoBindInlineInvocation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.InlineInvocation.cs#RefuseUniversalInlineReceiver",
+ "test-ref": "conformance:cases/8.4.3.4-Inline-method-invocation/pb428-inline-invocation-null-receiver; conformance:cases/8.4.3.4-Inline-method-invocation/pb1429-inline-chained-universal; conformance:cases/8.4.3.1-Identifier/pb428_inline_method_invocation",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1429 LANDED (w1014u). cite.py --check 8.4.3.4.3 'neither the predefined object reference NULL nor a universal object reference shall be specified' OK 2). The SR2 universal screen is ONE predicate (OoBinder.RefuseUniversalInlineReceiver) asked of the written first receiver AND of every chained segment's receiver (the previous segment's temporary, which is identifier-1 of the next by the recursive identifier definition, 8.4.3.1.3 SR1). NULL receiver -> COBOL2138 (pb428 negative); written universal -> COBOL2138 (pb428 negative); chained universal temp (A1 :: \"UNIV\" :: \"GETNAME\", UNIV RETURNING a universal reference) -> COBOL2138 (pb1429 negative; was the COBOL2362 internal error); chained class-typed temp still runs (pb428 case 6 -> ACCOUNT). OoBindUniversalInvoke asserts it is never reached from an inline site.",
+ "state": "OK"
+}

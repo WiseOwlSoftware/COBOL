@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.4.4.3-2",
+ "section": "8.8.4.4.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Simple class condition",
+ "rule-digest": "db819c2d5fe2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindComparison; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#IsLocaleAlphabet",
+ "test-ref": "conformance:cases/8.8.4.4-Simple-class-condition/pb64t5-class-condition-locale-alphabet",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T5 (2026-08-19): a class condition whose alphabet-name-1 names an ALPHABET … IS LOCALE [locale-name] — of EITHER class (alphanumeric, or FOR NATIONAL) — is COBOL1669 locale-alphabet-not-a-charset: a LOCALE alphabet defines a collating sequence only (§12.3.7.4 GR7, Table 6), so it names no coded character set a class condition could test membership of. DataBinder.IsLocaleAlphabet is the ONE predicate; the same rule family (§12.3.7.3 SR16g / SR17d — the IN phrases of SYMBOLIC CHARACTERS and CLASS; §13.18.13.3 SR1/SR2 — CODE-SET) awaits those phrases binding at all (kb/Work PB110). Rule --check verified at 8.8.4.4.3 2).",
+ "state": "OK"
+}

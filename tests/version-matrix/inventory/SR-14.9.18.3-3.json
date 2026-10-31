@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.18.3-3",
+ "section": "14.9.18.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "GOBACK statement",
+ "rule-digest": "f54f33436164",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitRaisingStage; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcBindRaising",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/oo_ec_goback_raising",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "identifier-1 is bound through ctx.Refs.Resolve and rendered exactly once, read-only: `ExceptionState.SetPropagatingObject(PlaceRenderer.Read(os))`. No emit path writes it, and BoundStores.Visit(BoundGoback) returns StoreKind.None, so the sending-operand classification holds by construction across the store analysis as well.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitRaisingStage; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcBindRaising",
+ "state": "OK"
+}

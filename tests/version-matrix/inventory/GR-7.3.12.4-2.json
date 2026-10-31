@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.12.4-2",
+ "section": "7.3.12.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "DISPLAY directive",
+ "rule-digest": "2fb0e3951264",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#CompilerDirectiveLine; src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#display-directive-2023",
+ "test-ref": "conformance:cases/7.3.12-DISPLAY/pb725_push_pop_display; unit:DisplayDirectiveTests.NoUponPhrase_IsAsIfUponListing_WhichIsStandardOutput; unit:DisplayDirectiveTests.OperandsAreTransferredInOrderAsOneLine",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "cite.py --check 7.3.12.4 \"If the compiler does not produce a source listing, the result of the DISPLAY directive is defined by the implementor\" -> OK §7.3.12.4 2). WiseOwl COBOL produces no source listing (same CONFORMANCE.md determination as >>LISTING/>>PAGE), so the implementor-defined result applies: recognized and consumed, nothing transferred. Disposition: docs/CONFORMANCE.md (Recognized-and-ignored compiler directives, line 526) records that >>DISPLAY is recognized and consumed because no source listing and no compile-time device exist; the directive is edition-gated (dd1 at --std 2014 -> COBOL0900). The 'otherwise ... irrespective of the LISTING directive' half is inapplicable (no listing). Probe dd1 '>>DISPLAY \"HELLO\"' at 2023 compiles and runs printing only RUN. || editions (adjudicator): 2023 only (Foreword list of 2023 additions: 'Additional compiler directives were added: ... DISPLAY directive'); absent 1985/2002/2014",
+ "state": "OK"
+}

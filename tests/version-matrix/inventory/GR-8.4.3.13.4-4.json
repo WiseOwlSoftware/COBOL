@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.13.4-4",
+ "section": "8.4.3.13.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Program-address-identifier",
+ "rule-digest": "66676bdba9ae",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#FatalAmbientGates; src/WiseOwl.Cobol.Runtime/Control/ProgramRegistry.cs#EntryOfOperand; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/PtrEmitter.cs#EmitSetEntry; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.RaiseDeclarations.cs#OperandRaisableNames",
+ "test-ref": "conformance:cases/8.4.3.13-Program-address-identifier/pb239_call_program_address_not_found; conformance:cases/8.4.3.13-Program-address-identifier/pb239_call_address_identifier; conformance:cases/8.4.3.13-Program-address-identifier/pb1453_program_address_operand_not_found; conformance:cases/8.4.3.13-Program-address-identifier/pb1549_set_program_address_fatal_resume; conformance-test:FatalRaiseSelectionTests.RelationOperandAddressOfProgram_NotFound_DeclarativeCompletesNormally_TerminatesAbnormally",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1453 landed: the relation-operand and INVOKE-argument surfaces now raise the fatal EC-PROGRAM-NOT-FOUND (operand-declared raise names); the SET half landed with PB1549. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#OperandRaisableNames (the operand walker moved with the three declaration tables into EcBinder.RaiseDeclarations.cs (kb/Work PB3102); the symbol is unchanged)",
+ "state": "OK"
+}

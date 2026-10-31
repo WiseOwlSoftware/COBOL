@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.11.3-2",
+ "section": "7.3.11.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "DEFINE directive",
+ "rule-digest": "ca40457f3e2b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#ApplyDefine; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#AssignDefine",
+ "test-ref": "unit:ConditionalCompilationDefineTests.Redefine_DifferentValue_NoOverride_Rejected1618; unit:ConditionalCompilationDefineTests.Parameter_NoValue_RedefiningADefinedName_WithoutOverride_Rejected1618; unit:ConditionalCompilationDefineTests.Parameter_DifferentValue_RedefiningADefinedName_WithoutOverride_Rejected1618",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1367. SR2 reaches the PARAMETER alternative: a no-OVERRIDE PARAMETER redefinition of a defined name with no environment value, or a different one, is COBOL1618. A value-less PARAMETER DEFINE of a never-defined name stays not-defined (GR4); whether it 'declares' the name for a later plain DEFINE is left as before (interpretive edge recorded on the note).",
+ "state": "OK"
+}

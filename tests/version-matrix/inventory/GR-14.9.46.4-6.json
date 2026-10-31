@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.46.4-6",
+ "section": "14.9.46.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "TERMINATE statement",
+ "rule-digest": "08b8d0342275",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore",
+ "test-ref": "conformance:cases/14.9.46-TERMINATE/l1c33_terminate_multi_order_no_close",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 14.9.46.4 \"does not close the file associated with report-name-1\" -> OK §14.9.46.4 6). TerminateCore touches no connector state (only `_active`/`_started`); the file is closed by the program's own CLOSE. Probed out/probe/terminate-statement/p1.cob: after TERMINATE (twice) a CLOSE of the report file returns FILE STATUS 00 (a closed file would give 42), and a second INITIATE on the same still-open file succeeds; p3.cob likewise CLOSE FS=00. Terminate_Gr2 CLOSEs after TERMINATE but asserts no status, so it does not pin this rule. [editions as adjudicated: 1985 (Report Writer module), 2002, 2014, 2023]",
+ "state": "OK"
+}

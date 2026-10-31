@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.6.4.3-10",
+ "section": "12.4.6.4.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "SAME clause",
+ "rule-digest": "d9d7bd4ef302",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#ScreenSameClauses",
+ "test-ref": "conformance:cases/12.4.6.4-SAME/pb1087-same-file-area-partly-in-sort-area; conformance:cases/12.4.6.4-SAME/pb1087_same_clauses_legal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1087 (wave 1011 B2). cite.py --check 12.4.6.4.3 'If a file-name that represents a file other than a sort or merge file is specified in a file-area format SAME clause and in one or more' OK SR10. For every non-sort file of a file-area clause and every sort-merge-area clause naming it, the file-area members must all be in that sort-merge-area clause. The SORT/MERGE statement pairings (14.9.40.3 SR10, 14.9.24.3 SR11) were already PB1139's (SortBinder.ScreenSameClauses) and now read the one-format model.",
+ "state": "OK"
+}

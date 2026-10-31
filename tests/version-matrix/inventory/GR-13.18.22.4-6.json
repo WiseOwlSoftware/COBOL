@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.22.4-6",
+ "section": "13.18.22.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "EXTERNAL clause",
+ "rule-digest": "603599f7b6af",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#ValueSpecificationKey",
+ "test-ref": "conformance:cases/8.6.7-Sharing-data-items/ec_external_format_conflict; conformance:cases/13.18.22-EXTERNAL/pb1236_external_value_literal_case_is_significant",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1236: the record-name VALUE identity keeps a literal's characters exactly; only keywords and hexadecimal digits fold - \"ABCD\" against \"abcd\" is EC-EXTERNAL-FORMAT-CONFLICT.",
+ "state": "OK"
+}

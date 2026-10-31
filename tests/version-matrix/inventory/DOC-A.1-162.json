@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-162",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 162,
+ "subject": "REPOSITORY paragraph, INTERFACE phrase (how interface specifier and external repository determine which interface is use",
+ "rule-digest": "b078beed1873",
+ "verdict": "PARTIAL",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-162; src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Lookup; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#FindInterfaceByExternalizedName; src/WiseOwl.Cobol.Compiler/CodeGen/RoslynBackend.cs",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb974_repository_as_phrase",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Determination per owner decision kb/Work R44 (A.1 162 named there). cite.py --check A.1 '162) REPOSITORY paragraph, INTERFACE phrase (how interface specifier and external repository determine which interface is used) ... (12.3.8, REPOSITORY paragraph, General rule 9)' -> OK §A.1 162); cite.py --check 12.3.8.4 'It is implementor-defined how the information in the interface specifier and the external repository are used to determine which interface is used.' -> OK §12.3.8.4 9); cite.py --check 12.3.8.3 'there shall be information in the external repository for the interface' -> OK §12.3.8.3 9) a); cite.py --check 8.13 (update + flag mechanisms) -> OK §8.13 (both sentences); cite.py --check 16.1 'A standard class BASE shall be provided by the implementation' -> OK §16.1 (§16 defines only BASE: headings 16.1 General, 16.2 BASE class — no standard interface). PARTIAL: source (1) holds (pb974 witnesses W974SPK AS \"W974-SPEAKER\" in-group resolution by externalized name, §12.3.8.4 GR2); source (2), the ambiguity/SR9 diagnoses and the §8.13 options are absent, and interface literal-1 is not externalized beyond the group (PB1086 row GR-11.6.4-1 PARTIAL). PROBE: Pin E:\\wt\\gl2-pin @80de60472, run dir out\\run\\d6\\p161: `cobol excls.cob -o D6EXCLS.dll --std 2023` (CLASS-ID. D6EXCLS, FACTORY method HELLO) -> EXIT 0; exmain.cob `REPOSITORY. CLASS D6EXCLS CLASS NOSUCHCL INTERFACE NOSUCHIF.` + `INVOKE D6EXCLS \"HELLO\"` in the same directory -> error COBOL0823 'D6EXCLS is neither a resolvable data item nor a class this source element may reference' (no external-repository arm); unres.cob `REPOSITORY. CLASS NOSUCHCL INTERFACE NOSUCHIF.` + DISPLAY \"RAN\" -> compiles clean, prints RAN (unresolvable specifier not diagnosed at the REPOSITORY paragraph). `cobol --help` offers no repository-reference / update / flag option. Code: OoNameResolution.Lookup (src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs:112-126) searches only the per-group OoClassTable (Find / FindByExternalizedName, OrdinalIgnoreCase; OoClassTable.cs:55-66), BASE via OoStandardClasses. (the INTERFACE NOSUCHIF specifier in both exmain.cob and unres.cob compiles clean). Owning note kb/Work/PB1086 (claims DOC-A.1-162). DOC-ROWS-2 REFUTER (determination): overturned and corrected; the recorded row carries the correction (adjudication/doc-rows-2/LANDING.md).",
+ "state": "GAP"
+}

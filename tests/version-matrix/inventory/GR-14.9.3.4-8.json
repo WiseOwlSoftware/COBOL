@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.3.4-8",
+ "section": "14.9.3.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "ALLOCATE statement",
+ "rule-digest": "cb0ff81e4d1d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/InitialStateBackground.cs#AllocateFillLiteral; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/PtrEmitter.cs#OptionsFillCharLiteral",
+ "test-ref": "conformance:cases/14.9.3-ALLOCATE/pb151_options_fill; conformance:cases/11.9.10-INITIALIZE/pb152_options_initialize_arm_agreement",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-08 (PB151), CORRECTED 2026-09-02 (PB152). PB151 wired the fill through and closed the wrong-value half of this rule, but with a decoder PRIVATE to PtrEmitter carrying its own 11.9.10.4 GR5 map - which spelled HIGH-VALUES as U+FFFF while the compiler's one definition of the alphanumeric high value (FigurativeConstants.FillChar, 8.3.3.6.4 GR6) is U+00FF under the native sequence. The extraction routes this arm through the shared InitialStateBackground, so GR8's fill is now the SAME character the data-division background uses; pb152_options_initialize_arm_agreement asks all three arms in one program. GR8/GR9 deliberately key on the CLAUSE and not on its section list - allocated storage belongs to no section - and pb151_options_fill is the characterization pin proving the extraction preserved the landed behaviour (its fill literal was repaired from the nonconforming \"Q\" to X\"51\", the same byte).",
+ "state": "OK"
+}

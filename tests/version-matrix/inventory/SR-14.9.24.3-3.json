@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.24.3-3",
+ "section": "14.9.24.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "MERGE statement",
+ "rule-digest": "45b1804c4d08",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#ScreenTransferRecordSizes; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordSizeRange",
+ "test-ref": "conformance:cases/14.9.24-MERGE/pb995-merge-record-size-using-giving; conformance:cases/14.9.24-MERGE/pb995_sort_merge_record_size_ranges; conformance-test:SortMergeRecordSizeTests.RecordSizeRules_RefuseExactlyTheirViolations",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB995. cite.py --check 14.9.24.3 'the file description entry for file-name-2 or file-name-3 shall describe neither records smaller than the smallest record nor larger than the largest record described for file-name-1' -> OK §14.9.24.3 3). The MERGE USING half: every USING file (the second as well as the first) is compared with the SD by the one screen; a larger or, for a variable-length SD, smaller or larger USING record is refused (COBOL1757, citing SR3).",
+ "state": "OK"
+}

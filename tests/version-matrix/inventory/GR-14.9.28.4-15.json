@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.28.4-15",
+ "section": "14.9.28.4",
+ "kind": "GR",
+ "ordinal": 15,
+ "subject": "PERFORM statement",
+ "rule-digest": "a480f24b3730",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitExceptionPerform",
+ "test-ref": "conformance-test:PerformFormat3BehaviorTests.Nonfatal_WhenMatch_ResumesInPlace",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "imp-1 is emitted INLINE at the PERFORM's own site inside the frame's try, so executing the PERFORM transfers straight into imperative-statement-1 and the specified set of statements is exactly imp-1's statements; the handler bodies (imp-2/3/4) are appended synthetic pc-ranges reached only through the frame matcher, which is the rule's 'other statements may be executed'. MEASURED (probe gr15_imp1_runs): a three-statement imp-1 with a nested IF runs S1/S2-NESTED/S3 in order and control leaves at the end of the PERFORM.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitExceptionPerform (EmitImp1, :91-107)",
+ "state": "OK"
+}

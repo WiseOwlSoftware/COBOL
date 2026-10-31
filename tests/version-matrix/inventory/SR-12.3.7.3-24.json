@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.7.3-24",
+ "section": "12.3.7.3",
+ "kind": "SR",
+ "ordinal": 24,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "222ee8d0051f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#AlphabetBind; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#ResolveLocaleName; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#SwitchBindSpecialNames",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/pb64t1_locale_declare; conformance:cases/12.3.7-SPECIAL-NAMES/pb64t1-alphabet-locale-name-undeclared; conformance:cases/12.3.7-SPECIAL-NAMES/l1c30_alphabet_named_locale_format_order; conformance-test:SpecialNamesClauseOrderTests.ForwardAndBackwardReferences_BothCompile; conformance-test:SpecialNamesClauseOrderTests.UndeclaredLocaleName_IsStillSR24_AfterTheWholeParagraph",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T1 (2026-08-19): the NAMED IS LOCALE locale-name-2 form is implemented — the name resolves in the SPECIAL-NAMES locale table (LocaleSymbol) and the carrier holds its L1-normalized tag; an undeclared name is COBOL1664 (the ONE undeclared-locale-name diagnostic, citing SR24). Was DOCUMENTED-NON-SUPPORT (PB100).",
+ "state": "OK"
+}

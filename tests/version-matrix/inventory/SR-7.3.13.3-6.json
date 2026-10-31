@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.13.3-6",
+ "section": "7.3.13.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "EVALUATE directive",
+ "rule-digest": "4ca719a910e5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/pb1364-when-other-trailing-text-after-match",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1364. cite.py --check 7.3.13.3 'Text-2 shall begin on a new line.' OK 6): text-2 on the WHEN OTHER line is COBOL2649.",
+ "state": "OK"
+}

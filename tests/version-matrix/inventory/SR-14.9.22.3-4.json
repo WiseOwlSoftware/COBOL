@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.22.3-4",
+ "section": "14.9.22.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "INSPECT statement",
+ "rule-digest": "1a0f356bce65",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhrases; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#InspectCharOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AllOrNothingClass.cs#Violated",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/pb980-inspect-national-mix",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB980's INSPECT sibling (2026-09-22; formerly 'Phase-4a residue #12'). Unenforced before: `INSPECT XS REPLACING ALL \",\" BY N\";\"` over an alphanumeric XS ran (XS=[AB;C]), as did a national identifier-1 tallied for an alphanumeric literal and a boolean identifier-1 for \"1\". Every sending operand funnels through InspectCharOperand, which records its class for the statement; BindPhrases asks the ONE predicate (AllOrNothingClass) once for class boolean and once for class national, COBOL2306. The rule TRIGGERS only on an elementary item or literal but requires every operand (a group included) to conform; the TALLYING counter (identifier-2) is not named; a figurative constant takes identifier-1's class by SR3 and is not recorded. Classes boolean and national are 2002 introductions.",
+ "state": "OK"
+}

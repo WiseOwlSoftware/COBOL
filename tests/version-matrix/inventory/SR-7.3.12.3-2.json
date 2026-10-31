@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.12.3-2",
+ "section": "7.3.12.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "DISPLAY directive",
+ "rule-digest": "bce9e99ae35a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.Display.cs#ApplyDisplay; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateOperand",
+ "test-ref": "conformance:cases/7.3.12-DISPLAY/pb807-display-directive-junk-operand; unit:DisplayDirectiveTests.AMalformedOperand_IsDiagnosedAndTransfersNothing; unit:DisplayDirectiveTests.ConversionOfData_FollowsTheDeterminedImages",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB807 landed (w1004b). An arithmetic-expression operand of the DISPLAY directive goes through the shared compile-time evaluator (7.3.6) exactly as a DEFINE value does; )( 3 + is COBOL1619.",
+ "state": "OK"
+}

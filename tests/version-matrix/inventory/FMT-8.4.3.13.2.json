@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.4.3.13.2",
+ "section": "8.4.3.13.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Program-address-identifier",
+ "rule-digest": "b428a808e3ec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programAddressIdentifier; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#addressIdentifier; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#setProgramAddressStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#AddressNameOfIdentifier",
+ "test-ref": "conformance:cases/8.4.3.13-Program-address-identifier/pb549_program_address_identifier; conformance:cases/8.4.3.13-Program-address-identifier/pb1452_program_address_identifier_operands",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1452 landed (wave 1009 B). Printed format `ADDRESS OF PROGRAM { identifier-1 | literal-1 | program-prototype-name-1 }`, ADDRESS/PROGRAM underlined, OF not. The grammar rule is `ADDRESS OF? PROGRAM (nonNumericLiteral | functionCall | inlineMethodInvocation | dataReference)`: identifier-1 is ANY identifier format (8.4.3.1.3 SR1, cite.py --check OK), so a function-identifier (8.4.3.1.2 Format 1) and an inline method invocation (Format 4) stand beside the data reference, ahead of it because an invocation's first element is itself a data reference. One dataReference still covers identifier-1 and program-prototype-name-1, split at bind (BindProgramAddressOperand). Reached as the SET Format 9 sender and, as identifier Format 9 via addressIdentifier, as a CALL argument and a relation operand: the golden drives a function-identifier operand through all three, plus group, national-group and reference-modified operands. --std 85 is gated by the program-pointer family (COBOL0900). The function twin (functionAddressIdentifier) takes the same operand set.",
+ "state": "OK"
+}

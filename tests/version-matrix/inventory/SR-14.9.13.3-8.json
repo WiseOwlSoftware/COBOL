@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.13.3-8",
+ "section": "14.9.13.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "EVALUATE statement",
+ "rule-digest": "b268f2ead407",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindPartialExpression; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindPartialComparison; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#AbbrevCarry; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BindWhenItem",
+ "test-ref": "conformance:cases/14.9.13-EVALUATE/pb398_evaluate_partial_expression; conformance:cases/14.9.13-EVALUATE/pb398-evaluate-partial-true-subject; conformance:cases/8.8.2-Boolean-expressions/pb1412_evaluate_boolean_expression_operands",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB398.md - LANDED. The rewrite IS the implementation: BindPartialExpression seeds the AbbrevCarry - the same holder that carries 8.8.4.12.4 GR1's 'last preceding stated subject' through an abbreviated combined relation - with the selection subject, and the leading partialComparison consumes it. SR8's splice and GR1's subject insertion are therefore ONE operation, which is why `WHEN > 5 AND < 10` needs no code of its own (golden line B). SR8's second sentence - 'the corresponding selection subject is treated as though it were specified by the word TRUE' - is realized by returning the rewritten condition as the pair's term with no comparison wrapped around it; the negative pb398-evaluate-partial-true-subject pins the other half, that a subject ALREADY written TRUE is a blank Table-15 cell rather than a second reading of this rule. EDITIONS as previously recorded (2002+, inferred).",
+ "state": "OK"
+}

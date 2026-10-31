@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.56.4-1",
+ "section": "15.56.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "LOG10 function",
+ "rule-digest": "f33e720cba6d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#SignDec; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#WholeRangeBodies; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Log10; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Log10OnePlus",
+ "test-ref": "conformance:cases/15.4.1-Numeric-and-integer-functions/pb56_dec_carrier_intrinsics; conformance:cases/15.20.4-Returned-value-rule/pb999_log_trig_decimal_range; unit:WholeRangeBodiesDriftTests.LogFamily_OutsideBinary64_AnswersForTheRealArgument; conformance:cases/15.8.4-Returned-value-rule/pb1041_trig_log_arc_exact_argument; unit:WholeRangeBodiesDriftTests.EveryExactIntakeArm_AnswersForTheExactArgument",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PB56 LANDED 2026-08-09: the Dec-carrier body - the SS15.4.1 r1 EAE evaluates ON the SDIDI (CobolIntrinsics.Dec.cs via IntrinsicRenderer.RenderDec), arguments lifted exactly, never quantized; prose-family results convert in per SS8.8.1.5.1. PROBED: L1=2.000000000: LOG10(100)=2 exact through the conversion. PRIOR (DIVERGES): OVERTURNED: PARTIAL -> DIVERGES, and the claimed test-ref is STRUCK. The first pass named the standard-arithmetic half a 'SUSPECTED DIVERGENCE, NOT MEASURED' and rounded to PARTIAL. It does not need measuring — it is decidable by READING the emitter,",
+ "state": "OK"
+}

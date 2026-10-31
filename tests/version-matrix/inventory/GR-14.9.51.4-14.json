@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-14",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 14,
+ "subject": "WRITE statement",
+ "rule-digest": "2ed0d2829339",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#WrittenLength; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OutsideVaryingBounds; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#WriteAnyOrg",
+ "test-ref": "conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb1190_varying_advancing_bounds",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1190 landed (w67p). cite.py --check 14.9.51.4 'shall not be larger than the largest or smaller than the smallest number of bytes allowed by the RECORD IS VARYING clause' -> OK §14.9.51.4 14). The WRITE's length decision is ONE member (WrittenLength) asked by both arms, and the bound (OutsideVaryingBounds) runs in both - the print-control arm (WriteAdvancingRecord, which a print/LINAGE file's plain WRITE is rerouted to) now receives the DEPENDING length through FileRegistry.WriteAnyOrg. Golden: VARYING 3 TO 8 DEPENDING ON VL, AFTER ADVANCING with VL=9 -> 44 and BEFORE ADVANCING with VL=2 -> 44, nothing written; plain VL=5 -> 00 and the file reads back one 5-byte record.",
+ "state": "OK"
+}

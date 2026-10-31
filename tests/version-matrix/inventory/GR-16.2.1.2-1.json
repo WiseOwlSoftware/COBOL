@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-16.2.1.2-1",
+ "section": "16.2.1.2",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "New method",
+ "rule-digest": "333d4aa5226c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/BASE.cs#__New; src/WiseOwl.Cobol.Compiler/Oo/OoStandardClasses.cs#BuildBase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindStandardInvoke; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitNew",
+ "test-ref": "conformance:cases/16.2.1-New-method/oo_instance_data; conformance:cases/16.2.1-New-method/pb1548_standard_class_base; unit:StandardClassBaseNewResourceTests.New_CreatesTheFactorysClass_AndFactoryObjectReturnsThatFactory",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1506 + PB1548, LANDED (wave 59). Rule: 'The New method allocates storage for an object, initializes its instance data in accordance with 14.6.2.4, Initial state of object data, and returns a reference to the created object.' (cite.py --check 16.2.1.2 -> OK §16.2.1.2 1)). New is BaseFactoryInterface's method (§16.2, cite.py OK), provided by the standard class BASE (§16.1 'A standard class BASE shall be provided by the implementation', cite.py OK) and present in a class's factory interface only through INHERITS (§9.3.9 'The subclass has all the methods defined for the inherited class definition', cite.py OK). The earlier PARTIAL read §16.1's 'alternative root classes' as licensing a NEW on every class with no INHERITS; it does not — an alternative root class is still a class a program names and inherits, and a class with no INHERITS clause has only the factory methods it defines, so INVOKE root-class \"NEW\" violates §14.9.23.3 SR3 (now COBOL2448). Implementation: OoStandardClasses.BuildBase gives each group a BASE symbol whose factory roster holds New with its §16.2 signature; the runtime BASE__FACTORY.__New is the ONE body every New form reaches (class-name, FACTORY OF reference, SELF/SUPER in a factory method, universal __CobolInvoke), creating through the covariant __Create override = the generated ctor (base first, then VALUE-init). pb1548_standard_class_base derives nine lines from GR1/§9.3.14.3 (object of the factory's RUNTIME class, VALUE-initialized NAME).",
+ "state": "OK"
+}

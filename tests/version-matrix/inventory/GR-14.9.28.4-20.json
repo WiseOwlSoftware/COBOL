@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.28.4-20",
+ "section": "14.9.28.4",
+ "kind": "GR",
+ "ordinal": 20,
+ "subject": "PERFORM statement",
+ "rule-digest": "4d253623b5ca",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitEcPerformMember; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitExceptionPerform",
+ "test-ref": "conformance-test:PerformFormat3BehaviorTests.Fatal_WhenMatch_ThenTerminates",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "The nonfatal path is structural: the handler runs from INSIDE the raise-site guard, which then continues with the next statement of imp-1 - the rule's 'implicit CONTINUE statement immediately following the statement in imperative-statement-1 in which the exception condition occurred' (Nonfatal_WhenMatch_ResumesInPlace: WHEN/AFTER/DONE; re-measured here as probe gr21_raise_in_handler and inside gr18_other_nonfatal). If the raiser was imp-1's last statement, the same fall-through reaches the end of the PERFORM. The fatal path throws past the inline FINALLY to §14.6.13.1.3 abnormal termination unless a RESUME redirects (Fatal_WhenMatch_ThenTerminates, Fatal_ResumeNext_SuppressesTermination; MEASURED again in gr18_other_no_resume, where a fatal EC-BOUND-SUBSCRIPT ran WHEN OTHER and then terminated with 'abnormal run-unit termination ... (ISO 14.6.13.1.3 #5/#7)'). NOTE 8 ('the end of the PERFORM statement includes the statements in a FINALLY phrase') contradicts that fatal branch; the contradiction is a published determination (docs/CONFORMANCE.md :235: FINALLY runs on the normal and EXIT-PERFORM paths only).  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitEcPerformMember; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitExceptionPerform",
+ "state": "OK"
+}

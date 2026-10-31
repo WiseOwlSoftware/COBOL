@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-4.4-1",
+ "section": "4.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Conformance to this Working Draft International Standard",
+ "rule-digest": "66f39c077c76",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CompilerDriver.cs#Compile",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-4.4-1",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work R43 item 4 (owner, 2026-09-24, extending PB386; answers PB468 Q9): a rule that DEFINES a property of the USER's program and imposes no compiler obligation closes by a documented derivation. §4.4 1) (cite.py --check 4.4 'is composed of one or more runtime modules, each resulting from a successful compilation of a conforming compilation unit' → OK 1)) defines the conforming run unit; its subject is the user's run unit, it contains no 'shall', and every obligation it alludes to is a separate inventory row. docs/CONFORMANCE.md §8 DRV-GR-4.4-1, arm `definitional`.",
+ "state": "OK"
+}

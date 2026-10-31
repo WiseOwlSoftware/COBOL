@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.40.3-11",
+ "section": "14.9.40.3",
+ "kind": "SR",
+ "ordinal": 11,
+ "subject": "SORT statement",
+ "rule-digest": "a4df7793342e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#ScreenTransferRecordSizes; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordSizeRange",
+ "test-ref": "conformance:cases/14.9.40-SORT/pb995-sort-record-size-using-giving; conformance:cases/14.9.24-MERGE/pb995_sort_merge_record_size_ranges; conformance-test:SortMergeRecordSizeTests.RecordSizeRules_RefuseExactlyTheirViolations",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB995. cite.py --check 14.9.40.3 'the file description entry for file-name-1 shall describe neither records smaller than the smallest record nor larger than the largest record described for file-name-3' -> OK §14.9.40.3 11). The same screen with the roles exchanged: the GIVING file's description bounds the SD's records. The note's repro (SD X(5), GIVING RECORD VARYING IN SIZE FROM 1 TO 2) is refused, as are a fixed 3-byte GIVING file and a variable GIVING file whose smallest record exceeds the SD's smallest; equal sizes and containing ranges are legal.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.24.3-11",
+ "section": "14.9.24.3",
+ "kind": "SR",
+ "ordinal": 11,
+ "subject": "MERGE statement",
+ "rule-digest": "e0256bc919dc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#ScreenSameClauses; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#SameClauses; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#BindIoControl",
+ "test-ref": "conformance:cases/14.9.24-MERGE/pb1139-merge-same-area; conformance:cases/14.9.24-MERGE/pb1139-merge-same-record-area; conformance:cases/14.9.24-MERGE/pb1139-sort-same-sort-area; conformance:cases/14.9.24-MERGE/pb1139_same_clauses_legal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1139 landed: BindIoControl records EVERY SAME format's membership on its files (FileModel.SameClauses; SameRecordAreaPeers is now derived from it), and ScreenSameClauses refuses a pair of the MERGE's files (file-name-1 included) in one SAME AREA / SAME SORT AREA / SAME SORT-MERGE AREA clause, and in a SAME RECORD AREA clause unless every statement file it names is a GIVING file (COBOL1757 naming SR11).",
+ "state": "OK"
+}

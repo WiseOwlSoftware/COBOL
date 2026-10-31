@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.5.2",
+ "section": "13.5.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Working-storage section",
+ "rule-digest": "2f4cc6b67702",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#workingStorageSection; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries",
+ "test-ref": "conformance:cases/13.5-Working-storage-section/pb1309_working_storage_four_entry_kinds; conformance:cases/8.5.1.3.2-Level-numbers/pb1246-section-first-entry-not-level-1",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1309 (wave 1020 H, DISCHARGED: the refuter's hole was closed by kb/Work PB1246). §13.5.2 (cite.py --check 13.5.2 \"type-declaration-entry\" OK, General format) admits the four entry kinds in any number and order, possibly none. Admission half: 2002/pb1309_working_storage_four_entry_kinds interleaves 77, CONSTANT AS numeric, TYPEDEF, a level-01 record using TYPE, another 77, CONSTANT AS BYTE-LENGTH OF and CONSTANT AS alphanumeric, and prints 007 42 AB WXY HI. Leading-entry half (the refuter's PARTIAL): a section whose first entry is level 02-49 is none of the four kinds (§13.11.1, cite.py --check 13.11.1 \"the first of which shall have level-number 1\" OK); DataBinder.BindEntries now refuses it with COBOL2771 (kb/Work PB1246), re-probed on this tree: `WORKING-STORAGE SECTION. 05 X PIC X VALUE \"Q\".` -> COBOL2771 at --std 2023. The BYTE-LENGTH OF constant-entry form the refuter saw refused (COBOL0899) is accepted (kb/Work PB1228).",
+ "state": "OK"
+}

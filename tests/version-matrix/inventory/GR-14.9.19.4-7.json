@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.19.4-7",
+ "section": "14.9.19.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "IF statement",
+ "rule-digest": "08c404699767",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs",
+ "test-ref": "conformance:cases/14.9.19-IF/l1_if_format2_arms",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Format 2, condition false with no ELSE: GR7-C=0 and no GR7-T1 line prove the complete no-op, and the following sentence proves nothing was substituted for the absent ELSE.",
+ "state": "OK"
+}

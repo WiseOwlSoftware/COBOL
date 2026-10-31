@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.4.5.4-3",
+ "section": "13.4.5.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "File description entry",
+ "rule-digest": "b92add9fa69e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindLinageClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileSection",
+ "test-ref": "conformance:cases/13.4.5-File-description/l1c11_linage_counter_external_global",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'If the file description entry for a sequential file contains the LINAGE clause and the EXTERNAL clause, the LINAGE-COUNTER data item is an external data item. If ... the GLOBAL clause, LINAGE-COUNTER is a global name.' (cite.py --check 13.4.5.4 'the LINAGE-COUNTER data item is an external data item' and 'LINAGE-COUNTER is a global name' -> OK §13.4.5.4 3)). Probe probe/fde/gr3/gr3b.cob (2023) and gr3_85.cob (--std 85): outer program FD GF IS GLOBAL LINAGE 20 writes 2 lines, contained program reads LINAGE-COUNTER OF GF = 0003 and unqualified LINAGE-COUNTER after its own WRITE = 0004 (global name resolves in the containee); FD XF IS EXTERNAL LINAGE 20 in two separate programs: main after 3 writes = 0004, called program sees 0004, writes, sees 0005, main after return sees 0005 (one run-unit LINAGE-COUNTER). Both halves verified at 2023 and 85. ⚠ Separate crash found while probing (finding 5): DISPLAY LINAGE-COUNTER [OF f] throws NotImplementedCobolFeatureException 'computed expression in a string context' at run time — a DISPLAY operand defect, not this rule's semantics (MOVE LINAGE-COUNTER is correct). || Editions (adjudicator): 85, 2002, 2014, 2023 (the file description entry and this rule exist in every edition; no Annex E item touches 13.4.5) || Code sites (adjudicator detail): src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindLinageClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileSection (fileGlobalExternalClause arm: IsExternal / IsGlobal)",
+ "state": "OK"
+}

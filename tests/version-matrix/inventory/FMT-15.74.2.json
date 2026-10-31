@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.74.2",
+ "section": "15.74.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "PRESENT-VALUE function",
+ "rule-digest": "da22d962f550",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall",
+ "test-ref": "conformance:cases/15.75.3-Argument-rules/pb1_intrinsic_formats",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "15.74.2 FUNCTION PRESENT-VALUE ( argument-1 {argument-2} ... ) - both the one- and two-occurrence shapes exercised, with values from 15.74.4 r1 (rate 1.0: 100/2 = 50; 100/2 + 100/4 = 75), replacing a NIST-only cover.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.7.3-4",
+ "section": "13.7.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "Linkage section",
+ "rule-digest": "4d7c0cecdfa0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#SealLinkageRules; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ScreenLinkageReference; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#ConditionOf; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ScreenLinkageIndex",
+ "test-ref": "conformance:cases/13.7-Linkage-section/pb1249_linkage_referenceable_legs; conformance:cases/13.7-Linkage-section/pb1249_linkage_based_item_referenceable; conformance:cases/13.7-Linkage-section/pb1249-linkage-item-not-referenceable; conformance:cases/13.7-Linkage-section/pb1249-linkage-condition-name-not-referenceable; conformance:cases/13.7-Linkage-section/pb1249-linkage-index-name-not-referenceable; conformance:cases/13.7-Linkage-section/pb1249-linkage-redefines-of-non-formal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1249 landed (wave 1012 F). cite.py --check 13.7.3 'may be referenced within the procedure division of that source element if, and only if, it satisfies one of the following conditions' -> OK 13.7.3 4); also 'It is subordinate to any item that satisfies the condition in subrule c' and 'It is a condition-name or index-name associated with a data item that satisfies one of the above conditions' -> OK 13.7.3 4). DataBinder.SealLinkageRules decides it once per unit/method from the bound header (header operand, RETURNING item, BASED, or REDEFINES of one: a)-d); a record's subordinates, RENAMES, condition-names and index-names follow the record: b), d), e)); the ONE resolver reports COBOL2746 for a data-name, the condition-name arm for an 88 and ScreenLinkageIndex for an index-name. A GLOBAL linkage item inherited by a contained program is another source element's and is not asked.",
+ "state": "OK"
+}

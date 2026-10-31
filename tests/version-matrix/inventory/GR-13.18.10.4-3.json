@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.10.4-3",
+ "section": "13.18.10.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "BLOCK CONTAINS clause",
+ "rule-digest": "bce878d5fb09",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#blockContainsClause",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-13.18.10.4-3",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 13.18.10.4 \"regardless of the types of characters used to represent the items within the physical record\" -> OK GR3. Defines the unit of a CHARACTERS size (bytes). The physical-record size has no effect in this implementation, which A.3 item 5 sanctions and CONFORMANCE.md documents (§4.2.6 documentation duty met by row 5). Nothing observable to diverge. docs/CONFORMANCE.md A.3 row 5 = Claimed (inert): 'Accepted; no effect on the managed I-O model'. cite.py --check A.3 \"The BLOCK CONTAINS clause has no effect if the operating environment does not support the required features\" -> OK §A.3 5). No binder/emitter/runtime site reads blockContainsClause (grep of src: only CobolData.g4 and IntegerOperandPass.Slots reference it); the managed I-O model does no blocking. || Editions (adjudicator): 1985, 2002, 2014, 2023 (clause present unchanged in every edition; Annex E records no change to 13.18.10)",
+ "state": "OK"
+}

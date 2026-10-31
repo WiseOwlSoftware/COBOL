@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-10.6.2-1",
+ "section": "10.6.2",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "COBOL compilation group",
+ "rule-digest": "a0e7078683c4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PrototypeUnitRules.cs#ScreenOrder",
+ "test-ref": "conformance:cases/10.6-COBOL-compilation-group/pb894-prototype-after-definition; conformance:cases/10.6-COBOL-compilation-group/pb894_program_prototype_2002",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB894: walked over the compilation group's children in source order, so a class or interface definition is an 'other type of source unit' exactly like a program or function definition; one screen for program AND function prototypes (COBOL2273). Neither kind was ordered before.",
+ "state": "OK"
+}

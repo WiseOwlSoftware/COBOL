@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.15.3-2",
+ "section": "15.15.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "CHAR function",
+ "rule-digest": "e667657efd52",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/LiteralPhraseCollation.cs#PositionCount",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb59_char_representative",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-09 (PB59): the 15.15.3 r2 domain screen (--check OK: 'greater than zero and less than or equal to the number of positions') is computed from the sequence itself - PositionCount = NextFree + (0x10000 - 256), 65,534 under the three-into-one ALSO alphabet - so BOTH halves close: ordinal 255 is IN (the old bound refused it), 65,535 is OUT (the old bound admitted 65,536). Comparison paths keep the raw positions table: the 'c' tail is ORDER-EQUIVALENT to the exact arithmetic (both rules place every above-block unit after every positioned one, strictly increasing in code - the proof note lives at CobolString.Weight), so only the position-number-exposing functions needed the object.",
+ "state": "OK"
+}

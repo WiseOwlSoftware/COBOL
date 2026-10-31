@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.8.4.6.2",
+ "section": "8.8.4.6.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Simple switch-status condition",
+ "rule-digest": "ad8a4942591e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#SwitchCondOf; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundAlterSwitches.cs#BoundSwitchCondition; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#AnalyzeBareOperand",
+ "test-ref": "conformance:cases/8.8.4.6-Simple-switch-status-condition/pb400_evaluate_condition_subject_forms; conformance:cases/8.8.4.6-Simple-switch-status-condition/l1_search_when_condition_forms; conformance:cases/8.8.4.6-Simple-switch-status-condition/pb1464_parenthesized_bare_conditions",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1464 LANDED (wave 1005 D). 8.8.4.6.2 format is condition-name-1; 8.8.4.2.1 says parentheses do not change a simple condition. IF (S1-OFF) and IF NOT (S1-ON) were refused COBOL2318; AnalyzeBareOperand now classifies the operand the parentheses enclose (ConditionOperandExpression), so the switch-status condition-name binds (pb1464_parenthesized_bare_conditions: (S1-OFF) true, NOT (S1-ON) true, with the level-88 (X1) twin in the same program).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.4.3-25",
+ "section": "14.9.4.3",
+ "kind": "SR",
+ "ordinal": 25,
+ "subject": "CALL statement",
+ "rule-digest": "541649622300",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#BoundaryItem; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#CallArgumentViolation; src/WiseOwl.Cobol.Compiler/Oo/ActivationDescriptions.cs#OfCallArgument",
+ "test-ref": "conformance:cases/13.7-Linkage-section/pb133-arg-conformance; conformance:cases/14.9.4-CALL/pb133-arg-count; conformance:cases/8.5.1.12-Variable-length-groups/pb204_vlg_boundary; conformance:cases/8.5.1.12-Variable-length-groups/pb204-nested-returning-incompatible; conformance:cases/8.5.1.12-Variable-length-groups/pb204-nested-vlg-position; conformance:cases/14.9.4-CALL/pb165_content_conformance; conformance:cases/14.9.4-CALL/pb165-content-nonconforming; conformance:cases/14.8.2.3.2-Elementary-items-passed-by-reference/pb165_dynamic_call_description_check; conformance:cases/14.8.2.3.2-Elementary-items-passed-by-reference/pb165_repository_prototype_description_check; unit:BoundaryItemConformanceTests.Rule2_ByReference_IsTheClauseIdentity_NotTheLength",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "14.9.4.3 SR25 imports 14.8.2 / 14.8.3 (cite.py --check 14.9.4.3 'The rules for conformance specified in 14.8.2, Parameters and 14.8.3, Returning items apply.' OK 25)). Enforced at bind on every lane that knows the callee's formals: the count rule (COBOL1684), BY REFERENCE description conformance (COBOL1688, OoConformance.DescriptionMismatch), 14.8.3 RETURNING (COBOL1736), 14.8.2.3.3's BY CONTENT / BY VALUE regime (written once in OoConformance). At run time (14.9.4.4 GR3 d)) on every CALL whose activated program the activating element holds no signature for - the dynamic Format-1 lane and a Format-2 CALL whose program-prototype 12.3.8.4 GR10 c) resolves in the external repository (kb/Work PB165, w1015w + w1037a): each operand's ActivationDescription (the one builder a universal INVOKE uses) is compared with the activated unit's registered formal by ActivationRelations.CallArgumentViolation (object-reference and class-pointer rules, 14.8.2.2's strong / variable-length / alphanumeric-group sentences, 14.8.2.3.2 rule 2's clause identity, 14.8.2.3.3's SET / COMPUTE / MOVE validity) with rule 1's same length from BoundaryItem.Length, the lane chosen at run time from the program reached and the activating element's program-specifiers; RETURNING by CallReturningViolation (14.8.3 whole).",
+ "state": "OK"
+}

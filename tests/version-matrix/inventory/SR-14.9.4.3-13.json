@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.4.3-13",
+ "section": "14.9.4.3",
+ "kind": "SR",
+ "ordinal": 13,
+ "subject": "CALL statement",
+ "rule-digest": "c97af9de5f96",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall; src/WiseOwl.Cobol.Compiler/Binding/Procedure/EnclosingContext.cs",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb132-call-as-nested-in-function; conformance:cases/14.9.4-CALL/pb132-call-as-nested-in-method",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB132; predicate corrected by kb/Work PB894): the NESTED phrase is rejected outside a program definition by ONE question of the 14.2.2 SR10 enumeration — `ctx.Enclosing.SourceElement is not SourceElementKind.Program` — which also excludes the program PROTOTYPE definition the former `InMethod || UdfSelfName` predicate admitted. That arm is reachable only through a prototype procedure division, which 10.6.2 SR4 f) already refuses (COBOL2272), so the two method/function witnesses remain the observable ones.",
+ "state": "OK"
+}

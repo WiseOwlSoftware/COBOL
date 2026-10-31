@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.41.3-6",
+ "section": "14.9.41.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "START statement",
+ "rule-digest": "ce0e37ec0baa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#KeyIndexOfKeyItem; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#GenericKeyIndex; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#IsInRecordOfFile; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#CategoryOfItem; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#SameClassCategoryUsage; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#UsageOfItem",
+ "test-ref": "conformance:cases/12.4.5.12-RECORD-KEY/pb354_start_generic_key_ok; conformance:cases/14.9.41-START/pb354-start-operand-outside-record; conformance:cases/14.9.41-START/pb354-start-operand-class-mismatch; conformance:cases/14.9.41-START/pb354-start-operand-too-long; conformance:cases/14.9.41-START/pb850-start-operand-alphanumeric-edited",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB354. RULE (--check 14.9.41.3 6 and 6) b) 1.): for indexed files data-name-1 shall reference either a) a prime or alternate record key associated with file-name-1, or b) a data item whose 'leftmost character position WITHIN A RECORD OF THE FILE corresponds to the leftmost character position of a prime or alternate record key that is associated with file-name-1 and that is defined without the SOURCE phrase in the RECORD KEY clause or ALTERNATE RECORD KEY clause'.\nLANDED 2026-09-05 (kb/Work PB354). SR6's two arms are two methods. a) RecordLayout.KeyIndexOfKeyItem: the operand IS a record key - by reference identity, or by 12.4.5.12.4 GR4's identical BYTE POSITIONS in another record description entry OF THE SAME FILE. b) RecordLayout.GenericKeyIndex: SR6 b)'s three conditions together. The missing premise of b) 1. - \"within a record of the file\" - is required by RecordLayout.IsInRecordOfFile, so a WORKING-STORAGE 01 at offset 0 no longer collides with offset 0 in the record (conformance:cases/14.9.41-START/pb354-start-operand-outside-record). The COMPLEMENT is measured, not assumed: conformance:cases/12.4.5.12-RECORD-KEY/pb354_start_generic_key_ok walks all five accepting shapes (declared prime key, a GR4 implicit key in a second record description, a shorter generic prime key, the declared alternate, and a shorter generic alternate) and each returns the record the rule selects.\nCODE-LOCATION RENAME 2026-09-06 (kb/Work PB699), verdict and reasoning unchanged: the private RecordLayout.InRecordOfFile became the PUBLIC nullable-tolerant IsInRecordOfFile, because it is the same predicate three file control entry rules are stated on - 12.4.5.12.3 SR2 and 12.4.5.6.3 SR2 REQUIRE a record key to be within a record of the file, 12.4.5.13.3 SR3 FORBIDS it of the relative key - and a second copy in FileControlKeyRules would have been one rule written down twice. The rename is recorded as a BATCH rather than a hand edit so the lander can re-apply it on the merged tree.",
+ "state": "OK"
+}

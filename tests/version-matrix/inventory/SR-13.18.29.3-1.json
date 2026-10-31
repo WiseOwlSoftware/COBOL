@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.29.3-1",
+ "section": "13.18.29.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "GROUP-USAGE clause",
+ "rule-digest": "49f1aee6188c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UsageInheritanceGroup",
+ "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb79-group-usage-not-a-group; conformance-test:UsageInheritanceDriftTests.ATypedefDefect_IsReportedOnce_AtTheDeclaration",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (PB79). COBOL1653 on an entry with a PICTURE (elementary), an entry with no subordinates, a strongly-typed group (StrongTypeModel.IsStrongGroup) or a variable-length group (ReferenceResolver.HasVariableLengthSubordinate).",
+ "state": "OK"
+}

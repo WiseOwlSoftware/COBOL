@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.53.4-3",
+ "section": "13.18.53.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "SOURCE clause",
+ "rule-digest": "298b4bcb74f7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#RecordSourceOccurrences; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ResolveRolledAddend",
+ "test-ref": "conformance-test:ReportWriterConformanceTests.Source_Gr6_LineCounterComposesAfterCounterUpdate; conformance:cases/13.18.53-SOURCE/pb1294_report_rolled_unprintable_source; conformance:cases/13.18.53-SOURCE/pb1294_report_rolled_totals",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1294 landed. An entry with a SOURCE clause and no COLUMN clause prints nothing and has no printable field, but it IS a ReportSourceFamily with an occurrence (RecordSourceOccurrences), so the exception 'except where the entry is referred to by means of a SUM clause' is reachable: a SUM clause naming it adds the operand of its SOURCE clause (GR6) when its group is processed (GR7 a)). The rest of GR3, the implicit MOVE or COMPUTE before the line prints, was verified under the earlier verdict and is unchanged. Witness 85/pb1294_report_rolled_unprintable_source prints 00012 00012 for UNP and PRN summed over SOURCE values 5 and 7.",
+ "state": "OK"
+}

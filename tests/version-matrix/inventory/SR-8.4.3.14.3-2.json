@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.14.3-2",
+ "section": "8.4.3.14.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "LINAGE-COUNTER",
+ "rule-digest": "b752d1cb6b06",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveReceiving",
+ "test-ref": "conformance-test:ClauseOperandQualificationSpecTests.LinageCounter_AsAReceivingOperand_IsRejectedByItsOwnRule",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR2: \"The LINAGE-COUNTER identifier shall not be referenced as a receiving operand.\" (cite.py --check 8.4.3.14.3 -> OK 2)). ResolveReceiving (the one receiving chokepoint, drift-tested by ReceivingResolutionDriftTests) rejects with COBOL2026. Probed at 2023 (probe/linage-counter/R1-R24) every receiving position: ADD TO, SUBTRACT FROM, COMPUTE, SET TO, SET UP BY, INITIALIZE, ACCEPT, ACCEPT FROM DATE, INSPECT REPLACING, INSPECT TALLYING counter, STRING INTO, STRING POINTER, UNSTRING INTO / DELIMITER IN / COUNT IN / POINTER / TALLYING, READ INTO, DIVIDE REMAINDER, MULTIPLY GIVING, PERFORM VARYING, CALL RETURNING -- all COBOL2026; R1 also at --std 85. MOVE LINAGE-COUNTER TO WN (sending) binds (R19). Also conformance:cases/13.18.34-LINAGE/pb489-linage-counter-receiving (reject-at all four editions). || editions as written by the adjudicator: 85 2002 2014 2023",
+ "state": "OK"
+}

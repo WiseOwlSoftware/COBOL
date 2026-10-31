@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.13.4-5",
+ "section": "14.9.13.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "EVALUATE statement",
+ "rule-digest": "209c22f19a4c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/EvaluateEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#Bind",
+ "test-ref": "conformance:cases/14.9.13-EVALUATE/pb396_required_imperative_85; conformance:cases/8.8.4.13-Order-of-evaluation-of-conditions/udf_per_eval; unit:RequiredImperativeStatementDriftTests.EvaluateSubject_IsEvaluated_EvenWhenNoArmReadsIt; unit:RequiredImperativeStatementDriftTests.EvaluateSubject_IsEvaluated_WhenAnArmReadsIt; unit:RequiredImperativeStatementDriftTests.EvaluateSubject_InRange_RunsNormally",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB396.md — The LADDER was already right and survived 17 measured shapes across all four editions; what kept the row PARTIAL was the ONE branch the original record singled out and got wrong — \"the 'only WHEN OTHER' shape is emitted unconditionally, which is the same semantics\" — measured FALSE three ways (an undefined selection subject lost its COBOL1639, `EVALUATE R (9)` over OCCURS 3 lost EC-BOUND-SUBSCRIPT, and `EVALUATE A / B` with B = 0 lost EC-SIZE-ZERO-DIVIDE, each against the identical program with one dead WHEN arm added). Both halves are now closed. Structurally, §14.9.13.2's outer brace group is unbracketed, so an EVALUATE with no ordinary WHEN phrase is not a spelling of this statement and the branch is unreachable from source. Causally, the loss was never the emitter shortcut: it was EvaluateBinder materialising the selection subject LAZILY, from inside the pair binder, so a statement no arm read the subject in never evaluated it — the same hole `WHEN ANY` fell into, since §14.9.13.4 GR4 a) 1. makes an ANY pair true without consulting the subject. GR3's \"at the beginning of the execution of the EVALUATE statement, each selection subject is evaluated\" is now discharged by touching every subject slot BEFORE any arm binds and by narrowing the no-hoist exemption to \"exactly one relational use, in the FIRST arm\" (a single use in a later arm sits in an else-if an earlier arm can skip). The row's own three clauses are pinned by the 85 positive control: 5) a) the selected arm's imperative runs and the later arm does not (EVAL-SHARED without EVAL-NOT-TAKEN), 5) b) no WHEN selected with a WHEN OTHER specified runs imperative-statement-2 (EVAL-OTHER), 5) c) no WHEN selected and no WHEN OTHER terminates the statement and control reaches the next one (EVAL-FALLTHROUGH, with EVAL-NO-MATCH-TAKEN absent).",
+ "state": "OK"
+}

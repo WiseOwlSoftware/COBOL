@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.7.5.2-11",
+ "section": "8.7.5.2",
+ "kind": "SR",
+ "ordinal": 11,
+ "subject": "Relational operators",
+ "rule-digest": "e4793d6c2217",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#comparisonOperator; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#MapOperator; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#MapOperator; src/WiseOwl.Cobol.Frontend/Expressions/RelationalOperatorGate.cs#RelationalOperatorGate",
+ "test-ref": "conformance:cases/8.3.2.4.2-Required-words/l1c26_relational_operator_not_equal_symbol; conformance:cases/8.7.5-Relational-operators/pb1034_is_not_equal_symbol; conformance:cases/8.7.5-Relational-operators/pb1034_cce_printed_relational_operators; conformance:cases/8.3.2.4.2-Required-words/pb1459-not-equal-operator-below-2014; conformance:cases/8.3.2.4.2-Required-words/pb3604-cce-not-equal-operator-below-2014",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Rule: '<> is an abbreviation for NOT EQUAL.' (cite.py --find places the sentence at 8.7.5.2 SR11; --check reports OK on SR8's identical-words sentence, kb/Work PB3606). The grammar admits '<>' (comparisonOperator alt) and MapOperator normalizes the concatenated token text (IS/THAN/TO stripped, NOT inverts) so '<>' and 'NOT EQUAL' map to the same C# operator; the >>IF evaluator's private copy is textually identical. Probe probe/relop/relpos.cob (A=5 vs B=3 and B=5, IF with every printed spelling): the symbol and word forms give identical truth values, all as derived from the rule. EDITION (kb/Work PB3604): '<>' is a COBOL-2014 introduction - the post-ballot 2002 text's clause 8.7.5.2 ends its abbreviation rules at SR8 ('<= is an abbreviation for LESS THAN OR EQUAL TO.') and its special character words read >= <= *> >> :: with no <>, while Annex D.3 (2002->2014 changes) item 16 of the 2009 committee draft reads 'Relational operator enhancement. The symbol <> has been added as an extended relational operator.' So the symbol is COBOL0900 at 85 and 2002, in a statement (VersionConformancePass.VisitComparisonOperator) and in a >>IF / >>EVALUATE condition of a compiled branch (ConditionalCompilationProcessor), through RelationalOperatorGate, and accepted at 2014 and 2023; the word forms NOT EQUAL TO and NOT = are COBOL-85.",
+ "state": "OK"
+}

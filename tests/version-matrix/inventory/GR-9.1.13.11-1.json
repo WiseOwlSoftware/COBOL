@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.11-1",
+ "section": "9.1.13.11",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "I-O status",
+ "rule-digest": "13340d12689c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#LinageValueViolation; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#LinageViolationStatus",
+ "test-ref": "conformance:cases/9.1.13.11-Implementor-defined-condition-with-unsuccessful-completion/pb526_linage_ec_condition",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§9.1.13.11 1) '9x': implementor-defined condition, must not duplicate another status's condition, x implementor-defined (cite.py --check OK §9.1.13.11 1)). WiseOwl COBOL defines exactly one, '90', for the §13.18.34.4 GR6 b) LINAGE value violation (cite.py --check OK §13.18.34.4 6) b) 2.), which names only EC-I-O-LINAGE and assigns no I-O status, so '90' duplicates no other status's condition. Documented as docs/CONFORMANCE.md §7 DOC-A.1-110. A search of src/WiseOwl.Cobol.Runtime finds no other 9x producer. conformance:cases/9.1.13.11-Implementor-defined-condition-with-unsuccessful-completion/pb526_linage_ec_condition pins FS=90 at the violating WRITE and OPEN and the latch until CLOSE. || Editions (adjudicator, verbatim): 1985/2002/2014/2023",
+ "state": "OK"
+}

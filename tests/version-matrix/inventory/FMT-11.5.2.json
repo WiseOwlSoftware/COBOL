@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-11.5.2",
+ "section": "11.5.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "FUNCTION-ID paragraph",
+ "rule-digest": "6388fff81ad7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#functionIdParagraph; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#externalizedNamePhrase; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#prototypePhrase; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit",
+ "test-ref": "conformance:cases/11.5-FUNCTION-ID/l1c10_function_id_prototype_as_and_is",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§11.5.2 prints Format 1 `FUNCTION-ID. user-function-name-1 [ AS literal-1 ] .` and Format 2 `FUNCTION-ID. function-prototype-name-1 [ AS literal-1 ] IS PROTOTYPE.` (IS not underlined => optional; FUNCTION-ID, AS, PROTOTYPE underlined; both periods required). cite.py --check 11.5.2 \"Format 1 (definition)\" OK; --check 11.5.2 \"Format 2 (prototype)\" OK. Grammar: `FUNCTION_ID DOT programName externalizedNamePhrase? prototypePhrase? DOT`, prototypePhrase = `IS? PROTOTYPE`, externalizedNamePhrase = `AS literal` (narrowed by ExternalizedName.Screen, the §11.5.3 SR1 row owned by landed PB303). Probes with the pinned cobol.exe (out/probe/fid): p1 Format 2 with AS + IS (`FUNCTION-ID. FIDPA AS \"FIDREAL\" IS PROTOTYPE.`) compiles+runs at 2002 and 2023 (P=000049); p2 Format 2 with IS omitted (`FUNCTION-ID. FIDPB PROTOTYPE.`) compiles+runs at 2002/2023; p4 missing period after FUNCTION-ID rejected (COBOL0307); p5 reversed order `IS PROTOTYPE AS \"X\"` rejected (COBOL0901 on AS — rejection correct, message names reservation rather than position); --std 85 rejects the prototype tail, the AS phrase and function reference with COBOL0900 (edition gate). Format 1 with/without AS is exercised by conformance:cases/8.3.2.2-User-defined-words/pb303_as_externalized_name and conformance:cases/_unassigned/udf_invocation; Format 2 without AS by conformance:cases/12.3.8-REPOSITORY/udf_prototype; NO existing golden covers Format 2 WITH AS literal-1 or the IS-omitted spelling, so test-ref is left empty (test-needed for those arms) rather than claiming whole-format coverage. || Editions (adjudicator, verbatim): 2002, 2014, 2023 (FUNCTION-ID / user-defined functions and function prototypes are COBOL-2002 introductions; the 2023 Annex E lists no change to §11.5). Not in COBOL-85.",
+ "state": "OK"
+}

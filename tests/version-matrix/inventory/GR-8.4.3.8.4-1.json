@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.8.4-1",
+ "section": "8.4.3.8.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "SELF and SUPER",
+ "rule-digest": "4ca41aab5dfb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundOo.cs#InvokeForm; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindByReceiver",
+ "test-ref": "conformance:cases/8.4.3.8-SELF-and-SUPER/l1c28_self_super_invoking_object",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (--check 8.4.3.8.4 'both reference the object that was used to invoke the method' -> OK §8.4.3.8.4 1)). SELF renders `this.M()` and SUPER `base.M()` (InvokeForm.Self/Super) on the SAME C# receiver `this`, so both reference the invoking object. Probe probe/self-and-super/PGR3.cob (A.M does INVOKE SELF \"N\"; C.M does INVOKE SUPER \"M\"; object of class C) prints C.M / A.M / C.N / B.N at --std 2002: the SUPER-invoked base body's SELF is still the C object. conformance:cases/_unassigned/oo_self covers the SELF half (shared per-instance N) only; the SUPER half is probe-verified, so no single spec-derived test closes both halves - test-ref left empty. [editions as adjudicated: 2002, 2014, 2023 (OO predefined object references; absent from COBOL-85)]",
+ "state": "OK"
+}

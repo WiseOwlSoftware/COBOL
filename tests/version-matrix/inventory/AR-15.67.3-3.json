@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.67.3-3",
+ "section": "15.67.3",
+ "kind": "AR",
+ "ordinal": 3,
+ "subject": "NUMVAL function",
+ "rule-digest": "8f78890f1c52",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#TestNumval",
+ "test-ref": "conformance:cases/15.67.3-Argument-rules/pb33_numval_family_digit_cap",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Existing enabled golden exercises the rule's own branch ON NUMVAL: native arithmetic in effect (no OPTIONS, 11.9.5.2 GR4), a 31-digit NUMVAL control returning the value and a 34-digit NUMVAL argument returning the 15.3 implementor default 0 rather than the Int128 saturation artifact - the represented value is not what comes back once the cap is exceeded. || editions 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the 31-digit limit is stated for native arithmetic, the mode the ARITHMETIC clause (2002) names; the rule's form is the 2002 one. retired-witness: src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#Rescaled (kb/Work PB3839 deleted CobolIntrinsics.Rescaled with the last Int128 NUMVAL-F body: NUMVAL, NUMVAL-C and NUMVAL-F are all SDIDI functions now (IntrinsicCarrierRules.ReturnsExactParse), and the Int128 landing helper had no other caller)",
+ "state": "OK"
+}

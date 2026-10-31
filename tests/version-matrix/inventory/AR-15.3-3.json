@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.3-3",
+ "section": "15.3",
+ "kind": "AR",
+ "ordinal": 3,
+ "subject": "Intrinsic functions",
+ "rule-digest": "c4eaf92b5edd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#boolArgAhead",
+ "test-ref": "conformance:cases/15.3-Arguments/pb124_boolean_argument_boundary; conformance:cases/15.2-Types-of-functions/pb65_boolean_expression_argument; conformance:cases/15.2-Types-of-functions/intrinsics_boolean_conv; conformance:cases/13.16-Data-description/pb79_group_usage_bit",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB124 wave 3): the space-separator boundary arm - a boolean expression connects every term with a B-operator (8.8.2 r1), so TWO ADJACENT OPERAND TERMS at depth 0 end the argument, and a B-operator found beyond belongs to a LATER argument. CONCAT(WS-A B1 B-AND B0) now binds WS-A as its own alphanumeric argument (the old scan predicated EVERY argument into the boolean alternative once ANY later one held a depth-0 B-operator - the mis-route the refuter constructed). LPAREN after a term stays a subscript/ref-mod continuation (the parser's own reading - the subscripted pair BT(1) B-AND BT(2) still recognizes); FUNCTION joins the term-start set so a nested call after a term is a boundary too. The 96-token cap - the row's third charge - is raised to 512 and DOCUMENTED at the predicate: with the boundary arm the scan ends at the first adjacent-term pair, so only one argument written as a single >512-token boolean expression can reach it, and it falls to the non-boolean alternative with a bind diagnostic, never a silent wrong parse. The four 15.3 type-3 shapes (bit group, boolean expression, boolean literal, elementary boolean) were already verified admitted on this row.",
+ "state": "OK"
+}

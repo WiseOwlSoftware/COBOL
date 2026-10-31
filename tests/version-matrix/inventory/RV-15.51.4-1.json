@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.51.4-1",
+ "section": "15.51.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "LOCALE-COMPARE function",
+ "rule-digest": "629f7e68a3ba",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#Compare",
+ "test-ref": "unit:CobolLocaleTests.Compare_IsTheLocaleBasedRelation_WithTheSignMap",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T4: both arguments are UTF-16 text in this implementation (the alphanumeric and national repertoires are one — D-N1), so the conversion to class national is the identity; the comparison is over the same code points either way.",
+ "state": "OK"
+}

@@ -42,8 +42,10 @@ $refusals = @(Get-ChildItem 'conformance-suite/wiseowl/diagnostics' -File -Filte
 Write-Host "suite  : $tests tests · $refusals WiseOwl refusals (conformance-suite/)"
 
 # 5. Traceability inventory (exists after P14 Step 0)
-if (Test-Path 'tests/version-matrix/traceability-inventory.json') {
-    $inv = Get-Content 'tests/version-matrix/traceability-inventory.json' -Raw | ConvertFrom-Json
+if (Test-Path 'tests/version-matrix/inventory') {
+    # One JSON file per row (kb/Work PB4148, scripts/spec/inventory_store.py): read as bytes and parsed as one array.
+    $inv = '[' + ((Get-ChildItem 'tests/version-matrix/inventory' -File -Filter *.json |
+        ForEach-Object { [System.IO.File]::ReadAllText($_.FullName) }) -join ',') + ']' | ConvertFrom-Json
     $gaps = @($inv | Where-Object { $_.state -eq 'GAP' }).Count
     Write-Host "invent : $(@($inv).Count) rows · $gaps GAP (v1.0 = zero GAP)"
     # Once Phase B starts, the GAP count alone hides the SHAPE of what is left — a DIVERGES is a queued fix, a

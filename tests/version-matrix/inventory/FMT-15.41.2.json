@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.41.2",
+ "section": "15.41.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "FORMATTED-TIME function",
+ "rule-digest": "c416ab542617",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#NATLIT",
+ "test-ref": "conformance:cases/15.3.3.6.1-Offset-subformats/pb11_datetime_format_grammar",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Both arities of the general format, verified against the RENDERED folio 862 (clause_page.py 15.41.2 --render) and corroborated in prose by rules 5/6: T-B is the 2-argument shape, T-OFF the 3-argument one.",
+ "state": "OK"
+}

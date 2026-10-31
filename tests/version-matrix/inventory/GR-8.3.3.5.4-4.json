@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.3.3.5.4-4",
+ "section": "8.3.3.5.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "National literals",
+ "rule-digest": "a025abb028ac",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#Decode; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#DecodeHexGroups; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoMethodNameOf",
+ "test-ref": "conformance:cases/8.3.3.2-Alphanumeric-literals/r03_hexadecimal_national_and_boolean_literals; conformance:cases/8.3.3.5-National-literals/pb1136_invoke_selector_forms",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1136 LANDED (w1014u). cite.py --check 8.3.3.5.4 'each of which has the bit configuration specified by one occurrence of hex-character-sequence-1' OK 4). The sibling copy that refuted this row (OoBinder.OoDecodeMethodNameLiteral, which stripped the N and ran the 2-digit alphanumeric hex codec) is deleted; the INVOKE / inline method name decodes through CobolLiteral.Decode's NX arm (DecodeHexGroups(body, 4)) like every other consumer. NX\"00470052004500450054\" names GREET (golden line 3) and NX\"004700450054004E0041004D0045\" names GETNAME inline (line 4).",
+ "state": "OK"
+}

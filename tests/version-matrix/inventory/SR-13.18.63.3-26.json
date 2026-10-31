@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-26",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 26,
+ "subject": "VALUE clause",
+ "rule-digest": "ae039db394db",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CheckRangesAscending; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ValueThroughNotAscending",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb552-value-through-not-ascending; conformance:cases/13.18.63-VALUE/ec_range_invalid; conformance:cases/13.18.63-VALUE/pb502_value_range_in_alphabet",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB552 (wave 1031 C). 'When the THROUGH phrase is specified: a) ... the value of literal-2 shall be less than the value of literal-3. b) when literal-2 is of class alphanumeric or national, and the runtime collating sequence is known, the value of literal-2 shall be less than the value of literal-3.' (cite.py --check OK). DataBinder.CheckRangesAscending asks every THROUGH pair after the IN alphabet-name-1 phrase resolves: a) algebraically (a numeric conditional variable, or two numeric literals on a numeric-edited one), b) through the ONE ConditionValueOrder SR27 b) reads — the IN alphabet, else the PROGRAM COLLATING SEQUENCE, else native — skipping a LOCALE sequence (SR26 NOTE: unknown). 'Known' is docs/CONFORMANCE.md D-RANGE-KNOWN (GnuCOBOL 3.2 checks neither arm; IBM Enterprise COBOL 6.4 requires literal-1 < literal-2 for every class). Re-probed on this build: 5 THRU 1, 5 THRU 5, 1 THRU 3, 9 THRU 7 (second pair), 9.5 THRU 1.5, \"Z\" THRU \"A\" native, \"A\" THRU \"M\" under a reversed PCS, \"D\" THRU \"P\" IN a reversed alphabet, N\"ZZ\" THRU N\"AA\", and 10 THRU 5 on a PIC ZZ9 subject each draw COBOL2961; 1 THRU 5, \"Z\" THRU \"A\" IN the reversed alphabet and \"Z\" THRU \"A\" IN a LOCALE alphabet compile (the last raises EC-RANGE-INVALID at run time). Seven corpus goldens that relied on an inverted range in a known sequence were reworked (LOCALE alphabet for the EC-RANGE-INVALID ones, ascending pairs or a moved leg for the ordering ones), outputs unchanged except the removed legs. || editions 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): a VALUE-clause rule on a construct that exists at COBOL-85 (a numeric-edited item's nonnumeric VALUE literal; a level-88 THROUGH range); national literals are its 2002 extension, not its origin.",
+ "state": "OK"
+}

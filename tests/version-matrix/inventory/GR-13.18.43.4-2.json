@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.43.4-2",
+ "section": "13.18.43.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "RECORD clause",
+ "rule-digest": "b9afb1d2fd64",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordWidth; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#FitRecord; docs/CONFORMANCE.md#DOC-A.1-146",
+ "test-ref": "conformance:cases/13.18.43-RECORD/pb1276_record_contains_sizes_file; unit:RecordSizeModelTests.RecordContains_SizesTheFileAboveItsDescriptions",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Landed by kb/Work PB1276 (w61f). cite.py --check 13.18.43.4 'specifies the size of records in the record area' -> OK §13.18.43.4 2). The explicit clause (Format 1 integer-1) and the implicit one (GR5 a, the largest description) both size the record area through FileModel.RecordWidth; positions of the area no description covers are spaces (FileConnector.FitRecord). The implementor's calculations for the size on the storage medium are docs/CONFORMANCE.md §7 row DOC-A.1-146, whose arm (a) now matches the compiler (its remaining ⚠ is the line-sequential delimiter, kb/Work PB1540, a different arm).",
+ "state": "OK"
+}

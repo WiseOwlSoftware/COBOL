@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.4-6",
+ "section": "14.6.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "Execution",
+ "rule-digest": "c15bbc7b9e31",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.SubscriptSegments.cs#FreezeOdoExtentBeforeRefMod; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#Read",
+ "test-ref": "conformance:cases/14.6.4-Item-identification/pb1123_odo_length_before_refmod",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED kb/Work PB1123 (the ODO-refmod arm). A reference modifier whose position carries a function activation has that activation hoisted ahead of the statement as a PRE-op, so the occurs-depending group's length used to be read after it ran. ReferenceResolver.Resolve now marks PendingPreOps before the reference modifier is read and, when the modifier registered pre-ops over an OdoGroupPlace, the FreezeOdoExtent hook (StatementBinder.FreezeOdoExtentBeforeRefMod) inserts a copy of the DEPENDING ON object into a compiler temp AHEAD of them and repoints the group's extent at the temp, so step 6 (length) is evaluated in full before step 7 (reference modification): G(FUNCTION SETN(9):) with N = 5 is 5 positions.",
+ "state": "OK"
+}

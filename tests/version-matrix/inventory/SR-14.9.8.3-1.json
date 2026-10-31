@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.8.3-1",
+ "section": "14.9.8.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "COMPUTE statement",
+ "rule-digest": "1be95d9ab213",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ScreenResultant",
+ "test-ref": "conformance:cases/14.9.8-COMPUTE/pb128-compute-alphanumeric-receiver; conformance:cases/14.9.2-ADD/pb128_resultant_categories",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB128): the arithmetic-resultant category screen lives at the ONE receiving chokepoint's Receivers overloads (COBOL1675), keyed per caller: COMPUTE identifier-1 admits elementary numeric or numeric-edited (SR1); the F1->F2 reroute's boolean receivers ride ResolveReceiving too (the arithmetic screen deliberately not applied there - SR2 is PB157's). Also rejected: index data items (13.18.60.3 SR10's closed list) and ref-mod slices (8.4.3.3.4 GR6c).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.7.4-19",
+ "section": "12.3.7.4",
+ "kind": "GR",
+ "ordinal": 19,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "2ca7985ddd04",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/CobolDynStructure.cs#Frame; src/WiseOwl.Cobol.Runtime/Values/CobolContiguousLayout.cs#MediumImage; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#StructureOf",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb1094_dynamic_length_structure_record_image; conformance:cases/12.3.7-SPECIAL-NAMES/pb1094_dynamic_length_structure_elementary_record; conformance:cases/12.3.7-SPECIAL-NAMES/pb1094_dynamic_length_structure_organizations; conformance:cases/12.3.7-SPECIAL-NAMES/pb1094_dynamic_length_structure_record_size; unit:CobolDynStructureTests.Delimited_FollowsTheDataWithOnePositionOfZeroBits",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1094 (landed). Rule (cite.py --check 12.3.7.4 \"a delimiter shall directly follow the data described with dynamic-length-structure-name-1\" -> OK 12.3.7.4 19)): with DELIMITED a delimiter - one alphanumeric (national) character of zero bits - follows the data. A record that holds a member naming a DELIMITED structure now has it on the medium: the record has a contiguous form (the data alone, 8.5.1.11.2) and a medium form (each structured member as [length field][data][delimiter]), made in ONE place by CobolContiguousLayout.MediumImage / MediumExtents and read back by Decompose over the per-member CobolDynStructure. Witnessed from a SECOND description of the same file (a dynamic-length record with no structure) whose characters are the file's: AB -> 65 66 0, an empty item -> 0, a national record AB -> 0 65 0 66 0 0 (the delimiter is a national character, two bytes), both phrases -> length field, data, delimiter. The round trip through the typed description returns every member (D1=AB, D2=CDE) in every organization and the sort; sizes count the structure (FileModel.MaxDynamicExtent / MinExtent). D-DL3 (docs/CONFORMANCE.md section 3) rewritten: the item is in the record, the program never sees the structure bytes, and a LINE SEQUENTIAL WRITE of such a record is the 71 of 14.9.51.4 GR23.",
+ "state": "OK"
+}

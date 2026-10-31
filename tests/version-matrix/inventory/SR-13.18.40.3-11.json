@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-11",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 11,
+ "subject": "PICTURE clause",
+ "rule-digest": "613c6274b147",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#editingPhrase; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BuildEditingSpecs; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ValidateEditing",
+ "test-ref": "conformance-test:PictureEditingTests.DuplicateChar1_Rejected1592; conformance:cases/13.18.40-PICTURE/pb491_editing_variable_width; conformance:cases/13.18.40-PICTURE/pb568-editing-char1-quoted",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-09-19 (kb/Work PB568) - the same root as SR-13.18.40.3-10 and closed by the same change: with character-1 written bare, a conforming MULTI-PHRASE PICTURE parses, so SR11's accept half ('no two instances of character-1 shall be the same character') is satisfiable by conforming source and its reject half is reachable from it. The refuter's second objection is answered by the same move: 8.1.3.2 GR3 a) makes basic letters case-SENSITIVE inside an alphanumeric literal and case-INSENSITIVE 'elsewhere', so ValidateEditing's char.ToUpperInvariant fold is correct exactly under the BARE reading - which is now the reading the grammar takes. MEASURED: PIC 9T9G9 EDITING T IS \":\" EDITING G IS \"-\" compiles and renders 3:4-5 for 12345; PIC 9T9T9 EDITING T IS \":\" EDITING T IS \"-\" draws COBOL1592 naming SR11.",
+ "state": "OK"
+}

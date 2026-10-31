@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.38.3-17",
+ "section": "13.18.38.3",
+ "kind": "SR",
+ "ordinal": 17,
+ "subject": "OCCURS clause",
+ "rule-digest": "e073574b4feb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#OdoResolve; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#TableOcc; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#Occ",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb201_odo_count_carriers; conformance:cases/13.18.38-OCCURS/pb201-odo-depending-not-integer; conformance:cases/13.18.38-OCCURS/pb80_based_odo_group",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB201 (2026-09-04). REJECTED side: DataBinder.Odo screens data-name-1 as Category Numeric, IsFloat false, Scale 0 and raises COBOL0852 otherwise - a PIC 9V9 control item is rejected at every edition (pb201-odo-depending-not-integer; OCCURS DEPENDING is COBOL-85 and rule 17 has no introduction axis). ACCEPTED side: rule 17 asks for an INTEGER and nothing narrower, so a 20-digit COMP item and an unsigned BINARY-DOUBLE are both legal control items; pb201_odo_count_carriers exercises both and asserts the 13.18.38.4 GR8a current-count part each one sends. That golden is what proved the SECOND emitter of the position-carrier defect: RuntimeApi.TableOcc renders the current-count read at CODEGEN time from a Place and cannot decline a carrier and re-route the way the subscript renderer can, so MOVE <odo-group> TO X failed the backend with four CS1503s (System.Int128 and ulong to long) in the DEFAULT strict lane. Rule 17 is exactly what bounds that emitter's carrier universe to long/Int128/ulong/UInt128 plus the promoted string image - all five of which CobolTable.Occ now declares a parameter for - which is why the rejection has its own negative golden rather than resting on the accept side.",
+ "state": "OK"
+}

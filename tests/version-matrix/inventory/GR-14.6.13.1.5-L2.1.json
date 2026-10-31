@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.13.1.5-L2.1",
+ "section": "14.6.13.1.5",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Exception conditions",
+ "rule-digest": "733b06be87b5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#SetPropagatingLast; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitRaisingStage; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#PdRaisingObjectCsTypes; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#ObjectApplicableTest",
+ "test-ref": "conformance:cases/14.6.13.1.5-Exception-objects/pb1121_object_propagation_boundary",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1121 LANDED. GOBACK/EXIT ... RAISING LAST EXCEPTION of an object status tests the object at run time against the containing element's PD-header RAISING census (EcState.PdRaisingObjectCsTypes, the one list item 3's PROPAGATE ON also reads; a FACTORY OF entry lists the factory type); a miss stages the NAMED EC-OO-EXCEPTION instead of the object (item 1). RAISING identifier-1 keeps its static discharge (design D-EO5). Witness: program B (no header RAISING) converts, program C (header RAISING the class) keeps the object.",
+ "state": "OK"
+}

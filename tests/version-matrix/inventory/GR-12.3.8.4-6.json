@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.3.8.4-6",
+ "section": "12.3.8.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "4bf6c2033875",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Lookup; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#FindByExternalizedName",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb974_repository_as_phrase",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1086: Rule (cite.py --check 12.3.8.4 'It is implementor-defined how the information in the class specifier and the external repository are used' -> OK §12.3.8.4 6)); Annex A.1 item 161 (required + documented). Code: OoNameResolution.Lookup resolves a class-specifier against the COMPILATION GROUP's OoClassTable only - by externalized name when AS literal-1 is written (FindByExternalizedName), else by the declared word; pinned by pb974_repository_as_phrase (CLASS BOXY AS \"W974-BOX\"). The in-group half is documented inside DOC-A.1-163's text ('GR6 / GR9 leave ... to the implementor, and matching the declared word keeps a same-word specifier working'). NOT covered: the rule's obligation is to use the specifier 'together with the external repository' - there is none (§8.13 unimplemented), so a class compiled in another compilation group can never be used (out/probe/repo/sr6.cob variant: CLASS NOSUCHCL + USAGE OBJECT REFERENCE NOSUCHCL -> COBOL0813 'no such a class or interface is defined in this compilation group'); and A.1 item 161 has no row of its own in docs/CONFORMANCE.md §7 (the inventory's DOC-A.1-161 is empty).",
+ "state": "GAP"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.9.3-1",
+ "section": "15.9.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "ANNUITY function",
+ "rule-digest": "5e4a69b9f544",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+ "test-ref": "conformance:cases/15.3-Arguments/pb1-numeric-arg-family",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PB1 EXTENDED. ANNUITY 15.9.3 r1 (argument-1 class numeric) enforced; the existing family fixture already exercises ANNUITY's argument-1 with an alphanumeric operand.",
+ "state": "OK"
+}

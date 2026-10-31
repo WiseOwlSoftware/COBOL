@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.13.3-14",
+ "section": "7.3.13.3",
+ "kind": "SR",
+ "ordinal": 14,
+ "subject": "EVALUATE directive",
+ "rule-digest": "6a81bbc43bb8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#EvaluateOperandText; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#MatchWhen; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#CheckOperandSyntax",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/pb1364-when-after-match-arithmetic-formation; conformance:cases/7.3.13-EVALUATE/pb1363-omitted-when-object-malformed; conformance:cases/7.3.13-EVALUATE/pb1363-omitted-when-through-malformed",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1364. cite.py --check 7.3.13.3 'Arithmetic-expression-1, arithmetic-expression-2, and arithmetic-expression-3 shall be formed in accordance with 7.3.6, Compile-time arithmetic expressions.' OK 14). MatchWhen parses and formation-checks the operand of EVERY >>WHEN of a compiled EVALUATE (`>>WHEN 2 ** 3` after a matching WHEN is COBOL1619, SR1a of 7.3.6.2), and an EVALUATE in an omitted branch has its operands fragment-parsed (CheckOperandSyntax, ISO 7.2.1) though never evaluated.",
+ "state": "OK"
+}

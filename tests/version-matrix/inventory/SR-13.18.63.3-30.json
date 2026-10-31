@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-30",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 30,
+ "subject": "VALUE clause",
+ "rule-digest": "25ad9f661845",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb558-condition-name-in-report-section; conformance:cases/13.18.63-VALUE/pb556-value-through-at-non-88",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB558, LANDED AS A NO-REPRO PLUS A WITNESS — the mechanism the note describes is GONE and nothing was fixed here. \"Condition-name and content-validation formats shall not be specified in the report section\" (cite --check OK, §13.18.63.3 30)) is enforced as the CONSEQUENCE of two rules each screened at the one place it belongs, not by a screen of its own: SR33 confines formats 3 and 5 to a level-number of 88, and §13.18.33.3 SR4 — \"Report group description entries that are subordinate to an RD entry shall have level-numbers with the values 1 through 49\" (cite --check OK via --find) — refuses 88 in this section, COBOL1746, over the whole parse tree in LevelNumberPass. The conjunction is exact, so a third screen would report the same source line twice; one was written during this work and DELETED for that reason, and its diagnostic code returned unused. RE-MEASURED on this worktree's own build, both placements (an 88 under a printable COLUMN entry and an 88 directly under the level-01 group) and at --std 85 as well as 2023: the entry is REJECTED, so the note's second measurement — a reference to the dropped condition-name compiling and then aborting at run time — cannot occur either. The landing was PB485 (f37da577b, 2026-09-05), \"the level-number had no domain, on either of its two axes\". The content-validation half of the same sentence is separately answered by the declined A.4.14 facility (COBOL1708), which fires in the report section as elsewhere.",
+ "state": "OK"
+}

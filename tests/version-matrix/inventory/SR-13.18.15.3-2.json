@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.15.3-2",
+ "section": "13.18.15.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "CONSTANT RECORD clause",
+ "rule-digest": "210005b82077",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveReceiving; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveSending; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#ConstantStoreProhibition; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ReceivingPlaceBar",
+ "test-ref": "conformance:cases/13.18.15-CONSTANT-RECORD/pb881-inspect-replacing-constant-record; conformance:cases/13.18.15-CONSTANT-RECORD/pb881-read-into-constant-record; conformance:cases/13.18.15-CONSTANT-RECORD/pb881-move-corresponding-constant-record; conformance:cases/13.18.15-CONSTANT-RECORD/pb881-search-varying-constant-record; conformance:cases/13.18.15-CONSTANT-RECORD/pb416-initialize-target-constant-record; conformance:cases/13.18.15-CONSTANT-RECORD/pb881_constant_record_sending_roles; unit:ReceivingResolutionDriftTests.NoVerbBinder_ResolvesAnOperandWithoutStatingItsRole",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB881.md - SR2 is a rule over an OPERAND ROLE ('shall be specified as a receiving data item'), so it is written once, in ExpressionBinder.ResolveReceiving (DataBinder.RejectConstantStore, COBOL1548), and every verb binder now states each operand's role by calling ResolveReceiving or ResolveSending - never ctx.Refs.Resolve, which screens nothing (ReceivingResolutionDriftTests fails a binder under Verbs/ that does). The sweep moved every receiving operand that had bypassed the chokepoint: INSPECT identifier-1 under REPLACING/CONVERTING (14.9.22.3 SR8 keeps Format 1's TALLYING-only identifier-1 SENDING), READ INTO (sequential and keyed) and RETURN INTO, the CORRESPONDING receiving group, SEARCH VARYING identifier-2 (14.9.37.4 GR1), INVOKE RETURNING (three arms) and BY REFERENCE arguments (typed and universal), the SET object-reference / data-pointer / program-pointer / function-pointer receivers, SET ... TO LOCALE's save target, ALLOCATE RETURNING, FREE and SET UP/DOWN pointer receivers. ACCEPT (the note's second site) had already been routed by PB429 (3fffacb61). The negatives pin four of the formerly bypassing arms at 2002/2014/2023; the positive pins the SENDING roles that stay legal (INSPECT TALLYING of a constant -> CN=0004 unchanged, MOVE CORRESPONDING from a constant group). The CONSTANT RECORD clause is COBOL-2002, so the rule has no population at 85. retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.Constants.cs#RejectConstantStore (kb/Work PB1418 turned the reporting RejectConstantStore into the non-reporting ConstantStoreProhibition, asked by ExpressionBinder.ReceivingPlaceBar (the place half of the receiving-prohibition table ResolveReceiving reports and PermitsReceiving asks))",
+ "state": "OK"
+}

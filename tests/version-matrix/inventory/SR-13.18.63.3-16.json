@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-16",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 16,
+ "subject": "VALUE clause",
+ "rule-digest": "3652f9545633",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ValuePlacement.cs#ScreenItemValuePlacement",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb208-table-value-alphanumeric-on-numeric; conformance:cases/13.18.63-VALUE/pb505_table_value_geometry; conformance-test:ValueFormat2Tests.Format1AndFormat2_ScreenTheSameLiteralAlike; conformance-test:ValueFormat2Tests.GroupLevelTableValue_InitializesTheAreaPerOccurrence; conformance-test:ValueClauseScreenTests.Format2Value_UnderARedefiningEntry_IsRejected_BySr16",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "RE-VERDICTED 2026-09-23 (kb/Work PB550, wave 58) - the row's stated closing condition (\"This row closes when PB550 lands SR12\") is met. SR16 is \"Syntax rules 10, 11,12,13,14,and 15 above apply\" (cite --check OK, §13.18.63.3 16)); PB505 witnessed SR10, SR11, SR13 and SR14 on the format-2 carrier, and SR12 now reaches it through the same placement screen as format 1, reading DataItem.TableValues beside RawValue: `05 B REDEFINES A PIC X(2) OCCURS 3 VALUE \"ZZ\" FROM (1) TO (3).` and the subordinate `10 T ... OCCURS 3 VALUE \"ZZ\" FROM (1) TO (3)` under a REDEFINES entry are COBOL2406 citing SR12 and SR16 (both compiled clean with the value discarded before). SR15 governs the screen section only, whose A.4.2 module is owner-declined, so it has no reachable population here (witness debt kb/Work PB260).",
+ "state": "OK"
+}

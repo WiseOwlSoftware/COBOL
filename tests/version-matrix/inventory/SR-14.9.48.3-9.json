@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.48.3-9",
+ "section": "14.9.48.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "UNSTRING statement",
+ "rule-digest": "9da4fc1dc5f0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#UnstringInto; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#unstringIntoTarget",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/l1c35_unstring_receiving_operands",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: \"The data item referenced by identifier-4 is the receiving operand for data. The data item referenced by identifier-5 is the receiving operand for delimiters.\" (cite.py --check 14.9.48.3 OK). Code: BindUnstring resolves identifier-4 (drefs[0]) and identifier-5 (DELIMITER IN) through host.Expr.ResolveReceiving — the receiving chokepoint — and binds each store as a MOVE into it (ImplicitMovePhrase.UnstringInto / UnstringDelimiterIn). Probes: a constant-name as DELIMITER IN (u9const.cob) -> COBOL1548 (§13.10.4 GR1); a function-identifier as INTO (u9func.cob) and a literal as INTO (u9lit.cob) are refused at parse; DELIMITER IN receives the matched delimiter (ufmtrev.cob B=[,   ]). No spec-derived test pins the receiving designation for UNSTRING INTO/DELIMITER IN specifically (pb429_page_counter_receiving covers identifier-7, a different operand), so test-ref is empty.",
+ "state": "OK"
+}

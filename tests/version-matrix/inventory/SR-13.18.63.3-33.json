@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-33",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 33,
+ "subject": "VALUE clause",
+ "rule-digest": "442a35379210",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ConditionOnlyPhraseOf",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb556-value-through-at-non-88; conformance:cases/13.18.63-VALUE/pb556-value-through-at-non-88-alphanumeric; conformance:cases/13.18.63-VALUE/pb556-value-when-set-false-at-non-88; conformance:wiseowl/cases/13.18.63-VALUE/pb556_condition_formats_stay_legal_at_88",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB556, LANDED. \"Formats 3 and 5 may be specified only when the level-number of the subject of the entry is 88\" (cite --check OK, §13.18.63.3 33)) is now screened at bind time, COBOL2167, over a SET of the format-3/5-only phrases rather than three hand-written conditions: the THROUGH phrase and the IN alphabet-name phrase (formats 3 and 5), WHEN SET TO FALSE (format 3), VALID / INVALID (format 5). The grammar admits every VALUE format through ONE rule on purpose — formats 3 and 5 share their literal / THROUGH list — so the format-vs-level rule is the binder's, and the set is what makes a phrase added to that rule tomorrow screened by adding one line. MEASURED BEFORE and AFTER on this worktree's own build: `01 X PIC 9 VALUE 1 THRU 5.` failed the whole Roslyn compilation (CS1002 + two CS1519s, no COBOL diagnostic) and now reports COBOL2167; `05 X PIC XXX VALUE \"A\" THRU \"C\".` compiled CLEAN and stored the glued source text `\"A` and now reports COBOL2167; `01 X PIC 9 VALUE 1 WHEN SET TO FALSE IS 0.` was accepted and the phrase dropped in silence; `01 X PIC XX VALUE \"AA\" IN AL1.` likewise. Level 77 behaves as level 01 (v33d's shape). The level-88 population is unchanged — conformance:wiseowl/cases/13.18.63-VALUE/pb556_condition_formats_stay_legal_at_88 is the over-reject guard the three negatives cannot be. The VALID / INVALID arm is in the set but unobservable today: DeclinedFacilityPass refuses every A.4.14 content-validation surface by name (COBOL1708) in a pass that runs before the binder, at any level.",
+ "state": "OK"
+}

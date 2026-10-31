@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.5.4-6",
+ "section": "14.9.5.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "CANCEL statement",
+ "rule-digest": "2f08ceff0665",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode",
+ "test-ref": "conformance:cases/13.5-Working-storage-section/recursive_ws",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The rule is a NEGATIVE guarantee - only a subsequent CALL re-establishes the relationship - so it is verified by enumerating every writer of the thing that IS the relationship in this design, `Node.Instance`. READ: all assignments to Instance in ProgramTable.cs are CallProgram lines 191 and 195 (`inst = n.Factory(...)`, `n.Instance ??= n.Factory(...)`), CallProgram line 226 (the INITIAL program's implicit cancel, `n.Instance = null`), RunMain line 96 (`n.Instance ??= n.Factory(null)` - the run unit's own main activation), and CancelNode line 305 (`n.Instance = null`). MATCHED: no non-activation path creates an instance. Specifically, `Cancel`/`ResolveVisible` do not (ResolveVisible's ProbeSiblingModule only REGISTERS nodes, whose Instance starts null), and `EntryOf` - the SET ... TO ENTRY program-address path - returns `new ProgramPointer(n.Name)` without instantiating. CancelNode's own trailing comment 'no instance => never called / already canceled' confirms the invariant is the intended one. Test evidence: recursive_ws.cob's CANCEL/CALL pair, where nothing between the two statements re-creates the state (out line 7 shows the reset). || UPHELD: the enumeration re-run over the whole 412-line file: the five Instance writes are exactly as listed, `ParentInstance` (lines 321-326) only READS `p.Instance`, and I additionally checked the two paths that could re-establish a relationship WITHOUT writing Instance - ProgramTable.Reset (line 46) runs only at run-unit start via the emitted Main, and ProgramTable.Register (lines 61-77), the only other node-creating path, sets `Instance` implicitly to null on a fresh Node. Nothing between a CANCEL and the next CALL can revive the program's state.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.7.3-5",
+ "section": "12.4.5.7.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "COLLATING SEQUENCE clause",
+ "rule-digest": "9dd84661c42f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveFileCollating; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CollatingKeyNamed; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordKeyNameCandidates; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#DeclaresUnresolvedKeyNamed",
+ "test-ref": "conformance-test:FileControlKeyRuleSpecTests.CollatingSequenceOf_ARecordKeyName_MustBeThisEntrys; conformance-test:FileControlKeyRuleSpecTests.SourcePhrase_CompilesFrom2002_AndIsAnIntroductionBelow",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1099 Q1 (w1095i): the record-key SOURCE phrase is PROVIDED (owner rule R65); cite.py --check 12.4.5.7.3 \"Record-key-name-1 shall be a name specified as a record-key-name\" -> OK 5). The antecedent is now populated (the DRV-SR-12.4.5.7.3-5 derivation is withdrawn from docs/CONFORMANCE.md): CollatingKeyNamed counts the entry's own record-key-names (FileModel.RecordKeyNameCandidates, with Format 6's file-name qualifier) and the data-name-1 key items the operand names in ONE set judged by the 8.4.2.2.3 SR1 verdict (review R1-2), and a SOURCE-form alternate qualified by another file-name is refused rather than swallowed as an unresolved clause (review R1-1, FileModel.DeclaresUnresolvedKeyNamed; FileControlKeyRuleSpecTests.CollatingSequenceOf_ARecordKeyName_MustBeThisEntrys rows F-AK IN G / F-AK OF G), and a record-key-name another entry declares is refused under the SR4/SR5 message. retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.cs#DeclineRecordKeySource (the COBOL1954 decline of the SOURCE phrase is retired: kb/Work PB1099 provides it) retired-witness: src/Cobol.Net.Compiler/Binding/Model/FileModel.cs#KeyIndexOfRecordKeyName (kb/Work PB1099 review R1-2 replaced the first-match lookup by the counted set FileModel.RecordKeyNameCandidates, judged by DataBinder.UniqueOrReportAmbiguous)",
+ "state": "OK"
+}

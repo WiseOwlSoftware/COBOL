@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.49.4-10",
+ "section": "14.9.49.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "USE statement",
+ "rule-digest": "2a3b464ff9b0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ReportFlowState; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#RunBeforeReporting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Generate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Terminate; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#FlowReportError",
+ "test-ref": "conformance:cases/14.9.49-USE/pb326_flow_report_unconditional; conformance:cases/14.9.49-USE/pb326_ec_flow_report; conformance:cases/14.9.49-USE/pb326_flow_report_cross_report",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB326, landed. All three effects. RunBeforeReporting — the ONE funnel all seven presentation paths use — brackets the declarative invocation with RunUnit.ReportFlow.Enter()/Exit() in a finally, and Initiate/Generate/Terminate consult InBeforeReporting FIRST: the statement returns having done nothing ('unsuccessful … the state of the report is unchanged', which the rule states outright and therefore holds at every edition and every checking setting) and ExceptionState.FlowReportError raises EC-FLOW-REPORT only where >>TURN enabled it (§14.6.13.1.1). THE RANGE IS THE RUN UNIT'S: GR10 attaches no element qualifier where §14.9.18.4 GR6 attaches one explicitly for EC-FLOW-GLOBAL-GOBACK ('and that USE statement is specified in the same program as the GOBACK statement'), and the standard's other flow rules are dynamic in the same way (§14.9.32.4 GR1's 'within the range of an input procedure'). conformance:2002/pb326_flow_report_cross_report is the arm a per-report flag would fail — a GENERATE of a SECOND report from inside report R-A's BEFORE REPORTING declarative — and it also proves the bracket is left (the same GENERATE succeeds once MAIN is outside the range). Measured before the fix on this tree: the nested GENERATE produced a second detail line. kb/Work PB688 (2026-09-05): the golden moved from tests/conformance/2002 to tests/conformance/2023 - it observes the report by re-reading the report file through ORGANIZATION IS LINE SEQUENTIAL, which is a COBOL-2023 introduction (12.4.5.10.3 GR2; the Foreword's main-changes list over ISO/IEC 1989:2014), so the program is not expressible at 2002. The RULE's editions are unchanged.",
+ "state": "OK"
+}

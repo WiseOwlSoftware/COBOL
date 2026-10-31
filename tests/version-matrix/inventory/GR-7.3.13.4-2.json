@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.13.4-2",
+ "section": "7.3.13.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "EVALUATE directive",
+ "rule-digest": "4b515b1c5adf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#MatchWhen; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateArithmeticOperand",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/l1c07_evaldir_numeric_literal_operand",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR2 (cite.py --check 7.3.13.4 OK): a single numeric literal operand is a literal, not an arithmetic-expression, so it escapes the 7.3.6.3 GR3 integer truncation (cite.py OK). EvaluateArithmeticOperand's SoleNumericLiteral probe (shared SoleOperand.NumericLiteral descent) keeps the literal's fractional value; a genuine expression is decimal.Truncate'd. Probes: >>EVALUATE 1.5 / >>WHEN 1 not taken, >>WHEN 1.5 taken; >>EVALUATE 1.5 + 0 matches >>WHEN 1 (truncated expression); signed -1.5 vs -1 FALSE / vs -1.5 TRUE; subject 1.5 not in 1 THRU 1.2, in 1.4 THRU 1.6; subject 3 vs object 3.7 FALSE but vs 3.7 + 0 TRUE; 7 / 2 matches 3. Verified for subject, object and both range ends. No spec-derived golden. Probe dir out/probe/evaldir2 (pinned cobol.exe, --std 2023; p1 re-run at --std 2002 and 2014 with identical output; --std 85 rejects >>EVALUATE with COBOL0900). || editions (adjudicator): 2002, 2014, 2023 (the 7.3 directive facility is absent from 1985; Annex E.2 item 8 records the 2023 rewording of GR6/GR10 only)",
+ "state": "OK"
+}

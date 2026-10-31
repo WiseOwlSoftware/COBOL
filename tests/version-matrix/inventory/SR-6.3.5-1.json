@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-6.3.5-1",
+ "section": "6.3.5",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Fixed-form reference format",
+ "rule-digest": "5d73ba6c96f6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ContinueFixed",
+ "test-ref": "conformance:cases/6-Reference-format/pb1491_continued_literal_logical_line; unit:ReferenceFormatLogicalConversionTests.ContinuedLiteral_JoinsAcrossADiscardedLine; conformance:cases/6.3.5-Continuation-of-lines/pb1492-national-literal-fixed-continuation; unit:LogicalLineBuilderTests.NationalLiteral_FixedContinuation_IsDiagnosed",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1491 + PB1492 landed: the fixed continuation indicator continues an alphanumeric or boolean literal (the next line that is not a comment or blank line is the continuation line), and a NATIONAL literal continued by it is COBOL2685.",
+ "state": "OK"
+}

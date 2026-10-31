@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.1.4-1",
+ "section": "13.18.1.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "ALIGNED clause",
+ "rule-digest": "3c6ea25945e4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#SharesByteWith",
+ "test-ref": "conformance:cases/13.18.1-ALIGNED/pb487_aligned_bit_layout; conformance:cases/13.18.1-ALIGNED/pb1569_type_subject_level1_bit_alignment",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "'aligned on the first bit of the first available byte boundary. Implicit filler bits may be generated ... as described in 8.5.1.6.3.' One conjunct on THE one placement predicate: an ALIGNED subject never shares its predecessor's byte, and the round-up every caller already performs does the rest. The predicate was previously written out THREE times - BitLayout.ExtentBits, BitLayout.StartBitWithin and DataBinder.AssignClassOffsets - and is now a single method all three call, so an item's OFFSET, the group's EXTENT and a REDEFINES view of it cannot disagree. Golden derivation: 05 B1 PIC 1(4) BIT. 05 B2 PIC 1(4) BIT ALIGNED. occupies 12 bits padded by rule 4 to 16, so FUNCTION LENGTH is 2 where without ALIGNED it is 1 - measured 2.",
+ "state": "OK"
+}

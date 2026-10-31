@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.3-4",
+ "section": "12.4.5.3",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "File control entry",
+ "rule-digest": "14f18c5a98ba",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#AssociationFailure; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Associate; src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs#ResolveHostPath; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#AssociationMade; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitAssociation",
+ "test-ref": "conformance:cases/9.1.13.6-Permanent-error-condition-with-unsuccessful-completion/pb324_assign_using_dynamic; conformance:cases/12.4.5-File-control/pb1097_sort_merge_assign_using_content",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1097: the implementor's content rule (DOC-A.1-73: spaces removed, empty or a character below U+0020 names no file) is ONE function, FileConnector.AssociationFailure, asked by every OPEN (Associate) and by every SORT and MERGE for the sort-merge file's own ASSIGN USING (CobolSort.AssociationMade, rendered by SortEmitter.EmitAssociation before any phase). When the association cannot be made the statement is unsuccessful (12.4.5.3 GR3; 3.176): nothing is released, sequenced or returned and no USING or GIVING file is touched. Golden pb1097_sort_merge_assign_using_content: all-spaces content (SORT USING GIVING, and MERGE) and a control character (SORT with procedures) terminate the statement; valid content with surrounding spaces runs.",
+ "state": "OK"
+}

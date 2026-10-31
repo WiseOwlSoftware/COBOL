@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.7.3-8",
+ "section": "12.4.5.7.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "COLLATING SEQUENCE clause",
+ "rule-digest": "227d9861d196",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveFileCollating; src/WiseOwl.Cobol.Compiler/Binding/ConstructOperandRegister.cs",
+ "test-ref": "conformance-test:FileCollatingSequenceSpecTests.KeyLevel_SameKeyInTwoClauses_Diagnosed; conformance-test:FileCollatingSequenceSpecTests.KeyLevel_SameKeyTwiceInOneClause_IsAccepted; conformance-test:FileCollatingSequenceSpecTests.KeyLevel_SameKeyRepeatedInTheSecondClause_DiagnosedOnce; conformance:cases/12.4.5.7-COLLATING-SEQUENCE/pb703-collating-key-in-two-clauses; conformance:cases/12.4.5.7-COLLATING-SEQUENCE/pb703_collating_key_named_twice",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Neither data-name-1 nor record-key-name-1 shall be specified in more than one COLLATING SEQUENCE clause. The unit the rule counts is the CLAUSE: 12.4.5.7.2's Format-2 figure prints the ellipsis immediately right of the closing brace of { data-name-1 | record-key-name-1 }, so per 5.2.7 the repeated portion is the brace group and one clause may list the same key twice - one clause is never more than one. Enforced by the shared ConstructOperandRegister with the Format-2 clause as its construct (kb/Work PB703); both arms are pinned, plus the one-violation-one-diagnostic count.",
+ "state": "OK"
+}

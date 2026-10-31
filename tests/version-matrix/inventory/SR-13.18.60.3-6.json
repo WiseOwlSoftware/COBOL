@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.60.3-6",
+ "section": "13.18.60.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "USAGE clause",
+ "rule-digest": "a73b495ca6e6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs",
+ "test-ref": "unit:LoudGuardTests.ParseUsage_ImplementedKeywords_MapWithoutDiagnostics",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "ONE NORMALIZATION, NOT TWO PARALLEL LISTS -- the abbreviation is realized as a textual COMPUTATIONAL->COMP rewrite ahead of the single keyword switch, so the two spellings CANNOT drift apart by construction, and the unit theory pins both `COMP` and `COMPUTATIONAL` to Usage.Binary (and `COMP-3`/`COMPUTATIONAL-3` to Usage.Packed). MEASURED end to end at 2023: `PIC S9(4) USAGE COMP`, `USAGE COMPUTATIONAL`, bare `COMP` and bare `COMPUTATIONAL` all store -12 as the same 2-byte binary item and render -0012 (probe u_sr6, four declarations in one program). The same rewrite also folds COMPUTATIONAL-1..5 onto COMP-1..5; those are vendor synonyms outside SR6's scope and outside 13.18.60.2's general format, tracked as their own dialect words in UsageWordDriftTests -- they do not weaken this row. || code sites, verbatim from the adjudication: src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs:526 (`switch (keyword?.ToUpperInvariant().Replace(\"COMPUTATIONAL\", \"COMP\"))`) + :529 (`case \"COMP\" or \"COMP-4\" or \"BINARY\": return Usage.Binary;`)",
+ "state": "OK"
+}

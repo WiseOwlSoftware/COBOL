@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.9.4-1",
+ "section": "12.4.5.9.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "LOCK MODE clause",
+ "rule-digest": "2eb2e733b8fd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitSharingRegistration; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterSharing; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ShareOf; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultShare; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#LocksEffective",
+ "test-ref": "conformance:cases/12.4.5.9-LOCK-MODE/l1_lock_mode_omitted_sets_no_lock; conformance:cases/12.4.5.9-LOCK-MODE/gn1_lock_mode_omitted_implementor_default",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR1 a) and b) 1. are pinned by l1_lock_mode_omitted_sets_no_lock (A2/B2=00 against the C2=51 control). GR1 b) 2. (neither clause, no OPEN phrase) is pinned by gn1_lock_mode_omitted_implementor_default: X2=00 shows the documented default (DOC-A.1-153, no record locking) sets no lock even with READ WITH LOCK, against the M2=51 LOCK MODE IS MANUAL control. Both legs use the DOC-A.1-131 READ ONLY default sharing mode, where locks are in effect (9.1.15 2)).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.2.3-3",
+ "section": "8.5.2.3",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Class and category of data items and literals",
+ "rule-digest": "bb58edd199ec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#GroupKindsOf; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfItem",
+ "test-ref": "conformance:cases/8.5.2.3-Alphanumeric-category/pb59-display-of-group",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: '3) An alphanumeric group item.' (cite.py OK). ItemCategory.GroupKindsOf implements §13.18.29.4 GR3's four conjuncts (not strongly typed, not variable-length, no GROUP-USAGE) incl. the level-66 THROUGH alias; IntrinsicArgumentRules.ClassOfItem answers class alphanumeric for it. negative/pb59-display-of-group derives that a plain group is class alphanumeric (not national) and is rejected as DISPLAY-OF argument-1. Probe p4.cob: group G with implied X(3)+X(1) members -> LENGTH(G)=4, displayed as an alphanumeric image.",
+ "state": "OK"
+}

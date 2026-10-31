@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-6.2.3.2-4",
+ "section": "6.2.3.2",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "Floating indicators",
+ "rule-digest": "f002b9f6303f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ScanProgramText; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ContinueFixed; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ContinueFloating",
+ "test-ref": "conformance:cases/6-Reference-format/pb1359_floating_continuation_fixed; conformance:cases/6-Reference-format/pb1359_floating_continuation_free; conformance:cases/6.2.3-Floating-indicators/pb1359-literal-two-continuation-forms; unit:LogicalLineBuilderTests.LiteralContinuedWithBothForms_IsDiagnosed; unit:LogicalLineBuilderTests.FloatingContinuation_EveryLiteralKind_BothQuotationSymbols",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1359 landed: the floating literal continuation indicator is recognized in ONE place (LogicalLineBuilder, both reference formats) for alphanumeric, boolean (B, BX) and national (N, NX) literals, hexadecimal alphanumeric included; 'A given literal shall not be continued with more than one form of continuation' is COBOL2687 (a hyphen in column 7 after a floating indicator, or after a literal a floating indicator continued before). The FIRST sentence ('only for an alphanumeric, boolean, or national literal') has no violation to detect: the indicator is recognized only inside a literal, and every quotation symbol opens one of those three kinds (the premise of a negative case is not expressible).",
+ "state": "OK"
+}

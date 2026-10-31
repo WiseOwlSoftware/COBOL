@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.37.4-8",
+ "section": "14.9.37.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "SEARCH statement",
+ "rule-digest": "6ad429e2b247",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#BindSearchAll",
+ "test-ref": "conformance:cases/14.9.37-SEARCH/l1_search_all_index_and_others",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "INDEXED BY KX KY with a unique matching key: KX = 4 (the first index-name is the search index, and its pre-set 5 being ignored also exercises GR9), KY unchanged at 2 (no other index of identifier-1 is varied).",
+ "state": "OK"
+}

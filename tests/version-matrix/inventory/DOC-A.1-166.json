@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-166",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 166,
+ "subject": "RETRY phrase (maximum meaningful time-out value and internal representation; technique for determining frequency of retr",
+ "rule-digest": "748685339688",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-166; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#RenderRetry",
+ "test-ref": "conformance:cases/9.1.13.9-File-sharing-conflict-condition-with-unsuccessful/delete_file_sharing; unit:CobolFileLockTests.RetryLoop_AttemptCount_FollowsGR1AndGR4",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GAP -> CONFORMS, recorded by the LANDER (see DOC-A.1-165 for why the implementer could not). §14.7.9.3 GR2 requires the implementor to state the internal representation of the SECONDS temporary, the maximum meaningful time-out value, and the technique for determining the frequency of retries. The determination is 9(1)V9(0) (n=1, m=0), maximum meaningful value 0, and no attempts during the timeout period — one rule, not a special case, which is why `RETRY FOR 0 SECONDS` and `RETRY FOR 30 SECONDS` agree. That AGREEMENT is the observable form of the determination and is what the golden pins (DELSC0 / DELSC30 both '62'). GR2's temporary is an implicit COMPUTE WITHOUT ROUNDED — truncation at m — which is a different rule from GR1's round-up on the TIMES count; the two keep separate renderings in RenderRetry.",
+ "state": "OK"
+}

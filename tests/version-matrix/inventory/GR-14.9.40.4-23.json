@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.40.4-23",
+ "section": "14.9.40.4",
+ "kind": "GR",
+ "ordinal": 23,
+ "subject": "SORT statement",
+ "rule-digest": "237cfad48759",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindTable; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#TableCompare",
+ "test-ref": "conformance:cases/14.9.40-SORT/sort_table_format2",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'If data-name-1 is omitted, the data item referenced by data-name-2 is the key data item.' (cite.py --check 14.9.40.4 OK, GR23). Code: a key phrase with no data-names adds BoundTableSortKey(desc, \"\", table) -- MemberPath empty, so TableCompare compares the element itself; a group element takes the AsImage alphanumeric arm (8.8.4.2.1). sort_table_format2 (ITM PIC 9(2) OCCURS 5, SORT ITM ASCENDING / DESCENDING) pins ASC 10..50 and TOP=50 BOT=10, derivable from GR19a/b with the element as key. Group-element self-key is exercised by conformance:cases/_unassigned/da5_table_sort_group_key.",
+ "state": "OK"
+}

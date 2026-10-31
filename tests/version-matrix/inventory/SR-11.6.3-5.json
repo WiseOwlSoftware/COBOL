@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.6.3-5",
+ "section": "11.6.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "INTERFACE-ID paragraph",
+ "rule-digest": "105f00eb8b2c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ValidateInterfaceInheritance; src/WiseOwl.Cobol.Compiler/Oo/OoInterfaceSymbol.cs#AllPrototypes; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitInterfaceUnit",
+ "test-ref": "conformance:cases/11.6-INTERFACE-ID/pb1502-interface-inherits-conflicting-prototypes; conformance:cases/11.6-INTERFACE-ID/pb1502_interface_inherits_legal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1502 (w1013 L). cite.py --check 11.6.3 SR5 'If a given method-name is inherited from more than one interface, the method prototype in each inherited interface shall be such that this interface conforms to all inherited interfaces': ValidateInterfaceInheritance (after the prototype formals bind) requires one inherited prototype to conform to every other through the ONE 9.3.8.2.3 rule set (docs/CONFORMANCE.md D-INH1), reports COBOL2762 on the inheriting interface, and records the conforming prototype as the interface's presentation (AllPrototypes, the IMPLEMENTS pass and the emitted hiding member read it). Identical prototypes inherited twice, a diamond and a covariant RETURNING pair are legal and run.",
+ "state": "OK"
+}

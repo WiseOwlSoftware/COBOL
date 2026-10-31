@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.30.4-11",
+ "section": "14.9.30.4",
+ "kind": "GR",
+ "ordinal": 11,
+ "subject": "READ statement",
+ "rule-digest": "7fc0689f69d1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReleasePriorRecordLocks; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ApplyPostReadLockActions; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReadSetsRecordLock; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#LocksEffective; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReadShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReadKeyedShared",
+ "test-ref": "conformance:cases/12.4.5.9-LOCK-MODE/pb338_read_releases_prior_lock; conformance:cases/12.4.5.9-LOCK-MODE/l1_read_lock_mode_governs; unit:CobolFileLockTests.ReadKeyedShared_IgnoringLockWithNoLock_ReleasesThisConnectorsLock_AndReadsAnothersLockedRecord",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB338 - LANDED 2026-09-06. RULE items a-d, all four now CONFORM. cite.py --check 14.9.30.4 'any prior record lock associated with that file connector is released by the execution of the READ statement' -> OK 14.9.30.4 11) a); --check 12.4.5.9.4 'Execution of any I-O statement except START releases any previously locked record in that file for that file connector' -> OK 12.4.5.9.4 6). ITEM a WAS THE DEFECT: the release was gated on the READ having SUCCEEDED at both call sites, although GR11 a) ties it to EXECUTION and the standard qualifies deliberately in the very same rule (b) 'at the completion of the successful execution', c)/d) 'a successfully accessed record'). It is now FileRegistry.ReleasePriorRecordLocks, called at the TOP of both governed READ entries before anything can make the statement unsuccessful - and it is now the ONE site of 12.4.5.9.4 GR6 for all four governed record verbs, which had each written it out separately. START calls it from nowhere, which is 14.9.41.4 GR3 ('The execution of the START statement does not detect, acquire, or release record locks' -> OK). OBSERVED, conformance:cases/12.4.5.9-LOCK-MODE/pb338_read_releases_prior_lock - three legs, one per ORGANIZATION: A holds the third record under single record locking, C is refused it ('51'), A's AT END read fails ('10'), and C's next read of that same record answers '00 CCCCC'. Pre-fix the sequential leg answered '51' (the lock survived the failing READ) and the two keyed legs answered '10' (the lock survived AND C's own '51' had advanced its position past the record). ITEMS b, c, d were already right and stay so: ApplyPostReadLockActions holds b) (multiple locking + NO LOCK releases at completion) and c)/d) via ReadSetsRecordLock (AUTOMATIC auto-locks, MANUAL only with the LOCK phrase); LocksEffective suppresses ACQUISITION only, never the conflict CHECK (12.4.5.9.4 GR1 a)/b) 1. and GR3).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.15.3-1",
+ "section": "8.4.3.15.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Report counters",
+ "rule-digest": "7bbcb92a1718",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveReceiving; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CounterExpr; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CounterPlace; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportSectionNameIn",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb429_page_counter_receiving; conformance:cases/8.4.3.15-Report-counters/pb429-counter-outside-source-clause",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "'In the report section, PAGE-COUNTER and LINE-COUNTER may be referenced only in a SOURCE clause. In the procedure division, PAGE-COUNTER and LINE-COUNTER may be referenced in any context where an integer data item may appear.' TWO halves, and each has its own evidence. PROCEDURE DIVISION: the rule names no statement, so the counter is a receiving-capable PLACE resolved at the ONE receiving chokepoint rather than a permission granted per verb — ReportPageCounterPlace, reached from ExpressionBinder.ResolveReceiving, which every receiver funnels through; the positive golden exercises ten integer-data-item contexts (MOVE, ADD TO, SUBTRACT FROM, MULTIPLY BY, DIVIDE INTO, COMPUTE, ADD GIVING, INITIALIZE, INSPECT TALLYING, UNSTRING WITH POINTER) plus the sending direction in COMPUTE. Before kb/Work PB429 the receiving direction was refused wholesale (COBOL0899, 'legal ... not yet implemented'), and four verbs (INSPECT TALLYING, ACCEPT, UNSTRING's POINTER/TALLYING, STRING's INTO/POINTER) resolved their receivers through the SENDING resolver, so the chokepoint could not have reached them either; they now ask ResolveReceiving. REPORT SECTION: ReportSectionNameIn admits a counter only in a SOURCE clause and refuses it elsewhere - the negative golden writes one into a SUM addend, which SR6 of 13.18.54.3 refuses in its own words ('any identifiers it contains may reference entries in any section of the data division other than the report section') while the same program keeps a legal SOURCE IS PAGE-COUNTER in view.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.9.5.2-1",
+ "section": "11.9.5.2",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "ARITHMETIC clause",
+ "rule-digest": "583c9fdcd829",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SumEntry; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction; src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#ArithmeticOf; src/WiseOwl.Cobol.Compiler/Binding/OptionsModel.cs#IsDecimalEngine; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#StandardDecimal",
+ "test-ref": "conformance:cases/11.9.5-ARITHMETIC/l1_native_arithmetic_intermediate; conformance:cases/11.9.5-ARITHMETIC/pb1509_sum_counter_wide_native",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1509 (w70 V3) closes the SUM arm the refuter found: cite.py --check 11.9.5.2 'If the NATIVE phrase is specified, the techniques used in handling arithmetic expressions and intrinsic functions shall be those specified by the implementor' OK 1); §8.8.1.3 names the SUM clause among the native techniques (cite OK). The report SUM accumulation no longer passes through a C# (long) cast: counter, addends and term total are Int128 end to end (ReportWriter.SumEntry.Value / SumTerm Func<Int128> / SumValue / SetSumValue), GR1's digit count is the PICTURE's (PicInfo.SumCounterItem clamp 38, was 18), and an addend alignment or term total past Int128 is the §13.18.54.4 GR3 size error. Golden conformance:cases/11.9.5-ARITHMETIC/pb1509_sum_counter_wide_native (ARITHMETIC IS NATIVE): 20-, 22- and 31-digit counters print the exact totals (24000000000000000000 / 24691357802469135780 / 0246913578024691357802469135782 / 1024691357802469135780 after ADD to the named counter) and a 21-digit total into a 20-digit counter is a size error that prints spaces. The expression, statement and function arms were verified by the original adjudication (conformance:cases/11.9.5-ARITHMETIC/l1_native_arithmetic_intermediate).",
+ "state": "OK"
+}

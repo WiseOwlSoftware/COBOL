@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.8.4.4-2",
+ "section": "7.3.8.4.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Defined condition",
+ "rule-digest": "71ce4f59c50b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvalDefined",
+ "test-ref": "unit:CompileTimeBooleanCceTests.Cce_DefinedCondition",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'A defined condition using the IS NOT DEFINED syntax evaluates TRUE if compilation-variable-name-1 is not currently defined.' (cite.py --check 7.3.8.4.4 OK). EvalDefined returns !defined when d.NOT() is present; that NOT belongs to the defined-condition, not the cce NOT operator. Probe p1.cob T3 (never-defined name IS NOT DEFINED -> TRUE) and T4 (defined name NOT DEFINED -> FALSE) PASS at 2002/2014/2023; T8 combines cce-level NOT with IS DEFINED correctly. The unit test asserts both truth values. Probe dir E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2\\out\\probe\\defined-condition || editions (adjudicator): 2002, 2014, 2023 (the §7.3 compiler-directive facility incl. >>DEFINE/>>IF is not in ISO 1989:1985; no 2023 Annex E change to §7.3.8.4)",
+ "state": "OK"
+}

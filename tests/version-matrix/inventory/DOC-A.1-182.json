@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-182",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 182,
+ "subject": "SPECIAL-NAMES paragraph, ALPHABET clause (coded character set referenced by STANDARD-2 phrase)",
+ "rule-digest": "af99f1d34733",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-182; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#CodedCharacterSet; src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#CodedSetKind",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1c30_standard2_is_irv",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 12.3.7.4 'the implementor shall specify whether the International Reference Version or a national version is referenced' -> OK §12.3.7.4 7) c). Read CollatingModel.CodedCharacterSet (OrdinalCount STANDARD-1/STANDARD-2 => 128; Medium identity; identity alphabet for PCS) and CobolClass.CodedSetKind.Ascii (128-char membership). No code path selects a national ISO 646 variant. Probe probe/p182/s2.cob at --std 85 and 2023: AB~ IS S2 true, é IS S2 false, ORD('A')=66, a>B, é>~ under PCS S2. No spec-derived test uses STANDARD-2 (pb695 names it only as an optional-word syntax check), so Pinned by is empty. Owning note: kb/Work/PB1534, PB1535.",
+ "state": "OK"
+}

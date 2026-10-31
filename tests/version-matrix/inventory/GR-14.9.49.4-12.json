@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.49.4-12",
+ "section": "14.9.49.4",
+ "kind": "GR",
+ "ordinal": 12,
+ "subject": "USE statement",
+ "rule-digest": "1dc68c62a4c5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#RunUseCall; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs#TerminateOnUncoveredFatalStatus; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitGivingFile; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclCollectSection",
+ "test-ref": "conformance:cases/14.9.49-USE/pb367_use_procedure_is_the_section_ec_io; conformance:cases/14.6.13.1.2-Normal-completion-of-a-declarative-procedure/pb367b_sort_use_not_normal; conformance-test:ExceptionConditionConformanceTests.IoPermanentError_Enabled_NoHandler_FatalTerminates; conformance-test:DocA1Item103WitnessTests.FatalStatus_NoFileStatusNoUse_TerminatesAbnormally; conformance-test:DocA1Item103WitnessTests.FatalLogicErrorStatus_OnWrite_NoFileStatusNoUse_TerminatesAbnormally; conformance-test:DocA1Item103WitnessTests.FatalStatus_WithFileStatusClause_Continues; conformance-test:DocA1Item103WitnessTests.FatalStatus_WithApplicableUseProcedure_Continues; conformance-test:DocA1Item218WitnessTests.CheckedFatalIo_Format1UseCompletesNormally_TerminatesAbnormally",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "RE-VERDICTED (kb/Work PB322 E, w1013m): the Format 3 twin of GR-14.9.49.4-7. GR12 c)'s implementor determination is now documented once (DOC-A.1-218, DOC-A.1-103) and witnessed on both arms. retired-witness: conformance-test:DocA1Item103WitnessTests (a class-level ref does not resolve (SpecTraceabilityInventoryDriftTests wants Class.Method); the method-level witnesses replace it) retired-witness: conformance-test:DocA1Item218WitnessTests (a class-level ref does not resolve (SpecTraceabilityInventoryDriftTests wants Class.Method); the method-level witnesses replace it)",
+ "state": "OK"
+}

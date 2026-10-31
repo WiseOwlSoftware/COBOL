@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.8.3-7",
+ "section": "12.3.8.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "fe6bdb1c913a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#Validate",
+ "test-ref": "conformance:cases/11.3-CLASS-ID/pb759_parameterized_class",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB759.md landed w46i3. The interface-specifier twin of SR4, same Validate arm: PB759IPUT and PB759BOX are declared in the same paragraph as PB759IPUT-BOX in both PB759PUTTER and PB759M.",
+ "state": "OK"
+}

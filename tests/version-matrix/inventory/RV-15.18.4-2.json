@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.18.4-2",
+ "section": "15.18.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "CONCAT function",
+ "rule-digest": "b8f15fcbebed",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#FollowsConcatArguments; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#MoveCategoryLegality; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#ResultCategory; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#IsNationalArgument",
+ "test-ref": "conformance:cases/15.2-Types-of-functions/pb15-concat-national-result-to-an; conformance:cases/15.12.3-Argument-rules/pb306_concat_usage_national; conformance:cases/15.18.4-Returned-value-rules/pb306-concat-usage-national-to-an",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "Table 16 (via 14.9.25.3 SR10) makes national-into-alphanumeric the only discriminating direction, so the negative goldens ARE the r2 witnesses: pb15-concat-national-result-to-an for the CLASS limb and pb306-concat-usage-national-to-an for the USAGE limb (PIC 9(4) USAGE NATIONAL, category numeric - legal data by 13.18.60.3 SR12 and no longer declined upstream). Both limbs are read by ONE reader, IntrinsicResultType.IsNationalArgument (category national OR IntrinsicArgumentRules.StaticUsageOf national), which the 15.18.3 r2 argument screen shares (kb/Work PB306); the positive golden pins r1's values for the numeric- and boolean-usage-national rows.",
+ "state": "OK"
+}

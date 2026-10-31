@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-4",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "WRITE statement",
+ "rule-digest": "a3197285de01",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#SameRecordAreaPeers; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#BindIoControl",
+ "test-ref": "conformance:cases/14.9.51-WRITE/l1c37_write_same_record_area; conformance:cases/14.9.32-RELEASE/pb1195_released_record_also_available_out_of_line; conformance:cases/14.9.35-REWRITE/pb1195_keyed_released_record_also_available",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 14.9.51.4 'is no longer available in the record area unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause' -> OK 4)). Half 1, 'no longer available': the standard leaves the content after release undefined, and the emitted WRITE neither clears nor preserves the area by rule; the typed field keeps its last value, as CONFORMANCE.md DOC-A.1-24 documents for CLOSE. So there is nothing to enforce. Half 2, 'also available as a record of other files in the same SAME RECORD AREA clause': BindIoControl makes the peer file's first record an implicit redefinition (RedefinitionKind.SameRecordArea) of the shared area. Probe dir: out/probe/write-statement-p3/ (pinned adj-d1 cobol.exe). from1.cob (SAME RECORD AREA FOR F1 F2): after WRITE R1 FROM 'HELLO', R2 shows '[HELLO   ]'; after MOVE 'ABCDEFGH' TO R1 and WRITE R1, R2-A|R2-B shows 'ABCD|EFGH'. Both halves are verified. The goldens pb235_same_record_area_close and l1_release_same_record_area cover CLOSE and RELEASE, not WRITE, so test-ref is empty. [editions as adjudicated: 85, 2002, 2014, 2023 (SAME RECORD AREA and this rule are in every edition)]",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.43.4-9",
+ "section": "14.9.43.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "STRING statement",
+ "rule-digest": "b23c0edd341e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitString",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/phrase_order_overflow; conformance:cases/14.9.43-STRING/pb1179_string_receiver_arms",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1179 (registrar 14c; landed w1018h). GR9: no GR8 condition => ON OVERFLOW ignored, NOT ON OVERFLOW runs, then control to end of statement. EmitOverflow: if (flag) {on} else {not} / if (!flag) {not}. Verified: phrase_order_overflow golden (STR-NOT, both phrase orders), gr2 C (NOV with ON omitted), gr8 B (zero characters moved -> B-NOV); the national arm: pb1179_string_receiver_arms C (pointer 2, 'XY' fills 2-3 of N(3): C-NOV runs, ON OVERFLOW ignored) and E (NOT ON OVERFLOW alone after a delimited transfer into a national receiver). cite.py --check 14.9.43.4 'If, at the time of execution of a STRING statement with the NOT ON OVERFLOW phrase' -> OK 14.9.43.4 9). [editions as adjudicated: 2023 text (ISO/IEC 1989:2023 section 14.9.43); Annex E lists no STRING change 2014->2023; the earlier-edition edge is not derivable in-repo (no 2002/2014 text)]",
+ "state": "OK"
+}

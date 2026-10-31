@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.23.3-16",
+ "section": "14.9.23.3",
+ "kind": "SR",
+ "ordinal": 16,
+ "subject": "INVOKE statement",
+ "rule-digest": "6dc1bd6ab1b9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg",
+ "test-ref": "conformance:cases/14.9.23-INVOKE/pb1051-by-value-literal-alphanumeric; conformance:cases/8.4.3.4-Inline-method-invocation/pb1051_method_by_value; conformance:cases/9.3.6-Method-invocation/pb1051_method_by_value_match",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1051 landed (wave 1011 C): a METHOD formal declared BY VALUE is carried (OoFormal.ByValue). cite.py --check 14.9.23.3 'If literal-2 or its corresponding formal parameter is specified with the BY VALUE phrase, literal-2 shall be a numeric literal' -> OK 14.9.23.3 16). Refused for a written BY VALUE literal AND for a keyword-less literal whose formal is BY VALUE (CallBinder.ByValueLiteralAdmitted, the CALL SR23 predicate); numeric literals pass (goldens pb1051_method_by_value, pb1051_method_by_value_match).",
+ "state": "OK"
+}

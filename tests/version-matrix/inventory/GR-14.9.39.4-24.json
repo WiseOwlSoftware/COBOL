@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-24",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 24,
+ "subject": "SET statement",
+ "rule-digest": "d45d5e5538a6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/LocaleState.cs#SetFromLocale; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#LocaleMissingError; src/WiseOwl.Cobol.Runtime/Control/LocaleState.cs#LocaleIdentification",
+ "test-ref": "conformance:cases/14.6.6-Locale-identification/pb64t1_ec_locale_missing; unit:LocaleStateTests.UnavailableLocale_RaisesMissingOnlyWithCheckingOn_AndLeavesTheStateUnchanged",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T1 (2026-08-19): an unavailable locale (the ONE known-locale rule — CollationEngine.IsKnownLocale: the root, a CLDR locale of its own, a site .tailor, a culture .NET recognizes) sets EC-LOCALE-MISSING (fatal, checking-gated) and the SET is unsuccessful; the same condition fires at USE for a named IS LOCALE sequence whose locale is unavailable (§8.2.1). Was DOCUMENTED-NON-SUPPORT (PB92).",
+ "state": "OK"
+}

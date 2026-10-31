@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.1.4-3",
+ "section": "13.18.1.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "ALIGNED clause",
+ "rule-digest": "b3c2aa76f279",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#SharesByteWith",
+ "test-ref": "conformance:cases/13.18.1-ALIGNED/pb487_aligned_bit_layout",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "'When an ALIGNED clause is not specified, bit data items are aligned in accordance with 8.5.1.6.3.' This is the FALSE arm of the one placement predicate, unchanged by the GR1 conjunct - which is why the golden carries the no-ALIGNED control groups NOALIGN and TBLPLAIN alongside the ALIGNED ones and pins them at 1 and 2 character positions.",
+ "state": "OK"
+}

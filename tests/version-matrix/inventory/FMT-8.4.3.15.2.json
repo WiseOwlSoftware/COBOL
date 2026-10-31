@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.4.3.15.2",
+ "section": "8.4.3.15.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Report counters",
+ "rule-digest": "0563f5b836af",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#dataReference; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CounterReportOf",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/pb1456_other_report_counters_85; conformance:cases/8.4.2.2-Qualification/pb1456_counter_in_source_expression",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1456 landed. The format {PAGE-COUNTER | LINE-COUNTER} [{IN | OF} report-name-1] is accepted in every position the standard gives it, including report-name-1 naming a DIFFERENT report inside a report section SOURCE (PAGE-COUNTER OF R1, LINE-COUNTER OF R2) and inside its arithmetic expression.",
+ "state": "OK"
+}

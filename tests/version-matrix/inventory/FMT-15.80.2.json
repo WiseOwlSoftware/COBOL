@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.80.2",
+ "section": "15.80.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "SECONDS-PAST-MIDNIGHT function",
+ "rule-digest": "84630ff3306d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+ "test-ref": "conformance:cases/15.80.3-Returned-value-rules/seconds_past_midnight",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Format is the two required words FUNCTION SECONDS-PAST-MIDNIGHT, no argument list (§15.80.2, both underlined). The functionCall alternative `FUNCTION functionName (FNARG_LPAREN functionArgList? FNARG_RPAREN)? refModPart*` parses the bare form; the catalog row (Fixed arity 0..0, IntrinsicBind.Runtime) makes any written argument draw COBOL1504 in the generic arity check, and the keyword-omitted bare name without a REPOSITORY declaration draws COBOL1543 per §8.4.3.2.3 SR2. `FUNCTION SECONDS-PAST-MIDNIGHT ()` is accepted deliberately — the §8.4.3.2.3 SR6 NOTE's own empty-parens shape (`FUNCTION RANDOM ()`), not a leniency. A trailing `(1:5)` binds as a ref-mod of the RESULT (zero-argument function; the SR6 catalog half lives in ResultRefMod). Below --std 2014 the reference draws COBOL1502 (constructs.json row `seconds-past-midnight-2014`). Editions derived from the WG4 CD 1.2 (2009) Annex D.2 item 4 new-function list (kb/Work R28, adversarially verified 2026-08-08), not from the catalog row.",
+ "state": "OK"
+}
