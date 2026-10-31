@@ -1903,7 +1903,8 @@ cannot start.
   compiled programs it runs as children.) At N = 8 two runs of rep 1 and all eight of rep 2 ended RED on a HARNESS
   NON-OBSERVATION (a compiled program, 8–9 s of its own CPU, not finished in two 120 s attempts at 77–87 % host load),
   never on a value: that oversubscription starves a program past its run budget. This is a proxy, test legs without
-  builds, but on this host more slots than 3 add waiting, not throughput, for a whole leg.
+  builds, but on this host more slots than 3 add waiting, not throughput, for a whole leg. The owner kept the cap at 3 on
+  this series (2026-10-31, kb/Work PB4181).
   `gate_slot.py status` prints the cap and the scope with who set them, EVERY held slot (one taken under an earlier,
   higher cap included) and the live tickets in queue order.
 - `gate_slot.py --self-test` proves eleven arms against throwaway repositories, each with one linked worktree (the queue
