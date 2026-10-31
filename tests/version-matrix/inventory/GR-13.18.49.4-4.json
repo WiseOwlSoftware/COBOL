@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.49.4-4",
+ "section": "13.18.49.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "SAME AS clause",
+ "rule-digest": "59dc6b360994",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CopyEntryDescription",
+ "test-ref": "",
+ "derivation": "docs/CONFORMANCE.md#DRV-GR-13.18.49.4-4",
+ "editions": "2002,2014,2023",
+ "notes": "GR4 \"If a group item to which data-name-1 is subordinate contains a GROUP-USAGE clause and the subject of the entry is a group item, the effect is as if that GROUP-USAGE clause had been specified for the subject of the entry.\" (--check 13.18.49.4 -> OK 4)). PREMISE CHECK: the antecedent cannot be satisfied. SR7 limits data-name-1 to an elementary item or a LEVEL-1 group; a level-1 group has no superordinate group, and an elementary data-name-1 gives an elementary subject (GR1/GR2 - the subject is a group only when data-name-1 is), so 'data-name-1 subordinate to a group' and 'subject is a group' never hold together. Probe r02_gr4 (the only shape that could satisfy it - a level-05 group inside a GROUP-USAGE NATIONAL record) is refused by the SR7 guard (COBOL1556). The compiler has no GR4 transfer code and needs none; data-name-1's OWN GROUP-USAGE travels via CopyEntryDescription (pb522 golden). Vacuous-conforming; nothing to test. || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (the SAME AS clause is absent from COBOL-85 and is not in Annex E's 2014->2023 substantive-changes list, so the rule stands unchanged in 2014 and 2023)",
+ "state": "OK"
+}

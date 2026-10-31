@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.10.4-1",
+ "section": "13.18.10.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "BLOCK CONTAINS clause",
+ "rule-digest": "d48f15b329e2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#blockContainsClause",
+ "test-ref": "conformance:cases/13.18.10-BLOCK-CONTAINS/l1c02_block_contains_forms",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 13.18.10.4 \"This clause is required except when one or more of the following conditions exist\" -> OK GR1. The managed I-O model writes one logical record per physical record (no blocking), so condition a) always holds and the clause is never required; accepting FDs without it (every corpus program) is conforming, and there is no case where omission must be diagnosed. docs/CONFORMANCE.md A.3 row 5 = Claimed (inert): 'Accepted; no effect on the managed I-O model'. cite.py --check A.3 \"The BLOCK CONTAINS clause has no effect if the operating environment does not support the required features\" -> OK §A.3 5). No binder/emitter/runtime site reads blockContainsClause (grep of src: only CobolData.g4 and IntegerOperandPass.Slots reference it); the managed I-O model does no blocking. || Editions (adjudicator): 1985, 2002, 2014, 2023 (clause present unchanged in every edition; Annex E records no change to 13.18.10)",
+ "state": "OK"
+}

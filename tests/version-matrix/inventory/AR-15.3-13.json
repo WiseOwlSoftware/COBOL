@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.3-13",
+ "section": "15.3",
+ "kind": "AR",
+ "ordinal": 13,
+ "subject": "Intrinsic functions",
+ "rule-digest": "da1d9d1e6a8f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfCategory",
+ "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb61_length_byte_length_rule_branches; conformance:cases/15.3-Arguments/pb58-concat-pointer",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB124 wave 5c): (a) PROGRAM-POINTER's admission direction is now exercised (pb61's new CARR leg, 8/8); the refusal direction stays pinned by pb58-concat-pointer. (b) The function-pointer category: PicCategory deliberately gains NO FunctionPointer member while USAGE FUNCTION-POINTER is documented non-support (COBOL1564, Annex A.3) - the category is unreachable BY CONSTRUCTION, recorded at ClassOfCategory's pointer arm with the instruction that the member lands in the same change set that ever makes the usage declarable (a dead lookup is also unverified, so none is kept). Table 2's three-way pointer collapse is implemented for both declarable categories.",
+ "state": "OK"
+}

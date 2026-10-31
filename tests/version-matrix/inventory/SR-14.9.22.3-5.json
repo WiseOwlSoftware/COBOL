@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.22.3-5",
+ "section": "14.9.22.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "INSPECT statement",
+ "rule-digest": "c2061e01a511",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckInspectTallyCounter",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/pb1127-inspect-index-item-tally-counter",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED kb/Work PB1127. The counter test asks Table 2's class NUMERIC (Usage not Index): a USAGE INDEX item carries PicInfo.IndexItem (category Numeric, zero digits) and used to pass. COBOL0847 at every edition; a group or non-numeric counter was already refused by the same predicate.",
+ "state": "OK"
+}

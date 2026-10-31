@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.30.4-30",
+ "section": "14.9.30.4",
+ "kind": "GR",
+ "ordinal": 30,
+ "subject": "READ statement",
+ "rule-digest": "f414a9331a35",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom",
+ "test-ref": "conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/l1_read_key_of_reference",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "READ ... KEY IS the alternate, then READ NEXT walks in alternate order (01/DD, not 03/BB); prime and alternate orders are exact opposites in this file. First READ ... KEY IS in the corpus.",
+ "state": "OK"
+}

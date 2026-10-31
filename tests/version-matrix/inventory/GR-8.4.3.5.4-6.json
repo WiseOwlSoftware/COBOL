@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.5.4-6",
+ "section": "8.4.3.5.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "Object-view",
+ "rule-digest": "5dc3da2b9b33",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectView; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectReferenceAtom; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.ObjectView.cs#OoBindObjectView; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoCreateObjectViewTemp; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitObjectView; src/WiseOwl.Cobol.Runtime/Control/CobolObject.cs#ObjectView",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1425_object_view",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1425 (w1019a). Interface view: an object that does not implement interface-name-1 sets EC-OO-CONFORMANCE (OK 6)). An interface emits as its C# interface and IMPLEMENTS as the class's C# base list (inherited by subclasses), so `is I` is the check. Golden: PB1425VD (implements PB1425VI through PB1425VA) -> DERIVED; PB1425VX -> HANDLED=EC-OO-CONFORMANCE. [editions: the OO facility, 2002+]",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.43.4-17",
+ "section": "13.18.43.4",
+ "kind": "GR",
+ "ordinal": 17,
+ "subject": "RECORD clause",
+ "rule-digest": "757ad77f04e3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindRecordClause; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordClause; docs/CONFORMANCE.md#DOC-A.1-148",
+ "test-ref": "conformance:cases/13.18.43-RECORD/l1c23_record_format3_variable",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Landed by kb/Work PB1278 (wave 1140 A). cite.py --check 13.18.43.4 'It is implementor defined whether format 3 of the RECORD clause produces fixed-length records or variable-length records' -> OK 13.18.43.4 17). The implementor's choice is VARIABLE-length (DataBinder.BindRecordClause binds a TO-without-VARYING clause as VaryingRecordInfo(lo, hi, dep, VaryingClause: false)), and Annex A.1 item 148 documents it: docs/CONFORMANCE.md DOC-A.1-148 (each WRITE or REWRITE writes the record at its own size, a READ delivers the size written, never padded to integer-5). Re-probed on the wave-1140 build: FD F3 RECORD CONTAINS 5 TO 10 with 5- and 10-byte records writes 05000000 'ABCDE' 0A000000 'ABCDEFGHIJ', 23 bytes. Witness: conformance:cases/13.18.43-RECORD/l1c23_record_format3_variable reads the two records back at L=05 and L=10 (a fixed choice would read L=10 for both). The former PARTIAL said only that the documentation was missing; the row now exists.",
+ "state": "OK"
+}

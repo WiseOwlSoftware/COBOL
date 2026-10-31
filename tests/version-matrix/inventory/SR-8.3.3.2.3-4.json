@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.3.2.3-4",
+ "section": "8.3.3.2.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "Alphanumeric literals",
+ "rule-digest": "ed07ccef90ab",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#STR_BODY",
+ "test-ref": "conformance:cases/8.3.3.2-Alphanumeric-literals/l1c01_alnum_literal_characters",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 8.3.3.2.3 \"shall be in the same coded character set representation as the opening quotation symbol\" OK. The lexer recognizes exactly two delimiter code points (U+0022, U+0027) and the doubled pair is written as the same code point as the opener in STR_BODY, so a pair in a different representation (e.g. U+FF02 FULLWIDTH QUOTATION MARK) is never taken as a doubled delimiter -- it is ordinary content. Satisfied by construction; no spec-derived test isolates it. || editions as written by the adjudicator: 2014, 2023 (Annex E itemizes the 2014->2023 delta and lists no change to 8.3.3.2, so the rule stands in both; the 1985/2002 edge is NOT derivable in-repo -- no 2002 or 1985 text is held)",
+ "state": "OK"
+}

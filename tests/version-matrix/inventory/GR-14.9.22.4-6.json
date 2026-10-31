@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.22.4-6",
+ "section": "14.9.22.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "INSPECT statement",
+ "rule-digest": "e551214d1284",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#IdentifyOperands; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#OperandTextOf; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceIdentification.cs#Freeze",
+ "test-ref": "conformance:cases/14.6.4-Item-identification/pb1123_inspect_item_identification_once",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED kb/Work PB1123 (INSPECT arm). InspectEmitter.IdentifyOperands freezes identifier-1, every counter and every operand (subscripts, reference-modification start/length, Tier-B window offsets) into locals in source order before anything is read or stored, through the one PlaceIdentification.Freeze helper; YE(J) TALLYING J addresses the YE(1) it identified. The UNSTRING/INVOKE/ODO-refmod arms of PB1123 are not this row.",
+ "state": "OK"
+}

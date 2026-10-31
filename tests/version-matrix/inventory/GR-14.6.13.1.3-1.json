@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.13.1.3-1",
+ "section": "14.6.13.1.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Exception conditions",
+ "rule-digest": "1ee91353ab9a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitSizeHandling; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitCall",
+ "test-ref": "conformance:cases/14.6.13.1.3-Fatal-exception-conditions/pb233_call_exception_partition",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: §14.6.13.1.3 1) (cite.py --check 14.6.13.1.3 \"the procedures for nonfatal exceptions as specified in 14.6.13.1.4\" -> OK 1)). A fatal condition the statement's own rules route to a conditional phrase WITHOUT NOT is processed by the nonfatal procedures (phrase runs, no declarative, execution continues). Code: EcEmitter.EmitSizeHandling sets the status and, when hasPhrase, skips the F3 dispatch and the fatal throw so the ON SIZE ERROR phrase runs; CallEmitter routes EC-PROGRAM-* to ON EXCEPTION (imperative-statement-1) and treats a NOT-only CALL as phraseless (CallEmitter.cs:93 cites exactly the 'without the NOT phrase' condition). Probe out/probe/exc-fatal/f1 (>>TURN EC-SIZE and EC-PROGRAM-NOT-FOUND ON, USE AFTER EC EC-ALL present): ADD 5 TO X (PIC 9 = 9) ON SIZE ERROR -> 'SZ EC-SIZE-TRUNCATION', X unchanged 9, declarative NOT run; CALL \"NOSUCHPGM\" ON EXCEPTION -> 'CALL-EXC EC-PROGRAM-NOT-FOUND', declarative NOT run; exit 0. The golden pins both halves: leg B (the phrase wins over the declarative under enabled checking) and leg A (a NOT-only CALL is not 'a conditional phrase without the NOT phrase', so the declarative runs). || editions as adjudicated: 2002, 2014, 2023 (EC model introduced by ISO 2002)",
+ "state": "OK"
+}

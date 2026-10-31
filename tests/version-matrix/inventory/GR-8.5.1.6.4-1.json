@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.1.6.4-1",
+ "section": "8.5.1.6.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Alignment of data items in storage",
+ "rule-digest": "4aacf34a7413",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#Synchronized; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#RecordLayout; src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#ExtentBits",
+ "test-ref": "conformance:cases/8.5.1.6.4-Item-alignment-for-increased-object-code/l1_byte_length_implicit_filler; conformance:cases/8.5.1.6.4-Item-alignment-for-increased-object-code/l1_sync_occurs_and_no_auto_align",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 8.5.1.6.4 \"By use of the SYNCHRONIZED clause.\" -> OK §8.5.1.6.4 1)): synchronization is accomplished by the SYNCHRONIZED clause. The same clause says \"The way in which data is stored is determined by the runtime module, and need not respect these natural boundaries\" (--check OK) and lists byte boundaries among natural boundaries; §13.18.55.4 GR9 \"The effect of this clause is defined by the implementor\" (--check OK) and GR3 leaves positioning to the implementor. WiseOwl COBOL accepts SYNC/SYNCHRONIZED [LEFT|RIGHT] on elementary items in every edition, records it on DataItem.Synchronized, and per the documented determination DOC-A.1-195 performs NO physical alignment (natural boundary = byte), so a synchronized item is trivially aligned and generates no FILLER. PROBE (pinned cobol.exe, --std 85/2002/2014/2023, --run): 01 G1: X, S9(9) COMP SYNC, X, S9(4) COMP SYNCHRONIZED LEFT, S9(4) COMP SYNC RIGHT -> FUNCTION LENGTH(G1)=10 in all four editions (1+4+1+2+2, matches the documented determination); value round-trips (-000000005). Goldens SYNC=3 (l1_byte_length_implicit_filler) and SUBORD/ONE/REC legs (l1_sync_occurs_and_no_auto_align) measure the determination with discriminating expected values. Minor doc-drift (not a behavior defect): DataBinder.Oo.cs:611 / DescriptionCopy.cs:78 say SYNCHRONIZED and ALIGNED \"decide a group's slack bytes\" — under DOC-A.1-195 SYNCHRONIZED decides none; only ALIGNED does. [code-location note: (SYNCHRONIZED/SYNC recorded, line ~4068); code-location note: (group SYNC gate <2023, line ~5671); code-location note: (offsets never read the flag)] || editions as written by the adjudicator: 1985, 2002, 2014, 2023 (the clause and the SYNCHRONIZED clause exist in every edition; SYNCHRONIZED on a GROUP item is 2023-only per Annex E.3.2 item 6, not this rule's subject)",
+ "state": "OK"
+}

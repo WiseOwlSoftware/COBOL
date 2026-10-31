@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.47.2",
+ "section": "15.47.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "INTEGER-OF-DAY function",
+ "rule-digest": "b1f342ea759e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#RepeatsAnArgument",
+ "test-ref": "unit:IntrinsicRepeatedArgumentDriftTests.RepeatsAnArgument_IsExactly_TheFormatsEllipsis; conformance-test:IntrinsicFunctionDifferentialTests.IntegerDateForm_Epoch_PinnedToSpec; conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB62 — the ALL subscript as ONE enumerating operand with the standard's three ranges; admissibility from the definition; the summing family on the SDIDI carrier under a standard mode). `FUNCTION INTEGER-OF-DAY ( argument-1 )` repeats no argument: `INTEGER-OF-DAY(T(ALL))` is COBOL1645 (negative pb62-all-subscript-integer-of-day; before, the ALL expanded for EVERY catalogued function and a one-occurrence table returned the plain-subscript value). The screen is the one TryBindAllArgument, keyed on the definition — no per-function arm. retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

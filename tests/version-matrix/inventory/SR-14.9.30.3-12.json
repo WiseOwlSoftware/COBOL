@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.30.3-12",
+ "section": "14.9.30.3",
+ "kind": "SR",
+ "ordinal": 12,
+ "subject": "READ statement",
+ "rule-digest": "68275fab65f9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#readKey; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead",
+ "test-ref": "conformance:cases/14.9.30-READ/pb331_read_lock_brackets; conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099_record_key_source",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB358 LANDED 2026-09-09. RULE: 'Data-name-1 or record-key-name-1 may be qualified.' (cite.py --check 14.9.30.3 OK.)\nWHY CONFORMS RATHER THAN PARTIAL: the same discriminator as SR-14.9.30.3-11. data-name-1: 'readKey : KEY IS? dataReference' routes the operand through the general dataReference rule, so the whole qualification apparatus (OF/IN chains) applies, and BindRead resolves it through ctx.Refs.Resolve(keyRef) like any other reference; the qualified form 'KEY IS IX-ALT OF IX-REC' was probed and returns the alternate-key record. The measured underlining on printed page 722 backs the spelling accepted here - KEY required and IS optional - which 'KEY IS?' matches, and kb/Work PB331 confirmed that measurement while re-deriving the whole figure; conformance:cases/14.9.30-READ/pb331_read_lock_brackets exercises the unqualified form in all three printed spellings.\nrecord-key-name-1: the qualified record-key-name is 8.4.6 Format 6 (qualified-record-key-name), a DISTINCT syntax rather than a spelling of the data-name half - and it is unreachable because a record-key-name cannot be declared at all: Annex A.3 item 40's SOURCE phrase is declined (docs/CONFORMANCE.md section 2 row 40) and, since 2026-09-09, refused BY NAME as COBOL1954 with five conformance:negative/pb358-* witnesses at 85/2002/2014/2023. SR-14.9.41.3-7 owns that decline and carries DOCUMENTED-NON-SUPPORT. A rule whose subject is a claimed facility conforms once its declined operand class is diagnosed rather than tripped over (the discriminator the owner set on SR-12.4.5.9.3-1, kb/Work PB371).\nEDITIONS: the 2023 text carries no edition marker on this clause and Annex E is a 2014-to-2023 delta only. kb/Work PB1099 Q1 (w1095i): the record-key SOURCE phrase is PROVIDED (owner rule R65); record-key-name-1 qualified by its file-name (8.4.2.2.2 Format 6): READ IXF KEY IS IX-PK IN IXF. retired-witness: conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb358-alternate-key-source (the COBOL1954 decline of the SOURCE phrase is retired: kb/Work PB1099 provides it) retired-witness: conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb358-record-key-source (the COBOL1954 decline of the SOURCE phrase is retired: kb/Work PB1099 provides it)",
+ "state": "OK"
+}

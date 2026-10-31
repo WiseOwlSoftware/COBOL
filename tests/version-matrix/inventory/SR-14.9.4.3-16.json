@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.4.3-16",
+ "section": "14.9.4.3",
+ "kind": "SR",
+ "ordinal": 16,
+ "subject": "CALL statement",
+ "rule-digest": "f8629a928362",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#repositoryEntry; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ResolvePrototype; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#ProgramPrototypesOf",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb237_program_prototype; conformance:cases/14.9.4-CALL/pb46-call-as-prototype-name",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB237). The rule's subject is now declarable: repositoryEntry carries 12.3.8.2's program-specifier `PROGRAM programPrototypeName externalizedNamePhrase?` (the general format was RENDERED from PDF page 334 before the grammar was written - PROGRAM and AS underlined, the AS phrase bracketed). SR16 itself is enforced by CallBinder.ResolvePrototype, the ONE program-prototype-name lookup: the AS arm of BindCall resolves the word against BinderDriver.ProgramPrototypesOf's per-unit table and reports COBOL1760 when it is absent. The table registers BOTH spellings 8.4.6.8 admits - a REPOSITORY program-specifier name and a containing program definition's program-name - so the check accepts neither more nor less than the standard does. Positive golden conformance:cases/8.3.2.2-User-defined-words/pb237_program_prototype exercises the specifier with and without AS literal-3 and both Format-2 CALL spellings; conformance:cases/14.9.4-CALL/pb46-call-as-prototype-name (rewritten from the retired COBOL0899 staging to COBOL1760) pins the rejection at 2002/2014/2023. EDITIONS 2002+ : the REPOSITORY paragraph and program prototypes are COBOL-2002 additions, gated by the constructs.json row repository-program-2002 (COBOL0900 below 2002).",
+ "state": "OK"
+}

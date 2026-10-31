@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.44.3-12",
+ "section": "13.18.44.3",
+ "kind": "SR",
+ "ordinal": 12,
+ "subject": "REDEFINES clause",
+ "rule-digest": "cff08ec71ae3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#Sr12Sr14Violation; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ClassifyRedefinesClasses; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#PointerObjectClass; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenRedefinesClause",
+ "test-ref": "conformance:cases/13.18.44-REDEFINES/pb179-redefines-pointer-subject; conformance:cases/13.18.44-REDEFINES/pb2071-template-pointer-redefines",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR12 (cite.py --check 13.18.44.3 'The REDEFINES clause shall not be specified for a data item of class object, message-tag, or pointer or a strongly-typed group item.' OK). Sr12Sr14Violation's subject arms: PointerObjectClass (pointer / program-pointer / function-pointer / object reference - SlotWindow.CarriedBySlot) -> COBOL1697; probe sr12_objref_subject `01 O REDEFINES A USAGE OBJECT REFERENCE.` -> 1697 SR12; pointer by the pb179 negative golden. Strongly-typed-group subject: the only way to write one is a TYPE-clause entry, which §13.16.3 SR14 already bars from carrying REDEFINES (probe sr12_strong_subject -> COBOL2150), and IsStrongGroup(subject) backs it. Message-tag: the MESSAGE-TAG usage is refused by name (COBOL1943, docs/CONFORMANCE.md MCS decline), so that class cannot reach the clause. Also unit:RedefinesClassificationTests.TierD_PointerSubject_RejectedSr12. || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (classes object and pointer and strongly-typed group items arrive in 2002; class message-tag is the 2023 MCS surface)",
+ "state": "OK"
+}

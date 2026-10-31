@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.5.4-1",
+ "section": "11.5.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "FUNCTION-ID paragraph",
+ "rule-digest": "d2ad067dd464",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb303_as_externalized_name; conformance:cases/8.3.2.2-User-defined-words/pb303_as_externalized_name_2014",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "User-function-name-1 names the function and literal-1 externalizes it: FUNCTION user-function-name activates the definition through the declared WORD (8.4.6.6 / 8.4.6.7) while the unit registers in the run unit under its externalized name, which UserFunctionSignature.Externalized carries to the emitted activation so the two cannot drift. kb/Work PB303.",
+ "state": "OK"
+}

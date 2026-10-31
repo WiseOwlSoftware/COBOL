@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.50.4-5",
+ "section": "15.50.4",
+ "kind": "RV",
+ "ordinal": 5,
+ "subject": "LENGTH function",
+ "rule-digest": "b392a39ef518",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ImageWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#Synchronized; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ElementaryByteWidth",
+ "test-ref": "conformance:cases/13.18.60-USAGE/pb43_usage_bit_occupies_bits",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SPLIT=3 is unique to r5: the bare bit sum without the two §8.5.1.6.3 filler runs is 14 bits, which even ceilinged is 2; ADJ=1 is the no-filler control. 2023/l1_length_bit_group_positions measures the same rule on a non-record group but does NOT discriminate it (ceil(11/8)=2 either way), so it is deliberately not recorded here.",
+ "state": "OK"
+}

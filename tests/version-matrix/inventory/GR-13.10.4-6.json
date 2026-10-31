@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.10.4-6",
+ "section": "13.10.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "Constant entry",
+ "rule-digest": "0acc482b85e7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#BindConstantLength; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemLength.cs#Positions; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.DescriptionCompletion.cs#CompleteDescriptionAhead",
+ "test-ref": "conformance:cases/8.4.2.3-Subscripts/pb1016_constant_length_subscripts; conformance:cases/13.10-Constant/pb1213_varlen_neighbours; conformance:cases/13.10-Constant/pb2465_constant_length_completed_description",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1213: the CONSTANT AS LENGTH OF value is THE §15.50.4 r1/r2/r3 fold FUNCTION LENGTH reads (ItemLength.Positions, moved out of IntrinsicBinder), no longer DataItem.ImageWidth: an alphanumeric group of X(2)+N(2) is 6 (was 4), a USAGE BIT PIC 1(8) is 8 boolean positions (was its 1-byte occupancy); an occurs-depending group takes its maximum (GR6's exception) = byte width. kb/Work PB2465 (w1045a): LENGTH OF measures the completed description: a record holding a TYPE'd member (TYPEDEF declared after the demand, bound on demand) 6 where it read 1, a VALUE-implied PIC X(4) 4 where it read 0, a group SIGN LEADING SEPARATE leaf 4 where it read 3, also inside the open record whose entry demands the constant.",
+ "state": "OK"
+}

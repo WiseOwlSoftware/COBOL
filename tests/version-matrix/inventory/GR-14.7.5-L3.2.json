@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.5-L3.2",
+ "section": "14.7.5",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Common phrases and features for statements",
+ "rule-digest": "65b584c4d8f4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#CombineReal; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolFloat.cs#DivChecked; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolFloat.cs#Div; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#Divide; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolSizeError.cs#ZeroDivide",
+ "test-ref": "conformance:cases/14.7.5-SIZE-ERROR-phrase-and-size-error/pb91_native_overflow_outside_arithmetic; conformance:cases/14.7.5-SIZE-ERROR-phrase-and-size-error/pb1581_binary64_intermediate_range; unit:FloatResultantTests.CheckedOperations_RaiseTheTable13Condition; conformance-test:SizeErrorDispositionTests.ZeroDivisor_CheckingOff_TerminatesNamingEcSizeZeroDivide; unit:ZeroDivisorLaneTests.Binary64_BothKernels_RaiseAZeroDivisor; unit:ZeroDivisorLaneTests.ScaledCarrier_BothKernels_RaiseAZeroDivisor",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1147 LANDED (w61e). The binary64 lane (NumericRenderer.CombineReal) renders CobolFloat.DivChecked where size-error checking is enabled — the floating twin of CobolNum.DivideOrThrow — so a zero divisor is §14.7.5 case 2 / no-phrase rule 2 EC-SIZE-ZERO-DIVIDE (cite.py OK §14.7.5 2)) whatever the operands' usage. Re-probed on the w61e build: under >>TURN EC-SIZE with a USE AFTER EC-SIZE declarative, COMPUTE F = FL / FZ, COMPUTE A = FL / FZ into PIC 9(3) and IF FL / FZ > 1 each raise EC-SIZE-ZERO-DIVIDE (were: nothing / nothing + Infinity / EC-SIZE-TRUNCATION).",
+ "state": "OK"
+}

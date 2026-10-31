@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.16.3-7",
+ "section": "7.3.16.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "IF directive",
+ "rule-digest": "3b26943bcb86",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#PhraseFrame",
+ "test-ref": "conformance:cases/7.3.16-IF/pb1363-if-opened-in-library-text; conformance:cases/7.3.16-IF/pb1363-else-without-if; conformance:cases/7.3.16-IF/pb1363-else-twice; conformance:cases/7.3.16-IF/pb1363-if-not-closed; conformance:cases/7.3.16-IF/pb1363_conditional_compilation_structure_legal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1363. cite.py --check 7.3.16.3 'The phrases of a given IF directive shall be specified all in the same library text or all in source-text.' OK 7). Each rendered text (source or copybook) has an id, every frame records the id it opened in, and a phrase or the end of the text is judged against it (COBOL2649).",
+ "state": "OK"
+}

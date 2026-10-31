@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-6.2.3.2-1",
+ "section": "6.2.3.2",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Floating indicators",
+ "rule-digest": "64cae027c749",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ScanProgramText; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#FreeFormConverter",
+ "test-ref": "conformance:cases/6-Reference-format/pb1493_floating_comment_fixed; conformance:cases/6.2.3-Floating-indicators/pb1493_floating_comment_free",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1493: *> directly followed by comment-text is a comment in both formats (W-D in 2002/pb1493_floating_comment_fixed, W-P in 2002/pb1493_floating_comment_free), and because comments are removed in the §6.5 pass no later text-analysis stage can read them otherwise. The REPLACE ==A== *>junk BY ==B==. probe that the refuter cited is CORRECTLY rejected: §6.3.7.3 \"All characters following the floating comment indicator up to margin R are comment-text\", so BY is inside the comment; with BY on the next line the statement works (golden 2002/pb1493_floating_comment_fixed). retired-witness: src/Cobol.Net.Frontend/Preprocessor/ReferenceFormatProcessor.cs#StripInlineComment (moved or replaced by the ONE §6.5 logical conversion in ReferenceFormatProcessor.LogicalConversion.cs (kb/Work PB1491)) retired-witness: src/Cobol.Net.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#ConvertFreeLine (kb/Work PB1804: the one literal-aware scan moved to LogicalLineBuilder.cs and the free arm is ConvertFreeLines) retired-witness: src/Cobol.Net.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#ScanProgramText (kb/Work PB1804: the one literal-aware scan moved to LogicalLineBuilder.cs and the free arm is ConvertFreeLines) retired-witness: src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#ConvertFreeLines (kb/Work PB3245 review R1-1: the static ConvertFreeLines became the FreeFormConverter class (it now also discards a free-form comment-entry and carries the division); the same code, renamed)",
+ "state": "OK"
+}

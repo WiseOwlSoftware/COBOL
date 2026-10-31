@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.14-1",
+ "section": "9.1.14",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Files",
+ "rule-digest": "b8080cf5262e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc",
+ "test-ref": "conformance:cases/9.1.14-Invalid-key-condition/l1c11_invalid_key_no_phrase_no_use; conformance:cases/9.1.14-Invalid-key-condition/l1c11_invalid_key_ec_set; conformance:cases/14.9.41-START/pb870_start_first_last_relative_ecio_checked",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (9.1.14 first list item 1): status set to the invalid key value (9.1.13.5) \"and, if enabled, the EC-I-O-INVALID-KEY exception condition is set to exist\" [cite.py --check PASS 9.1.14]. Two halves, both verified. Status: E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2b\\out\\probe\\p914\\k1.cob at 85/2023 — duplicate WRITE 22, READ/DELETE/START/REWRITE of a missing key 23, each visible in FILE STATUS inside the phrase and after the statement. EC: __IoCheckEc calls ExceptionState.SetIo before the INVALID KEY short-circuit, so the condition exists even when the phrase is written: E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2b\\out\\probe\\p914\\k5.cob (>>TURN EC-I-O-INVALID-KEY CHECKING ON) at 2002/2014/2023: FUNCTION EXCEPTION-STATUS inside the INVALID KEY imperative = EC-I-O-INVALID-KEY and inside the USE declarative = EC-I-O-INVALID-KEY; E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2b\\out\\probe\\p914\\k3.cob T6 same inside an exception-checking PERFORM. TEST-NEEDED: the status half is covered by conformance:cases/9.1.14-Invalid-key-condition/l1_delete_invalid_key_transfer, but no spec-derived test asserts EC-I-O-INVALID-KEY is set (grep of tests/ finds none). || Editions (adjudicator, verbatim): 1985, 2002, 2014, 2023 for the I-O status half; the EC-I-O-INVALID-KEY half 2002+ (exception conditions and >>TURN) || Code sites (adjudicator, verbatim): src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs (status-first shape: store status then hook then branch); src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc (ExceptionState.SetIo BEFORE the phrase short-circuits)",
+ "state": "OK"
+}

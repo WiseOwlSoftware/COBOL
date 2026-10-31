@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-2",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "WRITE statement",
+ "rule-digest": "f9eda5730f43",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write",
+ "test-ref": "conformance:cases/14.9.51-WRITE/l1c37_write_keeps_fpi",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR2: 'The file position indicator is not affected by the execution of a WRITE statement.' RelativeConnector.Write touches only _st/_lastSlot/_lastReleasedSlot (never the read position). PROBE E:/Temp/claude/E--COBOL/a700c052-f9e4-4942-84ff-a13c7505d6ec/scratchpad/adj-d1/out/probe/write-p2/pb.cob: relative DYNAMIC I-O, records 1..3, READ key 1, WRITE key 10 ('00'), READ NEXT -> R02 key 02 (spec: next existing after FPI=1 is 2); indexed DYNAMIC I-O, keys 01..03, READ 01, WRITE 09, READ NEXT -> 02A2. Both match. Sequential organization: WRITE is legal only in OUTPUT/EXTEND where no READ positioning exists. cite.py --check 14.9.51.4 'The file position indicator is not affected by the execution of a WRITE statement' -> OK rule 2. No existing spec-derived test pins the FPI across a keyed WRITE: test-needed.",
+ "state": "OK"
+}

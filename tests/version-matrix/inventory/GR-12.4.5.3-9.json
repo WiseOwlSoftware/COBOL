@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.3-9",
+ "section": "12.4.5.3",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "File control entry",
+ "rule-digest": "86d972914848",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#IsSortMerge; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs",
+ "test-ref": "conformance:wiseowl/cases/12.4.5-File-control/pb742_legal_entry_formats_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'The sort-merge format defines a file connector for a sort-merge file.' (cite.py --check 12.4.5.3 -> OK 9)). Code: an SD-described file is FileModel.IsSortMerge, never registered as a host connector (OoEmitter.EmitFileMembers filters `!f.IsSortMerge`) and is the SortEmitter's sort store. Golden conformance:wiseowl/cases/12.4.5-File-control/pb742_legal_entry_formats_85 SORTs through a legal Format-4 SD entry (S=1 AAA, S=2 BBB per §14.9.40.4 GR8 a)). The accept-too-much side of Format 4 is SR-12.4.5.2-13 (open PB773), not this row. [registrar 14a — editions as adjudicated: 85, 2002, 2014, 2023 (Format 4 general rule; no Annex E row)]",
+ "state": "OK"
+}

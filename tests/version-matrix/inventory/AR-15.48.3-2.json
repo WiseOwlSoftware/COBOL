@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.48.3-2",
+ "section": "15.48.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "INTEGER-OF-FORMATTED-DATE function",
+ "rule-digest": "3921c9db6cdc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#FormatKindsAdmittedBy",
+ "test-ref": "conformance:cases/15.3.3.6.1-Offset-subformats/pb11_datetime_format_grammar",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Rule 2 admits a date format OR a combined format - a SET, not one kind. The first implementation inferred this function's kind by name analogy and got it wrong; the rule is now quoted per row. Corroborated by the shared screen and the format set the golden pins.",
+ "state": "OK"
+}

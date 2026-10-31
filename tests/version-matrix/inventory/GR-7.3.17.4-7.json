@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.17.4-7",
+ "section": "7.3.17.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "LEAP-SECOND directive",
+ "rule-digest": "f9764bcad190",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#Analyze",
+ "test-ref": "conformance:cases/7.3.17-LEAP-SECOND/pb65_leap_second_off",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'When OFF ... the value contained in the seconds subfield of a formatted time value shall be greater than or equal to zero and less than 60.' (cite.py --check 7.3.17.4 OK). Analyze seconds max 59 when OFF. pb65_leap_second_off T1/T3: '235960' -> SFFT 0 (EC-ARGUMENT-FUNCTION default) and TEST-FORMATTED-DATETIME 5; implied OFF probe a_implied '120060' -> 5. || editions (adjudicator): 2002, 2014, 2023 (the §7.3 directive facility is absent in 1985; the 2002 edge is DERIVED per docs/VERSION_CHANGE_REFERENCE.md row 7.21 - Annex E itemizes the 2014->2023 delta and does not list LEAP-SECOND, so it predates 2023). The time-form / formatted-time consumers the rule bounds are COBOL-2014 intrinsics (§15.3).",
+ "state": "OK"
+}

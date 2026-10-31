@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.8.4.3.2",
+ "section": "8.8.4.3.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Simple boolean condition",
+ "rule-digest": "27d8fdce9204",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#primaryCondition; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindPrimaryBoolean; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#HasBoolOp; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindSimpleBooleanCondition; src/WiseOwl.Cobol.Compiler/Binding/Procedure/BareOperandAnalysis.cs; src/WiseOwl.Cobol.Frontend/Expressions/BooleanOperatorTokens.cs#BooleanOperatorTokens; src/WiseOwl.Cobol.Frontend/Expressions/SoleOperand.cs#Unparenthesized",
+ "test-ref": "conformance:cases/8.8.2-Boolean-expressions/pb1412_shift_only_boolean_conditions; conformance:cases/8.8.4.3-Simple-boolean-condition/pb1464_parenthesized_boolean_operands; conformance:cases/8.8.4.2-Simple-relation-conditions/boolean_ops; unit:BooleanOperatorTokenDriftTests.EveryLexerOperatorToken_IsClassified_AndNothingElseIs; unit:BooleanOperatorTokenDriftTests.NoOtherSourceFile_SpellsAnOperatorTokenConstant",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1412 + PB1464 LANDED (wave 1005 D). Rule: [ NOT ] boolean-expression-1 (cite.py --check 8.8.4.3.2 OK); boolean-expression-1 is any 8.8.2 boolean expression, including a boolean expression and an integer operand separated by a shift operator and a boolean expression enclosed in parentheses. The two divergences are closed: (a) HasBoolOp now reads BooleanOperatorTokens, the one list the parser predicates and the introduction gate read, so IF BW B-SHIFT-LC 1, IF BW B-SHIFT-L 1 = B\"0\", IF (BW B-SHIFT-RC 1) bind (pb1412_shift_only_boolean_conditions; below 2023 the gate names COBOL0900, negative pb1412-shift-only-condition-below-2023); (b) a parenthesized bare operand is looked through at the classification seam (ConditionOperandExpression over SoleOperand.Unparenthesized): IF (BW), IF NOT (BZ), (BW) = BZ and the level-88 / switch-status forms (pb1464_parenthesized_boolean_operands at 2002, pb1464_parenthesized_bare_conditions at 85). A parenthesized non-condition stays COBOL2318 naming the item (negative pb1464-parenthesized-non-condition). Open under PB1412: EVALUATE with an operator-bearing boolean-expression subject/object (not shift-specific), recorded in that note.",
+ "state": "OK"
+}

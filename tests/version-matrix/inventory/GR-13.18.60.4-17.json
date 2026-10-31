@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.60.4-17",
+ "section": "13.18.60.4",
+ "kind": "GR",
+ "ordinal": 17,
+ "subject": "USAGE clause",
+ "rule-digest": "19acbe25f2bf",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage",
+ "test-ref": "conformance-test:FloatFamilyTests.ProcessorDependent_Rejected1564; conformance:cases/13.18.60-USAGE/pb174-float-decimal-encoding-nonsupport",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely — the owner answered kb/Work PB579 Q1 for the whole class: a rule wholly inside a declined processor-dependent element closes as DOCUMENTED-NON-SUPPORT once the compiler correctly refuses it. Refused by name, COBOL1564 (Annex A.3 items 17/19/20, §4.2.6). Held by derived-verdicts.float-formats-not-provided. || kb/Work PB579 — USAGE FLOAT-DECIMAL-16 is NOT PROVIDED. The rule pins the format to ISO/IEC 60559:2020 decimal64; .NET's System.Decimal is a different format entirely, so ParseUsage rejects LOUD with COBOL1564 naming Annex A.3 item 19 (probe p16 at --std 2023). The grammar DOES parse the usage and its bracketed encoding/endianness tail (kb/Work PB174), deliberately, so that legal 2014+ source such as `USAGE FLOAT-DECIMAL-16 BINARY-ENCODING` is refused by the honest diagnostic - the non-support of the usage - rather than by a raw parse error at the wrong stage; conformance:cases/13.18.60-USAGE/pb174-float-decimal-encoding-nonsupport pins exactly that stage choice. Licence: A.3 item 19 (processor-dependent) plus §4.2.6, documented at docs/CONFORMANCE.md §2 row 19 (\"Not claimed\"). ⛔ DOCUMENTED-NON-SUPPORT is the owner's verdict (D13); NOT-IMPLEMENTED is what an agent may record. The witness the conversion would need already exists. || code sites, verbatim from the adjudication: src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.ParseUsage",
+ "state": "OK"
+}

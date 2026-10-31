@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.54.3-5",
+ "section": "13.18.54.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "SUM clause",
+ "rule-digest": "814bf3db81da",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#SumAddendRef; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ResolveSumAddend; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindReportGroupClauses",
+ "test-ref": "conformance:cases/13.18.54-SUM/pb482_sum_addend_written_reference_85; conformance:cases/13.18.54-SUM/pb482-sum-addend-not-numeric; conformance:cases/13.18.54-SUM/pb482-sum-addend-ref-modified; unit:ReportSumOperandCaptureDriftTests.EveryKeyReferenceCapture_IsANamedOperandHelper; conformance:cases/13.18.54-SUM/pb1830-report-sum-addend-index-item",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB482. BOTH halves of the sentence are now implemented and screened, and neither was before. (a) 'a numeric data item' - ResolveSumAddend refuses a group item and every non-numeric category under COBOL2045, and the same arm refuses every REFERENCE-MODIFIED spelling, because 8.4.3.3.4 GR6 c) makes the unique data item a ref-mod creates class and category alphanumeric unless the usage is national, so no ref-modded operand can be the numeric item SR5 requires. (b) 'not defined in the report section' - the arm choice runs against the report-section-exclusive name set shared with 13.18.16.3 SR2 and 13.15.3 SR16, so a report-section addend is SR4's data-name-1 and stages loud (rolled totals, GR6) instead of failing resolution under the wrong rule. Positively, identifier-1 is 8.4.3.1.2 Format 2's qualified-data-name-with-subscripts: the addend is captured as the WRITTEN reference and bound in the procedure phase through the one ExpressionBinder, so a literal, index-name or arithmetic subscript resolves through the ordinary subscript machinery. Measured before the fix on 359a2ebc: SUM WS-CELL(2) compiled and then ABORTED at the first GENERATE (NotImplementedCobolFeatureException 'SUM addend not resolvable to storage'), SUM WS-TXT(1:2) silently summed the whole item, and SUM WS-TXT over a PIC X(6) holding '123456' printed 6912. The golden's three subscript spellings each total 066 over three GENERATEs, derived from GR7 c) 1) and GR3.",
+ "state": "OK"
+}

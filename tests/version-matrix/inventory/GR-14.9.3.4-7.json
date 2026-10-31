@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.3.4-7",
+ "section": "14.9.3.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "ALLOCATE statement",
+ "rule-digest": "0b4b8192c45c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#BindAllocateInitialized",
+ "test-ref": "conformance:cases/14.9.3-ALLOCATE/allocate_initialized; conformance:cases/14.9.3-ALLOCATE/pb231_based_bit_leaf; conformance:cases/14.9.3-ALLOCATE/pb231_based_national_leaf; conformance:cases/14.9.3-ALLOCATE/pb231_based_pointer_leaf; conformance-test:ByteWindowResidueDriftTests.EveryByteWindowSurface_AgreesOnTheSameLeaf",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB231 (the POINTER third, 2026-09-05) CLOSES this row: the WITH FILLER ALL TO VALUE THEN TO DEFAULT expansion now runs over a record carrying a pointer-class member, the last leaf kind that could not reach it. conformance:cases/14.9.3-ALLOCATE/pb231_based_pointer_leaf runs it over the strongly-typed record R (05 T-P USAGE POINTER, 05 T-N PIC X(4) VALUE 'VVVV') after giving T-P a real address: T-N takes its VALUE (ALL TO VALUE, GR7N=[VVVV]) and T-P goes back to NULL (GR7=NULL), which is 14.9.20.4 GR6c's default sending-operand for its category - that rule's table gives 'Predefined address NULL' for Data-pointer - reached through the implicit statement 14.9.20.4 spells for such a receiver, a SET rather than a MOVE. A pointer left at its previous address would have been the observable failure. The expansion has no remaining excluded leaf kind.",
+ "state": "OK"
+}

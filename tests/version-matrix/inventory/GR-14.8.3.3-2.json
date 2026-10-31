@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.8.3.3-2",
+ "section": "14.8.3.3",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Returning items",
+ "rule-digest": "a7f044b91587",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ReturningSender; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindResolvedInvoke; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ObjectRefAssignmentMismatch; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#CallReturningViolation; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#ReturningConformance; src/WiseOwl.Cobol.Compiler/Oo/ActivationDescriptions.cs#Of",
+ "test-ref": "conformance:cases/9.3.6-Method-invocation/w61b-pb1166-invoke-currency-dpc; unit:PictureClauseIdentityDriftTests.AlphabeticAndAlphanumeric_AreDifferentPictureClauses_AndRepetitionIsNot; conformance:cases/9.3.6-Method-invocation/pb1165_active_class_returning_subclass; conformance:cases/14.8.2.3.2-Elementary-items-passed-by-reference/pb1112_active_class_invocation",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1165 LANDED (w1014u, verdict-only: the mechanism was fixed by kb/Work PB1112's activation half, OoConformance.ReturningSender). cite.py --check 14.8.3.3 'If the activated method is invoked with any other object reference, the sending operand has the same description as that object reference' OK 2) b) 4.; b) 1. 'described with that same object-class-name and an ONLY phrase' OK. ReturningSender re-describes an ACTIVE-CLASS returning item from the invocation: class-name -> that class ONLY (b 1.), SELF/SUPER -> ACTIVE-CLASS (b 2.), any other typed reference -> its own description (b 4.), FACTORY copied from the returning item; an interface-typed receiver yields universal (b 3.) - statically that arm cannot carry an ACTIVE-CLASS returning item, because 13.18.60.3 SR16 admits ACTIVE-CLASS only in a factory, instance or method definition, never a prototype. Re-probed on 59ef8b01b: the note's p2 (INVOKE D \"MK\" RETURNING D2 through the subclass) and p3 (INVOKE RID3 \"MAKE\" RETURNING DO, DO RID3 ONLY) print DERIVED. Golden pb1165_active_class_returning_subclass: an INHERITED factory method invoked on the subclass into a subclass-typed and a subclass-ONLY receiver, and an inherited instance method through a subclass-typed reference - DERIVED x3. retired-witness: src/Cobol.Net.Compiler/Oo/OoConformance.cs#DescriptionMismatch (kb/Work PB3101 (wave 1082): the DataItem comparator family is deleted (OoConformance.DescriptionMismatch, StrongTypeMismatch, AsIfElementaryGroupMismatch, IsCategoryAlphanumeric, PictureClauseIdentity.Mismatch, ObjectRefDescriptor.SameDescriptionAs); every activation and pair-mode question describes its items through ActivationDescriptions and asks ActivationRelations (CallArgumentViolation / CallReturningViolation / MatchViolation / SignatureDifference), the PICTURE identity entering through PictureClauseIdentity.Key)",
+ "state": "OK"
+}

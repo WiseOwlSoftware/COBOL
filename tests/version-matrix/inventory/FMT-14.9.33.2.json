@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.33.2",
+ "section": "14.9.33.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "RESUME statement",
+ "rule-digest": "7a3c19da9cc7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#resumeStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#RESUME; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitResumeStatement; src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#resume-statement-2002",
+ "test-ref": "unit:PerformFormat3ParseTests.ResumeAtOptional_AllFourSpellingsParse",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "General format: RESUME [AT] { NEXT STATEMENT | procedure-name-1 }, with RESUME, NEXT and STATEMENT underlined and AT not underlined (figure notes; the rendered figure's underlining is what the transcription records). Grammar: `resumeStatement : RESUME AT? (NEXT STATEMENT | procedureName)` - AT optional, one of the two operands required, NEXT STATEMENT both required. PROBED with the pinned cobol.exe: `RESUME M3` and `RESUME NEXT STATEMENT` (no AT) compile and run under --std 2002/2014/2023; under --std 85 both are refused with COBOL0876 ('the RESUME statement requires COBOL-2002'). The unit theory parses all four spellings (with/without AT x NEXT STATEMENT/procedure-name) at 2023; its expected values are the figure's own optional-word reading. [editions as adjudicated: 2002, 2014, 2023 (the RESUME statement belongs to the exception model introduced by ISO 1989:2002; absent from 1985)]",
+ "state": "OK"
+}

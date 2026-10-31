@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.3.4-6",
+ "section": "14.9.3.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "ALLOCATE statement",
+ "rule-digest": "b52d13cbca6e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/CobolPtr.cs#Allocate",
+ "test-ref": "conformance:cases/14.9.3-ALLOCATE/allocate_initialized",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (--check OK, §14.9.3.4 6): INITIALIZED together with arithmetic-expression-1 zero-fills all bytes. Read `EmitAllocate`'s CHARACTERS arm — it passes `zeroFill: s.Initialized` into `RuntimeApi.PtrAllocate`, and `CobolPtr.Allocate` builds `new string(zeroFill ? '\\0' : ' ', size)`, so every position of the obtained cell is the binary-zero character. The flag reaches only the CHARACTERS arm (`BoundAllocate(null, expr, al.INITIALIZED() is not null, returning)` in PtrBinder.BindAllocate); the based arm never uses it — correct, because GR7 not GR6 governs there. Evidence: 2002/allocate_initialized lines 41-43 do `ALLOCATE 6 CHARACTERS INITIALIZED RETURNING P2. SET ADDRESS OF Z TO P2. IF Z = LOW-VALUE THEN DISPLAY \"ZEROS=YES\"` and the byte-compared allocate_initialized.out pins the answer — a real value observation of the fill, not a compile lock. The character-model mapping of 'byte' to one character position is the documented D-N1/D-B1 posture and holds for cell storage, which ForceStringCanonical restricts to single-byte DISPLAY leaves. || UPHELD: I read CobolPtr.cs:120 (`new string(zeroFill ? '\\0' : ' ', checked((int)size))`) and PtrEmitter.cs:114 (`zeroFill: s.Initialized`) and PtrBinder.cs:124 (the CHARACTERS arm is the ONLY constructor of a BoundAllocate whose Initialized flag reaches the helper — the based arm at PtrBinder.cs:130-137 routes INITIALIZED to the GR7 lowering instead), so 'all bytes' is realized as 'all character positions of the one cell' with no partial-fill path. I confirmed the golden independently: allocate_initialized.cob really contains the three-line GR6 probe and allocate_initialized.out really pins `ZEROS=YES`, and the fixture is a run-and-byte-compare golden, not a compile lock — this is a qualifying spec-derived closing test. Not downgraded by the GR3/GR4 storage-shape finding: the CHARACTERS arm allocates a raw cell and never consults a RedefinesClass, so the non-DISPLAY-leaf rejection cannot reach it.",
+ "state": "OK"
+}

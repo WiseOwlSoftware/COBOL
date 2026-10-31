@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.28.4-22",
+ "section": "14.9.28.4",
+ "kind": "GR",
+ "ordinal": 22,
+ "subject": "PERFORM statement",
+ "rule-digest": "c8ce91ac0d6e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs; src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs#WithImplicitEnable; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/l1_perform_f3_turn_after_end_perform",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "Two of GR22's three sentences: a pre-PERFORM enable survives (arm A) and the GR14 implicit enable does not (arm C). Sentence 2 (a TURN directive within the range) is NOT exercised - §7.3.25.3 SR5 bans a TURN directive written lexically inside a Format-3 PERFORM (owner decision D20), and a TURN in a paragraph performed from imp-1 is line-scoped in source order (§7.3.25.4 GR6/GR8) so it cannot govern the statement after END-PERFORM. If the project requires a rule's whole text to be pinned before the row closes, GR-14.9.28.4-22 stays GAP pending an owner determination for sentence 2 rather than closing on this golden.",
+ "state": "OK"
+}

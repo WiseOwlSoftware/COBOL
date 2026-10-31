@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.14.3-1",
+ "section": "13.14.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Report description entry",
+ "rule-digest": "99ab2cc9aa5b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ResolveReports; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportClauseNames; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ReportClauseNameRule",
+ "test-ref": "conformance:cases/13.14-Report-description/pb1285-report-in-two-clauses; conformance:cases/13.14-Report-description/pb1285-report-in-no-clause",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "(kb/Work PB1285, wave 1005 A). 'There shall be one and only one REPORT clause specifying report-name-1 in a given file description entry' (cite.py --check 13.14.3 OK 1)): zero clauses is ResolveReports (the arm that carried the not-implemented code ReportNotInFile, now COBOL2714 ReportClauseNameRule), more than one is ScreenReportClauseNames.",
+ "state": "OK"
+}

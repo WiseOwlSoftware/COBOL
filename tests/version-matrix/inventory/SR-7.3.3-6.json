@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.3-6",
+ "section": "7.3.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "Compiler directives",
+ "rule-digest": "d22f1d00665b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/WiseOwl.Cobol.Editions/DirectiveOperandSyntax.cs; src/WiseOwl.Cobol.Frontend/Preprocessor/TurnDirectiveProcessor.cs#ParseTurn; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+ "test-ref": "unit:StageOwnedDirectiveOperandDriftTests.EveryStageDirectiveWord_HasAWitnessLine; unit:StageOwnedDirectiveOperandDriftTests.EveryStageDirectiveWord_RejectsAWordAfterItsOperand_AndAcceptsItsOperandAndAComment; unit:CompilerDirectiveCatalogDriftTests.EveryDirectiveRow_DeclaresItsOperandSyntax; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_DiagnosesAMalformedOperand; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand; conformance:cases/7.3-Compiler-directives/pb1365-turn-directive-trailing-word; conformance:cases/7.3-Compiler-directives/pb1365-turn-file-name-is-directive-word; conformance:cases/7.3-Compiler-directives/pb806-else-trailing-word",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1365 (wave 1019 B). PB794 made each directive's operand syntax DATA on its constructs.json row (Words: one producer COBOL1911; Text: declared and cited; Stage: the named owner), and the composition rule 'as specified in the syntax of each directive' now holds for every row: TURN consumes its whole operand (PB1365), ELSE / END-IF / END-EVALUATE reject an operand (PB806), DISPLAY's operand is parsed (PB807), and StageOwnedDirectiveOperandDriftTests pins that every Stage row's words reject a trailing word, so the previously PARTIAL gaps (turn-trailing-words, PB806, PB807) are all closed.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.27.3-1",
+ "section": "15.27.3",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "E function",
+ "rule-digest": "a280dd40635e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#E; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.cs#FromDouble",
+ "test-ref": "conformance:cases/15.27.3-Returned-value-rules/l1_e_native_approximation",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "No OPTIONS paragraph selects r1's native arm per S11.9.5.2 r4; the value is pinned by windows around the rule's own constant 2.71828182845904523536 and corroborated through EXP(1) via S15.34.4 r1.",
+ "state": "OK"
+}

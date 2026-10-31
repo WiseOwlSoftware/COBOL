@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.51.3-21",
+ "section": "14.9.51.3",
+ "kind": "SR",
+ "ordinal": 21,
+ "subject": "WRITE statement",
+ "rule-digest": "b017efc722cd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveRecordName; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData",
+ "test-ref": "conformance:cases/13.18.27-GLOBAL/pb1193-write-global-record-local-fd; conformance:cases/13.18.27-GLOBAL/pb1193_global_record_under_local_fd",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1193 LANDED (wave 68 Y). SR21 'If record-name-1 is defined in a containing program and is referenced in a contained program, the file description entry for the file-name associated with record-name-1 shall contain a GLOBAL clause.' (cite.py OK 14.9.51.3 21)). The record is visible through its own GLOBAL clause (13.18.27.3 SR1 b), cite.py OK) under a non-GLOBAL FD; ResolveRecordName finds its FD in DataBinder.ContainerLocalFiles (the containers' non-global files, recorded by BinderDriver beside the GLOBAL-FD merge) and refuses the contained WRITE BY SR21 (COBOL1757). Before: the same WRITE was refused 'not a logical record of any file description entry' — the refuter's PARTIAL (right outcome, false reason, no SR21 check). A GLOBAL FD's record written by the contained program still runs (golden F2 WROTE); the contained MOVE into the global record runs (golden C OUTER / F1 INNER).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.16.4-6",
+ "section": "14.9.16.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "GENERATE statement",
+ "rule-digest": "ad9b8779833d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AdvancePage; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#EvaluateCode",
+ "test-ref": "conformance-test:ReportWriterConformanceTests.PageAdvance_Gr6a_PfThenNewPage_TerminatePfRf; conformance-test:ReportWriterConformanceTests.PageFit_Gr4c_TrialSumOverflow_AdvancesAndResets; conformance:cases/8.4.3.15-Report-counters/pb957_next_group_forms; conformance:cases/13.18.12-CODE/pb1129_rd_code_identifier",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "(kb/Work PB1129, wave 1005 A). Step c) of the page advance - 'If the associated report description entry contains a CODE clause with an identifier operand, the identifier is evaluated' (cite.py --check 14.9.16.4 OK 6) c)) - is CobolReport.EvaluateCode, called from AdvancePage after the physical advance (b) and before PAGE-COUNTER (d), LINE-COUNTER (e) and the page heading (f). Steps a, b, d, e, f were already witnessed. pb1129_rd_code_identifier pins the order: the page footing printed by the advance carries the code in force BEFORE the evaluation (BPF while WS-CD already holds C), and the new page's heading and detail carry the value evaluated at c) (CPH, CD3).",
+ "state": "OK"
+}

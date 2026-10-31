@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.2.1-7",
+ "section": "8.8.4.2.1",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "Simple relation conditions",
+ "rule-digest": "11b8e5be1681",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#ForComparison",
+ "test-ref": "conformance:cases/8.8.4.2-Simple-relation-conditions/l1c32_relation_alphabetic_alphanumeric; conformance:cases/8.8.4.2-Simple-relation-conditions/l1c32_relation_national_mixed",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Item 7 'Two operands of different classes where each operand is from the set of classes alphanumeric, alphabetic, or national' -> §8.8.4.2.6 (alphanumeric converted to national). Measured: N(3) N\"ABC\" = X(5) 'ABC' TRUE, = A(3) 'ABC' TRUE; national group NG = X(2) 'AB' TRUE; alphabetic vs alphanumeric TRUE. PB649 (national figurative vs alphanumeric under a PCS) landed. [editions as adjudicated: 85, 2002, 2014, 2023 for alphanumeric/alphabetic; the national member from 2002]",
+ "state": "OK"
+}

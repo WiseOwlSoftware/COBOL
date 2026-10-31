@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.3.3-5",
+ "section": "14.9.3.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "ALLOCATE statement",
+ "rule-digest": "a736bb72b3ae",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#BindAllocate; src/WiseOwl.Cobol.Compiler/Binding/Model/StrongTypeModel.cs#StrongGroupType",
+ "test-ref": "conformance:cases/14.9.3-ALLOCATE/pb153-allocate-strong-group-unrestricted-returning; conformance:cases/13.18.60-USAGE/pb153_restricted_pointer",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "NOT-IMPLEMENTED -> CONFORMS (kb/Work PB153, landed 2026-09-02). Measured before the fix: `01 TPT TYPEDEF STRONG. 05 F PIC 9(4). 01 V TYPE TPT BASED. 01 P USAGE POINTER. ALLOCATE V RETURNING P.` bound CLEAN, silently defeating the Annex D.9.2.2 type-safety guarantee. BindAllocate now applies SR5 through StrongTypeModel: when data-name-1 is a strongly-typed group, the RETURNING pointer must be restricted to that type. The wider finding recorded with it - `grep -rn StrongTypeModel src/WiseOwl.Cobol.Compiler` returned NINE consultation sites across MOVE/CALL/ACCEPT/STRING/REDEFINES/RENAMES/intrinsics and ZERO in PtrBinder.cs: the strong-type use-restriction network had been built out compiler-wide and the pointer subsystem was never wired into it. That is why the landing also covers SS14.9.39.3 SR19/SR20 in both SET arms and SS14.8.2.3.2 on a nested CALL.",
+ "state": "OK"
+}

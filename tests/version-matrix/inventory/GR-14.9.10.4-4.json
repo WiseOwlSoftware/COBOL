@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.10.4-4",
+ "section": "14.9.10.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "DELETE statement",
+ "rule-digest": "ce9626ddf2ba",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Delete",
+ "test-ref": "conformance:cases/9.1.13.8-Record-operation-conflict-condition-with-unsuccessful/file_sharing_mutate",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "|| UPHELD with independent evidence. GR4 --check OK. Code READ myself, both halves. Staging: KeyedIoEmitter.EmitDelete opens with 'if (file.Organization == FileOrganization.Relative && file.AccessMode != FileAccessMode.Sequential) { if (Rrn(file) is not { } rrn) { w.Line(LoudStmt(...)); return; } w.Line($\"{RuntimeApi.FileSetRelativeKey(name, rrn)};\"); }' -- so RANDOM and DYNAMIC both stage the RELATIVE KEY item's current value, and an unresolvable RELATIVE KEY is LOUD, never a silent no-op. RelativeConnector.SetPendingKey is 'public void SetPendingKey(long rrn) => _pendingKey = rrn;' and touches nothing else (this also matters for GR9). Removal: RelativeConnector.Delete's non-sequential arm is 'if (!_slots.Remove(_pendingKey)) return Status = FileStatusCode.RecordNotFound; return Status = FileStatusCode.Success;' -- removal by staged key, '23' when absent, which is the 9.1.14 invalid key condition routed by the same EmitInvalid/EmitUseHook pair as GR3. An RRN of 0 or negative also lands on '23', which is right: unlike WRITE (14.9.51 GR29b -> '34') GR4 states only the not-contained case. Test re-read and confirmed spec-derived: tests/conformance/2002/file_sharing_mutate.cob declares 'SELECT F-Q ... ORGANIZATION IS RELATIVE, ACCESS MODE IS RANDOM, RELATIVE KEY IS Q-KEY' and executes 'DELETE F-Q RECORD.' with Q-KEY = 1; the golden shows DELQ=00 then READQ23=23 on that same key through that same connector, so the slot named by the key really was the one removed. || NOT covered by any test (read only): the invalid-key half reaching an INVALID KEY imperative on the DELETE path itself. That, not the removal half, is what remains to close.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.4.3-5",
+ "section": "14.7.4.3",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "ROUNDED phrase",
+ "rule-digest": "82ac4ba25efe",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#RoundDiv; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolDec.cs#RoundFromRemainder",
+ "test-ref": "conformance-test:RoundedDifferentialTests.ComputeRounded_NearestEven_3_5_RoundsUpToEven; conformance:cases/14.6.8.4-Floating-point-numeric-edited-receiving-data/pb2638_float_edited_rounded_store; unit:CobolEditFloatRoundingTests.TryFormatFloat_RoundsTheSignificandByTheMode; conformance:cases/14.7.4-ROUNDED/pb3829_rounded_bounded_function_modes",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "NEAREST-EVEN: tie -> 'the value whose rightmost digit is even'. RoundDiv: twiceRem == divisor && q odd -> q+step. Probe probe/rounded-phrase/grid_{native,sd,float}.cob (pinned cobol.exe, --std 2023): COMPUTE R ROUNDED MODE IS <mode> = S over Table A.3's ten values (+/-2.49, 2.50, 3.49, 3.50, 3.510) into PIC S9 - every row of Table A.3 reproduced exactly on all three lanes (native decimal, STANDARD-DECIMAL CobolDec, COMP-2 float source). (+/-2.50 -> +/-2, +/-3.50 -> +/-4). Adversarial P-scaled receiver PIC 9PP (rightmost STORED digit): 250 -> 200, 350 -> 400, correct. Covered by the 3.5 -> 4 fact plus Half_Positive / Half_Negative (2.5 -> 2, -2.5 -> -2). Latent: CobolDec.RoundFromRemainder's NearestEven arm returns q for an exact half with sticky=true (should round away), but every caller passes sticky:false (grep of CobolDec.cs), so unreachable today. cite.py --check 14.7.4.3 -> OK §14.7.4.3 5). [editions as adjudicated: ROUNDED phrase: 1985, 2002, 2014, 2023; the MODE phrase and its eight modes: 2014, 2023 (D.17.3: 'In earlier COBOL standards, only two methods of \"final\" rounding were provided')]",
+ "state": "OK"
+}

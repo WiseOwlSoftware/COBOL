@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.55.4-3",
+ "section": "13.18.55.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "SYNCHRONIZED clause",
+ "rule-digest": "38d4effc71de",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-195; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
+ "test-ref": "conformance:cases/8.5.1.6.4-Item-alignment-for-increased-object-code/l1_byte_length_implicit_filler",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR3 requires only that the positioning of the bare form be DETERMINED by the implementor. WiseOwl COBOL's determination is 'unchanged from the unsynchronized position', it is deterministic, and it is measured by the shipped golden's SYNC=3 leg and by probe sy_layout (SYNC=0004 = PLAIN=0004, and B1 itself is 2 bytes with the clause and 2 without: ELEM=0002/ELEMP=0002). CROSS-ROW GAP worth the registrar's attention: ISO Annex A.1 item 197 makes exactly this a REQUIRED documentation item - '197) SYNCHRONIZED clause (positioning when neither RIGHT nor LEFT is specified). This item is required. This item shall be documented in the implementor's user documentation.' - and docs/CONFORMANCE.md carries NO DOC-A.1-197 row (grep: 47 DOC- rows, items 195 present, 196 and 197 absent, though both exist in docs/rearchitecture/spec-rule-catalog.json). The determination is stated only in passing inside DOC-A.1-195, whose own heading is GR9. That is the DOC-A.1-197 row's defect, not GR3's. || code sites, verbatim from the adjudication: docs/CONFORMANCE.md DOC-A.1-195 (the determination: no physical alignment, 'it changes no offset and no width'); implemented by absence at src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs:2308-2309 - the bare form records the flag and no layout path reads it || editions, verbatim from the adjudication: 85, 2002, 2014, 2023",
+ "state": "OK"
+}

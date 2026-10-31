@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.32.3-4",
+ "section": "14.9.32.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "RELEASE statement",
+ "rule-digest": "d1c3e31668fc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFromPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#FromPhraseRules; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease",
+ "test-ref": "conformance:cases/14.9.32-RELEASE/pb348-release-from-zero-length-literal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB348 LANDED. RULE (`--check 14.9.32.3 \"Literal-1 shall not be a zero-length literal.\"` => OK). WHAT WAS ABSENT: the length test -- WriteSource routed literal-1 straight to host.Expr.LiteralOperand with no inspection. It was a missing APPLICATION, not a missing capability: the same BoundStringLiteral { Value.Length: 0 } predicate is applied in ControlFlowBinder (the STOP RUN / GOBACK status literal, COBOL1704), IntrinsicBinder, DataBinder.Switches and CallBinder, and the premise was proved rather than assumed -- `STOP RUN WITH ERROR STATUS \"\".` is rejected, so the compiler both lexes and models \"\" as a zero-length literal. WHAT IS THERE NOW: the rule rides the RELEASE row of FromPhraseRules and is applied by BindFromPhrase, diagnostic COBOL1915. It is RELEASE's rule ALONE -- neither 14.9.51.3 nor 14.9.35.3 states it for the FROM phrase -- which is why the rules table carries it as a nullable clause per verb rather than a screen every FROM phrase pays. The 1985 leg is outside the golden's reject-at header: at X3.23-1985 the FROM phrase admits only identifier-1, so a literal sender is refused by COBOL0871 before SR4 is reached. || EDITIONS AS ADJUDICATED: 2002 . 2014 . 2023",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.8.3-3",
+ "section": "8.4.3.8.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "SELF and SUPER",
+ "rule-digest": "524f7603f502",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectReference; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindSetObjectRef; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#BindRaise; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.PropertyObject.cs#OoBindPropertyObject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoPredefinedSearchRoot; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.ObjectProperty.cs#QualifiedSuperClass; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.OoIdentifier.cs#OoBindSelfOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindByReceiver",
+ "test-ref": "conformance:cases/8.4.3.8-SELF-and-SUPER/pb1425-super-operand; conformance:cases/8.4.3.1-Identifier/pb1425_qualified_super; conformance:cases/8.4.3.1-Identifier/pb1425_object_property_identifier",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1425 (w1021a). \"SUPER may be specified only as the object in an object-property identifier or as the object used to invoke a method with the INVOKE statement or an inline invocation of a method\" (cite.py --check 8.4.3.8.3 -> OK 3)). All three homes are legal: INVOKE SUPER / [K OF] SUPER ::, and now the object of a property - BAL OF SUPER and BAL OF K OF SUPER read and write through the base class's accessor (base.<accessor>, 8.4.3.8.4 GR3 / GR4: the golden's PB1425FB overrides GET PROPERTY BAL, and BAL OF SUPER still answers its base's 100). Every other position refuses it by this rule, COBOL2900: a bare SUPER operand (OoBindSelfOperand) and the qualified `K OF SUPER` operand, which the grammar spells as the chain `K OF SUPER` and the resolver tells from the property K of SUPER by the declared name (QualifiedSuperClass). [editions: the OO facility, 2002+] retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#OoTryBindPropertyReference (the one-word property binder ReferenceResolver.OoTryBindPropertyReference is deleted by kb/Work PB1425 (w1021a): a property reference is resolved by ReferenceResolver.ResolveObjectProperty, which splits the chain and resolves identifier-3 through the ordinary resolver)",
+ "state": "OK"
+}

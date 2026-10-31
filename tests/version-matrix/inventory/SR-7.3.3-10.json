@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.3-10",
+ "section": "7.3.3",
+ "kind": "SR",
+ "ordinal": 10,
+ "subject": "Compiler directives",
+ "rule-digest": "a242996b78c2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/CobolWordsDirectiveProcessor.cs; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.Display.cs#ApplyDisplay",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb807-display-directive-concatenation; unit:DisplayDirectiveTests.AMalformedOperand_IsDiagnosedAndTransfersNothing",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB807 landed (w1004b). The DISPLAY directive's operands are read by the directive-context dispatch like DEFINE, IF, EVALUATE and WHEN, so a concatenation expression, a figurative constant and a floating-point literal are COBOL1619 naming 7.3.3 SR10 there too; COBOL-WORDS literals are screened by its own SR2.",
+ "state": "OK"
+}

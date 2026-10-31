@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.29.2",
+ "section": "14.9.29.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "RAISE statement",
+ "rule-digest": "f6f2db223b18",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#raiseStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#BindRaise; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindComputedObjectReference",
+ "test-ref": "conformance-test:ExceptionConditionConformanceTests.Raise_Enabled_DeclarativeHandles_ResumeNextStatement_StatusPersists; conformance:cases/8.4.3.1-Identifier/pb1425_object_view; conformance:cases/8.4.3.4-Inline-method-invocation/pb1425_computed_object_reference_operands",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1197 (landed with PB1425, w1019a). RAISE { EXCEPTION exception-name-1 | identifier-1 }: identifier-1 takes the shared objectReference rule, which now carries every identifier format that can yield an object reference - a data-name, SELF, an inline invocation and a function-identifier (w1018d) and the object-view (this landing): `RAISE OU AS PB1425VA` raises the object and the class's USE AFTER EXCEPTION OBJECT declarative selects it (RAISED-OBJECT). NULL and SUPER stay 14.9.29.3 SR2's COBOL0848. [editions: the OO facility, 2002+]",
+ "state": "OK"
+}

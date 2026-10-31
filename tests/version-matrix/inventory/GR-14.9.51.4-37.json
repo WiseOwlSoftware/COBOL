@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-37",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 37,
+ "subject": "WRITE statement",
+ "rule-digest": "ed017955abdc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite",
+ "test-ref": "conformance:cases/14.9.51-WRITE/l1c38_write_key_any_order",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 14.9.51.4 'The data item specified as the prime record key shall be set by the runtime element to the desired value prior to the execution of the WRITE statement' -> OK 37)): the program sets the key before the WRITE. Code: EmitWrite passes the record area's current image (OperandText.RecordAreaImage), after any FROM move, and IndexedConnector.Write takes the prime key from that image with KeyOf at execution time. So the value the program placed there before the WRITE is exactly the key used, and nothing is cached from an earlier statement. Probe dir: out/probe/write-statement-p3/ (pinned adj-d1 cobol.exe). from1.cob: WRITE K-REC FROM WS-KSRC ('K01DATA1') and then READ with key K01 gives 'K=[K01DATA1]'. This shows that the key set by the FROM phrase's implicit MOVE, before the release, is the key used. No test is aimed at this rule, so test-ref is empty. [editions as adjudicated: 85, 2002, 2014, 2023 (the rule is in every edition's relative/indexed WRITE text; Annex E records no 2014->2023 change to it)]",
+ "state": "OK"
+}

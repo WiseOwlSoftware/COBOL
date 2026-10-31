@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.6.4-3",
+ "section": "11.6.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "INTERFACE-ID paragraph",
+ "rule-digest": "b24bffd42679",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#classIdParagraph; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#interfaceDefinition; src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#Expand",
+ "test-ref": "conformance:cases/11.3-CLASS-ID/pb759_parameterized_class",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB759.md landed w46i3. Parameterized interface PB759IPUT is a skeleton; INTERFACE PB759IPUT-BOX EXPANDS PB759IPUT USING PB759BOX creates an ordinary interface, implemented by PB759PUTTER and used as P's type.",
+ "state": "OK"
+}

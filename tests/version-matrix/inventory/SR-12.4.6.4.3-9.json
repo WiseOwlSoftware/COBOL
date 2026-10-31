@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.6.4.3-9",
+ "section": "12.4.6.4.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "SAME clause",
+ "rule-digest": "a5438b4526d5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#ScreenSameClauses",
+ "test-ref": "conformance:cases/12.4.6.4-SAME/pb1087-same-file-area-partly-in-record-area; conformance:cases/12.4.6.4-SAME/pb1087_same_clauses_legal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1087 (wave 1011 B2). cite.py --check 12.4.6.4.3 'If one or more file-names specified in a file-area format SAME clause are also specified in a record-area format SAME clause' OK SR9. For every (file-area, record-area) clause pair that shares a file, the file-area members must all be in the record-area clause; the permitted superset (record-area names more) is the golden.",
+ "state": "OK"
+}

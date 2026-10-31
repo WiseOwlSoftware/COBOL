@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.2.4.4-5",
+ "section": "7.2.4.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "REPLACE statement",
+ "rule-digest": "94382ff481f0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReplaceStates; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements",
+ "test-ref": "conformance:cases/7.2.4-REPLACE/pb1357_replace_also_last",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1357 (w68x): an active statement stays active until made inactive (ALSO), canceled (a plain format 1, OFF, LAST OFF) or the end of the compilation group - the ReplaceStates transitions are the only writers of the active operands.",
+ "state": "OK"
+}

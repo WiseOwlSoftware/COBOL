@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.13.3-4",
+ "section": "8.4.3.13.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "Program-address-identifier",
+ "rule-digest": "bb75159da8ab",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programAddressIdentifier; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#addressIdentifier; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#nonReceivableIdentifier; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ReceivingOperandForms.cs#Rules",
+ "test-ref": "conformance:cases/8.4.3.13-Program-address-identifier/l1m7-program-address-receiving; conformance:cases/8.4.3.13-Program-address-identifier/pb1551-program-address-move",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§8.4.3.13.3 SR4 + §14.9.39.4 GR16: SET ADDRESS OF PROGRAM \"X\" TO PP and MOVE PP TO ADDRESS OF PROGRAM \"X\" are refused by this rule, COBOL3979, at the receiving chokepoint's form table (kb/Work PB1551, w1097d); the SET form was a syntax error (COBOL0201) and the MOVE form COBOL0901. Construct exists from 2002.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.1.4-24",
+ "section": "14.9.1.4",
+ "kind": "GR",
+ "ordinal": 24,
+ "subject": "ACCEPT statement",
+ "rule-digest": "159f5ac22728",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#ScreenFormatOf",
+ "test-ref": "conformance:wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-positioned; conformance:wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-exception; unit:ScreenFacilityConstructDriftTests.UnpositionedScreenStatementWithExceptionPhrase_IsRefusedByName",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set. || editions 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the screen-format ACCEPT (A.4.2 screen handling; the SCREEN SECTION) is a COBOL-2002 introduction.",
+ "state": "OK"
+}

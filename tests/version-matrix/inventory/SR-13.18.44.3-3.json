@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.44.3-3",
+ "section": "13.18.44.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "REDEFINES clause",
+ "rule-digest": "145967793eb2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveRedefines; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.RedefinesEntry.cs#ScreenRedefinesEntry",
+ "test-ref": "conformance:cases/13.18.44-REDEFINES/pb1280-redefines-level-01-file-section; conformance:cases/8.4.2.2-Qualification/pb1280_redefines_entry_rules_legal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1280 (wave 1011 B2). cite.py --check 13.18.44.3 'This clause shall not be specified in level 1 entries in the file section' OK SR3 (first half; the FORMAT-clause half is the declined A.4.8 facility). A level-1 root whose Section is FILE with a written REDEFINES -> COBOL2739; the FD's own implicit area sharing (13.18.33.4 GR3) is a different mechanism and stays legal.",
+ "state": "OK"
+}

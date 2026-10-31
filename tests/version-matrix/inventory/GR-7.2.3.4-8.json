@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.2.3.4-8",
+ "section": "7.2.3.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "COPY statement",
+ "rule-digest": "52b4837424e9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseCopyStatement; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands",
+ "test-ref": "unit:TextManipulationTextWordTests.SuppressThenReplacing_AppliesTheReplacing; conformance:cases/7.2.2.5-Text-words/pb1354_copy_header_2002; conformance:cases/7.2.3-COPY/pb1352_directive_lines_not_replaced",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1352 (w67m) re-verdict: library text is modified by the REPLACING phrase text-word by text-word; a compiler directive line inside it is not library text-words (7.2.3.4 9) c) 5.), so it is neither matched nor modified.",
+ "state": "OK"
+}

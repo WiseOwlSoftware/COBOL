@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.19.4-5",
+ "section": "15.19.4",
+ "kind": "RV",
+ "ordinal": 5,
+ "subject": "CONVERT function",
+ "rule-digest": "088f8a5df328",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Convert; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#HexDigitsToBytes",
+ "test-ref": "conformance:cases/15.3-Arguments/intrinsics_convert; conformance-test:IntrinsicFunctionDifferentialTests.Convert_Formats_2023; conformance-test:IntrinsicFunctionDifferentialTests.Convert_HexSource_LeadingSpaceIsContent_FatalWhenChecked_2023",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "CLOSED 2026-08-09 (PB59 family 5b): rule 5's own sentence was already CONFORMS (hex pairs -> bytes -> one alphanumeric position per byte, golden HB=A plus the four probed edges in the prior record); the two blockers are now discharged. (1) The NOTE 3 defects are the NOTE's, not the compiler's, and are ruled on: NOTE 3 c's E0 is not derivable from B\"101\" under either padding rule (the landed arithmetic gives A0/A000 - r2/r4's own text decides), and NOTE 3 b AS WRITTEN passes X\"41\" - the one-character string \"A\" - where its expected result requires the two DIGIT characters \"41\"; the SR4 screen correctly treats \"A\" as an incomplete byte (EC under checking). Non-normative examples do not outrank the rules they illustrate. (2) The SR4 premise half (the Trim hole) landed with AR-15.19.3-4: TrimEnd(' ') only, leading space is content, digitless raises. The BYTE/ANUM identity noted in the prior record stands as a documented consequence of the 1-byte serialization (every byte is a valid character), not a defect.",
+ "state": "OK"
+}

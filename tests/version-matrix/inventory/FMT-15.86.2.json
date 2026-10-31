@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.86.2",
+ "section": "15.86.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "STANDARD-DEVIATION function",
+ "rule-digest": "7db5d09a7901",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build",
+ "test-ref": "conformance:cases/15.4.1-Numeric-and-integer-functions/pb56_dec_carrier_intrinsics",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Format read at specs/ISO_COBOL.md §15.86.2: `FUNCTION STANDARD-DEVIATION ( { argument-1 } … )` — FUNCTION and STANDARD-DEVIATION underlined (required keywords), the parenthesised list NOT bracketed (required), and the brace-ellipsis making argument-1 one-or-more. Both halves of the format located and read. HALF 1, the keyword/name/paren shape: the grammar carries no STANDARD-DEVIATION production (grep of src/WiseOwl.Cobol.Frontend for the name returns nothing) because the form is generic — CobolExpressions.g4#functionCall is `FUNCTION functionName (FNARG_LPAREN functionArgList? FNARG_RPAREN)? refModPart*`, and CobolExpressions.g4#functionName admits IDENTIFIER. Checked the lexer for the hyphen hazard, since CobolLexer.g4 does carry STANDARD (:536), STANDARD_BINARY/STANDARD_DECIMAL (:264-265) and STANDARD_1/STANDARD_2 (:669-670) but no STANDARD_DEVIATION token: ANTLR maximal munch gives IDENTIFIER the full 18-character 'STANDARD-DEVIATION' over STANDARD's 8, which is the documented behavior at CobolLexer.g4:261-262 ('a bare STANDARD still lexes as STANDARD, and WC-COBOL still lexes as one IDENTIFIER'). The argument-list paren is retyped FNARG_LPAREN per §8.4.3.2.3 SR6, so the list is never read as a grouping or subscript paren. HALF 2, the one-or-more arity: IntrinsicCatalog.cs#Build:139 declares Add(new(\"STANDARD-DEVIATION\", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, \"n\", \"StandardDeviation\", IntrinsicBind.Runtime, true, 85)) — MinArgs 1, MaxArgs int.MaxValue, matching `{ argument-1 } …` exactly; IntrinsicBinder.cs:572-579 computes `given` and raises COBOL1504 'takes at least 1 argument(s)' when given < MinArgs, which catches both the bare `FUNCTION STANDARD-DEVIATION` and the empty-parens `()` form the grammar's optional group admits. IntrinsicType.Numeric matches §15.86.1 ('The type of this function is numeric'). Closing test: tests/conformance/2023/pb56_dec_carrier_intrinsics.cob line 45 writes the format `FUNCTION STANDARD-DEVIATION(2, 2, 2)`, it is registered in tests/conformance/2023/manifest.json:123, and tests/conformance/2023/pb56_dec_carrier_intrinsics.out line 8 pins SD=0.0 — so the format demonstrably lexes, parses and binds. The fixture is spec-derived (its header derives every line from §15.4.1 r1 and the functions' own EAEs), not a characterization or legacy-match. Editions: Annex E (specs/ISO_COBOL.md:42847 onward) carries no STANDARD-DEVIATION entry and the clause has no edition-varying content, so the batch default stands; the editions field was NOT read off IntrinsicCatalog's own IntroducedIn column.",
+ "state": "OK"
+}

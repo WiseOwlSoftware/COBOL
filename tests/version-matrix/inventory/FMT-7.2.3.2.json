@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-7.2.3.2",
+ "section": "7.2.3.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "COPY statement",
+ "rule-digest": "81b200d18277",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseCopyStatement; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadCopyName; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#GateCopyPhrase",
+ "test-ref": "unit:TextManipulationTextWordTests.SuppressThenReplacing_AppliesTheReplacing; unit:TextManipulationTextWordTests.MalformedHeader_DrawsSyntaxError; conformance:cases/7.2.2.5-Text-words/pb1354_copy_header_2002; conformance:cases/7.2.3-COPY/pb1354_copy_header_syntax; conformance:cases/7.2.3-COPY/pb1670_replacing_partial_word_copy_replace; conformance:cases/7.2.3-COPY/pb1670-replacing-partial-word-below-2002; unit:TextManipulationStatementTests.PartialWordPhrases_AreGatedBelow2002_OncePerStatement; conformance:cases/7.2.3-COPY/pb1601-copy-literal-name-below-2002; conformance:cases/7.2.3-COPY/pb1601-copy-suppress-below-2002; conformance:wiseowl/cases/7.2.3-COPY/pb1355_library_text_literal; unit:TextManipulationTextWordTests.LiteralLibraryName_IsACobol2002Introduction; unit:TextManipulationTextWordTests.Suppress_IsACobol2002Introduction",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1354 landed (w61a): The COPY statement is parsed in general-format order over text-words; SUPPRESS [PRINTING] before REPLACING is applied (probes p01 / p2 / p2b HELLO / AAA); words outside the format are COBOL2449 (s01 s02 s03 s06). Spec re-derived and re-cited by the implementer; every probe of the note re-run on the fixed build. kb/Work PB1670 (w1032c): the LEADING / TRAILING partial-word phrases are gated at their introducing edition by constructs row replacing-partial-word-2002 (COBOL0900 at 85; a derived 2002 edge, VCR row 7.33), by the one gate OperandScreen.PartialWord that both statements' parser asks. retired-witness: src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacements (the symbol was removed by kb/Work PB1350/PB1354 (one TextWordScanner + a parsed COPY/REPLACE statement); its successor is named in code-location) retired-witness: src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ReadTextNameOrLiteral (the symbol was removed by kb/Work PB1350/PB1354 (one TextWordScanner + a parsed COPY/REPLACE statement); its successor is named in code-location) || editions 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the COPY statement exists at every edition (X3.23-1985 text manipulation); later phrases such as LEADING/TRAILING (Table 7 row 7.33) and the 2023 removal of REPLACING non-pseudo-text (Annex E.2 item 1) change its content, not its existence. cite.py --check 7.2.3.1 \"The COPY statement\" OK. kb/Work PB1601: the literal names and SUPPRESS are COBOL-2002 introductions (constructs rows copy-literal-name-2002, copy-suppress-2002; VCR row 7.44, edge DERIVED); the 1985 format has neither phrase.",
+ "state": "OK"
+}

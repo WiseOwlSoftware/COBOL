@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.11.4-18",
+ "section": "14.9.11.4",
+ "kind": "GR",
+ "ordinal": 18,
+ "subject": "DISPLAY statement",
+ "rule-digest": "3bd7db1d1f45",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ScreenFacility.cs#ReportDisplayScreen; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundDisplay; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#displayStatement",
+ "test-ref": "conformance:wiseowl/cases/14.9.11-DISPLAY/a42-display-screen-minimal; conformance:wiseowl/cases/14.9.11-DISPLAY/a42-display-screen-positioned; unit:ScreenFacilityConstructDriftTests.ScreenNameReference_IsRefusedByFacility_NeverAsUndefined",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PB55 FOLD (2026-10-15, owner decision 2026-08-08 'THE RULE IS THE UNIT'): the transcription printed this rule's nested list(s) at column 0, so 2 sub-item(s) held rows of their own; indented at their measured printed level, they are this rule's body and their adjudications are folded here, nothing dropped.\n\n[the rule's own record before the fold]\nAnnex A.4.2 (ACCEPT and DISPLAY screen handling) is an OPTIONAL module for which no support is claimed - docs/CONFORMANCE.md section 5 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' and section 4 item 4. A.4.1: an implementation shall accept an optional element's syntax ONLY when support is claimed, so the construct is REFUSED by name (COBOL1560 data/environment surface, COBOL1707 procedure surface); A.4.1 paragraph 2 extends the licence from the 27 printed items to the syntax and general rules hanging off them. Witnessed by conformance:wiseowl/cases/14.9.11-DISPLAY/a42-display-screen-minimal. kb/Work PB260.\n\n[folded GR-14.9.11.4-L2.1 = §14.9.11.4 18) b) 1.: DOCUMENTED-NON-SUPPORT]\nAnnex A.4.2 (ACCEPT and DISPLAY screen handling) is an OPTIONAL module for which no support is claimed - docs/CONFORMANCE.md section 5 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' and section 4 item 4. A.4.1: an implementation shall accept an optional element's syntax ONLY when support is claimed, so the construct is REFUSED by name (COBOL1560 data/environment surface, COBOL1707 procedure surface); A.4.1 paragraph 2 extends the licence from the 27 printed items to the syntax and general rules hanging off them. Witnessed by conformance:wiseowl/cases/14.9.11-DISPLAY/a42-display-screen-minimal. kb/Work PB260.\n\n[folded GR-14.9.11.4-L2.2 = §14.9.11.4 18) b) 2.: DOCUMENTED-NON-SUPPORT]\nAnnex A.4.2 (ACCEPT and DISPLAY screen handling) is an OPTIONAL module for which no support is claimed - docs/CONFORMANCE.md section 5 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' and section 4 item 4. A.4.1: an implementation shall accept an optional element's syntax ONLY when support is claimed, so the construct is REFUSED by name (COBOL1560 data/environment surface, COBOL1707 procedure surface); A.4.1 paragraph 2 extends the licence from the 27 printed items to the syntax and general rules hanging off them. Witnessed by conformance:wiseowl/cases/14.9.11-DISPLAY/a42-display-screen-minimal. kb/Work PB260.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.8.2-2",
+ "section": "14.6.8.2",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Alignment and transfer of data into data items",
+ "rule-digest": "b945684c61c8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolFloat.cs#ToScaledUnchecked; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolFloat.cs#LowOrderDigits",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/pb77_move_past_the_carrier",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB77 (2026-08-18): the implementor-defined manner in which a FLOAT-SHORT/-LONG/-EXTENDED value converts to fixed point is documented in CONFORMANCE.md (the §14.6.8.2 r2 row): the binary64's product with 10^scale, truncated toward zero, inside the Int128 carrier; the exact decimal expansion's low-order digits past it (a COMP-2 holding 1.0E+40 moves 90752 into PIC 9(5) — the double's exact value is 10000000000000000303786028427003666890752); a non-finite value (checking off) lands zero. Pinned by the golden's D40-*/DN-* rows.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.30.3-8",
+ "section": "14.9.30.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "READ statement",
+ "rule-digest": "ddf6eb4f81d8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRead",
+ "test-ref": "conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_read_gate",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "RULE: 'If neither the NEXT phrase nor the PREVIOUS phrase is specified and ACCESS MODE SEQUENTIAL is specified in the file control entry for file-name-1, the NEXT phrase is implied.' (cite.py --check 14.9.30.3 OK.)\nIMPLEMENTED ON BOTH ARMS. Keyed arm: KeyedIoBinder.BindRead's access-mode switch ends `_ => previous ? KeyedReadKind.Previous : KeyedReadKind.Next` with the comment '14.9.30 SR8 -- sequential access: NEXT implied', and FileAccessMode.Sequential falls to it. Sequential-organization arm: BoundRead is unconditionally a forward read, so NEXT is implied by construction.\nPROBED ON ALL THREE ORGANIZATIONS. (a) indexed, ACCESS SEQUENTIAL, two records K001/K002, `MOVE \"K002\" TO IX-KEY` then two bare `READ IXF RECORD` -> `R1 FS=00 KEY=K001 DATA=FIRST` / `R2 FS=00 KEY=K002 DATA=SECOND` (out-b1/probe/sr8/seqacc.cob). The stale key value in the record area is the discriminator: had the bare READ bound as Format 2 it would have returned K002 first, which is exactly what the ACCESS DYNAMIC control run of the same program does (out-b1/probe/sr8/dynbare.cob -> `R1 ... KEY=K002`, correct per SR9). (b) record-sequential: out-b1/probe/prevseq/prevseq.cob's forward walk. (c) relative, ACCESS SEQUENTIAL: the covering test.\nTEST: tests/conformance/2002/pb140_read_gate.cob -- ORGANIZATION RELATIVE ACCESS SEQUENTIAL, four bare `READ F AT END CONTINUE END-READ` statements walking a three-record file; its header states 'Expected values derived from the rules, per leg' and its .out pins READ1=00 READ2=00 READ3=00 READ4=00 FINAL=00 REC=AAAAAAAA EOF=10. That walk is only producible if NEXT is implied, so the test discriminates -- though its own pinned clause is 9.1.13.7, so the SR8 coverage is incidental rather than named. EDITIONS derivation: the 2023 text carries no edition marker on this clause and Annex E is a 2014-to-2023 delta only (E.2 22) 'READ PREVIOUS statement following an OPEN statement' is its single READ entry, which shows PREVIOUS pre-dates 2023 but dates nothing earlier). The column below is the construct's presence in the standard; the phrase-level introduction dates are NOT derivable from this document and are listed as a dossier gap.",
+ "state": "OK"
+}

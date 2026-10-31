@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-10.7.3-6",
+ "section": "10.7.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "End markers",
+ "rule-digest": "6370e1ae1ea2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#ScreenInterface",
+ "test-ref": "conformance-test:OoSpineTests.Interface_EndNameMismatch_2793; conformance:cases/10.7-End-markers/pb988_end_markers",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB988 LANDED (wave 1015 Z2). cite.py --check 10.7.3 'Interface-name-1 shall be identical to the interface-name declared in the corresponding INTERFACE-ID paragraph.' OK 6). The END INTERFACE comparison moved from OoClassTable.Build and OoExpansion.AddSkeleton (COBOL0840) to EndMarkerPass (COBOL2793). pb988_end_markers: END INTERFACE pb988i closes PB988I. retired-witness: conformance-test:OoSpineTests.Interface_EndNameMismatch_0840 (kb/Work PB988 moved the END INTERFACE name rule to Validation/EndMarkerPass (COBOL2793); the test was renamed Interface_EndNameMismatch_2793 and OoClassTable.Build / OoExpansion.AddSkeleton no longer compare the name) retired-witness: src/Cobol.Net.Compiler/Oo/OoClassTable.cs#Build (kb/Work PB988 moved the END INTERFACE name rule to Validation/EndMarkerPass (COBOL2793); the test was renamed Interface_EndNameMismatch_2793 and OoClassTable.Build / OoExpansion.AddSkeleton no longer compare the name) retired-witness: src/Cobol.Net.Compiler/Oo/OoExpansion.cs (kb/Work PB988 moved the END INTERFACE name rule to Validation/EndMarkerPass (COBOL2793); the test was renamed Interface_EndNameMismatch_2793 and OoClassTable.Build / OoExpansion.AddSkeleton no longer compare the name)",
+ "state": "OK"
+}

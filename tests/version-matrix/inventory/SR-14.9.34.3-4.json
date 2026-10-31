@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.34.3-4",
+ "section": "14.9.34.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "RETURN statement",
+ "rule-digest": "e89950dc1bea",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindReturn; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases; src/WiseOwl.Cobol.Compiler/Binding/Procedure/PhraseBlocks.cs#Bind",
+ "test-ref": "conformance-test:SortMergeDifferentialTests.Return_ReversedAtEndPhrases_SpecPinned",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "RULE (cite.py --check 14.9.34.3 'The AT END phrase and the NOT AT END phrase, when specified, may be written in reversed order.' -> OK, 14.9.34.3 rule 4). Note this is the ONLY 'reversed order' sentence in the whole standard (grep 'reversed order' over specs/ISO_COBOL.md: 1 hit) - every other conditional phrase gets the same effect from 5.2.6.4 choice indicators printed in its own format, whereas the RETURN format (rendered page 738) uses PLAIN brackets, so SR4 is the sole grant. CODE: returnStatement writes the shared conditionalPhrases rule (kb/Work PB3830), whose loop takes AT END and NOT AT END in either order, each at most once, and SortBinder.BindReturn binds each phrase by ROLE through PhraseBlocks.Bind - the order of writing never decides which branch is which. VERIFIED: conformance-test SortMergeDifferentialTests.Return_ReversedAtEndPhrases_SpecPinned writes 'RETURN SF NOT AT END DISPLAY \"R=\" S-TXT AT END MOVE \"Y\" TO WS-EOF END-RETURN.' and asserts the spec-derived 'R=ONE\\nR=TWO\\nR=THREE' - both branches bind to the right arm (a swap would loop forever or print nothing). AssertSpecPinned, not the legacy differential, so it qualifies. MEASURED, NOT A DEFECT FOUND HERE: the compiler accepts the reversed pair at --std 85 as well (probe p16, exit 0 at both 85 and 2002) with no edition predicate on the phrase. Whether SR4 existed in ANSI X3.23-1985 cannot be re-derived from the 2023 text (the only text available here): Annex E covers 2014->2023 only and names no RETURN change. Recorded as a dossier gap rather than invented as a defect. OVER-ACCEPTANCE NOTE: the NOT-led alternative also admits the NOT-ONLY form (no AT END at all), which the general format forbids - that defect is recorded on FMT-14.9.34.2, not here; SR4's own obligation is fully met. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/PhraseBlocks.cs#Split (kb/Work PB3830: every Table 12 [NOT] phrase is the one conditionalPhrases rule now; the per-statement phrase rule no longer exists) retired-witness: src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#returnAtEndPhrase (kb/Work PB3830: every Table 12 [NOT] phrase is the one conditionalPhrases rule now; the per-statement phrase rule no longer exists)",
+ "state": "OK"
+}

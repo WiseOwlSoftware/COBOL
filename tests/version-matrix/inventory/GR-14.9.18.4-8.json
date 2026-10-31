@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.18.4-8",
+ "section": "14.9.18.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "GOBACK statement",
+ "rule-digest": "60356a5823cf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#ExitStatus; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitGoback",
+ "test-ref": "conformance-test:StopGobackExitCodeTests.TerminationStatus_SetsProcessExitCode",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "The NORMAL indication in a main program is exit code 0 - the same 4.2.16 mapping GR7 uses, from the ONE shared NumericRenderer.ExitStatus that both STOP and GOBACK reach through the shared TerminationStatus. The theory's GOBACK rows pin the value path ('GOBACK WITH NORMAL STATUS 0.' -> 0) and the ERROR-without-value path ('GOBACK WITH ERROR.' -> 1), which is what proves the GOBACK arm actually reaches the no-value branch; the no-value NORMAL shape itself is MEASURED here rather than pinned by a GOBACK row - probe gr8/normal ('GOBACK WITH NORMAL.') prints 'ran' and exits 0 (the STOP twin has its own row).  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#ExitStatus; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitGoback",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.35.3-7",
+ "section": "14.9.35.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "REWRITE statement",
+ "rule-digest": "0e4b04bc048f",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#WriteRewriteFileUnclaimed; src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Declined; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#DeclinedFilePhrase",
+ "test-ref": "conformance:cases/13.4.5-File-description/a413-rewrite-file-declined; conformance:wiseowl/cases/14.9.35-REWRITE/a413_declined_phrase_positive_control",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Annex A.4.13 (items 1 REWRITE FILE file-name-1 §14.9.35, 2 WRITE FILE file-name-1 §14.9.51) is an OPTIONAL language element (§4.2.7) for which no support is claimed — docs/CONFORMANCE.md §5 Annex A.4 table, row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed' (ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3). §4 has NO A.4.13 item, so §5's row is the whole user documentation. The optional element is a PHRASE — one alternative of '{ record-name-1 | FILE file-name-1 }' — and A.4.1 NOTE 1 keeps the two STATEMENTS mandatory: 'The higher-level constructs or cross-referenced topics are not optional.' The row closes on a DIAGNOSIS: conformance:cases/13.4.5-File-description/a413-rewrite-file-declined; conformance:wiseowl/cases/14.9.35-REWRITE/a413_declined_phrase_positive_control, with conformance:wiseowl/cases/14.9.35-REWRITE/a413_declined_phrase_positive_control proving the mandatory record-name arm still compiles and RUNS. COBOL1706 is raised at bind from ONE site shared by both verbs, BEFORE the sequential/keyed reroute, so §14.9.51.2 Format 1 and Format 2 are both covered. ⚠ CORRECTION OF THE INHERITED PREMISE: §5's note 'No surface — a parse error today' was FALSE on both arms as measured — 'WRITE FILE f FROM x' compiled, bound and RAN with no diagnostic (a live fileName arm wrote the whole record area, which is not §14.9.51.4 GR8's implicit-record model either), and 'REWRITE FILE f' compiled clean and deferred to a run-time throw. Both fixed 2026-09-02; refused at --std 85/2002/2014/2023 and under --permissive.",
+ "state": "OK"
+}

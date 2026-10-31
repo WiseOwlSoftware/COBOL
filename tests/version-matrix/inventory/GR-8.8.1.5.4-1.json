@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.1.5.4-1",
+ "section": "8.8.1.5.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Standard-decimal arithmetic",
+ "rule-digest": "cd588e41df1e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolDec.cs#Pow",
+ "test-ref": "conformance:cases/8.8.1.5.4-Exponentiation-in-standard-decimal-arithmetic/l1_sdidi_pow_zero_exponent",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Under ARITHMETIC IS STANDARD-DECIMAL a zero exponent over a positive, negative or fractional base yields exactly the value of the display expression (1) that §8.8.1.5.4 1) names, for every spelling of the zero (§8.8.1.5.2 NOTE 1).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.38.4-9",
+ "section": "13.18.38.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "OCCURS clause",
+ "rule-digest": "d5e58f031103",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#VaryingLengthArg; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#OdoExtent",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/l1c20_odo_record_varying_no_depending",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py OK §13.18.38.4 9)): with a Format 2 record under a RECORD VARYING file/sort-merge description the records are variable length, and without RECORD … DEPENDING ON 'the content of the data item referenced by data-name-1 of the OCCURS clause shall be set to the number of occurrences to be written before the execution of any RELEASE, REWRITE, or WRITE statement'. Code: VaryingLengthArg returns null with no DEPENDING phrase, so WRITE/REWRITE take the record image's length — the §13.18.38.4 GR8 current-extent slice computed by OdoExtent from data-name-1. Probes (out13/probe/occurs-p2): gr9.cob FD RECORD IS VARYING IN SIZE FROM 2 TO 7, 01 FR. 05 FN PIC 9. 05 FC PIC X OCCURS 1 TO 6 DEPENDING ON FN; WRITE with FN=1,3,6, read back through a second FD with DEPENDING ON RL -> 'LEN 02 [1A]', 'LEN 04 [3BBB]', 'LEN 07 [6CCCCCC]' at --std 85, 2002 and 2023; gr9b.cob RELEASE through an SD with the same shape, SORT … GIVING -> lengths 4 and 2; gr9c.cob RELATIVE REWRITE from FN=2 to FN=5 reads back '5ZZZZZ'. The second sentence is a user obligation (a 'shall' on the program), so no diagnostic is owed. No spec-derived golden exercises an ODO-sized record under RECORD VARYING without DEPENDING -> test-needed. || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): 1985, 2002, 2014, 2023",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.60.3-1",
+ "section": "13.18.60.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "USAGE clause",
+ "rule-digest": "e160040dabd2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#BodyForm; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4",
+ "test-ref": "conformance:cases/13.18.60-USAGE/pb488-usage-clause-on-level-88; conformance:cases/13.18.60-USAGE/pb488-usage-clause-on-level-66",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB488 RE-PROBED AND CLOSED -- the earlier PARTIAL verdict no longer held on the tree. BOTH halves are refused at compile time at all four editions, verified one probe per edition per spelling. LEVEL 88: the level-number DOMAIN screen landed with kb/Work PB485 and covers it structurally and completely. 13.16.2 formats 3 and 4 are the only shapes level-number 88 may take and both are written `88 [condition-name] value-clause .`, so LevelNumberPass.BodyForm classifies an entry whose body is not a value clause alone as a format-1 entry and 13.18.33.4 GR2c then restricts its level-number to 77 or 1 through 49 -- COBOL1747. That refuses `88 C VALUE 'abc' USAGE DISPLAY.` and `88 C USAGE DISPLAY VALUE 'abc'.` alike, i.e. BOTH clause orders, and it generalises to every non-VALUE clause rather than to USAGE alone, so no second per-clause screen is written and there is no second copy of the rule to drift. (The earlier adjudication measured this half as UNENFORCED -- the programs compiled AND RAN with the clause inert -- against a compiler pinned before PB485.) LEVEL 66: `dataDescriptionBody : constantEntryBody | dataDescriptionClauses | renamesClause` makes RENAMES a whole alternative, so a 66 entry cannot carry a clause list at all and a USAGE clause has nowhere to attach: both orders are a COBOL0307 parse error at all four editions. The rejection is a generic parse diagnostic rather than one naming SR1, which is a message-quality residue and not an under-rejection -- the rule's requirement is that the shape not be accepted, and it is not. Both halves now carry a negative golden so the enforcement is observable rather than incidental.",
+ "state": "OK"
+}

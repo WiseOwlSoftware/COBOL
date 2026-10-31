@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.63.4-21",
+ "section": "13.18.63.4",
+ "kind": "GR",
+ "ordinal": 21,
+ "subject": "VALUE clause",
+ "rule-digest": "43cd8c41651f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#FieldImage; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#SourceAt; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindReportEntries",
+ "test-ref": "conformance:cases/13.18.53-SOURCE/pb506_report_value_operand_list; conformance:cases/13.18.63-VALUE/pb506_report_operand_lists_2002; conformance:cases/13.15-Report-group-description/pb565_report_repeating_entry",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "RE-MEASURED by the train-34 lander on the MERGED tree (2026-09-13), because the row's two halves landed in two different trains and neither implementer could see the other's. GR21 is 'General rules 1, 7, 8, and 9 above apply', so the row is discharged leg by leg. GR7 ('Each literal is aligned in the associated data item in accordance with 14.6.8 ... except that initialization is not affected by a JUSTIFIED clause and no editing takes place') and GR8 ('When a numeric-edited data description includes the BLANK WHEN ZERO clause and the VALUE clause uses either an alphanumeric or national literal, the BLANK WHEN ZERO clause has no effect on initialization') were the DIVERGING residue PB565 measured on its own base: a report entry PIC X(5) JUSTIFIED RIGHT VALUE \"AB\" printed '   AB', PIC XXBXX VALUE \"ABCDE\" printed edited, and PIC ZZZ9 BLANK WHEN ZERO VALUE \"0000\" printed spaces. kb/Work PB506 (train 33) closed exactly that: FieldImage stopped routing a format-4 VALUE operand through the §13.18.53.4 GR1 implicit MOVE and now renders it through the ONE VALUE recipe (Data.ValueImageOf -> ValueInitializer.InitializerFrom), which applies neither JUSTIFIED nor editing nor BLANK WHEN ZERO. MEASURED, not inferred: tests/conformance/2023/pb506_report_value_operand_list prints J=[AB   ], E=[AB CD] and BZ=[0000] and was RE-RUN GREEN on this merged tree (4/4 with its 2002 and 2014 siblings and the PB565 golden), after the lander had merged PB506's operand list into PB565's repetition replay. GR9 ('A VALUE clause specified in a data description entry that contains an OCCURS clause or in an entry that is subordinate to an OCCURS clause causes every occurrence of the associated data item to be assigned the specified value') is kb/Work PB565's subtree replay, whose golden measures both legs (the repeating entry itself and entries subordinate to a repeating group entry). GR1 (floating-point usages) is VACUOUS in format 4: §13.15.2's report group description entry general format admits only [USAGE IS] {DISPLAY | NATIONAL}, verified by rendering the printed page. No leg of GR21 is left open.",
+ "state": "OK"
+}

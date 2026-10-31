@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.2.2-2",
+ "section": "8.3.2.2",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "COBOL words",
+ "rule-digest": "d0c9c55cac8b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sectionName; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ProcedureTableBuilder; src/WiseOwl.Cobol.Compiler/Binding/UserWordKind.cs#UserWordKinds; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CheckOneTypePerWord",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/l1c03_level_number_as_procedure_name; conformance:cases/8.3.2.2-User-defined-words/pb990_user_word_types_one_per_word; unit:UserWordDeclarationDriftTests.TheSharingRelation_IsRebuiltFromTheStandardsExceptions",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: `OK  §8.3.2.2 2)` \"a level-number may be the same as a paragraph-name or a section-name\". Level-numbers are INTEGERLIT tokens in the data description entry and never enter the procedure table, while all-digit paragraph and section names are admitted by the procedureName definition slot. PROBES (pinned cobol.exe, out/probe/onetype): ex2.cob — paragraphs 01, 05 and 88 beside 01/05-level data, PERFORM 05 / PERFORM 88 -> `05 RAN 7` / `88 RAN` at 85 and 2023; ex2b.cob — `77 SECTION.`, paragraph `01.`, `05 SECTION.` containing paragraph `77.`, beside 77 N and 01 G / 05 X, with PERFORM 05 and GO TO 88 -> `05S 71` / `END` at 85 and 2023. The exception's complement (a level-number spelled like any OTHER type) is unreachable: every other type must contain a letter (§8.3.2.2) and an all-digit word lexes INTEGERLIT, so no other declaration slot can take it. REGISTER: open kb/Work PB990 lists this row in inventory_rows because its one-type census must carry this exception as data (keep it when the census lands). No spec-derived test names the exception; test-ref empty.",
+ "state": "OK"
+}

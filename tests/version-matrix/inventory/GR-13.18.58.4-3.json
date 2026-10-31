@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.58.4-3",
+ "section": "13.18.58.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "TYPEDEF clause",
+ "rule-digest": "82a2f919cb84",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#TryFindTypeDecl; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritGlobalTypeDecls; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData",
+ "test-ref": "conformance:cases/13.18.58-TYPEDEF/pb1303_global_typedef_inherited; conformance:cases/13.18.58-TYPEDEF/pb1303-local-typedef-not-inherited; conformance:cases/13.18.58-TYPEDEF/pb3682_global_typedef_picture_less_group_usage",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1303 (wave 1012 J). cite.py --check 13.18.58.4 'The GLOBAL clause applies to the scope of the type-name' OK GR3; --check 8.4.6.2.2 'type-name described with a GLOBAL clause is a global name' OK. A GLOBAL type declaration is now a global name: BinderDriver.BindUnitData hands every container's GLOBAL TYPEDEFs to the contained unit BEFORE data.Bind (DataBinder.InheritGlobalTypeDecls, nearest container first, a local declaration shadowing); DataBinder.TryFindTypeDecl is the ONE type-name lookup (TYPE clause, USAGE POINTER TO type-name, an intrinsic's type-name argument). Golden: the directly contained and the grandchild program use OUTER's T (group with a numeric member and an 88) and the nearer MID's U over OUTER's U; the negative pins that a type-name WITHOUT GLOBAL stays local (COBOL1530). The object-definition clause of 8.4.6.2.2 (a type-name declared in a factory or instance definition is global to its methods) was probed and already conforms.",
+ "state": "OK"
+}

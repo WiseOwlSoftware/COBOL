@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.25.4-7",
+ "section": "14.9.25.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "MOVE statement",
+ "rule-digest": "f3b10800ac43",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#FillChar; src/WiseOwl.Cobol.Compiler/Binding/Bound/MoveClassifier.cs#Kind; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CharacterContext; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#ConvertSource; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#IsCharacterImageNumeric",
+ "test-ref": "conformance:cases/8.3.3.6-Figurative-constant-values/pb71_all_national_boolean_figurative; conformance:cases/14.9.25-MOVE/pb442_numeric_edited_national_class",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB442: Table 17's category of a figurative is the receiver's Table 2 CLASS (§8.5.2.1: numeric-edited 'if usage is national' is class national), written once as IntrinsicArgumentRules.CharacterContext and asked by MOVE, VALUE, the CALL/INVOKE fill, INSPECT and the collating reader. Measured under a non-native alphanumeric program collating sequence (ALPHABET IS \"2\" \"1\"), which separates the two LOW-VALUEs by value: a PIC Z9 USAGE NATIONAL receiver took the alphanumeric \"2\" (now national), the display twin keeps \"2\", the Numeric row is alphanumeric whatever the usage (PIC 9 and PIC 9 USAGE NATIONAL both hold 2 - the national one stopped the run unit before, the image eligibility missed usage national). COBOL0899 is gone since PB646. The Numeric and Numeric-edited rows are reachable below 2023 only (§14.9.25.3 SR5 removes the move at 2023, COBOL0902).",
+ "state": "OK"
+}

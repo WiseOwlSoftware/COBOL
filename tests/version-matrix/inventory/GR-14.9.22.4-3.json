@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.22.4-3",
+ "section": "14.9.22.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "INSPECT statement",
+ "rule-digest": "c32f0ff7800d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Tally; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Replace; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Convert; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Region; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit",
+ "test-ref": "conformance-test:InspectDifferentialTests.Backward_CharactersBefore_SpecNote1Example; conformance:cases/14.9.22-INSPECT/pb1152_inspect_backward_leftmost_match_at_current_position",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 14.9.22.4 \"would return 2 in data-name-1, not 5\" -> OK GR3 NOTE 1. Forward: every cycle starts at pos 0 and advances right. BACKWARD: runtime reverses text, multi-char patterns/delimiters/replacements and reverses the result back — equivalent to a right-to-left scan whose boundaries are established in scan direction (NOTE 1) with matching left-to-right within the pattern (NOTE 2). Probes (misc.cob): NOTE 1 example -> C=02; BACKWARD ALL \"12\" AFTER \"C\" -> 1; BACKWARD REPLACING FIRST \"AB\" over ABABABAB -> ABABABxy (rightmost, GR17d); LEADING backward -> xyxyxyxy. Covered by the spec-pinned NOTE-1 test (AssertSpecPinned) and conformance:cases/_unassigned/inspect_backward. || editions as adjudicated: 1985, 2002, 2014, 2023 (left-to-right); BACKWARD 2023 only",
+ "state": "OK"
+}

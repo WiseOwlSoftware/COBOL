@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.14.4-1",
+ "section": "14.9.14.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "EXIT statement",
+ "rule-digest": "41ad90faaa49",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindExit; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs",
+ "test-ref": "conformance:cases/14.9.14-EXIT/l1_exit_format1_common_endpoint",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Bare EXIT as a pure procedure-name anchor: PERFORM P1 THRU P-EXIT reached by fall-through and by GO TO, with no line and no flow change of its own.",
+ "state": "OK"
+}

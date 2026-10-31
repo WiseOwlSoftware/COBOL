@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-35",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 35,
+ "subject": "VALUE clause",
+ "rule-digest": "e6b9188d7136",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenRepeatingOperandCount; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#RepetitionChain; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#EntryRepetitions; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExtractValueOperandList",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb506-report-value-not-repeating; conformance:cases/13.18.63-VALUE/pb506-report-value-operand-count; conformance:cases/13.18.53-SOURCE/pb506_report_value_operand_list; conformance:cases/13.18.63-VALUE/pb506_report_operand_lists_2002; conformance:cases/13.18.63-VALUE/pb506_report_operand_lists_2014",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-09-13 (kb/Work PB506). BOTH SENTENCES ENFORCED, AND THE OPERAND LIST EXISTS TO ENFORCE THEM AGAINST. Sentence 1 (a multi-operand VALUE requires a repeating entry or an entry subordinate to one) and sentence 2 (the operand count shall equal the entry's repetitions, or that number multiplied by the repetitions of successive higher repeating entries) are screened by ONE reader, ScreenRepeatingOperandCount, which computes the admissible counts as the PREFIX PRODUCTS of the repetition chain RepetitionChain reads off the report-entry scope stack — the entry's own count per 13.15.4 GR3 (EntryRepetitions: a COLUMN clause with more than one operand, else 1) then each enclosing entry's. A non-repeating frame contributes a factor of 1, so sentence 1 is exactly 'the full product is 1' and needs no separate special case, and the rule generalizes without edit on the day the report-group OCCURS and multiple LINE vehicles land (both stage COBOL0899 today, and an entry that staged loud is skipped rather than double-diagnosed). Diagnostic COBOL2012. MEASURED: `03 COLUMN 1 PIC X(3) VALUE \"AAA\" \"BBB\" \"CCC\".` (a non-repeating entry) and `03 COLUMNS ARE 1 6 11 PIC X(3) VALUES ARE \"AAA\" \"BBB\".` (3 repetitions, 2 operands) each draw COBOL2012 at 85, 2002, 2014 AND 2023 — SR35 carries no version proviso and Annex E lists no 2014->2023 change, so at 85 the COBOL0900 introduction gate for the multiple COLUMN vehicle is reported ALONGSIDE it, not instead of it. The LEGAL three-operand form compiles and prints AAA/BBB/CCC (the 2023 golden). BEFORE: both illegal shapes compiled clean and printed the same `AAA  AAA  AAA` as the legal one, because DataBinder.ExtractValue collapsed the whole list to item.GetText() and FieldValueSource held ONE string — no count could be compared with a repetition count because no count existed. The SIBLING ARM, 13.18.53.3 SR6, is the same rule written for the SOURCE clause and now rides the same reader (COBOL2013).",
+ "state": "OK"
+}

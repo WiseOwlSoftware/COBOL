@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.48.4-6",
+ "section": "14.9.48.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "UNSTRING statement",
+ "rule-digest": "4edaa936367c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/l1c35_unstring_tallying_accessed",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR6 'incremented by 1 for each occurrence of the data item referenced by identifier-4 accessed during the UNSTRING operation' (cite.py --check -> OK 14.9.48.4 6)). EmitUnstring '{tly} += 1' once per receiver whose UnstringExtract returned >= 0 (acted upon), none for a receiver skipped on sender exhaustion. Probe p2 T3 (3 receivers) 5 -> 08; p1 GR9A 0 -> 03, GR9B 0 -> 02. Only legacy-differential tests cover it -> test-ref empty. Companion of GR14.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.49.4-7",
+ "section": "14.9.49.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "USE statement",
+ "rule-digest": "95194ed26db2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclCollectSection; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#RunUseCall; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs#TerminateOnUncoveredFatalStatus; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitInputFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitImplicitOpen; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundDeclarative; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery",
+ "test-ref": "conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb367_use_procedure_is_the_section; conformance:cases/14.9.49-USE/pb367_use_procedure_is_the_section_85; conformance:cases/14.6.13.1.2-Normal-completion-of-a-declarative-procedure/pb367b_sort_use_not_normal; conformance-test:DocA1Item103WitnessTests.FatalStatus_NoFileStatusNoUse_TerminatesAbnormally; conformance-test:DocA1Item103WitnessTests.FatalLogicErrorStatus_OnWrite_NoFileStatusNoUse_TerminatesAbnormally; conformance-test:DocA1Item103WitnessTests.FatalStatus_WithFileStatusClause_Continues; conformance-test:DocA1Item103WitnessTests.FatalStatus_WithApplicableUseProcedure_Continues; conformance-test:DocA1Item218WitnessTests.CheckedFatalIo_Format1UseCompletesNormally_TerminatesAbnormally; conformance:cases/14.9.41-START/pb870_start_first_last_relative_exceptions",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "RE-VERDICTED (kb/Work PB322 E, w1013m). GR7 a) and b) were already witnessed (PB367/PB367b). GR7 c) - 'the implementor determines what action is taken as described in 9.1.13' - is now ONE documented determination, not two: DOC-A.1-218 (the action after a USE procedure for a fatal status: continue, with the standard's own checked/unchecked split of 14.6.13.1.3 rules 3-8) and DOC-A.1-103 (a fatal status nothing covers terminates), both CONFORMS, with DocA1Item218WitnessTests and DocA1Item103WitnessTests as the arms' witnesses. retired-witness: conformance-test:DocA1Item103WitnessTests (a class-level ref does not resolve (SpecTraceabilityInventoryDriftTests wants Class.Method); the method-level witnesses replace it) retired-witness: conformance-test:DocA1Item218WitnessTests (a class-level ref does not resolve (SpecTraceabilityInventoryDriftTests wants Class.Method); the method-level witnesses replace it)",
+ "state": "OK"
+}

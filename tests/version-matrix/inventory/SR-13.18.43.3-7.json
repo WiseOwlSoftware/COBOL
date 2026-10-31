@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.43.3-7",
+ "section": "13.18.43.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "RECORD clause",
+ "rule-digest": "d605569effe6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#recordClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#integerLiteral",
+ "test-ref": "conformance:cases/8.5.4-Zero-length-items/pb721_zero_length_record; conformance:cases/13.18.43-RECORD/pb721_zero_length_record_85; conformance:cases/13.18.43-RECORD/pb721-record-varying-negative-minimum",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "THE RULE HAS TWO HALVES AND BOTH ARE PINNED. The REJECTING half is discharged by the GENERAL FORMAT, not by a screen: 5.5 rule 1 makes every integer-n 'a fixed-point integer literal that shall be unsigned and nonzero unless otherwise specified in the associated rules', the format spells integer-2 with the grammar's unsigned integerLiteral, and a minus sign is therefore refused at parse (the negative golden). SR7 is precisely the 'unless otherwise specified' override, and it lifts the NONZERO half only - so the PERMITTING half is that FROM 0 shall compile and a zero-length record round-trip, which the two positive goldens measure on a sequential file and a relative one (Annex A.3 item 43 names both), at 2023 and at 85. No edition gate anywhere: Annex E is the complete 2014->2023 delta and carries no entry for this, and a gate below 2014 would be invented rather than derived. Reported to kb/Work PB721 as a suspected over-acceptance; it is not one.",
+ "state": "OK"
+}

@@ -63,7 +63,8 @@ DEFAULT_OUT = REPO / "scratchpad" / "phase-b"
 # would grow a field here and not there, and the dossier would quietly stop seeing the notes that own its rows.
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import grammar_source  # noqa: E402  (THE reader of the grammar's rules, kb/Work PB3204)
-import inventory_schema  # noqa: E402  (THE reader of the catalog, the inventory and the §7 register, kb/Work PB3209)
+import inventory_schema  # noqa: E402  (THE reader of the catalog and the §7 register, kb/Work PB3209)
+import inventory_store  # noqa: E402  (THE reader of the inventory)
 import work  # noqa: E402  (path must be set first)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -711,7 +712,7 @@ def main() -> int:
 
     rules = inventory_schema.load_catalog()
     done = set() if args.include_adjudicated else {
-        r["rule-id"] for r in inventory_schema.load_inventory() if r.get("verdict")}
+        r["rule-id"] for r in inventory_store.load_inventory() if r.get("verdict")}
 
     chosen = [r for r in rules if selected(r["section"], args.clauses) and r["id"] not in done]
     skipped = sum(1 for r in rules if selected(r["section"], args.clauses) and r["id"] in done)

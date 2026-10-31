@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.30.4-6",
+ "section": "14.9.30.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "READ statement",
+ "rule-digest": "bf57de434ded",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#MaterializeImpliedRecord; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitFileRegistration; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#AreaRecord",
+ "test-ref": "conformance:cases/13.4.5-File-description/pb345_record_less_fd_area_2023; conformance:cases/13.4.5-File-description/pb345_record_less_fd_area_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB345 (landed). RULE: 'The execution of a READ statement with the INTO phrase when there are no record description entries subordinate to the file description entry proceeds as though there were one record description entry describing an alphanumeric group item of the maximum size established by the RECORD clause.' - cite.py --check 14.9.30.4 'proceeds as though there were one record description entry describing an alphanumeric group item of the maximum size established by the RECORD clause' -> OK 14.9.30.4 6). The implied entry is now MATERIALIZED at bind time (DataBinder.MaterializeImpliedRecord): an unnamed level-01 GROUP over one FILLER PIC X(n), n = the maximum the RECORD clause establishes (format 1 integer-1, format 2 integer-3, format 3 integer-5; none of them present is COBOL1836). Before it FileModel.AreaRecord answered null for such an FD and NO file connector was registered on either the sequential or the keyed arm, so the first I-O verb aborted the run unit. The golden's R2 line is what pins the word 'group': the implicit MOVE of the 20-byte area into a PIC 9(5) receiver goes through 14.9.25.4 GR4's second paragraph (an alphanumeric-to-alphanumeric elementary move, leftmost 5 characters -> 12345) and not through an elementary alphanumeric-to-numeric move of 20 non-numeric characters.",
+ "state": "OK"
+}

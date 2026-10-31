@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.14.4-5",
+ "section": "14.9.14.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "EXIT statement",
+ "rule-digest": "134ec3c637b7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitPerform; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#F3Region",
+ "test-ref": "conformance:cases/14.9.14-EXIT/exit_perform_multilevel; conformance:cases/14.9.14-EXIT/exit_perform_cycle",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR5a and GR5b are both implemented as LABEL targets rather than C# break/continue, which is what makes the 'most closely preceding, and as yet unterminated, inline PERFORM' clause come out right when a multi-level VARYING lowers to nested C# loops. EmitPerform brackets each inline PERFORM body with a fresh F3Region.Inline(pid) plus a __pcont{pid} label at the end of the body (inside the loop, so the VARYING augment and the re-test still run - GR5b 'immediately preceding the END-PERFORM phrase') and a __pexit{pid} label just past the whole loop nest (GR5a 'immediately following the END-PERFORM phrase'). Because each inline PERFORM installs its OWN id, a nested inline PERFORM's EXIT PERFORM targets the inner loop. Covering spec-derived goldens: conformance:cases/14.9.14-EXIT/exit_perform_multilevel is CA31 (GR5a leaves EVERY AFTER level of a two-level VARYING; the pre-fix bare `break` left only the innermost) and conformance:cases/14.9.14-EXIT/exit_perform_cycle is CA32 (GR5b still runs the augment and re-test; the pre-fix bare `continue` skipped the trailing augment and hung). Corroborated by PROBE out-b2/probe/gr5-exit-perform/p.cob (expected cyc=1/cyc=3/inner=1/outer-after/done, observed the same) and by the mixed edge PROBE out-b2/probe/gr5-inline-inside-f3/p.cob - an ordinary inline PERFORM written inside imperative-statement-1 of a Format-3 PERFORM, where GR5 and not GR4 must govern because that inline PERFORM is the most closely preceding unterminated one (expected i=1/AFTER-INNER/FIN/DONE, observed the same), which proves the F3Region save/restore around a nested inline body. DEFECT IN THE CODE'S OWN CITATIONS (behaviour unaffected, reported as a finding): StatementEmitter's Visit(BoundExitPerform) header cites '§14.9.14.4 GR4/GR5/GR6' and its Inline arm cites '§14.9.14.4 GR6 / §14.9.28.4 GR13' for EXIT PERFORM CYCLE - §14.9.14.4 GR6 is the EXIT PARAGRAPH rule; the CYCLE rule is GR5b.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitPerform; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#F3Region",
+ "state": "OK"
+}

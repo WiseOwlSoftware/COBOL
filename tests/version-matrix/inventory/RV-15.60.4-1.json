@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.60.4-1",
+ "section": "15.60.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "MEAN function",
+ "rule-digest": "1bf021117e9a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Compiler/Binding/Bound/IntrinsicCarrierRules.cs#SdidiQuotientFunctions",
+ "test-ref": "conformance:cases/15.4.1-Numeric-and-integer-functions/pb62_standard_decimal_summing_family; conformance:cases/15.60.4-Returned-value-rule/arith_standard; conformance:cases/15.60.4-Returned-value-rule/pb3860_mean_one_value; unit:ReceiverShapeReaderDriftTests.TheReceiverIndependentSdidiFunctions_HaveNoArmOfTheirOwn_AndOneSdidiBody",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB62 — the ALL subscript as ONE enumerating operand with the standard's three ranges; admissibility from the definition; the summing family on the SDIDI carrier under a standard mode). §15.60.4 r1 under ARITHMETIC IS STANDARD-DECIMAL: §15.4.1 makes MEAN equal its equivalent arithmetic expression evaluated in SDIDI form, each argument converted individually (§8.8.1.5.2 r1). The summing family (SUM/RANGE/MEAN/MEDIAN/MIDRANGE) now always routes to the SDIDI bodies under a standard mode (RenderDec's alwaysDec; the native MeanScaled standard branch is gone) — the native arms aligned every argument to the list's maximum scale on Int128 first, so MEAN(10³⁰, 2.0) needed 49 digits and RescaleEscape raised a size error. Golden pb62_standard_decimal_summing_family: MEAN 500000000000000000000000000001, SUM 10³⁰+2, MIDRANGE, RANGE 10³⁰−2, MEDIAN 2.0 — every receiver pre-set to 7 so a size-error no-op cannot be misread. Standard arithmetic is 2002+. kb/Work PB3860 (2026-10-26): the NATIVE value is the same SDIDI quotient in every mode, channel and receiver (IntrinsicCarrierRules.SdidiQuotientFunctions; MEAN has no native-switch arm and leaves CrossAlignedNativeArms): the native arm used to cut the quotient at max(receiver scale, sum scale + 1, 6) places and let the receiver's ROUNDED phrase round the cut, so MEAN of 0.00000001 and nineteen zeros (5E-10) stored +0.00 under ROUNDED MODE AWAY-FROM-ZERO into S9V99 where 14.7.4.3 r3 owes +0.01. 15.4.1 leaves the native approximation to the implementor; WiseOwl COBOL's determination is the standard-mode value (one reference, one value). A binary64 operand keeps the float lane. Golden pb3860_mean_one_value (+ the 2002 edge pb3860_mean_rounded_mode_below_2014).",
+ "state": "OK"
+}

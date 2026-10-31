@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.10.3-4",
+ "section": "12.4.5.10.3",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "ORGANIZATION clause",
+ "rule-digest": "66c8dd338f56",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#MapOrganization",
+ "test-ref": "conformance:wiseowl/cases/12.4.5.10-ORGANIZATION/pb1098_organization_permanence_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1098 (w61d). Spec-derived golden now pins the relative identity: RRN 7 read back by its key (REL7BBBB), RRN 5 (no record) '23', RRN 0 is not a relative record number ('34', §14.9.51.4 GR29 b)), and the organization is permanent against a sequential and an indexed description ('39').",
+ "state": "OK"
+}

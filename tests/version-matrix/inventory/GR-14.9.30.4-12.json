@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.30.4-12",
+ "section": "14.9.30.4",
+ "kind": "GR",
+ "ordinal": 12,
+ "subject": "READ statement",
+ "rule-digest": "e201453f681d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReadShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReadKeyedShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ApplyPostReadLockActions; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#recordLockPhrase; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReadIgnoringLock",
+ "test-ref": "conformance:cases/14.9.6-CLOSE/file_sharing_seq",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "RULE: 'If the IGNORING LOCK phrase is specified on the READ statement, the requested record is made available, even if it is locked.' cite.py --check 14.9.30.4 'the requested record is made available, even if it is locked' -> OK 14.9.30.4 12). BOTH ARMS VERIFIED. Both governed READ entries take IGNORING LOCK as an argument of its own (ignoringLock, separate from the retention bracket's FileRecordLock, kb/Work PB331) and hand it to FileRegistry.ConflictOnLockedRecord, whose first statement returns no conflict for it -- the one place GR12 is applied -- so the locked record is made available: ReadShared (Format 1) and ReadKeyedShared (Format 2) both ask it before their physical retrieval. Retention is decided by the retention bracket alone (ApplyPostReadLockActions, through ReadSetsRecordLock), so an IGNORING LOCK read acquires or releases exactly what its WITH LOCK / WITH NO LOCK phrase or the LOCK MODE default says -- consistent with 14.9.30.3 SR3/SR4, which bar combining IGNORING LOCK with LOCK and bar it entirely under automatic locking. Grammar carries it (recordLockPhrase: IGNORING LOCK | WITH? NO LOCK | WITH? LOCK, ordered so WITH NO LOCK is not shadowed) and the 2002 introduction gate fires at parse time on the phrase (VersionConformancePass.ParseArm.VisitReadIgnoringLock -> Constructs.RecordLockPhrase2002; the bound arm's GateStatement checks no record-lock phrase, and the ADVANCING ON LOCK phrase has its own parse-time gate, VisitReadAdvancingOnLock). COVERING TEST: conformance:cases/14.9.6-CLOSE/file_sharing_seq line 'READ F-B IGNORING LOCK' -> golden 'IGNB=00 AAAAA' while A holds ordinal 1's lock -- the record IS made available, exactly the rule. Spec-derived (its header derives every line from 9.1.16 / 14.9.30 GR7-GR12). retired-witness: src/Cobol.Net.Runtime/IO/FileRegistry.cs#ReadLockGovern (ReadLockGovern, the post-read Format-2 patch, was replaced by ReadKeyedShared, which owns the Format-2 physical retrieval (kb/Work PB338, the peek-then-commit landing); FileRegistry.cs names it only in a comment)",
+ "state": "OK"
+}

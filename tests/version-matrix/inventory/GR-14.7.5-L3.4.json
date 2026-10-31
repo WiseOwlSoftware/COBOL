@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.5-L3.4",
+ "section": "14.7.5",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Common phrases and features for statements",
+ "rule-digest": "da32ce432872",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#TryStore; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#Store; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreArith",
+ "test-ref": "conformance:cases/14.7.5-SIZE-ERROR-phrase-and-size-error/pb639_store_landing_low_order_digits_2023; conformance:cases/14.7.5-SIZE-ERROR-phrase-and-size-error/pb639_store_landing_low_order_digits_2002; conformance-test:SizeErrorDispositionTests.NoPhraseResultOverflow_UnderChecking_TerminatesNamingEcSizeTruncation; conformance-test:SizeErrorDispositionTests.NoPhraseResultOverflow_CheckingOff_ContinuesPerTheDocumentedDetermination",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-09-05 (kb/Work PB639). No-phrase rule 4 over the RESULT (the case-3 receiver overflow), as distinct from rule 3's INTERMEDIATE overflow (L3.3, PB75): with EC-SIZE checking on the store sets EC-SIZE-TRUNCATION and 14.6.13.1.3 #7 terminates the run unit naming it; with checking off #8 hands the disposition to the implementor and CONFORMANCE.md DOC-A.1-70 documents it as the result's LOW-ORDER digits aligned at the receiver's scale. Both halves are now measured. Before this landing the condition was DETECTED on a WRAPPED alignment: the widening multiply into the Int128 carrier wrapped, and a wrap that landed back inside the picture read as fitting, so COMPUTE WC = 340282366920938463463374607432 (a legal 30-digit literal, ceil(2^128/10^9)) into PIC S9(9)V9(9) set no condition at all under CHECKING ON and stored +0.231788544 with a SIZE ERROR phrase. CobolNum.WideningFits is now asked BEFORE the multiply by every widening sibling. The 85 edition is excluded: the EC-SIZE-TRUNCATION exception-condition name is a 2002 addition.",
+ "state": "OK"
+}

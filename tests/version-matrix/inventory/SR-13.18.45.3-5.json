@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.45.3-5",
+ "section": "13.18.45.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "RENAMES clause",
+ "rule-digest": "631d26ef9c94",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveRedefines; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.RenamesEntry.cs#ScreenRenamesOperand",
+ "test-ref": "conformance:cases/13.18.45-RENAMES/pb1283-renames-level-01-record; conformance:cases/13.18.45-RENAMES/pb1283-renames-level-77-item; conformance:cases/13.18.45-RENAMES/pb1283_renames_legal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1283 (wave 1011 B2). cite.py --check 13.18.45.3 'Neither data-name-2 nor data-name-3 shall refer to an entry that is described with level-number 1, 66, 77, or 88' OK SR5. SubtreeCandidates includes the owner itself, so each resolved operand is now asked its level (1 or 77, or the owner) -> COBOL2740; 66 and 88 stay unreachable (off the storage tree, SR4).",
+ "state": "OK"
+}

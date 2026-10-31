@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.4.4-7",
+ "section": "14.9.4.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "CALL statement",
+ "rule-digest": "643484e471c4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#ProgramPrototypesOf; src/WiseOwl.Cobol.Compiler/Binding/GroupRepository.cs#ProgramDetails",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb237_program_prototype; conformance:cases/14.9.4-CALL/pb237-call-prototype-argument-count",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB237). \"If the NESTED phrase is not specified, program-prototype-name-1 is used to determine the characteristics of the called program.\" All three characteristics the rule reaches are now taken from the prototype. (a) THE EXTERNALIZED PROGRAM-NAME: BindCall sets literalName from ProgramPrototype.ExternalizedName when neither identifier-1 nor literal-1 is written (GR3 b) third bullet), and 12.3.8.4 GR10 NOTE 1 decides which name that is - literal-3 if the specifier wrote AS, else the prototype name. (b) THE SIGNATURE for SR14/SR25: BuildProgramDefinitionTable is the compilation group's outermost program definitions keyed by externalized name - 12.3.8.4 GR10 a)'s search space - and a hit supplies the CalleeSignature that every 14.8.2/14.8.3 check in BindCall reads. A miss is GR10 c), the external repository, which for this implementation is the run unit's program registry resolved at activation (14.9.4.4 GR3 b)), so a separately-compiled callee stays legal and simply carries no compile-time signature. (c) THE BY REFERENCE/BY VALUE MODE OF EACH FORMAL that GR9 consults: the keyword-less-argument arm reads calleeFormals[pos].ByValue, which is now populated for a prototype call exactly as for AS NESTED - the golden's SCALE-IT call passes a bare argument to a BY VALUE formal and GR9 b) selects BY VALUE, observably leaving the argument unchanged (14.2.3 GR10). The negative pins the signature actually being USED: two arguments against a one-formal callee draws COBOL1684 (14.8.2.1) at bind, quoting `CALL ... program-prototype 'ARG-PROTO'`. EDITIONS 2002+ : Format 2 and program prototypes are COBOL-2002 additions (the 1985 CALL general format has Format 1 only). retired-witness: src/Cobol.Net.Compiler/Binding/BinderDriver.cs#BuildProgramDefinitionTable (kb/Work PB894 renamed it BuildProgramDetailsTable when GR10 b) (in-group program prototype definitions) joined GR10 a) in the one table; same code, new name) retired-witness: src/Cobol.Net.Compiler/Binding/BinderDriver.cs#BuildProgramDetailsTable (BuildProgramDetailsTable is deleted by kb/Work PB989; GroupRepository.ProgramDetails is the group's program-definition search GR10 a) names)",
+ "state": "OK"
+}

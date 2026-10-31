@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.26.2",
+ "section": "15.26.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "DISPLAY-OF function",
+ "rule-digest": "55de54aa7c04",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+ "test-ref": "conformance:cases/15.2-Types-of-functions/national_intrinsics",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "UPHELD. I did NOT take the rendering on trust - I re-rendered the printed page myself (python scripts/render-spec-page.py 872 -> printed folio 842) and read it: the format is exactly 'FUNCTION DISPLAY-OF ( argument-1 [ argument-2 ] )', FUNCTION and DISPLAY-OF underlined, only argument-2 bracketed, no ellipsis, no repetition, no third operand. specs/ISO_COBOL.md 15.26.2 matches the printed page, so there is no falsely-restrictive OCR residue. Grammar: functionCall is the generic superset 'FUNCTION functionName (LPAREN functionArgList? RPAREN)?' (read at CobolExpressions.g4:264), so the per-function shape is the catalog arity - IntrinsicArity.OptionalTrailing, MinArgs 1 / MaxArgs 2 - enforced in BindIntrinsicCore. RAN MYSELF at --std 2023: 1 argument accepted; 2 arguments accepted; the bare keyword-only form FUNCTION DISPLAY-OF with no parentheses at all -> COBOL1504 'takes 1..2 argument(s); 0 given'; 3 arguments -> COBOL1504 '3 given'; and the 15.3 ALL-subscript shape FUNCTION DISPLAY-OF(N-E(ALL)) over an OCCURS 3 table -> COBOL1504 '3 given', i.e. rejected, which is the right outcome since 15.26 does not permit a repeated argument. conformance:cases/15.2-Types-of-functions/national_intrinsics verified on disk with its golden and its tests/conformance/2002/manifest.json entry, and it exercises both admissible shapes. NOTED, and deliberately NOT charged to this rule: FUNCTION DISPLAY-OF(N-SRC)(2:3) is a parse error (COBOL0001 'no viable alternative at input (') - the reference-modifier belongs to the 8.4.3.2 function-identifier format, not to the 15.26.2 general format, so it is out of scope here but is a real gap for whoever adjudicates 8.4.3.2.",
+ "state": "OK"
+}

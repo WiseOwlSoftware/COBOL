@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.4.6.3-4",
+ "section": "13.4.6.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "Sort-merge file description entry",
+ "rule-digest": "7fe715b3407d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenSortMergeRecordReferences; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#InputOutputStatement; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenSortMergeFile",
+ "test-ref": "conformance:cases/13.4.6-Sort-merge-file-description/pb1291-sd-record-advancing; conformance:cases/13.4.6-Sort-merge-file-description/pb1291_sd_record_from_into_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1291 landed (w1031 group G). Rule: \"A record description entry associated with file-name-1 shall not be specified in an input-output statement other than following the word FROM or the word INTO.\" (cite.py --check 13.4.6.3 -> OK 4)). The input-output statements are the eight 9.1.13.1 names as setting the I-O status (CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK, WRITE; cite.py --check 9.1.13.1 OK). The record-name slot of WRITE/REWRITE stays SR3's screen (ScreenSortMergeFile, COBOL1692); every OTHER operand position is now ScreenSortMergeRecordReferences (COBOL2973), asked once per input-output statement from StatementBinder.BindStatement: a walk of the statement's parse subtree (subscripts included) skipping FROM/INTO, nested statements and the record-name/file-name operand. Before: `WRITE IN-REC AFTER ADVANCING SRT-N LINES` (SRT-N in an SD record), START KEY = an SD item, RETRY n TIMES with an SD count all compiled clean. Negative pb1291-sd-record-advancing rejects at 85/2002/2014/2023; the permitted arm (READ ... INTO an SD record, WRITE ... FROM an SD record, RETURN INTO) is pinned by the 85 positive pb1291_sd_record_from_into_85.",
+ "state": "OK"
+}

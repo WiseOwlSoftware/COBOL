@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.24.3-2",
+ "section": "14.9.24.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "MERGE statement",
+ "rule-digest": "a216fbc0b549",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindMerge",
+ "test-ref": "conformance:cases/14.9.24-MERGE/l1c18-merge-file-not-sort-merge",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 14.9.24.3 \"File-name-1 shall be described in a sort-merge file description entry in the data division\" -> OK §14.9.24.3 2). BindMerge resolves the name through ctx.Validation.ResolveFile (undeclared -> §8.4.2.1 report) and refuses `!file.IsSortMerge` with COBOL1757 'MERGE file ... is not described in a sort-merge description entry'. Probe mfd (`MERGE F3 ... ` with F3 under an FD) -> rc=70 COBOL1757. A legal SD operand compiles and runs (mbase, mrt4e). No MERGE-specific spec-derived negative golden located -> test-ref empty. || editions as adjudicated: 85/2002/2014/2023 (clause text)",
+ "state": "OK"
+}

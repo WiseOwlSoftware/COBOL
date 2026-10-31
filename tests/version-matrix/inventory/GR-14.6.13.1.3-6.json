@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.13.1.3-6",
+ "section": "14.6.13.1.3",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "Exception conditions",
+ "rule-digest": "ef371729c36a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitSelection; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#PropagationReturn; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#StageAutomaticPropagation",
+ "test-ref": "conformance:cases/7.3.21-PROPAGATE/w73d2_pb1119_propagate_on; conformance-test:AutomaticPropagationTests.DeclarativeCompletesNormally_TerminatesInsteadOfPropagating; conformance-test:AutomaticPropagationTests.MainProgram_HasNoActivator_Terminates; conformance-test:AutomaticPropagationTests.MethodAndIoArms_PropagateToTheActivator",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1119 LANDED (wave 73 D2). cite.py --check 14.6.13.1.3 'and there is an applicable PROPAGATE ON directive, the exception condition is propagated as if a GOBACK statement with the RAISING LAST EXCEPTION phrase were executed' -> OK 14.6.13.1.3 6). The fatal default is decided in ONE place, EcEmitter.EmitSelection: between 5) (a declarative ran, -1: terminate) and 7), a no-handler result (-3) in an element compiled under PROPAGATE ON emits PropagationReturn - ExceptionState.StageAutomaticPropagation excludes EC-FLOW-GLOBAL-EXIT/-GOBACK and stages the LAST exception for the activator (SetPropagatingLast), then the GOBACK signal (ProgramReturn while __asCalled; MethodReturn in a method). The activator's existing pickup raises it (14.9.18.4 GR1 b) 3.), so a chain propagates hop by hop. The EC-I-O arm of __IoCheckEc applies the same return (14.6.13.1.3 3)). A main program propagates nothing (7.3.21.1 'to the activating runtime element'; CONFORMANCE.md D-PROP b). Measured: the note's repro printed 'abnormal run-unit termination: EC-BOUND-SUBSCRIPT'; now 'A-CAUGHT EC-BOUND-SUBSCRIPT' / 'A-AFTER', exit 0.",
+ "state": "OK"
+}

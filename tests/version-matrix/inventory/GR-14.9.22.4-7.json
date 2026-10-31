@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.22.4-7",
+ "section": "14.9.22.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "INSPECT statement",
+ "rule-digest": "160ba01ed0ec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Tally; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Replace; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/l1p5_inspect_general_rules",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR7: each matched AB tallied (P1=03) and replaced (P2=xyCxyCxy)",
+ "state": "OK"
+}

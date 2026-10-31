@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.2.3-8",
+ "section": "8.4.3.2.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "Function-identifier",
+ "rule-digest": "319b43ecc8ee",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfArg; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#RepeatToWidth",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/pb1418_function_argument_manner; conformance:cases/8.4.3.2-Function-identifier/pb1060_address_identifier_evaluate_argument",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1418 landed (w61h). SR8 (cite.py --check 8.4.3.2.3 'Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression' -> OK §8.4.3.2.3 8)). UdfBinder.UdfArg now has an arm for every form: an identifier (BY REFERENCE or BY CONTENT per GR5), a literal including a figurative constant or ALL literal (§8.3.3.6.3 SR1 - a figurative is a literal wherever 'literal' appears in a rule), a boolean expression (BY CONTENT on CALL's ContentBool channel; was COBOL1506 'not yet supported'), an arithmetic expression, and a function-identifier (character-valued intrinsics on the string channel - U=ABCD, was 0000). The figurative crossing fills the formal (§8.3.3.6.4 GR2, CallEmitter.RepeatToWidth / FigurativeFillWidth - the same fix repaired CALL BY CONTENT ALL \"*\" into PIC X(4), which arrived as '*   '). Measured: B=1000, F=****, Z=0000 (conformance:cases/8.4.3.2-Function-identifier/pb1418_function_argument_manner).",
+ "state": "OK"
+}

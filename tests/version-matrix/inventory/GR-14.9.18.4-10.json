@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.18.4-10",
+ "section": "14.9.18.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "GOBACK statement",
+ "rule-digest": "456dbdfd1357",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#ExitStatus; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitGoback; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#ExitStatus",
+ "test-ref": "conformance-test:StopGobackExitCodeTests.NonNumericStatusOperand_IsLegalAndInterpretedNumerically; conformance-test:StopGobackExitCodeTests.TerminationStatus_SetsProcessExitCode; conformance-test:StopGobackExitCodeTests.CalledSubprogramGobackStatus_IsInert; conformance:cases/14.9.18-GOBACK/goback_status",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "Both halves of the rule are implemented and each has a GOBACK-specific pin. The VALUE reaches the OS: 'GOBACK WITH ERROR STATUS 5.' -> 5, 'GOBACK WITH ERROR STATUS \"007\".' -> 7 and '... STATUS WS-DISPLAY.' -> 7 are InlineData rows on the GOBACK arm, and the flush happens runtime-side in the RunUnit.ExitStatus setter so it crosses assembly boundaries. 'Any constraints on the value ... are defined by the implementor' is the required 4.2.16 documentation and docs/CONFORMANCE.md items 192/193 supply it in full (integer truncated toward zero; a non-numeric operand decoded through CobolNum.FromAlphanumeric with a non-digit position contributing no digit - so 'ABEND' maps to 0 - plus the two host clamps: narrowing to Int32 and a POSIX host's low 8 bits). The rule's 'IN A MAIN PROGRAM' restriction is enforced by the !__asCalled guard and measured in BOTH non-main contexts: a CALLed subprogram's status is inert (CalledSubprogramGobackStatus_IsInert) and a user-defined FUNCTION's is too (probe gr10fn/fnstatus exits 0).  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#ExitStatus + #StatusNum; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitGoback (the !__asCalled main-program guard); src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#ExitStatus setter",
+ "state": "OK"
+}

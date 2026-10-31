@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-12.4.2",
+ "section": "12.4.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Input-output section",
+ "rule-digest": "f65147ec3303",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inputOutputSection; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#environmentDivision; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#BindIoControl",
+ "test-ref": "conformance:cases/12.4-Input-output-section/l1c16_io_section_paragraphs; conformance:cases/12.4-Input-output-section/l1c16-io-control-before-file-control",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Format: 'INPUT-OUTPUT SECTION. [ file-control-paragraph ] [ i-o-control-paragraph ]' (cite.py --check 12.4.2 \"INPUT-OUTPUT\" -> OK §12.4.2 General format). Grammar `inputOutputSection : INPUT_OUTPUT SECTION DOT fileControlParagraph? ioControlParagraph?` is the format verbatim: both words required, period required, both paragraphs optional, FILE-CONTROL before I-O-CONTROL. environmentDivision places it after configurationSection? (the §12.2 order). Bound by DataBinder.BindFileControl (env.inputOutputSection()?.fileControlParagraph()) and BindIoControl. Probes (pinned cobol.exe, E:/Temp/claude/E--COBOL/a700c052-f9e4-4942-84ff-a13c7505d6ec/scratchpad/adj-d1/out/probe/iosec): p1 both paragraphs -> runs 'OK' at 2023; p2 empty INPUT-OUTPUT SECTION. -> runs 'EMPTY' at 2023 and at --std 85; p3 I-O-CONTROL before FILE-CONTROL -> COBOL0001 unexpected 'FILE-CONTROL', exit 65 (correct: the format orders them). Edition note: the 2023 spec carries no edition difference for this format, so the uniform acceptance is what the spec derives; whether COBOL-85 required FILE-CONTROL inside the section is not stated in ISO_COBOL.md and is not a basis for a verdict here. test-ref left empty: goldens exercise the both-paragraph shape (e.g. conformance:cases/14.9.32-RELEASE/l1_release_same_record_area) but none pins the optional-paragraph arms (empty section / I-O-CONTROL only) or the ordering refusal. [registrar 14a — editions as adjudicated: 85, 2002, 2014, 2023 (no Annex E row names the input-output section; the 2023 format is the only one the spec states)]",
+ "state": "OK"
+}

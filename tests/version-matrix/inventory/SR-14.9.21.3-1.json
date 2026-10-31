@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.21.3-1",
+ "section": "14.9.21.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "INITIATE statement",
+ "rule-digest": "1e6262d913b9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindInitiate",
+ "test-ref": "unit:BoundDeferralDriftTests.ReportWriterOperand_NamingNoReport_IsARefusal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GAP -> CONFORMS (kb/Work PB909). Rule text validated: cite.py --check 14.9.21.3 \"Report-name-1 shall be defined by a report description entry in the report section\" -> OK 1). An INITIATE operand naming no RD is COBOL1757 at bind; it used to be a COBOL1756 deferral whose message cited this very rule.",
+ "state": "OK"
+}

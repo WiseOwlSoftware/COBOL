@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.34.4-8",
+ "section": "13.18.34.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "LINAGE clause",
+ "rule-digest": "0711e8dfc5f7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs",
+ "test-ref": "conformance:cases/13.18.34-LINAGE/pb523_linage_margins_on_the_medium; conformance:cases/13.18.34-LINAGE/pb523_linage_margins_on_the_medium_85; conformance-test:LinageConformanceTests.Bytes_TopAndBottomMarginsAreLinesOfTheLogicalPage; conformance-test:LinageConformanceTests.Bytes_AdvancingPage_RepositionsToTheNextLogicalPage_NotAFormFeed; conformance-test:LinageConformanceTests.Bytes_NoMarginPhrases_LeaveThePrintStreamUnchanged",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB523 LANDED - CONTIGUOUS, ON BOTH TRANSITIONS, WITH NOTHING ADDITIONAL. The rule was PARTIAL for two reasons and both are gone. (1) The ADVANCING PAGE transition used to write a form-feed character, which is neither a line of the logical page nor 'no additional spacing'; it now goes through BeginNextLogicalPage like the overflow transition, and Advance's form feed is reachable only from 14.9.51.4 GR25 h), the arm for a file with NO LINAGE clause. Bytes_AdvancingPage_RepositionsToTheNextLogicalPage_NotAFormFeed asserts the whole file byte-for-byte, so a 0x0C anywhere fails it. (2) The code comment that cited THIS rule as licence to drop the top and bottom margins is deleted and replaced with the derivation: GR8 forbids spacing ADDITIONAL to the logical page, it does not delete the margins 13.18.34.4 GR1/GR4/GR5 define the page to contain - under the old reading GR4 and GR5 had no content at all and GR1's 'sum ... except the FOOTING phrase' was a sum of one term. WHAT CONTIGUITY NOW MEANS, MEASURED: a page transition adds exactly (page size - LINAGE-COUNTER) + bottom margin + 1 lines and not one byte more, so the next page's line 1 is the line immediately after the current page's last line; on a 7-line logical page written from body line 2, page 2 starts at physical line 8. The zero-margin case is the same code path with both margins zero and Bytes_NoMarginPhrases_LeaveThePrintStreamUnchanged pins that it costs exactly one line, i.e. that no filler was introduced by the new model.",
+ "state": "OK"
+}

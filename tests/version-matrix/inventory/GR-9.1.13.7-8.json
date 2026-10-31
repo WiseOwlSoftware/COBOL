@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.7-8",
+ "section": "9.1.13.7",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "I-O status",
+ "rule-digest": "a5329a57a0ea",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#WriteAdvancing; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/l1_table20_seq_relative",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§9.1.13.7 8) '48' for WRITE not in the correct open mode: a) sequential access needs extend or output, b) dynamic/random needs I-O or output (cite.py --check OK §9.1.13.7 8) b)). Sequential organization (always sequential access): both WRITE entries test `Mode is not (Output or Extend)`. Relative and indexed select the arm on the ACCESS MODE alone (PB325 landed): sequential -> Output/Extend, else IO/Output. Probe logic4x/p1.cob: seq WRITE open INPUT and open I-O -> 48; indexed sequential-access WRITE open I-O -> 48. conformance:cases/9.1.13.2-Successful-completion/l1_table20_seq_relative and l1_table20_indexed pin every WRITE cell of Table 20 (e.g. QS-IO-W=48, XS-IO-W=48, XR-IO-W=00). || Editions (adjudicator, verbatim): 1985/2002/2014/2023",
+ "state": "OK"
+}

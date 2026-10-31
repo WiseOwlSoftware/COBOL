@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.30.4-8",
+ "section": "14.9.30.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "READ statement",
+ "rule-digest": "68a1f7a2e12c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#LockRecord; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReadShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReadKeyedShared; src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#HolderOf",
+ "test-ref": "conformance:cases/14.9.30-READ/l1_read_self_lock_ignored",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Run under AUTOMATIC WITH LOCK ON MULTIPLE RECORDS so 12.4.5.9 GR6's release cannot masquerade as GR8's 'ignored'; the trailing '51' proves the lock still stands after the self re-read. || Code sites: PhysicalFileTable.HolderOf answers None for a record the asking connector holds itself, so GR8's 'ignored' is the absence of a conflict in FileRegistry.ConflictOnLockedRecord, which both governed READ entries ask before the physical step: ReadShared for Format 1 and ReadKeyedShared for Format 2 (which owns that format's physical retrieval). PhysicalFileTable.LockRecord is the acquisition the self re-read leaves standing. retired-witness: src/Cobol.Net.Runtime/IO/Sharing/PhysicalFileTable.cs#IsLockedByOther (kb/Work PB2660 replaced the in-run-unit IsLockedByOther with HolderOf, which also asks the host for a holder in another run unit) retired-witness: src/Cobol.Net.Runtime/IO/FileRegistry.cs#ReadLockGovern (ReadLockGovern, the post-read Format-2 patch, was replaced by ReadKeyedShared, which owns the Format-2 physical retrieval (kb/Work PB338, the peek-then-commit landing); FileRegistry.cs names it only in a comment)",
+ "state": "OK"
+}

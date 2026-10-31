@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-16.2.1.2-2",
+ "section": "16.2.1.2",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "New method",
+ "rule-digest": "726cc1a5aece",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/BASE.cs#__New; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#OoResourceError; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitNew; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.RaiseDeclarations.cs#OoInvokeNames",
+ "test-ref": "unit:StandardClassBaseNewResourceTests.New_WhenResourcesAreUnavailable_AndCheckingIsOn_RaisesEcOoResource; unit:StandardClassBaseNewResourceTests.New_WhenResourcesAreUnavailable_AndCheckingIsOff_ReturnsNull; unit:OoResourceStatementGuardTests.InvokeNew_WithTheNameEnabled_SetsTheCheckingFlagAroundTheStatement",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1524, LANDED (wave 59). Rule: 'If resources needed to create a new object are not available, the returned object reference is set to NULL, and the EC-OO-RESOURCE exception condition is set to exist and is propagated back to the runtime element that invoked the New method.' (cite.py --check 16.2.1.2 -> OK §16.2.1.2 2)). BASE__FACTORY.__New catches the allocation failure of __Create (the one resource a managed object's creation can lack) and raises EC-OO-RESOURCE through ExceptionState.OoResourceError — FatalIfEnabled over the new OoResourceChecking flag, which EcEmitter's gate table sets for EC-OO-RESOURCE — and otherwise returns NULL. Every emitted New site stores NULL into the receiving item before the call (OoEmitter.EmitNew), so the item is NULL on both legs, including when the raised condition is handled by a declarative. Witnessed through the creation seam (a golden cannot exhaust memory).",
+ "state": "OK"
+}

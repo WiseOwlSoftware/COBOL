@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.4.4-10",
+ "section": "14.9.4.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "CALL statement",
+ "rule-digest": "846b7af7b69d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#ICobolProgram; src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#ScreenEntryConvention",
+ "test-ref": "conformance:cases/11.9.7-ENTRY-CONVENTION/pb232_entry_convention_cobol; conformance:cases/11.9.7-ENTRY-CONVENTION/pb232-entry-convention-name",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB232 (wave 56): the ENTRY-CONVENTION clause is now READ. Control is transferred in a manner consistent with the program's entry convention because COBOL is the only convention provided (docs/CONFORMANCE.md §7 DOC-A.1-64) and every runtime element is activated through the one COBOL ABI (ICobolProgram.Call via ProgramTable.CallProgram, §8.3.2.2 case-insensitive name mapping per §11.9.7.4 GR2); a program that names any other convention is refused by name (COBOL2385, §11.9.7.4 GR3) instead of being silently activated with the COBOL convention. The positive golden CALLs a contained program by its name in a different case (GR2 / §8.3.2.2). The program-prototype arm of Format 2 (a prototype declaring a foreign convention) is the program-prototype registry's, not this row's. retired-witness: src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#EntryConventionOf (kb/Work PB298: the ENTRY-CONVENTION screen returns nothing now that the clause has no model field, so EntryConventionOf became ScreenEntryConvention (the same SR1 + GR3 checks, COBOL2385))",
+ "state": "OK"
+}

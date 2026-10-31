@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.15.3-5",
+ "section": "13.15.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "Report group description entry",
+ "rule-digest": "d29f3104f59a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportEntryClausePresence; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindReportEntry",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb1288-report-level1-no-type; conformance:cases/13.15-Report-group-description/pb1288-report-type-below-level1; conformance:cases/13.15-Report-group-description/pb1288_report_entry_placement",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1288 landed 2026-10-04: ScreenReportEntryClausePresence refuses a level 1 entry with no TYPE and a TYPE below level 1 (COBOL2247); BindReportEntry binds a TYPE clause at level 1 only.",
+ "state": "OK"
+}

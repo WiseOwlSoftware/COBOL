@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.53.3-5",
+ "section": "13.18.53.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "SOURCE clause",
+ "rule-digest": "4660bc0adee9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindSourceOperand; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportSourceClause",
+ "test-ref": "conformance:cases/13.18.53-SOURCE/pb852_report_source_expression; unit:ReportValueOperandDriftTests.BothValueClauses_CarryTheSharedRoundedPhrase",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "identifier-1 written WITH the ROUNDED phrase is considered an arithmetic-expression, so BindSourceOperand routes it to FieldComputeSource and 13.18.53.4 GR2's implicit COMPUTE rather than GR1's implicit MOVE - one branch, so the two forms cannot diverge. Witnessed by the golden's adjacent pair: SOURCE IS WS-F ROUNDED prints 002 where SOURCE IS WS-F prints 001 from the same 1.55. kb/Work PB852.",
+ "state": "OK"
+}

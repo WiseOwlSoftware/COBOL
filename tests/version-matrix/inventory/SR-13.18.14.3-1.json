@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.14.3-1",
+ "section": "13.18.14.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "COLUMN clause",
+ "rule-digest": "47c8b6eace6a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportColumnClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#COLS; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#COLUMNS; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindReportEntry",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/l1c03_report_column_synonyms_printable_size; conformance:cases/13.18.14-COLUMN/pb1221_report_keyword_prefixes",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 13.18.14.3 \"COLUMN, COL, COLUMNS, and COLS are synonyms.\" -> OK SR1. The report production takes all four spellings in one alternative and the binder reads only the operands (reportColumnOperand), so the spelling cannot change the meaning. Probes at 2023 (out13/probe/column-clause-p1/syn_col, syn_cols, syn_columns, syn_colnumis): `COL 5`, `COLS 5`, `COLUMNS 5`, `COL NUMBER IS 5` each print 'A' in column 5, identical to `COLUMN 5`. At --std 85 `COL 5` is refused COBOL0900 (the non-COLUMN spellings are 2002 introductions — gate in VisitReportColumnClause; edition edge derived, not quoted). Format 2 half: the screen module is declined (A.4.2 Not claimed, PB260 owns it). Test-needed: conformance:cases/13.18.53-SOURCE/pb506_report_value_operand_list and 2002/pb506_report_operand_lists_2002 exercise COLUMNS ARE only (derived for §13.18.63.3 SR35, not SR1); no spec-derived test witnesses COL/COLS equivalence. || Editions (adjudicator): 85 (single absolute COLUMN NUMBER IS integer-1 form), 2002, 2014, 2023 — Report Writer is in every edition; Annex E lists no 2014->2023 change to §13.18.14; the COL/COLS/COLUMNS/NUMBERS/ARE/multiple/relative forms are 2002 introductions (derived, repo holds no 85/2002 text) || editions corrected from '85' to 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): COL, COLS and COLUMNS are first reserved at 2002 (COBOL-85's report writer spells only COLUMN), so the synonym rule exists from 2002. cite.py --check 13.18.14.3 \"COLUMN, COL, COLUMNS, and COLS are synonyms\" OK.",
+ "state": "OK"
+}

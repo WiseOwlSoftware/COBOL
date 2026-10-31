@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.1.4-1",
+ "section": "8.4.3.1.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Identifier",
+ "rule-digest": "5f1e80721abf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#inlineMethodInvocation; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#dataAddressIdentifier; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#RefModOf; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.ObjectProperty.cs#ResolveObjectProperty; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.ObjectProperty.cs#ViewOfQualifiedItem; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectReferenceAtom",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1425_object_property_identifier; conformance:cases/8.4.3.1-Identifier/pb428_inline_method_invocation; conformance:cases/8.4.3.1-Identifier/pb1407_address_of_reference_modified; conformance:cases/8.4.3.1-Identifier/pb1425_object_view",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1425 (w1021a). GR1 (cite.py --check 8.4.3.1.4 -> OK 1) c), d), g)) orders a) base references, b) address-identifier, c) object-view, d) property OF, e) inline invocation, f) function with arguments, g) reference modifier last. a->g, f->g and e->g were verified (pb428), b) by PB1407. c) before d): `BAL OF U AS C` is the property of the view (the data reference wins the parse, CobolParserCore.g4#objectReferenceAtom / primaryExpression), and `GA OF G AS C`, whose chain is a qualified data name, is re-read as the view of that item (a) before c), ViewOfQualifiedItem). a) before d): the subscripts of `BAL OF AR(2)` are identifier-3's. d) before e): `NXT OF D :: \"GETNM\"` invokes on the property's object. d) before g): `NM OF AR(1) (2:3)` modifies the value.",
+ "state": "OK"
+}

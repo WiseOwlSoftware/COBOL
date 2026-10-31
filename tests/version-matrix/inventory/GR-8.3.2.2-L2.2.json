@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.3.2.2-L2.2",
+ "section": "8.3.2.2",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "COBOL words",
+ "rule-digest": "229339218632",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#CheckDefinitionNameUniqueness; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#ExternalizedSubjects",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb303_as_externalized_name; conformance:cases/8.3.2.2-User-defined-words/pb1404_external_same_kind_is_one_instance; conformance:cases/8.3.2.2-User-defined-words/pb1404-program-and-external-data-one-name; conformance:cases/8.3.2.2-User-defined-words/pb1404-external-file-and-external-data-one-name",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1404 (wave 1012 J). cite.py --check 8.3.2.2 'data-names, file-names, and record-names of items described with the EXTERNAL attribute' OK (list item 2); --check 8.3.2.2 'all instances of a given name that is externalized to the operating environment shall identify the same kind of entity or item' OK. The group-wide externalized-name namespace (COBOL2213) now takes list item 2 as well as item 1: DataBinder.ExternalizedSubjects is the ONE producer of a source element's EXTERNAL data items, records and files (the same population its own 13.18.22.3 SR2 screen reads) and BinderDriver.ExternalizedDefinitions feeds it, for every unit and every class half, into the one dictionary. Two EXTERNAL items of ONE kind under one name are the same instance and are not a conflict (the positive golden, which also pins that an EXTERNAL AS literal is its own name); an EXTERNAL data item against a program, and an EXTERNAL file against an EXTERNAL data item, are refused (the two negatives).",
+ "state": "OK"
+}

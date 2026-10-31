@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.5-4",
+ "section": "14.7.5",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Common phrases and features for statements",
+ "rule-digest": "39d8655acf41",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreArith; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.Float.cs#TryFormatFloat; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#ConvertSource; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#SizeErrLandingVar",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb66_float_edited_picture; conformance:cases/14.6.8.4-Floating-point-numeric-edited-receiving-data/pb2638_float_edited_rounded_store; conformance:cases/13.18.53-SOURCE/pb4031_report_source_size_checking; conformance:cases/14.7.5-SIZE-ERROR-phrase-and-size-error/pb4093_truncation_not_enabled_stores_low_order_digits; conformance:cases/14.7.5-SIZE-ERROR-phrase-and-size-error/pb4092_size_checking_is_per_name",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (PB66). A nonzero result nearer to zero than the resultant permits is the size error condition — the case only a floating-point numeric-edited (or floating-point usage) resultant can present: COMPUTE E3 = 1.0E-12 into 9.99E+9 under ON SIZE ERROR leaves E3 unchanged and runs the phrase (TryFormatFloat's Underflow outcome); a fixed-point resultant has no 'nearer to zero than permitted' (its low-order digits truncate, §14.6.8.2). Without the phrase / checking the MOVE disposition (zero) stands.",
+ "state": "OK"
+}

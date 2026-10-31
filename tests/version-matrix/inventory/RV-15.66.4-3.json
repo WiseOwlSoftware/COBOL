@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.66.4-3",
+ "section": "15.66.4",
+ "kind": "RV",
+ "ordinal": 3,
+ "subject": "NATIONAL-OF function",
+ "rule-digest": "075857da5162",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Repertoire",
+ "test-ref": "conformance:cases/15.26.4-Returned-value-rules/pb59_repertoire_identity",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-09 (PB59): the documented TOTAL correspondence makes r3 vacuous by declaration - exactly the disposition the row's option (a) names. The unreachability of an EC raise site on this path is now a documented determination (item-33 row consequence 2), not an accident: the raise site itself was deleted with the identity landing (StorageByte.ImageByte carries its own 8.1.2-cited raise for the SEPARATE byte-serialization determination, open under RV-15.19.4-2).",
+ "state": "OK"
+}

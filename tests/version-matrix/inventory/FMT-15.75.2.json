@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.75.2",
+ "section": "15.75.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "RANDOM function",
+ "rule-digest": "f07875c342a3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+ "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.Random_SeededSequence_PinnedToSpec; nist:IF131A",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PRINTED PAGE RE-RENDERED BY REVIEW (scripts/render-spec-page.py 935 = printed folio 905): the diagram is exactly `FUNCTION RANDOM [ ( [ argument-1 ] ) ]`, FUNCTION and RANDOM underlined, BOTH bracket levels present — the specs/ISO_COBOL.md transcription is faithful, no OCR over-restriction. Grammar `functionCall : FUNCTION functionName (LPAREN functionArgList? RPAREN)?` admits all three shapes; the catalog row RANDOM/OptionalTrailing/MinArgs 0/MaxArgs 1 plus the BindIntrinsicCore arity check bound it. Re-verified at --std 85, 2002, 2014 AND 2023: `FUNCTION RANDOM`, `FUNCTION RANDOM ( )` and `FUNCTION RANDOM (5)` all compile and run; `FUNCTION RANDOM (1, 2)` is rejected with COBOL1504 'FUNCTION RANDOM takes 0..1 argument(s); 2 given (ISO 15.3)'. Residual TEST gap (not a conformance gap): the two refs together exercise only the bare and one-argument shapes at the default edition — nothing on disk covers the empty-parens shape, the two-argument rejection, or any non-default edition.",
+ "state": "OK"
+}

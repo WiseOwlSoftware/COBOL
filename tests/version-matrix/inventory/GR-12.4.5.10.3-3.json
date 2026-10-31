@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.10.3-3",
+ "section": "12.4.5.10.3",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "ORGANIZATION clause",
+ "rule-digest": "e0f839aeea55",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#organizationType; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#MapOrganization",
+ "test-ref": "conformance:cases/12.4.5.10-ORGANIZATION/pb706_organization_record_sequential",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB706 (2026-09-22). --check 12.4.5.10.3 \"The RECORD SEQUENTIAL phrase specifies that the file organization is record sequential\" -> OK 3). RECORD SEQUENTIAL binds to FileOrganization.Sequential (one value for record sequential, never a fourth) and the golden round-trips two records through it. Editions 2023: the phrase is written out only from 2023 (COBOL0900 below, conformance:cases/12.4.5.10-ORGANIZATION/pb706-record-sequential-below-2023).",
+ "state": "OK"
+}

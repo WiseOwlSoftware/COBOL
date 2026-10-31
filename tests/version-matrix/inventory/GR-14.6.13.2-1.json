@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.13.2-1",
+ "section": "14.6.13.2",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Exception condition handling",
+ "rule-digest": "ece1482686f0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/BooleanRenderer.cs#Visit; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#SendingVerbatim; src/WiseOwl.Cobol.Runtime/Values/Text/CobolBool.cs#Sending; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/SendingRef.cs#FixedPointChecked; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#Occ; src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#RefModPosition; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#PositionRead; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#CountRead",
+ "test-ref": "conformance:cases/14.6.13.2-Incompatible-data/pb230_incompatible_boolean_sending; conformance:cases/14.6.13.2-Incompatible-data/w70c_pb1117_item_identification_incompatible; conformance:cases/14.6.13.2-Incompatible-data/w70c-pb1117-turn-below-2002; unit:PositionCarrierOverloadDriftTests.NoProfileLessNumericArity",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "w70c (kb/Work PB1117 landed). cite.py --check 14.6.13.2 'The EC-DATA-INCOMPATIBLE exception condition is set to exist for a class condition and a VALIDATE statement when invalid data is detected during item identification' -> OK 14.6.13.2 1). The first half (a boolean sending item's own content) was already conforming (pb230). The second sentence now holds: every NUMERIC position operand - a subscript, a reference-modification position, and every codegen-time count (OCCURS DEPENDING object, RECORD VARYING DEPENDING, report DEPENDING) - reads through its own profile, CobolTable.Occ(x, in NumProfile) / CobolString.RefModPosition(x, in NumProfile), whose character-image arm is CobolNum.ParseImageSending, the checked rule-2 read; the class-condition exemption covers the tested item, never its subscript (NOTE 1). Measured on the w70c build: IF TE(N) IS ALPHABETIC with N holding 'A' under checking -> RAISED EC-DATA-INCOMPATIBLE (golden leg 2); pre-fix the tolerant DigitMagnitude scan raised nothing. VALIDATE is A.4.14 Not claimed (PB283), so its item-identification leg is vacuous. || editions: 2002, 2014, 2023 (>>TURN is refused at 85, COBOL0900)",
+ "state": "OK"
+}

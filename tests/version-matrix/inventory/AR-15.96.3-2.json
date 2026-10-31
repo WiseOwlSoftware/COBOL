@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.96.3-2",
+ "section": "15.96.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "TRIM function",
+ "rule-digest": "fb2c26c3c63a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Trim",
+ "test-ref": "conformance:cases/15.96.3-Argument-rules/pb249_trim_argument2_repeats; conformance:cases/15.96.3-Argument-rules/pb249-trim-arg2-width; conformance:cases/15.96.3-Argument-rules/pb249-trim-arg2-class; conformance:cases/15.96.3-Argument-rules/pb58-trim-arg2",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "CLOSED by kb/Work PB249. Citation re-derived, not inherited: cite.py --check 15.96.3 'argument-2 shall be a single character that is either class alphabetic or class alphanumeric' -> OK, rule 2. THE RESIDUE WAS THE REPEATING ARGUMENT-2. 15.96.2 prints '[ argument-2 ] ...' and IntrinsicCatalog makes TRIM Variadic 1..inf, but the Verified schema row declared TWO positions with no tail, so ArgSchema.At returned null for every position past the second and MatchedPositions stopped at the declared ones: positions 3, 4, ... carried no class kind, no ExactWidth(1) and no cross-argument rule. FUNCTION TRIM(X3 \"A\" \"BC\") bound clean and CobolIntrinsics.Trim's c[0] silently kept 'B' and discarded 'C'; FUNCTION TRIM(X3 \"A\" N\"X\") mixed the two families inside one delete set. r2 is ONE sentence about argument-2 and not about the first one, so the row now reads Schema(..., ['s','s'], tail: 's', cross: MatchArgument1).WithPredicate(1, ExactWidth(1)).WithTailPredicate(ExactWidth(1)) and inherits MatchedPositions' PB118 tail arm for the class agreement. THE PREDICATE FAIL-OPEN IS ANSWERED AT THE BODY, NOT PAPERED OVER: PredicateViolation's ExactWidth arm is guarded 'when knownWidth is { } w', and IntrinsicBinder.KnownWidth is null for an ANY LENGTH / DYNAMIC LENGTH item and for a computed-length ref-mod, so for those r2 is a VALUE constraint and 15.3 rule 14 governs - CobolIntrinsics.Trim now raises EC-ARGUMENT-FUNCTION for a SPECIFIED argument-2 that is not one character position, with the docs/CONFORMANCE.md DOC-A.1-90 zero-length substitute taken from ExceptionState.ArgumentErrorZeroLength rather than spelled at the guard. EVIDENCE: 2023/pb249_trim_argument2_repeats is r2's negative space and proves the new tail screen does not over-reject - TWO=cc and THR=ABC (the 15.96.4 r5 sequential fold over two and three argument-2s), ORD=ca (the PB117 order-carrying pair, where a set union answers 'a'), NAT=ABCD (r2's SECOND sentence at the tail: a national argument-1 with two national argument-2s), ECV=blank (the run-time value screen over a variable-length ref-mod argument-2). negative/pb249-trim-arg2-width and negative/pb249-trim-arg2-class are the two tail rejections, both COBOL1627. EDITIONS unchanged at 2023 (the argument-2 form is the 2023 enhancement, Annex E.3.3 item 31).",
+ "state": "OK"
+}

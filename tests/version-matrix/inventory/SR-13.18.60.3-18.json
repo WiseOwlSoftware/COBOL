@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.60.3-18",
+ "section": "13.18.60.3",
+ "kind": "SR",
+ "ordinal": 18,
+ "subject": "USAGE clause",
+ "rule-digest": "3bf38bc7ff33",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4",
+ "test-ref": "conformance:cases/13.18.60-USAGE/pb153-pointer-to-type-without-typedef; conformance:cases/13.18.60-USAGE/pb153_restricted_pointer",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "THE RULE IS READ LITERALLY AND THE LITERAL READING IS THE STARTLING ONE, WHICH IS WHY IT MATTERS THAT THE CODE GOT IT RIGHT. SR18's subject is THE SUBJECT OF THE ENTRY -- the entry carrying `POINTER TO type-name-1` -- not type-name-1, so the OBVIOUS spelling `01 P USAGE POINTER TO T.` is itself nonconforming however T is declared, and a restricted data-pointer must be written as a TYPE DECLARATION and reached through a TYPE clause. The predicate is `!isTypedef` on the entry's own clause list, which is exactly that. MEASURED at 2023: `01 P USAGE POINTER TO T.` is COBOL0881 naming SR18 whether T is an ordinary group (u_sr18_bad), a TYPEDEF (u_sr18_ok) or undeclared (u_sr18_undef) -- the verdict correctly does not depend on T. The LEGAL spelling compiles and runs: `01 P IS TYPEDEF USAGE POINTER TO T. 01 Q TYPE P.` with `SET Q TO NULL` (u_sr18_subject), and the bare `01 P TYPEDEF USAGE POINTER TO T.` too (u_sr18_subject2). An unrelated neighbouring rule is also right: adding STRONG to that typedef is COBOL1529 (8.5.3.3 -- only group items may be strongly typed), u_sr18_strong. A spec-derived negative golden and a positive golden pin both directions edition-invariantly at 2002/2014/2023. || code sites, verbatim from the adjudication: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs:2489-2503 (`var dpu = usageCtx?.usageKeyword()?.dataPointerUsage(); ... if (restrictedTypeName is not null && !isTypedef)` -- COBOL0881, the declaration band); src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4:530-533 (dataPointerUsage : POINTER (TO cobolWord)?) || editions, verbatim from the adjudication: 2002,2014,2023 (USAGE POINTER is post-1985; the restricted `TO type-name-1` form is gated as its own construct row)",
+ "state": "OK"
+}

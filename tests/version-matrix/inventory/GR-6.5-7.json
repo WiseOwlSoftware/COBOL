@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-6.5-7",
+ "section": "6.5",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "Reference format",
+ "rule-digest": "8c114d29adce",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs#NormalizeToFreeFormMapped; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#NormalizeCopybookMapped",
+ "test-ref": "conformance:cases/6.5-Logical-conversion/pb1067_library_text_source_format",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1067 (w67m): the refuted half — a free-form line after >>SOURCE FORMAT FREE in a sequence-numbered copybook was read as fixed and dropped — is closed: library text is iterated by the same walker, so the free-form line is copied to the resultant compilation group (golden leg [CPY-FREE]).",
+ "state": "OK"
+}

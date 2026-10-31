@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.7.3-3",
+ "section": "12.3.7.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "a449db5e2817",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OoEnvironmentRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Oo/OoDriver.cs",
+ "test-ref": "conformance-test:OoEnvironmentPlacementTests.EnvironmentPlacement_FollowsTheOneTable",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1076: an interface SPECIAL-NAMES admits ALPHABET, CURRENCY, DECIMAL-POINT and LOCALE only.",
+ "state": "OK"
+}

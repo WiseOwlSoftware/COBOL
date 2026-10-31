@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.3.3-2",
+ "section": "8.8.3.3",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Concatenation expressions",
+ "rule-digest": "9a85b899d0c1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConcatFolder.cs#Append; src/WiseOwl.Cobol.Compiler/Binding/ConcatFolder.cs#FigurativeChar; src/WiseOwl.Cobol.Compiler/Binding/LiteralEnvironment.cs#HighValue",
+ "test-ref": "conformance:cases/8.8.3-Concatenation-expressions/literal_concat; conformance:cases/8.8.3-Concatenation-expressions/pb1406_concat_word_operands",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1406 (w62k). cite.py --check 8.8.3.3 \"If both literal-1 and literal-2 are specified and both are zero-length literals the value of the concatenation expression is a zero-length literal\" -> OK. The refuter's DIVERGES: SPECIAL-NAMES folds passed no national table, so N\"A\" & HIGH-VALUE took U+00FF where GR10 (--check 12.3.7.4 \"When specified as literals in the SPECIAL-NAMES paragraph, the figurative constants HIGH-VALUE and LOW-VALUE\" -> OK) requires the native national extreme. Every Fold/ClassOf/FigurativeChar site now names a LiteralEnvironment (private ctor: Program / SpecialNames(nationalPhrase, sr11) / Unscoped), so STOP, INVOKE, the boolean channel, OPTIONS and the AS-phrase screens can no longer drop the national table. Golden: CLASS NHI FOR NATIONAL IS N\"A\" & HIGH-VALUE admits NX\"FFFF\" and not NX\"00FF\"; \"\" & \"\" moved to X(4) is spaces (zero-length leg, --check 14.6.8.5 NOTE -> OK); LENGTH(KA & \"\" & K2) = 3. retired-witness: conformance:2002/pb1406_concat_word_operands (the golden moved to the 2014 corpus: it writes a zero-length literal, a COBOL-2014 introduction gated by kb/Work PB895 (same program, same expected output))",
+ "state": "OK"
+}

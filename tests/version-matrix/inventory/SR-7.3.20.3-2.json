@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.20.3-2",
+ "section": "7.3.20.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "POP directive",
+ "rule-digest": "ceb0c41d6ca0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/DirectivePlacementPass.cs#Run; src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveSiteProcessor.cs#Process",
+ "test-ref": "conformance:cases/7.3.20-POP/pb1377-pop-propagate-within-unit; unit:PushPopAllPlacementTests.FlagDirectivesAndNamedPushPop_InsideAStatement_Warn_BetweenStatements_DoNot; unit:CobolWordsDirectiveTests.PushOrPopNamingCobolWords_AfterIdDivision_Rejected",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1377. A POP naming a directive inherits the named directive's placement rule, which is data on its constructs.json row (directivePlacement): COBOL-WORDS (text, DirectiveSiteProcessor), LEAP-SECOND/PROPAGATE (tree, COBOL2652), FLAG-02/FLAG-14 (tree, COBOL2344 warning).",
+ "state": "OK"
+}

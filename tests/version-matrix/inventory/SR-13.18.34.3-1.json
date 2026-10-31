@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.34.3-1",
+ "section": "13.18.34.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "LINAGE clause",
+ "rule-digest": "1775875fd143",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveLinage; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenClauseOperandShape",
+ "test-ref": "conformance:cases/13.18.34-LINAGE/pb489-linage-operand-under-occurs; conformance:cases/13.18.34-LINAGE/pb489-linage-operand-subscripted; conformance-test:ClauseOperandQualificationSpecTests.LinageOperand_SubjectToOccurs_IsRejected; conformance-test:ClauseOperandQualificationSpecTests.LinageOperand_Subscripted_IsRejected",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB489 LANDED. SR1 now HAS a site - DataBinder.ResolveLinage, the FD-clause twin of ResolveFileCollating, run post-build because an operand's OCCURS ancestry is unknown until the data forest is indexed - and it reports COBOL2025 naming SR1's own sentence. Both spellings of the violation are screened, at the two places they are decidable: the WRITTEN subscript at the capture (a subscript is not part of 8.4.2.2.2 Format 1's qualified-data-name, COBOL2024), and the RESOLVED table element in ResolveLinage. Before this, neither existed: `LINAGE IS T-LINES LINES` over `05 T-LINES PIC 99 OCCURS 3 TIMES` compiled CLEAN and killed the process at OPEN OUTPUT with an unhandled NotImplementedCobolFeatureException whose text cited SR2 for what is SR1's obligation - a run-time crash where 4.2.2 requires a compile-time indication. The sibling message at SequentialIoEmitter.LinageOpExpr remains as the 1.4 backstop only; it is no longer the enforcement. SR2 (elementary unsigned numeric integer) and SR3 (integer-2 not greater than integer-1) are one more test each in ResolveLinage and stay with kb/Work PB524; the method names them in a comment so the next fixer adds a test beside these rather than a screen elsewhere.",
+ "state": "OK"
+}

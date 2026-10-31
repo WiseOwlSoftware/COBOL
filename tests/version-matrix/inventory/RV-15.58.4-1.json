@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.58.4-1",
+ "section": "15.58.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "LOWEST-ALGEBRAIC function",
+ "rule-digest": "71bb5e901068",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindAlgebraicFold; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeFloatEdited",
+ "test-ref": "conformance:cases/14.6.13.2-Incompatible-data/pb66_float_edited_algebraic_and_checking; conformance:cases/15.43.4-Returned-value-rules/pb66-algebraic-float-edited-range",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB66 / D21). The signed floating-point numeric-edited argument's negative extreme (the negated all-nines significand at the maximum exponent) must pass IN-ARITHMETIC-RANGE for the mode in effect — COBOL1660 otherwise; LOWEST of an UNSIGNED picture is zero (r2 — the standard's own $**,**9.99 → 0 row), pinned by LOWEST-ALGEBRAIC(U1) → 0.000E+00 in the golden.",
+ "state": "OK"
+}

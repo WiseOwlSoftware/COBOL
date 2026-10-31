@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.8.3-9",
+ "section": "12.3.8.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "2d40132cd085",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#BindSpecifierExternalizedName; src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Resolve",
+ "test-ref": "",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1086: Rule (cite.py --check 12.3.8.3 'there shall be information in the external repository for the interface interface-name-2' -> OK §12.3.8.3 9) b)). The interface twin of SR6 with the same mechanism: nothing checks the specifier; reference sites check the group table. Probe out/probe/repo/sr10.cob: 'INTERFACE NOSUCHIF' naming no interface anywhere -> compiles clean and runs (RAN). Expected: rejected at the specifier.",
+ "state": "GAP"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.11.3-3",
+ "section": "7.3.11.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "DEFINE directive",
+ "rule-digest": "bce9e99ae35a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#EvaluateOperandText",
+ "test-ref": "unit:ConditionalCompilationDefineTests.Define_DivByZero_Rejected1619",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 7.3.11.3 \"Arithmetic-expression-1 shall be formed in accordance with 7.3.6\" -> OK SR3; --check 7.3.6.2 \"All operands shall be fixed-point numeric literals\" -> OK SR1b. All three §7.3.6.2 SR1 prongs enforced as COBOL1619: a) n10 '2 ** 3' rejected; b) s2 'S + 1' with S alphanumeric rejected, n9 '1.5E3' rejected (also §7.3.3 SR10); c) n11 '1 / 0' rejected. The test pins prong c; prongs a/b are probe-verified only (Define_FloatLiteral_Rejected1619 pins SR10). || editions (adjudicator): 2002, 2014, 2023 - §7.3 compiler-directive facility; ISO/IEC 1989:2023 Annex E lists no change to §7.3.11 against 2014 (the 2002 introduction is not stated in the 2023 text itself; below 2002 the directive is COBOL0900)",
+ "state": "OK"
+}

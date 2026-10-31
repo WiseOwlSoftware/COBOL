@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-10.6.2-2",
+ "section": "10.6.2",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "COBOL compilation group",
+ "rule-digest": "e8afa6234c9e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#CheckPrototypeSignaturePairs; src/WiseOwl.Cobol.Compiler/Binding/PrototypeSignatures.cs#Same",
+ "test-ref": "conformance:cases/10.6-COBOL-compilation-group/pb894-program-prototype-signature; conformance:cases/10.6-COBOL-compilation-group/pb894_program_prototype_2002",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB894: paired by EXTERNALIZED name as the rule says, compared by the ONE signature test (per-formal mode, OPTIONAL and 14.8.2 description; the returning item) — COBOL1513, shared with SR3.",
+ "state": "OK"
+}

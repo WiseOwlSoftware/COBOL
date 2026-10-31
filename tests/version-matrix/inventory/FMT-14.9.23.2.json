@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.23.2",
+ "section": "14.9.23.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "INVOKE statement",
+ "rule-digest": "49f902bbfb77",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#invokeArgument; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.InlineInvocation.cs#OfInvokeArgument",
+ "test-ref": "conformance:cases/14.9.23-INVOKE/pb1135_invoke_keywordless_expression_argument",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1135: BY CONTENT / BY VALUE are optional over {arithmetic-expression-1 | boolean-expression-1 | identifier-5 | literal-2}; a keyword-less expression argument (N * 2, (N + 1), B1 B-AND B2) parses and is passed BY CONTENT. A bare `N + 1` keeps the list reading CALL's determination gives it. Re-affirmed 2026-10-22 (kb/Work PB3530) against the figure regenerated from the printed page: render_figure.py's brace-group layout now keeps every alternative inside its own enclosure, so the diagram's layout changed while its words did not (sweep_figures.py's word gate); the verdict stands on the printed format. Re-affirmed 2026-10-22 (kb/Work PB3530, review R1-1) against the figure regenerated again: render_figure.py now keeps each printed line whole inside the enclosures that hold its words and starts a new row at a step wider than 3.5 pt, so the diagram's layout changed while its words did not (sweep_figures.py's word gate); the verdict stands on the printed format.",
+ "state": "OK"
+}

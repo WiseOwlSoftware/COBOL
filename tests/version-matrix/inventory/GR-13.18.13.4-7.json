@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.13.4-7",
+ "section": "13.18.13.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "CODE-SET clause",
+ "rule-digest": "d8f36ae44617",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindCodeSetClause; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#SequentialConnector",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb110_code_set_identity",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB110 (2026-08-19): without a CODE-SET clause the native character set is assumed for data on the external media — every file ever written by this compiler takes this rule (the Latin-1 boundary codec, DESIGN §18 item 13); the golden's clause-bearing file behaves identically because its set's correspondence is the identity.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.96.4-5",
+ "section": "15.96.4",
+ "kind": "RV",
+ "ordinal": 5,
+ "subject": "TRIM function",
+ "rule-digest": "aeabcf3f38d8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Trim",
+ "test-ref": "conformance:cases/15.96.4-Returned-value-rules/pb117_trim_sequential",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "LANDED (kb/Work PB117): sequential folds per r5 - TRIM(a b c) = TRIM(TRIM(a b) c) - replacing the one-pass set union. The golden pins the interleaved-edge case the rule's own NOTE example cannot distinguish (TRIM('bcab' 'c' 'b') = 'ca'; the union gave 'a'), the LEADING shape, the NOTE text itself, an ORDER-sensitivity pair ('b','c' = 'a' vs 'c','b' = 'ca'), and the no-argument-2 space default.",
+ "state": "OK"
+}
