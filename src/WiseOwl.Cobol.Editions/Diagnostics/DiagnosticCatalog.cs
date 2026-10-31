@@ -7779,6 +7779,18 @@ public static class DiagnosticCatalog
         + ">>TURN <exception-name> CHECKING ON before the statement if the RAISE is meant to raise.",
         "ISO §14.6.13.1.1; §14.6.13.1.4; §14.9.29.4 GR1");
 
+    // kb/Work PB4238: procedureName (word [OF|IN word]) is the one production of the two header slots AND every
+    // reference, so `P1 OF S1.` / `S1 OF X SECTION.` parsed, were declared under their glued text (P1OFS1, S1OFX)
+    // and `PERFORM P1OFS1` ran the procedure. ProcedureTableBuilder.HeaderName is the ONE reader of a header's name.
+    public static readonly DiagnosticDescriptor QualifiedProcedureHeader = new(
+        "COBOL5716", "qualified-procedure-header", EditionSeverity.Error,
+        "A paragraph header or section header names its procedure with a qualifier (OF / IN). ISO §14.2.1's general "
+        + "formats print the section header as \"section-name-1 SECTION.\" and the paragraph header as "
+        + "\"paragraph-name-1.\" — a name being defined is a bare user-defined word (§8.3.2.2); qualification "
+        + "(§8.4.2.2.2) is written by a procedure-name that REFERS to a paragraph (§14.4.1: \"a paragraph-name (that may "
+        + "be qualified)\"). Write the bare name in the header and qualify the references.",
+        "ISO §14.2.1; §14.4.1; §8.4.2.2.2");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)
