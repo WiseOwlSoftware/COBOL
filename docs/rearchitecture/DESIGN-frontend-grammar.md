@@ -1547,7 +1547,14 @@ joined the table the same way, which is the table doing its job: a tenth format 
   where only literals are taken says both. An open position that takes a period yields to the missing-period reading
   where a period would let the sentence or entry starting at the token follow (`01 W-X PIC X` then `05 W-Y`). The
   sentence says "expected", the parser's word: the grammar parses a superset of each format wherever a later check
-  names the departure (INSPECT tallying FIRST/TRAILING for COBOL2269, a later edition's words at every edition). The
+  names the departure (INSPECT tallying FIRST/TRAILING for COBOL2269). **The keywords are the compile edition's own
+  (kb/Work PB4174):** the parse holds a later edition's words at every edition, so `AdmittedKinds.Refusal` takes a
+  `theEditionPrints` test, `CobolParserCoreBase.PrintsKeyword`, and names a keyword unless the §8.9 table
+  (`ReservedWords.AdmitsAsKeyword`) shows a LATER edition introduced it (§8.3.2.1 1: a word not yet reserved is a
+  user-defined word) — `(1 + 2.` expects B-AND, B-OR and B-XOR from 2002 and the shift operators from 2023, none at
+  85. An older edition's dropped word, a `keywordWhereFree` word (generated into `CobolLexer.IsKeywordWhereFree` by
+  `gen-cobol-words.ps1`) and a §8.10 context-sensitive word are named whatever the table says; §8.10 has no
+  per-edition flag, so the ROUNDED MODE names are still named at 85 (residue recorded in CONFORMANCE.md D-EXPECT). The
   arm stands after 0h and behind `HasStructuralHint`, so a residue, an empty block or a statement that ended keeps its
   own code; it replaced the two guesses that named a kind in two shapes (COBOL0308 "a data-name is expected here",
   COBOL0309 its converse). `WrittenKindRefusalTests` pins the shapes and the controls.
