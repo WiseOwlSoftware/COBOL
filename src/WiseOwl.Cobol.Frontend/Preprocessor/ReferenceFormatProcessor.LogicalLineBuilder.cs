@@ -10,7 +10,7 @@ public static partial class ReferenceFormatProcessor
     /// <summary>
     /// THE RESULTANT COMPILATION GROUP of the ISO §6.5 logical conversion (kb/Work PB1804): ONE builder both reference
     /// formats feed, each supplying only its per-line classifier (<see cref="FixedFormConverter"/> reads the indicator
-    /// area, <see cref="ConvertFreeLines"/> takes the whole line). It owns what §6.5 makes STATE of the in-order walk —
+    /// area, <see cref="FreeFormConverter"/> takes the whole line). It owns what §6.5 makes STATE of the in-order walk —
     /// the resultant line list with its origins, the LATEST LOGICAL LINE (the join target of §6.5 6) and 8)) and the
     /// literal state that line ends in — so a continuation rule is written once for both formats:
     /// <list type="bullet">
@@ -46,6 +46,10 @@ public static partial class ReferenceFormatProcessor
         /// compiler-directive word the catalog knows (the SAME recognition every directive stage uses). §7.3.3 SR1: a
         /// directive is specified on ONE line, so such a line is never a join target (kb/Work PB1360).</summary>
         private bool _latestIsDirective;
+
+        /// <summary>Whether the latest logical line ended in a floating literal continuation indicator, so the next line
+        /// that is not a comment or blank line is its continuation line (§6.5 8)), never a line a classifier reads.</summary>
+        public bool AwaitsFloatingContinuation => _latest >= 0 && _literal.AwaitsFloating;
 
         /// <summary>The resultant lines and, per line, where its characters came from (kb/Work PB82, PB1801): the physical
         /// line and column of each stretch — a continuation line's text joins its latest logical line, which keeps the
