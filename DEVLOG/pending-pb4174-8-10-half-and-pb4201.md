@@ -26,4 +26,9 @@ were shortened to the prefix all editions share; four new goldens (`pb4174-conte
 pin the lists. CONFORMANCE.md D-EXPECT, DESIGN-frontend-grammar and DESIGN-cobol-words-directive carry the rule; the recorded-read comment
 in `EditionReadDriftTests` (R1-2) was corrected.
 
+Branch review round 1: the COBOL5506 descriptor in `DiagnosticCatalog` (the text rendered into the diagnostic reference) still said the
+§8.10 words "carry no per-edition flag and are named at every edition"; it now states the `Introduced` rule and cites §8.10 and Annex
+E.3.3 item 13. The same stale claim in `IsReservedContextOrIntrinsic`, the APPLY comments in `EditionReadDriftTests` and `CobolIO.g4`
+was corrected (comment-only).
+
 Rows re-verdicted: none (a diagnostic's wording is the implementor's, ISO §4.2.2). Codes used: none.

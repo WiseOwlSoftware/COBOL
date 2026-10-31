@@ -120,7 +120,7 @@ public sealed class EditionReadDriftTests
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4 | performLocationPhrase | is2023"] = (1, Verdict.WordStatus),
         // OPEN's RETRY phrase: RETRY is a §8.9 user word below 2002 and sits in the file-name list.
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4 | openClause | is2002"] = (1, Verdict.WordStatus),
-        // APPLY COMMIT: APPLY is §8.10 context-sensitive at every edition and no edition before 2023 has an APPLY
+        // APPLY COMMIT: APPLY is a §8.10 context-sensitive word only from COBOL-2023 (Introduced) and no edition before 2023 has an APPLY
         // clause, so no earlier program reads `APPLY COMMIT` another way: the gate refuses a construct (COBOL0001)
         // where the conformance pass should name its 2023 introduction.
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4 | ioControlClause | is2023"] = (1, Verdict.ConstructGate),

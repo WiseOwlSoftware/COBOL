@@ -161,7 +161,8 @@ internal sealed class VersionConformancePass
     /// word reserved in 1985 and gone from §8.9, compiled), and the SR4 test rejected anything the lexer tokenizes (so
     /// <c>RESERVE "AUTHOR"</c>, a fresh word, was refused). The lexer's vocabulary is what this compiler TOKENIZES, which
     /// is not a population of the standard; the §8.9 flag is the 2023 list itself (<c>ReservedWordsDriftTests</c>), the
-    /// §8.10 table carries no flags because it transcribes only 2023, and an intrinsic function is a name of the
+    /// §8.10 table is the 2023 list (every row, whatever edition introduced it:
+    /// <c>ContextSensitiveWordEntry.Introduced</c> serves the diagnostics' edition-aware naming, not this test), and an intrinsic function is a name of the
     /// edition inside its window (<see cref="IntrinsicSig.IsDefinedAt"/>).</summary>
     private static bool IsReservedContextOrIntrinsic(string w) =>
         ReservedWords.Find(w) is { R2023: true } || ContextSensitiveWords.Contains(w)
