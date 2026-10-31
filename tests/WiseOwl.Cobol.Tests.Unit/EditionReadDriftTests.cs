@@ -159,8 +159,11 @@ public sealed class EditionReadDriftTests
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorListener.cs | CobolErrorListener.SyntaxError | ReservedUserWordViolation"] = (1, Verdict.WordStatus),
         // The error strategy's COBOL5506 sentence names the keywords EXPECTED at a refused token, leaving out each one a
         // general format of the compile edition cannot print (kb/Work PB4174, PrintsKeyword): a word the §8.9 table proves
-        // a LATER edition introduced. Every other word is named, the §8.10 context-sensitive words and the words a format
-        // spells where §8.9 leaves them free (IsKeywordWhereFree) included. It refuses nothing itself and gates no construct.
+        // a LATER edition introduced, or a §8.10 context-sensitive word first listed at a LATER edition
+        // (ContextSensitiveWordEntry.Introduced). Every other word is named: one reserved at the edition, one a later
+        // edition dropped (WORDS at 2023; COBOL and PHYSICAL, which 2023 formats underline though its §8.9 omits them), one in
+        // neither table, and the words a format spells where §8.9 leaves them free (IsKeywordWhereFree). It refuses nothing
+        // itself and gates no construct.
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.GuessCobolIntent | PrintsKeyword"] = (1, Verdict.WordStatus),
         // The error strategy's recovery asks the same question of a reserved word it recovers at: a reference the
         // listener re-codes to COBOL0901 is consumed (or deleted) as the operand it stood for, never resumed at (kb/Work
