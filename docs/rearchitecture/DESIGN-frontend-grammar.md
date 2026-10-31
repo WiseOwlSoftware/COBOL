@@ -391,8 +391,18 @@ system-names."* A lexer token that §8.9 reserves at SOME editions is a keyword 
 word at the others (GOBACK and NULL at COBOL-85, ALTER and AUTHOR from 2002, CONSTANT at 85, …). Step 4b of
 `gen-cobol-words.ps1` computes that set from `reserved-words.json`: a `nameSlot` row whose word is reserved at
 >=1 edition is gated, full stop. A gated word is **never a `cobolWord` alternative**; its only grammar home is
-the generated `reservedGatedWord` rule — an alternative of every DEFINITION slot (`dataName`, `programName`,
-`sectionName`, `paragraphName`, the SELECT file-name) with no predicate and one action, `gatedDeclaration`.
+the generated `reservedGatedWord` rule — an alternative of every DEFINITION slot (`dataName`, `programName`, the
+SELECT file-name) and of `procedureName`, the one rule of every procedure-name slot, definitions (`sectionName`,
+`paragraphName`) and REFERENCES (PERFORM, GO TO, ALTER, RESUME AT, the SORT / MERGE procedures) alike — with no
+predicate and one action, `gatedDeclaration`. The procedure-name references are the one reference slot that has it
+(kb/Work PB4206) because they are the slot a statement reading competes for: RECEIVE, SEND and VALIDATE begin
+statements, so without the arm `PERFORM RECEIVE.` parsed as an inline PERFORM whose RECEIVE statement refused the
+period and `GO TO SEND.` as the 1985 target-less GO TO followed by a SEND statement, a COBOL0001 at the period that
+never named the word. The full-context prediction still prefers every reading that parses (the inline PERFORM is the
+earlier alternative), and the only procedure-name lists — GO TO … DEPENDING's, ALTER's entries — end at a keyword
+(DEPENDING, TO) no statement's verb can supply, so neither list can absorb the next statement's leading verb, the
+risk PB693 kept the arm off the reference slots for. A data or file REFERENCE keeps no arm: its error falls AT the
+word and is re-coded (below).
 
 The user-word reading is decided on the TOKEN, before the parse that counts (`Parsing/ReservationGateRewriter`;
 its `ParseToFixpoint` is THE gate loop, and EVERY whole-group parse calls it — the greenfield
@@ -400,15 +410,15 @@ its `ParseToFixpoint` is THE gate loop, and EVERY whole-group parse calls it —
 this grammar and a front end that skips the loop can never read a gated word as a name; train 49 dropped PB655
 over exactly that third arm, and `ReservationGateParseEntryDriftTests` now fails on any source file that calls
 `compilationUnit()` without the loop). A parse pass that meets a gated word the compile edition leaves free
-(`userWordHere`) either in a `reservedGatedWord` definition slot, or as the offending token of a syntax error
+(`userWordHere`) either in a `reservedGatedWord` user-word slot, or as the offending token of a syntax error
 (the keyword reading failed, and the only other reading §8.9 leaves is a user-defined word — this is how a name
 introduced in a slot that does not offer `reservedGatedWord`, an index-name or a SPECIAL-NAMES class-name,
 is reached), has found a user-defined word: every occurrence of that word is retyped to `IDENTIFIER` and the
 source is parsed again. Each round frees at least one more word and a retyped token can never be declared again,
 so the loop ends; a program that declares no such word parses exactly once, and only the last pass's diagnostics
-are reported. Where §8.9 RESERVES the word nothing is retyped: a declaration matches `reservedGatedWord` and
-`VersionConformancePass`'s funnel answers with the targeted COBOL0901 (`VisitReservedGatedWord`, which hangs on
-the RULE — a new definition slot needs no C#), and a reference fails to parse and is re-coded to COBOL0901 by
+are reported. Where §8.9 RESERVES the word nothing is retyped: a declaration or a procedure-name matches
+`reservedGatedWord` and `VersionConformancePass`'s funnel answers with the targeted COBOL0901 (`VisitReservedGatedWord`,
+which hangs on the RULE — a new user-defined-word slot needs no C#), and any other reference fails to parse and is re-coded to COBOL0901 by
 `CobolErrorListener` (below). The recovery from that report reads the word the same way: `CobolErrorStrategy.ConsumeUntil`
 consumes the token the report named (`IsReportedReservedOperand`) as the operand it stood for before resynchronizing,
 because a reserved VERB (RECEIVE, SEND, VALIDATE) is in every statement-level recovery set and the base recovery resumed
