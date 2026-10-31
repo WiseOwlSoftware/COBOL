@@ -1,4 +1,4 @@
-## PB1528: the unpositioned screen ACCEPT / DISPLAY with an exception phrase draws COBOL1707, and §14.5.3.3 keeps device statements from stealing an arm
+## Entry 2818 — 2026-10-30 16:27 PDT — PB1528: the unpositioned screen ACCEPT / DISPLAY with an exception phrase draws COBOL1707, and §14.5.3.3 keeps device statements from stealing an arm
 
 Wave 20261769 H, kb/Work PB1528 (one mechanism).
 
@@ -55,3 +55,4 @@ ACCEPT and DISPLAY as "selector" and holds `ProvedBy` selectors to the owner's o
 **Docs.** DESIGN-frontend-grammar §3.16 (the presumed reading, the ACCEPT/DISPLAY selectors, the error-walk
 consequence), DATA_MODEL_DESIGN.md's screen paragraph, CONFORMANCE.md §4 item 4 and the §5 A.4.2 row (43 witnesses,
 the stale `negative/…/.err` wording corrected).
+
