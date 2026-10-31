@@ -10,14 +10,17 @@ code that holds the reference), not about the assemblies.
 
 HOW (`--assign`). A tolerated row's candidates are the notes R1's plan for it names (`plan`, the §8.1 account, every
 `PBnnnn`). A Move or Extract that ends the pair A -> B edits the file that declares A — the reference is cut there, or A
-moves with its file, or B moves and A's `using` changes — so a candidate removes the pair iff its COMPUTED file set
+moves with its file, or B moves and A's `using` changes — so a candidate REACHES the pair iff its COMPUTED file set
 (`member_index.note_file_set`: its sites plus every caller of what it moves or changes, DESIGN-architecture-review §8.7)
-holds a file that declares A (the member index's `types`). That is the file-level image of the targets file's move
-maps, which hold no type -> namespace map (`docs/rearchitecture/evidence/arch-census/targets/`, schema 2: one step
-carries member moves, none a type move). The removers are written in the candidates' `blocked_by` order, the row's
-`removedBy` is their union, and a pair no candidate's file set reaches keeps an empty list: the drift test stays red on
-it until a note that removes it is filed and named (the script never writes the register, CLAUDE.md rule 8).
-A pair that already names its removers keeps them; `--all` recomputes every pair.
+holds a file that declares A (the member index's `types`); and of the candidates that reach it, the ones that NAME A or B
+(A, B or a member of either among the names it moves or changes, `note_file_set`'s `names`) are its removers, or, when
+none names either end, every candidate that reaches it (a wave that rewrites A's file without naming the pair's types,
+such as a pass-schedule move). That is the file-level image of the targets file's move maps, which hold no type ->
+namespace map (`docs/rearchitecture/evidence/arch-census/targets/`, schema 2: one step carries member moves, none a type
+move). The removers are written in the candidates' `blocked_by` order, the row's `removedBy` is their union, and a pair
+no candidate reaches keeps an empty list: the drift test stays red on it until a note that removes it is filed and
+named (the script never writes the register, CLAUDE.md rule 8). A pair that already names its removers keeps them;
+`--all` recomputes every pair.
 
 Usage:
     python scripts/arch/edges.py --assign [--all] [--cache <dir>]   # --cache: the member index of THIS tree
@@ -43,6 +46,7 @@ from standard_streams import ensure_utf8  # noqa: E402
 
 EDGES = Path("docs/rearchitecture/architecture-edges.json")
 NOTE_ID = re.compile(r"\bPB\d+\b")
+REMOVES_LINE = re.compile(r"^\*\*Removes\b[^\n]*", re.M)
 
 
 def candidates(row: dict) -> list[str]:
@@ -74,8 +78,14 @@ def declaring_files(index: dict, metadata_name: str) -> set[str]:
     return {index["files"][i] for i in index["types"].get(metadata_name.replace("+", "."), [])}
 
 
-def assign(edges: dict, file_sets: dict[str, set[str]], index: dict, blocked_by: dict[str, list[str]],
-           recompute: bool) -> list[str]:
+def names_either(names: set[str], pair: dict) -> bool:
+    """Whether a note's moved-or-changed names hold either end of a pair, or a member of either."""
+    ends = [pair["from"].replace("+", "."), pair["to"].replace("+", ".")]
+    return any(n == e or n.startswith(e + ".") or n.startswith(e + "`") for n in names for e in ends)
+
+
+def assign(edges: dict, file_sets: dict[str, set[str]], names: dict[str, set[str]], index: dict,
+           blocked_by: dict[str, list[str]], recompute: bool) -> list[str]:
     """Writes each pair's `removedBy` and each row's union in place; returns the pairs no candidate removes."""
     unassigned = []
     for row in edges["tolerated"]:
@@ -84,12 +94,21 @@ def assign(edges: dict, file_sets: dict[str, set[str]], index: dict, blocked_by:
             if pair["removedBy"] and not recompute:
                 continue
             declared = declaring_files(index, pair["from"])
-            pair["removedBy"] = [n for n in cands if declared & file_sets.get(n, set())]
+            reach = [n for n in cands if declared & file_sets.get(n, set())]
+            pair["removedBy"] = [n for n in reach if names_either(names.get(n, set()), pair)] or reach
             if not pair["removedBy"]:
                 unassigned.append(f"{row['from']} -> {row['to']}: {pair['from']} -> {pair['to']}"
                                   + ("" if declared else " (the member index declares no file for the from type)"))
         row["removedBy"] = sorted({n for p in row["pairs"] for n in p["removedBy"]})
     return unassigned
+
+
+def unlisted_rows(edges: dict, removes_lines: dict[str, str]) -> list[str]:
+    """The (remover, row) pairs whose note's `**Removes …**` line does not name the row (`From → To`): a remover's
+    Removes line names every row it removes from (DESIGN-architecture-review §8.1; the notes are rendered from the
+    targets file, `file_census_notes.py --rerender`, so a gap is fixed there, never by a hand edit)."""
+    return [f"{n}: {row['from']} → {row['to']}" for row in edges["tolerated"] for n in row["removedBy"]
+            if f"{row['from']} → {row['to']}" not in removes_lines.get(n, "")]
 
 
 def write(edges: dict, path: Path) -> None:
@@ -113,7 +132,7 @@ def self_test() -> int:
                                 {"from": "N.A.Binder", "to": "N.B.Kept", "removedBy": ["PB9"]}]}]}
     sets = {"PB1": {"src/A/Binder.cs"}, "PB2": {"src/A/Binder.cs", "src/B/Emit.cs"}, "PB3": {"src/B/Emit.cs"}}
     order = {"PB2": ["PB1"]}
-    missing = assign(edges, sets, index, order, recompute=False)
+    missing = assign(edges, sets, {}, index, order, recompute=False)
     pairs = edges["tolerated"][0]["pairs"]
     arm("a candidate whose file set holds the from type's declaring file removes the pair, in blocked_by order",
         pairs[0]["removedBy"] == ["PB1", "PB2"])
@@ -122,12 +141,19 @@ def self_test() -> int:
         pairs[1]["removedBy"] == [] and len(missing) == 1 and "N.C.Other -> N.B.Emit" in missing[0])
     arm("a pair that already names its removers keeps them", pairs[2]["removedBy"] == ["PB9"])
     arm("the row's removedBy is the union of its pairs'", edges["tolerated"][0]["removedBy"] == ["PB1", "PB2", "PB9"])
-    assign(edges, sets, index, order, recompute=True)
+    assign(edges, sets, {}, index, order, recompute=True)
     arm("--all recomputes a pair that already names removers", pairs[2]["removedBy"] == ["PB1", "PB2"])
+    assign(edges, sets, {"PB2": {"N.B.Emit.Render"}, "PB1": {"N.Z.Elsewhere"}}, index, order, recompute=True)
+    arm("of the candidates that reach a pair, the ones naming an end (a member of it here) are its removers",
+        pairs[0]["removedBy"] == ["PB2"])
+    arm("a pair whose reaching candidates name neither end keeps every one that reaches it",
+        pairs[2]["removedBy"] == ["PB1", "PB2"])
     arm("a nested type's metadata name reads the index's dotted key",
         declaring_files(index, "N.B.Emit+Inner") == {"src/B/Emit.cs"})
     arm("the plan's note ids are the candidates, first mention first",
         candidates({"plan": "PB2 then PB1, PB2 again"}) == ["PB2", "PB1"])
+    arm("a remover whose Removes line does not name the row is reported",
+        unlisted_rows(edges, {"PB1": "**Removes:** `N.A → N.B` 3", "PB2": "**Removes:** `N.X → N.B` 1"}) == ["PB2: N.A → N.B"])
     print(f"=== ARCH EDGES SELF-TEST: {'PASS' if not failures else 'FAIL'} ({len(failures)} failed) ===")
     return 1 if failures else 0
 
@@ -147,22 +173,29 @@ def main(argv: list[str] | None = None) -> int:
     index = member_index.current(REPO, a.cache) if a.cache else member_index.load(REPO)
     items = {i["id"]: i for i in work.load()}
     notes = sorted({n for row in edges["tolerated"] for n in candidates(row)})
-    file_sets, blocked_by = {}, {}
+    file_sets, names, blocked_by, removes = {}, {}, {}, {}
+    missing_notes = [n for n in notes if n not in items]
     for n in notes:
-        if n not in items:
-            print(f"  ⛔ the plan names {n}, which kb/Work does not hold")
+        if n in missing_notes:
             continue
         text = (REPO / "kb" / "Work" / f"{n}.md").read_text(encoding="utf-8")
-        file_sets[n] = set(member_index.note_file_set(text, REPO, index)["files"])
+        fs = member_index.note_file_set(text, REPO, index)
+        file_sets[n], names[n] = set(fs["files"]), set(fs["names"])
         blocked_by[n] = list(items[n].get("blocked_by") or [])
-    unassigned = assign(edges, file_sets, index, blocked_by, a.all)
+        removes[n] = "\n".join(REMOVES_LINE.findall(text))
+    unassigned = assign(edges, file_sets, names, index, blocked_by, a.all)
+    unlisted = unlisted_rows(edges, removes)
     write(edges, path)
+    for n in missing_notes:
+        print(f"  ⛔ a plan names {n}, which kb/Work does not hold")
     for u in unassigned:
         print(f"  no remover: {u}")
+    for u in unlisted:
+        print(f"  ⛔ a remover's Removes line does not name its row (re-render it from the targets file): {u}")
     pairs = sum(len(r["pairs"]) for r in edges["tolerated"])
-    verdict = "UNASSIGNED" if unassigned else "ASSIGNED"
+    verdict = "UNASSIGNED" if unassigned or unlisted or missing_notes else "ASSIGNED"
     print(f"=== ARCH EDGES: {verdict} {pairs - len(unassigned)} of {pairs} pair(s) (index {index['commit'][:12]}) ===")
-    return 1 if unassigned else 0
+    return 1 if verdict == "UNASSIGNED" else 0
 
 
 if __name__ == "__main__":

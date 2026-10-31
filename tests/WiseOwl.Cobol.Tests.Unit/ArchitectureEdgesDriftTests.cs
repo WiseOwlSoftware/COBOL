@@ -42,7 +42,7 @@ public sealed class ArchitectureEdgesDriftTests
         + "FullyQualifiedName~ArchitectureEdgesDriftTests.EveryProductDependency, then `python scripts/arch/edges.py --assign`";
 
     private static readonly Regex SolutionProject = new(
-        "^Project\\(\"\\{[0-9A-Fa-f-]+\\}\"\\)\\s*=\\s*\"(?<name>WiseOwl\\.Cobol\\.[^\"]+)\",\\s*\"(?<path>src[\\\\/][^\"]+\\.csproj)\"",
+        "^Project\\(\"\\{[0-9A-Fa-f-]+\\}\"\\)\\s*=\\s*\"(?<name>WiseOwl\\.Cobol\\.[^\"]+)\",\\s*\"(?<path>(?<dir>src[\\\\/][^\"]+)[\\\\/][^\"\\\\/]+\\.csproj)\"",
         RegexOptions.Multiline | RegexOptions.NonBacktracking);
 
     private static readonly Regex AssemblyNameElement = new("<AssemblyName>(?<name>[^<]+)</AssemblyName>", RegexOptions.NonBacktracking);
@@ -192,9 +192,10 @@ public sealed class ArchitectureEdgesDriftTests
         var edges = ArchitectureEdges.Load(EdgesFile);
         var excluded = edges.Excluded.Select(e => e.Assembly).ToHashSet(StringComparer.Ordinal);
         var projects = SolutionProject.Matches(File.ReadAllText(TestRepo.At("WiseOwl.Cobol.sln")))
-            .Select(m => (Name: m.Groups["name"].Value, Path: TestRepo.At(m.Groups["path"].Value.Replace('\\', '/'))))
+            .Select(m => (Name: m.Groups["name"].Value, Path: TestRepo.At(m.Groups["path"].Value.Replace('\\', '/')),
+                Directory: TestRepo.At(m.Groups["dir"].Value.Replace('\\', '/'))))
             .Where(p => !excluded.Contains(p.Name))
-            .Select(p => (p.Name, Directory: Path.GetDirectoryName(p.Path)!,
+            .Select(p => (p.Name, p.Directory,
                 Assembly: AssemblyNameElement.Match(File.ReadAllText(p.Path)) is { Success: true } a ? a.Groups["name"].Value : p.Name))
             .ToList();
         Assert.NotEmpty(projects);
