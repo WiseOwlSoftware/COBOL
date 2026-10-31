@@ -1515,7 +1515,9 @@ class Gate:
             self.say(line)
         out.plan_sha256 = plan["sha256"]
         out.plan_note = (f"plan {plan['sha256'][:12]}: map {(plan['map'] or 'none')[:12]} ({plan['map_state']}), "
-                         f"timings {plan['timings']}")
+                         f"timings {plan['timings']}"
+                         # kb/Work PB4269: a gate that runs tier 1 whole says why on its verdict line
+                         + (f"; tier 1 whole (kb/Work PB4269): {plan['whole_tier']}" if plan["whole_tier"] else ""))
         return plan, digest
 
     @staticmethod
@@ -1914,11 +1916,11 @@ class FakeHost(Host):
             torn.write_text("<TestRun><Results><UnitTestResult outcome=\"" + chr(1) + "\"/>", encoding="utf-8", newline="\n")
             gate_plan.read_reds(torn.parent)
         plan = {"schema": 1, "base": base, "map": None, "map_state": "none", "every_tier1": ["planted"],
-                "constants": {}, "timings": "none", "reds": {},
+                "drifted": [], "whole_tier": "", "constants": {}, "timings": "none", "reds": {},
                 "assemblies": {a: {"legs": legs, "leg1": l1, "leg2": l2, "stats": {
                     "cases": len(self.POPULATION[a]), "tiers": {}, "leg1_cases": len(l1), "leg1_seconds": 0,
                     "recorded_seconds": 0, "leg1_floor_seconds": 0, "leg1_floor_collection": None,
-                    "one_leg_reason": ""}} for a, (legs, l1, l2) in self.LEGS.items()}}
+                    "one_leg_reason": "", "whole_tier": ""}} for a, (legs, l1, l2) in self.LEGS.items()}}
         plan["sha256"] = hashlib.sha256(gate_plan.canonical(plan)).hexdigest()
         self.plan_obj = plan
         return plan, gate_plan.write_plan(plan, out)

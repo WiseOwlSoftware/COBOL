@@ -47,9 +47,10 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   `scripts/orchestrator/landing_measure.py` (the trial's train records are its BEFORE column). The trial's measurement (15 batched trains 3.43 changes landed/h against 8
   whole-population trains 0.71/h, confounded by the cap; no CI red that batching let through) is in PB2515. They are
   `gate_slot.py`'s coded defaults (`DEFAULT_SCOPE`, `DEFAULT_SLOTS`; train 1052), and `gate_slot.py clear` drops the
-  bridging settings that carried them before. **Amended by the owner on 2026-10-31 (kb/Work PB4269, open, not yet in
-  `gate_plan.py`):** when the gate cannot attribute an assembly's change precisely, leg 1 runs that whole tier, not the
-  cheapest `LEG_ONE_BUDGET` slice. That day PRs #880 and #894 bounced on cases their GREEN gates had listed as not run.
+  bridging settings that carried them before. **Amended by the owner on 2026-10-31 (kb/Work PB4269, in
+  `gate_plan.whole_tier_reason`):** when the gate cannot attribute a change precisely (`every_tier1`, or a changed file
+  taken at the file level against a drifted map), leg 1 runs the whole tier 1, not the cheapest `LEG_ONE_BUDGET` slice,
+  and the verdict line names the reason. That day PRs #880 and #894 bounced on cases their GREEN gates had listed as not run.
   The attribution holes are PB4228 (reflection sweeps), PB4270 (stale impact maps) and PB2696, and PB4271 classifies
   every merge-queue red.
 - **▶ LANDING PIPELINE REDESIGN (owner 2026-10-11, kb/Work PB3015 Q1a/Q1b/Q2/Q3; design

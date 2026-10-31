@@ -129,7 +129,8 @@ I1/I2; kb/Work PB1721) for an implementer's commit and a re-gate after a fix ali
 the likely failures first, fail-fast, inside a gate slot that caps how many gates run at once (one shared cap, 3 by
 default, kb/Work PB2514). **Batched gating (owner 2026-10-10, kb/Work PB2515):** the gate runs leg 1 only — the
 change's own tests, the previous reds, the host-only witnesses (`[Trait("Host", "ReFS")]`, tier 0h), the cheap
-tree-wide sweeps (`[Trait("Sweep", "tree")]`, tier 0c) and the cheapest reach — and its verdict reads `LEG 1 ONLY
+tree-wide sweeps (`[Trait("Sweep", "tree")]`, tier 0c) and the cheapest reach, or the WHOLE tier 1 when the change
+cannot be attributed precisely (owner 2026-10-31, kb/Work PB4269) — and its verdict reads `LEG 1 ONLY
 (batched gating, PB2515): GREEN|RED`; CI is the regression net and the ONLY whole-population run (owner 2026-10-11
 ~11:20: "local testing confirms the targeted change; CI/CD ensures no regression on the remaining codebase"). A
 self-test whose inputs are unchanged since a recorded PASS is reused, never re-run, by every gate (kb/Work PB2914,

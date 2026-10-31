@@ -60,7 +60,8 @@ reading the file through a helper class such as `SuiteManifest` (kb/Work PB3247)
 traceability inventory, docs/CONFORMANCE.md — that cites a member, test or file the change removes, kb/Work PB3131)
 and the
 cheapest cases the change can reach — the tiers `impacted_tests.py` derives from an impact map, when one
-exists — and everything else in leg 2, its collections LONGEST FIRST, timed from the shared timings store every gate
+exists, or the WHOLE tier 1 when the change cannot be attributed precisely (no usable map, a grammar or build input, a
+file taken at the file level against a drifted map; owner 2026-10-31, kb/Work PB4269) — and everything else in leg 2, its collections LONGEST FIRST, timed from the shared timings store every gate
 publishes to after its legs, so a fresh worktree is timed too (kb/Work PB2527). The test hosts run Server GC (kb/Work
 PB2526). Each leg runs the three assemblies concurrently.
 
