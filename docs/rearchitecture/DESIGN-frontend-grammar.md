@@ -410,10 +410,15 @@ are reported. Where §8.9 RESERVES the word nothing is retyped: a declaration ma
 `VersionConformancePass`'s funnel answers with the targeted COBOL0901 (`VisitReservedGatedWord`, which hangs on
 the RULE — a new definition slot needs no C#), and a reference fails to parse and is re-coded to COBOL0901 by
 `CobolErrorListener` (below). The recovery from that report reads the word the same way: `CobolErrorStrategy.ConsumeUntil`
-consumes the token the report named (`IsReportedReservedUserWord`) as the operand it stood for before resynchronizing,
+consumes the token the report named (`IsReportedReservedOperand`) as the operand it stood for before resynchronizing,
 because a reserved VERB (RECEIVE, SEND, VALIDATE) is in every statement-level recovery set and the base recovery resumed
 AT it, parsed it as its statement and refused the next token — `DISPLAY RECEIVE.` drew COBOL0901 and a second
-`unexpected '.'` (kb/Work PB3248; one occurrence, one §8.3.2.1 1) violation, one diagnostic).
+`unexpected '.'` (kb/Work PB3248; one occurrence, one §8.3.2.1 1) violation, one diagnostic). The same report fires at a
+verb that correctly begins the NEXT statement after an incomplete one (`MOVE W-X TO` then `RECEIVE FROM W-X GIVING W-Y
+W-N`), so the grammar tells the two apart: the word is consumed only when the statement it would begin does not parse
+(`CobolParserCoreBase.LookaheadBeginsAStatementThatParses`, a speculative `ParserInterpreter` parse of `statement` up to the
+separator period — the one helper, `ReadingParses`, that also answers `entryNameHere`'s clause reading); where it parses,
+the recovery resumes at it and the statement is read as written.
 
 The same loop settles the one other token decision only the parse can make — is this figurative ZERO an arithmetic
 operand? (kb/Work PB3981, PB4120). A BARE figurative ZERO in a slot the grammar types arithmetic-expression alone

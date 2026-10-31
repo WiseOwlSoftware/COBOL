@@ -420,19 +420,31 @@ public abstract class CobolParserCoreBase : Parser
     {
         if (TokenStream.LT(1) is not { } word || ReservedGatedWord(word) is null) return true;
         if (_entryClauseProbe is { } p && p.Index == word.TokenIndex) return !p.Parses;
-        bool parses = ClauseReadingParses();
+        bool parses = ReadingParses(CobolParserCore.RULE_dataDescriptionBody, wholeSentence: true);
         _entryClauseProbe = (word.TokenIndex, parses);
         return !parses;
     }
 
     private (int Index, bool Parses)? _entryClauseProbe;
 
-    /// <summary>Whether the entry's tokens from the lookahead up to its separator period parse as
-    /// <c>dataDescriptionBody</c> — the no-entry-name reading of <see cref="entryNameHere"/>. A speculative parse by an
-    /// <see cref="ParserInterpreter"/> over THIS grammar's ATN on a copy of those tokens, so the outer parse's stream,
-    /// prediction and actions are untouched. The interpreter evaluates every semantic predicate as true, which only
-    /// ever widens the clause reading — the authoritative parse that follows still applies them. Read-only.</summary>
-    private bool ClauseReadingParses()
+    /// <summary>Whether the lookahead word begins a <c>statement</c> that parses — the question the error recovery
+    /// asks of a reserved verb it has just reported as a reference (kb/Work PB3248, review R1-1;
+    /// <see cref="CobolErrorStrategy"/>). A syntax error AT a reservation-gated word is reported as its §8.9 violation
+    /// (COBOL0901) whether the word was written as an operand (<c>DISPLAY RECEIVE.</c>) or correctly begins the next
+    /// statement after an incomplete one (<c>MOVE W-X TO</c> then <c>RECEIVE FROM W-X GIVING W-Y W-N</c>). Only the
+    /// statement reading tells them apart: where it parses, the recovery resumes AT the word and the statement is read
+    /// as written; where it does not, the word stood for the operand the report named. Read-only.</summary>
+    internal bool LookaheadBeginsAStatementThatParses()
+        => ReadingParses(CobolParserCore.RULE_statement, wholeSentence: false);
+
+    /// <summary>Whether the tokens from the lookahead up to the separator period parse as the rule
+    /// <paramref name="rule"/>: with <paramref name="wholeSentence"/>, every one of them (the no-entry-name reading of
+    /// <see cref="entryNameHere"/>), else a prefix of them (one statement of a sentence,
+    /// <see cref="LookaheadBeginsAStatementThatParses"/>). A speculative parse by a <see cref="ParserInterpreter"/> over THIS
+    /// grammar's ATN on a copy of those tokens, so the outer parse's stream, prediction and actions are untouched. The
+    /// interpreter evaluates every semantic predicate as true, which only ever widens the reading — the authoritative
+    /// parse that follows still applies them. Read-only.</summary>
+    private bool ReadingParses(int rule, bool wholeSentence)
     {
         var tokens = new List<IToken>();
         for (int i = 1; TokenStream.LT(i) is { } t && t.Type != TokenConstants.EOF && t.Type != CobolLexer.DOT; i++)
@@ -445,8 +457,8 @@ public abstract class CobolParserCoreBase : Parser
         probe.RemoveErrorListeners();
         try
         {
-            probe.Parse(CobolParserCore.RULE_dataDescriptionBody);
-            return stream.LA(1) == TokenConstants.EOF;
+            probe.Parse(rule);
+            return !wholeSentence || stream.LA(1) == TokenConstants.EOF;
         }
         catch (Antlr4.Runtime.Misc.ParseCanceledException)
         {
