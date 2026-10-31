@@ -10,9 +10,10 @@ namespace WiseOwl.Cobol.Runtime.Collation;
 /// variable elements take part), <see cref="MaxVariable"/> (which groups are variable), <see cref="CaseFirst"/> (case
 /// before the other tertiary distinctions), <see cref="BackwardsSecondary"/> (level 2 compared from the end —
 /// Canadian French), <see cref="CaseLevel"/> (a level of case alone between level 2 and level 3) and
-/// <see cref="NumericOrdering"/> (a run of decimal digits ordered by its numeric value). A CLDR collation's own settings (<c>[caseFirst upper]</c>, <c>[backwards 2]</c>, <c>[alternate
-/// shifted]</c>, <c>[strength n]</c>, <c>[maxVariable g]</c>) and the BCP 47 <c>-u-</c> keys (<c>ks</c>, <c>ka</c>,
-/// <c>kv</c>, <c>kf</c>, <c>kc</c>, <c>kn</c>, <c>kb</c>) both resolve to this. <see cref="Default"/> is the CLDR default.
+/// <see cref="NumericOrdering"/> (a run of decimal digits ordered by its numeric value). A CLDR collation's own
+/// settings (<c>[caseFirst upper]</c>, <c>[backwards 2]</c>, <c>[alternate shifted]</c>, <c>[strength n]</c>,
+/// <c>[maxVariable g]</c>, <c>[caseLevel on]</c>, <c>[numericOrdering on]</c>) and the BCP 47 <c>-u-</c> keys
+/// (<c>ks</c>, <c>ka</c>, <c>kv</c>, <c>kf</c>, <c>kc</c>, <c>kn</c>, <c>kb</c>) both resolve to this. <see cref="Default"/> is the CLDR default.
 /// <para>Not represented, because the engine does not implement it (documented in Collation/CLDR/README.md; a CLDR
 /// file that asks for it is loaded with the setting reported as unsupported): <c>hiraganaQuaternary</c>.</para>
 /// </summary>

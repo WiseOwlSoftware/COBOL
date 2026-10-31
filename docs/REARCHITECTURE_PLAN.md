@@ -597,7 +597,8 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   `src/WiseOwl.Cobol.Runtime/README.md` (the pipelines overview), the benchmark harness's three new classes. The
   brief's "NFC + per-cluster keys before building keys" was NOT done — it is not how UCA works (contractions
   cross cluster boundaries; keys are level-major) — and a test pins why (PB104). Residue registered as PB107
-  (caseLevel / numericOrdering / hiraganaQ / `<<<<`; the ~6 ms per-locale rebuild; the NFD allocation).
+  (caseLevel / numericOrdering / `<<<<` / the per-locale rebuild / the NFD allocation landed; `hiraganaQ` is the one
+  owner question left).
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record
