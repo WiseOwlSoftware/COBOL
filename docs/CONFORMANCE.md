@@ -2326,15 +2326,30 @@ of an unsupported facility.
   names it), and naming it after `SET IX TO`, where the parse refuses a sole ZERO, would direct the user to a rewrite
   the compiler refuses. **What is expected is the compiler's parse, a superset of the
   general format** wherever a later check names the departure better (INSPECT's tallying phrase is parsed with FIRST
-  and TRAILING so COBOL2269 refuses them by name; the parse takes a later edition's words at every edition), so the
-  message says "expected", never "the general format admits". It is not given where a statement may begin (the
+  and TRAILING so COBOL2269 refuses them by name), so the message says "expected", never "the general format
+  admits". **Except for the keywords the compile edition does not have (kb/Work PB4174):** the parse also takes every
+  later edition's words, and §8.3.2.1 1) ("Reserved words shall not be used as user-defined words or system-names")
+  makes a word §8.9 has not reserved yet a user-defined word, so a keyword is named only unless the §8.9 table
+  (`ReservedWords.AdmitsAsKeyword`) shows a LATER edition introduced it: `COMPUTE W-N = (W-N + 1.` expects B-AND,
+  B-OR and B-XOR from COBOL-2002, the shift operators B-SHIFT-L, B-SHIFT-LC, B-SHIFT-R and B-SHIFT-RC from COBOL-2023
+  (Annex E.2 3), and none of the seven at COBOL-85. A word an older edition reserved and this one dropped stays named
+  (the migration mode's removed clause; `COBOL` and `PHYSICAL`, which 2023 formats underline although its §8.9 does
+  not list them), as does a word a format spells where §8.9 leaves it free (`keywordWhereFree`,
+  `CobolLexer.IsKeywordWhereFree`) and a §8.10 context-sensitive word. **Known residue:** §8.10 carries no per-edition
+  flag and the repository holds neither the 1985, 2002 nor the 2014 text, so the context-sensitive words (the ROUNDED
+  MODE names, `PROHIBITED`, `STANDARD-DECIMAL`, …) are named at every edition; the GnuCOBOL per-standard lists that
+  fed §8.9 are not a safe source for them (they omit ISO's `NEAREST-EVEN` at 2014). It is not given where a statement may begin (the
   imperative-statement and statement-shape diagnostics own those positions), where a forgotten separator period
   would let the next sentence or entry follow (COBOL0307), or at a closed format's residue (COBOL1941 / 1970 / 1971).
   Witnesses: `conformance:cases/12.3.6-OBJECT-COMPUTER/pb3428-memory-size-unit-word`,
   `conformance:cases/12.3.6-OBJECT-COMPUTER/pb3428-segment-limit-integer-omitted`,
   `conformance:cases/12.3.6-OBJECT-COMPUTER/pb3428_memory_size_modules_85`,
   `conformance:cases/14.9.39-SET/pb3861-set-index-to-alphanumeric-literal`,
-  `conformance:cases/14.9.39-SET/pb3861_set_index_to_integer_literal`, `unit:WrittenKindRefusalTests`.
+  `conformance:cases/14.9.39-SET/pb3861_set_index_to_integer_literal`,
+  `conformance:cases/8.3.2-COBOL-words/pb4174-expected-words-are-the-editions-85`,
+  `conformance:cases/8.3.2-COBOL-words/pb4174-expected-words-are-the-editions-2002`,
+  `conformance:cases/8.3.2-COBOL-words/pb4174-expected-words-are-the-editions-2023`, `unit:WrittenKindRefusalTests`,
+  `unit:CobolWordsDriftTests`.
 
 ### 3.1 Implementor behavior in Annex A.2 undefined cases (kb/Work PB1907)
 

@@ -226,6 +226,23 @@ public sealed class CobolWordsDriftTests
         Assert.Equal(["receivePhrase:MESSAGE", "lockPhrase:MULTIPLE"], BareTokenSpellings(grammar, tokens).ToArray());
     }
 
+    /// <summary>⛔ THE LEXER'S <c>IsKeywordWhereFree</c> SET IS THE ROWS' DETERMINATIONS, BOTH WAYS (kb/Work PB4174). The
+    /// COBOL5506 sentence (<c>AdmittedKinds</c>) keeps a keyword the §8.9 table would hide at an edition when a format
+    /// spells it there; that set is generated beside the keyword rules from the same <c>keywordWhereFree</c> rows, so
+    /// it can neither miss a word whose keyword rule exists nor name one that has none.</summary>
+    [Fact]
+    public void LexerKeywordWhereFreeSet_Matches_TheRowsDeterminations()
+    {
+        var rows = KeywordWhereFreeTokens();
+        Assert.NotEmpty(rows);
+        var wrong = LoadJsonWords().Select(w => w.Token)
+            .Where(t => CobolLexer.IsKeywordWhereFree(ToWord(t)) != rows.Contains(t))
+            .Order(StringComparer.Ordinal).ToList();
+        Assert.True(wrong.Count == 0,
+            $"CobolLexer.IsKeywordWhereFree disagrees with the keywordWhereFree rows for [{string.Join(",", wrong)}]: "
+            + "re-run scripts/gen-cobol-words.ps1");
+    }
+
     /// <summary>⛔ THE DETERMINATIONS ARE RE-DERIVED FROM THE STANDARD WHERE THE STANDARD IS IN THE REPOSITORY. A gated
     /// word that COBOL-2023 does not reserve (§8.9) yet underlines in a general format of <c>specs/ISO_COBOL.md</c>, and a
     /// gated word §8.10 lists as context-sensitive ("If a context-sensitive word is used where the context-sensitive word

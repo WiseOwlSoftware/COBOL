@@ -341,6 +341,21 @@ public abstract class CobolParserCoreBase : Parser
     protected bool reservedHere(string keyword)
         => Canonical(keyword) is { } w && (ReservedWords.Find(w)?.IsReservedAt(Edition.Year) ?? false);
 
+    /// <summary>⛔ WHETHER A GENERAL FORMAT OF THIS EDITION CAN PRINT <paramref name="keyword"/> — what a syntax
+    /// diagnostic may name as EXPECTED (kb/Work PB4174; <c>AdmittedKinds</c>). The parse is the superset of the four
+    /// editions, so its expected set holds words the compile edition does not have (B-SHIFT-L at COBOL-2014, PROTOTYPE
+    /// at COBOL-85); ISO §8.9 has not reserved them there and §8.3.2.1 makes them user-defined words. A word is refused
+    /// only when the §8.9 table proves a LATER edition introduced it (<see cref="ReservedWords.AdmitsAsKeyword"/>); a
+    /// §8.10 context-sensitive word ("If a context-sensitive word is used where … permitted in the general format, the
+    /// word is treated as a keyword") and a word a format spells where §8.9 leaves it free
+    /// (<see cref="CobolLexer.IsKeywordWhereFree"/>: ORDER in COBOL-85's SORT) are printed whatever the table says.
+    /// Through the &gt;&gt;COBOL-WORDS resolution as <see cref="reservedHere"/> is: a de-reserved word is no keyword.
+    /// Diagnosis only (<c>CobolErrorStrategy</c>); never called while parsing.</summary>
+    internal bool PrintsKeyword(string keyword)
+        => Canonical(keyword) is { } written && CobolNames.UpperFold(written) is var w
+           && (ReservedWords.AdmitsAsKeyword(w, Edition.Year) || ContextSensitiveWords.Contains(w)
+               || CobolLexer.IsKeywordWhereFree(w));
+
     /// <summary>⛔ THE RESERVATION GATE ON THE USER-DEFINED-WORD SLOT (kb/Work PB693) — true when this compile
     /// ADMITS <paramref name="keyword"/> to <c>cobolWord</c>. The generated <c>cobolWord</c> alternatives carry
     /// <c>{userWordHere("W")}?</c> and their <c>reservedGatedWord</c> twins the exact inverse, for every name-slot
