@@ -1,4 +1,4 @@
-## PB4269: a gate that cannot attribute its change runs tier 1 whole
+## Entry 2887 — 2026-10-31 16:06 PDT — PB4269: a gate that cannot attribute its change runs tier 1 whole
 
 The owner decided on 2026-10-31: "Run the whole tier". A gate whose change the impact map cannot attribute precisely
 now puts every tier-1 case, and every genuinely new 0u case, in leg 1, exempt from `LEG_ONE_BUDGET`,
@@ -17,3 +17,4 @@ generator inputs (8), files new since the map (5), non-C# inputs under src/ (5) 
 (PB4270, PB4228, PB2696) makes the gates fast again. The self-tests of `gate_plan.py` (nine new arms),
 `impacted_tests.py` (three) and `run_gate_legs.py` are green. The design doc, CLAUDE.md, plan §0, the `gate` skill,
 MANDATORY-PRACTICES I1 and the implementer spec describe the rule.
+
