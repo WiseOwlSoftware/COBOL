@@ -1,4 +1,4 @@
-## PB4235, PB4211: the TO-less pointer operand asks what follows in THIS entry, so a screen word names a type in a data entry
+## Entry 2886 — 2026-10-31 15:31 PDT — PB4235, PB4211: the TO-less pointer operand asks what follows in THIS entry, so a screen word names a type in a data entry
 
 **The defect (kb/Work PB4235, the Mythos front-end review's N6).** §13.18.60.2 prints `POINTER [ TO type-name-1 ]` and
 `PROGRAM-POINTER [ TO program-prototype-name-1 ]` with TO not underlined, so by §5.2.3 the operand may follow the usage
@@ -47,3 +47,4 @@ keeps its one caller (`ReadingParses`). Comments: each predicate cites §8.3.2.1
 
 **Gate.** Run 000001-20261031T213728Z on 5e969b810: `LEG 1 ONLY (batched gating, PB2515): GREEN`, with the Linux
 half (WSL clone of HEAD) GREEN. Both goldens and all 15 PointerUsageOperandDriftTests cases passed in leg 1.
+
