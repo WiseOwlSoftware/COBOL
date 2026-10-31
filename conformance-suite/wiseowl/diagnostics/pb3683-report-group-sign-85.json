@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "COBOL0900: a SIGN clause on a report group description entry that is a group requires COBOL-2002"}

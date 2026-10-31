@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "COBOL0867: SET 'WS-OBJ' TO SELF: SELF is defined only within a method definition (ISO §8.4.3.8.3 SR1)"}

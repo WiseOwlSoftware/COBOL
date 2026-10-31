@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "COBOL2961: condition-name 'C-NUM': the VALUE range 5 THRU 1 does not ascend — 5 is greater than 1"}

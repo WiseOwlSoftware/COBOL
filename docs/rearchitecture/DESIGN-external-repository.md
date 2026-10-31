@@ -2131,10 +2131,10 @@ Folded-name comparison over the enumerated listing; CI's Linux legs run the mult
   reload of one simple name is refused. Every step's output lands in the working directory, which is the default
   repository search space (D1, §9.3: the output directory) and the run unit's application directory (§11.4), so no
   repository option is written per case; a step that needs one (`--repository-update off`; `--repository-check off` and a
-  second directory with slice 7) takes it from `wiseowl/options.json`, keyed `<id>/<step file>` (`repository-update` is
-  landed). An expected compile refusal of a step (REPO-1, REPO-9, …) is `wiseowl/diagnostics.json`'s under the same key:
-  its first consumer is slice 7's first refusal case, and the key lands with it, as the six readers of that file take a
-  key for a test's own file today (kb/Work PB2103).
+  second directory with slice 7) takes it from `wiseowl/options/<id>.<step file>.json` (`repository-update` is
+  landed). An expected compile refusal of a step (REPO-1, REPO-9, …) is `wiseowl/diagnostics/`'s under the same file name:
+  its first consumer is slice 7's first refusal case, and the key lands with it, as the readers of that directory take a
+  test's own file today (kb/Work PB2103; one file per test, kb/Work PB4147).
   **Slice 5 lands the shape**, because its run-time cases are the first that need two separately compiled groups (a
   program whose assembly is not named after it, two assemblies carrying one name, `PAY - Copy.dll` beside `PAY.dll`: landed
   as `conformance-suite/wiseowl/cases/A.1-…/pb2101_locate_*`, witnesses of DOC-A.1-14; a missing callee, a host-registered
@@ -2466,8 +2466,8 @@ specifier's literal is literal-4; §12.3.8.4 GR11 c) is run into b)'s paragraph 
   PB3162 sentence on exact identities and the external arm goes); every emitted type lives in `Cobol.<assembly>` and
   foreign names are `global::`-qualified; parameterized definitions cross assemblies with D3's key-based reuse and
   placement rule (§10.5).
-- `docs/rearchitecture/DESIGN-conformance-suite.md`: the `build` header field and the per-step key of `wiseowl/options.json`
-  (§17.1; landed, slice 5; the per-step key of `wiseowl/diagnostics.json` comes with slice 7's first refusal case).
+- `docs/rearchitecture/DESIGN-conformance-suite.md`: the `build` header field and the per-step file of `wiseowl/options/`
+  (§17.1; landed, slice 5; the per-step file of `wiseowl/diagnostics/` comes with slice 7's first refusal case).
 - `docs/rearchitecture/DESIGN-codegen-backend.md` §2.0: `RoslynBackend` has `OutputKind` (landed, slice 3), per-compilation references,
   a temp-and-rename emit, the §10.2 warning policy and a second emission per own-assembly expansion; the
   `CilBackend` line "(Mono.Cecil → IL)" is "(`System.Reflection.Metadata` → IL)"; every backend renders the

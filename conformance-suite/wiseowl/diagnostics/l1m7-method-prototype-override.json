@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "COBOL4212: interface 'L1M7OVI', method 'PING': the OVERRIDE phrase shall not be specified in a method prototype (ISO §11.7.3 SR2)"}
