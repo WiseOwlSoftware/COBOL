@@ -158,6 +158,10 @@ internal static class AdmittedKinds
         {
             if (type is CobolLexer.IDENTIFIER or CobolLexer.DOT or TokenConstants.EOF) continue;
             if (LiteralTokens.CategoryOf(type) is { } kind) Add(literals, Article(kind));
+            // The one character-string that is neither a word nor a literal (ISO §8.3.1: "A character-string is a
+            // character or a sequence of contiguous characters that forms a COBOL word, a literal, or a picture
+            // character-string"): PICMODE's token, which a separator period after PIC leaves unwritten (kb/Work PB4233).
+            else if (type == CobolLexer.PIC_STRING) Add(symbols, "a picture character-string");
             else if (Spelling(type) is not { } spelling) open = true;   // a token with no name cannot be listed
             else if (char.IsAsciiLetter(spelling[0]) && !theEditionPrints(spelling)) continue;   // a word the edition lacks
             else if (FigurativeWords.Contains(type)) Add(literals, $"the figurative constant {spelling}");
@@ -216,7 +220,7 @@ internal static class AdmittedKinds
         if (token.Type == CobolLexer.IDENTIFIER) return $"The word '{text}'";
         if (token.Type == CobolLexer.DOT) return "The separator period";
         if (LiteralTokens.CategoryOf(token.Type) is { } kind) return $"The {kind} {text}";
-        return text is [var first, ..] && char.IsAsciiLetter(first) ? $"The word {text}" : $"'{text}'";
+        return text is [var first, ..] && char.IsLetter(first) ? $"The word {text}" : $"'{text}'";
     }
 
     private static string Join(IReadOnlyList<string> names) => names.Count switch

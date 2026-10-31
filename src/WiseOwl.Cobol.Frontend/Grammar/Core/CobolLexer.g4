@@ -136,18 +136,41 @@ channels { ABSENT_DEBUG_LINE }
     private void ApplyEditionSpelling(Antlr4.Runtime.IToken token)
     {
         if (_caseMappingEdition >= 2023 || token.Type != IDENTIFIER
-            || token is not Antlr4.Runtime.CommonToken word) return;
-        // A word of basic characters has one spelling at every edition: look at the input, build no text.
-        bool basic = true;
-        for (int p = word.StartIndex; p <= word.StopIndex && basic; p++)
-        {
-            int offset = p - InputStream.Index;   // LA(k > 0) is the k-th character from the index, LA(-k) k before it
-            basic = InputStream.LA(offset >= 0 ? offset + 1 : offset) < 0x80;
-        }
-        if (basic) return;
+            || token is not Antlr4.Runtime.CommonToken word || IsBasicWord(word)) return;
         string text = word.Text;
         string spelled = WiseOwl.Cobol.Runtime.CobolNames.EditionSpelling(text, _caseMappingEdition);
         if (!ReferenceEquals(spelled, text)) word.Text = spelled;
+    }
+
+    // A word of basic characters only: read off the input, so no text is built for the ordinary word.
+    private bool IsBasicWord(Antlr4.Runtime.CommonToken word)
+    {
+        for (int p = word.StartIndex; p <= word.StopIndex; p++)
+        {
+            int offset = p - InputStream.Index;   // LA(k > 0) is the k-th character from the index, LA(-k) k before it
+            if (InputStream.LA(offset >= 0 ? offset + 1 : offset) >= 0x80) return false;
+        }
+        return true;
+    }
+
+    // ⛔ A WORD THE ANNEX C FOLD SPELLS AS A KEYWORD IS THAT KEYWORD (kb/Work PB4240; DESIGN-frontend-grammar §3.13). The
+    // keyword rules match the basic letters of either case (the grammar's caseInsensitive option), so a keyword written
+    // with an extended letter that Annex C.2 folds to a basic one — U+0130 (0130,0069) and the Kelvin sign U+212A
+    // (212A,006B), and below 2023 the dotless i U+0131 (E.2 item 14), which ApplyEditionSpelling has already written as i —
+    // matched no keyword rule and became an IDENTIFIER: `DİSPLAY "HI"` was a parse error while `01 DİSPLAY PIC X.` drew
+    // COBOL0901 ("'DISPLAY' is a reserved word"), the bound-tree funnel comparing by the fold. Retyped here, once, with
+    // the IDENTIFIER the lexer emitted, BEFORE the >>COBOL-WORDS retype and every decision NextToken takes from a keyword
+    // (PIC's mode, the FUNCTION region, the previous token), exactly as a basic-letter spelling of the word is; the
+    // spelling stays the source's. A word whose fold is not all basic characters spells no keyword (every keyword is
+    // basic letters, digits and hyphens), so the lexer probe is only ever asked a basic word.
+    private void RetypeFoldedKeyword(Antlr4.Runtime.IToken token)
+    {
+        if (token.Type != IDENTIFIER || token is not Antlr4.Runtime.CommonToken word || IsBasicWord(word)) return;
+        string folded = WiseOwl.Cobol.Runtime.CobolNames.UpperFold(word.Text);
+        foreach (char c in folded)
+            if (c >= 0x80) return;
+        if (WiseOwl.Cobol.Frontend.Parsing.CobolKeywordTokens.TryTokenType(folded, out int keyword) && keyword != IDENTIFIER)
+            word.Type = keyword;
     }
 
     // THE LIST REGIONS (P7 Step 12; kb/Work PB2113). '(' after "FUNCTION functionName" is the function's argument-list
@@ -190,10 +213,15 @@ channels { ABSENT_DEBUG_LINE }
 
     // IDENTIFIER's action in a primed directive expression: the §7.3.8.4.4 keyword DEFINED is the one word the region
     // makes a token (a virtual token — see the tokens block). Reached only when primed, so the Text it reads is never
-    // built for an ordinary source identifier.
+    // built for an ordinary source identifier. ⛔ The word is compared by THE fold of a COBOL word, Annex C, in this lexer's
+    // edition spelling (DESIGN-frontend-grammar §3.13, kb/Work PB4240): the host's ordinal-ignore-case kept DEF<U+0130>NED
+    // apart from DEFINED, which Annex C.2's (0130,0069) makes the same word, while the directive stage, which folds by
+    // Annex C, read >><U+0130>F in the same directive as >>IF.
     private void RetypeDirectiveKeyword()
     {
-        if (string.Equals(Text, "DEFINED", System.StringComparison.OrdinalIgnoreCase)) Type = DEFINED;
+        if (WiseOwl.Cobol.Runtime.CobolNames.Same(
+                WiseOwl.Cobol.Runtime.CobolNames.EditionSpelling(Text, _caseMappingEdition), "DEFINED"))
+            Type = DEFINED;
     }
 
     // ⛔ AN ARGUMENT-LIST PARENTHESIS IS NOT AN ARITHMETIC PARENTHESIS, AND EMITTING BOTH AS LPAREN MADE EVERY
@@ -336,9 +364,12 @@ channels { ABSENT_DEBUG_LINE }
     public override Antlr4.Runtime.IToken NextToken()
     {
         var token = base.NextToken();
-        // The group's >>COBOL-WORDS first, so everything below reads the EFFECTIVE word (see SetCobolWords).
-        if (!_cobolWords.IsEmpty && token is Antlr4.Runtime.CommonToken word) _cobolWords.Apply(word);
+        // The word as the edition's Annex C reads it first — its spelling, then the keyword that spelling is
+        // (RetypeFoldedKeyword) — so the group's >>COBOL-WORDS, and everything below, read the EFFECTIVE word
+        // (see SetCobolWords).
         ApplyEditionSpelling(token);
+        RetypeFoldedKeyword(token);
+        if (!_cobolWords.IsEmpty && token is Antlr4.Runtime.CommonToken word) _cobolWords.Apply(word);
         // PIC / PICTURE opens PICMODE (the picture character-string is lexed as ONE token) — here, not as a lexer command
         // of the PIC rule, because whether this token IS the PIC keyword is the directive's answer (UNDEFINE "PICTURE"
         // makes a data-name of it; EQUATE "PIC" WITH "PX" makes PX the keyword).
@@ -1345,6 +1376,13 @@ PIC_STRING  : ( ~[ \n.] | '.' ~[ \n] )+
     // Post-action: if PIC string ends with '.', the greedy match consumed a
     //   sentence-ending period — back up one char so it tokenizes as DOT;
     //   likewise a trailing ','/';' clause separator (§8.3.5 r2) backs up and re-lexes as a skip token.
+// ⛔ THE MODE IS TOTAL: A SEPARATOR PERIOD WHERE THE CHARACTER-STRING SHOULD BE ENDS IT (kb/Work PB4233). A '.' followed
+// by a space, a line end or the end of the text is the separator period (§8.3.5 3)), which PIC_STRING cannot start, so
+// `01 X PIC.` matched no rule here: ANTLR reported it on the console, outside the diagnostics, dropped the period and
+// stayed in PICMODE, and the next line's `X(3)` became the picture of an entry the source left without one. It is the
+// DOT token the parser reads, and the mode ends with it, so the PICTURE clause with no character-string is the parse
+// error it is. PIC_STRING still takes every '.' a picture character follows: the longest match decides.
+PIC_PERIOD  : '.' -> type(DOT), popMode ;
 
 // ==========================================
 // COMMENT_MODE — *> to end of line

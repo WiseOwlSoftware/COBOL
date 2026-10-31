@@ -9,7 +9,11 @@
       *> so KEY is the reserved word KEY and
       *> cannot be a user-defined word (8.3.2.1 1)). The host's
       *> upper-casing kept the Kelvin sign apart from K, and the
-      *> reserved-word screen let the entry through.
+      *> reserved-word screen let the entry through. Since kb/Work
+      *> PB4240 the lexer reads the word as the keyword KEY itself, so
+      *> the entry draws what 01 KEY PIC X written in basic letters
+      *> draws: KEY is no clause of the data description entry
+      *> (13.16.2 Format 1, COBOL1941).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1965N2.
        DATA DIVISION.

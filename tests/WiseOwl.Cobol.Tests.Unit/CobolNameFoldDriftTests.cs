@@ -57,12 +57,18 @@ public sealed class CobolNameFoldDriftTests
     private static IEnumerable<string> WordProjects() =>
         Directory.EnumerateDirectories(TestRepo.Src(), "WiseOwl.Cobol.*").Select(d => Path.GetFileName(d)!).Order(StringComparer.Ordinal);
 
+    /// <summary>The source files a word comparison can be written in: C#, and the grammars, whose actions and members are
+    /// C# the ANTLR tool copies into the generated lexer and parser (kb/Work PB4240: the lexer's DEFINED retype compared by
+    /// ordinal-ignore-case in a .g4 action, which the scan of the generated output's directory could never reach).</summary>
+    private static readonly string[] ScannedKinds = ["*.cs", "*.g4"];
+
     /// <summary>Every non-comment source line of every scanned project, as <c>(path from the repository root, 1-based
     /// line, text)</c>; the line carrying the <see cref="Marker"/> is not returned.</summary>
     private static IEnumerable<(string Rel, int Line, string Text)> ScannedLines()
     {
         foreach (string project in WordProjects())
-            foreach (string file in Directory.EnumerateFiles(TestRepo.Src(project), "*.cs", SearchOption.AllDirectories))
+            foreach (string file in ScannedKinds.SelectMany(kind =>
+                         Directory.EnumerateFiles(TestRepo.Src(project), kind, SearchOption.AllDirectories)))
             {
                 string rel = Path.GetRelativePath(TestRepo.Root, file);
                 if (rel.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
@@ -84,6 +90,7 @@ public sealed class CobolNameFoldDriftTests
         foreach (string expected in new[] { "WiseOwl.Cobol.Compiler", "WiseOwl.Cobol.Frontend", "WiseOwl.Cobol.Editions", "WiseOwl.Cobol.Runtime" })
             Assert.Contains(expected, projects);
         Assert.Contains(ScannedLines(), l => l.Rel.Contains("CobolNames.cs", StringComparison.Ordinal));
+        Assert.Contains(ScannedLines(), l => l.Rel.EndsWith("CobolLexer.g4", StringComparison.Ordinal));   // the grammars too
         Assert.DoesNotContain(ScannedLines(), l => l.Rel.Contains("Collation", StringComparison.Ordinal) && l.Rel.Contains("CldrLocaleLoader", StringComparison.Ordinal));
         foreach (var (subtree, _) in NotCobolWordSubtrees)
             Assert.True(Directory.Exists(TestRepo.Src(subtree.Split('/'))), $"the excluded subtree '{subtree}' no longer exists: remove its entry");
@@ -213,6 +220,30 @@ public sealed class CobolNameFoldDriftTests
         string? v = CobolCharacterRepertoire.Violation(word, edition);
         if (expected is null) Assert.Null(v);
         else Assert.Contains(expected, v);
+    }
+
+    /// <summary>The LEXER reads a word by the same fold (kb/Work PB4240): a word whose Annex C fold, in the edition's
+    /// spelling, spells a keyword IS that keyword token, and the primed directive expression's DEFINED is compared the same
+    /// way. <c>#</c> in <paramref name="word"/> stands for <paramref name="codePoint"/> (written in the body, so the case
+    /// names stay ASCII).</summary>
+    [Theory]
+    [InlineData("D#SPLAY", 0x0130, 2023, false, "DISPLAY")]    // (0130,0069)
+    [InlineData("#EY", 0x212A, 2023, false, "KEY")]            // KELVIN SIGN (212A,006B)
+    [InlineData("D#SPLAY", 0x0131, 2014, false, "DISPLAY")]    // dotless i: (0131,0069) before 2023 (E.2 item 14)
+    [InlineData("D#SPLAY", 0x0131, 2023, false, "IDENTIFIER")] // ... and no mapping at 2023
+    [InlineData("D#SPLAY", 0x00CD, 2023, false, "IDENTIFIER")] // I-acute folds to i-acute, an extended letter: no keyword
+    [InlineData("DEF#NED", 0x0130, 2023, true, "DEFINED")]     // the directive expression's DEFINED (§7.3.8.4.4)
+    [InlineData("DEF#NED", 0x0130, 2023, false, "IDENTIFIER")] // ... a user word everywhere else
+    public void TheLexer_ReadsAWordByTheAnnexCFold(string word, int codePoint, int edition, bool directive, string token)
+    {
+        string text = word.Replace("#", char.ConvertFromUtf32(codePoint), StringComparison.Ordinal);
+        var lexer = new WiseOwl.Cobol.Frontend.Generated.CobolLexer(new Antlr4.Runtime.AntlrInputStream(text));
+        lexer.RemoveErrorListeners();
+        lexer.SetCaseMappingEdition(edition);
+        if (directive) lexer.PrimeDirectiveExpr();
+        var t = lexer.NextToken();
+        Assert.Equal(token, WiseOwl.Cobol.Frontend.Generated.CobolLexer.DefaultVocabulary.GetSymbolicName(t.Type));
+        Assert.Equal(CobolNames.EditionSpelling(text, edition), t.Text);   // the source's spelling, in its edition
     }
 
     /// <summary>A supplementary-plane pair (Adlam, added at 2023 by E.3.3 items 5 and 6) — built in the body, because

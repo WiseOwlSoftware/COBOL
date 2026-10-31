@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
+using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Expressions;
 using WiseOwl.Cobol.Runtime;
@@ -493,6 +494,16 @@ public abstract class CobolParserCoreBase : Parser
         var tokens = new List<IToken>();
         for (int i = 1; TokenStream.LT(i) is { } t && t.Type != TokenConstants.EOF && t.Type != CobolLexer.DOT; i++)
             tokens.Add(new CommonToken(t));
+        return Reading(tokens, rule) is { } reading
+               && (reading.Next == TokenConstants.EOF || FollowSet(Atn, rule).Contains(reading.Next));
+    }
+
+    /// <summary>A speculative parse of <paramref name="tokens"/> (copies, never the outer parse's own) as
+    /// <paramref name="rule"/> by a <see cref="ParserInterpreter"/> over this grammar's ATN: the tree and the type of the
+    /// token after it, or null where the tokens do not begin the rule. Every semantic predicate is evaluated as true,
+    /// which only widens the reading. Read-only.</summary>
+    private (ParserRuleContext Tree, int Next)? Reading(IList<IToken> tokens, int rule)
+    {
         var stream = new CommonTokenStream(new ListTokenSource(tokens));
         var probe = new ParserInterpreter(GrammarFileName, Vocabulary, RuleNames, Atn, stream)
         {
@@ -501,14 +512,119 @@ public abstract class CobolParserCoreBase : Parser
         probe.RemoveErrorListeners();
         try
         {
-            probe.Parse(rule);
-            int next = stream.LA(1);
-            return next == TokenConstants.EOF || FollowSet(Atn, rule).Contains(next);
+            var tree = probe.Parse(rule);
+            return (tree, stream.LA(1));
         }
         catch (Antlr4.Runtime.Misc.ParseCanceledException)
         {
-            return false;
+            return null;
         }
+    }
+
+    /// <summary>⛔ A WORD §8.9 RESERVES, WRITTEN WHERE A PROCEDURE-NAME STANDS (kb/Work PB4229) — the word and its §8.9
+    /// message when the sentence the syntax error at <paramref name="offending"/> falls in reads COMPLETELY with one
+    /// reserved word of it taken as a user-defined word, and that word then stands in a procedure-name slot
+    /// (<c>procedureName</c>, a definition or a reference); else null. ISO §8.3.2.1 1): "Reserved words shall not be used
+    /// as user-defined words or system-names", and a procedure-name is a user-defined word (§8.3.2.2).
+    /// <para>A word reserved at EVERY edition (READ, DISPLAY, EXIT) is a keyword token, which no name slot can take, so
+    /// the parse reads it as the keyword and dies after it: <c>PERFORM READ.</c> is an inline PERFORM whose READ statement
+    /// refuses the period, <c>GO TO READ.</c> a target-less GO TO and a READ statement, <c>READ.</c> a READ statement
+    /// where a paragraph header stands — each a COBOL0001 that never names the word. A
+    /// reservation-gated word has a name-slot alternative of its own (<c>reservedGatedWord</c>, kb/Work PB4206); a word
+    /// reserved everywhere cannot have one, because a keyword alternative in <c>procedureName</c> would compete with every
+    /// statement and header reading it is one of. So the question is asked after the fact, and only of an error: the
+    /// candidates are the offending token and the first token of every open rule and of the rule each matched last (the
+    /// misread statement begins at the word), each re-read with the word retyped to <c>IDENTIFIER</c>, from the sentence's first token through its
+    /// separator period, as a <c>sentence</c> and — when the word begins the sentence — as a <c>procedureUnit</c>, whose
+    /// header it then names. A reading that parses the whole span with the word under <c>procedureName</c> is the one the
+    /// source means; a genuine fault elsewhere fails every re-read, and its own report stands. <c>Through</c> is the stream
+    /// index of the span's last token (its separator period): the one fault covers the sentence the re-read judged.
+    /// <paramref name="mayName"/> is the caller's veto on a candidate: the error strategy keeps an explicit scope terminator
+    /// out (§14.5.3.2: written where a statement may end it IS the terminator, so <c>PERFORM END-PERFORM</c> stays the
+    /// empty inline PERFORM, COBOL2072).</para></summary>
+    internal (IToken Word, string Message, int Through)? ReservedProcedureName(IToken offending, Func<IToken, bool> mayName)
+    {
+        IToken? first = null;
+        bool inProcedureDivision = false;
+        var candidates = new List<IToken> { offending };
+        for (var ctx = Context; ctx is not null; ctx = ctx.Parent as ParserRuleContext)
+        {
+            if (ctx.Start is { } start && !candidates.Contains(start)) candidates.Add(start);
+            // ... and of the rule it matched last, which ended before the fault (`GO TO READ P-END DEPENDING ON W-N.`: the
+            // READ statement the misreading began is complete when DEPENDING is refused).
+            if (ctx.ChildCount > 0 && ctx.GetChild(ctx.ChildCount - 1) is ParserRuleContext { Start: { } last }
+                && !candidates.Contains(last))
+                candidates.Add(last);
+            if (ctx.RuleIndex == CobolParserCore.RULE_sentence) { first = ctx.Start; break; }
+            inProcedureDivision |= ctx.RuleIndex == CobolParserCore.RULE_procedureDivision;
+        }
+        // A prediction that failed BETWEEN sentences (`ALTER READ TO P1.`: neither a sentence nor a procedure header
+        // survived READ) stands at the first token of the sentence the source writes, which no sentence context holds yet.
+        if (first is null && inProcedureDivision && TokenStream.LT(1) is { } next)
+        {
+            first = next;
+            if (!candidates.Contains(next)) candidates.Add(next);
+        }
+        if (first is null || offending.TokenIndex < first.TokenIndex) return null;
+        candidates.RemoveAll(t => t.TokenIndex < first.TokenIndex || t.TokenIndex > offending.TokenIndex
+                                  || ReservedWordHere(t) is null || !mayName(t));
+        if (candidates.Count == 0) return null;
+
+        var span = new List<IToken>();
+        for (int i = first.TokenIndex; i < TokenStream.Size; i++)
+        {
+            var t = TokenStream.Get(i);
+            if (t.Type == TokenConstants.EOF) break;
+            if (t.Channel != Lexer.DefaultTokenChannel) continue;
+            span.Add(t);
+            if (t.Type == CobolLexer.DOT && t.TokenIndex >= offending.TokenIndex) break;
+        }
+        foreach (var word in candidates)
+        {
+            int at = span.IndexOf(word);
+            if (at < 0) continue;   // not a default-channel token of the span
+            var copies = span.Select(t => (IToken)new CommonToken(t)).ToList();
+            var asName = (CommonToken)copies[at];
+            asName.Type = CobolLexer.IDENTIFIER;
+            int[] readings = word == first
+                ? [CobolParserCore.RULE_sentence, CobolParserCore.RULE_procedureUnit]   // a header names it too
+                : [CobolParserCore.RULE_sentence];
+            foreach (int rule in readings)
+                if (Reading(copies, rule) is { Next: TokenConstants.EOF } reading && NamesAProcedure(reading.Tree, asName))
+                    return (word, ReservedWordSet.UserWordViolationMessage(ReservedWordHere(word)!, Edition.Year),
+                        span[^1].TokenIndex);
+        }
+        return null;
+    }
+
+    /// <summary>The canonical upper-case word of <paramref name="token"/> when it is a KEYWORD token §8.9 reserves at this
+    /// edition (gated or not), else null.</summary>
+    private string? ReservedWordHere(IToken token)
+        => token.Type is not (CobolLexer.IDENTIFIER or CobolLexer.DOT or TokenConstants.EOF)
+           && token.Text is [var letter, ..] && char.IsLetter(letter)
+           && Canonical(token.Text) is { } c && CobolNames.UpperFold(c) is var w && ReservedWordSet.Default.RejectsAt(w, Edition.Year)
+            ? w
+            : null;
+
+    /// <summary>Whether <paramref name="word"/>'s terminal in <paramref name="tree"/> stands in <c>procedureName</c>
+    /// (through the <c>cobolWord</c> rule that holds an IDENTIFIER).</summary>
+    private static bool NamesAProcedure(IParseTree tree, IToken word)
+    {
+        var pending = new Stack<IParseTree>();
+        pending.Push(tree);
+        while (pending.Count > 0)
+        {
+            var node = pending.Pop();
+            if (node is ITerminalNode leaf)
+            {
+                if (!ReferenceEquals(leaf.Symbol, word)) continue;
+                var owner = leaf.Parent as ParserRuleContext;
+                while (owner is { RuleIndex: CobolParserCore.RULE_cobolWord }) owner = owner.Parent as ParserRuleContext;
+                return owner is { RuleIndex: CobolParserCore.RULE_procedureName };
+            }
+            for (int i = node.ChildCount - 1; i >= 0; i--) pending.Push(node.GetChild(i));
+        }
+        return false;
     }
 
     public override void Reset()

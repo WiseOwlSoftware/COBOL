@@ -101,13 +101,14 @@ public sealed class EditionReadDriftTests
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs"] =
         [
             "IsKeywordReadingHere", "KeywordContinuesFrom", "NoteGatedOffender", "PrintsKeyword", "ReservedGatedWord",
-            "ReservedUserWordViolation", "conditionalPhraseAssociates", "entryNameHere", "facilityWord",
+            "ReservedProcedureName", "ReservedUserWordViolation", "ReservedWordHere", "conditionalPhraseAssociates",
+            "entryNameHere", "facilityWord",
             "gatedDeclaration", "is2002", "is2014",
             "is2023", "is85", "keywordContinuesHere", "pointerOperandHere", "procedureHeaderHere", "reservedHere", "screenPositionAhead", "setLocaleAhead",
             "userWordHere",
         ],
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4"] =
-            ["ApplyEditionSpelling", "NextToken", "OnDefaultLParen", "PreviousTokenCouldBeDataName"],
+            ["ApplyEditionSpelling", "NextToken", "OnDefaultLParen", "PreviousTokenCouldBeDataName", "RetypeDirectiveKeyword"],
         ["src/WiseOwl.Cobol.Frontend/Parsing/TokenRetypes.cs"] =
             ["LexesDifferentlyFrom", "PrimeLexer", "ReservedNonDataNames"],
     };
@@ -164,12 +165,18 @@ public sealed class EditionReadDriftTests
         // The lexer: the Annex C spelling of a word at the edition, and whether a '(' after a word the edition
         // reserves can open a subscript (kb/Work PB1465).
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4 | LPAREN | OnDefaultLParen"] = (1, Verdict.WordStatus),
+        // The primed directive expression's DEFINED is compared in the edition's Annex C spelling (kb/Work PB4240).
+        ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4 | IDENTIFIER | RetypeDirectiveKeyword"] = (1, Verdict.WordStatus),
         // The error strategy names a syntax error on a reservation-gated word §8.9 reserves here, written where a
         // user-defined word stands, as that word's §8.9 violation (COBOL0901), ranked with its other diagnoses of the
         // token (kb/Work PB693, PB4132). Both recoveries of such a word read the same decision: the resynchronization
         // after the report consumes the word as the operand it stood for, never resuming at it (kb/Work PB3248), and the
         // single-token deletion, asking it before its report, deletes it (review R3-1 of the PB4133 branch).
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.ReservedWordUse | ReservedUserWordViolation"] = (1, Verdict.WordStatus),
+        // ... and a syntax error a word §8.9 reserves here explains by standing in a procedure-name slot, where the parse
+        // read it as its keyword (kb/Work PB4229): whether the word is reserved at the edition decides only whether it is
+        // a candidate for that report (COBOL0901). It refuses nothing the error had not refused and gates no construct.
+        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.Report | ReservedProcedureName"] = (1, Verdict.WordStatus),
         // The error strategy's COBOL5506 sentence names the keywords EXPECTED at a refused token, leaving out each one a
         // general format of the compile edition cannot print (kb/Work PB4174, PrintsKeyword): a word the §8.9 table proves
         // a LATER edition introduced, or a §8.10 context-sensitive word first listed at a LATER edition

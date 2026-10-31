@@ -404,6 +404,21 @@ earlier alternative), and the only procedure-name lists — GO TO … DEPENDING'
 risk PB693 kept the arm off the reference slots for. A data or file REFERENCE keeps no arm: its error falls AT the
 word and is re-coded (below).
 
+A word reserved at EVERY edition (READ, DISPLAY, MOVE, EXIT) is no gated word: it is a keyword token with no name-slot
+arm, and it cannot have one, because a keyword alternative in `procedureName` would compete with every statement and
+header reading it is one of (`EXIT.` is a statement and would be a header). So the procedure-name slot answers for it
+after the fact, and only on a syntax error (kb/Work PB4229): `CobolParserCoreBase.ReservedProcedureName` takes the
+offending token and the first token of each open rule and of the rule each matched last (the misread statement begins
+at the word), keeps those §8.9 reserves at the edition, and re-reads the sentence from its first token through its
+separator period with that one word retyped to `IDENTIFIER` (`Reading`, the speculative `ParserInterpreter` parse
+`ReadingParses` uses too), as a `sentence` and, when the word begins it, as a `procedureUnit`. A complete reading with the
+word under `procedureName` is what the source means, and `CobolErrorStrategy.Report` names the word with COBOL0901 at
+the word, covering the sentence through its period as the one fault and discarding the misreading's tail as orphaned:
+`PERFORM READ.`, `PERFORM READ THRU P1.`, `GO TO READ.`, `GO TO P1 READ DEPENDING ON N.`, `ALTER READ TO P1.`, `READ.` as
+a header, `DISPLAY SECTION.` — each one diagnostic. A genuine fault elsewhere fails every re-read (`PERFORM DISPLAY X.`
+without END-PERFORM, `MOVE X TO` before a DISPLAY), and its own report stands. A reserved word in a DATA reference slot
+(`MOVE READ TO X`) is not this rule's: its error falls at the word and is still the strategy's own report.
+
 The user-word reading is decided on the TOKEN, before the parse that counts (`Parsing/ReservationGateRewriter`;
 its `ParseToFixpoint` is THE gate loop, and EVERY whole-group parse calls it — the greenfield
 `Frontend.LexAndParse` and the legacy differential oracle's `Compilation.LexAndParse` alike, because both parse
@@ -805,8 +820,16 @@ binder-side subscript re-parse (`ReferenceResolver.SplitSubscriptTokens`) is add
 rearchitecture (structured `Place` path segments), not here; the frontend's contribution is to preserve the
 captured token run faithfully.
 
-**3.3c Mode inventory** stays: DEFAULT, PICMODE, SUBSCRIPT, COMMENT_MODE (`CobolLexer.g4:497,651,726,782`).
-No change to mode semantics; only the shared-fragment factoring in 3.3b.
+**3.3c Mode inventory:** DEFAULT, PICMODE and COMMENT_MODE (the SUBSCRIPT mode is gone, kb/Work PB2113, §9).
+⛔ **Every mode is TOTAL, and a lexer error is a diagnostic (kb/Work PB4233).** DEFAULT ends in its one-character
+`ANY_CHAR`; PICMODE takes the separator period where the picture character-string should be (`PIC_PERIOD`, the DOT
+token, which ends the mode) as well as the character-string itself; COMMENT_MODE takes every character. Without
+`PIC_PERIOD`, `01 X PIC.` matched no PICMODE rule, ANTLR's default console listener printed the error outside the
+diagnostics, the period was dropped and the mode stayed open, so the next line's `X(3)` became the entry's picture
+and the program compiled. Every `CobolLexer` the front end creates carries a listener of its own: the main lex
+`LexerErrorListener` (reported, from the LAST lexer of the debugging-line loop only, as COBOL5704 — a compiler defect,
+never a diagnosis of the source), a fragment lex `FragmentParse`'s flag and the keyword probe `CobolKeywordTokens`'
+counter. `LexerTotalityDriftTests` holds the lexer to reporting nothing on the suite's sources.
 
 **3.3e ⛔ The lexer carries NO semantic predicate — context the lexer needs goes in an ACTION (kb/Work PB1715).**
 ANTLR 4.13.2 caches a mode's start state only when no predicate is in its closure (`LexerATNSimulator.MatchATN`),
@@ -2028,8 +2051,11 @@ the unit's TOKEN stream in `Frontend.LexAndParseOnce`, first of the post-lex rul
 the parse fails and a unit whose parse fails is never bound; and over each directive fragment in
 `ScreenFragment`, whose verdict it joins (an open literal has no value to evaluate). The rule is not the reference-format
 stage's: a literal open on a line an `>>IF` omits is legal (§7.3.16.4 3)), and conditional compilation runs after that
-stage. The other literal scanners already name the case themselves (pseudo-text COBOL2449, a COPY operand COBOL2450,
-`>>COBOL-WORDS` its SR2 defect).
+stage. The text-manipulation stage reads COPY and REPLACE before the lexer, and its text-word scanner runs an open
+literal to the end of its line the same way, so its statement cursor asks the same `LiteralScreen.ReportUnterminated` of
+every literal text-word it consumes, operand or pseudo-text alike, and that report is the statement's first error
+(kb/Work PB4176: `COPY "ABC` drew COBOL2450 "not an alphanumeric literal" and then COBOL2449 at the next line's word).
+`>>COBOL-WORDS` names its own case (its SR2 defect).
 
 ### 3.13 The characters of a COBOL word, and the ONE fold that compares words (kb/Work PB1402)
 
@@ -2059,7 +2085,8 @@ lowercase with Annex C. Three pieces, each in one place:
   compilation: every `IDENTIFIER` token that holds an underscore or a character outside the basic repertoire gets the
   underscore gate (`user-word-underscore-2002`), the extended-letter gate and the Annex B test, one report per distinct word
   (the Annex C fold). `IDENTIFIER` is the only token built from `NAME_BODY`, so the walk covers a name slot, a phrase word
-  and a word the grammar cannot place alike. It began as a check in the bound-tree funnel (`VisitCobolWord`), which never
+  and a word the grammar cannot place alike; a keyword token whose text holds an extended letter (the lexer's fold retype,
+  below) is screened with them, so `DİSPLAY` is COBOL0900 at COBOL-85 and the Kelvin-sign `KEY` COBOL2773 before 2023. It began as a check in the bound-tree funnel (`VisitCobolWord`), which never
   runs on a source that does not parse, so the U+00A0-only line of golden `pb1660-nbsp-only-line-is-not-blank` was
   answered "cannot parse near STOP" without the cause. One body (`Check`), two word sources chosen by whether the binder
   will run: a compilation whose frontend reported ANY error (a parse that failed, or one that parsed beside a separator,
@@ -2100,6 +2127,15 @@ lowercase with Annex C. Three pieces, each in one place:
   (`DESIGN-architecture-review.md` §8.1), for the fold. A default externalized name and the run-time EXTERNAL
   identities (`BinderDriver.ExternalItemIdentity`, `OoEmitter.SelectFingerprint`'s word segments) are written in the
   word's `UpperFold`, so the ordinal comparison at run time agrees with Annex C.
+- **The keyword a folded word spells (kb/Work PB4240).** The keyword rules match the basic letters of either case (the
+  grammar's `caseInsensitive` option), which is the fold for every letter but the three extended letters Annex C folds to
+  a BASIC one: U+0130 → i, the Kelvin sign U+212A → k, and before 2023 the dotless i U+0131 → i (E.2 item 14). A word
+  holding one lexes as `IDENTIFIER`, and `CobolLexer.RetypeFoldedKeyword` (in `NextToken`, after the edition spelling and
+  before the `>>COBOL-WORDS` retype and every decision taken from a keyword) gives it the type of the keyword its
+  `UpperFold` spells (`CobolKeywordTokens.TryTokenType`), keeping the source spelling. So `DİSPLAY "HI"` is the DISPLAY
+  statement and `01 DİSPLAY PIC X.` reads exactly as `01 DISPLAY PIC X.` does; the primed directive expression's
+  `DEFINED`, a keyword only there, is retyped by IDENTIFIER's action through `CobolNames.Same` on the edition spelling.
+  `CobolNameFoldDriftTests` scans the grammars' actions as well as the C# (a `.g4` action is C# the tool copies).
 - **The encoding of the grammar itself** (kb/Work PB1944) — ANTLR reads a `.g4` in the JVM's default charset (UTF-8 on
   Java 18+ and on Linux, Cp1252 on Windows CI's JVM), so `Invoke-Antlr4CSharp.ps1` passes `-encoding UTF-8` and every
   grammar file is valid UTF-8 without a byte-order mark (`GrammarEncodingDriftTests`). The encoding is declared, so
