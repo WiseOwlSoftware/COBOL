@@ -44,8 +44,8 @@ public sealed class ClassClauseForPhraseTests
     /// SR-12.3.7.3-17 by kb/Work PB55 — lumps with c5): a LOCALE alphabet defines a collating sequence and no coded
     /// character set (§12.3.7.4 GR7 Table 6), so the ONE coded-set resolver refuses it by SR17 d's name.</summary>
     [Theory]
-    [InlineData("PB1557D", "ALPHABET LA IS LOCALE\n    CLASS CL IS 1 THRU 3 IN LA.", "COBOL1669: CLASS CL … IN LA: the alphabet 'LA' is associated with a locale")]
-    [InlineData("PB1557DN", "ALPHABET LN FOR NATIONAL IS LOCALE\n    CLASS CN FOR NATIONAL IS 1 THRU 3 IN LN.", "COBOL1669: CLASS CN … IN LN: the alphabet 'LN' is associated with a locale")]
+    [InlineData("PB1557D", "ALPHABET LA IS LOCALE\n    CLASS CL IS 1 THRU 3 IN LA.", "COBOL1669: CLASS CL IN LA: the alphabet 'LA' is associated with a locale")]
+    [InlineData("PB1557DN", "ALPHABET LN FOR NATIONAL IS LOCALE\n    CLASS CN FOR NATIONAL IS 1 THRU 3 IN LN.", "COBOL1669: CLASS CN IN LN: the alphabet 'LN' is associated with a locale")]
     public void InLocaleAlphabet_IsSR17d(string pid, string clauses, string expected)
     {
         Rejects(pid, clauses, expected);
