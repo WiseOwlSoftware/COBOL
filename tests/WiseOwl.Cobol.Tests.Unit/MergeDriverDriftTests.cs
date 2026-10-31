@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ THE FILES TWO LANDINGS BOTH EDIT ARE MERGED BY DRIVER, AND ONE FUNCTION MERGES MAIN IN (kb/Work PB3610;
 /// docs/rearchitecture/DESIGN-test-build-ci.md §3.17.2 step 2). <c>scripts/merge_drivers.py</c> keeps a registry
-/// (<c>DRIVERS</c>) of the catalogues a landing appends to — <c>wiseowl/diagnostics.json</c> and <c>options.json</c>, the
+/// (<c>DRIVERS</c>) of the catalogues a landing appends to — the
 /// traceability inventory, <c>constructs.json</c>, the work notes — of the runtime ABI pin, which
 /// <c>scripts/abi_pin.py</c> measures, and of the public-API baselines, merged as SETS of symbol lines (kb/Work PB3727;
 /// docs/rearchitecture/DESIGN-orchestrator-loop.md section 16.9); <c>.gitattributes</c> repeats its patterns, and <c>--check</c> holds the two
@@ -21,7 +21,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <remarks>
 /// Until PB3610 these landings stopped at CONFLICT and cost a finisher cycle each (the landing logs counted
 /// <c>tests/conformance/2002/manifest.json</c> fifteen times, <c>negative/manifest.json</c> thirteen,
-/// <c>RuntimeAbiPinDriftTests.cs</c> and <c>wiseowl/diagnostics.json</c> four each). The facts hold the structure, not the
+/// <c>RuntimeAbiPinDriftTests.cs</c> four, and <c>wiseowl/diagnostics.json</c> four, until kb/Work PB4147 made it one file per
+/// test). The facts hold the structure, not the
 /// arithmetic: the two scripts' self-tests run in every gate and in CI (the self-test runner), so these keep the arms
 /// declared and the registry, the attributes and the callers one thing.
 /// </remarks>
@@ -199,6 +200,34 @@ public sealed class MergeDriverDriftTests
         SelfTestArmSource.AssertDeclares(TestRepo.At("scripts/orchestrator/land_lane.py"), [
             "exit 16 (an open pull request changes a merge-driver file the branch changes too): a retry-when-free class",
         ]);
+    }
+
+    /// <summary>
+    /// ⛔ NO REGISTRY OF THE CONFORMANCE SUITE IS ONE SHARED FILE (kb/Work PB4147): WiseOwl's refusals and compile options
+    /// are one file per test (<c>conformance-suite/wiseowl/diagnostics/&lt;id&gt;.json</c>, <c>options/</c>), so two landings
+    /// that each add a refusal add two files and the merge queue, which runs no driver, merges them. The single
+    /// <c>diagnostics.json</c> held 61 of the landing lane's 79 driver-file holds (exit 16). This keeps it from coming back:
+    /// no file sits beside the registries' directories under <c>conformance-suite/wiseowl/</c>, every registry file is one
+    /// test's own <c>&lt;id&gt;.json</c>, and no merge driver governs a path under <c>conformance-suite/</c> (a driver
+    /// there would serialise landings again). The generator refuses a file that is not a registry entry
+    /// (<c>generate.py --self-test</c>).
+    /// </summary>
+    [Fact]
+    public void TheSuiteRegistries_AreOneFilePerTest_AndNoDriverGovernsThem()
+    {
+        string wiseowl = TestRepo.Suite("wiseowl");
+        Assert.Equal(["cases", "diagnostics", "options"], Directory.EnumerateFileSystemEntries(wiseowl).Select(Path.GetFileName).Order(StringComparer.Ordinal));
+        Assert.Empty(Directory.EnumerateFiles(wiseowl));
+        foreach (string registry in new[] { "diagnostics", "options" })
+            foreach (string file in Directory.EnumerateFileSystemEntries(Path.Combine(wiseowl, registry)))
+            {
+                string name = Path.GetFileName(file);
+                Assert.True(File.Exists(file) && name.EndsWith(".json", StringComparison.Ordinal) && name.Length > ".json".Length && name[0] != '.',
+                    $"conformance-suite/wiseowl/{registry}/{name} is not a `<test id>.json` file: a registry directory holds one file per test and nothing else");
+            }
+        foreach (string line in File.ReadLines(TestRepo.At(".gitattributes")).Where(l => l.Contains("merge=cobol-", StringComparison.Ordinal)))
+            Assert.False(line.TrimStart().StartsWith("conformance-suite/", StringComparison.Ordinal),
+                $".gitattributes gives a conformance-suite path a merge driver ({line.Trim()}): a registry of the suite is one file per entry, never a shared file a driver merges (kb/Work PB4147)");
     }
 
     /// <summary>The pin is a measured file nobody hand-edits: it holds exactly the four lines the test reads and never

@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "COBOL2157: SET 'PP' TO ADDRESS OF PROGRAM \"\": literal-1 shall be an alphanumeric or national literal whose length is not zero"}

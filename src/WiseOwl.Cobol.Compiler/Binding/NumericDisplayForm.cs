@@ -31,7 +31,7 @@ public enum NumericDisplayForm
 }
 
 /// <summary>The one reader of the <c>--numeric-display</c> vocabulary: the CLI's parser and the conformance harness's
-/// <c>wiseowl/options.json</c> both call it, so they cannot disagree about what <c>digits</c> means.</summary>
+/// <c>wiseowl/options/</c> both call it, so they cannot disagree about what <c>digits</c> means.</summary>
 public static class NumericDisplayFormOption
 {
     /// <summary>The accepted spellings, in <see cref="NumericDisplayForm"/> order — the enum's own member names lower-cased,

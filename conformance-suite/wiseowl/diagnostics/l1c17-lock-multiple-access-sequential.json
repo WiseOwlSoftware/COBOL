@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "WITH LOCK ON MULTIPLE RECORDS may not be specified for a sequential-access or sequential-organization file"}

@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "identifier-2 (a method name held in a data item) is permitted only when identifier-1 is a UNIVERSAL object reference (ISO §14.9.23.3 SR7)"}
