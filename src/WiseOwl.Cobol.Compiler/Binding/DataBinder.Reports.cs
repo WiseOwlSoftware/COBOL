@@ -5155,26 +5155,23 @@ public sealed partial class DataBinder
         return NearestInScope(hits, h => h.Report);
     }
 
-    /// <summary>⛔ THE ONE ORDER OF AMBIGUITY AND REPORT-ENTRY REFUSAL (kb/Work PB3767): true when the written reference
-    /// reaches SEVERAL <paramref name="dataItems"/> and no report entry it also reaches is declared in a NEARER source
-    /// element than they are — then §8.4.2.2.3 SR1's ambiguity among data items is the rule the reference breaks, and the
-    /// caller reports it before it asks <see cref="ReportEntryReferenceRefused"/>. A report entry in a nearer source element
-    /// is the referenced item (ISO §8.4.6.2.1 3) a): "If the name is declared in source element B, the item in source
-    /// element B is the referenced item"), however many farther GLOBAL data items spell the same, so the report-item
-    /// refusal (§13.8.6.2.3) stands. <paramref name="dataItems"/> is the nearest tier already
-    /// (<see cref="QualifiedCandidates"/>), so its depth is any member's. Read by <see cref="ReportEntryReferenceRefused"/>
-    /// itself, so every arm that asks the refusal takes the one order by passing its candidates: the order cannot be
-    /// left out of an arm (it was, at three arms, when kb/Work PB3766 made a container's GLOBAL data items reach a
-    /// contained program's FILE-CONTROL and OCCURS clauses and the arms PB3768 added counted first).</summary>
-    private bool DataItemsAmbiguousBeforeReportEntry(NameCandidates<DataItem> dataItems, string name, IReadOnlyList<string> qualifiers)
-    {
-        if (dataItems.Count <= 1) return false;
-        return ReportEntriesNamed(name, qualifiers) is not [var (report, _), ..]
-            || dataItems.Any(item => DeclaringDepth(item) <= ReportDepth(report));
-    }
+    /// <summary>⛔ ISO §8.4.6.2.1 3) a)-b) FOR A REPORT ENTRY AGAINST THE DATA ITEMS OF A FARTHER SOURCE ELEMENT (kb/Work
+    /// PB4196): true when the written reference reaches a report entry declared in a source element NEARER than
+    /// <paramref name="declaringDepth"/>, the depth (<see cref="DeclaringDepth"/>) of the data items it also reaches. "If
+    /// the name is declared in source element B, the item in source element B is the referenced item" (a), otherwise "the
+    /// item in the containing source element" (b): the report entry is the referenced item and the container's GLOBAL data
+    /// item of the spelling is not, however many of them there are. A report entry is a data-name of the source element
+    /// whose REPORT SECTION declares it (§8.4.2.2.3 SR1 counts it with the ordinary ones, kb/Work PB3232), so the data-name
+    /// lookup <see cref="Model.SymbolTable.NearestDeclaringNamed{T}"/> asks this at the tier it narrowed to and leaves the
+    /// set EMPTY, and the callers' own report-item refusal (<see cref="ReportEntryReferenceRefused"/>, §13.8.6.2.3) names
+    /// the entry. Free for a unit that inherits no global data or has no report (depth 0 is a unit's own item, which no
+    /// entry is nearer than).</summary>
+    internal bool NearerReportEntryHides(string name, IReadOnlyList<string> qualifiers, int declaringDepth) =>
+        declaringDepth > 0 && VisibleReports.Count != 0
+        && ReportEntriesNamed(name, qualifiers) is [var (report, _), ..] && ReportDepth(report) < declaringDepth;
 
     /// <summary>How many report entries the written reference also reaches in the SAME source element as
-    /// <paramref name="dataItems"/> (the tier <see cref="DataItemsAmbiguousBeforeReportEntry"/> leaves to the ambiguity): a
+    /// <paramref name="dataItems"/> (the tier the data-name lookup leaves standing, <see cref="NearerReportEntryHides"/>): a
     /// report entry is a data-name §8.4.2.2.3 SR1 counts with the ordinary ones (kb/Work PB3232, PB3767 review R1-2), so the
     /// ambiguity's wording counts it too.</summary>
     internal int ReportEntriesInTierOf(NameCandidates<DataItem> dataItems, string name, IReadOnlyList<string> qualifiers)
@@ -5198,15 +5195,18 @@ public sealed partial class DataBinder
     /// report entry is a reference the standard forbids — and saying "not defined" about a name the report section
     /// declares is false and sends the reader hunting a declaration that is right there. Returns true having
     /// reported; false when the written reference names no report entry, or when it reaches several
-    /// <paramref name="dataItems"/> that no nearer report entry hides (<see cref="DataItemsAmbiguousBeforeReportEntry"/>,
-    /// kb/Work PB3767: §8.4.2.2.3 SR1's ambiguity is then the verdict), leaving the caller's own verdict.</summary>
+    /// <paramref name="dataItems"/> (kb/Work PB3767: §8.4.2.2.3 SR1's ambiguity is then the verdict), leaving the caller's
+    /// own verdict. ⛔ THE ORDER IS THE LOOKUP'S, NOT THIS METHOD'S (kb/Work PB4196): <see cref="QualifiedCandidates"/> leaves
+    /// no data item that a NEARER report entry hides (<see cref="NearerReportEntryHides"/>, ISO §8.4.6.2.1 3) a)), so the data
+    /// items an arm passes are already the ones that rank with the report entries, and several of them are the ambiguity
+    /// whichever report entries spell the same.</summary>
     /// <param name="dataItems">The data items the written reference reaches (<see cref="QualifiedCandidates"/>, the
     /// nearest tier): none, or several when the caller found no unique one.</param>
     /// <param name="subject">The reference as the caller words it: <c>'PV OF DL'</c>, or <c>FILE STATUS 'PN'</c>.</param>
     internal bool ReportEntryReferenceRefused(NameCandidates<DataItem> dataItems, string subject, string name,
                                               IReadOnlyList<string> qualifiers)
     {
-        if (DataItemsAmbiguousBeforeReportEntry(dataItems, name, qualifiers)) return false;
+        if (dataItems.Count > 1) return false;
         if (ReportEntriesNamed(name, qualifiers) is not [var (report, entry), ..]) return false;
         Edition.Error(DiagnosticCatalog.ReportItemReference,
             $"{subject} names the report group description entry '{entry.Name}' of report '{report.Name}', which a reference "

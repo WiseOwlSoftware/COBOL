@@ -26,6 +26,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// a GLOBAL record hands down. The behavioural half is
 /// <c>conformance-suite/cases/_unassigned/pb1674_global_capacity_register.cob</c>.</para>
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class GlobalNameClassDriftTests
 {
     /// <summary>Name index → the text <c>InheritGlobalSubtree</c> reaches it by.</summary>
@@ -195,5 +196,45 @@ public sealed class GlobalNameClassDriftTests
             Assert.True(Regex.IsMatch(m.Groups["rest"].Value, @"\bm\.Declares\(name\)"),
                 $"SymbolTable.{m.Groups["name"].Value} opens a method tier but never asks m.Declares(name): a method-local "
                 + "name of the spelling in another name class would not hide the object's (ISO §11.7.4 GR5).");
+    }
+
+    /// <summary>⛔ A REPORT SECTION ENTRY TAKES PART IN §8.4.6.2.1 3) IN THE ONE NARROWING, NEVER IN A CALLER (kb/Work
+    /// PB4196). A report entry is a data-name of the source element that declares its report (§8.4.2.2.3 SR1), so "if the
+    /// name is declared in source element B, the item in source element B is the referenced item" ranks it with the data
+    /// items: a contained program's report entry <c>PV</c> hides its container's GLOBAL <c>PV</c>. The lookup took a lone
+    /// GLOBAL data item without asking, so <c>MOVE PV TO W</c> and <c>FILE STATUS IS PV</c> used another program's data.
+    /// <c>SymbolTable.NearestDeclaringNamed</c> is the narrowing every data-name and condition-name set goes through (it asks
+    /// <c>DataBinder.NearerReportEntryHides</c>), so no lookup outside <c>SymbolTable</c> may call the bare
+    /// <c>NearestDeclaring</c> (it would skip the entries), and the other-class predicates (<c>NearerDataNameHides</c> for
+    /// index-names and capacity registers, <c>DeclaredNearerThan</c> for constants) must ask the entries too. The behavioural
+    /// half is the <c>pb4196-*</c> cases of <c>conformance-suite/cases/13.8.6.2.3-Report-Items</c>.</summary>
+    [Fact]
+    public void ADataNameNarrowing_RanksTheReportEntriesToo()
+    {
+        string root = TestRepo.Src("WiseOwl.Cobol.Compiler");
+        string symbolTable = Path.GetFullPath(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Model", "SymbolTable.cs"));
+        var bare = Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
+            .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
+                        && !f.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
+                        && !string.Equals(Path.GetFullPath(f), symbolTable, StringComparison.OrdinalIgnoreCase))
+            .Where(f => Regex.IsMatch(File.ReadAllText(f), @"(?<![\w])\.NearestDeclaring\("))
+            .ToList();
+        Assert.True(bare.Count == 0,
+            "a lookup outside SymbolTable calls NearestDeclaring directly, skipping the report entries a nearer source element "
+            + $"declares (use NearestDeclaringNamed, ISO §8.4.6.2.1 3) a)): {string.Join(", ", bare.Select(Path.GetFileName))}");
+
+        string table = File.ReadAllText(symbolTable);
+        AssertBodyAsks(table, @"public List<T> NearestDeclaringNamed<T>\(", "NearerReportEntryHides(");
+        AssertBodyAsks(table, @"public bool NearerDataNameHides\(", "NearerReportEntryHides(");
+        string constants = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.Constants.cs"));
+        AssertBodyAsks(constants, @"internal bool DeclaredNearerThan\(", "NearerReportEntryHides(");
+
+        static void AssertBodyAsks(string text, string signature, string ask)
+        {
+            var m = Regex.Match(text, signature + @".*?\n    \}", RegexOptions.Singleline);
+            Assert.True(m.Success, $"{signature} not found");
+            Assert.True(m.Value.Contains(ask, StringComparison.Ordinal),
+                $"{signature} no longer asks {ask}: a report entry of a nearer source element would stop hiding the farther name.");
+        }
     }
 }

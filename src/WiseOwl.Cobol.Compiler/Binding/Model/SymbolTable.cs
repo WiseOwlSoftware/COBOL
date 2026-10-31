@@ -105,18 +105,39 @@ public sealed class SymbolTable
         return tier;
     }
 
+    /// <summary>⛔ ISO §8.4.6.2.1 3) FOR A DATA-NAME OR CONDITION-NAME REFERENCE — THE ONE NARROWING OF A QUALIFIED SET, in
+    /// every lookup that has one (<see cref="TryResolveUnqualified"/>; <c>DataBinder.QualifiedCandidates</c> and
+    /// <c>QualifiedConditionCandidates</c>, which own the qualifier walk and pass the survivors):
+    /// <see cref="NearestDeclaring{T}"/> keeps the survivors of the nearest declaring source element, and the report
+    /// entries that element declares take part in the same ranking (kb/Work PB4196). A REPORT SECTION entry is a
+    /// data-name of the source element that declares its report (§8.4.2.2.3 SR1 counts it with the ordinary ones), so "if
+    /// the name is declared in source element B, the item in source element B is the referenced item": a report entry
+    /// NEARER than the survivors' tier leaves NO survivor. The caller then meets an unidentified reference and names the
+    /// entry (§13.8.6.2.3, <c>ReportEntryReferenceRefused</c>) instead of using a container's GLOBAL item, which the entry
+    /// hides. <paramref name="qualifiers"/> are the ones the reference wrote, which the report entry's own qualification
+    /// must also satisfy.</summary>
+    public List<T> NearestDeclaringNamed<T>(List<T> candidates, Func<T, DataItem> declarationOf, string name,
+                                            IReadOnlyList<string> qualifiers)
+    {
+        var tier = NearestDeclaring(candidates, declarationOf);
+        return tier.Count != 0 && _data.NearerReportEntryHides(name, qualifiers, _data.DeclaringDepth(declarationOf(tier[0])))
+            ? []
+            : tier;
+    }
+
     /// <summary>The candidates an UNQUALIFIED data-name reference can name: <see cref="TryResolve"/>'s set narrowed
-    /// by <see cref="NearestDeclaring{T}"/> (ISO §8.4.6.2.1 3) — with no qualifier to apply, the nearest declaring
-    /// source element's items are the whole set). ⛔ A caller that picks among the candidates BY KIND (the
-    /// FUNCTION-POINTER of §8.4.3.2.3 SR4, a dynamic-capacity table) filters THIS set, never the raw one: filtering
-    /// first skips a nearer declaration of another kind — or counts a container's hidden global of the same kind as
-    /// a rival — and so resolves the name to an item §8.4.6.2.1 3) a) makes inaccessible (wave 69 Z, found by the
-    /// train-68b review on <c>IntrinsicBinder.FunctionPointerNamed</c>).</summary>
+    /// by <see cref="NearestDeclaringNamed{T}"/> (ISO §8.4.6.2.1 3) — with no qualifier to apply, the nearest declaring
+    /// source element's items are the whole set, and a report entry of a nearer one hides them all). False when the
+    /// word names no data item here, or only items a nearer report entry hides. ⛔ A caller that picks among the
+    /// candidates BY KIND (the FUNCTION-POINTER of §8.4.3.2.3 SR4, a dynamic-capacity table) filters THIS set, never the
+    /// raw one: filtering first skips a nearer declaration of another kind — or counts a container's hidden global of
+    /// the same kind as a rival — and so resolves the name to an item §8.4.6.2.1 3) a) makes inaccessible (wave 69 Z,
+    /// found by the train-68b review on <c>IntrinsicBinder.FunctionPointerNamed</c>).</summary>
     public bool TryResolveUnqualified(string name, Scope scope, out List<DataItem> items)
     {
         if (!TryResolve(name, scope, out items)) return false;
-        items = NearestDeclaring(items, static i => i);
-        return true;
+        items = NearestDeclaringNamed(items, static i => i, name, []);
+        return items.Count != 0;
     }
 
     /// <summary>Resolve a level-88 CONDITION-name in <paramref name="scope"/>: the method overlay first, else the
@@ -204,14 +225,17 @@ public sealed class SymbolTable
     /// (kb/Work PB1047), a named OCCURS DYNAMIC CAPACITY register (kb/Work PB1674) — asks it of its own nearest
     /// candidate, and yields the reference to the data-name when the answer is yes: a contained program's `01 IX` or
     /// `01 CAP` hides its container's global table's index-name or register exactly as its `01 X` hides the
-    /// container's global `X`. At EQUAL depth the other class keeps the reference. Free for a unit that inherits
-    /// nothing (every candidate is then depth 0).</summary>
+    /// container's global `X`. At EQUAL depth the other class keeps the reference. A REPORT SECTION entry is such a
+    /// data-name of its source element too (<see cref="DataBinder.NearerReportEntryHides"/>, kb/Work PB4196): the
+    /// reference is then the report entry's, refused by the callers' unidentified-reference report (§13.8.6.2.3). Free
+    /// for a unit that inherits nothing (every candidate is then depth 0).</summary>
     public bool NearerDataNameHides(string name, IReadOnlyList<string> qualifiers, int depth)
     {
-        if (depth == 0 || !_data.InheritsGlobalData || !_data.ByName.TryGetValue(name, out var dataNames)) return false;
-        foreach (var item in dataNames)
-            if (_data.DeclaringDepth(item) < depth && _data.QualifierChainMatches(item, qualifiers))
-                return true;
-        return false;
+        if (depth == 0 || !_data.InheritsGlobalData) return false;
+        if (_data.ByName.TryGetValue(name, out var dataNames))
+            foreach (var item in dataNames)
+                if (_data.DeclaringDepth(item) < depth && _data.QualifierChainMatches(item, qualifiers))
+                    return true;
+        return _data.NearerReportEntryHides(name, qualifiers, depth);
     }
 }
