@@ -528,14 +528,15 @@ public abstract class CobolParserCoreBase : Parser
     /// as user-defined words or system-names", and a procedure-name is a user-defined word (§8.3.2.2).
     /// <para>A word reserved at EVERY edition (READ, DISPLAY, EXIT) is a keyword token, which no name slot can take, so
     /// the parse reads it as the keyword and dies after it: <c>PERFORM READ.</c> is an inline PERFORM whose READ statement
-    /// refuses the period, <c>GO TO READ.</c> a target-less GO TO and a READ statement, <c>READ.</c> a READ statement
-    /// where a paragraph header stands — each a COBOL0001 that never names the word. A
+    /// refuses the period, <c>GO TO READ.</c> a target-less GO TO and a READ statement, <c>DISPLAY SECTION.</c> a DISPLAY
+    /// of the word SECTION where a section header stands — each a COBOL0001 that never names the word. A
     /// reservation-gated word has a name-slot alternative of its own (<c>reservedGatedWord</c>, kb/Work PB4206); a word
     /// reserved everywhere cannot have one, because a keyword alternative in <c>procedureName</c> would compete with every
     /// statement and header reading it is one of. So the question is asked after the fact, and only of an error: the
     /// candidates are the offending token and the first token of every open rule and of the rule each matched last (the
     /// misread statement begins at the word), each re-read with the word retyped to <c>IDENTIFIER</c>, from the sentence's first token through its
-    /// separator period, as a <c>sentence</c> and — when the word begins the sentence — as a <c>procedureUnit</c>, whose
+    /// separator period, as a <c>sentence</c> and — when the word begins the sentence and the sentence is not an
+    /// incomplete statement of that verb (<see cref="IsIncompleteStatement"/>) — as a <c>procedureUnit</c>, whose
     /// header it then names. A reading that parses the whole span with the word under <c>procedureName</c> is the one the
     /// source means; a genuine fault elsewhere fails every re-read, and its own report stands. <c>Through</c> is the stream
     /// index of the span's last token (its separator period): the one fault covers the sentence the re-read judged.
@@ -586,7 +587,7 @@ public abstract class CobolParserCoreBase : Parser
             var copies = span.Select(t => (IToken)new CommonToken(t)).ToList();
             var asName = (CommonToken)copies[at];
             asName.Type = CobolLexer.IDENTIFIER;
-            int[] readings = word == first
+            int[] readings = word == first && !IsIncompleteStatement(span, word, offending)
                 ? [CobolParserCore.RULE_sentence, CobolParserCore.RULE_procedureUnit]   // a header names it too
                 : [CobolParserCore.RULE_sentence];
             foreach (int rule in readings)
@@ -596,6 +597,18 @@ public abstract class CobolParserCoreBase : Parser
         }
         return null;
     }
+
+    /// <summary>Whether the sentence <paramref name="span"/> is a statement verb and its separator period alone, which the
+    /// parse took as that statement and refused at the period (branch review R1-1): <c>STOP.</c>, <c>DISPLAY.</c>,
+    /// <c>MOVE.</c>, <c>PERFORM.</c>, <c>READ.</c>. That text is ALSO a paragraph header (§14.4.3: "A paragraph consists of a
+    /// paragraph-name followed by a separator period"), and no token of it says which the source meant: §8.3.2.1 1) is broken only by a
+    /// USE as a user-defined word, and nothing written here shows that use, while the operand the statement lacks is a
+    /// fault the source certainly holds. So the header reading is not asked, and the incomplete statement keeps its own
+    /// report, as every other incomplete statement does. A section header (<c>DISPLAY SECTION.</c>) has no such twin: the
+    /// misreading died at SECTION, a word, not at the period. Where the parse refused the word ITSELF (no statement
+    /// begins with it) the header is its only reading, and it is asked.</summary>
+    private static bool IsIncompleteStatement(List<IToken> span, IToken word, IToken offending)
+        => span.Count == 2 && span[0] == word && span[1].Type == CobolLexer.DOT && offending != word;
 
     /// <summary>The canonical upper-case word of <paramref name="token"/> when it is a KEYWORD token §8.9 reserves at this
     /// edition (gated or not), else null.</summary>

@@ -11,8 +11,9 @@ mode is total and the parser sees the §13.18.40.2 clause without its required c
 picture character-string" (AdmittedKinds names PIC_STRING, §8.3.1). The main lexer now carries `LexerErrorListener` in
 place of the console one; `Frontend.LexAndParseOnce` reports only the last lexer of the PB1913 debugging-line loop, as the
 new COBOL5704 (a compiler defect: every mode is total). Goldens `pb4233-picture-clause-without-character-string` (refused
-at every edition) and `pb4233_picture_string_then_separator_period` (accepted at 85); `LexerTotalityDriftTests` holds the
-lexer to reporting nothing on the suite's sources. DESIGN-frontend-grammar 3.3c also lost a stale SUBSCRIPT mode.
+at every edition) and `pb4233_picture_string_then_separator_period` (accepted at 85); the warm-up lex of
+`LexerDfaCacheDriftTests` now runs through `LexerErrorListener` and holds the lexer to reporting nothing on the suite's
+sources (branch review R1-2: a separate test had lexed the whole corpus a third time for that question alone). DESIGN-frontend-grammar 3.3c also lost a stale SUBSCRIPT mode.
 
 **PB4240 (wrong answer).** `RetypeDirectiveKeyword` compared a directive word with DEFINED by the host's OrdinalIgnoreCase,
 so `>>IF X DEF<U+0130>NED` was COBOL1619 beside an accepted `>><U+0130>F`. The sibling the note suspected was real and wider:
@@ -37,8 +38,11 @@ procedure-name arm, and cannot have one (a keyword in `procedureName` would comp
 reading; `EXIT.` is both). The slot now answers on an error: `CobolParserCoreBase.ReservedProcedureName` re-reads the
 sentence with one candidate word as an IDENTIFIER and, when the reading is complete with the word under `procedureName`,
 `CobolErrorStrategy.Report` names it with COBOL0901, the sentence being the one fault. Every PERFORM format, both THRU ends,
-qualifiers, both GO TO formats, ALTER and the headers `READ.` / `DISPLAY SECTION.` now draw exactly one COBOL0901; a fault
-the re-read cannot repair keeps its own report. Golden `pb4229-procedure-name-reserved-at-every-edition`; 24 conformance
+qualifiers, both GO TO formats, ALTER and the section headers `DISPLAY SECTION.` / `READ SECTION.` now draw exactly one
+COBOL0901; a fault the re-read cannot repair keeps its own report. Branch review R1-1 found the header reading also named the
+verb of a bare incomplete statement (`STOP.`, `DISPLAY.`, `MOVE.`, `PERFORM.` inside a paragraph drew COBOL0901): that text is
+also a paragraph header (§14.4.3), nothing in it shows a use as a user-defined word, so `IsIncompleteStatement` keeps the
+header reading off a verb and its period alone, and the statement keeps its COBOL0001 at the period (7 new rows). Golden `pb4229-procedure-name-reserved-at-every-edition`; 24 conformance
 rows.
 
 No inventory row was claimed or re-verdicted (each row these rules map to already CONFORMS); every note writes

@@ -414,9 +414,13 @@ separator period with that one word retyped to `IDENTIFIER` (`Reading`, the spec
 `ReadingParses` uses too), as a `sentence` and, when the word begins it, as a `procedureUnit`. A complete reading with the
 word under `procedureName` is what the source means, and `CobolErrorStrategy.Report` names the word with COBOL0901 at
 the word, covering the sentence through its period as the one fault and discarding the misreading's tail as orphaned:
-`PERFORM READ.`, `PERFORM READ THRU P1.`, `GO TO READ.`, `GO TO P1 READ DEPENDING ON N.`, `ALTER READ TO P1.`, `READ.` as
-a header, `DISPLAY SECTION.` — each one diagnostic. A genuine fault elsewhere fails every re-read (`PERFORM DISPLAY X.`
-without END-PERFORM, `MOVE X TO` before a DISPLAY), and its own report stands. A reserved word in a DATA reference slot
+`PERFORM READ.`, `PERFORM READ THRU P1.`, `GO TO READ.`, `GO TO P1 READ DEPENDING ON N.`, `ALTER READ TO P1.`,
+`DISPLAY SECTION.` — each one diagnostic. A genuine fault elsewhere fails every re-read (`PERFORM DISPLAY X.`
+without END-PERFORM, `MOVE X TO` before a DISPLAY), and its own report stands. A verb and its period alone (`STOP.`,
+`DISPLAY.`, `READ.`) is not asked the header reading (`IsIncompleteStatement`, branch review R1-1): the same text is an
+incomplete statement and a paragraph header (§14.4.3), nothing in it shows a USE as a user-defined word (§8.3.2.1 1)),
+and the missing operand is a fault the source certainly holds, so it keeps its COBOL0001 at the period, inside a
+paragraph and where a header could stand alike. A reserved word in a DATA reference slot
 (`MOVE READ TO X`) is not this rule's: its error falls at the word and is still the strategy's own report.
 
 The user-word reading is decided on the TOKEN, before the parse that counts (`Parsing/ReservationGateRewriter`;
@@ -829,7 +833,9 @@ diagnostics, the period was dropped and the mode stayed open, so the next line's
 and the program compiled. Every `CobolLexer` the front end creates carries a listener of its own: the main lex
 `LexerErrorListener` (reported, from the LAST lexer of the debugging-line loop only, as COBOL5704 — a compiler defect,
 never a diagnosis of the source), a fragment lex `FragmentParse`'s flag and the keyword probe `CobolKeywordTokens`'
-counter. `LexerTotalityDriftTests` holds the lexer to reporting nothing on the suite's sources.
+counter. `LexerDfaCacheDriftTests`' warm-up lex of the suite's sources runs through `LexerErrorListener` and holds
+the lexer to reporting nothing on them (the one suite lex for both questions, branch review R1-2);
+`LexerTotalityDriftTests` holds the PICMODE period and the listener.
 
 **3.3e ⛔ The lexer carries NO semantic predicate — context the lexer needs goes in an ACTION (kb/Work PB1715).**
 ANTLR 4.13.2 caches a mode's start state only when no predicate is in its closure (`LexerATNSimulator.MatchATN`),

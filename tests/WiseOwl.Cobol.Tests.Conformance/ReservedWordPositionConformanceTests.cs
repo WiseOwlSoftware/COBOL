@@ -518,9 +518,8 @@ public sealed class ReservedWordPositionConformanceTests
     /// is a user-defined word, §8.3.2.2) for the words that are no reservation-gated word: READ, DISPLAY, MOVE, STOP and the
     /// rest are keyword tokens no name slot can take, so the parse took the keyword reading and died after it —
     /// <c>PERFORM READ.</c> an inline PERFORM whose READ statement refused the period, <c>GO TO READ.</c> a target-less GO TO
-    /// and a READ statement, <c>READ.</c> a READ statement where a paragraph header stands — each a COBOL0001 that never
-    /// named the word, and a second one for the misreading's tail. Every PERFORM format, both ends of THRU, a qualifier,
-    /// both GO TO formats, ALTER, a header; each draws exactly ONE diagnostic, the COBOL0901 at the word (the parse fails,
+    /// and a READ statement — each a COBOL0001 that never named the word, and a second one for the misreading's tail.
+    /// Every PERFORM format, both ends of THRU, a qualifier, both GO TO formats, ALTER; each draws exactly ONE diagnostic, the COBOL0901 at the word (the parse fails,
     /// so the binder's COBOL1639 never runs).</summary>
     [Theory]
     [InlineData(2023, "PERFORM READ.", "READ")]
@@ -566,12 +565,13 @@ public sealed class ReservedWordPositionConformanceTests
     }
 
     /// <summary>The header half of <see cref="AWordReservedAtEveryEdition_WrittenAsAProcedureName_IsNamedByCobol0901"/>: a
-    /// paragraph or section DEFINED under a word reserved at every edition is that word used as a procedure-name, at the
-    /// header (kb/Work PB4229): <c>READ.</c> parsed as a READ statement refusing the period, <c>DISPLAY SECTION.</c> as a
-    /// DISPLAY of the word SECTION.</summary>
+    /// section DEFINED under a word reserved at every edition is that word used as a procedure-name, at the header
+    /// (kb/Work PB4229): <c>DISPLAY SECTION.</c> parsed as a DISPLAY of the word SECTION. A bare <c>READ.</c> is no such
+    /// header: it is also an incomplete READ statement, and keeps that report
+    /// (<see cref="ABareVerbSentence_IsAnIncompleteStatement_NeverNamedCobol0901"/>).</summary>
     [Theory]
-    [InlineData("READ.", "READ")]
     [InlineData("DISPLAY SECTION.", "DISPLAY")]
+    [InlineData("READ SECTION.", "READ")]
     public void AWordReservedAtEveryEdition_DefinedAsAProcedure_IsNamedByCobol0901(string header, string word)
     {
         var (ok, diags) = EditionHarness.Compile($"""
@@ -619,6 +619,41 @@ public sealed class ReservedWordPositionConformanceTests
                """, 2023);
         Assert.False(ok);
         Assert.DoesNotContain(diags, d => d.Contains("COBOL0901", StringComparison.Ordinal));
+    }
+
+    /// <summary>⛔ A VERB AND ITS PERIOD ALONE ARE AN INCOMPLETE STATEMENT, NEVER A RESERVED PARAGRAPH-NAME (kb/Work PB4229,
+    /// branch review R1-1). <c>STOP.</c> (RUN forgotten) is the STOP statement missing its operand, and it is also the
+    /// text of a paragraph header (ISO §14.4.3: "A paragraph consists of a paragraph-name followed by a separator
+    /// period"). No token says the source used STOP as a user-defined word, which is all ISO §8.3.2.1 1) ("Reserved words
+    /// shall not be used as user-defined words or system-names") refuses, so the fault the source certainly holds keeps
+    /// its own COBOL0001 at the period, inside a paragraph and where a header could stand alike, at every edition, and
+    /// nothing names the verb. Each row draws exactly one diagnostic.</summary>
+    [Theory]
+    [InlineData(2023, "STOP.")]
+    [InlineData(2023, "DISPLAY.")]
+    [InlineData(2014, "MOVE.")]
+    [InlineData(2002, "PERFORM.")]
+    [InlineData(85, "READ.")]
+    [InlineData(2023, "STOP RUN.\n       READ.")]       // where a paragraph header could stand, after STOP RUN
+    [InlineData(85, "STOP RUN.\n       ADD.")]
+    public void ABareVerbSentence_IsAnIncompleteStatement_NeverNamedCobol0901(int edition, string statement)
+    {
+        var (ok, diags) = EditionHarness.Compile($"""
+                   IDENTIFICATION DIVISION.
+                   PROGRAM-ID. PB4229V.
+                   PROCEDURE DIVISION.
+                   MAIN-P.
+                       {statement}
+                       STOP RUN.
+                   P-END.
+                       DISPLAY "E".
+
+               """, edition);
+        string all = string.Join("\n", diags);
+        Assert.False(ok);
+        Assert.True(diags.Count == 1 && diags[0].Contains("COBOL0001", StringComparison.Ordinal)
+                                     && diags[0].Contains("'.'", StringComparison.Ordinal),
+            $"expected exactly one diagnostic, the COBOL0001 at the period, got:\n{all}");
     }
 
     // ── A reserved word where no user-defined word stands is its keyword, misplaced (kb/Work PB4132) ──────────────

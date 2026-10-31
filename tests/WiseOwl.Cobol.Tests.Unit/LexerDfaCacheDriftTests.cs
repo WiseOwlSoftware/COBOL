@@ -4,7 +4,10 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Atn;
 using Antlr4.Runtime.Dfa;
 using Antlr4.Runtime.Misc;
+using WiseOwl.Cobol.Frontend.Common;
+using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 using Xunit.Abstractions;
@@ -24,6 +27,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>Not asserted, REPORTED: a character above 127 (<c>LexerATNSimulator.MAX_DFA_EDGE</c>) has no DFA edge,
 /// so a non-ASCII source is simulated at each such character; and ANTLR never caches the EOF transition, so
 /// the token that reaches the end of its input is simulated once per input.</para>
+/// <para>The warm-up is also the suite's one lex for <see cref="LexerTotalityDriftTests"/>' rule (kb/Work PB4233): it
+/// lexes through the front end's <see cref="LexerErrorListener"/> and holds every source to no COBOL5704, so the corpus
+/// is lexed twice per run, never a third time for a second question.</para>
 /// </summary>
 [Trait("Sweep", "tree")]
 public sealed class LexerDfaCacheDriftTests(ITestOutputHelper output)
@@ -42,8 +48,19 @@ public sealed class LexerDfaCacheDriftTests(ITestOutputHelper output)
         var dfa = new DFA[CobolLexer._ATN.NumberOfDecisions];
         for (int i = 0; i < dfa.Length; i++) dfa[i] = new DFA(CobolLexer._ATN.GetDecisionState(i), i);
 
+        // The warm-up lex carries the front end's own LexerErrorListener, so the one lex of the suite also holds every
+        // mode TOTAL (kb/Work PB4233, LexerTotalityDriftTests): no source may meet text no rule of its mode matches.
         var warm = new Tally();
-        foreach (var (_, text) in sources) Lex(text, dfa, warm);
+        var untotal = new List<string>();
+        foreach (var (path, text) in sources)
+        {
+            var errors = new DiagnosticBag();
+            Lex(text, dfa, warm, errors, path);
+            if (errors.Diagnostics.Count > 0 && untotal.Count < 10) untotal.Add(errors.Diagnostics[0].ToString());
+        }
+        Assert.True(untotal.Count == 0,
+            "the lexer matched no rule in these suite sources — a mode of CobolLexer.g4 is not total, so its text is "
+            + "dropped and the compile fails with COBOL5704 (kb/Work PB4233):\n" + string.Join("\n", untotal));
         // The probe must be able to see a miss, or a zero below proves nothing: a cold DFA misses.
         Assert.True(warm.StartState > 0 && warm.AsciiEdge > 0,
             $"the warm-up pass saw no DFA miss (start {warm.StartState}, edge {warm.AsciiEdge}) — the probe is blind");
@@ -83,13 +100,18 @@ public sealed class LexerDfaCacheDriftTests(ITestOutputHelper output)
             .Order(StringComparer.Ordinal)
             .Select(f => (Path.GetRelativePath(TestRepo.Root, f), File.ReadAllText(f)))];
 
-    private static void Lex(string text, DFA[] dfa, Tally tally)
+    /// <summary>Lex <paramref name="text"/> over <paramref name="dfa"/>, tallying where each match would leave it; with
+    /// <paramref name="errors"/>, through the front end's <see cref="LexerErrorListener"/>, every lexer error reported
+    /// into it as the compile reports it (COBOL5704), else with no listener at all.</summary>
+    private static void Lex(string text, DFA[] dfa, Tally tally, DiagnosticBag? errors = null, string path = "")
     {
         var input = new ProbedCharStream(text, dfa, tally);
         var lexer = new IsolatedLexer(input, dfa);
-        lexer.RemoveErrorListeners();
+        var listener = errors is null ? null : LexerErrorListener.AttachTo(lexer);
+        if (listener is null) lexer.RemoveErrorListeners();
         input.Lexer = lexer;
         while (lexer.NextToken().Type != TokenConstants.EOF) { }
+        listener?.ReportInto(errors!, path, SourceLineMap.Identity(path, lexer.Line));
     }
 
     /// <summary>The generated lexer over a caller-supplied DFA (the generated one shares a static DFA).</summary>

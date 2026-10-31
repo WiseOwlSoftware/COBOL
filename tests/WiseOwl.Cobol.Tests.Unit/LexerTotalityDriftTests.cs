@@ -15,27 +15,14 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// (kb/Work PB4233). PICMODE had no rule for the separator period, so <c>01 X PIC.</c> matched nothing there: ANTLR's default listener printed
 /// "token recognition error" on the console, the period was dropped, the mode stayed open, and the next line's
 /// <c>X(3)</c> became the picture of an entry the source left without one — the program compiled and ran. The front end
-/// now reports every lexer error into the compilation's diagnostics (<see cref="LexerErrorListener"/>, COBOL5704), and
-/// this test holds the lexer to reporting none on the suite's sources, where a mode that is not total shows first.
+/// now reports every lexer error into the compilation's diagnostics (<see cref="LexerErrorListener"/>, COBOL5704). The
+/// suite-wide half of the rule, no lexer error on any suite source, where a mode that is not total shows first, is held
+/// by <see cref="LexerDfaCacheDriftTests.ReLexingTheSuiteSources_TakesOnlyCachedDfaEdges"/>'s warm-up lex, which lexes
+/// the same corpus through the same listener (branch review R1-2: a third lex of the corpus for this question alone was
+/// repeated whole-population work); these cases hold the PICMODE period and the listener itself.
 /// </summary>
 public sealed class LexerTotalityDriftTests
 {
-    [Fact]
-    public void LexingTheSuiteSources_ReportsNoLexerError()
-    {
-        var sources = LexerDfaCacheDriftTests.SuiteSources();
-        Assert.True(sources.Count > 1000, $"only {sources.Count} suite sources found — the probe is blind");
-        var offenders = new List<string>();
-        foreach (var (path, text) in sources)
-        {
-            var (errors, _) = Lex(text);
-            if (errors.Count > 0 && offenders.Count < 10) offenders.Add($"{path}: {errors[0]}");
-        }
-        Assert.True(offenders.Count == 0,
-            "the lexer matched no rule in these suite sources — a mode of CobolLexer.g4 is not total, so its text is "
-            + "dropped and the compile fails with COBOL5704:\n" + string.Join("\n", offenders));
-    }
-
     /// <summary>A separator period where the picture character-string should be ends PICMODE as the DOT token, so the
     /// parser sees the clause without its character-string and the text after the period is lexed as what it is.</summary>
     [Theory]

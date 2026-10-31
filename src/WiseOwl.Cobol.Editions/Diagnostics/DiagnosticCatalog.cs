@@ -7005,7 +7005,7 @@ public static class DiagnosticCatalog
     /// and never a diagnosis of the source. It is reported, through the compilation's diagnostics, so the defect fails
     /// the compile where it would otherwise drop the text it could not read: ANTLR's default lexer listener printed the
     /// error on the console and went on, and <c>01 X PIC.</c> compiled with the next line's text as its picture.
-    /// <c>LexerTotalityDriftTests</c> holds the lexer to reporting nothing on the suite's sources.</summary>
+    /// <c>LexerDfaCacheDriftTests</c>' warm-up lex holds the lexer to reporting nothing on the suite's sources.</summary>
     public static readonly DiagnosticDescriptor LexerTextUnrecognized = new(
         "COBOL5704", "lexer-text-unrecognized", EditionSeverity.Error,
         "Internal: no rule of the lexer matches the source text here (a compiler defect: every lexer mode is total).",
