@@ -10304,6 +10304,24 @@
   ],
   "expect": "'NULL' is not defined"
  },
+ "pb4155-call-null-undeclared-at-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "'NULL' is not defined"
+ },
+ "pb4160-verb-phrase-diagnostics-name-the-phrase": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "CALL USING BY VALUE 3 belongs to the program-prototype CALL"
+ },
+ "pb4160-clause-diagnostics-name-the-phrase": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "OCCURS ASCENDING KEY IS 'NOSUCH1' on 'E1'"
+ },
  "pb1687-report-entry-32-digits": {
   "refuse-at": [
    "85",
@@ -23675,7 +23693,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL1688: CALL … program-prototype 'P538S' argument 1 ('A') does not conform to formal parameter 'L'"
+  "expect": "COBOL1688: CALL of program-prototype 'P538S' argument 1 ('A') does not conform to formal parameter 'L'"
  },
  "pb1319-sign-group-unsigned-85": {
   "refuse-at": [
@@ -23712,7 +23730,7 @@
   "refuse-at": [
    "2023"
   ],
-  "expect": "error COBOL0902: MOVE of an alphanumeric figurative constant (HIGH-VALUE/LOW-VALUE/non-digit ALL) to a numeric or numeric-edited item was removed in COBOL-2023 (targeting COBOL-2023) — CALL … AS NESTED argument 1: HIGH-VALUE BY CONTENT to formal parameter 'E'"
+  "expect": "error COBOL0902: MOVE of an alphanumeric figurative constant (HIGH-VALUE/LOW-VALUE/non-digit ALL) to a numeric or numeric-edited item was removed in COBOL-2023 (targeting COBOL-2023) — CALL AS NESTED argument 1: HIGH-VALUE BY CONTENT to formal parameter 'E'"
  },
  "pb3755-invoke-content-low-value-numeric-edited-2023": {
   "refuse-at": [
@@ -23732,7 +23750,7 @@
    "2014",
    "2023"
   ],
-  "expect": "CALL … AS NESTED argument 1: ALL \"57\" BY CONTENT to formal parameter 'E' (the MOVE ISO"
+  "expect": "CALL AS NESTED argument 1: ALL \"57\" BY CONTENT to formal parameter 'E' (the MOVE ISO"
  },
  "pb3682-typedef-group-usage-national-over-bit": {
   "refuse-at": [

@@ -1232,7 +1232,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// PB415. The binder recovers as ALL after this diagnostic, so one statement yields one message.</summary>
     public void CheckInitializeValueChoicePresent() =>
         data.Edition.Error(DiagnosticCatalog.InitializeValueChoiceMissing,
-            "INITIALIZE ... TO VALUE requires ALL or a category-name before VALUE (ISO §14.9.20.2 — the braced "
+            "INITIALIZE TO VALUE requires ALL or a category-name before VALUE (ISO §14.9.20.2 — the braced "
             + "choice is mandatory, §5.2.6.3)");
 
     /// <summary>ISO §14.9.20.3 SR3 — "for each DATA-POINTER, FUNCTION-POINTER, MESSAGE-TAG, OBJECT-REFERENCE, or
@@ -1262,7 +1262,7 @@ internal sealed class StatementValidation(DataBinder data)
     {
         string spelled = InitializeCategories.Spelling(cat);
         data.Edition.Error(DiagnosticCatalog.InitializeReplacingSetCategoryMismatch,
-            $"INITIALIZE REPLACING {spelled} ... BY {senderText}, which is "
+            $"INITIALIZE REPLACING {spelled} DATA BY {senderText}, which is "
             + (senderCat is { } sc ? $"an item of category {InitializeCategories.Spelling(sc)}" : "not a data item")
             + $": ISO §14.9.20.3 SR4 requires that `SET <a {spelled} item> TO identifier-2` be valid, and "
             + "§14.9.39 admits only a sending operand of the receiver's own category");
@@ -1485,7 +1485,7 @@ internal sealed class StatementValidation(DataBinder data)
                     + "ACCESS MODE IS RANDOM, or DYNAMIC to read both ways (ISO §12.4.5.5.3 GR3, GR4)"
                 : null;
         if (refusal is null) return true;
-        data.Edition.Error("COBOL0864", $"READ … KEY on '{file.CobolName}': {refusal}");
+        data.Edition.Error("COBOL0864", $"READ KEY on '{file.CobolName}': {refusal}");
         return false;
     }
 
@@ -1523,7 +1523,7 @@ internal sealed class StatementValidation(DataBinder data)
     public bool CheckReadKeyOrganization(FileModel file)
     {
         if (file.Organization == FileOrganization.Indexed) return true;
-        data.Edition.Error("COBOL0864", $"READ … KEY on '{file.CobolName}': the KEY phrase may be "
+        data.Edition.Error("COBOL0864", $"READ KEY on '{file.CobolName}': the KEY phrase may be "
             + "specified only when ORGANIZATION IS INDEXED (ISO §14.9.30.3 SR10)");
         return false;
     }
@@ -1700,7 +1700,7 @@ internal sealed class StatementValidation(DataBinder data)
     public bool CheckWriteEopLinage(FileModel file)
     {
         if (file.Linage is not null) return true;
-        data.Edition.Error("COBOL0860", $"WRITE … END-OF-PAGE on file '{file.CobolName}', whose file "
+        data.Edition.Error("COBOL0860", $"WRITE END-OF-PAGE on file '{file.CobolName}', whose file "
             + "description entry has no LINAGE clause (ISO §14.9.51.3 SR19)");
         return false;
     }
@@ -1712,7 +1712,7 @@ internal sealed class StatementValidation(DataBinder data)
     public bool CheckWriteEopAdvancingPage(bool advancingPageWithAtEop)
     {
         if (!advancingPageWithAtEop) return true;
-        data.Edition.Error("COBOL0861", "WRITE … ADVANCING PAGE with an END-OF-PAGE phrase: the two "
+        data.Edition.Error("COBOL0861", "WRITE ADVANCING PAGE with an END-OF-PAGE phrase: the two "
             + "shall not both be specified in a single WRITE statement (ISO §14.9.51.3 SR18)");
         return false;
     }
@@ -1727,7 +1727,7 @@ internal sealed class StatementValidation(DataBinder data)
     {
         if (!(bothWords && advancingPage)) return true;
         data.Edition.Error(DiagnosticCatalog.WriteBeforeAfterAdvancingPage,
-            "WRITE … BEFORE AFTER ADVANCING PAGE: the BEFORE and AFTER phrases shall not both be specified if "
+            "WRITE BEFORE and AFTER ADVANCING PAGE: the BEFORE and AFTER phrases shall not both be specified if "
             + "the PAGE phrase is specified (ISO §14.9.51.3 SR17)");
         return false;
     }
@@ -1737,7 +1737,7 @@ internal sealed class StatementValidation(DataBinder data)
     public bool CheckWriteAdvancingMnemonic(FileModel file, bool advancingNamesMnemonic)
     {
         if (!(file.Linage is not null && advancingNamesMnemonic)) return true;
-        data.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"WRITE … ADVANCING mnemonic-name on file '{file.CobolName}', whose "
+        data.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"WRITE ADVANCING mnemonic-name on file '{file.CobolName}', whose "
             + "file description entry contains a LINAGE clause (ISO §14.9.51.3 SR13)");
         return false;
     }
