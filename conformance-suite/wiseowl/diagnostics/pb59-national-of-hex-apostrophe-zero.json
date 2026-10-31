@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "argument-1 shall not be a zero-length literal (ISO §15.66.3 rule 3)"}

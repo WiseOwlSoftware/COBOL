@@ -1,0 +1,1 @@
+{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "COBOL5506: missing token before '2'. The integer literal 2 is not expected here: expected LENGTH"}

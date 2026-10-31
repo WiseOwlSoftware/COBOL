@@ -7,7 +7,7 @@
 *>---
       *> ISO §14.9.11.4 GR1 (Annex A.1 item 56, docs/CONFORMANCE.md DOC-A.1-56; kb/Work PB3505, owner
       *> decision PB3467) under the NON-DEFAULT `--numeric-display digits`, set for this test in
-      *> wiseowl/options.json: DISPLAY shows a numeric item's DIGIT IMAGE, the digits as stored with
+      *> wiseowl/options/: DISPLAY shows a numeric item's DIGIT IMAGE, the digits as stored with
       *> no decimal point (it is implied) and an unseparated sign over-punched onto a digit by the
       *> default `--sign-encoding ibm`: positive 0-9 are "{ABCDEFGHI" and negative 0-9 "}JKLMNOPQR",
       *> the sign taking the LAST digit position (the FIRST under SIGN LEADING). The declarations are

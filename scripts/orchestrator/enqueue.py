@@ -33,7 +33,7 @@ cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
      rebase: a branch that merged a same-file predecessor or a sibling carries conflict resolutions in its merge
      commits, which a rebase throws away and asks for again; the queue lands by merge commit anyway, so the branch's
      history stays as written). THROUGH THE MERGE DRIVERS (scripts/merge_drivers.py, kb/Work PB3610): the keyed
-     catalogues two landings both add to (wiseowl/diagnostics.json, the traceability inventory, constructs.json), the work
+     catalogues two landings both add to (the traceability inventory, constructs.json), the work
      notes they both append to and the runtime ABI pin are merged by key, not by line, and a merge that changed the pin
      measures the merged tree (abi_pin.py settle) before its merge commit, so none of those is a conflict. A conflict
      is aborted, the branch's report gains `BLOCKED: … conflict in <files>`, and the exit is 4: a finisher resolves it.
@@ -1721,8 +1721,9 @@ def self_test() -> int:
 
         # kb/Work PB3610: two landings that each add an entry to a keyed catalogue are no conflict. Main gains the
         # catalogue and its .gitattributes line; the branch merges them in; then both sides add a member.
-        keyed = lambda *ks: "{" + chr(10) + (", " + chr(10)).join(f' "{k}": {{ "v": 1 }}' for k in ks) + chr(10) + "}" + chr(10)  # noqa: E731
-        main_moves(".gitattributes", "catalogue.json merge=cobol-keyed-object" + chr(10))
+        keyed = lambda *ks: ("{" + chr(10) + ' "constructs": [' + chr(10) + (", " + chr(10)).join(f'  {{ "id": "{k}", "v": 1 }}' for k in ks)  # noqa: E731
+                             + chr(10) + " ]" + chr(10) + "}" + chr(10))
+        main_moves(".gitattributes", "catalogue.json merge=cobol-keyed-constructs" + chr(10))
         main_moves("catalogue.json", keyed("a"))
         assert fetch_main(lw) is None
         rc_in = merge_main(lw, "fix", "refs/remotes/origin/main")
@@ -1733,10 +1734,11 @@ def self_test() -> int:
         plain = fix.run("merge", "--no-commit", "--no-ff", "refs/remotes/origin/main")
         fix.run("merge", "--abort")
         rc_keyed = merge_main(lw, "fix", "refs/remotes/origin/main")
-        got = json.loads((lw / "catalogue.json").read_text(encoding="utf-8")) if rc_keyed.clean else {}
+        got = ({e["id"] for e in json.loads((lw / "catalogue.json").read_text(encoding="utf-8"))["constructs"]}
+               if rc_keyed.clean else set())
         expect("land: both sides adding a member to a keyed catalogue is merged by key, where a plain git merge conflicts "
                "(merge_main goes through the merge drivers; kb/Work PB3610)",
-               rc_in.clean and plain.returncode != 0 and rc_keyed.clean and set(got) == {"a", "ours", "theirs"}
+               rc_in.clean and plain.returncode != 0 and rc_keyed.clean and got == {"a", "ours", "theirs"}
                and not dirty_paths(lw), f"{rc_in} {plain.returncode} {rc_keyed} {got}")
         fix.git("reset", "--quiet", "--hard", fix_tip)
 
@@ -2237,21 +2239,21 @@ def self_test() -> int:
         # Set aside: a file a merge driver merges by key, one no test reads, and a file only one side changed.
         sets = scratch.worktree(root / "sets-wt", branch="sets", start="main")
         sw = sets.path
-        for name in ("conformance-suite/wiseowl/diagnostics.json", "kb/Work/PB1.md", "DEVLOG/x.md", "src/code.cs"):
+        for name in ("tests/version-matrix/constructs.json", "kb/Work/PB1.md", "DEVLOG/x.md", "src/code.cs"):
             (sw / name).parent.mkdir(parents=True, exist_ok=True)
             (sw / name).write_text("one" + chr(10), encoding="utf-8", newline="\n")
         sets.git("add", "-A")
         sets.git("commit", "--quiet", "-m", "the four shared files")
-        for name in ("conformance-suite/wiseowl/diagnostics.json", "kb/Work/PB1.md", "DEVLOG/x.md", "src/code.cs"):
+        for name in ("tests/version-matrix/constructs.json", "kb/Work/PB1.md", "DEVLOG/x.md", "src/code.cs"):
             (sw / name).write_text("branch" + chr(10), encoding="utf-8", newline="\n")
         sets.git("commit", "--quiet", "-am", "the branch edits all four")
         main_four = scratch.worktree(root / "main4-wt", branch="main4", start="sets~1")
-        for name in ("conformance-suite/wiseowl/diagnostics.json", "kb/Work/PB1.md", "DEVLOG/x.md", "src/code.cs"):
+        for name in ("tests/version-matrix/constructs.json", "kb/Work/PB1.md", "DEVLOG/x.md", "src/code.cs"):
             (main_four.path / name).write_text("main" + chr(10), encoding="utf-8", newline="\n")
         main_four.git("commit", "--quiet", "-am", "main edits all four")
         overlap_four = merge_overlap(sw, sets.git("rev-parse", "HEAD"), main_four.git("rev-parse", "HEAD"))
         overlap_unreadable = merge_overlap(sw, "0" * 40, main_four.git("rev-parse", "HEAD"))
-        expect("merge_overlap: a file a merge driver merges by key (diagnostics.json, a work note) and one no test reads "
+        expect("merge_overlap: a file a merge driver merges by key (constructs.json, a work note) and one no test reads "
                "(a DEVLOG entry) are no true textual merge; only source both sides changed is; a side git cannot list "
                "is never read as no overlap (kb/Work PB3612)",
                overlap_four == ["src/code.cs"] and len(overlap_unreadable) == 1 and "could not be listed" in overlap_unreadable[0],
