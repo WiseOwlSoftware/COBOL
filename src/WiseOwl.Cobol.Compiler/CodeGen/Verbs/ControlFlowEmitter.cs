@@ -440,7 +440,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
             brackets.Receive(lv.Var, () => set.StoreSetTarget(lv.Var, from));   // GR12: identified as it is set (kb/Work PB2078)
             return;
         }
-        string guard = set.LandAmount(from, SetAmountRule.IndexTo, "PERFORM VARYING … FROM", out string tmp, "pv");
+        string guard = set.LandAmount(from, SetAmountRule.IndexTo, "PERFORM VARYING index-name FROM", out string tmp, "pv");
         using (ctx.Writer.Block($"if ({guard})"))
         {
             // ⛔ THE GUARD ASKS THE RULE'S QUESTION, NOT THE NODE'S C# TYPE (kb/Work PB439). GR3's premise is
