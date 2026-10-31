@@ -386,7 +386,7 @@ public abstract class CobolParserCoreBase : Parser
         // exactly as reservedHere does, so composing the overlay twice would double-count it.
         => Canonical(keyword) is not { } w || ReservedWordSet.Default.AdmitsAsUserWord(w, Edition);
 
-    /// <summary>The reservation-gated words this parse matched in a DEFINITION slot (the generated
+    /// <summary>The reservation-gated words this parse matched in a user-defined-word slot (the generated
     /// <c>reservedGatedWord</c> rule's action, <see cref="gatedDeclaration"/>) that this compile ADMITS as user-defined
     /// words (<see cref="userWordHere"/>) — the input of the token-level §8.9 gate, <see cref="ReservationGateRewriter"/>
     /// (kb/Work PB655). Upper-case, canonical spelling. Cleared by <see cref="Reset"/>, so each parse pass reports its own.</summary>
@@ -394,10 +394,12 @@ public abstract class CobolParserCoreBase : Parser
 
     private HashSet<string>? _freeGatedDeclarations;
 
-    /// <summary>The <c>reservedGatedWord</c> action: <paramref name="word"/> was DECLARED — every use of that rule is a
-    /// definition slot (VersionConformancePass.VisitReservedGatedWord relies on the same fact). Recorded only when
-    /// §8.9 leaves it free here; where §8.9 reserves it the match stands and the funnel answers COBOL0901.
-    /// Actions never run during prediction.</summary>
+    /// <summary>The <c>reservedGatedWord</c> action: <paramref name="word"/> was read as a USER-DEFINED WORD — every use
+    /// of that rule is a user-defined-word slot (VersionConformancePass.VisitReservedGatedWord relies on the same fact):
+    /// a definition slot, or <c>procedureName</c>, whose REFERENCES match the word only where the full-context parse
+    /// found no keyword reading of it that parses — the evidence <see cref="NoteGatedOffender"/> takes from a syntax
+    /// error (kb/Work PB4206). Recorded only when §8.9 leaves it free here; where §8.9 reserves it the match stands and
+    /// the funnel answers COBOL0901. Actions never run during prediction.</summary>
     protected void gatedDeclaration(IToken? word)
     {
         if (word?.Text is { Length: > 0 } t && userWordHere(t))

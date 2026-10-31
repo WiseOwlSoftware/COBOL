@@ -2766,14 +2766,15 @@ internal sealed class VersionConformancePass
                 ReservedWordSet.UserWordViolationMessage(word, _p._edition.Year), "", "ISO §8.9"));
         }
 
-        /// <summary>kb/Work PB137/PB300/PB693: the generated <c>reservedGatedWord</c> rule keeps a DECLARATION of
-        /// a reservation-gated word parseable at the editions where §8.9 reserves it, precisely so this funnel can
-        /// NAME the word — it bypasses cobolWord entirely, so the §8.9 check must meet it here.
+        /// <summary>kb/Work PB137/PB300/PB693/PB4206: the generated <c>reservedGatedWord</c> rule keeps a reservation-gated
+        /// word parseable in a USER-DEFINED-WORD slot (a declaration, or a procedure-name reference) at the editions where
+        /// §8.9 reserves it, precisely so this funnel can NAME the word — it bypasses cobolWord entirely, so the §8.9
+        /// check must meet it here.
         /// <para>⛔ SLOT-LIST-FREE AND WORD-LIST-FREE BY CONSTRUCTION. The arm hangs on the SHARED RULE, not on
-        /// the slots that use it: every use of <c>reservedGatedWord</c> is a definition slot by construction (the
+        /// the slots that use it: every use of <c>reservedGatedWord</c> is a user-defined-word slot by construction (the
         /// rule exists only to re-admit a word §8.9 forbids as a user-defined word, so its presence in the tree IS
-        /// the §8.3.2.1 rule-1 violation), which is why <c>dataName</c> and <c>programName</c> both get their 0901
-        /// with no second override — and why the NEXT definition slot needs no C# at all (CLAUDE.md rule 5). It
+        /// the §8.3.2.1 rule-1 violation), which is why <c>dataName</c>, <c>programName</c> and <c>procedureName</c> all
+        /// get their 0901 with no second override — and why the NEXT such slot needs no C# at all (CLAUDE.md rule 5). It
         /// was <c>VisitDataName</c>, reading <c>ctx.reservedGatedWord()</c>, and before that a hand-written
         /// <c>ctx.COMMIT() is not null ? "COMMIT" : …</c> word list that had already gone stale (CRT/CURSOR).
         /// Every alternative of the rule is a SINGLE token, so the subrule's own text IS the word.</para>
