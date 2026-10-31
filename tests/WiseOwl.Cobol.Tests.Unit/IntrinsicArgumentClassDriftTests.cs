@@ -151,7 +151,7 @@ public sealed class IntrinsicArgumentClassDriftTests
         {
             Assert.True(File.Exists(TestRepo.SuiteCase(name)), $"{name}.cob missing");
             Assert.True(refusals.ContainsKey(name),
-                $"{name} has no entry in conformance-suite/wiseowl/diagnostics.json — it would never be refused");
+                $"{name} has no file in conformance-suite/wiseowl/diagnostics/ — it would never be refused");
         }
     }
 

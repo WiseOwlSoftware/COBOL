@@ -1564,8 +1564,9 @@ def self_test() -> int:
 
         commit('src/A.cs', 'class Alpha {}\n', 'base')
         # kb/Work PB3713: a keyed catalogue (merge_drivers merges it by key) the LANDED proof merges through the drivers
-        keyed = lambda *ks: '{\n' + ',\n'.join(f' "{k}": {{\n  "refuse-at": [\n   "85"\n  ]\n }}' for k in ks) + '\n}\n'  # noqa: E731
-        commit('.gitattributes', 'd.json merge=cobol-keyed-object\n', 'the driver attribute')
+        keyed = lambda *ks: ('{\n "constructs": [\n' + ',\n'.join(f'  {{\n   "id": "{k}",\n   "refuse-at": "85"\n  }}' for k in ks)  # noqa: E731
+                             + '\n ]\n}\n')
+        commit('.gitattributes', 'd.json merge=cobol-keyed-constructs\n', 'the driver attribute')
         commit('d.json', keyed('a', 'c'), 'the catalogue')
         scratch.origin(tmp / 'origin.git')
         scratch.git('push', '-q', 'origin', 'main')

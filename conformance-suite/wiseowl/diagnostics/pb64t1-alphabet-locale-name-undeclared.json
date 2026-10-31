@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "COBOL1664: ALPHABET SWE IS LOCALE SV: 'SV' is not a locale-name declared by a SPECIAL-NAMES LOCALE clause (ISO §12.3.7.3 SR24 — locale-name-2 shall be a locale-name defined by the LOCALE clause); declared: ES"}

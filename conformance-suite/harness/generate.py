@@ -25,7 +25,7 @@ WHAT IT WRITES (build output, never committed; `.gitignore` names `conformance-s
   suites/<edition>/manifest.json  the suite of that edition: every portable test of `cases/` (not `_unassigned/`, not
                                   `portable: unverified`) that is accepted or flagged there, with its expectation.
   suites/wiseowl/manifest.json    everything WiseOwl COBOL runs: every test of both trees at every edition it names,
-                                  portable or not, and `wiseowl/diagnostics.json`'s refusals (§4).
+                                  portable or not, and `wiseowl/diagnostics/`'s refusals (§4).
   suites/completeness.json        the completeness report (below), which it also prints.
 `--out DIR` writes the same tree to DIR instead: WiseOwl's in-process runner (S1c) generates into a directory of its
 own, so a test run never rewrites the repository's `suites/` under a concurrent `run.py`. Whichever directory it
@@ -72,13 +72,17 @@ CONSTRUCTS_PATH = REPO / "tests" / "version-matrix" / "constructs.json"
 RESERVED_WORDS_PATH = REPO / "tests" / "version-matrix" / "reserved-words.json"
 SPEC_PATH = REPO / "specs" / "ISO_COBOL.md"
 IMPLEMENTOR_DEFINED_PATH = SUITE / "implementor-defined.json"
-DIAGNOSTICS_PATH = SUITE / "wiseowl" / "diagnostics.json"
-OPTIONS_PATH = SUITE / "wiseowl" / "options.json"
+#: WiseOwl's refusals and compile options, ONE FILE PER TEST (§4): a landing that adds a refusal adds a file no other
+#: landing touches, so no two branches edit one shared registry and no merge driver is needed (kb/Work PB4147).
+DIAGNOSTICS_DIR = SUITE / "wiseowl" / "diagnostics"
+OPTIONS_DIR = SUITE / "wiseowl" / "options"
 #: A `build` step that stands for the test's own source (§3.1).
 SELF_STEP = "{self}"
+#: A problem found while reading the registries, before any test is read: (the file's path relative to the suite, what is wrong).
+Problem = tuple[str, str]
 #: A `build` step's output base name: the assembly's file name without `.dll`.
 OUTPUT_BASE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._ -]*$")
-#: wiseowl/options.json (§4): the WiseOwl compile options a WiseOwl test may need, and each one's values (the `cobol`
+#: wiseowl/options/ (§4): the WiseOwl compile options a WiseOwl test may need, and each one's values (the `cobol`
 #: command's --sign-encoding, --numeric-display and --flag-extensions). Only a test of the wiseowl tree may name one.
 WISEOWL_OPTIONS = {"sign-encoding": ("ibm", "ascii"), "numeric-display": ("decimal", "digits"), "flag-extensions": ("on", "off"),
                    "repository-update": ("on", "off")}
@@ -191,7 +195,7 @@ class Inputs:
     requirable: frozenset[str]
     #: Annex A.1 item -> the values the standard enumerates for it (implementor-defined.json).
     implementor_defined: dict[int, tuple[str, ...]]
-    #: wiseowl/diagnostics.json: test id -> {"refuse-at": [...], "expect": "..."}.
+    #: wiseowl/diagnostics/<id>.json: test id -> {"refuse-at": [...], "expect": "..."}.
     diagnostics: dict[str, dict[str, Any]]
     #: The two evidence predicates of the report, injectable so the self-test can drive every witness kind.
     determined: Callable[[dict[str, Any]], bool]
@@ -202,7 +206,8 @@ class Inputs:
     #: edition does not reserve: the uses of a user-defined word a compiler's added reserved word can stop (ISO 4.2.10).
     reserved: dict[str, frozenset[str]] = field(default_factory=dict)
     keywords: frozenset[str] = frozenset()
-    #: wiseowl/options.json: test id -> {option: value}, the WiseOwl compile options of a WiseOwl test.
+    #: wiseowl/options/<id>[.<step file>].json: test id (or `<id>/<step file>`) -> {option: value}, the WiseOwl compile
+    #: options of a WiseOwl test.
     options: dict[str, dict[str, str]] = field(default_factory=dict)
 
     @property
@@ -559,7 +564,7 @@ class Reader:
         elif marks:
             self.refuse(rel, marks[0], "a marked line `<<` in a test that is not flagged")
         # COPY of an undeclared copybook (§4). A test that is neither accepted nor flagged is one WiseOwl only refuses
-        # (wiseowl/diagnostics.json): it never runs, and a library text that is not available can be what it
+        # (wiseowl/diagnostics/): it never runs, and a library text that is not available can be what it
         # witnesses (ISO 7.2.3.4 GR 2: library-name-1 "names a resource that shall be available to the compiler").
         declared = set(case.files)
         copies = self._all_copies(case, tokens)
@@ -735,8 +740,8 @@ def check_cases(reader: Reader) -> None:
         rel = case.path
         has_diagnostic = case.test_id in inputs.diagnostics
         if not case.accept and case.flag is None and not has_diagnostic:
-            reader.refuse(rel, 1, "the test is neither accepted nor flagged anywhere, and wiseowl/diagnostics.json "
-                                  "has no entry for it")
+            reader.refuse(rel, 1, "the test is neither accepted nor flagged anywhere, and wiseowl/diagnostics/ "
+                                  "has no file for it")
         if case.flag is not None and set(case.flag.at) & set(case.accept):
             both = sorted(set(case.flag.at) & set(case.accept), key=inputs.editions.index)
             reader.refuse(rel, 1, f"accepted and flagged at {', '.join(both)}")
@@ -782,30 +787,30 @@ def check_cases(reader: Reader) -> None:
                 reader.refuse(rel, 1, f"requires names {name!r}, not an Annex A.4 module `A.4.<n>` or an Annex A.3 "
                                       f"element `A.3-<n>` of the standard")
         _check_outputs(reader, case)
-    # wiseowl/diagnostics.json (§9).
+    # wiseowl/diagnostics/ (§9): one file per refused test.
     for test_id, entry in inputs.diagnostics.items():
+        where = sidecar_path(DIAGNOSTICS_DIR, test_id)
         case = by_id.get(test_id)
         if case is None:
-            reader.refuse(DIAGNOSTICS_PATH.relative_to(SUITE), 1, f"an entry for {test_id!r}, which is no test")
+            reader.refuse(where, 1, f"an entry for {test_id!r}, which is no test")
             continue
-        at = entry.get("refuse-at")
-        expect = entry.get("expect")
+        at = entry.get("refuse-at") if isinstance(entry, dict) else None
+        expect = entry.get("expect") if isinstance(entry, dict) else None
         if not isinstance(at, list) or not at or not isinstance(expect, str) or not expect:
-            reader.refuse(DIAGNOSTICS_PATH.relative_to(SUITE), 1, f"{test_id}: an entry is {{\"refuse-at\": "
-                                                                  f"[<editions>], \"expect\": \"<code or text>\"}}")
+            reader.refuse(where, 1, f"{test_id}: an entry is {{\"refuse-at\": [<editions>], \"expect\": "
+                                    f"\"<code or text>\"}}")
             continue
         try:
             spelled = inputs.schema.spell_editions(at).split(inputs.schema.editions_sep)
         except ValueError as e:
-            reader.refuse(DIAGNOSTICS_PATH.relative_to(SUITE), 1, f"{test_id}: refuse-at: {e}")
+            reader.refuse(where, 1, f"{test_id}: refuse-at: {e}")
             continue
         if overlap := sorted(set(spelled) & set(case.accept), key=inputs.editions.index):
-            reader.refuse(DIAGNOSTICS_PATH.relative_to(SUITE), 1, f"{test_id}: WiseOwl refuses it at "
-                                                                  f"{', '.join(overlap)}, where the test must be "
-                                                                  f"accepted")
-    # wiseowl/options.json (§4): WiseOwl's compile options, for WiseOwl's own tests only.
-    where = OPTIONS_PATH.relative_to(SUITE)
+            reader.refuse(where, 1, f"{test_id}: WiseOwl refuses it at {', '.join(overlap)}, where the test must be "
+                                    f"accepted")
+    # wiseowl/options/ (§4): WiseOwl's compile options, for WiseOwl's own tests only, one file per test or build step.
     for test_id, entry in inputs.options.items():
+        where = sidecar_path(OPTIONS_DIR, test_id)
         case = by_id.get(test_id)
         if case is None and "/" in test_id:
             # `<id>/<step file>`: the options of one compilation step of a multi-unit test (§3.1 `build`).
@@ -829,7 +834,7 @@ def check_cases(reader: Reader) -> None:
                                             + ")")
     for case in reader.cases:
         if case.flag is not None and case.test_id not in inputs.diagnostics:
-            reader.refuse(case.path, 1, "a flagged test needs an entry in wiseowl/diagnostics.json: the editions at "
+            reader.refuse(case.path, 1, "a flagged test needs a file wiseowl/diagnostics/<id>.json: the editions at "
                                         "which WiseOwl COBOL refuses it and what it reports (§4, §9)")
 
 
@@ -1062,26 +1067,56 @@ def annex_names(spec_text: str) -> frozenset[str]:
     return frozenset(names)
 
 
-def load_implementor_defined(path: Path, rows: dict[str, dict[str, Any]]) -> tuple[dict[int, tuple[str, ...]], list[str]]:
+def sidecar_key(file_name: str) -> str:
+    """The key a one-file-per-test registry file (`wiseowl/diagnostics/`, `wiseowl/options/`) stands for: `<id>.json` is
+    `<id>`, and `<id>.<step file>.json` is `<id>/<step file>` (a build step of a multi-unit test, §3.1). A test id holds
+    no `.` (§3.1 `id`), so the first one begins the step file."""
+    test_id, _, step = file_name.removesuffix(".json").partition(".")
+    return f"{test_id}/{step}" if step else test_id
+
+
+def sidecar_path(directory: Path, key: str) -> Path:
+    """The file, relative to the suite, that holds `key`'s entry: the inverse of `sidecar_key`."""
+    return (directory / (key.replace("/", ".") + ".json")).relative_to(SUITE)
+
+
+def load_sidecars(directory: Path, suite: Path = SUITE) -> tuple[dict[str, Any], list[Problem]]:
+    """A one-file-per-test registry (§4): key -> the entry its file holds, and the problems of the directory (a file
+    that is not `<key>.json`, a subdirectory, a file that is not JSON). An absent directory holds no entry."""
+    entries: dict[str, Any] = {}
+    problems: list[Problem] = []
+    for f in sorted(directory.iterdir() if directory.is_dir() else (), key=lambda f: f.name):
+        where = f.relative_to(suite)
+        if not f.is_file() or f.suffix != ".json" or f.name.startswith("."):
+            problems.append((str(where), "a registry directory holds one `<test id>.json` per test and nothing else"))
+            continue
+        try:
+            entries[sidecar_key(f.name)] = json.loads(f.read_text(encoding="utf-8"))
+        except ValueError as e:
+            problems.append((str(where), f"is not JSON: {e}"))
+    return entries, problems
+
+
+def load_implementor_defined(path: Path, rows: dict[str, dict[str, Any]]) -> tuple[dict[int, tuple[str, ...]], list[Problem]]:
     """implementor-defined.json: the Annex A.1 items whose values the standard enumerates (§3.3), and its problems."""
-    problems: list[str] = []
+    problems: list[Problem] = []
     raw = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {"items": {}}
     items: dict[int, tuple[str, ...]] = {}
     for key, entry in raw.get("items", {}).items():
         values = entry.get("values")
         if not key.isdigit():
-            problems.append(f"implementor-defined.json: item {key!r} is an Annex A.1 item number")
+            problems.append((path.name, f"item {key!r} is an Annex A.1 item number"))
             continue
         if not isinstance(values, list) or len(values) < 2 or len(set(values)) != len(values) or not all(
                 isinstance(v, str) and re.match(r"^[a-z0-9]+(?:-[a-z0-9]+)*$", v) for v in values):
-            problems.append(f"implementor-defined.json: item {key} enumerates two or more distinct lower-case values")
+            problems.append((path.name, f"item {key} enumerates two or more distinct lower-case values"))
             continue
         row = entry.get("row")
         if row != f"DOC-A.1-{key}" or row not in rows:
-            problems.append(f"implementor-defined.json: item {key} names its inventory row DOC-A.1-{key}")
+            problems.append((path.name, f"item {key} names its inventory row DOC-A.1-{key}"))
             continue
         if not entry.get("citation"):
-            problems.append(f"implementor-defined.json: item {key} cites the rule that enumerates its values")
+            problems.append((path.name, f"item {key} cites the rule that enumerates its values"))
             continue
         items[int(key)] = tuple(values)
     return items, problems
@@ -1129,16 +1164,17 @@ def repository_inputs() -> tuple[Inputs, list[str]]:
     constructs = {c["id"]: (int(c["introducedIn"]), int(c["removedIn"]) if c.get("removedIn") else None)
                   for c in json.loads(CONSTRUCTS_PATH.read_text(encoding="utf-8"))["constructs"]}
     a1, problems = load_implementor_defined(IMPLEMENTOR_DEFINED_PATH, rows)
-    diagnostics = json.loads(DIAGNOSTICS_PATH.read_text(encoding="utf-8")) if DIAGNOSTICS_PATH.is_file() else {}
-    options = json.loads(OPTIONS_PATH.read_text(encoding="utf-8")) if OPTIONS_PATH.is_file() else {}
+    diagnostics, bad_diagnostics = load_sidecars(DIAGNOSTICS_DIR)
+    options, bad_options = load_sidecars(OPTIONS_DIR)
+    problems += bad_diagnostics + bad_options
     register = schema.register_items()
     spec = SPEC_PATH.read_text(encoding="utf-8")
     inputs = Inputs(
         schema=schema, rows=rows, constructs=constructs, requirable=annex_names(spec),
-        implementor_defined=a1, diagnostics={k: v for k, v in diagnostics.items() if not k.startswith("$")},
+        implementor_defined=a1, diagnostics=diagnostics,
         determined=lambda row: schema.anchor_for(row) is not None and row.get("rule-id") in register,
         derived=schema.derivation_stands, reserved=reserved_words(), keywords=standard_keywords(spec),
-        options={k: v for k, v in options.items() if not k.startswith("$")})
+        options=options)
     return inputs, problems
 
 
@@ -1159,8 +1195,8 @@ def generate(root: Path, inputs: Inputs, problems: list[str], out: Path | None,
     for rel in removed_corpus_files(root.parent):
         reader.refuse(f"../{rel}", 1, "a file under tests/conformance/, which the suite replaced (kb/Work PB3177): "
                                       "move the test into conformance-suite/cases/ (README, 'Adding a test')")
-    for p in problems:
-        reader.refuse(IMPLEMENTOR_DEFINED_PATH.name, 1, p)
+    for path, message in problems:
+        reader.refuse(path, 1, message)
     # The harness's configuration (§5): every adapter, profile and baseline, against what only the repository knows.
     for rel, message in config.check_tree(root, inputs.editions, inputs.requirable, inputs.implementor_defined,
                                           suite_ids(reader.cases, inputs.editions)):
@@ -1385,7 +1421,7 @@ def self_test() -> int:
                   and "build" not in w2023["own"], w2023["multi-tail"])
             check("arm: ... and all three are in the wiseowl manifest",
                   {"loose", "own"} <= set(w2023) and "unverified" in {t["id"] for t in mw["editions"]["85"]}, w2023)
-            check("arm: the wiseowl manifest carries diagnostics.json's refusals",
+            check("arm: the wiseowl manifest carries wiseowl/diagnostics/'s refusals",
                   mw["diagnostics"]["flagged"]["expect"] == "X1", mw["diagnostics"])
             check("arm: ... each with what compiles the refused program: its source, reference format and files",
                   {k: mw["diagnostics"]["free-flag"][k] for k in ("source", "source-format", "files", "refuse-at")}
@@ -1543,7 +1579,7 @@ def self_test() -> int:
                         _fixed(["id: undiagnosed", "rules: [SR-1.1.1-1]", "flag: {kind: syntax, at: [85]}",
                                 "control: ok", "source-format: fixed"],
                                _PROGRAM[:9] + ["<<         MOVE 1 TO W-A"] + _PROGRAM[9:]),
-                        "needs an entry in wiseowl/diagnostics.json"),
+                        "needs a file wiseowl/diagnostics/<id>.json"),
         "control without flag": ("cases/1.1.1-Rule/ctl-unflagged.cob",
                                  _fixed(["id: ctl-unflagged", "rules: [GR-1.1.1-1]", "accept: [85]", "control: ok",
                                          "source-format: fixed"], _PROGRAM), "this test is not flagged"),
@@ -1675,7 +1711,7 @@ def self_test() -> int:
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
         _plant(root, base | {path: text for path, text, _ in bad.values()})
-        rc_bad, reader = generate(root, _planted_inputs(diagnostics), ["implementor-defined.json: planted"], None,
+        rc_bad, reader = generate(root, _planted_inputs(diagnostics), [("implementor-defined.json", "planted")], None,
                                   echo=False)
         refused = [str(r) for r in reader.refusals]
         check("arm: a tree with refused tests is RED", rc_bad == 1)
@@ -1683,9 +1719,9 @@ def self_test() -> int:
             # A refusal is filed against the planted file, or against the folder holding it.
             hit = [r for r in reader.refusals if (path == r.path or path.startswith(r.path + "/")) and want in r.message]
             check(f"arm: {name} is refused ({want})", bool(hit), [r for r in refused if r.startswith(path)][:6])
-        check("arm: a diagnostics.json entry naming no test is refused",
+        check("arm: a wiseowl/diagnostics/ file naming no test is refused",
               any("an entry for 'ghost', which is no test" in r for r in refused), refused[:3])
-        check("arm: a diagnostics.json refusal where the test must be accepted is refused",
+        check("arm: a wiseowl/diagnostics/ refusal where the test must be accepted is refused",
               any("ok: WiseOwl refuses it at 85, where the test must be accepted" in r for r in refused))
         check("arm: a problem in implementor-defined.json is refused", any("planted" in r for r in refused))
         check("arm: a refused tree writes nothing", not (root / "suites").exists())
@@ -1693,6 +1729,27 @@ def self_test() -> int:
         rc_empty, reader = generate(Path(d), _planted_inputs({}), [], None, echo=False)
         check("arm: a tree with no cases/ is RED, never a GREEN over nothing",
               rc_empty == 1 and any("there is no cases/ tree" in r.message for r in reader.refusals))
+
+    # The one-file-per-test registries (kb/Work PB4147).
+    with tempfile.TemporaryDirectory() as d:
+        suite = Path(d)
+        registry = suite / "wiseowl" / "options"
+        registry.mkdir(parents=True)
+        for name, text in (("plain.json", '{"sign-encoding": "ascii"}'), ("multi.U1.cbl.json", '{"repository-update": "off"}'),
+                           ("broken.json", "{"), ("stray.txt", "")):
+            (registry / name).write_text(text, encoding="utf-8", newline="\n")
+        (registry / "sub").mkdir()
+        entries, bad = load_sidecars(registry, suite)
+        check("arm: a registry file <id>.json is the entry of <id>, and <id>.<step file>.json that of <id>/<step file>",
+              entries == {"plain": {"sign-encoding": "ascii"}, "multi/U1.cbl": {"repository-update": "off"}}, entries)
+        check("arm: ... a file that is not JSON, one that is not <key>.json and a subdirectory are problems, filed "
+              "against their own path",
+              sorted(p.replace("\\", "/") for p, _ in bad)
+              == ["wiseowl/options/broken.json", "wiseowl/options/stray.txt", "wiseowl/options/sub"], bad)
+        check("arm: ... an absent registry directory holds no entry",
+              load_sidecars(suite / "wiseowl" / "diagnostics", suite) == ({}, []))
+        check("arm: a key names its file and the file its key",
+              all(sidecar_key(sidecar_path(OPTIONS_DIR, k).name) == k for k in ("plain", "multi/U1.cbl")))
 
     # The program-text reader's own arms.
     def fixed_tokens(*lines: str) -> list[cobol.Token]:

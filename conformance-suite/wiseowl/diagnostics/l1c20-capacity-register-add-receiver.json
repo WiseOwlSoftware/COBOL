@@ -1,0 +1,1 @@
+{"refuse-at": ["2014", "2023"], "expect": "COBOL1523: the CAPACITY register 'T-CAP' shall not be a receiving operand except in a SET statement Format 14"}

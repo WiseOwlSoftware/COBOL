@@ -1,0 +1,1 @@
+{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "COBOL0881: data item 'M': a PICTURE clause shall be specified for an elementary item"}

@@ -3259,7 +3259,7 @@ already-derivable coverage; none change the pipeline.
   `cobol` and its lines name the compiler — `=== NIST (cobol): … ===` (PB750); it has no other arm (PB2109).
 - The conformance suite: `conformance-suite/cases/<clause>-<Name>/<id>.cob|.out` (WiseOwl's own behaviour in
   `wiseowl/cases/`), each with a metadata header (`rules`, `accept`, `source-format`); refused programs are
-  `wiseowl/diagnostics.json` entries (`refuse-at`, `expect`); `python conformance-suite/harness/generate.py --check`
+  `wiseowl/diagnostics/<id>.json` files (`refuse-at`, `expect`); `python conformance-suite/harness/generate.py --check`
   is the audit, `ConformanceSuiteTests` the runner (conformance-suite/README.md; kb/Work PB3177). Matrix rows: `tests/version-matrix/constructs.json` (+
   `reserved-words.json`); regen `.g.cs` via `scripts/gen-constructs.ps1` / docs via `gen-vcr.ps1`,
   `gen-diagnostics-doc.ps1`.

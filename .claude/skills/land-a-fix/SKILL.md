@@ -53,8 +53,9 @@ The exact section AND rule number (`§14.9.24 GR4d`), not "per the spec".
 - A test is `conformance-suite/cases/<ISO clause>-<Name>/<id>.cob` opening with its metadata header (`id`, `rules`,
   `accept`, `source-format`, `files`; `conformance-suite/README.md`, 'Adding a test') and its `<id>.out`. There is
   no manifest: the generator reads the header, and the suite runner (`ConformanceSuiteTests`) runs every test.
-- A program WiseOwl must refuse names no `accept` edition and gets its entry in
-  `conformance-suite/wiseowl/diagnostics.json` (`refuse-at`, `expect`: the code or a message substring).
+- A program WiseOwl must refuse names no `accept` edition and gets a file of its own,
+  `conformance-suite/wiseowl/diagnostics/<test id>.json` = `{"refuse-at": [<editions>], "expect": "<code or a message substring>"}`
+  (one file per refusal, so two landings never edit one file: kb/Work PB4147).
 - A test of WiseOwl's own behaviour (documented non-support, a WiseOwl option) goes in `wiseowl/cases/`.
 
 `python conformance-suite/harness/generate.py --check` refuses a malformed header, an undeclared file and any file

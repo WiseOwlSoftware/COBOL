@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "COBOL0822: interface 'I1784P': a second method prototype named 'PING'"}

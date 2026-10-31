@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "COBOL1512: WRITE on file 'RELF': the WITH LOCK phrase may not be specified when the file's LOCK MODE is AUTOMATIC"}
