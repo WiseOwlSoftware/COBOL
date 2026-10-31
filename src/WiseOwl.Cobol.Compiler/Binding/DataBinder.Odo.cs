@@ -406,7 +406,7 @@ public sealed partial class DataBinder
             // A name the report section declares is not undefined (kb/Work PB1046): §13.8.6.2.3 bars this clause, of a
             // section other than the report section, from referring to a report item. Asked for a reference that reaches no
             // data item or several (a declaration's is asked by each clone, below), before the ambiguity, which it leaves
-            // standing unless a report entry of a NEARER source element hides the data items (kb/Work PB3767's one order,
+            // standing unless a report entry of a NEARER source element hides the data items (kb/Work PB3767's order, kept by the lookup itself since PB4196,
             // ISO §8.4.6.2.1 3) a)).
             if (!declaration && tier.Count != 1
                 && ReportEntryReferenceRefused(tier, $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}'", depName, spec.DependingQualifiers))
