@@ -28,15 +28,17 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// four editions, so its expected set holds the 2002 boolean operators at COBOL-85 and the 2023 shift operators below
 /// 2023 — words ISO §8.9 has not reserved there, which §8.3.2.1 makes user-defined words. A keyword is named only where
 /// <c>theEditionPrints</c> says a general format of the compile edition can print it
-/// (<c>CobolParserCoreBase.PrintsKeyword</c>: not a word the §8.9 table proves a LATER edition introduced; the
-/// §8.10 context-sensitive words carry no per-edition flag and are named at every edition); the symbols and literal
-/// categories carry no edition and are named as the parse takes them.</para>
+/// (<c>CobolParserCoreBase.PrintsKeyword</c>: not a word the §8.9 table or the §8.10 row's <c>Introduced</c> edition
+/// proves a LATER edition introduced); the symbols and literal categories carry no edition and are named as the parse
+/// takes them.</para>
 /// <para>Three shapes, one rule (ISO §5.2.1: the elements of a general format are written in its sequence):</para>
 /// <list type="bullet">
 ///   <item><b>A closed position</b>: everything it expects can be named — no user-defined word, no separator period
-///         (the construct cannot end here), no statement (a position where a statement may begin expects every
-///         statement, and the imperative-statement arms own it). The refusal names all of it: <c>MEMORY SIZE 12 FOO</c>
-///         expects CHARACTERS, MODULES or WORDS; <c>SEGMENT-LIMIT IS .</c> an integer literal.</item>
+///         (the construct cannot end here), no statement (a position where a statement may begin expects EVERY
+///         statement's opening word, and the imperative-statement arms own it; one verb that another clause shares,
+///         DISPLAY among the USAGE keywords, makes no statement position, kb/Work PB4201). The refusal names all of it:
+///         <c>MEMORY SIZE 12 FOO</c> expects CHARACTERS, MODULES or WORDS; <c>SEGMENT-LIMIT IS .</c> an integer
+///         literal; <c>USAGE 5</c> the usage keywords.</item>
 ///   <item><b>A literal at an open position that takes an operand</b> (a user-defined word or some literal): the
 ///         literals it expects are named, or that it expects none (<c>SET W-N TO "A"</c> expects a numeric literal,
 ///         never an alphanumeric one; <c>CALL "P" RETURNING 5</c> no literal).</item>
@@ -138,7 +140,7 @@ internal static class AdmittedKinds
         Func<string, bool> theEditionPrints)
     {
         bool open = admitted.Contains(CobolLexer.IDENTIFIER) || admitted.Contains(CobolLexer.DOT)
-                    || admitted.Contains(TokenConstants.EOF) || admitted.And(statementStart).Count > 0;
+                    || admitted.Contains(TokenConstants.EOF) || BeginsAStatement(admitted, words, statementStart);
         var wordNames = new SortedSet<string>(words.Where(theEditionPrints), CobolNames.Comparer);
         var literals = new List<string>();
         var symbols = new List<string>();
@@ -163,6 +165,23 @@ internal static class AdmittedKinds
             else Add(symbols, $"'{spelling}'");
         }
         return new([.. wordNames], literals, symbols, open);
+    }
+
+    /// <summary>⛔ A POSITION WHERE A STATEMENT MAY BEGIN EXPECTS EVERY STATEMENT'S OPENING WORD, not one of them (kb/Work
+    /// PB4201). A verb that is also a word of another clause (DISPLAY, the USAGE keyword; INDEX, SET's and SEARCH's)
+    /// puts one token in both sets, and that overlap said nothing about the position: <c>USAGE 5</c> expects the usage
+    /// keywords, DISPLAY among them, so it counted as a statement position, took the open path and drew the bare
+    /// COBOL0001. A block begun at the token expects all of <paramref name="statementStart"/>
+    /// (<c>OffendingPosition.EmptyBlockOwner</c> tests the same containment); a start the position does not ADMIT but
+    /// whose word a text predicate tested (<paramref name="words"/>: a verb of a declined or gated facility, COMMIT,
+    /// SEND) is still one it expects.</summary>
+    private static bool BeginsAStatement(IntervalSet admitted, IReadOnlyCollection<string> words, IntervalSet statementStart)
+    {
+        if (statementStart.Count == 0) return false;
+        var tested = new HashSet<int>();
+        foreach (string word in words)
+            if (CobolKeywordTokens.TryTokenType(word, out int type)) tested.Add(type);
+        return statementStart.ToIntegerList().TrueForAll(type => admitted.Contains(type) || tested.Contains(type));
     }
 
     private static void Add(List<string> list, string name)
