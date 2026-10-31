@@ -1,4 +1,4 @@
-## SET quotes its sender and amount as written, so a bare ZERO prints as ZERO (PB4209)
+## Entry 2866 — 2026-10-31 12:00 PDT — SET quotes its sender and amount as written, so a bare ZERO prints as ZERO (PB4209)
 
 **Mechanism (PB4209, the SET sibling of PB3961).** `ZeroTokenRewriter` gives a bare ZERO in an arithmetic slot the token text "0" on
 purpose, and `GetText()` glues tokens with no separators. The SET diagnostics built their sender from `GetText()`: `SET N TO ZERO` was
@@ -22,3 +22,4 @@ returning to `amount.GetText()` / `dref.GetText()` as a sender.
 **Sibling sweep.** The other `{x.GetText()}` message sites of the Compiler assembly were swept by PB3961; the SET family's own are all
 receiver names, keywords or locale words. Left unfixed and registered as leads: EVALUATE `WHEN '{item.GetText()}'`, OoBinder BY CONTENT
 `{bx.GetText()}`, MoveBinder `{move.GetText()}` (all quote an operand node by token text).
+
