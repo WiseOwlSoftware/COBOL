@@ -7,9 +7,10 @@
 *> kb/Work PB3338 - ISO 12.4.6.3.3 SR1: "File-name-1 shall be specified in the FILE-CONTROL paragraph of the source
 *> element that contains this clause."
 *> The shape: a contained program's APPLY COMMIT clause names RELF, a file of its CONTAINING program's FILE-CONTROL
-*> paragraph (not GLOBAL, so not visible to the contained program at all). An APPLY COMMIT operand is looked up only in
-*> the element that writes the clause, so the only refusal this program can draw is that the operand resolves to nothing
-*> there (COBOL1639, "no declaration in this source element"). Fails if the clause is accepted.
+*> paragraph (not GLOBAL, so not visible to the contained program at all). The clause names a file this element's
+*> FILE-CONTROL paragraph does not specify, so it is refused under SR1, COBOL4709 (kb/Work PB3557: it used to draw
+*> COBOL1639, an undefined data-name, and the descriptor's SR1 report had no code path). Fails if the clause is accepted
+*> or refused otherwise.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3338S1.
        ENVIRONMENT DIVISION.
