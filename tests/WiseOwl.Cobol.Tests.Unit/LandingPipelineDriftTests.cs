@@ -436,7 +436,7 @@ public sealed class LandingPipelineDriftTests
             "land: bringing main in changed a file the branch also changes (a clean textual merge in shared.txt): the "
                 + "one gate runs ONCE on the merged head",
             "land: bringing main in over files the branch does not change runs no gate",
-            "merge_overlap: a file a merge driver merges by key (diagnostics.json, a work note) and one no test reads",
+            "merge_overlap: a file a merge driver merges by key (constructs.json, a work note) and one no test reads",
             // MANDATORY-PRACTICES I10, L9 (kb/Work PB3027): only a tip its CLEAN review stamp covers lands
             // kb/Work PB3849: a commit that changes only a kb/Work note is covered like the DEVLOG entry
             "review: a tip that moved after its CLEAN review only by main's commits, a clean merge of main, a "

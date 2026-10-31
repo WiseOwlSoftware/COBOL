@@ -1,0 +1,1 @@
+{"refuse-at": ["2023"], "expect": "COBOL1597: an exception-checking (Format-3) PERFORM requires at least one WHEN"}

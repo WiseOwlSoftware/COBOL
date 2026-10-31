@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "(18,39): error COBOL0900: a STRING statement with the DELIMITED phrase omitted"}

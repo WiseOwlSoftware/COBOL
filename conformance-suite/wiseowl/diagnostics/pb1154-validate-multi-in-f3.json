@@ -1,0 +1,1 @@
+{"refuse-at": ["2023"], "expect": "COBOL1607: a VALIDATE naming more than one identifier shall not appear within an exception-checking PERFORM"}

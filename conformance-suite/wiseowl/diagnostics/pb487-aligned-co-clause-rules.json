@@ -1,0 +1,1 @@
+{"refuse-at": ["2014", "2023"], "expect": "COBOL1563: data item 'A': with the DYNAMIC LENGTH clause the only other clauses permitted are"}

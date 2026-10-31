@@ -176,6 +176,10 @@ LANE_SKILLS = {
 }
 
 
+#: The loop's agent sessions that are not units: review_lane.py marks each one it starts with its LANE_UNIT (kb/Work PB4070).
+LANE_AGENT_UNITS = ("review-lane",)
+
+
 def skills_block(source: str, lane: str) -> str:
     """The SKILLS block that heads the hook's context: what to load now, by how the session started and its lane."""
     head = "SKILLS (owner 2026-10-08: every session start and resume loads them)."
@@ -183,6 +187,9 @@ def skills_block(source: str, lane: str) -> str:
         unit = lane.split(":", 1)[1]
         if unit == "meter":
             return f"{head} Loop unit `meter`: your unit prompt skips `session-start`; follow it.\n\n"
+        if unit in LANE_AGENT_UNITS:
+            return (f"{head} Loop lane agent `{unit}`: your prompt and your role's definition are your whole task; invoke "
+                    "no skill (kb/Work PB3780: no dispatched agent loads one). Arm no inbox watcher.\n\n")
         return (f"{head} Loop unit `{unit}`: 1. invoke `session-start` first (your unit prompt says the same); 2. the "
                 f"skills your unit prompt names (`workstream` for land and wave units). Arm no inbox watcher.\n\n")
     lane_line = LANE_SKILLS.get(lane, LANE_SKILLS["unknown"])
@@ -213,6 +220,12 @@ def _self_test() -> int:
     wave = skills_block("startup", "loop:wave")
     check("a wave unit loads session-start then workstream, and arms no watcher",
           "`session-start` first" in wave and "`workstream`" in wave and "Arm no inbox watcher" in wave)
+    sys.path.insert(0, str(REPO / "scripts" / "orchestrator"))
+    import review_lane
+    agent = skills_block("startup", f"loop:{review_lane.LANE_UNIT}")
+    check("a review-lane agent (the unit type its runner exports) loads no skill and arms no watcher (kb/Work PB4070)",
+          review_lane.LANE_UNIT in LANE_AGENT_UNITS and "invoke no skill" in agent and "Arm no inbox watcher" in agent
+          and "`session-start` first" not in agent)
     check("a solo session has no mailbox to watch", "watcher" not in skills_block("startup", "solo"))
     check("an unreadable lane falls back without a watcher claim", "mailbox.py status" in skills_block("resume", "bogus"))
     check("session_lane never raises", isinstance(session_lane(), str))

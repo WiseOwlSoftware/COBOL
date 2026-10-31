@@ -1,0 +1,4 @@
+## Entry 2826 — 2026-10-30 19:33 PDT — Review rule: repeated work in tests and gates is a duplication finding
+
+The owner, on seeing ConformanceSuiteRunnerDriftTests grade the whole conformance suite twice more in every gate (kb/Work PB4182): "I don't understand why we keep doing repeated work", then "make it a standing review rule". The review skill's duplication dimension now says a test or gate step that recomputes what another step in the same run already produced is a finding (category duplication), with its cost as the failure scenario; agreement of two mechanisms is tested with a fixture covering every path both implement, and a whole-population cross-check runs once in CI. The branch review applies it to every new or changed test.
+

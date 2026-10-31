@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "COBOL1670: SYMBOLIC CHARACTERS SN IS 4294967297: the ordinal position does not exist in the native character set"}
