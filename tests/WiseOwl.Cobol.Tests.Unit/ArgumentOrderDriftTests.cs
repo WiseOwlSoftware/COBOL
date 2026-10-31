@@ -106,6 +106,30 @@ public sealed class ArgumentOrderDriftTests
             reads);
     }
 
+    /// <summary>⛔ A table(ALL) ARGUMENT IS AN ARGUMENT OF THE LIST LIKE ANY OTHER, AND HAS A HELD FORM (kb/Work PB4162). ISO §15.3 14)
+    /// makes <c>T (ALL)</c> "as if each table element associated with that subscript position were specified", each evaluated at its
+    /// place in the list (§8.4.3.2.4 GR2). The enumeration the backend renders where the call renders would read the table AFTER a later
+    /// argument's activation, so the operand is recorded in the window where it is built (<c>IntrinsicBinder.TryBindAllArgument</c>) and
+    /// held by the one holder (<c>ArgumentOrder</c> to <c>SendingValueTemp.MaterializeTableAll</c>); a third place that builds a
+    /// <c>TableAllPlace</c> would build one the window never sees.</summary>
+    [Fact]
+    public void ATableAllArgument_IsRecordedWhereItIsBuilt_AndHeldByTheOneHolder()
+    {
+        var builders = CompilerSources()
+            .Where(f => CodeOf(f).Contains("new TableAllPlace("))
+            .Select(Path.GetFileName)
+            .OrderBy(n => n, System.StringComparer.Ordinal)
+            .ToList();
+        Assert.Equal(["IntrinsicBinder.cs", "SendingValueTemp.cs"], builders);
+
+        Assert.Matches(@"new TableAllPlace\([^;]*;\s*args\.Add\(operand\);\s*host\.ArgOrder\.Record\(operand, before\);",
+            Verb("IntrinsicBinder.cs"));
+
+        string order = CodeOf(Path.Combine(CompilerDir, "Binding", "Procedure", "ArgumentOrder.cs"));
+        Assert.Matches(@"BoundFieldOperand \{ Place: TableAllPlace all \} => temps\.MaterializeTableAll\(all,", order);
+        Assert.DoesNotContain("TableAllPlace }))", order);   // the former guard that let a nested call naming ALL be held as a value
+    }
+
     [Fact]
     public void NoOtherBinder_BindsFunctionArgumentsOrOpensAWindow()
     {

@@ -858,7 +858,10 @@ a constant-name, on the literal §13.10.4 GR1/GR2 substitutes.
   value is read at the activation is stored into the §14.9.25.4 GR1 intermediate result item
   (`SendingValueTemp.Materialize`) at the position its own argument finished binding. A literal, a compiler temporary
   and a BY REFERENCE identifier of a user function (§8.4.3.2.4 GR6a: values are "made available … at the time control is
-  transferred") are not frozen. `ArgumentOrderDriftTests` pins the two entries and the one argument binder.
+  transferred") are not frozen. A table(ALL) argument (§15.3 14) is an argument of the list too: it is recorded where
+  `IntrinsicBinder.TryBindAllArgument` builds it and held as a table of its elements (`SendingValueTemp.MaterializeTableAll`,
+  `BoundHoldTableAll`; INTRINSICS_DESIGN.md). `ArgumentOrderDriftTests` pins the two entries, the one argument binder and the
+  table(ALL) record.
 - Argument/parameter count mismatch → EC-PROGRAM-ARG-MISMATCH (when checking enabled) or diagnostic; a missing parameter behaves as omitted.
 - **Argument DESCRIPTION conformance is ONE rule set, written once, for CALL, the function-identifier and INVOKE
   (§14.9.4.3 SR25 / §8.4.3.2.3 SR13 → §14.8.2; kb/Work PB133 → PB204 → PB165 → PB1418).** Wherever the activated
