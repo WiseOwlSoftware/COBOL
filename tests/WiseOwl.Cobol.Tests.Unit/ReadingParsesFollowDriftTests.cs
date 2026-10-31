@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// callers, and both are pinned here so a grammar change that breaks one fails by name rather than as a cascade
 /// diagnostic. The entry-name predicate (<c>entryNameHere</c>) asks for the no-entry-name reading of a WHOLE data
 /// description entry, which the FOLLOW test gives only while <c>dataDescriptionBody</c> is followed by the period
-/// alone. The error recovery (<c>LookaheadBeginsAStatementThatParses</c>) tells a reserved verb written as an operand
+/// alone. The error report and recovery (<c>BeginsAStatementThatParses</c>) tells a reserved verb written as an operand
 /// from one that begins the next statement by the token after the statement's prefix reading — <c>MOVE GOBACK TO
 /// W-X</c> stops at TO and <c>IF GOBACK = 1</c> at '=' — so neither may ever follow a statement, while the period's
 /// neighbours a statement really ends at (the next verb, a scope terminator, ELSE) must.</para>

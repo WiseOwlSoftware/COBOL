@@ -161,6 +161,93 @@ public sealed class ParseRecoveryUnitTailTests
         Assert.Contains("'W-N'", errors[1]);
     }
 
+    /// <summary>⛔ THE NEXT ENTRY OF THE SAME LIST IS PARSED AFRESH WHERE THE FAULTED ENTRY LACKS ITS PERIOD (kb/Work
+    /// PB4214). <c>01 X PIC X OCCURS "A" TIMES</c> has no period, so the discard of its tail ran to the period of the entry
+    /// after it and ate that entry whole: its own fault (<c>VALUE IS.</c>, no operand) was lost, two diagnostics where
+    /// three are due (the refused operand, the empty VALUE, the later MOVE). The discard stops at the next entry's level-number
+    /// when the level-number and the two tokens after it are what the entry list takes (<c>UnitTailDiscard.BeginsTheNextUnit</c>):
+    /// a named entry, FILLER, an entry with no name, a level-88 condition, whatever clause follows.</summary>
+    [Theory]
+    [InlineData("01 Y PIC 9 VALUE IS.")]
+    [InlineData("01 FILLER PIC 9 VALUE IS.")]
+    [InlineData("77 Y PIC 9 VALUE IS.")]
+    [InlineData("01 Y USAGE DISPLAY VALUE IS.")]
+    [InlineData("01 Y VALUE IS.")]
+    public void TheEntryAfterAFaultedEntryWithoutItsPeriod_IsParsedAfresh(string next)
+    {
+        string source = $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PRTAIL6.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 X PIC X OCCURS "A" TIMES
+            {next}
+            01 W-N PIC 9(4).
+            PROCEDURE DIVISION.
+                MOVE 1 W-N.
+
+            """;
+        var errors = RecoverySources.Errors(source);
+        Assert.True(errors.Count == 3, $"expected three diagnostics, got:\n{RecoverySources.Listing(errors)}");
+        Assert.Contains("'\"A\"'", errors[0]);
+        Assert.Contains("(6,", errors[1]);
+        Assert.Contains("'W-N'", errors[2]);
+    }
+
+    /// <summary>The integers of an entry's own tail are not the next entry's level-number (kb/Work PB4214): <c>OCCURS 2 STEP
+    /// 3</c> holds an integer, a word and an integer, and the pair the entry list takes at the 2 is a level-number and an
+    /// entry-name (STEP is a word behind a text predicate the walk does not run). A resumption there would parse
+    /// <c>STEP 3 …</c> as an entry of its own and report a second fault for the one. The refused operand sits BEFORE the
+    /// integers, so the discard passes through them: exactly one diagnostic for the entry, and the next entry is parsed
+    /// afresh.</summary>
+    [Theory]
+    [InlineData("01 X PIC X OCCURS \"A\" TO 2 STEP 3 TIMES.")]
+    [InlineData("01 X PIC X OCCURS \"A\" 2 STEP W-STEP.")]
+    [InlineData("01 X PIC X OCCURS \"A\" TO 3 STEP 2.")]
+    public void TheIntegersOfAnEntrysOwnTail_AreNotTheNextEntry(string entry)
+    {
+        string source = $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PRTAIL7.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 W-STEP PIC 9.
+            {entry}
+            01 W-N PIC 9(4).
+            PROCEDURE DIVISION.
+                DISPLAY W-N.
+
+            """;
+        var errors = RecoverySources.Errors(source);
+        Assert.True(errors.Count == 1, $"expected one diagnostic, got:\n{RecoverySources.Listing(errors)}");
+        Assert.Contains("'\"A\"'", errors[0]);
+    }
+
+    /// <summary>A unit that opens with SEVERAL token types (a sentence: any verb) never resumes at its own list's next
+    /// element (kb/Work PB4214): the sentence's next statement begins with a verb the sentence itself may hold, so the
+    /// discard of a faulted sentence still runs to its period and the sentence after it is parsed afresh.</summary>
+    [Fact]
+    public void ASentenceIsNotResumedAtItsOwnNextStatement()
+    {
+        var errors = RecoverySources.Errors(RecoverySources.Program(
+            "PERFORM \"A\" TIMES DISPLAY \"X\" MOVE 1 W-N END-PERFORM. MOVE 1 W-K W-N."));
+        Assert.True(errors.Count == 2, $"expected two diagnostics, got:\n{RecoverySources.Listing(errors)}");
+        Assert.Contains("'\"A\"'", errors[0]);
+        Assert.Contains("'W-K'", errors[1]);
+    }
+
+    /// <summary>The drift guard of the resumption (kb/Work PB4214): the data description entry opens with ONE token type
+    /// and the sentence with several, read from the ATN, so the rule that decides which units resume at their own list's
+    /// next element is not a list of rule names.</summary>
+    [Fact]
+    public void TheUnitsThatOpenWithOneToken_AreReadFromTheGrammar()
+    {
+        var atn = CobolParserCore._ATN;
+        int Opens(int rule) => atn.NextTokens(atn.ruleToStartState[rule]).Count;
+        Assert.Equal(1, Opens(CobolParserCore.RULE_dataDescriptionEntry));
+        Assert.True(Opens(CobolParserCore.RULE_sentence) > 1);
+    }
+
     /// <summary>The drift guard: the units whose tail the discard keeps are read from the ATN (the rules that end at a
     /// separator period), so an entry or paragraph the grammar adds is one the day it is added. The sentence and the
     /// entries of the data division are among them.</summary>

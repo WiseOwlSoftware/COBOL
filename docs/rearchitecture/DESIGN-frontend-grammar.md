@@ -419,26 +419,42 @@ so the loop ends; a program that declares no such word parses exactly once, and 
 are reported. Where §8.9 RESERVES the word nothing is retyped: a declaration or a procedure-name matches
 `reservedGatedWord` and `VersionConformancePass`'s funnel answers with the targeted COBOL0901 (`VisitReservedGatedWord`,
 which hangs on the RULE — a new user-defined-word slot needs no C#), and any other reference fails to parse and its
-syntax error is reported as COBOL0901 by `CobolErrorStrategy.ReservedWordUse` (below). The recovery from that report
-reads the same decision: `CobolErrorStrategy.ConsumeUntil` consumes the token the report named
-(`IsReportedReservedOperand`) as the operand it stood for before resynchronizing,
-because a reserved VERB (RECEIVE, SEND, VALIDATE) is in every statement-level recovery set and the base recovery resumed
-AT it, parsed it as its statement and refused the next token — `DISPLAY RECEIVE.` drew COBOL0901 and a second
-`unexpected '.'` (kb/Work PB3248; one occurrence, one §8.3.2.1 1) violation, one diagnostic). The same report fires at a
-verb that correctly begins the NEXT statement after an incomplete one (`MOVE W-X TO` then `RECEIVE FROM W-X GIVING W-Y
-W-N`), so the grammar tells the two apart: the word is consumed only when the statement it would begin does not parse
-(`CobolParserCoreBase.LookaheadBeginsAStatementThatParses`, a speculative `ParserInterpreter` parse of `statement` up to the
-separator period — the one helper, `ReadingParses`, that also answers `entryNameHere`'s clause reading); where it parses,
-the recovery resumes at it and the statement is read as written. The single-token deletion asks the same question
-(`IsReservedOperand`): it decides before its report is made, so it asks `ReservedWordUse` of the token's own position,
-which reads only the position (hint 13's test is `UnownedScopeTerminator`, shared, not read off the hints), and then the
-same statement test (`BeginsNoStatementThatParses`). A word the report will call a misplaced keyword (a stray scope
-terminator, a phrase word where no user-defined word can stand, kb/Work PB4132) is therefore never deleted as a refused
-name. It declines to delete a token that may follow the
-missing element (kb/Work PB4133, §3.11), and a reserved verb may follow a missing condition, as an inline PERFORM's first
-statement. So `PERFORM UNTIL RECEIVE W-X = 1 DISPLAY "X" END-PERFORM` kept the word and lost the PERFORM's reading, which
-drew a false COBOL5506 "expected TIMES" at DISPLAY. The decline therefore yields where the word is the operand: the
-deletion drops it, W-X stands in the condition, and the fault is the one COBOL0901.
+syntax error is reported as COBOL0901 by `CobolErrorStrategy.ReservedWordUse` (below). **The word class is the gated words AND the
+verbs (kb/Work PB4208).** A word `statement` can begin with (`CobolParserCoreBase.StatementOpeners`, read off the ATN) that §8.9
+reserves at this edition is the same misuse written as an operand whether or not the edition gates it: `MOVE CONTINUE TO W-X.`
+drew COBOL0001 and a COBOL2269 at TO (CONTINUE parses as a statement of its own, so the recovery resumed at it), `MOVE EVALUATE
+TO W-X.` three. Only a gated word or a verb is named so: a reserved word that begins no statement (`MOVE TO W-X.` misses its
+sender) keeps the strategy's own diagnosis. **The decision is ONE for the report and for every recovery of the word:** a verb
+that correctly begins the NEXT statement after an incomplete one (`MOVE W-X TO` then `RECEIVE FROM W-X GIVING W-Y W-N`) is not a
+misused name, the fault is the missing receiver (kb/Work PB4207), so `ReservedWordUse` also asks the grammar, never a list, whether
+the statement the word would begin is a complete reading (`CobolParserCoreBase.BeginsAStatementThatParses`, a speculative
+`ParserInterpreter` parse of `statement` from the OFFENDING token up to the separator period, which a failed prediction has not
+reached — the one helper, `ReadingParses`, that also answers `entryNameHere`'s clause reading). Where it parses the report is the
+ordinary one and the recovery resumes at the verb, the statement read as written; where it does not (`GOBACK` in `MOVE GOBACK TO
+W-X`, a prefix that stops at a token no statement is followed by) the word is the operand. **Three recoveries read that
+decision.** The resynchronization after the report (`ConsumeUntil`, `IsReportedReservedOperand`) consumes the word as the
+operand it stood for, before resynchronizing, because a verb is in every statement-level recovery set and the base recovery resumed
+AT it, parsed it as its statement and refused the next token — `DISPLAY RECEIVE.` drew COBOL0901 and a second `unexpected '.'`
+(kb/Work PB3248; one occurrence, one §8.3.2.1 1) violation, one diagnostic). The single-token deletion asks the same question
+(`IsReservedOperand`): it decides before its report is made, so it asks `ReservedWordUse` of the token's own position, which reads only
+the position (hint 13's test is `UnownedScopeTerminator`, shared, not read off the hints; and a word where a closed format's
+clause list stands, `ClosedFormatResidue`, is that format's own refusal, hint 0g, never a misused name: `PROPERTY WITH NO GET SET.`
+keeps its COBOL1941). A word the report will call a misplaced
+keyword (a stray scope terminator, a phrase word where no user-defined word can stand, kb/Work PB4132, the next statement's verb) is
+therefore never deleted as a refused name. The deletion declines to delete a token that may follow the missing element (kb/Work
+PB4133, §3.11), and a reserved verb may follow a missing condition, as an inline PERFORM's first statement. So `PERFORM UNTIL
+RECEIVE W-X = 1 DISPLAY "X" END-PERFORM` kept the word and lost the PERFORM's reading, which drew a false COBOL5506 "expected
+TIMES" at DISPLAY. The decline therefore yields where the word is the operand: the deletion drops it, W-X stands in the condition,
+and the fault is the one COBOL0901. **Where deletion cannot repair it the word is read as the name (kb/Work PB4218, single-token
+SUBSTITUTION, ANTLR's missing third repair).** When the word is the WHOLE operand (`PERFORM UNTIL RECEIVE = 1 DISPLAY "X"
+END-PERFORM`) nothing remains of the condition once it is dropped, the resynchronization stopped at the `1` (an integer begins a
+TIMES phrase), the PERFORM lost its UNTIL reading and the same false COBOL5506 followed. So after the report the word is retyped
+`IDENTIFIER` in the stream (`CobolParserCoreBase.ReadAsUserWord`, undone by the parser's `Reset` so no pass reads another's repair)
+and the parse goes on with the name the user wrote: in `SingleTokenDeletion` (the mismatch and the loop `Sync`, where the parse
+expects an `IDENTIFIER`), and in `Report` for a failed PREDICTION that died at the word ahead of the parser (`PERFORM VARYING RECEIVE
+FROM 1 …`: the recovery resumes at the decision's first token and re-parses the construct). Both only where the name lets the source
+go on (`OffendingPosition.NameLetsTheSourceContinue`: a walk that takes an `IDENTIFIER` at the word then the token after it);
+otherwise (`MOVE W-X TO` then `SEND TO W-X.`) the word is consumed as above.
 
 The same loop settles the one other token decision only the parse can make — is this figurative ZERO an arithmetic
 operand? (kb/Work PB3981, PB4120). A BARE figurative ZERO in a slot the grammar types arithmetic-expression alone
@@ -1866,6 +1882,16 @@ after it is never a resumption when the unit itself may hold the word (`TokensWi
 or a paragraph header, which no layout rule the parser knows tells apart, so a missing period before a paragraph header still
 costs the header (the sentences after it are parsed afresh). It is a resumption where the unit cannot hold the word at all
 (`PROGRAM-ID.` of a nested program). `ParseRecoveryUnitTailTests` pins the count of each row of the three notes.
+**The unit's own list resumes too, where the unit opens with ONE token (kb/Work PB4214).** The entry that follows a faulted entry
+without its period is the same list's next element, and the discard ate it up to ITS period: `01 X PIC X OCCURS "A" TIMES` then
+`01 Y PIC 9 VALUE IS.` drew two diagnostics where three are due, the fault in Y lost. A sentence cannot resume at its own list's next
+element (its next sentence begins with a verb the sentence itself may hold), so only a unit that opens with one token type
+(`UnitTailDiscard.SoleOpener`, read from the ATN: the level-number of an entry) is told from its own tail by that token. And the
+token alone is not enough, since the entry holds integers (`OCCURS 2 STEP 3`, STEP a word behind a text predicate the walk does not
+run): the opener and the two tokens after it must be what the unit's own follow takes, the head of an entry (`01 Y PIC`, `01 Y.`),
+walked with the error productions left out (`ResimulationWalk.After(…, skipsErrorProductions: true)`; a residue run takes any word, and
+`2 STEP W-STEP` would read as an entry with an unrecognized clause). A head the list does not take (`01 Y PIK 9.`) is not resumed at:
+that entry is eaten with the tail, as before. `ParseRecoveryUnitTailTests` pins the repro and the tail integers that must not resume.
 **What the one report reads (review R2).** Since the repeat is dropped, the first report must say everything it could:
 every hint reads the position's expected set (`OffendingPosition.Expected`) for every report kind, never the text of
 an exception's set, which a failed prediction does not carry. The expected-set guesses (the missing period COBOL0307,
