@@ -1,4 +1,4 @@
-## PB4352: a branch carried by a finished one no longer deadlocks the planner
+## Entry 2922 — 2026-11-01 00:52 PDT — PB4352: a branch carried by a finished one no longer deadlocks the planner
 
 The resume unit found two DECISION rows idle for more than five hours, each with one blocking branch-review finding
 (`worktree-wf_2201113e-54d-26`: PB4240 implements the keyword-folding direction the owner reversed; `-54d-29`: the
@@ -19,3 +19,4 @@ so the partition read its files as the work of the newest such branch, exempted 
 planned a second agent on a file a running one was editing. The guard now lives in `branch_carrier` (a branch in
 `LANDED_CLASSES` has no carrier, and git is not asked), where every other caller's class guard already pointed. Two
 checks in the PB4352 block fail without it and pass with it (506/506).
+
