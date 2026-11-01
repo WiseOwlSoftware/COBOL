@@ -46,11 +46,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
-# The former single Linux "guard" job ran five heavy activities BACK-TO-BACK (the serial NIST guard → greenfield
-# conformance → greenfield unit → CLI build → INV-1 sweep), so wall-clock was their SUM (~17 min). They are now
-# separate JOBS that run CONCURRENTLY (wall-clock = the slowest single job), the NIST regression is parallelised
-# across cores (guard-fast.sh), and NuGet packages are cached. All jobs are independent gates — a failure in one
-# is never masked by another.
+# The tests run as WEIGHTED SHARDS (kb/Work PB4329; the `linux-shard` and `windows-shard` jobs below): every shard job
+# runs every test assembly, and the test framework deals it the test classes of its shard by their measured weight,
+# so the merge group's wall clock is the slowest shard's and every shard is about equal. The NIST corpus through the
+# CLI (scripts/guard-fast.sh) runs in the nightly workflow (owner 2026-10-31, kb/Work PB4323 decision 2; PB4332). All
+# jobs are independent gates — a failure in one is never masked by another.
 #
 # ⛔ EVERY LINUX `dotnet test` STEP RUNS UNDER THE INERT WATCH (`python3 scripts/inert_lane.py watch -- dotnet test …`;
 # kb/Work PB2878, InertLaneDriftTests): a test that opens a path the inert lane classes as read by no test turns its step
@@ -59,9 +59,9 @@ concurrency:
 #
 # EVERY direct `dotnet test` step also writes a TRX log (--logger trx, --results-directory TestResults/<OS>-<job>/)
 # and its job uploads them with `if: always()` as artifact test-results-<OS>-<job> (14-day retention) — a
-# red is diagnosable from the artifact without a re-run (kb/Work PB108). The two OSes share shard NAMES, so the
-# artifact name carries both; a Conformance shard's is test-results-<OS>-conformance-<shard>, the exact pattern
-# the conformance-population job downloads. Each such step also sets WISEOWL_COBOL_HARNESS_LOG to
+# red is diagnosable from the artifact without a re-run (kb/Work PB108). The two OSes share shard NUMBERS, so the
+# artifact name carries both: a shard's is test-results-<OS>-shard-<k>, the exact pattern `ci-gate`'s name check
+# downloads and scripts/shard_weights.py reads. Each such step also sets WISEOWL_COBOL_HARNESS_LOG to
 # <its results directory>/harness-observations.log and its job uploads that file with the TRX: the test harness's every
 # retry and non-observation of a child process, with the budget, the work it covered and the host's load, so a
 # non-observation on CI is read from the artifact (kb/Work PB3108; CiHarnessLogDriftTests).
@@ -75,8 +75,9 @@ concurrency:
 # ⛔ NO JOB SETS A VARIABLE THAT NARROWS A TEST RUN (kb/Work PB1718; DESIGN-test-build-ci §3.14.3): the gate's leg
 # handshake WISEOWL_COBOL_GATE_*, or VSTest* / RunSettingsFilePath, which MSBuild imports from the environment as the
 # VSTest target's filter and run settings. A hosted job's environment is exactly what this file declares, so that
-# is how CI scrubs; `python scripts/test_population.py audit-callers` (GateLegDriftTests arm 6) is red on one. The guard job is the exception: its verdict is guard-fast.sh's own NIST-loop
-# output, not a `dotnet test` exit.
+# is how CI scrubs; `python scripts/test_population.py audit-callers` (GateLegDriftTests arm 6) is red on one. The one
+# exception is the shard variable WISEOWL_COBOL_SHARD (kb/Work PB4329), a DIVISION of the run whose union `ci-gate`
+# checks against the discovered population, and the audit allows it only in a workflow that runs that check.
 jobs:
   # ── ⛔ WHETHER THE MATRIX RUNS: THE INERT LANE (kb/Work PB2878; DESIGN-test-build-ci.md §3.18). A path list here used
   # to decide it (`paths-ignore` on the trigger first, which left a sha with no check at all under the required status
@@ -464,7 +465,7 @@ jobs:
       # --self-test under scripts/ — the hook self-tests, cite.py, ledger_plan.py, landing_check.py and the orchestrator's,
       # which until PB2563 were named here one by one while eleven of them ran nowhere. The same runner is an audit of the
       # local gate (run_gate_legs.py AUDITS) and a leg of linux-gate.sh. A Windows-only self-test is reported NOT RUN here
-      # with its reason and runs in windows-self-tests; one that reads the built assemblies runs in greenfield-unit.
+      # with its reason and runs in windows-self-tests; one that reads the built assemblies runs in linux-built-self-tests.
       - name: Script self-tests — every self-test under scripts/ and conformance-suite/harness/, discovered (self_tests.py)
         if: ${{ !cancelled() }}
         run: python3 scripts/self_tests.py
@@ -487,20 +488,33 @@ jobs:
           git submodule update --init tools/claude-skills
           python3 .claude/skills/workstream/check_practices.py
 
-  # ── The authoritative NIST gate: THE guard, scripts/guard-fast.sh. It builds src/WiseOwl.Cobol.Cli, compiles the ~376
-  # NIST CCVS-85 programs its population derives from tests/nist/corpus.tsv, runs each in its own clean directory
-  # after exactly its declared predecessors across the runner's cores (JOBS defaults to nproc), and audits every
-  # verdict against the manifest (scripts/guard-nist-audit.sh). Linux only — the NIST loop is bash. A non-zero exit
-  # (any REGRESSION, DIFF, FAIL*, audit finding, or build warning) fails the job.
-  # ⛔ IT MEASURES WiseOwl COBOL (kb/Work/PB750): the NIST leg drives `cobol` (src/WiseOwl.Cobol.Cli), refuses to start
-  # if the resolved binary does not reference WiseOwl.Cobol.Compiler, and names the compiler in its
-  # `=== NIST (cobol): … ===` line. ──
-  guard:
-    name: Guard (WiseOwl COBOL NIST, parallel)
+  # ── ⛔ THE TEST MATRIX IS WEIGHTED SHARDS (kb/Work PB4329, step 6 of PB4323; DESIGN-test-build-ci.md §1.4). Every shard job
+  # builds the solution and runs EVERY test assembly (Unit, Characterization, Conformance; and on Linux INV-1-strong) with
+  # WISEOWL_COBOL_SHARD=k/N, and the test framework of each host (tests/_shared/GateLegs.cs, GateShard) runs the cases of
+  # the test classes the weights file (tests/_shared/test-weights.json, scripts/shard_weights.py generate) deals to shard k:
+  # every class the file names, longest first, to the lightest shard so far, then a class it does not name at the file's
+  # default weight. No shard filters by NAME, so a new class can never fall between filters, and a stale weight costs the
+  # balance, never a case: `ci-gate` checks, per OS and assembly, that the shards' trx ran the discovered population (the
+  # one `--list-tests` per OS that shard 1 uploads) exactly once (scripts/test_population.py check). It replaced the
+  # name-split matrix of six Conformance shards per OS beside one whole Unit + Characterization job per OS, whose longest
+  # job (Windows Unit, 8 minutes of tests) was the merge group's critical path with the Guard job (the NIST corpus through
+  # the CLI, 14 minutes), which runs in the nightly workflow now (owner 2026-10-31, kb/Work PB4323 decision 2; PB4332).
+  # Linux runs Debug under the inert watch, Windows runs Release (TreatWarningsAsErrors: a new analyzer warning fails the
+  # build), as the jobs before them did. ──
+  linux-shard:
+    name: Linux shard ${{ matrix.shard }}/5
     needs: changes
     if: needs.changes.outputs.run_matrix == 'true'
     runs-on: ubuntu-26.04
-    timeout-minutes: 30
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5]
+    env:
+      # The one narrowing a workflow sets (kb/Work PB4329): `ci-gate` checks the shards' union (test_population.py
+      # audit-callers holds a workflow that sets it to that check).
+      WISEOWL_COBOL_SHARD: ${{ matrix.shard }}/5
     steps:
       - id: checkout
         uses: actions/checkout@v7
@@ -509,138 +523,6 @@ jobs:
         with:
           # The specs/ submodule is a private repo and is NOT needed to build or test (only the spec text,
           # referenced from doc comments). Skipping it keeps CI credential-free.
-          submodules: false
-      - if: steps.checkout.outcome != 'success'
-        uses: actions/checkout@v7
-        timeout-minutes: 5
-        with:
-          submodules: false
-      - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
-        uses: ./.github/actions/setup-toolchain
-        timeout-minutes: 5
-      - name: Restore main's NuGet packages (saved by toolchain-cache alone, kb/Work PB4324)
-        uses: actions/cache/restore@v6
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
-          restore-keys: ${{ runner.os }}-nuget-
-      # guard-fast.sh restores + builds the compiler under test itself, creates tests/nist/output, and copies the
-      # runtime DLL there; a fresh checkout needs no extra prep.
-      - name: Run parallel guard (scripts/guard-fast.sh)
-        run: bash scripts/guard-fast.sh
-
-  # ── The greenfield WiseOwl COBOL compiler (src/WiseOwl.Cobol.*) suites — the ACTIVE work (the committed differential
-  # goldens + the NIST byte-baselines + the version matrix + unit). The guard job's NIST leg drives the same
-  # compiler (PB750) over the CLI, from bash, on Linux only; these jobs cover the in-process compile path, both
-  # OSes, and everything outside NIST, so they stay a separate gate (DEVLOG 515). Each job builds its own test project(s) then runs --no-build. The
-  # Frontend's ANTLR generation needs java + pwsh (toolchain.env's, from ./.github/actions/setup-toolchain); Generated/ is a PURE
-  # BUILD OUTPUT, untracked since DEVLOG 596 — a fresh checkout always regenerates, and a failed generation
-  # FAILS the build. ──
-  # ⛔ THE CONFORMANCE SUITE IS SHARDED (kb/Work A14: it was ~23 min as ONE step on a 2-core runner — the whole
-  # job's wall time). Three shards, chosen from measured per-class test counts: the version matrix (~2020 light
-  # compiles) · the corpus + NIST runners (~820 heavy compile-and-runs) · THE COMPLEMENT — an exclusion filter,
-  # so a NEW test class automatically lands in shard "rest" and can never fall between buckets. Each shard
-  # publishes its trx and its build's `--list-tests` population; the conformance-population job asserts, on BOTH
-  # platforms, that the shards' union IS the discovered population, case by case (scripts/test_population.py) —
-  # a filter typo, a class rename or two overlapping filters show up as named NEVER RAN / RAN TWICE cases, never as
-  # silently-untested code (feedback_measure_the_selectors_complement).
-  greenfield-conformance:
-    name: Greenfield conformance (Linux, sharded)
-    needs: changes
-    if: needs.changes.outputs.run_matrix == 'true'
-    runs-on: ubuntu-26.04
-    timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # The version-matrix class alone was 21 min (its continuity method compiles each corpus program at
-          # every later edition) — split at the METHOD, the complement arm again exclusion-shaped.
-          # Continuity was still ~20 min alone (each case compiles a FULL corpus program): 1047 = 349
-          # programs x 3 later editions, and the display name carries `edition: NNNN` (program names are
-          # XX###X — a year string cannot collide), so it shards BY EDITION, 349 cases each.
-          # ⛔ THE CONTINUITY FILTER IS KEYED ON THE METHOD NAME ALONE, NOT `Class.Method` (plan §11 A13).
-          # VersionMatrixTests is now twelve partition CLASSES (VersionMatrixTests_P0 …) so its 2,127 rows stop
-          # being one serial xUnit collection; a `~VersionMatrixTests.Cobol85Program_…` substring can never
-          # match `VersionMatrixTests_P0.Cobol85Program_…`, and vstest answers a filter that matches nothing
-          # with a SILENT GREEN. Cobol85Program_StillCompilesAtLaterEdition is unique in the tree, so keying on
-          # it is both correct today and immune to the next re-partition. Every `~VersionMatrixTests`,
-          # `~ConformanceSuiteTests` and `~NistDifferentialTests` filter below still matches, partitions included,
-          # because each partition class keeps its family name as a prefix.
-          - shard: matrix-cont-2002
-            filter: "FullyQualifiedName~Cobol85Program_StillCompilesAtLaterEdition&DisplayName~2002"
-          - shard: matrix-cont-2014
-            filter: "FullyQualifiedName~Cobol85Program_StillCompilesAtLaterEdition&DisplayName~2014"
-          - shard: matrix-cont-2023
-            filter: "FullyQualifiedName~Cobol85Program_StillCompilesAtLaterEdition&DisplayName~2023"
-          - shard: matrix-constructs
-            filter: "FullyQualifiedName~VersionMatrixTests&FullyQualifiedName!~Cobol85Program_StillCompilesAtLaterEdition"
-          - shard: corpus-nist
-            filter: "FullyQualifiedName~ConformanceSuiteTests|FullyQualifiedName~NistDifferentialTests"
-          - shard: rest
-            filter: "FullyQualifiedName!~VersionMatrixTests&FullyQualifiedName!~ConformanceSuiteTests&FullyQualifiedName!~NistDifferentialTests"
-    steps:
-      - id: checkout
-        uses: actions/checkout@v7
-        timeout-minutes: 5
-        continue-on-error: true  # one retry follows (kb/Work PB4324)
-        with:
-          submodules: false
-      - if: steps.checkout.outcome != 'success'
-        uses: actions/checkout@v7
-        timeout-minutes: 5
-        with:
-          submodules: false
-      - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
-        uses: ./.github/actions/setup-toolchain
-        timeout-minutes: 5
-      - name: Restore main's NuGet packages (saved by toolchain-cache alone, kb/Work PB4324)
-        uses: actions/cache/restore@v6
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
-          restore-keys: ${{ runner.os }}-nuget-
-      - name: Build the conformance project
-        run: dotnet build tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj
-      # The POPULATION this shard's trx is checked against, listed from THIS build (conformance-population job).
-      - name: List the discovered population (scripts/test_population.py, scrubbed)
-        shell: bash
-        run: |
-          . scripts/python-resolve.sh
-          mkdir -p TestResults/${{ runner.os }}-${{ matrix.shard }}
-          "$PY" scripts/test_population.py list --project tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj \
-            --out TestResults/${{ runner.os }}-${{ matrix.shard }}/conformance.list.txt
-      - name: Conformance shard ${{ matrix.shard }}
-        shell: bash
-        env:
-          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-${{ matrix.shard }}/harness-observations.log
-        run: |
-          set -o pipefail
-          python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj --no-build \
-            --filter "${{ matrix.filter }}" \
-            --logger "trx;LogFileName=conformance-${{ matrix.shard }}.trx" --results-directory TestResults/${{ runner.os }}-${{ matrix.shard }} \
-            2>&1 | tee TestResults/${{ runner.os }}-${{ matrix.shard }}/shard.log
-      - name: Upload test results (TRX + population listing + shard log)
-        if: ${{ always() }}
-        uses: ./.github/actions/upload-results
-        with:
-          name: test-results-${{ runner.os }}-conformance-${{ matrix.shard }}
-          path: TestResults/${{ runner.os }}-${{ matrix.shard }}/
-
-  # Unit + characterization moved OFF the conformance job's critical path (A14 option 1): they are
-  # project-granular (nothing hand-listed), so no population guard is needed here.
-  greenfield-unit:
-    name: Greenfield unit + characterization (Linux)
-    needs: changes
-    if: needs.changes.outputs.run_matrix == 'true'
-    runs-on: ubuntu-26.04
-    timeout-minutes: 25
-    steps:
-      - id: checkout
-        uses: actions/checkout@v7
-        timeout-minutes: 5
-        continue-on-error: true  # one retry follows (kb/Work PB4324)
-        with:
           submodules: false
       - if: steps.checkout.outcome != 'success'
         uses: actions/checkout@v7
@@ -668,242 +550,79 @@ jobs:
       - name: Fetch GnuCOBOL testsuite (pinned 3.2, sha256-verified)
         shell: pwsh
         run: ./scripts/fetch-gnucobol-tests.ps1
-      - name: Build greenfield test projects
+      # The Frontend's ANTLR generation needs java + pwsh (toolchain.env's, from ./.github/actions/setup-toolchain);
+      # Generated/ is a PURE BUILD OUTPUT, untracked since DEVLOG 596 — a fresh checkout always regenerates, and a failed
+      # generation FAILS the build.
+      - name: Build the solution
+        run: dotnet build WiseOwl.Cobol.sln
+      # The POPULATIONS every Linux shard's trx is checked against (`ci-gate`), listed once, from shard 1's build.
+      - name: List the discovered populations (shard 1; scripts/test_population.py, scrubbed)
+        if: matrix.shard == 1
+        shell: bash
         run: |
-          dotnet build tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj
-          dotnet build tests/WiseOwl.Cobol.Tests.Characterization/WiseOwl.Cobol.Tests.Characterization.csproj
-          dotnet build tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj
-      - name: Greenfield unit tests
+          set -euo pipefail
+          . scripts/python-resolve.sh
+          mkdir -p TestResults/${{ runner.os }}-shard
+          for assembly in Unit Characterization Conformance; do
+            "$PY" scripts/test_population.py list --project tests/WiseOwl.Cobol.Tests.$assembly/WiseOwl.Cobol.Tests.$assembly.csproj \
+              --out TestResults/${{ runner.os }}-shard/$assembly.list.txt
+          done
+      - name: Unit, this shard
         env:
-          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-unit/harness-observations.log
-        run: python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj --no-build --logger "trx;LogFileName=unit.trx" --results-directory TestResults/${{ runner.os }}-unit
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/harness-observations.log
+        run: python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj --no-build --logger "trx;LogFileName=Unit.trx" --results-directory TestResults/${{ runner.os }}-shard
       # Characterization gate (rearch P0): COMPARES the committed diagnostic + emitted-C# snapshots. CI must NEVER set
       # WISEOWL_COBOL_UPDATE_SNAPSHOTS (that would rewrite them); a real emit/diagnostic change re-seeds locally under review.
-      - name: Greenfield characterization snapshots (behavior-neutrality gate)
-        env:
-          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-unit/harness-observations.log
-        run: python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.Characterization/WiseOwl.Cobol.Tests.Characterization.csproj --no-build --logger "trx;LogFileName=characterization.trx" --results-directory TestResults/${{ runner.os }}-unit
-      # The self-tests that read the BUILT assemblies (`SELF-TEST-NEEDS: build`; filter_population.py lists what the
-      # Conformance and Unit assemblies discover), which the audits job cannot run (kb/Work PB2563). After the test
-      # legs, so a red self-test never hides their results.
-      - name: Post-build script self-tests (self_tests.py --built)
+      - name: Characterization snapshots (behavior-neutrality gate), this shard
         if: ${{ !cancelled() }}
-        run: python3 scripts/self_tests.py --built
-      - name: Upload test results (TRX)
-        if: ${{ always() }}
-        uses: ./.github/actions/upload-results
-        with:
-          name: test-results-${{ runner.os }}-unit
-          path: |
-            TestResults/${{ runner.os }}-unit/*.trx
-            TestResults/${{ runner.os }}-unit/harness-observations.log
-
-  # The Windows twin of greenfield-conformance — SAME shard filters (the population job checks both platforms'
-  # sums), Release config like the rest of the Windows leg. Kept full-suite on Windows deliberately: the
-  # cross-platform net is load-bearing (the 2026-08-07 BOM break was Windows-caught).
-  windows-conformance:
-    name: Windows conformance (sharded)
-    needs: changes
-    if: needs.changes.outputs.run_matrix == 'true'
-    runs-on: windows-2025-vs2026
-    timeout-minutes: 25
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # The version-matrix class alone was 21 min (its continuity method compiles each corpus program at
-          # every later edition) — split at the METHOD, the complement arm again exclusion-shaped.
-          # Continuity was still ~20 min alone (each case compiles a FULL corpus program): 1047 = 349
-          # programs x 3 later editions, and the display name carries `edition: NNNN` (program names are
-          # XX###X — a year string cannot collide), so it shards BY EDITION, 349 cases each.
-          # ⛔ THE CONTINUITY FILTER IS KEYED ON THE METHOD NAME ALONE, NOT `Class.Method` (plan §11 A13).
-          # VersionMatrixTests is now twelve partition CLASSES (VersionMatrixTests_P0 …) so its 2,127 rows stop
-          # being one serial xUnit collection; a `~VersionMatrixTests.Cobol85Program_…` substring can never
-          # match `VersionMatrixTests_P0.Cobol85Program_…`, and vstest answers a filter that matches nothing
-          # with a SILENT GREEN. Cobol85Program_StillCompilesAtLaterEdition is unique in the tree, so keying on
-          # it is both correct today and immune to the next re-partition. Every `~VersionMatrixTests`,
-          # `~ConformanceSuiteTests` and `~NistDifferentialTests` filter below still matches, partitions included,
-          # because each partition class keeps its family name as a prefix.
-          - shard: matrix-cont-2002
-            filter: "FullyQualifiedName~Cobol85Program_StillCompilesAtLaterEdition&DisplayName~2002"
-          - shard: matrix-cont-2014
-            filter: "FullyQualifiedName~Cobol85Program_StillCompilesAtLaterEdition&DisplayName~2014"
-          - shard: matrix-cont-2023
-            filter: "FullyQualifiedName~Cobol85Program_StillCompilesAtLaterEdition&DisplayName~2023"
-          - shard: matrix-constructs
-            filter: "FullyQualifiedName~VersionMatrixTests&FullyQualifiedName!~Cobol85Program_StillCompilesAtLaterEdition"
-          - shard: corpus-nist
-            filter: "FullyQualifiedName~ConformanceSuiteTests|FullyQualifiedName~NistDifferentialTests"
-          - shard: rest
-            filter: "FullyQualifiedName!~VersionMatrixTests&FullyQualifiedName!~ConformanceSuiteTests&FullyQualifiedName!~NistDifferentialTests"
-    steps:
-      - id: checkout
-        uses: actions/checkout@v7
-        timeout-minutes: 5
-        continue-on-error: true  # one retry follows (kb/Work PB4324)
-        with:
-          submodules: false
-      - if: steps.checkout.outcome != 'success'
-        uses: actions/checkout@v7
-        timeout-minutes: 5
-        with:
-          submodules: false
-      - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
-        uses: ./.github/actions/setup-toolchain
-        timeout-minutes: 5
-      - name: Restore main's NuGet packages (saved by toolchain-cache alone, kb/Work PB4324)
-        uses: actions/cache/restore@v6
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
-          restore-keys: ${{ runner.os }}-nuget-
-      - name: Build the conformance project (Release)
-        run: dotnet build tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj --configuration Release
-      # The POPULATION this shard's trx is checked against, listed from THIS (Release, Windows) build.
-      - name: List the discovered population (scripts/test_population.py, scrubbed)
-        shell: bash
-        run: |
-          . scripts/python-resolve.sh
-          mkdir -p TestResults/${{ runner.os }}-${{ matrix.shard }}
-          "$PY" scripts/test_population.py list --project tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj \
-            --configuration Release --out TestResults/${{ runner.os }}-${{ matrix.shard }}/conformance.list.txt
-      - name: Conformance shard ${{ matrix.shard }}
-        shell: bash
         env:
-          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-${{ matrix.shard }}/harness-observations.log
-        run: |
-          set -o pipefail
-          dotnet test tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj --no-build --configuration Release \
-            --filter "${{ matrix.filter }}" \
-            --logger "trx;LogFileName=conformance-${{ matrix.shard }}.trx" --results-directory TestResults/${{ runner.os }}-${{ matrix.shard }} \
-            2>&1 | tee TestResults/${{ runner.os }}-${{ matrix.shard }}/shard.log
-      - name: Upload test results (TRX + population listing + shard log)
-        if: ${{ always() }}
-        uses: ./.github/actions/upload-results
-        with:
-          name: test-results-${{ runner.os }}-conformance-${{ matrix.shard }}
-          path: TestResults/${{ runner.os }}-${{ matrix.shard }}/
-
-  # ── The shard POPULATION GUARD (kb/Work PB1718; DESIGN-test-build-ci §3.14.4): per platform, the UNION of the
-  # shards' trx test definitions must equal the discovered population (`--list-tests`, which every shard listed
-  # from its own build) as a MULTISET — every case exactly once. It used to SUM each shard's `Total:` against a
-  # `grep -c` of the listing, and a count cannot see a dropped case offset by one that ran twice: two shard filters
-  # that overlapped by one test while a third dropped one summed exactly. It is the one tool the battery and the gate
-  # use, so the three whole-assembly runs cannot disagree about what "whole" means. Runs only when every shard
-  # succeeded — the "did the shards cover everything" check, not a substitute for their pass/fail. No .NET here:
-  # the listings come from the shards, so the population is the one the trx files were produced by. ──
-  conformance-population:
-    name: Conformance shard population guard
-    needs: [changes, greenfield-conformance, windows-conformance]
-    if: needs.changes.outputs.run_matrix == 'true'
-    runs-on: ubuntu-26.04
-    timeout-minutes: 10
-    steps:
-      - id: checkout
-        uses: actions/checkout@v7
-        timeout-minutes: 5
-        continue-on-error: true  # one retry follows (kb/Work PB4324)
-        with:
-          submodules: false
-      - if: steps.checkout.outcome != 'success'
-        uses: actions/checkout@v7
-        timeout-minutes: 5
-        with:
-          submodules: false
-      - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
-        uses: ./.github/actions/setup-toolchain
-        timeout-minutes: 5
-      - name: Download every shard's trx and population listing
-        uses: ./.github/actions/download-results
-        with:
-          pattern: test-results-*-conformance-*
-          path: shards
-      - name: Assert the shards' union is exactly the discovered population, per platform (test_population.py)
-        shell: bash
-        run: |
-          . scripts/python-resolve.sh
-          fail=0
-          for os in Linux Windows; do
-            # An absent platform leaves its globs unexpanded: the tool reads no file and exits 2 — red, never green.
-            "$PY" scripts/test_population.py check --label "Conformance ($os shards)" \
-              --listing shards/test-results-$os-conformance-*/conformance.list.txt \
-              --trx shards/test-results-$os-conformance-*/*.trx \
-              || { echo "::error::POPULATION MISMATCH ($os): the shards' union is not the discovered population — see the names above (a shard whose artifact upload failed after its retries is absent here: its job's warning names it)"; fail=1; }
-          done
-          exit $fail
-
-  # ── INV-1-STRONG (VERSION_TEST_MATRIX_DESIGN §8; rearch P3 step 8): the full NIST golden battery must re-run
-  # BYTE-EXACT at the shipping default edition in migration mode (--std 2023 --permissive) — the roadmap's
-  # fatal-challenge criterion (a construct whose 2023 output differs from its 85 output is an un-gated behavior
-  # variant). This is the compile-AND-RUN golden re-match. INV-1 permissive CONTINUITY (compile-only, all four
-  # editions) is now an IN-PROCESS gate — VersionMatrixTests.Cobol85Program_StillCompilesAtLaterEdition, run in the
-  # greenfield-tests job on every commit, cross-platform — so the former out-of-band bash sweep is retired from CI
-  # (scripts/version-continuity-sweep.sh remains as a local CLI convenience). ──
-  inv1-strong-2023:
-    name: INV-1-strong (golden battery byte-exact @ 2023 --permissive)
-    needs: changes
-    if: needs.changes.outputs.run_matrix == 'true'
-    runs-on: ubuntu-26.04
-    timeout-minutes: 10
-    steps:
-      - id: checkout
-        uses: actions/checkout@v7
-        timeout-minutes: 5
-        continue-on-error: true  # one retry follows (kb/Work PB4324)
-        with:
-          submodules: false
-      - if: steps.checkout.outcome != 'success'
-        uses: actions/checkout@v7
-        timeout-minutes: 5
-        with:
-          submodules: false
-      - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
-        uses: ./.github/actions/setup-toolchain
-        timeout-minutes: 5
-      - name: Restore main's NuGet packages (saved by toolchain-cache alone, kb/Work PB4324)
-        uses: actions/cache/restore@v6
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
-          restore-keys: ${{ runner.os }}-nuget-
-      - name: Build the conformance project
-        run: dotnet build tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj
-      # ⛔ KEYED ON THE METHOD NAME, NOT `Class.Method` (plan §11 A13): NistDifferentialTests is now six
-      # partition CLASSES (NistDifferentialTests_P0 …), and `~NistDifferentialTests.NistProgram_MatchesGolden`
-      # can never match `NistDifferentialTests_P0.NistProgram_MatchesGolden`. vstest answers an unmatched
-      # filter with a SILENT GREEN, so this job would have kept reporting success over ZERO goldens.
-      # ⛔ AND THE FILTER TEXT BEING RIGHT IS NOT THE SAME AS THE RUN HAVING A POPULATION (kb/Work PB752, the
-      # residue PB287 recorded). The sharded conformance matrix is guarded by `conformance-population`; this leg
-      # is a single unsharded run, so its guard is per-term: the filter must select a real population or the job
-      # fails BEFORE the run, and the selected count (349 goldens today) is printed as that run's population
-      # evidence. Needs only python3 and the built project — no submodule, which is why it can live here
-      # (`submodules: false`, kb/Work PB159).
-      - name: Assert the INV-1-strong filter selects a real population (kb/Work PB752)
-        run: python3 scripts/filter_population.py --filter "FullyQualifiedName~NistProgram_MatchesGolden" --filtered tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj
-      - name: NIST goldens byte-exact at --std 2023 --permissive (the existing NistDifferentialTests, re-editioned)
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/harness-observations.log
+        run: python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.Characterization/WiseOwl.Cobol.Tests.Characterization.csproj --no-build --logger "trx;LogFileName=Characterization.trx" --results-directory TestResults/${{ runner.os }}-shard
+      - name: Conformance, this shard
+        if: ${{ !cancelled() }}
+        env:
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/harness-observations.log
+        run: python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj --no-build --logger "trx;LogFileName=Conformance.trx" --results-directory TestResults/${{ runner.os }}-shard
+      # ── INV-1-STRONG (VERSION_TEST_MATRIX_DESIGN §8; rearch P3 step 8), A STEP OF EVERY LINUX SHARD: the full NIST golden
+      # battery must re-run BYTE-EXACT at the shipping default edition in migration mode (--std 2023 --permissive) — the
+      # roadmap's fatal-challenge criterion (a construct whose 2023 output differs from its 85 output is an un-gated
+      # behavior variant). Each shard re-runs the NIST classes the weights deal it, so `ci-gate` checks the five shards'
+      # inv1-strong.trx against the Conformance listing's NistProgram_MatchesGolden cases, case by case (kb/Work PB752:
+      # vstest answers a filter that matches nothing with a SILENT GREEN, so the filter's population is checked, never
+      # its exit code). ⛔ KEYED ON THE METHOD NAME, NOT `Class.Method` (plan §11 A13): NistDifferentialTests is six
+      # partition CLASSES (NistDifferentialTests_P0 …), and `~NistDifferentialTests.NistProgram_MatchesGolden` can never
+      # match `NistDifferentialTests_P0.NistProgram_MatchesGolden`. INV-1 permissive CONTINUITY (compile-only, all four
+      # editions) is the in-process VersionMatrixTests.Cobol85Program_StillCompilesAtLaterEdition, a Conformance case. ──
+      - name: INV-1-strong, this shard (NIST goldens byte-exact at --std 2023 --permissive)
+        if: ${{ !cancelled() }}
         env:
           WISEOWL_COBOL_NIST_STD: "2023"
           WISEOWL_COBOL_NIST_PERMISSIVE: "1"
-          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-inv1-strong/harness-observations.log
-        run: python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj --no-build --filter "FullyQualifiedName~NistProgram_MatchesGolden" --logger "trx;LogFileName=inv1-strong.trx" --results-directory TestResults/${{ runner.os }}-inv1-strong
-      - name: Upload test results (TRX)
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/harness-observations.log
+        run: python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj --no-build --filter "FullyQualifiedName~NistProgram_MatchesGolden" --logger "trx;LogFileName=inv1-strong.trx" --results-directory TestResults/${{ runner.os }}-shard
+      - name: Upload test results (TRX + shard 1's population listings + harness log)
         if: ${{ always() }}
         uses: ./.github/actions/upload-results
         with:
-          name: test-results-${{ runner.os }}-inv1-strong
-          path: |
-            TestResults/${{ runner.os }}-inv1-strong/*.trx
-            TestResults/${{ runner.os }}-inv1-strong/harness-observations.log
+          name: test-results-${{ runner.os }}-shard-${{ matrix.shard }}
+          path: TestResults/${{ runner.os }}-shard/
 
-  # ── Cross-platform sanity: a clean Release build (TreatWarningsAsErrors — a new analyzer warning fails the
-  # build) plus the greenfield suites on Windows. The NIST guard is Linux-only (bash), so this job gives the
-  # Windows build + managed-test coverage the guard job cannot. ──
-  windows-build-test:
-    name: Windows build + tests
+  # The Windows twin of linux-shard: seven shards, Release, the same weights and the same name check (`ci-gate`).
+  # Kept full-population on Windows deliberately: the cross-platform net is load-bearing (the 2026-08-07 BOM break was
+  # Windows-caught).
+  windows-shard:
+    name: Windows shard ${{ matrix.shard }}/7
     needs: changes
     if: needs.changes.outputs.run_matrix == 'true'
     runs-on: windows-2025-vs2026
-    timeout-minutes: 30
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7]
+    env:
+      # The one narrowing a workflow sets (kb/Work PB4329): `ci-gate` checks the shards' union.
+      WISEOWL_COBOL_SHARD: ${{ matrix.shard }}/7
     steps:
       - id: checkout
         uses: actions/checkout@v7
@@ -925,10 +644,6 @@ jobs:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
           restore-keys: ${{ runner.os }}-nuget-
-      - name: Build (Release, warnings-as-errors)
-        run: dotnet build WiseOwl.Cobol.sln --configuration Release
-      # Greenfield conformance moved to the windows-conformance SHARDED job (kb/Work A14) — same coverage,
-      # a third of the wall time; the population guard proves nothing fell between the shards.
       # GPL corpus fetched on demand for the PB209 population drift gate — see the Linux job's twin. (PB277)
       - name: Restore main's GnuCOBOL testsuite tarball (GPL, fetched on demand, never committed; saved by toolchain-cache alone)
         uses: actions/cache/restore@v6
@@ -938,31 +653,88 @@ jobs:
       - name: Fetch GnuCOBOL testsuite (pinned 3.2, sha256-verified)
         shell: pwsh
         run: ./scripts/fetch-gnucobol-tests.ps1
-      - name: Greenfield unit tests
+      - name: Build (Release, warnings-as-errors)
+        run: dotnet build WiseOwl.Cobol.sln --configuration Release
+      # The POPULATIONS every Windows shard's trx is checked against (`ci-gate`), listed once, from shard 1's build.
+      - name: List the discovered populations (shard 1; scripts/test_population.py, scrubbed)
+        if: matrix.shard == 1
+        shell: bash
+        run: |
+          set -euo pipefail
+          . scripts/python-resolve.sh
+          mkdir -p TestResults/${{ runner.os }}-shard
+          for assembly in Unit Characterization Conformance; do
+            "$PY" scripts/test_population.py list --project tests/WiseOwl.Cobol.Tests.$assembly/WiseOwl.Cobol.Tests.$assembly.csproj \
+              --configuration Release --out TestResults/${{ runner.os }}-shard/$assembly.list.txt
+          done
+      - name: Unit, this shard
         env:
-          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-build-test/harness-observations.log
-        run: dotnet test tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj --no-build --configuration Release --logger "trx;LogFileName=unit.trx" --results-directory TestResults/${{ runner.os }}-build-test
-      - name: Greenfield characterization snapshots (behavior-neutrality gate)
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/harness-observations.log
+        run: dotnet test tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj --no-build --configuration Release --logger "trx;LogFileName=Unit.trx" --results-directory TestResults/${{ runner.os }}-shard
+      - name: Characterization snapshots (behavior-neutrality gate), this shard
+        if: ${{ !cancelled() }}
         env:
-          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-build-test/harness-observations.log
-        run: dotnet test tests/WiseOwl.Cobol.Tests.Characterization/WiseOwl.Cobol.Tests.Characterization.csproj --no-build --configuration Release --logger "trx;LogFileName=characterization.trx" --results-directory TestResults/${{ runner.os }}-build-test
-      - name: Upload test results (TRX)
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/harness-observations.log
+        run: dotnet test tests/WiseOwl.Cobol.Tests.Characterization/WiseOwl.Cobol.Tests.Characterization.csproj --no-build --configuration Release --logger "trx;LogFileName=Characterization.trx" --results-directory TestResults/${{ runner.os }}-shard
+      - name: Conformance, this shard
+        if: ${{ !cancelled() }}
+        env:
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/harness-observations.log
+        run: dotnet test tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj --no-build --configuration Release --logger "trx;LogFileName=Conformance.trx" --results-directory TestResults/${{ runner.os }}-shard
+      - name: Upload test results (TRX + shard 1's population listings + harness log)
         if: ${{ always() }}
         uses: ./.github/actions/upload-results
         with:
-          name: test-results-${{ runner.os }}-build-test
-          path: |
-            TestResults/${{ runner.os }}-build-test/*.trx
-            TestResults/${{ runner.os }}-build-test/harness-observations.log
+          name: test-results-${{ runner.os }}-shard-${{ matrix.shard }}
+          path: TestResults/${{ runner.os }}-shard/
+
+  # The self-tests that read the BUILT assemblies (`SELF-TEST-NEEDS: build`; filter_population.py lists what the
+  # Conformance and Unit assemblies discover), which the audits job cannot run (kb/Work PB2563). ITS OWN JOB beside the
+  # shards (kb/Work PB4329): as a step of one shard its two minutes would make that shard the merge group's longest, and
+  # the weights deal only tests.
+  linux-built-self-tests:
+    name: Linux post-build script self-tests
+    needs: changes
+    if: needs.changes.outputs.run_matrix == 'true'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    steps:
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
+        with:
+          submodules: false
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        with:
+          submodules: false
+      - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
+        uses: ./.github/actions/setup-toolchain
+        timeout-minutes: 5
+      - name: Restore main's NuGet packages (saved by toolchain-cache alone, kb/Work PB4324)
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
+      - name: Build the test projects
+        run: |
+          dotnet build tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj
+          dotnet build tests/WiseOwl.Cobol.Tests.Characterization/WiseOwl.Cobol.Tests.Characterization.csproj
+          dotnet build tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj
+      - name: Post-build script self-tests (self_tests.py --built)
+        run: python3 scripts/self_tests.py --built
 
   # ── Every script self-test on Windows, the Windows-only ones included (the orchestrator loop's test_orchestrate_*.ps1
   # and test_autostart.ps1), which the Linux audits job reports NOT RUN (kb/Work PB2563). ONLY WHEN THE CHANGE TOUCHES
   # TOOLING (`changes` says so, from scripts/inert_lane.py; kb/Work PB4326): a script self-test reads tooling and the
   # data TOOLING_READS names (a declared population reader and the DEVLOG/kb corpora are the named residue), so no other change
-  # turns one red, and the Linux audits job runs every Linux self-test whatever the change. ITS OWN JOB, beside
-  # windows-build-test (kb/Work PB3581): the default phase never builds (self_tests.py BUILD), so it waits for no build,
-  # and as a step after windows-build-test's test legs it was 7.4 of that job's 16.5 minutes, the merge queue's longest
-  # job (merge group run 40004159292: 440 s; the next job ended four minutes earlier). ──
+  # turns one red, and the Linux audits job runs every Linux self-test whatever the change. ITS OWN JOB, beside the
+  # shards (kb/Work PB3581): the default phase never builds (self_tests.py BUILD), so it waits for no build, and as a
+  # step after the Windows test legs it was 7.4 of that job's 16.5 minutes, the merge queue's longest job (merge group
+  # run 40004159292: 440 s; the next job ended four minutes earlier). ──
   windows-self-tests:
     name: Windows script self-tests
     needs: changes
@@ -1133,24 +905,26 @@ jobs:
 
   # ── ⛔ `ci-gate` IS THE ONE STABLE CHECK NAME `main`'s branch protection REQUIRES (owner decision 2026-09-06
   # on question 23, kb/Work/PB796). Nothing else in this file can be that name:
-  #   • the conformance jobs are MATRICES — their check names carry the shard value (`Greenfield conformance
-  #     (Linux, sharded) (corpus-nist)`) and change the day a shard is added or renamed, and a required context
-  #     that no longer reports blocks every push forever;
+  #   • the test jobs are MATRICES — their check names carry the shard (`Linux shard 3/5`) and change the day the
+  #     shard count does, and a required context that no longer reports blocks every push forever;
   #   • every matrix job is CONDITIONAL — skipped on a docs-only push, which a required check reads as
   #     "never reported", i.e. blocked forever again.
   # This job has ONE name, is `if: always()` so it reports on EVERY run including the docs-only ones, and
-  # collapses the whole run into a single verdict. Its needs list is drift-checked by the `changes` job above.
+  # collapses the whole run into a single verdict. Its needs list is drift-checked by the `changes` job above. It also
+  # checks that the shards ran the discovered population exactly once (the step below; it was the separate
+  # `conformance-population` job until kb/Work PB4329).
   #
   # ⛔ PASS IS WHITELISTED, NOT BLACKLISTED: `success` and `skipped` pass and EVERYTHING else fails — `failure`
   # and `cancelled` by name today, and any result value GitHub adds tomorrow by construction.
   ci-gate:
     name: ci-gate
     if: always()
-    needs: [changes, supersede, audits, guard, greenfield-conformance, greenfield-unit, windows-conformance, conformance-population, inv1-strong-2023, windows-build-test, windows-self-tests, toolchain-cache, package-cache]
+    needs: [changes, supersede, audits, linux-shard, windows-shard, linux-built-self-tests, windows-self-tests, toolchain-cache, package-cache]
     runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
-      # The verdict reads `needs` with jq, toolchain.env's (kb/Work PB4007); the checkout is only what its action reads.
+      # The verdict reads `needs` with jq, toolchain.env's (kb/Work PB4007); the checkout is only what its action and the
+      # shards' name check read.
       - id: checkout
         uses: actions/checkout@v7
         timeout-minutes: 5
@@ -1165,6 +939,8 @@ jobs:
             scripts/standard_streams.py
             scripts/live_tools.py
             scripts/scratch_repo.py
+            scripts/test_population.py
+            .github/actions/download-results
             global.json
           sparse-checkout-cone-mode: false
       - if: steps.checkout.outcome != 'success'
@@ -1180,12 +956,47 @@ jobs:
             scripts/standard_streams.py
             scripts/live_tools.py
             scripts/scratch_repo.py
+            scripts/test_population.py
+            .github/actions/download-results
             global.json
           sparse-checkout-cone-mode: false
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
         uses: ./.github/actions/setup-toolchain
         timeout-minutes: 5
+      # ── ⛔ THE SHARDS RAN THE POPULATION, EVERY CASE EXACTLY ONCE (kb/Work PB1718, PB4329; DESIGN-test-build-ci.md §1.4,
+      # §3.14.4): per OS and test assembly, the UNION of the shards' trx test definitions must equal the discovered
+      # population (`--list-tests`, which shard 1 of each OS listed from its own build) as a MULTISET. A weight dealt a
+      # class to no shard or to two, or a host that ignored its shard, shows up as named NEVER RAN / RAN TWICE cases, never
+      # as silently-untested code; INV-1-strong's five Linux trx are checked against the Conformance listing's
+      # NistProgram_MatchesGolden cases the same way. Only when every shard succeeded: it is the "did the shards cover
+      # everything" check, not a substitute for their pass/fail, which the verdict below reads. An absent platform or
+      # assembly leaves its glob unexpanded: the tool reads no file and exits 2, red, never green. ──
+      - name: Download every shard's trx and population listings
+        if: needs.changes.outputs.run_matrix == 'true' && needs.linux-shard.result == 'success' && needs.windows-shard.result == 'success'
+        uses: ./.github/actions/download-results
+        with:
+          pattern: test-results-*-shard-*
+          path: shards
+      - name: The shards' union is exactly the discovered population, per OS and assembly (test_population.py check)
+        if: needs.changes.outputs.run_matrix == 'true' && needs.linux-shard.result == 'success' && needs.windows-shard.result == 'success'
+        shell: bash
+        run: |
+          fail=0
+          for os in Linux Windows; do
+            for assembly in Unit Characterization Conformance; do
+              python3 scripts/test_population.py check --label "$assembly ($os shards)" \
+                --listing shards/test-results-$os-shard-1/$assembly.list.txt \
+                --trx shards/test-results-$os-shard-*/$assembly.trx \
+                || { echo "::error::POPULATION MISMATCH ($assembly, $os): the shards' union is not the discovered population — see the names above (a shard whose artifact upload failed after its retries is absent here: its job's warning names it)"; fail=1; }
+            done
+          done
+          python3 scripts/test_population.py check --label "INV-1-strong (Linux shards)" --method NistProgram_MatchesGolden \
+            --listing shards/test-results-Linux-shard-1/Conformance.list.txt \
+            --trx shards/test-results-Linux-shard-*/inv1-strong.trx \
+            || { echo "::error::POPULATION MISMATCH (INV-1-strong): the Linux shards did not re-run every NIST golden exactly once"; fail=1; }
+          exit $fail
       - name: Verdict
+        if: ${{ !cancelled() }}
         shell: bash
         env:
           NEEDS: ${{ toJSON(needs) }}
