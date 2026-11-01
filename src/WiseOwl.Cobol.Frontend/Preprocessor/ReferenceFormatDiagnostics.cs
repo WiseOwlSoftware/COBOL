@@ -61,11 +61,16 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
         => GateOnce(ref _floatingDebuggingFlagged, Constructs.FloatingDebuggingIndicator2002, file, line, column);
 
     /// <summary>2002 clause 6.1.2.1 SR8 — COBOL5770: the floating debugging indicator on a line that holds a fixed debugging
-    /// indicator or a fixed continuation indicator.</summary>
+    /// indicator or a fixed continuation indicator. A 2002 rule: a COBOL-85 program has no floating debugging indicator,
+    /// so its D line is a comment line and <c>&gt;&gt;D</c> is commentary text, never refused (kb/Work PB4298, review
+    /// finding R1-1).</summary>
     public void OnFloatingDebuggingOnFixedIndicator(string file, int line, int column)
-        => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.FloatingDebuggingOnFixedIndicator.Code,
+    {
+        if (dialectLevel < 2002) return;
+        diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.FloatingDebuggingOnFixedIndicator.Code,
             "a floating debugging indicator (>>D) shall not be specified on a line that contains a fixed debugging "
             + "indicator or a fixed continuation indicator (ISO/IEC 1989:2002 clause 6.1.2.1 SR8)", At(file, line, column), default);
+    }
 
     /// <summary>A debugging line written between the parts of a continued literal, passed over by the logical conversion
     /// as it would a comment line (kb/Work PB2490). Whether it is one is decided later, per source unit, by
