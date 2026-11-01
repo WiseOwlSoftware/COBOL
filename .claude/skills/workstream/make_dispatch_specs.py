@@ -189,7 +189,7 @@ def main(argv=None):
             print(f"{a.groups}: group {g.get('letter')}: no value for {e}")
             return 1
         # Keyed on the FULL letter, lower-cased: the workflow opens msg-w<wave>-<letter.toLowerCase()>.txt, and a
-        # multi-character letter (a same-file successor such as "V2") must not collide with another group's file.
+        # multi-character letter (a dependency successor such as "V2") must not collide with another group's file.
         p = scratch / f"msg-w{cfg['wave']}-{g['letter'].lower()}.txt"
         p.write_text(body, encoding='utf-8', newline="\n")
         out.append(str(p))

@@ -44,15 +44,26 @@ cost the orchestrator a hand-written groups.json; this computes it.
    PB3150). Every other arm decides it as it decides an open note too: a dispatch that holds it (item 1), the
    frontier-model hold (item 8), and an unlanded branch whose commit subjects name it (review R2-1).
 3. CLUSTERS from fix_clusters.py --json (the public submodule's view of kb/Work), minus the notes above, ranked by
-   inventory rows claimed (the sum of each note's `inventory_rows`), then harm. A finisher on a cluster's primary
-   file absorbs that cluster's notes up to the cap (model_rules.json `wave.max_notes_per_group`).
-4. ONE GROUP PER CLAIMED FILE AND MEMBER: a later group whose claim meets an earlier one's on ANY file both claim, the
-   primary file or a secondary one (the whole file, or a shared member: `collision`), is a same-file successor
-   (`after:`, MANDATORY-PRACTICES O2); one whose claims meet nowhere, such as other members of one file, runs beside
-   it (kb/Work PB3670, PB3696). Groups are placed in TIER order (a campaign's effective tiers; a finisher
-   takes its notes'), finishers first inside one tier, so the highest tier heads its chain, and a wave dispatches only
-   the first `wave.links_per_chain` links of each chain (the owner's one): the later links wait for the next wave,
-   which plans them from the branch the earlier link leaves (kb/Work PB3638).
+   inventory rows claimed (the sum of each note's `inventory_rows`), then harm, each at most the GROUP SIZE: the notes
+   whose predicted turns one implementer holds (clusters.notes_cap: model_rules.json `wave.turns_per_group` +
+   `wave.turns_per_note` per note, under `wave.turn_budget_fraction` of the implementer's turn cap; kb/Work PB4396,
+   which retired the 4-note `wave.max_notes_per_group`).
+4. ONE STEP PER FILE (kb/Work PB4396, owner 2026-11-01: "One step per file"): a later group whose claim meets an
+   earlier one's on ANY file both claim, the primary file or a secondary one (the whole file, or a shared member:
+   `collision`), is that group's WORK, absorbed into it (a finisher's notes, branches and instruction included), so one
+   implementer builds, gates, and gets reviewed and landed once over the file; a group meeting several groups of the
+   wave unites them. What the group size cannot hold is the group's OVERFLOW: its notes wait, the group's dispatch
+   records them (groups.json `overflow`, the dispatch ledger), the branch survey holds its branch until the next wave
+   plans them ONTO it (prune_worktrees.chain_links), and the chain lands ONCE, with its last link. One whose claims
+   meet nowhere, such as other members of one file, runs beside it (kb/Work PB3670, PB3696). This replaces the
+   same-file successor (`after:`, kb/Work PB3670) and the 4-note cap (kb/Work PB3704), under which one file's notes
+   became several groups, each built, gated, reviewed and landed over the same files, and kb/Work PB3381's "land each
+   clean link as it comes" for same-file chains. Only a DEPENDENCY makes a successor now (a campaign's blocked_by on a
+   group whose claim it does not meet; MANDATORY-PRACTICES O2). Groups are placed in TIER order (a campaign's effective
+   tiers; a finisher takes its notes'), finishers first inside one tier, so the highest tier heads its file's group and
+   its chain, and a wave dispatches only the first `wave.links_per_chain` links of each dependency chain (the owner's
+   one): the later links wait for the next wave, which plans them from the branch the earlier link leaves (kb/Work
+   PB3638).
 5. MODEL per group from model_rules.json (Opus for design-heavy files and areas, an open design question, or a note
    that already failed twice; Sonnet otherwise; never Fable).
 6. COST per group from model_rules.json; groups are taken in rank order while they fit (a group that does not fit is
@@ -88,7 +99,9 @@ cost the orchestrator a hand-written groups.json; this computes it.
 --cluster LEAD plans a CAMPAIGN wave instead (design section 9.1, kb/Work PB2120): the notes are work.py's
 cluster_order() of LEAD (every open note whose `cluster` names it, whatever its harm flags), clustered on the sites
 they DECLARE (their site blocks, under model_rules.json `campaign` roots), one blocked_by depth at a time; a note waiting on
-another planned note runs after it as a successor (`after:`); everything else above is the same mechanism.
+another planned note is planned WITH it when their claims meet (one step per file: the combination answers the
+blocked_by, kb/Work PB4396), and so is one whose blocker rides on a finished branch it continues; otherwise it runs after
+it as a dependency successor (`after:`); everything else above is the same mechanism.
 A campaign's STANDING REQUIREMENTS (kb/Work PB3359) are the bullets of the `## Standing requirements` section of
 the campaign lead's own note (campaign_requirements): the owner's instructions that every group of the campaign must
 meet. A group is bound by every campaign its notes' `cluster:` lists name (group_requirements), in a fix-lane wave and
@@ -124,16 +137,18 @@ groups (R69 §2, work.restructuring; a fix campaign is never held for a slice, k
 while nobody runs a slice, classified by ONE rule (classify_inflight): a group meeting RUNNING work (a dispatch with no
 report yet, a worktree or branch no finished report covers) waits, with the collision named (its file, or
 `file#member`); a group meeting only FINISHED branches (a DONE report, no review findings: waiting for review or
-landing) is planned as their CONTINUATION, its pred telling it to merge each first. AN EMPTY SET HOLDS NOTHING (kb/Work
+landing) is planned ONTO them, their CONTINUATION (kb/Work PB4396: never a second branch behind them), its pred
+telling it to merge each first, and its dispatch records them (`continues`), so the branch survey holds each until the
+continuation lands it (prune_worktrees.chain_links). AN EMPTY SET HOLDS NOTHING (kb/Work
 PB3670, superseding PB3263's subsystem rule): a group none of whose notes declares a site block and with no primary
 file located, or a dispatch the ledger recorded with no files, meets nothing, in flight and within the wave; the plan
 table and its spec name it UNPARTITIONED, and its implementer adds the notes' `**Sites:**` paragraphs in its first
-checkpoint (from its first edit its worktree's actual diff is in flight like any other). Within a wave two groups are a
-successor chain when their claims MEET on ANY file they both claim (collision, the rule the in-flight check applies,
-kb/Work PB3696), not only on a shared primary file. A finisher's set includes the
+checkpoint (from its first edit its worktree's actual diff is in flight like any other). Within a wave two groups are ONE
+group when their claims MEET on ANY file they both claim (collision, the rule the in-flight check applies, kb/Work
+PB3696, PB4396), not only on a shared primary file. A finisher's set includes the
 files and units of the branch it continues. A branch ANOTHER group of the same wave continues is planned work, never a
-hold (kb/Work PB3528): the group that meets it follows that group (a successor, `after:`), so two SPLIT branches sharing
-a file are finished in one chain instead of each waiting on the other forever. Both rules read an in-flight branch as
+hold (kb/Work PB3528): the group that meets it is that group's work (PB4396), so two SPLIT branches sharing a file are
+finished by one finisher instead of each waiting on the other forever. Both rules read an in-flight branch as
 the branch its work LANDS THROUGH (kb/Work PB4352): a branch a finished one contains (`carrier`) is that carrier's
 work, part of its finisher's set and no hold on it. Every dispatched wave appends its
 measurement to <coord>/partition-measure.jsonl (partition_record: same-file pairs run side by side, notes held and why;
@@ -204,9 +219,9 @@ MAKE_SPECS = REPO / ".claude" / "skills" / "workstream" / "make_dispatch_specs.p
 # ── the plan: five stages over one PlanState (kb/Work PB3728; DESIGN-orchestrator-loop.md section 16.3) ─────────────
 # plan() runs them in order: plan_held (what the reports and the dispatch ledger already decide: awaiting landing,
 # finishers to plan, holds), plan_finishers (the finisher groups: reports, half notes, unlanded branches), plan_fill
-# (the cluster groups by rows claimed, absorbed into a finisher on their primary file, in tier order), plan_partition
-# (each group placed against the in-flight work and the groups already placed: a hold, a continuation, a successor or a
-# new chain, lettered as it is placed) and plan_budget (the placed groups taken in order while the budget, the group cap
+# (the cluster groups by rows claimed, in tier order), plan_partition (each group placed against the in-flight work and
+# the groups already placed: a hold, a continuation, absorbed into the group whose claim it meets or that group's
+# overflow, a dependency successor or a new chain; lettered once all are placed) and plan_budget (the placed groups taken in order while the budget, the group cap
 # and the chain-link cap allow). A new planning rule is a change inside one stage, or a new stage.
 @dataclasses.dataclass
 class PlanState:
@@ -691,6 +706,13 @@ def plan_partition(s: PlanState) -> None:
                 shared = {b: sorted(mine.files & x.files) for x in met.values() if (b := x.branch) in done}
                 g.pred = (g.pred + " " if g.pred else "") + continuation_pred(list(done.values()), shared)
                 g.continues += [b for b in done if b not in g.continues]
+                # the branch's work is now the group's: its claim joins the group's, so a later group meeting the
+                # branch's files meets this group, and the branch is this group's to continue (registered once the
+                # group is placed or absorbed, below: a group that waits continues nothing)
+                for x in met.values():
+                    if x.finished and x.branch in done:
+                        g.take(x.claim)
+                family += [x for x in placed if collision(g.claim, x.claim)]
         family = distinct(resolve(x) for x in family)
         dep_links: list[Group] = []
         if deps:
@@ -739,6 +761,8 @@ def plan_partition(s: PlanState) -> None:
                     group_of[i] = head
                 placed = [x for x in placed if x is not t]
                 tail.pop(id(t), None)
+            for b in head.continues:   # a branch it now continues is its work for every later group (PB3528)
+                finisher_of.setdefault(b, head)
             continue
         chains = {chain_of[id(x)] for x in dep_links}
         if len(chains) > 1:
@@ -755,6 +779,8 @@ def plan_partition(s: PlanState) -> None:
         tail[chain_of[id(g)]] = g
         for i in g.notes:
             group_of[i] = g
+        for b in g.continues:   # a branch it now continues is its work for every later group (PB3528)
+            finisher_of.setdefault(b, g)
         placed.append(g)
     # Letters, successors, models and costs, once every group is decided (an absorbed group takes no letter).
     gen = letters()
@@ -864,10 +890,13 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
 
     A CAMPAIGN (`--cluster`, kb/Work PB2120) passes `deps`, {note: its open blockers}, and clusters that carry the
     owner's `tier` (ranked first, kb/Work PB3423; lift_tiers keeps a blocker's cluster from ranking after its
-    dependent's) and a `depth` (their place in the blocked_by topology, ranked next). A group whose notes have blockers runs AFTER the
-    group that holds them: it joins the tail of that group's successor chain (`after:`), as a same-file successor
-    does, because a successor merges its predecessor's FINAL, reviewed branch once that predecessor is settled
-    (wf_rolling_wave.js `settled`), and each link reviewed CLEAN lands as it comes (kb/Work PB3381). A group whose blockers are planned in no group, or in two chains, waits for a later wave (`waiting`).
+    dependent's) and a `depth` (their place in the blocked_by topology, ranked next). A group whose notes have blockers
+    is planned WITH the group that holds them when their claims meet (one step per file, kb/Work PB4396: the combination
+    answers it), and so is one whose blockers ride on a finished branch it continues; otherwise it runs AFTER that
+    group: it joins the tail of that group's DEPENDENCY chain (`after:`), because a successor merges its predecessor's
+    FINAL, reviewed branch once that predecessor is settled (wf_rolling_wave.js `settled`), and each such link reviewed
+    CLEAN lands as it comes (kb/Work PB3381: a dependency chain spans files, so its links are separate steps). A group
+    whose blockers are planned in no group, or in two chains, waits for a later wave (`waiting`).
     A campaign also passes `tiers`, {note: its effective tier} (work.cluster_order's): EVERY group, finisher or
     cluster, is placed in tier order, so the highest tier heads its successor chain, and a wave runs only the first
     `wave.links_per_chain` links of each chain (the owner's ONE); the later links wait for the next wave, planned from
@@ -875,11 +904,12 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     Both lanes pass `busy`, {in-flight owner: InFlight} from classify_inflight (kb/Work PB2807: the fix lane once
     passed none, so a fix-lane group was planned on a file another session's running group held): a group whose claim
     meets RUNNING work (collision: a whole file, or a member of it, kb/Work PB3670) waits, the collision named, and so
-    does every group that would follow it; a group whose claim meets only FINISHED branches is planned as their
-    continuation (continuation_pred: merge each first, no `after:`). An EMPTY set meets nothing (kb/Work PB3670): such a
-    group runs beside everything, named UNPARTITIONED. Within the wave a group follows the placed groups whose claims meet
-    its own on any file both claim (collision: one rule for the wave and for the in-flight work, kb/Work PB3696), never
-    one on other members of a file they share and nothing else. The group's own work never
+    does every group that would follow it; a group whose claim meets only FINISHED branches is planned ONTO them, their
+    continuation (continuation_pred: merge each first, no `after:`; `Group.continues` records them, kb/Work PB4396). An
+    EMPTY set meets nothing (kb/Work PB3670): such a group runs beside everything, named UNPARTITIONED. Within the wave a
+    group whose claim meets a placed group's on any file both claim (collision: one rule for the wave and for the
+    in-flight work, kb/Work PB3696) is absorbed into it while the two fit the group size (clusters.notes_cap), else it is
+    that group's `overflow` (kb/Work PB4396); never one on other members of a file they share and nothing else. The group's own work never
     collides: a branch its pred already continues (`Group.continues`), or a dispatch of its own notes. Without `deps` and `busy` nothing here changes the fix lane's plan (test_plan_wave.py check 8 holds it
     to a golden).
 

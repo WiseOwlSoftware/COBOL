@@ -29,7 +29,7 @@ THE FLOW. The implementer writes `DEVLOG/pending-<slug>.md` whose first line is 
 whose body follows. `stamp <branch>` runs when the branch is enqueued: it allocates the number through
 `scripts/orchestrator/alloc.py devlog` (so number order is STAMP order), renames the file to
 `NNNN-<slug>.md`, completes the header with the number and the current stamp, and commits that in the branch's
-worktree. A branch that merged an unlanded predecessor (a same-file successor, a review finisher) carries that
+worktree. A branch that merged an unlanded predecessor (a continuation or successor, a review finisher) carries that
 predecessor's pending entry too and lands it, so `stamp` folds every pending entry into the ONE new entry, oldest
 first (one landing on main, one entry); a pending entry whose title is already a stamped entry of the tree (that
 predecessor landed on its own, reviewed CLEAN) is dropped, never folded a second time (kb/Work PB3693). THE STAMP IS ALL
@@ -462,7 +462,7 @@ def stamp(wt: pathlib.Path, number: int, now: dt.datetime) -> tuple[str, str]:
     """Number the worktree's pending entry, complete its header and COMMIT it; returns (name, header). The caller
     allocates `number`.
 
-    A branch normally carries ONE pending entry. A branch that merged an unlanded predecessor (a same-file successor,
+    A branch normally carries ONE pending entry. A branch that merged an unlanded predecessor (a continuation or successor,
     a review finisher: MANDATORY-PRACTICES O2, I10) carries the predecessor's too, and lands it: the predecessor lands
     THROUGH it (prune_worktrees.contained), so its landing is one landing on main and gets ONE entry (kb/Work PB2605).
     The entries are folded into that one, oldest first: the titles joined by `; `, each body under its own title.
