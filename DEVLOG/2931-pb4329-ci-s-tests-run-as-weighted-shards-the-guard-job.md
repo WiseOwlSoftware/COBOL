@@ -1,4 +1,4 @@
-## PB4329: CI's tests run as weighted shards, the Guard job leaves the merge group (step 6 of the pipeline redesign PB4323)
+## Entry 2931 — 2026-11-01 01:17 PST — PB4329: CI's tests run as weighted shards, the Guard job leaves the merge group (step 6 of the pipeline redesign PB4323)
 
 The merge group's matrix split the tests by NAME: six Conformance filters per OS, kb/Work A14's, beside one whole Unit +
 Characterization job per OS, and the Guard job (the NIST corpus through the `cobol` CLI) beside them. Its critical path
@@ -48,3 +48,4 @@ assembly's `GateLegDriftTests` asserts it embeds the weights. `shard_weights.py 
 checking STEP is read, since `ci-gate` also counts its `needs`) follow the new jobs.
 
 No inventory row (a process step). LINUX GATE: not part of the per-change gate (PB4327).
+
