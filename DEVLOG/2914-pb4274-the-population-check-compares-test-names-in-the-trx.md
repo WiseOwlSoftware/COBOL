@@ -1,4 +1,4 @@
-## PB4274: the population check compares test names in the trx logger's spelling
+## Entry 2914 — 2026-10-31 23:02 PDT — PB4274: the population check compares test names in the trx logger's spelling
 
 The trx logger rewrites every UTF-16 code unit outside XML's character range as `\u` and four hex digits, so a theory
 case whose argument holds a supplementary-plane character is listed literally by `--list-tests` but named with two
@@ -14,3 +14,4 @@ note and `GateLegs.cs`, and both spellings take a compiled-regex fast path, so a
 every listed, mapped and timed name. The branch's added CI population assertions were left out. The owner ruled out
 added CI time, and the redesign deletes `test_population.py` (step 5) and is rewriting that workflow (step 7). The fix
 closes kb/Work PB4338, the same defect filed from the PB380 report.
+
