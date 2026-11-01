@@ -45,7 +45,7 @@ internal static class GateLegAudit
         Assert.True(assembly.GetManifestResourceNames().Contains(TestWeights.ResourceName, StringComparer.Ordinal),
             $"{assembly.GetName().Name} does not embed {TestWeights.ResourceName} (tests/Directory.Build.props embeds "
             + "tests/_shared/test-weights.json in every test project)");
-        string key = GatePlan.AssemblyKey(assembly.GetName().Name!);
+        string key = TestWeights.AssemblyKey(assembly.GetName().Name!);
         Assert.True(TestWeights.Embedded().Tenths.Keys.Any(k => k.Assembly == key),
             $"the embedded weights name no class of {key}: regenerate them (python scripts/shard_weights.py generate)");
     }

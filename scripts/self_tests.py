@@ -11,7 +11,7 @@
 named five, CI's audits job named those five plus `landing_check.py`, linux-gate.sh named three, and eleven of the
 fourteen orchestrator self-tests (the loop's unit choice, the allocator's lock, the wave planner, …) ran in no gate and
 no CI job at all, so a regression in any of them passed everything. A list goes stale the day a self-test is added.
-This runner FINDS them, and the local gate (scripts/run_gate_legs.py AUDITS, only for a change that touches tooling,
+This runner FINDS them, and the local gate (scripts/gate.py AUDITS, only for a change that touches tooling,
 kb/Work PB4326, and beside its build and legs, never inside the gate slot), the Linux gate
 (scripts/linux-gate.sh leg `selftests`) and CI (the `audits` job on Linux and `windows-self-tests` on Windows) all run
 THIS entry point, so no gate can run a self-test CI does not, or the reverse (the CI invariant, kb/Work PB1957).

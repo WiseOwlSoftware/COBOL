@@ -36,7 +36,7 @@ goes green while CI fails.
 pwsh scripts/build-local.ps1 -Priority BelowNormal *> <log>
 ```
 
-The driver, `scripts/run_gate_legs.py` (DESIGN-test-build-ci.md §3.14; kb/Work PB1721), holds the worktree's GATE
+The driver, `scripts/gate.py` (DESIGN-test-build-ci.md §3.14; kb/Work PB1721), holds the worktree's GATE
 LOCK (a second gate in the same worktree is refused), starts the audits BESIDE the build and the legs (outside the slot; FAIL-FAST: a red
 audit known before the slot or a leg ends an implementer gate in seconds with `NO LEG RAN`, and one found while the legs
 run STOPS them, kb/Work PB2523, PB4326 — run `python scripts/rendered_views.py --check`
@@ -173,13 +173,13 @@ re-run). Here, additionally:
   `RED/INCOMPLETE` (stopped after leg 1 under the scope `whole`), `LEG 1 ONLY (batched gating, PB2515): GREEN|RED`
   (leg 1 ran, leg 2 is CI's — never a whole-population GREEN), `BUILD FAILED`, `BUSY` (exit 3: another gate holds
   this worktree's gate lock; nothing ran and nothing is red: wait for it, then re-run) or `NOT RUN [<cause>]` (exit
-  2: it measured nothing; the cause's class is `run_gate_legs.NOT_RUN_CAUSES`' — ENVIRONMENT `[settings]`
+  2: it measured nothing; the cause's class is `gate.NOT_RUN_CAUSES`' — ENVIRONMENT `[settings]`
   `[interpreter]` is no defect of yours, BRANCH `[driver]` `[population]` is code your tree carries: fix it) —
   block on that line, never on the exit code. The run directory it names holds
   every leg's full log, trx and identity record, the plan and `verdict.json` (timings, first red, slot).
 - **The gate outlives its caller and is gated once per measured tree** (kb/Work PB3536; DESIGN-test-build-ci.md
   §3.14.12). `build-local` starts the gate DETACHED in its run directory (`gate.log`, `gate.pid`, `verdict.json`) and
-  follows it, so killing the caller leaves the gate running to its verdict; `python scripts/run_gate_legs.py --await
+  follows it, so killing the caller leaves the gate running to its verdict; `python scripts/gate.py --await
   <run> [--worktree W] [--wait-s N]` reads that verdict (its line and exit code; a process that died with none is
   `NOT RUN [verdict]` exit 2, a gate still running `PENDING` exit 4; a relative `<run>` is W's run). A re-gate of a
   tree an earlier gate in the worktree measured GREEN (the harness's `.claude/settings.local.json` edit, STATUS.md and

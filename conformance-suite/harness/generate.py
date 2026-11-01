@@ -38,7 +38,7 @@ implemented"); a suite test; a documented determination (docs/CONFORMANCE.md §7
 WiseOwl's own tests (a spec-derived test-ref, or a test of the wiseowl manifest); no witness. The suite's own measure is
 the rows a program can observe (all but documented non-support and derivations) witnessed by a suite test.
 
-`--check` is an AUDIT of the gate (scripts/run_gate_legs.py AUDITS) and of CI's `audits` job (§9): it reads only the
+`--check` is an AUDIT of the gate (scripts/gate.py AUDITS) and of CI's `audits` job (§9): it reads only the
 tree, so a refused test is red in seconds, before the gate slot and the build. `--self-test` is discovered by
 scripts/self_tests.py.
 """

@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>TrackedTree.Files</c> call in a test names a <c>TreeScope</c> field its drift-test class declares, and
 /// <c>scripts/spec/drift_rules.py</c> reads every such declaration exactly as the compiler builds it and applies it
 /// exactly as <c>TreeScope.Holds</c> does — so <c>drift_rules.py &lt;file&gt;</c> lists the sweep for each file it scans,
-/// and the gate's planner puts it in leg 1 for a change to one (tier 0d, <c>scripts/gate_plan.py</c>).
+/// and every gate runs it, the whole population being the gate's selection (kb/Work PB4328).
 /// </summary>
 /// <remarks>
 /// Why: a sweep that read <c>git ls-files</c> and filtered it in code named no path, so the index could not see it.
