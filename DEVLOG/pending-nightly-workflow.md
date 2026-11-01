@@ -17,11 +17,12 @@ red never hides another's verdict), each with `timeout-minutes`:
   keep the battery's one definition instead of a second copy. Windows because `gnucobol_differential.py` defaults to the
   `cobol.exe` apphost and the committed baseline was measured there.
 - `shard-spread`: the new `scripts/shard_weights.py report`. It lists the last 24 hours of successful merge-group runs of
-  build-and-test.yml, downloads their `test-results-<OS>-<job>` artifacts, reads each shard's wall from its trx
+  build-and-test.yml (the newest 8 that ran the matrix), downloads one run's `test-results-<OS>-<job>` artifacts at a
+  time, deletes them after reading, reads each shard's wall from its trx
   `<Times>`, and prints `=== SHARD SPREAD: <slowest over mean>x WITHIN|OVER 1.50x ... ===`. Exit 1 above 1.5 (the weights
   file wants regenerating, PB4323 R7), 2 when a download or trx cannot be read (UNMEASURED: a report that cannot see is
   never a green), 0 NOT MEASURED on a day nothing ran the matrix. PB4328 adds `generate` to the same file and reuses
-  `shard_walls` and `trx_times`.
+  `shard_walls` and `trx_times`. The report is NOT MEASURED (green) until the merge group shards by the weights file.
 - `latest` and `images`: moved verbatim from `toolchain-freshness.yml`, which is deleted. Two daily schedules would be two
   mechanisms for one job, so every reference moved with it (toolchain.py's messages and comments, toolchain.env, the
   setup-toolchain action, two test doc comments, DESIGN-test-build-ci.md, DOC_INDEX.md, plan section 0).
@@ -44,3 +45,14 @@ FilterPopulationGuardDriftTests): the new file meets them (toolchain-manifest im
 one reader, so a torn trx is an `UnreadableTrx` naming the file and the day is UNMEASURED (exit 2) rather than a bare parse
 error. `test_population.py` is deleted by step 5 (PB4328); that note's Sites now say the reader moves first and its
 importers (`profile-test-parallelism.py`, `shard_weights.py`) are re-pointed.
+
+**What the branch review found (round 1).** Two blocking findings. (1) The shard-spread job was red from its first run
+(merge-group run 41265155574: 2.58x on Linux, the name-split matrix's spread) with a remedy, regenerating a weights file,
+that does not exist until PB4328 and PB4329 land: the live report is now NOT MEASURED until
+`tests/_shared/test-weights.json` exists and build-and-test.yml names `WISEOWL_COBOL_SHARD` (`weighted_shards_in_force`),
+and `--from-dir` still always measures. (2) `fetch` downloaded every artifact of every run of the window before reading
+any (about 15.8 GB unpacked for 75 runs, above a runner's 14 GB disk, and 13 minutes of downloads under a 15-minute
+timeout): `measure_window` downloads ONE run at a time into its own scratch directory, deletes it after reading the shard
+walls, and reads at most `MAX_RUNS` (8) shard runs, the newest; the verdict line says when the cap applied. Two leads
+fixed in files already changed: the module docstring's sample verdict line, and PB1957 row 53, which still named the
+deleted toolchain-freshness workflow.

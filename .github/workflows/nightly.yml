@@ -14,7 +14,8 @@ name: Nightly
 #   differential  the GnuCOBOL differential (scripts/battery.sh, its phase 3 and the phases it needs): the external corpus
 #               through the built compiler, red on any per-case verdict flip against the committed baseline.
 #   shard-spread  how evenly the day's merge-group shards divided the test work (scripts/shard_weights.py report): above
-#               1.5 times the mean is the signal that the weights file needs regenerating (kb/Work PB4323, R7).
+#               1.5 times the mean is the signal that the weights file needs regenerating (kb/Work PB4323, R7); not
+#               measured until the merge group shards by that file (PB4328, PB4329).
 #   latest      is toolchain.env at every publisher's newest release? images: does each runner image carry the git
 #               toolchain.env names for it? (Both were the toolchain-freshness workflow, which this one absorbed: the daily
 #               schedule is one mechanism, kb/Work PB4007.)
@@ -170,8 +171,11 @@ jobs:
           path: battery-out/
 
   # ── How evenly the merge group divided the work (scripts/shard_weights.py report): the slowest shard's wall over the
-  # mean shard wall of one OS in one run, the worst of the last 24 hours. Red above 1.5x; NOT MEASURED, and green, on a
-  # day nothing ran the matrix. It reads the merge group's `test-results-*` artifacts (14 days of retention). ──
+  # mean shard wall of one OS in one run, the worst of the newest 8 shard runs of the last 24 hours (one run's artifacts
+  # are about 200 MB, so it downloads one run at a time and deletes it). Red above 1.5x. NOT MEASURED, and green, on a
+  # day nothing ran the matrix and while the merge group still shards by name: the report is live once
+  # tests/_shared/test-weights.json exists and build-and-test.yml names WISEOWL_COBOL_SHARD (PB4328, PB4329), because
+  # its remedy is regenerating that file. It reads the merge group's `test-results-*` artifacts (14 days retention). ──
   shard-spread:
     name: Shard spread (shard_weights.py report)
     runs-on: ubuntu-26.04
