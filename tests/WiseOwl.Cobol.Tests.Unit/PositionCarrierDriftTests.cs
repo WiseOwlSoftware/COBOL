@@ -35,7 +35,6 @@ public sealed class PositionCarrierDriftTests
         ["RootFieldSegment.CsField"] = "the root field's C# member name",
         ["MemberSegment.CsMember"] = "a nested record struct member's C# name",
         ["PositionIndexCell.Cell"] = "an index-name's occurrence cell, a C# member name (IndexDeclaration.Cell)",
-        ["PositionLocal.CsName"] = "a statement local's C# name",
         ["PositionPointerOffset.PointerField"] = "a BASED item's data-address pointer field, a C# member name",
         ["PositionPointerDynBase.PointerField"] = "a BASED or area-formal class's data-address pointer field, a C# member name",
     };
