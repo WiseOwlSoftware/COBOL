@@ -1,12 +1,13 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ CI IS BOUNDED, AND ITS CACHES ARE SAVED FROM MAIN ONLY (kb/Work PB4227, PB4324; DESIGN-test-build-ci.md §3.17):
+/// ⛔ CI IS BOUNDED, AND ITS CACHES ARE SAVED FROM MAIN ONLY (kb/Work PB4227, PB4324; DESIGN-test-build-ci.md §1.4):
 /// every job of every workflow under <c>.github/workflows/</c> states a <c>timeout-minutes</c> (a hung step otherwise holds
 /// a merge-queue slot for GitHub's six hours); every <c>actions/checkout</c> step and every
 /// <c>./.github/actions/setup-toolchain</c> step states one of at most five minutes; every job's first step is a checkout
@@ -206,6 +207,52 @@ public sealed class CiBoundsDriftTests
         var offenders = PythonCacheOffenders(Read(".github/actions/setup-toolchain/action.yml"));
         Assert.True(offenders.Count == 0, "actions/setup-python downloads Python 3.15 from GitHub in every job (48.9 s in each of the "
             + "eight Windows jobs) unless the toolchain cache holds its directory (kb/Work PB4324):\n" + string.Join("\n", offenders));
+    }
+
+    /// <summary>The design pointer this class's summary carries must lead to the paragraph that pins this class: the
+    /// summary reaches every implementer through <c>scripts/drift_rules.py</c>, and a pointer to the wrong section (it named
+    /// §3.17, the landing pipeline, while the paragraph sat in §1.4; kb/Work PB4349) sends each of them to the wrong place.</summary>
+    [Fact]
+    public void TheSummaryCitesTheDesignSectionThatPinsThisClass()
+    {
+        string source = Read("tests/WiseOwl.Cobol.Tests.Unit/CiBoundsDriftTests.cs");
+        var (doc, number) = CitedDesignSection(source);
+        string section = DesignSection(Read($"docs/rearchitecture/{doc}"), number);
+        Assert.True(section.Contains(nameof(CiBoundsDriftTests), StringComparison.Ordinal),
+            $"the summary cites {doc} §{number}, which does not mention {nameof(CiBoundsDriftTests)}: cite the section that holds the paragraph "
+            + "(kb/Work PB4349), or add the paragraph there");
+        Assert.Contains("CI is bounded", section, StringComparison.Ordinal);
+
+        // The reader fires on the shape it forbids: a pointer to another section, and a section that does not exist.
+        const string Doc = "# D\n\n## 1 One\n\ntext Pinned\n\n### 1.1 Sub\n\nnested\n\n## 2 Two\n\nother\n";
+        Assert.Contains("Pinned", DesignSection(Doc, "1"), StringComparison.Ordinal);
+        Assert.Contains("nested", DesignSection(Doc, "1"), StringComparison.Ordinal);
+        Assert.DoesNotContain("other", DesignSection(Doc, "1"), StringComparison.Ordinal);
+        Assert.DoesNotContain("Pinned", DesignSection(Doc, "2"), StringComparison.Ordinal);
+        Assert.Throws<InvalidOperationException>(() => DesignSection(Doc, "3"));
+        Assert.Equal(("DESIGN-x.md", "3.17"), CitedDesignSection("(kb/Work PB1; DESIGN-x.md §3.17): text"));
+    }
+
+    /// <summary>The <c>DESIGN-*.md §N.M</c> pointer in <paramref name="source"/>'s first such citation.</summary>
+    internal static (string Doc, string Number) CitedDesignSection(string source)
+    {
+        Match m = Regex.Match(source, @"(DESIGN-[\w-]+\.md) §(\d+(?:\.\d+)*)");
+        return m.Success ? (m.Groups[1].Value, m.Groups[2].Value)
+            : throw new InvalidOperationException("the summary cites no DESIGN-*.md §N.M section");
+    }
+
+    /// <summary>The text of the heading numbered <paramref name="number"/> and everything below it, up to the next heading of
+    /// the same or a shallower level.</summary>
+    internal static string DesignSection(string document, string number)
+    {
+        string[] lines = document.Split('\n');
+        var heading = new Regex(@"^(#+) (\d+(?:\.\d+)*)[ .]");
+        int start = Array.FindIndex(lines, l => heading.Match(l) is { Success: true } m && m.Groups[2].Value == number);
+        if (start < 0)
+            throw new InvalidOperationException($"the document has no heading numbered {number}");
+        int depth = heading.Match(lines[start]).Groups[1].Length;
+        int end = Array.FindIndex(lines, start + 1, l => heading.Match(l) is { Success: true } m && m.Groups[1].Length <= depth);
+        return string.Join('\n', lines[start..(end < 0 ? lines.Length : end)]);
     }
 
     // ── each audit fires on the shape it forbids, on a fixture ───────────────────────────────────────────────────────

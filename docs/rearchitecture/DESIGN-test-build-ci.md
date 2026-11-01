@@ -90,7 +90,7 @@ neither guard hard-coding a CLI path or naming the retired engine); `guard-nist-
 per program.
 
 ### 1.4 CI (`.github/workflows/build-and-test.yml`) — a gated matrix behind ONE required check
-Fourteen jobs. `changes` decides whether the matrix runs at all; `supersede` (merge group only) cancels the runs the queue replaced; `audits` runs on every push; then, concurrently, `guard` (WiseOwl COBOL parallel NIST,
+Fourteen jobs. `changes` decides whether the matrix runs at all; `supersede` (merge group only) cancels the runs the queue replaced; `audits` runs in every merge group and on no pull request or verified push (kb/Work PB4330); then, concurrently, `guard` (WiseOwl COBOL parallel NIST,
 ubuntu) · `greenfield-conformance` (ubuntu, 6 shards) · `greenfield-unit` (ubuntu) ·
 `windows-conformance` (windows, the same 6 shards, Release) · `conformance-population` (the shards' union against
 each platform's discovered population, `scripts/test_population.py`, §3.14.4) ·
@@ -99,7 +99,7 @@ on a Windows checkout, no build, kb/Work PB3581); `toolchain-cache` and `package
 manifest's tools, Python's directory, the NuGet packages and the GnuCOBOL tarball under main, below); and finally `ci-gate`. (The nightly
 `legacy-oracle` job and the guard's legacy Unit and Integration legs were retired with the engine, kb/Work PB2108,
 PB2109.) NuGet cached (restored by every matrix job, saved by `package-cache` alone); `Generated/` regenerated per checkout (java+pwsh prerequisites). A second workflow,
-`toolchain-freshness.yml`, runs once a day (below).
+`nightly.yml`, runs once a day and blocks nothing (§1.4a).
 
 **⛔ CI and every local host run the tool versions ONE manifest names, and each is the tool's latest release (kb/Work
 PB4007; `ToolchainManifestDriftTests`).** The owner, 2026-10-28: "CI tooling should match local tooling versions -
@@ -125,21 +125,21 @@ Linux git of a chosen version (the Ubuntu image lacks the zlib and libcurl heade
 names each image's git, `GIT_LINUX_VERSION` and `GIT_WINDOWS_VERSION` (git's own release, without Git for Windows'
 `.windows.N` suffix), one per image because GitHub rolls the two on different weeks, and each host installs that release.
 A job on an image whose git moved warns and runs: a failure there would stop every landing until a bump, and with the
-two images moving on different weeks no single value could clear it. The freshness run below holds each image strictly.
+two images moving on different weeks no single value could clear it. The nightly's `images` job (§1.4a) holds each image strictly.
 On the hosts, `scripts/wsl/setup-wsl.sh` and `scripts/cloud/setup-env.sh` install from the manifest (WSL's Python and semgrep through
 uv; semgrep runs on its own uv-managed CPython, `SEMGREP_PYTHON_VERSION`, until upstream ships a cp315 wheel). The
 Windows dev box installs with winget. The gate holds every host to the manifest: before its audits, `run_gate_legs.py`
 runs `toolchain.check --scope gate`, stops `NOT RUN [toolchain]` (an ENVIRONMENT cause) on any mismatch, and names the
 toolchain it ran under in its verdict line and its record. `scripts/python-resolve.sh` and `.ps1` accept exactly
 `PYTHON_VERSION`. The SessionStart readiness check (`scripts/hooks/tooling_check.py`) prints the same comparison for
-every tool, ASK-OWNER on a mismatch. Identical holds at every commit; LATEST holds within a day. `toolchain-freshness.yml`
+every tool, ASK-OWNER on a mismatch. Identical holds at every commit; LATEST holds within a day. `nightly.yml`'s `latest` job
 runs `python scripts/toolchain.py latest` every day. It asks each publisher for its newest stable release (the newest
 SDK of the .NET release index's GA channel of the manifest's major; actions/python-versions' stable list, so the target
 is one setup-python can install; Oracle's current releases; GitHub's `releases/latest`; each runner image's readme for
 its git; PyPI for semgrep). The run is red, naming each tool, while the manifest is behind or a publisher cannot be read.
 A newer GA .NET major is a warning on the run, never red: moving to it also moves `global.json` and every
-TargetFramework, an owner's decision, and a standing red would hide the next release `bump` can take. Its `images` jobs
-run `toolchain.py check --scope image` on each runner image, red while the image's git differs from the manifest's.
+TargetFramework, an owner's decision, and a standing red would hide the next release `bump` can take. Its `images` job
+runs `toolchain.py check --scope image` on each runner image, red while the image's git differs from the manifest's.
 `python scripts/toolchain.py bump` moves the manifest and its cloud copy forward within the .NET major. It does so in a
 change of its own that carries the hosts' update and lands like any other, so CI and the hosts move together. The drift test holds the rest. The manifest names each tool once, exactly; the
 cloud setup carries the manifest's block byte for byte; every job sets up the toolchain right after its checkout and runs
@@ -174,7 +174,8 @@ removed the pull request: the workflow had no `timeout-minutes`. Now every job s
 10 minutes, `greenfield-conformance` 15, `toolchain-cache` and `package-cache` 20, `greenfield-unit`, `windows-conformance` and
 `windows-self-tests` 25, `guard` and `windows-build-test` 30 (the guard's NIST loop alone is 14.1 minutes, so the review's 15 minute
 bound for a Linux shard waits for the re-sharding of pipeline step 6, kb/Work PB4329, which sizes each shard and its bound
-together), and the toolchain-freshness workflow's two jobs 10. Every `actions/checkout` step and every `setup-toolchain`
+together); in the nightly (§1.4a), `latest` and `images` 10, `shard-spread` 15, and `guard`, `self-tests` and `differential` 60,
+the most any job may state (the nightly blocks no landing, so its bound only stops a hang). Every `actions/checkout` step and every `setup-toolchain`
 step is killed after 5 minutes; a job's first step is a checkout with `id: checkout` and `continue-on-error: true`, and its
 second is the same checkout (the same `with:` block, which the drift test compares) run `if: steps.checkout.outcome !=
 'success'`, so one transient failure or hang costs at most 10 minutes and the job, not the queue's verdict, absorbs it (the
@@ -215,7 +216,7 @@ exists. `changes` now decides it, by calling `scripts/inert_lane.py classify` ov
 classification, which the local gate and the Linux gate call too), and outputs `run_matrix`; every other job carries
 `needs: changes` + `if: needs.changes.outputs.run_matrix == 'true'`. A merge group's base is its
 `merge_group.base_sha`, so a group of inert pull requests skips the matrix; a pull request never
-runs it (its run is the cheap jobs, §3.17.6); a push to main diffs from `before`, and with no resolvable `before` the
+runs it (its run is `changes` and `ci-gate`, §3.17.6); a push to main diffs from `before`, and with no resolvable `before` the
 matrix runs. `changes` also short-circuits a push whose sha already carries a green run of the workflow from an event
 other than `pull_request` — the merge group's, since the queue advances main to the very commit it tested — so main's
 push run does not pay for the matrix a second time, and it carries the drift check that asserts every job id is in
@@ -226,6 +227,27 @@ tested (the ruleset binds administrators), so the push trigger is `branches: [ m
 merge-queue commit. `cancel-in-progress` is restricted to `pull_request`, because a cancelled push run leaves its sha
 permanently unlandable. The direct-push landing script that preceded the queue, its `ci/` landing branches and its
 landing lease are deleted (kb/Work PB3024's closing change).
+
+### 1.4a The nightly (`.github/workflows/nightly.yml`) — what no landing waits for (kb/Work PB4332; PB4323 step 9)
+
+One scheduled workflow (09:17 UTC, and `workflow_dispatch`) that no branch protection, ruleset or merge queue names, so a
+red job is a morning's reading and never a refused landing. Its jobs have no `needs` (one red never hides another's
+verdict) and each is bounded as §1.4 states (`timeout-minutes`, a checkout retried once, 5 minutes on each checkout and
+toolchain step), and only RESTORES its caches: main's push run saves them (`toolchain-cache`, `package-cache`), and main
+is the ref a scheduled run reads:
+
+| job | measures | red when |
+|---|---|---|
+| `guard` | the NIST corpus through the `cobol` CLI (`scripts/guard-fast.sh`, Linux, about 12 minutes at JOBS=4) | the guard is not ALL GREEN (a REGRESSION, DIFF, FAIL*, audit finding, build warning, or its own instrument self-tests) |
+| `self-tests` (both OSes) | every script self-test (`scripts/self_tests.py`, nothing reused) and `line_endings.py --check`, then the `--built` phase after a solution build | any self-test is red on either OS: the Windows ones whether or not the day's landings touched a tooling path |
+| `differential` (Windows) | the GnuCOBOL differential: `scripts/battery.sh` with `SKIP_TESTS=1 SKIP_GUARD=1`, so the citation audits, the corpus fetch, the solution build and phase 3, the battery's one definition and never a copy | a per-case verdict flip against the committed baseline, or a case with no compiler verdict. Windows, because the baseline was measured there and `gnucobol_differential.py` defaults to the `cobol.exe` apphost |
+| `shard-spread` | `scripts/shard_weights.py report`: for each OS of the newest 8 successful merge-group runs of the last 24 hours that ran the matrix (one run's artifacts, about 200 MB, are downloaded and deleted before the next), the slowest `test-results-<OS>-<job>` shard's wall (its trx `<Times>`) over the mean shard wall | the worst spread exceeds 1.5 (exit 1; the weights file wants regenerating), or a download or trx cannot be read (exit 2, UNMEASURED). NOT MEASURED and green on a day with no matrix run, and while the merge group still shards by name: the report is live once `tests/_shared/test-weights.json` exists and `build-and-test.yml` names `WISEOWL_COBOL_SHARD` (PB4328, PB4329), since regenerating that file is its remedy |
+| `latest` | `toolchain.py latest`: is `toolchain.env` at every publisher's newest release (§1.4) | the manifest is behind a tool, or a publisher cannot be read |
+| `images` (both OSes) | `toolchain.py check --scope image`: each runner image's own git against `toolchain.env` (§1.4) | the image's git differs from the manifest's |
+
+`latest` and `images` were the `toolchain-freshness.yml` workflow; folding them in keeps one daily schedule. The Guard
+job also runs in the merge group until the weighted-shard step (PB4329) moves it out; the nightly job is its one home
+afterwards.
 
 ### 1.5 Drift discipline (a genuine strength — preserve it)
 `ConstructRegistryDriftTests` binds `constructs.json` ↔ in-code `ConstructRegistry` both directions;
@@ -1209,7 +1231,16 @@ because the raw name is not stable (`b7`):
   keyed that way, the append leaves ONE unknown test (the new golden) and the floor unchanged — re-run through
   `gate_plan.py` itself (`b7`'s last table): one tier-0u case, a 15.3 s floor. Appending to 2002 renames 838 rows, to
   2014 677; to 2023 or the negative manifest, only the sentinel.
-- **The contract** (`gate_plan.py#name_key`; the test hosts' leg filter mirrors it exactly, M12): split the display
+- the trx logger does not spell a name the way `--list-tests` and the test host do (kb/Work PB4274): it rewrites every
+  UTF-16 code unit outside XML's character range `[^\x09\x0A\x0D\x20-\uD7FF\uE000-\uFFFD]` as `\u` and four
+  lowercase hex digits (`RemoveInvalidXmlChar` in the SDK's `Microsoft.VisualStudio.TestPlatform.Extensions.Trx.TestLogger`),
+  so a theory argument holding a supplementary-plane character is listed literally and named `\ud834\udd5e` in the
+  trx; xunit's argument formatter has already written a lone surrogate as `\xd800` and a backslash as `\\`, so those
+  reach both sides alike. A red or a duration read from a trx then met no listed case. `NameKey` therefore starts
+  from the logger's spelling (`test_population.py#trx_spelling`, mirrored by `GateNameKey.TrxSpelling`), the identity
+  on a trx name.
+- **The contract** (`gate_plan.py#name_key`; the test hosts' leg filter mirrors it exactly, M12): put the display name
+  in the trx logger's spelling (above), then split the display
   name at its FIRST `(`; in the part before it, split on `.`; when there are at least three segments and the
   second-to-last (the CLASS) matches `(.+)_P\d+` in full, replace it with the capture; rejoin, and append the `(` and
   everything after it unchanged. A theory's arguments are never touched. Only a partition class may carry the suffix:
@@ -1537,15 +1568,17 @@ makes the tree ready first exactly as the CI job does (`git submodule update --i
 `check_practices.py` reads); a failed prerequisite is RED and no audit runs. `SelfTestDiscoveryDriftTests` maps every
 command of CI's `audits` job to an AUDITS entry, a prerequisite, or its recorded reason to run elsewhere: the one is
 `devlog.py check`, a LANDING check (an implementer's entry stays `DEVLOG/pending-*.md` until `enqueue.py` stamps it,
-and the check refuses a pending entry), run by `enqueue.py checks` and by CI on pull requests and merge groups. They run CONCURRENTLY
-before the slot, each audit's output printed as one block. One entry, `SELF-TESTS`, is every script self-test under
-`scripts/`: `scripts/self_tests.py` DISCOVERS them (a script that handles `--self-test`, read from its syntax tree, or a
+and the check refuses a pending entry), run by `enqueue.py checks` and by CI on merge groups. They run CONCURRENTLY,
+beside the build and the legs (step 3 of 3.14.3), each audit's output printed as one block. One entry, `SELF-TESTS`, is
+every script self-test under `scripts/`, and the one audit that runs ONLY WHEN THE CHANGE TOUCHES TOOLING
+(`TOOLING_ONLY`; `inert_lane.py`'s `Lane.tooling`, 3.18; kb/Work PB4326): `scripts/self_tests.py` DISCOVERS them (a script that handles `--self-test`, read from its syntax tree, or a
 file named `test_*.py`/`test_*.ps1`), runs them in parallel, each with a private `COBOL_COORD_DIR` and a private git
 global config (on Windows also a TEMP that is a junction to the run's own scratch, `aliased_temp`, because CI's Windows
 runner hands every process the 8.3 alias `C:\Users\RUNNER~1\...` as TEMP and a test comparing an unresolved TEMP path
 with a resolved one is red only there otherwise; PR #714's bounce, kb/Work PB1957 row 25), and reports a self-test marked `# SELF-TEST-PLATFORM: windows — <reason>` as NOT RUN elsewhere with its
 reason. Its post-build half (`self_tests.py --built`: the self-tests marked `# SELF-TEST-NEEDS: build`,
-`filter_population.py`) runs beside the legs once the build is done. The same runner is CI's (the `audits` job on Linux,
+`filter_population.py`) runs beside the legs once the build is done, and only for a change that touches tooling: it was
+a wait of 145 s (median) after the legs of every gate, and a change that touches no tooling cannot turn it red. The same runner is CI's (the `audits` job on Linux,
 `windows-self-tests` on Windows, `greenfield-unit` for `--built`) and the Linux gate's (`selftests` and
 `selftests-built`), and `SelfTestDiscoveryDriftTests` holds every one of those entry points to it and forbids any of
 them to name a self-test by hand (kb/Work PB2563: eleven orchestrator self-tests had run in no gate, and
@@ -1584,19 +1617,28 @@ kb/Work PB2914). One gate:
    runner three runs started in the same microsecond (kb/Work PB3536, merge-group run 39888287569). The reuse rule
    (3.14.12) and the pruning read the same order; a run named before the numbers (`<stamp>-<nonce>`) is older than
    every numbered one.
-3. The audits — FIRST, since none needs a build or a test result, and FAIL-FAST: a red audit ends
-   the gate `RED — <audit> RED — fail-fast: the audits run before the slot and the build and NO LEG RAN` in seconds
-   (kb/Work PB2523: four of wave 1034's eight first-run implementer reds were audit-only, each reported after a whole
-   ~6-min population). The FIRST red STOPS the audits still running — each with its whole process tree, so the
+3. The change's lane (3.18) and the audits — started FIRST, since none needs a build or a test result, but BESIDE
+   everything after them (kb/Work PB4326, step 3 of the pipeline redesign PB4323), as `Gate._beside` work (`BESIDE =
+   ("audits", "post_build_self_tests")`). The inert lane joins them at once: they are its whole gate. A full lane runs
+   them beside the corpus fetch, the slot wait, the build, the listings and the legs, and stays FAIL-FAST: a red audit
+   that is known before the slot, and again before the legs start, ends the gate `RED — <audit> RED — fail-fast: an
+   audit was RED before the slot, the build and any leg: NO LEG RAN` in seconds (kb/Work PB2523: four of wave 1034's
+   eight first-run implementer reds were audit-only, each reported after a whole ~6-min population), and a red audit
+   found while a leg runs STOPS the leg hosts (`Host.stop_legs`: each host registered in `Host.legs_live`, its process
+   tree killed, one that starts afterwards killed at once) and ends the gate RED with their partial results NOT
+   measured. Without the script self-tests (a change that touches no tooling, `TOOLING_ONLY`) the audits take about 40
+   s, so they end before the build does and cost the critical path nothing; the 40-s serial valley that PB2880
+   measured ahead of the build is gone for every gate, not just the landing's. The FIRST red STOPS the audits still running — each with its whole process tree, so the
    self-test runner's children go with it — and reports them `STOPPED`, never RED (kb/Work PB3061: wave 1062's agents
    A and B had CITATIONS RED at 23 s and their verdict 5–7 min later, after the self-tests; a stopped self-test run
-   loses nothing, since every self-test that finished has recorded its PASS and the re-gate reuses it). (The deleted lander mode, kb/Work PB3022, ran them BESIDE its build and legs instead, kb/Work
-   PB2880: ahead of the build they were a 42-s serial valley at about a third
-   of the host in every landing, set by the self-test runner's long poles) — then the per-worktree
+   loses nothing, since every self-test that finished has recorded its PASS and the re-gate reuses it). (The deleted lander
+   mode, kb/Work PB3022, ran them BESIDE its build and legs, kb/Work PB2880: ahead of the build they were a 42-s serial
+   valley at about a third of the host in every landing, set by the self-test runner's long poles; PB4326 gives that
+   shape to the one gate) — then the per-worktree
    GnuCOBOL corpus by THE one rule `scripts/external_corpus.py`, which `battery.sh`, the Linux gate and the impact-map
    recorder apply too (absent in a fresh worktree, so fetched; a failed fetch makes the gate RED as `EXTERNAL CORPUS
-   FETCH FAILED, POPULATION UNMEASURED`; kb/Work PB2611). **Both run
-   BEFORE the gate slot is taken** (kb/Work PB2524): they read only the tree, nothing the slot rations, and inside the
+   FETCH FAILED, POPULATION UNMEASURED`; kb/Work PB2611). **The fetch runs
+   BEFORE the gate slot is taken and the audits OUTSIDE it** (kb/Work PB2524): they read only the tree, nothing the slot rations, and inside the
    slot they were 35-45 % of its hold (about 230 s of serial Python per gate while every other implementer gate
    queued; `verdict.json` of 22 gates, 2026-10-07). `audit_doc_citations.py`, the costliest, rules on every quotation
    IN-PROCESS over one loaded standard (kb/Work PB2525: one `cite.py` process per citation was 75 of its 79 s).
@@ -1620,7 +1662,11 @@ kb/Work PB2914). One gate:
    verdict, because timings change only the order); the identity check (each leg host's record names the digest the driver handed it,
    the plan's content digest, the binaries step 3 hashed, the whole discovered population as `received`, and only
    its own leg's keys in `runs`), then the verdict line and `verdict.json` (the mode, the slot, the plan, every
-   leg's per-assembly wall time and exit code, the time to the first red, and each population).
+   leg's per-assembly wall time and exit code, the time to the first red, and each population; and, since kb/Work PB4326,
+   `assembly_wall_s` — per assembly, its leg hosts' summed seconds — and `effective_concurrency` — those seconds over the
+   span the legs took, 3.0 when the three assemblies ran flat out side by side — the two numbers the step that replaces
+   the plan with the population, PB4328, reads its acceptance measurement from — and `tooling`, whether the change touched
+   tooling).
 
 `-Filter` was removed from both scripts and every caller in M13 (kb/Work PB1721), with `impacted_tests.py`'s filter
 line and `--plus`. The driver's `--self-test` fires every arm of §3.14.4 (3) against a planted host (a fake
@@ -1647,10 +1693,16 @@ of a `--list-tests` output (`parse_listing`); `filter_population.py` and `record
   discovered case that executed). Not the RESULT names: xunit lists a theory whose data it cannot serialize as ONE
   case and then reports one result per row, so Unit's results carry 33 names `--list-tests` never printed and miss 2
   it did, while its 29,703 definitions equal the listing exactly (`b8`).
-- a name short → `NEVER RAN` (red, each named) — unless the run stopped early, when the remainder is reported as NOT
-  RUN and the verdict is already RED/INCOMPLETE;
-- a name over → `RAN TWICE` (red, named);
-- a definition the listing never printed → `NOT IN THE POPULATION` (red, named: a trx of another build or assembly);
+- **One spelling** (kb/Work PB4274): the two sides are compared in the trx logger's spelling (`trx_spelling`, the name
+  key's first step above), which is what the logger did to the listed name, so a case always meets itself. The rewrite
+  cannot be inverted (the logger escapes no backslash), so two LISTED names it spells alike are an error naming both,
+  never one merged count.
+- a name short → `NEVER RAN` (red, each named) — unless the run stopped early (a fail-fast stop, a leg-1-only gate),
+  when the remainder is reported as NOT RUN and the verdict is already RED/INCOMPLETE, or LEG 1 ONLY;
+- a name over → `RAN TWICE` (red, named), whether or not the run stopped early;
+- a definition the listing never printed → `NOT IN THE POPULATION` (red, named: a trx of another build or assembly),
+  whether or not the run stopped early (`Population.defective`; until PB4274 a leg-1-only gate printed it and stayed
+  GREEN);
 - a definition with no Passed or Failed result → counted as SKIPPED on the verdict line, never as ran;
 - an input it cannot read (a missing or non-trx file, a listing without vstest's marker, an EMPTY population,
   listings that disagree) → exit 2, an error, never a finding. Each run prints one line,
@@ -2800,9 +2852,11 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    `SparseCheckoutDriftTests` (kb/Work PB3787) reads the closure of every sparse-checkout job of the workflow and
    refuses a file it runs or imports that the list does not cover (§3.17.8).
 5. **On `main`**: the merged commit is the tested merge-group tree. The `push` run keeps only `changes` + `ci-gate` (the
-   record the probe reads); the matrix runs on `merge_group` and `workflow_dispatch`. On `pull_request` only the cheap
-   jobs run (audits, the DEVLOG and work-register checks), so twenty PRs do not queue twenty full matrices behind the
-   organization's 60-concurrent-job limit (section 3.17.6).
+   record the probe reads) and the cache jobs (`toolchain-cache`, `package-cache`: restore, install and save only on a
+   miss); the matrix and the audits run on `merge_group` and `workflow_dispatch`. On `pull_request` only the required check
+   runs (`changes` + `ci-gate`: kb/Work PB4330 took the audits, with the DEVLOG and work-register checks, out of the pull
+   request's and the push's run, where they were the same 5.7-minute job a third and a second time), so twenty PRs do not
+   queue twenty full matrices behind the organization's 60-concurrent-job limit (section 3.17.6).
 
 The implementer's leg-1 gate stays first for every change (the owner's principle); CI is the regression net and the
 only whole-population run.
@@ -2971,13 +3025,16 @@ demand and not committed.
 
 - `build-and-test.yml` (landed, PB3024 phase 1): `merge_group:` added; the `changes` job runs the matrix on
   `merge_group` (base = the group's `base_sha`, so a group of inert-lane PRs skips it exactly as an inert landing did, §3.18)
-  and `workflow_dispatch`, only the cheap jobs (`audits`, `ci-gate`) on `pull_request`, and on `push` to main the
+  and `workflow_dispatch`, only the required check (`changes`, `ci-gate`; the audits moved to the merge group, PB4330) on
+  `pull_request`, and on `push` to main the
   already-verified short-circuit (the merge-queue commit IS the commit main advances to; measured on the first three
   queued landings, PRs 7–9: each `push` run found its merge group's green run on the same sha and skipped the matrix).
   ⛔ The short-circuit counts only a successful run of the workflow from an event other than `pull_request`: a PR's
   cheap `ci-gate` is attached to the PR's HEAD commit, so a check-run lookup would have read it as a verdict on the
   matrix. `push.branches` is `[ main ]` (PB3024's closing change dropped the `ci/**` landing branches), and the
-  DEVLOG-entry check runs only on `pull_request` and `merge_group`. `ci-gate`'s `needs:` and its drift check (every job
+  DEVLOG-entry check runs only on `merge_group` (PB4330). `audits` runs `if: github.event_name == 'merge_group' ||
+  needs.changes.outputs.run_matrix == 'true'`: every merge group, and any other event only when its matrix runs (a dispatch
+  run, or a push no merge group verified), never a pull request or a verified push. `ci-gate`'s `needs:` and its drift check (every job
   wired) are unchanged. The `supersede` job (kb/Work PB3769) runs on `merge_group` only and is the one job granted
   `actions: write` (with `contents: read` for its sparse checkout and `pull-requests: read` for the queue's entries); it
   cancels the runs the queue has replaced (§3.17.2 step 4).
@@ -3016,7 +3073,7 @@ demand and not committed.
   pull-request step as a SCRIPT, `scripts/orchestrator/enqueue.py queue` (the landing checks, push the branch, open or
   reuse its pull request, queue it with auto-merge; no CI wait), with `enqueue.py checks` the one landing-check
   sequence both paths run. **⛔ The operator's review (2026-10-11 13:39, mailbox 20261011-133923):** with
-  `pull_request` limited to the cheap jobs, a PR opened BEFORE the owner applies the ruleset has no merge-group run,
+  `pull_request` limited to the cheap jobs (since PB4330 `changes` and `ci-gate` alone), a PR opened BEFORE the owner applies the ruleset has no merge-group run,
   its `ci-gate` passes on the cheap jobs, and auto-merge would land it with NO whole-population run. Closed by
   construction: `enqueue.py queue` refuses (exit 8) before any check, push or pull request unless `ruleset.py check`
   reports the queue ACTIVE (live ruleset equal to the committed one, the queue present, the classic protection gone);
@@ -3067,7 +3124,7 @@ landing is held to a record of its own tree. Landed with kb/Work PB3769:
 with no `needs`, runs `cancel_superseded.py` with the run's id and head commit, is the only job with `actions: write`,
 has every step `continue-on-error` (kb/Work PB3820: the checkout and its retry too, the script gated on either checkout's outcome, a failed checkout said as a warning; `StepsThatCanFailTheJob` is the step reader, held by its own arms) and is a `needs` of `ci-gate`; the arms of `cancel_superseded.py` and of `queue_facts.live_heads`
 are declared), the supersession rule of §3.17.2 step 4. Landed with kb/Work PB3787: `SparseCheckoutDriftTests` (reader:
-`SparseCheckoutAudit`): every workflow job whose checkout has a `sparse-checkout` list (`supersede`, `toolchain-cache`, `ci-gate`, the freshness job)
+`SparseCheckoutAudit`): every workflow job whose checkout has a `sparse-checkout` list (`supersede`, `toolchain-cache`, `ci-gate`, the nightly's `latest` and `images` jobs)
 lists each repository file its steps name, each file its local action names, and each repository module a Python script
 it runs imports anywhere in its text, transitively (a function body's lazy import is followed, kb/Work PB3810: an
 under-approximated closure fails silently on the runner; `importlib` and path strings are the static read's limits), and
@@ -3104,7 +3161,7 @@ self-tests initialize. Two sweeps moved to make `kb/` inert, the way the conflic
   landed `kind: defect` note naming the rows it closed, or why none, and every row so named closed in the inventory)
   were two Unit drift tests that read every `kb/Work/` note through a C# twin of `work.py`'s frontmatter reader. They are
   now `scripts/spec/work_inventory.py`, called by `work.py check`, so the register has ONE reader and the checks are
-  audits: the gate's `WORK REGISTER` audit runs them before the slot, CI's `audits` job on every event, and they run on a
+  audits: the gate's `WORK REGISTER` audit runs them beside its build and legs, CI's `audits` job in every merge group, and they run on a
   `kb/`-only change exactly as on any other. The twin, its parity fixture's second engine and `work.py parity` are gone
   (the fixture stays as `work.py --self-test`'s cases). The tree sweeps of LandingPipelineDriftTests (two scopes),
   LandingLaneDriftTests and LandingMeasureDriftTests set `kb/` aside whole, and EcRaiseSiteRegistryDriftTests
@@ -3117,21 +3174,50 @@ self-tests initialize. Two sweeps moved to make `kb/` inert, the way the conflic
 
 | Runner | Inert lane | Full lane |
 |---|---|---|
-| CI `changes` (`classify --base <group base or before> --head <sha>`) | `run_matrix=false`: `audits` + `ci-gate` | the matrix |
+| CI `changes` (`classify --base <group base or before> --head <sha>`) | `run_matrix=false`: `audits` (merge group) + `ci-gate` | the matrix |
 | local gate (`run_gate_legs.py`, `Host.lane`, over the measured working tree against the base) | the audits, then `… GREEN — INERT LANE (kb/Work PB2878): …`, no slot, build or test leg; under either scope | the ordered gate |
 | hand-run Linux gate (`linux-gate.sh`) | classifies nothing (kb/Work PB4327): it runs the legs it is asked to | every leg, under the watch |
 
-The audits run in every lane (they are where a register note, a citation or a DEVLOG entry is checked); CI's `audits`
-job runs on every event.
+The audits run in every lane of the local gate (they are where a register note, a citation or a DEVLOG entry is checked);
+CI's `audits` job runs in every merge group, whatever `changes` decided, and on no pull request and no verified push
+(kb/Work PB4330: it ran three times per landing, 5.7 minutes each time; it runs once, where the landing waits for it).
+
+**The tooling flag (kb/Work PB4326).** A full-lane change also says whether it TOUCHES TOOLING: a path under `scripts/`,
+`.github/`, `tools/`, `.claude/`, or `.gitattributes` / `toolchain.env` (the two root files the Windows self-tests job reads
+through its checkout), ending `.py`, `.ps1` or `.sh` anywhere, or under a `TOOLING_READS` entry (a path outside the scripts
+that a script self-test reads as data, each entry naming its readers: `tests/_shared/TestRepo.cs`, the grammar,
+`.agent-fleet.json`, `docs/CONFORMANCE.md`, `tests/version-matrix/`, ...). `classify` prints it as `tooling=true|false`; an
+empty or unlistable change touches tooling, and an inert change never does. The script self-tests read tooling and those
+entries, so only a change that touches one can turn one red: the local gate's `SELF-TESTS` audit (`TOOLING_ONLY`) and its
+post-build self-tests run only then, and CI's `windows-self-tests` job runs only then (`needs.changes.outputs.tooling ==
+'true'`, beside `run_matrix`; the Linux self-tests of the `audits` job run in every merge group). That a self-test's PASS is
+reused while its recorded inputs are unchanged (3.14.10) is what keeps a tooling change to the self-tests it can affect. A
+change that touches no tooling saves the median gate 147 s of self-tests and 145 s of waiting for the post-build ones
+(PIPELINE-REVIEW, step 3).
+
+**The proof of the tooling flag (kb/Work PB4326, review round 1 finding R1-1).** A path prefix alone was refuted by the PASS
+store's recorded inputs (3.14.10): `tests/_shared/TestRepo.cs` is an input of `drift_rules.py`'s self-test and the `.g4` files of
+`grammar_source.py`'s, so a change to only one of them skipped a self-test the merge group's `audits` job then turned red.
+`scripts/self_tests.py` therefore applies `Classification.unclassified_reads` to what every self-test it RUNS observably
+read (its trace, not a guess): a self-test that passes but read a tracked path that is not tooling, under no `TOOLING_READS`
+entry and under no INERT entry is RED, naming the path, until the path gets an entry naming its reader; `inert_lane.py
+check` holds every entry to a tracked path. The accepted residue, named (owner 2026-10-31, PB4323: a merge-group red may be
+one of five first-run classes): a DECLARED POPULATION reader (`# SELF-TEST-POPULATION: tree — <why>` in the self-test's first
+lines: `test_plan_wave.py`, `test_dispatch_guard.py` and `impacted_tests.py` walk every markdown file or path) is not judged,
+since no set of paths bounds it, and the declaration is held to the trace (review round 2, finding R2-1): a self-test that
+declares it and ran no git command over the whole repository is RED, and one that ran such a command without declaring it is
+judged like any other, so a whole-tree git command never exempts the specific files its self-test also reads (`work.py` reads
+`docs/DESIGN.md`, `merge_drivers.py` the ABI pin, `test_orchestrate_steer.ps1` the plan: each a `TOOLING_READS` entry); the `DEVLOG/` and `kb/` corpora, which every landing grows and `devlog.py check` and `work.py
+check` govern in every lane; and a directory listing, which changes when a file is added and not when a listed file is edited.
 
 **The script self-tests run on Linux in the inert lane too: in CI (kb/Work PB3646, PB4327).** CI's `audits` job runs
-`self_tests.py` on Linux on every event, and those self-tests are audits that read the inert paths by design (the
+`self_tests.py` on Linux in every merge group, and those self-tests are audits that read the inert paths by design (the
 register, the DEVLOG, the skills submodule they initialize), so the inert watch cannot vouch for them and a `kb/` or
 `DEVLOG/` change can turn them red on Linux. From PB3646 to PB4327 the local gate ran them in a WSL clone of HEAD in its
 inert lane (a LIGHT slot, `Host.linux_leg(inert=True)`); the Linux half is gone from the gate (§3.15), so the Windows
 gate's inert lane ends after its audits and takes no slot, and the merge group is the first Linux run of a notes-only
-change. `InertLaneDriftTests` holds the CI job (`audits` runs the runner on every event) and the local lane's lack of a
-Linux step. A Linux host's audits ARE the Linux self-tests.
+change. `InertLaneDriftTests` holds the CI job (`audits` runs the runner in every merge group and on no pull request) and the
+local lane's lack of a Linux step. A Linux host's audits ARE the Linux self-tests.
 
 **The proof — the inert watch.** A list of "what no test reads" that nobody proves drifts from the tests, and a test
 that starts reading an inert path would let an inert change land untested. So every whole-assembly test run on Linux

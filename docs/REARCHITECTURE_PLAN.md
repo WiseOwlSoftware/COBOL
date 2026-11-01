@@ -76,7 +76,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
 - **▶ CI AND EVERY HOST RUN THE SAME, LATEST TOOL VERSIONS (owner 2026-10-28, kb/Work PB4007, landed #748).** "CI tooling
   should match local tooling versions - always" and "CI and local should always be using the latest version". `toolchain.env`
   is the one place a version is written: CI installs from it (`.github/actions/setup-toolchain`), and so do the hosts
-  (`scripts/install-tool.sh`, `setup-wsl.sh`, the cloud `setup-env.sh`). `toolchain-freshness.yml` is red while a publisher
+  (`scripts/install-tool.sh`, `setup-wsl.sh`, the cloud `setup-env.sh`). `nightly.yml` is red while a publisher
   has a newer stable release, and the local gate stops `NOT RUN [toolchain]` on a host whose tools differ. On Windows,
   install with winget, and uninstall the older version when the manifest moves.
 - **▶ LIVE STATE (2026-10-06 23:40 PDT) — THE COMPLETION PLAN IS DECIDED (kb/Work R69; DEVLOG 1901).** Main is train 1024 plus this plan commit; no compiler code changed. Three owner decisions of 2026-10-06, each recorded in R69 and never to be re-asked:
@@ -1913,8 +1913,8 @@ result. Run the long legs ONE AT A TIME.
 - **PER CHANGE — the ONE ordered gate (kb/Work PB1708, PB1721, PB3022; `DESIGN-test-build-ci.md` §3.14 and section 3.17.3):**
   `pwsh scripts/build-local.ps1 -Priority BelowNormal` (bash: `scripts/build-local.sh`), the same for an
   implementer's commit, a re-gate and a landing (at Normal priority). ORDER, DON'T SKIP (owner, 2026-09-28): its
-  driver `scripts/run_gate_legs.py` holds the worktree's gate lock, runs the audits (before it queues, kb/Work
-  PB2524), takes a gate slot (`scripts/gate_slot.py`, at most N gates at once), builds the SOLUTION, lists every
+  driver `scripts/run_gate_legs.py` holds the worktree's gate lock, runs the audits (beside the build and the legs, outside
+  the slot, kb/Work PB2524, PB4326), takes a gate slot (`scripts/gate_slot.py`, at most N gates at once), builds the SOLUTION, lists every
   discovered case of Conformance, Unit and Characterization and plans them ALL into two legs — the tests the change
   adds and the previous gate's reds on either host (0a), the host-only witnesses (0h), the cheap tree-wide sweeps (0c) and the
   cheapest cases the change reaches (the impact map's tiers) first — and runs leg 1 FAIL-FAST (batched gating), then

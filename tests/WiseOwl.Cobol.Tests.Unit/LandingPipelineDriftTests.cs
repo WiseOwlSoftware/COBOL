@@ -9,7 +9,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ GITHUB'S MERGE QUEUE IS THE LANDING, AND NOTHING OPENS A PULL REQUEST BEFORE THE QUEUE IS ACTIVE (kb/Work PB3024;
 /// DESIGN-test-build-ci.md §3.17.6 and DESIGN-test-build-ci.md §3.17.8): <c>.github/workflows/build-and-test.yml</c> runs the matrix on the
-/// <c>merge_group</c> event and only the cheap jobs on <c>pull_request</c>; its already-verified short-circuit counts only
+/// <c>merge_group</c> event and only the required check (<c>changes</c>, <c>ci-gate</c>; the audits run in the merge group, kb/Work
+/// PB4330) on <c>pull_request</c>; its already-verified short-circuit counts only
 /// a run that could have run the matrix, never a pull request's; no tracked file but
 /// <c>scripts/orchestrator/enqueue.py</c> opens or queues a pull request, and enqueue.py asks <c>ruleset.py check</c> for
 /// an ACTIVE queue before it checks, pushes or opens anything; every gate row enqueue.py runs takes the shared gate slot

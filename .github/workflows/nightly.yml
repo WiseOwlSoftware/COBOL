@@ -1,0 +1,331 @@
+name: Nightly
+
+# ⛔ THE NIGHTLY RUNS WHAT NO LANDING NEEDS TO WAIT FOR, AND BLOCKS NOTHING (kb/Work PB4332, step 9 of the PB4323 pipeline
+# redesign; DESIGN-test-build-ci.md). It is a scheduled workflow, so no branch protection, ruleset or merge queue names
+# it: a red job here is a signal to read the next morning, never a landing refused. Each job is independent (no `needs`),
+# so one red never hides another's verdict, and each says what it measures that build-and-test.yml's merge group does not:
+#
+#   guard       the NIST corpus through the `cobol` CLI (scripts/guard-fast.sh, about 12 minutes at JOBS=4). The merge group
+#               carries it until pipeline step 6 (kb/Work PB4329) moves it here (owner decision 2, 2026-10-31): its
+#               Conformance shards run the same NIST programs in-process, and the CLI path (a separate process per program,
+#               every verdict audited against the manifest) needs a daily witness, not a per-landing one.
+#   self-tests  EVERY script self-test on BOTH operating systems, the Windows ones whether or not the day's landings touched
+#               a tooling path (the merge group runs them there only when one did), and the `--built` phase on both.
+#   differential  the GnuCOBOL differential (scripts/battery.sh, its phase 3 and the phases it needs): the external corpus
+#               through the built compiler, red on any per-case verdict flip against the committed baseline.
+#   shard-spread  how evenly the day's merge-group shards divided the test work (scripts/shard_weights.py report): above
+#               1.5 times the mean is the signal that the weights file needs regenerating (kb/Work PB4323, R7); not
+#               measured until the merge group shards by that file (PB4328, PB4329).
+#   latest      is toolchain.env at every publisher's newest release? images: does each runner image carry the git
+#               toolchain.env names for it? (Both were the toolchain-freshness workflow, which this one absorbed: the daily
+#               schedule is one mechanism, kb/Work PB4007.)
+#
+# ⛔ toolchain.env IS KEPT AT EACH TOOL'S LATEST RELEASE (kb/Work PB4007; DESIGN-test-build-ci.md §1.4). The owner,
+# 2026-10-28: "CI and local should always be using the latest version". Every job of build-and-test.yml and every local
+# host runs the version toolchain.env names (identical at every commit); the `latest` job holds the other half: every day it
+# asks each tool's publisher for its newest stable release (`python scripts/toolchain.py latest`), and the run is RED,
+# naming each tool, while toolchain.env is behind one, or while a publisher cannot be read. So a release the manifest
+# lacks is a red scheduled run within a day, never silence. The move itself is `python scripts/toolchain.py bump` in a
+# change of its own that also updates the hosts (winget on the Windows dev box, scripts/wsl/setup-wsl.sh in WSL, the
+# cloud environment's setup script pasted again), gated and landed like any other, so CI and the hosts move together.
+# A new major .NET channel is a warning on the run, never red: moving to it is the owner's decision (global.json and
+# every TargetFramework move with it), and a standing red would hide the next release `bump` can take.
+#
+# The `images` job holds the one thing CI does not install, each runner image's own git (toolchain.env says why), on
+# the image itself: `toolchain.py check --scope image` is red while the image's git differs from GIT_LINUX_VERSION or
+# GIT_WINDOWS_VERSION. A build-and-test job on such an image only warns, so GitHub rolling an image never stops a
+# landing, and this run is where the move is red until `bump` follows it.
+#
+# ⛔ THE SCHEDULE: 09:17 UTC (02:17 PDT), so every verdict is in before the working day's first landing. A scheduled run
+# reads the default branch, so it measures main as the day's landings left it.
+#
+# ⛔ BOUNDED LIKE EVERY WORKFLOW (kb/Work PB4227, PB4324; DESIGN-test-build-ci.md §1.4; CiBoundsDriftTests): each job
+# states `timeout-minutes`, begins with a checkout retried once, and kills each checkout and toolchain step after 5
+# minutes; its caches are only RESTORED (`actions/cache/restore`), since build-and-test.yml's `toolchain-cache` and
+# `package-cache` jobs save them on every push to main, which is the ref this run reads.
+on:
+  schedule:
+    - cron: "17 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # ── The authoritative NIST gate over the CLI: scripts/guard-fast.sh builds src/WiseOwl.Cobol.Cli, compiles the NIST
+  # CCVS-85 programs its population derives from tests/nist/corpus.tsv, runs each in its own clean directory after
+  # exactly its declared predecessors across the runner's cores, and audits every verdict against the manifest
+  # (scripts/guard-nist-audit.sh). Linux only: the NIST loop is bash. A non-zero exit (any REGRESSION, DIFF, FAIL*, audit
+  # finding or build warning) fails the job. ⛔ IT MEASURES WiseOwl COBOL (kb/Work PB750): the leg refuses to start if the
+  # resolved binary does not reference WiseOwl.Cobol.Compiler, and names the compiler in its `=== NIST (cobol): … ===` line.
+  guard:
+    name: Guard (WiseOwl COBOL NIST, parallel)
+    runs-on: ubuntu-26.04
+    timeout-minutes: 60
+    steps:
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
+        with:
+          # The specs/ submodule is a private repo and is NOT needed to build or test (only the spec text, referenced from
+          # doc comments). Skipping it keeps CI credential-free.
+          submodules: false
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        with:
+          submodules: false
+      - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
+        uses: ./.github/actions/setup-toolchain
+        timeout-minutes: 5
+      - name: Restore main's NuGet packages (saved by package-cache alone, kb/Work PB4324)
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
+      # guard-fast.sh restores and builds the compiler under test itself, creates tests/nist/output and copies the runtime
+      # DLL there; a fresh checkout needs no extra prep. It proves its own verdicts still MEAN what they say first
+      # (scripts/guard-verify.sh's evidence-rule witnesses, §3.10 corollary 3, kb/Work PB473) and is not ALL GREEN unless
+      # they are.
+      - name: Run parallel guard (scripts/guard-fast.sh)
+        run: bash scripts/guard-fast.sh
+
+  # ── EVERY script self-test, DISCOVERED (scripts/self_tests.py, kb/Work PB2563), on both operating systems, then the
+  # ones that read the BUILT test assemblies (`--built`, after a solution build). The default run reuses nothing (PB2914's
+  # reuse is every GATE's, never CI's or a hand run's): each self-test runs, and a regression a recorded PASS would have
+  # hidden is found here. The script `line_endings.py --check` is the one line ending over each OS's checkout
+  # (kb/Work PB3029): `.gitattributes` makes it LF whatever the runner's `core.autocrlf`. ──
+  self-tests:
+    name: Script self-tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-26.04, windows-2025-vs2026]
+    steps:
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
+        with:
+          submodules: false
+          # The Linux `audits` job's checkout (full history, blobs on demand): a self-test that reads the history finds it.
+          fetch-depth: 0
+          filter: blob:none
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        with:
+          submodules: false
+          fetch-depth: 0
+          filter: blob:none
+      - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
+        uses: ./.github/actions/setup-toolchain
+        timeout-minutes: 5
+      # Windows has no system IANA time-zone database, so Python's zoneinfo (scripts/orchestrator/budget.py) needs the
+      # tzdata package; actions/setup-python's interpreter carries no packages. PyYAML: tooling_check.py's self-test proves
+      # every agent role and skill definition LOADS by parsing its frontmatter (kb/Work PB3097). Both pinned to the local
+      # hosts' versions, as build-and-test.yml's `audits` and `windows-self-tests` jobs do.
+      - name: Python packages for the script self-tests (tzdata, pyyaml, pinned)
+        shell: bash
+        run: python -m pip install --disable-pip-version-check --no-input tzdata==2026.4 pyyaml==6.0.3
+      - name: Script self-tests (self_tests.py)
+        shell: bash
+        run: python scripts/self_tests.py
+      - name: Line endings on this OS's checkout (line_endings.py --check)
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: python scripts/line_endings.py --check
+      # The self-tests that read the BUILT assemblies (`SELF-TEST-NEEDS: build`): filter_population.py asks vstest which
+      # tests a filter selects. After the others, so a build failure never hides their verdicts.
+      - name: Build the solution
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: dotnet build WiseOwl.Cobol.sln --nologo -v quiet
+      - name: Post-build script self-tests (self_tests.py --built)
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: python scripts/self_tests.py --built
+
+  # ── The GnuCOBOL differential (kb/Work PB2611, PB1355): the extracted GnuCOBOL corpus through the built `cobol`, every
+  # accept/reject verdict compared per case with the committed baseline. It is scripts/battery.sh's phase 3 and the phases
+  # that feed it (the citation audits, the corpus fetch, the solution build); SKIP_TESTS and SKIP_GUARD leave the test
+  # legs (the merge group's) and the guard (the `guard` job above) out, so the battery has one definition and the
+  # nightly runs a slice of it, never a copy. ⛔ WINDOWS, because the committed baseline was measured there and
+  # `gnucobol_differential.py` defaults to `cobol.exe` (the apphost a Windows build writes). The corpus is GPL and NEVER
+  # committed (.gitignore's licensing block): scripts/external_corpus.py fetches it on demand, pinned and sha256-verified, and the
+  # tarball is cached so the network is touched only on a cold cache (kb/Work PB277). ──
+  differential:
+    name: GnuCOBOL differential (battery.sh, phase 3)
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 60
+    steps:
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
+        with:
+          submodules: false
+          # audit_witness_loss.py (battery phase -1) resolves its base from origin/main: full history, blobs on demand.
+          fetch-depth: 0
+          filter: blob:none
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        with:
+          submodules: false
+          fetch-depth: 0
+          filter: blob:none
+      - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
+        uses: ./.github/actions/setup-toolchain
+        timeout-minutes: 5
+      - name: Restore main's NuGet packages (saved by package-cache alone, kb/Work PB4324)
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
+      - name: Restore main's GnuCOBOL testsuite tarball (GPL, fetched on demand, never committed; saved by package-cache alone)
+        uses: actions/cache/restore@v6
+        with:
+          path: tests/external/gnucobol-3.2.tar.xz
+          key: gnucobol-tests-3.2-3bb48af4
+      - name: GnuCOBOL differential (battery.sh without the test legs and the guard)
+        shell: bash
+        env:
+          SKIP_TESTS: "1"
+          SKIP_GUARD: "1"
+        run: bash scripts/battery.sh battery-out
+      - name: Upload the battery's logs and the differential's report
+        if: ${{ always() }}
+        uses: ./.github/actions/upload-results
+        with:
+          name: nightly-differential
+          path: battery-out/
+
+  # ── How evenly the merge group divided the work (scripts/shard_weights.py report): the slowest shard's wall over the
+  # mean shard wall of one OS in one run, the worst of the newest 8 shard runs of the last 24 hours (one run's artifacts
+  # are about 200 MB, so it downloads one run at a time and deletes it). Red above 1.5x. NOT MEASURED, and green, on a
+  # day nothing ran the matrix and while the merge group still shards by name: the report is live once
+  # tests/_shared/test-weights.json exists and build-and-test.yml names WISEOWL_COBOL_SHARD (PB4328, PB4329), because
+  # its remedy is regenerating that file. It reads the merge group's `test-results-*` artifacts (14 days retention). ──
+  shard-spread:
+    name: Shard spread (shard_weights.py report)
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read           # `gh run list` and `gh run download` of build-and-test.yml's merge-group runs
+    steps:
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
+        with:
+          submodules: false
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        with:
+          submodules: false
+      - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
+        uses: ./.github/actions/setup-toolchain
+        timeout-minutes: 5
+      - name: The day's shard spread (shard_weights.py report)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/shard_weights.py report
+
+  latest:
+    name: latest (is toolchain.env at every publisher's newest release?)
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    steps:
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
+        with:
+          submodules: false
+          sparse-checkout: |
+            .github/actions/setup-toolchain
+            toolchain.env
+            scripts/install-tool.sh
+            scripts/toolchain.py
+            scripts/standard_streams.py
+            scripts/live_tools.py
+            scripts/scratch_repo.py
+            global.json
+          sparse-checkout-cone-mode: false
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        with:
+          submodules: false
+          sparse-checkout: |
+            .github/actions/setup-toolchain
+            toolchain.env
+            scripts/install-tool.sh
+            scripts/toolchain.py
+            scripts/standard_streams.py
+            scripts/live_tools.py
+            scripts/scratch_repo.py
+            global.json
+          sparse-checkout-cone-mode: false
+      - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
+        uses: ./.github/actions/setup-toolchain
+        timeout-minutes: 5
+      - name: The publishers' newest releases (toolchain.py latest)
+        env:
+          GH_TOKEN: ${{ github.token }}   # api.github.com allows an unauthenticated runner IP 60 requests an hour
+        run: python scripts/toolchain.py latest
+
+  images:
+    name: images (does each runner image carry the git toolchain.env names for it?)
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-26.04, windows-2025-vs2026]
+    steps:
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
+        with:
+          submodules: false
+          sparse-checkout: |
+            .github/actions/setup-toolchain
+            toolchain.env
+            scripts/install-tool.sh
+            scripts/toolchain.py
+            scripts/standard_streams.py
+            scripts/live_tools.py
+            scripts/scratch_repo.py
+            global.json
+          sparse-checkout-cone-mode: false
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        with:
+          submodules: false
+          sparse-checkout: |
+            .github/actions/setup-toolchain
+            toolchain.env
+            scripts/install-tool.sh
+            scripts/toolchain.py
+            scripts/standard_streams.py
+            scripts/live_tools.py
+            scripts/scratch_repo.py
+            global.json
+          sparse-checkout-cone-mode: false
+      - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
+        uses: ./.github/actions/setup-toolchain
+        timeout-minutes: 5
+      - name: The image's own tools, strictly (toolchain.py check --scope image)
+        shell: bash
+        run: python scripts/toolchain.py check --scope image

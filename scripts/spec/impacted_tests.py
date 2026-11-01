@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SELF-TEST-POPULATION: tree — it maps changes over every tracked path, with git over the whole repository
 """impacted_tests.py — what a change REACHES, as the order plan's TIERS (kb/Work PB1683, PB1708 M11, PB1712).
 
 The map ORDERS the gate's plan; it never FILTERS a leg (owner, 2026-09-28, kb/Work PB1708). Every gate PLANS the whole
