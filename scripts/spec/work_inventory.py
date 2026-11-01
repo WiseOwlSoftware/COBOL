@@ -5,7 +5,7 @@ the invariant that keeps the burn-down and the register the same list).
     python scripts/spec/work_inventory.py --self-test     # the checks against a register built to break each one
 
 `work.py check` calls :func:`problems` on the live register, so these are AUDITS: they run in the gate's audit phase
-before the slot, in CI's `audits` job on every event and in the battery — on a change that touches only `kb/` as on
+beside the build and the legs, in CI's `audits` job in every merge group and in the battery — on a change that touches only `kb/` as on
 any other, and with no build. They were two Unit drift tests (ClosesRowsBackLinkDriftTests, DefectiveRowCoverageDriftTests)
 that read every `kb/Work/` note through a C# twin of `work.py`'s frontmatter reader, which made every note a test input:
 no register-only change could skip the test legs (the inert lane, DESIGN-test-build-ci.md §3.18). The twin, its parity
