@@ -116,7 +116,7 @@ function fixGate(g, r, v, round) {
     AUTH + `You are the wave-${W} GATE FINISHER for group ${g.letter} (${g.notes}), gate round ${round} (kb/Work PB3536). ` +
     `Your dispatch spec is the file ${S}\\msg-w${W}-${g.letter.toLowerCase()}.txt — read it WHOLE and follow its brief, codes, gate, checkpoint and stop rules; its notes are implemented on the branch. ` +
     `FIRST \`python scripts/merge_drivers.py merge ${r.branch} --keep\` into your branch (head ${r.head}; worktree ${r.worktree}), then run \`python tools/claude-skills/skills/agent-fleet/references/status_delta.py ${r.worktree}\` and read ${r.report} as your orientation. ` +
-    `Its gate (run ${r.gate_run}) ended: ${v.line} — read that run's verdict.json, its leg logs and not-run files, and fix every red at its root with the sibling sweep (a gate that DIED or was NOT RUN with no red of the change needs only the re-gate). ` +
+    `Its gate (run ${r.gate_run}) ended: ${v.line} — read that run's verdict.json, its gate.log and each assembly's \`<assembly>.log\` and \`<assembly>.trx\`, and fix every red at its root with the sibling sweep (a gate that DIED or was NOT RUN with no red of the change needs only the re-gate). ` +
     `Re-gate (the spec's gate, blocking on its verdict line). Then REWRITE the report at ${r.report} for YOUR branch: its header names your worktree, branch, base and HEAD and your status, and its gate section your verdict. ` +
     `Before EACH new step ${STOP_LINE}checkpoint-commit, write STATUS.md NEXT and the report, and return status SPLIT. ` +
     RETURN_LINE,

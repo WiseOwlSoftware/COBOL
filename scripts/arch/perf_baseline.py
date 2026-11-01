@@ -65,6 +65,7 @@ from typing import NamedTuple
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
+import gate  # noqa: E402  (scripts/gate.py: RECORD_SCHEMA, the record gate_rows reads)
 
 ROOT =os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 BENCH = os.path.join(ROOT, "tests", "WiseOwl.Cobol.Benchmarks")
@@ -514,28 +515,35 @@ def wsl_leg(stage_mnt: str, repeat: int) -> int:
 
 
 def gate_rows(run_dirs: list[str]) -> tuple[dict, list[dict]]:
-    """The whole-population gate time, from build-local's own verdict.json. Only a GREEN gate is a whole-population
-    time (a RED one stopped early; a `LEG 1 ONLY` one ran leg 1). The gate has one shape (kb/Work PB3022), so a row is
-    keyed by the gate's SCOPE: `whole`, the owner's on-demand switch, is the only scope that runs every leg."""
-    rows, runs = {}, []
+    """The whole-population gate time, from the gate's own verdict.json (scripts/gate.py, its record schema). The gate
+    has one shape (kb/Work PB4328): a GREEN gate of the full lane ran every case of the three populations, so its rows are
+    keyed by the part alone, and every run given pools its sample into the one row. Refused, each with the reason: a
+    record of another schema (its fields mean something else), a gate that is not GREEN (a RED one stopped early), one
+    that REUSED a recorded verdict and one of the inert lane (neither ran a test)."""
+    samples: dict[str, list[float]] = {"ran_s": [], "build_s": [], "tests_s": []}
+    runs = []
     for d in run_dirs:
         path = os.path.join(d, "verdict.json")
         v = json.load(open(path, encoding="utf-8"))
+        if v.get("schema") != gate.RECORD_SCHEMA:
+            raise MeasurementError(f"{path} is a schema {v.get('schema')} record, not scripts/gate.py's schema "
+                                   f"{gate.RECORD_SCHEMA}: its timings measured another gate")
         if v.get("verdict") != "GREEN":
             raise MeasurementError(f"{path} is {v.get('verdict')}: only a GREEN gate ran the whole population")
         if v.get("reused_from"):  # kb/Work PB3536: a re-gate of an unchanged tree answers from a record, running nothing
             raise MeasurementError(f"{path} REUSED the verdict of run {v['reused_from']} and ran nothing: pass that run")
-        mode, t = v["scope"], v["timings"]
+        if v.get("lane") != "full":  # kb/Work PB2878: the inert lane runs the audits and no test
+            raise MeasurementError(f"{path} is a gate of the {v.get('lane')} lane: only the full lane ran the population")
+        t = v["timings"]
         # The gate's wall time includes its wait for a gate slot (other worktrees' gates), which measures the queue,
         # not the gate: the compared row is the time the gate itself ran.
-        waited = re.search(r"waited ([0-9.]+) s", v.get("slot") or "")
-        rows[f"gate/{mode}/ran_s"] = row([float(t["wall_s"]) - (float(waited.group(1)) if waited else 0.0)], "s",
-                                         kind="gate")
-        for part in ("build_s", "legs_s"):
-            rows[f"gate/{mode}/{part}"] = row([float(t[part])], "s", kind="gate")
-        runs.append({"run": os.path.basename(os.path.normpath(d)), "mode": mode, "line": v.get("line"),
-                     "slot": v.get("slot"), "populations": {k: p.get("ran") for k, p in v.get("populations", {}).items()},
+        samples["ran_s"].append(float(t["wall_s"]) - float(t["slot_wait_s"]))
+        samples["build_s"].append(float(t["build_s"]))
+        samples["tests_s"].append(float(t["tests_s"]))
+        runs.append({"run": os.path.basename(os.path.normpath(d)), "line": v.get("line"), "slot": v.get("slot"),
+                     "populations": {k: p.get("ran") for k, p in v.get("populations", {}).items()},
                      "assembly_wall_s": {r["asm"]: r["wall_s"] for r in v.get("runs", [])}})
+    rows = {f"gate/{part}": row(values, "s", kind="gate") for part, values in samples.items() if values}
     return rows, runs
 
 
@@ -701,12 +709,11 @@ def render(record: dict) -> str:
 
     out += ["", "## Whole-population gate time", ""]
     if record.get("gates"):
-        out += ["| run | scope | ran (wall less the slot wait) | build | legs | populations | slot |",
-                "|---|---|--:|--:|--:|---|---|"]
+        out += ["| ran (wall less the slot wait) | build | tests | runs |", "|--:|--:|--:|--:|",
+                f"| {fmt(get('gate/ran_s'), 's')} | {fmt(get('gate/build_s'), 's')} | {fmt(get('gate/tests_s'), 's')} "
+                f"| {len(record['gates'])} |", "", "| run | populations | assembly wall | slot |", "|---|---|---|---|"]
         for g in record["gates"]:
-            m = g["mode"]
-            out.append(f"| `{g['run']}` | {m} | {fmt(get(f'gate/{m}/ran_s'), 's')} | {fmt(get(f'gate/{m}/build_s'), 's')} "
-                       f"| {fmt(get(f'gate/{m}/legs_s'), 's')} | {g['populations']} | `{g['slot']}` |")
+            out.append(f"| `{g['run']}` | {g['populations']} | {g.get('assembly_wall_s')} | `{g['slot']}` |")
         out += ["", "Verdict lines:", ""] + [f"- `{g['line']}`" for g in record["gates"]]
     else:
         out.append("Not recorded: no `--gate-run` was given.")
@@ -791,7 +798,7 @@ def self_test() -> int:
                 "bdn-alloc/run/MOVEHOT": row([1.8e9], "bytes", kind="alloc"),
                 "peak/process-wsl/ours/SORTHOT-SPILL@x4": row([9.0e7, 9.1e7, 8.9e7], "bytes", kind="peak",
                                                              sort_memory="4M"),
-                "gate/implementer/ran_s": row([400.0], "s", kind="gate")}
+                "gate/ran_s": row([400.0], "s", kind="gate")}
         return {"schema": 1, "conditions": cond, "wsl": {}, "sessions": 2, "repeat": 5, "load": [], "rows": rows,
                 "gates": [], "command": "self-test"}
 
@@ -831,17 +838,40 @@ def self_test() -> int:
         with open(path, "w", encoding="utf-8", newline="\n") as fh:
             fh.write(render(base))
         case("round-trips the record", read_record(path) == json.loads(json.dumps(base)))
-    # a gate that REUSED a recorded verdict ran nothing (kb/Work PB3536): it is never a whole-population time
+    # The gate rows read the record scripts/gate.py WRITES (kb/Work PB4328): the gate's own self-test host runs a
+    # planted GREEN gate, and gate_rows reads its verdict.json, so a field the writer renames or drops is red here.
     with tempfile.TemporaryDirectory() as tmp:
-        with open(os.path.join(tmp, "verdict.json"), "w", encoding="utf-8", newline="\n") as fh:
-            json.dump({"verdict": "GREEN", "reused_from": "20261022T000000Z-abcdef", "scope": "whole",
-                       "timings": {"wall_s": 1.0}}, fh)
+        planted = gate.Gate(gate.FakeHost(Path(tmp), Path(tmp) / "gate.lock"), Path(tmp) / "runs",
+                            say=lambda _line: None).run()
+        run = next(d for d in (Path(tmp) / "runs").iterdir() if d.is_dir())
         try:
-            gate_rows([tmp])
-            refused = False
-        except MeasurementError as e:
-            refused = "REUSED" in str(e)
-    case("refuses a gate run that REUSED another run's verdict (it ran nothing)", refused)
+            rows, runs = gate_rows([str(run)])
+            read = (planted.verdict == "GREEN" and sorted(rows) == ["gate/build_s", "gate/ran_s", "gate/tests_s"]
+                    and len(runs) == 1 and runs[0]["populations"] == {a: p.ran for a, p in planted.populations.items()})
+        except (KeyError, MeasurementError) as e:
+            read = False
+            print(f"    gate_rows on a gate.py record: {type(e).__name__}: {e}")
+        case("reads the record scripts/gate.py writes: one row per part, the populations it ran", read)
+        written = json.loads((run / "verdict.json").read_text(encoding="utf-8"))
+
+        def refuses(name: str, change: dict, word: str) -> None:
+            with tempfile.TemporaryDirectory() as other:
+                with open(os.path.join(other, "verdict.json"), "w", encoding="utf-8", newline="\n") as fh:
+                    json.dump({**written, **change}, fh)
+                try:
+                    gate_rows([other])
+                    refused = False
+                except MeasurementError as e:
+                    refused = word in str(e)
+            case(name, refused)
+
+        refuses("refuses a RED gate (it stopped early)", {"verdict": "RED"}, "only a GREEN gate")
+        # a re-gate of an unchanged tree answers from a recorded verdict, running nothing (kb/Work PB3536)
+        refuses("refuses a gate run that REUSED another run's verdict (it ran nothing)",
+                {"reused_from": "000001-20261022T000000Z"}, "REUSED")
+        refuses("refuses a gate of the inert lane (it ran the audits and no test)", {"lane": "inert"}, "inert lane")
+        refuses("refuses a record of another schema (its timings measured another gate)",
+                {"schema": gate.RECORD_SCHEMA - 1}, "schema")
     hot = bench_params(os.path.join("GeneratedCode", "GeneratedProgramBenchmarks.cs"))
     wit = witnesses()
     agree = set(wit) == set(hot) | {FLOOR_PROGRAM} and all(
@@ -873,8 +903,8 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--against", metavar="RECORD", help="compare a fresh measurement (or --current) with this record")
     ap.add_argument("--current", metavar="RECORD", help="with --against: compare this record instead of measuring")
     ap.add_argument("--gate-run", action="append", default=[], metavar="DIR",
-                    help="a GREEN TestResults/build-local/<run> of this commit, gated under the scope `whole` "
-                         "(repeatable)")
+                    help="a GREEN full-lane TestResults/build-local/<run> of this commit (repeatable: the runs pool "
+                         "into one row per part)")
     ap.add_argument("--sessions", type=int, default=None,
                     help="measurement sessions pooled into the record (default 2 for a baseline, 1 with --against)")
     ap.add_argument("--repeat", type=int, default=5, help="runs per whole-process row (default 5)")
