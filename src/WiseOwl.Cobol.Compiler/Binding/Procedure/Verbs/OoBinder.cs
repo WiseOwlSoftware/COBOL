@@ -1789,8 +1789,9 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         return false;
     }
 
-    /// <summary>SET Format 5 core (§14.9.39; D-U7) — shared by the grammar's NULL/SELF/SUPER-sender rule
-    /// and BindSetTo's SEMANTIC re-route (a dataReference sender parses as the Format-1 shape). Rules, all
+    /// <summary>SET Format 5 core (§14.9.39; D-U7) — shared by SetBinder's two arms of the one setToStatement
+    /// rule: the NULL sender (BindSetToNull) and every other sender (BindSetTo, which classifies it; SELF and SUPER
+    /// arrive there through the expression tier). Rules, all
     /// COBOL0867: every target an object-reference item (SR8 :31298); SUPER sender rejected (SR9
     /// :31300); SELF only inside a method, and a TYPED target requires the current class to conform
     /// (SR12c :31353); a dataReference sender must be an object-reference item, and a TYPED target
