@@ -671,10 +671,17 @@ internal sealed class SequentialJournal
     /// removes the directory). A file NOT under APPLY COMMIT pays one listing of a directory that usually does not exist.</summary>
     internal static Holdings Enter(IHostMedium medium, string hostPath, int? ownId, RegionLocks? mutex)
     {
-        string directory = DirectoryOf(hostPath);
+        string directory;
         IReadOnlyList<string> names;
-        try { names = medium.ListNames(directory, NamePrefix); }
+        try
+        {
+            directory = DirectoryOf(hostPath);
+            names = medium.ListNames(directory, NamePrefix);
+        }
         catch (UnauthorizedAccessException) { return Holdings.Unreadable; }
+        // A spelling the host cannot make absolute, or name a directory beside, names no file, so no transaction lives on it: the
+        // OPEN's own probe answers for it (a data-name-1 holds an arbitrary string, §12.4.5.3 GR3 b); kb/Work PB2848).
+        catch (PathTooLongException) { return Holdings.None; }
         if (names.Count == 0) return Holdings.None;
         var ids = new SortedSet<int>();
         foreach (string name in names)

@@ -83,7 +83,7 @@ public abstract partial class KeyedConnector
     /// <exception cref="IOException">The host refused the handle, or the medium refused a page of the settle.</exception>
     private void SettleDeadOwnersBeside()
     {
-        using var stream = HostFile.OpenConnectorStore(HostPath, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+        using var stream = HostFile.OpenConnectorStore(HostPath, FileMode.Open, FileAccess.ReadWrite, FileLockPosture.ForSettling);
         var handle = stream.SafeFileHandle;
         using var regions = HostRegionLocks.Open(handle, HostPath, writable: true);
         var scratch = NewStore();
