@@ -17,7 +17,7 @@ using Core = CobolParserCore;
 /// the census flagged). The four bound types stayed in <c>Binding/Bound/BoundCorresponding.cs</c>.</summary>
 internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder host)
 {
-    private int _corrCounter;   // unique hoist-local ids (__corrNs / __corrNt) across the program unit
+    private int _corrCounter;   // the statement ordinal of its two anchor locals (StatementLocalRole.Corresponding*Anchor)
 
     /// <summary>Bind <c>ADD {CORRESPONDING|CORR} id-4 TO id-5 [ROUNDED] [ON SIZE ERROR …] [END-ADD]</c>
     /// (ISO §14.9.2.2 Format 3; SR5 — CORR and CORRESPONDING are equivalent, BOTH tokens tested). The one
@@ -109,8 +109,8 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
 
         int id = _corrCounter++;
         var hoists = new List<CorrespondingHoist>();
-        if (CorrAccess.Create(src, $"__corr{id}s", hoists, ctx.Refs) is not { } srcAcc
-            || CorrAccess.Create(dst, $"__corr{id}t", hoists, ctx.Refs) is not { } dstAcc)
+        if (CorrAccess.Create(src, new StatementLocal(StatementLocalRole.CorrespondingSendingAnchor, id), hoists, ctx.Refs) is not { } srcAcc
+            || CorrAccess.Create(dst, new StatementLocal(StatementLocalRole.CorrespondingReceivingAnchor, id), hoists, ctx.Refs) is not { } dstAcc)
             return new BoundUnsupported($"{verbName} CORRESPONDING group operand storage shape "
                 + $"('{src.Item.CobolName}' / '{dst.Item.CobolName}' is neither a member path nor a REDEFINES view)");
 
@@ -408,7 +408,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
     private sealed class CorrAccess
     {
         private readonly List<CorrespondingHoist> _hoists;
-        private readonly string _local;
+        private readonly MethodLocal _local;
         private readonly Place? _group;        // the member group's anchor Place (the `ref var` hoist target)
         private readonly Position? _viewOffset; // the view group's window offset (the `long` hoist init); null for any other group
         private readonly bool _isMember;       // MemberPlace group vs Tier-B RedefViewPlace group
@@ -421,7 +421,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         private AccessPath? _cell;             // the view group's scope cell (kb/Work PB1042)
         private Position? _dynOrdinal;         // the view group's component ordinal (kb/Work PB1042)
 
-        private CorrAccess(List<CorrespondingHoist> hoists, string local, Place? group, Position? viewOffset,
+        private CorrAccess(List<CorrespondingHoist> hoists, MethodLocal local, Place? group, Position? viewOffset,
             bool isMember, bool subscripted, AccessPath? backing, DataItem groupItem, ReferenceResolver refs)
         {
             _hoists = hoists; _local = local; _group = group; _viewOffset = viewOffset; _isMember = isMember;
@@ -441,7 +441,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         /// the pairs are exactly the fixed members at their fixed offsets. Switching on the decorated place sent
         /// the operand to the default arm, and `SUBTRACT CORRESPONDING` over two occurs-depending groups —
         /// §14.9.44.3 SR6 admits the kind by name — aborted the run unit.</para></summary>
-        public static CorrAccess? Create(Place group, string local, List<CorrespondingHoist> hoists, ReferenceResolver refs)
+        public static CorrAccess? Create(Place group, MethodLocal local, List<CorrespondingHoist> hoists, ReferenceResolver refs)
             => group.Undecorated switch
             {
                 MemberPlace m => new CorrAccess(hoists, local, group: m, viewOffset: null, isMember: true,
@@ -468,9 +468,9 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
             {
                 if (chain.All(CorrPlainMember))
                 {
-                    // The child is a dotted path off the anchor local: RootFieldSegment(anchor) + one MemberSegment
-                    // per chain step (byte-identical to the former "{local}.{c1}.{c2}" string).
-                    var segs = new List<AccessSegment> { new RootFieldSegment(Hoist(isRef: true)) };
+                    // The child is a member path off the anchor local: LocalRootSegment(anchor) + one MemberSegment
+                    // per chain step.
+                    var segs = new List<AccessSegment> { new LocalRootSegment(Hoist(isRef: true)) };
                     segs.AddRange(chain.Select(c => new MemberSegment(c.ClrName)));
                     return new MemberPlace(new AccessPath(segs), leaf);
                 }
@@ -502,8 +502,8 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
                     : null);
         }
 
-        /// <summary>Record the anchor hoist on first use and return its local name.</summary>
-        private string Hoist(bool isRef)
+        /// <summary>Record the anchor hoist on first use and return its local.</summary>
+        private MethodLocal Hoist(bool isRef)
         {
             if (!_hoisted)
             {

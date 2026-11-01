@@ -278,7 +278,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     public BoundExpr? VaryingExpr(Core.DataReferenceContext dref) =>
         ctx.Refs.VaryingScope is { } scope && dref.dataReferenceSuffix().Length == 0
             && dref.cobolWord() is { } w && scope.TryGetValue(w.GetText(), out var counter)
-            ? new BoundReportVaryingRef(counter.CsName) : null;
+            ? new BoundReportVaryingRef(counter.Local) : null;
 
     /// <summary><c>INITIATE report-name…</c> (ISO §14.9.21): each name shall be an RD entry (SR1); a multi-name
     /// statement IS a separate INITIATE statement per report-name in written order (§14.9.21.4 GR5) — one

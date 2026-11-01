@@ -3065,7 +3065,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
         // A report VARYING counter in scope (§13.18.64.4 GR4's NOTE: "data-name-1 [may] be used … as a subscript to a source
         // data item") is the compose-local integer the placement declares; it is no data item and has no scale.
         if (qualifiers.Count == 0 && VaryingScope is { } counters && counters.TryGetValue(name, out var counter))
-            return new PositionLocal(counter.CsName, AsLong: true);
+            return new PositionLocal(counter.Local, AsLong: true);
         DataItem? item = qualifiers.Count == 0 ? ResolveUnqualified(name) : ResolveQualified(name, qualifiers);
         if (item is null) return null;
         if (!IntrinsicArgumentRules.IsArithmeticOperandClass(item)) (pending ??= []).Add(new PendingScreen(item, name));
