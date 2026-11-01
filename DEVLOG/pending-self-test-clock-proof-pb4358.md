@@ -23,8 +23,8 @@ until}`; `PassStore.lookup` refuses a record past `until` (`re-run: the clock pr
 schema is now 3 so no earlier PASS is reused. The first run always starts without the shift variable, so a runner inside
 a shifted process still measures the real clock (an arm caught this: the runner's own self-test had run shifted).
 A self-test that compares the clock with a real one the shift cannot move declares it among its first five lines:
-`# SELF-TEST-CLOCK: real — <why>` (six declare it: `gate_slot.py`, `prune_worktrees.py`, `spec/impact_store.py`,
-`orchestrator/test_plan_wave.py`, `orchestrator/test_alloc.py` and the runner's own self-test).
+`# SELF-TEST-CLOCK: real — <why>` (`gate_slot.py`, `prune_worktrees.py`, `orchestrator/test_plan_wave.py`, `orchestrator/test_alloc.py`, the runner's own
+self-test and this module's; `spec/impact_store.py` did too until main's PB4328 deleted it).
 
 **Chosen over the note's candidates.** libfaketime (candidate 1) would still leave process start times and PowerShell's
 own clock unmoved and cannot run on the Windows hosts the implementers use; a syntax-tree-only rule (candidate 2) judges
@@ -44,9 +44,21 @@ source, and the proof run adds no trace. Duplication: none.
 **Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run 000001-20261101T141849Z; SELF-TESTS
 GREEN, 138 ran; leg 1 Unit 5,701 and Characterization 37 cases GREEN).
 
+**Branch review, round 1.** R1-1: the shim added 400 days of wall time to today's naive reading, which is an hour off
+`time.time()` whenever the host zone's offset 400 days on differs (daylight saving), so the module's own self-test went
+red on a local zone for about six weeks a year while CI (UTC) stayed green; every reading is now derived from the one
+shifted instant through the zone at that instant, and an arm shifts a fixed instant across a daylight-saving change under
+`TZ=PST8PDT`. R1-2: a PASS of a self-test that declares its clock real recorded no horizon and was reused forever, the
+PB4353 reuse failure again; a clock that cannot be shifted now holds a PASS for the day it was recorded, and a PowerShell
+or bash self-test whose own text reads a clock (`SCRIPT_CLOCK_RE`) is held the same way. R1-3: three arms limited how
+long a process took (5 s between two sequential children, a 1 s monotonic span, 300 s for a child); each reading is now
+checked against the interval the parent's own clock brackets the child's run in, so a slow start-up only widens it.
+R1-4: PB1957's table now carries row 57.
+
 **Residue, named.** A PowerShell or bash self-test is not shifted (`Get-Date` and `date` read a clock no Python process
-moves), and neither is a clock that is not Python's; those self-tests still run at today's clock in every gate, CI and the
-nightly. A clock every process agrees on (libfaketime on Linux) is the next step if one of them plants a dated fixture.
+moves), and neither is a clock that is not Python's; those self-tests run at today's clock in every gate, CI and the
+nightly, and their PASS is reused only on the day it was recorded. A helper script they source is not traced. A clock
+every process agrees on (libfaketime on Linux) is the next step if one of them plants a dated fixture.
 
 **Goldens.** `self_test_clock.py --self-test` (detection arms; the shim against the unshifted clock for every function;
 the horizon) and `self_tests.py --self-test` (a fixture written at arm time and compared with the wall clock is RED in
