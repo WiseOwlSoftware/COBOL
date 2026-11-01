@@ -30,8 +30,9 @@ public sealed record CollationRuntimeStatus(bool Initialized, string UcaVersion,
 /// key cache, normalization, grapheme segmentation — in one place (kb/Work PB101/PB104–PB106; the "runtime
 /// initialization" of the integration plan). Two levels:
 /// <list type="bullet">
-/// <item><see cref="Initialize"/> — CHEAP and idempotent; every run unit calls it when it is created
-/// (<see cref="RunUnit"/>): reads the environment's cache configuration (<see cref="CacheConfig.FromEnvironment"/>)
+/// <item><see cref="Initialize"/> — CHEAP, idempotent and safe to race (a concurrent caller waits for the winner's
+/// configuration and returns only once <see cref="IsInitialized"/> is true, kb/Work PB380); every run unit calls it
+/// when it is created (<see cref="RunUnit"/>): reads the environment's cache configuration (<see cref="CacheConfig.FromEnvironment"/>)
 /// into <see cref="CollationKeyCache.DefaultConfig"/> unless a host already set one, and — only when
 /// <c>COBOL_COLLATION_WARMUP</c> is set — warms up. Nothing else is loaded eagerly: the derived tables decode
 /// lazily on first use (a program that never collates under a locale never pays for them), which is the same
@@ -53,8 +54,12 @@ public static class CollationRuntime
     /// <summary>Set (to anything but 0/false/off) to warm the subsystems up when the first run unit is created.</summary>
     public const string WarmupVariable = "COBOL_COLLATION_WARMUP";
 
+    // Guards the one-shot's WORK (kb/Work PB380): the latch s_initialized is published only after the cache
+    // configuration is in place, and a concurrent caller blocks here until the winner has done it — a caller that
+    // returns from Initialize, or that reads IsInitialized true, therefore never sees the compiled-in default.
+    private static readonly object s_initLock = new();
     private static int s_initialized;
-    private static bool s_hostConfigured;
+    private static bool s_hostConfigured;     // read and written only under s_initLock
     private static CollationRuntimeStatus? s_lastWarmup;
 
     /// <summary>True after <see cref="Initialize"/> ran.</summary>
@@ -64,15 +69,25 @@ public static class CollationRuntime
     /// then leaves <see cref="CollationKeyCache.DefaultConfig"/> alone.</summary>
     public static void ConfigureCache(CacheConfig config)
     {
-        CollationKeyCache.DefaultConfig = config;
-        s_hostConfigured = true;
+        lock (s_initLock)
+        {
+            CollationKeyCache.DefaultConfig = config;
+            s_hostConfigured = true;
+        }
     }
 
     /// <summary>The cheap, idempotent initialization every run unit performs (see the class summary).</summary>
     public static void Initialize()
     {
-        if (Interlocked.CompareExchange(ref s_initialized, 1, 0) != 0) return;
-        if (!s_hostConfigured) CollationKeyCache.DefaultConfig = CacheConfig.FromEnvironment();
+        if (IsInitialized) return;                                  // the common case: the latch is published after the work
+        lock (s_initLock)
+        {
+            if (IsInitialized) return;                              // a racing caller finished while this one waited
+            if (!s_hostConfigured) CollationKeyCache.DefaultConfig = CacheConfig.FromEnvironment();
+            Volatile.Write(ref s_initialized, 1);                   // publish AFTER the work (release): see s_initLock
+        }
+        // The warm-up is an optimization, not configuration, and Warmup itself re-enters Initialize (and creates a
+        // run unit, whose constructor does too), so it runs by the winner alone, outside the lock and past the latch.
         string? warm = Environment.GetEnvironmentVariable(WarmupVariable)?.Trim();
         if (!string.IsNullOrEmpty(warm) && warm is not ("0" or "false" or "off" or "no"))
             s_lastWarmup = Warmup();
