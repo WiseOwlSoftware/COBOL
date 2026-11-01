@@ -188,15 +188,18 @@ public enum BackendId { Roslyn, Cil }
 
 public sealed record BackendOptions(
     string OutputPath, string AssemblyName /* the output file's base name */, EditionInfo Edition,
-    bool EmitPdb = true, bool WriteSource = true /* .g.cs */, CompilationInputs? Inputs = null,
+    bool EmitPdb = true, CompilationInputs? Inputs = null,
     bool RepositoryUpdate = true /* --repository-update: the module carries its units' signatures (ISO §8.13) */);
+
+/// One backend diagnostic; no Roslyn type crosses the seam (kb/Work PB4272, DESIGN-backend-abstraction §2.1).
+public sealed record BackendDiagnostic(string Code, DiagnosticSeverity Severity, string Message, SourceLocation? Location);
 
 /// The result the driver consumes; backend-agnostic.
 public sealed record BackendArtifact(
     bool Success,
-    IReadOnlyList<Diagnostic> Diagnostics,     // ONE structured Diagnostic type (driver dim)
-    string? GeneratedSourcePath,               // .g.cs for Roslyn; null for Cil
-    string? AssemblyPath);
+    IReadOnlyList<BackendDiagnostic> Diagnostics,
+    string? GeneratedSourcePath,               // .g.cs for Roslyn (always written); null for Cil
+    string? AssemblyPath, IReadOnlyList<string> OutputFiles, bool Library);
 ```
 
 - `RoslynBackend` implements it: `PlaceRenderer`+renderers → `CodeWriter` text → `CSharpCompilation` → assembly, then

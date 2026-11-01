@@ -3183,7 +3183,7 @@ reallocated).
    > locale's LC_CTYPE (§15.97.4 r3 / §15.57.4 r3), and the class tests `ALPHABETIC` / `ALPHABETIC-LOWER` /
    > `ALPHABETIC-UPPER` classify by it (§8.8.4.4.4 GR3 b1 / c1 / d1); with the `LOCALE locale-name-1` phrase the
    > functions map through the NAMED locale's LC_CTYPE whatever the classification (r2 — the construct row
-   > `case-function-locale-phrase-2002`); without either, the implementor's correspondence (r4 — the invariant
+   > `case-function-locale-phrase-2014`); without either, the implementor's correspondence (r4 — the invariant
    > tables, §3 above). **Determinations (documented per §4.2.7):** (a) **DETERMINATION L9 — the LC_CTYPE case
    > correspondence is SIMPLE (one code unit to one)**: .NET's `TextInfo.ToUpper`/`ToLower`, which ISO/IEC 9945's
    > `toupper`/`tolower` also are (§8.2.1 — categories "as specified in ISO/IEC 9945"), so the returned string always
@@ -3207,7 +3207,7 @@ reallocated).
    > locale without culture data for LC_CTYPE raises `EC-LOCALE-INVALID` the same way), the coded character set's
    > behavior standing when checking is off (§14.6.13.1.3 #8 — golden `2002/pb64t5_classification_unavailable`);
    > `EC-LOCALE-INVALID` checking therefore rides every statement of a module with a classification. The construct
-   > rows `character-classification-2002` / `case-function-locale-phrase-2002` gate the clause and the phrase at 2002.
+   > rows `character-classification-2002` / `case-function-locale-phrase-2014` gate the clause at 2002 and the phrase at 2014 (kb/Work PB4311: the printed 2002 formats of UPPER-CASE / LOWER-CASE carry no phrase).
 
    > ⚖ **A.4.9 item 9 (`SET LOCALE`, formats 11/12) and item 10's CLAUSE half (the SPECIAL-NAMES `LOCALE` clause) ARE
    > IMPLEMENTED, and so is the ALPHABET clause's NAMED `IS LOCALE locale-name-2` form** (owner decision Q1; kb/Work

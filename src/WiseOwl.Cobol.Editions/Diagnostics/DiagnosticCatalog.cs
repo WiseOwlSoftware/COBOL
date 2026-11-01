@@ -7821,6 +7821,20 @@ public static class DiagnosticCatalog
         + "be qualified)\"). Write the bare name in the header and qualify the references.",
         "ISO §14.2.1; §14.4.1; §8.4.2.2.2");
 
+    // kb/Work PB4309: FUNCTION LENGTH after >>COBOL-WORDS UNDEFINE "LENGTH" was refused with COBOL1501's "is not an
+    // intrinsic function of ISO/IEC 1989" — the sentence a misspelling draws, and false of LENGTH (§15.50). The cause is
+    // the user's own directive, so the refusal names it (CobolWordsMap.RemovedBy) and cites where it is written.
+    public static readonly DiagnosticDescriptor IntrinsicRemovedByCobolWords = new(
+        "COBOL5776", "intrinsic-removed-by-cobol-words", EditionSeverity.Error,
+        "A FUNCTION names an intrinsic function that a >>COBOL-WORDS directive of the compilation group withdrew. "
+        + "ISO §7.3.10.4 GR3: when UNDEFINE is specified, the COBOL word that is the content of literal-3 \"shall no "
+        + "longer be reserved or restricted in any way\" and any syntax requiring the use of that word \"shall not be "
+        + "available for use in this compilation group\"; GR4 withdraws the word of SUBSTITUTE literal-4 from the group "
+        + "as an intrinsic function name the same way and hands its role to literal-5. The function exists (§15); the "
+        + "directive named in the message removed its name. Write the SUBSTITUTE's literal-5 where the function is "
+        + "wanted, or remove the directive.",
+        "ISO §7.3.10.4 GR3; §7.3.10.4 GR4");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)
