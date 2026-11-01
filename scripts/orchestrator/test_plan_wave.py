@@ -34,7 +34,8 @@ from inflight import (Claim, InFlight, IndexPolicy, SLICE_OWNER, branch_replays,
 import inflight as inb  # noqa: E402
 import clusters as clusters_mod  # noqa: E402
 from clusters import (Note, add_closed_notes, branch_lead_notes, campaign_clusters, closed_by_branch,  # noqa: E402
-                      declare_fix_lane, lift_tiers, load_fix_clusters, load_notes, ready_notes_view)
+                      declare_fix_lane, lift_tiers, load_fix_clusters, load_notes, notes_cap, predicted_turns,
+                      ready_notes_view, turn_budget)
 from groups import (Group, as_group_json, attempts, body_of, campaign_requirements, group_cost,  # noqa: E402
                     group_requirements, landing_cost, requirements_text)
 from dispatch_ledger import (held_by_dispatch, partition_record, partition_summary, record_dispatch,  # noqa: E402
@@ -57,6 +58,18 @@ RULES = coord.rules()
 # than one link of a chain; the owner's rule runs one (wave.links_per_chain, kb/Work PB3638), so the fixtures below,
 # which test the chains themselves, plan every link, and the PB3638 block tests the live value.
 RULES["wave"]["links_per_chain"] = 99
+
+
+def rules_capped(rules, n):
+    """A copy of `rules` whose group size (clusters.notes_cap, kb/Work PB4396) is `n` notes: the turn budget set half a
+    note's turns past n notes' prediction, whatever the implementer's turn cap is."""
+    out = json.loads(json.dumps(rules))
+    w = out["wave"]
+    w["turn_budget_fraction"] = (w["turns_per_group"] + w["turns_per_note"] * (n + 0.5)) / coord.agent_turn_cap(
+        "cobol-implementer")
+    return out
+
+
 TMP = scratch_dir("plan-wave-test-")
 WORK = TMP / "Work"
 WORK.mkdir()
@@ -176,14 +189,17 @@ check("half pred names its unlanded branch", "worktree-wf_fff-3" in G[("PB4",)].
 check("half note planned once", sum("PB4" in g.notes for g in p["groups"]), 1)
 check("branch-only pred", "worktree-wf_ddd-9" in G[("PB13",)].pred, True)
 
-# 3. clusters by rows claimed: PB2+PB5 (2+1) first, the 1-row ones next, PB14 (0 rows) last
-check("cluster order", (order[3], order[-1]), (["PB2", "PB5"], ["PB14"]))
-# 4. a second cluster on a file is that file's same-file successor
-g14, g25 = G[("PB14",)], G[("PB2", "PB5")]
-check("successor", (g14.after, g14.letter), (g25.letter, g25.letter + "2"))
+# 3. clusters by rows claimed: PB2+PB5 (2+1) first, the 1-row ones next
+check("cluster order", (order[3], order[-1]), (["PB2", "PB5", "PB14"], ["PB10"]))
+# 4. ONE STEP PER FILE (kb/Work PB4396): a second cluster on a file is that file's group's work, absorbed into it (PB14,
+#    0 rows, ranks last and joins PB2+PB5 on F_BIND), never a same-file successor
+g25 = G[("PB2", "PB5", "PB14")]
+check("one step per file: the second cluster on a file joins its group, no successor",
+      (g25.after, [g.notes for g in p["groups"] if "PB14" in g.notes], any(g.after for g in p["groups"])),
+      ("", [["PB2", "PB5", "PB14"]], False))
 
 # 5. routing
-check("default sonnet", G[("PB2", "PB5")].model, "sonnet")
+check("default sonnet", g25.model, "sonnet")
 check("oo file -> opus", G[("PB8",)].model, "opus")
 check(".g4 -> opus", G[("PB11",)].model, "opus")
 check("open design question -> opus", G[("PB9",)].model, "opus")
@@ -404,8 +420,7 @@ check("the SPLIT finisher takes the closed note, which no cluster group plans a 
       sorted((g.kind, tuple(g.notes)) for g in pcs["groups"] if {"PB13", "PB10"} & set(g.notes)),
       [("finisher", ("PB10", "PB13"))])
 
-CAP_RULES = json.loads(json.dumps(RULES))
-CAP_RULES["wave"]["max_notes_per_group"] = 2
+CAP_RULES = rules_capped(RULES, 2)
 CAP_REPORTS = TMP / "reports-closes-cap"
 CAP_REPORTS.mkdir()
 CAP_COORD = TMP / "coord-closes-cap"
@@ -517,8 +532,8 @@ def dr_plan(drain):
 
 
 pd = dr_plan(True)
-check("drain: only the finishers of started work", sorted(sorted(g.notes) for g in pd["groups"]),
-      [["PB6"], ["PB7"], ["PB77"], ["PB79"], ["PB9"]])
+check("drain: only the finishers of started work, two whose claims meet as ONE group (kb/Work PB4396)",
+      sorted(sorted(g.notes) for g in pd["groups"]), [["PB6", "PB7"], ["PB77"], ["PB79"], ["PB9"]])
 check("drain: every group is a finisher whose pred says DRAIN",
       all(g.kind == "finisher" and "DRAIN" in g.pred for g in pd["groups"]), True)
 check("drain: a SPLIT branch another DONE branch merged waits, with its carrier named",
@@ -619,7 +634,8 @@ for mode, pm in (("every mode", pn), ("drain", pd)):
           (True, True, True, True))
 g5n = next((g for g in pn["groups"] if "PB5" in g.notes), None)
 check("every mode: a carried SPLIT's finisher merges its carrier, never cherry-picks it",
-      bool(g5n) and "merge_drivers.py merge worktree-wf_dr-2" in g5n.pred and "cherry-pick its unlanded" not in g5n.pred, True)
+      bool(g5n) and "merge_drivers.py merge worktree-wf_dr-2" in g5n.pred and "never cherry-pick worktree-wf_dr-1" in g5n.pred,
+      True)
 check("without --drain nothing waits on the drain", (pn["drain_not_started"], any("DRAIN" in g.pred for g in pn["groups"])),
       ([], False))
 # R1-1: the review finisher of owner-task's FINDINGS works on its OWN branch, and its later report about the same
@@ -828,7 +844,7 @@ check("PB2974: an unlanded branch with a held note plans no finisher for its oth
        [("PB312 of branch worktree-wf_ub-1 is held by dispatch w1055b" in ub_p["waiting"][i]) for i in ("PB311", "PB313")]),
       ([], [True, True]))
 UB_MANY = {f"PB{n}": Note(f"PB{n}", "open", "tooling", f"PB{n} — a defect in tooling", [], "", 8)
-           for n in range(400, 400 + RULES["wave"]["max_notes_per_group"] + 2)}
+           for n in range(400, 400 + notes_cap(RULES) + 2)}
 ub_ids = sorted(UB_MANY, key=pw.work.id_order)
 ub_many = pw.plan(UB_MANY, [cl("scripts/c.py", *ub_ids)], [], [], lambda b: "UNLANDED", {"worktree-wf_ub-2": ub_ids}, RULES,
                   budget_points=1000)
@@ -962,7 +978,7 @@ fb.write_text(fb.read_text(encoding="utf-8").replace("Turn cap", "Cap of"), enco
 brief = CAPREPO / ".claude/skills/workstream/templates/dispatch-spec-implementer.md"
 brief.write_text(brief.read_text(encoding="utf-8") + "\nA HARD CAP of 220 turns.\n", encoding="utf-8", newline="\n")
 rules_copy = CAPREPO / check_practices.NUMBERLESS_CAP_FILES[0]
-rules_copy.write_text(rules_copy.read_text(encoding="utf-8").replace("inside the implementer's turn cap", "inside the 220-turn cap"), encoding="utf-8", newline="\n")
+rules_copy.write_text(rules_copy.read_text(encoding="utf-8").replace("turn_budget_fraction of the implementer's turn cap", "turn_budget_fraction of the 220-turn cap"), encoding="utf-8", newline="\n")
 drift = check_practices.turn_cap_copies(CAPREPO)
 check("a copy that differs, a copy whose text is gone, a typed number in the spec template and a typed cap in the rules file are each refused",
       (any(f"states 220 turns for cobol-implementer, whose maxTurns is {IMPL_CAP}" in m for m in drift),
@@ -1040,7 +1056,7 @@ check("lead is the note with most rows", next(j["lead"] for j in gjson if j["let
 gfile = TMP / "groups.json"
 gfile.write_text(__import__("json").dumps({"wave": "77", "scratch": "X", "base": "abc", "stop_file": CFG77["stop_file"],
                                           "groups": gjson}), encoding="utf-8", newline="\n")
-check("check_practices O2 same-file rule", check_practices.claims_meet_without_successor(gfile), [])
+check("check_practices O2 same-file rule", check_practices.claims_meet(gfile), [])
 MEMBER_GROUPS = TMP / "groups-members.json"
 
 
@@ -1049,21 +1065,27 @@ def member_groups(*member_sets):
     gs = [{"letter": chr(65 + k), "root": "src/X/Binder.cs", **({"member_set": {"src/X/Binder.cs": ms}} if ms else {})}
           for k, ms in enumerate(member_sets)]
     MEMBER_GROUPS.write_text(__import__("json").dumps({"groups": gs}), encoding="utf-8", newline="\n")
-    return check_practices.claims_meet_without_successor(MEMBER_GROUPS)
+    return check_practices.claims_meet(MEMBER_GROUPS)
 
 
 check("check_practices O2 is a shared-MEMBER rule (kb/Work PB3670): different members of one primary file pass; one "
-      "member, or the whole file, refused without `after:`",
+      "member, or the whole file, refused",
       (member_groups(["Binder.Bind"], ["Binder.Sync"]), member_groups(["Binder.Bind"], ["Bind"]),
        member_groups(["Binder.Bind"], None)),
       ([], ["A+B on src/X/Binder.cs#Binder.Bind"], ["A+B on src/X/Binder.cs"]))
+MEMBER_GROUPS.write_text(__import__("json").dumps({"groups": [{"letter": "A", "root": "src/X/Binder.cs"},
+                                                              {"letter": "A2", "root": "src/X/Binder.cs", "after": "A"}]}),
+                         encoding="utf-8", newline="\n")
+check("check_practices O2 refuses two groups whose claims meet even when one declares `after:` the other (one step per "
+      "file, kb/Work PB4396: no successor exception)", check_practices.claims_meet(MEMBER_GROUPS),
+      ["A+A2 on src/X/Binder.cs"])
 
 
 def claim_groups(*claims):
     """A groups file of groups A, B, ... each with the file_set and member_set given (the planner writes both)."""
     gs = [{"letter": chr(65 + k), "file_set": fs, **({"member_set": ms} if ms else {})} for k, (fs, ms) in enumerate(claims)]
     MEMBER_GROUPS.write_text(__import__("json").dumps({"groups": gs}), encoding="utf-8", newline="\n")
-    return check_practices.claims_meet_without_successor(MEMBER_GROUPS)
+    return check_practices.claims_meet(MEMBER_GROUPS)
 
 
 BIND_A = ([F_BIND, "src/X/Shared.cs"], {F_BIND: ["Binder.Bind"]})
@@ -1183,7 +1205,7 @@ if fc:
     cg = [as_group_json(g, "78", cnotes, "COBOL0001-COBOL0003") for g in cp["groups"]]
     cfile = TMP / "campaign-groups.json"
     cfile.write_text(JSON.dumps({"wave": "78", "scratch": "X", "base": "abc", "groups": cg}), encoding="utf-8", newline="\n")
-    check("campaign groups pass check_practices' successor rule", check_practices.claims_meet_without_successor(cfile), [])
+    check("campaign groups pass check_practices' one-step-per-file rule", check_practices.claims_meet(cfile), [])
     for g in cg:
         mds.render(dict(CFG77, wave="78"), g, FILES(g))
     only_b = group_cost("opus", 1, RULES) + landing_cost(RULES)
@@ -1275,35 +1297,42 @@ if fc:
     litems = [dict(work.parse_frontmatter(p.read_text(encoding="utf-8")), _file=p.name) for p in sorted(LW.glob("*.md"))]
     lnotes = load_notes(LW, {"wrong_answer": 8})
     ltexts = {i: (LW / f"{i}.md").read_text(encoding="utf-8") for i in lnotes}
-    LRULES = JSON.loads(JSON.dumps(RULES))
-    LRULES["wave"]["max_notes_per_group"] = 2
+    LRULES = rules_capped(RULES, 2)
     lopen, lhalf, ldeps, _ = campaign_clusters(work.cluster_order(litems, "PB960"), lnotes, ltexts, LRULES, fc,
                                                   TMP / "lift", declared_sets(TMP / "lift", IndexPolicy(
                                                       TMP / "no-cache-lift", regenerate=False)))
     check("campaign_clusters lifts the untiered blocker's cluster to its tier-1 dependent's",
           [([n["id"] for n in c["notes"]], c["tier"], c["depth"]) for c in lopen],
           [(["PB961", "PB962"], 1, 0), (["PB963"], 1, 0), (["PB964", "PB965"], 1, 1)])
-    lp = pw.plan(lnotes, lopen, lhalf, [], lambda b: "ABSENT", {}, LRULES, budget_points=100, deps=ldeps)
-    check("so the mixed dependent cluster follows the one Alpha.cs chain instead of waiting",
+    # planned at the live group size, the two Alpha.cs clusters are one group (one step per file, kb/Work PB4396), and
+    # the dependent Beta.cs cluster follows it: a DEPENDENCY successor, on files the group does not claim
+    lp = pw.plan(lnotes, lopen, lhalf, [], lambda b: "ABSENT", {}, RULES, budget_points=100, deps=ldeps)
+    check("so the mixed dependent cluster follows the one Alpha.cs group instead of waiting",
           ([(g.letter, g.after, g.notes) for g in lp["groups"]], lp["waiting"]),
-          ([("A", "", ["PB961", "PB962"]), ("A2", "A", ["PB963"]), ("A3", "A2", ["PB964", "PB965"])], {}))
+          ([("A", "", ["PB961", "PB962", "PB963"]), ("A2", "A", ["PB964", "PB965"])], {}))
+    # at the 2-note size the third Alpha.cs note is the group's OVERFLOW, and the dependents of it wait with it
+    lp2 = pw.plan(lnotes, lopen, lhalf, [], lambda b: "ABSENT", {}, LRULES, budget_points=100, deps=ldeps)
+    check("PB4396: past the group size the Alpha.cs overflow waits for the next wave, and so do its dependents",
+          ([(g.letter, g.notes, g.overflow) for g in lp2["groups"]], sorted(lp2["waiting"]),
+           "ONTO group A's branch" in lp2["waiting"].get("PB963", "")),
+          ([("A", ["PB961", "PB962"], ["PB963"])], ["PB963", "PB964", "PB965"], True))
 
 # 9c. THE PLACEMENT ORDER IS THE TIER, AND A WAVE RUNS ONE LINK PER CHAIN (kb/Work PB3638, the owner's fix-cycle bar).
 #     Wave 20261029 chained two untiered FINISHERS (PB3112, PB2878) ahead of the tier-1 cluster PB3612 on one file,
 #     because every finisher was placed before every cluster, and ran all three links in one wave: PB3612 started two
-#     hours in. Here F_BIND holds the cluster (PB2, PB5) and its successor (PB14); the base fixture's finishers are
-#     untiered.
+#     hours in. Here F_BIND holds the cluster (PB2, PB5) and the tier-1 PB14; the base fixture's finishers are
+#     untiered. Under one step per file (kb/Work PB4396) the untiered cluster is the tier-1 group's work, never a link.
 tp1 = pw.plan(notes, CLUSTERS, HALF, reports, lambda b: CLASS.get(b, "ABSENT"), UNLANDED, RULES, budget_points=100,
               tiers={"PB14": 1})
-check("PB3638: a tier-1 group heads its file's chain and is placed before every untiered finisher",
+check("PB3638: a tier-1 group heads its file's work and is placed before every untiered finisher",
       [(g.letter, g.after, g.notes) for g in tp1["groups"]][:3],
-      [("A", "", ["PB14"]), ("B", "", list(FIN)), ("C", "", ["PB4"])])
-check("PB3638: the untiered cluster on that file follows the tier-1 group",
-      next((g.letter, g.after) for g in tp1["groups"] if g.notes == ["PB2", "PB5"]), ("A2", "A"))
+      [("A", "", ["PB14", "PB2", "PB5"]), ("B", "", list(FIN)), ("C", "", ["PB4"])])
+check("PB4396: the untiered cluster on that file joins the tier-1 group, no successor",
+      [(g.letter, g.after) for g in tp1["groups"] if {"PB2", "PB5"} & set(g.notes)], [("A", "")])
 tp2 = pw.plan(notes, CLUSTERS, HALF, reports, lambda b: CLASS.get(b, "ABSENT"), UNLANDED, RULES, budget_points=100,
               tiers={"PB13": 1, "PB14": 2})
 check("PB3638: a finisher takes its notes' tier; inside one tier the finishers keep their order",
-      [g.notes for g in tp2["groups"]][:4], [["PB13"], ["PB14"], list(FIN), ["PB4"]])
+      [g.notes for g in tp2["groups"]][:4], [["PB13"], ["PB14", "PB2", "PB5"], list(FIN), ["PB4"]])
 check("PB3638: the fix lane passes no tiers, so its order is the one check 2 holds", [g.notes for g in p["groups"]][:3],
       [list(FIN), ["PB4"], ["PB13"]])
 check("PB3638: model_rules.json states the owner's one link per chain", LIVE_RULES["wave"]["links_per_chain"], 1)
@@ -1325,26 +1354,58 @@ except ValueError:
     check("PB3868: a definition with no model is refused, never defaulted", True, True)
 tp3 = pw.plan(notes, CLUSTERS, HALF, reports, lambda b: CLASS.get(b, "ABSENT"), UNLANDED, LIVE_RULES,
               budget_points=100, tiers={"PB14": 1})
-check("PB3638: under the live rules no dispatched group follows another (one link per chain)",
-      ([g.notes for g in tp3["groups"] if g.after], ["PB2", "PB5"] in [g.notes for g in tp3["groups"]],
-       ["PB14"] in [g.notes for g in tp3["groups"]]), ([], False, True))
-check("PB3638: the later link waits, naming the rule and the link it follows",
-      [("one chain link per wave" in tp3["waiting"].get(i, ""), "group A " in tp3["waiting"].get(i, ""))
-       for i in ("PB2", "PB5")], [(True, True), (True, True)])
-check("PB3638: a deferred link is no budget skip", any(g.notes == ["PB2", "PB5"] for g in tp3["skipped"]), False)
-# kb/Work PB3712: a deferred link's reason says what the wave does with its predecessor. Three notes chain on one file
-# (A, A2, A3); under the live one link per chain, A runs, A2 is deferred behind a group "which this wave runs", and A3
-# follows A2, which this wave does NOT run: its reason may not say it does. With the head cut (the budget fits none, or
-# the group cap is 0) neither link is behind a group this wave runs.
-CHAIN3 = [cl("src/X/Chain.cs", "PB5"), cl("src/X/Chain.cs", "PB6"), cl("src/X/Chain.cs", "PB7")]   # ranked PB6, PB7, PB5 (by rows): A, A2, A3
+check("PB3638: under the live rules no dispatched group follows another, and one file's work is one group",
+      ([g.notes for g in tp3["groups"] if g.after], ["PB14", "PB2", "PB5"] in [g.notes for g in tp3["groups"]],
+       [i for i in ("PB2", "PB5", "PB14") if i in tp3["waiting"]]), ([], True, []))
+# kb/Work PB3712: a deferred link's reason says what the wave does with its predecessor. Only a DEPENDENCY chain has
+# links now (kb/Work PB4396): three notes on three files, each blocked by the one before (A, A2, A3); under the live one
+# link per chain, A runs, A2 is deferred behind a group "which this wave runs", and A3 follows A2, which this wave does
+# NOT run: its reason may not say it does. With the head cut (the budget fits none, or the group cap is 0) neither link
+# is behind a group this wave runs.
+CHAIN3 = [{**cl("src/X/ChainA.cs", "PB6"), "depth": 0}, {**cl("src/X/ChainB.cs", "PB7"), "depth": 1},
+          {**cl("src/X/ChainC.cs", "PB5"), "depth": 2}]
+CHAIN3_DEPS = {"PB7": ["PB6"], "PB5": ["PB7"]}
 for what, budget, cap, head_runs in (("the head runs", 100, None, True), ("the budget cuts the head", 0.0, None, False),
                                      ("the group cap cuts the head", 100, 0, False)):
-    pc = pw.plan(notes, CHAIN3, [], [], lambda b: "ABSENT", {}, LIVE_RULES, budget_points=budget, max_groups=cap)
+    pc = pw.plan(notes, CHAIN3, [], [], lambda b: "ABSENT", {}, LIVE_RULES, budget_points=budget, max_groups=cap,
+                 deps=CHAIN3_DEPS)
     say = {i: ("which this wave runs" in pc["waiting"][i], "does not run either" in pc["waiting"][i])
            for i in ("PB7", "PB5")}
     check(f"PB3712: {what}: a deferred link says its predecessor runs only if the wave runs it",
           ([g.letter for g in pc["groups"]], say),
           (["A"] if head_runs else [], {"PB7": (head_runs, not head_runs), "PB5": (False, True)}))
+
+# 9d. ONE STEP PER FILE (kb/Work PB4396, owner 2026-11-01: "One step per file"). Expected values from the note's
+#     acceptance: a planted register of 7 notes on ONE file plans ONE group (7 notes fit the turn budget: 65 + 20.5 x 7
+#     = 208.5 turns, under 0.75 x the implementer's cap); when the predicted turns exceed the budget, the group takes what
+#     fits and the rest is its OVERFLOW, which waits for the next wave to plan it ONTO the group's branch, and no two
+#     groups of the wave meet (check_practices.py's rule, with no `after:` exception).
+SEVEN = [cl("src/X/Seven.cs", f"PB{n}") for n in (6, 7, 8, 9, 10, 11, 12)]
+s7 = pw.plan(notes, SEVEN, [], [], lambda b: "ABSENT", {}, LIVE_RULES, budget_points=100)
+check("PB4396: seven notes on one file are ONE group under the live turn budget",
+      ([sorted(g.notes, key=pw.work.id_order) for g in s7["groups"]], s7["waiting"], notes_cap(LIVE_RULES) >= 7,
+       predicted_turns(7, LIVE_RULES) <= turn_budget(LIVE_RULES)),
+      ([[f"PB{n}" for n in (6, 7, 8, 9, 10, 11, 12)]], {}, True, True))
+s7c = pw.plan(notes, SEVEN, [], [], lambda b: "ABSENT", {}, rules_capped(LIVE_RULES, 3), budget_points=100)
+check("PB4396: past the turn budget the group takes what fits and the rest is its overflow, never a second group",
+      ([len(g.notes) for g in s7c["groups"]], [len(g.overflow) for g in s7c["groups"]],
+       sorted(i for i in s7c["waiting"] if "one step per file (kb/Work PB4396)" in s7c["waiting"][i])
+       == sorted(s7c["groups"][0].overflow) if s7c["groups"] else None),
+      ([3], [4], True))
+check("PB4396: the overflow's reason names the group whose branch the next wave continues",
+      all("ONTO group A's branch" in s7c["waiting"][i] for i in s7c["groups"][0].overflow), True)
+OVF_JSON = as_group_json(s7c["groups"][0], "9400", notes, "COBOL0001-COBOL0003")
+check("PB4396: the overflow reaches groups.json (the ledger's record) and the spec body",
+      (OVF_JSON.get("overflow") == s7c["groups"][0].overflow, "OVERFLOW CHAIN" in OVF_JSON["body"]), (True, True))
+s7b = pw.plan(notes, SEVEN, [], [], lambda b: "ABSENT", {}, rules_capped(LIVE_RULES, 3), budget_points=0.0)
+check("PB4396: an overflow whose group this wave does not run says so",
+      all("does not run that group either" in s7b["waiting"][i] for i in ("PB6", "PB7", "PB8", "PB9", "PB10", "PB11", "PB12")
+          if i in s7b["waiting"] and "PB4396" in s7b["waiting"][i]) and any("PB4396" in w for w in s7b["waiting"].values()),
+      True)
+# A finisher and a cluster whose claims meet are one group, the finisher's (the absorption that plan_fill did by primary
+# file is the partition's one rule now): check 2's FIN is PB3's finisher with both F_EMIT clusters.
+check("PB4396: a finisher absorbs the clusters whose claims meet its own, whole",
+      (G[FIN].kind, sum(1 for g in p["groups"] if {"PB6", "PB7", "PB12"} & set(g.notes))), ("finisher", 1))
 
 # 9a. A CAMPAIGN'S STANDING REQUIREMENTS (kb/Work PB3359): the bullets of the campaign lead note's `## Standing
 #     requirements` reach every group's spec body, check_practices.py and the branch reviewer's prompt. The owner's
@@ -1512,6 +1573,15 @@ check("fix lane: a group meeting only a FINISHED branch is planned as its contin
       (True, "", ["worktree-done"]))
 check("... its pred says merge that branch first and names the shared file",
       all(t in FG[("PB5",)].pred for t in ("CONTINUATION", "merge_drivers.py merge", "worktree-done", "w1090c", F_BIND)), True)
+# kb/Work PB4396: JOIN IN-FLIGHT WORK. Two groups on two files of ONE finished branch are one continuation of it, never
+# two branches behind it: the first takes the branch's claim, so the second meets it; the record reaches groups.json.
+fl2 = pw.plan(notes, [cl(F_BIND, "PB5"), cl("src/X/Misc.cs", "PB9")], [], [], lambda b: "ABSENT", {}, RULES,
+              budget_points=100,
+              busy={"worktree done (worktree-done)": InFlight({F_BIND, "src/X/Misc.cs"}, "worktree-done", finished=FIN)})
+check("PB4396: two groups on the files of one finished branch are ONE continuation of it, its record in groups.json",
+      ([(g.notes, g.continues) for g in fl2["groups"]],
+       [as_group_json(g, "9401", notes, "COBOL0001-COBOL0003").get("continues") for g in fl2["groups"]]),
+      ([(["PB5", "PB9"], ["worktree-done"])], [["worktree-done"]]))
 check("fix lane: a dispatch of the group's OWN notes never defers it (the hold already decided them)",
       ("PB9",) in FG, True)
 check("fix lane: a group meeting another dispatch's RUNNING group waits, naming it",
@@ -2420,14 +2490,19 @@ check("collision_set: the primary file is whole unless every note declares a sit
 mw = pw.plan(notes, [on_members(F_BIND, ["Binder.Bind"], "PB5"), on_members(F_BIND, ["Binder.Sync"], "PB9"),
                      on_members(F_BIND, ["Sync"], "PB10"), cl(F_BIND, "PB11")],
              [], [], lambda b: "ABSENT", {}, RULES, budget_points=100)
-check("in a wave two groups on DIFFERENT MEMBERS of one primary file run side by side; one on the same member "
-      "follows it; one on the whole file follows both, so it waits for a later wave (two chains)",
-      ([(g.letter, g.after, g.notes) for g in mw["groups"]],
-       "different successor chains" in mw["waiting"].get("PB11", "")),
-      ([("A", "", ["PB5"]), ("B", "", ["PB9"]), ("B2", "B", ["PB10"])], True))
+check("in a wave two groups on DIFFERENT MEMBERS of one primary file run side by side; one on the same member is that "
+      "group's work; one on the whole file meets both and unites them, one step per file family (PB4396)",
+      ([(g.letter, g.after, g.notes) for g in mw["groups"]], mw["waiting"]),
+      ([("A", "", ["PB5", "PB9", "PB10", "PB11"])], {}))
+mw2 = pw.plan(notes, [on_members(F_BIND, ["Binder.Bind"], "PB5"), on_members(F_BIND, ["Binder.Sync"], "PB9"),
+                      on_members(F_BIND, ["Sync"], "PB10")],
+              [], [], lambda b: "ABSENT", {}, RULES, budget_points=100)
+check("... and without the whole-file note the two member families stay side by side",
+      [(g.letter, g.after, g.notes) for g in mw2["groups"]], [("A", "", ["PB5"]), ("B", "", ["PB9", "PB10"])])
 # kb/Work PB3696: the in-wave rule asks the in-flight rule's question (collision) over EVERY file both groups claim, not
 # the primary file alone: two groups on different members of one primary file that both claim a third file whole, and two
-# on different primary files that share one, follow each other; the same pair with nothing shared still runs side by side
+# on different primary files that share one, are one group (PB4396); the same pair with nothing shared still runs side by
+# side
 SHARED = "src/X/Shared.cs"
 
 
@@ -2439,22 +2514,23 @@ def two_files(primary, members, secondary, nid):
 for label, pair, want in (
         ("on different members of one primary file that both claim a third file whole",
          [two_files(F_BIND, ["Binder.Bind"], SHARED, "PB5"), two_files(F_BIND, ["Binder.Sync"], SHARED, "PB9")],
-         [("A", "", ["PB5"]), ("A2", "A", ["PB9"])]),
+         [("A", "", ["PB5", "PB9"])]),
         ("on different primary files that share a secondary file whole",
          [two_files(F_BIND, ["Binder.Bind"], SHARED, "PB5"), two_files(F_EMIT, ["Emitter.Emit"], SHARED, "PB9")],
-         [("A", "", ["PB5"]), ("A2", "A", ["PB9"])]),
+         [("A", "", ["PB5", "PB9"])]),
         ("on different members of one primary file that share nothing else (the control)",
          [two_files(F_BIND, ["Binder.Bind"], "src/X/A.cs", "PB5"), two_files(F_BIND, ["Binder.Sync"], "src/X/B.cs", "PB9")],
          [("A", "", ["PB5"]), ("B", "", ["PB9"])])):
     sw = pw.plan(notes, pair, [], [], lambda b: "ABSENT", {}, RULES, budget_points=100)
-    check(f"in a wave two groups {label} are planned {'in one chain' if len(want) and want[1][1] else 'side by side'} "
-          f"(PB3696)", [(g.letter, g.after, g.notes) for g in sw["groups"]], want)
-    claims = [g.claim for g in sw["groups"]]
+    meets = len(want) == 1
+    check(f"in a wave two groups {label} are planned {'as one group' if meets else 'side by side'} "
+          f"(PB3696, PB4396)", [(g.letter, g.after, g.notes) for g in sw["groups"]], want)
     held = pw.plan(notes, pair[1:], [], [], lambda b: "ABSENT", {}, RULES, budget_points=100,
                    busy={"worktree w (worktree-w)": InFlight(set(pair[0]["files"]), "worktree-w", {"PB70"}, state="IN FLIGHT",
                                                                 members={F_BIND: frozenset(pair[0]["members"][F_BIND])})})
     check(f"... and the in-flight rule reads the same pair the same way (one rule, PB3696): {label}",
-          (bool(collision(claims[0], claims[1])), bool(held["waiting"])), (bool(want[1][1]), bool(want[1][1])))
+          (bool(collision(clusters_mod.cluster_claim(pair[0]), clusters_mod.cluster_claim(pair[1]))),
+           bool(held["waiting"])), (meets, meets))
 # kb/Work PB3695: real owner labels carry parentheses too (`worktree <name> (<branch>)`, `dispatched <slug> (PB547)`), so
 # what a hold SHARED is recorded as data (plan()'s `collided`), never parsed back out of its prose: the owners' branch
 # names and note ids are no "most named file"
@@ -2465,18 +2541,18 @@ mh = pw.plan(notes, [on_members(F_BIND, ["Binder.Bind"], "PB9"), cl(F_EMIT, "PB6
                    "dispatched w9a (PB547)": InFlight({F_EMIT}, notes={"PB547"}, state="DISPATCHED, NO REPORT YET")})
 check("a hold's plan records what it shared: the file and member per owner, as data (PB3695)",
       (mh["collided"], sorted(mh["waiting"])), ({"PB9": [F_BIND + "#Binder.Bind"], "PB6": [F_EMIT]}, ["PB6", "PB9"]))
-MREC = partition_record("9", mw["groups"], {**mw["waiting"], **mh["waiting"]}, mh["collided"], 1_800_000_000.0)
+MREC = partition_record("9", mw2["groups"], {**mw2["waiting"], **mh["waiting"]}, mh["collided"], 1_800_000_000.0)
 check("the partition's measurement records the same-file pairs run side by side and every hold with its reason",
       (MREC["groups"], MREC["same_file_parallel"], MREC["held_in_wave"], sorted(MREC["held_by_collision"]),
        MREC["collided_on"]),
-      (3, ["A+B on src/X/Binder.cs"], ["PB11"], ["PB6", "PB9"],
+      (2, ["A+B on src/X/Binder.cs"], [], ["PB6", "PB9"],
        {"PB9": [F_BIND + "#Binder.Bind"], "PB6": [F_EMIT]}))
 MCOORD = TMP / "coord-measure"
 MCOORD.mkdir()
 record_partition(MCOORD, MREC)
 check("... and --partition-summary reads it back per day, naming the colliding members and files, never an owner's "
       "branch or note",
-      partition_summary(MCOORD), ["2027-01-15: 1 waves, 3 groups, 1 same-file pairs side by side, 2 notes held by a "
+      partition_summary(MCOORD), ["2027-01-15: 1 waves, 2 groups, 1 same-file pairs side by side, 2 notes held by a "
                                      "collision (most named: src/X/Binder.cs#Binder.Bind x1, src/X/Emitter.cs x1)"])
 uw = pw.plan(notes, [cl(F_BIND, "PB5"), unsited("PB9"), unsited("PB10"), unsited("PB8"), cl("src/X/Misc2.cs", "PB11")],
              [], [], lambda b: "ABSENT", {}, RULES, budget_points=100)
@@ -2743,10 +2819,10 @@ check("PB3746: a fix-lane plan beside a campaign's directory finishes the campai
       ([n for g in cb_plan["groups"] for n in g.notes if n in ("PB90", "PB94", "PB93")], cb_groups["PB90"].kind,
        sorted(n for n in cb_plan["waiting"] if n in ("PB94", "PB93", "PB95"))),
       (["PB90"], "finisher", ["PB93", "PB94", "PB95"]))
-check("PB3746: the fix lane's group on the file the campaign branch holds follows that finisher; the free file's group "
-      "is planned beside everything",
-      (cb_groups["PB91"].after, cb_groups["PB90"].letter, cb_groups["PB92"].after, "PB92" in cb_plan["waiting"]),
-      (cb_groups["PB90"].letter, cb_groups["PB90"].letter, "", False))
+check("PB3746: the fix lane's group on the file the campaign branch holds joins that finisher (kb/Work PB4396); the "
+      "free file's group is planned beside everything",
+      (cb_groups["PB91"] is cb_groups["PB90"], cb_groups["PB90"].after, cb_groups["PB92"].after, "PB92" in cb_plan["waiting"]),
+      (True, "", "", False))
 
 # kb/Work PB3456: THE SLICES' RESERVATION HOLDS ONLY THE RESTRUCTURING PROGRAM'S GROUPS (R69 §2, "R2 and every R3
 # wave"), whichever campaign plans them, and reads OPEN (RESERVED) while nobody runs a slice. Wave 1132 (campaign
@@ -2908,9 +2984,10 @@ DL_BUSY = {"worktree dl-1 (worktree-dl-1)": InFlight({F_BIND, "docs/CONFORMANCE.
 pdl = pw.plan(notes, [cl(F_BIND, "PB5"), cl("src/X/Misc.cs", "PB9")], [], load_reports(DL_REPORTS),
               lambda b: "UNLANDED", {}, RULES, budget_points=100, busy=DL_BUSY)
 dl = {n: g for g in pdl["groups"] for n in g.notes}
-check("PB3528: two SPLIT branches sharing a file are both finished, the second a successor of the first",
-      (sorted(dl), dl["PB9"].after if "PB9" in dl else None, dl["PB5"].kind if "PB5" in dl else None),
-      (["PB5", "PB9"], dl["PB5"].letter if "PB5" in dl else "?", "finisher"))
+check("PB3528: two SPLIT branches sharing a file are both finished, by ONE finisher continuing both (kb/Work PB4396)",
+      (sorted(dl), dl.get("PB9") is dl.get("PB5"), dl["PB5"].kind if "PB5" in dl else None,
+       sorted(dl["PB5"].continues) if "PB5" in dl else None, dl["PB5"].after if "PB5" in dl else None),
+      (["PB5", "PB9"], True, "finisher", ["worktree-dl-1", "worktree-dl-2"], ""))
 check("PB3528: neither waits on the other", sorted(n for n in pdl["waiting"] if n in ("PB5", "PB9")), [])
 # ... and on every host alike: the two reports tie on wave and modification time (returned() above), so only their
 # NAME orders them; left to the directory's enumeration order (the name on NTFS, a hash order on ext4) the successor
@@ -2937,10 +3014,8 @@ DL1_BUSY = {"worktree dl-1 (worktree-dl-1)": InFlight({F_BIND}, "worktree-dl-1",
 pdl3 = pw.plan(notes, [cl("docs/CONFORMANCE.md", "PB5"), cl("src/X/Misc.cs", "PB9")], [], load_reports(DL_REPORTS),
                lambda b: "UNLANDED", {}, RULES, budget_points=100, busy=DL1_BUSY)
 dl3 = {n: g for g in pdl3["groups"] for n in g.notes}
-check("PB3528 R1-1: a one-sided meeting between two finishers chains them; neither runs beside the other",
-      (sorted(dl3), {g.after for g in dl3.values() if g.after} <= {g.letter for g in dl3.values()},
-       sum(1 for g in dl3.values() if g.after) == 1),
-      (["PB5", "PB9"], True, True))
+check("PB3528 R1-1: a one-sided meeting between two finishers makes them ONE group; neither runs beside the other",
+      (sorted(dl3), dl3.get("PB5") is dl3.get("PB9"), len(pdl3["groups"])), (["PB5", "PB9"], True, 1))
 # PB4352: ... and a branch is read as the branch its work LANDS THROUGH. Two finished branches each carry a SPLIT
 # predecessor their review finisher merged (54d-26 carried 54d-2, 54d-29 carried 54d-25 and 54d-4); the survey reads
 # each carried branch IN FLIGHT, and each one's files met the OTHER carrier's finisher. Keyed on the exact branch, the
@@ -2952,11 +3027,9 @@ DL4_BUSY = {**DL_BUSY,
 pdl4 = pw.plan(notes, [cl(F_BIND, "PB5"), cl("src/X/Misc.cs", "PB9")], [], load_reports(DL_REPORTS),
                lambda b: "UNLANDED", {}, RULES, budget_points=100, busy=DL4_BUSY, carrier=CARRIED.get)
 dl4 = {n: g for g in pdl4["groups"] for n in g.notes}
-check("PB4352: two finishers each meeting a branch the OTHER one's branch carries are both planned, chained",
-      (sorted(dl4), sorted(n for n in pdl4["waiting"] if n in ("PB5", "PB9")),
-       sum(1 for g in dl4.values() if g.after) == 1,
-       {g.after for g in dl4.values() if g.after} <= {g.letter for g in dl4.values()}),
-      (["PB5", "PB9"], [], True, True))
+check("PB4352: two finishers each meeting a branch the OTHER one's branch carries are both planned, as ONE group",
+      (sorted(dl4), sorted(n for n in pdl4["waiting"] if n in ("PB5", "PB9")), dl4.get("PB5") is dl4.get("PB9"),
+       len(pdl4["groups"])), (["PB5", "PB9"], [], True, 1))
 check("PB4352: a finisher's claim includes what the branch it continues CARRIES (the carried branch's files)",
       sorted(dl4["PB5"].claim.files) if "PB5" in dl4 else None, sorted({F_BIND, "docs/CONFORMANCE.md", "src/X/Misc.cs"}))
 # ... and a carried branch whose carrier no group of this wave finishes still holds a group that meets it
@@ -3150,8 +3223,9 @@ def continuing(p, branch):
 
 FULL = {B28: prune.Replay(B3A, (), ((B3A, 4),)), B3A: prune.Replay(None, ("f" * 12,), ())}
 before = plan3170("SPLIT")
-check("PB3170 (c): WITHOUT the rule both SPLIT branches get a finisher (the defect: the same four commits land twice)",
-      (continuing(before, B28), continuing(before, B3A)), ([["PB6"]], [["PB5"]]))
+check("PB3170 (c): WITHOUT the rule both SPLIT branches are finished (the defect: the same four commits land twice; "
+      "one finisher continues both, one step per file)",
+      (continuing(before, B28), continuing(before, B3A)), ([["PB5", "PB6"]], [["PB5", "PB6"]]))
 after = plan3170("SPLIT", replay=FULL.get)
 check("PB3170 (c): a SPLIT branch another SPLIT branch replays gets no finisher; its note rides on the carrier's group",
       (continuing(after, B28), continuing(after, B3A)), ([], [["PB5", "PB6"]]))
@@ -3163,7 +3237,7 @@ check("PB3170 (c): the carrier DONE (it lands on its own): the carried note wait
 part = plan3170("SPLIT", replay={B28: prune.Replay(None, ("abc123def456",), ((B3A, 3),)), B3A: FULL[B3A]}.get)
 check("PB3170 (c): a branch only PARTLY replayed keeps its finisher, whose pred names only the commits no other branch holds",
       (continuing(part, B28), [("ONLY" in g.pred, "abc123def" in g.pred, B3A in g.pred) for g in part["groups"]
-                               if B28 in g.continues]), ([["PB6"]], [(True, True, True)]))
+                               if B28 in g.continues]), ([["PB5", "PB6"]], [(True, True, True)]))
 gone = plan3170("SPLIT", abandoned={B28})
 check("PB3170 (c): an ABANDONED branch is never planned from: no finisher continues it, its note is planned from main",
       (continuing(gone, B28), any("PB6" in g.notes and not g.continues for g in gone["groups"]) or
@@ -3216,11 +3290,12 @@ for drain in (False, True):
                   budget_points=100, drain=drain, owned={LK})
     check(f"PB3653 {mode}: a branch merely OWNED (a touch inside --min-age, the state of one whose agent just returned) "
           "is still finished: only a lock or a dispatch holds the SPLIT arm",
-          [(g.notes, g.continues) for g in own["groups"] if "PB301" in g.notes], [(["PB301", "PB303"], [LK])])
+          [(g.notes, g.continues) for g in own["groups"] if "PB301" in g.notes],
+          [(["PB301", "PB303", "PB302"], [LK, "worktree-wf_un-2"])])
 check("PB3653: another branch's lock holds nothing here",
       [g.notes for g in pw.plan(UN_NOTES, UN_CL, [], load_reports(UN_REPORTS, UN), lambda b: "UNLANDED", {}, RULES,
                                 budget_points=100, locked={"worktree-wf_other-1"})["groups"] if "PB301" in g.notes],
-      [["PB301", "PB303"]])
+      [["PB301", "PB303", "PB302"]])
 lk_ub = pw.plan(UN_NOTES, UN_CL, [], [], lambda b: "UNLANDED", UB, RULES, budget_points=100, locked={"worktree-wf_ub-1"})
 check("PB3653: ... and an unlanded branch with no report is held by its lock too (one hold loop for every arm)",
       ([g.notes for g in lk_ub["groups"] if {"PB311", "PB312", "PB313"} & set(g.notes)],

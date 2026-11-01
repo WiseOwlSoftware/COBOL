@@ -1122,7 +1122,7 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    not read. The branch SURVEY reads the same rule (kb/Work PB3652): `replay_view` builds `replays`' inputs for both
    readers, and `prune_worktrees.contained` lists an unfinished (`SPLIT`, `NOT STARTED`) branch that another branch
    replays, or that a branch IN FLIGHT, waiting or `STOPPED` contains, as carried (`IN FLIGHT`, its row naming the
-   carrier), never as a `DECISION` row beside the carrier the planner already plans from. The ancestry arm carries every `DECISION` row whatever its report says (kb/Work PB3386): a stale `DONE` report, one a later commit outran and one whose lead note already landed describe a branch whose commits land with the carrier. A finisher on a primary file absorbs the notes of the open clusters on that file up to the cap (`model_rules.json` `wave.max_notes_per_group`).
+   carrier), never as a `DECISION` row beside the carrier the planner already plans from. The ancestry arm carries every `DECISION` row whatever its report says (kb/Work PB3386): a stale `DONE` report, one a later commit outran and one whose lead note already landed describe a branch whose commits land with the carrier. A finisher absorbs every group whose claim meets its own (item 4, one step per file).
 
    **`--drain`** (the owner's drain of 2026-10-13: "do not schedule new work items but continue all necessary work to
    get in-process work to main"; kb/Work PB3150) keeps only the finishers of STARTED work: every review-`FINDINGS`
@@ -1133,19 +1133,35 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    the first N groups in rank order, and wave 1075's first was a carried `SPLIT` whose finisher would have started a
    note nobody had started.
 3. **Clusters**, minus every note above, ranked by inventory rows claimed (the sum of each note's
-   `inventory_rows`, read with `work.py`'s one frontmatter reader), then by harm.
-4. **One group per file and member claimed**: a later group whose claim meets an earlier group's on ANY file both
-   claim (the whole file, or a shared member: `inflight.collision` over `unit_meet`, the question the in-flight check
-   asks too, kb/Work PB3696) becomes a successor (`after: <letter>`, letter suffixed `2`, `3`), the rule
-   `check_practices.py` (O2) enforces on a groups file through the same `collision`; a group on other members of a file,
-   and nothing else shared, runs beside it (kb/Work PB3670). **The placement order is
-   the tier** (kb/Work PB3638): groups are placed, lettered and chained in tier order, a campaign's effective tier
-   (`work.cluster_order`, passed to `plan` as `tiers`; a finisher takes its notes', a group its lowest, lowered by
-   `lift_tiers` to that of every group waiting on it), finishers first inside one tier, so the owner's highest tier
-   heads its chain (wave 20261029 chained two untiered finishers ahead of the tier-1 PB3612). **One chain link per
-   wave** (the owner, 2026-10-23; `model_rules.json` `wave.links_per_chain`, 1): a wave runs until its last group
-   returns, so only each chain's first link is dispatched, and the later links wait, named, for the next wave, which
-   plans them from the branch the earlier link leaves (the partition's continuation, item 1).
+   `inventory_rows`, read with `work.py`'s one frontmatter reader), then by harm, each at most the **group size**:
+   the notes whose predicted turns one implementer holds (`clusters.notes_cap`: `model_rules.json`
+   `wave.turns_per_group` + `wave.turns_per_note` per note, the fit `turns_by_group_size.py` measures, under
+   `wave.turn_budget_fraction` of the implementer's turn cap, `coord.agent_turn_cap`; kb/Work PB4396 retired the
+   4-note `wave.max_notes_per_group` of kb/Work PB3704; per-area turns are kb/Work PB3718).
+4. **One step per file** (kb/Work PB4396, owner 2026-11-01: "One step per file"): a later group whose claim meets an
+   earlier group's on ANY file both claim (the whole file, or a shared member: `inflight.collision` over `unit_meet`,
+   the question the in-flight check asks too, kb/Work PB3696) is that group's WORK, absorbed into it (`Group.absorb`:
+   its notes, claim, pred and continued branches; a finisher's makes it a finisher), and a group meeting several
+   groups of the wave unites them, while the result fits the group size. What does not fit is the group's
+   **overflow** (`Group.overflow`): its notes wait, named, and the next wave plans them ONTO the branch the group
+   leaves (item 1's continuation). `check_practices.py` (O2) refuses two groups of a groups file whose claims meet,
+   with no `after:` exception, through the same `collision`; a group on other members of a file, and nothing else
+   shared, runs beside it (kb/Work PB3670). Only a DEPENDENCY makes a successor (`after: <letter>`, letter suffixed
+   `2`, `3`: section 9.1). **The placement order is the tier** (kb/Work PB3638): groups are placed, lettered and
+   chained in tier order, a campaign's effective tier (`work.cluster_order`, passed to `plan` as `tiers`; a finisher
+   takes its notes', a group its lowest, lowered by `lift_tiers` to that of every group waiting on it), finishers
+   first inside one tier, so the owner's highest tier heads its file's group and its chain (wave 20261029 chained two
+   untiered finishers ahead of the tier-1 PB3612). **One chain link per wave** (the owner, 2026-10-23;
+   `model_rules.json` `wave.links_per_chain`, 1): a wave runs until its last group returns, so only each dependency
+   chain's first link is dispatched, and the later links wait, named, for the next wave, which plans them from the
+   branch the earlier link leaves (the partition's continuation, item 1).
+   **A one-file chain lands ONCE** (kb/Work PB4396): a group planned onto finished branches records them
+   (`continues`), and one with an overflow records its notes (`overflow`), in groups.json and the dispatch ledger
+   (`make_dispatch_specs.record`, `dispatch_ledger.record_dispatch`); the branch survey's `chain_links`
+   (`prune_worktrees.chain_records` over the ledger) reads a link reviewed CLEAN that a later link carries, or will
+   carry, IN FLIGHT instead of WAITING TO LAND, so the landing lane lands only the last link, which carries the rest.
+   This replaces kb/Work PB3381's "land the clean links as they come" for same-file chains; the history of PB3381,
+   PB3670 and PB3704 is in the DEVLOG.
 5. **Model per group** from `model_rules.json`: Opus when the primary file or a code site matches a design-heavy
    pattern (`/Oo/`, `.g4`, `Frontend/Grammar/`), a note's area matches (`oo`, `grammar`), a note's body says a
    design question is open, or a note already appears in two reports while still open (a note that fails twice is a
@@ -1155,8 +1171,9 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    PB3023; seeded at the retired lander's cost over its five-group train). Groups are taken in rank
    order while they fit; a group that does not fit is skipped and a smaller later one may still fit; a successor
    only with its predecessor, and only within `wave.links_per_chain` (item 4); at most `wave.max_groups` (8) groups.
-   `per_group_tokens` and `per_note_tokens` are the unmeasured 2026-10-04 seed (their `cost.source` says why, kb/Work
-   PB3641); the group cap's turns measurement is `turns_by_group_size.py`.
+   An overflow whose group the budget or the cap cuts says so in its reason. `per_group_tokens` and `per_note_tokens`
+   are the unmeasured 2026-10-04 seed (their `cost.source` says why, kb/Work PB3641); the group size's turns
+   measurement is `turns_by_group_size.py`.
 7. **Allocation** through `alloc.py`: three codes per group, reserved only after the wave's specs, rendered on the
    PEEKED codes, check GREEN (item 8). The planner allocates no lead ids (the enqueue unit's clerk takes them when it
    files the landed reports' leads, kb/Work PB3023). No DEVLOG number is planned: an entry is written unnumbered
@@ -1255,13 +1272,16 @@ itself), ordered by the owner's `tier:` and by `blocked_by:`.
   that waits on it, so a dependent is never lettered before its blockers' groups), then depth, then rows and harm; a
   fix-lane cluster carries no tier and depth 0, so its rank is unchanged. Everything else is the fix lane's mechanism: awaiting landing, finishers, model
   routing, budget, trains, allocation and outputs.
-- **Dependencies become successors.** A group whose notes wait on notes planned in this wave joins the TAIL of the
-  blocker group's successor chain (`after:`), so it starts once that chain's tail has SETTLED (returned, and its
-  review loop ended), merges that tail's reviewed branch and builds on it (the rolling wave's same-file mechanism).
-  Nothing in the chain is held: each link reviewed CLEAN lands as it comes, its successor's pull request merging on
-  top (kb/Work PB3381, owner 2026-10-18: "Make the changes now and land the clean links as they come."). A chain stays
-  linear because a group names one `after:`, so it merges one predecessor's branch. In the fix lane the only link is a
-  claim meeting another placed group's (item 4). A group whose blockers are planned in no group,
+- **Dependencies become successors, or one group.** A group whose notes wait on notes planned in this wave is
+  absorbed into the blocker's group when their claims meet (one step per file, kb/Work PB4396: the combination
+  answers the blocked_by), and so is one whose blocker rides on a finished branch it continues. Otherwise it joins
+  the TAIL of the blocker group's successor chain (`after:`), so it starts once that chain's tail has SETTLED
+  (returned, and its review loop ended), merges that tail's reviewed branch and builds on it. Nothing in a
+  dependency chain is held: its links are other files' steps, and each link reviewed CLEAN lands as it comes, its
+  successor's pull request merging on top (kb/Work PB3381, owner 2026-10-18: "Make the changes now and land the clean
+  links as they come."). A chain stays linear because a group names one `after:`, so it merges one predecessor's
+  branch. In the fix lane there are no links: a claim meeting another placed group's is that group's work (item 4).
+  A group whose blockers are planned in no group,
   or still sit in two chains (they did not merge, or the group's own file belongs to another chain), waits for a later
   wave. Its spec says it is a DEPENDENCY
   SUCCESSOR and to return BLOCKED if its blocker did not finish.

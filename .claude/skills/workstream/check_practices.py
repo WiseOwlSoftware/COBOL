@@ -3,7 +3,7 @@
 
     python .claude/skills/workstream/check_practices.py              # every brief in templates/
     python .claude/skills/workstream/check_practices.py <spec.txt…>  # rendered implementer specs
-    python .claude/skills/workstream/check_practices.py <groups.json> <spec.txt…>  # + the same-file successor rule (O2)
+    python .claude/skills/workstream/check_practices.py <groups.json> <spec.txt…>  # + the one-step-per-file rule (O2)
 
 A practice that lives only in a scratchpad or a transcript is forgotten by the next session (owner 2026-09-23);
 this check is what keeps "automatic" true.
@@ -79,11 +79,11 @@ BRIEFS = {
                                      # POINTER to its one home (the I11 row), never a second case list
                                      r'SORT AND FILE I/O TESTS \(MANDATORY-PRACTICES I11', r'the I11 row of',
                                      r'the WHOLE Unit, Conformance and Characterization populations'],  # PB4328: the implementer's done-state
-    # O2: the standard fix-lane dispatch — rolling pool, same-file successors (no hold), the graceful STOP, and the explicit
+    # O2: the standard fix-lane dispatch — rolling pool, dependency successors (no hold), the graceful STOP, and the explicit
     # final StructuredOutput reminder (three agents in waves 65-67 ended without it and stranded finished branches).
     # PB1703 / PB1704: a dead agent (rejection) and a hung agent (ceiling) must not hold the wave.
     'wf_rolling_wave.js': [r'args\.stop_file', r'args\.global_stop', r"agentType: 'cobol-implementer'", r'StructuredOutput',
-                           # PB3381: no hold; a successor starts once its predecessor's review loop settled, every
+                           # PB3381: no hold; a (dependency) successor starts once its predecessor's review loop settled, every
                            # finished result is reviewed in its slot, round 2+ reviews the diff, a severity threshold
                            r'g\.after', r'settled\(g\.after\)', r'if \(r\.finished\) r = await reviewed\(g, r\)',
                            r'reviewed_head', r'BLOCKING_AT_CAP', r'status_delta\.py', r'withCeiling\(',
@@ -105,8 +105,8 @@ BRIEFS = {
                                r'I10', r'review_findings\.py', r'WAITING FOR REVIEW',  # PB3027: review on the branch
                                r'\| I11 \|'],  # the owner's SORT and file I/O exception-path test rule (2026-10-17)
 }
-# The group slug is w<wave><letter>, optionally followed by a successor ordinal (w68v2 = the second same-file
-# cluster after group V), so the report path stays wave-and-group prefixed.
+# The group slug is w<wave><letter>, optionally followed by a successor ordinal (w68v2 = the second link of a dependency
+# chain, after group V), so the report path stays wave-and-group prefixed.
 # A RENDERED spec names the two stop files themselves (PB2483): the owner's global `...\scratch\STOP` and the fleet's own
 # `...\STOP-<scope>`, never a bare shared `{S}\STOP` that another session's wind-down would trip.
 RENDERED_STOPS = [r'scratch[\\/]STOP(?![-\w])', r'[\\/]STOP-' + coord.STOP_SCOPE.pattern]   # the scope: coord's one rule
@@ -232,12 +232,14 @@ def mechanical_model_overrides():
     return found
 
 
-# O2: two groups of one wave whose CLAIMS meet (inflight.collision: on ANY file both claim, either claims it whole or a
-# member of one matches a member of the other: the groups file's `file_set` and `member_set`) are a SUCCESSOR chain
-# (`after:`), so the second merges the first's branch instead of conflicting with it: the rule the planner chains by and
-# holds in-flight work by (kb/Work PB3696; it once compared the primary file alone, a second copy of the rule). Two
-# groups on DIFFERENT MEMBERS of a file, and nothing else shared, run side by side (kb/Work PB3670, the owner
-# 2026-10-24: "Developers do this all the time"); git's three-way merge combines their branches.
+# O2: ONE STEP PER FILE (kb/Work PB4396, owner 2026-11-01). Two groups of one wave whose CLAIMS meet (inflight.collision:
+# on ANY file both claim, either claims it whole or a member of one matches a member of the other: the groups file's
+# `file_set` and `member_set`) are refused, `after:` or not: the planner makes the work of one file family ONE group
+# (plan_wave.plan_partition, the same reader), and what one implementer cannot hold is that group's overflow, which a
+# later wave plans onto its branch, never a second group of the wave. It once accepted such a pair as a successor chain
+# (`after:`, kb/Work PB3696), so one file's work built, gated, reviewed and landed once per link. Two groups on
+# DIFFERENT MEMBERS of a file, and nothing else shared, run side by side (kb/Work PB3670, the owner 2026-10-24:
+# "Developers do this all the time"); git's three-way merge combines their branches.
 PRIMARY = re.compile(r'src/[\w./-]+\.(?:cs|g4)')
 
 
@@ -248,23 +250,15 @@ def group_claim(g):
     return inflight.Claim.of(files, g.get('member_set'))
 
 
-def claims_meet_without_successor(groups_path):
+def claims_meet(groups_path):
+    """Every pair of groups in the groups file whose claims meet, as `A+B on <file or file#member>`: [] when the work of
+    each file family is one group (O2, kb/Work PB4396). No `after:` excuses a pair."""
     groups = json.loads(groups_path.read_text(encoding='utf-8'))['groups']
-    after = {g['letter']: g.get('after') for g in groups}
-
-    def chain(letter):
-        seen = []
-        while letter and letter not in seen:
-            seen.append(letter)
-            letter = after.get(letter)
-        return seen
-
     found = []
     for i, a in enumerate(groups):
         for b in groups[i + 1:]:
-            if a['letter'] not in chain(b['letter']) and b['letter'] not in chain(a['letter']):
-                if hit := inflight.collision(group_claim(a), group_claim(b)):
-                    found.append(f"{a['letter']}+{b['letter']} on {hit}")
+            if hit := inflight.collision(group_claim(a), group_claim(b)):
+                found.append(f"{a['letter']}+{b['letter']} on {hit}")
     return found
 
 
@@ -419,11 +413,11 @@ def main():
             if why:
                 bad += 1
                 print(f'FAIL     {gp.name}: {why} (P3)')
-        clash = claims_meet_without_successor(gp)
+        clash = claims_meet(gp)
         if clash:
             bad += 1
-            print(f'FAIL     {gp.name}: groups whose claims meet (a shared file or member) without a successor (`after:`, '
-                  f'O2): {clash}')
+            print(f'FAIL     {gp.name}: groups whose claims meet (a shared file or member): one step per file makes them '
+                  f'ONE group, with an overflow for what one implementer cannot hold, never two (O2, kb/Work PB4396): {clash}')
         else:
             print(f'ok       {gp.name}')
     specs = [a for a in sys.argv[1:] if not a.endswith('.json')]

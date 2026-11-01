@@ -10,7 +10,7 @@ whole, or on a member of one that matches a member of the other).
 
 Its readers: the wave planner (plan_wave.py), the landing check's guarantee (landing_check.py), the spec renderer
 (make_dispatch_specs.py: the declared set of a group it records), check_practices.py (two groups of one wave whose
-claims meet need `after:`) and the branch survey's in-flight slugs (prune_worktrees.in_flight_slugs); the member
+claims meet are refused: one step per file, kb/Work PB4396) and the branch survey's in-flight slugs (prune_worktrees.in_flight_slugs); the member
 index (scripts/arch/member_index.py) computes the declared sets declared_sets reads. In the import DAG of section 16.10
 (scripts/script_layering.py) it imports
 reports and, lazily, the branch survey's git facts (prune_worktrees: classify, main_names, branch_graph, replay_view,
@@ -390,7 +390,10 @@ def unit_meet(f: str, mine: Claim, theirs: Claim) -> str | None:
 def collision(mine: Claim, theirs: Claim) -> str | None:
     """THE meeting rule of the partition (kb/Work PB2118 question 5, PB3670), or None when the two never meet: the
     label of what they share, the first shared file (by name) on which they meet (unit_meet: a member of it, or the
-    whole file). Two groups on DIFFERENT MEMBERS of one file never meet: git's three-way merge combines them, and the
+    whole file). Two claims that meet are ONE step (kb/Work PB4396, one step per file): within a wave the planner makes
+    them one group (plan_wave.plan_partition) and check_practices.py refuses two such groups; against RUNNING work the
+    group waits, against FINISHED work it is planned onto that branch. Two groups on DIFFERENT MEMBERS of one file never
+    meet: git's three-way merge combines them, and the
     landing's merge conflict, when one still happens, is repaired then (the owner, 2026-10-24: "Developers do this all
     the time"). An EMPTY set meets NOTHING (kb/Work PB3670, superseding PB3263's "unknown meets its subsystem"): a group
     none of whose notes declares a site block, or a dispatch the ledger recorded with no files, holds nothing and is
