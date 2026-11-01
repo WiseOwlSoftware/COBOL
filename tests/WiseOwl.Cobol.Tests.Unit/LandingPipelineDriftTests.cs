@@ -345,9 +345,9 @@ public sealed class LandingPipelineDriftTests
     /// <summary>ONE <c>land</c> OF A BRANCH AT A TIME (kb/Work PB3310): enqueue.py's <c>land</c> takes the worktree's land
     /// lock before it reads the worktree (a second run would find the first's merge half done) and before anything is
     /// merged, gated, stamped or pushed; the loop's landing lane waits on that same lock for the exit it answers; and
-    /// the Linux gate answers BUSY, which the gate driver's one reader and enqueue.py already treat as a stop that is
-    /// no red. On 2026-10-16 a second land of one branch deleted the first's Linux clone mid-test and the first held a
-    /// gate slot for 6 h 40 min.</summary>
+    /// a hand run of the Linux gate answers BUSY (the gate driver's one reader treats BUSY as a stop that is no red;
+    /// nothing in a landing runs the Linux gate any more, kb/Work PB4327). On 2026-10-16 a second land of one branch
+    /// deleted the first's Linux clone mid-test and the first held a gate slot for 6 h 40 min.</summary>
     [Fact]
     public void TheLandLock_PrecedesEveryReadOfTheWorktree_AndTheLaneAndTheLinuxGateAnswerIt()
     {
@@ -374,14 +374,10 @@ public sealed class LandingPipelineDriftTests
         int busy = linux.IndexOf("busy_line \"$other\"", begin, StringComparison.Ordinal);
         int owner = linux.IndexOf("> \"$gate/owner\"", begin, StringComparison.Ordinal);
         Assert.True(busy > begin && owner > busy, "linux-gate.sh's begin_gate must answer BUSY before it registers its own gate");
-        // The one BUSY line (kb/Work PB3649): a second gate's refusal and the --probe the landing lane waits by are
-        // worded by busy_line, and the probe answers before anything is cloned or any results directory is emptied.
+        // The one BUSY line (kb/Work PB3649): a second gate's refusal, worded by busy_line. Nothing probes it any more
+        // (kb/Work PB4327: no landing or gate waits on a Linux gate).
         Assert.Contains("=== LINUX GATE: BUSY — another Linux gate of this tree is running", linux);
-        int probeDef = linux.IndexOf("\nprobe_tree() {", StringComparison.Ordinal);
-        Assert.True(probeDef > 0 && linux.IndexOf("busy_line \"$other\"", probeDef, StringComparison.Ordinal) > probeDef
-                    && linux.IndexOf("probe_tree \"$GATES_ROOT\" \"$tree\"", StringComparison.Ordinal)
-                    < linux.IndexOf("rm -rf \"$out\"; mkdir -p \"$out\"", StringComparison.Ordinal),
-            "linux-gate.sh's --probe (probe_tree) must word BUSY by busy_line and answer before anything is cloned or emptied");
+        Assert.DoesNotContain("probe_tree", linux, StringComparison.Ordinal);
         Assert.True(linux.IndexOf("rm -rf \"$out\"; mkdir -p \"$out\"", StringComparison.Ordinal)
                     > linux.IndexOf("\nbegin_gate \"$GATES_ROOT\" \"$tree\"", StringComparison.Ordinal),
             "linux-gate.sh empties the tree's results directory before begin_gate: a second run would delete the first's logs");
@@ -413,7 +409,7 @@ public sealed class LandingPipelineDriftTests
                 + "which files, and nothing gated",
             // kb/Work PB3612: the landing reads the record of the implementer's gate, and gates only where nothing else has
             "land: a tip no recorded GREEN local gate covers is exit 14, UNTESTED, before anything is merged",
-            "tested_locally: a GREEN gate run of the committed head's own tree with its Linux half GREEN covers the tip",
+            "tested_locally: a GREEN gate run of the committed head's own tree covers the tip",
             "tested_locally: the gated head still covers the tip after main's commits, a clean merge of main, a DEVLOG-only commit and a register-note-only commit",
             "land: the one gate a landing runs (a lane no one gates) runs on the MERGED head",
             // review R1-1: main takes only queued pull requests, so nothing is merged or gated while the queue is off
@@ -460,7 +456,7 @@ public sealed class LandingPipelineDriftTests
                 + "holder: nothing gated, stamped or reported (kb/Work PB3310); a dry run takes no lock; an early "
                 + "outcome releases it",
             "gate rows: each verdict line is read by the gate driver's one reader: BUSY is BUSY (neither a pass nor "
-                + "a red), the Linux gate's own BUSY line included (kb/Work PB3310), and a GREEN line with a non-zero "
+                + "a red), and a GREEN line with a non-zero "
                 + "exit is RED (kb/Work PB3527); a gate that printed no verdict line measured nothing: NOT RUN "
                 + "(kb/Work PB3526)",
             // kb/Work PB3526, review R2-1 of wave 1150: a NOT RUN blocks by its cause's class, and main is measured

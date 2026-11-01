@@ -3234,7 +3234,7 @@ already-derivable coverage; none change the pipeline.
 - Script self-tests: `python scripts/self_tests.py` runs every self-test under `scripts/` (discovered: a script that
   handles `--self-test`, or a file named `test_*.py`/`test_*.ps1`), in parallel, each with a private `COBOL_COORD_DIR`
   and git global config; `--built` runs the ones that read the built test assemblies; `--list` prints what it found.
-  The gate runs it as its `SELF-TESTS` audit, the Linux gate as legs `selftests`/`selftests-built`, and CI in its
+  The gate runs it as its `SELF-TESTS` audit, a hand-run Linux gate as legs `selftests`/`selftests-built`, and CI in its
   `audits`, `greenfield-unit` and `windows-self-tests` jobs (kb/Work PB2563; `SelfTestDiscoveryDriftTests`). A
   self-test that cannot run on one platform says so in its header (`# SELF-TEST-PLATFORM: windows — <reason>`).
   `--reuse` (the implementer gate's) reports a self-test REUSED while everything its recorded PASS read is unchanged;
@@ -3260,8 +3260,8 @@ already-derivable coverage; none change the pipeline.
   `set-implementer-scope leg1|whole [--until ISO]` (`whole` = both legs, the owner's switch back; an expired setting
   is its default again); `gate_slot.py clear [cap] [light-cap] [implementer-scope]` returns to the defaults;
   `gate_slot.py status` shows them, every held slot and the queue of both pools. A second, LIGHT pool (cap 2,
-  `set-light-cap N`) serves a gate whose slot work is script self-tests alone, the inert lane's Linux half, so a
-  notes-only landing never waits behind the full gates (kb/Work PB3724). `enqueue.py queue` records each landing (`scripts/orchestrator/landing_measure.py`), and `landing_measure.py
+  `set-light-cap N`) was built for a gate whose slot work is script self-tests alone, the inert lane's Linux half (kb/Work
+  PB3724); the Linux half left the gate (kb/Work PB4327) and no gate takes a light slot now. `enqueue.py queue` records each landing (`scripts/orchestrator/landing_measure.py`), and `landing_measure.py
   summary` compares the merge queue with the retired trains' records.
 - Greenfield conformance: `dotnet test tests/WiseOwl.Cobol.Tests.Conformance` · unit: `tests/WiseOwl.Cobol.Tests.Unit` ·
   characterization: `tests/WiseOwl.Cobol.Tests.Characterization` ·

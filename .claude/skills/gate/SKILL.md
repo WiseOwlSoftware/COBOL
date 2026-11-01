@@ -1,6 +1,6 @@
 ---
 name: gate
-description: Use before every commit and before every merge to choose and run the correct test gate - the ONE gate (build-local - the whole population planned into two legs, leg 1 run fail-fast inside a gate slot, the same for an implementer's commit and a re-gate after a fix, its Linux half run inside it; a landing reads its record and gates nothing; CI's merge-group run is the whole-population net), and the comprehensive battery per accumulated batch - and to read the verdict without producing a false green.
+description: Use before every commit and before every merge to choose and run the correct test gate - the ONE gate (build-local - the whole population planned into two legs, leg 1 run fail-fast inside a gate slot, the same for an implementer's commit and a re-gate after a fix, nothing run on Linux; a landing reads its record and gates nothing; CI's merge-group run is the whole-population net), and the comprehensive battery per accumulated batch - and to read the verdict without producing a false green.
 ---
 
 > ⛔ **BASE SKILL FIRST.** Invoke `brent-tools:test-gate` (Skill tool) before reading on. If the plugin is not loaded
@@ -49,8 +49,8 @@ when absent — both BEFORE it queues, because they read only the tree (kb/Work 
 (`scripts/gate_slot.py`: at most N gates build or test at once, repository-wide — `gate-slot: waiting, k
 ahead` is the cap working), builds the solution and lists every discovered case of Conformance, Unit and
 Characterization. The ORDER PLAN (`scripts/gate_plan.py`) puts in leg 1 the tests the change ADDS, the previous gate's
-reds on either host (tier 0a: build-local's previous run and the worktree's newest Linux gate run, so a re-gate after a
-landing's Linux red runs it; kb/Work PB3155), the host-only witnesses — every class carrying `[Trait("Host", "ReFS")]`, the Windows file-system race
+reds on either host (tier 0a: build-local's previous run and the worktree's newest hand-run Linux gate, so a re-gate after a
+Linux red runs it; kb/Work PB3155), the host-only witnesses — every class carrying `[Trait("Host", "ReFS")]`, the Windows file-system race
 witnesses CI's NTFS runners may not reproduce (tier 0h, whatever the diff) — the cheap tree-wide sweeps, every class
 carrying `[Trait("Sweep", "tree")]` whose cases are cheap (tier 0c: the bookkeeping reds a population run used to
 find; `HostWitnessTraitDriftTests` keeps both traits on the classes they belong to, kb/Work PB3022), every drift
@@ -86,9 +86,9 @@ PB2526). Each leg runs the three assemblies concurrently.
   is the coded default again with no one acting. `gate_slot.py clear [cap] [light-cap] [implementer-scope]` returns a
   setting (none named: all) to its coded default at once. `gate_slot.py status` prints the cap, the light cap, the
   implementer scope, every held slot and the queue of both pools. No environment variable sets either. **A notes-only
-  (inert-lane) gate does not queue for this cap** (kb/Work PB3724): its one slot-bound step, the Linux script self-tests,
-  takes a slot of the separate LIGHT pool (cap 2 by default, `set-light-cap N`), so it waits for no implementer's build;
-  a waiting gate's log says why a later ticket went first (landing gates are served before implementer gates, PB3103).
+  (inert-lane) gate takes no slot at all** (kb/Work PB4327): it runs the audits and ends, and CI's `audits` job runs the
+  Linux script self-tests; the LIGHT pool (`set-light-cap N`, PB3724) was built for the Linux self-tests it used to run
+  and no gate takes it now. A waiting gate's log says why a later ticket went first (landing gates are served before implementer gates, PB3103).
 - **The impact map AIMS leg 1; it never filters a leg.** Under batched gating (kb/Work PB2515) leg 1 is the local run,
   so the map's tiers decide which cases it holds, and the loop records a map for EVERY main commit it adopts (owner
   2026-10-24, kb/Work PB3663: `adopt_main.py` asks `impact_lane.py`, which records in a detached worker inside a gate
@@ -99,19 +99,18 @@ PB2526). Each leg runs the three assemblies concurrently.
   `map …` line says `exact`, `documentation-only drift`, `nearest` or `none`. With no map at all, the gate still plans
   everything and CI's merge-group run still runs it — the aim is plainer, never the population smaller.
 - **An implementer is done on `LEG 1 ONLY (batched gating, PB2515): GREEN`** (a plain GREEN only while the owner sets
-  the scope `whole`). On Windows that one verdict covers BOTH hosts (owner 2026-10-23, kb/Work PB3612; MANDATORY-PRACTICES
-  I8): after the Windows legs are green, the gate runs the SAME plan's legs in a WSL clone of your COMMITTED HEAD (`bash
-  scripts/linux-gate.sh --legs targeted`, under the slot it holds) and its line says `Linux half (WSL clone of HEAD)
-  GREEN`. COMMIT BEFORE YOU GATE: the clone tests HEAD, and the record (`verdict.json`: `linux`, `head_tree`) counts only
-  when the tree it measured is the head's. `bash scripts/linux-gate.sh --nice` (CI's whole Linux legs, ~6 min) is the tool
-  that reproduces a Linux CI red on this box, not a step of any change's gate.
+  the scope `whole`). The gate runs nothing on Linux (owner 2026-10-31, kb/Work PB4327; MANDATORY-PRACTICES I8): CI's
+  merge group runs the whole Linux population and every Linux self-test, so a Linux-only red is found in the queue.
+  `bash scripts/linux-gate.sh --nice` (CI's whole Linux legs, ~6 min; `--legs unit,conformance,characterization,guard`
+  picks) is the tool that reproduces a Linux CI red on this box, run by hand and not a step of any change's gate; a
+  host-I-O group runs `--legs unit,conformance` at its own gate (I8).
 
 ## Per landing — the landing reads the record; it gates nothing (owner 2026-10-23, kb/Work PB3612)
 
 A branch is gated locally ONCE, at its head, by its implementer or finisher: that run is the whole definition of "tested
 locally". `enqueue.py land` does not gate the merge with main and does not gate again when main moves: it READS the
 worktree's newest `TestResults/build-local/*/verdict.json` runs and refuses (exit 14, UNTESTED) a tip none of them covers
-GREEN with its Linux half (a finisher gates the tip). The merge queue's `ci-gate` runs the whole population on the exact
+GREEN (a finisher gates the tip). The merge queue's `ci-gate` runs the whole population on the exact
 merge, on both operating systems, before `main` moves. One exception, the case a developer would also re-test: when
 bringing main in changed a file the branch also changes, the one gate runs once on the merged head
 (`pwsh scripts/build-local.ps1` at Normal priority, MANDATORY-PRACTICES L2).

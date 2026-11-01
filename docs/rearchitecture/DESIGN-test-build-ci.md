@@ -1178,7 +1178,7 @@ acceptance (§3.14.9) records the time to the first red of every implementer gat
   plan cannot read is one such input, and it is NAMED and KEPT (kb/Work PB3661): every reader of a trx file reads
   through `test_population.trx_root`, which raises `UnreadableTrx` naming the file (the gate planner and the profiler
   each parsed one themselves, and a torn Linux-gate file ended run 000005 of wf_1973801d-4fe-29 with `ParseError: not
-  well-formed … line 104295, column 36` and no path, the file gone by the verdict because the Linux half empties
+  well-formed … line 104295, column 36` and no path, the file gone by the verdict because a hand run of the Linux gate empties
   `TestResults/linux-gate/` before it writes). The gate driver copies the unreadable file into the run directory as
   `unreadable-<its directory>-<its name>.bad` (never `.trx`: later readers glob a run's trx files) and its plan note
   names both. The whole-population fallback stays for an unreadable SIDE source too: with the Linux gate's reds unknown
@@ -1343,8 +1343,8 @@ because the raw name is not stable (`b7`):
   registry file (`wiseowl/diagnostics/<id>.json`, `options/`) the diff changes, named by its `id` argument whole or as xunit
   cuts a string argument over 50 characters (`id: "<first 50>"···`, which names every touched id it begins:
   `gate_plan.names_golden`, kb/Work PB4147); a case red at this worktree's previous
-  gate on EITHER host: build-local's previous run, and the newest run of the Linux gate (`scripts/linux-gate.sh`, which
-  a landing runs right after the Windows gate and which leaves its trx files in `TestResults/linux-gate/`), both read
+  gate on EITHER host: build-local's previous run, and the newest run of the Linux gate (`scripts/linux-gate.sh`, run by
+  hand, which leaves its trx files in `TestResults/linux-gate/`), both read
   by ONE reader, `gate_plan.previous_gates` (kb/Work PB3155, PB3184), and a case red in the CI run that BOUNCED this
   branch's pull request out of the merge queue (kb/Work PB3644): that red lives in GitHub, not in the worktree, so
   before each plan `run_gate_legs.Host.fetch_bounce_results` asks the one GitHub reader
@@ -1865,7 +1865,8 @@ cannot start.
 - **Two pools: a light gate never waits for a full one (kb/Work PB3724).** The cap exists to ration builds and test legs,
   and a gate that runs neither queued for it anyway: on 2026-10-25 a notes-only gate (the INERT lane, §3.18), whose only
   slot work is about a minute of script self-tests in a WSL clone of HEAD, waited ten minutes behind the implementers' full
-  gates. The slot directory therefore holds TWO POOLS (`gate_slot.Pool`, `GATE_POOL` and `LIGHT_POOL`), each with its own
+  gates. (The Linux half left the gate, kb/Work PB4327, so no gate takes a light slot now; the pool stays until the gate
+  driver is rewritten, PB4328.) The slot directory therefore holds TWO POOLS (`gate_slot.Pool`, `GATE_POOL` and `LIGHT_POOL`), each with its own
   slot files, ticket queue (service order within it as above), cap, hold history and settings file (`light/`): the GATE
   pool is the one above, and the LIGHT pool's cap is the coded default `DEFAULT_LIGHT_SLOTS = 2` (an implementor's choice,
   not an owner decision: it adds at most two script-test runs beside the full gates), departed from by the `cap` key of
@@ -1873,7 +1874,7 @@ cannot start.
   live in its OWN directory, never as a new key of the gate pool's `settings.json`: every worktree reads that file with its
   own copy of `gate_slot.py` and refuses a key it does not know, so a key added there would stop every gate in every
   worktree not yet merged with main (the PB3724 review, R1-1; the self-test's light-pool arm pins it). `Host.take_slot(label, say, pool)` takes the
-  pool its work follows: `Gate._inert` takes a LIGHT slot, the full lane's gate a GATE slot, and `gate_slot.py run --pool
+  pool its work follows: the full lane's gate takes a GATE slot (the inert lane none), and `gate_slot.py run --pool
   light|gate` wraps a command in either. No gate holds both, so neither pool waits on the other. `status` prints both
   pools. A waiting gate also says WHY it waits: a count that rises while it waits (`k ahead` 0, 1, 2, 0) is a landing
   ticket numbered after its own and served first (PB3103), and the log names each such ticket once; the gate next in line
@@ -2287,11 +2288,18 @@ round it waited on); with the gate detached and handed over, the wave awaits the
 
 ### 3.15 THE LOCAL LINUX GATE — CI's Linux legs under WSL before a push (kb/Work PB1732)
 
-> ⛔ **Reshaped by §3.17.3 (owner 2026-10-11, kb/Work PB3015, Q1a and the 12:45 correction "Yes, both hosts, leg 1"):
-> the WSL run becomes the LINUX HALF OF THE TARGETED LEG — leg 1 of the same plan in a WSL clone, in every local gate —
-> and CI's whole Linux legs run only on the merge group.** `linux-gate.sh` keeps its whole-leg form as the tool that
-> reproduces a Linux CI red on this box (`reference wsl_linux_repro`) and has the plan form, `--legs targeted` (kb/Work
-> PB3612, §3.17.3). Below is the whole-leg gate.
+> ⛔ **The Linux gate is a HAND-RUN reproduction tool, and no per-change gate runs it (owner 2026-10-31, kb/Work PB4327;
+> PIPELINE-REVIEW.md section 7).** From 2026-10-11 (kb/Work PB3612) the local gate ran a LINUX HALF OF THE TARGETED LEG,
+> leg 1 of the same plan in a WSL clone; it re-ran the leg Windows had just run, cost 167 s a gate serially and was red
+> once in 78 records (a population-check false red), and no compiler test was red on Linux alone in October's 31
+> incidents. It is gone: `LinuxLeg`, the `targeted` and `inert` modes, `--plan`, `--plan-legs`, `--probe`, the gate
+> driver's `--plan-leg` entry and the `linux` field of the gate's record are deleted. CI's merge group runs the whole
+> Linux population and every Linux self-test (the `audits` job). `linux-gate.sh` keeps its whole-leg form, `--legs
+> unit,characterization,conformance,guard`, as the tool that reproduces a Linux CI red on this box (`reference
+> wsl_linux_repro`); a host-I-O group runs its unit and conformance legs at its own gate (MANDATORY-PRACTICES I8). Below
+> is that tool. **Accepted risk:** a Linux-only compiler red is found in the queue at the cost of one group, expected 0 to 1 a
+> month; if two months show more than 2 a month, the response is a nightly whole-population WSL run on main, never a
+> per-change Linux half.
 
 CI runs most of its test jobs on `ubuntu-26.04` (pinned, so the runner image moves only when the repository says so),
 and every local gate runs on the Windows host, so without this a
@@ -2628,8 +2636,8 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    The other way round fails: until a branch that ADDS a driver lands, its landing merges main in through main's
    registry, which has no such driver, so that branch leaves the files the driver governs as main has them (a new driver
    lands alone, DESIGN-orchestrator-loop.md section 16.9; `merge_drivers.py --check`, run by
-   `MergeDriverDriftTests`, refuses a branch that changes such a file, kb/Work PB3825; the Linux half's clones carry the TREE's
-   `origin/main`, `linux-gate.sh`'s `pin_origin_main`, so both halves read one main). The review's coverage rule (`prune_worktrees.mechanical`)
+   `MergeDriverDriftTests`, refuses a branch that changes such a file, kb/Work PB3825; a hand-run Linux gate's clones carry the TREE's
+   `origin/main`, `linux-gate.sh`'s `pin_origin_main`, so both hosts read one main). The review's coverage rule (`prune_worktrees.mechanical`)
    reads the same `is_drivers_merge`, built on `merged_tree` (kb/Work PB3713), the one definition of a clean merge's
    tree, which the branch survey's LANDED proof (`prune_worktrees.merges_to_main_unchanged`) reads too, with the first
    parent's attributes through `attributes_tree`; so a merge the drivers made is mechanical and a hand resolution is
@@ -2677,21 +2685,19 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    main all the time without problems … Why don't we do that?", then "yes"; measured: PB3140's landing ran 3 local gate
    runs, 4,615 s, because main moved twice while it waited for a slot; five branches took about an hour each from CLEAN to
    queued; the lane lands 1.47 changes per hour). A branch is gated locally ONCE, at its head, by its implementer or
-   finisher: that run (§3.17.3: leg 1 on Windows, then the same plan's legs in a WSL clone of the committed head, under the
-   one slot) is the whole definition of "tested locally". `enqueue.tested_locally` reads it from the worktree's newest
+   finisher: that run (§3.17.3: leg 1 on Windows, under the one slot; the Linux half left the gate, kb/Work PB4327) is the whole definition of "tested locally". `enqueue.tested_locally` reads it from the worktree's newest
    `TestResults/build-local/*/verdict.json` runs and refuses the tip no run covers (exit 14, UNTESTED, before anything is
    merged; the report gains `BLOCKED: enqueue — no local gate is recorded GREEN …` and a finisher gates the tip): a run
-   covers it when it read GREEN with exit 0, measured the COMMITTED head's own tree (`tree` equals `head_tree`), carries a
-   GREEN Linux half of that tree on a host that runs one (the inert lane's is the script self-tests alone, §3.18), and its head IS the tip or every later
+   covers it when it read GREEN with exit 0, measured the COMMITTED head's own tree (`tree` equals `head_tree`), and its head IS the tip or every later
    commit is main's, a clean merge of main or register-only (`prune_worktrees.unreviewed_since`, the review's coverage rule).
    The record is written by the BRANCH's gate driver and read by main's lander, so a record the driver wrote before a
-   field the lander requires existed (`run_gate_legs.LANDING_FIELDS`: `head_tree`, `linux`; schema below
+   field the lander requires existed (`run_gate_legs.LANDING_FIELDS`: `head_tree`; schema below
    `LANDABLE_SCHEMA`) is its own reason, "written by a gate older than this lander" (`run_gate_legs.predates_landing`),
    never "uncommitted changes", and its BLOCKED remedy is to merge origin/main into the branch FIRST and gate the merged
    head: gating the tip again with the same older driver writes the same record (kb/Work PB3660). Whenever the lander
    starts to require a new field: raise `RECORD_SCHEMA` and `LANDABLE_SCHEMA` and add it to `LANDING_FIELDS`
-   (schema 3 was written both before and after PB3612 added the two fields without a bump, so for it the fields are the
-   discriminator). A later RED does not unrecord an earlier GREEN of the same head. The merge with main is the MERGE QUEUE'S to test
+   (schema 3 was written both before and after PB3612 added `head_tree` without a bump, so for it the field is the
+   discriminator; PB4327 removed the `linux` field the same PB3612 added, which no landing reads, with no bump). A later RED does not unrecord an earlier GREEN of the same head. The merge with main is the MERGE QUEUE'S to test
    (step 4): `ci-gate` runs the whole population on the exact merge, both operating systems, and main moving again
    costs no re-gate. ONE exception, the case a developer would also re-test: when bringing main in changed a file the
    branch also changes (`enqueue.merge_overlap`: a true textual merge in a shared file; the files a merge driver
@@ -2699,7 +2705,7 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    slot served first) runs once on the merged head. The lanes I10 does not review write no gated report, so with no
    record the landing gates their tip once itself. That one gate's verdicts are read as before: exit 5 on a red,
    the host named; exit 12, never a red, when the gate driver says BUSY (another gate holds the worktree's gate lock,
-   nothing ran, and the landing lane retries it once the lock is free, kb/Work PB3527; the same exit when the gate's Linux half found a Linux gate of the tree running (`linux-gate.sh` BUSY: its message names the running gate's pid and start time, and `linux-gate.sh --probe` is what the lane's wait asks, kb/Work PB3649); the same exit, for the same wait, when the
+   nothing ran, and the landing lane retries it once the lock is free, kb/Work PB3527; the same exit, for the same wait, when the
    worktree's own gate is still running (or STARTING: spawned moments ago, its child alive, the lock not yet taken, kb/Work PB3707) and has written no verdict, `run_gate_legs.gate_phase` over `live_gate` (the gate lock held; never a process id, which Windows reuses), kb/Work PB3662, where the record would
    otherwise read as exit 14, UNTESTED, and stop the branch); exit 15, never a red, in step 4 when the branch merged a predecessor
    whose pull request is still open into main and so adds that pull request's stamped DEVLOG entry beside its own
@@ -2806,21 +2812,18 @@ only whole-population run.
 - **LANDED (kb/Work PB3022):** the lander's mode of `build-local` and its arm of `run_gate_legs.py` are deleted: the gate has one shape, the
   ordered leg 1 of §3.14 (a plan, fail-fast, a gate slot). The scope `whole` stays as the owner's on-demand switch
   (`gate_slot.py set-implementer-scope whole`) and the battery's form; it is nobody's per-change gate.
-- **LANDED (kb/Work PB3612) — the targeted leg runs on BOTH hosts, inside the implementer's gate** (owner 2026-10-11 ~12:45, after asking whether dropping the WSL gate would
-  push every Linux-only failure to CI: "Yes, both hosts, leg 1"): the one gate runs leg 1 natively on Windows and then,
-  under the same gate slot, the SAME plan's legs in a WSL clone of the committed head: `run_gate_legs.py`
-  (`Gate._linux_leg`, `Host.linux_leg`) starts `bash scripts/linux-gate.sh --legs targeted --plan <run>/plan.json
-  --plan-legs <n>`, which clones HEAD, builds it once and runs the driver's own `--plan-leg` there (`plan_leg`: the legs of
-  an existing plan through `Gate._run_leg`, the population check and the identity check of this clone's listing and
-  binaries; no audits, no build, no slot of its own, and a case the plan never heard of runs in leg 1). It runs in the
-  IMPLEMENTER'S gate and nowhere else (the landing reads that gate's record: §3.17.2 step 3, owner 2026-10-23). The verdict
-  file records the Linux half (`linux`: verdict, cause, the committed `tree` it measured) and `head_tree`; a reused
-  answer needs a GREEN Linux half of this head's tree (the inert lane's: the script self-tests, §3.18); a Windows half that is not green never
-  starts the clone; a Linux half that measured nothing ends the gate NOT RUN with the Linux gate's own cause, and a BUSY one (another Linux gate of the worktree runs: linux-gate.sh runs one gate per tree, kb/Work PB3310) ends it BUSY, never RED. Measured why: on 2026-10-10 three of 38 clusters had Linux-only reds, all in the clusters' OWN
-  tests (a locale golden's Linux text, a lock-race fix red 10 of 10 on Linux, a host-path length test), and the WSL
-  run caught each before a CI round trip; a leg-1 run under WSL costs the clone and build (~1–2 min) plus the leg,
-  not the 5–10 min of CI's whole Linux legs. Only the whole-population regression run is CI's. Fail-fast order:
-  Windows first (no clone), Linux second; a Linux-only red names its host in the verdict line.
+- **REMOVED (kb/Work PB4327; owner 2026-10-31, PIPELINE-REVIEW.md section 7) — the Linux half of the targeted leg.** PB3612
+  (owner 2026-10-11 ~12:45, "Yes, both hosts, leg 1") ran the SAME plan's legs in a WSL clone of the committed head
+  inside the implementer's gate (`Gate._linux_leg`, `Host.linux_leg`, `linux-gate.sh --legs targeted`, the driver's
+  `--plan-leg`). Measured against 78 gate records, it cost 167 s a gate serially, re-ran the leg Windows had just run,
+  loaded WSL (averages of 28 to 77 were seen) and was red once, a population-check false red with 0 failed tests; no
+  compiler test was red on Linux alone in October's 31 incidents (the Linux-specific reds were a Python `iterdir`
+  order and scripts). Every merge group runs the whole Linux population in 5 shards plus all Linux self-tests in
+  `audits`, so the gate runs nothing on Linux: `LinuxLeg`, `Host.runs_linux_leg`/`linux_leg`/`linux_gate_holder`,
+  `plan_leg`, the `linux` field of `verdict.json`, `enqueue.tested_locally`'s `linux_half`, the landing lane's
+  `linux_gate_holder` wait and `linux-gate.sh`'s `targeted`, `inert` and `--plan`/`--plan-legs`/`--probe` forms are
+  deleted, and `LinuxGateDriftTests` holds them gone. The PB3612 measurement that motivated it (2026-10-10: three of 38
+  clusters had Linux-only reds, in the clusters' OWN tests) is the risk accepted: such a red is found in the queue.
 - **LANDED (kb/Work PB3022) — tier 0h, host-only witnesses, and tier 0c, the cheap tree-wide sweeps** (§3.14.2's
   tiers; `TIER_ORDER = 0a, 0h, 0c, 0d, 0u, 1, 2, 3`, tier 0d since kb/Work PB3531; the race witnesses are the Unit classes that drive the sharing
   layer's host types from concurrent workers, the sweeps are `drift_rules.py --sweeps`). The design as decided: every
@@ -3115,23 +3118,20 @@ self-tests initialize. Two sweeps moved to make `kb/` inert, the way the conflic
 | Runner | Inert lane | Full lane |
 |---|---|---|
 | CI `changes` (`classify --base <group base or before> --head <sha>`) | `run_matrix=false`: `audits` + `ci-gate` | the matrix |
-| local gate (`run_gate_legs.py`, `Host.lane`, over the measured working tree against the base) | the audits, then (on a host that runs the Linux half) the Linux script self-tests in a WSL clone of HEAD under a slot (`linux-gate.sh --legs inert`), then `… GREEN — INERT LANE (kb/Work PB2878): …`, no build or test leg; under either scope | the ordered gate |
-| Linux gate (`linux-gate.sh`, HEAD against its merge base with origin/main; the targeted and inert modes take the lane from the gate that started it) | no test leg and no build, but the script self-tests (`selftests`, no clone build): `=== LINUX GATE: GREEN (inert lane, …; legs selftests …) ===` | every leg, under the watch |
+| local gate (`run_gate_legs.py`, `Host.lane`, over the measured working tree against the base) | the audits, then `… GREEN — INERT LANE (kb/Work PB2878): …`, no slot, build or test leg; under either scope | the ordered gate |
+| hand-run Linux gate (`linux-gate.sh`) | classifies nothing (kb/Work PB4327): it runs the legs it is asked to | every leg, under the watch |
 
 The audits run in every lane (they are where a register note, a citation or a DEVLOG entry is checked); CI's `audits`
 job runs on every event.
 
-**The script self-tests run on Linux in the inert lane too (kb/Work PB3646).** CI's `audits` job runs `self_tests.py` on
-Linux on every event, and those self-tests are audits that read the inert paths by design (the register, the DEVLOG,
-the skills submodule they initialize), so the inert watch cannot vouch for them and a `kb/` or `DEVLOG/` change can turn
-them red on Linux. Until PB3646 both local Linux processes ended GREEN in the inert lane before any of them ran, so
-CI could fail on code the local gates passed (the CI invariant, PB1957). Now `linux-gate.sh` runs its `selftests` leg
-in the inert lane (a clone of HEAD, no build, no corpus: measured 25 s of self-tests, 45 s for the whole run) and
-`--legs inert` is the same run for the Windows gate, whose inert lane takes a LIGHT slot (§3.14.6, kb/Work PB3724: its own pool and cap, so a notes-only landing never queues behind the full gates' builds), runs it after the audits
-(`Gate._inert`, `Host.linux_leg(inert=True)`), records it as the Linux half, and ends BUSY, NOT RUN or RED on it exactly
-as the full lane does. `tested_locally` and the gate's reuse rule therefore require a GREEN Linux half for an inert
-record on a host that runs one (an inert record from before PB3646 has none, and the gate runs again).
-`InertLaneDriftTests` holds the wiring. A Linux host's audits ARE the Linux self-tests.
+**The script self-tests run on Linux in the inert lane too: in CI (kb/Work PB3646, PB4327).** CI's `audits` job runs
+`self_tests.py` on Linux on every event, and those self-tests are audits that read the inert paths by design (the
+register, the DEVLOG, the skills submodule they initialize), so the inert watch cannot vouch for them and a `kb/` or
+`DEVLOG/` change can turn them red on Linux. From PB3646 to PB4327 the local gate ran them in a WSL clone of HEAD in its
+inert lane (a LIGHT slot, `Host.linux_leg(inert=True)`); the Linux half is gone from the gate (§3.15), so the Windows
+gate's inert lane ends after its audits and takes no slot, and the merge group is the first Linux run of a notes-only
+change. `InertLaneDriftTests` holds the CI job (`audits` runs the runner on every event) and the local lane's lack of a
+Linux step. A Linux host's audits ARE the Linux self-tests.
 
 **The proof — the inert watch.** A list of "what no test reads" that nobody proves drifts from the tests, and a test
 that starts reading an inert path would let an inert change land untested. So every whole-assembly test run on Linux
@@ -3148,8 +3148,8 @@ Windows runs carry no watch; the Linux runs are the whole population on every co
 a READ entry naming the reader (the path leaves the inert lane) or making the reader an audit, never deleting the watch.
 
 **Drift test.** `InertLaneDriftTests`: the `changes` job classifies through the module and carries no path regex; every
-`dotnet test` line of a Linux job runs under the watch; `linux-gate.sh` classifies and watches, and `run_gate_legs.py`
-classifies, through the module; `inert_lane.py check` is GREEN (every entry names a tracked path, every READ entry lies
+`dotnet test` line of a Linux job runs under the watch; `run_gate_legs.py` classifies through the module, and `linux-gate.sh` classifies nothing but
+watches its test legs; `inert_lane.py check` is GREEN (every entry names a tracked path, every READ entry lies
 under an INERT one). The classification's logic and the watch's firing (a read, a listing, a READ path, the command's
 own exit code) are `inert_lane.py --self-test`'s arms, run by the self-test runner in every gate and CI (the inotify
 arms on Linux: CI's `audits` job and the Linux gate's `selftests` leg). `SelfTestDiscoveryDriftTests` holds both

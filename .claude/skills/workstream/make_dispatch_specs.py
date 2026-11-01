@@ -50,7 +50,8 @@ A HOST-I-O GROUP RUNS CI'S LINUX LEGS AT ITS OWN GATE (kb/Work PB3381, MANDATORY
 (`group_claim`: its `file_set`, or, when that is empty, the set its notes declare) holds a file under HOST_IO
 (`src/WiseOwl.Cobol.Runtime/IO/`: the connectors, the keyed-store engine, the host file medium) is `host_io`, and its spec's
 LINUX GATE paragraph tells the implementer to run CI's Linux unit and conformance legs from WSL after the Windows gate
-is GREEN; every other group keeps the paragraph that says the targeted Linux half is inside its own gate. Wave 1118 measured why:
+is GREEN; every other group's paragraph says the per-change gate runs nothing on Linux (kb/Work PB4327: CI's merge group does).
+Wave 1118 measured why a host-I-O group differs:
 PB3333 was DONE at 08:50, reviewed CLEAN at 11:07 and refused at its landing at 11:26 because 31 NIST RL programs
 differ on Linux, which no earlier gate had run.
 """
@@ -76,15 +77,16 @@ IMPLEMENTER = 'cobol-implementer'
 
 #: The host file I/O layer (module docstring): a group that changes a file under it is a host-I-O group.
 HOST_IO = 'src/WiseOwl.Cobol.Runtime/IO/'
-#: The LINUX GATE paragraph of a spec ({linux_gate} in the template), by `host_io`. Every other group's: the targeted
-#: Linux half runs inside the implementer's own gate (MANDATORY-PRACTICES I8, L10; kb/Work PB3612).
+#: The LINUX GATE paragraph of a spec ({linux_gate} in the template), by `host_io`. Every other group's: the per-change
+#: gate runs nothing on Linux, and linux-gate.sh is the tool that reproduces a Linux red (MANDATORY-PRACTICES I8, L10;
+#: kb/Work PB4327).
 LINUX_GATE = {
-    False: "LINUX GATE (I8, PB1732, PB3612): the Linux half of the targeted leg runs INSIDE your gate (owner 2026-10-23): "
-           "after the Windows legs are green, `build-local` runs the same plan's legs in a WSL clone of your COMMITTED HEAD "
-           "(`linux-gate.sh --legs targeted`, under the slot it holds), and your verdict line says `Linux half (WSL clone of "
-           "HEAD) GREEN`. So COMMIT BEFORE YOU GATE (the clone tests HEAD, and the gate's record counts only when the tree it "
-           "measured is the head's), and report `LINUX GATE: inside your gate (the targeted Linux half)`. A red Linux half is "
-           "yours to root-cause and fix like a Windows red. `enqueue.py land` gates nothing again: it reads your gate's record.",
+    False: "LINUX GATE (I8, PB1732, PB4327): there is NO Linux step in your gate (owner 2026-10-31): `build-local` runs "
+           "nothing on Linux, and CI's merge group runs the whole Linux population and every Linux self-test, so a "
+           "Linux-only red is found in the queue, never by you. Report `LINUX GATE: not part of the per-change gate "
+           "(PB4327)`. To REPRODUCE a Linux red (a CI red you were handed, or a test of yours that plants a path or an OS "
+           "behaviour), commit, then run `bash scripts/linux-gate.sh --legs unit --nice` at your worktree's root (on a "
+           "host that is not Linux it runs itself under WSL) and root-cause a red like a Windows red.",
     True: "LINUX GATE (I8, PB1732; HOST-I-O GROUP, kb/Work PB3381): your group changes the host file I/O layer "
           f"(`{HOST_IO}`: the connectors, the keyed-store engine, the host file medium), whose behaviour differs by "
           "host, so CI's Linux legs that cover it run at YOUR gate, not first at the landing (wave 1118: PB3333 was "
