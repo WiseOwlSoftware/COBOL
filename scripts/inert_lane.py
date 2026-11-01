@@ -194,7 +194,8 @@ CLASSIFICATION = Classification(inert={
    # entry makes every change to its path a tooling change, which runs the self-tests.
    tooling_reads={
        "WiseOwl.Cobol.sln": "scripts/arch/census.py, scripts/linux-gate.sh, scripts/orchestrator/test_orchestrate_account.ps1",
-       ".gitmodules": "scripts/devlog.py, scripts/orchestrator/landing_devlog.py, scripts/hooks/test_forbidden_commands.py",
+       "LICENSE": "scripts/arch/census.py (read on Linux)",
+       ".gitmodules":"scripts/devlog.py, scripts/orchestrator/landing_devlog.py, scripts/hooks/test_forbidden_commands.py",
        ".agent-fleet.json": "scripts/spec/ledger_plan.py, scripts/orchestrator/test_orchestrate_adopt.ps1 and _ledger.ps1",
        "conformance-suite/adapters/": "scripts/differential_fuzz.py (the GnuCOBOL and WiseOwl adapter files)",
        "conformance-suite/harness/": "scripts/line_endings.py, live_tools.py, temp_names.py and the harness self-tests (the "
