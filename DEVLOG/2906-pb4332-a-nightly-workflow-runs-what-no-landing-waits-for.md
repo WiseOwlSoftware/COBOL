@@ -1,4 +1,4 @@
-## PB4332: a nightly workflow runs what no landing waits for (step 9 of the pipeline redesign)
+## Entry 2906 — 2026-10-31 20:12 PDT — PB4332: a nightly workflow runs what no landing waits for (step 9 of the pipeline redesign)
 
 Step 9 of PB4323. The pipeline had two daily schedules' worth of work and one scheduled workflow: `toolchain-freshness.yml`
 asked each publisher for its newest release, while the NIST corpus through the `cobol` CLI ran in every merge group (734 s
@@ -56,3 +56,4 @@ timeout): `measure_window` downloads ONE run at a time into its own scratch dire
 walls, and reads at most `MAX_RUNS` (8) shard runs, the newest; the verdict line says when the cap applied. Two leads
 fixed in files already changed: the module docstring's sample verdict line, and PB1957 row 53, which still named the
 deleted toolchain-freshness workflow.
+
