@@ -513,9 +513,16 @@ useStatement
 // procedure-name, cd-name, or unqualified identifier — the binder never distinguishes: the whole
 // section is inert). dataReference covers the OF/IN-qualified identifier forms (DB201A writes
 // `ABC1 OF AB2 OF A1`). The ALL-led alternatives precede the bare form (first-alternative-wins).
+// In `[ALL REFERENCES OF] identifier-1` only ALL is a keyword: REFERENCES and OF are optional words,
+// so `ALL W-A`, `ALL OF W-A`, `ALL REFERENCES W-A` and `ALL REFERENCES OF W-A` are one operand. ISO
+// 2023 prints no debug format, so CLAUDE.md rule 1's precedence falls to GnuCOBOL, whose
+// `-std=cobol85` accepts all four; CCVS DB201A writes `ALL ID-2` and `ALL AB2 OF A2` (kb/Work PB4237,
+// docs/CONFORMANCE.md D-DEBUG-USE). ALL alone marks the arm — the binder reads `ALL()`, never
+// `REFERENCES()`. REFERENCES is a context word (a cobolWord at 2023), and the greedy `REFERENCES?`
+// takes it as the optional word whenever an identifier follows.
 useDebugTarget
     : ALL PROCEDURES
-    | ALL REFERENCES OF? dataReference
+    | ALL REFERENCES? OF? dataReference
     | dataReference
     ;
 

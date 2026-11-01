@@ -36,14 +36,13 @@ namespace WiseOwl.Cobol.Tests.Unit.Store;
 ///   walked here through the trees themselves (finding R5-2).</item>
 /// </list>
 /// </summary>
-[Trait("Host", "ReFS")]
-public sealed class CommitRollbackRuntimeTests
+public abstract class CommitRollbackRuntimeHarness
 {
     public static TheoryData<FileOrg> Orgs() => [.. KeyedOrgs];
 
     /// <summary>An 8-character record: the key (relative: the record number) in positions 1-4; for an indexed file an
     /// alternate key WITHOUT DUPLICATES in 5-8 (finding R2-4's unique values).</summary>
-    private static FileRegistry Open(string host, FileOrg org, bool commit, FileOpenMode mode = FileOpenMode.IO, string name = "F",
+    private protected static FileRegistry Open(string host, FileOrg org, bool commit, FileOpenMode mode = FileOpenMode.IO, string name = "F",
         FileSharing sharing = FileSharing.AllOther)
     {
         var reg = new FileRegistry();
@@ -54,7 +53,7 @@ public sealed class CommitRollbackRuntimeTests
     }
 
     /// <summary>Register connector <paramref name="name"/> in <paramref name="reg"/> as <see cref="Open"/> declares it.</summary>
-    private static void Declare(FileRegistry reg, string host, FileOrg org, bool commit, string name = "F",
+    private protected static void Declare(FileRegistry reg, string host, FileOrg org, bool commit, string name = "F",
         FileSharing sharing = FileSharing.AllOther, bool optional = false)
     {
         if (org == FileOrg.Relative)
@@ -70,42 +69,42 @@ public sealed class CommitRollbackRuntimeTests
         if (commit) reg.RegisterCommitControl(name);
     }
 
-    private static void Position(FileRegistry reg, FileOrg org, int n, string name = "F")
+    private protected static void Position(FileRegistry reg, FileOrg org, int n, string name = "F")
     {
         if (org == FileOrg.Relative) reg.SetRelativeKey(name, n);
     }
 
-    private static string Write(FileRegistry reg, FileOrg org, int n, string tail, string name = "F")
+    private protected static string Write(FileRegistry reg, FileOrg org, int n, string tail, string name = "F")
     {
         Position(reg, org, n, name);
         return reg.WriteShared(name, Rec(n, tail), -1, FileRecordLock.None, FileRetryKind.None, 0, page: null);
     }
 
-    private static string Rewrite(FileRegistry reg, FileOrg org, int n, string tail, string name = "F")
+    private protected static string Rewrite(FileRegistry reg, FileOrg org, int n, string tail, string name = "F")
     {
         Position(reg, org, n, name);
         return reg.RewriteShared(name, Rec(n, tail), -1, FileRecordLock.None, FileRetryKind.None, 0);
     }
 
-    private static string Delete(FileRegistry reg, FileOrg org, int n, string name = "F")
+    private protected static string Delete(FileRegistry reg, FileOrg org, int n, string name = "F")
     {
         Position(reg, org, n, name);
         return reg.DeleteShared(name, Rec(n, "    "), FileRetryKind.None, 0);
     }
 
-    private static string Read(FileRegistry reg, FileOrg org, int n, out string image, bool ignoringLock = false,
+    private protected static string Read(FileRegistry reg, FileOrg org, int n, out string image, bool ignoringLock = false,
         FileRecordLock phrase = FileRecordLock.None, string name = "F")
     {
         Position(reg, org, n, name);
         return reg.ReadKeyedShared(name, keyIndex: -1, Rec(n, "    "), phrase, ignoringLock, FileRetryKind.None, 0, out image);
     }
 
-    private static string ReadByAlternate(FileRegistry reg, string value, out string image) =>
+    private protected static string ReadByAlternate(FileRegistry reg, string value, out string image) =>
         reg.ReadKeyedShared("F", keyIndex: 0, "0000" + value, FileRecordLock.None, ignoringLock: false, FileRetryKind.None, 0,
             out image);
 
     /// <summary>Records 1 to <paramref name="records"/>, each <c>nnnn</c> + <c>Annn</c> (a unique alternate value), committed.</summary>
-    private static void Seed(string host, FileOrg org, int records = 5)
+    private protected static void Seed(string host, FileOrg org, int records = 5)
     {
         var seed = Open(host, org, commit: false, FileOpenMode.Output);
         for (int n = 1; n <= records; n++) Assert.Equal("00", Write(seed, org, n, $"A{n:000}"));
@@ -114,7 +113,7 @@ public sealed class CommitRollbackRuntimeTests
     }
 
     /// <summary>What a fresh run unit's OPEN INPUT reads of records 1 to 9 (absent: null).</summary>
-    private static string?[] Contents(string host, FileOrg org)
+    private protected static string?[] Contents(string host, FileOrg org)
     {
         var reader = Open(host, org, commit: false, FileOpenMode.Input, name: "R");
         var records = new string?[10];
@@ -126,7 +125,7 @@ public sealed class CommitRollbackRuntimeTests
 
     /// <summary>What a fresh run unit reads after its WRITABLE OPEN, whose dead-owner step (2.2.1.6 R6 step 5) rolls back
     /// every transaction left without a live owner — so a change reported committed reads back only if it truly is.</summary>
-    private static string?[] Settled(string host, FileOrg org)
+    private protected static string?[] Settled(string host, FileOrg org)
     {
         var writer = Open(host, org, commit: false, name: "S");
         AssertNoTransactionLeft(writer, "S");
@@ -134,13 +133,40 @@ public sealed class CommitRollbackRuntimeTests
         return Contents(host, org);
     }
 
-    private static string?[] Seeded(int records = 5)
+    private protected static string?[] Seeded(int records = 5)
     {
         var expected = new string?[10];
         for (int n = 1; n <= records; n++) expected[n] = Rec(n, $"A{n:000}");
         return expected;
     }
 
+    /// <summary>Outside the run unit, take the physical file at <paramref name="host"/> away — <c>removed</c> (unlinked) or
+    /// <c>renamed</c> to <paramref name="moved"/> — and make another one there, holding record 2 (<c>B002</c>), through another run
+    /// unit's OPEN OUTPUT. False when the host refuses to take away a file a handle holds (Windows: the kept handle's share mode
+    /// admits no delete), which is the host's own protection of the kept state.</summary>
+    private protected static bool ReplaceOutsideTheRunUnit(string host, string moved, string how, FileOrg org)
+    {
+        try
+        {
+            if (how == "renamed") File.Move(host, moved);
+            else File.Delete(host);
+        }
+        catch (IOException) when (OperatingSystem.IsWindows()) { return false; }
+        catch (UnauthorizedAccessException) when (OperatingSystem.IsWindows()) { return false; }
+        var maker = Open(host, org, commit: false, FileOpenMode.Output, name: "S");
+        Assert.Equal("00", Write(maker, org, 2, "B002", name: "S"));
+        maker.CloseAll();
+        return true;
+    }
+}
+
+/// <summary>The rows of 2.2.1.12 through the first journalled verbs: the transaction, lock and dead-owner witnesses, the
+/// kept state of a CLOSE and the reopen refusals (the other witnesses of <see cref="CommitRollbackRuntimeHarness"/> are
+/// <see cref="CommitRollbackRuntimeFileVerbTests"/> and <see cref="CommitRollbackRuntimeReplacedFileTests"/>, three classes
+/// that run in parallel, kb/Work PB4325).</summary>
+[Trait("Host", "ReFS")]
+public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
+{
     /// <summary>§14.9.36.4 GR3, the run unit's own changes: a WRITE, a REWRITE and a DELETE under commit control, then
     /// ROLLBACK — one statement — leaves the file as at the start of the run unit, and nothing of the transaction behind.</summary>
     [Theory]
@@ -1389,7 +1415,13 @@ public sealed class CommitRollbackRuntimeTests
         }
         finally { TryDelete(host); }
     }
+}
 
+/// <summary>The rows of 2.2.2.14: the verbs that replace or remove a keyed file, and its creation, ride the run unit's
+/// journal (kb/Work PB3492, PB4325).</summary>
+[Trait("Host", "ReFS")]
+public sealed class CommitRollbackRuntimeFileVerbTests : CommitRollbackRuntimeHarness
+{
     // ── kb/Work PB3492: the verbs that replace or remove a keyed file, and its creation, ride the run unit's journal (2.2.2.14) ──
 
     /// <summary>The physical file's records as a fresh run unit reads them, or null when the file is not there.</summary>
@@ -1989,25 +2021,6 @@ public sealed class CommitRollbackRuntimeTests
         }
     }
 
-    /// <summary>Outside the run unit, take the physical file at <paramref name="host"/> away — <c>removed</c> (unlinked) or
-    /// <c>renamed</c> to <paramref name="moved"/> — and make another one there, holding record 2 (<c>B002</c>), through another run
-    /// unit's OPEN OUTPUT. False when the host refuses to take away a file a handle holds (Windows: the kept handle's share mode
-    /// admits no delete), which is the host's own protection of the kept state.</summary>
-    private static bool ReplaceOutsideTheRunUnit(string host, string moved, string how, FileOrg org)
-    {
-        try
-        {
-            if (how == "renamed") File.Move(host, moved);
-            else File.Delete(host);
-        }
-        catch (IOException) when (OperatingSystem.IsWindows()) { return false; }
-        catch (UnauthorizedAccessException) when (OperatingSystem.IsWindows()) { return false; }
-        var maker = Open(host, org, commit: false, FileOpenMode.Output, name: "S");
-        Assert.Equal("00", Write(maker, org, 2, "B002", name: "S"));
-        maker.CloseAll();
-        return true;
-    }
-
     /// <summary>⛔ THE KEPT STATE IS OF A PHYSICAL FILE, AND A PATH NAMES ONE ONLY WHEN IT IS ASKED (kb/Work PB3533, PB3576; the
     /// decision of kb/Work PB3493 for a kept file that is not there, DESIGN-runtime-library.md 2.2.1.10): A changes record 7 under
     /// commit control and is CLOSEd; outside the run unit the file is removed (or renamed away) and another made at the same path,
@@ -2133,7 +2146,12 @@ public sealed class CommitRollbackRuntimeTests
             TryDelete(host);
         }
     }
+}
 
+/// <summary>The rows of a file REPLACED outside the run unit, and the sibling witnesses after them (kb/Work PB3533, PB4325).</summary>
+[Trait("Host", "ReFS")]
+public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRuntimeHarness
+{
     /// <summary>⛔ TWO PHYSICAL FILES AT ONE PATH IN ONE RUN UNIT, EACH WITH ITS OWN STORE AND TRANSACTION (kb/Work PB3533, the
     /// run-unit tables' sibling of the kept state): connector F, under commit control, holds the file open and changes record 7;
     /// outside the run unit the file is removed and another made at the path, holding record 2; connector G of the same run unit

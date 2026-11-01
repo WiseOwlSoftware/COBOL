@@ -2029,6 +2029,18 @@ of an unsupported facility.
   comment), `conformance:cases/_unassigned/pb1705_debugging_mode_obsolete_2002`, `conformance:cases/_unassigned/debugging-mode`,
   `conformance:cases/_unassigned/pb1494-debugging-line-at-2014`, `unit:DebuggingLineRewriterTests`.
 
+- **D-DEBUG-USE — how USE FOR DEBUGGING spells its data-item operand** (kb/Work PB4237). ISO/IEC 1989:2023 prints no
+  debug format (the facility left in 2002, VCR Table 7 row 7.17), and the 1985 text is not in the repository, so the
+  spelling follows rule 1's precedence to GnuCOBOL. **Determination:** in `[ALL REFERENCES OF] identifier-1` only ALL is
+  a keyword; REFERENCES and OF are optional words, so `ALL W-A`, `ALL OF W-A`, `ALL REFERENCES W-A` and `ALL REFERENCES
+  OF W-A` are one operand (GnuCOBOL 3.2 `cobc -std=cobol85 -fsyntax-only` accepts all four; CCVS DB201A writes `ALL
+  ID-2` and `ALL AB2 OF A2`). The grammar is `useDebugTarget`'s `ALL REFERENCES? OF? dataReference` arm, and the binder
+  tells the arm by ALL, never by REFERENCES, so `ALL P1` is never a procedure-name subject. Without WITH DEBUGGING MODE
+  the section is inert; with it every spelling reaches the same staged COBOL1571, positioned at its operand and naming
+  it. Witnesses: `conformance:cases/_unassigned/pb4237_debug_all_identifier` (85),
+  `conformance:cases/_unassigned/pb4237-debug-all-identifier-removed-2002` (COBOL0902 from 2002),
+  `conformance-test:DebugFacilityTests.AllIdentifier_EverySpelling_At85_IsTheStagedDataItemOperand`.
+
 - **D-CE1 — where a FREE-form comment-entry ends** (kb/Work PB3245, review finding R1-1; PB1494, PB1758). The
   comment-entry paragraphs (AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED, SECURITY, REMARKS) are COBOL-85's,
   removed by COBOL-2002, the edition that introduced free form, so no edition of the standard says where a free-form
@@ -2802,7 +2814,7 @@ one place its binder accepts it.
 | `usage-comp-3` | `USAGE COMP-3` / `COMPUTATIONAL-3`, packed decimal | IBM Enterprise COBOL, Micro Focus, GnuCOBOL | flagged | `USAGE PACKED-DECIMAL` (§13.18.60.4) |
 | `usage-comp-4` | `USAGE COMP-4` / `COMPUTATIONAL-4`, binary | IBM Enterprise COBOL, Micro Focus, GnuCOBOL | flagged | `USAGE BINARY`, or `COMP` / `COMPUTATIONAL` (§13.18.60.3 SR6: "COMP is an abbreviation for COMPUTATIONAL") |
 | `usage-comp-5` | `USAGE COMP-5` / `COMPUTATIONAL-5`, native binary | IBM Enterprise COBOL, Micro Focus, GnuCOBOL | flagged | the fixed-width `BINARY-CHAR`, `BINARY-SHORT`, `BINARY-LONG`, `BINARY-DOUBLE` (§13.18.60.4) |
-| `goback-returning` | `GOBACK RETURNING` / `GIVING identifier` (COBOL-2002 and later, where GOBACK is) | GnuCOBOL, Micro Focus | flagged | move the value to the PROCEDURE DIVISION header's RETURNING item, then `GOBACK` (§14.9.18.2 has no RETURNING phrase) |
+| `goback-returning` | `GOBACK RETURNING` / `GIVING identifier` (COBOL-2002 and later, where GOBACK is) | GnuCOBOL, Micro Focus | flagged | move the value to the PROCEDURE DIVISION header's RETURNING item, then `GOBACK`; with no header RETURNING item the value is the main program's exit status (the `WITH NORMAL STATUS value` path, item 192's mapping) and is ignored in a called program, and a written status phrase wins (§14.9.18.2 has no RETURNING phrase) |
 | `set-program-pointer-to-entry` | `SET program-pointer TO ENTRY literal-or-identifier` (COBOL-2002 and later) | IBM Enterprise COBOL, Micro Focus | flagged | `SET program-pointer TO ADDRESS OF PROGRAM program-name` (§14.9.39.2 Format 9, §8.4.3.13) |
 | `source-format-auto` | `--source-format auto`, detection of the reference format from the text's layout (Annex A.1 item 158, §7) | this implementation | not flagged (a property of how the compiler is invoked) | state the format: `--source-format fixed` / `free`, or `>>SOURCE FORMAT` (§7.3.24.3) |
 | `vendor-statement-words` | `ENTRY`, `JSON GENERATE/PARSE`, `XML GENERATE/PARSE` — the words are RESERVED so each statement can be refused by name; **no support is claimed** | IBM Enterprise COBOL, Micro Focus, GnuCOBOL | not flagged (refused, an error already) | none: ENTRY is COBOL2269, JSON and XML are COBOL0313 |

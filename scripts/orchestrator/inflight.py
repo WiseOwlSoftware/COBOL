@@ -83,14 +83,18 @@ def branch_carrier(reports: list[Report], classify: Callable[[str], str],
     stamp at its tip, so it never lands alone (prune_worktrees.contained: an unreviewed checkpoint lands through the
     branch that carries it, kb/Work PB3381). Only a finished predecessor reviewed CLEAN lands on its own, and this reads
     finished branches only as carriers. Wave 1074's group A split on `…-e99-1`, A2 merged it into `…-e99-4`, and a
-    finisher that cherry-picked `…-e99-1` onto main again would redo work `…-e99-4` already carries (kb/Work PB3150)."""
+    finisher that cherry-picked `…-e99-1` onto main again would redo work `…-e99-4` already carries (kb/Work PB3150).
+    A branch whose work is on main (LANDED_CLASSES: a tip on origin/main, which a live agent's worktree holds before its
+    first commit) carries no work to anyone, so it has no carrier: asked of git, an on-base tip is an ancestor of EVERY
+    finished branch that merged main, and the partition read the live agent's files as the work of whichever of them was
+    newest, then exempted that branch's finisher from them (kb/Work PB4352, branch review R1-1)."""
     done = list(dict.fromkeys(r.branch for r in reversed(reports) if r.branch and r.finished))
     cache: dict[str, str | None] = {}
 
     def carried(branch: str) -> str | None:
         if branch not in cache:
-            cache[branch] = next((c for c in done if c != branch and classify(c) not in LANDED_CLASSES and
-                                  is_ancestor(branch, c)), None)
+            cache[branch] = None if classify(branch) in LANDED_CLASSES else next(
+                (c for c in done if c != branch and classify(c) not in LANDED_CLASSES and is_ancestor(branch, c)), None)
         return cache[branch]
     return carried
 
