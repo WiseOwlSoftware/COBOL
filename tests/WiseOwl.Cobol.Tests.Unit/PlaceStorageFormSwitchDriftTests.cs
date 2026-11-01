@@ -71,7 +71,7 @@ public sealed class PlaceStorageFormSwitchDriftTests
             + "default arm is also a documented ACCEPT (ISO §14.9.4.3 SR6/SR8, §8.4.3.2.3 SR14: a shape the bit "
             + "walk cannot model is never rejected), not a loud.",
         ["ProgramEmitter.cs:p"] =
-            "PrefixPlace re-anchors a CONTAINER-resolved FILE STATUS item, which ISO §12.4.5.8.3 SR1 makes a "
+            "AnchorPlace re-anchors a CONTAINER-resolved FILE STATUS item, which ISO §12.4.5.8.3 SR1 makes a "
             + "two-character alphanumeric elementary item and §12.4.5.8 SR1 forbids an OCCURS on — so no "
             + "decoration can reach it (no reference modification of a status item is written by the resolver, no "
             + "ODO extent, no group image). Its default arm is a documented fall-back to the caller's loud guard, "

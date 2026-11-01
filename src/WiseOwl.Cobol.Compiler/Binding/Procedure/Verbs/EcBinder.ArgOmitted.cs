@@ -47,7 +47,7 @@ internal sealed partial class EcBinder
         if (formals.Count == 0 || !turn.AnyEnabledFor(OmittedFormal.ConditionName(kind))) return;
         foreach (var f in formals)
             f.Item.OmittedGuard = new OmittedFormalGuard(OmittedFormalGuard.PresenceMember(f.Item), kind,
-                f.Item.CobolName ?? "", f.CarrierResident ? f.CarrierField : null);
+                f.Item.CobolName ?? "", PassesCarrier: f.CarrierResident);
     }
 
     /// <summary>Mark every method's formals (§14.9.23.4 GR10). The presence is the method's own omitted flag
@@ -58,8 +58,8 @@ internal sealed partial class EcBinder
         foreach (var m in methods)
             if (m.Binding is { } b)
                 foreach (var f in b.Formals)
-                    // A resident formal's root text is its carrier's `.Value` (kb/Work PB2087), passed through the guard.
+                    // A resident formal's root is its carrier (kb/Work PB2087, PB4320), passed through the guard.
                     f.Item.OmittedGuard = new OmittedFormalGuard(f.OmittedFlag, ActivatedElementKind.Method,
-                        f.Item.CobolName ?? "", f.CarrierResident ? f.CarrierLocal : null);
+                        f.Item.CobolName ?? "", PassesCarrier: f.CarrierResident);
     }
 }

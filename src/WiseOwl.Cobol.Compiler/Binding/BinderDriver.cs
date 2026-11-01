@@ -810,7 +810,7 @@ internal sealed class BinderDriver
             // member declared twice is CS0102. The member names are unique along the container chain
             // (ReserveInheritedMemberNames), so equal names are the same member.
             foreach (var bridge in anc.Data.GlobalBridgesOf(g, member => anc.AnchorOf(member, depth)))   // consumed here, within this iteration
-                if (bridgedMembers.Add(bridge.Field)) unit.Bridges.Add(bridge);
+                if (bridgedMembers.Add(bridge.MemberClrName)) unit.Bridges.Add(bridge);
         }
 
         // Every tier is in place now — this unit's own names and every container's globals — so an inherited
