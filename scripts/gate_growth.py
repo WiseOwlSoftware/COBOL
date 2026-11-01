@@ -245,12 +245,18 @@ def self_test() -> int:
         record(d, Path("000009-20261125T000000Z"), "wt1", 300, 20482)
         expect("a sample older than RETAIN_DAYS goes when a newer one is written",
                [s.run for s in samples(d)], ["000009-20261125T000000Z"])
+        said: list[str] = []
+        expect("show lists the sample then the verdict, exit 0", (report("show", d, now, said.append), len(said),
+               "000009-20261125T000000Z" in said[0]), (0, 2, True))
         (d / "bad.json").write_text("{not json", encoding="utf-8", newline="\n")
         try:
             samples(d)
             failures.append("a corrupt sample file was read as none")
         except UnreadableSample as e:
             expect("a corrupt sample names its file", "bad.json" in str(e), True)
+        said.clear()
+        expect("a status over a corrupt history is UNMEASURED, exit 2, naming the file",
+               (report("status", d, now, said.append), "UNMEASURED" in said[0], "bad.json" in said[0]), (2, True, True))
         expect("a missing directory is no history", samples(Path(tmp) / "absent"), [])
     expect("a run name without a stamp is refused", _refused(lambda: run_stamp("latest")), True)
 
@@ -272,6 +278,22 @@ def _refused(call) -> bool:
 # -- the command line ------------------------------------------------------------------------------------------------
 
 
+def report(command: str, directory: Path, now: dt.datetime, say=print) -> int:
+    """`status` or `show` over the samples in `directory`: the lines said, the exit code (2 when the history cannot be
+    read: a report that cannot see is never a green)."""
+    try:
+        history = samples(directory)
+    except (UnreadableSample, OSError) as e:
+        say(f"{VERDICT_PREFIX}UNMEASURED -- {e} ===")
+        return 2
+    if command == "show":
+        for s in history:
+            say(f"{s.stamp:%Y-%m-%d %H:%M}Z  {s.tests_s:7.1f} s  Conformance {s.conformance}  {s.worktree}  {s.run}")
+    reading = evaluate(history, now)
+    say(reading.line)
+    return reading.exit_code
+
+
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("command", nargs="?", choices=("status", "show"), default="status")
@@ -280,17 +302,11 @@ def main(argv: list[str]) -> int:
     if args.self_test:
         return self_test()
     try:
-        history = samples(growth_dir())
-    except (UnreadableSample, subprocess.CalledProcessError, OSError) as e:
-        print(f"{VERDICT_PREFIX}UNMEASURED -- {e} ===")
+        directory = growth_dir()
+    except (subprocess.CalledProcessError, OSError) as e:
+        print(f"{VERDICT_PREFIX}UNMEASURED -- the git common directory cannot be found ({e}) ===")
         return 2
-    now = dt.datetime.now(dt.timezone.utc)
-    if args.command == "show":
-        for s in history:
-            print(f"{s.stamp:%Y-%m-%d %H:%M}Z  {s.tests_s:7.1f} s  Conformance {s.conformance}  {s.worktree}  {s.run}")
-    reading = evaluate(history, now)
-    print(reading.line)
-    return reading.exit_code
+    return report(args.command, directory, dt.datetime.now(dt.timezone.utc))
 
 
 if __name__ == "__main__":
