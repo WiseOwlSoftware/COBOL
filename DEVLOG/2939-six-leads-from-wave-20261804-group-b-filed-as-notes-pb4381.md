@@ -1,3 +1,4 @@
-## Six leads from wave 20261804 group B filed as notes PB4381 to PB4386
+## Entry 2939 — 2026-11-01 05:10 PST — Six leads from wave 20261804 group B filed as notes PB4381 to PB4386
 
 The clerk of the enqueue unit filed six leads from the group B report (PB4286 and PB4341, branch worktree-wf_ca25d124-0aa-10, PR #971) and from the unit's own landing work. PB4381: one EXEC that opens no block turns block reading off for the whole source. PB4382: an IF or WHEN branch with no statement draws a cascade (false COBOL0306, COBOL2073 naming the wrong fault). PB4383: COBOL1639 for an undefined DISPLAY operand on a continuation line is positioned at the statement. PB4384: a SQL semicolon on the HIDDEN channel is still judged by the separator rule. PB4385: stale summaries in EmbeddedPrecompilerBlockTests. PB4386: the landing lane relaunches branches without `--lane`, so a clerk, registrar or golden branch that the queue bounced cannot land through it. The notes name the commit each site was read at; PR #971 code is not on main yet.
+
