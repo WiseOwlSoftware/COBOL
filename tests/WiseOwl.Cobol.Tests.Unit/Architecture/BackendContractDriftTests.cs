@@ -168,27 +168,23 @@ public sealed class BackendContractDriftTests
         var missing = Measured.Value.Types
             .Select(t => t.IsNested ? OutermostOf(t) : t)
             .Distinct()
-            .Where(t => !declared.Contains(t.Name.Split('`')[0]) && GeneratorOf(t) is null)
+            .Where(t => !declared.Contains(t.Name.Split('`')[0]) && !IsGenerated(t))
             .Select(t => t.FullName!)
             .ToList();
         Assert.True(missing.Count == 0,
             "a backend-input type is placed in a neutral layer by its namespace but declared outside "
             + string.Join(" and ", NeutralSourceDirectories.Select(d => Path.GetRelativePath(TestRepo.Root, d)))
-            + " (or by a generator of " + Path.GetRelativePath(TestRepo.Root, SourceGeneratorDirectory) + "): "
+            + " (or by a source generator, " + SourceGeneratorNamespace + "*): "
             + string.Join(", ", missing));
     }
 
-    /// <summary>Where the compiler's source generators live: a type stamped <see cref="GeneratedCodeAttribute"/> by one of
-    /// them (the bound-tree visitors, <c>BoundVisitorGenerator</c>) is declared by that generator's file.</summary>
-    private static readonly string SourceGeneratorDirectory = TestRepo.Src("WiseOwl.Cobol.Compiler.SourceGen");
+    /// <summary>The namespace of the compiler's source generators: a type one of them stamps
+    /// <see cref="GeneratedCodeAttribute"/> with its own name (the bound-tree visitors, <c>BoundVisitorGenerator</c>) is
+    /// declared by that generator, never by a source file of the type's namespace.</summary>
+    private const string SourceGeneratorNamespace = "WiseOwl.Cobol.Compiler.SourceGen.";
 
-    /// <summary>The generator source file that declares <paramref name="type"/>, or null when no generator under
-    /// <see cref="SourceGeneratorDirectory"/> stamped it.</summary>
-    private static string? GeneratorOf(Type type) =>
-        type.GetCustomAttribute<GeneratedCodeAttribute>() is { Tool: { } tool }
-        && Path.Combine(SourceGeneratorDirectory, tool[(tool.LastIndexOf('.') + 1)..] + ".cs") is var file && File.Exists(file)
-            ? file
-            : null;
+    private static bool IsGenerated(Type type) =>
+        type.GetCustomAttribute<GeneratedCodeAttribute>()?.Tool?.StartsWith(SourceGeneratorNamespace, StringComparison.Ordinal) == true;
 
     /// <summary>The walk's reach witness: every type of the neutral layers is on the measured backend input, whether a
     /// backend reaches it by field, by what a model function returns (<c>HostSurface.TypeOf</c>'s <see cref="HostType"/>,
