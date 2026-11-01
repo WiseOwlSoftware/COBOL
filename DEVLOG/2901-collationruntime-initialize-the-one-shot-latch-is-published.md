@@ -1,4 +1,4 @@
-## CollationRuntime.Initialize: the one-shot latch is published after the work, and losers wait (PB380)
+## Entry 2901 — 2026-10-31 19:30 PDT — CollationRuntime.Initialize: the one-shot latch is published after the work, and losers wait (PB380)
 
 **Mechanism.** `CollationRuntime.Initialize` took its latch with `Interlocked.CompareExchange(ref s_initialized, 1, 0)`
 BEFORE assigning `CollationKeyCache.DefaultConfig` from `COBOL_COLLATION_CACHE`. A concurrent caller lost the CAS,
@@ -32,3 +32,4 @@ and have its configured size overwritten with the compiled-in 8,192 (an intermit
 and the restore are now ONE step under the runtime's own `s_initLock` (`SetOneShotState`, the latch written last): a
 foreign winner finishes before the reset or starts after it, and it reads the process-global `COBOL_COLLATION_CACHE` the
 test set. The note's Sites paragraph now names `ConfigureCache`, the lock and the two fields (PB3640).
+
