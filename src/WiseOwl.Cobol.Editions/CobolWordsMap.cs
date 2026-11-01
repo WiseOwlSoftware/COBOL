@@ -57,6 +57,7 @@ public sealed class CobolWordsMap
     public static readonly int DirectiveEdition = ConstructRegistry.Find(Constructs.CobolWordsDirective2023)!.IntroducedIn;
 
     private readonly Dictionary<string, string> _synonyms;
+    private readonly Dictionary<string, CobolWordsOp> _removedBy;
     private readonly HashSet<string> _deReserved;
     private readonly HashSet<string> _reserved;
 
@@ -64,7 +65,7 @@ public sealed class CobolWordsMap
     {
         Ops = ops;
         _synonyms = new(CobolNames.Comparer);
-        _deReserved = new(CobolNames.Comparer);
+        _removedBy = new(CobolNames.Comparer);
         _reserved = new(CobolNames.Comparer);
         foreach (var op in ops)
         {
@@ -75,16 +76,17 @@ public sealed class CobolWordsMap
                     break;
                 case CobolWordsAction.Substitute when op is { Existing: { } e, New: { } n }:
                     _synonyms[n] = e;   // the new word takes over the existing word's role
-                    _deReserved.Add(e); // and the existing word becomes a user word
+                    _removedBy.TryAdd(e, op); // and the existing word becomes a user word
                     break;
                 case CobolWordsAction.Undefine when op.Existing is { } e:
-                    _deReserved.Add(e);
+                    _removedBy.TryAdd(e, op);
                     break;
                 case CobolWordsAction.Reserve when op.New is { } n:
                     _reserved.Add(n);
                     break;
             }
         }
+        _deReserved = new(_removedBy.Keys, CobolNames.Comparer);
     }
 
     /// <summary>The parsed operations, in source order (SR3/SR4 validation + the token rewriter walk these).</summary>
@@ -101,6 +103,13 @@ public sealed class CobolWordsMap
     /// SUBSTITUTE literal-4): the keyword→identifier rewriter, the <see cref="ReservedWordSet"/> suppress set,
     /// and the map-aware lexer data-name gate read this.</summary>
     public IReadOnlySet<string> DeReserved => _deReserved;
+
+    /// <summary>The directive that DE-RESERVED <paramref name="written"/> (the UNDEFINE or SUBSTITUTE naming it as
+    /// literal-3 / literal-4), or null when no directive removed it: the question <see cref="Resolve"/> answers with a
+    /// null, asked for the directive itself, so a diagnostic names the cause and cites its
+    /// <see cref="CobolWordsOp.At"/> (ISO §7.3.10.4 GR3/GR4; kb/Work PB4309). SR5 (§7.3.10.3) forbids the same COBOL
+    /// word in more than one directive of a compilation group, so there is at most one.</summary>
+    public CobolWordsOp? RemovedBy(string written) => _removedBy.GetValueOrDefault(written);
 
     /// <summary>Words newly reserved for this group (RESERVE literal-6): the <see cref="ReservedWordSet"/> reserve
     /// overlay reads this so a use as a user-defined word is COBOL0901-rejected.</summary>
