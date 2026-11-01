@@ -2940,6 +2940,60 @@ check("PB3528 R1-1: a one-sided meeting between two finishers chains them; neith
       (sorted(dl3), {g.after for g in dl3.values() if g.after} <= {g.letter for g in dl3.values()},
        sum(1 for g in dl3.values() if g.after) == 1),
       (["PB5", "PB9"], True, True))
+# PB4352: ... and a branch is read as the branch its work LANDS THROUGH. Two finished branches each carry a SPLIT
+# predecessor their review finisher merged (54d-26 carried 54d-2, 54d-29 carried 54d-25 and 54d-4); the survey reads
+# each carried branch IN FLIGHT, and each one's files met the OTHER carrier's finisher. Keyed on the exact branch, the
+# exemption held both finishers on a branch that lands only through the other finisher, and `--drain` planned 0 groups.
+CARRIED = {"worktree-dl-1b": "worktree-dl-1", "worktree-dl-2b": "worktree-dl-2"}
+DL4_BUSY = {**DL_BUSY,
+            "worktree dl-1b (worktree-dl-1b)": InFlight({"src/X/Misc.cs"}, "worktree-dl-1b", set(), state="IN FLIGHT"),
+            "worktree dl-2b (worktree-dl-2b)": InFlight({F_BIND}, "worktree-dl-2b", set(), state="IN FLIGHT")}
+pdl4 = pw.plan(notes, [cl(F_BIND, "PB5"), cl("src/X/Misc.cs", "PB9")], [], load_reports(DL_REPORTS),
+               lambda b: "UNLANDED", {}, RULES, budget_points=100, busy=DL4_BUSY, carrier=CARRIED.get)
+dl4 = {n: g for g in pdl4["groups"] for n in g.notes}
+check("PB4352: two finishers each meeting a branch the OTHER one's branch carries are both planned, chained",
+      (sorted(dl4), sorted(n for n in pdl4["waiting"] if n in ("PB5", "PB9")),
+       sum(1 for g in dl4.values() if g.after) == 1,
+       {g.after for g in dl4.values() if g.after} <= {g.letter for g in dl4.values()}),
+      (["PB5", "PB9"], [], True, True))
+check("PB4352: a finisher's claim includes what the branch it continues CARRIES (the carried branch's files)",
+      sorted(dl4["PB5"].claim.files) if "PB5" in dl4 else None, sorted({F_BIND, "docs/CONFORMANCE.md", "src/X/Misc.cs"}))
+# ... and a carried branch whose carrier no group of this wave finishes still holds a group that meets it
+pdl5 = pw.plan(notes, [cl(F_BIND, "PB5")], [], [], lambda b: "ABSENT", {}, RULES, budget_points=100,
+               busy={"worktree dl-3b (worktree-dl-3b)": InFlight({F_BIND}, "worktree-dl-3b", set(), state="IN FLIGHT")},
+               carrier={"worktree-dl-3b": "worktree-dl-3"}.get)
+check("PB4352: a branch carried by one this wave does not finish still holds a group on its files",
+      ([g.notes for g in pdl5["groups"]], "worktree-dl-3b" in pdl5["waiting"].get("PB5", "")), ([], True))
+# ... and a branch whose tip is ON MAIN carries no work, so it has no carrier (branch review R1-1): a live agent's
+# worktree before its first commit is an ancestor of every finished branch that merged main, and read through the real
+# `branch_carrier` it was the work of the newest one, whose FINDINGS finisher was then exempt from the agent's files.
+FR_REPORTS = TMP / "reports-4352"
+FR_REPORTS.mkdir()
+(FR_REPORTS / "w1150a-PB9-report.md").write_text(
+    "# PB9 report\n**Status:** DONE · **branch:** `worktree-fd-1` · **HEAD:** `6666666ff`\n"
+    "**Review:** FINDINGS 1 r1 6666666ff E:/s/review-fd-1.jsonl\n\n## Reproduced?\n",
+    encoding="utf-8", newline="\n")
+returned(FR_REPORTS)
+FR_ON_MAIN = {"worktree-fresh"}                                       # tip == origin/main: classify says MERGED
+fr_classify = lambda b: "MERGED" if b in FR_ON_MAIN else "UNLANDED"   # noqa: E731
+fr_asked: list[tuple[str, str]] = []
+
+
+def fr_is_ancestor(a: str, c: str) -> bool:
+    """git merge-base --is-ancestor answers yes for an on-main tip against any branch that merged main."""
+    fr_asked.append((a, c))
+    return a in FR_ON_MAIN
+
+
+fr_carrier = inb.branch_carrier(load_reports(FR_REPORTS), fr_classify, fr_is_ancestor)
+check("PB4352 R1-1: a branch on main has no carrier, and git is not asked", (fr_carrier("worktree-fresh"), fr_asked),
+      (None, []))
+pfr = pw.plan(notes, [cl(F_BIND, "PB5"), cl(F_BIND, "PB9")], [], load_reports(FR_REPORTS), fr_classify, {}, RULES,
+              budget_points=100, carrier=fr_carrier,
+              busy={"worktree fresh (worktree-fresh)": InFlight({F_BIND}, "worktree-fresh", set(), state="IN FLIGHT")})
+check("PB4352 R1-1: a live worktree on main still holds a finisher on the files it edits",
+      ([g.notes for g in pfr["groups"]], sorted(n for n in pfr["waiting"] if n in ("PB5", "PB9"))),
+      ([], ["PB5", "PB9"]))
 
 # PB3625: THE REPORT ORDER IS A CLOCK, NEVER A WAVE NUMBER. The loop numbers its waves by date (20261024) and the Mythos
 # lane serially (1157), so ordering by the integer wave ranked every date-numbered report above every serial one: a
