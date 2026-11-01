@@ -168,9 +168,10 @@ public sealed class LandingPipelineDriftTests
         Assert.True(fatalSteps.Count == 0, "a `supersede` step is not `continue-on-error: true`, so a housekeeping failure "
             + "(a checkout, a runner or network error) fails the job and `ci-gate` (kb/Work PB3820): " + string.Join("; ", fatalSteps));
         Assert.Matches(new Regex(@"^      - id: checkout\n        uses: actions/checkout@", RegexOptions.Multiline), body);
-        Assert.Matches(new Regex(@"^        if: steps\.checkout\.outcome == 'success'\n        continue-on-error: true\n        env:",
+        // The checkout is retried once (kb/Work PB4324): a step runs when either attempt succeeded, the notice when neither did.
+        Assert.Matches(new Regex(@"^        if: steps\.checkout\.outcome == 'success' \|\| steps\.checkout-retry\.outcome == 'success'\n        continue-on-error: true\n        env:",
             RegexOptions.Multiline), body);
-        Assert.Matches(new Regex(@"^        if: steps\.checkout\.outcome != 'success'$", RegexOptions.Multiline), body);
+        Assert.Matches(new Regex(@"^        if: steps\.checkout\.outcome != 'success' && steps\.checkout-retry\.outcome != 'success'$", RegexOptions.Multiline), body);
         Assert.Contains("run: python3 scripts/orchestrator/cancel_superseded.py --repo \"$REPO\" --run-id \"$RUN_ID\" "
                         + "--sha \"$SHA\"", body, StringComparison.Ordinal);
         Assert.Contains("RUN_ID: ${{ github.run_id }}", body, StringComparison.Ordinal);
