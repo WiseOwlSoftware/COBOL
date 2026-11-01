@@ -40,7 +40,7 @@ internal sealed record BackendInput(
         {
             foreach (Type leaf in Leaves(type))
             {
-                if (leaf.IsGenericParameter || leaf.IsPrimitive || leaf == typeof(string) || leaf == typeof(object))
+                if (leaf.IsGenericParameter || leaf.IsPrimitive || leaf == typeof(string))
                 {
                     continue;
                 }

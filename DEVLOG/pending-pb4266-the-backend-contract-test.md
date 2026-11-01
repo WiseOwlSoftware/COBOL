@@ -40,7 +40,11 @@ a C#-shaped, render-shaped or `ClrName` neutral row or an unknown §1.3 row is a
 table: removing the `DataItem.CobolName` and `BoundRelational.Op` rows and adding a bogus row turned the field
 assertion red with exactly those three lines. Restoring the table turned it green again.
 
-**Self-review.** Architecture: one walk and one table, with the layers read from the edges file and never copied.
+**Self-review.** Silent failure: the first walk skipped `object`-typed fields, so a node held behind one would have
+gone unchecked with no failure. The walk now records them as exits, and `TheBackendInput_HasNoUntypedOrDelegateField`
+refuses an `object` or delegate field (none exist today, and a planted pair shows the check firing). The type-location
+check also read every source file once per type; it now collects the declared names in a single pass, which took the
+fixture from 4 s to 0.15 s. Architecture: one walk and one table, with the layers read from the edges file and never copied.
 Duplication: the parse-context half asserts the edges rule and does not restate it. Performance: one reflection walk,
-cached for the fixture (about 0.1 s). No goldens: the change is behavior-neutral apart from the internal rename, so it
+cached for the fixture. No goldens: the change is behavior-neutral apart from the internal rename, so it
 adds no inventory row (closes_rows: []).
