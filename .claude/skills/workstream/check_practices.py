@@ -17,6 +17,7 @@ sys.path.insert(0, str(HERE.parents[2] / 'scripts' / 'arch'))
 import inflight  # noqa: E402  (collision: THE meeting rule of the partition, kb/Work PB3670, PB3696)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[3] / "scripts"))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
+from test_population import GATED_ASSEMBLIES  # noqa: E402  (the gate writes one `<assembly>.trx` per entry)
 T = HERE / 'templates'
 POINTER = 'MANDATORY-PRACTICES.md'
 
@@ -55,12 +56,12 @@ BRIEFS = {
     # kb/Work PB3777: the implementer's ONE instruction file. The fix-lane brief and the generic implementer brief are folded into
     # this spec and deleted, so the patterns they carried are carried here: a practice the fold dropped is RED, never silent (O1).
     # P4: the stamped handoff (kb/Work/PB1698) — STATUS.md names the commit it describes; a resumer reads the delta.
-    # PB1721: the gate is the ORDERED gate — `build-local.ps1 -Priority BelowNormal`; PB2515: leg 1 only; PB3022: one shape.
+    # PB1721: the gate is the ORDERED gate — `build-local.ps1 -Priority BelowNormal`; PB4328: the whole population; PB3022: one shape.
     'dispatch-spec-implementer.md': [r'claude-skills', POINTER, r'BelowNormal', r'build-local\.ps1 -Priority BelowNormal', r'\{global_stop\}', r'\{stop_file\}',
                                      r'\{reports\}',  # PB2980: the report goes in coord.reports_dir(), never the wave's scratch
                                      r'until grep -q', r'where\.py', r'orient\.py', r'semgrep/verify\.py', r'cite\.py --check',
                                      r'Turn cap \{turn_cap\}',  # PB3701: read from the agent's maxTurns, never typed
-                                     r'code site', r'leg-1-Conformance\.trx', r'drift_rules\.py', r'STATUS-AT:',
+                                     r'code site', r'build-local/<run>/Conformance\.trx', r'drift_rules\.py', r'STATUS-AT:',
                                      r'status_delta\.py',
                                      # PB1721: the ordered gate, blocked on its own verdict line
                                      r'BUILD-LOCAL GATE: ', r'BUILD-LOCAL GATE: GREEN',
@@ -77,7 +78,7 @@ BRIEFS = {
                                      # I11: the owner's SORT and file I/O exception-path test rule (2026-10-17), as a
                                      # POINTER to its one home (the I11 row), never a second case list
                                      r'SORT AND FILE I/O TESTS \(MANDATORY-PRACTICES I11', r'the I11 row of',
-                                     r'LEG 1 ONLY \(batched gating, PB2515\)'],  # PB2515: the implementer's done-state
+                                     r'the WHOLE Unit, Conformance and Characterization populations'],  # PB4328: the implementer's done-state
     # O2: the standard fix-lane dispatch — rolling pool, same-file successors (no hold), the graceful STOP, and the explicit
     # final StructuredOutput reminder (three agents in waves 65-67 ended without it and stranded finished branches).
     # PB1703 / PB1704: a dead agent (rejection) and a hung agent (ceiling) must not hold the wave.
@@ -96,7 +97,7 @@ BRIEFS = {
     # O8: every fleet workflow runs with the stall watchdog beside it (PB1704).
     'MANDATORY-PRACTICES.md': [r'stall_watch\.py', r'linux-gate\.sh', r'I9', r'dispatch_guard\.py', r'prune_worktrees\.py',  # O8; PB1732; I9, O9, O10
                                r'STOP-<scope>',  # P3, PB2483: the scoped stop
-                               r'set-cap', r'set-implementer-scope',  # PB2514 (one shared cap)
+                               r'set-cap',  # PB2514 (one shared cap)
                                # PB2600 (O10: the owner's branch rule; nothing archived, abandon by a recorded
                                # decision); PB2602 (O11: one landing queue); PB2601 (L13: the landing hand-off)
                                r'NO BRANCH IS LEFT UNDECIDED', r'--abandon', r'ONE LANDING PATH', r'coord\.py loop-state',
@@ -161,6 +162,11 @@ HANGING_WAIT = re.compile(r"tail -n \+1 -f[^\n]*grep -m1|tail -f[^\n]*grep -m1")
 ONCE_FILES = ('dispatch-spec-implementer.md',)
 RENDERED_SPEC_NAME = re.compile(r'msg-w[^-]+-[a-z0-9]+\.txt')
 SENTENCE_MIN = 60
+# A test-result file a brief or spec tells its agent to read (kb/Work PB4328 review R1-2): the gate writes exactly one
+# `<assembly>.trx` per gated assembly in its run directory, so a name outside that set sends the agent to a file no gate
+# writes (a golden lane looked for `leg-1-Conformance.trx` after the legs were deleted).
+TRX_NAME = re.compile(r'[A-Za-z0-9_.-]+\.trx\b')
+GATE_TRX = frozenset(f'{a}.trx' for a in GATED_ASSEMBLIES)
 
 
 def repeated_sentences(text):
@@ -180,6 +186,8 @@ def check(path, pats):
     missing = [p for p in pats if not re.search(p if p != POINTER else re.escape(POINTER), text)]
     if path.name in ONCE_FILES or RENDERED_SPEC_NAME.fullmatch(path.name):
         missing += [f'PB3777: states twice: {s[:90]}…' for s in repeated_sentences(text)]
+    missing += [f'{n}: a test-result file no gate writes (the run directory holds {", ".join(sorted(GATE_TRX))})'
+                for n in sorted(set(TRX_NAME.findall(text)) - GATE_TRX)]
     if HANGING_WAIT.search(text):
         missing.append('P2: a `tail -f … | grep -m1` wait (it idles to its timeout); use `until grep -q …; do sleep 5; done`')
     return missing

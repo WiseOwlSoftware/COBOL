@@ -446,7 +446,7 @@ public sealed class LandingPipelineDriftTests
             // kb/Work PB3103, PB3104: every gate row at enqueue is a landing gate under the shared gate slot
             "the gate at enqueue is a LANDING gate: its slot is served before waiting implementer gates "
                 + "(kb/Work PB3103, gate_slot.py CLASS_ENV)",
-            "gate rows: every row of GATES_WINDOWS and GATES_LINUX hands the gate to run_gate_legs.py, which takes the "
+            "gate rows: every row of GATES_WINDOWS and GATES_LINUX hands the gate to gate.py, which takes the "
                 + "shared gate slot (kb/Work PB3104); the landing has no Linux row of its own",
             "gate rows: a planted unslotted row (a bare row, a script that does not hand the gate to the driver, no "
                 + "script, a driver that no longer acquires) is refused, and run_gates runs no row (kb/Work PB3104)",

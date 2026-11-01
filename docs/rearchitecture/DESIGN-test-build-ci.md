@@ -128,7 +128,7 @@ A job on an image whose git moved warns and runs: a failure there would stop eve
 two images moving on different weeks no single value could clear it. The nightly's `images` job (§1.4a) holds each image strictly.
 On the hosts, `scripts/wsl/setup-wsl.sh` and `scripts/cloud/setup-env.sh` install from the manifest (WSL's Python and semgrep through
 uv; semgrep runs on its own uv-managed CPython, `SEMGREP_PYTHON_VERSION`, until upstream ships a cp315 wheel). The
-Windows dev box installs with winget. The gate holds every host to the manifest: before its audits, `run_gate_legs.py`
+Windows dev box installs with winget. The gate holds every host to the manifest: before its audits, `gate.py`
 runs `toolchain.check --scope gate`, stops `NOT RUN [toolchain]` (an ENVIRONMENT cause) on any mismatch, and names the
 toolchain it ran under in its verdict line and its record. `scripts/python-resolve.sh` and `.ps1` accept exactly
 `PYTHON_VERSION`. The SessionStart readiness check (`scripts/hooks/tooling_check.py`) prints the same comparison for
@@ -183,7 +183,11 @@ RESTORE (`actions/cache/restore`; `actions/cache@` is refused, since it saves on
 every time, so a copy it saved was never read again and only filled the 10 GB budget (10.77 GB held on 2026-10-31, main's
 own copies evicted). The saves are the `setup-toolchain` action's (when `github.ref` is main) and the `toolchain-cache` and
 `package-cache` jobs', which run on a push to main alone: main's push run skips the matrix, so these jobs are what keeps the
-caches a merge group restores. `CiBoundsDriftTests` holds all of it, with a fixture arm for each shape it forbids.
+caches a merge group restores. A save runs only after the step that produced what it stores succeeded: `package-cache`'s
+`dotnet restore` and GnuCOBOL fetch continue on error, so their saves require `steps.restore.outcome` and
+`steps.fetch.outcome` to be `success`, since a failed restore would store a partial package set under the exact key and a
+run that hits an exact key never saves it again (kb/Work PB4348). `CiBoundsDriftTests` holds all of it, with a fixture arm
+for each shape it forbids.
 
 **⛔ The tests run as weighted shards, and `ci-gate` proves they ran the population (kb/Work PB4329, step 6 of PB4323;
 `GateLegDriftTests` `Shard_*`, `FilterPopulationGuardDriftTests`).** Each shard job builds the solution and runs every
@@ -716,7 +720,7 @@ and it fails the gate as UNRESOLVED so it gets read rather than absorbed.
 
 | site | what it does now |
 |---|---|
-| `tests/_shared/ProcessObservation.cs` | **THE one child-process observer.** Replaced six copies of "start `dotnet`, wait N s, return whatever came back" (`CutRunner.RunExit`, `AcceptDifferentialTests.AcceptRun`, `WiseOwlCobolTestBase.CompileAndRun`, three in `EndToEndTestBase`) plus a seventh found by its own drift guard (`BinderDecompositionTests`, which read both streams synchronously and then read `ExitCode` without checking `WaitForExit`'s result). A run that does not complete raises `HarnessNonObservationException` — it never returns partial output for a caller to compare. Retries **once, serialized**, first: that is re-attempting a measurement that did not complete, not re-rolling a failed assertion. A caller that runs a PROGRAM in a directory names it (`runDirectory:`), and the retry starts from the state that directory had before the first attempt (`RunDirectoryState`: files up to 1 MiB kept by content, larger ones by length and write time; a larger file the killed attempt changed makes the retry a non-observation, never a measurement over another input): a killed COBOL program has already created and rewritten files, and IX216A's OPEN EXTEND of an absent OPTIONAL file answered 00 instead of 05 over the leftovers of its killed first attempt (kb/Work PB3388). `EveryRunOfACompiledProgram_NamesItsRunDirectory` keeps every `dotnet <dll>` call site on it; `guard-fast.sh`'s serial re-observation already restarts in a fresh `mktemp` directory. **The budget is a rule over the WORK, never one fixed number** (`tests/_shared/ObservationBudget.cs`, kb/Work PB3108): one harness unit (120 s, `WISEOWL_COBOL_RUN_TIMEOUT_MS`) for the observed process plus one per serial round of the child processes it runs, `1 + ceil(children / parallel)` units, so a program or a script gets one unit and `run.py` over a suite gets one per round of its compiles and runs (the two-runner drift test observes it once per edition, `--jobs` stated). The unit stays the floor for one program: 120 s against a recorded cost of at most 9.3 s for one suite test's compile and run and 7.0 s and 3.8 s for the two single-program tests PB3108 names, a multiple of 13 to 32 for load. A timeout reports the budget, the work it covered, the process's own processor time and the host's load across the attempt (`HostLoad`: `/proc/stat` and `/proc/loadavg`, `GetSystemTimes`), so load is told from a hang. Every retry and non-observation is appended to `WISEOWL_COBOL_HARNESS_LOG`, which the local gate (`run_gate_legs.py`'s `leg_env`) and every CI test step (`CiHarnessLogDriftTests`) point into their results directory and the Linux gate (`linux-gate.sh`'s `test_leg`) into its own directory on the Linux filesystem, copying it into `TestResults/linux-gate` as it ends (`remove_gate`: that directory is a Windows drive mounted over 9P, where an append beside a reader of the same file lost lines and the read failed with ENODATA, measured 2026-10-24, kb/Work PB3194), and CI uploads it with the TRX, so the rate is measurable and a CI non-observation is readable afterwards. |
+| `tests/_shared/ProcessObservation.cs` | **THE one child-process observer.** Replaced six copies of "start `dotnet`, wait N s, return whatever came back" (`CutRunner.RunExit`, `AcceptDifferentialTests.AcceptRun`, `WiseOwlCobolTestBase.CompileAndRun`, three in `EndToEndTestBase`) plus a seventh found by its own drift guard (`BinderDecompositionTests`, which read both streams synchronously and then read `ExitCode` without checking `WaitForExit`'s result). A run that does not complete raises `HarnessNonObservationException` — it never returns partial output for a caller to compare. Retries **once, serialized**, first: that is re-attempting a measurement that did not complete, not re-rolling a failed assertion. A caller that runs a PROGRAM in a directory names it (`runDirectory:`), and the retry starts from the state that directory had before the first attempt (`RunDirectoryState`: files up to 1 MiB kept by content, larger ones by length and write time; a larger file the killed attempt changed makes the retry a non-observation, never a measurement over another input): a killed COBOL program has already created and rewritten files, and IX216A's OPEN EXTEND of an absent OPTIONAL file answered 00 instead of 05 over the leftovers of its killed first attempt (kb/Work PB3388). `EveryRunOfACompiledProgram_NamesItsRunDirectory` keeps every `dotnet <dll>` call site on it; `guard-fast.sh`'s serial re-observation already restarts in a fresh `mktemp` directory. **The budget is a rule over the WORK, never one fixed number** (`tests/_shared/ObservationBudget.cs`, kb/Work PB3108): one harness unit (120 s, `WISEOWL_COBOL_RUN_TIMEOUT_MS`) for the observed process plus one per serial round of the child processes it runs, `1 + ceil(children / parallel)` units, so a program or a script gets one unit and `run.py` over a suite gets one per round of its compiles and runs (the two-runner drift test observes it once per edition, `--jobs` stated). The unit stays the floor for one program: 120 s against a recorded cost of at most 9.3 s for one suite test's compile and run and 7.0 s and 3.8 s for the two single-program tests PB3108 names, a multiple of 13 to 32 for load. A timeout reports the budget, the work it covered, the process's own processor time and the host's load across the attempt (`HostLoad`: `/proc/stat` and `/proc/loadavg`, `GetSystemTimes`), so load is told from a hang. Every retry and non-observation is appended to `WISEOWL_COBOL_HARNESS_LOG`, which the local gate (`gate.py`'s `leg_env`) and every CI test step (`CiHarnessLogDriftTests`) point into their results directory and the Linux gate (`linux-gate.sh`'s `test_leg`) into its own directory on the Linux filesystem, copying it into `TestResults/linux-gate` as it ends (`remove_gate`: that directory is a Windows drive mounted over 9P, where an append beside a reader of the same file lost lines and the read failed with ENODATA, measured 2026-10-24, kb/Work PB3194), and CI uploads it with the TRX, so the rate is measurable and a CI non-observation is readable afterwards. |
 | `tests/_shared/CiWorkflow.cs` (`CiWorkflowDriftTests`) | **THE one reader of a CI workflow's shape** (kb/Work PB3819): the jobs under the top-level `jobs:` key (ids two spaces deep), each job's `steps:` list (items at the indentation of the first, a list may sit at the key's own indentation), each step's own keys (`Value("uses")`, `Value("continue-on-error")`, `Input("overwrite")` for a `with:` input; a key nested under `with:` is not the step's) and the comments. Replaced the readers of ten classes: the private splitters of seven (`CiHarnessLogDriftTests`, `DotnetSdkInstallDriftTests`, `FilterPopulationGuardDriftTests`, `InertLaneDriftTests`, `SelfTestDiscoveryDriftTests`, `SparseCheckoutAudit`, `ToolchainManifestDriftTests`), the fixed-depth step splitter of `CiArtifactDriftTests`, and the inline job regexes of `LandingPipelineDriftTests` and `LinuxGateDriftTests`, which disagreed on comments, step blocks and the `jobs:` anchor (one returned the `on:` triggers as jobs). **A comment or blank line belongs to what follows it**: a banner above a job documents that job, never the one above. A shape the line reader cannot read (no `jobs:`, a job with no id, a flow-style `steps:`) raises `InvalidDataException`, never an empty answer. `CiWorkflowDriftTests` holds its arms on a fixture workflow and sweeps `tests/` for a job-key regex, a `jobs:` anchor or a hand-found `steps:` key of any other file. |
 | `ProcessObservationDriftTests` | Keeps the extraction collapsed (the `TestRepoDriftTests` pattern): no test source may start a process under its own bounded wait. Plus five behavioural facts, including "a process that never finishes RAISES instead of returning empty output" and "`Observe` reports a timeout with an **empty** stdout" — if that ever returns content, the defect is back. |
 | `scripts/guard-nist-audit.sh` | The population + manifest + expectation audit, consumed by the guard so the rule is written once. A plain `divergent` row expects `MATCH` (PB750) and a `TERMINATES` row expects `TERMINATES <EC>` (PB1955), the second set asked of `guard-population.sh`; a verdict word it does not know (the retired `LEGACY DIVERGENT` included) is an UNRECOGNIZED finding. `--self-test` proves all sixteen checks can fail, including the two `divergent` arms and the five TERMINATES arms. `guard-fast.sh` runs it, with `guard-population.sh --self-test` and `guard-verify.sh --self-test`, before every guard run. |
@@ -1075,641 +1079,112 @@ pins it on the built bits. Re-measured on the real flow — populate at one comm
 a TEST-ONLY commit (that very test), rebuild, whole assembly: **build 5 s + 1 m 18 s, 13,133 hits / 27 misses,
 7,952 green.**
 
-### 3.13 THE PER-TEST IMPACT MAP — ORDERING the implementer's gate (kb/Work PB1683, PB1708)
+### 3.13 THE POPULATION IS THE SELECTION — the gate runs every case (kb/Work PB4328, step 5 of PB4323)
 
-**The defect it answers.** An implementer's gate ran the tests its author NAMED (its goldens, `~Drift|~EditionGate`,
-`~CorpusRunner|~Nist` on a "shared seam"). Train 68b dropped two groups on whole-assembly reds those names never
-reached — `DiagnosticPositionTests` after a COPY library-search change, and a `CONSTANT AS NULL` crash in
-`DataBinder.Constants.cs` — and wave 69 (four agents, 1.17 M tokens) existed only to finish them. The map records
-the fact the names were guessing: which tests execute which code.
+**The decision.** Owner decision 1 of PB4323 (2026-10-31, Mythos session): the local gate runs the WHOLE Windows
+population for a change a test can read, not its own tests and not a plan's leg 1. The arithmetic behind it
+(PIPELINE-REVIEW.md §3.3): PB2515's own 48-verdict sample (2026-10-07) had 12 changes in 48 red outside their own tests,
+and the impact map that aimed leg 1 since PB3663 missed five reds the population would have run (I14, I17, I25, I29, I31
+of the review's incident survey). The selection machinery is gone: the order plan (`gate_plan.py`, its tiers, budgets,
+collection cap and whole-tier switch), the impact map (`impacted_tests.py`, `impact_store.py`, `record_impact_map.py`,
+`impact_lane.py`, `tools/impact/`, `cs_members.py`, `adopt_main.py`'s feed), the shared timings store
+(`.git/cobol-gate-timings/`), the leg handshake and identity records (`GateHandshake`, `GatePlan`, `GateIdentityRecord`,
+`GateNameKey`), the implementer scope `leg1|whole` and the light slot pool of `gate_slot.py`. Their C# drift tests went
+with them (`ImpactedTestsDriftTests`, `ImpactMapLaneDriftTests`, the name-key, leg and handshake arms of
+`GateLegDriftTests`).
 
-⛔ **The map ORDERS the plan; it never FILTERS a leg** (owner, 2026-09-28, kb/Work PB1708). Every gate PLANS the whole
-discovered population (§3.14) and the map only decides which tests come FIRST, so a red surfaces in minutes. Since
-batched gating (owner 2026-10-10, kb/Work PB2515) leg 1 is the only local run, which makes the map's tiers decide what
-a gate runs locally: a test the change reaches whose recorded time puts it in leg 2 runs only in CI's merge-group run
-(PB3666's bounce, 2026-10-24: two goldens its change reaches sat in leg 2 and went red there). So the loop records a
-map for EVERY main commit it adopts (owner 2026-10-24, kb/Work PB3663; below), and a dependency the map cannot see costs
-a later red, never a missed one — the single-process, memoizing compiler hides dependencies in more ways than one
-recorder can close (values memoized into static collections, edition state cached in the front end, static FIELD reads
-— PB1712).
+**The acceptance measurement** (2026-11-01 12:07–12:43 UTC, before anything was deleted; one worktree's build, the
+compile cache OFF so every run is cold as after a compiler change, BelowNormal, the box otherwise idle: gate slots 0
+held at every start and end; evidence `E:\COBOL-coord\scratch\w-p5\w20261805a\m\*\result.json`). Every run was GREEN:
+Conformance 20,468, Unit 39,237, Characterization 37 cases.
 
-**Collection — a per-test hit recorder, chosen by measurement.** Per-test coverage from a coverage tool cannot
-attribute hits under xunit's parallel collections, and per-shard coverage bisected to tests multiplies the run.
-The recorder instead rides the test run itself, in its own RECORDING build, and costs one cold Conformance run:
+| run | xunit threads per assembly | Conformance s | Unit s | Characterization s | wall s |
+|---|---|---|---|---|---|
+| one gate's three populations | 32 (the default) | 246.1 | 138.1 | 4.0 | **247.1** |
+| one gate's three populations | 16 | 243.2 | 139.1 | 4.0 | 244.2 |
+| one gate's three populations | 8 | 279.1 | 147.1 | 4.0 | 280.1 |
+| three whole gates started together | 32 (the default) | 501.2–502.2 | 277.1–277.2 | 5.0 | **503.2** |
+| three whole gates started together | 16 | 871.4–879.3 | 247.1–275.1 | 5.0 | 880.5 |
 
-| piece | what it does |
-|---|---|
-| `tools/impact/ImpactRecording.targets` | imported ONLY through `-p:CustomAfterMicrosoftCommonTargets=…` (nothing in the tree imports it, so no gated, battery or shipped build carries a probe); compiles `ImpactProbe.cs` into the greenfield compiler, front end, editions, runtime and CLI, and the three test assemblies; compiles `ImpactTestFramework.cs` into the test assemblies and names it in `[assembly: Xunit.TestFramework]` |
-| `tools/impact/ImpactInstrumenter` (Mono.Cecil) | rewrites each covered assembly once: every method with sequence points calls `ImpactProbe.Hit(id)` on entry, `id` being its entry in the probe table — its file and the LINE RANGES it owns (its sequence points, merged across the lines between two of them unless another method's point lies between, so braces, `else` lines and comments belong to it and a lambda's body to the lambda); members with no sequence points are charged to a TYPE-LEVEL entry; `implies` names each entry's type-chain static constructors; every `Process.Start` is redirected to the probe's twin |
-| `ImpactProbe` | one byte store per hit into the array of the running CONTEXT, an `AsyncLocal` every assembly's copy shares through `AppContext` data; a hit with no context lands in an AMBIENT array. In a child process (a compiled COBOL program loading the instrumented runtime) it records for the process and writes a hits file at exit, which the redirected `Process.Start` queued on the starting test |
-| `ImpactTestFramework` | xunit's own framework with the message bus wrapped: `ITestCollectionStarting` / `ITestClassStarting` / `ITestStarting` install a fresh context synchronously on the flow about to run it (the same `TestRunner.RunAsync` then awaits the test, so the context flows into constructor, body and every task it starts, while parallel tests keep their own); `…Finished` saves it with the children folded in. A `BeforeAfterTestAttribute` cannot do this — it is handed only the `MethodInfo`, which cannot tell a theory's rows apart, and the corpus theories are ~3,400 of the ~9,300 Conformance tests. It DERIVES from the gate's `GateTestFramework` (§3.14.3), so a recording build still names one framework |
-| `scripts/spec/record_impact_map.py` | a DETACHED worktree at the commit, the recording build, the instrumenter, each test assembly once with `WISEOWL_COBOL_COMPILE_CACHE=off` (a cache hit skips the compiler and would record nothing for it), and the merge into `<git common dir>/cobol-impact/<sha>.json.gz` — shared by every worktree of the repository. Its watchdog fails the recording when a listed test was never recorded or no test reached the compiler, front end or runtime; a recorded test takes the name the gate knows it by (`adopt_listed_names`: the vstest adapter truncates a long theory row's display name with `···`, xunit's own name is the full one), and the map is written beside its name and renamed into it, so a reader never opens half a file. `--self-test` covers both |
-| `scripts/spec/impact_store.py` | THE ONE HOME OF THE STORE (kb/Work PB3663): its location (`<git common dir>/cobol-impact`), the map's schema and bitset codec, which paths are documentation, **which map serves a base** (`nearest`) and how the store is bounded (`prune`, `clean_work`). The recorder, the lookup and the loop's recorder lane each carried a copy of these before |
-| `scripts/orchestrator/impact_lane.py` | THE LOOP RECORDS A MAP FOR EVERY MAIN COMMIT IT ADOPTS (owner 2026-10-24, kb/Work PB3663; `DESIGN-orchestrator-loop.md` §4.10): `request` (called by `adopt_main.py adopt`) starts one DETACHED worker at BelowNormal or coalesces to the newest commit; the worker holds the recorder's gate slot; a failed recording posts to the operator's mailbox and shows in every adoption line until one succeeds; `measure` reports the share of gate plans a map served |
-| `scripts/spec/impacted_tests.py` | the lookup: `analyse()` → the change's TIERS (below) and its tier-0a facts (the test methods it adds, the corpus goldens it touches), which `scripts/gate_plan.py` computes in-process to assemble the plan (§3.14.2); `--base <cut point> --plan <file>` writes the same analysis as JSON for inspection. M11 deleted its selection (kb/Work PB1717): its last stdout line is ALWAYS the whole-assembly filter `FullyQualifiedName~.`, map or no map, until M13 deletes that line and `--plus` with every caller (§3.14.9) |
+**The settings fixed on them.** `maxParallelThreads` stays xunit's default, the processor count (32 here, 4 on a GitHub
+runner): 16 threads equals it alone and costs 75 % under three gates (Conformance's cases wait on child processes, so
+fewer threads overlap fewer waits), and a checked-in `xunit.runner.json` would also bind CI's runners. The gate cap stays
+3 (§3.14.6): three gates together take 503 s each, 2.04 times one gate alone, so they finish 741 − 503 = 238 s sooner
+than three run one after another. The review's bound for three overlapped gates was 14.6 min; the measured is 8.4.
 
-**Measured cost.** At `dbea12428`, `BelowNormal` on the shared 32-core host: 35,578 probe entries; Conformance
-9,274 green in 15 m 19 s (cold, instrumented), Unit 29,693 green in 2 m 38 s, Characterization 33 in 2 s; build
-23 s, instrumentation 4 s; **18.7 min in all**. The map was ~5 MB compressed. Re-measured at `7d769bcc1` (2026-10-25,
-the loop's own recorder lane, BelowNormal): 48,426 probe entries, 57,270 tests (Conformance 18,832, Unit 38,402,
-Characterization 36), build 84 s, Conformance 4 m 29 s, Unit 7 m 4 s; **13.6 min in all**, and the map is **25.2 MB**
-compressed, five times the earlier figure, which sizes the store's bound (`impact_store.KEEP_NEWEST`). Three tests fail
-in every recording, by design: `GateLegDriftTests` arm 4 asserts a test project names `GateTestFramework`, and a
-recording build names `ImpactTestFramework` (which derives from it).
+**What the gate runs now** (`scripts/gate.py`; §3.14.1–3.14.3): the inert lane runs the audits alone (§3.18); every other
+change builds once and runs the three populations whole, three hosts at once, the audits beside them, the population
+checked by name (§3.14.4). Ordering is the one lever left (§3.14.2): the classes red at the previous run first, then
+longest first by the committed weights file. The growth trigger of PB4323 §3.4 (step 10, kb/Work PB4333) reads the
+`assembly_wall_s` and `timings.tests_s` every `verdict.json` records.
 
-**What the lookup computes: a TIER per test.** A change is analysed exactly as PB1683 built it: a hunk inside a
-method's owned lines reaches the tests that executed that method; a comment-or-blank hunk reaches nothing; an ADDED
-ordinary method reaches the tests that reached any same-named method of the file's types (overload capture); a
-DECLARATION change (an override, virtual, operator, conversion, extension method, field, property, constant, a type
-with a base list or an attribute, or any removed or changed line no method owns) reaches every test that executed
-the file plus every test that executed a file naming one of its outermost types, BESIDE the direct hits of the
-file's other hunks (a signature change next to edited method bodies keeps those bodies' tests in tier 1; reading
-stopped at the first declaration hunk until PB3869's bounce, which put every one of them in tier 2, outside leg 1);
-a static constructor's change
-reaches every test that touched its type. A test's reach is its own recorded context plus its class's and its
-collection's (constructors, fixtures). The test assemblies are recorded too, so an edited theory harness reaches
-exactly the rows that executed it (an edited test METHOD is also tier 0a, §3.14.2). From that:
-
-| tier | the tests | runs |
-|---|---|---|
-| 1 | executed a changed method body (the direct hits) | first, cheapest first |
-| 2 | reached only through a widening — a static constructor, a declaration change, the file level | next, cheapest first |
-| 3 | reached by nothing the change touched | last |
-
-What used to force the WHOLE-assembly filter — no map in the store, a `.g4`, project, build or source-generator input,
-a src file the map has never seen, non-C# data under `src/`, a method reached only outside every test's context — now
-puts EVERY test in tier 1, and the plan still contains all of them. A file the SDK or NuGet reads by its name
-(`global.json`, `nuget.config`, `Directory.*`) is that input only as a whole path segment
-(`impacted_tests.STRUCTURAL_RE`), and a conformance-suite file is attributed to its test before any of these: a refusal
-whose test id ends like one (`wiseowl/diagnostics/a42-screen-global.json`) is its test's tier-0a row, never a build input
-(kb/Work PB4147).
-
-**Which map serves a base (kb/Work PB3663; `impact_store.nearest`).** A map is a statement about the tree it was
-recorded at: per source file, the line ranges each method owns and the tests that executed them. It describes a base
-EXACTLY for every file that is the same in both trees and not at all for one that differs. The earlier rule asked only
-whether the map was older than the base by more than documentation and, when it was, called it STALE and put every
-test in tier 1 — but main moves about 1.6 landings an hour (many more in a burst) and a recording takes 14-25 minutes,
-so almost every base would have been stale. The question is instead which source files differ between the map's commit
-and the base (`drift`): the store's map with the fewest drifted files serves the base, whatever its age or ancestry (a
-map recorded after the base serves it too: the comparison is of the two trees). The plan's `map_state` says `exact`
-(the map's commit is the base), `documentation-only drift`, `nearest` (source files differ) or `none`. A change to a
-file outside `drift` is attributed by line range exactly as before. A change to a file IN `drift` is taken at the file
-level: every test that executed any method of it is tier 1 (`impacted_tests.drifted_change`), and a file new since the
-map's commit, which the map has never seen, puts every test in tier 1 with that reason printed (a TEST-project file that
-is new since the map's commit is not that: it is no source to attribute, and its added and edited tests are tier 0a,
-`impacted_tests.reach_cs`'s first guard, kb/Work PB3806). **A reason the change cannot be attributed in part never erases
-the part it can** (kb/Work PB3991): `every_tier1` names the reasons, `gate_plan.tier_of` is the one place that puts every
-case in tier 1 for it, and `impacted_tests.tiers` keeps reporting what the change really reaches (1 direct, 2 widened,
-3 none), which the plan ranks by inside tier 1 (`KeyGroup.rank`, before cost). A branch that bumps the version
-(`Directory.Build.props`, a structural input) beside an emitter change therefore keeps the emitter change's method-level
-reach at the head of leg 1; it had lost it, and with it the 12 CCVS85 NOT-only SIZE ERROR programs the merge queue then
-found. The store tolerates the lane worker's pruning: a map or work directory that vanishes between a glob and its stat is
-skipped (`impact_store.mtime`, kb/Work PB3807). A test added since the
-map's commit is not in it and is tier 0u (§3.14.2); a reach the map under-states costs a later red, never a missed one.
-
-**Measured (2026-10-25, kb/Work PB3663).** One map, recorded at `315f9eb98`, replayed against the 44 landings that
-followed it over 5.9 hours (the base of each: its first parent; 22 changed a file under `src/` or `tests/`, 22 only
-documentation, kb, scripts or `.claude`): all 44 were served (1 `exact`, 43 `nearest`) where the earlier rule would have
-read 43 of them stale; of the 22 code-changing landings 18 were attributed (tier 1 from 0 to 17,515 of 18,580 Conformance
-tests, by what the change reaches) and 4 put every test in tier 1 (three grammar, project or generator inputs, one file new
-since the map). The replay also found two rules that fell back for no reason a test could see, now fixed: a public-API
-analyzer baseline (`PublicAPI.*.txt`) and the runtime ABI pin (`RuntimeAbi.pin`) are data a test may read and not "a non-C#
-input under `src/`" (2 landings, and PB3666's own change, whose replay then reads 6,642 of 18,832 Conformance tests in tier 1
-and both bounced goldens in leg 1 where it had read all of them), and a
-file-level change is unattributable for running only outside every test's context only when NO entry of the file was
-reached by a test (2 landings, both editing a file that holds a finalizer beside code every test runs). A hunk inside a
-method that only the ambient array reached stays unattributable. `impact_lane.py measure` repeats the count over the
-gates' own plans.
-`ImpactedTestsDriftTests` (Unit) drives every arm of both `impacted_tests.py --self-test` and
-`gate_plan.py --self-test`, proves through the real command line that a mapped change is tiered and that nothing
-it prints is a filter (M13 deleted the filter line and `--plus`, kb/Work PB1721), pins the partition-suffix contract `NameKey` relies on (§3.14.2), and requires every
-product project under `src/` to be in both the targets file and the recorder's `PROBED` list.
-
-**What the replays measured — for this compiler the map mostly says "everything", so COST orders inside a tier.**
-Every golden runs the whole pipeline. Over the 20 replayed clusters of trains 65–69, method granularity reaches
-5,504–9,268 of 9,274 tests, and even a perfectly precise registry and declaration analysis leaves a median of 6,404
-(evidence `impact-map-pb1708/a5`, `a6`). On the one dropped branch with named reds, 68b X, 9,144 of 9,190 tests are
-tier 1 (`b4`). Ranking tier 1 by SPECIFICITY (the sum of `ln(N / df)` over the changed entries a test executed) put
-X's first red after **62 %** of the assembly's recorded test-seconds — worse than the plain class-and-name order
-(14 %) — because the change that broke them (the COPY library search) is executed by every test. Ranking by
-recorded COST, cheapest first, put it after **0.32 %** (40 of 12,408 test-seconds). So inside a tier the order is
-cheapest first, and the map's contribution is the tier boundary. Replayed through the order plan itself
-(`gate_plan.py`, `b4`'s row P), both of X's reds are in leg 1 and the first runs after 0.32 % of the work, with leg 1
-holding 2,829 cases (248 test-seconds, a 15.0 s floor). One replayed branch is a small sample; M13's
-acceptance (§3.14.9) records the time to the first red of every implementer gate of the next train.
-
-### 3.14 THE ORDERED WHOLE-POPULATION GATE, WHOLE-SUITE SPEED AND THE GATE CAP (kb/Work PB1708)
+### 3.14 THE WHOLE-POPULATION GATE, WHOLE-SUITE SPEED AND THE GATE CAP (kb/Work PB1708, PB4328)
 
 #### 3.14.1 The contract
 
-- **Every gate PLANS the WHOLE discovered population** of Conformance, Unit and Characterization, every time, into
-  two LEGS: the likely-red tests first, everything else second. Ordering changes WHEN a test runs, never WHETHER:
-  under batched gating (below) leg 2 runs in CI's merge-group run, the whole-population regression net (§3.17).
-- ⛔ **Sound by construction: every discovered test case runs exactly once across the legs.** A case's leg is a TOTAL
-  function of its display name and one plan file (§3.14.2), so the legs cannot overlap and cannot leave a case out;
-  the gate CHECKS it on every run (§3.14.4) and a drift test proves the check fires.
-- ⛔ **Only the gate driver can make a test host filter.** The leg filter acts only on a complete, self-consistent
-  environment the driver writes; any partial or stale one turns the run RED (§3.14.3), every other caller scrubs it,
-  and every whole-assembly run — the battery and CI as well as the gate — asserts its population with one tool
-  (§3.14.4). A filtered run can therefore never pass as a whole one.
-- **Fail fast:** the gate stops at the first leg with a red and reports RED and INCOMPLETE. It never reports GREEN
-  unless every leg ran. A gate is done only on GREEN — under batched gating, on `LEG 1 ONLY (batched gating,
-  PB2515): GREEN`.
-- ⭐ **Batched gating (owner 2026-10-10 10:19 PDT, kb/Work PB2515: "Yes, permanently", after a measured trial from
-  2026-10-07).** The SCOPE is `leg1` by default (`gate_slot.DEFAULT_SCOPE`, §3.14.6; its setting keeps the name
-  "implementer scope"): a gate whose plan has a leg 2 runs leg 1 only, names every leg-2 case NOT RUN through the population check, and prints
-  `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN|RED — … ===` — never `GREEN`, so no reader takes
-  it for a whole-population green. The owner's switch back is the shared scope `whole` (`gate_slot.py
-  set-implementer-scope whole [--until ISO]`), under which the gate runs both legs and the fail-fast bullet above
-  applies as written. The trial's measurement (the retired train records, read by `landing_measure.py summary` as its BEFORE column, 2026-10-10): batched 15 trains, 85 changes
-  in 24.8 h = 3.43 landed per hour, 2.7 whole-population runs per train, 0 interaction reds, 1 CI red (an environment
-  difference, kb/Work PB2563); whole 8 trains, 25 changes in 35.3 h = 0.71 per hour (confounded by the cap of 3 during
-  the trial). CI's whole-population run is then the population check for every change; a red there is attributed
-  per cluster (MANDATORY-PRACTICES L12) and every landing is measured (`scripts/orchestrator/landing_measure.py`, §3.17.5). A gate
-  with no plan runs its one leg, the whole population, and says GREEN.
+- **Every gate of a change a test can read runs the WHOLE discovered population** of Conformance, Unit and
+  Characterization, every time (§3.13; owner decision 1 of PB4323). Ordering changes WHEN a test runs, never WHETHER.
+- ⛔ **Sound by construction: every discovered test case runs exactly once.** One host per assembly runs all of it; the
+  gate CHECKS it on every run by name (§3.14.4) and a drift test proves the check fires.
+- ⛔ **Nothing narrows a gate's host.** The one variable a test host's framework reads from the gate,
+  `WISEOWL_COBOL_GATE_FIRST`, only ORDERS (§3.14.2); CI's shard variable `WISEOWL_COBOL_SHARD` divides a merge-group run
+  whose union `ci-gate` checks (§1.4); every other caller scrubs both and the MSBuild VSTest channels, and every
+  whole-assembly run — the battery and CI as well as the gate — asserts its population with one tool (§3.14.4).
+- **GREEN only when every host is green and every population is exact.** A gate is done only on `GREEN`.
 - **The verdict line counts the whole population, by discovered case:** `=== BUILD-LOCAL GATE: GREEN — Conformance
-  9,317/9,317 · Unit 29,703/29,703 · Characterization 33/33 cases ran (skipped 0) in 2 legs (plan 3f1c…: map dbea124,
-  timings run 20260928T2210-7c1e) ===`. A case "ran" when it has a Passed or Failed result; a case whose only result
-  is NotExecuted (a `[Fact(Skip)]`) is counted SEPARATELY as skipped, never as ran (`b3`).
-- **No plan input, a stale one, or a broken one → ONE leg in the plain order.** Never a skip. A previous gate's trx the
-  plan cannot read is one such input, and it is NAMED and KEPT (kb/Work PB3661): every reader of a trx file reads
-  through `test_population.trx_root`, which raises `UnreadableTrx` naming the file (the gate planner and the profiler
-  each parsed one themselves, and a torn Linux-gate file ended run 000005 of wf_1973801d-4fe-29 with `ParseError: not
-  well-formed … line 104295, column 36` and no path, the file gone by the verdict because a hand run of the Linux gate empties
-  `TestResults/linux-gate/` before it writes). The gate driver copies the unreadable file into the run directory as
-  `unreadable-<its directory>-<its name>.bad` (never `.trx`: later readers glob a run's trx files) and its plan note
-  names both. The whole-population fallback stays for an unreadable SIDE source too: with the Linux gate's reds unknown
-  the gate cannot know what was red, and leg 2 is not run locally (PB2515), so dropping that source's tier 0a could hide
-  a red. `gate_plan.py --audit-trx-readers` (`GateLegDriftTests`) holds the tree to the one reader.
-- **The gate has ONE shape** (owner 2026-10-11, kb/Work PB3015 Q1a, PB3022; §3.17.3): `build-local.ps1` takes no
-  mode (`-Priority` only sets the process priority) — a plan, leg 1 fail-fast, a gate slot (§3.14.6), the worktree's
-  gate lock and the population check, for an implementer's commit, a re-gate after a fix and a landing alike. The
-  lander's former mode (no plan, ONE whole-population leg, no slot) is deleted: it was 7–53 min, 8 of 15 RED under
-  load, on 2026-10-10. The battery and CI do not use the driver.
+  20,468/20,468 · Unit 39,237/39,237 · Characterization 37/37 cases ran (skipped 0) · slot 1 of 3 (…) · toolchain …
+  (no class first; run 000002-…) ===`. A case "ran" when it has a Passed or Failed result; a case whose only result is
+  NotExecuted (a `[Fact(Skip)]`) is counted SEPARATELY as skipped, never as ran (`b3`).
+- **The gate has ONE shape** (owner 2026-10-11, kb/Work PB3015 Q1a, PB3022; §3.17.3): `build-local.ps1` takes no mode
+  and no scope (`-Priority` only sets the process priority) — the audits, a gate slot (§3.14.6), the worktree's gate
+  lock, the populations and their check, for an implementer's commit and a re-gate after a fix alike. The battery and CI
+  do not use the driver.
 - **A gate outlives its caller, and a measured tree is gated once** (kb/Work PB3536; §3.14.12): it runs DETACHED in its
   run directory and its verdict file is the one thing any reader waits on, and a re-gate of an unchanged tree answers
-  from the recorded GREEN, saying `REUSED`.
+  from the recorded GREEN, saying `REUSED` (never from a record of schema below 5, which a gate before PB4328 wrote and
+  which may be a `LEG 1 ONLY` one).
 
-#### 3.14.2 The plan: `scripts/gate_plan.py`
+#### 3.14.2 The order: the classes red last time first, then longest first (kb/Work PB4328)
 
-The driver first LISTS each assembly (`dotnet test --list-tests`, 2.0 s for Conformance), so the plan assigns every
-discovered case explicitly. Inputs, each optional: the diff against the worktree's cut point; the impact map that
-serves the base (§3.13, `impact_store.nearest`: whatever its age); TIMINGS — the per-test durations in the trx files of this worktree's most recent COMPLETED
-gate (its run directory, §3.14.3), else the map's recorded durations; and that gate's REDS (trx outcome `Failed`).
+- **The first classes** (`scripts/gate.py` `Gate._first`): every test class with a red case in the worktree's previous
+  gate run (`TestResults/build-local/`, the newest earlier run with a verdict and a trx), its newest hand-run Linux gate
+  (`TestResults/linux-gate/`) or the failed merge-group run that bounced its pull request (fetched into
+  `TestResults/ci-bounce/` by `queue_facts.fetch_bounce_results`, kb/Work PB3644), read by `test_population.red_classes`
+  (the class of each trx definition with a Failed result, through the one trx reader, kb/Work PB3661). They are written
+  one per line to `<run>/first-classes.txt`, whose path every host gets as `WISEOWL_COBOL_GATE_FIRST`.
+  `test_population.TRX_WRITERS` names every live tool that writes a trx file and what the gate takes from it, and
+  `GateLegDriftTests` holds it equal to the tools (`test_population.py audit-trx-writers`). A trx the gate cannot read
+  is named on the console and KEPT in the run directory as `unreadable-<its directory>-<its name>.bad` (never `.trx`:
+  later readers glob a run's trx files), and the gate goes on without it: this orders the run, it never selects it.
+- **The orderer** (tests/_shared/GateLegs.cs `GateOrderer`, installed by `GateAssemblyRunner` in every run): the test
+  collections holding a first class go first, then every collection longest first by the committed weights file
+  (`tests/_shared/test-weights.json`, each class's median merge-group seconds, written by `scripts/shard_weights.py
+  generate`, kb/Work PB4329; a collection weighs its classes' sum, a class the file does not name its default), ties in
+  xunit's order. Longest first keeps a long collection from starting last and running alone at the end. ⛔ Its output is
+  checked to be a permutation of its input (`GateOrder.Permutation`): a dropped or repeated collection throws, and xunit
+  then keeps its own complete order. A first-classes file that cannot be read keeps xunit's order too, with a diagnostic
+  message; neither can cost a case.
 
-**The name key.** Every lookup — rank, tier, timing, red — keys on `NameKey(display name)`, never on the raw name,
-because the raw name is not stable (`b7`):
-- a partitioned family (`TestPartitioning.Slice`) puts row *i* in class `_P{i % Partitions}`, and that class is part
-  of every row's name. Appending one golden to the 85 manifest shifts every later corpus row by one position, so
-  **1,398 rows (450 test-seconds) change name** — to a raw-keyed plan all unknown, all forced into leg 1, and leg 1's
-  serial floor rises from 46 s to **208 s** (one `CorpusRunnerTests` partition). `NameKey` removes the partition suffix;
-  keyed that way, the append leaves ONE unknown test (the new golden) and the floor unchanged — re-run through
-  `gate_plan.py` itself (`b7`'s last table): one tier-0u case, a 15.3 s floor. Appending to 2002 renames 838 rows, to
-  2014 677; to 2023 or the negative manifest, only the sentinel.
-- the trx logger does not spell a name the way `--list-tests` and the test host do (kb/Work PB4274): it rewrites every
-  UTF-16 code unit outside XML's character range `[^\x09\x0A\x0D\x20-\uD7FF\uE000-\uFFFD]` as `\u` and four
-  lowercase hex digits (`RemoveInvalidXmlChar` in the SDK's `Microsoft.VisualStudio.TestPlatform.Extensions.Trx.TestLogger`),
-  so a theory argument holding a supplementary-plane character is listed literally and named `\ud834\udd5e` in the
-  trx; xunit's argument formatter has already written a lone surrogate as `\xd800` and a backslash as `\\`, so those
-  reach both sides alike. A red or a duration read from a trx then met no listed case. `NameKey` therefore starts
-  from the logger's spelling (`test_population.py#trx_spelling`, mirrored by `GateNameKey.TrxSpelling`), the identity
-  on a trx name.
-- **The contract** (`gate_plan.py#name_key`; the test hosts' leg filter mirrors it exactly, M12): put the display name
-  in the trx logger's spelling (above), then split the display
-  name at its FIRST `(`; in the part before it, split on `.`; when there are at least three segments and the
-  second-to-last (the CLASS) matches `(.+)_P\d+` in full, replace it with the capture; rejoin, and append the `(` and
-  everything after it unchanged. A theory's arguments are never touched. Only a partition class may carry the suffix:
-  `ImpactedTestsDriftTests` is red on any other `class …_P<k>` under `tests/` (a partition is exactly
-  `class Family_P<k> : FamilyBase<Slot<k>>`).
-- a display name must not embed a worktree path. 404 Unit rows (`ParenTokenTwinDriftTests`) carried the absolute
-  source path, so the map recorded in a detached worktree and a gate in another never share those names (`b8`:
-  `E:\\COBOL-wt\\battery87\\…` against this worktree's root). Substituting a placeholder for the root is NOT a fix:
-  xunit truncates a long argument with `···` at a fixed length, so the cut point moves with the root's length. The
-  test passes the repository-relative path instead (M12), and `GateLegDriftTests` arm (5) is red on any discovered
-  name in a gated assembly that contains the repository root, so the next such test cannot recur.
+#### 3.14.3 How the hosts run on this runner (xunit 2.9.2 · xunit.runner.visualstudio 2.8.2 · Test.Sdk 17.11.1)
 
-**The tiers.**
-- **Tier 0h — the host-only witnesses** (kb/Work PB3022, §3.17.3): every case whose class carries the xUnit trait
-  `[Trait("Host", v)]` with v in `gate_plan.HOST_ONLY` — ONE table, today `ReFS` (the Windows file-system race
-  witnesses, which CI's NTFS runners may not reproduce). Always leg 1, whatever the diff, exempt from the budget and
-  the cap. **Tier 0c — the cheap tree-wide sweeps**: every case whose class carries `[Trait("Sweep", "tree")]` — the
-  drift tests `drift_rules.py --sweeps` classifies as reading a whole tree — and costs at most `SWEEP_CHEAP_SECONDS`
-  of recorded time; leg 1 within the collection cap. Both traits are read from the test SOURCES (`class_traits`, so
-  the plan needs no build; a trait declared on partition classes `Family_P<k>` is found under the FAMILY, because the
-  tier is looked up by the class without its partition suffix: `gate_plan.trait_sets`/`family_of`, kb/Work PB4325
-  review), and `HostWitnessTraitDriftTests` holds the scan equal to the compiled attributes, the
-  Sweep set equal to the sweeps, and every race witness (a Unit class driving the sharing layer's host types from
-  concurrent workers) traited `Host`. That class, `gate_plan.TRAIT_GUARD`, is itself tier 0h: its cases spawn the
-  scans and cost 5-11 s under a gate's load, over `SWEEP_CHEAP_SECONDS`, so as a plain sweep it sat in leg 2 and the
-  Windows leg 1 never checked the two tiers; two branches on 2026-10-16 gated GREEN there over a trait drift (a new
-  sweep without the trait, a non-sweep with it) that the landing's whole-population Linux unit leg found (kb/Work
-  PB2730's finisher). A tier the gate does not check at every gate is a tier on trust.
-  **Tier 0d — the governing drift tests** (kb/Work PB3531): every case whose class the drift-rule index
-  (`scripts/spec/drift_rules.py`) says governs a file the diff changes, specifically or as a tree-wide sweep that reads
-  it — the rules an implementer is told to honor before it edits the file (MANDATORY-PRACTICES P11). Gathered from the
-  diff alone (`impacted_tests.Reach.drift_tests`), with or without a map, and checked before 0c; always leg 1, exempt
-  from the budget and the cap, so a dear sweep over a changed file runs there too. Why: a sweep of the COMMITTED tree
-  (`TrackedTree.Files`) once filtered `git ls-files` in code and named no path, so the index never listed it; one of
-  them (`CatalogCoverageDriftTests`, 44 s recorded) scans every tracked script, PB3523's branch edited one, the Windows
-  gate left the case in leg 2 (dear, so not 0c) and the landing's Linux unit leg found the red. Such a sweep now reads
-  the tree only through a declared `TreeScope` (`Under` / `Except` / `Kinds`, string literals in named arguments;
-  `tests/_shared/TrackedTree.cs`), which the index reads from the source and applies exactly as `TreeScope.Holds` does;
-  `TrackedTreeScopeDriftTests` holds every scan to a declared field, every declaration as the index reads it equal to
-  the value the compiler builds, and the index's `in_scope` equal to `Holds`. A sweep of the TEST sources reads them only
-  through that reader too (kb/Work PB3814): a recursive listing of `tests/` or of the repository root from the file
-  system descends into every running test host's `bin/` and `obj/`, where another test's file I/O creates and deletes
-  directories while the walk runs (a delete-pending sidecar-lock directory answered the walk with access denied), so
-  `TrackedTreeScopeDriftTests.NoTest_WalksTheTestsTreeFromTheFileSystem` refuses a recursive listing of the repository root,
-  of `tests/` or of a test project's directory (a data-only directory such as `tests/nist` holds no build output). The root
-  is FOLLOWED, not matched as spelled: `TestsTreeWalks` (a Roslyn syntax walk of the source) resolves a local, field,
-  property, assignment, helper-method call (its parameters bound to what THAT call passes, a `params` parameter to the
-  arguments it holds, a collection-expression or array argument to its elements), lambda parameter, `foreach` variable,
-  call argument or theory row to the (bare or namespace-qualified) `TestRepo` expression it was built from. A path is a
-  hazard when it is the repository root, `tests/`, a test project's directory, or that project's `bin/` or `obj/` (or
-  anything below them). A root it cannot follow is reported unresolved, never read as safe, and the drift test admits
-  only the two run-time directories of `RunDirectoryState`. (The walks of `src/` are a separate population: they enter the product projects' build
-  outputs, and no failure there is measured.) A drift test that reads the tree through
-  a HELPER CLASS names no path either (kb/Work PB3247: `ConstantNameLiteralPositionDriftTests` reads the whole corpus
-  through `SuiteManifest`, and the register drift tests (since replaced by `work_inventory.py`) read the register through
-  `WorkRegister`, so a golden or a note governed neither and the landing's Linux leg found the reds), so the index also reads every top-level type a drift
-  test uses by name (a member access, `new`, `typeof`, a base type, `using static`; never in a comment), in its own
-  test project or `tests/_shared`, and the drift test governs, transitively, every path those helpers name
-  (`Sources.inherited`; the per-file query says `— through <helper>`). Those paths govern (tier 0d) but never make a
-  class a sweep: the closure is file-grained, and a literal added to one helper must not move the `Sweep` trait of
-  every class that uses it. `TestRepo`'s own path helpers are read from its source (`test_repo`), never copied: the
-  copy the index once held lacked a helper (`Kb`, then), and `--check` fails on a helper in a shape it cannot read; a suite test named
-  by its literal id (`TestRepo.SuiteCase`, `SuiteFile`) governs that program and its sibling files specifically. A
-  helper call's path is its LEADING string literals (`TestRepo.Nist("cases", note + ".txt")` reads under `tests/nist/cases`; a
-  collection expression is its elements), and `Path.Combine(TestRepo.Root, "a", ...)` is read as the root helper it
-  spells out (24 such reads in 16 drift tests were invisible; seven of those classes scan a whole tree and now carry
-  the `Sweep` trait). A call's path is what its arguments SPELL, read by one evaluator with balanced parentheses
-  (kb/Work PB3112, `drift_rules.path_expr`): literals, `TestRepo.Root`, a class constant (`const string`,
-  `static readonly string`; never a local or a parameter, which is another method's; a constant may name a later one however long the chain, resolved pass by pass to a fixed point bounded by the declaration count, kb/Work PB3645), a nested `Path.Combine(..)` or
-  `TestRepo.X(..)`, up to the first argument it cannot spell. 62 of the 391 drift tests read a path the earlier
-  single-level regex missed (`TestRepo.Src(Path.Combine("WiseOwl.Cobol.Frontend", "Grammar"))`, `Path.Combine(TestRepo.Root,
-  GrammarDir)`, `Path.Combine("src", ..)`; five grammar-scanning classes governed no grammar file). A method that wraps
-  one read (`Read(params string[] parts) => File.ReadAllText(TestRepo.At(parts))`) is read at its CALLERS, whose
-  literals spell the path (only the arguments bound to the parameters the body's path carries: for
-  `AssertDeclares(string script, params string[] cases)` the `script`, never the `cases`); the body's own directory read is replaced by theirs unless some use of the wrapper (a method
-  group, `nameof`) spells none. That narrowing is exact, so three classes that were read as sweeps of `src` or
-  `scripts/spec` are specific to the files they name and lose the `Sweep` trait, and one (`LevelNumberArmDriftTests`,
-  which enumerates `src/WiseOwl.Cobol.Compiler`) gains it. A drift test that reads the repo and spells no path at all
-  (`TestRepo.At(tree)` from a theory's parameter) governs no file, so `drift_rules.py --check` refuses it
-  (`blind`): spell the trees with literals. With that check the index sees every read a drift test makes, and the
-  tier-0c cost cap (instances three to five of PB3112: a load-skewed sample, a case never re-timed) decides only the
-  ORDER of a sweep the diff cannot reach, so the timings store needs no change.
-  **Measured cost of PB3112's change** (shared store, 2026-10-24, contention-inflated as below): a grammar edit
-  governs 74 -> 78 classes, leg 1 476 -> 581 s (`SendingOperandDriftTests` 76 s and `ArithmeticOperandRoleDriftTests`
-  24 s join); a compiler emitter or binder edit 130 -> 128 and 125 -> 124 classes, 357 -> 346 s and 404 -> 404 s; a
-  golden-adding, test-editing, script-editing or `docs/CONFORMANCE.md` diff is unchanged (18, 17, 13 and 31 classes).
-  **Measured cost** (the Unit assembly, the
-  shared store's recorded seconds, no map, as at every gate on 2026-10-22; leg 1 before: 34,324 cases, 723 s, floor
-  49 s): a diff to one script plus its DEVLOG entry and note governs 10 classes, leg 1 1,209 s, floor 111 s; this
-  change's own diff 22 classes, 1,867 s, floor 154 s; four landed compiler fixes of 2026-10-22 (13–44 files) 123–173
-  classes, 3,057–4,227 s, floor 224 s (`OperandClassScreenDriftTests`). The recorded seconds of these drift tests are
-  contention-inflated (the nine classes this change touched ran their 60 cases in 2 s on an idle host against about
-  430 s recorded), so the gate's measured leg wall is the cost that counts: this change's own gate ran leg 1 in
-  118 s (Unit 111 s, Conformance 117 s, with 135 and 24 tier-0d cases) against 46 s (Unit 44 s, Conformance 46 s) for
-  the gate run just before it on another branch, on the same host and the same shared timings.
-  **A register's citations** (kb/Work PB3131): a drift test that reads a REGISTER by name — the traceability
-  inventory's code-locations (`src/.../File.cs#Member`) and test-refs (`unit:Class.Method`), docs/CONFORMANCE.md's
-  pins — and checks that its citations resolve is broken by a diff that never touches the register: one that deletes a
-  cited member, renames a cited test or deletes a cited file. Tier 0d therefore also holds every class that governs a
-  register citing what the diff REMOVES: `impacted_tests.removals` reads one `git diff -U0` (a deleted file; the
-  identifiers on removed lines that the file's new text lacks; the types it declares) and `drift_rules.citing` looks
-  each up in every non-C# file a drift test names, indexed once per plan by the three citation shapes (`Citations`).
-  Four landings on 2026-10-14..17 stopped in CI's Linux unit leg on `SpecTraceabilityInventoryDriftTests` after a
-  Windows leg 1 that left the class in leg 2 by its cost (4-6 s a case, over `SWEEP_CHEAP_SECONDS`); replayed with no
-  map, each of the four commits (611bdb3a2, 684d01b4b, 1a473341f, c3c6879ab) now names the class, with the citation it
-  breaks, at a plan cost of about 2-5 s. **A deletion is matched precisely**, because tier 0d sits outside the leg-1
-  budgets (branch review R1-1 of PB3131 measured one prose comment in a deleted file promoting 102 classes): a type
-  is one a C# line DECLARES (`TYPE_DECL`, a line's first token after its modifiers, never a comment, string or prose
-  word), deleting one file of a `partial` type deletes no type, and a deleted type breaks a dotted name only where a
-  member follows it (`Harness.Opens`, never `Program.cs` or `SourceKind.Program`); a deleted file breaks a path
-  citation only when the citation, resolved against the tree before the change (`TreeFiles`: the files whose path ends
-  with the citation's, or a golden pin's `<edition>/<test>` by name), names no file the change keeps, so
-  `docs/README.md` survives deleting `docs/sub/README.md` and a bare word is no path. Of the six most recent
-  file-deleting commits on main, five then promote nothing beyond their governed classes, and the sixth (cf9c85914)
-  promotes the inventory's classes on a real break: its code-location
-  `src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.WholeStore.cs#StoreHolds` names the deleted file. A removed identifier that survives elsewhere in
-  its file (in a comment) is not seen; a member declared in a deleted file of a `partial` type is not seen; a register
-  outside the drift tests' named files is not read.
-  `TIER_ORDER = ("0a", "0h", "0c", "0d", "0u", "1", "2", "3")`.
-- **Tier 0a** — a case of a test METHOD the diff ADDS OR EDITS (matched by method name in the assemblies the file is
-  compiled into): `impacted_tests.tests_changed` takes every test method whose lines — its attribute block, its
-  declaration, its body — a `-U0` hunk of the diff touches, and every theory whose `[MemberData]` source a hunk
-  touches (its rows are that member's values); a hunk of comment lines and blank lines outside every string literal
-  touches nothing, decided from the LEXED source on each side (`cs_members.code_lines`, carried per line by the
-  `Hunk`), never from a diff line alone, since a test's embedded COBOL program is a string whose lines may start `*`
-  or `//` or be blank (PB3190 review R1-1; the method level's `method_ids` reads the same flags). The member spans
-  come from `scripts/spec/cs_members.py`, a lexer that blanks comments, preprocessor lines, characters and every
-  string form (verbatim, interpolated holes, raw) so the braces left are code; a source whose braces do not balance
-  once lexed puts every test method of the file here, and `impacted_tests.py --audit-members` (run by
-  `ImpactedTestsDriftTests`) holds the lexer to every source of the gated test projects (kb/Work PB3190: until
-  2026-10-23 only an ADDED method was here, so under batched gating an edited test ran in leg 1 only if the tier-1
-  budget reached it, and its red surfaced first at the landing's Linux gate or in CI); a corpus row whose manifest entry, golden files or
-  registry file (`wiseowl/diagnostics/<id>.json`, `options/`) the diff changes, named by its `id` argument whole or as xunit
-  cuts a string argument over 50 characters (`id: "<first 50>"···`, which names every touched id it begins:
-  `gate_plan.names_golden`, kb/Work PB4147); a case red at this worktree's previous
-  gate on EITHER host: build-local's previous run, and the newest run of the Linux gate (`scripts/linux-gate.sh`, run by
-  hand, which leaves its trx files in `TestResults/linux-gate/`), both read
-  by ONE reader, `gate_plan.previous_gates` (kb/Work PB3155, PB3184), and a case red in the CI run that BOUNCED this
-  branch's pull request out of the merge queue (kb/Work PB3644): that red lives in GitHub, not in the worktree, so
-  before each plan `run_gate_legs.Host.fetch_bounce_results` asks the one GitHub reader
-  (`queue_facts.fetch_bounce_results`) for the test artifacts of the newest FAILED `merge_group` run of the checked-out
-  branch's open pull request (`gh run download`, `test-results-*`, one subdirectory per artifact) and puts them in
-  `TestResults/ci-bounce/` (`gate_plan.CI_BOUNCE_RESULTS`), which `previous_gates` reads as its third source. The
-  directory is replaced by the newest bounce's results (downloaded once per run: it holds a provenance marker), emptied
-  when the pull request has no failed merge-group run (a cancelled group is no bounce), and left as it was when GitHub
-  cannot be asked or the download fails (kb/Work PB3716: the download lands in a sibling `ci-bounce.fetching` directory
-  that replaces the results only once whole, so a failed or half-done download neither deletes the previous results nor
-  leaves a partial one, and the line it prints names the run the directory still holds); it orders the gate and never
-  selects it. Every live tool that writes a trx file into a
-  worktree is a row of `gate_plan.TRX_WRITERS` saying what the plan takes from it (the battery: nothing, it runs in its
-  own detached worktree), and `GateLegDriftTests` holds the table equal to the tools (`gate_plan.py
-  --audit-trx-writers`). Before it, a finisher's re-gate after a landing's Linux red ran neither failed case in leg 1
-  and read GREEN (w1076a / PB2921). Always leg 1, exempt from the budget and the cap. The implementer's own new tests and goldens are here by
-  construction. ⚠ **Corrected by the M11 acceptance (kb/Work PB1717):** this tier first held every case DECLARED IN a
-  changed test file. 68b X edits the corpus and continuity harnesses (`CorpusRunnerTests.cs`, `VersionMatrixTests.cs`),
-  so that rule put 5,774 cases and 8,037 test-seconds in tier 0a, and its first red ran after **62.8 %** of the work
-  (`b4`, measured through `gate_plan.py`). An edited HARNESS — a helper the tests call — is tier 1 through the map
-  instead, while an edited test method is tier 0a by its own span, never by its file's (the test
-  assemblies are recorded, §3.13), where cheapest-first finds X's first red after **0.32 %**.
-- **Tier 0u** — a case no timing source and no map knows (genuinely new, after `NameKey`). Each is charged the
-  assembly's median recorded time and admitted to leg 1 within its OWN budget, `LEG_ONE_UNKNOWN_BUDGET` = 2 % of the
-  assembly's recorded test-seconds, in declaration order; the overflow leads leg 2. A map far older than the base
-  therefore cannot swell leg 1 without bound.
-- **Tiers 1–3** — `impacted_tests.py` (§3.13); with no map, every case is tier 1; a case the map never recorded but a
-  timing source knows is tier 1. A key several cases share takes the lowest tier among them.
-- **Timings** are per case, by `NameKey`: the previous gate's trx duration, else the map's. Cases sharing a truncated
-  name are charged their mean; a theory xunit cannot serialize is LISTED as one case (`Class.Method`) but RUN as rows
-  (`Class.Method(item: …)`), so that listed case is charged its rows' sum. A case's COLLECTION is the map's collection
-  for its raw class (so the `process-globals` classes share one), else the raw class — a partition keeps its suffix,
-  being its own collection.
-- **Leg 1** = tier 0a + the admitted tier 0u + the cheapest cases of tier 1 while their recorded time stays within
-  `LEG_ONE_BUDGET` = 2 % of the assembly's recorded test-seconds AND the case's collection's budgeted leg-1 time stays
-  within `LEG_ONE_COLLECTION_CAP` = 15 s (tier 0 is exempt from the cap). **Leg 2** = everything else.
-- **A whole tier 1 when the change cannot be attributed precisely** (owner 2026-10-31, kb/Work PB4269: "Run the whole
-  tier"). The budget above holds only for a change the map attributes by method. When it cannot, tier 1 is a superset
-  the map could not narrow, and its cheapest 2 % is chosen by duration, not by what the change reaches. PR #880's
-  GREEN gate left out all 11 cases it broke that way. Then EVERY tier-1 case, and every tier-0u case, is in leg 1,
-  exempt from both budgets and the cap (`gate_plan.whole_tier_reason`). There are two causes: `every_tier1` (no usable
-  map, a grammar or build input, a file the map never saw: every case is tier 1, so the plan is the whole population),
-  and `drifted` (a changed file that differs between the map's commit and the base, taken at the file level,
-  `impacted_tests.drifted_change`). The gate's verdict line names the reason (`tier 1 whole (kb/Work PB4269): …`), so a
-  slow gate names the attribution hole that made it slow: PB4228 (reflection sweeps), PB4270 (stale maps), PB2696.
-- **Why the collection cap.** xunit runs a collection serially, so leg 1's wall is at least its largest collection's
-  part, and on a GREEN gate every other core idles at the leg barrier until that part ends. Uncapped, a 2 % budget
-  holds 2,883 of 9,217 Conformance cases and one `CorpusRunnerTests` partition holds 46 s of it; capped at 15 s it
-  holds 2,740 and the floor is 15.2 s (`b7`, keyed by `NameKey`; `b5` measured the uncapped budget). The barrier's
-  remaining green-path cost — that floor plus one more test-host start per assembly — is measured by M13 and counts
-  against the cap's retirement criterion (§3.14.6).
-- **Order inside a leg.** Collections by their best-ranked case (tier, then cost), and inside a collection its cases
-  by the same key — the assembly-level `TestCollectionOrderer` / `TestCaseOrderer` of §3.14.3. In leg 2 the
-  collections go LONGEST FIRST (largest recorded sum first), so a surviving long pole starts at once instead of
-  capping the wall; with no timings, xunit's own order. **The timings come from the shared timings store** every
-  gate publishes to (section 3.14.3 step 6; kb/Work PB2527), so a FRESH worktree's plan is timed too — before it,
-  every implementer gate ran in a fresh worktree and printed `timings none`, and its leg 2 ran in declaration order;
-  the worktree's own previous run times the plan only while no gate on the machine has published. Reds always come
-  from the worktree's own previous gates (tier 0a, both hosts'), never from the store; the Linux gate's durations
-  never time the plan (another host's).
-
-**The plan file** (`plan.json` in the gate's run directory) holds, per assembly, the leg-1 KEYS, the leg-2 KEYS, the
-per-key rank, and the plan's SHA-256. Its format (schema 1), written by `gate_plan.py --out` as canonical JSON (UTF-8,
-no BOM, sorted keys, no insignificant whitespace):
-`{"schema": 1, "base", "map", "map_state", "timings", "every_tier1": [reasons], "drifted": [paths], "whole_tier": reason or "", "constants": {LEG_ONE_BUDGET, …},
-"reds": {<source label>: {"keys": n, "listed": n}, …},
-"assemblies": {"Conformance": {"legs": [1, 2] | [1] | [2], "leg1": [key, …], "leg2": [key, …], "stats": {…}}, …},
-"sha256": …}`. `leg1` and `leg2` are in RANK order — a key's rank is its position, leg 1's list first — so the rank
-needs no second structure; `legs` names the legs the driver invokes the assembly for; `stats` is for people (tier
-counts, leg-1 cases, seconds and floor, the one-leg reason, the whole-tier reason); `reds` names the two sources whose reds are tier 0a
-(build-local's previous run under its timings label, `previous run: none` when there is none; the Linux gate's newest
-run as `linux gate <its results directory>`; `gate_plan.previous_gates`) with how many red keys each gave and how
-many of them name a case discovered here (`{"keys": 0, "listed": 0}` for a source that left none). Every plan the gate
-driver or the CLI writes carries both, and the plan summary prints them. `sha256` is the SHA-256 of the canonical JSON of every
-other field: the plan's identity on the verdict line and in the identity records. The handshake digest
-`WISEOWL_COBOL_GATE_PLAN_SHA256` is the SHA-256 of the file's BYTES, which `gate_plan.py` prints as its last stdout line.
-**The leg function:** `LegOf(case) = 1` if `NameKey(case.DisplayName)` is a
-leg-1 key, `2` if it is a leg-2 key, and `1` if it is neither — total over every name, so a case the plan never
-heard of runs in leg 1, never nowhere. Display names are the key's source because they are the one identity the
-trx's test definitions, the map and `--list-tests` share (`b8`); they are NOT unique (xunit truncates long theory
-arguments with `···`: in Unit one name covers four rows), so the function assigns every case of one name to the same leg, which
-keeps it total and disjoint (`b3`: two rows sharing a truncated name both ran in leg 1).
-
-**Degenerate inputs, decided PER ASSEMBLY.** No timings (neither a previous run nor the map knows any of its cases):
-leg 1 is tier 0a alone, ordered by tier — nothing can be told new from old, so nothing is tier 0u. When an assembly's
-leg 1 would be empty, or would hold its whole population, that assembly runs in ONE leg, and the driver does NOT
-invoke it for the leg its plan leaves empty — an executor handed no case makes vstest print "No test is available",
-no verdict line, and exit 0 (`b3`), which the leg report would score RED; the population check still covers that
-assembly through its other leg. An assembly whose whole recorded time fits `LEG_ONE_COLLECTION_CAP` runs entirely in
-leg 1: Characterization (33 cases, ~2 recorded test-seconds), whose 2 % budget alone would admit nothing.
-
-#### 3.14.3 How the legs run on this runner (xunit 2.9.2 · xunit.runner.visualstudio 2.8.2 · Test.Sdk 17.11.1)
-
-Each primitive the runner offers was measured (evidence `b3-order-probe/`: 24 collections × 4 facts, one theory whose
-two rows share a truncated name, one skipped fact, on this repository's package versions; and on the Conformance and
-Unit assemblies themselves, `b8`):
-
-| primitive | verdict |
-|---|---|
-| `dotnet test --filter` naming the leg's rows | ⛔ rejected. A leg of ~3,000 theory rows needs one `DisplayName=` term each: about 400 KB at ~130 characters a term, beyond Windows' 32,767-character command line. The complement leg needs the De Morgan complement of the whole union. A value containing a space silently matched NOTHING and exited 0 (`DisplayName~edition: 2023`, measured). Truncated `···` names are not unique keys. |
-| a runsettings `TestCaseFilter` | ⛔ rejected: the same expression language and the same defects, minus the length limit. |
-| vstest.console `/Tests:` | ⛔ rejected: a SUBSTRING match on names (ambiguous by construction) and not reachable through `dotnet test`. |
-| xunit `StopOnFail` (runsettings `xUnit.StopOnFail`) | ⛔ rejected: at the first red the test host CRASHED (`OperationCanceledException` in `XunitTestAssemblyRunner.RunTestCollectionAsync`) and vstest reported "Test Run Aborted". Two runs kept 0 and 6 of 99 results, never the red's — its message was lost, and the second run's summary read `Passed! - Failed: 0`. |
-| assembly `[TestCollectionOrderer]` + `[TestCaseOrderer]` | ✅ used. Under 4 parallel threads the planned collections started in the first wave and each ran its planned case first; unplanned ones kept xunit's order behind them. |
-| an executor that DROPS the cases outside its leg (`XunitTestFrameworkExecutor.RunTestCases` over a filtered list) | ✅ used. A dropped case leaves no trace in the trx — no result and no test definition — and the two legs' test definitions together equal `--list-tests` as a multiset, both rows of the truncated-name theory included (99 = 99). |
-| a framework CONSTRUCTOR that throws, to refuse a bad environment | ⛔ rejected: xunit catches it and silently falls back to its default framework — every case ran, `Passed!`, exit 0. |
-| an executor that throws | ⛔ rejected: exit 1, but "Catastrophic failure" with no verdict line and no trx result. |
-| an executor that reports every case as xunit's `ExecutionErrorTestCase` carrying the cause | ✅ used to refuse: every case Failed with the message, a `Failed!` verdict line, exit 1. |
-| `dotnet test --list-tests` | ✅ used for the population: 9,317 Conformance cases discovered in 2.0 s; the trx's test definitions of a full unfiltered run equal it as a multiset (`b8`). |
-
-So the leg filter lives INSIDE the test assemblies, where the test cases are objects rather than strings:
-`tests/_shared/GateLegs.cs` (linked into every project under `tests/` by `tests/Directory.Build.props`'s `_shared`
-glob, as `TestPartitioning.cs` is) holds `GateNameKey` (the name key, mirroring `gate_plan.py#name_key`), the plan
-reader, `GateTestFramework : XunitTestFramework`, whose executor runs `testCases.Where(c => plan.LegOf(c) == leg)`,
-and the two orderers (landed, kb/Work PB1719):
-- **The framework attribute is written by `tests/Directory.Build.props`**, for every project with `IsTestProject`,
-  as an MSBuild `AssemblyAttribute` (`Xunit.TestFrameworkAttribute("WiseOwl.Cobol.Gate.GateTestFramework",
-  "$(AssemblyName)")`): xunit resolves the framework by ASSEMBLY name, which a linked source file cannot spell, and
-  on any miss it silently runs its default framework — every case, no filter. `GateLegDriftTests` arm (4) checks it
-  in each gated assembly.
-- **The plan names an assembly by its key**: the test assembly's name without `WiseOwl.Cobol.Tests.` (`Conformance`,
-  `Unit`, `Characterization`), as the impact map and `gate_plan.py --list` do.
-- **The orderers are installed by the executor's assembly runner**, after xunit reads the assembly's own orderer
-  attributes and only under a plan, so a run with no handshake keeps xunit's order exactly (an orderer attribute
-  would also need the assembly name, and would act on every run). The collection orderer ranks a collection by its
-  best-ranked case; the case orderer ranks a class's cases by their own rank; unplanned ones keep xunit's order after
-  them. The executor also hands the runner the leg's cases in rank order, because xunit runs a collection's classes
-  in the order their first case arrives. ⛔ Each orderer's output is CHECKED to be a permutation of its input
-  (`GateOrder.Permutation`) and throws otherwise: xunit trusts an orderer's result, so a dropped case would silently
-  never run, while a thrown orderer is logged and xunit keeps its own complete order.
-- **Any failure while choosing the leg's cases** — reading the handshake, the plan, writing the identity record, or a
-  defect in that code — refuses the run the same way as a bad handshake below; the executor never throws.
-
-**The environment handshake** — three variables, all written by the driver:
-`WISEOWL_COBOL_GATE_PLAN` (the plan file), `WISEOWL_COBOL_GATE_LEG` (`1` or `2`) and `WISEOWL_COBOL_GATE_PLAN_SHA256` (the driver's
-digest of that file).
-- **None set** (the battery, CI, a gate with no plan, an IDE): every case, xunit's order, exactly as today. An
-  EMPTY value counts as unset (Windows cannot hold an empty environment variable at all).
-- **All three set and consistent** (the file reads, hashes to the digest — compared case-insensitively — and parses
-  as a schema-1 plan naming this assembly; the leg is `1` or `2`): the leg's cases, in plan order.
-- **Anything else** — one or two of them set, the file missing, unreadable or unparsable, a digest mismatch, a leg
-  other than `1` or `2`, a plan of another schema, one that names no entry for this assembly or puts one key in both
-  legs: the executor
-  reports EVERY case as an `ExecutionErrorTestCase` naming the cause
-  (`GATE ENVIRONMENT INCOMPLETE: WISEOWL_COBOL_GATE_LEG is set but WISEOWL_COBOL_GATE_PLAN_SHA256 is not`). The run is RED, never
-  a silent whole or partial run (measured on the real hosts, evidence `m12`: each of eight partial or stale
-  environments gave `Failed!` and exit 1; vstest keeps one failed result per test METHOD, because the error cases of
-  one method share its id, so Characterization's 35 cases show 4 failed results). A developer who exports two of the variables by hand to reproduce a leg therefore
-  gets a red battery, not a green one with a third of Conformance missing.
-- ⛔ **Every caller of `dotnet test` scrubs its environment** — the three handshake variables, and with them the two
-  OTHER environment channels that narrow a run while it exits 0 (M14, measured 2026-09-28 on Characterization's 33
-  cases): MSBuild imports every environment variable as a property, so `VSTestTestCaseFilter=FullyQualifiedName~Snapshot`
-  ran 31 cases, and `RunSettingsFilePath` (or `VSTestSetting`) naming a runsettings file with a `TestCaseFilter` did
-  the same — in the run AND in `--list-tests`, so a population listed in the caller's environment is blind to them.
-  The rule is written once, `test_population.py`'s `is_scrubbed`: the prefixes `WISEOWL_COBOL_GATE_` and `VSTest`, and
-  `RunSettingsFilePath`, case-insensitively. A python caller passes `env=scrubbed_env()` (`record_impact_map.py`,
-  `filter_population.py`; the driver merges its handshake over the scrubbed environment); every other caller runs
-  `python scripts/test_population.py scrubbed dotnet test …` — `battery.sh`, `gen-vcr.ps1`,
-  `gen-diagnostics-doc.ps1`, `guard-fast.sh`, `measure-battery-determinism.sh`, and the gate command
-  `record_verdicts.py` prints. It runs the command rather than printing names to unset, because a PowerShell script
-  run in the operator's session would otherwise delete the operator's own variables. **The CI workflow scrubs by
-  construction**: a GitHub-hosted job's environment is exactly what the workflow declares, so it scrubs by setting
-  none of those variables. `GateLegDriftTests` arm (6) runs `test_population.py audit-callers`, which is red on a
-  `dotnet test` in command position under `scripts/` (the hooks excepted: they receive commands as data), on a
-  python `["dotnet", "test", …]` without `scrubbed_env`, on a printed unscrubbed instruction, and on a workflow that
-  sets a scrubbed variable. A console marker printed from inside the test host was considered and not adopted: what
-  vstest shows of a host's output at `--verbosity quiet` is unmeasured, while the refusal arm and the population
-  check below are measured.
-
-**Each leg host writes its IDENTITY RECORD** into the gate's run directory — the plan's directory — as
-`leg-<n>-<assembly key>.json`, before it runs a case (written to a temporary name and moved into place): `schema`
-1, `assembly`, `leg`, `plan_sha256` (the digest it verified), `plan_content_sha256` (the plan's own `sha256`),
-`test_assembly` (file, MVID and SHA-256), `product_assemblies` (the SHA-256 of every `WiseOwl.Cobol.*`, `Legacy.*` and
-`cobol.dll` beside the test assembly: the compiler under test), `received` (how many discovered cases the host was
-handed) and `runs` (the name key of every case it runs, in run order). The recording build's `ImpactTestFramework`
-derives from `GateTestFramework` — overriding only its one extension point, `WrapMessageBus` — and the recording
-targets define `IMPACT_RECORDING`, whose presence in `DefineConstants` drops the `tests/Directory.Build.props`
-attribute, so an assembly always names exactly one framework (MSBuild evaluates item conditions after every property,
-so the props file sees the targets' constant).
-
-**The driver** is `scripts/run_gate_legs.py` (landed, kb/Work PB1721). `build-local.ps1` and `build-local.sh` (no
-mode since kb/Work PB3022) only set the process priority and call it; their `Leg` functions and their `filter_population.py` call are
-gone (a gate without a vstest filter has no term to prove live; `filter_population.py` stays for CI's shards, the
-generators and `record_verdicts.py`, which still filter), and so are their two copies of the audit list: the driver's
-`AUDITS` is the gate's one list (battery PHASE -1 and CI's `audits` job run the same scripts): the citation,
-evidence-supersession, rendered-view, witness-loss, rule-catalog and spec-correction audits, `SELF-TESTS`, the
-`WORK REGISTER` (`work.py check`) and `FLEET PRACTICES` (`check_practices.py`), the last two added after train 1067's
-PR 9 went red in CI on a work-register finding behind a green gate (kb/Work PB1957 row 44). `AUDIT_PREREQUISITES`
-makes the tree ready first exactly as the CI job does (`git submodule update --init tools/claude-skills`, which
-`check_practices.py` reads); a failed prerequisite is RED and no audit runs. `SelfTestDiscoveryDriftTests` maps every
-command of CI's `audits` job to an AUDITS entry, a prerequisite, or its recorded reason to run elsewhere: the one is
-`devlog.py check`, a LANDING check (an implementer's entry stays `DEVLOG/pending-*.md` until `enqueue.py` stamps it,
-and the check refuses a pending entry), run by `enqueue.py checks` and by CI on merge groups. They run CONCURRENTLY,
-beside the build and the legs (step 3 of 3.14.3), each audit's output printed as one block. One entry, `SELF-TESTS`, is
-every script self-test under `scripts/`, and the one audit that runs ONLY WHEN THE CHANGE TOUCHES TOOLING
-(`TOOLING_ONLY`; `inert_lane.py`'s `Lane.tooling`, 3.18; kb/Work PB4326): `scripts/self_tests.py` DISCOVERS them (a script that handles `--self-test`, read from its syntax tree, or a
-file named `test_*.py`/`test_*.ps1`), runs them in parallel, each with a private `COBOL_COORD_DIR` and a private git
-global config (on Windows also a TEMP that is a junction to the run's own scratch, `aliased_temp`, because CI's Windows
-runner hands every process the 8.3 alias `C:\Users\RUNNER~1\...` as TEMP and a test comparing an unresolved TEMP path
-with a resolved one is red only there otherwise; PR #714's bounce, kb/Work PB1957 row 25), and reports a self-test marked `# SELF-TEST-PLATFORM: windows — <reason>` as NOT RUN elsewhere with its
-reason. Its post-build half (`self_tests.py --built`: the self-tests marked `# SELF-TEST-NEEDS: build`,
-`filter_population.py`) runs beside the legs once the build is done, and only for a change that touches tooling: it was
-a wait of 145 s (median) after the legs of every gate, and a change that touches no tooling cannot turn it red. The same runner is CI's (the `audits` job on Linux,
-`windows-self-tests` on Windows, `linux-built-self-tests` for `--built`) and the Linux gate's (`selftests` and
-`selftests-built`), and `SelfTestDiscoveryDriftTests` holds every one of those entry points to it and forbids any of
-them to name a self-test by hand (kb/Work PB2563: eleven orchestrator self-tests had run in no gate, and
-`landing_check.py --self-test` only in CI). Measured 2026-10-08 on a loaded Windows host: the runner takes about 80 s,
-set by the eleven parallel `test_orchestrate_*.ps1` parts, against the old serial audit phase's 42.5 s; on Linux the
-44 self-tests that run there take 5 s. An implementer gate REUSES the recorded PASS of every self-test whose inputs are
-unchanged, every self-test takes a place in one machine-wide budget, and a hung one is HANG, never RED (§3.14.10,
-kb/Work PB2914). One gate:
-1. **The worktree's gate lock** — an exclusive OS lock on `<worktree git dir>/cobol-gate.lock`, held from before the
-   build to the verdict. A second gate in the same worktree REFUSES at once, naming the holder's pid: its build would
-   otherwise overwrite the binaries between the first gate's legs. Its verdict is `BUSY` (exit 3), neither RED nor
-   NOT RUN: it measured nothing and nothing is wrong, so a caller waits for the lock (kb/Work PB3527: the landing read
-   it as a red); `run_gate_legs.read_verdict` is the one reader of a verdict line (GREEN, BUSY, NOT RUN with its
-   cause, or RED). NOT RUN (exit 2) is a gate that measured nothing; it prints `NOT RUN [<cause>]`, and
-   `run_gate_legs.NOT_RUN_CAUSES` classifies each cause ONCE (kb/Work PB3526; review R2-1 of wave 1150). ENVIRONMENT
-   (outside the code the gated tree carries; no finisher fixes it): `[settings]` malformed shared gate settings, at the
-   start or while the gate queued; `[interpreter]` no runnable Python, or one without PyYAML; `[host]` no WSL; `[sdk]`
-   no .NET SDK in the Linux environment; `[tree]` the tree's git state unreadable or its clone failed. BRANCH (a failure
-   of code the gated tree carries: a landing gates the branch merged with main and runs that tree's own scripts):
-   `[driver]` the gate driver failed; `[population]` the population could not be listed after a GREEN build;
-   `[arguments]` the gate script refused its arguments; and, made by `enqueue.py`, `[verdict]` no verdict line and
-   `[unslotted]` a gate row that would run outside the shared slot; a NOT RUN naming no known cause is `[unclassified]`,
-   BRANCH. Two more rows classify the landing's merge of main, which is no gate but can fail the same two ways
-   (kb/Work PB3673, step 2 of section 3.17.2): `[merge-blocked]` ENVIRONMENT, `[merge-failed]` BRANCH. The driver's self-test holds every NOT RUN line of build-local.ps1, build-local.sh and linux-gate.sh, and
-   its own, to a known tag. A landing reads an ENVIRONMENT cause as no red of the branch (exit 2, no BLOCKED line:
-   retried once, a second is the operator's handoff); a BRANCH cause blocks like a red (exit 5, a finisher's) unless
-   main fails the same way at the same step (`enqueue.gate_main`: the same row in a clean checkout of the origin/main
-   the branch merged, once per main head and host, recorded in the common git dir's `enqueue-main-gate.json`; then exit
-   2, the operator's).
-2. A fresh RUN DIRECTORY `TestResults/build-local/<n>-<UTC stamp>/`: the plan, every trx, every identity record
-   and the verdict file. Nothing is written to a fixed name, so no earlier gate's file can be read as this one's. The
-   next gate's reds come from the newest run directory holding a verdict file (its timings from the shared timings
-   store, step 6); the driver keeps the last five. "Newest" is the run's NUMBER `n`, one past every run in the run
-   root, taken under the run root's lock (`runs.lock`) when the run directory is made, so the order of runs is the
-   order they started in and never the clock's: a stamp orders nothing finer than the clock's resolution, and on a CI
-   runner three runs started in the same microsecond (kb/Work PB3536, merge-group run 39888287569). The reuse rule
-   (3.14.12) and the pruning read the same order; a run named before the numbers (`<stamp>-<nonce>`) is older than
-   every numbered one.
-3. The change's lane (3.18) and the audits — started FIRST, since none needs a build or a test result, but BESIDE
-   everything after them (kb/Work PB4326, step 3 of the pipeline redesign PB4323), as `Gate._beside` work (`BESIDE =
-   ("audits", "post_build_self_tests")`). The inert lane joins them at once: they are its whole gate. A full lane runs
-   them beside the corpus fetch, the slot wait, the build, the listings and the legs, and stays FAIL-FAST: a red audit
-   that is known before the slot, and again before the legs start, ends the gate `RED — <audit> RED — fail-fast: an
-   audit was RED before the slot, the build and any leg: NO LEG RAN` in seconds (kb/Work PB2523: four of wave 1034's
-   eight first-run implementer reds were audit-only, each reported after a whole ~6-min population), and a red audit
-   found while a leg runs STOPS the leg hosts (`Host.stop_legs`: each host registered in `Host.legs_live`, its process
-   tree killed, one that starts afterwards killed at once) and ends the gate RED with their partial results NOT
-   measured. Without the script self-tests (a change that touches no tooling, `TOOLING_ONLY`) the audits take about 40
-   s, so they end before the build does and cost the critical path nothing; the 40-s serial valley that PB2880
-   measured ahead of the build is gone for every gate, not just the landing's. The FIRST red STOPS the audits still running — each with its whole process tree, so the
-   self-test runner's children go with it — and reports them `STOPPED`, never RED (kb/Work PB3061: wave 1062's agents
-   A and B had CITATIONS RED at 23 s and their verdict 5–7 min later, after the self-tests; a stopped self-test run
-   loses nothing, since every self-test that finished has recorded its PASS and the re-gate reuses it). (The deleted lander
-   mode, kb/Work PB3022, ran them BESIDE its build and legs, kb/Work PB2880: ahead of the build they were a 42-s serial
-   valley at about a third of the host in every landing, set by the self-test runner's long poles; PB4326 gives that
-   shape to the one gate) — then the per-worktree
-   GnuCOBOL corpus by THE one rule `scripts/external_corpus.py`, which `battery.sh`, the Linux gate and the impact-map
-   recorder apply too (absent in a fresh worktree, so fetched; a failed fetch makes the gate RED as `EXTERNAL CORPUS
-   FETCH FAILED, POPULATION UNMEASURED`; kb/Work PB2611). **The fetch runs
-   BEFORE the gate slot is taken and the audits OUTSIDE it** (kb/Work PB2524): they read only the tree, nothing the slot rations, and inside the
-   slot they were 35-45 % of its hold (about 230 s of serial Python per gate while every other implementer gate
-   queued; `verdict.json` of 22 gates, 2026-10-07). `audit_doc_citations.py`, the costliest, rules on every quotation
-   IN-PROCESS over one loaded standard (kb/Work PB2525: one `cite.py` process per citation was 75 of its 79 s).
-4. The gate slot (every gate, section 3.14.6), timed as `slot_wait_s` — taken BEFORE the build, so the
-   cap bounds the builds too. The lock order is always worktree lock, then slot, so no two gates can wait on each
-   other in a cycle. Shared gate settings that turn malformed while a gate queues stop it `NOT RUN [settings]`, with
-   the reason.
-   Then the solution build and the binaries' SHA-256 record — per assembly, the test assembly and every product
-   assembly beside it, the set each identity record names.
-5. `--list-tests` per assembly (the three concurrently), the plan — any planning failure, like no plan input, gives
-   ONE leg in the plain order, named on the verdict line — then per leg the three assemblies CONCURRENTLY (the
-   battery's `Conformance ∥ Unit ∥ Characterization` shape), each `dotnet test --no-build --logger trx` with the
-   handshake (`leg_env`: the scrubbed environment with all three variables merged over it, or none — a partial one
-   is refused in the driver itself), each printed through `test_leg_report.py`; an assembly the plan gives no case in
-   a leg is not invoked for it. A red leg 1 stops an implementer gate there: the population check names every case
-   of the uninvoked legs `NOT RUN` (all of them in `not-run-<assembly>.txt`, the counts on the verdict line).
-6. The population check (§3.14.4); the publish of every measured duration of this run to the SHARED TIMINGS STORE,
-   `<git common dir>/cobol-gate-timings/timings.json` (kb/Work PB2527; `gate_plan.publish_timings`,
-   a stopped or leg-1-only gate too: a case it did not run keeps its earlier duration, a case no longer discovered is
-   dropped by name key; a failed write is reported and recorded in `verdict.json` as `timings_store`, never in the
-   verdict, because timings change only the order); the identity check (each leg host's record names the digest the driver handed it,
-   the plan's content digest, the binaries step 3 hashed, the whole discovered population as `received`, and only
-   its own leg's keys in `runs`), then the verdict line and `verdict.json` (the mode, the slot, the plan, every
-   leg's per-assembly wall time and exit code, the time to the first red, and each population; and, since kb/Work PB4326,
-   `assembly_wall_s` — per assembly, its leg hosts' summed seconds — and `effective_concurrency` — those seconds over the
-   span the legs took, 3.0 when the three assemblies ran flat out side by side — the two numbers the step that replaces
-   the plan with the population, PB4328, reads its acceptance measurement from — and `tooling`, whether the change touched
-   tooling).
-
-`-Filter` was removed from both scripts and every caller in M13 (kb/Work PB1721), with `impacted_tests.py`'s filter
-line and `--plus`. The driver's `--self-test` fires every arm of §3.14.4 (3) against a planted host (a fake
-machine whose leg hosts write the trx, log and identity record the real ones write); the partial-handshake refusal
-on a real leg host is the C# handshake arm plus M12's measured evidence, and the driver's half is that it never
-hands a partial handshake.
+- **One host per assembly, three at once**: `dotnet test <project> --no-build --results-directory <run> --logger
+  trx;LogFileName=<assembly>.trx`, its whole output to `<run>/<assembly>.log`, inside the gate slot (`Slot.spawn_kwargs`)
+  at the gate's priority, each host leading its own process group so a RED audit stops its whole tree
+  (`Host.stop_hosts`, kb/Work PB4326). Each host's report is printed through `scripts/test_leg_report.py` (a green host
+  its verdict line, a red one its complete output; kb/Work PB1573), in a fixed order.
+- ⛔ **THE ONLY PLACE A TEST HOST'S ENVIRONMENT IS MADE** (`gate.host_env`): the scrubbed environment
+  (`test_population.scrubbed_env`: no `WISEOWL_COBOL_GATE_*`, `WISEOWL_COBOL_SHARD`, `VSTest*` or `RunSettingsFilePath`),
+  in English, with the gate's own `WISEOWL_COBOL_GATE_FIRST` when it has first classes and the harness observation log
+  in the run directory, one per host (kb/Work PB3108).
+- **The listings** (`dotnet test --list-tests`, scrubbed, one per assembly, kept as `<run>/listing-<assembly>.txt`) run
+  BESIDE the hosts, and so do, when the change touches tooling, the self-tests that read the built assemblies
+  (`self_tests.py --built`, kb/Work PB4326); both are joined after the hosts.
+- **The threads**: xunit's default `maxParallelThreads`, the processor count, measured best (§3.13); no
+  `xunit.runner.json` caps it. The test hosts run Server GC (kb/Work PB2526).
+- **The record** (`verdict.json`, schema 5): the verdict, its line and exit code, the measured head and trees, the base,
+  the toolchain, the slot, the lane, whether tooling was touched, the first classes, each host's exit, wall and finish,
+  the timings (`build_s`, `tests_s`, `first_red_s`, `wall_s`, the waits beside), `assembly_wall_s`,
+  `effective_concurrency` and each population's counts.
 
 #### 3.14.4 Soundness: the population check — ONE tool for every whole-assembly run
 
@@ -1750,7 +1225,7 @@ of a `--list-tests` output (`parse_listing`); `filter_population.py` and `record
 
 `GateLegDriftTests` (Unit) proves it fails: (1) `LegOf` is total and deterministic over synthetic cases with
 repeated, unknown and truncated names and an empty plan, and `NameKey` strips exactly the partition suffix; (2) each
-orderer's output is a permutation of its input, and a planted non-permutation throws; (3) `run_gate_legs.py
+orderer's output is a permutation of its input, and a planted non-permutation throws; (3) `gate.py
 --self-test` and `test_population.py --self-test` fire every arm on planted inputs — a dropped case, a duplicated
 case, a skipped case, a digest mismatch, a binary changed between legs, a red in leg 1 (stop, remainder named,
 RED/INCOMPLETE), no plan (one leg, plain order), an assembly whose leg 1 is empty (not invoked; its population still
@@ -1954,13 +1429,8 @@ cannot start.
 - **Two pools: a light gate never waits for a full one (kb/Work PB3724).** The cap exists to ration builds and test legs,
   and a gate that runs neither queued for it anyway: on 2026-10-25 a notes-only gate (the INERT lane, §3.18), whose only
   slot work is about a minute of script self-tests in a WSL clone of HEAD, waited ten minutes behind the implementers' full
-  gates. (The Linux half left the gate, kb/Work PB4327, so no gate takes a light slot now; the pool stays until the gate
-  driver is rewritten, PB4328.) The slot directory therefore holds TWO POOLS (`gate_slot.Pool`, `GATE_POOL` and `LIGHT_POOL`), each with its own
-  slot files, ticket queue (service order within it as above), cap, hold history and settings file (`light/`): the GATE
-  pool is the one above, and the LIGHT pool's cap is the coded default `DEFAULT_LIGHT_SLOTS = 2` (an implementor's choice,
-  not an owner decision: it adds at most two script-test runs beside the full gates), departed from by the `cap` key of
-  `light/settings.json` (`gate_slot.py set-light-cap N [--until ISO]`; `clear light-cap` removes it). ⛔ A pool's settings
-  live in its OWN directory, never as a new key of the gate pool's `settings.json`: every worktree reads that file with its
+  gates. (That LIGHT pool was deleted with kb/Work PB4328: its one user, the inert lane's Linux half, left the gate with
+  kb/Work PB4327, and an inert-lane gate now takes no slot at all.) ⛔ A setting lives in its pool's OWN directorylive in its OWN directory, never as a new key of the gate pool's `settings.json`: every worktree reads that file with its
   own copy of `gate_slot.py` and refuses a key it does not know, so a key added there would stop every gate in every
   worktree not yet merged with main (the PB3724 review, R1-1; the self-test's light-pool arm pins it). `Host.take_slot(label, say, pool)` takes the
   pool its work follows: the full lane's gate takes a GATE slot (the inert lane none), and `gate_slot.py run --pool
@@ -1970,7 +1440,7 @@ cannot start.
   says it waits for the first released slot of its pool.
 - **What holds it.** A Python caller holds a slot with `GateSlots.for_repo().acquire(label)` (a `Slot`, released by
   its `with` block or by the holder's death); a shell caller wraps a command with `gate_slot.py run [--label TEXT] --
-  <command>`, which exits with the command's code. `run_gate_legs.py` takes the slot after the worktree's gate lock
+  <command>`, which exits with the command's code. `gate.py` takes the slot after the worktree's gate lock
   and its audits (kb/Work PB2524: the audits read only the tree, so they never hold a slot) and BEFORE the build
   (§3.14.3), and holds it through the population check, so the cap bounds the concurrent solution
   builds as well as the test legs. The slot is held by the gate's whole PROCESS TREE. On Windows, acquisition puts the
@@ -1994,19 +1464,17 @@ cannot start.
   from its own environment, gates started with different N shared one FIFO queue, and a cap-1 gate at its head
   waited for slot 1 while slot 3 stood free, blocking every cap-3 gate behind it (2026-10-07 16:13 PDT). A setting
   may carry an expiry (an ISO time with its UTC offset); once it passes, the CODED DEFAULT is in force again with no
-  one acting, and `gate_slot.py clear [cap] [implementer-scope]` removes a setting (none named: both) so its default
-  is in force at once — clearing both rewrites the file without reading it, the one repair of a malformed file.
-  Malformed settings stop the gate with the reason. The same file carries the implementer SCOPE (`leg1`, batched
-  gating, the default; or `whole`, both legs — §3.14.1), set with `gate_slot.py set-implementer-scope leg1|whole
-  [--until ISO]`. ⛔ THE CODED DEFAULTS ARE THE OWNER'S DECISIONS (2026-10-10, kb/Work PB2514, PB2515), in
-  `gate_slot.py` and nowhere else: `DEFAULT_SCOPE = "leg1"` and `DEFAULT_SLOTS = 3` ("Cap 3 permanently"). The cap's
+  one acting, and `gate_slot.py clear [cap]` removes it so its default is in force at once — clearing rewrites the
+  file without reading it, the one repair of a malformed file. Malformed settings stop the gate with the reason. (The
+  implementer SCOPE `leg1|whole` the same file carried is gone with kb/Work PB4328: every gate runs the whole
+  population.) ⛔ THE CODED DEFAULT IS THE OWNER'S DECISION (2026-10-10, kb/Work PB2514), in `gate_slot.py` and nowhere
+  else: `DEFAULT_SLOTS = 3` ("Cap 3 permanently"), re-measured for the whole-population gate (§3.13: three gates together
+  503 s each, one alone 247 s). The cap's
   measurement (M2's acceptance: the largest N at which the lander's whole-Conformance leg stays within 1.25× of its
   quiet time with N implementer gates running, builds included; kb/Work PB1720, evidence `m13`: every gate cold, the
   lander at Normal, the implementers at BelowNormal, each rebuilding its compiler) gave quiet 143.1, 135.8 and 133.6 s;
   ONE implementer gate 1.24x and 1.30x; two 1.58x and 1.52x; three 1.56x — only N = 1 met the line. The owner chose
-  three anyway: at cap 1 implementer gates waited 62 % of their wall time (the w1033 survey), and under batched gating
-  every gate runs leg 1 only, so a landing's gate competes with three short gates rather than three whole
-  populations. The verdict line prints the wait and the slot (`Slot.describe()`).
+  three anyway: at cap 1 implementer gates waited 62 % of their wall time (the w1033 survey). The verdict line prints the wait and the slot (`Slot.describe()`).
   **The host's throughput at N concurrent legs (kb/Work PB4181, 2026-10-31, the reserved host).** N copies of the
   Conformance assembly (arm A of section 3.11.1, cache off, server GC) started together inside one slot, nothing else
   running, two repetitions; runs per hour = N × 3600 / the batch's wall:
@@ -2089,7 +1557,7 @@ above. The rejected design and both reviews are in the DEVLOG entry that pivoted
 | M14 | ONE population check for every whole-assembly run, and the handshake scrub (§3.14.3–4) | `scripts/test_population.py` + `--self-test`; `scripts/battery.sh` (PHASE 1 population check; scrub); `.github/workflows/build-and-test.yml` (`conformance-population` runs the tool on the shard trx files; the inline `grep -c` block DELETED; scrub); `gen-vcr.ps1`, `gen-diagnostics-doc.ps1`, `scripts/spec/record_verdicts.py`, `scripts/spec/record_impact_map.py` (scrub); `GateLegDriftTests` (6); `docs/DRIFT_RULES.md`. As landed, the arm-(6) scan also found `build-local.ps1`/`.sh`, `guard.sh`, `guard-fast.sh`, `measure-battery-determinism.sh` and `filter_population.py` (scrubbed), the scrub grew the VSTest channel, the two other `--list-tests` parsers were folded into the tool's, and `FilterPopulationGuardDriftTests` recognises the new shard shape | the self-test's arms (short, over, skipped, definitions vs results); the battery's PHASE 1 prints each assembly's population line and is red on a planted dropped case; CI's guard red on a planted shard overlap that keeps the count; `b8`'s two inputs pass | — | 60–100 turns |
 | M12 | the in-assembly leg filter, the handshake and the identity records (§3.14.3) — LANDED (kb/Work PB1719, evidence `m12`: no handshake, 35 / 29,715 / 9,319 definitions = `--list-tests`; a plan from `gate_plan.py` ran Characterization in one leg and Unit 28,754 + 961 and Conformance 5,069 + 4,250, each leg exactly its plan's cases, union = `--list-tests`, five identity records; eight partial or stale handshakes each `Failed!`, exit 1; a recording at its head recorded 39,100 tests, the gate's 9,319 + 29,746 + 35, with the watchdog clean) | `tests/_shared/GateLegs.cs` + `GateLegAudit.cs` (linked by the existing `_shared` glob, so no `.csproj` changes), `tests/Directory.Build.props` (the framework attribute, by assembly name), `tools/impact/ImpactTestFramework.cs` + `ImpactRecording.targets` (`IMPACT_RECORDING`), `tests/WiseOwl.Cobol.Tests.Unit/ParenTokenTwinDriftTests.cs` (repository-relative path argument), `GateLegDriftTests` (1), (2), (4), (5) in Unit and (4), (5) in Conformance and Characterization | with no handshake every assembly's count and verdict are unchanged; with a full one, each leg's trx definitions are exactly its leg's cases and the two legs' union equals `--list-tests`; each partial handshake (one variable, two, missing file, digest mismatch, bad leg) makes every case an execution error and the run RED; each leg writes its identity record; a planted non-permutation throws; no display name carries the repository root; a recording at HEAD still records every test (the recorder's watchdog) | M11 (the plan format) | 130–190 turns |
 | M2 | the cross-worktree gate cap, FIFO (§3.14.6) — LANDED (kb/Work PB1720: the tool in train 71; N measured by M13's landing, evidence `m13`: one implementer gate 1.24x and 1.30x of the lander's quiet Conformance leg, two 1.58x and 1.52x, three 1.56x; the owner set `DEFAULT_SLOTS = 3` on 2026-10-10, kb/Work PB2514) | `scripts/gate_slot.py` + `--self-test`; `tests/WiseOwl.Cobol.Tests.Unit/GateSlotDriftTests.cs` | the self-test's five arms (FIFO order included), on Windows and on Linux; N measured: the lander's whole-Conformance leg ≤ 1.25× quiet with N implementer gates, their builds included | — | 90–130 turns |
-| M13 | the ordered gate: driver, modes, worktree lock, run directory, fail-fast, and the wiring that deletes the selection interface (§3.14.1, §3.14.3–4) — LANDED (kb/Work PB1721, evidence `m13`: a real implementer gate GREEN with every population equal to `--list-tests`, 9,321 / 29,728 / 35; a planted leg-1 red stopped the gate after leg 1 11.7 s into the legs with 5,402 Conformance and 817 Unit cases named NOT RUN; a real lander-mode gate ran one leg with no slot; `check_practices.py` green with no `impacted_tests` pattern; the self-test's 22 arms each seen RED on a planted defect. Corrected on the way: a slot holder's children run with persistent build servers OFF (§3.14.6), the gate's audit list moved into the driver, and a defect in the driver still ends in one `NOT RUN` verdict line) | `scripts/run_gate_legs.py` (takes the slot, §3.14.6), `scripts/spec/record_impact_map.py` (the recorder takes a slot too, and spawns every child through `Slot.spawn_kwargs`), `scripts/build-local.ps1` + `.sh` (`-Filter` removed, a lander or implementer mode required (one shape since PB3022)\|implementer` required, `Leg` replaced); `scripts/spec/impacted_tests.py` (the filter line and `--plus` DELETED); `GateLegDriftTests` (3); in the SAME change every caller of either interface: `.claude/skills/workstream/templates/MANDATORY-PRACTICES.md` (I1, I2, I7), `implementer-brief.md`, `fix-lane-implementer-brief.md`, `dispatch-spec-implementer.md`, `lander-train-brief.md` and `lander-brief.md` (the lander mode), `.claude/skills/workstream/check_practices.py` (its required `impacted_tests\.py --base` patterns), `.claude/skills/workstream/SKILL.md`, `.claude/agents/cobol-implementer.md`, `.claude/skills/gate/SKILL.md`, `scripts/hooks/test_forbidden_commands.py` (its `-Filter` fixture), `tests/WiseOwl.Cobol.Tests.Unit/ImpactedTestsDriftTests.cs`, `docs/DRIFT_RULES.md`, `docs/DOC_INDEX.md`, plan §9, README, CONTRIBUTING, the PR template | the self-test's arms (§3.14.4 (3)); a real gate on a planted red in a leg-1 test stops after leg 1 with the remainder named; a real green gate's population equals `--list-tests` for all three assemblies; a real lander-mode gate runs one leg with no slot; `check_practices.py` green with no `impacted_tests` pattern left; over the next train, each implementer gate's time to first red, whole wall and green-path barrier cost (leg 1's wall beyond its share of the work, plus the extra host starts) are recorded, against the lander's single leg | M11, M12, M14, M2 | 170–220 turns |
+| M13 | the ordered gate: driver, modes, worktree lock, run directory, fail-fast, and the wiring that deletes the selection interface (§3.14.1, §3.14.3–4) — LANDED (kb/Work PB1721, evidence `m13`: a real implementer gate GREEN with every population equal to `--list-tests`, 9,321 / 29,728 / 35; a planted leg-1 red stopped the gate after leg 1 11.7 s into the legs with 5,402 Conformance and 817 Unit cases named NOT RUN; a real lander-mode gate ran one leg with no slot; `check_practices.py` green with no `impacted_tests` pattern; the self-test's 22 arms each seen RED on a planted defect. Corrected on the way: a slot holder's children run with persistent build servers OFF (§3.14.6), the gate's audit list moved into the driver, and a defect in the driver still ends in one `NOT RUN` verdict line) | `scripts/gate.py` (takes the slot, §3.14.6), `scripts/spec/record_impact_map.py` (the recorder takes a slot too, and spawns every child through `Slot.spawn_kwargs`), `scripts/build-local.ps1` + `.sh` (`-Filter` removed, a lander or implementer mode required (one shape since PB3022)\|implementer` required, `Leg` replaced); `scripts/spec/impacted_tests.py` (the filter line and `--plus` DELETED); `GateLegDriftTests` (3); in the SAME change every caller of either interface: `.claude/skills/workstream/templates/MANDATORY-PRACTICES.md` (I1, I2, I7), `implementer-brief.md`, `fix-lane-implementer-brief.md`, `dispatch-spec-implementer.md`, `lander-train-brief.md` and `lander-brief.md` (the lander mode), `.claude/skills/workstream/check_practices.py` (its required `impacted_tests\.py --base` patterns), `.claude/skills/workstream/SKILL.md`, `.claude/agents/cobol-implementer.md`, `.claude/skills/gate/SKILL.md`, `scripts/hooks/test_forbidden_commands.py` (its `-Filter` fixture), `tests/WiseOwl.Cobol.Tests.Unit/ImpactedTestsDriftTests.cs`, `docs/DRIFT_RULES.md`, `docs/DOC_INDEX.md`, plan §9, README, CONTRIBUTING, the PR template | the self-test's arms (§3.14.4 (3)); a real gate on a planted red in a leg-1 test stops after leg 1 with the remainder named; a real green gate's population equals `--list-tests` for all three assemblies; a real lander-mode gate runs one leg with no slot; `check_practices.py` green with no `impacted_tests` pattern left; over the next train, each implementer gate's time to first red, whole wall and green-path barrier cost (leg 1's wall beyond its share of the work, plus the extra host starts) are recorded, against the lander's single leg | M11, M12, M14, M2 | 170–220 turns |
 
 M6, M7, M11, M14 and M2 are independent and may run in parallel groups; M12 follows M11; M13 lands last, with M2's N
 in the same train so no implementer runs a whole-population gate uncapped. ⛔ **Nothing deletes an interface its
@@ -2133,7 +1601,7 @@ changed since the newest PASS — a, b, c (+k more)`; the line also says how lon
 that was a second or more, and the verdict line carries the budget's width and the total wait, so a gate log shows
 whether the inputs or the budget set the phase's time (wave 1062: 50 of 75 re-ran in every first gate, the slowest
 6 min, with no line saying what had changed). **Every gate reuses** (one shape, kb/Work
-PB3022; `run_gate_legs.py` adds `SELF_TESTS_REUSE` to its SELF-TESTS audit, and a self-test that runs records its
+PB3022; `gate.py` adds `SELF_TESTS_REUSE` to its SELF-TESTS audit, and a self-test that runs records its
 PASS); **CI's `audits` and `windows-self-tests` jobs and the Linux gate never reuse**: they run every self-test, so a
 branch that changes nothing a self-test reads reuses the PASS an earlier gate recorded, and the CI invariant (kb/Work PB1957) is
 untouched — CI still runs them all. The `--built` phase reads build output no record covers: it always runs and never
@@ -2184,7 +1652,7 @@ only the trace sees) re-runs exactly its self-test in every gate, at most the bu
 re-runs only its importer; a planted 60-s self-test under a 1-s detector is HANG; a malformed store record is skipped.
 Each arm was seen RED once with its mechanism disabled (reuse off: three arms; budget 99: the overlap arm; a hang
 mapped to RED: the HANG arm). `self_test_inputs.py --self-test` proves the static rule, the git classification and the
-tracer; `run_gate_legs.py --self-test` proves every gate reuses, and that a hung
+tracer; `gate.py --self-test` proves every gate reuses, and that a hung
 self-test is `SELF-TESTS HANG`; `SelfTestDiscoveryDriftTests` holds the arms by name and forbids `--reuse` in CI and
 the Linux gate.
 
@@ -2312,7 +1780,7 @@ these simply wastes tokens: but the workflow returned before its gate finished, 
 head and a round-2 review. - we should have the failure in the first place". The bar: the gate's result is PERSISTED
 and AWAITED by the orchestrator, never left to an agent's turn budget.
 
-**1. Detached, and followed.** `run_gate_legs.py` (what `build-local.ps1` and `.sh` run) makes the run directory and
+**1. Detached, and followed.** `gate.py` (what `build-local.ps1` and `.sh` run) makes the run directory and
 starts the gate itself (`--run <run>`) through `scripts/detached.py`, THE one launch that outlives its caller: a
 launcher that starts the target and exits at once, so no walk of the caller's tree reaches it (Windows: its own
 process group and a console with no window, out of the caller's job where the job allows it; POSIX: its own session).
@@ -2324,21 +1792,21 @@ caller that is killed leaves the gate running to its verdict. The gate writes `g
 pid file proves the gate took the lock. ⛔ **The window before the lock (kb/Work PB3707).** The run directory exists, and its
 child is alive, for the moment of interpreter start and imports before the child takes the lock and writes `gate.pid`; neither
 fact says a gate is coming. The launcher therefore records the child it spawned in `gate.spawn` (its pid), and the child's first
-act under the lock replaces it with `gate.pid`. `run_gate_legs.gate_phase` reads a run by THREE facts, never a pid alone: the
+act under the lock replaces it with `gate.pid`. `gate.gate_phase` reads a run by THREE facts, never a pid alone: the
 gate lock is held by a gate writing this run (RUNNING); else the run has no `gate.pid`, is younger than `START_WINDOW_S` (60 s,
 read from the stamp in its name, so no gap lies between the directory and its record) and its spawn record, when it has one,
 names a live process (STARTING); else the gate DIED. A reused pid can therefore read a dead child as starting for the window and
 no longer. `enqueue.tested_locally` reads a STARTING run as a verdict still owed (exit 12, GATE BUSY, never exit 14), and
 `--await` reports it PENDING. To stop a gate, end the process `gate.pid` names.
 
-**2. One way to wait: the verdict file.** `run_gate_legs.watch` — the CLI `run_gate_legs.py --await <run> [--worktree
+**2. One way to wait: the verdict file.** `gate.watch` — the CLI `gate.py --await <run> [--worktree
 W] [--wait-s N]` — reads the run directory, never a log's tail: the record's line and exit code once `verdict.json` is
 there; `NOT RUN [verdict]` (exit 2, BRANCH) when the gate DIED without one (`gate_running`, over `gate_phase`: the worktree's gate
 lock is not held by a gate writing that run and the run is not STARTING; never the pid's liveness, which the OS reuses; only the
 follower watches its own freshly spawned child); PENDING (exit 4: exit 3
 is BUSY, kb/Work PB3527) when the wait passes first; `NOT RUN [run]` (exit 2, ENVIRONMENT) when there is no such
 directory. A relative `<run>` (`TestResults/build-local/<run>`, the form an agent returns) names a run of the worktree
-that gated it, never of the reader's checkout: `run_gate_legs.resolve_run` is the one resolution, and the rolling
+that gated it, never of the reader's checkout: `gate.resolve_run` is the one resolution, and the rolling
 wave's await (`--worktree`, the agent's worktree) and `reports.Report.gate_state` (the report's Worktree field) both
 read from the main checkout through it (review R1-1 of wave 1152). The follower, the rolling wave's await and
 `reports.Report.gate_state` all read through `watch`.
@@ -2354,7 +1822,7 @@ also needs no awaiter: `reports.Report.finished` calls a GATE-PENDING report fin
 is GREEN for the report's HEAD and measured that commit's own tree, unchanged while it ran; the planner waits on a
 gate still running and plans a finisher for one that ended otherwise, and the branch survey reads the same predicate.
 
-**4. Reuse: a measured tree is gated once.** Every verdict record (schema 4, `run_gate_legs.RECORD_SCHEMA`) carries the HEAD, the TREE the gate
+**4. Reuse: a measured tree is gated once.** Every verdict record (schema 4, `gate.RECORD_SCHEMA`) carries the HEAD, the TREE the gate
 measured at its start and again at its end (`Host.measured_tree`: the git tree id of the working tree — tracked files
 as on disk, untracked files git does not ignore — written through a private copy of the index that keeps the index
 file's own mtime, git's racy-git reference: an edit in the cached entry's own second keeps its size and mtime, and only
@@ -2363,9 +1831,9 @@ that reference makes git re-read such an entry by content; a path
 in every agent worktree is no difference and a GREEN at a clean commit measures as that commit's own tree, the tree
 `gate_state` checks: review R1-2 of wave 1152), the base it planned
 against and its exit code. A gate whose tree and base equal those of an earlier GREEN run in this worktree whose tree
-did not change while it ran, under a scope that run covered (a `LEG 1 ONLY` GREEN covers `leg1`; a plain GREEN covers
-both), takes the worktree's gate lock, answers from that record WITHOUT running an audit, a slot, a build or a leg, and
-says so: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — REUSED (kb/Work PB3536): tree … at head
+did not change while it ran, written by a gate that ran the whole population (record schema 5 on, kb/Work PB4328),
+takes the worktree's gate lock, answers from that record WITHOUT running an audit, a slot, a build or a host, and
+says so: `=== BUILD-LOCAL GATE: GREEN — REUSED (kb/Work PB3536): tree … at head
 … was gated in run <the measuring run> and has not changed since, so nothing ran (run <this run>); that gate: … ===`.
 It is the self-test reuse rule (§3.14.10) extended to the gate, keyed on what was measured rather than on a branch or
 a head: a RED is never reused, and the landing's gate on the merged head (another tree, another base) always runs.
@@ -2437,7 +1905,7 @@ clones by hand. Now one mechanism in `linux-gate.sh` owns the footprint:
   branch not yet merged with it) goes when it is this tree's or older than 3 hours;
 - then it measures the filesystem and refuses, `=== LINUX GATE: NOT RUN [disk] (…) ===`, below 1,000,000 free inodes
   or 20 GB free (about twelve built gates: the gate cap of 3 and every implementer gate beside it). `disk` is an
-  ENVIRONMENT cause in `run_gate_legs.NOT_RUN_CAUSES`, so a landing retries it and never blames the branch. A
+  ENVIRONMENT cause in `gate.NOT_RUN_CAUSES`, so a landing retries it and never blames the branch. A
   filesystem that counts no inodes (btrfs) is held to the space bound alone; one `df` cannot measure is NOT RUN.
 `linux-gate.sh --self-test` drives each exit path on real directories and processes (status 0, 1 and 2, and a TERM
 mid-way with a background leg and its child, which must both be gone), the reaping rules and both bounds over a
@@ -2487,11 +1955,10 @@ PB3029, §3.17.4). Before it, `core.autocrlf=true` checked a script out CRLF in 
 died at its first line (`set: -: invalid option`).
 
 **Verdict.** One `=== LINUX GATE: GREEN|RED|NOT RUN [<cause>] ===` line naming the HEAD it tested. NOT RUN is never
-green; its cause's class is `run_gate_legs.NOT_RUN_CAUSES`' (§3.14.3 item 1).
+green; its cause's class is `gate.NOT_RUN_CAUSES`' (§3.14.3 item 1).
 
-**Which legs run (MANDATORY-PRACTICES I8, L10): all four, at every landing** — and at an implementer gate only while
-the owner has set the implementer scope to `whole`; under batched gating (kb/Work PB2515, the default) the Linux gate
-is the landing's, beside its gate, until the targeted leg runs on both hosts (§3.17.3, kb/Work PB3022 item 10).
+**Which legs run (MANDATORY-PRACTICES I8): all four by default**, by hand, to reproduce a Linux CI red; no gate runs
+the Linux gate (kb/Work PB4327).
 - **Measured at `044d2aa4f`** (wave 1015 group V), 2026-10-04, `--nice`: unit 137 s, characterization 10 s,
   conformance 127 s, **guard 81 s** (364 NIST programs MATCH, audit clean, legacy Unit + Integration green). The
   guard leg adds about 1.4 minutes to a ~4.6-minute gate.
@@ -2761,7 +2228,7 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    measuring build met a locked DLL used to end `CONFLICT in …RuntimeAbi.pin` and cost a finisher for a merge with
    nothing to resolve). `merge_drivers.merge` answers with a `Merged` (`clean`, `conflicts`, or `incomplete`: abi_pin's
    `Failure(cause, why)`, also for git's own refusal of the merge commit), and the cause is read from the gate's one
-   classification, the `merge-*` rows of `run_gate_legs.NOT_RUN_CAUSES`: `merge-blocked` (ENVIRONMENT: a build output
+   classification, the `merge-*` rows of `gate.NOT_RUN_CAUSES`: `merge-blocked` (ENVIRONMENT: a build output
    another process holds, MSB3027 or MSB3021, a full disk, no SDK, git refused a write) is exit 2, `MERGE NOT COMPLETED`,
    no report line, retried once by the lane and then the operator's; `merge-failed` (BRANCH: the merged tree's pin, build
    or measuring test) blocks like a red, exit 5, a finisher's. `merge_drivers.py merge` ends exit 3 with `NOT COMPLETED
@@ -2780,8 +2247,8 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    covers it when it read GREEN with exit 0, measured the COMMITTED head's own tree (`tree` equals `head_tree`), and its head IS the tip or every later
    commit is main's, a clean merge of main or register-only (`prune_worktrees.unreviewed_since`, the review's coverage rule).
    The record is written by the BRANCH's gate driver and read by main's lander, so a record the driver wrote before a
-   field the lander requires existed (`run_gate_legs.LANDING_FIELDS`: `head_tree`; schema below
-   `LANDABLE_SCHEMA`) is its own reason, "written by a gate older than this lander" (`run_gate_legs.predates_landing`),
+   field the lander requires existed (`gate.LANDING_FIELDS`: `head_tree`; schema below
+   `LANDABLE_SCHEMA`) is its own reason, "written by a gate older than this lander" (`gate.predates_landing`),
    never "uncommitted changes", and its BLOCKED remedy is to merge origin/main into the branch FIRST and gate the merged
    head: gating the tip again with the same older driver writes the same record (kb/Work PB3660). Whenever the lander
    starts to require a new field: raise `RECORD_SCHEMA` and `LANDABLE_SCHEMA` and add it to `LANDING_FIELDS`
@@ -2795,7 +2262,7 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    record the landing gates their tip once itself. That one gate's verdicts are read as before: exit 5 on a red,
    the host named; exit 12, never a red, when the gate driver says BUSY (another gate holds the worktree's gate lock,
    nothing ran, and the landing lane retries it once the lock is free, kb/Work PB3527; the same exit, for the same wait, when the
-   worktree's own gate is still running (or STARTING: spawned moments ago, its child alive, the lock not yet taken, kb/Work PB3707) and has written no verdict, `run_gate_legs.gate_phase` over `live_gate` (the gate lock held; never a process id, which Windows reuses), kb/Work PB3662, where the record would
+   worktree's own gate is still running (or STARTING: spawned moments ago, its child alive, the lock not yet taken, kb/Work PB3707) and has written no verdict, `gate.gate_phase` over `live_gate` (the gate lock held; never a process id, which Windows reuses), kb/Work PB3662, where the record would
    otherwise read as exit 14, UNTESTED, and stop the branch); exit 15, never a red, in step 4 when the branch merged a predecessor
    whose pull request is still open into main and so adds that pull request's stamped DEVLOG entry beside its own
    (`enqueue.open_predecessors`: nothing queued, and the lane retries it once no open pull request owns an entry the
@@ -2833,7 +2300,7 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    `src/WiseOwl.Cobol.Runtime/IO/`) runs the Linux unit and conformance legs from WSL at its own gate (MANDATORY-PRACTICES I8;
    `make_dispatch_specs.host_io`, kb/Work PB3381: wave 1118's PB3333 was refused at its landing by 31 NIST RL programs that
    differ on Linux, 2.6 h after its DONE), and CI's merge group runs all of them. Every gate row (the rare gate above) hands
-   its gate to `run_gate_legs.py`, which takes the slot, and `enqueue.py` runs no row while one would not (PB3104; the
+   its gate to `gate.py`, which takes the slot, and `enqueue.py` runs no row while one would not (PB3104; the
    Linux row, which ran under `gate_slot.py run` as a landing ticket, is gone with the landing's Linux gate).
 4. **The merge queue** (PB3024): GitHub builds the merge group (several queued PRs on top of `main`), the workflow runs on
    the `merge_group` event — the full matrix: Linux and Windows, the sharded conformance legs, unit + characterization,
@@ -2900,9 +2367,8 @@ only whole-population run.
 
 #### 3.17.3 The gate driver's ONE mode (PB3022)
 
-- **LANDED (kb/Work PB3022):** the lander's mode of `build-local` and its arm of `run_gate_legs.py` are deleted: the gate has one shape, the
-  ordered leg 1 of §3.14 (a plan, fail-fast, a gate slot). The scope `whole` stays as the owner's on-demand switch
-  (`gate_slot.py set-implementer-scope whole`) and the battery's form; it is nobody's per-change gate.
+- **LANDED (kb/Work PB3022):** the lander's mode of `build-local` and its arm of `gate.py` are deleted: the gate has one shape, the
+  whole-population gate of §3.13–3.14 (no plan and no scope since kb/Work PB4328), inside a gate slot.
 - **REMOVED (kb/Work PB4327; owner 2026-10-31, PIPELINE-REVIEW.md section 7) — the Linux half of the targeted leg.** PB3612
   (owner 2026-10-11 ~12:45, "Yes, both hosts, leg 1") ran the SAME plan's legs in a WSL clone of the committed head
   inside the implementer's gate (`Gate._linux_leg`, `Host.linux_leg`, `linux-gate.sh --legs targeted`, the driver's
@@ -3213,7 +2679,7 @@ self-tests initialize. Two sweeps moved to make `kb/` inert, the way the conflic
 | Runner | Inert lane | Full lane |
 |---|---|---|
 | CI `changes` (`classify --base <group base or before> --head <sha>`) | `run_matrix=false`: `audits` (merge group) + `ci-gate` | the matrix |
-| local gate (`run_gate_legs.py`, `Host.lane`, over the measured working tree against the base) | the audits, then `… GREEN — INERT LANE (kb/Work PB2878): …`, no slot, build or test leg; under either scope | the ordered gate |
+| local gate (`gate.py`, `Host.lane`, over the measured working tree against the base) | the audits, then `… GREEN — INERT LANE (kb/Work PB2878): …`, no slot, build or test leg; under either scope | the ordered gate |
 | hand-run Linux gate (`linux-gate.sh`) | classifies nothing (kb/Work PB4327): it runs the legs it is asked to | every leg, under the watch |
 
 The audits run in every lane of the local gate (they are where a register note, a citation or a DEVLOG entry is checked);
@@ -3272,7 +2738,7 @@ Windows runs carry no watch; the Linux runs are the whole population on every co
 a READ entry naming the reader (the path leaves the inert lane) or making the reader an audit, never deleting the watch.
 
 **Drift test.** `InertLaneDriftTests`: the `changes` job classifies through the module and carries no path regex; every
-`dotnet test` line of a Linux job runs under the watch; `run_gate_legs.py` classifies through the module, and `linux-gate.sh` classifies nothing but
+`dotnet test` line of a Linux job runs under the watch; `gate.py` classifies through the module, and `linux-gate.sh` classifies nothing but
 watches its test legs; `inert_lane.py check` is GREEN (every entry names a tracked path, every READ entry lies
 under an INERT one). The classification's logic and the watch's firing (a read, a listing, a READ path, the command's
 own exit code) are `inert_lane.py --self-test`'s arms, run by the self-test runner in every gate and CI (the inotify

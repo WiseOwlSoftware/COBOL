@@ -24,7 +24,7 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   <scratch>` measures it.
 - **No lander, no train (kb/Work PB3023).** The wave ends when its groups return; every branch reviewed CLEAN is the
   loop's landing lane's (`land_lane.py`, kb/Work PB3103), which lands each with `scripts/orchestrator/enqueue.py land`
-  (main merged in, the gate on both hosts under the gate slot, the DEVLOG stamp, the landing checks, one pull request
+  (the local gate's record read, never re-gated; main merged in, the DEVLOG stamp, the landing checks, one pull request
   into the merge queue); the `enqueue` unit handles the reviews, the finishers, the re-arms and the leads.
 - **Same-file successors.** A file with more open notes than the cluster cap (`model_rules.json` `wave.max_notes_per_group`, the cap `plan_wave.py` hands `fix_clusters.py`) becomes
   two or more groups, and each later one declares `after: '<predecessor letter>'`. A wave dispatches only the first

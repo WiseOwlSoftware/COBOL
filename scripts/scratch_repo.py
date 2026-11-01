@@ -13,7 +13,7 @@
     python scripts/scratch_repo.py --self-test      # the fixture's guarantees and the audit's arms, then --audit
 
 ⛔ WHY ONE FIXTURE. Until PB3584 fifteen self-tests `git init`-ed their own scratch repositories, and seven defined a
-git helper of their own (devlog.py `sh`, prune_worktrees.py `g`, rendered_views.py `git`, run_gate_legs.py two,
+git helper of their own (devlog.py `sh`, prune_worktrees.py `g`, rendered_views.py `git`, gate.py two,
 enqueue.py `sh`, landing_check.py `sh`, test_plan_wave.py `git`), each with its own identity, its own checking (some
 raised with git's message, some with none, some never checked) and its own idea of the environment. A change to how a
 self-test drives git reached one helper and left the others behind. Measured: run outside scripts/self_tests.py

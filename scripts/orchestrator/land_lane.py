@@ -598,13 +598,13 @@ def landing_check_free(worktree: str) -> tuple[bool, str]:
 
 def gate_lock_free(worktree: str) -> tuple[bool, str]:
     """Whether no gate runs in the worktree now (exit 12's wait): the worktree's gate lock (the gate driver's own:
-    run_gate_legs.Host.lock_path) is free, taken and released at once (an OS lock, freed when its holder dies, so a
-    lock that reads held is a live gate). That lock is also `run_gate_legs.live_gate`'s reader, the one the landing
+    gate.Host.lock_path) is free, taken and released at once (an OS lock, freed when its holder dies, so a
+    lock that reads held is a live gate). That lock is also `gate.live_gate`'s reader, the one the landing
     answers exit 12 by (kb/Work PB3662: a gate holds it until its verdict file is written); a gate process id is
     never read (Windows reuses them). A hand run of linux-gate.sh holds no lock and gates nothing a landing reads
     (kb/Work PB4327), so it is not waited on."""
-    import run_gate_legs  # noqa: PLC0415  (scripts/: the gate driver owns its lock's path)
-    return lock_free(lambda: run_gate_legs.Host(pathlib.Path(worktree)).lock_path(), f"the gate lock of {worktree}")
+    import gate  # noqa: PLC0415  (scripts/: the gate driver owns its lock's path)
+    return lock_free(lambda: gate.Host(pathlib.Path(worktree)).lock_path(), f"the gate lock of {worktree}")
 
 
 def land_lock_free(worktree: str) -> tuple[bool, str]:
@@ -1507,9 +1507,9 @@ def self_test() -> int:
         f3b.free = True
         expect("exit 12 once the gate lock is free: retried at the same head", f3b.tick(c3b) == ["w2b"], str(f3b.started))
         lock_wt = ScratchRepo.init(root / "wt-lock").path
-        import run_gate_legs  # noqa: PLC0415
+        import gate  # noqa: PLC0415
 
-        held = ExclusiveLock.try_take(run_gate_legs.Host(lock_wt).lock_path(), "gate (pid 356316)")
+        held = ExclusiveLock.try_take(gate.Host(lock_wt).lock_path(), "gate (pid 356316)")
         try:
             while_held = wait_free(EXIT_GATE_BUSY, str(lock_wt))
         finally:
@@ -1524,14 +1524,14 @@ def self_test() -> int:
         f3c = Fake([row("w2c", "WAITING TO LAND", "o1")])
         f3c.wait = wait_free
         gate_wt = ScratchRepo.init(root / "wt-w2c").path
-        owed_run = gate_wt / run_gate_legs.RUN_ROOT / "000005-20261024T225004Z"
+        owed_run = gate_wt / gate.RUN_ROOT / "000005-20261024T225004Z"
         owed_run.mkdir(parents=True)
         # The implementer's gate holds the worktree's gate lock until it has written its verdict. Its gate.pid names THIS
         # process, which stays alive afterwards: a process id says nothing about the gate (review R1-1: Windows reuses a
         # dead gate's), so the lane relaunches the moment the lock is free, whatever that pid file still names.
-        run_gate_legs.write_pid(owed_run, os.getpid())
-        gate_held = ExclusiveLock.try_take(run_gate_legs.Host(gate_wt).lock_path(),
-                                           f"gate {gate_wt} (pid 356318, since T{run_gate_legs.RUN_LABEL}{owed_run})")
+        gate.write_pid(owed_run, os.getpid())
+        gate_held = ExclusiveLock.try_take(gate.Host(gate_wt).lock_path(),
+                                           f"gate {gate_wt} (pid 356318, since T{gate.RUN_LABEL}{owed_run})")
         try:
             f3c.tick(c3c)
             finish(c3c, "w2c", EXIT_GATE_BUSY, "GATE BUSY — the gate run 000005-20261024T225004Z of this worktree is "

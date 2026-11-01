@@ -33,7 +33,7 @@ public sealed class SelfTestDiscoveryDriftTests
 
     /// <summary>The scripts that read the live tools' trees, each through <c>live_tools.tracked</c> and never a copy.</summary>
     private static readonly string[] LiveTreeReaders = ["self_tests.py", "line_endings.py", "temp_names.py", "scratch_repo.py",
-        "standard_streams.py", "gate_plan.py"];
+        "standard_streams.py", "test_population.py"];
 
     /// <summary>A <c>git ls-files</c> argument list that holds the live trees' list (<c>ROOTS</c>, or the name a reader
     /// imported it as): the listing <c>live_tools.tracked</c> owns, spelled by a reader.</summary>
@@ -183,7 +183,7 @@ public sealed class SelfTestDiscoveryDriftTests
                  {
                      "scripts/orchestrator/test_alloc.py", "scripts/orchestrator/test_orchestrate_core.ps1",
                      "scripts/orchestrator/landing_check.py", "scripts/hooks/test_forbidden_commands.py",
-                     "scripts/guard-population.sh", "scripts/run_gate_legs.py", "scripts/self_tests.py",
+                     "scripts/guard-population.sh", "scripts/gate.py", "scripts/self_tests.py",
                      "conformance-suite/harness/generate.py",
                  })
         {
@@ -206,17 +206,17 @@ public sealed class SelfTestDiscoveryDriftTests
     [Fact]
     public void EveryGateEntryPoint_RunsTheRunner_AndNamesNoSelfTestByHand()
     {
-        string driver = File.ReadAllText(TestRepo.Scripts("run_gate_legs.py"));
+        string driver = File.ReadAllText(TestRepo.Scripts("gate.py"));
         string linux = File.ReadAllText(TestRepo.Scripts("linux-gate.sh"));
         string workflow = File.ReadAllText(TestRepo.At(".github", "workflows", "build-and-test.yml"));
 
         Match audits = Regex.Match(driver, @"^AUDITS = \((.*?)^\)", RegexOptions.Multiline | RegexOptions.Singleline);
-        Assert.True(audits.Success, "scripts/run_gate_legs.py no longer declares its audits as `AUDITS = (…)`");
+        Assert.True(audits.Success, "scripts/gate.py no longer declares its audits as `AUDITS = (…)`");
         Assert.Contains(@"(""SELF-TESTS"", [""scripts/self_tests.py""])", audits.Groups[1].Value, StringComparison.Ordinal);
         Assert.Matches(@"(?m)^BUILT_SELF_TESTS = \[""scripts/self_tests.py"", ""--built""\]\r?$", driver);
         // kb/Work PB4326: the gate's SELF-TESTS audit is the one that runs only when the change touches tooling.
         Assert.Matches(@"(?m)^TOOLING_ONLY = \(""SELF-TESTS"",\)\r?$", driver);
-        // kb/Work PB2914, PB3022: only the gate REUSES a recorded PASS (run_gate_legs adds SELF_TESTS_REUSE to its
+        // kb/Work PB2914, PB3022: only the gate REUSES a recorded PASS (gate adds SELF_TESTS_REUSE to its
         // audits); CI and the Linux gate run every self-test, and so record the PASSes.
         Assert.Matches(@"(?m)^SELF_TESTS_REUSE = ""--reuse""\r?$", driver);
         Assert.DoesNotContain("--reuse", linux, StringComparison.Ordinal);
@@ -247,7 +247,7 @@ public sealed class SelfTestDiscoveryDriftTests
         var discovered = Discovered();
         var sources = new Dictionary<string, string>(StringComparer.Ordinal)
         {
-            ["scripts/run_gate_legs.py AUDITS"] = audits.Groups[1].Value,
+            ["scripts/gate.py AUDITS"] = audits.Groups[1].Value,
             ["scripts/linux-gate.sh"] = linux,
             ["scripts/build-local.ps1"] = File.ReadAllText(TestRepo.Scripts("build-local.ps1")),
             ["scripts/build-local.sh"] = File.ReadAllText(TestRepo.Scripts("build-local.sh")),
@@ -355,7 +355,7 @@ public sealed class SelfTestDiscoveryDriftTests
 
     /// <summary>
     /// ⛔ EVERY COMMAND OF CI's <c>audits</c> JOB RUNS IN THE GATE (the CI invariant; kb/Work PB1957 row 44): each
-    /// <c>python3 &lt;script&gt;</c> the job runs is an entry of <c>scripts/run_gate_legs.py</c> AUDITS, each
+    /// <c>python3 &lt;script&gt;</c> the job runs is an entry of <c>scripts/gate.py</c> AUDITS, each
     /// <c>git submodule update --init &lt;path&gt;</c> is one of its AUDIT_PREREQUISITES, or the script is recorded here with
     /// where it runs instead. The next audit CI gains is a red here until the gate runs it too.
     /// </summary>
@@ -367,13 +367,13 @@ public sealed class SelfTestDiscoveryDriftTests
     [Fact]
     public void EveryCommandOfCisAuditsJob_IsAGateAudit_OrSaysWhereItRuns()
     {
-        string driver = File.ReadAllText(TestRepo.Scripts("run_gate_legs.py"));
+        string driver = File.ReadAllText(TestRepo.Scripts("gate.py"));
         string workflow = File.ReadAllText(TestRepo.At(".github", "workflows", "build-and-test.yml"));
         Match audits = Regex.Match(driver, @"^AUDITS = \((.*?)^\)", RegexOptions.Multiline | RegexOptions.Singleline);
         Match prerequisites = Regex.Match(driver, @"^AUDIT_PREREQUISITES = \((.*?)^\)",
             RegexOptions.Multiline | RegexOptions.Singleline);
         Assert.True(audits.Success && prerequisites.Success,
-            "scripts/run_gate_legs.py no longer declares `AUDITS = (…)` and `AUDIT_PREREQUISITES = (…)`");
+            "scripts/gate.py no longer declares `AUDITS = (…)` and `AUDIT_PREREQUISITES = (…)`");
 
         // A CI audit that is NOT a tree audit, and where it runs instead.
         var elsewhere = new Dictionary<string, string>(StringComparer.Ordinal)
@@ -397,12 +397,12 @@ public sealed class SelfTestDiscoveryDriftTests
                                          StringComparison.Ordinal)).ToList();
         Assert.True(notInGate.Count == 0,
             "CI's audits job runs these and the local gate does not (a CI red no local gate shows first, kb/Work PB1957): "
-            + string.Join(", ", notInGate) + ". Add each to scripts/run_gate_legs.py AUDITS, or record here where it runs.");
+            + string.Join(", ", notInGate) + ". Add each to scripts/gate.py AUDITS, or record here where it runs.");
         var notPrepared = submodules.Where(p => !prerequisites.Groups[1].Value.Contains($"\"--init\", \"{p}\"",
                                                 StringComparison.Ordinal)).ToList();
         Assert.True(notPrepared.Count == 0,
             "CI's audits job makes these submodules ready and the gate does not: " + string.Join(", ", notPrepared)
-            + ". Add each to scripts/run_gate_legs.py AUDIT_PREREQUISITES.");
+            + ". Add each to scripts/gate.py AUDIT_PREREQUISITES.");
         var stale = elsewhere.Keys.Where(s => !scripts.Contains(s)).ToList();
         Assert.True(stale.Count == 0, "recorded as running elsewhere but no longer in CI's audits job: "
             + string.Join(", ", stale));
