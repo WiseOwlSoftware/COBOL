@@ -33,7 +33,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class ImageWidthIsStorageWidthTests
 {
-    private static DataItem Leaf(PicInfo pic) => new() { Level = 5, CobolName = "X", CsName = "X", Pic = pic };
+    private static DataItem Leaf(PicInfo pic) => new() { Level = 5, CobolName = "X", ClrName = "X", Pic = pic };
 
     private static PicInfo Numeric(Usage usage, int digits, int scale = 0, bool signed = false) =>
         new(PicCategory.Numeric, usage, Length: digits, Digits: digits, Scale: scale, Signed: signed);
@@ -198,7 +198,7 @@ public sealed class ImageWidthIsStorageWidthTests
     [Fact]
     public void MixedUsageGroup_ImageWidthEqualsByteWidth()
     {
-        var group = new DataItem { Level = 1, CobolName = "G", CsName = "G" };
+        var group = new DataItem { Level = 1, CobolName = "G", ClrName = "G" };
         group.AddMember(Leaf(Numeric(Usage.Binary, 4)));    // 2 bytes
         group.AddMember(Leaf(Numeric(Usage.Packed, 4)));    // 3 bytes
         group.AddMember(Leaf(Numeric(Usage.Display, 4)));   // 4 bytes
@@ -228,7 +228,7 @@ public sealed class ImageWidthIsStorageWidthTests
     [Fact]
     public void AlphanumericGroupHoldingANationalLeaf_ImageWidthEqualsByteWidth()
     {
-        var group = new DataItem { Level = 1, CobolName = "G5", CsName = "G5" };
+        var group = new DataItem { Level = 1, CobolName = "G5", ClrName = "G5" };
         Add(group, Leaf(Alnum(2)));
         Add(group, Leaf(National(2)));
         Add(group, Leaf(Alnum(2)));
@@ -242,9 +242,9 @@ public sealed class ImageWidthIsStorageWidthTests
     [Fact]
     public void NationalGroup_ImageWidthIsPositions_AndANestedGroupIsCountedTheSameWay()
     {
-        var group = new DataItem { Level = 1, CobolName = "NG", CsName = "NG", GroupUsage = GroupUsage.National };
+        var group = new DataItem { Level = 1, CobolName = "NG", ClrName = "NG", GroupUsage = GroupUsage.National };
         Add(group, Leaf(National(2)));
-        var inner = new DataItem { Level = 5, CobolName = "IN", CsName = "IN", GroupUsage = GroupUsage.None };
+        var inner = new DataItem { Level = 5, CobolName = "IN", ClrName = "IN", GroupUsage = GroupUsage.None };
         Add(group, inner);
         Add(inner, Leaf(National(3)));
         Assert.Equal(3, inner.ImageWidth);
@@ -257,9 +257,9 @@ public sealed class ImageWidthIsStorageWidthTests
     [Fact]
     public void NationalGroupInsideAnAlphanumericGroup_ContributesItsBytes()
     {
-        var outer = new DataItem { Level = 1, CobolName = "G", CsName = "G" };
+        var outer = new DataItem { Level = 1, CobolName = "G", ClrName = "G" };
         Add(outer, Leaf(Alnum(1)));
-        var ng = new DataItem { Level = 5, CobolName = "NG", CsName = "NG", GroupUsage = GroupUsage.National };
+        var ng = new DataItem { Level = 5, CobolName = "NG", ClrName = "NG", GroupUsage = GroupUsage.National };
         Add(outer, ng);
         Add(ng, Leaf(National(2)));
         Add(ng, Leaf(National(1)));
