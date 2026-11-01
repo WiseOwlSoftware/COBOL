@@ -1573,6 +1573,15 @@ check("fix lane: a group meeting only a FINISHED branch is planned as its contin
       (True, "", ["worktree-done"]))
 check("... its pred says merge that branch first and names the shared file",
       all(t in FG[("PB5",)].pred for t in ("CONTINUATION", "merge_drivers.py merge", "worktree-done", "w1090c", F_BIND)), True)
+# kb/Work PB4396: JOIN IN-FLIGHT WORK. Two groups on two files of ONE finished branch are one continuation of it, never
+# two branches behind it: the first takes the branch's claim, so the second meets it; the record reaches groups.json.
+fl2 = pw.plan(notes, [cl(F_BIND, "PB5"), cl("src/X/Misc.cs", "PB9")], [], [], lambda b: "ABSENT", {}, RULES,
+              budget_points=100,
+              busy={"worktree done (worktree-done)": InFlight({F_BIND, "src/X/Misc.cs"}, "worktree-done", finished=FIN)})
+check("PB4396: two groups on the files of one finished branch are ONE continuation of it, its record in groups.json",
+      ([(g.notes, g.continues) for g in fl2["groups"]],
+       [as_group_json(g, "9401", notes, "COBOL0001-COBOL0003").get("continues") for g in fl2["groups"]]),
+      ([(["PB5", "PB9"], ["worktree-done"])], [["worktree-done"]]))
 check("fix lane: a dispatch of the group's OWN notes never defers it (the hold already decided them)",
       ("PB9",) in FG, True)
 check("fix lane: a group meeting another dispatch's RUNNING group waits, naming it",

@@ -41,9 +41,8 @@ def continuation_pred(reps: list[Report], shared: dict[str, list[str]]) -> str:
         + ". Your work is planned ONTO those branches: before touching code, merge each of them into yours with `python scripts/merge_drivers.py merge <branch> --keep` (never a rebase, never a cherry-pick, never a bare `git merge`: the merge drivers of kb/Work PB3610 keep both sides of a keyed catalogue), "
           "read each report's \"For the next implementer\" section, and build on its work. They land ONCE, with "
           "your branch: the branch survey holds each IN FLIGHT while this dispatch continues it, even one reviewed "
-          "CLEAN (MANDATORY-PRACTICES O2), so your report covers their work too, and the landing carries ONE DEVLOG "
-          "entry (devlog.py check refuses two): extend the `DEVLOG/pending-*.md` entry each merged branch carries "
-          "with your work, retitled for the whole step, never a second one beside it.")
+          "CLEAN (MANDATORY-PRACTICES O2), so your report covers their work too; write your own DEVLOG pending entry "
+          "beside theirs, which the landing's stamp folds into the ONE entry (devlog.py stamp).")
 
 
 @dataclasses.dataclass

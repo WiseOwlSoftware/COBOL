@@ -1476,7 +1476,7 @@ one-file-per-entry DEVLOG stand.
    high, medium, low, info) and the verdict is a threshold (`review_findings.py verdict --blocking`): critical, high and medium
    block in every round a finisher can still answer, critical and high only in the round after the last finisher; low and info
    never block, and each non-blocking one is a LEAD the stamp lists under `## Review findings` and the wave returns in
-   `leads`. **Nothing is held for a same-file successor:** the successor starts once the predecessor's review loop has ended,
+   `leads`. **Nothing is held for a dependency successor** (a one-file chain lands ONCE instead, with its last link: kb/Work PB4396, `prune_worktrees.chain_links`): the successor starts once the predecessor's review loop has ended,
    merges the REVIEWED head, and its pull request merges on top of the predecessor's. Unanswered findings have ONE source (the
    predecessor's findings file) and ONE reader (`review_findings.last_verdict`: round, branch, head, verdict and the number of
    blocking findings), which the wave's `predecessorEnd` and `prune_worktrees.py` `carrying_findings` both call; a report
