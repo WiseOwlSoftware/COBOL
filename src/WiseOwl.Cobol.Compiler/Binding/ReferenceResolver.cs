@@ -1846,7 +1846,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
             // The cell is a reference-type StorageCell held in a READONLY field, so its guard passes it through
             // rather than taking it by ref (kb/Work PB971).
             ? new AccessPath([new RootFieldSegment(cls.BackingCellClrName,
-                OmittedFormalGuard.Of(cls.Canonical) is { } g ? g with { CarrierPrefix = cls.BackingCellClrName } : null)])
+                OmittedFormalGuard.Of(cls.Canonical) is { } g ? g with { PassesCarrier = true } : null)])
             : null;
 
     /// <summary>⛔ THE COMPONENT-ORDINAL BASE OF A CELL-BACKED CLASS'S RECORD SCOPE (kb/Work PB2094), as the leading term of
@@ -1934,11 +1934,22 @@ public sealed partial class ReferenceResolver(DataBinder data)
         return new WindowScope(cell, backing, terms, bitTerms, ordinalBase, ordinalTerms, nested);
     }
 
-    /// <summary>⛔ THE ONE ROOT SEGMENT OF AN ITEM'S ACCESS PATH (kb/Work PB971): the item's field, carrying the
+    /// <summary>⛔ THE ONE ROOT OF AN ITEM'S ACCESS PATH (kb/Work PB971, PB4320): the item's field, carrying the
     /// *-ARG-OMITTED guard when the item is a formal parameter (<see cref="OmittedFormalGuard.Of"/>), so every
     /// path builder — element, whole table, Tier-B backing — checks a reference to an omitted formal the same
-    /// way, and a new builder that roots through here cannot forget it.</summary>
-    private static RootFieldSegment RootOf(DataItem root) => new(root.ClrName, OmittedFormalGuard.Of(root));
+    /// way, and a new builder that roots through here cannot forget it. A CARRIER-RESIDENT formal has no field: its
+    /// root is its carrier (<see cref="DataItem.ResidentCarrier"/>) and the next step is the storage the carrier
+    /// designates, <see cref="CarrierValueSegment"/> (ISO §14.2.3 GR8).</summary>
+    private static void AddRoot(List<AccessSegment> segs, DataItem root)
+    {
+        if (root.ResidentCarrier is { } carrier)
+        {
+            segs.Add(new RootFieldSegment(carrier, OmittedFormalGuard.Of(root)));
+            segs.Add(CarrierValueSegment.Instance);
+        }
+        else
+            segs.Add(new RootFieldSegment(root.ClrName, OmittedFormalGuard.Of(root)));
+    }
 
     // ── Name resolution ──────────────────────────────────────────────────────────────────────────────────
 
@@ -2393,7 +2404,8 @@ public sealed partial class ReferenceResolver(DataBinder data)
         bool first = true;
         foreach (var seg in chain)
         {
-            segs.Add(first ? RootOf(seg) : new MemberSegment(seg.ClrName));
+            if (first) AddRoot(segs, seg);
+            else segs.Add(new MemberSegment(seg.ClrName));
             first = false;
             if (seg.Occurs is not null) segs.Add(new FixedTableSegment(indexExprs[si++], odo?.Invoke(seg)));   // fixed OCCURS → CobolTable.At
             else if (seg.IsDynamicTable) segs.Add(new DynTableSegment(indexExprs[si++]));         // dynamic OCCURS → RefSending/RefReceiving
@@ -2462,7 +2474,8 @@ public sealed partial class ReferenceResolver(DataBinder data)
         int oi = 0;
         foreach (var n in chain)
         {
-            segs.Add(first ? RootOf(n) : new MemberSegment(n.ClrName));
+            if (first) AddRoot(segs, n);
+            else segs.Add(new MemberSegment(n.ClrName));
             first = false;
             if (ReferenceEquals(n, table)) break;
             if (!n.IsTable) continue;
