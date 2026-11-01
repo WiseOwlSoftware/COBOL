@@ -685,7 +685,7 @@ public sealed class DataItem
     private CsNameScope? _memberNames;
 
     /// <summary>Append <paramref name="member"/> as this group's next subordinate, ALLOCATING its
-    /// <see cref="ClrName"/> in this group's record-struct scope (<see cref="ClrNames.Allocate"/>; kb/Work PB2093): a
+    /// <see cref="ClrName"/> in this group's record-struct scope (<see cref="CsNames.Allocate"/>; kb/Work PB2093): a
     /// member spelled like a sibling, or like a member the struct itself carries (<c>AsImage</c>, <c>Equals</c>),
     /// takes the smallest free <c>_n</c>. The ONE way a member joins a group, so no path can bypass the scope.</summary>
     public void AddMember(DataItem member)
