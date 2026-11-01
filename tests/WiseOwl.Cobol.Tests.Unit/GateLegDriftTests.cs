@@ -88,21 +88,20 @@ public sealed class GateLegDriftTests
 
     /// <summary>
     /// Arm (3), the driver half: <c>gate.py --self-test</c> passes and still drives every arm by name — the
-    /// fail-fast stop and its named remainder, the population's dropped, duplicated and skipped cases, the identity
-    /// mismatches, the empty leg, the no-plan fallback, the scrubbed all-or-none handshake,
+    /// fail-fast stop and its named remainder, the population's dropped, duplicated and skipped cases, the host that
+    /// wrote no trx, the classes red at the previous run and in the merge queue's bounce run first (kb/Work PB4328),
+    /// the scrubbed test-host environment,
     /// the refused second gate (kb/Work PB1721; DESIGN-test-build-ci.md section 3.14.4), ONE SHAPE for every gate
-    /// (kb/Work PB3022: no mode, a slot, the audits ahead of it, fail-fast), the scope
-    /// <c>leg1</c> of batched gating (kb/Work PB2515), the coded default when no scope is set: leg 1 only, its verdict
-    /// <c>LEG 1 ONLY (batched gating, PB2515)</c>, never a plain GREEN; and the
-    /// audits' fail-fast (kb/Work PB2523): a red audit stops the gate before the build, or the legs when it is found
-    /// while they run (kb/Work PB4326); and the audits run outside the gate slot, beside the build and the legs, the
-    /// script self-tests only for a change that touches tooling (kb/Work PB2524, PB4326); and every gate publishes its
-    /// measured durations to the shared timings store a fresh worktree's plan reads (kb/Work PB2527); and a gate
+    /// (kb/Work PB3022: no mode, a slot, the audits ahead of it, fail-fast) that runs the whole population; and the
+    /// audits' fail-fast (kb/Work PB2523): a red audit stops the gate before the build, or the hosts when it is found
+    /// while they run (kb/Work PB4326); and the audits run outside the gate slot, beside the build and the hosts, the
+    /// script self-tests only for a change that touches tooling (kb/Work PB2524, PB4326); and every gate records the
+    /// seconds each host ran in its verdict file; and a gate
     /// outlives its caller and is gated once per measured tree (kb/Work PB3536): it runs DETACHED and is followed, it
     /// survives a tree kill of its follower, `--await` reads its verdict file (PENDING, a process that DIED: NOT RUN
     /// [verdict]) and resolves a relative run name against the worktree that gated it, and a re-gate of an unchanged
-    /// tree (coord.NEVER_WORK left out) answers from a recorded GREEN, never from a RED, another tree, another base or
-    /// a narrower scope. ⛔ This test does
+    /// tree (coord.NEVER_WORK left out) answers from a recorded GREEN, never from a RED, another tree, another base
+    /// or a record a gate before PB4328 wrote. ⛔ This test does
     /// not run the self-test (kb/Work PB2882): the runner runs it in every gate and CI job, and this holds that each arm
     /// is still DECLARED (<see cref="SelfTestArmSource"/>); run a second time under the harness's fixed 120 s budget it
     /// took 311 s, retried, in train 1058's lander gate.

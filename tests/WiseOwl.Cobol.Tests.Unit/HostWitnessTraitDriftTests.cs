@@ -27,7 +27,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>
 /// Why the sweep tier exists (the operator's proposal 2, 2026-10-11): the bookkeeping reds a landing used to find
 /// in its whole-population run (a stale index, an unregistered row) come from cheap tree-wide drift tests; run in
-/// every gate's leg 1, the implementer finds them instead.
+/// every gate, the implementer finds them instead.
 /// </para>
 /// </remarks>
 [Trait("Sweep", "tree")]

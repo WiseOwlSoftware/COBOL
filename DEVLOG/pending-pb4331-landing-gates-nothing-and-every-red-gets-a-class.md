@@ -39,6 +39,8 @@ reused pull request keeps its number) and re-queue it as RUNNER. The fetch now a
 provenance marker only when it names that run; otherwise the red is UNCLASSIFIED with the fetch's line. Arms: queue_facts.py
 (the run each fetch answers) and land_lane.py arm 18 (a failed download, a mismatched run).
 
+**Review round 2 (blocking R2-1).** The merge of main had kept, inside PB4334 (status landed), a section listing prose still describing the retired batched and impact gating, so landing would have hidden open work. Re-probed at the head: the golden-lane and registrar briefs and rolling-wave.md were already right (enqueue.py gates nothing for any lane and the shared-file re-gate is gone, PB4331); the section's other sites were real and are fixed: queue_facts.py (twice), the pull request template, the L2 and P11 rows of MANDATORY-PRACTICES, golden-lane-brief.md, live_tools.py, GateLegDriftTests.cs's summary, and the same wording in inert_lane.py, script_layering.py, drift_rules.py and six test summaries. The root is a missing guard, so `check_practices.py` now refuses batched gating, a LEG 1 ONLY verdict, tier 0a-0d, a leg 1 and the impact map on the instruction surfaces (.github, .claude, CLAUDE.md) unless the line cites PB4328 or says no impact map (`retired_gating_lines`; plan_wave self-test 7c5, the real tree and five plants). The note's section is gone.
+
 **Self-tests.** enqueue.py: the gate arms deleted; new arms for a running gate beside an older covering GREEN record
 (exit 12, nothing written), a STARTING run, an unreviewed lane with no record (exit 14) and a true textual merge
 landed with no gate; 60 arms PASS. land_lane.py arm 18 (classify_red's every class, red_facts on a planted worktree,
