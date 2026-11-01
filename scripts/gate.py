@@ -351,11 +351,49 @@ AUDITS = (
 TOOLING_ONLY = ("SELF-TESTS",)
 #: ⛔ WHAT AN AUDIT NEEDS IN THE TREE, made ready before any audit runs, exactly as CI's `audits` job makes it ready:
 #: FLEET PRACTICES reads the pinned public skills submodule, which a fresh worktree does not have. A prerequisite that
-#: fails is a RED and no audit runs. `SelfTestDiscoveryDriftTests` maps every command of CI's `audits` job to an AUDITS
-#: entry, to one of these, or to its recorded reason for running elsewhere, so the next audit CI gains reaches the gate.
+#: fails is a RED and no audit runs. The self-test maps every command of CI's `audits` job to an AUDITS entry, to one of
+#: these, or to its recorded reason for running elsewhere (`ci_audits_not_in_gate`), so the next audit CI gains reaches the gate.
 AUDIT_PREREQUISITES = (
     ("PUBLIC SKILLS SUBMODULE", ["git", "submodule", "update", "--init", "tools/claude-skills"]),
 )
+#: ⛔ A CI AUDIT THAT IS NOT A TREE AUDIT, AND WHERE IT RUNS INSTEAD (kb/Work PB1957 row 44, the CI invariant): train 1067's
+#: PR 9 went RED in CI's `audits` job on `work.py check` behind a GREEN gate, because CI ran it and the gate did not and
+#: nothing compared the two lists.
+CI_AUDITS_ELSEWHERE = {
+    "scripts/devlog.py": "a LANDING check, not a tree audit: an implementer's entry stays DEVLOG/pending-*.md until "
+                         "enqueue.py stamps it, and `devlog.py check` refuses a pending entry, so it runs where every "
+                         "landing passes (`enqueue.py checks`, exit 6) and in CI on a pull request or merge group",
+}
+#: CI's audits job runs at least this many `python3 <script>` commands, and makes this submodule ready: a reading that
+#: finds fewer, or not it, read nothing.
+CI_AUDITS_FLOOR, CI_AUDITS_SUBMODULE = 10, "tools/claude-skills"
+CI_PYTHON_RE = re.compile(r"\bpython3?\s+(\S+\.py)\b")
+CI_SUBMODULE_RE = re.compile(r"\bgit submodule update --init (\S+)")
+
+
+def ci_audits_not_in_gate(workflow: str, audits=AUDITS, prerequisites=AUDIT_PREREQUISITES,
+                          elsewhere: dict[str, str] = CI_AUDITS_ELSEWHERE, floor: int = CI_AUDITS_FLOOR,
+                          submodule: str | None = CI_AUDITS_SUBMODULE) -> list[str]:
+    """THE CI INVARIANT FOR THE AUDITS (kb/Work PB1957 row 44): every `python3 <script>` a code line of CI's `audits` job
+    runs is a script of `audits` or recorded in `elsewhere`, every `git submodule update --init <path>` it runs is one of
+    `prerequisites`, and every `elsewhere` entry is still run by the job. A reading under `floor` scripts, or one that
+    does not see the job make `submodule` ready, read nothing, and is a finding."""
+    from ci_workflow import job  # noqa: PLC0415 — this directory's: the one reader of a CI workflow's shape
+    lines = [x.strip() for x in job(workflow, "audits").code_lines]
+    scripts = list(dict.fromkeys(m.group(1) for x in lines for m in CI_PYTHON_RE.finditer(x)))
+    submodules = list(dict.fromkeys(m.group(1) for x in lines for m in CI_SUBMODULE_RE.finditer(x)))
+    gated = {c for _, cmd in audits for c in cmd[:1]}
+    prepared = {cmd[-1] for _, cmd in prerequisites if cmd[:4] == ["git", "submodule", "update", "--init"]}
+    bad = [f"CI's audits job runs only {len(scripts)} `python3 <script>` commands: the reading is broken"] \
+        if len(scripts) < floor else []
+    if submodule and submodule not in submodules:
+        bad.append(f"CI's audits job no longer makes {submodule} ready: the reading is broken")
+    bad += [f"CI's audits job runs {s} and the gate's AUDITS do not" for s in scripts if s not in gated | set(elsewhere)]
+    bad += [f"CI's audits job makes the submodule {p} ready and the gate's AUDIT_PREREQUISITES do not"
+            for p in submodules if p not in prepared]
+    bad += [f"{s} is recorded as running elsewhere (CI_AUDITS_ELSEWHERE) but CI's audits job no longer runs it"
+            for s in elsewhere if s not in scripts]
+    return bad
 #: ⛔ EVERY GATE REUSES A SELF-TEST'S RECORDED PASS (kb/Work PB2914, generalized to the one gate by PB3022;
 #: DESIGN-test-build-ci.md §3.14.10, §3.17.3): the gate's audits add this to SELF-TESTS, so a self-test whose inputs
 #: are unchanged since a recorded PASS is REUSED, not run, and one that does run records its PASS for the next gate.
@@ -2427,6 +2465,28 @@ def self_test() -> int:
     shape = audit_shape_arms()
     arm("ONE SHAPE (kb/Work PB3022): the audit names every line of the live trees that tells anyone to run a gate mode, "
         "skips history and frozen evidence, and finds the tree it walks", shape == "", shape)
+    planted_ci = ("jobs:\n  audits:\n    runs-on: ubuntu-latest\n    steps:\n      - run: git submodule update --init sub/a\n"
+                  "      - run: |\n          python3 scripts/a.py --check\n          python3 scripts/devlog.py check\n"
+                  "      # python3 scripts/commented.py\n      - run: python3 scripts/b.py\n")
+    planted_gate_audits = (("A", ["scripts/a.py", "--check"]),)
+    planted_elsewhere = {"scripts/devlog.py": "x", "scripts/gone.py": "x"}
+    planted_audits = ci_audits_not_in_gate(planted_ci, planted_gate_audits, (), planted_elsewhere, 3, "sub/a")
+    arm("the CI invariant (kb/Work PB1957 row 44): a CI audit the gate does not run, a submodule it does not make ready "
+        "and a recorded exception CI no longer runs are each named; a recorded exception CI runs and a commented-out "
+        "command are not", planted_audits == [
+            "CI's audits job runs scripts/b.py and the gate's AUDITS do not",
+            "CI's audits job makes the submodule sub/a ready and the gate's AUDIT_PREREQUISITES do not",
+            "scripts/gone.py is recorded as running elsewhere (CI_AUDITS_ELSEWHERE) but CI's audits job no longer runs it"],
+        str(planted_audits))
+    blind = ci_audits_not_in_gate(planted_ci, planted_gate_audits, (), planted_elsewhere, 4, "sub/z")[:2]
+    arm("a reading of CI's audits job that saw too few commands, or not the submodule it must make ready, is a finding, "
+        "never a clean answer over nothing", blind == [
+            "CI's audits job runs only 3 `python3 <script>` commands: the reading is broken",
+            "CI's audits job no longer makes sub/z ready: the reading is broken"], str(blind))
+    real_ci = ci_audits_not_in_gate((REPO / ".github" / "workflows" / "build-and-test.yml").read_text(encoding="utf-8"))
+    arm("THE REAL TREE: every command of CI's audits job is a gate audit, an audit prerequisite or a recorded exception "
+        "(the next audit CI gains reaches the gate; kb/Work PB4395 moved this from a compiler test)", real_ci == [],
+        str(real_ci))
     failed = [n for n, ok, _ in results if not ok]
     print(f"=== gate SELF-TEST: {'PASS' if not failed else 'FAIL'} ({len(results)} arms"
           + (f"; failed: {'; '.join(failed)}" if failed else "") + ") ===")

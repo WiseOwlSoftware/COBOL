@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 /// <remarks>
 /// The script's own <c>--self-test</c> runs in every gate and in CI through <c>scripts/self_tests.py</c>
-/// (<see cref="SelfTestDiscoveryDriftTests"/> holds the discovery), so this class does not run it a second time under
+/// (whose own self-test holds the discovery), so this class does not run it a second time under
 /// the harness's fixed per-process budget; <c>scripts/self_test_arms.py</c> holds its arms by name (kb/Work PB4395), so
 /// an arm deleted from the self-test (which would still exit 0) is a red there. This test measures nothing and times
 /// nothing.
