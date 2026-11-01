@@ -2098,8 +2098,16 @@ of an unsupported facility.
   the SELECTED branch is not undone (`>>DEFINE X AS 1 / >>IF X IS DEFINED / PROCEDURE DIVISION. … >>END-IF` in an
   IDENTIFICATION DIVISION). The residue is a non-standard text that mixes the two: a COBOL-85 comment-entry
   paragraph directly after a group whose branches disagree on the division (and no PROGRAM-ID paragraph between) is read
-  as program text; reading it exactly needs the comment-entry decision made after conditional compilation, a stage-order
-  redesign registered in the PB4241 report. A `>>WHEN` whose selection object merely begins with the letters OTHER
+  as program text (`>>DEFINE X AS 1` / `IDENTIFICATION DIVISION.` / `>>IF X IS DEFINED` / `PROGRAM-ID. CE1.` / `>>ELSE` /
+  `PROCEDURE DIVISION.` / `>>END-IF` / `AUTHOR. Pat O'Brien.`, `--permissive`, draws COBOL5563 and COBOL2633 on the
+  apostrophe, where the same text with agreeing branches is accepted); reading it exactly needs the comment-entry decision
+  made after conditional compilation, a stage-order redesign registered as kb/Work PB4281. The same root has a second
+  instance, probed in PB4281: the converter reads the division words AS WRITTEN, and `>>COBOL-WORDS` is applied after it,
+  so a program that respells the word the cursor reads (`>>COBOL-WORDS EQUATE "DIVISION" WITH "DIV"`, then `PROCEDURE
+  DIV.`) leaves the cursor in the division it was in, and a PROCEDURE DIVISION paragraph named REMARKS written in area A
+  with text after it is read as a comment-entry (`REMARKS. DISPLAY "HI".` draws COBOL0001 on the second period). A synonym
+  of IDENTIFICATION (`IDENT DIVISION.`) does no harm, because the first PROGRAM-ID paragraph enters the division all the
+  same. A `>>WHEN` whose selection object merely begins with the letters OTHER
   (`>>WHEN OTHERV`) is not the `>>WHEN OTHER` default branch (§7.3.13.3 SR5/SR6: the phrase is a word, asked of
   `CompilerDirectiveLine.StartsWithWord` by this cursor and by the conditional-compilation stage alike). The COPY driver
   reads the text the conditional-compilation stage has already cut, so a COPY's library text starts in the true division. The
