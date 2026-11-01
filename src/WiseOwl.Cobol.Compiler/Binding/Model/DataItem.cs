@@ -77,9 +77,8 @@ public sealed class DataItem
     /// <summary>The CLR name of this item's member or field — the same for every backend (kb/Work PB4265;
     /// DESIGN-backend-abstraction §1.2): <see cref="CsNames.Allocate"/>d at bind time in the item's scope (its group's
     /// record struct, or the program class for a root), so it is unique there and never a C# keyword.
-    /// <para>⛔ ONE EXCEPTION, a known leak: a CARRIER-RESIDENT linkage formal's is rewritten to its carrier's C# access
-    /// text, <c>__lnk7.Value</c> (<c>DataBinder.CallBindLinkage</c>, <c>DataBinder.OoBindMethodData</c>), which is a C#
-    /// fragment, not a name (DESIGN-backend-abstraction §1.3 L7).</para></summary>
+    /// <para>⛔ It is a NAME, never an access expression, for every item (kb/Work PB4320): a carrier-resident formal
+    /// keeps its own name, and the carrier its storage is reached through is <see cref="ResidentCarrier"/>.</para></summary>
     [DescriptionCopy(DescriptionCopyKind.None,
         "identity — re-uniquified among the clone's NEW siblings")]
     public required string ClrName { get; set; }
@@ -779,6 +778,18 @@ public sealed class DataItem
     [DescriptionCopy(DescriptionCopyKind.None,
         "a fact of the formal-parameter ROLE (the PROCEDURE DIVISION USING operand), not of the data description")]
     public OmittedFormalGuard? OmittedGuard { get; set; }
+
+    /// <summary>⛔ The name of the <c>ManagedPointer&lt;T&gt;</c> CARRIER through which a CARRIER-RESIDENT formal
+    /// parameter's storage is reached on every access — the program class's <c>__lnk{Uid}</c> member
+    /// (<c>LinkageFormal.CarrierField</c>) or the method's carrier local (<c>OoFormal.CarrierLocal</c>) — and null for
+    /// every other item. ISO §14.2.3 GR8: "the activated runtime element operates as if the formal parameter occupies
+    /// the same storage area as the argument", so the item has no storage member of its own. Every access path rooted
+    /// here starts at the carrier and steps through <see cref="CarrierValueSegment"/> (<c>ReferenceResolver.AddRoot</c>),
+    /// so the access is structure and <see cref="ClrName"/> stays a name (kb/Work PB4320; DESIGN-backend-abstraction
+    /// §1.3 L7). Set by <c>DataBinder.CallBindLinkage</c> and <c>DataBinder.OoBindMethodData</c>.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "a fact of the formal-parameter ROLE (the PROCEDURE DIVISION USING operand), not of the data description")]
+    public string? ResidentCarrier { get; set; }
 
     /// <summary>True for a BASED 01/77 entry (ISO §13.18.5 — a storage TEMPLATE with an implicit data-address
     /// pointer, initially NULL; no storage of its own until SET ADDRESS OF / ALLOCATE gives it one). The

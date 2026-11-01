@@ -23,11 +23,12 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// <c>__omittedN</c> presence parameter.</param>
 /// <param name="Kind">The activated element that owns the formal — which of the three conditions is raised.</param>
 /// <param name="FormalName">The COBOL name, for the diagnostic detail.</param>
-/// <param name="CarrierPrefix">Non-null when the root segment's field text BEGINS with a reference-type carrier
-/// that is passed through the guard rather than taken by <c>ref</c>: a carrier-resident formal's
-/// <c>__lnk{Uid}</c> (its field text is <c>__lnk{Uid}.Value</c>) or a cell-backed class's <c>StorageCell</c>.</param>
+/// <param name="PassesCarrier">True when the root segment the guard rides is a reference-type CARRIER that is passed
+/// through the guard rather than taken by <c>ref</c>: a carrier-resident formal's <c>ManagedPointer</c> carrier (whose
+/// <see cref="CarrierValueSegment"/> then applies to what the guard hands back) or a cell-backed class's
+/// <c>StorageCell</c>. A fact about the root, never a piece of its text (kb/Work PB4320).</param>
 public sealed record OmittedFormalGuard(string Presence, ActivatedElementKind Kind, string FormalName,
-    string? CarrierPrefix = null)
+    bool PassesCarrier = false)
 {
     /// <summary>The program/function arm's presence member name for <paramref name="formal"/>.</summary>
     public static string PresenceMember(DataItem formal) => $"__omit{formal.Uid}";
