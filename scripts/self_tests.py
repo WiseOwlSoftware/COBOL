@@ -115,6 +115,7 @@ from typing import Callable, Iterator
 
 import sharedfile  # this directory's: the one Windows share-retry rule for files several processes read and replace
 import live_tools  # this directory's: the one list of the live tools' trees, which discovery reads
+import inert_lane  # this directory's: the one classification of what a change touches, whose tooling flag `_record` proves
 import self_test_inputs as inputs  # this directory's: what a self-test read, and the tracer that records it
 from gate_slot import ExclusiveLock, git_common_dir  # this directory's: the OS file lock every gate place is
 # this directory's: the one scratch-repository fixture, whose identity, maintenance settings and scrubbed environment
@@ -504,6 +505,8 @@ class Runner:
     store: PassStore | None = None
     hang_after_s: float = HANG_AFTER_S
     by: str = ""
+    #: What counts as tooling when a PASS is recorded (`_record`'s proof); the fleet arms plant their own.
+    classification: inert_lane.Classification = inert_lane.CLASSIFICATION
 
     def __post_init__(self) -> None:
         self.budget = self.budget or Budget.for_repo(self.repo)
@@ -600,9 +603,18 @@ class Runner:
         seen = inputs.read_trace(trace_dir, self.tree)
         if test.path.endswith(".py") and not seen.saw(test.path):
             return "no PASS recorded: the trace does not show the self-test's own file, so the tracer did not run"
-        self.store.record(test.path, self.platform, inputs.run_deps(test.path, self.tree, self.deriver, seen),
-                          seconds, self.by)
+        deps = inputs.run_deps(test.path, self.tree, self.deriver, seen)
         whole = {kind for kind, d in seen.git_read if d == ""}
+        if not whole:  # a whole-tree reader reads the tree as a population: the flag's accepted residue (inert_lane.py)
+            stray = self.classification.unclassified_reads((p for p, blob in deps.files.items() if blob != inputs.UNTRACKED),
+                                                                 deps.trees)
+            if stray:
+                raise ValueError(
+                    f"it read {', '.join(stray[:6])}{' and more' if len(stray) > 6 else ''}, which the tooling flag does "
+                    f"not see: a change to only {'it' if len(stray) == 1 else 'one of them'} would skip this self-test in "
+                    f"a gate and turn it red in CI's merge group. Give the path a TOOLING_READS entry naming "
+                    f"{test.path} in scripts/inert_lane.py (kb/Work PB4326)")
+        self.store.record(test.path, self.platform, deps, seconds, self.by)
         if whole:
             what = "the whole tree's content" if "content" in whole else "the name of every tracked file"
             return (f"its PASS is keyed on {what}: a git command it ran inside the repository read it "
@@ -921,15 +933,28 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
         for name, body in bodies.items():
             (root / "scripts" / name).write_text(body + span.format(sleep=_FLEET_SLEEP_S), encoding="utf-8", newline="\n")
         (root / "scripts" / "test_hang.py").write_text("import time\ntime.sleep(60)\n", encoding="utf-8", newline="\n")
+        # The proof of the tooling flag (`_record`): a self-test that reads a file `planted` does not see, and one that
+        # reads the same file while walking the whole tree with git (the flag's accepted residue).
+        (root / "elsewhere").mkdir()
+        (root / "elsewhere" / "x.txt").write_text("x\n", encoding="utf-8", newline="\n")
+        (root / "scripts" / "test_stray.py").write_text("open('elsewhere/x.txt').read()\n", encoding="utf-8", newline="\n")
+        (root / "scripts" / "test_walker.py").write_text(
+            "import subprocess\nsubprocess.run(['git', 'ls-files'], check=True, capture_output=True)\n"
+            "open('elsewhere/x.txt').read()\n", encoding="utf-8", newline="\n")
         ScratchRepo.init(root).git("add", "-A")
         found = {t.path.rsplit("/", 1)[-1]: t for t in discover(root)}
         tests = [found[n] for n in sorted(bodies)]
         plat = this_platform()
+        # The planted repository's own classification: its scripts are tooling, and the data its self-tests read is
+        # declared, as scripts/inert_lane.py declares the real tree's (the proof of the tooling flag, `_record`).
+        planted = inert_lane.Classification(inert={}, tooling_under=("scripts/",), tooling_suffixes=(".py",),
+                                            tooling_reads={"data/": "the fleet arms' fixtures"})
         budget_dir, store_dir = root / ".git" / BUDGET_DIR, root / ".git" / PASS_STORE_DIR
 
         def gate(reuse: bool, said: list[str], hang_after_s: float = HANG_AFTER_S, which=None) -> list[Result]:
             return Runner(root, plat, said.append, reuse=reuse, budget=Budget(budget_dir, _FLEET_CAP),
-                          store=PassStore(store_dir), hang_after_s=hang_after_s, by="fleet arm").run(which or tests)
+                          store=PassStore(store_dir), hang_after_s=hang_after_s, by="fleet arm",
+                          classification=planted).run(which or tests)
 
         def fleet(reuse: bool, which=None) -> list[list[Result]]:
             barrier = threading.Barrier(_FLEET_GATES)
@@ -1003,7 +1028,8 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
               (notes["scripts/test_b.py"], notes["scripts/test_a.py"].startswith("the PASS of")),
               ("re-run: 1 input(s) changed since the newest PASS — scripts/helper_u.py", True))
         fresh = Runner(root, plat, lambda _: None, reuse=True, budget=Budget(budget_dir, _FLEET_CAP),
-                       store=PassStore(Path(tempfile.mkdtemp(dir=s))), by="fleet arm").run([found["test_a.py"]])
+                       store=PassStore(Path(tempfile.mkdtemp(dir=s))), by="fleet arm",
+                       classification=planted).run([found["test_a.py"]])
         check("arm: a self-test with no PASS recorded at all says so — `first run` — rather than naming a change "
               "(kb/Work PB3061)", (fresh[0].state, fresh[0].note.startswith("first run: no PASS recorded for")),
               (GREEN, True))
@@ -1015,7 +1041,7 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
         odd._dir("scripts/test_a.py", plat).mkdir(parents=True, exist_ok=True)
         (odd._dir("scripts/test_a.py", plat) / src.name).write_text(json.dumps(rec_a), encoding="utf-8", newline="\n")
         other = Runner(root, plat, lambda _: None, reuse=True, budget=Budget(budget_dir, _FLEET_CAP), store=odd,
-                       by="fleet arm").run([found["test_a.py"]])
+                       by="fleet arm", classification=planted).run([found["test_a.py"]])
         check("arm: a self-test whose recorded PASSes are all unusable says so — never `first run` (train 1063 review)",
               (other[0].state, other[0].note.startswith("re-run: 1 recorded PASS(es)")), (GREEN, True))
         said: list[str] = []
@@ -1025,9 +1051,18 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
               "never RED", (hung[0].state, rc, line.startswith(VERDICT + "HANG")), (HANG, HANG_EXIT, True))
         check("arm: a hung self-test's output names the hang",
               any("HANG: still running" in s for s in said), True)
+        stray = gate(False, [], which=[found["test_stray.py"]])
+        check("arm: a self-test that passes but read a file the tooling flag does not see is RED, naming the file and "
+              "TOOLING_READS, and records no PASS (kb/Work PB4326, review R1-1)",
+              (stray[0].state, "elsewhere/x.txt" in stray[0].output and "TOOLING_READS" in stray[0].output,
+               PassStore(store_dir).find("scripts/test_stray.py", plat, inputs.Tree.load(root))), (RED, True, None))
+        walker = gate(False, [], which=[found["test_walker.py"]])
+        check("arm: a self-test that walks the whole tree with git is not judged by the flag: GREEN and recorded",
+              (walker[0].state, PassStore(store_dir).find("scripts/test_walker.py", plat, inputs.Tree.load(root)) is not None),
+              (GREEN, True))
         empty = Path(tempfile.mkdtemp(dir=s))
         note = Runner(root, plat, lambda _: None, budget=Budget(budget_dir, 1),
-                      store=PassStore(store_dir))._record(found["test_a.py"], empty, 1.0)
+                      store=PassStore(store_dir), classification=planted)._record(found["test_a.py"], empty, 1.0)
         check("arm: a Python self-test whose trace does not show its own file records no PASS (the tracer did not run)",
               note.startswith("no PASS recorded"), True)
 
