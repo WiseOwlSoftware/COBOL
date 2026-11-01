@@ -20,7 +20,9 @@ from typing import TYPE_CHECKING, Any, Mapping, Sequence
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
+sys.path.insert(0, str(HERE.parent / "spec"))
 import coord  # noqa: E402  (agent_model: the implementer's default model, from its agent definition)
+import work  # noqa: E402  (tier_rank: the one tier order)
 from reports import Report  # noqa: E402
 from inflight import Claim  # noqa: E402
 from clusters import Note, cluster_claim  # noqa: E402
@@ -28,16 +30,20 @@ if TYPE_CHECKING:
     from prune_worktrees import Replay  # noqa: E402  (a type only: the survey's replay record, finisher_pred's input)
 
 def continuation_pred(reps: list[Report], shared: dict[str, list[str]]) -> str:
-    """The pred of a group planned as the CONTINUATION of finished branches whose files it meets (kb/Work PB2807):
-    merge each first (finisher_pred's merge rule: never a rebase, never a cherry-pick), so the two never meet again as
-    a conflict at the merge queue, and orient from each report. `shared` is {branch: the files the group shares}."""
-    return ("CONTINUATION (the file-set partition, kb/Work PB2807): " + "; ".join(
+    """The pred of a group planned ONTO finished branches whose files it meets (kb/Work PB2807; PB4396, one step per
+    file): merge each first (finisher_pred's merge rule: never a rebase, never a cherry-pick), so the work on those files
+    is one line of history, orient from each report, and land ONCE: the dispatch ledger records the branches the group
+    continues, and the branch survey holds each of them IN FLIGHT until the continuation lands it
+    (prune_worktrees.chain_links). `shared` is {branch: the files the group shares}."""
+    return ("CONTINUATION (one step per file, kb/Work PB4396; the file-set partition, PB2807): " + "; ".join(
         f"{r.slug} ({r.lead}) finished on branch {r.branch} (worktree {r.worktree or 'removed'}, head {r.head or '?'}), "
         f"which changes {', '.join(shared.get(r.branch or '', [])[:3])}" for r in reps)
-        + ". Before touching code, merge each of those branches into yours with `python scripts/merge_drivers.py merge <branch> --keep` (never a rebase, never a cherry-pick, never a bare `git merge`: the merge drivers of kb/Work PB3610 keep both sides of a keyed catalogue), "
-          "read each report's \"For the next implementer\" section, and build on its work; a branch that has not "
-          "landed by your landing lands with yours (MANDATORY-PRACTICES O2: a merged branch with no clean stamp at "
-          "its tip lands through the branch that carries it; one reviewed CLEAN lands on its own first).")
+        + ". Your work is planned ONTO those branches: before touching code, merge each of them into yours with `python scripts/merge_drivers.py merge <branch> --keep` (never a rebase, never a cherry-pick, never a bare `git merge`: the merge drivers of kb/Work PB3610 keep both sides of a keyed catalogue), "
+          "read each report's \"For the next implementer\" section, and build on its work. They land ONCE, with "
+          "your branch: the branch survey holds each IN FLIGHT while this dispatch continues it, even one reviewed "
+          "CLEAN (MANDATORY-PRACTICES O2), so your report covers their work too, and the landing carries ONE DEVLOG "
+          "entry (devlog.py check refuses two): extend the `DEVLOG/pending-*.md` entry each merged branch carries "
+          "with your work, retitled for the whole step, never a second one beside it.")
 
 
 @dataclasses.dataclass
@@ -56,7 +62,22 @@ class Group:
     continues: list[str] = dataclasses.field(default_factory=list)    # the branches its pred merges or cherry-picks
     members: dict[str, list[str]] = dataclasses.field(default_factory=dict)   # {file: the members it changes there}
     tier: int | None = None        # campaign: the lowest tier of the clusters it holds (the placement order, PB3638)
-    link: int = 0                  # its place in its successor chain: 0 heads it (wave.links_per_chain, PB3638)
+    link: int = 0                  # its place in its DEPENDENCY chain: 0 heads it (wave.links_per_chain, PB3638)
+    overflow: list[str] = dataclasses.field(default_factory=list)   # the notes of its file family it cannot hold: a
+    #   later wave plans them ONTO its branch, and the chain lands once, with its last link (kb/Work PB4396)
+
+    def absorb(self, other: "Group") -> None:
+        """Take `other`'s work into this group (kb/Work PB4396, one step per file): its notes after this group's, its
+        claim, its instruction, the branches it continues and its tier; a finisher's work makes this a finisher."""
+        self.notes += [i for i in other.notes if i not in self.notes]
+        self.take(other.claim)
+        self.pred = " ".join(p for p in (self.pred, other.pred) if p)
+        self.continues += [b for b in other.continues if b not in self.continues]
+        self.overflow += [i for i in other.overflow if i not in self.overflow]
+        self.tier = min(self.tier, other.tier, key=work.tier_rank)
+        self.file = self.file or other.file
+        if other.kind == "finisher":
+            self.kind = "finisher"
 
     @property
     def claim(self) -> Claim:
@@ -281,6 +302,11 @@ def body_of(g: Group, notes: dict[str, Note], requirements: Mapping[str, Sequenc
     tail += (" SITES FOLLOW THE DIFF (kb/Work PB3640): when your diff changes a code file, or a member in one, that "
              "no note's `**Sites:**` paragraph names, add it to the paragraph of the note it serves in the same "
              "change, so a successor, a finisher and the next plan partition on what you really changed.")
+    if g.overflow:
+        tail += (f" ⛔ OVERFLOW CHAIN (one step per file, kb/Work PB4396): {', '.join(g.overflow)} share these files "
+                 f"but do not fit one implementer's turns with these notes; a later wave plans them ONTO your branch, "
+                 f"and the chain lands ONCE, with its last link (the branch survey holds yours IN FLIGHT until then, "
+                 f"even reviewed CLEAN). Write your report's \"For the next implementer\" section for that link.")
     if g.blocked_by:
         tail += (f" ⛔ DEPENDENCY SUCCESSOR (blocked_by, kb/Work PB2120): these notes are blocked by "
                  f"{', '.join(g.blocked_by)}, which group {g.after}'s chain does in this wave. Build on that work, never "
@@ -307,4 +333,11 @@ def as_group_json(g: Group, wave: str, notes: dict[str, Note], codes: str,
         out["pred"] = g.pred
     if g.after:
         out["after"] = g.after
+    # the chain's two records (kb/Work PB4396), which make_dispatch_specs.py writes into the dispatch ledger for the
+    # branch survey (prune_worktrees.chain_links): the branches this group continues, which land with it, and the notes
+    # a later link takes onto its branch, while which its branch does not land
+    if g.continues:
+        out["continues"] = list(g.continues)
+    if g.overflow:
+        out["overflow"] = list(g.overflow)
     return out

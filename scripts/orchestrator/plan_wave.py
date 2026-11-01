@@ -187,7 +187,8 @@ from inflight import (LANDED_CLASSES, SLICE_OWNER, Claim, InFlight, IndexPolicy,
                       branch_replays, classify_inflight, collision, collision_hits, declared_sets, git_branch_classifier,
                       inflight_file_sets, inflight_units, local_branches, slice_reservation, unlanded_branch_notes)
 from clusters import (Note, add_closed_notes, branch_lead_notes, campaign_clusters, cluster_claim,  # noqa: E402
-                      declare_fix_lane, harm_weights, lift_tiers, load_fix_clusters, load_notes, run_fix_clusters)
+                      declare_fix_lane, harm_weights, lift_tiers, load_fix_clusters, load_notes, notes_cap,
+                      predicted_turns, run_fix_clusters, turn_budget)
 from groups import (Group, as_group_json, branch_resume, choose_model, continuation_pred, finisher_pred,  # noqa: E402
                     group_cost, group_of_cluster, group_requirements, landing_cost, letters, replay_clause, unpartitioned)
 from dispatch_ledger import (COLLISION_WAIT, held_by_dispatch, partition_record, partition_summary,  # noqa: E402
@@ -261,7 +262,7 @@ class PlanState:
         # carries. Its reports stay in `reports` (the routing counts them as failed attempts); every planning arm reads
         # `live`.
         self.live = [r for r in self.reports if not (r.branch and r.branch in self.abandoned)]
-        self.cap = self.rules["wave"]["max_notes_per_group"]
+        self.cap = notes_cap(self.rules)   # the notes one implementer holds (kb/Work PB4396)
         every = self.clusters + self.half_clusters
         self.open_ids = {n["id"] for c in every for n in c["notes"] if n["id"] in self.notes}
         self.note_file = {n["id"]: c["file"] for c in every for n in c["notes"]}
@@ -559,8 +560,8 @@ def plan_finishers(s: PlanState) -> None:
 
 
 def plan_fill(s: PlanState) -> None:
-    """THE CLUSTER GROUPS, by rows claimed: the clusters ranked (tier, depth, rows, harm), each absorbed into a finisher
-    on its primary file up to the cap, the rest a group each; then every group in tier order."""
+    """THE CLUSTER GROUPS, by rows claimed: the clusters ranked (tier, depth, rows, harm), a group each; then every
+    group in tier order (plan_partition unites the groups whose claims meet)."""
     taken = s.taken
     # The drain plans no cluster, a finisher absorbs none, and a half note's open half waits too: counted, not listed.
     s.not_started = sorted({n["id"] for c in s.clusters + s.half_clusters for n in c["notes"]} & s.open_ids - taken
@@ -580,17 +581,9 @@ def plan_fill(s: PlanState) -> None:
     # blocked_by order); the fix lane's carry neither (no tier, depth 0), so its rank is rows, then harm, unchanged.
     ranked.sort(key=lambda ci: (work.tier_rank(ci[0].get("tier")), ci[0].get("depth", 0), -s.rows(ci[1]),
                                 -ci[0].get("harm", 0)))
-    # A finisher on a cluster's primary file absorbs that cluster's notes up to the cap (one orientation). Never a
-    # campaign cluster past depth 0: its notes wait on blockers planned after the finisher, which would hold it back.
-    for g in s.groups:
-        for c, ids in ranked:
-            if g.file and c["file"] == g.file and len(g.notes) < s.cap and not c.get("depth"):
-                room = s.cap - len(g.notes)
-                g.notes += ids[:room]
-                g.take(cluster_claim(c))
-                g.tier = min(g.tier, c.get("tier"), key=work.tier_rank)
-                del ids[:room]
-    s.groups += [group_of_cluster("cluster", ids, c) for c, ids in ranked if ids]
+    # A cluster whose claim meets a finisher's is that finisher's work: plan_partition absorbs it whole (one step per
+    # file, kb/Work PB4396), the one rule for every pair of groups whose claims meet; here every cluster is a group.
+    s.groups += [group_of_cluster("cluster", ids, c) for c, ids in ranked]
     # THE PLACEMENT ORDER FOLLOWS THE TIER (kb/Work PB3638 defect 1). Groups are placed, lettered and chained in this
     # order, so a same-file chain's head is the group placed first, and finishers came first whatever their tier: wave
     # 20261029 chained two untiered finishers (PB3112, PB2878) ahead of the owner's tier-1 PB3612, which started two
@@ -610,30 +603,39 @@ def plan_fill(s: PlanState) -> None:
 
 def plan_partition(s: PlanState) -> None:
     """THE PARTITION AND THE LETTERS: each group, in placement order, is held by RUNNING in-flight work its claim meets,
-    planned as the continuation of FINISHED work it meets, waits for an unplanned blocker or for two chains, or is
-    placed: the successor of the chain it meets (its letter that chain's next), else the head of a new chain (the next
-    letter), with its model and cost. Only the placed groups remain in `groups`."""
+    planned ONTO the FINISHED work it meets (a continuation of that branch), waits for an unplanned blocker, or is
+    placed. ONE STEP PER FILE (kb/Work PB4396, owner 2026-11-01): a group whose claim meets a placed group's is that
+    group's work, absorbed into it while the two fit one implementer's turns (clusters.notes_cap); past that it is the
+    group's OVERFLOW, which a later wave plans onto its branch. Only a DEPENDENCY on another group whose claim it does not
+    meet makes a successor (`after:`). Then the letters, models and costs, in placement order. Only the placed groups
+    remain in `groups`."""
     waiting, collided, busy, deps = s.waiting, s.collided, s.busy, s.deps
-    # Letters, successors, models, costs. A successor chain is linear (A, A2, A3: each merges the one before it), so
-    # a group that must follow another joins the TAIL of that one's chain. In the fix lane the only link is a claim
-    # MEETING another placed group's (collision, on ANY file both claim: a whole file, or a member of it; kb/Work PB3670,
-    # PB3696 - the in-flight check below asks the same question): two groups on DIFFERENT MEMBERS of one file, and on
-    # nothing else, run side by side, and git's merge combines their branches. The claim, never the primary file alone:
-    # two groups on different members of one primary file that both claim a third file whole ran side by side while the
-    # same pair was held when one was in flight.
-    gen = letters()
+    # A successor chain is linear (A, A2, A3: each merges the one before it), so a group that must follow another joins
+    # the TAIL of that one's chain. A meeting is a claim MEETING another placed group's (collision, on ANY file both
+    # claim: a whole file, or a member of it; kb/Work PB3670, PB3696 - the in-flight check below asks the same question):
+    # two groups on DIFFERENT MEMBERS of one file, and on nothing else, run side by side, and git's merge combines their
+    # branches. The claim, never the primary file alone.
+    pred_of: dict[int, Group] = {}           # id(dependency successor) -> the group it follows
     chain_of: dict[int, int] = {}            # id(group) -> id(its chain's head)
     tail: dict[int, Group] = {}              # id(chain head) -> the chain's last group
+    into: dict[int, Group] = {}              # id(an absorbed group) -> the group that absorbed it
     group_of: dict[str, Group] = {}          # note -> the group planned for it
     placed: list[Group] = []
+
+    def resolve(x: Group) -> Group:
+        while id(x) in into:
+            x = into[id(x)]
+        return x
+
+    def decided(x: Group) -> bool:
+        return id(x) in chain_of or id(x) in into
     # A group whose set is EMPTY (no note declares a site block, and no primary file was located) holds nothing and is
     # held by nothing (collision, kb/Work PB3670): it is planned like any other, named UNPARTITIONED, and its
     # implementer gives its notes their `**Sites:**` paragraphs in its first checkpoint.
     # ⛔ A BRANCH THIS WAVE FINISHES IS PLANNED WORK, NOT UNDECIDED WORK (kb/Work PB3528). Two SPLIT branches whose file
     # sets meet were each a DECISION owner (read RUNNING) in the other's finisher's partition check, so neither finisher
-    # was ever planned. A group meeting a branch that ANOTHER group of this wave continues is not held by it: it joins
-    # that group's chain once the group is placed (the later of two such finishers becomes the earlier's successor and
-    # merges its branch), and the earlier one goes ahead. A branch no group of this wave continues still holds.
+    # was ever planned. A group meeting a branch that ANOTHER group of this wave continues is not held by it: it is that
+    # group's work (one step per file, PB4396), absorbed into it once the group is placed.
     # ⛔ ...AND A BRANCH IS READ AS THE BRANCH ITS WORK LANDS THROUGH (kb/Work PB4352). A branch a finished one contains
     # (s.carrier: a SPLIT predecessor its review finisher merged) reads IN FLIGHT in the survey and lands only with its
     # carrier, so it is that carrier's work, whatever its own name. Keyed on the exact branch, the exemption missed it:
@@ -649,8 +651,8 @@ def plan_partition(s: PlanState) -> None:
         return x.branch and (s.carrier(x.branch) or x.branch)
     # A meeting may be ONE-SIDED (branch review R1-1): the earlier group meets the later finisher's branch, but the later
     # finisher never meets the earlier group's. The earlier group then goes ahead past a finisher not yet placed, and
-    # that finisher must still follow it, so the exemption records the debt here and the finisher pays it when placed.
-    must_follow: dict[int, list[Group]] = {}  # id(a finisher not yet placed) -> the groups it must follow
+    # that finisher must still join it, so the exemption records the debt here and the finisher pays it when placed.
+    must_join: dict[int, list[Group]] = {}   # id(a finisher not yet placed) -> the groups whose work it is
     for g in s.groups:
         # a finisher's set includes what the branches it continues already change (their actual diff, read once by
         # inflight_file_sets, and the units it touches, inflight_units): that much of its work is known whatever its
@@ -659,21 +661,21 @@ def plan_partition(s: PlanState) -> None:
             if lands_through(x) in g.continues:
                 g.take(x.claim)
         mine = g.claim
-        links = [x for x in placed if collision(mine, x.claim)]
-        links += [x for x in must_follow.pop(id(g), []) if id(x) in chain_of and x not in links]   # R1-1, above
+        family = [x for x in placed if collision(mine, x.claim)]
+        family += [x for x in must_join.pop(id(g), []) if decided(x)]   # R1-1, above
         if busy:   # THE PARTITION, one rule for both lanes (kb/Work PB2807, PB3670; classify_inflight)
             met = {o: x for o, x in busy.items()                            # never the group's own work: the branch
                    if lands_through(x) not in g.continues                     # its pred continues (or one it carries,
                    and not x.notes & set(g.notes)                             # PB4352), or a dispatch of its own notes
                    and (x.reserves is None or x.reserves & set(g.notes))      # (the hold decided those); a reservation
                    and collision(mine, x.claim)}                              # holds only its notes' groups (PB3456)
-            # a branch another group of this wave finishes, or one that lands through it (PB4352): follow that group
-            # when it is placed (PB3528, above)
+            # a branch another group of this wave finishes, or one that lands through it (PB4352): that group's work
+            # (PB3528, PB4396, above)
             planned = {o: finisher_of[b] for o, x in met.items() if (b := lands_through(x)) in finisher_of}
-            links += [f for f in planned.values() if id(f) in chain_of and f not in links]
+            family += [f for f in planned.values() if decided(f)]
             for f in planned.values():
-                if id(f) not in chain_of:      # not placed yet: it follows this group (a one-sided meeting, R1-1)
-                    must_follow.setdefault(id(f), []).append(g)
+                if not decided(f):      # not placed yet: it joins this group's work when placed (one-sided, R1-1)
+                    must_join.setdefault(id(f), []).append(g)
             met = {o: x for o, x in met.items() if o not in planned}
             if held_by := {f"{o} [{x.state}]": x for o, x in met.items() if x.finished is None}:
                 hits = collision_hits(mine, {o: x.claim for o, x in held_by.items()})
@@ -682,42 +684,112 @@ def plan_partition(s: PlanState) -> None:
                                   + ": it waits until that work finishes (then continues it) or is decided")
                     collided[i] = [hit for _, hit in hits]
                 continue
+            # JOIN IN-FLIGHT WORK (kb/Work PB4396): a FINISHED branch it meets is continued, never followed by a second
+            # branch: the group is planned ONTO it (continuation_pred), and the survey holds it until the group lands it
             done = {x.finished.branch: x.finished for x in met.values() if x.finished and x.finished.branch}
             if done:
                 shared = {b: sorted(mine.files & x.files) for x in met.values() if (b := x.branch) in done}
                 g.pred = (g.pred + " " if g.pred else "") + continuation_pred(list(done.values()), shared)
                 g.continues += [b for b in done if b not in g.continues]
+        family = distinct(resolve(x) for x in family)
+        dep_links: list[Group] = []
         if deps:
+            # A blocker whose work rides on a branch this group continues is answered by the combination (PB4396):
+            # it is planned with the group, never waited for.
+            carried = {i for x in (busy or {}).values() if lands_through(x) in g.continues for i in x.notes}
             g.blocked_by = sorted({b for i in g.notes for b in deps.get(i, [])} - set(g.notes), key=work.id_order)
-            unplanned = [b for b in g.blocked_by if b not in group_of]
+            unplanned = [b for b in g.blocked_by if b not in group_of and b not in carried]
             if unplanned:
                 for i in g.notes:
                     waiting[i] = f"blocker {', '.join(unplanned)} is not planned in this wave"
                 continue
-            links += [group_of[b] for b in g.blocked_by]
-        chains = {chain_of[id(x)] for x in links}
+            dep_links = distinct(group_of[b] for b in g.blocked_by if b in group_of)
+        if family:
+            # ONE STEP PER FILE (kb/Work PB4396): the work of one file family is one group, sized by turns.
+            head = family[0]
+            if spill := next((t for t in family if t.overflow), None):
+                # the family already overflowed: what ranks after its overflow follows it (the rank order holds)
+                spill.overflow += [i for i in g.notes if i not in spill.overflow]
+                continue
+            ancestors = [head]
+            while id(ancestors[-1]) in pred_of:
+                ancestors.append(pred_of[id(ancestors[-1])])
+            followed = {id(p) for p in pred_of.values()}
+            chained = [t for t in family[1:] if id(t) in pred_of or id(t) in followed]
+            known = {id(t) for t in [*ancestors, *family]}
+            if chained or any(id(d) not in known for d in dep_links):
+                for i in g.notes:
+                    waiting[i] = ("its claim meets groups in different successor chains, or its blockers are in a chain "
+                                  "the groups it meets do not follow (" + ", ".join(
+                                      f"{t.notes[0]}…" for t in family) + "): a later wave")
+                continue
+            if sum(len(t.notes) for t in family) + len(g.notes) > s.cap:
+                if len(family) == 1:
+                    head.overflow += [i for i in g.notes if i not in head.overflow]
+                else:
+                    for i in g.notes:
+                        waiting[i] = ("its claim meets several groups of this wave, which one implementer cannot hold "
+                                      f"together (more than {s.cap} notes, clusters.notes_cap; kb/Work PB4396): a later "
+                                      "wave")
+                continue
+            for t in [*family[1:], g]:
+                head.absorb(t)
+                into[id(t)] = head
+                for i in t.notes:
+                    group_of[i] = head
+                placed = [x for x in placed if x is not t]
+                tail.pop(id(t), None)
+            continue
+        chains = {chain_of[id(x)] for x in dep_links}
         if len(chains) > 1:
             for i in g.notes:
-                waiting[i] = ("its blockers and the groups whose claims it meets are in different "
-                              "successor chains (" + ", ".join(sorted(tail[c].letter for c in chains)) + "): a later wave")
+                waiting[i] = ("its blockers are in different successor chains (" + ", ".join(
+                    sorted(tail[c].notes[0] + "…" for c in chains)) + "): a later wave")
             continue
         prev = tail[chains.pop()] if chains else None
         if prev:
-            base = re.sub(r"\d+$", "", prev.letter)
-            g.letter = f"{base}{int(prev.letter[len(base):] or 1) + 1}"
-            g.after = prev.letter
-            g.link = prev.link + 1
+            pred_of[id(g)] = prev
             chain_of[id(g)] = chain_of[id(prev)]
         else:
-            g.letter = next(gen)
             chain_of[id(g)] = id(g)
         tail[chain_of[id(g)]] = g
         for i in g.notes:
             group_of[i] = g
+        placed.append(g)
+    # Letters, successors, models and costs, once every group is decided (an absorbed group takes no letter).
+    gen = letters()
+    for g in placed:
+        if prev := pred_of.get(id(g)):
+            base = re.sub(r"\d+$", "", prev.letter)
+            g.letter = f"{base}{int(prev.letter[len(base):] or 1) + 1}"
+            g.after = prev.letter
+            g.link = prev.link + 1
+        else:
+            g.letter = next(gen)
+        if deps:
+            g.blocked_by = sorted({b for i in g.notes for b in deps.get(i, [])} - set(g.notes), key=work.id_order)
         g.model, g.why_model = choose_model(g, s.notes, s.reports, s.rules)
         g.cost = group_cost(g.model, len(g.notes), s.rules)
-        placed.append(g)
+        for i in g.overflow:
+            waiting[i] = overflow_wait(g, s.rules, "")
     s.groups = placed
+
+
+def distinct(groups: Any) -> list[Group]:
+    """The groups in order, each once by identity (a Group is a mutable dataclass: no hash, and two may compare equal)."""
+    seen: set[int] = set()
+    return [g for g in groups if not (id(g) in seen or seen.add(id(g)))]
+
+
+def overflow_wait(g: Group, rules: dict[str, Any], fate: str) -> str:
+    """Why a note of group `g`'s OVERFLOW waits (kb/Work PB4396): it shares the group's files, and the two do not fit one
+    implementer's turns; `fate` says what this wave does with `g` ('' while it is planned)."""
+    n = len(g.notes) + len(g.overflow)
+    return (f"one step per file (kb/Work PB4396): it shares {g.file or 'its files'} with group {g.letter}, and "
+            f"together they are {n} notes, predicted at {predicted_turns(n, rules):.0f} turns, over the "
+            f"{turn_budget(rules):.0f} one implementer holds (clusters.notes_cap: {notes_cap(rules)} notes); "
+            + (fate or f"the next wave plans it ONTO group {g.letter}'s branch, which lands once, with the chain's "
+                       f"last link"))
 
 
 def plan_budget(s: PlanState) -> dict[str, Any]:
@@ -728,6 +800,8 @@ def plan_budget(s: PlanState) -> dict[str, Any]:
     # PB3612, the third link, started two hours in) while the enqueue unit and every other campaign waited behind it.
     # A link past `wave.links_per_chain` is not dispatched: its notes wait, and the next wave plans them as the
     # continuation of the branch the earlier link leaves (the partition: continuation_pred), or holds them while it runs.
+    # Only a DEPENDENCY chain has links (a blocked_by on a group whose claim it does not meet): the work of one file
+    # family is one group and its overflow (plan_partition, kb/Work PB4396), never two links of one wave.
     links = s.rules["wave"]["links_per_chain"]
     chosen: list[Group] = []
     skipped: list[Group] = []
@@ -757,6 +831,14 @@ def plan_budget(s: PlanState) -> dict[str, Any]:
             continue
         chosen.append(g)
         spent += need
+    # An overflow's reason says what this wave does with the group it overflows (kb/Work PB3712's rule, above): a group
+    # this wave does not run leaves its whole file family to the next wave's plan.
+    for g in s.groups:
+        if g.overflow and all(g is not c for c in chosen):
+            for i in g.overflow:
+                s.waiting[i] = overflow_wait(g, s.rules, "this wave does not run that group either (the group cap, "
+                                                         "the budget or its link cap): the next wave plans the family "
+                                                         "again")
     return {"groups": chosen, "skipped": skipped, "awaiting_landing": s.awaiting, "points": spent,
             "unlanded_without_note": sorted(b for b, ids in s.unlanded.items()
                                             if not ids and b not in {s.rep_by_path[p].branch for p in s.finisher_by_rep}),
