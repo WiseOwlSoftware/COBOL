@@ -2,7 +2,8 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions;
-using Microsoft.CodeAnalysis;
+using WiseOwl.Cobol.Frontend.Common;
+using WiseOwl.Cobol.Frontend.Diagnostics;
 
 namespace WiseOwl.Cobol.CodeGen;
 
@@ -18,7 +19,8 @@ public enum BackendId
     Cil,
 }
 
-/// <summary>Per-compilation backend inputs (DESIGN-codegen-backend §2.2).</summary>
+/// <summary>Per-compilation backend inputs (DESIGN-codegen-backend §2.2): what EVERY backend reads, so none of it is one
+/// target's (kb/Work PB4272). The Roslyn backend's <c>.g.cs</c> is that backend's own artifact, always written.</summary>
 /// <param name="OutputPath">The output assembly path (the backend creates the directory).</param>
 /// <param name="AssemblyName">The emitted assembly's simple name: the output file's base name (<c>CompilerDriver</c>
 /// passes <c>Path.GetFileNameWithoutExtension(OutputPath)</c>), which names the module namespace <c>Cobol.&lt;S&gt;</c>
@@ -28,8 +30,6 @@ public enum BackendId
 /// it for backend-neutral plumbing a future backend may need (e.g. per-edition runtime feature switches, P16).</param>
 /// <param name="EmitPdb">RESERVED (declared by the design contract; not yet honored — P7 Step 1 is
 /// no-behavior-change, and today's backend emits no symbols. A later phase wires it).</param>
-/// <param name="WriteSource">Write the generated intermediate source (the <c>.g.cs</c>) next to the assembly.
-/// Meaningful only for a source-producing backend; a direct-IL backend ignores it.</param>
 /// <param name="Inputs">The compilation's ambient-input record (kb/Work PB985) — a backend that reads anything
 /// outside the bound tree (the WHEN-COMPILED clock) reads it through this, so the record stays complete.</param>
 /// <param name="RepositoryUpdate">Whether the build updates the external repository (CLI <c>--repository-update</c>;
@@ -38,12 +38,31 @@ public enum BackendId
 /// of every published unit (<c>HasSignatures</c>), OFF only the index, the unit identities, the registrar and the host
 /// entries.</param>
 public sealed record BackendOptions(string OutputPath, string AssemblyName, EditionInfo Edition,
-    bool EmitPdb = true, bool WriteSource = true, WiseOwl.Cobol.Frontend.CompilationInputs? Inputs = null,
+    bool EmitPdb = true, WiseOwl.Cobol.Frontend.CompilationInputs? Inputs = null,
     bool RepositoryUpdate = true);
+
+/// <summary>One diagnostic a backend reports (kb/Work PB4272): the seam's own type, so a backend that is not Roslyn
+/// reports an error without referencing Roslyn, and the driver reads every backend's diagnostics the same way. Each backend
+/// translates its own diagnostics into it (<c>RoslynBackend.Neutral</c>), and the line it renders is the ONE diagnostic
+/// text, <see cref="Diagnostic.Render"/>.</summary>
+/// <param name="Code">The backend's identifier of the diagnostic (Roslyn's <c>CS0103</c>).</param>
+/// <param name="Severity">Error, warning or information.</param>
+/// <param name="Message">The diagnostic's text.</param>
+/// <param name="Location">Where it lies in the source the backend compiled (the Roslyn backend's generated C#), or
+/// <see langword="null"/> when it names no position (an output file the backend could not write).</param>
+public sealed record BackendDiagnostic(string Code, DiagnosticSeverity Severity, string Message, SourceLocation? Location)
+{
+    /// <summary>The diagnostic fails the emission.</summary>
+    public bool IsError => Severity == DiagnosticSeverity.Error;
+
+    /// <inheritdoc/>
+    public override string ToString() => Diagnostic.Render(Location, Severity, Code, Message);
+}
 
 /// <summary>The outcome of one backend emission (DESIGN-codegen-backend §2.2).</summary>
 /// <param name="Success">True iff the assembly was produced.</param>
-/// <param name="Diagnostics">The backend's compile diagnostics (errors + warnings; empty for a clean emit).</param>
+/// <param name="Diagnostics">The backend's compile diagnostics (errors, warnings and information; empty for a clean
+/// emit).</param>
 /// <param name="GeneratedSourcePath">The intermediate-source path (<c>.g.cs</c>), when the backend produced one —
 /// set even on failure (the source is written before compilation, the primary debugging artifact).</param>
 /// <param name="AssemblyPath">The produced assembly path on success; null on failure.</param>
@@ -52,7 +71,7 @@ public sealed record BackendOptions(string OutputPath, string AssemblyName, Edit
 /// and restore, stated by the component that wrote it rather than re-derived by the caller.</param>
 /// <param name="Library">The assembly is a library — the group has no main program (DESIGN-external-repository §7.2) —
 /// so a host loads it and nothing launches it.</param>
-public sealed record BackendArtifact(bool Success, IReadOnlyList<Diagnostic> Diagnostics,
+public sealed record BackendArtifact(bool Success, IReadOnlyList<BackendDiagnostic> Diagnostics,
     string? GeneratedSourcePath, string? AssemblyPath, IReadOnlyList<string> OutputFiles, bool Library);
 
 /// <summary>
