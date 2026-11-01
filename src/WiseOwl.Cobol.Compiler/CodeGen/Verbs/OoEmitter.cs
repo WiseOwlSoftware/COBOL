@@ -37,8 +37,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// activation), so there was no <see cref="Place"/> to hand <see cref="PlaceRenderer"/> and the three
     /// boundary sites spelled <c>.AsImage()</c> / <c>.FromImage(</c> themselves, with no capability guard and no
     /// window arm. A root local is structurally an <see cref="AccessPath"/> of exactly one
-    /// <see cref="RootFieldSegment"/> — the same construction <c>AccessPath.Reroot</c> performs for a
-    /// contained-program root — so building it here costs nothing and buys the ONE reader's whole arm list,
+    /// <see cref="RootFieldSegment"/>, so building it here costs nothing and buys the ONE reader's whole arm list,
     /// including any arm added to it later.</para>
     /// <para>⛔ NEVER used for a Tier-B REDEFINES canonical: that root's storage IS its string backing local
     /// (<c>MethodRedefinesBackingDecl</c>), whose width is the CLASS width — a wider level-01 redefiner needs

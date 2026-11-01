@@ -1,6 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using System.Linq;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Procedure;
 using WiseOwl.Cobol.CodeGen.Emit;
@@ -386,9 +385,14 @@ internal static class PlaceRenderer
             path = seg switch
             {
                 // A formal parameter's root renders through its *-ARG-OMITTED guard (kb/Work PB971).
-                RootFieldSegment r => r.Guard is { } g ? GuardedRoot(g, r.CsField) : r.CsField,
+                RootFieldSegment r => r.Guard is { } g ? GuardedRoot(g, RootStorage(r)) : RootStorage(r),
+                // A statement local the binder declared, spelled from its identity (kb/Work PB4321).
                 LocalRootSegment l => LocalNames.Of(l.Local),
-                MemberSegment m => path + "." + m.CsMember,
+                MemberSegment m => path + "." + m.MemberClrName,
+                // A carrier-resident formal's storage is the carrier's value (ISO §14.2.3 GR8; kb/Work PB4320).
+                CarrierValueSegment => path + "." + nameof(ManagedPointer<int>.Value),
+                // A cell-backed area's members live in its cell's character-string backing (kb/Work PB1042, PB4320).
+                CellBackingSegment => path + "." + nameof(StorageCell.Ref),
                 // An OCCURS DEPENDING level carries §13.18.38.4 GR7's reference-time bound check when the
                 // compilation group can enable EC-BOUND-ODO (kb/Work PB1268).
                 FixedTableSegment { Odo: { } o } f => RuntimeApi.TableAtOdo(path, PositionRenderer.Render(f.OneBasedIndex),
@@ -396,32 +400,46 @@ internal static class PlaceRenderer
                 FixedTableSegment f => RuntimeApi.TableAt(path, PositionRenderer.Render(f.OneBasedIndex)),
                 DynTableSegment d => $"{path}.{(dir == AccessDir.Sending ? "RefSending" : "RefReceiving")}({PositionRenderer.Render(d.OneBasedIndex)})",
                 CellTableSegment c => RuntimeApi.CellDynTable(path, PositionRenderer.Render(c.Ordinal), c.Min, c.ElementWidth),   // kb/Work PB1042
-                _ => path,
+                // Every segment kind has its arm: one without would drop its step from the access silently.
+                _ => throw new System.InvalidOperationException($"PlaceRenderer.RenderPath has no arm for {seg.GetType().Name}"),
             };
         return path;
     }
 
     /// <summary>⛔ THE ONE RENDERING of a guarded root (kb/Work PB971): <paramref name="rootText"/> — the root's
-    /// field text, possibly <c>__outer.</c>-prefixed — wrapped in the runtime guard, which raises the kind's
-    /// condition when the argument was omitted and yields the SAME storage (by <c>ref</c>, or the carrier passed
-    /// through), so the wrapped text is still an lvalue for a store, a member access or a table accessor.
+    /// storage, <see cref="RootStorage"/> — wrapped in the runtime guard, which raises the kind's condition when the
+    /// argument was omitted and yields the SAME storage (by <c>ref</c>, or the carrier passed through), so the wrapped
+    /// text is still an lvalue for a store, a member access or a table accessor. A carrier-resident formal's root IS its
+    /// carrier, so the step to the carrier's value (<see cref="CarrierValueSegment"/>) applies to what the guard hands
+    /// back (kb/Work PB4320 — the guard used to find the carrier inside joined root text).
     /// <para>It lived on the model while the reference resolver also spelled root text (the subscript strings of the
     /// D10 string carrier); with every position typed (kb/Work PB2151) <see cref="RenderPath"/> is the only
     /// renderer of a root, so the guard's rendering is here with it.</para></summary>
     private static string GuardedRoot(OmittedFormalGuard g, string rootText)
     {
         string tail = $"{g.Presence}, {nameof(ActivatedElementKind)}.{g.Kind}, \"{g.FormalName}\")";
-        if (g.CarrierPrefix is not { } carrier)
-            return $"{nameof(OmittedFormal)}.{nameof(OmittedFormal.Ref)}(ref {rootText}, {tail}";
-        // The carrier is the leading reference-type part of the root text ("__lnk7" of "__lnk7.Value", after
-        // any "__outer." re-anchoring); the rest ("…Value") applies to what the guard hands back.
-        int at = rootText.IndexOf(carrier, System.StringComparison.Ordinal);
-        if (at < 0)
-            throw new System.InvalidOperationException(
-                $"OmittedFormalGuard: root text '{rootText}' does not contain its carrier '{carrier}' (kb/Work PB971)");
-        int end = at + carrier.Length;
-        return $"{nameof(OmittedFormal)}.{nameof(OmittedFormal.Carrier)}({rootText[..end]}, {tail}{rootText[end..]}";
+        return g.PassesCarrier
+            ? $"{nameof(OmittedFormal)}.{nameof(OmittedFormal.Carrier)}({rootText}, {tail}"
+            : $"{nameof(OmittedFormal)}.{nameof(OmittedFormal.Ref)}(ref {rootText}, {tail}";
     }
+
+    /// <summary>⛔ THE ONE SPELLING OF A ROOT MEMBER'S STORAGE, unguarded: the member's name, reached through its
+    /// <see cref="ContainerAnchor"/> when it belongs to a containing program (ISO §13.18.27.4 GR2; kb/Work PB4320). The
+    /// path renderer's root and the statement-local hoist of a cell root (<c>PlaceIdentification.FreezeView</c>) both
+    /// read it, so the two cannot reach different storage.</summary>
+    internal static string RootStorage(RootFieldSegment root) => Anchored(root.Anchor, root.CsField);
+
+    /// <summary>⛔ THE ONE SPELLING OF A <see cref="ContainerAnchor"/> (kb/Work PB1133, PB4320): <paramref name="member"/>
+    /// reached through the chain of containing instances (<see cref="RuntimeApi.OuterChain"/>) or through a containing
+    /// program's class; the bare member when <paramref name="anchor"/> is null (the referencing program's own). The
+    /// root of a re-anchored path and every GLOBAL bridge (<c>ProgramEmitter</c>) are spelled here.</summary>
+    internal static string Anchored(ContainerAnchor? anchor, string member) => anchor switch
+    {
+        null => member,
+        ContainerAnchor.Instance i => RuntimeApi.OuterChain(i.Depth) + member,
+        ContainerAnchor.Static s => $"{s.ClassClrName}.{member}",
+        _ => throw new System.InvalidOperationException($"unknown container anchor {anchor}"),
+    };
 
     // A Tier-B view's 1-based window start = the 0-based typed offset + 1.
     private static string RvOffset(RedefViewPlace v) => $"(int)({PositionRenderer.Render(v.Offset)} + 1)";
