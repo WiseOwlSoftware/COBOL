@@ -1204,7 +1204,7 @@ def self_test() -> int:
               sorted(want - reach.drift_tests))
     # Tier 0d through a CITATION (kb/Work PB3131): a planted register read by a planted drift test, and the three
     # shapes a removal breaks; a removal the register does not cite promotes nothing.
-    rows = [{"test": "RegisterDriftTests", "file": "tests/U/RegisterDriftTests.cs", "rule": "", "scopes": [],
+    rows = [{"test": "RegisterDriftTests", "classes": ["RegisterDriftTests"], "file": "tests/U/RegisterDriftTests.cs", "rule": "", "scopes": [],
              "paths": ["docs/register.json"], "through": {}}]
     register = ('{"code-location": "src/P/Binder.cs#Bind; src/P/Binder.cs#Outer.Inner", '
                 '"test-ref": "unit:TurnTests.UnknownName_IsDiagnosed; conformance:cases/7.3-X/old_case", '
