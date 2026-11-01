@@ -13,7 +13,7 @@ WHEN a case runs, never WHETHER (owner, 2026-09-28: "order, don't skip").
 ⛔ ONE GATE, ONE SHAPE (owner 2026-10-11, kb/Work PB3015 Q1a, PB3022; §3.17.3): there is no mode. Every gate — an
 implementer's, a re-gate after a fix, a landing's — makes the order plan (scripts/gate_plan.py), holds a GATE SLOT
 (scripts/gate_slot.py) from before the build to the verdict, so at most N gates build or test at once,
-repository-wide, runs its audits BEFORE it queues for the slot (kb/Work PB2524), and runs leg 1 FAIL-FAST. Leg 1 is
+repository-wide, runs its audits BESIDE the build and the legs (kb/Work PB4326), and runs leg 1 FAIL-FAST. Leg 1 is
 the change's own tests and goldens and the previous gates' reds, either host's (tier 0a, kb/Work PB3155), the
 host-only witnesses (tier 0h: the Windows file-system race witnesses CI's NTFS runners may not reproduce), the cheap
 tree-wide sweeps (tier 0c), the drift tests the drift-rule index says govern a changed file or a register citing
@@ -38,15 +38,19 @@ ONE GATE, in this order (§3.14.3):
      newest hand-run Linux gate (TestResults/linux-gate/, gate_plan.previous_gates) its Linux reds, and the failed
      merge-group run that bounced the branch's pull request (fetched into TestResults/ci-bounce/, kb/Work PB3644) its
      queue reds; five are kept;
-  3. the audits (the one list below, run CONCURRENTLY; one of them is every script self-test, found by
-     scripts/self_tests.py — kb/Work PB2563), FAIL-FAST: a red audit ends the gate RED right there, with no leg run
-     (kb/Work PB2523) — then the GnuCOBOL corpus, by the ONE rule scripts/external_corpus.py (kb/Work PB2611). Both
-     run BEFORE the slot (kb/Work PB2524): they read only the tree, and inside the slot they were 35-45 % of its hold
+  3. the change's LANE (scripts/inert_lane.py: inert, or full with or without TOOLING touched), then the audits (the
+     one list below, run CONCURRENTLY; when the change touches tooling one of them is every script self-test, found by
+     scripts/self_tests.py — kb/Work PB2563, PB4326), started BESIDE everything after them: the inert lane joins them
+     at once (they are its whole gate); a full lane runs them beside the corpus fetch, the slot wait, the build, the
+     listings and the legs, and a red one STOPS the legs (`Host.stop_legs`) and ends the gate RED (kb/Work PB2523,
+     PB4326). The GnuCOBOL corpus, by the ONE rule scripts/external_corpus.py (kb/Work PB2611), is fetched BEFORE the
+     slot (kb/Work PB2524): it reads only the tree, and inside the slot it was part of 35-45 % of its hold
      while every other gate queued;
   4. the gate slot, always after the lock, so no two gates can wait on each other in a cycle; then
      the solution build and the SHA-256 of every binary the legs will run;
-  5. `--list-tests` per assembly (scrubbed), then BESIDE the legs the self-tests that read the built assemblies
-     (`self_tests.py --built`, joined after the legs; a red one makes the gate RED), the plan, then per leg the three
+  5. `--list-tests` per assembly (scrubbed), then, only when the change touches tooling, BESIDE the legs the one
+     self-test that reads the built assemblies (`self_tests.py --built`, joined after the legs; a red one makes the
+     gate RED — kb/Work PB4326), the plan, then per leg the three
      assemblies CONCURRENTLY, each through the
      leg handshake (all three WISEOWL_COBOL_GATE_* variables, or none) and printed through scripts/test_leg_report.py;
      an assembly the plan gives no case in a leg is not invoked for it;
@@ -311,10 +315,11 @@ NOT_RUN_SHOWN = 10
 
 #: ⛔ THE AUDITS, in order — THE list for the gate (build-local.ps1 and .sh used to carry a copy each); battery.sh PHASE
 #: -1 and CI's `audits` job run the same scripts. A wrong § is the one defect no test can catch, and each costs about a
-#: second. None needs a build or a test result, so they run FIRST: a gate stops on a red one before it builds
-#: (kb/Work PB2523 — four of wave 1034's eight first-run reds were audit-only, each found after a whole ~6-min
-#: population). And they run OUTSIDE the gate slot (kb/Work PB2524): the slot rations builds and test legs, not
-#: reading the tree.
+#: second. None needs a build or a test result, so they start FIRST and run BESIDE the build and the legs (kb/Work
+#: PB4326, step 3 of PB4323: they were a serial valley ahead of the slot): a red one STOPS the legs and ends the gate
+#: RED, and a full lane that finds one before the slot, the build or a leg has started never starts it (kb/Work PB2523 —
+#: four of wave 1034's eight first-run reds were audit-only, each found after a whole ~6-min population). They run
+#: OUTSIDE the gate slot (kb/Work PB2524): the slot rations builds and test legs, not reading the tree.
 #: They run CONCURRENTLY, each its own process with its output captured and printed whole (kb/Work PB2563), so the
 #: phase costs its slowest audit, not their sum.
 #: ⛔ AND THE FIRST RED STOPS THE REST (kb/Work PB3061): the moment one audit exits non-zero, every audit still running
@@ -324,7 +329,8 @@ NOT_RUN_SHOWN = 10
 #: re-gate reuses; the rest run then.
 #: ⛔ SELF-TESTS is EVERY script self-test, found by discovery (scripts/self_tests.py; kb/Work PB2563) — never a self-test
 #: named here by hand: this tuple once named five while eleven orchestrator self-tests ran in no gate at all. The few
-#: that read the BUILT assemblies run after the build (`self_tests.py --built`, `Host.built_self_tests`).
+#: that read the BUILT assemblies run beside the legs of a gate that builds (`self_tests.py --built`,
+#: `Host.built_self_tests`). Both halves run ONLY WHEN THE CHANGE TOUCHES TOOLING (`TOOLING_ONLY`, `Lane.tooling`).
 AUDITS = (
     ("CITATIONS", ["scripts/spec/audit_code_citations.py", "--check"]),
     ("DOC CITATIONS", ["scripts/spec/audit_doc_citations.py", "--check"]),
@@ -348,9 +354,17 @@ AUDITS = (
     ("FLEET PRACTICES", [".claude/skills/workstream/check_practices.py"]),
     # DESIGN-conformance-suite.md §9 (kb/Work PB3174): the conformance suite's generator refuses a malformed test
     # (its header, its rules, its control, its expected outputs, the portability lint) reading only the tree, so a
-    # refused test is red here in a fraction of a second, before the slot and the build.
+    # refused test is red here in a fraction of a second, long before the legs end.
     ("CONFORMANCE SUITE", ["conformance-suite/harness/generate.py", "--check"]),
 )
+#: ⛔ THE AUDITS THAT RUN ONLY WHEN THE CHANGE TOUCHES TOOLING (kb/Work PB4326; scripts/inert_lane.py `Lane.tooling`): a
+#: script self-test reads tooling and the data scripts/inert_lane.py's TOOLING_READS names (self_tests.py proves that
+#: list complete on every run it records), so only a change that touches a script, a workflow, a tool, an agent
+#: definition, a manifest it reads, any .py/.ps1/.sh file or one of those data paths can turn one red. The rest of the
+#: population is CI's: the merge group's `audits` job runs every Linux self-test whatever the change (a declared
+#: population reader and the DEVLOG/kb corpora are the named residue, inert_lane.py) and `windows-self-tests` the Windows ones for a tooling
+#: change (the recorded-inputs reuse, PB2914, still lets a tooling change re-run exactly the self-tests that read it).
+TOOLING_ONLY = ("SELF-TESTS",)
 #: ⛔ WHAT AN AUDIT NEEDS IN THE TREE, made ready before any audit runs, exactly as CI's `audits` job makes it ready:
 #: FLEET PRACTICES reads the pinned public skills submodule, which a fresh worktree does not have. A prerequisite that
 #: fails is a RED and no audit runs. `SelfTestDiscoveryDriftTests` maps every command of CI's `audits` job to an AUDITS
@@ -363,13 +377,14 @@ AUDIT_PREREQUISITES = (
 #: are unchanged since a recorded PASS is REUSED, not run, and one that does run records its PASS for the next gate.
 #: CI's `audits` job, the Linux gate and a hand run never pass it: they run every self-test.
 SELF_TESTS_REUSE = "--reuse"
-#: The post-build half of the self-tests: the ones declaring `SELF-TEST-NEEDS: build` (scripts/self_tests.py).
+#: The post-build half of the self-tests: the ones declaring `SELF-TEST-NEEDS: build` (scripts/self_tests.py), run only
+#: when the change touches tooling (`TOOLING_ONLY`'s rule) by a gate that builds.
 BUILT_SELF_TESTS = ["scripts/self_tests.py", "--built"]
-#: ⛔ THE WORK THAT RUNS BESIDE THE GATE'S CRITICAL PATH (`Gate._beside`, kb/Work PB2880), each joined once before the
-#: verdict: the post-build self-tests, which read the built assemblies, beside the legs. A step that needs nothing the
-#: critical path is still making belongs here, not in a serial valley ahead of it. (The audits stay AHEAD of the slot
-#: and the build on purpose: they fail fast, kb/Work PB2523.)
-BESIDE = ("post_build_self_tests",)
+#: ⛔ THE WORK THAT RUNS BESIDE THE GATE'S CRITICAL PATH (`Gate._beside`, kb/Work PB2880, PB4326), each joined once before
+#: the verdict: the audits, which read only the tree, beside the build and the legs; and, when the change touches tooling,
+#: the post-build self-tests, which read the built assemblies, beside the legs. A step that needs nothing the critical
+#: path is still making belongs here, not in a serial valley ahead of it.
+BESIDE = ("audits", "post_build_self_tests")
 
 Spawn = Callable[..., dict]
 
@@ -420,6 +435,14 @@ class Host:
     def __init__(self, repo: Path = REPO, gh: Callable[[list[str]], tuple[int, str, str]] | None = None):
         self.repo = repo
         self.gh = gh   # the GitHub CLI runner `queue_facts` takes (None: the real one); the self-test plants one
+        #: The test hosts this gate's legs run (`run_leg`), registered so a RED audit can stop them (`stop_legs`, kb/Work
+        #: PB4326): the audits run beside the legs, not ahead of them.
+        self.legs_live = _Live()
+
+    def stop_legs(self) -> int:
+        """Stop every leg host running now, process trees and all, and every one that starts from now on; returns how many
+        were running. The gate calls it when an audit that ran beside the legs is RED (kb/Work PB4326)."""
+        return self.legs_live.stop_all()
 
     def git(self, *args: str) -> str:
         return subprocess.run(["git", *args], cwd=self.repo, check=True, capture_output=True, text=True,
@@ -446,11 +469,11 @@ class Host:
         """The change's lane: what `tree` (the measured working tree) changes against `base`, classified by THE one
         classification (scripts/inert_lane.py). No base or no tree, or a change git cannot list, is the full lane."""
         if not base or not tree:
-            return inert_lane.Lane(False, "no base or no measured tree: the full lane")
+            return inert_lane.Lane(False, "no base or no measured tree: the full lane", True)
         try:
             return inert_lane.CLASSIFICATION.classify(inert_lane.changed(self.repo, base, tree))
         except (subprocess.CalledProcessError, OSError) as e:
-            return inert_lane.Lane(False, f"the change could not be listed ({e}): the full lane")
+            return inert_lane.Lane(False, f"the change could not be listed ({e}): the full lane", True)
 
     def head(self) -> str | None:
         try:
@@ -540,9 +563,10 @@ class Host:
             return None, out or "", time.monotonic() - t
         return p.returncode, out or "", time.monotonic() - t
 
-    def audit_commands(self) -> tuple[tuple[str, list[str]], ...]:
-        """The audits this gate runs: AUDITS (the first-red arm of the self-test plants its own)."""
-        return AUDITS
+    def audit_commands(self, tooling: bool) -> tuple[tuple[str, list[str]], ...]:
+        """The audits this gate runs: AUDITS, less the TOOLING_ONLY ones unless the change touches tooling (the first-red
+        arm of the self-test plants its own)."""
+        return tuple((name, cmd) for name, cmd in AUDITS if tooling or name not in TOOLING_ONLY)
 
     def audit_prerequisites(self) -> tuple[tuple[str, list[str]], ...]:
         """What the audits need in the tree: AUDIT_PREREQUISITES (the self-test's arms plant their own)."""
@@ -561,7 +585,7 @@ class Host:
                 return [f"{name} RED"]
         return []
 
-    def audits(self, spawn: Spawn, say: Callable[[str], None]) -> list[str]:
+    def audits(self, spawn: Spawn, say: Callable[[str], None], tooling: bool) -> list[str]:
         """The audits (`audit_commands`), every one of them, CONCURRENTLY, once their prerequisites
         (`audit_prerequisites`, run first and in order) are ready; the self-tests reuse recorded PASSes
         (SELF_TESTS_REUSE). Each audit's whole output is printed as one block when it finishes, so no two interleave.
@@ -574,7 +598,7 @@ class Host:
         reds: dict[str, str] = {}
         live = _Live()
         commands = [(name, [*cmd, SELF_TESTS_REUSE] if name == "SELF-TESTS" else cmd)
-                    for name, cmd in self.audit_commands()]
+                    for name, cmd in self.audit_commands(tooling)]
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(commands)) as pool:
             futures = {pool.submit(self._captured, cmd, spawn, live): name for name, cmd in commands}
             for f in concurrent.futures.as_completed(futures):
@@ -673,12 +697,20 @@ class Host:
             by=f"{self.repo} run {run.name}", now=dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"))
 
     def run_leg(self, asm: str, leg: int, run: Path, env: dict[str, str], spawn: Spawn) -> int:
-        """One assembly's leg: `dotnet test --no-build` with a trx logger, its whole output to `<leg file>.log`."""
+        """One assembly's leg: `dotnet test --no-build` with a trx logger, its whole output to `<leg file>.log`. The host
+        is registered in `legs_live` while it runs and leads its own process group, so `stop_legs` ends its whole tree
+        (kb/Work PB4326); a leg that starts after the stop is killed at once and exits non-zero."""
         stem = leg_stem(leg, asm)
         cmd = ["dotnet", "test", str(self.repo / GATED_ASSEMBLIES[asm]), "--no-build", "--results-directory",
                str(run), "--logger", f"trx;LogFileName={stem}.trx"]
         with open(run / f"{stem}.log", "wb") as fh:
-            return subprocess.run(cmd, cwd=self.repo, stdout=fh, stderr=subprocess.STDOUT, **spawn(env=env)).returncode
+            p = subprocess.Popen(cmd, cwd=self.repo, stdout=fh, stderr=subprocess.STDOUT,
+                                 start_new_session=os.name != "nt", **spawn(env=env))
+            self.legs_live.add(p)
+            try:
+                return p.wait()
+            finally:
+                self.legs_live.discard(p)
 
 
 def _sha256(path: Path) -> str:
@@ -982,8 +1014,14 @@ class Outcome:
     reused_from: str | None = None
     reused_detail: str | None = None  # the measuring gate's own verdict detail, carried along a chain of reuses
     #: The change's lane (scripts/inert_lane.py, kb/Work PB2878): `inert` (no test reads it: the audits, then the
-    #: verdict) or `full`; None until the audits passed.
+    #: verdict) or `full`; None until the lane is decided.
     lane: str | None = None
+    #: Whether the change touches tooling (`Lane.tooling`, kb/Work PB4326): the script self-tests ran, or were left to
+    #: CI's merge group; None until the lane is decided.
+    tooling: bool | None = None
+    #: The RED reasons of the audits, set by the audit work BESIDE the critical path before it stops the legs (kb/Work
+    #: PB4326); empty while they run or when none is red.
+    audit_reds: list[str] = field(default_factory=list)
     head_tree: str | None = None
     #: The toolchain the gate ran under (kb/Work PB4007): toolchain.env's versions of the tools it runs, which this
     #: host's tools reported before anything ran (`Host.toolchain`); None until then.
@@ -1134,6 +1172,7 @@ class Gate:
         out.reused_detail = rec.get("reused_detail") or str(rec.get("line", "")).removeprefix(VERDICT).removesuffix(" ===")
         out.scope_until, out.leg1_only, out.plan_note = rec.get("scope_until"), bool(rec.get("leg1_only")), rec.get("plan", "")
         out.lane = rec.get("lane")  # a chain of reuses keeps what the first run measured
+        out.tooling = rec.get("tooling")
         out.toolchain = rec.get("toolchain")
         out.timings["wall_s"] = round(time.monotonic() - started, 1)  # this gate's own seconds (landing_measure.py)
         return self._finish(out, run, str(rec["verdict"]),
@@ -1202,10 +1241,11 @@ class Gate:
                 shutil.rmtree(p, ignore_errors=True)
 
     def _gate(self, out: Outcome, label: str, started: float, run: Path) -> Outcome:
-        # ⛔ THE AUDITS AND THE CORPUS FETCH RUN BEFORE THE GATE SLOT IS TAKEN (kb/Work PB2524). They read only the
+        # ⛔ THE AUDITS AND THE CORPUS FETCH NEVER RUN INSIDE THE GATE SLOT (kb/Work PB2524, PB4326). They read only the
         # tree — no build output, no test result — so they need nothing the slot rations (concurrent builds and test
         # legs, DESIGN-test-build-ci §3.14.6). Inside the slot they were 35-45 % of its hold (~230 s of serial Python
-        # per gate, one core busy) while every other gate queued behind it.
+        # per gate, one core busy) while every other gate queued behind it. The fetch runs before the slot is taken; the
+        # audits start with the lane and run beside the slot wait, the build and the legs.
         # ⛔ FIRST, THE TOOLCHAIN (kb/Work PB4007): CI runs exactly toolchain.env's versions, so a gate under any other
         # measures what CI will not run (#734 was GREEN here on Python 3.14 and RED in CI's 3.12). Nothing runs on it.
         matched, tools = self.host.toolchain()
@@ -1216,27 +1256,28 @@ class Gate:
                                 f"scripts/toolchain.py check --scope host` lists them); nothing ran (run {run.name})", 2)
         out.toolchain = tools
         self.say(f"build-local: toolchain (toolchain.env) {tools}")
-        t = time.monotonic()
-        audit_reds = self.host.audits(_no_slot, self.say)  # an unchanged self-test is REUSED (PB2914)
-        out.timings["audits_s"] = round(time.monotonic() - t, 1)
-        if audit_reds:
-            # FAIL FAST ON THE AUDITS (kb/Work PB2523): they need no build and no test result and take seconds, while
-            # a red one used to be reported only after the whole ~6-min population — 4 of wave 1034's 8 first-run
-            # reds were audit-only.
-            out.reasons += audit_reds
-            return self._finish(out, run, "RED", f"{'; '.join(audit_reds)} — fail-fast: the audits run before the "
-                                f"slot and the build and NO LEG RAN; fix the audit and re-gate (run {run.name})", 1)
         lane = self.host.lane(out.base, out.tree)
-        out.lane = lane.name
+        out.lane, out.tooling = lane.name, lane.tooling
         self.say(f"build-local: {lane.name} lane (scripts/inert_lane.py) — {lane.reason}")
+        # ⛔ THE AUDITS START NOW AND RUN BESIDE EVERYTHING AFTER (kb/Work PB4326, step 3 of PB4323). They read only the
+        # tree and take about 40 s once the script self-tests are not among them (those run only when the change touches
+        # tooling, `TOOLING_ONLY`), so they no longer stand ahead of the slot and the build as a serial valley: a red one
+        # STOPS the legs (`_audits`), and `_audit_red` ends the gate RED at each point it can be seen before they start
+        # (kb/Work PB2523: fail fast; 4 of wave 1034's 8 first-run reds were audit-only).
+        self._beside(out, "audits", lambda: self._audits(out, lane.tooling))
         if lane.inert:
             # ⭐ THE INERT LANE (kb/Work PB2878; DESIGN-test-build-ci.md §3.18): every changed path is one NO TEST reads
             # (the classification the CI `changes` job uses, proved by the inotify watch of every Linux test run), so no
-            # slot, build or leg can measure anything about it; the audits above, which read it, were the gate. GREEN
-            # under either scope: there is no leg 2 left unrun, so the record covers both. CI's `audits` job runs the
-            # script self-tests on Linux on every event, the inert ones included (kb/Work PB3646, PB4327).
+            # slot, build or leg can measure anything about it; the audits, which read it, are the gate: joined here.
+            # GREEN under either scope: there is no leg 2 left unrun, so the record covers both. CI's merge group runs
+            # the script self-tests on Linux for every landing, the inert ones included (kb/Work PB3646, PB4327, PB4330).
+            self._join_beside(out)
+            if out.audit_reds:
+                return self._audit_red(out, run, "the inert lane runs nothing but the audits, and one is RED: NO LEG RAN")
             return self._inert(out, run, lane)
         out.reasons += self.host.fetch_corpus(_no_slot, self.say)
+        if self._audits_known_red(out):
+            return self._audit_red(out, run, "an audit was RED before the slot, the build and any leg: NO LEG RAN")
         t = time.monotonic()
         try:
             slot = self.host.take_slot(label, self.say)
@@ -1249,9 +1290,43 @@ class Gate:
         finally:
             slot.release()
 
+    def _audits(self, out: Outcome, tooling: bool) -> tuple[list[str], list[str]]:
+        """The audits as work BESIDE the critical path (`_beside`, kb/Work PB4326): returns (their RED reasons, their output
+        lines), printed whole when joined. The reasons are recorded in `out.audit_reds` BEFORE the legs are stopped, so
+        the gate that finds the stop reads why. A RED audit stops the leg hosts (`Host.stop_legs`): the verdict is RED
+        whatever they would have found, and every second they ran on was waste (kb/Work PB2523). An audit phase that
+        itself RAISES stops them too and is a named RED (`_join_beside`)."""
+        lines: list[str] = []
+        t = time.monotonic()
+        try:
+            reds = self.host.audits(_no_slot, lines.append, tooling)  # an unchanged self-test is REUSED (PB2914)
+        except Exception:
+            out.audit_reds = ["AUDITS FAILED"]
+            self.host.stop_legs()
+            raise
+        out.timings["audits_s"] = round(time.monotonic() - t, 1)
+        out.audit_reds = reds
+        if reds:
+            self.host.stop_legs()
+        return reds, lines
+
+    @staticmethod
+    def _audits_known_red(out: Outcome) -> bool:
+        """An audit is RED already (`_audits` sets `audit_reds` the moment the audit phase ends RED, before it stops the
+        legs): the gate looks at each point it can still avoid the work after it, and never waits for the audits there."""
+        return bool(out.audit_reds)
+
+    def _audit_red(self, out: Outcome, run: Path, how: str) -> Outcome:
+        """End the gate RED on a RED audit (kb/Work PB2523, PB4326): join everything running beside (it prints the audits'
+        blocks), then the verdict, naming the audit(s) and `how` it was found."""
+        self._join_beside(out)
+        return self._finish(out, run, "RED", f"{'; '.join(out.audit_reds)} — fail-fast: {how}; fix the audit "
+                            f"and re-gate (run {run.name})", 1)
+
     def _inert(self, out: Outcome, run: Path, lane: inert_lane.Lane) -> Outcome:
         """THE INERT LANE's end (kb/Work PB2878): no build and no test leg, because no test reads the change; the
-        audits ran before. GREEN under either scope: there is no leg 2 left unrun, so the record covers both."""
+        audits were joined, GREEN, before this. GREEN under either scope: there is no leg 2 left unrun, so the record
+        covers both."""
         out.tree_end = self.host.measured_tree()
         verdict = f"{LEG1_ONLY}: GREEN" if out.scope == "leg1" else "GREEN"
         return self._finish(out, run, verdict, f"INERT LANE (kb/Work PB2878): {lane.reason}; the audits are GREEN, "
@@ -1260,6 +1335,8 @@ class Gate:
     def _tested(self, out: Outcome, run: Path, slot: Slot, started: float) -> Outcome:
         """The build, the listings, the plan, the legs and the checks: the part of the gate the slot rations."""
         spawn: Spawn = slot.spawn_kwargs
+        if self._audits_known_red(out):   # one found while the gate queued for the slot: build nothing
+            return self._audit_red(out, run, "an audit was RED while the gate queued for the slot: NO LEG RAN")
         t = time.monotonic()
         if not self.host.build(spawn):
             return self._finish(out, run, "BUILD FAILED", "the solution did not build (see above)", 1)
@@ -1278,9 +1355,13 @@ class Gate:
             return self._finish(out, run, NOT_RUN_CAUSES["population"].verdict,
                                 f"the population could not be listed: {e}", 2)
 
-        # The self-tests that read the BUILT assemblies (kb/Work PB2563) run beside the legs: they only list tests, and
-        # the legs are the gate's longest step, so they add no wall time. Joined, and printed, after the legs.
-        self._beside(out, "post_build_self_tests", lambda: self.host.built_self_tests(spawn))
+        if self._audits_known_red(out):
+            return self._audit_red(out, run, "an audit was RED before any leg ran: NO LEG RAN")
+        # The self-tests that read the BUILT assemblies (kb/Work PB2563) are self-tests, so they run only when the change
+        # touches tooling (kb/Work PB4326), beside the legs: they only list tests, and the legs are the gate's longest
+        # step. Joined, and printed, after the legs.
+        if out.tooling:
+            self._beside(out, "post_build_self_tests", lambda: self.host.built_self_tests(spawn))
         return self._legs_and_checks(out, run, listings, binaries, started, spawn)
 
     def _legs_and_checks(self, out: Outcome, run: Path, listings: dict[str, Counter], binaries: dict,
@@ -1298,7 +1379,7 @@ class Gate:
                      + f"; leg 2 is left to {LEG2_OWNER}")
         legs_started = time.monotonic()
         for leg, assemblies in to_run.items():
-            if out.stopped:
+            if out.stopped or self.host.legs_live.stopping.is_set():
                 break
             out.legs_invoked[leg] = assemblies
             leg_runs = self._run_leg(out, leg, assemblies, run, plan, digest, spawn, legs_started)
@@ -1309,6 +1390,10 @@ class Gate:
         if reds:
             out.timings["first_red_s"] = round(min(r.finished_s for r in reds), 1)
         self._join_beside(out)
+        if self.host.legs_live.stopping.is_set():
+            # A RED audit stopped the legs (`_audits`): what they wrote is a partial run, no population to measure.
+            return self._audit_red(out, run, "an audit that ran beside the legs was RED and STOPPED them: their results "
+                                   "are partial and NOT measured")
 
         self._check_populations(out, listings, legs, run)
         self._publish_timings(out, run, listings)
@@ -1388,6 +1473,8 @@ class Gate:
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(assemblies)) as pool:
             results = {asm: (rc, wall, fin) for asm, rc, wall, fin in pool.map(one, assemblies)}
+        if self.host.legs_live.stopping.is_set():
+            return []   # stopped by a RED audit (`_audits`): a killed host's log is no leg report, `_audit_red` ends the gate
         leg_runs = []
         for asm in assemblies:  # reported in a fixed order, whatever order they finished in
             rc, wall, fin = results[asm]
@@ -1505,8 +1592,8 @@ class Gate:
                   + (f" · {out.slot}" if out.slot else "")
                   + (f" · toolchain {out.toolchain}" if out.toolchain else "") + f" ({out.plan_note}; run {run.name})")
         reds = [f"{r.asm} leg {r.leg} RED" for r in out.runs if r.red]
-        problems = reds + out.reasons + [f"{a} POPULATION {'NOT EXACT' if not pops[a].stopped_early else 'STOPPED'}"
-                                         for a in pops if not pops[a].exact and not pops[a].stopped_early]
+        # A stopped run still answers RAN TWICE and NOT IN THE POPULATION (Population.defective, kb/Work PB4274).
+        problems = reds + out.reasons + [f"{a} POPULATION NOT EXACT" for a in pops if pops[a].defective]
         if out.identity:
             problems.append(f"{len(out.identity)} IDENTITY MISMATCH(ES)")
         remainder = " · ".join(f"{a} {n:,}" for a, n in out.not_run.items())
@@ -1524,6 +1611,21 @@ class Gate:
             return self._finish(out, run, "RED", f"{'; '.join(problems)} — {detail}", 1)
         return self._finish(out, run, "GREEN", detail, 0)
 
+    @staticmethod
+    def _assembly_walls(out: Outcome) -> dict[str, float]:
+        """Per assembly, the seconds its leg hosts ran (all its legs summed; kb/Work PB4326): the measure the acceptance
+        of the population-replaces-the-plan step (PB4328) reads, with `_concurrency`."""
+        return {asm: round(sum(r.wall_s for r in out.runs if r.asm == asm), 1)
+                for asm in GATED_ASSEMBLIES if any(r.asm == asm for r in out.runs)}
+
+    @staticmethod
+    def _concurrency(out: Outcome) -> float | None:
+        """EFFECTIVE CONCURRENCY of the legs (kb/Work PB4326): the leg hosts' wall seconds summed over the span the legs
+        took. 3.0 means the three assemblies ran flat out side by side; near 1.0, one assembly's tail ran alone. None
+        when no leg ran."""
+        span = out.timings.get("legs_s", 0.0)
+        return round(sum(r.wall_s for r in out.runs) / span, 2) if out.runs and span > 0 else None
+
     def _record(self, out: Outcome, run: Path) -> dict:
         return {"schema": RECORD_SCHEMA, "verdict": out.verdict, "line": out.line, "exit_code": out.exit_code,
                 "head": out.head, "tree": out.tree, "tree_end": out.tree_end, "base": out.base,
@@ -1531,8 +1633,10 @@ class Gate:
                 "reused_from": out.reused_from, "reused_detail": out.reused_detail, "reasons": out.reasons,
                 "slot": out.slot, "plan_sha256": out.plan_sha256, "plan": out.plan_note, "stopped": out.stopped,
                 "scope": out.scope, "scope_until": out.scope_until, "leg1_only": out.leg1_only, "lane": out.lane,
+                "tooling": out.tooling,
                 "legs": {str(leg): names for leg, names in out.legs_invoked.items()},
                 "runs": [vars(r) for r in out.runs], "timings": out.timings, "not_run": out.not_run,
+                "assembly_wall_s": self._assembly_walls(out), "effective_concurrency": self._concurrency(out),
                 "timings_store": out.timings_store,
                 "identity": out.identity,
                 "populations": {a: {"discovered": p.discovered, "ran": p.ran, "skipped": p.skipped, "exact": p.exact}
@@ -1566,7 +1670,13 @@ class FakeHost(Host):
         self.committed_tree = self.trees[0]  # HEAD's tree: a gate of a clean working tree measures it
         self.slots_taken = 0
         self.audited = self.built = self.toolchain_checked = False
-        self.events: list[str] = []  # the order the gate drove the host in: audits, fetch, slot, build
+        self.tooling_seen: bool | None = None   # what `audits` was told about the change (kb/Work PB4326)
+        #: Set when the gate stops the legs for a RED audit; and when a leg host starts (the "audit-late" arm's ordering).
+        self.stopped_by_audit, self.leg_started = threading.Event(), threading.Event()
+        self.slot_taken = threading.Event()   # the "audit-slot" arm's ordering: the audit is red once the slot is held
+        #: The order the MAIN thread drove the host in: fetch, slot, build. The audits run beside it, in a thread of their
+        #: own, so they are `audited`, never an event of this order.
+        self.events: list[str] = []
         self.envs: dict[tuple[int, str], dict[str, str]] = {}
         self.plan_obj: dict | None = None
 
@@ -1588,6 +1698,9 @@ class FakeHost(Host):
         if "slot-settings" in self.plant:
             raise ValueError("planted: settings.json turned malformed while the gate queued")
         self.slots_taken += 1
+        if "audit-slot" in self.plant:   # the audit turns RED while the gate holds the slot, before it builds
+            self.slot_taken.set()
+            self.stopped_by_audit.wait(60)
         return Slot(0, 1, 1, 0.0, -1)  # a held slot's shape, no lock: the cap itself is gate_slot.py's self-test
 
     def implementer_scope(self):
@@ -1605,8 +1718,8 @@ class FakeHost(Host):
     def lane(self, base, tree):
         """The planted lane: `inert` plants a change no test reads; the classification itself is inert_lane.py's
         self-test."""
-        return (inert_lane.Lane(True, "planted: all 2 changed path(s) are inert") if "inert" in self.plant
-                else inert_lane.Lane(False, "planted: the full lane"))
+        return (inert_lane.Lane(True, "planted: all 2 changed path(s) are inert", False) if "inert" in self.plant
+                else inert_lane.Lane(False, "planted: the full lane", "tooling" in self.plant))
 
     def head(self) -> str | None:
         return "head-1"
@@ -1617,11 +1730,21 @@ class FakeHost(Host):
     def measured_tree(self) -> str | None:
         return self.trees.pop(0) if len(self.trees) > 1 else self.trees[0]
 
-    def audits(self, spawn, say) -> list[str]:
-        self.audited = True
-        self.events.append("audits")
+    def audits(self, spawn, say, tooling) -> list[str]:
+        self.audited, self.tooling_seen = True, tooling
         say("PLANTED-AUDIT-OUTPUT")
+        if "audit-late" in self.plant:   # red only once a leg host is running, so the legs have to be STOPPED
+            self.leg_started.wait(60)
+            return ["RENDERED VIEWS RED"]
+        if "audit-slot" in self.plant:   # red only once the slot is held: the gate must build nothing
+            self.slot_taken.wait(60)
+            return ["RENDERED VIEWS RED"]
         return ["RENDERED VIEWS RED"] if "audit" in self.plant else []
+
+    def stop_legs(self) -> int:
+        n = super().stop_legs()
+        self.stopped_by_audit.set()
+        return n
 
     def built_self_tests(self, spawn):
         self.events.append("post-build self-tests")
@@ -1632,6 +1755,8 @@ class FakeHost(Host):
         return [], ["--- post-build self-tests (0.0s) ---"]
 
     def fetch_corpus(self, spawn, say) -> list[str]:
+        if "audit" in self.plant:   # the real fetch takes longer than the audits: the red is known before the slot
+            self.stopped_by_audit.wait(60)
         self.events.append("fetch")
         return []
 
@@ -1678,6 +1803,10 @@ class FakeHost(Host):
 
     def run_leg(self, asm, leg, run, env, spawn) -> int:
         self.envs[(leg, asm)] = dict(env)
+        if "audit-late" in self.plant:   # a leg host that runs until the gate stops it (Host.stop_legs), writing nothing
+            self.leg_started.set()
+            self.legs_live.stopping.wait(60)
+            return 1
         planned = env.get("WISEOWL_COBOL_GATE_LEG") is not None
         names = [n for n in self.POPULATION[asm] if not planned or gate_plan.leg_of(self.plan_obj, asm, n) == leg]
         cases = [(n, ["Passed"]) for n in names]
@@ -1689,6 +1818,8 @@ class FakeHost(Host):
             cases = cases[1:]
         if asm == "Conformance" and leg == 2 and "duplicate" in self.plant:
             cases.append(("N.Conf.A", ["Passed"]))
+        if asm == "Conformance" and leg == 1 and "foreign-leg1" in self.plant:
+            cases.append(("N.Conf.NeverListed", ["Passed"]))
         if asm == "Conformance" and "skip" in self.plant and leg == max(self.LEGS[asm][0]):
             cases[-1] = (cases[-1][0], ["NotExecuted"])
         stem = leg_stem(leg, asm)
@@ -1840,6 +1971,11 @@ def self_test() -> int:
         o, _ = gate("leg1-red", scope="leg1", plant={"red-leg1"})
         arm("scope leg1: a red in leg 1 is LEG 1 ONLY: RED, exit 1",
             o.verdict == f"{LEG1_ONLY}: RED" and o.exit_code == 1 and "Conformance leg 1 RED" in o.line, o.line)
+        o, _ = gate("leg1-foreign", scope="leg1", plant={"foreign-leg1"})
+        arm("scope leg1: a leg-1 trx definition the listing never printed is LEG 1 ONLY: RED, though leg 2 never ran "
+            "(kb/Work PB4274: a stopped population still answers NOT IN THE POPULATION)",
+            o.verdict == f"{LEG1_ONLY}: RED" and o.exit_code == 1 and "Conformance POPULATION NOT EXACT" in o.line
+            and o.populations["Conformance"].not_listed == Counter({"N.Conf.NeverListed": 1}), o.line)
         o, _ = gate("leg1-noplan", scope="leg1", plan_fails=True)
         arm("scope leg1 with no plan: the one leg IS the whole population, so the verdict is a plain GREEN",
             o.verdict == "GREEN" and not o.leg1_only and all(p.exact for p in o.populations.values()), o.line)
@@ -1857,16 +1993,54 @@ def self_test() -> int:
             and read_verdict(o.line[len(VERDICT):]).branch_carried, o.line)
 
         o, h = gate("audit", plant={"audit"})
-        arm("a red audit (a tracked rendered view) STOPS the gate before the build: RED, the audit "
-            "named, no leg ran",
+        arm("a red audit (a tracked rendered view) that is known before the slot STOPS the gate before the build: RED, the "
+            "audit named, no leg ran",
             o.verdict == "RED" and o.exit_code == 1 and "RENDERED VIEWS RED" in o.line and "NO LEG RAN" in o.line
-            and h.audited and not h.built and not o.runs and not o.legs_invoked and sink[-1] == o.line, o.line)
-        arm("the audits and the corpus fetch run BEFORE the gate slot is taken, and a red audit never queues for one "
-            "(kb/Work PB2524)",
-            h.slots_taken == 0 and h.events == ["audits"] and o.slot is None
-            and gate("order")[1].events == ["audits", "fetch", "slot", "build", "post-build self-tests",
-                                                           "publish"],
+            and h.audited and not h.built and not o.runs and not o.legs_invoked and sink[-1] == o.line
+            and said("PLANTED-AUDIT-OUTPUT"), o.line)
+        arm("the corpus fetch runs BEFORE the gate slot is taken, a red audit never queues for one (kb/Work PB2524), and "
+            "the audits are no event of the main thread's order: they run beside it (kb/Work PB4326)",
+            h.slots_taken == 0 and h.events == ["fetch"] and o.slot is None
+            and gate("order")[1].events == ["fetch", "slot", "build", "publish"],
             str(h.events))
+        o, h = gate("audit-slot", plant={"audit-slot"})
+        arm("an audit that turns RED while the gate queues for the slot ends the gate before the build: RED, the audit "
+            "named, the slot released, nothing built (kb/Work PB4326)",
+            o.verdict == "RED" and o.exit_code == 1 and "RENDERED VIEWS RED" in o.line
+            and "while the gate queued for the slot" in o.line and h.slots_taken == 1 and not h.built and not o.runs
+            and h.events == ["fetch", "slot"], f"{o.line} {h.events}")
+        o, h = gate("audit-late", plant={"audit-late"})
+        arm("an audit that is RED only after the legs have started STOPS them: the verdict is RED, the audit named, the "
+            "legs' partial results are NOT measured (no population, no timings published) (kb/Work PB4326)",
+            o.verdict == "RED" and o.exit_code == 1 and "RENDERED VIEWS RED" in o.line and "STOPPED them" in o.line
+            and h.built and not o.runs and not o.populations and "publish" not in h.events and h.stopped_by_audit.is_set()
+            and sink[-1] == o.line and said("PLANTED-AUDIT-OUTPUT"), f"{o.line} {h.events}")
+        o, h = gate("tooling-no", plant=set())
+        o2, h2 = gate("tooling-yes", plant={"tooling"})
+        rec = json.loads(run_dirs(root / "tooling-yes" / "runs")[-1].joinpath(VERDICT_FILE).read_text(encoding="utf-8"))
+        rec_no = json.loads(run_dirs(root / "tooling-no" / "runs")[-1].joinpath(VERDICT_FILE).read_text(encoding="utf-8"))
+        arm("the script self-tests (the audits in TOOLING_ONLY, and the post-build ones) run ONLY when the change touches "
+            "tooling: the audits are told so, the post-build half runs beside the legs only then, and the record says "
+            "which (kb/Work PB4326)",
+            h.tooling_seen is False and h2.tooling_seen is True and "post-build self-tests" not in h.events
+            and "post-build self-tests" in h2.events and rec["tooling"] is True and rec_no["tooling"] is False,
+            f"{h.events} {h2.events} {rec['tooling']} {rec_no['tooling']}")
+        arm("the audits a change that touches no tooling runs are AUDITS less TOOLING_ONLY (SELF-TESTS), in order; with "
+            "tooling they are all of AUDITS (the real host; kb/Work PB4326)",
+            [n for n, _ in Host(root).audit_commands(False)] == [n for n, _ in AUDITS if n not in TOOLING_ONLY]
+            and "SELF-TESTS" not in [n for n, _ in Host(root).audit_commands(False)]
+            and Host(root).audit_commands(True) == AUDITS and TOOLING_ONLY == ("SELF-TESTS",)
+            and "SELF-TESTS" in [n for n, _ in AUDITS], str(TOOLING_ONLY))
+        two = Outcome(runs=[LegRun("Unit", 1, 0, False, 30.0, 30.0), LegRun("Conformance", 1, 0, False, 60.0, 60.0)],
+                      timings={"legs_s": 60.0})
+        arm("the verdict file records, per assembly, the seconds its leg hosts ran and the legs' effective concurrency "
+            "(their summed wall seconds over the span the legs took; kb/Work PB4326)",
+            sorted(rec_no["assembly_wall_s"]) == sorted(GATED_ASSEMBLIES)
+            and all(isinstance(v, float) for v in rec_no["assembly_wall_s"].values())
+            and isinstance(rec_no["effective_concurrency"], float)
+            and Gate._concurrency(two) == 1.5 and Gate._assembly_walls(two) == {"Conformance": 60.0, "Unit": 30.0}
+            and Gate._concurrency(Outcome()) is None and Gate._assembly_walls(Outcome()) == {},
+            f"{rec_no['assembly_wall_s']} {rec_no['effective_concurrency']}")
         o, h = gate("toolchain", plant={"toolchain"})
         arm("a host whose tools are not toolchain.env's is NOT RUN [toolchain] before anything runs, naming the tool, "
             "exit 2, an ENVIRONMENT cause (kb/Work PB4007)",
@@ -1881,15 +2055,17 @@ def self_test() -> int:
         arm("a change in the INERT LANE (kb/Work PB2878) runs the audits and then ends GREEN under the leg1 scope, with "
             "no fetch, slot, build or leg, the lane recorded",
             o.verdict == f"{LEG1_ONLY}: GREEN" and o.exit_code == 0 and "INERT LANE (kb/Work PB2878)" in o.line
-            and h.events == ["audits"] and not h.built and not o.runs and o.lane == "inert" and not o.leg1_only
+            and h.audited and h.events == [] and not h.built and not o.runs and o.lane == "inert" and not o.leg1_only
+            and o.tooling is False and h.tooling_seen is False
             and read_verdict(o.line[len(VERDICT):]) == GREEN_READING, f"{o.line} {h.events}")
         o, h = gate("inert-whole", plant={"inert"})
         arm("the inert lane under the `whole` scope is a plain GREEN: no leg 2 is left unrun",
-            o.verdict == "GREEN" and o.exit_code == 0 and h.events == ["audits"], o.line)
+            o.verdict == "GREEN" and o.exit_code == 0 and h.audited and h.events == [], o.line)
         o, h = gate("inert-audit", plant={"inert", "audit"})
         arm("a red audit is RED in the inert lane too: the audits ARE the inert lane's gate",
-            o.verdict == "RED" and o.exit_code == 1 and h.events == ["audits"] and o.lane is None, o.line)
-        o, h = gate("post-build", plant={"post-build"})
+            o.verdict == "RED" and o.exit_code == 1 and h.audited and h.events == [] and o.lane == "inert"
+            and "RENDERED VIEWS RED" in o.line, o.line)
+        o, h = gate("post-build", plant={"post-build", "tooling"})
         arm("a red post-build self-test (one that reads the built assemblies, kb/Work PB2563) runs beside the legs and "
             "makes the gate RED after them, its output printed whole",
             o.verdict == "RED" and o.exit_code == 1 and "POST-BUILD SELF-TESTS RED" in o.line
@@ -1913,7 +2089,7 @@ def self_test() -> int:
             "with the reason, the audits already run",
             o.verdict == "NOT RUN [settings]" and o.exit_code == 2 and "while the gate queued" in o.line
             and not h.built and not read_verdict(o.line[len(VERDICT):]).branch_carried
-            and h.events == ["audits", "fetch", "slot"], o.line)
+            and h.events == ["fetch", "slot"], o.line)
 
         class HungSelfTests(Host):  # the real Host.audits over planted exit codes: no audit runs
             def __init__(self):
@@ -1931,13 +2107,13 @@ def self_test() -> int:
             def audit_prerequisites(self):
                 return (("PLANTED PREREQUISITE", [sys.executable, "-c", "print('not ready'); raise SystemExit(3)"]),)
         unready, heard_unready = PrerequisiteFails(), []
-        reasons = unready.audits(_no_slot, heard_unready.append)
+        reasons = unready.audits(_no_slot, heard_unready.append, True)
         arm("a failed audit prerequisite (CI's `git submodule update --init tools/claude-skills`) is its RED, with its "
             "output, and no audit runs (kb/Work PB1957 row 44)",
             reasons == ["PLANTED PREREQUISITE RED"] and unready.commands == [] and "not ready" in heard_unready,
             f"{reasons} {unready.commands} {heard_unready}")
         hung = HungSelfTests()
-        reasons = hung.audits(_no_slot, lambda _: None)
+        reasons = hung.audits(_no_slot, lambda _: None, True)
         arm("a hung self-test is `SELF-TESTS HANG` in the gate's reasons, never RED, and every gate's self-tests run "
             "with --reuse (kb/Work PB2914, PB3022)",
             reasons == ["SELF-TESTS HANG"] and ["scripts/self_tests.py", SELF_TESTS_REUSE] in hung.commands,
@@ -1951,7 +2127,7 @@ def self_test() -> int:
             def audit_prerequisites(self):
                 return ()
 
-            def audit_commands(self):
+            def audit_commands(self, tooling):
                 slow = ("import pathlib, subprocess, sys; "
                         "p = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(3600)']); "
                         f"pathlib.Path({str(self.mark)!r}).write_text(str(p.pid), encoding='utf-8'); p.wait()")
@@ -1960,7 +2136,7 @@ def self_test() -> int:
                 return (("SLOW", ["-c", slow]), ("QUICK-RED", ["-c", red]))
         mark = scratch_dir("first-red-") / "grandchild.pid"
         heard: list[str] = []
-        reasons = FirstRedStops(mark).audits(_no_slot, heard.append)
+        reasons = FirstRedStops(mark).audits(_no_slot, heard.append, False)
         grandchild = int(mark.read_text(encoding="utf-8"))
         while pid_alive(grandchild):  # termination is asynchronous; a tree that never dies is the hang detector's
             time.sleep(0.05)
@@ -1968,14 +2144,14 @@ def self_test() -> int:
             "is reported STOPPED, never RED (kb/Work PB3061)",
             reasons == ["QUICK-RED RED"] and any(s.startswith("--- audit SLOW: STOPPED") for s in heard)
             and any("1 audit(s) still running stopped" in s for s in heard), f"{reasons} {heard}")
-        o, h = gate("post-build-crash", plant={"post-build-crash"})
+        o, h = gate("post-build-crash", plant={"post-build-crash", "tooling"})
         arm("a defect in work beside the critical path is a named RED with its traceback, and the legs still ran",
             o.verdict == "RED" and o.exit_code == 1 and "POST BUILD SELF TESTS FAILED (RuntimeError" in o.line
             and len(o.runs) == 4 and said("planted: a defect in the post-build self-tests' runner"), o.line)
         o, h = gate("one-shape", scope="leg1", plant={"red-leg1"})
-        arm("ONE SHAPE (kb/Work PB3022): every gate takes a slot, runs its audits before it and stops at a red in "
-            "leg 1; there is no mode",
-            h.slots_taken == 1 and h.events[:3] == ["audits", "fetch", "slot"] and o.verdict == f"{LEG1_ONLY}: RED"
+        arm("ONE SHAPE (kb/Work PB3022): every gate takes a slot, runs its audits beside the build and the legs and stops "
+            "at a red in leg 1; there is no mode",
+            h.slots_taken == 1 and h.events[:3] == ["fetch", "slot", "build"] and o.verdict == f"{LEG1_ONLY}: RED"
             and "mode" not in o.line and "mode" not in json.loads(run_dirs(root / "one-shape" / "runs")[-1]
                                                                   .joinpath(VERDICT_FILE).read_text(encoding="utf-8"))
             and f"leg 2 left to {LEG2_OWNER}" in o.line, o.line)
@@ -2279,8 +2455,8 @@ def self_test() -> int:
         arm("a chain of reuses names the run that MEASURED the tree and its own verdict, never a reuse of a reuse",
             third.reused_from == again.reused_from and third.line.count("REUSED") == 1 and h3.events == [], third.line)
         changed, hc = regate(d, trees=["tree-2"])
-        arm("a re-gate of a CHANGED tree runs the gate (audits, slot, build, legs)",
-            "REUSED" not in changed.line and hc.events[:4] == ["audits", "fetch", "slot", "build"]
+        arm("a re-gate of a CHANGED tree runs the gate (fetch, slot, build, legs)",
+            "REUSED" not in changed.line and hc.events[:3] == ["fetch", "slot", "build"]
             and changed.verdict == f"{LEG1_ONLY}: GREEN", f"{changed.line} {hc.events}")
         d = root / "reuse-red"
         d.mkdir()
