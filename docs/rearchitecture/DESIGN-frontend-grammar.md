@@ -1103,7 +1103,10 @@ reference formats, and the only place source comments are recognized. Its model:
   merged driver flushes between directive lines; a spliced library
   text hands its end division back to the text it was spliced into. And the `D` indicator is
   gated by the registry row `debugging-line-removed-2014` (accepted at 85, obsolete at 2002 — COBOL0903 — removed at
-  2014 — COBOL0902; the NIST S / Y letters are the CCVS dialect, never gated, and excluded as comment lines). A `D`
+  2014 — COBOL0902; the NIST S / Y letters are the CCVS dialect, never gated, and excluded as comment lines). The 2002
+  FLOATING spelling `>>D`, in either reference format, is the same line in a second spelling (kb/Work PB4298): both
+  classifiers call `LogicalLineBuilder.TryEmitFloatingDebugging`, its own row `floating-debugging-indicator-2002` gates
+  it (introduced 2002, obsolete 2002, removed 2014), and SR8 (it on a fixed `D` or `-` line) is COBOL5770. A `D`
   line is NOT decided here (kb/Work PB1705, owner decision R56): the clause that makes it source is further down the text
   than the line, so the converter CARRIES it — `ReferenceFormatProcessor.DebugLineCarrier` + its program text — and the
   lexer reads the carrier as the hidden `DEBUG_LINE` marker and the text as ordinary tokens. The builder reads the line
@@ -1196,7 +1199,7 @@ reference formats, and the only place source comments are recognized. Its model:
   `floating-comment-indicator-2002` and `floating-literal-continuation-2002` (COBOL0900, once per compilation, asked
   in FIXED form only: free form is itself a 2002 introduction reached below 2002 only through the `--source-format
   free|auto` selection, and its comment and its literal continuation are the floating ones), `debugging-line-removed-2014`,
-  `col7-continuation-obsolete-2023` and `fixed-form-word-continuation-removed-2023` — and the syntax-rule diagnostics
+  `floating-debugging-indicator-2002`, `col7-continuation-obsolete-2023` and `fixed-form-word-continuation-removed-2023` — and the syntax-rule diagnostics
   above, plus SR2 (a `*>` not preceded by a separator space — COBOL2495; the text after it is still the comment) and
   SR3 (a continuation line completing a `*>` or `>>` begun at the end of the line it continues — COBOL2496).
 
