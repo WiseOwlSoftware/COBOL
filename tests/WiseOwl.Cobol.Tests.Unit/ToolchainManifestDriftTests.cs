@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ CI AND EVERY LOCAL HOST RUN THE TOOL VERSIONS ONE MANIFEST NAMES (kb/Work PB4007; DESIGN-test-build-ci.md §1.4):
 /// <c>toolchain.env</c> names every tool once, at an exact version, and the two runner images; the cloud setup carries its
 /// block byte for byte; every job of every workflow runs <c>./.github/actions/setup-toolchain</c> as the step right after
-/// its checkout, and runs on one of the manifest's two images; no workflow or action installs a tool any other way
+/// its checkout (and the checkout's one retry, kb/Work PB4324), and runs on one of the manifest's two images; no workflow or action installs a tool any other way
 /// (no <c>actions/setup-*</c> but the toolchain action's own Python step, which reads its version from the manifest, no
 /// package manager, no <c>dotnet tool install</c>); and every command a CI step runs is a manifest tool, a repository
 /// script, or the shell and the utilities of the pinned runner image. A new tool in CI therefore fails this test until
@@ -176,7 +176,7 @@ public sealed class ToolchainManifestDriftTests
 
         // The one setup action allowed, Python's, takes its version from the manifest and from nowhere else.
         string action = File.ReadAllText(TestRepo.At(".github", "actions", "setup-toolchain", "action.yml"));
-        Assert.Contains("python=$(bash scripts/install-tool.sh --version python)", action, StringComparison.Ordinal);
+        Assert.Contains("python=\"$(bash scripts/install-tool.sh --version python)\"", action, StringComparison.Ordinal);
         Assert.Matches(new Regex(@"(?m)^\s+python-version:\s*\$\{\{\s*steps\.manifest\.outputs\.python\s*\}\}\s*$"), action);
     }
 
@@ -311,6 +311,9 @@ public sealed class ToolchainManifestDriftTests
             """;
         string[] images = ["ubuntu-26.04", "windows-2025-vs2026"];
         Assert.Equal((2, 0), CountOf(AuditJobs("w.yml", Workflow)));
+        // The checkout's retry sits between the checkout and the action.
+        Assert.Equal((2, 0), CountOf(AuditJobs("w.yml", Workflow.Replace("      - uses: actions/checkout@v7\n      - uses: ./.github/actions/setup-toolchain\n",
+            "      - uses: actions/checkout@v7\n      - if: steps.checkout.outcome != 'success'\n        uses: actions/checkout@v7\n      - uses: ./.github/actions/setup-toolchain\n", StringComparison.Ordinal))));
         Assert.Equal((2, 1), CountOf(AuditJobs("w.yml", Workflow.Replace("""
                   - name: Setup the toolchain
                     uses: ./.github/actions/setup-toolchain
@@ -466,8 +469,14 @@ public sealed class ToolchainManifestDriftTests
             int checkout = steps.FindIndex(IsCheckout);
             if (checkout < 0)
                 offenders.Add($"  {file}: job `{id}` has no actions/checkout step, so it cannot run {Action}");
-            else if (checkout + 1 >= steps.Count || !IsToolchain(steps[checkout + 1]))
-                offenders.Add($"  {file}: job `{id}`'s step after its checkout is not `uses: {Action}`");
+            else
+            {
+                int next = checkout + 1;
+                while (next < steps.Count && IsCheckout(steps[next]))
+                    next++;   // the checkout's one retry (kb/Work PB4324; CiBoundsDriftTests) is part of the checkout
+                if (next >= steps.Count || !IsToolchain(steps[next]))
+                    offenders.Add($"  {file}: job `{id}`'s step after its checkout is not `uses: {Action}`");
+            }
         }
         return (jobs, offenders);
     }

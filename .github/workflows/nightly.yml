@@ -6,9 +6,9 @@ name: Nightly
 # so one red never hides another's verdict, and each says what it measures that build-and-test.yml's merge group does not:
 #
 #   guard       the NIST corpus through the `cobol` CLI (scripts/guard-fast.sh, about 12 minutes at JOBS=4). The merge group
-#               stopped carrying it (owner decision 2, 2026-10-31): its Conformance shards run the same NIST programs
-#               in-process, and the CLI path (a separate process per program, every verdict audited against the manifest)
-#               needs a daily witness, not a per-landing one.
+#               carries it until pipeline step 6 (kb/Work PB4329) moves it here (owner decision 2, 2026-10-31): its
+#               Conformance shards run the same NIST programs in-process, and the CLI path (a separate process per program,
+#               every verdict audited against the manifest) needs a daily witness, not a per-landing one.
 #   self-tests  EVERY script self-test on BOTH operating systems, the Windows ones whether or not the day's landings touched
 #               a tooling path (the merge group runs them there only when one did), and the `--built` phase on both.
 #   differential  the GnuCOBOL differential (scripts/battery.sh, its phase 3 and the phases it needs): the external corpus
@@ -38,6 +38,11 @@ name: Nightly
 #
 # ⛔ THE SCHEDULE: 09:17 UTC (02:17 PDT), so every verdict is in before the working day's first landing. A scheduled run
 # reads the default branch, so it measures main as the day's landings left it.
+#
+# ⛔ BOUNDED LIKE EVERY WORKFLOW (kb/Work PB4227, PB4324; DESIGN-test-build-ci.md §1.4; CiBoundsDriftTests): each job
+# states `timeout-minutes`, begins with a checkout retried once, and kills each checkout and toolchain step after 5
+# minutes; its caches are only RESTORED (`actions/cache/restore`), since build-and-test.yml's `toolchain-cache` and
+# `package-cache` jobs save them on every push to main, which is the ref this run reads.
 on:
   schedule:
     - cron: "17 9 * * *"
@@ -58,15 +63,24 @@ jobs:
     runs-on: ubuntu-26.04
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v7
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
         with:
           # The specs/ submodule is a private repo and is NOT needed to build or test (only the spec text, referenced from
           # doc comments). Skipping it keeps CI credential-free.
           submodules: false
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        with:
+          submodules: false
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
         uses: ./.github/actions/setup-toolchain
-      - name: Cache NuGet packages
-        uses: actions/cache@v6
+        timeout-minutes: 5
+      - name: Restore main's NuGet packages (saved by package-cache alone, kb/Work PB4324)
+        uses: actions/cache/restore@v6
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
@@ -92,14 +106,25 @@ jobs:
       matrix:
         os: [ubuntu-26.04, windows-2025-vs2026]
     steps:
-      - uses: actions/checkout@v7
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
         with:
           submodules: false
           # The Linux `audits` job's checkout (full history, blobs on demand): a self-test that reads the history finds it.
           fetch-depth: 0
           filter: blob:none
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        with:
+          submodules: false
+          fetch-depth: 0
+          filter: blob:none
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
         uses: ./.github/actions/setup-toolchain
+        timeout-minutes: 5
       # Windows has no system IANA time-zone database, so Python's zoneinfo (scripts/orchestrator/budget.py) needs the
       # tzdata package; actions/setup-python's interpreter carries no packages. PyYAML: tooling_check.py's self-test proves
       # every agent role and skill definition LOADS by parsing its frontmatter (kb/Work PB3097). Both pinned to the local
@@ -138,22 +163,33 @@ jobs:
     runs-on: windows-2025-vs2026
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v7
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
         with:
           submodules: false
           # audit_witness_loss.py (battery phase -1) resolves its base from origin/main: full history, blobs on demand.
           fetch-depth: 0
           filter: blob:none
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        with:
+          submodules: false
+          fetch-depth: 0
+          filter: blob:none
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
         uses: ./.github/actions/setup-toolchain
-      - name: Cache NuGet packages
-        uses: actions/cache@v6
+        timeout-minutes: 5
+      - name: Restore main's NuGet packages (saved by package-cache alone, kb/Work PB4324)
+        uses: actions/cache/restore@v6
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
           restore-keys: ${{ runner.os }}-nuget-
-      - name: Cache GnuCOBOL testsuite tarball (GPL — fetched on demand, never committed)
-        uses: actions/cache@v6
+      - name: Restore main's GnuCOBOL testsuite tarball (GPL, fetched on demand, never committed; saved by package-cache alone)
+        uses: actions/cache/restore@v6
         with:
           path: tests/external/gnucobol-3.2.tar.xz
           key: gnucobol-tests-3.2-3bb48af4
@@ -184,11 +220,20 @@ jobs:
       contents: read
       actions: read           # `gh run list` and `gh run download` of build-and-test.yml's merge-group runs
     steps:
-      - uses: actions/checkout@v7
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
+        with:
+          submodules: false
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
         with:
           submodules: false
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
         uses: ./.github/actions/setup-toolchain
+        timeout-minutes: 5
       - name: The day's shard spread (shard_weights.py report)
         env:
           GH_TOKEN: ${{ github.token }}
@@ -197,9 +242,27 @@ jobs:
   latest:
     name: latest (is toolchain.env at every publisher's newest release?)
     runs-on: ubuntu-26.04
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
+        with:
+          submodules: false
+          sparse-checkout: |
+            .github/actions/setup-toolchain
+            toolchain.env
+            scripts/install-tool.sh
+            scripts/toolchain.py
+            scripts/standard_streams.py
+            scripts/live_tools.py
+            scripts/scratch_repo.py
+            global.json
+          sparse-checkout-cone-mode: false
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
         with:
           submodules: false
           sparse-checkout: |
@@ -214,6 +277,7 @@ jobs:
           sparse-checkout-cone-mode: false
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
         uses: ./.github/actions/setup-toolchain
+        timeout-minutes: 5
       - name: The publishers' newest releases (toolchain.py latest)
         env:
           GH_TOKEN: ${{ github.token }}   # api.github.com allows an unauthenticated runner IP 60 requests an hour
@@ -222,13 +286,31 @@ jobs:
   images:
     name: images (does each runner image carry the git toolchain.env names for it?)
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-26.04, windows-2025-vs2026]
     steps:
-      - uses: actions/checkout@v7
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
+        with:
+          submodules: false
+          sparse-checkout: |
+            .github/actions/setup-toolchain
+            toolchain.env
+            scripts/install-tool.sh
+            scripts/toolchain.py
+            scripts/standard_streams.py
+            scripts/live_tools.py
+            scripts/scratch_repo.py
+            global.json
+          sparse-checkout-cone-mode: false
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
         with:
           submodules: false
           sparse-checkout: |
@@ -243,6 +325,7 @@ jobs:
           sparse-checkout-cone-mode: false
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
         uses: ./.github/actions/setup-toolchain
+        timeout-minutes: 5
       - name: The image's own tools, strictly (toolchain.py check --scope image)
         shell: bash
         run: python scripts/toolchain.py check --scope image
