@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ A CI JOB THAT CHECKS OUT ONLY SOME PATHS LISTS EVERY REPOSITORY FILE ITS SCRIPTS REACH (kb/Work PB3787):
 /// every job of <c>.github/workflows/build-and-test.yml</c> whose checkout has a <c>sparse-checkout</c> list (the
 /// <c>supersede</c> job of kb/Work PB3769, <c>toolchain-cache</c> and <c>ci-gate</c> of kb/Work PB4007 today, and the
-/// toolchain-freshness workflow) runs on a tree without the rest, so each
+/// nightly workflow (nightly.yml)) runs on a tree without the rest, so each
 /// file its steps name, each file a local action it uses names, and each repository module a Python script it runs
 /// imports anywhere in its text (transitively, a function body's lazy import included) must be inside that list; the job sets <c>sparse-checkout-cone-mode: false</c>,
 /// the mode the list is read in. <c>supersede</c>'s step is <c>continue-on-error</c>, so a missing

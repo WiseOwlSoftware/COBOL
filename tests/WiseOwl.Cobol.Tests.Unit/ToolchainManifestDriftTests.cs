@@ -24,7 +24,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// every local leg: CI's Windows jobs ran the runner image's Python 3.12 while every local host ran 3.14, and
 /// <c>Path.exists</c> differs between them. The sibling for the .NET SDK's install route is
 /// <see cref="DotnetSdkInstallDriftTests"/>; that the manifest is at each tool's LATEST release is the scheduled
-/// <c>toolchain-freshness</c> workflow's (<c>scripts/toolchain.py latest</c>), since a publisher's newest release is not a
+/// <c>nightly</c> workflow's (<c>scripts/toolchain.py latest</c>), since a publisher's newest release is not a
 /// fact of the tree.
 /// </remarks>
 [Trait("Sweep", "tree")]

@@ -76,7 +76,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
 - **▶ CI AND EVERY HOST RUN THE SAME, LATEST TOOL VERSIONS (owner 2026-10-28, kb/Work PB4007, landed #748).** "CI tooling
   should match local tooling versions - always" and "CI and local should always be using the latest version". `toolchain.env`
   is the one place a version is written: CI installs from it (`.github/actions/setup-toolchain`), and so do the hosts
-  (`scripts/install-tool.sh`, `setup-wsl.sh`, the cloud `setup-env.sh`). `toolchain-freshness.yml` is red while a publisher
+  (`scripts/install-tool.sh`, `setup-wsl.sh`, the cloud `setup-env.sh`). `nightly.yml` is red while a publisher
   has a newer stable release, and the local gate stops `NOT RUN [toolchain]` on a host whose tools differ. On Windows,
   install with winget, and uninstall the older version when the manifest moves.
 - **▶ LIVE STATE (2026-10-06 23:40 PDT) — THE COMPLETION PLAN IS DECIDED (kb/Work R69; DEVLOG 1901).** Main is train 1024 plus this plan commit; no compiler code changed. Three owner decisions of 2026-10-06, each recorded in R69 and never to be re-asked:
