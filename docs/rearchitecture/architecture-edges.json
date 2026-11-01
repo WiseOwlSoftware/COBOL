@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "rule": "DESIGN-architecture-review.md §8.1: a cross-layer dependency is allowed iff its (from, to) layer pair is listed; intra-layer edges are free; every product namespace is placed; a tolerated row lists every type pair it holds, each with the kb/Work notes that remove it (removedBy, the row's is their union); uses (the census record named by census) and walkUses (the drift test's metadata walk) only ever fall; plan is R1's account of the removal",
-  "census": "7cb79581e1dd7f66cb86df5d7e63ffdffb6f3bd0",
+  "census": "b8e4a3b5833864190849c4dd9c9eb29f80037da9",
   "layers": [
     {
       "id": "runtime",
@@ -1504,25 +1504,6 @@
           "to": "WiseOwl.Cobol.Binding.Bound.BoundProgram",
           "removedBy": [
             "PB2400"
-          ]
-        }
-      ]
-    },
-    {
-      "from": "WiseOwl.Cobol.Binding.Model",
-      "to": "WiseOwl.Cobol.CodeGen",
-      "uses": 1,
-      "walkUses": 1,
-      "removedBy": [
-        "PB2397"
-      ],
-      "plan": "PB2397 (extract: the C# member chain leaves the model — BoundUnit.cs:67, RuntimeApi.OuterChain)",
-      "pairs": [
-        {
-          "from": "WiseOwl.Cobol.Binding.Model.BoundUnit",
-          "to": "WiseOwl.Cobol.CodeGen.RuntimeApi",
-          "removedBy": [
-            "PB2397"
           ]
         }
       ]

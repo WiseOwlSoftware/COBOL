@@ -51,8 +51,8 @@ public sealed record BoundSort(
 
 /// <summary><c>SORT data-name-2 …</c> (ISO §14.9.40 Format 2, COBOL-2002+): the in-place table sort over the typed
 /// element array (DESIGN §8.2 — the one sanctioned divergence from the image store: Format 2 operates on
-/// the typed array directly with a typed comparer). <paramref name="Keys"/> are element-relative member paths; an
-/// empty path is the table element itself (GR23). <paramref name="Count"/> is the table's CURRENT occurrence count
+/// the typed array directly with a typed comparer). <paramref name="Keys"/> are element-relative member chains; an
+/// empty chain is the table element itself (GR23). <paramref name="Count"/> is the table's CURRENT occurrence count
 /// (GR20 — "determined by the rules in the OCCURS clause": the fixed integer, an OCCURS DEPENDING data-name-1, or a
 /// dynamic-capacity table's current capacity), and only those occurrences are sorted and placed back (GR24; kb/Work
 /// PB1174). <paramref name="Table"/> is carried (not its type name) because the element's storage type is finalized
@@ -73,7 +73,7 @@ public abstract record TableSortStorage
     /// <summary>A table with its own typed element array, reached by <paramref name="Array"/> — the whole-table
     /// access path, with an index for each enclosing table (<c>ReferenceResolver.BuildTablePath</c>).
     /// <para><paramref name="KeyWindowOuter"/> is null when every key is a stored member of the element struct (the key
-    /// is read as <c>element.MemberPath</c>). It is the enclosing tables' rendered index expressions when ANY key is not —
+    /// is read through its <see cref="BoundTableSortKey.MemberChain"/> off the element). It is the enclosing tables' rendered index expressions when ANY key is not —
     /// a key that lies behind a REDEFINES view of the element has no stored field on the struct (kb/Work PB599) — and then
     /// EVERY key is read through its window at an occurrence number (<c>ReferenceResolver.ResolveItemAt</c>, the
     /// <see cref="SharedArea"/> law), the element order is sorted, and the elements are placed back by that
@@ -87,13 +87,15 @@ public abstract record TableSortStorage
     public sealed record SharedArea(IReadOnlyList<Position> OuterIndexExprs) : TableSortStorage;
 }
 
-/// <summary>One Format-2 table-sort key: the C# member path RELATIVE to an element variable of a
-/// <see cref="TableSortStorage.TypedArray"/> table (empty = the element itself, ISO §14.9.40 GR23) and the key's
-/// <see cref="DataItem"/> (category/profile drive the typed compare). For a <see cref="TableSortStorage.SharedArea"/>
-/// table the member path is unused — the key item is addressed through the class's window law. A null member path is a
-/// key with no stored field on the element struct (a REDEFINES-view member, kb/Work PB599): the statement reads every
-/// key of such a table through its window (<see cref="TableSortStorage.TypedArray.KeyWindowOuter"/>).</summary>
-public sealed record BoundTableSortKey(bool Descending, string? MemberPath, DataItem Key);
+/// <summary>One Format-2 table-sort key: the chain of members from an element of a
+/// <see cref="TableSortStorage.TypedArray"/> table down to the key, outermost first (empty = the element itself, ISO
+/// §14.9.40.4 GR23) — the items, never their joined access text, so each backend spells the access (kb/Work PB4320) —
+/// and the key's <see cref="DataItem"/> (category/profile drive the typed compare). For a
+/// <see cref="TableSortStorage.SharedArea"/> table the chain is unused — the key item is addressed through the class's
+/// window law. A null chain is a key with no stored field on the element struct (a REDEFINES-view member, kb/Work
+/// PB599): the statement reads every key of such a table through its window
+/// (<see cref="TableSortStorage.TypedArray.KeyWindowOuter"/>).</summary>
+public sealed record BoundTableSortKey(bool Descending, IReadOnlyList<DataItem>? MemberChain, DataItem Key);
 
 /// <summary><c>MERGE file-name-1 …</c> (ISO §14.9.24): a k-way merge of the pre-sorted <paramref name="Using"/>
 /// streams — equal keys keep USING-file order, all of one file's records before the next file's (GR4a/GR4b) —
