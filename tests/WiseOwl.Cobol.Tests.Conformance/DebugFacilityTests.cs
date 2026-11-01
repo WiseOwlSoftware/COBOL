@@ -407,6 +407,43 @@ public sealed class DebugFacilityTests
         EditionHarness.AssertNoDiagnostic(diags, "COBOL1639");
     }
 
+    /// <summary>A debug operand that names a table element is written WITHOUT its subscripts (the DEBUG-SUB-n items
+    /// report them, X3.23-1985; CCVS DB201A writes <c>ON B-LEVEL-1 B-LEVEL-2 B-LEVEL-3</c> and <c>ALL REFERENCES OF
+    /// AB1 OF A1</c> over OCCURS items), so it is the data item the staged COBOL1571 describes and not a reference
+    /// the §8.4.2.3.3 SR5 "shall be subscripted" screen (COBOL2270) judges: the operand is classified by its
+    /// declaration, in both arms (kb/Work PB4363, review round 1).</summary>
+    [Theory]
+    [InlineData("ELEM", "ON 'ELEM' names a file-name")]
+    [InlineData("ALL ELEM", "ON ALL REFERENCES OF 'ELEM'")]
+    [InlineData("ALL REFERENCES OF ELEM OF TBL", "ON ALL REFERENCES OF 'ELEM OF TBL'")]
+    [InlineData("ELEM OF TBL", "ON 'ELEM OF TBL' names a file-name")]
+    public void OperandNamingAnUnsubscriptedTableElement_At85_StaysStaged(string operand, string text)
+    {
+        string src = OperandProgram(operand).Replace("01 T PIC X(5).", "01 T PIC X(5).\n01 TBL.\n    05 ELEM PIC XX OCCURS 3.");
+        var (ok, diags) = EditionHarness.Compile(src, 85);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL1571: declarative section 'DBG': USE FOR DEBUGGING " + text);
+        EditionHarness.AssertNoDiagnostic(diags, "COBOL2270");
+        EditionHarness.AssertNoDiagnostic(diags, "COBOL1639");
+    }
+
+    /// <summary>A paragraph-name qualified by a word that is not its section is a procedure-name that identifies
+    /// nothing, and is told so in the procedure-name text every other procedure-name operand gets — not as the
+    /// undeclared data name the data resolver would call it (the paragraph P1 IS declared; kb/Work PB4363, review
+    /// round 1, ISO §8.4.2.2.2 Format 4).</summary>
+    [Theory]
+    [InlineData("P1 OF NOSEC", "P1 OF NOSEC")]
+    [InlineData("ALL P1 OF NOSEC", "P1 OF NOSEC")]
+    [InlineData("P1 OF T", "P1 OF T")]
+    public void ProcedureNameUnderTheWrongQualifier_At85_NamesNoProcedure(string operand, string written)
+    {
+        var (ok, diags) = EditionHarness.Compile(OperandProgram(operand), 85);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(diags, $"COBOL1639: USE FOR DEBUGGING ON '{written}' names no procedure");
+        EditionHarness.AssertNoDiagnostic(diags, "COBOL1571");
+        EditionHarness.AssertEveryDiagnosticPositioned(diags, operand);
+    }
+
     /// <summary>A qualified procedure-name is a procedure-name subject: <c>ON PARA-W OF SEC-A</c> debugs SEC-A's
     /// paragraph and not SEC-B's of the same spelling (ISO §8.4.2.2.2, the paragraph-name qualified by a section-name;
     /// §8.4.2.2.1 rule 6). It was refused as a staged data item, with its qualifier dropped from the message.

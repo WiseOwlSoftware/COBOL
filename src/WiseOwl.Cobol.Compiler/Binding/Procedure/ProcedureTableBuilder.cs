@@ -606,7 +606,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                                 + $"procedure-name refers to a paragraph or section); write ON {anm} for a procedure-name subject");
                             continue;
                         }
-                        if (ReportUnresolvedDebugOperand(adr)) continue;
+                        if (ReportUnresolvedDebugOperand(adr, section)) continue;
                     }
                     ctx.Edition.Error("COBOL1571", $"declarative section '{section.Name}': USE FOR DEBUGGING "
                         + $"ON ALL REFERENCES OF '{anm}' (the data-item subject: the after-statement data trigger with "
@@ -628,7 +628,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                     else if (subject.Range is { } drange)
                         for (int pc = drange.Start; pc <= drange.End; pc++)
                             AddDebugSubject(pc, section);
-                    else if (NamesDataItem(dr) || NamesFile(dr) || !ReportUnresolvedDebugOperand(dr))
+                    else if (NamesDataItem(dr) || NamesFile(dr) || !ReportUnresolvedDebugOperand(dr, section))
                         ctx.Edition.Error("COBOL1571", $"declarative section '{section.Name}': USE FOR DEBUGGING "
                             + $"ON '{nm}' names a file-name, cd-name, or data item (not a procedure-name of this "
                             + "program) — only the ON procedure-name / ALL PROCEDURES leg is modeled; the file / "
@@ -685,23 +685,38 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             : default;
     }
 
-    /// <summary>Whether the operand names a data item the program declares, or a special register — asked silently
-    /// by the resolver's own probe, so the answer is the one a reference to it would get (ISO §8.4.2.2).</summary>
+    /// <summary>Whether the operand names a data item the program declares, or a special register — the §8.4.2.2
+    /// lookup alone, asked silently (<see cref="ReferenceResolver.ProbeDeclaration"/>), so the answer is about the
+    /// DECLARATION. The reference SHAPE screens that <see cref="ReferenceResolver.Probe"/> applies are left out on
+    /// purpose: the debug identifier of a table element is written without its subscripts (the DEBUG-SUB-n items
+    /// report them, X3.23-1985), so that operand is the data item the staged COBOL1571 describes, not one the
+    /// COBOL2270 "shall be subscripted" rule (ISO §8.4.2.3.3 SR5) judges (kb/Work PB4363, review round 1).</summary>
     private bool NamesDataItem(Core.DataReferenceContext operand) =>
-        new DataReferenceCst(operand).Register != SpecialRegister.None || ctx.Refs.Probe(operand) is not null;
+        new DataReferenceCst(operand).Register != SpecialRegister.None || ctx.Refs.ProbeDeclaration(operand) is not null;
 
     /// <summary>Whether the operand is a bare file-name of this program (the file subject of USE FOR DEBUGGING).</summary>
     private bool NamesFile(Core.DataReferenceContext operand) =>
         operand.dataReferenceSuffix().Length == 0 && operand.cobolWord() is { } word
         && ctx.Data.FilesByName.ContainsKey(word.GetText());
 
-    /// <summary>An operand that is no procedure, data item or file is asked of the ONE reference resolver, which says
-    /// why — "'X' is not defined" for a name nothing declares (COBOL1639, ISO §8.4.2.1: "a statement shall contain a
-    /// reference that uniquely identifies that resource"), the ambiguity for a name several declarations share (§8.4.2.2.3
-    /// SR1). True when it reported; false when it found nothing to say, and the caller falls back to the staged
-    /// COBOL1571 rather than let an operand through in silence.</summary>
-    private bool ReportUnresolvedDebugOperand(Core.DataReferenceContext operand)
+    /// <summary>An operand that is no procedure, data item or file is told why. A qualified word whose HEAD is a
+    /// paragraph or section the program declares (<c>P1 OF NOSEC</c>) is a procedure-name that identifies nothing,
+    /// and is reported as every other procedure-name operand is (<c>RejectProcedureName</c>, COBOL1639): the data
+    /// resolver's "no declaration gives the name P1" would send the user hunting for a declaration that is there.
+    /// Any other operand is asked of the ONE reference resolver, which says why — "'X' is not defined" for a name
+    /// nothing declares (COBOL1639, ISO §8.4.2.1: "a statement shall contain a reference that uniquely identifies
+    /// that resource"), the ambiguity for a name several declarations share (§8.4.2.2.3 SR1). True when it
+    /// reported; false when it found nothing to say, and the caller falls back to the staged COBOL1571 rather than
+    /// let an operand through in silence.</summary>
+    private bool ReportUnresolvedDebugOperand(Core.DataReferenceContext operand, SectionInfo section)
     {
+        if (operand.dataReferenceSuffix().Length > 0 && operand.cobolWord() is { } head
+            && ResolveProcedureWord(head.GetText(), null, section) is { Procedure: not null } or { Ambiguity: not null })
+        {
+            ctx.Validation.RejectProcedureName(DebugOperandAsWritten(operand), head.GetText(), "USE FOR DEBUGGING ON", "",
+                ctx.CurrentMethodScope is not null);
+            return true;
+        }
         int recorded = ctx.Edition.ErrorsRecorded;
         ctx.Refs.Resolve(operand);
         return ctx.Edition.ErrorsRecorded != recorded;
