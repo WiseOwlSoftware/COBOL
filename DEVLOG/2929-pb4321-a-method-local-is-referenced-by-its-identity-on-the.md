@@ -1,4 +1,4 @@
-## PB4321: a method local is referenced by its identity on the neutral tree, and the Roslyn backend spells it in one place
+## Entry 2929 — 2026-11-01 01:16 PST — PB4321: a method local is referenced by its identity on the neutral tree, and the Roslyn backend spells it in one place
 
 **The mechanism (leak L8 of DESIGN-backend-abstraction.md §1.3).** The binders formatted the C# names of the method
 locals the generated code declares and froze them into the model and the bound tree: `PositionLocal.CsName`,
@@ -43,3 +43,4 @@ only for locals it declares itself. Code: each emitter reads the name once per d
 its reads go through the same `LocalNames.Of`. Performance: one small record per local where a string stood, off any
 hot path. Duplication: the stems have one home. No golden: the change is behavior-neutral and no rule's behavior
 moved, and the oracle is its evidence.
+
