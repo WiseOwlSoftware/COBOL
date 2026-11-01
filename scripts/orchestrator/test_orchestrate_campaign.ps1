@@ -180,7 +180,7 @@ $l3b = (Next-Unit $lc @('--handoff', $doneHandoff)) | ConvertFrom-Json
 Check 'a branch WAITING FOR REVIEW while the review lane ticks is the lane''s, not an enqueue unit''s' "$($l3b.unit) $($l3b.reason)" 'wave nothing pending'
 Remove-Item -Recurse -Force $reviewDir
 Set-LaneSurvey @()
-Set-Content -Path (Join-Path $laneDir 'attempts/20261012T120000000000Z-w9c.json') -Encoding utf8 -Value (@{ id = '20261012T120000000000Z-w9c'; branch = 'w9c'; head = 'c1'; end_head = 'c2'; log = 'x.log'; rc = 5; verdict = 'GATE RED (Windows) on c2'; collected = $false } | ConvertTo-Json -Compress)
+Set-Content -Path (Join-Path $laneDir 'attempts/20261012T120000000000Z-w9c.json') -Encoding utf8 -Value (@{ id = '20261012T120000000000Z-w9c'; branch = 'w9c'; head = 'c1'; end_head = 'c2'; log = 'x.log'; rc = 5; verdict = 'MERGE NOT COMPLETED, BRANCH-CARRIED (before the queue) on c2'; collected = $false } | ConvertTo-Json -Compress)
 $l4 = (Next-Unit $lc @()) | ConvertFrom-Json
 Check 'a stopped landing not yet collected is agent work: an enqueue unit (its finisher)' "$($l4.unit) $($l4.reason -match 'stopped landings: w9c \(exit 5\)')" 'enqueue True'
 
