@@ -42,3 +42,11 @@ at all four editions) and `pb4341-exec-is-a-user-word` (accepted at all four, ou
 `EmbeddedPrecompilerBlockTests` pins the counts. Docs: CONFORMANCE.md §3.2 item 4, the manual's migrating table,
 DESIGN-frontend-grammar §3.9 (the one spelling-keyed recognition, and why it is not a guess). Codes used: COBOL5818;
 COBOL5819 and COBOL5820 returned.
+
+**Self-review and gate.** Four lenses: the recovery rules each live in one override (`SingleTokenDeletion`, `Resynchronize`,
+`Sync`, `Report`), the block reader is one helper both arms call, the decision-time arm reads no token text on its hot
+path (a type and a source-extent test first), and no rule is written twice. Not covered, and left as leads: a block the
+grammar reads as COBOL (`DISPLAY W-X EXEC CICS RETURN END-EXEC.`) draws the binder's undefined-name COBOL1639 for EXEC,
+CICS and END-EXEC. The whole Unit, Conformance and Characterization projects ran green before the gate, and the gate
+(run 000001-20261101T111516Z on 45b42a830) read `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2
+left to CI's whole-population run ===`, every added golden and unit test among its passes.
