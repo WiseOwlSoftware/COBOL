@@ -629,7 +629,11 @@ class Runner:
                 return Result(test, RED, ran.returncode, seconds, out, why, waited)
             # ⛔ THE CLOCK PROOF (scripts/self_test_clock.py): a self-test that can read the wall clock passes only if it
             # passes a second time with the clock moved forward, in the same budget place
-            clock = self._clock(test, trace)
+            try:
+                clock = self._clock(test, trace)
+            except ValueError as e:  # a `SELF-TEST-READS` that names nothing: the self-test's declaration is the defect
+                return Result(test, RED, 0, seconds, f"{out}\n⛔ it passed, but its inputs cannot be derived: {e}", why,
+                              waited)
             if clock.shift_days:
                 again = self._exec(test, self._shifted(env, scratch, clock), why, waited,
                                    f"with the clock moved forward {clock.shift_days} days: ")
@@ -672,15 +676,19 @@ class Runner:
 
     def _clock(self, test: SelfTest, trace_dir: Path) -> "clocks.Clock":
         """The clock proof this self-test's PASS needs (scripts/self_test_clock.py `Clock.of`), from the tracked Python
-        files its run opened and the self-test's own header. A run that records no PASS needs none."""
+        files its run opened, the self-test's own header and, for a PowerShell or bash self-test (which the tracer cannot
+        follow), the scripts of its closure (`Deriver.closure`, the files its PASS is keyed on). A run that records no
+        PASS needs none."""
         if test.needs_build:
             return clocks.Clock()
         seen = inputs.read_trace(trace_dir, self.tree)
+        paths = {test.path, *(p for p in seen.files if p.endswith(".py"))}
+        if test.path.endswith(inputs.UNTRACED_SCRIPTS):
+            paths |= {p for p in self.deriver.closure(test.path) if p.endswith(inputs.UNTRACED_SCRIPTS)}
         texts = {}
-        for p in {test.path, *seen.files}:
-            if p.endswith(".py") or p == test.path:  # a PowerShell or bash self-test's own text is read for its clock
-                with contextlib.suppress(OSError, UnicodeDecodeError):  # looked for and absent, or not text: no source
-                    texts[p] = (self.repo / p).read_text(encoding="utf-8")
+        for p in paths:
+            with contextlib.suppress(OSError, UnicodeDecodeError):  # looked for and absent, or not text: no source
+                texts[p] = (self.repo / p).read_text(encoding="utf-8")
         return clocks.Clock.of(test.path, texts, HEADER_LINES, inputs.RUNNER)
 
     def _shifted(self, env: dict[str, str], scratch: Path, clock: "clocks.Clock") -> dict[str, str]:
@@ -1077,7 +1085,12 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
                 ("test_real.py", "# SELF-TEST-CLOCK: real — it compares the Python clock with its file's modification time\n" + mtime),
                 ("test_plain.py", "import sys\nsys.exit(0)\n")):
             (root / "scripts" / name).write_text(body, encoding="utf-8", newline="\n")
-        (root / "scripts" / "test_date.sh").write_text("stamp=$(date +%s)\n", encoding="utf-8", newline="\n")  # R1-2's bash arm
+        # R1-2's and R2-1's bash arms: a script self-test whose OWN text reads a clock, one that reads none, one that
+        # sources a helper which does, and one that runs a Python helper which does (its trace is planted below)
+        for name, body in (("test_date.sh", "stamp=$(date +%s)\n"), ("test_none.sh", "echo 1\n"),
+                           ("test_sourced.sh", ". helper_date.sh\n"), ("helper_date.sh", "stamp=$(date +%s)\n"),
+                           ("test_pyrun.sh", "python scripts/py_clock.py\n"), ("py_clock.py", "import time\nt = time.time()\n")):
+            (root / "scripts" / name).write_text(body, encoding="utf-8", newline="\n")
         ScratchRepo.init(root).git("add", "-A")
         found = {t.path.rsplit("/", 1)[-1]: t for t in discover(root)}
         tests = [found[n] for n in sorted(bodies)]
@@ -1253,13 +1266,20 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
               "shift can prove it past today); only a self-test that cannot read the clock records none",
               (horizon(recorded("test_relative.py")), horizon(recorded("test_plain.py")), horizon(recorded("test_real.py"))),
               ((clocks.CLOCK_SHIFT_DAYS, True), None, (0, True)))
-        script = SelfTest("scripts/test_date.sh", handles_flag=False, platform=None, platform_reason="")
-        check("arm: a bash self-test whose own text reads the clock gets the day-bound clock, one that does not none (R1-2)",
-              (Runner(root, plat, lambda _: None, budget=Budget(budget_dir, 1), store=PassStore(store_dir),
-                      classification=planted)._clock(script, empty).real != "",
-               Runner(root, plat, lambda _: None, budget=Budget(budget_dir, 1), store=PassStore(store_dir),
-                      classification=planted)._clock(SelfTest("scripts/test_none.sh", False, None, ""), empty).real),
-              (True, ""))
+        arm_runner = Runner(root, plat, lambda _: None, budget=Budget(budget_dir, 1), store=PassStore(store_dir),
+                            classification=planted)
+        traced = Path(tempfile.mkdtemp(dir=s))  # the trace of a run in which a Python child opened scripts/py_clock.py
+        (traced / "1.trace").write_text("F" + chr(9) + "scripts/py_clock.py" + chr(10), encoding="utf-8", newline=chr(10))
+        clock_of = {name: arm_runner._clock(SelfTest(f"scripts/{name}", False, None, ""), where).real
+                    for name, where in (("test_date.sh", empty), ("test_none.sh", empty), ("test_sourced.sh", empty),
+                                        ("test_pyrun.sh", traced))}
+        check("arm: a bash self-test whose own text reads the clock gets the day-bound clock, so does one whose closure "
+              "does: a script it sources, or a Python process it started (R1-2, R2-1: the closure its PASS is keyed on was "
+              "never read, so such a PASS was reused forever); one whose closure reads none gets none",
+              {n: bool(r) for n, r in clock_of.items()},
+              {"test_date.sh": True, "test_none.sh": False, "test_sourced.sh": True, "test_pyrun.sh": True})
+        check("arm: the same bash self-test, its Python child not in the trace, has no clock",
+              arm_runner._clock(SelfTest("scripts/test_pyrun.sh", False, None, ""), empty).real, "")
         realized = PassStore(store_dir)._records("scripts/test_real.py", plat)[0]
         past = json.loads(realized.read_text(encoding="utf-8"))
         past["clock"]["until"] = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=1)).date().isoformat()

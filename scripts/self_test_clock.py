@@ -32,11 +32,14 @@ inside that horizon, so a reused PASS can never outlive the clock proof it rests
              that cannot be proved past today leaves no horizon to reuse a PASS inside, so a PASS of such a self-test is
              reused only on the day it was recorded (`Clock.until` is that day), and CI, which never reuses, runs it
              fresh against any clock the dated fixture has since been overtaken by.
-  RESIDUE    named, not hidden: a PowerShell or bash self-test is not shifted (`Get-Date` and `date` read a clock no
-             Python process moves); one whose own text reads such a clock (`SCRIPT_CLOCK_RE`) is held to the same day
-             as REAL, and a helper script it sources is not traced. A clock read that is not Python's (a file's mtime, a
-             process's start time) in a Python self-test is declared REAL. CI's nightly and every merge group still run
-             every self-test at today's clock.
+  SCRIPT     a PowerShell or bash self-test is not shifted (`Get-Date` and `date` read a clock no Python process
+             moves), so its PASS is held to the day it was recorded, as REAL's is, when ANY of its closure reads a clock:
+             its own text, a script it runs or sources (the closure `Deriver.closure` derives and the PASS is keyed on:
+             the files its text names, transitively, and the directories it reads whole) reads one (`SCRIPT_CLOCK_RE`), or
+             a Python process it started (the tracer's trace) opened a tracked `.py` file that SENSITIVE reaches.
+  RESIDUE    named, not hidden: a clock read that is not Python's (a file's mtime, a process's start time) in a Python
+             self-test is declared REAL; a script the closure does not name (built from a variable at run time) is not
+             read. CI's nightly and every merge group still run every self-test at today's clock.
 
 HOW THE CLOCK MOVES. The runner's tracer directory (`self_test_inputs.install_tracer`) holds a `sitecustomize` that
 begins with SHIM, so every Python process a shifted self-test starts (itself and every child that inherits its
@@ -74,10 +77,10 @@ REAL_RE = re.compile(r"^#\s*SELF-TEST-CLOCK:\s*(real)\s*[—-]+\s*(\S.*?)\s*$", 
 
 #: A PowerShell or bash self-test reads the clock through `Get-Date`, `[DateTime]`, `date`, `$SECONDS` or a file's
 #: modification time. No Python shim moves those, so such a self-test is not run shifted; its PASS is reused only on the
-#: day it was recorded (`Clock.until`). Its own text only: a helper script it sources is not traced (RESIDUE). An
+#: day it was recorded (`Clock.until`). Applied to every script of its closure (module docstring, SCRIPT). An
 #: over-approximation (the word `date` in a comment) costs one re-run a day.
 SCRIPT_CLOCK_RE = re.compile(r"Get-Date|\[(?:System\.)?DateTime\]|Get-Uptime|LastWriteTime|\.StartTime|\bdate\b|\$SECONDS\b|\bstat\b|-mtime\b")
-SCRIPT_CLOCK = "a PowerShell or bash clock read, which no Python shim moves"
+SCRIPT_CLOCK = "a clock read by a PowerShell or bash script it runs, which no Python shim moves"
 
 #: The functions a script reads the wall clock through. `now/utcnow/today` on any receiver (`datetime.now`,
 #: `dt.datetime.now`, `date.today`); the `time` module's by name (`.time()` on another receiver is a datetime's
@@ -204,18 +207,19 @@ class Clock:
 
     @classmethod
     def of(cls, test: str, texts: dict[str, str], header_lines: int, runner: tuple[str, ...]) -> "Clock":
-        """The clock proof `test` needs. `texts` maps the self-test and each tracked `.py` file its run opened to its
-        source. A Python self-test is shifted; a declared real clock, and a PowerShell or bash self-test whose own text
-        reads one (RESIDUE), cannot be, so its PASS holds for the day it was recorded; the runner's own files are left
-        out of the closure."""
-        text = texts.get(test, "")
-        real = declared_real(text, header_lines)
+        """The clock proof `test` needs. `texts` maps the self-test and each file of its closure to its source: the
+        tracked `.py` files its run opened, and for a PowerShell or bash self-test also the scripts it names. A Python
+        self-test is shifted; a declared real clock, and a PowerShell or bash self-test whose closure reads one (SCRIPT),
+        cannot be, so its PASS holds for the day it was recorded; the runner's own files are left out of the closure."""
+        real = declared_real(texts.get(test, ""), header_lines)
         if real:
             return cls(real=real)
+        python = [src for path, src in texts.items() if path.endswith(".py") and path not in runner]
         if not test.endswith(".py"):
-            return cls(real=SCRIPT_CLOCK) if SCRIPT_CLOCK_RE.search(text) else cls()
-        sensitive = any(_reads(src) for path, src in texts.items() if path not in runner)
-        return cls(shift_days=CLOCK_SHIFT_DAYS) if sensitive else cls()
+            scripts = (src for path, src in texts.items() if not path.endswith(".py"))
+            return (cls(real=SCRIPT_CLOCK)
+                    if any(SCRIPT_CLOCK_RE.search(src) for src in scripts) or any(map(_reads, python)) else cls())
+        return cls(shift_days=CLOCK_SHIFT_DAYS) if any(map(_reads, python)) else cls()
 
     def until(self, when: dt.datetime) -> str:
         """The last day a PASS recorded at `when` proves anything about the clock: the shift past that moment, and for a
@@ -286,10 +290,18 @@ def self_test() -> int:
          Clock()),
         ("a declared real clock is not shifted, and says why",
          Clock.of("scripts/t.py", {"scripts/t.py": marker + reading}, 5, runner), Clock(real="compares file mtimes with the clock")),
-        ("a PowerShell self-test is never shifted, and one that reads no clock has none",
-         (Clock.of("scripts/t.ps1", {"scripts/t.ps1": "Write-Output 1", "scripts/h.py": reading}, 5, runner),
-          Clock.of("scripts/t.sh", {"scripts/t.sh": "echo 1"}, 5, runner)), (Clock(), Clock())),
-        ("a PowerShell or bash self-test whose own text reads a clock is bounded to its day (the residue)",
+        ("a PowerShell or bash self-test is never shifted, and one whose closure reads no clock has none",
+         (Clock.of("scripts/t.ps1", {"scripts/t.ps1": "Write-Output 1", "scripts/h.py": quiet}, 5, runner),
+          Clock.of("scripts/t.sh", {"scripts/t.sh": "echo 1"}, 5, runner),
+          Clock.of("scripts/t.ps1", {"scripts/t.ps1": "Write-Output 1", "scripts/self_tests.py": reading}, 5, runner)),
+         (Clock(), Clock(), Clock())),
+        ("a PowerShell self-test whose closure reads a clock is bounded to its day though its own text reads none: a "
+         "script it runs or sources (R2-1), or a Python process it started whose file reads one",
+         (Clock.of("scripts/t.ps1", {"scripts/t.ps1": "Write-Output 1", "scripts/h.ps1": "$a = Get-Date"}, 5, runner),
+          Clock.of("scripts/t.sh", {"scripts/t.sh": "echo 1", "scripts/h.sh": "stamp=$(date +%s)"}, 5, runner),
+          Clock.of("scripts/t.ps1", {"scripts/t.ps1": "Write-Output 1", "scripts/h.py": reading}, 5, runner)),
+         (Clock(real=SCRIPT_CLOCK), Clock(real=SCRIPT_CLOCK), Clock(real=SCRIPT_CLOCK))),
+        ("a PowerShell or bash self-test whose own text reads a clock is bounded to its day",
          (Clock.of("scripts/t.ps1", {"scripts/t.ps1": "$a = (Get-Date).AddDays(-1)"}, 5, runner),
           Clock.of("scripts/t.sh", {"scripts/t.sh": "stamp=$(date +%s)"}, 5, runner),
           Clock.of("scripts/t.ps1", {"scripts/t.ps1": "# SELF-TEST-CLOCK: real — a meter reading\nGet-Date"}, 5, runner)),

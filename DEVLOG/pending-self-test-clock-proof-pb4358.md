@@ -55,9 +55,19 @@ long a process took (5 s between two sequential children, a 1 s monotonic span, 
 checked against the interval the parent's own clock brackets the child's run in, so a slow start-up only widens it.
 R1-4: PB1957's table now carries row 57.
 
+**Branch review, round 2.** R2-1: round 1 read only the self-test's OWN text for a script clock, so a script self-test
+whose clock reads are in the scripts it runs (`test_orchestrate_lane.ps1`: `orchestrate.ps1` has 30 `Get-Date` reads) or
+in the Python children it starts recorded no horizon and was reused forever. `Clock.of` now reads the closure the PASS is
+keyed on (`Deriver.closure`: the files the text names, transitively, and the directories it reads whole) plus the tracked
+`.py` files the tracer saw its children open; 19 of the 23 script self-tests are day-bound now (one re-run a day each).
+Arms: the unit arms of `Clock.of` and the fleet arms (a bash self-test that sources a clock-reading helper, one that runs
+a Python child whose file reads the clock, and the same without that file in its trace). R2-2 and R2-3 (leads, in files
+this change edits): the design doc names the arms' two-second allowance, and PB1957 row 57 sits in section B beside the
+other time rows, whose six columns it matches.
+
 **Residue, named.** A PowerShell or bash self-test is not shifted (`Get-Date` and `date` read a clock no Python process
 moves), and neither is a clock that is not Python's; those self-tests run at today's clock in every gate, CI and the
-nightly, and their PASS is reused only on the day it was recorded. A helper script they source is not traced. A clock
+nightly, and their PASS is reused only on the day it was recorded. A script the closure does not name (a path built at run time) is not read. A clock
 every process agrees on (libfaketime on Linux) is the next step if one of them plants a dated fixture.
 
 **Goldens.** `self_test_clock.py --self-test` (detection arms; the shim against the unshifted clock for every function;
