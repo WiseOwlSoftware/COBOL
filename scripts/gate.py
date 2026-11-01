@@ -89,6 +89,7 @@ from typing import Callable
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
 import external_corpus  # noqa: E402
+import gate_growth  # noqa: E402  — THE growth trigger's sample: one per GREEN code-lane gate (kb/Work PB4333)
 import inert_lane  # noqa: E402  — THE classification of a change no test reads (kb/Work PB2878)
 import toolchain  # noqa: E402  — THE reader of toolchain.env, the versions CI and every host run (kb/Work PB4007)
 from self_tests import HANG_EXIT as SELF_TESTS_HANG_EXIT  # noqa: E402
@@ -434,6 +435,11 @@ class Host:
     def take_slot(self, label: str, say: Callable[[str], None]) -> Slot:
         """A slot of the GATE pool: the builds and test hosts the cap rations."""
         return GateSlots.for_repo(self.repo).acquire(label, say=say)
+
+    def record_growth(self, run: Path, tests_s: float, conformance: int) -> None:
+        """Keep this GREEN code-lane gate's test phase where the growth trigger reads it (scripts/gate_growth.py, kb/Work
+        PB4333): the run's verdict.json goes with its worktree, so a week of them is never on disk at once."""
+        gate_growth.record(gate_growth.growth_dir(self.repo), run, self.repo.name, tests_s, conformance)
 
     def default_base(self) -> str:
         return self.git("merge-base", "HEAD", "origin/main")
@@ -1005,8 +1011,21 @@ class Gate:
         if run is not None:
             (run / VERDICT_FILE).write_text(json.dumps(self._record(out, run), indent=1, sort_keys=True) + "\n",
                                             encoding="utf-8", newline="\n")
+            self._record_growth(out, run)
         self.say(out.line)
         return out
+
+    def _record_growth(self, out: Outcome, run: Path) -> None:
+        """The growth trigger's sample (scripts/gate_growth.py, kb/Work PB4333): a GREEN gate that ran its test hosts
+        (`tests_s` is set only then, so the inert lane has none) and measured them itself (a REUSED verdict ran
+        nothing). A sample that cannot be written is said and never changes the verdict: the trigger reads fewer gates."""
+        conformance = out.populations.get("Conformance")
+        if out.verdict != "GREEN" or out.reused_from or "tests_s" not in out.timings or conformance is None:
+            return
+        try:
+            self.host.record_growth(run, out.timings["tests_s"], conformance.discovered)
+        except (OSError, ValueError, subprocess.CalledProcessError) as e:
+            self.say(f"build-local: the growth sample was not recorded ({type(e).__name__}: {e}); the verdict stands")
 
     def run(self) -> Outcome:
         out = Outcome()
@@ -1385,8 +1404,8 @@ class Gate:
 
     @staticmethod
     def _assembly_walls(out: Outcome) -> dict[str, float]:
-        """Per assembly, the seconds its host ran (kb/Work PB4326): the measure the growth trigger of PB4323 §3.4 reads
-        (the code lane's test phase), with `_concurrency`."""
+        """Per assembly, the seconds its host ran (kb/Work PB4326): what explains a slow test phase, the one the growth
+        trigger of PB4323 §3.4 judges (`_record_growth`, scripts/gate_growth.py), with `_concurrency`."""
         return {r.asm: r.wall_s for r in out.runs}
 
     @staticmethod
@@ -1440,9 +1459,15 @@ class FakeHost(Host):
         #: own, so they are `audited`, never an event of this order.
         self.events: list[str] = []
         self.envs: dict[str, dict[str, str]] = {}
+        self.growth: list[tuple[str, float, int]] = []   # the growth samples taken: (run name, tests_s, Conformance cases)
 
     def lock_path(self) -> Path:
         return self._lock
+
+    def record_growth(self, run, tests_s, conformance):
+        if "growth-unwritable" in self.plant:
+            raise OSError("planted: the growth directory is read-only")
+        self.growth.append((run.name, tests_s, conformance))
 
     def toolchain(self) -> tuple[bool, str]:
         """The planted host's tools: toolchain.env's, unless the arm plants `toolchain` (a JDK of another version)."""
@@ -1597,6 +1622,14 @@ def self_test() -> int:
             and sorted(p.name for p in (root / "green" / "runs" / runs[0]).glob("*.trx"))
             == sorted(f"{a}.trx" for a in GATED_ASSEMBLIES)
             and len(list((root / "green" / "runs" / runs[0]).glob("listing-*.txt"))) == 3, str(runs))
+        arm("a GREEN code-lane gate leaves ONE growth sample (kb/Work PB4333): its run, the tests_s its record holds and "
+            "the Conformance cases it discovered",
+            h.growth == [(runs[0], rec["timings"]["tests_s"], 6)] and "tests_s" in rec["timings"], str(h.growth))
+
+        o, hg = gate("growth-unwritable", plant={"growth-unwritable"})
+        arm("a growth sample that cannot be written is said and never changes a GREEN verdict",
+            o.verdict == "GREEN" and o.exit_code == 0 and hg.growth == [] and said("the growth sample was not recorded"),
+            o.line)
 
         o, _ = gate("drop", plant={"drop"})
         arm("a dropped case is NEVER RAN, and the gate is RED",
@@ -1619,7 +1652,7 @@ def self_test() -> int:
         o, h = gate("red", plant={"red"})
         arm("a red host makes the gate RED, exit 1, and every other host still ran its whole population",
             o.verdict == "RED" and o.exit_code == 1 and "Conformance RED" in o.line and len(o.runs) == 3
-            and o.populations["Unit"].exact and "first_red_s" in o.timings, o.line)
+            and o.populations["Unit"].exact and "first_red_s" in o.timings and h.growth == [], o.line)
         arm("a red host's whole output, its failure message included, reaches the console through test_leg_report.py",
             said("PLANTED-RED-MESSAGE") and said("Conformance: RED"), "\n".join(sink[-20:]))
 
@@ -1744,7 +1777,7 @@ def self_test() -> int:
             "or test host, the lane recorded",
             o.verdict == "GREEN" and o.exit_code == 0 and "INERT LANE (kb/Work PB2878)" in o.line
             and h.audited and h.events == [] and not h.built and not o.runs and o.lane == "inert"
-            and o.tooling is False and h.tooling_seen is False
+            and o.tooling is False and h.tooling_seen is False and h.growth == []
             and read_verdict(o.line[len(VERDICT):]) == GREEN_READING, f"{o.line} {h.events}")
         o, h = gate("inert-audit", plant={"inert", "audit"})
         arm("a red audit is RED in the inert lane too: the audits ARE the inert lane's gate",
@@ -2118,7 +2151,7 @@ def self_test() -> int:
         arm("a re-gate of an unchanged tree answers from the recorded GREEN: no audit, slot, build or host runs, the "
             "verdict line says REUSED and names the run that measured it, exit 0",
             first.verdict == "GREEN" and again.verdict == first.verdict and again.exit_code == 0
-            and h2.events == [] and h2.slots_taken == 0 and not again.runs and "REUSED (kb/Work PB3536)" in again.line
+            and h2.events == [] and h2.slots_taken == 0 and h2.growth == [] and not again.runs and "REUSED (kb/Work PB3536)" in again.line
             and again.reused_from is not None and again.reused_from in again.line
             and rec2 is not None and rec2["reused_from"] == again.reused_from and rec2["exit_code"] == 0,
             f"{again.line} {h2.events}")
