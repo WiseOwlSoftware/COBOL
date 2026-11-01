@@ -24,7 +24,7 @@
     <ProjectReference Include="..\..\src\WiseOwl.Cobol.Compiler\WiseOwl.Cobol.Compiler.csproj" />
     <ProjectReference Include="..\..\src\WiseOwl.Cobol.Runtime\WiseOwl.Cobol.Runtime.csproj" />
     <!--
-      The cobol command, BUILT (in this configuration) but not referenced: ConformanceSuiteRunnerDriftTests runs the
+      The cobol command, BUILT (in this configuration) but not referenced: BothRunnersVerdictDriftTests runs the
       conformance suite's run.py through the WiseOwl adapter, which drives the cobol command, and CI's Conformance legs
       build this project alone (DESIGN-conformance-suite.md §5, kb/Work PB3176).
     -->

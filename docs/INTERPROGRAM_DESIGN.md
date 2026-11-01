@@ -211,6 +211,7 @@ POINTERS (2002):
 RETURNING / GOBACK (the result is the PROCEDURE DIVISION header RETURNING item, §14.9.18.4 GR2 — in ISO it is NOT a GOBACK operand):
   PROCEDURE DIVISION … RETURNING LK-R.  GOBACK.  ->  return _ret;         // _ret tracks the header RETURNING item; called program → result to the activator, main → run unit ends
   GOBACK RETURNING WS-R.  (accepted vendor extension, gated 2002+)  ->  _ret = WS_R; return _ret;   // moves the operand into the header RETURNING item first
+  GOBACK RETURNING WS-R.  (no header RETURNING item)  ->  SetExitStatus(WS_R) in a main program, nothing in a called one   // the extension's exit-status use: the binder folds the operand into the GOBACK status (kb/Work PB4335)
 EXTERNAL / GLOBAL:
   01 SHARED PIC 9(4) EXTERNAL.  ->  long SHARED { get=>ExternalStore.GetL("SHARED"); set=>ExternalStore.SetL("SHARED",value); }   // one copy per run unit
   01 G PIC 9 GLOBAL. (outer)    ->  field on the OUTER class; nested classes read via the enclosing-instance reference
