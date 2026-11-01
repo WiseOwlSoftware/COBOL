@@ -134,7 +134,7 @@ CLI (`guard`) runs in the nightly (owner 2026-10-31, kb/Work PB4323 decision 2),
 `nightly.yml`, runs once a day and blocks nothing (§1.4a).
 
 **⛔ CI and every local host run the tool versions ONE manifest names, and each is the tool's latest release (kb/Work
-PB4007; `ToolchainManifestDriftTests`).** The owner, 2026-10-28: "CI tooling should match local tooling versions -
+PB4007; `scripts/toolchain_audit.py`).** The owner, 2026-10-28: "CI tooling should match local tooling versions -
 always", then "CI and local should always be using the latest version". `toolchain.env` (the repository root) names the
 exact version of every tool a CI job or a local gate runs (the .NET SDK, Python, the Oracle JDK, pwsh, each image's git,
 gh, jq, uv, semgrep) and the two runner images (`ubuntu-26.04`, `windows-2025-vs2026`); it is the only place a version
@@ -180,8 +180,8 @@ script, or the image's shell and utilities, so a new tool fails the test on the 
 version of their own.
 
 **⛔ The .NET SDK is installed one way, never through the aka.ms redirect (kb/Work PB3308;
-`DotnetSdkInstallDriftTests`).** `toolchain.env` pins the exact SDK version (one `global.json`'s `10.0.100` and
-`rollForward: latestMinor` accept; the drift test checks it), and `scripts/install-tool.sh` lists the SDK's feeds,
+`scripts/toolchain_audit.py`).** `toolchain.env` pins the exact SDK version (one `global.json`'s `10.0.100` and
+`rollForward: latestMinor` accept; the audit checks it), and `scripts/install-tool.sh` lists the SDK's feeds,
 `builds.dotnet.microsoft.com` first and `ci.dot.net/public` second. Every tool the script installs is downloaded from the
 first feed that serves it and its checksum file (the SDK's `.sha512`, the JDK's and uv's `.sha256`, or the release's
 checksum list: PowerShell's UTF-16 `hashes.sha256`, gh's `checksums.txt`, jq's `sha256sum.txt`). The script checks the
@@ -550,7 +550,7 @@ and it fails the gate as UNRESOLVED so it gets read rather than absorbed.
 
 | site | what it does now |
 |---|---|
-| `tests/_shared/ProcessObservation.cs` | **THE one child-process observer.** It replaced seven copies of "start `dotnet`, wait N s, return whatever came back". A run that does not complete raises `HarnessNonObservationException` and never returns partial output for a caller to compare. It retries **once, serialized**, first: that re-attempts a measurement that did not complete, not a failed assertion. A caller that runs a PROGRAM in a directory names it (`runDirectory:`), and the retry starts from the state that directory had before the first attempt (`RunDirectoryState`; a larger file the killed attempt changed makes the retry a non-observation, never a measurement over another input: kb/Work PB3388). `EveryRunOfACompiledProgram_NamesItsRunDirectory` keeps every `dotnet <dll>` call site on it. **The budget is a rule over the WORK, never one fixed number** (`tests/_shared/ObservationBudget.cs`, kb/Work PB3108): one harness unit (120 s, `WISEOWL_COBOL_RUN_TIMEOUT_MS`) for the observed process plus one per serial round of the child processes it runs, `1 + ceil(children / parallel)` units. A timeout reports the budget, the work it covered, the process's own processor time and the host's load across the attempt (`HostLoad`), so load is told from a hang. Every retry and non-observation is appended to `WISEOWL_COBOL_HARNESS_LOG`, which the gate (`gate.py`'s `leg_env`), every CI test step (`CiHarnessLogDriftTests`) and the Linux reproduction tool point into their results directory; CI uploads it with the TRX, so the rate is measurable and a CI non-observation is readable afterwards. |
+| `tests/_shared/ProcessObservation.cs` | **THE one child-process observer.** It replaced seven copies of "start `dotnet`, wait N s, return whatever came back". A run that does not complete raises `HarnessNonObservationException` and never returns partial output for a caller to compare. It retries **once, serialized**, first: that re-attempts a measurement that did not complete, not a failed assertion. A caller that runs a PROGRAM in a directory names it (`runDirectory:`), and the retry starts from the state that directory had before the first attempt (`RunDirectoryState`; a larger file the killed attempt changed makes the retry a non-observation, never a measurement over another input: kb/Work PB3388). `EveryRunOfACompiledProgram_NamesItsRunDirectory` keeps every `dotnet <dll>` call site on it. **The budget is a rule over the WORK, never one fixed number** (`tests/_shared/ObservationBudget.cs`, kb/Work PB3108): one harness unit (120 s, `WISEOWL_COBOL_RUN_TIMEOUT_MS`) for the observed process plus one per serial round of the child processes it runs, `1 + ceil(children / parallel)` units. A timeout reports the budget, the work it covered, the process's own processor time and the host's load across the attempt (`HostLoad`), so load is told from a hang. Every retry and non-observation is appended to `WISEOWL_COBOL_HARNESS_LOG`, which the gate (`gate.py`'s `leg_env`), every CI test step (`scripts/test_linux_gate.py`) and the Linux reproduction tool point into their results directory; CI uploads it with the TRX, so the rate is measurable and a CI non-observation is readable afterwards. |
 | `tests/_shared/CiWorkflow.cs` (`CiWorkflowDriftTests`) | **THE one reader of a CI workflow's shape** (kb/Work PB3819): the jobs under the top-level `jobs:` key, each job's `steps:` list, each step's own keys (`Value("uses")`, `Value("continue-on-error")`, `Input("overwrite")` for a `with:` input) and the comments. **A comment or blank line belongs to what follows it**: a banner above a job documents that job. A shape the line reader cannot read (no `jobs:`, a job with no id, a flow-style `steps:`) raises `InvalidDataException`, never an empty answer. `CiWorkflowDriftTests` holds its arms on a fixture workflow and sweeps `tests/` for a job-key regex, a `jobs:` anchor or a hand-found `steps:` key of any other file. |
 | `ProcessObservationDriftTests` | Keeps the extraction collapsed (the `TestRepoDriftTests` pattern): no test source may start a process under its own bounded wait. Plus five behavioural facts, including "a process that never finishes RAISES instead of returning empty output" and "`Observe` reports a timeout with an **empty** stdout" — if that ever returns content, the defect is back. |
 | `scripts/guard-nist-audit.sh` | The population + manifest + expectation audit, consumed by the guard so the rule is written once. A plain `divergent` row expects `MATCH` (PB750) and a `TERMINATES` row expects `TERMINATES <EC>` (PB1955), the second set asked of `guard-population.sh`; a verdict word it does not know (the retired `LEGACY DIVERGENT` included) is an UNRECOGNIZED finding. `--self-test` proves all sixteen checks can fail, including the two `divergent` arms and the five TERMINATES arms. `guard-fast.sh` runs it, with `guard-population.sh --self-test` and `guard-verify.sh --self-test`, before every guard run. |
@@ -1225,7 +1225,7 @@ that installs the interpreter itself (`scripts/cloud/setup-env.sh`, `scripts/wsl
 names one directly. The rule covers the scripts; CI's other workflow steps name the runner image's interpreter
 (`python3` on ubuntu, `python` on windows) and are not scanned.
 
-**The drift test.** `PythonInterpreterDriftTests` (Unit, a tree-wide sweep): no bash script under `scripts/` and no
+**The audit.** `scripts/toolchain_audit.py` (its `--self-test`, run by `self_tests.py`): no bash script under `scripts/` and no
 PowerShell twin of one names an interpreter as a command (`python3 x.py`, `command -v python`, `& python`); every script
 that runs `$PY` sources its shell's resolver; and the two resolvers probe the same candidates in the same order with the
 same floor probe.
@@ -1336,7 +1336,7 @@ CI runs most of its test jobs on `ubuntu-26.04` (pinned), and every local gate r
 not Linux it runs itself under WSL through `wsl.exe -d Ubuntu --cd <tree> --exec bash -lc …`, kb/Work PB2999) runs the test
 projects CI's Linux jobs run and the scripts they run: leg `guard` runs `bash scripts/guard-fast.sh` with a `TMPDIR` private to
 the clone, leg `selftests` runs `scripts/self_tests.py` in the clone as CI's `audits` job does, and `selftests-built` runs
-`self_tests.py --built` against the one build (kb/Work PB2563, PB2879). `LinuxGateDriftTests` holds the default legs equal to
+`self_tests.py --built` against the one build (kb/Work PB2563, PB2879). `scripts/test_linux_gate.py` holds the default legs equal to
 the workflows': every `dotnet test` project of a Linux job of `build-and-test.yml` and every `run: bash scripts/….sh` step of
 a Linux job of it or of `nightly.yml` is a default leg.
 
@@ -1351,7 +1351,7 @@ binaries run `--no-build` bake `[CallerFilePath]` goldens in as `E:\…` paths, 
 exports nothing; its only git calls on the tree are READS (HEAD, the git directory, the count of uncommitted changes, the
 tripwire below), all through one function, `wgit`, the TREE'S OWN git without optional locks (a Windows-drive tree is read by
 `git.exe` through WSL interop: Linux git re-hashed ~16,000 tracked files across 9P for one `status`, 34 s, kb/Work PB2880).
-`LinuxGateDriftTests` holds every git call on the tree to `wgit` and every arm of it to `--no-optional-locks`. A self-test
+`scripts/test_linux_gate.py` holds every git call on the tree to `wgit` and every arm of it to `--no-optional-locks`. A self-test
 builds its repositories through `scratch_repo.py` (§3.14.10), and the script snapshots the real repository's `HEAD` and
 `core.worktree` before the legs and is RED (`repository-written`) when either changed.
 
@@ -1610,7 +1610,7 @@ the only run of the merged tree.
 - **No Linux half.** The Linux half of the targeted leg (kb/Work PB3612) was removed (kb/Work PB4327, §3.15): measured against
   78 gate records it cost 167 s a gate, re-ran the leg Windows had just run and was red once, a false red. `LinuxLeg`,
   `Host.runs_linux_leg`/`linux_leg`/`linux_gate_holder`, `plan_leg`, the `linux` field of `verdict.json` and `linux-gate.sh`'s
-  `targeted`/`inert` forms are deleted, and `LinuxGateDriftTests` holds them gone. The risk accepted is §3.15's.
+  `targeted`/`inert` forms are deleted, and `scripts/test_linux_gate.py` holds them gone. The risk accepted is §3.15's.
 - **Host-only witnesses and tree-wide sweeps are named by trait** (kb/Work PB3022): every Unit test class that drives the
   file-sharing layer's host types from concurrent workers carries `[Trait("Host", "ReFS")]`, and every drift test that
   `drift_rules.py --sweeps` classifies as a tree-wide sweep carries `[Trait("Sweep", "tree")]`; membership is DERIVED from the

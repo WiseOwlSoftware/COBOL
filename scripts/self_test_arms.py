@@ -24,7 +24,8 @@ import re
 import sys
 from pathlib import Path
 
-from standard_streams import ensure_utf8
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[1]
 

@@ -27,6 +27,10 @@ import re
 import sys
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from standard_streams import ensure_utf8  # noqa: E402
 
 from standard_streams import ensure_utf8
 
