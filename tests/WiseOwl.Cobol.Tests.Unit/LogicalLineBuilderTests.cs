@@ -289,6 +289,16 @@ public sealed class LogicalLineBuilderTests
         Assert.True(d.IsError);
     }
 
+    [Theory] // SR8 is a 2002 rule: COBOL-85 has no floating debugging indicator, so a D line (a comment line) or a
+             // continuation line whose text begins >>D is legal there and draws no COBOL5770 (review finding R1-1)
+    [InlineData("D")]
+    [InlineData("-")]
+    public void FloatingDebuggingIndicator_OnAFixedIndicatorLine_AtCobol85_IsNotRefused(string fixedIndicator)
+    {
+        var (_, bag) = Normalize("000100     DISPLAY \"A\".\n000200" + fixedIndicator + "    >>D DISPLAY \"B\".\n", InitialReferenceFormat.Fixed, 85);
+        Assert.DoesNotContain(bag.Diagnostics, x => x.Code == "COBOL5770");
+    }
+
     [Fact] // a fixed-form line with the space indicator is the legal home of >>D: no COBOL5770
     public void FloatingDebuggingIndicator_OnASpaceIndicatorLine_IsNotRefused()
     {
