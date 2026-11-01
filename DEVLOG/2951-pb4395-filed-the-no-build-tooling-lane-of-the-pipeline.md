@@ -1,4 +1,4 @@
-## PB4395 filed: the no-build tooling lane of the pipeline review, and why 29 C# test classes stood in its way
+## Entry 2951 — 2026-11-01 09:49 PST — PB4395 filed: the no-build tooling lane of the pipeline review, and why 29 C# test classes stood in its way
 
 Mythos asked the operator to check step 11's CLAUDE.md "Testing" text (wave 20261808 group A) against PIPELINE-REVIEW.md
 §13, which the owner approved as written. One clause differed: §13 says a tooling-only change runs the audits and the
@@ -19,3 +19,4 @@ PB4395 (cluster PB4323, after steps 8 and 11) specifies the change. Move the pip
 self-tests and delete them from C#. Keep the generator classes in C#, with their scripts listed once as code paths and
 held to that list by a drift arm. Then build the tooling lane (audits plus self-tests, no slot, no build) and restore §13's
 clause verbatim.
+
