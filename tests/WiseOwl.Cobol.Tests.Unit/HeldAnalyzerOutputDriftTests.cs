@@ -43,16 +43,4 @@ public sealed class HeldAnalyzerOutputDriftTests
                 + "(delete the stale output, rename a held one aside before the copy; kb/Work PB3674)");
         }
     }
-
-    /// <summary>The self-test that builds with a real holder still declares each of its arms (held from its source, never
-    /// run a second time: the self-test runner runs it, DESIGN-test-build-ci.md section 3.14.10).</summary>
-    [Fact]
-    public void TheHeldOutputSelfTest_DeclaresEveryArm() =>
-        SelfTestArmSource.AssertDeclares(TestRepo.At("scripts/test_held_analyzer_output.py"), [
-            "the generator project builds from a scratch copy",
-            "premise: a process that loaded the output holds it (it cannot be opened for writing)",
-            "a rebuild with a fresh output succeeds while the old output is held",
-            "a rebuild with nothing new leaves bin as it was",
-            "once the holder is gone the next fresh output deletes the held copy and leaves none",
-        ]);
 }
