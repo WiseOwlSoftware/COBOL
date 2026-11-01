@@ -10,7 +10,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// --self-test</c> plants a regression, a peak-memory growth (kb/Work PB2777), a vanished row, an allocation change and
 /// a machine change into a synthetic record and must flag each, stay silent on a delta inside the noise band, round-trip
 /// its own record format, find the hot-path programs, their witnesses and the benchmark's <c>[Params]</c> to be one set,
-/// and see a child process's own peak memory.
+/// and see a child process's own peak memory; and its gate rows must read the record <c>scripts/gate.py</c> writes (a
+/// planted gate's own verdict.json, kb/Work PB4328) and refuse a RED, a REUSED, an inert-lane and an other-schema record.
 /// </summary>
 /// <remarks>
 /// Every R3 and R4 wave of the architecture review proves "performance not worse than the R0 baseline beyond noise"
@@ -30,6 +31,7 @@ public sealed class PerfBaselineSelfTestDriftTests
         Assert.True(File.Exists(script), $"the performance-baseline script is missing: {script}");
         SelfTestArmSource.AssertDeclares(script, new[] { "silent on identical records", "silent within the band", "fires REGRESSION",
                      "fires ALLOC", "fires PEAK", "fires MISSING", "flags CONDITIONS", "round-trips the record", "programs agree",
-                     "peak sees a child's own" });
+                     "peak sees a child's own", "reads the record scripts/gate.py writes", "refuses a RED gate",
+                     "refuses a gate run that REUSED", "refuses a gate of the inert lane", "refuses a record of another schema" });
     }
 }
