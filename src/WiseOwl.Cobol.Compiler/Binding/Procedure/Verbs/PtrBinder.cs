@@ -43,15 +43,20 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
     /// one, and this method branched on <c>GetChild(1)</c>. Four cells of the printed cross-product could not be
     /// written at all, so SR17 and SR18 were unreachable on every one of them.</para>
     /// <para>The sender is bound ONCE, before any receiver is resolved, which is GR12/GR13's "the address
-    /// identified by identifier-6" read once — a receiver may name the sender's own item.</para></summary>
-    public BoundStatement BindSetAddress(Core.SetAddressStatementContext sa)
+    /// identified by identifier-6" read once — a receiver may name the sender's own item.</para>
+    /// <para>The grammar has ONE <c>setToStatement</c> rule for every <c>SET … TO</c> shape (kb/Work PB4231), and
+    /// SetBinder sends a statement here when it SPELLS the ADDRESS phrase (<c>SetToStatementCst.SpellsAddressPhrase</c>).
+    /// Its sender is then the rule's NULL arm, its data-address-identifier arm, or its arithmeticExpression arm, which
+    /// SetSenders has classified into <paramref name="arithmeticSender"/> (null for the other two arms).</para></summary>
+    public BoundStatement BindSetAddress(Core.SetToStatementContext sa, SetSender? arithmeticSender)
     {
         // SET ADDRESS OF (§14.9.39 Format 7) is a COBOL-2002 introduction; the edition gate lives in the
-        // post-bind VersionConformancePass (PHASE-03 Step 14b) as a parse-tree override on this rule.
-        var send = sa.setAddressSender();
+        // post-bind VersionConformancePass (PHASE-03 Step 14b) as a parse-tree override on this spelling.
+        var send = sa.setToSender();
         Place? source = null;
         BoundAddressOf? address = null;
         bool toNull = send.predefinedNull() is not null;
+        Core.DataReferenceContext? senderRef = null;
         if (send.dataAddressIdentifier() is { } dai)
         {
             // identifier-6 as a §8.4.3.11 data-address-identifier — §8.4.3.11.4 GR1: "Data-address-identifier
@@ -60,13 +65,31 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             if (BindDataAddress(dai) is not { } addr) return BoundRejected.Reported(ctx.Edition);
             address = addr;
         }
-        else if (!toNull)
+        else if (!toNull && arithmeticSender is { Ref: { } sref })
         {
             // SR19 first sentence's "shall reference a data-pointer" — identifier-6 as a plain pointer item.
-            if (PtrResolvePointer(send.dataReference(), "identifier-6, the sending operand of SET Format 7 "
-                                                     + "(ISO §14.9.39.2; §14.9.39.3 SR17)", receiving: false) is not { } src)
+            if (PtrResolvePointer(sref, "identifier-6, the sending operand of SET Format 7 "
+                                        + "(ISO §14.9.39.2; §14.9.39.3 SR17)", receiving: false) is not { } src)
                 return BoundRejected.Reported(ctx.Edition);
             source = src;
+            senderRef = sref;
+        }
+        else if (!toNull)
+        {
+            // identifier-6 written as another identifier format (§8.4.3.1.3 SR1): a function-identifier or an inline
+            // method invocation references a temporary data item (§8.4.3.2.1, §8.4.3.4.4 GR1), which SR17 asks to be of
+            // category data-pointer, exactly as SetBinder.BindSetPointer asks it of the identifier-5 route. SELF / SUPER,
+            // a literal and an arithmetic expression are no data-pointer at all.
+            if (arithmeticSender is not { Predefined: null, TemporaryItem: { Item.Pic.Category: PicCategory.Pointer } temp })
+            {
+                string written = arithmeticSender?.Text ?? DataBinder.WrittenText(send);
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
+                    $"'{written}': identifier-6, the sending operand of SET Format 7, shall be of category "
+                    + "data-pointer — the predefined address NULL, a USAGE POINTER data item, a function-identifier or "
+                    + "inline method invocation of category data-pointer, or ADDRESS OF an identifier "
+                    + "(ISO §14.9.39.2 Format 7; §14.9.39.3 SR17)");
+            }
+            source = temp;
         }
         // ⛔ IDENTIFIER-6'S RESTRICTION, DERIVED ONCE. §14.9.39.3 SR19's three sentences all compare a RECEIVER's
         // restriction against identifier-6's, and identifier-6 has one whichever spelling it takes: a pointer
@@ -81,10 +104,12 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
                               : source is { } ptrSend ? StrongTypeModel.PointerRestriction(ptrSend.Item)
                               : default;
         string senderText = toNull ? "NULL"
-            : DataBinder.WrittenText(send.dataAddressIdentifier()?.dataReference() ?? send.dataReference());
+            : send.dataAddressIdentifier()?.dataReference() is { } daiRef ? DataBinder.WrittenText(daiRef)
+            : senderRef is not null ? DataBinder.WrittenText(senderRef)
+            : arithmeticSender!.Text;
 
-        var receivers = new List<BoundPointerReceiver>(sa.setAddressReceiver().Length);
-        foreach (var r in sa.setAddressReceiver())
+        var receivers = new List<BoundPointerReceiver>(sa.setToReceiver().Length);
+        foreach (var r in sa.setToReceiver())
         {
             var dref = r.dataReference();
             if (r.ADDRESS() is not null)
@@ -132,8 +157,8 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
     /// because they are one rule about one (receiver, sender) pair, and a Format-7 statement may now hold
     /// several receivers — a per-statement screen would have answered for operand zero only.
     /// <para>⛔ ONE SCREEN, EVERY ARM THAT STORES INTO IDENTIFIER-5 (kb/Work PB548). Format 7 reaches the binder
-    /// by TWO routes: <see cref="BindSetAddress"/> (setAddressStatement — an <c>ADDRESS OF</c> on either side) and
-    /// <c>SetBinder.BindSetPointer</c> (setToValueStatement / setObjectReferenceStatement re-routed on the
+    /// by TWO routes: <see cref="BindSetAddress"/> (a setToStatement that spells an <c>ADDRESS OF</c> on either side) and
+    /// <c>SetBinder.BindSetPointer</c> (every other setToStatement, re-routed on the
     /// receivers' category — the plain <c>SET p TO q</c>). The second route never asked this question, so an
     /// UNRESTRICTED pointer was stored into a RESTRICTED one and a based item rebased through it read another
     /// type's storage — exactly what §13.18.60.4 GR23's last sentence ("A restricted data-pointer shall contain

@@ -94,13 +94,18 @@ public sealed class PrototypeUnitRulesTests
             PrototypeBody);
 
     /// <summary>SR4 f) — "The procedure division shall contain only a procedure division header." Before PB894
-    /// a FUNCTION prototype's statements compiled clean and silently vanished (a prototype emits no body).</summary>
+    /// a FUNCTION prototype's statements compiled clean and silently vanished (a prototype emits no body). Each body
+    /// element the grammar writes is its own row: a paragraph, a section, and a sentence with no paragraph-name.</summary>
     [Theory]
-    [InlineData(false, "PUF1")]
-    [InlineData(true, "FUF1")]
-    public void Sr4f_ProcedureStatements_AreRefused(bool function, string name) =>
+    [InlineData(false, "PUF1", "P-MAIN.\n    MOVE 1 TO L-R.")]
+    [InlineData(true, "FUF1", "P-MAIN.\n    MOVE 1 TO L-R.")]
+    [InlineData(false, "PUF2", "S-MAIN SECTION.")]
+    [InlineData(true, "FUF2", "S-MAIN SECTION.")]
+    [InlineData(false, "PUF3", "MOVE 1 TO L-R.")]
+    [InlineData(true, "FUF3", "MOVE 1 TO L-R.")]
+    public void Sr4f_ProcedureStatements_AreRefused(bool function, string name, string procedure) =>
         EditionHarness.AssertHasDiagnostic(EditionHarness.GetDiagnostics(
-            Prototype(function, name, procedure: "P-MAIN.\n    MOVE 1 TO L-R."), 2023), PrototypeBody);
+            Prototype(function, name, procedure: procedure), 2023), PrototypeBody);
 
     /// <summary>§10.6.1 — the prototype formats print the end marker unbracketed.</summary>
     [Theory]

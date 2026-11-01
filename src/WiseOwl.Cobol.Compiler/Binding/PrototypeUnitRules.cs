@@ -79,7 +79,7 @@ internal static class PrototypeUnitRules
         // f) "The procedure division shall contain only a procedure division header."
         if (procedure is not null
             && (procedure.declarativePart().Length > 0 || procedure.sentence().Length > 0
-                || procedure.procedureUnit().Length > 0))
+                || procedure.paragraphDefinition().Length > 0 || procedure.sectionDefinition().Length > 0))
             Refuse(procedure, "f)", "a prototype's procedure division shall contain only a procedure division "
                 + "header — no declaratives, sections, paragraphs or statements");
     }

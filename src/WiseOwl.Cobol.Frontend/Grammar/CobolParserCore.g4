@@ -676,8 +676,22 @@ procedureDivision
                          // following the procedure division header or a section header". Legal COBOL with no
                          // paragraph at all; NIST/CCVS never exercises it (it always writes paragraph names),
                          // which is why the GnuCOBOL external corpus was what surfaced it (DEVLOG 931).
-      procedureUnit*
+      paragraphDefinition*   // §14.2.1 Format 2's paragraphs (without sections)
+      sectionDefinition*     // §14.2.1 Format 1's sections, each holding the paragraphs that follow its header
     ;
+// ⛔ THE SECTION OWNS ITS PARAGRAPHS IN THE SHAPE, NOT BY A PREDICTION CHOICE (kb/Work PB4230). §14.4.2: "A section
+// consists of a section header followed by zero, one, or more successive paragraphs. A section ends immediately before
+// the next section or at the end of the procedure division", so every paragraph after a section header is that
+// section's. ⛔ Never one loop over `(sectionDefinition | paragraphDefinition)`: a paragraph after a section header could
+// then also close the section's paragraphDefinition* loop and be the division's own, both derivations accept every
+// token to the next section header or the end of the division, and full-context LL prediction (the pass every program
+// whose SLL pass bails takes) scans that far at EVERY paragraph header — quadratic in a section's paragraphs (a legal
+// 400-paragraph section with one `SET p TO NULL` compiled in 112 s that way). In this shape the only continuations
+// after a section's last paragraph are another section header, an end marker, a nested source unit or the end of
+// input, which differ from `paragraphName DOT` within the header's own tokens.
+// The union of the two formats is kept: sentences or paragraphs ahead of the first section, beside a section or a
+// DECLARATIVES portion, still parse here so ProcedureFormatPass can refuse them by name (COBOL2797, kb/Work PB1146).
+// ProcedureDivisionShapeDriftTests holds the bound: no procedure-division decision looks further than one header.
 
 usingClause
     : USING usingParameter (COMMA? usingParameter)*
@@ -853,11 +867,6 @@ declarativeParagraph
 // The period is the ONLY place DOT appears in procedure body.
 sentence
     : statement+ DOT
-    ;
-
-procedureUnit
-    : sectionDefinition
-    | paragraphDefinition
     ;
 
 // SECTION integerLiteral? — the '85 segment-number; see the declarativeSection note (VCR Table 7 row 7.18).
@@ -1534,24 +1543,12 @@ setStatement
     | setSwitchStatement
     | setEntryStatement
     | setSizeStatement
-    | setToValueStatement
+    | setToStatement              // F1, F5, F7, F8, F9, F14, F16, F17: every `SET receivers TO sender` (kb/Work PB4231)
     | setBooleanStatement
-    | setFunctionAddressStatement // F8 with the §8.4.3.12 ADDRESS OF FUNCTION sender — before setAddressStatement,
-                                  // whose sender arm is `TO ADDRESS OF? dataReference` and would otherwise be tried first
-    | setProgramAddressStatement  // F9 with the §8.4.3.13 ADDRESS OF PROGRAM sender — same reason, same place
-                                  // (kb/Work PB549). PROGRAM and FUNCTION are distinct reserved tokens, so the
-                                  // two address-sender rules cannot claim each other's shape in either order.
-    // ⛔ BEFORE setAddressStatement, AND THAT ORDER IS LOAD-BEARING (kb/Work PB450 half 2). Format 7's printed
-    // sender identifier-6 may be the predefined address NULL (§14.9.39.3 SR19), and Format 5's may be the
-    // predefined object reference NULL (SR9) — `SET X TO NULL` is token-identical in both, and only the
-    // RECEIVER's category tells them apart, which is SetFormatSelection's question and not the parser's. With
-    // setAddressStatement's receiving list widened to the printed `{ ADDRESS OF data-name-1 | identifier-5 } …`
-    // it can now match that shape too, so listing it first would take every `SET obj-ref TO NULL` away from the
-    // format-selection path. Listed here, the ordinary shapes route exactly as they did and only the ones
-    // carrying an ADDRESS phrase — which setObjectReferenceStatement can never match, ADDRESS being a reserved
-    // token — reach Format 7's own rule.
-    | setObjectReferenceStatement
-    | setAddressStatement
+    | setFunctionAddressStatement // F8 with the §8.4.3.12 ADDRESS OF FUNCTION sender (kb/Work PB452)
+    | setProgramAddressStatement  // F9 with the §8.4.3.13 ADDRESS OF PROGRAM sender (kb/Work PB549). FUNCTION and
+                                  // PROGRAM are reserved tokens that head no dataReference, so neither sender can
+                                  // be read as setToStatement's `ADDRESS OF identifier` or as each other's.
     | setIndexStatement
     ;
 
@@ -1593,8 +1590,7 @@ setLocaleSource
 // nothing). It is the Micro Focus / IBM spelling, and it is kept because the SEMANTICS behind it are the
 // standard's and programs in the field are written to it. The STANDARD spelling is
 // setProgramAddressStatement below, which is what §14.9.39 Format 9 + §8.4.3.13 actually admit.
-// Listed BEFORE setToValueStatement: ENTRY is a reserved token (not in cobolWord), so no other SET form can
-// claim the `TO ENTRY` prefix. A not-locatable program → EC-PROGRAM-NOT-FOUND + NULL (§8.4.3.13.4 GR4, which
+// ENTRY is a reserved token (not in cobolWord), so no other SET form can claim the `TO ENTRY` prefix. A not-locatable program → EC-PROGRAM-NOT-FOUND + NULL (§8.4.3.13.4 GR4, which
 // governs the shared semantics whichever surface reaches them).
 setEntryStatement
     : SET setReceivingIdentifier+ TO ENTRY (nonNumericLiteral | dataReference)
@@ -1620,7 +1616,7 @@ setLastExceptionStatement
 // ⛔ OF IS AN OPTIONAL WORD, on the SAME evidence as Format 7's and Format 16's (kb/Work PB695): the figure
 // underlines SET, CONTENT and TO and leaves OF bare, and §5.2.3 makes an unstressed reserved word optional. CONTENT
 // is a reserved token at every edition (CALL … BY CONTENT is COBOL-85) and can never head a dataReference, so
-// `SET CONTENT X TO …` stays unambiguous against setToValueStatement with or without the word.
+// `SET CONTENT X TO …` stays unambiguous against setToStatement with or without the word.
 // ⚠ The five value words are NOT reserved below 2014, so each is also a cobolWord alternative under the derived
 // reservation gate; that costs this rule nothing, because the words appear here in KEYWORD position where the
 // alternative is chosen by token type. The FORMAT ITSELF is introduction-gated at BIND (SetBinder.BindSetContent →
@@ -1667,19 +1663,76 @@ setSwitchPhrase
     : cobolWord+ TO (ON | OFF)
     ;
 
-// SET dataReference+ TO arithmeticExpression (COBOL-85 §14.9.39 Format 1)
 // SET [SIZE OF] data-name-3 TO {integer-2 | arithmetic-expression-5} (ISO §14.9.39 Format 16, COBOL-2023):
 // set the current length of a DYNAMIC LENGTH elementary item. SIZE OF is the explicit form (SIZE is a reserved
-// token, so it cannot head a dataReference — no ambiguity, listed before setToValueStatement). The SIZE-OF-absent
-// bare form `SET dyn TO n` parses as setToValueStatement and re-routes at bind via a dynamic-length peek.
+// token, so it cannot head a dataReference — no ambiguity with setToStatement). The SIZE-OF-absent bare form
+// `SET dyn TO n` parses as setToStatement and re-routes at bind via a dynamic-length peek.
 // ⛔ OF IS AN OPTIONAL WORD (kb/Work PB695): printed folio 732 sets Format 16 as `SET [ SIZE OF ] data-name-3
 // TO …` with underline rules under SET, SIZE and TO and none under OF, so `SET SIZE DYN TO 5` is conforming.
 setSizeStatement
     : SET SIZE OF? setReceivingIdentifier TO arithmeticExpression
     ;
 
-setToValueStatement
-    : SET setReceivingIdentifier+ TO arithmeticExpression
+// ⛔ ONE RULE FOR EVERY `SET receivers TO sender` THE OTHER RULES DO NOT CLAIM BY A KEYWORD (kb/Work PB4231).
+// Formats 1, 5, 7, 8, 9, 14, 16 (bare) and 17 of §14.9.39.2 share the shape `SET { operand } … TO operand`, and
+// only the RECEIVERS' categories tell them apart, which is SetFormatSelection's question at bind, never the
+// parser's. The grammar used to split the shape three ways ON THE SENDER (setToValueStatement for an
+// arithmeticExpression, setObjectReferenceStatement for an objectReference, setAddressStatement for Format 7),
+// and all three could consume `NULL`. After `SET X TO NULL` SLL prediction held the three alternatives at shared
+// ATN states with no state owned by one of them, so ANTLR's conflict heuristic stopped and took the lowest,
+// setToValueStatement, which needs `AS` or `::` after NULL; the SLL pass bailed at the next token and the whole
+// file was parsed again under full LL. That was 75 of the corpus's legal programs, and on the LL pass decision
+// setStatement reported 125 context sensitivities. Here the format decision is the sender rule's own, made at
+// its left edge: NULL first, so `NULL` alone is the predefinedNull arm and `NULL AS c` / `NULL :: "m"` (an
+// object-view or an inline invocation, which §8.4.3.5.3 SR1 refuses at bind) the arithmetic arm, decided by the
+// token after NULL. `SetToStatementSllDriftTests` holds that SLL predicts every sender shape without a bail.
+//
+// THE RECEIVING OPERAND IS FORMAT 7's PRINTED BRACE (kb/Work PB450 half 2), RENDERED, never inherited (specs-private
+// PDF p760 / folio 730 at 300 dpi):
+//     SET { ADDRESS OF data-name-1 | identifier-5 } … TO identifier-6
+// The brace is a PLAIN required choice and the `…` is OUTSIDE it, so a Format-7 statement carries ONE OR MORE
+// receiving operands, each independently either spelling, while the sender identifier-6 is ONE operand.
+//   python scripts/spec/cite.py --check 14.9.39.2 "repeats the braced receiving operand"
+//   OK  §14.9.39.2   (General formats)  — Format 7's figure note
+// The other formats' receivers are `identifier`s, so the one receiver rule is Format 7's superset; a statement that
+// spells an ADDRESS phrase (an `ADDRESS OF data-name-1` receiver or a data-address-identifier sender) IS Format 7,
+// and SetBinder routes it to PtrBinder by that spelling (SetToStatementCst.SpellsAddressPhrase), so no other
+// format ever sees the phrase. §14.9.39.4 GR12 and GR13 ("each … in the order specified") are rules ABOUT the list,
+// which is why it is one list rather than fixed arities.
+// ⛔ OF IS AN OPTIONAL WORD IN BOTH POSITIONS (kb/Work PB695): the rendered figure rules ADDRESS and TO and
+// leaves OF bare, and the sender's phrase is the §8.4.3.11.2 data-address-identifier on folio 140, whose whole
+// underline roster is {ADDRESS}. ADDRESS is a reserved token and can never head a dataReference.
+setToStatement
+    : SET setToReceiver+ TO setToSender
+    ;
+
+// ONE receiving operand of setToStatement — Format 7's brace `{ ADDRESS OF data-name-1 | identifier-5 }`, the
+// superset of every other format's identifier receiver. The operand CARRIES ITS OWN KIND: `ADDRESS()` present is
+// data-name-1, the BASED receiver §14.9.39.3 SR18 screens and §14.9.39.4 GR13 assigns to; absent is an identifier,
+// which the selected format screens (SR17 and GR12 for Format 7's identifier-5).
+setToReceiver
+    : (ADDRESS OF?)? dataReference
+    | nonReceivableIdentifier
+    ;
+
+// The sending operand of setToStatement, in the order that keeps prediction SLL (kb/Work PB4231):
+//  * predefinedNull — the predefined address NULL of Format 7 (§14.9.39.3 SR19), the predefined object reference
+//    NULL of Format 5, and Formats 8/9/17's NULL; FIRST, so `NULL` alone is never read as the start of an
+//    object-view or an inline invocation (the arithmetic arm needs `AS` or `::` after it).
+//  * dataAddressIdentifier — Format 7's `ADDRESS OF identifier` sender. ⛔ THE ONE §8.4.3.11 RULE (kb/Work PB239),
+//    not an inline `ADDRESS OF?` spelling: §8.4.3.11 is an IDENTIFIER format, and a second copy of it is how the CALL
+//    argument list came to have none. The receiving `ADDRESS OF data-name-1` above is deliberately NOT that rule —
+//    Annex D: "the ADDRESS OF phrase in the receiving operand of a SET statement is not considered a
+//    data-address-identifier" (§8.4.3.11.3 SR5 forbids one as a receiving operand).
+//  * arithmeticExpression — everything else: a literal, an expression, and every identifier format the expression
+//    tier carries (a data reference, a function-identifier, an inline invocation, an object-view, SELF / SUPER,
+//    kb/Work PB1425), which SetSenders.Classify reads once. It already derives every objectReference shape but the
+//    bare NULL, so an objectReference arm after it could never be chosen: the arithmetic-before-object order that
+//    kb/Work PB450 made load-bearing is kept by there being no second arm to order.
+setToSender
+    : predefinedNull
+    | dataAddressIdentifier
+    | arithmeticExpression
     ;
 
 // SET {{condition-name-1}… TO {TRUE | FALSE}}… (COBOL-85; §14.9.39 Format 4, condition-setting — the FALSE
@@ -1694,53 +1747,6 @@ setBooleanStatement
 // each condition-name-1" — is why the binder may flatten the phrases into one ordered list of stores.
 setConditionPhrase
     : dataReference+ TO (TRUE_ | FALSE_)
-    ;
-
-// ⛔ ONE PRODUCTION FOR THE WHOLE PRINTED FORMAT 7, AND THE REPEATED RECEIVING OPERAND IS A NAMED RULE
-// (kb/Work PB450 half 2 — half 1 landed the same discipline on Formats 3 and 4). RENDERED, never inherited
-// (specs-private PDF p760 / folio 730 at 300 dpi):
-//     SET { ADDRESS OF data-name-1 | identifier-5 } … TO identifier-6
-// The brace is a PLAIN required choice — exactly one of the two spellings — and the `…` is OUTSIDE it, so a
-// Format-7 statement carries ONE OR MORE receiving operands, each independently either spelling, mixed in any
-// order, while the sender identifier-6 is a SINGLE operand outside the repetition.
-//   python scripts/spec/cite.py --check 14.9.39.2 "repeats the braced receiving operand"
-//   OK  §14.9.39.2   (General formats)  — Format 7's figure note
-// ⛔ BEFORE THIS THE RULE WAS TWO FIXED PRODUCTIONS SPLIT ON THE SENDER'S SPELLING, each hard-coding arity one,
-// so four cells of the printed cross-product died as a bare COBOL0001 and no syntax rule ever screened them:
-// `SET ADDRESS OF B1 ADDRESS OF B2 TO P1`, `SET P1 P2 TO ADDRESS OF R1`, `SET ADDRESS OF B1 P1 TO P2` and
-// `SET ADDRESS OF B1 TO ADDRESS OF R1`. §14.9.39.4 GR12 and GR13 are each written over "EACH … in the order
-// specified" — rules ABOUT the list — so a receiver LIST is what lets them be one loop instead of two arities.
-// ⛔ OF IS AN OPTIONAL WORD IN BOTH POSITIONS (kb/Work PB695): the rendered figure rules ADDRESS and TO and
-// leaves OF bare, and the sender's phrase is the §8.4.3.11.2 data-address-identifier on folio 140, whose whole
-// underline roster is {ADDRESS}. ADDRESS is a reserved token and can never head a dataReference, so
-// `SET ADDRESS P TO Q` stays unambiguous against setToValueStatement.
-setAddressStatement
-    : SET setAddressReceiver+ TO setAddressSender
-    ;
-
-// ONE printed Format-7 receiving operand — the brace `{ ADDRESS OF data-name-1 | identifier-5 }`. The operand
-// CARRIES ITS OWN KIND: `ADDRESS()` present is data-name-1, the BASED receiver §14.9.39.3 SR18 screens and
-// §14.9.39.4 GR13 assigns to; absent is identifier-5, the data-pointer receiver SR17 screens and GR12 stores
-// into. A hand-written re-derivation from token positions is what the Format-3/4 half of this note deleted.
-setAddressReceiver
-    : (ADDRESS OF?)? dataReference
-    | nonReceivableIdentifier
-    ;
-
-// identifier-6, the single sending operand. It may be an ordinary data-pointer item, a §8.4.3.11
-// data-address-identifier (`ADDRESS OF x` — §8.4.3.11.4 GR1 "creates a unique data item of class pointer and
-// category data-pointer", exactly what SR17's second sentence demands of identifier-6), or the predefined
-// address NULL (§14.9.39.3 SR19). ⚠ The NULL arm is why setObjectReferenceStatement is listed BEFORE this rule
-// in setStatement: `SET obj-ref TO NULL` is token-identical and belongs to Format 5.
-// ⛔ THE SENDER'S ADDRESS PHRASE IS THE ONE `dataAddressIdentifier` RULE (kb/Work PB239), not an inline
-// `ADDRESS OF?` spelling of its own: §8.4.3.11 is an IDENTIFIER format, and a second copy of it here is how the
-// CALL argument list came to have none. The receiving `ADDRESS OF data-name-1` above is deliberately NOT that
-// rule — Annex D: "the ADDRESS OF phrase in the receiving operand of a SET statement is not considered a
-// data-address-identifier" (§8.4.3.11.3 SR5 forbids one as a receiving operand).
-setAddressSender
-    : dataAddressIdentifier
-    | dataReference
-    | predefinedNull
     ;
 
 // §8.4.3.1.2 identifier FORMAT 9 — "address-identifier": `{ data-address-identifier-1 |
@@ -1766,8 +1772,7 @@ dataAddressIdentifier
 // — ISO §14.9.39.2 Format 8 (function-pointer-assignment) with the §8.4.3.12 FUNCTION-ADDRESS-IDENTIFIER as its
 // sender. Format 8's own printed figure (folio 730) is just `SET { identifier-12 } … TO identifier-13` with no
 // choice indicators, so the PLAIN Format 8 (`SET fp1 fp2 TO fp3`, `SET fp TO NULL`) needs no rule of its own —
-// setToValueStatement and setObjectReferenceStatement already parse those shapes and SetBinder re-routes on the
-// receiver's category, exactly as Format 9 does. What needs a rule is the SENDER: §8.4.3.12.2 prints
+// setToStatement parses those shapes and SetBinder re-routes on the receiver's category, exactly as Format 9 does. What needs a rule is the SENDER: §8.4.3.12.2 prints
 // `ADDRESS OF FUNCTION { function-prototype-name-1 | identifier-1 }`, and that phrase appears nowhere else in
 // the grammar. kb/Work PB452 + PB817.
 // ⛔ OF IS AN OPTIONAL WORD (kb/Work PB695 family): the rendered §8.4.3.12.2 figure underlines ADDRESS and
@@ -1775,7 +1780,7 @@ dataAddressIdentifier
 // ⚠ ONE dataReference operand covers BOTH braced arms: function-prototype-name-1 is a user-defined word and
 // identifier-1 is a data item reference, and the two are told apart at BIND (§8.4.3.12.3 SR1/SR2), where the
 // REPOSITORY function-specifier table and the item's category are both facts. FUNCTION is a reserved token and
-// can never head a dataReference, so this rule cannot be claimed by setAddressStatement's sender arm.
+// can never head a dataReference, so this rule cannot be claimed by setToSender's data-address-identifier arm.
 // ⚠ THERE IS NO literal-1 ARM, and that is measured, not an omission: §8.4.3.13's PROGRAM twin prints three
 // operands including literal-1 and §8.4.3.12's FUNCTION figure prints only two.
 // ⛔ identifier-1 IS ANY IDENTIFIER FORMAT (§8.4.3.1.3 SR1: "whenever the format for an identifier allows another
@@ -1820,15 +1825,14 @@ programAddressIdentifier
 // SET { identifier-7 } … TO program-address-identifier — ISO §14.9.39.2 Format 9 (program-pointer-assignment)
 // with the §8.4.3.13 program-address-identifier as its sender. Format 9's own printed figure is just
 // `SET { identifier-7 } … TO identifier-8` with no choice indicators, so the PLAIN Format 9
-// (`SET pp1 pp2 TO pp3`, `SET pp TO NULL`) needs no rule of its own — setToValueStatement and
-// setObjectReferenceStatement parse those shapes and SetBinder re-routes on the receiver's category. What
+// (`SET pp1 pp2 TO pp3`, `SET pp TO NULL`) needs no rule of its own — setToStatement parses those shapes and
+// SetBinder re-routes on the receiver's category. What
 // needs a rule is the SENDER, and §8.4.3.13.2's phrase appeared NOWHERE in this grammar (kb/Work PB549): the
 // only route into a program-pointer was setEntryStatement's `TO ENTRY`, a Micro Focus / IBM vendor spelling
 // whose words are in no ISO general format, so the STANDARD spelling was a bare parse error at every edition
 // while the extension was the only way in.
-// Listed BEFORE setAddressStatement, whose sender arm is `TO ADDRESS OF? dataReference` and would otherwise
-// be tried first; PROGRAM is a reserved token and can never head a dataReference, so nothing else can claim
-// this shape. Gate: COBOL-2002 (the program-pointer family's edition — usage-program-pointer-2002).
+// PROGRAM is a reserved token and can never head a dataReference, so setToSender's `ADDRESS OF identifier` arm
+// cannot claim this shape. Gate: COBOL-2002 (the program-pointer family's edition — usage-program-pointer-2002).
 setProgramAddressStatement
     : SET setReceivingIdentifier+ TO programAddressIdentifier
     ;
@@ -1844,15 +1848,6 @@ allocateStatement
 // FREE statement (COBOL-2002 §14.9.15): release storage previously ALLOCATEd; set each data-pointer to NULL.
 freeStatement
     : FREE dataReference+
-    ;
-
-// SET {identifier-3}... TO object/NULL/SELF (ISO 14.9.39 Format 5, OO 2002+). ANTLR-order reality
-// (feedback_grammar_precedence): a dataReference SENDER parses as setToValueStatement (alternative 3
-// precedes this rule and `TO arithmeticExpression` matches it) — BindSetTo re-routes SEMANTICALLY when a
-// target is an object-reference item; only NULL/SELF/SUPER senders (no arithmeticExpression prefix) reach
-// THIS rule. SUPER is admitted syntactically and rejected at bind (SR9 - 0867) for the better diagnostic.
-setObjectReferenceStatement
-    : SET setReceivingIdentifier+ TO objectReference   // introduction-gated at BIND time (StatementBinder.OoBindSetObjectRef → Check(SetObjectReference2002))
     ;
 
 // ⛔ THE RECEIVING IDENTIFIER: EVERY RECEIVING POSITION PARSES EVERY IDENTIFIER FORMAT THAT IS NEVER A RECEIVING
@@ -1874,9 +1869,9 @@ receivingIdentifier
     ;
 
 // SET's receiving identifier — receivingIdentifier less the data-address-identifier. SET Format 7 prints `ADDRESS OF
-// data-name-1` as a receiver of its OWN (setAddressReceiver; Annex D: "the ADDRESS OF phrase in the receiving operand of
-// a SET statement is not considered a data-address-identifier"), and setToValueStatement is listed before
-// setAddressStatement, so a data-address alternative here would take every Format-7 `SET ADDRESS OF B TO P` away.
+// data-name-1` as a receiver of its OWN (setToReceiver; Annex D: "the ADDRESS OF phrase in the receiving operand of
+// a SET statement is not considered a data-address-identifier"), and the formats that use this rule print no ADDRESS
+// receiver at all.
 setReceivingIdentifier
     : dataReference
     | nonReceivableIdentifier

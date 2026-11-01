@@ -9,6 +9,7 @@ using WiseOwl.Cobol.Binding.Procedure;   // ConditionBinder.MapOperator — the 
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;   // DiagnosticCatalog / EditionDiagnostic / EditionCodes / EditionSeverity(Policy) — the §8.9 funnel
 using WiseOwl.Cobol.Frontend.Common;        // CobolWordRule — the ONE §8.3.2.1 word-length ceiling (shared with the directive stages)
+using WiseOwl.Cobol.Frontend.Cst;            // SetToStatementCst — the one reading of SET Format 7's spelling (kb/Work PB4231)
 using WiseOwl.Cobol.Frontend.Expressions;    // BooleanOperatorGate — the ONE boolean-operator introduction gate (both lanes)
 using WiseOwl.Cobol.Frontend.Generated;     // CobolParserCore / CobolLexer / CobolParserCoreBaseVisitor — the parse-tree arm
 using WiseOwl.Cobol.Frontend.Parsing;       // CobolKeywordTokens — the reverse vocab map (>>COBOL-WORDS SR3/SR4 category)
@@ -303,7 +304,7 @@ internal sealed class VersionConformancePass
                 Check(Constructs.PointerArithmetic2002, "SET pointer UP/DOWN BY (ISO §14.9.39 Format 10)"); break;
             // SET Format 8 (function-pointer-assignment, §14.9.39.2) — a 2014 introduction (kb/Work PB452).
             // BOUND arm for the SetObjectReference2002 reason: the PLAIN form has no grammar rule of its own.
-            // `SET fp1 TO fp2` parses as setToValueStatement and `SET fp TO NULL` as setObjectReferenceStatement,
+            // `SET fp1 TO fp2` and `SET fp TO NULL` parse as setToStatement, the shape every SET … TO format shares,
             // and only the operands' RESOLVED PicCategory.FunctionPointer re-routes either one here — so a
             // recognition gate would have to gate every SET of an index. The ADDRESS OF FUNCTION sender's own
             // rule binds to the second node, and both take the SAME id from this one arm.
@@ -311,7 +312,7 @@ internal sealed class VersionConformancePass
                 Check(Constructs.SetFunctionPointer2014, "the SET … TO function-pointer statement (Format 8)"); break;
             // SET Format 9 (program-pointer-assignment, §14.9.39.2) — a 2002 introduction (kb/Work PB549), the
             // Format-8 arm's twin and gated for the same reason: the PLAIN form has no grammar rule of its own
-            // (`SET pp1 TO pp2` parses as setToValueStatement, `SET pp TO NULL` as setObjectReferenceStatement)
+            // (`SET pp1 TO pp2` and `SET pp TO NULL` parse as setToStatement, the shape every SET … TO format shares)
             // and only the operands' resolved PicCategory.ProgramPointer re-routes either one here.
             // BoundSetEntry joins the arm because it IS the bound form of the sender phrase — both the ISO
             // §8.4.3.13 ADDRESS OF PROGRAM rule and the Micro Focus / IBM TO ENTRY extension bind to it, and
@@ -1738,13 +1739,19 @@ internal sealed class VersionConformancePass
         public override object? VisitDeleteFileStatement(CobolParserCore.DeleteFileStatementContext ctx)
         { _p.Check(Constructs.DeleteFile2023, "the DELETE FILE statement"); return base.VisitChildren(ctx); }
 
-        /// <summary>SET ADDRESS OF (ISO §14.9.39 Format 7) — a COBOL-2002 introduction. The ONE
-        /// <c>setAddressStatement</c> rule carries the WHOLE printed format — a receiving LIST whose operands
-        /// are independently <c>ADDRESS OF data-name-1</c> or <c>identifier-5</c>, over one identifier-6 sender
-        /// that may itself be a §8.4.3.11 data-address-identifier — so one parse override is one Check per
-        /// statement however the operands are spelled (kb/Work PB450).</summary>
-        public override object? VisitSetAddressStatement(CobolParserCore.SetAddressStatementContext ctx)
-        { _p.Check(Constructs.SetAddress2002, "SET ADDRESS OF (ISO §14.9.39 Format 7)"); return base.VisitChildren(ctx); }
+        /// <summary>SET ADDRESS OF (ISO §14.9.39 Format 7) — a COBOL-2002 introduction, gated on RECOGNITION of its
+        /// spelling. The ONE <c>setToStatement</c> rule carries every <c>SET … TO</c> shape (kb/Work PB4231), and a
+        /// statement that spells the ADDRESS phrase — an <c>ADDRESS OF data-name-1</c> receiver anywhere in the receiving
+        /// LIST, or a §8.4.3.11 data-address-identifier sender — is Format 7 by that spelling
+        /// (<see cref="SetToStatementCst.SpellsAddressPhrase"/>, the same question SetBinder routes on), so one parse
+        /// override is one Check per statement however the operands are spelled (kb/Work PB450). The plain
+        /// <c>SET p TO q</c> / <c>SET p TO NULL</c> spelling is no recognition: only the resolved receivers make it
+        /// Format 7.</summary>
+        public override object? VisitSetToStatement(CobolParserCore.SetToStatementContext ctx)
+        {
+            if (ctx.SpellsAddressPhrase()) _p.Check(Constructs.SetAddress2002, "SET ADDRESS OF (ISO §14.9.39 Format 7)");
+            return base.VisitChildren(ctx);
+        }
 
         /// <summary>An ADDRESS-IDENTIFIER operand (ISO §8.4.3.1.2 identifier Format 9 — the §8.4.3.11 data arm or
         /// the §8.4.3.13 program arm) — a COBOL-2002 introduction with the pointer classes (kb/Work PB239). The
@@ -2725,7 +2732,7 @@ internal sealed class VersionConformancePass
             // class object and category object reference, as an external data item, and as a universal object
             // reference") and the §8.9 reservation is exactly what makes the reference unambiguous — a program
             // CANNOT have defined a word with this spelling, so there is no user-defined word to complain about.
-            // ⛔ THIS USED TO BE A POSITION WALK (an `objectReference` / `SetToValueStatement` ancestor), i.e. a
+            // ⛔ THIS USED TO BE A POSITION WALK (an `objectReference` / SET-statement ancestor), i.e. a
             // THIRD opinion about what the name is, narrowed to the one statement that could bind it — so
             // `MOVE U TO EXCEPTION-OBJECT` and `IF EXCEPTION-OBJECT = NULL` each drew "'EXCEPTION-OBJECT' is a
             // reserved word and cannot be used as a user-defined word" beside "'EXCEPTION-OBJECT' is not
