@@ -2887,8 +2887,10 @@ COBOL throughout, so `01 EXEC PIC X.` … `DISPLAY EXEC SQL END-EXEC.` names thr
 (`wiseowl/cases/4.2.10-Nonstandard-extensions/pb4341-*`). A block left without its END-EXEC is not such a word (kb/Work
 PB4381): an EXEC followed by a user-defined word whose sentence ends at a separator period (§8.3.5 rule 3) before any
 END-EXEC is **COBOL5842**, once, at its EXEC, taken through the text before that period, and the blocks that do close
-stay one **COBOL5818** each. The discriminator is sound because every declaration of a word has a reserved word or the
-period after it (`01 EXEC PIC X.`, `EXEC SECTION.`, `FD EXEC.`), never a user-defined word. The block's text, whatever the
+stay one **COBOL5818** each. That shape is a candidate only: a declaration that takes a list of user-defined words
+(`INDEXED BY EXEC IDX.`, `SYMBOLIC CHARACTERS EXEC BEL ARE …`) has the same one, so only the grammar settles it: the
+source is read as COBOL, EXEC a word, when it parses with no syntax error that way
+(`wiseowl/cases/4.2.10-Nonstandard-extensions/pb4381-exec-is-an-index-name`). The block's text, whatever the
 channel its tokens were lexed on (a semicolon with no space after it is hidden-channel, §8.3.5 rule 2), is another
 language and draws no separator diagnostic (kb/Work PB4384; `wiseowl/cases/4.2.10-Nonstandard-extensions/pb4384-*`).
 

@@ -148,6 +148,40 @@ public sealed class EmbeddedPrecompilerBlockTests
             $"expected the COBOL reading's diagnostics and neither code, got:\n{RecoverySources.Listing(errors)}");
     }
 
+    /// <summary>⛔ A declaration that takes a LIST of user-defined words puts a user-defined word after a declared EXEC with no
+    /// END-EXEC in its sentence, the shape of a block left unterminated (kb/Work PB4381, review R1-1): an index-name EXEC
+    /// (<c>INDEXED BY EXEC IDX</c>) and a symbolic character EXEC (<c>SYMBOLIC CHARACTERS EXEC BEL</c>). EXEC is reserved by no edition (ISO §8.9), so each is legal COBOL, and the
+    /// source is accepted: the parse, not a list of declaration positions, tells the word from the block.</summary>
+    [Theory]
+    [InlineData("""
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. PRIX.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 TBL.
+           05 T PIC X OCCURS 3 INDEXED BY EXEC IDX.
+        PROCEDURE DIVISION.
+        MAIN-PARA.
+            SET EXEC IDX TO 2.
+            MOVE "A" TO T (IDX).
+            DISPLAY T (IDX).
+            STOP RUN.
+        """)]
+    [InlineData("""
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. PRSY.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        SPECIAL-NAMES.
+            SYMBOLIC CHARACTERS EXEC BEL ARE 66 8.
+        PROCEDURE DIVISION.
+        MAIN-PARA.
+            DISPLAY EXEC BEL.
+            STOP RUN.
+        """)]
+    public void ADeclarationOfExecBeforeAnotherUserWord_IsNotAnUnterminatedBlock(string source)
+        => Assert.True(RecoverySources.Accepts(source), "EXEC is the program's own word: the source is legal COBOL");
+
     /// <summary>⛔ A semicolon inside a block is SQL text, whatever channel the lexer put it on (kb/Work PB4384): the lexer
     /// puts a semicolon with no space after it on the HIDDEN channel so that the separator screen can judge it (ISO
     /// §8.3.5 rule 2), and the reading moved only default-channel tokens, so <c>A;B</c> drew COBOL2631 inside the block.
