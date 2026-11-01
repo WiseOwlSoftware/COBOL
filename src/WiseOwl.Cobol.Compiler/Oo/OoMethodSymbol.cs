@@ -32,7 +32,7 @@ public sealed record OoMethodSymbol(
     public string DispatchKey => WiseOwl.Cobol.Runtime.CobolObject.NormalizeMethodName(ExternalizedName);
 
     /// <summary>The emitted CLR method name — the module's ABI, the same for every backend and the one the
-    /// repository records (<c>RepositoryMethod.ClrName</c>; kb/Work PB4265). Starts as the sanitized-uppercase COBOL name; an OVERRIDE adopts
+    /// repository records (<c>MethodRecord.ClrName</c>; kb/Work PB4265). Starts as the sanitized-uppercase COBOL name; an OVERRIDE adopts
     /// its base slot's name verbatim (C# requires the override member name to match), and a collision with
     /// the owning class's type name (C# CS0542) or an emitted field takes a deterministic suffix — always a
     /// SYMBOL-level rename so every INVOKE site in the group follows automatically (§8.3.2.2: the
