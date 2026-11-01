@@ -1134,6 +1134,20 @@ reference formats, and the only place source comments are recognized. Its model:
   `HideAll` is exactly right for them.
 - **The program-text area is always positions 8–72**, a shorter record read as space-filled to margin R
   (DOC-A.1-157), so a continued literal carries every position to margin R (§6.3.5).
+- **A syntax error beside text the margin cut NAMES the cut** (kb/Work PB2555; COBOL5788). Text past margin R is not program
+  text (§6.3.1; Annex A.1 item 158), so the reference format drops it; a statement that ran past the margin then ends early and
+  the parse fails at the NEXT token, or at a word the margin cut in two (`END-SEND` written across position 72 reaches the
+  parser as `END-SEN`). The reference format RECORDS the cut and the syntax-error listener ASKS, the same split as the areas
+  below: `ReferenceFormatMap.CutAt(line)` holds, per fixed-form physical line, the text past margin R (`MarginRCut`, in
+  `Frontend.Common`), and `FixedFormAreas.MarginRCutAt` composes it with the resultant-line map, so the listener
+  (`CobolErrorListener.NoteMarginRCut`, behind `IMarginRCutLocator`, which keeps `Parsing` off `Preprocessor`) asks about a
+  token's position. The warning is reported BESIDE the error (the cause first, PB4131), once per cut, in two shapes: the
+  OFFENDING token ends at margin R with the cut text right behind it (the word was cut), or the token BEFORE the offending one
+  is the last of a cut line and the offending token stands on a later line (the statement ended early). It is never reported
+  for a line with no cut: text past margin R that is blank, the rest of an inline comment (§6.3.7.3), a comment line, a
+  numeric sequence area (`MarginRCut.IsSequenceNumber`), or the identification tags (`FitsIdentificationArea`: one word of at
+  most eight characters, positions 73–80, the COBOL-85 card-image convention) of a file that labels most of its code lines with
+  one. Only a parse error asks, so a program that parses never hears of its tags.
 - **COBOL-85's areas A and B are a fact the reference format RECORDS and a pass after the parse ASKS** (kb/Work PB3147;
   VCR Table 7 row 7.35). ANSI X3.23-1985 split the program-text area into area A (positions 8–11) and area B (12 to
   margin R) and placed every item by where it begins its line; ISO/IEC 1989:2002 removed the split (§6.3.1, §6.3.5), so

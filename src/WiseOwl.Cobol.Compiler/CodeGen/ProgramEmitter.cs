@@ -293,7 +293,7 @@ internal sealed class ProgramEmitter
         var data = unit.Data;
         BeginUnit(w, data, unit.Refs);
         var refs = Current.Refs;
-        _callState.SelfPath = unit.Path;
+        _callState.SelfPath = unit.RegistryKey;
         _callState.ReturningPlace = data.LinkageReturning is { } ret ? refs.ResolveItem(ret) : null;
         // §8.8.4.8.4 GR1c forwarding (kb/Work PB165) — of this unit's own formals AND of every container formal it sees
         // as a GLOBAL name, whose forward passes on the same carrier, presence and argument area (kb/Work PB2096).
@@ -471,7 +471,7 @@ internal sealed class ProgramEmitter
                     w.Line("__Activate();");
                 }
                 if (describes)
-                    _oo.EmitExternalDescribes(data, unit.Path, "public void DescribeExternals()", $"{data.ExternalCheckMask}", w);
+                    _oo.EmitExternalDescribes(data, unit.RegistryKey, "public void DescribeExternals()", $"{data.ExternalCheckMask}", w);
             }
             else
                 w.Line("void ICobolProgram.Activate() => __Activate();");
@@ -848,7 +848,7 @@ internal sealed class ProgramEmitter
             foreach (var u in units)
             {
                 if (u.IsPrototype) continue;   // a prototype registers no runtime module — the separately-compiled definition does (§10.6.3 GR1)
-                string parentPath = u.Parent is { } p ? CsLiteral(p.Path) : "null";
+                string parentPath = u.Parent is { } p ? CsLiteral(p.RegistryKey) : "null";
                 string factory = u.Parent is { } pp
                     ? $"static __o => new {u.ClassRef}(({pp.ClassRef})__o!)"
                     : $"static __o => new {u.ClassRef}()";
@@ -897,7 +897,7 @@ internal sealed class ProgramEmitter
                 // AS-less unit's Register line stays byte-identical (kb/Work PB303).
                 string extName = string.Equals(u.ExternalizedName, u.Name, StringComparison.Ordinal)
                     ? "" : $", externalizedName: {CsLiteral(u.ExternalizedName)}";
-                w.Line($"ProgramRegistry.Register({CsLiteral(u.Path)}, {CsLiteral(u.Name)}, {parentPath}, "
+                w.Line($"ProgramRegistry.Register({CsLiteral(u.RegistryKey)}, {CsLiteral(u.Name)}, {parentPath}, "
                     + $"{CallEmitter.CallBool(u.Initial)}, {CallEmitter.CallBool(u.Common)}, {CallEmitter.CallBool(u.Recursive)}, {factory}{resetNamed}{argMeta}{fnFlag}{extName});");
             }
         }
@@ -936,7 +936,7 @@ internal sealed class ProgramEmitter
             // saw — not just this group (SSOT §18.16 keeps the wrapper scaffolding-free). The entry wrapper only
             // catches StopRun, the normal STOP RUN / main-program-GOBACK unwind boundary.
             string ensure = $"{ModuleNamespace.RegistrarClass}.EnsureRegistered";
-            w.Line($"try {{ {RuntimeApi.RunModule(ensure, CsLiteral(mainUnit.Path))}; }}");
+            w.Line($"try {{ {RuntimeApi.RunModule(ensure, CsLiteral(mainUnit.RegistryKey))}; }}");
             w.Line("catch (StopRun) { }");
         }
     }

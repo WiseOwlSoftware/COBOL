@@ -241,12 +241,12 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
                     (true, false) => $"__s.{f.Name} = __s.{f.Name}.WithLeaves((object?[]){v}!);",
                     (true, true) => FixedGroupTableIn(f, v),
                 };
-        w.Line($"public readonly object?[] AsLeaves() => [{string.Join(", ", fs.Select((f, i) => Out(f, members[i])).Concat(fillers.Select(f => f.Field)))}];   // kb/Work PB1116");
+        w.Line($"public readonly object?[] AsLeaves() => [{string.Join(", ", fs.Select((f, i) => Out(f, members[i])).Concat(fillers.Select(f => f.ClrName)))}];   // kb/Work PB1116");
         using (w.Block($"public readonly {item.StructName} WithLeaves(object?[] __l)"))
         {
             w.Line("var __s = this;");
             for (int i = 0; i < fs.Count; i++) w.Line(In(fs[i], members[i], $"__l[{i}]"));
-            for (int j = 0; j < fillers.Count; j++) w.Line($"__s.{fillers[j].Field} = (string)__l[{fs.Count + j}]!;");
+            for (int j = 0; j < fillers.Count; j++) w.Line($"__s.{fillers[j].ClrName} = (string)__l[{fs.Count + j}]!;");
             w.Line("return __s;");
         }
     }
