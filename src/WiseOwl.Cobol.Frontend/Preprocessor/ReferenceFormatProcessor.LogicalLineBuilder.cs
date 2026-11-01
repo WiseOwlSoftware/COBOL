@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Common;
+using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
@@ -170,7 +171,7 @@ public static partial class ReferenceFormatProcessor
         {
             at = FirstNonSpace(programText);
             const string Indicator = CompilerDirectiveLine.Indicator + "D";
-            if (at < 0 || !programText.AsSpan(at).StartsWith(Indicator, StringComparison.OrdinalIgnoreCase)) return false;
+            if (at < 0 || !CobolNames.StartsWith(programText.AsSpan(at), Indicator)) return false;
             int next = at + Indicator.Length;
             return next < programText.Length ? programText[next] == ' ' : spaceFilled;
         }
