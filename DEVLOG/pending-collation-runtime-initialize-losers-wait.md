@@ -25,3 +25,10 @@ before the work, so a concurrent caller returns before the streams are configure
 lead.
 
 **Rows.** None claimed or closed (`closes_rows: []`, process-only). PB380 flipped to `landed`.
+
+**Review round 1 (R1-1, R1-2).** The first guard reset the latch, the host flag and `CollationKeyCache.DefaultConfig` as
+three bare writes, so a `new RunUnit()` of a test in another, parallel xunit collection could win the latch between them
+and have its configured size overwritten with the compiled-in 8,192 (an intermittent red on a correct runtime). The reset
+and the restore are now ONE step under the runtime's own `s_initLock` (`SetOneShotState`, the latch written last): a
+foreign winner finishes before the reset or starts after it, and it reads the process-global `COBOL_COLLATION_CACHE` the
+test set. The note's Sites paragraph now names `ConfigureCache`, the lock and the two fields (PB3640).
