@@ -1592,8 +1592,8 @@ class Gate:
                   + (f" · {out.slot}" if out.slot else "")
                   + (f" · toolchain {out.toolchain}" if out.toolchain else "") + f" ({out.plan_note}; run {run.name})")
         reds = [f"{r.asm} leg {r.leg} RED" for r in out.runs if r.red]
-        problems = reds + out.reasons + [f"{a} POPULATION {'NOT EXACT' if not pops[a].stopped_early else 'STOPPED'}"
-                                         for a in pops if not pops[a].exact and not pops[a].stopped_early]
+        # A stopped run still answers RAN TWICE and NOT IN THE POPULATION (Population.defective, kb/Work PB4274).
+        problems = reds + out.reasons + [f"{a} POPULATION NOT EXACT" for a in pops if pops[a].defective]
         if out.identity:
             problems.append(f"{len(out.identity)} IDENTITY MISMATCH(ES)")
         remainder = " · ".join(f"{a} {n:,}" for a, n in out.not_run.items())
@@ -1818,6 +1818,8 @@ class FakeHost(Host):
             cases = cases[1:]
         if asm == "Conformance" and leg == 2 and "duplicate" in self.plant:
             cases.append(("N.Conf.A", ["Passed"]))
+        if asm == "Conformance" and leg == 1 and "foreign-leg1" in self.plant:
+            cases.append(("N.Conf.NeverListed", ["Passed"]))
         if asm == "Conformance" and "skip" in self.plant and leg == max(self.LEGS[asm][0]):
             cases[-1] = (cases[-1][0], ["NotExecuted"])
         stem = leg_stem(leg, asm)
@@ -1969,6 +1971,11 @@ def self_test() -> int:
         o, _ = gate("leg1-red", scope="leg1", plant={"red-leg1"})
         arm("scope leg1: a red in leg 1 is LEG 1 ONLY: RED, exit 1",
             o.verdict == f"{LEG1_ONLY}: RED" and o.exit_code == 1 and "Conformance leg 1 RED" in o.line, o.line)
+        o, _ = gate("leg1-foreign", scope="leg1", plant={"foreign-leg1"})
+        arm("scope leg1: a leg-1 trx definition the listing never printed is LEG 1 ONLY: RED, though leg 2 never ran "
+            "(kb/Work PB4274: a stopped population still answers NOT IN THE POPULATION)",
+            o.verdict == f"{LEG1_ONLY}: RED" and o.exit_code == 1 and "Conformance POPULATION NOT EXACT" in o.line
+            and o.populations["Conformance"].not_listed == Counter({"N.Conf.NeverListed": 1}), o.line)
         o, _ = gate("leg1-noplan", scope="leg1", plan_fails=True)
         arm("scope leg1 with no plan: the one leg IS the whole population, so the verdict is a plain GREEN",
             o.verdict == "GREEN" and not o.leg1_only and all(p.exact for p in o.populations.values()), o.line)

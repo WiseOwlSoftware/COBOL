@@ -25,6 +25,21 @@ THE QUESTION, answered as multisets of display names:
               assembly);
   skipped     a definition with no Passed or Failed result (a `[Fact(Skip)]` is NotExecuted) — counted on the
               line, never as ran.
+A run that stopped early (a leg-1-only gate, a fail-fast stop) still answers RAN TWICE and NOT IN THE POPULATION:
+only NEVER RAN depends on the run having finished (`Population.defective`, kb/Work PB4274).
+
+⛔ ONE SPELLING (kb/Work PB4274). The two sides do NOT spell a display name the same way. xunit's argument formatter
+writes a string argument with C escapes (`\\\\`, `\\"`, `\\n`, a C0 control as `\\x01`, a LONE surrogate as `\\xd800`)
+and leaves every other character literal, a supplementary-plane one included; `--list-tests` prints that name as
+UTF-8. The trx logger then rewrites every UTF-16 code unit outside XML's character range `[^\\x09\\x0A\\x0D\\x20-\\uD7FF
+\\uE000-\\uFFFD]` as `\\u` and four lowercase hex digits (Microsoft.VisualStudio.TestPlatform.Extensions.Trx.TestLogger,
+`RemoveInvalidXmlChar`), so a supplementary character, a valid surrogate PAIR, reaches the trx as the twelve
+characters `\\ud834\\udd5e`. Every comparison of a listed or in-process name with a trx name therefore goes through
+`trx_spelling`, that rewrite stated once (and mirrored in C# by `GateNameKey`, which the gate planner's `name_key`
+shares): it is what the logger does, so a case always meets itself, and it is the identity on a trx name. It cannot
+be inverted (the logger escapes no backslash), so two listed names it maps to one spelling are an ERROR the check
+names, never a silent merge; an xunit string argument holding the literal text `\\ud834` is listed as `\\\\ud834` and
+stays distinct from the character.
 
 ⛔ THE SCRUB (§3.14.3). Three channels can make a whole-assembly `dotnet test` run a PART of its assembly while
 exiting 0, and every one of them is an ENVIRONMENT variable:
@@ -117,6 +132,54 @@ def scrubbed_env(base: dict[str, str] | None = None) -> dict[str, str]:
     """`base` (default: this process's environment) without every variable `is_scrubbed` names. A caller that
     must add variables of its own merges them over the result: `{**scrubbed_env(), "X": "1"}`."""
     return {k: v for k, v in (os.environ if base is None else base).items() if not is_scrubbed(k)}
+
+
+# ── the one spelling (kb/Work PB4274) ─────────────────────────────────────────────────────────────────────────
+
+
+def _xml_char(cp: int) -> bool:
+    """Is this UTF-16 code unit inside the trx logger's kept range `[\\x09\\x0A\\x0D\\x20-\\uD7FF\\uE000-\\uFFFD]`?"""
+    return cp in (0x09, 0x0A, 0x0D) or 0x20 <= cp <= 0xD7FF or 0xE000 <= cp <= 0xFFFD
+
+
+#: Any character the trx logger rewrites: the complement of `_xml_char`'s range. A Python str holds code points, so a
+#: supplementary character (above U+FFFF) falls outside the class and matches. One compiled search finds the 4 names in
+#: 59,515 that need the rewrite, where a per-character test of every listed, mapped and timed name cost each gate the
+#: whole population (kb/Work PB4274 review R1-3).
+_NOT_XML = re.compile("[^\t\n\r -퟿-�]")
+
+
+def trx_spelling(name: str) -> str:
+    """`name` as the trx logger writes it: every UTF-16 code unit outside XML's character range becomes `\\u` and four
+    lowercase hex digits, a supplementary character as its two surrogates (the module docstring, ONE SPELLING). The
+    identity on a name read from a trx; C#'s `GateNameKey.Of` applies the same rewrite."""
+    if not _NOT_XML.search(name):
+        return name
+    out = []
+    for c in name:
+        cp = ord(c)
+        if _xml_char(cp):
+            out.append(c)
+        elif cp > 0xFFFF:
+            cp -= 0x10000
+            out.append(f"\\u{0xD800 + (cp >> 10):04x}\\u{0xDC00 + (cp & 0x3FF):04x}")
+        else:
+            out.append(f"\\u{cp:04x}")
+    return "".join(out)
+
+
+def spelled_as_trx(names: Counter, source: str) -> Counter:
+    """A multiset of listed names in the trx's spelling. Two distinct names the logger spells alike cannot be told
+    apart by any trx, so they are an ERROR that names both, never one merged count."""
+    spelled: Counter = Counter()
+    first: dict[str, str] = {}
+    for name, n in names.items():
+        key = trx_spelling(name)
+        if first.setdefault(key, name) != name:
+            raise PopulationError(f"{source}: two listed names are one name in a trx ({first[key]!r} and {name!r} are "
+                                  f"both written {key!r}) — no trx can tell which of them ran")
+        spelled[key] += n
+    return spelled
 
 
 # ── the population ────────────────────────────────────────────────────────────────────────────────────────────
@@ -228,6 +291,13 @@ class Population:
     def exact(self) -> bool:
         return not (self.never_ran or self.ran_twice or self.not_listed or self.stopped_early)
 
+    @property
+    def defective(self) -> bool:
+        """A finding whether or not the run finished: a case twice, a name the listing never printed, or (a finished
+        run only) a case that never ran. A stopped run's remainder is NOT RUN, its own verdict and no defect; the rest
+        is (kb/Work PB4274: leg-1-only gates printed NOT IN THE POPULATION in 15 runs and stayed GREEN)."""
+        return bool(self.ran_twice or self.not_listed or (self.never_ran and not self.stopped_early))
+
     def verdict_line(self) -> str:
         tally = (f"{self.ran:,}/{self.discovered:,} cases ran (skipped {self.skipped:,}) across "
                  f"{self.trx_files} trx")
@@ -258,11 +328,14 @@ def check(label: str, listed: Counter, trx_paths: list[str], stopped_early: bool
         raise PopulationError(f"{label}: the population is EMPTY — a check over nothing can never be clean")
     if not trx_paths:
         raise PopulationError(f"{label}: no trx file given")
+    listed = spelled_as_trx(listed, label)   # ONE SPELLING (kb/Work PB4274): the trx logger's, on both sides
     definitions, skipped = Counter(), Counter()
     for p in trx_paths:
         cases = read_trx(p)
-        definitions += cases.definitions
-        skipped += cases.skipped
+        for n, c in cases.definitions.items():
+            definitions[trx_spelling(n)] += c
+        for n, c in cases.skipped.items():
+            skipped[trx_spelling(n)] += c
     over = definitions - listed
     ran_twice = Counter({n: c for n, c in over.items() if n in listed})
     not_listed = Counter({n: c for n, c in over.items() if n not in listed})
@@ -456,7 +529,36 @@ def self_test() -> int:
 
         p = check("early", listed, [synthetic_trx(d / "early.trx", full[:2])], stopped_early=True)
         arm("stopped early: the remainder is NOT RUN and the verdict RED/INCOMPLETE", not p.exact
-            and "RED/INCOMPLETE" in p.verdict_line() and "NOT RUN" in p.verdict_line(), p.verdict_line())
+            and "RED/INCOMPLETE" in p.verdict_line() and "NOT RUN" in p.verdict_line() and not p.defective,
+            p.verdict_line())
+        p = check("early-foreign", listed, [synthetic_trx(d / "early-foreign.trx", full[:2] + [("Other.T", ok())])],
+                  stopped_early=True)
+        arm("stopped early, a name the listing never printed is still a DEFECT (kb/Work PB4274: a leg-1-only gate "
+            "printed it and stayed GREEN)", p.defective and p.not_listed == Counter({"Other.T": 1}), p.verdict_line())
+
+        # ONE SPELLING (kb/Work PB4274): the listing prints xunit's display name, the trx logger rewrites every UTF-16
+        # code unit outside XML's range as a backslash-u escape. Each trx name below is spelled as that logger writes it.
+        clef, adlam = "\U0001D15E", "\U0001E900"
+        uni = [f'N.U.T(text: "{clef}")', f'N.U.T(text: "a{adlam} ")', 'N.U.T(text: "x\\xdc00y")',
+               f'N.U.T(text: "z{chr(0xFFFF)}")', 'N.U.T(text: "\\\\ud834\\\\udd5e")']
+        as_trx = ['N.U.T(text: "\\ud834\\udd5e")', 'N.U.T(text: "a\\ud83a\\udd00 ")', 'N.U.T(text: "x\\xdc00y")',
+                  'N.U.T(text: "z\\uffff")', 'N.U.T(text: "\\\\ud834\\\\udd5e")']
+        uni_listed = read_listings([synthetic_listing(d / "uni.list.txt", uni)])
+        arm("trx_spelling is the trx logger's rewrite: a supplementary character is its two surrogates, U+FFFF is "
+            "escaped, a lone surrogate xunit already wrote as \\xdc00 and a doubled backslash are untouched, and it is "
+            "the identity on its own output", [trx_spelling(n) for n in uni] == as_trx
+            and [trx_spelling(n) for n in as_trx] == as_trx, str([ascii(trx_spelling(n)) for n in uni]))
+        p = check("uni", uni_listed, [synthetic_trx(d / "uni.trx", [(n, ok()) for n in as_trx])])
+        arm("a supplementary pair, a lone surrogate, U+FFFF and the literal escape text each meet their own trx name: "
+            "EXACT", p.exact and p.discovered == 5, "\n        ".join(p.report()))
+        p = check("uni-short", uni_listed, [synthetic_trx(d / "uni-short.trx", [(n, ok()) for n in as_trx[1:]])])
+        arm("the literal text \\\\ud834\\\\udd5e that ran does not stand in for the character that did not: NEVER RAN, "
+            "named in the trx spelling", p.never_ran == Counter({as_trx[0]: 1}) and not p.not_listed,
+            "\n        ".join(p.report()))
+        clash = synthetic_listing(d / "clash.list.txt", [f'N.U.T(text: "{clef}")', 'N.U.T(text: "\\ud834\\udd5e")'])
+        rc, why = rc_of(lambda: check("clash", read_listings([clash]), [synthetic_trx(d / "clash.trx", [])]).exact)
+        arm("two listed names the logger writes alike (the character, and that text unescaped by a display name) are "
+            "an ERROR naming both, never one merged count", rc == RC_ERROR and "two listed names" in why, why)
 
         other = synthetic_listing(d / "other.list.txt", population[:-1])
         rc, why = rc_of(lambda: read_listings([listing, other]))
