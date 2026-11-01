@@ -800,9 +800,20 @@ Two consequences shape the families:
 | `ConformanceSuiteTests_P0 … _P31` (formerly `CorpusRunnerTests`) | 32 | at 3 partitions (2026-10-07, about 4,635 rows): 3 × about 1,546 cases, 246–282 s each, the Conformance leg's 95–220 s tail at 1–4 threads | 24 × about 193 rows (kb/Work PB2527); now one partition per processor of the 32-way gate host, each its 32nd of the suite (about 12,000 rows in 2026-10: about 375 a partition) |
 | `OptionalWordSubsetDriftTests_P0 … _P7` | 8 | one 23-row class, 131–152 s span (one row 59 s) | 8 partitions (kb/Work PB2527), each an eighth of the SPELLINGS since kb/Work PB4146 (about 380 spellings of 26 formats in 2026-10: about 48 a partition), so no format's power set lands whole in one partition |
 | `StorageFormNistEquivalenceTests_P0 … _P15` | 16 | one `[Fact]` looping the corpus, **171.5 s** — *was* the Unit leg's wall clock; at 8 partitions the slowest (`_P6`) took 131 s | 16 slice-`[Fact]`s (kb/Work PB4325), the slowest about 65 s |
+| `BothRunnersVerdictDriftTests_P0 … _P7` | 8 | one `[Fact]`, `run.py` over every edition's suite against the in-process runner: 109–232 s local, **352 s** on Windows CI, the longest case of every run | 8 partitions (kb/Work PB4325), each an eighth of the in-suite tests (89 in 2026-10, about 11 a partition) run by `run.py` once per edition its share names; the suites are generated once per test host (`SuiteManifest.Generated`) and shared |
+| `RunUnitFileLockPairDriftTests_P0 … _P7` | 8 | 768 (sharing × open mode) pairs in one class, 108.5 s on Windows CI | 8 partitions (kb/Work PB4325), 96 pairs each |
+
+Four serial classes have no row set to slice (their cases are different programs), so kb/Work PB4325 splits them into
+classes along the cases themselves, over one abstract harness holding the helpers (`private protected`): the keyed-store
+witness (`KeyedStoreLoadWitnessTests` once per file shape and sharing mode, 6 classes, and `KeyedStoreStatementWitnessTests` once
+per shape, 3 classes; the 30-case `IndexedTwoAlternates` class took 131 s on a loaded gate), `CommitRollbackRuntimeHarness` (3 classes of
+about a third of the cost each; 170 s on Windows CI), `SequentialCommitControlHarness` (3 classes: the fault sweeps are 27 of its
+28 s) and the `UsageInheritance` equivalence (usages, phrases and the rest, 3 classes; 109 s on Windows CI). The cut is made by cost
+(each class at most about a third of the old one); a case added to a class grows that class alone, and a class that outgrows its
+share is split again at a test boundary.
 
 Whole-corpus assertions stay OFF the partitioned base and run ONCE (`VersionMatrixTests`' two catalogue facts,
-`ConformanceSuiteTests.TheAlternativeSignConventionTest_CarriesItsWiseOwlOption`) — an inherited `[Fact]` would run N times and inflate
+`ConformanceSuiteTests.TheAlternativeSignConventionTest_CarriesItsWiseOwlOption`, `ConformanceSuiteRunnerDriftTests.BothRunners_RunExactlyTheSameTests`) — an inherited `[Fact]` would run N times and inflate
 the count N-fold. The StorageForm sweep is the one deliberate count change (6 → 13) and it keeps its POPULATION
 assertion: the whole-corpus bar was `parsed >= 50`, and each partition now asserts its proportional share rounded
 UP, so a partition that silently stopped binding goes RED instead of green-and-empty (§3.10 corollary 1).
@@ -906,7 +917,7 @@ adopted. Its four costs, each witnessed, are what any future proposal must answe
    was stopped at 10 minutes. It needs `parallelAlgorithm: aggressive` to keep the cap.
 2. **It names its own `[assembly: Xunit.TestFramework]`**, and an assembly names exactly one framework
    (`GateTestFramework`, section 3.14.3), so adopting it means re-implementing its runners inside the gate's framework.
-3. **It schedules the long pole last.** `ConformanceSuiteRunnerDriftTests.BothRunners_GiveEverySuiteTestTheSameVerdict`
+3. **It schedules the long pole last.** The runner-drift verdict comparison (then `ConformanceSuiteRunnerDriftTests.BothRunners_GiveEverySuiteTestTheSameVerdict`; partitioned by kb/Work PB4325)
    (one case, 50–205 s) is its own collection under the partitions; under B it queues behind thousands of rows,
    started 113–234 s into four of the six runs, and ended those four runs. It ended one of the nine arm-A runs.
 4. **It removes the bound on a heavy family.** Six NIST partitions run at most six NIST rows at once; per-row
