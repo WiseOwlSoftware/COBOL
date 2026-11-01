@@ -208,6 +208,26 @@ public sealed class CollationTailoringTests
         Assert.Equal(moved - 1, free.NumericLead.Primary);
     }
 
+    /// <summary>A <c>.tailor</c> that moves the digit zero to just after 'a' (the natural root + 1, the value the README's
+    /// own example uses) puts the lead on 'a', an UNTAILORED character: numbers would sort inside the a-words. The
+    /// check reads the produced table, not only the entries, so the file is refused, naming the line that moved the
+    /// zero (kb/Work PB4264). One value further on, the lead is a free value and the file is legal.</summary>
+    [Fact]
+    public void Apply_RefusesATailoredZeroWhoseLeadIsAnUntailoredCharacter()
+    {
+        int a = CollationTable.Root.Lookup('a').Primary;
+        var collides = TailoringRules.Parse(new StringReader($"@locale zz\nU+0030 {a + 1:X} 0020 0002\n"), "zero-after-a.tailor");
+        var ex = Assert.Throws<LocaleCollationException>(() => collides.Apply(CollationTable.Root));
+        Assert.Equal("zero-after-a.tailor", ex.DataSource);
+        Assert.Equal(2, ex.Line);
+        Assert.Contains("digit zero", ex.Reason);
+        var free = TailoringRules.Parse(new StringReader($"U+0030 {a + 2:X} 0020 0002\n"), "zero-free.tailor").Apply(CollationTable.Root);
+        Assert.Equal(a + 1, free.NumericLead.Primary);
+        var numeric = new Collator(free).With(numericOrdering: true);
+        Assert.True(numeric.Compare("ab", "1") < 0);
+        Assert.True(numeric.Compare("1", "b") < 0);
+    }
+
     [Fact]
     public void Load_FromDisk_AndAppliedOverrides_AreIndependentOfTheRoot()
     {
