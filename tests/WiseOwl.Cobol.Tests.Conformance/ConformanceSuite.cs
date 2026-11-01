@@ -31,7 +31,7 @@ internal sealed record SuiteProfile(
 /// this class reads only the fields the in-process runner needs, from files already proved well formed: how a
 /// WiseOwl diagnostic names its line (the adapter's <c>diagnostic</c>, a Python pattern whose one Python-only form,
 /// <c>(?P&lt;name&gt;</c>, is .NET's <c>(?&lt;name&gt;</c>) and what the profile claims.
-/// <c>ConformanceSuiteRunnerDriftTests</c> holds the two runners' verdicts equal, which is what keeps this reading
+/// <c>BothRunnersVerdictDriftTests</c> holds the two runners' verdicts equal, which is what keeps this reading
 /// and <c>run.py</c>'s the same.</para>
 /// </remarks>
 internal static class ConformanceSuite

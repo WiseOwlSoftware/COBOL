@@ -133,7 +133,9 @@ successor chain when their claims MEET on ANY file they both claim (collision, t
 kb/Work PB3696), not only on a shared primary file. A finisher's set includes the
 files and units of the branch it continues. A branch ANOTHER group of the same wave continues is planned work, never a
 hold (kb/Work PB3528): the group that meets it follows that group (a successor, `after:`), so two SPLIT branches sharing
-a file are finished in one chain instead of each waiting on the other forever. Every dispatched wave appends its
+a file are finished in one chain instead of each waiting on the other forever. Both rules read an in-flight branch as
+the branch its work LANDS THROUGH (kb/Work PB4352): a branch a finished one contains (`carrier`) is that carrier's
+work, part of its finisher's set and no hold on it. Every dispatched wave appends its
 measurement to <coord>/partition-measure.jsonl (partition_record: same-file pairs run side by side, notes held and why;
 `--partition-summary` prints it per day).
 The in-flight set never reads a
@@ -632,10 +634,19 @@ def plan_partition(s: PlanState) -> None:
     # was ever planned. A group meeting a branch that ANOTHER group of this wave continues is not held by it: it joins
     # that group's chain once the group is placed (the later of two such finishers becomes the earlier's successor and
     # merges its branch), and the earlier one goes ahead. A branch no group of this wave continues still holds.
+    # ⛔ ...AND A BRANCH IS READ AS THE BRANCH ITS WORK LANDS THROUGH (kb/Work PB4352). A branch a finished one contains
+    # (s.carrier: a SPLIT predecessor its review finisher merged) reads IN FLIGHT in the survey and lands only with its
+    # carrier, so it is that carrier's work, whatever its own name. Keyed on the exact branch, the exemption missed it:
+    # two FINDINGS branches (54d-26 carrying 54d-2, 54d-29 carrying 54d-25 and 54d-4) each held the other's finisher on
+    # a carried branch that lands only through that finisher, and no wave ever planned either.
     finisher_of: dict[str, Group] = {}       # branch -> the group of this wave that continues it
     for g in s.groups:
         for b in g.continues:
             finisher_of.setdefault(b, g)
+
+    def lands_through(x: InFlight) -> str | None:
+        """The branch whose landing takes `x`'s work to main: its carrier when a finished branch contains it."""
+        return x.branch and (s.carrier(x.branch) or x.branch)
     # A meeting may be ONE-SIDED (branch review R1-1): the earlier group meets the later finisher's branch, but the later
     # finisher never meets the earlier group's. The earlier group then goes ahead past a finisher not yet placed, and
     # that finisher must still follow it, so the exemption records the debt here and the finisher pays it when placed.
@@ -645,19 +656,20 @@ def plan_partition(s: PlanState) -> None:
         # inflight_file_sets, and the units it touches, inflight_units): that much of its work is known whatever its
         # notes declare
         for x in (busy or {}).values():
-            if x.branch and x.branch in g.continues:
+            if lands_through(x) in g.continues:
                 g.take(x.claim)
         mine = g.claim
         links = [x for x in placed if collision(mine, x.claim)]
         links += [x for x in must_follow.pop(id(g), []) if id(x) in chain_of and x not in links]   # R1-1, above
         if busy:   # THE PARTITION, one rule for both lanes (kb/Work PB2807, PB3670; classify_inflight)
             met = {o: x for o, x in busy.items()                            # never the group's own work: the branch
-                   if not (x.branch and x.branch in g.continues)              # its pred continues, or a dispatch of
-                   and not x.notes & set(g.notes)                             # its own notes (the hold decided those);
-                   and (x.reserves is None or x.reserves & set(g.notes))      # a reservation holds only its notes'
-                   and collision(mine, x.claim)}                              # groups (PB3456)
-            # a branch another group of this wave finishes: follow that group when it is placed (PB3528, above)
-            planned = {o: finisher_of[x.branch] for o, x in met.items() if x.branch and x.branch in finisher_of}
+                   if lands_through(x) not in g.continues                     # its pred continues (or one it carries,
+                   and not x.notes & set(g.notes)                             # PB4352), or a dispatch of its own notes
+                   and (x.reserves is None or x.reserves & set(g.notes))      # (the hold decided those); a reservation
+                   and collision(mine, x.claim)}                              # holds only its notes' groups (PB3456)
+            # a branch another group of this wave finishes, or one that lands through it (PB4352): follow that group
+            # when it is placed (PB3528, above)
+            planned = {o: finisher_of[b] for o, x in met.items() if (b := lands_through(x)) in finisher_of}
             links += [f for f in planned.values() if id(f) in chain_of and f not in links]
             for f in planned.values():
                 if id(f) not in chain_of:      # not placed yet: it follows this group (a one-sided meeting, R1-1)

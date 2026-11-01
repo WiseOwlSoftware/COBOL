@@ -16,15 +16,21 @@ public sealed record Diagnostic(
 {
     public bool IsError => Severity == DiagnosticSeverity.Error;
 
-    public override string ToString()
+    public override string ToString() => Render(Location, Severity, Code, Message);
+
+    /// <summary>The ONE text of a diagnostic line, for every diagnostic the compiler reports: the front end's and binder's
+    /// (<see cref="Diagnostic"/>) and a code-generation backend's (<c>WiseOwl.Cobol.CodeGen.BackendDiagnostic</c>, kb/Work
+    /// PB4272): <c>file(line,col): error CODE: message</c>, or <c>error CODE: message</c> for a diagnostic that names no
+    /// source position (a backend that cannot write its output file).</summary>
+    public static string Render(SourceLocation? location, DiagnosticSeverity severity, string code, string message)
     {
-        var sev = Severity switch
+        var sev = severity switch
         {
             DiagnosticSeverity.Error => "error",
             DiagnosticSeverity.Warning => "warning",
             DiagnosticSeverity.Info => "info",
             _ => "unknown"
         };
-        return $"{Location}: {sev} {Code}: {Message}";
+        return location is { } at ? $"{at}: {sev} {code}: {message}" : $"{sev} {code}: {message}";
     }
 }
