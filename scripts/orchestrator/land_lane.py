@@ -84,15 +84,15 @@ THE TICK, in order (the queue watch, step 4, runs right after the survey, ahead 
                                                                    shares such a file with the branch (`wait_free`);
                                                                    main then comes in through the drivers; never the
                                                                    enqueue unit's
-       exit 12 — GATE BUSY: another gate held the worktree's gate retried at this head once the worktree's gate lock
-                lock, or the branch's own gate had not written its   is free (`wait_free`; a gate holds it until
-                verdict yet (kb/Work PB3527, PB3662); nothing ran,   its verdict is written); never the enqueue
+       exit 12 — GATE BUSY: a gate of the worktree was running or retried at this head once the worktree's gate lock
+                starting when the landing would write the worktree   is free (`wait_free`; a gate holds it until
+                (kb/Work PB3527, PB3662, PB4204); nothing written,   its verdict is written); never the enqueue
                 nothing red                                          unit's
-       exit 2 (main moved under every catch-up, the branch could not be read, or a GATE NOT RUN for an ENVIRONMENT
-                cause or one main fails the same way, kb/Work PB3526), exit 9 (GitHub refused the push, the PR or the
-                queue), or a runner that DIED                     retried ONCE at this head (enqueue.md's own rule)
+       exit 2 (main moved under every catch-up, the branch could not be read, or a clean merge of main could not be
+                completed for a cause in the ENVIRONMENT, kb/Work PB3673), exit 9 (GitHub refused the push, the PR or
+                the queue), or a runner that DIED                 retried ONCE at this head (enqueue.md's own rule)
        exit 8 — QUEUE NOT ACTIVE                                   HALT (above); relaunched once the halt is cleared
-       anything else — CONFLICT 4, GATE RED 5 (a branch-carried GATE NOT RUN too), a DEVLOG/register/prefix refusal 6,
+       anything else — CONFLICT 4, MERGE NOT COMPLETED BRANCH-CARRIED 5, a DEVLOG/register/prefix refusal 6,
                 UNREVIEWED 11, UNTESTED 14 (no recorded GREEN local gate covers the tip, kb/Work PB3612), an exit
                 2 or 9 retried once already                       STOPPED: never relaunched at this head unless
                                                                    re-armed; the enqueue unit dispatches its finisher
@@ -111,7 +111,11 @@ THE TICK, in order (the queue watch, step 4, runs right after the survey, ahead 
      read 1 re-runs the stuck check's workflow run, read 2 (one grace after) closes, reopens and re-queues the pull
      request, refused while a run on its head is in progress (both enqueue.py's: the only file that queues), read 3
      sends the operator a mailbox question and the watch acts no more; each read is recorded on the
-     attempt (`watch`) and in landing_measure.py's record (`stalls`). Under a stop the watch reads but acts on nothing.
+     attempt (`watch`) and in landing_measure.py's record (`stalls`). A pull request the queue REMOVED (a merge-group
+     red) is CLASSIFIED before anyone is blamed (the class section above `watch_step`; kb/Work PB4271, PB4331): INFRA
+     and RUNNER are re-queued once by the lane, no agent woken; GENUINE, MERGE, UNCLASSIFIED and a second red of the
+     landing end the watch BOUNCED with the class on its line, the enqueue unit's finisher; each red is recorded on the
+     attempt (`watch.reds`) and in landing_measure.py's record (`reds`). Under a stop the watch reads but acts on nothing.
 `status` prints each branch's latest attempt; the enqueue unit reads it (units/enqueue.md step 3), sends each STOPPED
 attempt to a finisher or a reviewer, files the leads of each ENQUEUED one, and then `collect`s them. `agent_work` is
 next_unit.py's one reader: the enqueue unit starts only for agent work (a BOUNCED branch the lane is neither landing nor
@@ -782,12 +786,13 @@ RERUN, REQUEUE, ALERT = "rerun", "requeue", "alert"                     # landin
 
 @dataclasses.dataclass(frozen=True)
 class WatchStep:
-    """One read of the watch: its state after the read and, on a stalled read, what to do about it."""
+    """One read of the watch: its state after the read and, on a stalled read or a bounce, what to do about it."""
     state: str
     why: str
-    act: str = ""          # "" (nothing), RERUN, REQUEUE or ALERT
+    act: str = ""          # "" (nothing), RERUN, REQUEUE or ALERT; on a bounce CLASSIFY, then REQUEUE_BOUNCE
     cause: str = ""        # on a stalled read: STUCK, NOT_QUEUED or CLOSED
     run: int = 0           # RERUN: the workflow run of the stuck required check
+    red: str = ""          # on a classified bounce: its class (landing_measure.RED_CLASSES, kb/Work PB4271)
 
 
 def _iso(t: str) -> dt.datetime | None:
@@ -796,6 +801,136 @@ def _iso(t: str) -> dt.datetime | None:
     except ValueError:
         return None
     return v if v.tzinfo else None
+
+
+# ── THE CLASS OF A MERGE-QUEUE RED (kb/Work PB4271, PB4331; the rule of CLAUDE.md Testing) ─────────────────────────────────────────────
+# THE RULE (owner 2026-10-31, replacing the CI invariant of 2026-10-04): every case the merge group runs on Windows
+# already ran green at the pushed head, on this host, under the same toolchain.env. The merge group is the FIRST run of
+# the merged tree, of Linux, of Release with a cold compile cache, of the Windows tooling self-tests on a tooling change
+# and of GitHub's runners, so a red there is one of those, a flake, or infrastructure, never an untested case. Before
+# anyone is blamed the lane classifies it, comparing the failed run's red cases (its test results, downloaded by
+# queue_facts.fetch_bounce_results into the worktree, where the finisher's gate reads them too) with the branch's GREEN
+# gate record (enqueue.tested_locally: the run that covers the queued head, or the run a REUSED answer names):
+#   INFRA         no test failed in the run (a job died before or outside its tests), or the run timed out
+#   RUNNER        every red case ran GREEN in that record, or the record is the inert lane's (no test reads the change):
+#                 a Linux, Release, host or runner difference, or a flake
+#   GENUINE       a red case the record lists but did not run (skipped on Windows): the merge group ran it first
+#   MERGE         a red case not in the record at all: main brought it, or the merged tree made it
+#   UNCLASSIFIED  the run's results or the record could not be read
+# INFRA and RUNNER are re-queued ONCE by the lane (enqueue.requeue, the only file that queues), no agent woken, and filed
+# against the pipeline (landing_measure.record_red: the `infrastructure` cause, with the class). GENUINE, MERGE and
+# UNCLASSIFIED end the watch BOUNCED, the enqueue unit's finisher, the class on the line; so does the second red of a
+# landing the lane already re-queued (a red twice in a row is never re-queued again: the lane stops there). There is no
+# flake retry inside `dotnet test`: a flake is a kb/Work defect fixed at its root, and this record holds its rate.
+REQUEUE_BOUNCE = "requeue-bounce"   # the WatchStep act that re-queues a bounce of a PIPELINE_CLASSES class, once
+CLASSIFY = "classify"               # the WatchStep act that asks for a bounce's class before the watch decides
+NAMED = 3                           # how many red cases a class's reason names
+
+
+@dataclasses.dataclass(frozen=True)
+class RedFacts:
+    """What a merge-queue red is classified on (`red_facts` reads them; `classify_red` decides). Pure data, so the
+    self-test plants each arm."""
+    run: int = 0                          # the failed merge-group run its results came from (0: none read)
+    conclusion: str = ""                  # that run's conclusion: failure or timed_out
+    failed: frozenset[str] = frozenset()  # the red cases in its test results, by trx definition name
+    unobserved: str = ""                  # why the run's results could not be read ("" when they were)
+    record: str = ""                      # the GREEN gate run that measured the queued head ("" when there is none)
+    no_record: str = ""                   # why there is none (the record's own reason, or that its results are gone)
+    inert: bool = False                   # that record is the inert lane's: no test reads the change
+    passed: frozenset[str] = frozenset()  # the cases the record ran and passed
+    listed: frozenset[str] = frozenset()  # every case the record lists, run or skipped
+
+
+def classify_red(f: RedFacts) -> tuple[str, str]:
+    """(class, why) of a merge-queue red (the section above): the one decision, pure."""
+    import landing_measure as lm  # noqa: PLC0415  (the record's vocabulary of classes)
+
+    def some(cases: set[str] | frozenset[str]) -> str:
+        names = sorted(cases)
+        return ", ".join(names[:NAMED]) + (f" and {len(names) - NAMED} more" if len(names) > NAMED else "")
+    if f.unobserved:
+        return lm.UNCLASSIFIED, f"the red's test results could not be read ({f.unobserved})"
+    if f.conclusion == "timed_out":
+        return lm.INFRA, f"merge-group run {f.run} timed out"
+    if not f.failed:
+        return lm.INFRA, f"no test failed in merge-group run {f.run}: a job died before or outside its tests"
+    if not f.record:
+        return lm.UNCLASSIFIED, f"{len(f.failed)} case(s) failed ({some(f.failed)}), and no gate record to compare: {f.no_record}"
+    if f.inert:
+        return lm.RUNNER, (f"{len(f.failed)} case(s) failed ({some(f.failed)}), and the branch's gate {f.record} is the "
+                           "inert lane's: no test reads its change")
+    if skipped := (f.failed & f.listed) - f.passed:
+        return lm.GENUINE, (f"{len(skipped)} red case(s) the branch's gate {f.record} listed but did not run "
+                            f"({some(skipped)}): the merge group ran them first")
+    if absent := f.failed - f.listed:
+        return lm.MERGE, (f"{len(absent)} red case(s) are not in the branch's population at its gate {f.record} "
+                          f"({some(absent)}): main brought them, or the merged tree made them")
+    return lm.RUNNER, (f"every red case ({len(f.failed)}: {some(f.failed)}) ran GREEN in the branch's gate {f.record}: a "
+                       "Linux, Release, host or runner difference, or a flake")
+
+
+def red_facts(att: dict[str, Any], pr: Any, fetch: Callable[[str, pathlib.Path], str] | None = None) -> RedFacts:
+    """THE FACTS OF A BOUNCE, read (the queue watch's `red_facts` effect): the failed merge-group run's red cases and the
+    branch's GREEN gate record of the queued head (`end_head`), both in the attempt's worktree. `fetch(branch, dest)`
+    downloads the run's results (queue_facts.fetch_bounce_results, GitHub's one reader; the self-test plants it). Never
+    raises: what cannot be read is said (`unobserved`, `no_record`) and classifies UNCLASSIFIED, the finisher's, as every
+    bounce was before."""
+    import enqueue  # noqa: PLC0415  (the one reader of a gate record that covers a head)
+    import gate  # noqa: PLC0415  (scripts/: the record, the run root, where a bounce's results land)
+    import queue_facts  # noqa: PLC0415
+    import test_population as tp  # noqa: PLC0415  (scripts/: THE trx reader)
+    wt = pathlib.Path(str(att.get("worktree") or ""))
+    if not att.get("worktree") or not wt.is_dir():
+        return RedFacts(unobserved=f"the branch's worktree {att.get('worktree') or '(none recorded)'} is gone")
+    dest = wt / gate.CI_BOUNCE_RESULTS
+    line = (fetch or queue_facts.fetch_bounce_results)(str(att["branch"]), dest)
+    src = queue_facts.bounce_source(dest)
+    if src is None or src.pr != pr.number:
+        return RedFacts(unobserved=line)
+    try:
+        failed = frozenset(tp.red_cases(sorted(dest.rglob("*.trx"))))
+    except tp.UnreadableTrx as e:
+        return RedFacts(src.run, src.conclusion, unobserved=f"a trx of run {src.run} is unreadable: {e}")
+    facts = RedFacts(src.run, src.conclusion, failed)
+    try:
+        proof = enqueue.tested_locally(wt, str(att.get("end_head") or att.get("head") or ""), MAIN)
+    except (OSError, subprocess.SubprocessError, ValueError) as e:
+        return dataclasses.replace(facts, no_record=f"the gate records of {wt} could not be read ({e})")
+    if not proof.ok or proof.run is None:
+        return dataclasses.replace(facts, no_record=proof.text)
+    rec = gate.read_record(proof.run) or {}
+    measured = proof.run.parent / str(rec["reused_from"]) if rec.get("reused_from") else proof.run
+    if rec.get("lane") == "inert":
+        return dataclasses.replace(facts, record=measured.name, inert=True)
+    trx = sorted(measured.glob("*.trx"))
+    if not trx:
+        return dataclasses.replace(facts, no_record=f"the gate run {measured.name} that measured the head keeps no test "
+                                                    "results (pruned, or a reused run's source is gone)")
+    try:
+        cases = [tp.read_trx(p) for p in trx]
+    except tp.UnreadableTrx as e:
+        return dataclasses.replace(facts, no_record=f"a trx of the gate run {measured.name} is unreadable: {e}")
+    listed = frozenset(n for c in cases for n in c.definitions)
+    passed = frozenset(n for c in cases for n, k in c.definitions.items() if k > c.skipped[n])
+    return dataclasses.replace(facts, record=measured.name, listed=listed, passed=passed)
+
+
+def bounce_step(w: dict[str, Any], pr: Any, cls: str, why: str) -> WatchStep:
+    """THE WATCH'S DECISION ON A CLASSIFIED BOUNCE (pure): re-queue a PIPELINE_CLASSES red once per landing, else end the
+    watch BOUNCED for the enqueue unit's finisher. The removal GitHub reported is the bounce's identity: the same one
+    read again after the lane re-queued it means the re-queue did not hold."""
+    import landing_measure as lm  # noqa: PLC0415
+    prior = [r for r in w.get("reds") or [] if isinstance(r, dict)]
+    text = f"pull request #{pr.number} is BOUNCED ({pr.bounced}) — {cls}: {why}"
+    if any(r.get("removed") == pr.removed for r in prior):
+        return WatchStep(LEFT, f"{text}; the lane re-queued this bounce and it did not take: the enqueue unit's finisher",
+                         red=cls)
+    requeued = any(r.get("act") == REQUEUE_BOUNCE for r in prior)
+    if cls in lm.PIPELINE_CLASSES and not requeued:
+        return WatchStep(WATCHING, f"{text}; re-queued once by the landing lane, no agent woken", REQUEUE_BOUNCE, red=cls)
+    return WatchStep(LEFT, f"{text}{'; the second red of a landing the lane already re-queued' if requeued else ''}: the "
+                           "enqueue unit's finisher", red=cls)
 
 
 def watch_step(att: dict[str, Any], row_state: str | None, pr: Any, now: dt.datetime) -> WatchStep:
@@ -807,8 +942,12 @@ def watch_step(att: dict[str, Any], row_state: str | None, pr: Any, now: dt.date
                                                        without merging and without a failed run (a ruleset toggle, a
                                                        dequeue), and then it is a stalled read like any pull request
                                                        out of the queue (kb/Work PB3772)
-      a required check FAILED, the queue removed    the watch ends: BOUNCED, the enqueue unit's finisher (PB3096;
-        it, or it conflicts with main (DIRTY)          a conflict is the branch's: no re-run or reopen clears it)
+      a required check FAILED before the queue, or   the watch ends: BOUNCED, the enqueue unit's finisher (PB3096;
+        it conflicts with main (DIRTY)                 a conflict is the branch's: no re-run or reopen clears it)
+      the queue removed it (a merge-group red)       CLASSIFY (kb/Work PB4271, PB4331): watch_queue reads its class
+                                                       (`red_facts`, `classify_red`) and decides by `bounce_step`: an
+                                                       INFRA or RUNNER red is re-queued once, every other class, and a
+                                                       second red of the landing, ends the watch BOUNCED
       the head moved past the attempt's              the watch ends: a new push is a new landing, watched afresh
       any check on the head still running (its job   watching: nothing is late yet. ANY check, not only a required
         too)                                           one: `ci-gate` `needs:` every other job and has no check-run
@@ -839,10 +978,11 @@ def watch_step(att: dict[str, Any], row_state: str | None, pr: Any, now: dt.date
         return WatchStep(LEFT, f"pull request #{pr.number}'s head moved to {pr.head[:12]}: a new landing")
     if pr.in_queue:
         return WatchStep(IN_QUEUE, f"pull request #{pr.number} is in the merge queue")
-    if pr.red or pr.conflicts or pr.bounced:
-        why = (f"{pr.red.name} failed" if pr.red else "it conflicts with main: merge state DIRTY" if pr.conflicts
-               else pr.bounced)
+    if pr.red or pr.conflicts:
+        why = f"{pr.red.name} failed" if pr.red else "it conflicts with main: merge state DIRTY"
         return WatchStep(LEFT, f"pull request #{pr.number} is BOUNCED ({why}): the enqueue unit's finisher")
+    if pr.bounced:
+        return WatchStep(LEFT, f"pull request #{pr.number} is BOUNCED ({pr.bounced}): its class is read first", CLASSIFY)
     # Running only while its job is SEEN running: a job the jobs API could not read (job_status '') is unknown, and an
     # unknown job must not hold the watch for ever, so its clock falls back to the enqueue, like no check-run at all.
     work = pr.head_runs
@@ -884,12 +1024,16 @@ def watch_step(att: dict[str, Any], row_state: str | None, pr: Any, now: dt.date
 
 @dataclasses.dataclass(frozen=True)
 class WatchEffects:
-    """What a stalled read does, and its record (the self-test plants recorders): rerun(repo, run) and requeue(repo,
-    pr, head) answer (ok, detail); alert(subject, body, ref); measure(pr, branch, read, cause, act, ok)."""
+    """What a stalled read or a bounce does, and its record (the self-test plants recorders): rerun(repo, run) and
+    requeue(repo, pr, head) answer (ok, detail); alert(subject, body, ref); measure(pr, branch, read, cause, act, ok);
+    red_facts(attempt, pr) reads a bounce's facts (`red_facts`); measure_red(pr, branch, run, class, why, act, ok)
+    records its class (landing_measure.record_red)."""
     rerun: Callable[[str, int], tuple[bool, str]]
     requeue: Callable[[str, int, str], tuple[bool, str]]
     alert: Callable[[str, str, str], None]
     measure: Callable[[int, str, int, str, str, bool], None]
+    red_facts: Callable[[dict[str, Any], Any], RedFacts]
+    measure_red: Callable[[int, str, int, str, str, str, bool], None]
 
 
 def real_effects(cdir: pathlib.Path, say: Say) -> WatchEffects:
@@ -902,11 +1046,17 @@ def real_effects(cdir: pathlib.Path, say: Say) -> WatchEffects:
             landing_measure.record_stall(cdir / landing_measure.FILE, pr, branch, read, cause, act, ok)
         except (OSError, ValueError) as exc:   # the record is the instrument's, never the watch's stop; it is said
             say(f"land lane: PR #{pr}: the stall was NOT recorded in {landing_measure.FILE} ({exc})")
+
+    def measure_red(pr: int, branch: str, run: int, cls: str, why: str, act: str, ok: bool) -> None:
+        try:
+            landing_measure.record_red(cdir / landing_measure.FILE, pr, branch, run, cls, why, act, ok)
+        except (OSError, ValueError) as exc:   # the record is the instrument's, never the watch's stop; it is said
+            say(f"land lane: PR #{pr}: the red's class was NOT recorded in {landing_measure.FILE} ({exc})")
     return WatchEffects(
         rerun=lambda repo, run: enqueue.rerun_check(repo, run, gh=ruleset.real_gh),
         requeue=lambda repo, pr, head: enqueue.requeue(repo, pr, head, gh=ruleset.real_gh, state=enqueue.queue_state),
         alert=lambda subject, body, ref: notify_operator(cdir, subject, body, ref, say, kind="question"),
-        measure=measure)
+        measure=measure, red_facts=red_facts, measure_red=measure_red)
 
 
 def watch_text(att: dict[str, Any]) -> str:
@@ -955,6 +1105,9 @@ def watch_queue(cdir: pathlib.Path, branches: dict[str, list[dict[str, Any]]], r
         if step.act and held:
             say(f"land lane: {branch}: queue watch: {step.why} — NOT acted on: {held}")
             continue
+        if step.act == CLASSIFY:
+            classify_bounce(att, w, pr, branch, effects, say, now)
+            continue
         w.update(state=step.state, why=step.why, pr=pr.number if pr else (w.get("pr") or att.get("pr")),
                  at=now.isoformat(timespec="seconds"))
         if step.state == IN_QUEUE:
@@ -986,6 +1139,33 @@ def watch_queue(cdir: pathlib.Path, branches: dict[str, list[dict[str, Any]]], r
         elif w.get("state") != (att.get("watch") or {}).get("state"):
             say(f"land lane: {branch}: queue watch: {step.why}")
         update(att, {"watch": w})
+
+
+def classify_bounce(att: dict[str, Any], w: dict[str, Any], pr: Any, branch: str, effects: WatchEffects, say: Say,
+                    now: dt.datetime) -> None:
+    """A merge-group red, classified and acted on (the class section above; kb/Work PB4271, PB4331): its facts read
+    (`effects.red_facts`), its class decided (`classify_red`), the watch's step taken (`bounce_step`): an INFRA or
+    RUNNER red is re-queued once (`effects.requeue`, enqueue.requeue: a refused or failed re-queue ends the watch
+    BOUNCED, the finisher's, never silence), every other ends it BOUNCED with its class. Each red is recorded on the
+    watch (`reds`, which `bounce_step` reads to re-queue a landing once) and in landing_measure.py's record."""
+    facts = effects.red_facts(att, pr)
+    cls, why = classify_red(facts)
+    step = bounce_step(w, pr, cls, why)
+    act = "requeue" if step.act == REQUEUE_BOUNCE else "finisher"   # landing_measure.RED_ACTS
+    ok, detail = True, ""
+    if step.act == REQUEUE_BOUNCE:
+        ok, detail = effects.requeue(pr.repo, pr.number, pr.head)
+        if not ok:
+            step = WatchStep(LEFT, f"pull request #{pr.number} is BOUNCED ({pr.bounced}) — {cls}: {why}; the lane's "
+                                   f"re-queue FAILED ({detail}): the enqueue unit's finisher", red=cls)
+    at = now.isoformat(timespec="seconds")
+    w.update(state=step.state, why=step.why, pr=pr.number, at=at,
+             reds=[*(w.get("reds") or []), {"run": facts.run, "class": cls, "why": why[:240],
+                                             "act": REQUEUE_BOUNCE if act == "requeue" else act, "ok": ok,
+                                             "removed": pr.removed, "at": at}])
+    effects.measure_red(pr.number, branch, facts.run, cls, why, act, ok)
+    say(f"land lane: {branch}: queue watch: {step.why}" + (f" — requeue done: {detail}" if step.act else ""))
+    update(att, {"watch": w})
 
 
 # ── the tick ───────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -1235,7 +1415,11 @@ def agent_work(cdir: pathlib.Path, now: dt.datetime | None = None) -> AgentWork:
     lane = view(cdir)
     age = lane.survey_age_min(now)
     reasons = []
-    landing = {a["branch"] for a, c in lane.latest if c == "running"} | set(lane.rearms)
+    # A BOUNCED row whose red the lane RE-QUEUED is still the lane's while its watch runs: the survey this tick wrote read
+    # the bounce before the watch re-queued it (kb/Work PB4271, PB4331). A red the lane leaves to a finisher ends the watch.
+    requeued = {a["branch"] for a, c in lane.latest if c == DONE and (a.get("watch") or {}).get("reds")
+                and (a.get("watch") or {}).get("state") not in WATCH_DONE}
+    landing = {a["branch"] for a, c in lane.latest if c == "running"} | set(lane.rearms) | requeued
     if age is not None and age <= SURVEY_MAX_AGE_MIN:
         names = [r["name"] for r in lane.rows if r.get("state") == "BOUNCED" and r["name"] not in landing
                  and not r.get("conflicts")]
@@ -1375,6 +1559,7 @@ def self_test() -> int:
                 self.prs: dict[str, Any] | None = None     # GitHub's facts: unobserved unless a case plants them
                 self.now: dt.datetime | None = None
                 self.effects: list[tuple] = []
+                self.reds: dict[str, RedFacts] = {}        # each bounced branch's planted facts (red_facts)
 
             def survey(self, repo: pathlib.Path, cdir: pathlib.Path) -> tuple[list, list[str], dict | None]:
                 return self.rows, [r["name"] for r in self.rows if r["state"] == "WAITING TO LAND"], self.prs
@@ -1384,7 +1569,9 @@ def self_test() -> int:
                 return WatchEffects(rerun=lambda repo, run: rec(("rerun", repo, run)) or (True, "re-run requested"),
                                     requeue=lambda repo, pr, head: rec(("requeue", repo, pr)) or (True, "requeued"),
                                     alert=lambda subject, body, ref: rec(("alert", subject, body)),
-                                    measure=lambda pr, b, read, cause, act, ok: rec(("measure", pr, b, read, cause, act)))
+                                    measure=lambda pr, b, read, cause, act, ok: rec(("measure", pr, b, read, cause, act)),
+                                    red_facts=lambda att, pr: self.reds.get(att["branch"], RedFacts(unobserved="planted")),
+                                    measure_red=lambda pr, b, run, cls, why, act, ok: rec(("red", pr, b, run, cls, act, ok)))
 
             def start(self, argv: list[str], log: pathlib.Path) -> int:
                 self.started.append(json.loads(pathlib.Path(argv[-1]).read_text(encoding="utf-8"))["branch"])
@@ -1456,9 +1643,9 @@ def self_test() -> int:
                [(d["conflicts"], d["foreseen"]) for d in row_dicts([foreseen_row], {})]
                == [(True, [{"branch": "w1a", "head": "a1"}])], str(row_dicts([foreseen_row], {})))
 
-        # 2. exit 5 (GATE RED) is never relaunched at the same head; a new head (a finisher's commit) is eligible.
+        # 2. exit 5 (MERGE NOT COMPLETED, BRANCH-CARRIED) is never relaunched at the same head; a new head (a finisher's commit) is eligible.
         f.rows[0] = row("w1a", "DECISION", "a2")                  # enqueue merged main in: the survey no longer lists it
-        finish(c, "w1a", 5, "GATE RED (Windows) on a2", end_head="a2")
+        finish(c, "w1a", 5, "MERGE NOT COMPLETED, BRANCH-CARRIED (before the queue) on a2", end_head="a2")
         f.live.discard(40001)
         f.rows[0] = row("w1a", "WAITING TO LAND", "a2")           # even listed again at that head
         expect("exit 5 is never relaunched at the same head", f.tick(c) == [] and f.tick(c) == [], str(f.started))
@@ -1797,14 +1984,14 @@ def self_test() -> int:
         runner_wt.commit("x", allow_empty=True)
         wt, head = runner_wt.path, runner_wt.git("rev-parse", "HEAD")
         fake = [sys.executable, "-c",
-                f"print({verdict_line.render('GATE RED (Windows) on x', 'w9a')!r}); raise SystemExit(5)"]
+                f"print({verdict_line.render('MERGE NOT COMPLETED, BRANCH-CARRIED (before the queue) on x', 'w9a')!r}); raise SystemExit(5)"]
         r = {"name": "w9a", "state": "WAITING TO LAND", "tip": head, "worktree": str(wt), "why": "", "lead": None}
         out: list[str] = []
         tick(c10, root, survey=lambda repo, cdir: ([r], ["w9a"], None), argv_for=lambda row: fake, say=out.append)
         wait_runners(c10)
         a = (attempts(c10) or [{}])[0]
         expect("a detached runner runs the attempt and records rc 5, the verdict and the end head",
-               a.get("rc") == 5 and a.get("verdict") == "GATE RED (Windows) on x" and a.get("end_head") == head,
+               a.get("rc") == 5 and a.get("verdict") == "MERGE NOT COMPLETED, BRANCH-CARRIED (before the queue) on x" and a.get("end_head") == head,
                f"{a} {out}")
 
         # 10b. PB3113: a pid the OS reused. A live Python process holds the recorded pid but is not the runner (its command
@@ -1861,7 +2048,7 @@ def self_test() -> int:
         c12 = fresh("rearm")
         f12 = Fake([row("w10a", "WAITING TO LAND", "v1"), row("w10b", "WAITING TO LAND", "x1")])
         f12.tick(c12)
-        finish(c12, "w10a", 5, "GATE RED (Windows) on v1: a red already on main")
+        finish(c12, "w10a", 5, "MERGE NOT COMPLETED, BRANCH-CARRIED (before the queue) on v1: a red already on main")
         finish(c12, "w10b", 0, "ENQUEUED", end_head="x2")
         f12.live.clear()
         f12.rows = [row("w10a", "DECISION", "v1"), row("w10b", "BOUNCED", "x2")]   # the merge group removed w10b
@@ -1885,7 +2072,7 @@ def self_test() -> int:
         expect("rearm is refused while the branch's attempt is running (nothing written)",
                bool(running) and rearm(c12, "w10a", "x", say=said.append, tip_for=tips.get) == 1
                and not rearm_path(c12, "w10a").exists(), str(said))
-        finish(c12, "w10a", 5, "GATE RED (Windows) on v1: main still red")
+        finish(c12, "w10a", 5, "MERGE NOT COMPLETED, BRANCH-CARRIED (before the queue) on v1: main still red")
         f12.live.clear()
         expect("a re-arm buys ONE attempt: the same stop at the same head again is not relaunched",
                "w10a" not in f12.tick(c12), str(f12.started))
@@ -2190,7 +2377,9 @@ def self_test() -> int:
             requeue=lambda repo, number, head: enqueue.requeue(repo, number, head, gh=silent,
                                                                state=lambda: (ruleset.ACTIVE, "x")),
             alert=lambda subject, body, ref: recorded.append(("alert", subject)),
-            measure=lambda number, b, read, cause, act, ok: recorded.append(("measure", number, read, act, ok)))
+            measure=lambda number, b, read, cause, act, ok: recorded.append(("measure", number, read, act, ok)),
+            red_facts=lambda att, pr_: RedFacts(unobserved="not asked: no bounce here"),
+            measure_red=lambda number, b, run, cls, why, act, ok: recorded.append(("red", number, cls)))
         try:
             launched = f16.tick(c16)
             hung = None
@@ -2207,6 +2396,135 @@ def self_test() -> int:
                hung is None and launched == ["w16next"] and [r["ok"] for r in reads16] == [False]
                and "GitHub gave no answer" in reads16[0]["detail"] and ("measure", 416, 1, RERUN, False) in recorded
                and [r["act"] for r in reads16b] == [RERUN, REQUEUE], f"{hung} {launched} {reads16b} {recorded}")
+
+        # 18. THE CLASS OF A MERGE-QUEUE RED (kb/Work PB4271, PB4331; the rule of CLAUDE.md Testing). First the one decision, pure: each
+        #     class from planted facts. Then the facts read from a worktree (a planted gate record and a planted bounce's
+        #     results, the fetch planted: no GitHub). Then the queue watch: an INFRA or RUNNER red re-queued once with no
+        #     agent, a second red (or the same one again) left to the finisher, a MERGE red left at once, a failed
+        #     re-queue never silent, and a re-queued branch no enqueue-unit work while its watch runs.
+        import landing_measure as lm  # noqa: PLC0415
+        import test_population as tp  # noqa: PLC0415
+        rec_ = RedFacts(run=9001, conclusion="failure", record="000001-r", listed=frozenset({"A.Pass", "A.Skip"}),
+                        passed=frozenset({"A.Pass"}))
+        cls_of = {name: classify_red(f)[0] for name, f in {
+            "unobserved": RedFacts(unobserved="GitHub unreachable"),
+            "timed out": dataclasses.replace(rec_, conclusion="timed_out", failed=frozenset({"A.Pass"})),
+            "no test failed": rec_,
+            "no record": RedFacts(run=9001, conclusion="failure", failed=frozenset({"A.Pass"}), no_record="none covers"),
+            "inert": RedFacts(run=9001, conclusion="failure", failed=frozenset({"B.New"}), record="000001-r", inert=True),
+            "skipped": dataclasses.replace(rec_, failed=frozenset({"A.Pass", "A.Skip"})),
+            "absent": dataclasses.replace(rec_, failed=frozenset({"A.Pass", "B.New"})),
+            "ran green": dataclasses.replace(rec_, failed=frozenset({"A.Pass"}))}.items()}
+        expect("classify_red: results unread or no record is UNCLASSIFIED; a timed-out run or one where no test failed is "
+               "INFRA; red cases that all ran GREEN in the record, or an inert record, are RUNNER; a red case the record "
+               "listed but did not run is GENUINE; one the record lacks is MERGE (kb/Work PB4271, PB4331)",
+               cls_of == {"unobserved": lm.UNCLASSIFIED, "timed out": lm.INFRA, "no test failed": lm.INFRA,
+                          "no record": lm.UNCLASSIFIED, "inert": lm.RUNNER, "skipped": lm.GENUINE, "absent": lm.MERGE,
+                          "ran green": lm.RUNNER}, str(cls_of))
+        import gate  # noqa: PLC0415
+        wt18 = root / "wt-w18"
+        rec_dir = wt18 / gate.RUN_ROOT / "000001-20261031T000000Z"
+        rec_dir.mkdir(parents=True)
+        (rec_dir / "verdict.json").write_text(json.dumps({
+            "schema": gate.RECORD_SCHEMA, "verdict": "GREEN", "line": "=== planted ===", "exit_code": 0, "head": "h18",
+            "tree": "T", "head_tree": "T", "lane": "full"}), encoding="utf-8", newline="\n")
+        tp.synthetic_trx(rec_dir / "Unit.trx", [("A.Pass", ["Passed"]), ("A.Skip", ["NotExecuted"])])
+        bounce_dir = wt18 / gate.CI_BOUNCE_RESULTS
+
+        def plant_bounce(number: int, cases: list[tuple[str, list[str]]], conclusion: str = "failure") -> None:
+            remove_tree(bounce_dir)
+            (bounce_dir / "test-results-unit").mkdir(parents=True)
+            (bounce_dir / queue_facts.BOUNCE_SOURCE).write_text(
+                f"GitHub Actions run 9001 (merge group of pull request #{number}, {conclusion}, x); planted\n",
+                encoding="utf-8", newline="\n")
+            tp.synthetic_trx(bounce_dir / "test-results-unit" / "u.trx", cases)
+        att18 = {"branch": "w18", "worktree": str(wt18), "end_head": "h18"}
+        pr18 = queue_facts.PullRequest(893, "u", "h18", False, "", "BLOCKED", "FAILED_CHECKS at 2026-10-31T10:00:00Z",
+                                       (green_gate,), "o/r")
+        fetched: list[str] = []
+
+        def fetch(b: str, d: pathlib.Path) -> str:
+            fetched.append(b)
+            return "ci bounce: planted"
+        plant_bounce(893, [("A.Pass", ["Failed"]), ("C.Other", ["Passed"])])
+        ran_green = red_facts(att18, pr18, fetch)
+        plant_bounce(1, [("A.Pass", ["Failed"])])
+        other_pr = red_facts(att18, pr18, fetch)
+        plant_bounce(893, [("A.Skip", ["Failed"])])
+        reused_dir = rec_dir.parent / "000002-20261031T010000Z"
+        reused_dir.mkdir()
+        (reused_dir / "verdict.json").write_text(json.dumps({
+            **json.loads((rec_dir / "verdict.json").read_text(encoding="utf-8")), "reused_from": rec_dir.name}),
+            encoding="utf-8", newline="\n")
+        reused = red_facts(att18, pr18, fetch)
+        (rec_dir / "Unit.trx").unlink()
+        pruned = red_facts(att18, pr18, fetch)
+        gone = red_facts({**att18, "worktree": str(root / "no-such-worktree")}, pr18, fetch)
+        expect("red_facts: the bounce's red cases (by name) beside the gate record that covers the queued head, the run a "
+               "REUSED record names read for its cases; results of another pull request, a record whose results are gone "
+               "and a worktree that is gone are said, never guessed (kb/Work PB4271)",
+               ran_green.run == 9001 and ran_green.failed == {"A.Pass"} and ran_green.record == rec_dir.name
+               and classify_red(ran_green)[0] == lm.RUNNER
+               and other_pr.unobserved == "ci bounce: planted" and classify_red(other_pr)[0] == lm.UNCLASSIFIED
+               and reused.record == rec_dir.name and classify_red(reused)[0] == lm.GENUINE
+               and not pruned.record and "keeps no test results" in pruned.no_record
+               and classify_red(pruned)[0] == lm.UNCLASSIFIED and "gone" in gone.unobserved and fetched == ["w18"] * 4,
+               f"{ran_green} {other_pr} {reused} {pruned} {gone} {fetched}")
+
+        c18 = fresh("reds")
+        names18 = ["infra", "merge", "same", "fails"]
+        f18 = Fake([row(f"w18{n}", "WAITING TO LAND", "k0") for n in names18])
+        f18.tick(c18)
+        for n in names18:
+            finish(c18, f"w18{n}", 0, "ENQUEUED", end_head="k1")
+        f18.live.clear()
+        collect(c18, [f"w18{n}" for n in names18], say=lambda s: None)
+        f18.rows = [row(f"w18{n}", "ENQUEUED" if n == "fails" else "BOUNCED", "k1") for n in names18]
+        n18 = {f"w18{n}": 890 + i for i, n in enumerate(names18)}
+
+        def bounced(b: str, removed: str) -> Any:
+            return queue_facts.PullRequest(n18[b], "u", "k1", False, "", "BLOCKED", removed, (green_gate,), "o/r")
+        infra = RedFacts(run=7001, conclusion="failure")                    # no test failed
+        merge = dataclasses.replace(rec_, run=7002, failed=frozenset({"B.New"}))
+        f18.reds = {"w18infra": infra, "w18merge": merge, "w18same": infra, "w18fails": infra}
+        r1 = "FAILED_CHECKS at 2026-10-31T10:00:00Z"
+        in_queue = queue_facts.PullRequest(n18["w18fails"], "u", "k1", True, "", "BLOCKED", "", (green_gate,), "o/r")
+        f18.prs = {**{b: bounced(b, r1) for b in n18 if b != "w18fails"}, "w18fails": in_queue}
+        f18.now = t("19:00")
+        f18.tick(c18)
+        first = {b: dict(next(a for a in attempts(c18) if a["branch"] == b).get("watch") or {}) for b in n18}
+        work_after_requeue = agent_work(c18).reasons
+        requeues = [e for e in f18.effects if e[0] == "requeue"]
+        f18.prs = {"w18infra": bounced("w18infra", "FAILED_CHECKS at 2026-10-31T10:30:00Z"),   # a second red
+                   "w18same": bounced("w18same", r1), "w18fails": in_queue}                    # the same one again
+        f18.reds["w18infra"] = dataclasses.replace(infra, run=7003)
+        f18.now = t("19:30")
+        f18.tick(c18)
+        later = {b: next(a for a in attempts(c18) if a["branch"] == b).get("watch") or {} for b in ("w18infra", "w18same")}
+        f18.watch_effects = lambda: dataclasses.replace(
+            Fake.watch_effects(f18), requeue=lambda repo, number, head: (False, "a run on the head is in progress"))
+        f18.prs = {"w18fails": bounced("w18fails", r1)}
+        f18.rows[-1] = row("w18fails", "BOUNCED", "k1")
+        f18.tick(c18)
+        failed_watch = next(a for a in attempts(c18) if a["branch"] == "w18fails").get("watch") or {}
+        reds18 = [e for e in f18.effects if e[0] == "red"]
+        expect("queue watch: an INFRA red is re-queued ONCE by the lane (no agent: the branch is no enqueue-unit work while "
+               "its watch runs), recorded with its class; a MERGE red ends the watch BOUNCED with its class, the "
+               "finisher's; a second red of the re-queued landing, or the same bounce read again, is never re-queued; "
+               "a re-queue GitHub refuses ends the watch BOUNCED, said (kb/Work PB4271, PB4331)",
+               first["w18infra"].get("state") == WATCHING and "INFRA" in first["w18infra"].get("why", "")
+               and first["w18merge"].get("state") == LEFT and "MERGE" in first["w18merge"].get("why", "")
+               and len(requeues) == 2 and {e[2] for e in requeues} == {n18["w18infra"], n18["w18same"]}
+               and work_after_requeue == ["bounced: w18merge"]
+               and later["w18infra"].get("state") == LEFT and "second red" in later["w18infra"].get("why", "")
+               and later["w18same"].get("state") == LEFT and "did not take" in later["w18same"].get("why", "")
+               and failed_watch.get("state") == LEFT and "re-queue FAILED" in failed_watch.get("why", "")
+               and len([e for e in f18.effects if e[0] == "requeue"]) == 2
+               and ("red", n18["w18infra"], "w18infra", 7001, lm.INFRA, "requeue", True) in reds18
+               and ("red", n18["w18infra"], "w18infra", 7003, lm.INFRA, "finisher", True) in reds18
+               and ("red", n18["w18merge"], "w18merge", 7002, lm.MERGE, "finisher", True) in reds18
+               and ("red", n18["w18fails"], "w18fails", 7001, lm.INFRA, "requeue", False) in reds18,
+               f"{first} {later} {failed_watch} {work_after_requeue} {f18.effects}")
 
         # 17. THE CONFLICT BRIEF (kb/Work PB3640): main and the branch both edit scripts/x.py since their merge base;
         #     main also adds a file the branch never touches. The brief names the conflicted file, main's commit on it
