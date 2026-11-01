@@ -36,6 +36,9 @@
 #
 # Usage:  bash scripts/battery.sh [outdir]        # everything
 #         SKIP_GUARD=1 SKIP_DIFF=1 bash scripts/battery.sh    # the greenfield legs only
+#         SKIP_TESTS=1 SKIP_GUARD=1 bash scripts/battery.sh    # the differential alone: the nightly's `differential` job
+#                                                         # (.github/workflows/nightly.yml, kb/Work PB4332), on Windows: PHASE 3
+#                                                         # drives the `cobol.exe` apphost, and the committed baseline was measured there
 set -u
 # ⛔ THE BATTERY RUNS COLD (kb/Work PB985; DESIGN-test-build-ci §3.12): the Conformance runner's compiled-program
 # cache is for RE-GATES after a test-only fix; the comprehensive gate recompiles every program from scratch, so
