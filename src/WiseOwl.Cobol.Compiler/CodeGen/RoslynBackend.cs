@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections.Immutable;
+using System.Globalization;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
@@ -23,9 +24,10 @@ internal sealed class RoslynBackend : ICodeGenBackend
     public BackendId Id => BackendId.Roslyn;
 
     /// <inheritdoc/>
-    /// <remarks>Wraps the pre-seam pipeline VERBATIM (pure indirection, no output change): render C# from the
-    /// bound tree (<c>CSharpEmitter.EmitBound</c>), write the <c>.g.cs</c> (when <c>WriteSource</c> — before
-    /// compiling, so the debugging artifact survives a failed compile), then <see cref="Compile"/>.</remarks>
+    /// <remarks>Render C# from the bound tree (<c>CSharpEmitter.EmitBound</c>), write the <c>.g.cs</c> beside the
+    /// assembly (always, and before compiling, so the debugging artifact survives a failed compile), then
+    /// <see cref="Compile"/>, whose Roslyn diagnostics cross the seam as <see cref="BackendDiagnostic"/>s
+    /// (<see cref="Neutral"/>; kb/Work PB4272).</remarks>
     public BackendArtifact Emit(Binding.Model.BoundCompilation program, BackendOptions options)
     {
         string csharp = _emitter.EmitBound(program, options.AssemblyName, options.Inputs, options.RepositoryUpdate);
@@ -33,13 +35,9 @@ internal sealed class RoslynBackend : ICodeGenBackend
 
         string outDir = Path.GetDirectoryName(Path.GetFullPath(options.OutputPath)) is { Length: > 0 } d ? d : ".";
         Directory.CreateDirectory(outDir);
-        string? csPath = null;
-        if (options.WriteSource)
-        {
-            csPath = Path.ChangeExtension(options.OutputPath, ".g.cs");
-            File.WriteAllText(csPath, csharp);
-            written.Add(Path.GetFullPath(csPath));
-        }
+        string csPath = Path.ChangeExtension(options.OutputPath, ".g.cs");
+        File.WriteAllText(csPath, csharp);
+        written.Add(Path.GetFullPath(csPath));
 
         // A group with a main program is an executable; one without is a LIBRARY (DESIGN-external-repository §7.2): no
         // Main, no runtimeconfig.json, reached through its host entries and the sibling probe. ProgramEmitter.MainUnit is
@@ -52,8 +50,47 @@ internal sealed class RoslynBackend : ICodeGenBackend
             written.Add(Path.GetFullPath(options.OutputPath));
             written.AddRange(AssemblyPackager.Package(options.OutputPath, library));   // P7 Step 2 — packaging off Compile
         }
-        return new BackendArtifact(result.Success, result.Diagnostics, csPath,
+        return new BackendArtifact(result.Success, Neutral(result.Diagnostics), csPath,
             result.Success ? options.OutputPath : null, written, library);
+    }
+
+    /// <summary>Roslyn's diagnostics as the seam's <see cref="BackendDiagnostic"/>s (kb/Work PB4272), each rendering the
+    /// line Roslyn's own <see cref="Diagnostic.ToString"/> renders (its <c>DiagnosticFormatter</c>): the mapped source
+    /// position when the diagnostic lies in a file, else none, and the message in the current UI culture.
+    /// <c>RoslynFreeSeamDriftTests</c> pins the two texts equal. A HIDDEN diagnostic (Roslyn's severity for
+    /// what is "not surfaced through normal means", such as an unnecessary using directive) is not a diagnostic of the
+    /// compilation and is not carried.</summary>
+    internal static IReadOnlyList<BackendDiagnostic> Neutral(IReadOnlyList<Diagnostic> diagnostics)
+    {
+        var neutral = new List<BackendDiagnostic>(diagnostics.Count);
+        foreach (Diagnostic d in diagnostics)
+        {
+            Frontend.Diagnostics.DiagnosticSeverity? severity = d.Severity switch
+            {
+                DiagnosticSeverity.Error => Frontend.Diagnostics.DiagnosticSeverity.Error,
+                DiagnosticSeverity.Warning => Frontend.Diagnostics.DiagnosticSeverity.Warning,
+                DiagnosticSeverity.Info => Frontend.Diagnostics.DiagnosticSeverity.Info,
+                DiagnosticSeverity.Hidden => null,
+                _ => throw new System.Diagnostics.UnreachableException($"Roslyn diagnostic severity {d.Severity}"),
+            };
+            if (severity is { } s)
+                neutral.Add(new BackendDiagnostic(d.Id, s, d.GetMessage(CultureInfo.CurrentUICulture), LocationOf(d.Location)));
+        }
+        return neutral;
+    }
+
+    /// <summary>The position Roslyn's <c>DiagnosticFormatter</c> prints for <paramref name="location"/>: in a source, XML
+    /// or external file with a valid span, the mapped path (else the file's own) and the mapped start; otherwise none.</summary>
+    private static Frontend.Common.SourceLocation? LocationOf(Location location)
+    {
+        if (location.Kind is not (LocationKind.SourceFile or LocationKind.XmlFile or LocationKind.ExternalFile))
+            return null;
+        FileLinePositionSpan span = location.GetLineSpan(), mapped = location.GetMappedLineSpan();
+        if (!span.IsValid || !mapped.IsValid)
+            return null;
+        string path = mapped.HasMappedPath ? mapped.Path : span.Path;
+        return new Frontend.Common.SourceLocation(path, location.SourceSpan.Start,
+            mapped.StartLinePosition.Line, mapped.StartLinePosition.Character);
     }
 
     /// <summary>The outcome of a backend compilation.</summary>
