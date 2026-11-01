@@ -212,10 +212,11 @@ internal static class BitLayout
         return Characters(bits);
     }
 
-    /// <summary>The stem of a stored implicit-filler field's C# name (<see cref="BitFiller.Field"/>): an
+    /// <summary>The stem of a stored implicit filler's CLR field name (<see cref="BitFiller.ClrName"/>): an
     /// emitter-fixed stem and a serial, never a COBOL word, so no user word can meet it
-    /// (<c>SynthesizedNameFamilyDriftTests</c>).</summary>
-    public const string FillerFieldStem = "__bf";
+    /// (<c>SynthesizedNameFamilyDriftTests</c>). A synthesized CLR name, neutral as an allocated one is
+    /// (DESIGN-backend-abstraction §1.1).</summary>
+    public const string FillerClrNameStem = "__bf";
 
     /// <summary>⛔ THE ONE LIST OF AN OWNER GROUP'S IMPLICIT FILLER BIT POSITIONS THAT HAVE STORAGE (ISO §8.5.1.6.3, kb/Work
     /// PB3564). §8.5.1.6.3 generates implicit filler "as needed to advance alignment to a required natural boundary for
@@ -260,7 +261,7 @@ internal static class BitLayout
         if (InTierBClass(owner)) return [];
         int serial = 0;
         return FillerPositions(owner)
-            .Select(p => new BitFiller(p.Kind, p.Subject, FillerFieldStem + serial++, p.StartBit, p.Bits)).ToList();
+            .Select(p => new BitFiller(p.Kind, p.Subject, FillerClrNameStem + serial++, p.StartBit, p.Bits)).ToList();
     }
 
     /// <summary>One implicit filler position of an owner, wherever it is stored (<see cref="FillerPositions"/>):
@@ -676,24 +677,24 @@ internal enum BitFillerKind
 
 /// <summary>⛔ ONE STORED IMPLICIT FILLER of an owner group (ISO §8.5.1.6.3 — "implicitly described as a filler
 /// elementary bit data item", kb/Work PB3564): <paramref name="Subject"/> is the run's LEADER (<see cref="BitFillerKind.RunTail"/>)
-/// or the table (<see cref="BitFillerKind.TablePad"/>) it follows; <paramref name="Field"/> is the hidden string field of the
-/// owner's record struct that holds its <paramref name="Bits"/> boolean positions (an emitter-fixed name,
-/// <see cref="BitLayout.FillerFieldStem"/> and a serial); <paramref name="StartBit"/> is where it begins relative to the
+/// or the table (<see cref="BitFillerKind.TablePad"/>) it follows; <paramref name="ClrName"/> is the CLR name of the hidden
+/// string field of the owner's record struct that holds its <paramref name="Bits"/> boolean positions (an emitter-fixed
+/// name, <see cref="BitLayout.FillerClrNameStem"/> and a serial); <paramref name="StartBit"/> is where it begins relative to the
 /// owner's first bit (meaningful for a bit group, whose bit face is its own area — the other owners compose by run).</summary>
-internal sealed record BitFiller(BitFillerKind Kind, DataItem Subject, string Field, int StartBit, int Bits)
+internal sealed record BitFiller(BitFillerKind Kind, DataItem Subject, string ClrName, int StartBit, int Bits)
 {
     private DataItem? _item;
 
     /// <summary>⛔ THE FILLER AS THE ELEMENTARY BIT DATA ITEM §8.5.1.6.3 SAYS IT IS ("implicitly described as a filler
     /// elementary bit data item"): a nameless boolean item of <see cref="Bits"/> positions whose <see cref="DataItem.ClrName"/>
-    /// is the hidden <see cref="Field"/>, so a statement that walks a group's elementary items as receivers (INITIALIZE
-    /// ... WITH FILLER, §14.9.20.4 5) a) 2.) reaches it through the ordinary place cursor and the ordinary MOVE, with no
+    /// is the filler's own hidden field (<see cref="ClrName"/>), so a statement that walks a group's elementary items
+    /// as receivers (INITIALIZE ... WITH FILLER, §14.9.20.4 5) a) 2.) reaches it through the ordinary place cursor and the ordinary MOVE, with no
     /// second storage law (kb/Work PB3564 review R1-4). It is in no <c>Children</c> list: the owner's layout is the
     /// <see cref="BitLayout.FillersOf"/> list's, never this item's.</summary>
     public DataItem Item => _item ??= new DataItem
     {
         Level = Subject.Level,
-        ClrName = Field,
+        ClrName = ClrName,
         Pic = new PicInfo(PicCategory.Boolean, Usage.Bit, Length: Bits, Digits: 0, Scale: 0, Signed: false),
         Parent = Subject.Parent,
     };
