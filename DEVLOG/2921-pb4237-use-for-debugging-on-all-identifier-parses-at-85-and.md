@@ -1,4 +1,4 @@
-## PB4237: USE FOR DEBUGGING ON ALL identifier parses at 85, and the debug diagnostics name their line
+## Entry 2921 — 2026-11-01 00:45 PDT — PB4237: USE FOR DEBUGGING ON ALL identifier parses at 85, and the debug diagnostics name their line
 
 **The mechanism.** The '85 debug operand `[ALL REFERENCES OF] identifier-1` has one keyword, ALL; REFERENCES and OF
 are optional words. `useDebugTarget` (CobolControlFlow.g4) wrote `ALL REFERENCES OF? dataReference`, so
@@ -24,3 +24,4 @@ DB201A compiles in 1.8 s and reports ten positioned COBOL1571 (the staged data a
 `DebugFacilityTests.AllIdentifier_EverySpelling_At85_IsTheStagedDataItemOperand` (five spellings under WITH DEBUGGING
 MODE reach the staged COBOL1571 naming the operand at its line, `ALL P1` included). No inventory row: the debug module
 has no ISO 2023 rule.
+
