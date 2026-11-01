@@ -364,7 +364,7 @@ public sealed partial class DataBinder
     /// SR3/SR4 name — its record would have been left off cell storage and the bind would have refused it.
     /// Every surface now spells the identifier through the ONE <c>dataAddressIdentifier</c> rule, so every one
     /// of them is forced here by construction. The receiving <c>ADDRESS OF data-name-1</c> of SET Format 7 is a
-    /// different rule (<c>setAddressReceiver</c>) and is never forced: it names a BASED item (kb/Work PB450).
+    /// different rule (<c>setToReceiver</c>) and is never forced: it names a BASED item (kb/Work PB450).
     /// </para></summary>
     private IEnumerable<(string Name, List<string> Qualifiers, OoMethodSymbol? Method)> PtrScanAddressOfTargets(Core.ProgramUnitContext program)
     {

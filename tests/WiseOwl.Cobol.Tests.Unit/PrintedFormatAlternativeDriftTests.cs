@@ -260,7 +260,7 @@ public sealed class PrintedFormatAlternativeDriftTests
             $"the set…Statement sweep found {swept.Count} rule(s) — the scrape is broken, not the grammar");
         Assert.Contains("setSwitchStatement", swept);
         Assert.Contains("setBooleanStatement", swept);
-        Assert.Contains("setAddressStatement", swept);
+        Assert.Contains("setToStatement", swept);
         Assert.Empty(offenders);
 
         // And the two twins really are the same shape, which is the half a "no inline group" rule cannot say.
@@ -270,35 +270,39 @@ public sealed class PrintedFormatAlternativeDriftTests
         // Format 7's outer `…` is on the RECEIVING OPERAND rather than on a whole TO-group, so its repeated
         // unit is a receiver rule rather than a phrase rule — but it is a NAMED rule all the same, and the
         // statement holds ONE alternative because the printed figure is one figure (kb/Work PB450 half 2;
-        // before it, two fixed productions split on the SENDER's spelling each hard-coded arity one).
-        Assert.Matches(@"^\s*:?\s*SET\s+setAddressReceiver\+\s+TO\s+setAddressSender\s*$",
-                       RuleBody("setAddressStatement").Trim());
+        // before it, two fixed productions split on the SENDER's spelling each hard-coded arity one). The one
+        // setToStatement rule carries it, and every other SET … TO shape, since kb/Work PB4231.
+        Assert.Matches(@"^\s*:?\s*SET\s+setToReceiver\+\s+TO\s+setToSender\s*$",
+                       RuleBody("setToStatement").Trim());
     }
 
-    /// <summary>⛔ <c>setObjectReferenceStatement</c> IS LISTED BEFORE <c>setAddressStatement</c>, AND THE
-    /// ORDER IS THE ROUTING (kb/Work PB450 half 2; feedback_grammar_precedence — ANTLR takes the first
-    /// matching alternative).
-    /// <para>§14.9.39.3 SR19 lets Format 7's identifier-6 be "the predefined address NULL", and SR9 lets
-    /// Format 5's identifier-4 be the predefined object reference NULL, so <c>SET X TO NULL</c> is
-    /// token-identical in both and only the RECEIVER's category tells them apart — which is
-    /// <c>SetFormatSelection</c>'s question, asked at BIND, and not the parser's. Once Format 7's receiving
-    /// list became the printed <c>{ ADDRESS OF data-name-1 | identifier-5 } …</c>, <c>setAddressStatement</c>
-    /// began to match that shape too; listed first it would take every <c>SET obj-ref TO NULL</c> away from
-    /// the format-selection path and bind it as a data-pointer SET.</para>
-    /// <para>The invariant is stated over the <c>setStatement</c> alternative LIST rather than over a
-    /// remembered pair of line numbers, and it asserts it found both alternatives before it compares them, so
-    /// a renamed rule fails loudly instead of passing vacuously (feedback_green_gates_arent_evidence).</para></summary>
+    /// <summary>⛔ <c>setToSender</c>'s ARMS ARE NULL, THEN ADDRESS OF, THEN THE ARITHMETIC EXPRESSION, AND NOTHING
+    /// ELSE (kb/Work PB4231; feedback_grammar_precedence — ANTLR takes the first matching alternative).
+    /// <para>§14.9.39.3 SR19 lets Format 7's identifier-6 be "the predefined address NULL", and Format 5's sender may
+    /// be the predefined object reference NULL, so <c>SET X TO NULL</c> is token-identical in both and only the
+    /// RECEIVER's category tells them apart — <c>SetFormatSelection</c>'s question, asked at BIND. The grammar
+    /// therefore has ONE <c>setToStatement</c>, and its sender decides its arm at the left edge: NULL FIRST, because
+    /// the arithmetic arm also starts with NULL (an object-view <c>NULL AS c</c>, an invocation <c>NULL :: "m"</c>)
+    /// and, listed first, would claim the bare NULL too. No <c>objectReference</c> arm: the arithmetic expression
+    /// derives every object-reference shape but the bare NULL, so such an arm could never be chosen, and kb/Work
+    /// PB450's arithmetic-before-object order is kept by there being no second arm to order. Splitting the shape
+    /// across several setStatement alternatives again is what made SLL bail on every <c>SET x TO NULL</c>
+    /// (<c>SetToStatementSllDriftTests</c> measures that half).</para>
+    /// <para>The invariant is stated over the rule bodies, and it asserts it found each rule before it compares
+    /// them, so a renamed rule fails loudly instead of passing vacuously (feedback_green_gates_arent_evidence).</para></summary>
     [Fact]
-    public void SetObjectReferenceStatement_IsOfferedBeforeSetAddressStatement()
+    public void SetToSender_OffersNullFirst_AndSetStatementOffersOneToRule()
     {
-        string body = RuleBody("setStatement");
-        int objRef = body.IndexOf("setObjectReferenceStatement", StringComparison.Ordinal);
-        int address = body.IndexOf("setAddressStatement", StringComparison.Ordinal);
-        Assert.True(objRef >= 0, "setStatement no longer offers setObjectReferenceStatement — the scrape is broken");
-        Assert.True(address >= 0, "setStatement no longer offers setAddressStatement — the scrape is broken");
-        Assert.True(objRef < address,
-            "setStatement offers setAddressStatement before setObjectReferenceStatement: ANTLR takes the first "
-            + "matching alternative, and Format 7's receiving list now matches `SET dataReference+ TO NULL` — "
-            + "the shape §14.9.39.2 Format 5 owns. `SET obj-ref TO NULL` would bind as a data-pointer SET.");
+        string sender = RuleBody("setToSender");
+        var arms = sender.Split('|').Select(a => Regex.Replace(a, @"//[^\n]*", "").Replace(":", "").Trim()).ToArray();
+        Assert.Equal(new[] { "predefinedNull", "dataAddressIdentifier", "arithmeticExpression" }, arms);
+
+        string set = RuleBody("setStatement");
+        Assert.True(set.Contains("setToStatement", StringComparison.Ordinal),
+            "setStatement no longer offers setToStatement — the scrape is broken");
+        foreach (string retired in new[] { "setToValueStatement", "setObjectReferenceStatement", "setAddressStatement" })
+            Assert.False(Regex.IsMatch(set, @"\b" + retired + @"\b"),
+                $"setStatement offers {retired} again: a second rule for the `SET receivers TO sender` shape puts the "
+                + "format decision back across setStatement's alternatives, where SLL cannot make it after NULL");
     }
 }

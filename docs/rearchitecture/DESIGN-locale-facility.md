@@ -395,7 +395,7 @@ the state unchanged. The handle space is per-run-unit and is not reused, so a st
 rather than aliasing.
 
 **Grammar.** Two new alternatives in `setStatement` (`CobolParserCore.g4:1125`), both listed **before**
-`setToValueStatement` because `LOCALE` and the LC_ words are the entry tokens:
+`setToStatement` because `LOCALE` and the LC_ words are the entry tokens:
 
 ```antlr
 // SET LOCALE { {LC_ALL|LC_COLLATE|…}… | USER-DEFAULT } TO { identifier | locale-name | USER-DEFAULT | SYSTEM-DEFAULT }
@@ -946,7 +946,7 @@ zero-fan-out result the project has been bitten by before.
 | G1 | `Core/CobolSpecialNames.g4` | `localeClause` — no shape change; the binder arm changes. Add `orderTableClause` (§4.9). |
 | G2 | `Core/CobolSpecialNames.g4` | `alphabetDefinition` gains a `LOCALE cobolWord?` alternative (both the ALPHANUMERIC and the FOR NATIONAL branch). Removes the spurious `COBOL0901`/`COBOL0898` of §1 rows 4–5. |
 | G3 | `CobolParserCore.g4` | Delete the `computerAttributes : ~(DOT\|PROGRAM)+` sink; add `objectComputerClause*` + `characterClassificationClause` + `localePhrase`, make `computerName` optional in **both** computer paragraphs, and add `debuggingModeClause` to SOURCE-COMPUTER (§4.5). **Order-free** per §5.2.6.4. ⛔ Re-home the three sink-scanned edition gates in the same commit. |
-| G4 | `CobolParserCore.g4` | `setLocaleStatement`, `setSaveLocaleStatement`, `localeCategory` (§4.3), listed ahead of `setToValueStatement`. |
+| G4 | `CobolParserCore.g4` | `setLocaleStatement`, `setSaveLocaleStatement`, `localeCategory` (§4.3), listed ahead of `setToStatement`. |
 | G5 | `Core/CobolData.g4` | `pictureClause` gains the format-2 tail `LOCALE (IS? cobolWord)? SIZE IS? integerLiteral` (§4.6). ⚠ `SIZE` is already a reserved token, so the tail is unambiguous; the PICMODE lexer mode must terminate at `LOCALE`, exactly as it already does for `SYMBOL` in the CURRENCY clause. |
 
 ⚠ **Repetition arity check (the PB45 discipline).** Three loops are introduced and each points at a printed
