@@ -958,7 +958,7 @@ jobs:
   # ── Every script self-test on Windows, the Windows-only ones included (the orchestrator loop's test_orchestrate_*.ps1
   # and test_autostart.ps1), which the Linux audits job reports NOT RUN (kb/Work PB2563). ONLY WHEN THE CHANGE TOUCHES
   # TOOLING (`changes` says so, from scripts/inert_lane.py; kb/Work PB4326): a script self-test reads tooling and the
-  # data TOOLING_READS names (a whole-tree reader and the DEVLOG/kb corpora are the named residue), so no other change
+  # data TOOLING_READS names (a declared population reader and the DEVLOG/kb corpora are the named residue), so no other change
   # turns one red, and the Linux audits job runs every Linux self-test whatever the change. ITS OWN JOB, beside
   # windows-build-test (kb/Work PB3581): the default phase never builds (self_tests.py BUILD), so it waits for no build,
   # and as a step after windows-build-test's test legs it was 7.4 of that job's 16.5 minutes, the merge queue's longest

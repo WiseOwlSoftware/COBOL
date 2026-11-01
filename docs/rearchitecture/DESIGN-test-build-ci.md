@@ -3187,9 +3187,12 @@ store's recorded inputs (3.14.10): `tests/_shared/TestRepo.cs` is an input of `d
 read (its trace, not a guess): a self-test that passes but read a tracked path that is not tooling, under no `TOOLING_READS`
 entry and under no INERT entry is RED, naming the path, until the path gets an entry naming its reader; `inert_lane.py
 check` holds every entry to a tracked path. The accepted residue, named (owner 2026-10-31, PB4323: a merge-group red may be
-one of five first-run classes): a WHOLE-TREE reader (a self-test whose trace shows a git command over the whole repository:
-`test_plan_wave.py`, `test_dispatch_guard.py` and `impacted_tests.py` walk every markdown file or path) is not judged, since
-no set of paths bounds it; the `DEVLOG/` and `kb/` corpora, which every landing grows and `devlog.py check` and `work.py
+one of five first-run classes): a DECLARED POPULATION reader (`# SELF-TEST-POPULATION: tree — <why>` in the self-test's first
+lines: `test_plan_wave.py`, `test_dispatch_guard.py` and `impacted_tests.py` walk every markdown file or path) is not judged,
+since no set of paths bounds it, and the declaration is held to the trace (review round 2, finding R2-1): a self-test that
+declares it and ran no git command over the whole repository is RED, and one that ran such a command without declaring it is
+judged like any other, so a whole-tree git command never exempts the specific files its self-test also reads (`work.py` reads
+`docs/DESIGN.md`, `merge_drivers.py` the ABI pin, `test_orchestrate_steer.ps1` the plan: each a `TOOLING_READS` entry); the `DEVLOG/` and `kb/` corpora, which every landing grows and `devlog.py check` and `work.py
 check` govern in every lane; and a directory listing, which changes when a file is added and not when a listed file is edited.
 
 **The script self-tests run on Linux in the inert lane too: in CI (kb/Work PB3646, PB4327).** CI's `audits` job runs

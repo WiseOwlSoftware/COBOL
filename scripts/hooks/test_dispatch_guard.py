@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SELF-TEST-POPULATION: tree — it walks the tracked markdown files with git over the whole repository
 """Self-test for dispatch_guard.py — a fleet dispatch without the workstream skill, or an implementer/finisher dispatch
 without a checked brief, is blocked; a compliant dispatch and every other role pass.
 Run: python scripts/hooks/test_dispatch_guard.py   (needs the tools/claude-skills submodule, like check_practices.py;
