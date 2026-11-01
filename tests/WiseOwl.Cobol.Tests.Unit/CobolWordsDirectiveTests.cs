@@ -519,6 +519,19 @@ public sealed class CobolWordsDirectiveTests
         Assert.DoesNotContain(errors, e => e.Contains("COBOL5776"));
     }
 
+    [Theory] // Review r1 R1-1 (kb/Work PB4309): a RESERVED word the directive removed that never named a function
+    [InlineData("UNDEFINE \"ACCEPT\"")]                  // GR3 — SR3 lets UNDEFINE name any reserved word
+    [InlineData("SUBSTITUTE \"ACCEPT\" BY \"MYACCEPT\"")] // GR4 — the same for literal-4
+    public void Intrinsic_RemovedReservedWordThatIsNoFunction_KeepsNotAnIntrinsicFunction(string directive)
+    {
+        var errors = CompileErrors(IntrinsicProgram
+            .Replace("{DIRECTIVE}", $"       >>COBOL-WORDS {directive}\n")
+            .Replace("{NAME}", "ACCEPT"));
+        // ACCEPT is no intrinsic function of ISO/IEC 1989, so the directive withdrew no function: COBOL1501 is true.
+        Assert.Contains(errors, e => e.Contains("COBOL1501") && e.Contains("FUNCTION ACCEPT is not an intrinsic function"));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL5776"));
+    }
+
     [Fact] // GR4 — SUBSTITUTE: the new name resolves; the old intrinsic name is no longer a function.
     public void Intrinsic_Substitute_NewResolves_OldRemoved()
     {
