@@ -5346,8 +5346,8 @@ public static class DiagnosticCatalog
     //    the constant-name spelling (DataBinder.Constants.ExpandPicConstants rewrites it to `(integer)` and
     //    hands it to the same expander) can reach an unchecked `StringBuilder.Append(char, int)`. ──
 
-    /// <summary>COBOL2146 — character-string-1 is longer than the 63 characters ISO §13.18.40.3 SR4
-    /// allows.</summary>
+    /// <summary>COBOL2146 — character-string-1 is longer than the characters ISO §13.18.40.3 SR4 allows the
+    /// edition (63 from COBOL-2014, 50 at COBOL-2002, 30 at COBOL-85).</summary>
     public static readonly DiagnosticDescriptor PictureStringTooLong = new(
         "COBOL2146", "picture-string-too-long", EditionSeverity.Error,
         "ISO §13.18.40.3 syntax rule 4: \"The maximum number of characters allowed in character-string-1 is "
@@ -5357,7 +5357,11 @@ public static class DiagnosticCatalog
         + "counted toward the maximum number of characters in character-string-1\"), and the expanded reading "
         + "would outlaw `PIC X(30000)`, which is four characters long. So 64 written X's are rejected while "
         + "`PIC X(30000)` stays legal, and a constant-name repetition factor is counted by the digit length of "
-        + "the integer substituted for it (kb/Work PB532).",
+        + "the integer substituted for it (kb/Work PB532). The 63 is the 2023 text's bound, in force from COBOL-2014; "
+        + "the 2002 text's SR4 says 50, and COBOL-85 allowed 30, so a string of 31 to 63 characters is a length "
+        + "error at --std 85 and one of 51 to 63 at --std 2002, the message naming the edition's bound and where "
+        + "63 begins (constructs rows picture-string-50-2002 and picture-string-63-2014, VCR row 7.46; "
+        + "kb/Work PB4304).",
         "ISO §13.18.40.3 SR4");
 
     /// <summary>COBOL2147 — a parenthesized repetition factor that is not an unsigned nonzero integer (ISO

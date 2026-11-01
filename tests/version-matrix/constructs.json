@@ -258,6 +258,30 @@
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMLL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC X(200).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE \"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\" TO W.\n    STOP RUN.\n"
   },
   {
+   "id": "picture-string-50-2002",
+   "description": "The PICTURE character-string length bound (ISO §13.18.40.3 SR4: 63 characters in the 2023 text) is 30 below COBOL-2002 - a RELAXATION, so a 31-to-50-character character-string-1 compiles at 2002 and later and is rejected at COBOL-85 with COBOL2146 (also under --permissive: a length error, not a removed construct), the word-length row's posture. THE EDGE IS QUOTED for the 2002 half and DERIVED for the 85 half (VCR row 7.46; the repo holds no 1985 text, ratified decision #1): the 2002 draft's own 13.16.39.3 SR4 reads 'The maximum number of characters allowed in character-string-1 is 50' and its Annex F.2 item 94 records 'The maximum number of characters that may be specified in a picture character-string is increased from 30 to 50'; GnuCOBOL 3.2's cobol85.conf carries pic-length 30 (kb/Work R61's method). ONE bound, PictureAnalyzer.MaxStringLength(edition), read by Analyze's prologue (kb/Work PB4304).",
+   "display": "a PICTURE character-string longer than 30 characters",
+   "diagnosticCode": "COBOL2146",
+   "citation": "ISO §13.18.40.3 SR4 (the character-string length bound; 63 in the 2023 text) - the 30-character bound at COBOL-85 is DERIVED (VCR row 7.46); emit site: PictureAnalyzer.AnalyzeCharacterString (binder)",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOL2146",
+   "vcr": "VCR row 7.46 (PICTURE character-string bound 30 -> 50 at 2002); kb/Work PB4304",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMPS50.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+  },
+  {
+   "id": "picture-string-63-2014",
+   "description": "The PICTURE character-string length bound (ISO §13.18.40.3 SR4: 63 characters in the 2023 text) is 50 at COBOL-2002 - a RELAXATION, so a 51-to-63-character character-string-1 compiles at 2014 and 2023 and is rejected at COBOL-85 and COBOL-2002 with COBOL2146 (also under --permissive: a length error, not a removed construct). THE EDGE IS DERIVED, NOT QUOTED (VCR row 7.46; the repo holds no 2002 or 2014 text of record, ratified decision #1), by the method of owner decision kb/Work R61: GnuCOBOL 3.2's cobol2014.conf carries pic-length 63 (while keeping word-length 31, so it distinguishes the two limits per edition), and Annex E (2014 to 2023) lists a word-length increase (item 11) but no picture-string increase, which it would have to if 2014 still said 50, so 2014 = 2023; the 2014 CD's 50 is the committee draft, not the standard. ONE bound, PictureAnalyzer.MaxStringLength(edition) (kb/Work PB4304).",
+   "display": "a PICTURE character-string longer than 50 characters",
+   "diagnosticCode": "COBOL2146",
+   "citation": "ISO §13.18.40.3 SR4 (63 characters in the 2023 text) - the 50-character bound at COBOL-2002 is quoted from the 2002 draft's SR4 and the 2014 edge is DERIVED (VCR row 7.46); emit site: PictureAnalyzer.AnalyzeCharacterString (binder)",
+   "introducedIn": 2014,
+   "removedIn": null,
+   "expectDiagnostic": "COBOL2146",
+   "vcr": "VCR row 7.46 (PICTURE character-string bound 50 -> 63 at 2014); kb/Work PB4304",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMPS63.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+  },
+  {
    "id": "copy-literal-name-2002",
    "description": "The literal forms of the COPY statement's library-text name and library name (ISO §7.2.3.2: COPY { text-name-1 | literal-1 } [ { OF | IN } { library-name-1 | literal-2 } ]; 7.2.3.3 SR4/SR5 restrict them to alphanumeric literals; 7.2.3.4 GR1 \"Text-name-1 or literal-1 identifies the library text\"). ANSI X3.23-1985's COPY is COPY text-name [ { OF | IN } library-name ] [ REPLACING ... ]: the names are user-defined words only. THE EDGE IS DERIVED, NOT QUOTED (VCR row 7.44; the repo holds no 1985, 2002 or 2014 text, ratified decision #1): none of the NIST CCVS-85 programs or copy library writes a literal library-text name; Micro Focus's COPY reference marks the external-file-name literal as a dialect extension (OSVS, VSC2, MF, COB370), not ANS85; Annex E lists no COPY name change, so it predates 2023; 2002 is the edition that rewrote COPY as a compiler-directing statement and whose literal-1/literal-2 Micro Focus marks ISO2002; GnuCOBOL 3.2 parses a literal name at every -std (silence, not evidence). The row takes the 2002 edge, the one that never refuses a legal 2002 program. ONE gate for both literals, CopyProcessor.GateCopyPhrase (kb/Work PB1601).",
    "display": "a literal COPY library-text name or library name",
