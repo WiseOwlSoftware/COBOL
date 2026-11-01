@@ -1913,8 +1913,8 @@ result. Run the long legs ONE AT A TIME.
 - **PER CHANGE — the ONE ordered gate (kb/Work PB1708, PB1721, PB3022; `DESIGN-test-build-ci.md` §3.14 and section 3.17.3):**
   `pwsh scripts/build-local.ps1 -Priority BelowNormal` (bash: `scripts/build-local.sh`), the same for an
   implementer's commit, a re-gate and a landing (at Normal priority). ORDER, DON'T SKIP (owner, 2026-09-28): its
-  driver `scripts/run_gate_legs.py` holds the worktree's gate lock, runs the audits (before it queues, kb/Work
-  PB2524), takes a gate slot (`scripts/gate_slot.py`, at most N gates at once), builds the SOLUTION, lists every
+  driver `scripts/run_gate_legs.py` holds the worktree's gate lock, runs the audits (beside the build and the legs, outside
+  the slot, kb/Work PB2524, PB4326), takes a gate slot (`scripts/gate_slot.py`, at most N gates at once), builds the SOLUTION, lists every
   discovered case of Conformance, Unit and Characterization and plans them ALL into two legs — the tests the change
   adds and the previous gate's reds on either host (0a), the host-only witnesses (0h), the cheap tree-wide sweeps (0c) and the
   cheapest cases the change reaches (the impact map's tiers) first — and runs leg 1 FAIL-FAST (batched gating), then

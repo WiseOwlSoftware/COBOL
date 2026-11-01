@@ -98,8 +98,9 @@ public sealed class GateLegDriftTests
     /// (kb/Work PB3022: no mode, a slot, the audits ahead of it, fail-fast), the scope
     /// <c>leg1</c> of batched gating (kb/Work PB2515), the coded default when no scope is set: leg 1 only, its verdict
     /// <c>LEG 1 ONLY (batched gating, PB2515)</c>, never a plain GREEN; and the
-    /// audits' fail-fast (kb/Work PB2523): a red audit stops the gate before the build;
-    /// and the audits run before the gate slot is taken (kb/Work PB2524); and every gate publishes its
+    /// audits' fail-fast (kb/Work PB2523): a red audit stops the gate before the build, or the legs when it is found
+    /// while they run (kb/Work PB4326); and the audits run outside the gate slot, beside the build and the legs, the
+    /// script self-tests only for a change that touches tooling (kb/Work PB2524, PB4326); and every gate publishes its
     /// measured durations to the shared timings store a fresh worktree's plan reads (kb/Work PB2527); and a gate
     /// outlives its caller and is gated once per measured tree (kb/Work PB3536): it runs DETACHED and is followed, it
     /// survives a tree kill of its follower, `--await` reads its verdict file (PENDING, a process that DIED: NOT RUN
@@ -133,8 +134,14 @@ public sealed class GateLegDriftTests
                      "scope leg1: a red in leg 1 is LEG 1 ONLY: RED",
                      "scope leg1 with no plan: the one leg IS the whole population",
                      "malformed shared gate settings: the gate is NOT RUN",
-                     "a red audit (a tracked rendered view) STOPS the gate before the build",
-                     "the audits and the corpus fetch run BEFORE the gate slot is taken",
+                     "a red audit (a tracked rendered view) that is known before the slot STOPS the gate before the build",
+                     "the corpus fetch runs BEFORE the gate slot is taken, a red audit never queues for one",
+                     // kb/Work PB4326: the audits run BESIDE the build and the legs, and only tooling runs the self-tests
+                     "an audit that turns RED while the gate queues for the slot ends the gate before the build",
+                     "an audit that is RED only after the legs have started STOPS them",
+                     "the script self-tests (the audits in TOOLING_ONLY, and the post-build ones) run ONLY when the change touches tooling",
+                     "the audits a change that touches no tooling runs are AUDITS less TOOLING_ONLY",
+                     "the verdict file records, per assembly, the seconds its leg hosts ran and the legs' effective concurrency",
                      // kb/Work PB2878: the inert lane, a change no test reads
                      "a change in the INERT LANE (kb/Work PB2878) runs the audits and then ends GREEN",
                      "the inert lane under the `whole` scope is a plain GREEN",
@@ -145,7 +152,7 @@ public sealed class GateLegDriftTests
                      "a hung self-test is `SELF-TESTS HANG` in the gate's reasons, never RED, and every gate's self-tests run with --reuse",
                      "a failed audit prerequisite (CI's `git submodule update --init tools/claude-skills`) is its RED, with its output, and no audit runs",
                      "a defect in work beside the critical path is a named RED with its traceback",
-                     "ONE SHAPE (kb/Work PB3022): every gate takes a slot, runs its audits before it and stops at a red in",
+                     "ONE SHAPE (kb/Work PB3022): every gate takes a slot, runs its audits beside the build and the legs and stops at a red in",
                      "a second gate in the same worktree is REFUSED",
                      "its verdict is BUSY with its own exit code, which the one verdict reader reads as BUSY, never RED",
                      "the one verdict reader: GREEN and LEG 1 ONLY: GREEN pass",
