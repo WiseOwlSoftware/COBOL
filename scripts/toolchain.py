@@ -12,7 +12,7 @@ The owner, 2026-10-28: "CI tooling should match local tooling versions - always"
 using the latest version". `check` is the IDENTICAL half: CI's setup-toolchain action runs it with `--scope ci` after it
 installs, the gate runs it with `--scope gate` before anything else and stops NOT RUN [toolchain] on a mismatch, and the
 SessionStart readiness check prints its `--scope host` comparison. `latest` is the LATEST half: the scheduled workflow
-toolchain-freshness.yml runs it every day, and a manifest behind a publisher is a red run naming the tool, never silence.
+the nightly workflow (nightly.yml, job `latest`) runs it every day, and a manifest behind a publisher is a red run naming the tool, never silence.
 
 A tool's version is what the tool itself reports when it runs (`dotnet --version`, `java -version`, ...), never what an
 installer or a package source claims: WSL's git stayed on 2.55 for days while its apt source existed but was disabled,
@@ -29,7 +29,7 @@ Linux git of a chosen version (the Ubuntu image lacks the zlib and libcurl heade
 install it from the manifest. The manifest names each image's git (GIT_LINUX_VERSION, GIT_WINDOWS_VERSION), `latest`
 reads it from the image's own readme, and each host installs that release. A CI job reports an image whose git moved as
 a warning, never a failure: GitHub rolls each image on its own schedule, and a hard failure there would stop every
-landing until a bump, or, with the two images on different weeks, until both converged. The daily toolchain-freshness
+landing until a bump, or, with the two images on different weeks, until both converged. The daily nightly workflow
 run holds each image strictly (`check --scope image`), so a moved image is a red scheduled run within a day.
 """
 from __future__ import annotations
@@ -63,7 +63,7 @@ EXACT = re.compile(r"^\d+(?:\.\d+)+$")
 VERDICT = "=== TOOLCHAIN: "
 
 #: The scopes `check` holds. `ci`: what a CI job runs once setup-toolchain installed it (a runner image's own tool is
-#: reported there, never failed). `image`: the runner image's own tools, strictly (the freshness run, on each image).
+#: reported there, never failed). `image`: the runner image's own tools, strictly (the nightly `images` job, on each image).
 #: `gate`: what the local gate runs. `host`: everything a host carries.
 SCOPES = ("ci", "image", "gate", "host")
 
@@ -115,7 +115,7 @@ def _github(repo: str, prefix: str = "v") -> Latest:
 def _dotnet_sdk(fetch: Callable[[str], str], manifest: dict[str, str]) -> Release:
     """The newest SDK of the manifest's own major channel (a channel in `go-live` or `preview` is a release candidate).
     A newer GA major channel is a note, never the target: moving to it also moves global.json and every
-    TargetFramework, an owner's decision, so a freshness run stays red only for a release the manifest can take."""
+    TargetFramework, an owner's decision, so the nightly `latest` job stays red only for a release the manifest can take."""
     index = json.loads(fetch("https://builds.dotnet.microsoft.com/dotnet/release-metadata/releases-index.json"))
     ga = [r for r in index["releases-index"] if r.get("support-phase") in ("active", "maintenance")]
     major = _key(manifest["DOTNET_SDK_VERSION"])[0]
@@ -267,14 +267,14 @@ def compare(manifest: dict[str, str], scope: str, run: Callable[[tuple[str, ...]
             system: str = platform.system()) -> tuple[list[str], list[str]]:
     """(the lines `check` prints, the mismatches): each tool of `scope` on `system`, the version it reports and the
     manifest's. In the `ci` scope a runner image's own tool (git) that differs is a GitHub warning line, never a
-    mismatch: the image moved under the job, and the freshness run's `image` scope is where it is red."""
+    mismatch: the image moved under the job, and the nightly `images` job's `image` scope is where it is red."""
     lines, bad = [], []
     for tool in held(scope, system):
         want, got = manifest[tool.key], installed(tool, run)
         state = "OK" if got == want else ("ABSENT" if got is None else "MISMATCH")
         if state != "OK" and scope == "ci" and tool.source == IMAGE:
             lines.append(f"::warning title=toolchain::the runner image's {tool.name} is {got or 'absent'}, toolchain.env "
-                         f"names {want}: the image moved; the toolchain-freshness run is red until `toolchain.py bump` "
+                         f"names {want}: the image moved; the nightly run is red until `toolchain.py bump` "
                          "follows it (kb/Work PB4007)")
             state = "IMAGE"
         lines.append(f"  {state:8} {tool.name} {got or '(none)'}" + ("" if state == "OK" else f" — toolchain.env names {want}"))
