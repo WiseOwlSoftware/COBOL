@@ -358,10 +358,12 @@ AUDITS = (
     ("CONFORMANCE SUITE", ["conformance-suite/harness/generate.py", "--check"]),
 )
 #: ⛔ THE AUDITS THAT RUN ONLY WHEN THE CHANGE TOUCHES TOOLING (kb/Work PB4326; scripts/inert_lane.py `Lane.tooling`): a
-#: script self-test reads only tooling, so only a change that touches a script, a workflow, a tool, an agent definition,
-#: a manifest it reads or any .py/.ps1/.sh file can turn one red. The rest of the population is CI's: the merge group's
-#: `audits` job runs every Linux self-test and `windows-self-tests` the Windows ones, whatever the change (the
-#: recorded-inputs reuse, PB2914, still lets a tooling change re-run exactly the self-tests that read it).
+#: script self-test reads tooling and the data scripts/inert_lane.py's TOOLING_READS names (self_tests.py proves that
+#: list complete on every run it records), so only a change that touches a script, a workflow, a tool, an agent
+#: definition, a manifest it reads, any .py/.ps1/.sh file or one of those data paths can turn one red. The rest of the
+#: population is CI's: the merge group's `audits` job runs every Linux self-test whatever the change (a whole-tree reader
+#: and the DEVLOG/kb corpora are the named residue, inert_lane.py) and `windows-self-tests` the Windows ones for a tooling
+#: change (the recorded-inputs reuse, PB2914, still lets a tooling change re-run exactly the self-tests that read it).
 TOOLING_ONLY = ("SELF-TESTS",)
 #: ⛔ WHAT AN AUDIT NEEDS IN THE TREE, made ready before any audit runs, exactly as CI's `audits` job makes it ready:
 #: FLEET PRACTICES reads the pinned public skills submodule, which a fresh worktree does not have. A prerequisite that

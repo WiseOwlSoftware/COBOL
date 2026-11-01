@@ -130,6 +130,32 @@ public sealed class InertLaneDriftTests
         Assert.Contains("if out.tooling:\n            self._beside(out, \"post_build_self_tests\"", driver, StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// THE TOOLING FLAG IS PROVED, NOT ASSERTED (kb/Work PB4326, review round 1 finding R1-1): a script self-test reads
+    /// tooling and the <c>TOOLING_READS</c> data (tests/_shared/TestRepo.cs for drift_rules.py, the grammar for
+    /// grammar_source.py, ...), and <c>self_tests.py</c> checks every run it records against the classification, so a
+    /// self-test that starts reading another tracked path is RED until the path gets an entry. The runner takes the
+    /// classification from <c>inert_lane.py</c> (no path list of its own), and the flag sees the data a self-test reads.
+    /// </summary>
+    [Fact]
+    public void TheToolingFlag_IsProvedAgainstWhatEverySelfTestRead_AndSeesTheDataItReads()
+    {
+        string runner = File.ReadAllText(TestRepo.Scripts("self_tests.py")).ReplaceLineEndings("\n");
+        Assert.Contains("import inert_lane", runner, StringComparison.Ordinal);
+        Assert.Contains("classification: inert_lane.Classification = inert_lane.CLASSIFICATION", runner, StringComparison.Ordinal);
+        Assert.Contains("self.classification.unclassified_reads(", runner, StringComparison.Ordinal);
+        // The proof comes before the PASS is recorded: a self-test the flag does not see leaves no PASS to reuse.
+        Assert.True(runner.IndexOf("self.classification.unclassified_reads(", StringComparison.Ordinal)
+                    < runner.IndexOf("self.store.record(test.path", StringComparison.Ordinal));
+
+        string classification = File.ReadAllText(TestRepo.Scripts("inert_lane.py")).ReplaceLineEndings("\n");
+        foreach (string read in new[] { "\"tests/_shared/TestRepo.cs\"", "\"src/WiseOwl.Cobol.Frontend/Grammar/\"", "\".agent-fleet.json\"",
+                                        "\"tests/version-matrix/\"", "\"docs/CONFORMANCE.md\"" })
+        {
+            Assert.Contains(read + ":", classification, StringComparison.Ordinal);
+        }
+    }
+
     [Fact]
     public void EveryInertAndReadEntry_NamesATrackedPath()
     {

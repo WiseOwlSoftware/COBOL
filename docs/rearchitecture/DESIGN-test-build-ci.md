@@ -3169,13 +3169,28 @@ CI's `audits` job runs in every merge group, whatever `changes` decided, and on 
 
 **The tooling flag (kb/Work PB4326).** A full-lane change also says whether it TOUCHES TOOLING: a path under `scripts/`,
 `.github/`, `tools/`, `.claude/`, or `.gitattributes` / `toolchain.env` (the two root files the Windows self-tests job reads
-through its checkout), or ending `.py`, `.ps1` or `.sh` anywhere. `classify` prints it as `tooling=true|false`; an empty or
-unlistable change touches tooling, and an inert change never does. The script self-tests read only tooling, so only a change
-that touches it can turn one red: the local gate's `SELF-TESTS` audit (`TOOLING_ONLY`) and its post-build self-tests run only
-then, and CI's `windows-self-tests` job runs only then (`needs.changes.outputs.tooling == 'true'`, beside `run_matrix`; the
-Linux self-tests of the `audits` job run in every merge group). That a self-test's PASS is reused while its recorded inputs
-are unchanged (3.14.10) is what keeps a tooling change to the self-tests it can affect. A change that touches no tooling
-saves the median gate 147 s of self-tests and 145 s of waiting for the post-build ones (PIPELINE-REVIEW, step 3).
+through its checkout), ending `.py`, `.ps1` or `.sh` anywhere, or under a `TOOLING_READS` entry (a path outside the scripts
+that a script self-test reads as data, each entry naming its readers: `tests/_shared/TestRepo.cs`, the grammar,
+`.agent-fleet.json`, `docs/CONFORMANCE.md`, `tests/version-matrix/`, ...). `classify` prints it as `tooling=true|false`; an
+empty or unlistable change touches tooling, and an inert change never does. The script self-tests read tooling and those
+entries, so only a change that touches one can turn one red: the local gate's `SELF-TESTS` audit (`TOOLING_ONLY`) and its
+post-build self-tests run only then, and CI's `windows-self-tests` job runs only then (`needs.changes.outputs.tooling ==
+'true'`, beside `run_matrix`; the Linux self-tests of the `audits` job run in every merge group). That a self-test's PASS is
+reused while its recorded inputs are unchanged (3.14.10) is what keeps a tooling change to the self-tests it can affect. A
+change that touches no tooling saves the median gate 147 s of self-tests and 145 s of waiting for the post-build ones
+(PIPELINE-REVIEW, step 3).
+
+**The proof of the tooling flag (kb/Work PB4326, review round 1 finding R1-1).** A path prefix alone was refuted by the PASS
+store's recorded inputs (3.14.10): `tests/_shared/TestRepo.cs` is an input of `drift_rules.py`'s self-test and the `.g4` files of
+`grammar_source.py`'s, so a change to only one of them skipped a self-test the merge group's `audits` job then turned red.
+`scripts/self_tests.py` therefore applies `Classification.unclassified_reads` to what every self-test it RUNS observably
+read (its trace, not a guess): a self-test that passes but read a tracked path that is not tooling, under no `TOOLING_READS`
+entry and under no INERT entry is RED, naming the path, until the path gets an entry naming its reader; `inert_lane.py
+check` holds every entry to a tracked path. The accepted residue, named (owner 2026-10-31, PB4323: a merge-group red may be
+one of five first-run classes): a WHOLE-TREE reader (a self-test whose trace shows a git command over the whole repository:
+`test_plan_wave.py`, `test_dispatch_guard.py` and `impacted_tests.py` walk every markdown file or path) is not judged, since
+no set of paths bounds it; the `DEVLOG/` and `kb/` corpora, which every landing grows and `devlog.py check` and `work.py
+check` govern in every lane; and a directory listing, which changes when a file is added and not when a listed file is edited.
 
 **The script self-tests run on Linux in the inert lane too: in CI (kb/Work PB3646, PB4327).** CI's `audits` job runs
 `self_tests.py` on Linux in every merge group, and those self-tests are audits that read the inert paths by design (the
