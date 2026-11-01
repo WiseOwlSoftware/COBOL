@@ -16,10 +16,14 @@
 # that, every building job resolved "the newest .NET 10" through the aka.ms redirect, with no cache, and from about
 # 18:50Z on 2026-10-25 every code merge group failed `Setup .NET 10` on it (kb/Work PB3308).
 #
-# The cache is keyed on the manifest's version lines (a comment edit keeps it), the OS and the architecture. A merge
-# group's run restores what its own ref or main saved, and its ref is new every time, so the `toolchain-cache` job of
-# build-and-test.yml saves the tools under main on every push to main: a merge group then finds them even while a
-# publisher refuses. A cache restore or save that fails only warns.
+# The cache is keyed on the manifest's version lines (a comment edit keeps it), the OS and the architecture, and holds
+# the install-tool tools AND Python's directory in the runner's tool cache (`$RUNNER_TOOL_CACHE/Python/<version>`):
+# the restore comes before actions/setup-python, which finds that directory and downloads nothing (its download was
+# 48.9 s in each of the eight Windows jobs, measured 2026-10-31; kb/Work PB4324). A merge group's run restores what its
+# own ref or main saved, and its ref is new every time, so only a run on main SAVES (`github.ref`): the `toolchain-cache`
+# job of build-and-test.yml saves the tools on every push to main, and a merge group then finds them even while a
+# publisher refuses. A save from a queue branch is never read again and only fills the repository's cache budget. A
+# cache restore or save that fails only warns.
 name: Setup toolchain
 description: Install toolchain.env's exact tool versions, put them first on PATH, and prove each one reports its version.
 runs:
@@ -31,18 +35,22 @@ runs:
         TOOL_CACHE: ${{ runner.tool_cache }}
       run: |
         set -euo pipefail
-        echo "python=$(bash scripts/install-tool.sh --version python)" >> "$GITHUB_OUTPUT"
+        python="$(bash scripts/install-tool.sh --version python)"
+        echo "python=$python" >> "$GITHUB_OUTPUT"
         key="toolchain-$(grep -E '^[A-Z][A-Z0-9_]*=' toolchain.env | sha256sum | cut -c1-16)-$RUNNER_OS-$RUNNER_ARCH"
         echo "key=$key" >> "$GITHUB_OUTPUT"
         echo "dir=$TOOL_CACHE/wiseowl-toolchain/$key" >> "$GITHUB_OUTPUT"
-    - uses: actions/setup-python@v7
-      with:
-        python-version: ${{ steps.manifest.outputs.python }}
+        echo "python-dir=$TOOL_CACHE/Python/$python" >> "$GITHUB_OUTPUT"
     - id: cache
       uses: actions/cache/restore@v6
       with:
-        path: ${{ steps.manifest.outputs.dir }}
+        path: |
+          ${{ steps.manifest.outputs.dir }}
+          ${{ steps.manifest.outputs.python-dir }}
         key: ${{ steps.manifest.outputs.key }}
+    - uses: actions/setup-python@v7
+      with:
+        python-version: ${{ steps.manifest.outputs.python }}
     - id: install
       name: Install the manifest's tools (each a no-op when the cache restored it)
       shell: bash
@@ -53,11 +61,13 @@ runs:
         tools="$(python scripts/toolchain.py ci-installs)"
         echo "tools=$tools" >> "$GITHUB_OUTPUT"
         for tool in $tools; do bash scripts/install-tool.sh "$tool" "$DIR/$tool"; done
-    - if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+    - if: ${{ steps.cache.outputs.cache-hit != 'true' && github.ref == 'refs/heads/main' }}
       continue-on-error: true
       uses: actions/cache/save@v6
       with:
-        path: ${{ steps.manifest.outputs.dir }}
+        path: |
+          ${{ steps.manifest.outputs.dir }}
+          ${{ steps.manifest.outputs.python-dir }}
         key: ${{ steps.manifest.outputs.key }}
     - name: Put the tools first on PATH
       shell: bash
