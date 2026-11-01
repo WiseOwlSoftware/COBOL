@@ -168,6 +168,34 @@ public sealed class LocaleCollationFailureTests
         Assert.Contains(r.Warnings, w => w.Contains("COBOL1662") && w.Contains(file) && w.Contains("negated UnicodeSets"));
     }
 
+    /// <summary>A rule that places the digit zero after a letter (or after a tailored character) must not put
+    /// <see cref="CollationTable.NumericLead"/> (the zero's primary - 1) on a character: the builder leaves the value
+    /// below the zero's inserted primary slot unused (<c>Slot.ReservesValueBelow</c>, kb/Work PB4264). Under numeric
+    /// ordering a number then sorts as the digit zero does, after every word of the letter it follows, never inside
+    /// them.</summary>
+    [Theory]
+    [InlineData("&a < 0")]
+    [InlineData("&a <  < 0")]
+    [InlineData("&a <  << 0")]
+    public void ADigitZeroTailoredAfterALetter_KeepsTheNumericLeadFree(string rules)
+    {
+        var table = Build(rules).Table;
+        int a = CollationTable.Root.Lookup('a').Primary;
+        Assert.True(table.Lookup('0').Primary > a);                       // the rule took effect: zero is after 'a'
+        Assert.NotEqual(a, table.NumericLead.Primary);                    // … and the lead is not 'a''s primary
+        var plain = new Collator(table);
+        var numeric = plain.With(numericOrdering: true);
+        foreach (var collator in new[] { plain, numeric })
+        {
+            Assert.True(collator.Compare("a", "0") < 0);
+            Assert.True(collator.Compare("ab", "0") < 0);
+            Assert.True(collator.Compare("0", "b") < 0);
+        }
+        Assert.True(numeric.Compare("ab", "1") < 0);                      // the PB4264 harm: '1' sorted inside the a-words
+        Assert.True(numeric.Compare("1", "b") < 0);
+        Assert.True(numeric.Compare("a", "1") < 0);
+    }
+
     private static string Ldml(string language, string rules) =>
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ldml><identity><version number=\"1\"/><language type=\"" + language
         + "\"/></identity><collations><collation type=\"standard\"><cr><![CDATA[" + rules
