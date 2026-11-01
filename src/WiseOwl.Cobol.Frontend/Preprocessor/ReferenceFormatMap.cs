@@ -1,5 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
+using WiseOwl.Cobol.Frontend.Common;
+
 namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
 /// <summary>
@@ -25,6 +28,10 @@ public sealed class ReferenceFormatMap
     // null for a line read in free form or one whose program-text area holds only spaces (kb/Work PB3147).
     private readonly (int Column, bool InAreaA)?[] _textStarts;
 
+    // Per 0-based physical line read in FIXED form: where its program text was cut at margin R, or null when it was not or
+    // the file uses the positions past margin R for identification tags (kb/Work PB2555).
+    private readonly MarginRCut?[] _cuts;
+
     private ReferenceFormatMap((int FromLine, bool Fixed, bool Detected)[] changes, int[] directiveLines,
         ReadOnlySpan<PhysicalLine> lines)
     {
@@ -32,15 +39,29 @@ public sealed class ReferenceFormatMap
         _directiveLines = directiveLines;
         var physicalText = new string[lines.Length];
         _textStarts = new (int, bool)?[lines.Length];
+        _cuts = new MarginRCut?[lines.Length];
+        int codeLines = 0, identified = 0;   // fixed-form lines with program text, and those a tag past margin R labels
         for (int i = 0; i < lines.Length; i++)
         {
             physicalText[i] = lines[i].Text;
             if (!At(i + 1).Fixed) continue;
             var fixedLine = new FixedFormLine(lines[i].Text);
-            if (fixedLine.ProgramTextStart is var start and >= 0)
+            int start = fixedLine.ProgramTextStart;
+            if (start >= 0)
                 _textStarts[i] = (PhysicalLine.ColumnOf(lines[i].Columns, fixedLine.ProgramTextIndex + start),
                     fixedLine.BeginsInAreaA);
+            _cuts[i] = CutOf(lines[i], fixedLine);
+            if (start >= 0 && fixedLine.Indicator.Value is not ('*' or '/'))
+            {
+                codeLines++;
+                if (_cuts[i] is { FitsIdentificationArea: true }) identified++;
+            }
         }
+        // A file that labels most of its code lines with a word past margin R uses those positions for identification
+        // (program name, card number), whatever the tags spell; what it cuts is not its statements (kb/Work PB2555).
+        if (identified * 2 > codeLines)
+            for (int i = 0; i < _cuts.Length; i++)
+                if (_cuts[i] is { FitsIdentificationArea: true }) _cuts[i] = null;
         PhysicalText = physicalText;
     }
 
@@ -87,6 +108,24 @@ public sealed class ReferenceFormatMap
         return _textStarts[line - 1] is { } start && start.Column == column
             ? start.InAreaA ? AreaPlacement.BeginsLineInAreaA : AreaPlacement.BeginsLineInAreaB
             : AreaPlacement.WithinLine;
+    }
+
+    /// <summary>Where the program text of 1-based physical <paramref name="line"/> was cut at margin R (kb/Work PB2555), or
+    /// null when it was not: the line was read in free form, it is not a line of this text, or it carries nothing past margin R
+    /// that the reference format drops as program text (<see cref="MarginRCut"/>).</summary>
+    public MarginRCut? CutAt(int line) => line >= 1 && line <= _cuts.Length ? _cuts[line - 1] : null;
+
+    /// <summary>The cut of the physical <paramref name="line"/>, read in fixed form as <paramref name="fixedLine"/>, or null when
+    /// it has none: its text past margin R is blank, it is a comment line, or its program-text area ends in an inline
+    /// comment (§6.3.7.3), whose rest the margin cuts.</summary>
+    private static MarginRCut? CutOf(PhysicalLine line, FixedFormLine fixedLine)
+    {
+        if (CobolSpace.IsBlank(fixedLine.BeyondMarginR)) return null;
+        if (fixedLine.Indicator.Value is '*' or '/') return null;
+        string area = fixedLine.ProgramText;
+        if (CobolSourceText.InlineCommentAt(area) < area.Length) return null;
+        return new MarginRCut(PhysicalLine.ColumnOf(line.Columns, fixedLine.MarginRIndex),
+            fixedLine.BeyondMarginR.ToString().TrimSpacesEnd());
     }
 
     /// <summary>The initial reference format of library text copied by a COPY statement at 1-based physical line
