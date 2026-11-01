@@ -3060,15 +3060,15 @@ public static class DiagnosticCatalog
         "ISO §6.2.3.2 SR5");
 
     /// <summary>COBOL5770 — the 2002 floating debugging indicator <c>&gt;&gt;D</c> on a line that holds a fixed debugging
-    /// indicator or a fixed continuation indicator (kb/Work PB4298). ISO/IEC 1989:2002 §6.1.2.1 SR8; the 2002 text is
+    /// indicator or a fixed continuation indicator (kb/Work PB4298). ISO/IEC 1989:2002 clause 6.1.2.1 SR8; the 2002 text is
     /// not in the repository.</summary>
     public static readonly DiagnosticDescriptor FloatingDebuggingOnFixedIndicator = new(
         "COBOL5770", "floating-debugging-on-fixed-indicator", EditionSeverity.Error,
         "A line with a fixed debugging indicator (D in column 7) or the fixed continuation indicator (a hyphen in "
         + "column 7) also begins its program text with the floating debugging indicator >>D. ISO/IEC 1989:2002 "
-        + "§6.1.2.1 SR8: \"A floating debugging indicator shall not be specified on a line that contains a fixed "
+        + "clause 6.1.2.1 SR8: \"A floating debugging indicator shall not be specified on a line that contains a fixed "
         + "debugging indicator or a fixed continuation indicator.\" Use one indicator on the line.",
-        "ISO/IEC 1989:2002 §6.1.2.1 SR8");
+        "ISO/IEC 1989:2002 clause 6.1.2.1 SR8");
 
     /// <summary>COBOL2687 — a literal continued with both the fixed and the floating form (kb/Work PB1359).
     /// §6.2.3.2 SR4, second sentence.</summary>

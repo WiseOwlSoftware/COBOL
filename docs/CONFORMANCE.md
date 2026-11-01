@@ -2029,8 +2029,8 @@ of an unsupported facility.
   comment), `conformance:cases/_unassigned/pb1705_debugging_mode_obsolete_2002`, `conformance:cases/_unassigned/debugging-mode`,
   `conformance:cases/_unassigned/pb1494-debugging-line-at-2014`, `unit:DebuggingLineRewriterTests`.
 
-  **The FLOATING spelling `>>D`** (ISO/IEC 1989:2002 §6.1.2 "`>>D` debugging indicator — a debugging line when followed by
-  at least one space character", §6.3.4, §6.1.2.1 SR7 and SR8; the 2002 text is not in the repository and is read from the
+  **The FLOATING spelling `>>D`** (ISO/IEC 1989:2002 clause 6.1.2 "`>>D` debugging indicator — a debugging line when followed by
+  at least one space character", clause 6.3.4, clause 6.1.2.1 SR7 and SR8; the 2002 text is not in the repository and is read from the
   archived draft, so `cite.py` cannot check those clauses; kb/Work PB4298). ISO/IEC 1989:2023 §6.2.3.1 lets a floating
   indicator stand "in fixed-form or free-form reference format" (`cite.py --check 6.2.3.1 "Floating indicators may be used
   in fixed-form or free-form reference format"` → OK) and lists none for debugging, so, like the fixed `D`, the spelling is
