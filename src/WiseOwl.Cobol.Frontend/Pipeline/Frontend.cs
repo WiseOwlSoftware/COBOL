@@ -464,6 +464,10 @@ public sealed class Frontend
         // The §8.9 reservation gate's retype of the words the program declares where the edition frees them (kb/Work PB655).
         // (The >>COBOL-WORDS retype was applied by the lexer itself.) A no-op when no such word is declared.
         retypes.Rewrite(tokens);
+        // ISO §4.2.14 — each embedded precompiler block (EXEC … END-EXEC) becomes the one token that stands for what its
+        // precompiler writes, BEFORE every reader of the stream: the screens below skip its text, which is another
+        // language, and every prediction of the parse sees the token (kb/Work PB4341). A no-op for a source with none.
+        var embeddedBlocks = EmbeddedBlockReading.Read(tokens);
 
         // ISO §13.18.40.3 SR7 — decided from the characters PICMODE delimited, once per PICTURE clause of every
         // entry kind (kb/Work PB569). Reported through the syntax-error listener so it is located exactly like a
@@ -504,6 +508,17 @@ public sealed class Frontend
         var tree = ReservationGateRewriter.ParseToFixpoint(parser, tokens, retypes, diagnostics,
             (bag, witness) => ParsePass(parser, tokens, bag, witness, sourcePath, cuts));
 
+        // ISO §4.2.14 — each embedded precompiler block, reported once at its EXEC and placed among the parse's reports by
+        // position (kb/Work PB4341); a source that holds one did not parse, whatever the parse's own errors.
+        if (embeddedBlocks.Any)
+        {
+            var blockReports = new DiagnosticBag();
+            var blockListener = new CobolErrorListener(blockReports, sourcePath, LineMap, cuts);
+            embeddedBlocks.Report((exec, message) =>
+                blockListener.SyntaxError(TextWriter.Null, null!, exec, exec.Line, exec.Column, message, null!));
+            diagnostics.AddBeforeEffects(blockReports.Diagnostics, parseStart);
+        }
+
         // ISO §8.7.1 — the arithmetic operators' own separator context, decided from the characters beside each operator
         // the PARSE TREE found (only the tree says binary, unary or no operator at all) and reported the same way
         // (kb/Work PB2017). The two operator clauses that need no tree (§8.7.3, §8.7.4) were asked with the rest above.
@@ -530,7 +545,7 @@ public sealed class Frontend
             diagnostics.AddBeforeEffects(screened.Diagnostics, parseStart);
         }
 
-        return (tree, parser.NumberOfSyntaxErrors == 0, sourceDebuggingLines);
+        return (tree, parser.NumberOfSyntaxErrors == 0 && !embeddedBlocks.Any, sourceDebuggingLines);
     }
 
     /// <summary>One parse of the whole token stream from token 0: fast SLL prediction first (with a
