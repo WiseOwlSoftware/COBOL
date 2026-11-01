@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// THE drift gate for this assembly's partitioned test families (<see cref="TestPartitioning"/>, plan §11 A13).
 /// </summary>
 /// <remarks>
-/// ⛔ A partitioned family FAILS OPEN. Delete one of <c>StorageFormNistEquivalenceTests_P0 … _P7</c> and an eighth
+/// ⛔ A partitioned family FAILS OPEN. Delete one of <c>StorageFormNistEquivalenceTests_P0 … _P15</c> and a sixteenth
 /// of the NIST corpus silently leaves the StorageForm prove-then-delete gate — with nothing red, and a test count
 /// that merely drops by one. This test is what makes that impossible, and it is shape-driven: it discovers every
 /// family in the assembly by structure (an abstract generic base constrained to <see cref="ITestPartitionSlot"/>),
