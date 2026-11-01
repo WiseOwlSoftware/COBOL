@@ -1,4 +1,4 @@
-## PB1652: a golden pins that a SUPPRESSed or all-absent GENERATE still consumes GROUP INDICATE
+## Entry 2896 — 2026-10-31 18:45 PDT — PB1652: a golden pins that a SUPPRESSed or all-absent GENERATE still consumes GROUP INDICATE
 
 PB1244 made GROUP INDICATE a per-detail-group condition consumed by every GENERATE of the group. No golden
 exercised a GENERATE that prints nothing, so a regression that consumed the condition only on a printed line
@@ -18,3 +18,4 @@ from 2002, read back as pb1244's golden does) and the 85 refusal `pb1652-group-i
 the version-matrix introduction gate). Every citation was run through `cite.py --check`.
 
 **Register.** PB1652 flips to landed with `closes_rows: []` (it held no inventory rows).
+
