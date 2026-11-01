@@ -2295,8 +2295,9 @@ every self-test (PB4353's shifted-clock sweep, repeated through this runner): th
 modification times, a process's start time or git commit times with the clock declare it (`impact_store.py`,
 `gate_slot.py`, `prune_worktrees.py`, `orchestrator/test_plan_wave.py`, `orchestrator/test_alloc.py`), and so does the runner's own self-test (`self_tests.py`: its arms nest runners that move the
 clock themselves and compare it with modification times); every other shifted self-test passed. The runner removes
-`SHIFT_ENV` from the environment of every first run, so a run is at the real clock whatever process the runner is in. 53 of 137 self-tests are shifted, which adds about a third to the summed self-test seconds of a
-full run (CI) and nothing to a gate whose reused PASSes are inside their horizon.
+`SHIFT_ENV` from the environment of every first run, so a run is at the real clock whatever process the runner is in. 49 of 138 self-tests are shifted (55 reach the clock; 6 declare it real), which adds
+about 30 % to the summed self-test seconds of a full run (CI; measured in a gate that re-ran all 138: the shifted ones took
+46 % of the summed seconds, each run twice) and nothing to a gate whose reused PASSes are inside their horizon.
 *Residue, named.* A PowerShell or bash self-test is not shifted (`Get-Date` and `date` read a clock no Python process moves; the
 two PowerShell ones that compare a meter reading with the clock are the 2026-11-01 sweep's other false reds), and a clock
 that is not Python's (an mtime, a process start time, a commit time) cannot be shifted by this shim: the self-test that
