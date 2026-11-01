@@ -1,4 +1,4 @@
-## PB4349: CiBoundsDriftTests's summary points at the design section that pins it
+## Entry 2913 — 2026-10-31 21:51 PDT — PB4349: CiBoundsDriftTests's summary points at the design section that pins it
 
 **Re-probe.** `CiBoundsDriftTests`'s summary, which `scripts/spec/drift_rules.py` prints to every implementer who touches a
 workflow or the toolchain action, cited `DESIGN-test-build-ci.md` §3.17 (THE LANDING PIPELINE). The paragraph that states the CI
@@ -19,3 +19,4 @@ section does not name the citing class; most are legitimate (the doc describes t
 go to the report as a lead for a registrar's note, since a generic check needs a rule for what "pins" means.
 
 Gate: see the landing record.
+
