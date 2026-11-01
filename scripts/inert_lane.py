@@ -326,21 +326,28 @@ CLASSIFICATION = Classification(inert={
    code_reads={
        ".gitattributes": "every compiler test: the checkout's bytes (line endings) of every file it reads",
        "toolchain.env": "every compiler test and the build: the SDK they run on (the toolchain manifest, kb/Work PB4007)",
-       "scripts/": "the pipeline classes that walk every script (SelfTestFixtureDriftTests, SparseCheckoutDriftTests, "
-                   "ToolchainManifestDriftTests, FilterPopulationGuardDriftTests, SelfTestDiscoveryDriftTests, "
-                   "ExternalCorpusFetchTests, LandingLaneDriftTests, PythonInterpreterDriftTests, "
-                   "LandingMeasureDriftTests), CatalogCoverageDriftTests and the Conformance "
-                   "assembly's CorpusManifestTests; scripts/test_population.py runs every Linux gate leg; "
-                   "the generators and extractors whose output a compiler test checks (gen-reserved-words.ps1, "
-                   "gen-cobol-words.ps1, gen-constructs.ps1, gen-diagnostics-doc.ps1, scripts/spec/, arch/census.py); "
-                   "the build's Exec steps (gen-vault-reference.ps1, gen-grammar-diagrams.ps1); filter_population.py, "
-                   "whose self-test reads the built assemblies",
-       ".claude/": "SelfTestFixtureDriftTests (every Python file of the live tools' trees), MergeDriverDriftTests (the "
-                   "workstream templates it names)",
-       ".github/": "SparseCheckoutDriftTests, ToolchainManifestDriftTests, DotnetSdkInstallDriftTests (every workflow "
-                   "and action), the CI drift classes (CiBounds, CiArtifact, CiHarnessLog, ReadyToRunRuntime, "
-                   "LandingPipeline, LinuxGate, FilterPopulationGuard, SelfTestDiscovery)",
-       "tools/claude-skills": "SelfTestDiscoveryDriftTests (it names the submodule's path)",
+       "scripts/spec/": "the spec extractors and audits a compiler test runs or reads (SpecTraceabilityInventoryDriftTests, "
+                      "AnnexA1RegisterDriftTests, AnnexA2UndefinedListDriftTests, DerivedVerdictDriftTests, "
+                      "TrackedTreeScopeDriftTests, CatalogCoverageDriftTests, TestRepoDriftTests)",
+       "scripts/arch/": "ArchCensusDriftTests (census.py), ArchReviewFleetDriftTests (the R2 review workflow scripts)",
+       "scripts/gen-reserved-words.ps1": "a generator whose output a compiler drift test checks",
+       "scripts/gen-cobol-words.ps1": "a generator whose output a compiler drift test checks",
+       "scripts/gen-constructs.ps1": "a generator whose output a compiler drift test checks",
+       "scripts/gen-diagnostics-doc.ps1": "a generator whose output a compiler drift test checks",
+       "scripts/gen-vault-reference.ps1": "the build (the Cli project's Exec step) and VaultReferenceGeneratorDriftTests",
+       "scripts/gen-grammar-diagrams.ps1": "the build (the Cli project's Exec step) and GrammarDiagramGeneratorDriftTests",
+       "scripts/guard-baselines.sh": "CorpusManifestTests (every scripts/guard*.sh)",
+       "scripts/guard-compile.sh": "CorpusManifestTests (every scripts/guard*.sh)",
+       "scripts/guard-compiler.sh": "CorpusManifestTests (every scripts/guard*.sh)",
+       "scripts/guard-fast.sh": "CorpusManifestTests (every scripts/guard*.sh)",
+       "scripts/guard-nist-audit.sh": "CorpusManifestTests (every scripts/guard*.sh)",
+       "scripts/guard-population.sh": "CorpusManifestTests (every scripts/guard*.sh)",
+       "scripts/guard-run-group.sh": "CorpusManifestTests (every scripts/guard*.sh)",
+       "scripts/guard-verdict.sh": "CorpusManifestTests (every scripts/guard*.sh)",
+       "scripts/guard-verify.sh": "CorpusManifestTests (every scripts/guard*.sh)",
+       "scripts/test_population.py": "every gate leg: it plans the population the compiler tests run",
+       "scripts/filter_population.py": "its self-test reads the built test assemblies",
+       ".github/": "CiArtifactDriftTests, ReadyToRunRuntimeDriftTests (every workflow and the results actions)",
    })
 
 
