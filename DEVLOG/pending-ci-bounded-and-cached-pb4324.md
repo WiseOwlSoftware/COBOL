@@ -36,5 +36,8 @@ restored before `setup-python`; one fixture arm fires each audit on the shape it
 text and name a wrong "reached from"; the audit now excludes every list. `toolchain-cache`'s job condition now also requires the
 main ref, so a manual dispatch from a branch saves nothing.
 
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` at 0f50f458f, run 000001-20261101T022406Z (Unit
+5,638/39,075, Conformance 62/20,362, Characterization 36/36, Linux half GREEN); the six `CiBoundsDriftTests` ran and passed in leg 1.
+
 **Not verifiable off CI.** setup-python finding the restored Windows tool-cache directory, and the first `package-cache` run,
 happen on the first push to main after landing; the first merge group after it reads their effect.
