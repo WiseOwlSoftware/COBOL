@@ -47,3 +47,16 @@ status 99, a code COBOL9999, three malformed links and a program that references
 **Register.** kb/Work PB1610 landed with `closes_rows: []` (the note claimed no inventory row and §4.2.16 has none of its
 own). `Sites:` paragraphs were added to PB1610 and PB4047, and PB1612, PB1613 and PB2103 each gained the line that says
 which manual page their landing changes. File types stays kb/Work PB3352's.
+
+**Branch review round 1.** One blocking finding and six leads, all in files this change already touched. (R1-1) The run-units
+and command-line pages gave the `--run` exit status as the `STATUS n` of `STOP RUN WITH ERROR` only; DOC-A.1-192 and the
+compiler give a STATUS value precedence over ERROR and NORMAL, `WITH ERROR` alone 1, `WITH NORMAL` alone 0, and the same for
+a main program's GOBACK in COBOL 2023. Both pages now carry the full mapping, and
+`StopGobackExitCodeTests.TheManualsExitStatusExamples_AreWhatTheProgramExitsWith` runs each example the page prints and
+requires it on the page. (R1-2) The library `--run` status 64 is the named constant `Program.LibraryRunExitCode`, used by
+`RunCompile` and the drift test. (R1-3) the install and command-line pages say a library writes no `.runtimeconfig.json`.
+(R1-4) the 14.9.42.4 rule 6 quotation is now the text `cite.py --check` accepts. (R1-5) the source-format page names the D
+debugging indicator by edition (accepted at 85, COBOL0903 at 2002, COBOL0902 at 2014 and 2023). (R1-6) the migrating page
+states that `GOBACK RETURNING` needs a RETURNING item (a main program without one stops with
+`NotImplementedCobolFeatureException`; the compiler defect is reported, not fixed here). (R1-7) DESIGN-USER-DOCUMENTATION
+section 5 now describes the drift mechanism for the hand-written pages.

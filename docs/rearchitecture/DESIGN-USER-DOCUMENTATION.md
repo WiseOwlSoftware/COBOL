@@ -97,6 +97,15 @@ One drift test per generator, in the Conformance or Unit assembly: regenerate in
 `docs/manual/reference/`; a new diagnostic code, CLI option, `constructs.json` row or CONFORMANCE.md determination
 without its page is RED. Every citation a generated page prints passes `cite.py --check` (the generator runs it).
 
+The hand-written pages outside `reference/` are kept true by `UserManualDriftTests` (Unit), which derives from the
+product what the pages repeat from it: every `--` option of the command line (`Program.BuildParser`), every exit status
+(`Program.ExitCode` and `Program.LibraryRunExitCode`), every diagnostic code (the catalogue and the parse-layer
+descriptors), every relative link and heading, and the compilation of every complete COBOL program in a `cobol` block.
+Where a page states behavior only a run can show, the run is a conformance test that also reads the page: the exit
+status examples of `run-units.md` are `StopGobackExitCodeTests.TheManualsExitStatusExamples_AreWhatTheProgramExitsWith`.
+A page that moves a fact under a generated chapter (PB1611, PB1612) hands its guard to that chapter's drift test in the
+same change; it does not leave a hand-kept table without one.
+
 ## §6 Distribution (proposal until PB1613 lands)
 
 | Package | Content | Notes |

@@ -54,7 +54,8 @@ instead.
 
 For `cobol hello.cob -o out/hello.dll` the files `hello.dll`, `hello.runtimeconfig.json`, `WiseOwl.Cobol.Runtime.dll`
 and `hello.g.cs` are written to `out/`. A compilation group with no main program (for instance, one that holds only
-subprograms) is a library: `--run` does not apply to it, and a .NET host calls its programs; see
+subprograms or a function) is a library: it writes no `.runtimeconfig.json`, `--run` does not apply to it (exit status
+64), and a .NET host calls its programs; see
 [.NET interoperability](../../dotnet-interop/).
 
 ## What the compiler prints
@@ -73,9 +74,10 @@ Warnings print whether or not the compile succeeds, so a migration warning is vi
 | 66 | the source file was not found |
 | 70 | an internal error: the C# the compiler generated was refused by Roslyn |
 
-With `--run` the status is the program's own: the value of `STOP RUN WITH ERROR STATUS n`, 1 for an abnormal
-termination, 0 otherwise. A `.NET` host that starts the program itself receives the same information; see
-[Run units and STOP RUN](../run-units/).
+With `--run` the status is the program's own: the value of the `STATUS n` of a `STOP RUN` (or of a main program's
+`GOBACK` in COBOL 2023), whether `WITH ERROR` or `WITH NORMAL` precedes it; 1 for `WITH ERROR` with no status and for
+an abnormal termination; 0 otherwise. A `.NET` host that starts the program itself receives the same information.
+[Run units and STOP RUN](../run-units/) has the full mapping.
 
 ## check-batch
 

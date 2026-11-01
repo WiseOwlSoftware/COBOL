@@ -180,7 +180,7 @@ public sealed partial class UserManualDriftTests
     public void TheCommandLinePage_ListsEveryExitStatus()
     {
         // Program.ExitCode maps each compile outcome; 64 is RunCompile's usage error for --run of a library.
-        var statuses = Enum.GetValues<CompilerDriver.Outcome>().Select(o => Program.ExitCode(o)).Append(64).ToHashSet();
+        var statuses = Enum.GetValues<CompilerDriver.Outcome>().Select(o => Program.ExitCode(o)).Append(Program.LibraryRunExitCode).ToHashSet();
         var documented = Regex.Matches(Text(CommandLinePage), @"^\| (?<status>\d+) \|", RegexOptions.Multiline | RegexOptions.CultureInvariant)
             .Select(m => int.Parse(m.Groups["status"].Value, CultureInfo.InvariantCulture)).ToHashSet();
         Assert.True(statuses.SetEquals(documented),
