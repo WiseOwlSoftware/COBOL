@@ -1,4 +1,4 @@
-## A Python self-test that can read the wall clock must also pass with the clock moved forward 400 days (PB4358)
+## Entry 2946 — 2026-11-01 08:45 PST — A Python self-test that can read the wall clock must also pass with the clock moved forward 400 days (PB4358)
 
 **The defect.** PB4353's self-test planted merge-group runs dated the day before it was written and read them through a
 real 24-hour window. It passed on its branch, in its merge group and on main, then went RED for every pull request at
@@ -77,3 +77,4 @@ parent, a self-test that cannot read the clock and one declared real; an mtime c
 horizon; reuse inside it and a fresh run past it).
 
 **Register.** PB4358 landed; PB1957 row 57 and DESIGN-test-build-ci.md §3.14.10 item 5 record the rule.
+
