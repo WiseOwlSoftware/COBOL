@@ -326,7 +326,7 @@ CLASSIFICATION = Classification(inert={
        "scripts/": "the pipeline classes that walk every script (SelfTestFixtureDriftTests, SparseCheckoutDriftTests, "
                    "ToolchainManifestDriftTests, FilterPopulationGuardDriftTests, SelfTestDiscoveryDriftTests, "
                    "ExternalCorpusFetchTests, LandingLaneDriftTests, PythonInterpreterDriftTests, "
-                   "ScriptLayeringDriftTests, TestLegReportDriftTests), CatalogCoverageDriftTests and the Conformance "
+                   "ScriptLayeringDriftTests), CatalogCoverageDriftTests and the Conformance "
                    "assembly's CorpusManifestTests; scripts/test_population.py runs every Linux gate leg; "
                    "the generators and extractors whose output a compiler test checks (gen-reserved-words.ps1, "
                    "gen-cobol-words.ps1, gen-constructs.ps1, gen-diagnostics-doc.ps1, scripts/spec/, arch/census.py); "
@@ -786,7 +786,6 @@ def self_test() -> int:
                       events, out.append, c), events.read_text(encoding="utf-8")), (3, ""))
         out.clear()
         tw = Classification(inert={"DEVLOG/": ""}, tooling_under=("scripts/",), code_reads={"scripts/a.py": "x"})
-        (root / "scripts" / "mod.py").write_text("X = 1\n", encoding="utf-8")
         repo.commit("a module", {"scripts/mod.py": "X = 1\n"})
         imp = py + [f"import sys; sys.path.insert(0, {str(root / 'scripts')!r}); import mod"]
         subprocess.run(imp, check=True)  # leaves scripts/__pycache__/mod.*.pyc: the watched run must open the source anyway

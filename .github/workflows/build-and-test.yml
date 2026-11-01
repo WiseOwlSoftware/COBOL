@@ -360,7 +360,8 @@ jobs:
   # verified (its matrix runs), are full runs and audit too.
   # They need no build and no submodule — `specs/ISO_COBOL.md` is tracked in this repository (the private
   # submodule holds only the PDF) — and only the standard library of toolchain.env's Python, which also runs their
-  # `--self-test`s inside the Unit leg (`CitationAuditSelfTestDriftTests`), proving each check can still fail.
+  # `--self-test`s through scripts/self_tests.py (and scripts/self_test_arms.py holds their arms, kb/Work PB4395),
+  # proving each check can still fail.
   # ONE STEP PER AUDIT, each `if: !cancelled()`, so one red never hides the others' verdicts.
   # ⛔ This is the SAME list, in the same order, as the gate driver's (`scripts/gate.py` AUDITS) and battery
   # phase -1; the

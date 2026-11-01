@@ -2189,8 +2189,8 @@ result. Run the long legs ONE AT A TIME.
   same baseline — 516 citations checked, 469 correct, ZERO MISFILED and ZERO ELIDED, `--self-test`
   PASS.** Its ELIDED arm (kb/Work PB900) gates on a quotation that is the clause's own sentence with
   words dropped. ⛔ **Both audits' `--self-test` ran in NO gate until 2026-09-21** — only `--check`
-  did, which is how ELIDED could be added and driven by nothing; `CitationAuditSelfTestDriftTests`
-  (Unit) now shells both and asserts the CASE NAMES. It ran
+  did, which is how ELIDED could be added and driven by nothing; the self-test runner now runs both and
+  `scripts/self_test_arms.py` asserts the CASE NAMES (kb/Work PB4395; until then `CitationAuditSelfTestDriftTests`). It ran
   in no gate until 2026-09-03 and was reporting six misfilings nobody owned; adjudicating them (kb/Work PB379)
   found ONE inherited clause number and five sites the audit could not READ, because a citation is written in
   more than one order here and it knew only `§ … "quote"`. It now reads the POSTFIX order too (`"quote" §N`),

@@ -7,7 +7,7 @@
 //   (4) every test project under tests/ that the gate runs links GateLegs.cs
 //   (5) no discovered display name in a gated assembly contains the repository root
 // Arms (3) and (6), and the ONE SHAPE sweep, check the pipeline's SCRIPTS, so they are the scripts' own (kb/Work PB4395):
-// gate.py's and test_population.py's self-tests hold their DECLARED_ARMS, test_population.py's runs its caller, trx-writer
+// scripts/self_test_arms.py holds the arms gate.py's and test_population.py's self-tests declare, test_population.py's runs its caller, trx-writer
 // and trx-reader audits over the real tree, and `gate.py --audit-shape` is the gate's ONE SHAPE audit.
 
 using System.Reflection;

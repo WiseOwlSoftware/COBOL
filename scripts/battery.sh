@@ -164,7 +164,7 @@ if [ "${SKIP_TESTS:-0}" != "1" ]; then
     # left in the environment — read GREEN. Each assembly is now listed (`--list-tests`, scrubbed) and its trx's test
     # definitions must equal that listing as a multiset: every discovered case ran exactly once. It is the ONE tool
     # CI's shard guard uses too (and the gate driver, DESIGN-test-build-ci.md §3.14.4); its `--self-test` fires every arm
-    # (its DECLARED_ARMS, checked by the run itself; kb/Work PB4395).
+    # (scripts/self_test_arms.py holds the arms it must declare; kb/Work PB4395).
     for leg in conformance unit characterization; do
         case "$leg" in conformance) asm=Conformance ;; unit) asm=Unit ;; characterization) asm=Characterization ;; esac
         v=$(grep -E "^(Passed!|Failed!)" "$OUT/$leg.log" | tail -1)
