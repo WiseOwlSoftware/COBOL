@@ -120,8 +120,8 @@ public sealed class LandingLaneDriftTests
                 + "unit's",
             // kb/Work PB4271, PB4331 (the rule of CLAUDE.md Testing): every merge-queue red is classified before anyone is blamed
             "classify_red: results unread or no record is UNCLASSIFIED; a timed-out run or one where no test failed is "
-                + "INFRA; red cases that all ran GREEN in the record, or an inert record, are RUNNER; a red case the "
-                + "record listed but did not run is GENUINE; one the record lacks is MERGE",
+                + "INFRA; red cases that all ran GREEN in the record, or an inert or a tooling-lane record, are RUNNER; a "
+                + "red case the record listed but did not run is GENUINE; one the record lacks is MERGE",
             "red_facts: the bounce's red cases (by name) beside the gate record that covers the queued head",
             "red_facts: results of an OLDER bounce are never the new red's: a fetch that could not download the new run's "
                 + "results (it answers run 0) or answers a run the directory's marker does not name leaves the red "
