@@ -644,7 +644,7 @@ the assemblies contain that the file does not place fails the test. The file's c
     ["compiler.bound", "compiler.model"], ["compiler.bound", "frontend.common"], ["compiler.bound", "editions"], ["compiler.bound", "runtime"],
     ["compiler.binding", "compiler.bound"], ["compiler.binding", "compiler.model"], ["compiler.binding", "frontend.preprocessor"], ["compiler.binding", "frontend.parse"], ["compiler.binding", "frontend.common"], ["compiler.binding", "editions"], ["compiler.binding", "runtime"],
     ["compiler.validation", "compiler.binding"], ["compiler.validation", "compiler.bound"], ["compiler.validation", "compiler.model"], ["compiler.validation", "frontend.preprocessor"], ["compiler.validation", "frontend.parse"], ["compiler.validation", "frontend.common"], ["compiler.validation", "editions"], ["compiler.validation", "runtime"],
-    ["compiler.codegen", "compiler.bound"], ["compiler.codegen", "compiler.model"], ["compiler.codegen", "frontend.common"], ["compiler.codegen", "editions"], ["compiler.codegen", "runtime"],
+    ["compiler.codegen", "compiler.bound"], ["compiler.codegen", "compiler.model"], ["compiler.codegen", "frontend.diagnostics"], ["compiler.codegen", "frontend.common"], ["compiler.codegen", "editions"], ["compiler.codegen", "runtime"],
     ["compiler.pipeline", "compiler.codegen"], ["compiler.pipeline", "compiler.validation"], ["compiler.pipeline", "compiler.binding"], ["compiler.pipeline", "compiler.bound"], ["compiler.pipeline", "compiler.model"], ["compiler.pipeline", "frontend.pipeline"], ["compiler.pipeline", "frontend.preprocessor"], ["compiler.pipeline", "frontend.parse"], ["compiler.pipeline", "frontend.diagnostics"], ["compiler.pipeline", "frontend.common"], ["compiler.pipeline", "editions"], ["compiler.pipeline", "runtime"],
     ["cli", "compiler.pipeline"], ["cli", "frontend.pipeline"], ["cli", "frontend.preprocessor"], ["cli", "frontend.diagnostics"], ["cli", "frontend.common"], ["cli", "editions"], ["cli", "runtime"]
   ],
@@ -756,7 +756,10 @@ carrier from the CLI to the driver; the driver hands `BoundCompilation` to the v
 `BinderDriver` moves to it); the file names them in `compositionRoots` so the reason is data, not prose. Every other
 allowed pair is measured. Draft 1's three unmeasured non-root pairs (`compiler.binding → frontend.diagnostics`,
 `compiler.binding → frontend.pipeline`, `compiler.validation → frontend.diagnostics`) had no such reason and are
-dropped: a binder that needs one adds it to this file in a reviewed change.
+dropped: a binder that needs one adds it to this file in a reviewed change. `compiler.codegen → frontend.diagnostics`
+was added that way (kb/Work PB4272): the seam's `BackendDiagnostic` carries the compiler's one severity
+(`DiagnosticSeverity`) and renders through the one diagnostic line (`Diagnostic.Render`), so no Roslyn type crosses
+`ICodeGenBackend` and no third severity or line format is written.
 
 Two measured cycles are dissolved by placement rather than by refusal: `WiseOwl.Cobol.Compiler.Oo ↔ WiseOwl.Cobol.Binding` (34
 and 40 uses) is one layer, and `WiseOwl.Cobol.Frontend.Generated ↔ WiseOwl.Cobol.Frontend.Parsing` (2 and 40) is one layer, for
