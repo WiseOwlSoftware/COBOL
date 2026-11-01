@@ -36,7 +36,7 @@ closed per weekly-quota point.
 | `scripts/orchestrator/clusters.py` | the plannable population: the notes, the fix lane's and a campaign's clusters, their tiers and claims (sections 9, 9.1, 16.3) |
 | `scripts/orchestrator/groups.py` | a group of a wave: its shape, model, cost, predecessor instruction, standing requirements and rendering as a groups-file entry (sections 9, 16.3) |
 | `scripts/orchestrator/dispatch_ledger.py` | the dispatch ledger's one writer, its hold and its release, and the partition's measurement (sections 9, 16.3) |
-| `scripts/script_layering.py` | the pipeline scripts' import DAG, declared once and held by `ScriptLayeringDriftTests` (section 16.10) |
+| `scripts/script_layering.py` | the pipeline scripts' import DAG, declared once and held by its own `--self-test` over the tree (section 16.10; kb/Work PB4395) |
 | `scripts/orchestrator/coord.py` | names the coordination directory, loads `model_rules.json`, reads and writes JSON atomically through `scripts/sharedfile.py` (the one Windows share-retry rule, which `gate_slot.py` uses too; kb/Work PB2564), and holds its one short mutex (`locked(cdir, name)`: the allocator's and the landing lane's records') |
 | `scripts/orchestrator/mailbox.py` | the two attended sessions' mailbox: send, list, take, finish and watch messages, and `operator-session.json` (section 15) |
 | `scripts/account-profile.ps1` | seeds a named account's config dir from the default one (section 2.1) |
@@ -1563,9 +1563,9 @@ The three rules, each paired with a drift test so the next case is automatic (CL
 1. **One job per module.** A module owns one mechanism and the one rule for it; the shared readers (a report, a gate
    record, a landing verdict, an attempt record) live in ONE module each, and every caller imports that one. Each
    script below becomes a thin CLI over named library modules. The modules this section creates form the import DAG
-   §16.10 declares, once, in `scripts/script_layering.py`; `ScriptLayeringDriftTests` (Unit, `[Trait("Sweep",
-   "tree")]`) runs its `--check`, which reads each module's imports from its syntax tree and refuses an edge the DAG
-   does not declare and any cycle in the DAG.
+   §16.10 declares, once, in `scripts/script_layering.py`; its `--self-test` runs its `--check` over the tree (kb/Work
+   PB4395; until then the Unit class `ScriptLayeringDriftTests` did), which reads each module's imports from its syntax
+   tree and refuses an edge the DAG does not declare and any cycle in the DAG.
 2. **One case per function, one fixture world per file, no case list in a script.** §16.2.
 3. **No wrapper, shim, forwarder, alias or re-export** (CLAUDE.md rule 4). A moved function is imported from its new
    module by every caller in the same landing, and the old name is gone: a split's `git grep` of the old
@@ -1908,7 +1908,7 @@ does not exist yet cannot be read. CI's merge-group run is the net for that wind
 Each step is one kb/Work note (`cluster: ["PB3726"]`, `tier: ["PB3726:<n>"]`, `process_only: true`), dispatched as a
 group claiming its files WHOLE — no member partition — so the dispatch ledger holds every colliding group of either
 lane out of later waves while it runs (`inflight.collision`; PB3726 "Sequencing with the loop"), one script per wave,
-the loop never plans this cluster. The import DAG the splits create, which `ScriptLayeringDriftTests` holds through
+the loop never plans this cluster. The import DAG the splits create, which `script_layering.py --self-test` holds through
 `scripts/script_layering.py` (its `LINES`, `NODES` and `SPLITS` are the one declaration; an arrow is "imports", a
 module imports only what is to its left on a line it stands on, a comma joins one tier whose modules never import
 each other, and every module of `scripts/orchestrator/` may import the gate's modules of `scripts/`; a module that is

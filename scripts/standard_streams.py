@@ -239,6 +239,9 @@ def check(repo, probes: bool = True) -> int:
     if not files:
         print("=== STANDARD STREAMS: FAIL — the scan read no file under live_tools.ROOTS: a net over nothing ===")
         return 1
+    if probes and not clis:
+        print("=== STANDARD STREAMS: FAIL — the scan found no entry point to probe: a net over nothing ===")
+        return 1
     return 1 if found else 0
 
 
@@ -346,8 +349,11 @@ def self_test(repo) -> int:
             is_cli("import argparse\nargparse.ArgumentParser()\n"), is_cli("if __name__ == '__main__': pass\n")],
            [True, False, False])
 
-    print("this tree (rules 1 and 2; --check adds the probes):")
-    expect("this tree's live Python files hold rules 1 and 2", check(repo, probes=False), 0)
+    print("this tree (rules 1 to 3: every entry point probed under cp1252):")
+    # kb/Work PB4395: until then ScriptStandardStreamsDriftTests, a compiler test, ran --check (the probes) on every Unit
+    # run; it is this self-test's, which runs only when a live tool changes.
+    expect("this tree's live Python files hold rules 1 to 3, and the scan read files and probed entry points",
+           check(repo), 0)
     print(f"=== STANDARD STREAMS SELF-TEST: {'FAIL — ' + str(len(failures)) if failures else 'PASS'} ===")
     return 1 if failures else 0
 
