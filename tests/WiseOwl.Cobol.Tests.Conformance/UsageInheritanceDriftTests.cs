@@ -39,145 +39,6 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// </summary>
 public sealed class UsageInheritanceDriftTests
 {
-    /// <summary>Every <see cref="Usage"/> member, spelled as a programmer would write it.</summary>
-    public static TheoryData<Usage> AllUsages()
-    {
-        var d = new TheoryData<Usage>();
-        foreach (Usage u in Enum.GetValues<Usage>()) d.Add(u);
-        return d;
-    }
-
-    /// <summary>The pictures the §13.18.60.3 screens discriminate between: none, numeric, SIGNED numeric,
-    /// alphanumeric, national, boolean, numeric-edited. One representative per category the rules name.
-    /// <para>The signed representative is not decoration: §13.18.40.3 SR31 ("The symbol 'S' shall not be
-    /// specified in character-string-1 when the NO SIGN phrase of the USAGE Clause is specified for the subject
-    /// of the entry") is written over exactly that distinction, and with only an UNSIGNED numeric cell the
-    /// matrix could not see it on either arm (kb/Work PB570).</para></summary>
-    private static readonly string[] Pictures =
-        ["", "PIC 9(4)", "PIC S9(4)", "PIC X(3)", "PIC N(2)", "PIC 1(3)", "PIC ZZ9"];
-
-    /// <summary>⛔ THE OPTIONAL PHRASES §13.18.60.2 PRINTS INSIDE A USAGE ALTERNATIVE — read off the rendered
-    /// general format, keyed by the usage word they ride on. A phrase is PART OF the USAGE clause, not a clause
-    /// of its own, so §13.18.60.4 GR1 applies it to each elementary item in the group exactly as it applies the
-    /// word: the equivalence below is asserted over `word + phrase`, not just over `word`.
-    /// <para><b>Why the table exists.</b> kb/Work PB570: `WITH NO SIGN` was read from the ENTRY'S OWN
-    /// <c>usageClause</c> and adjudicated against the entry's own PICTURE, which a group header has not got, so
-    /// the group spelling lost BOTH §13.18.40.3 SR31 and §13.18.60.4 GR11's width — silently, at every nesting
-    /// depth — while the enum-driven matrix above stayed green because it only ever wrote the bare word.</para>
-    /// <para>⛔ EXCLUDED BY PREDICATE, not by omission: a phrase that carries an OPERAND (<c>POINTER TO
-    /// type-name-1</c>, <c>FUNCTION-POINTER TO function-prototype-name-1</c>, <c>PROGRAM-POINTER TO
-    /// program-prototype-name-1</c>, and OBJECT REFERENCE's interface-name / <c>FACTORY OF</c> / <c>ONLY</c>)
-    /// needs a declared name, so the two arms would not be the same PROGRAM and the comparison would not be
-    /// about GR1. Those belong to their own subsystem's tests. Every keyword-only phrase in the figure is
-    /// here.</para></summary>
-    private static readonly (string Word, string Phrase)[] UsageClausePhrases =
-    [
-        ("BINARY-CHAR", "SIGNED"), ("BINARY-CHAR", "UNSIGNED"),
-        ("BINARY-SHORT", "SIGNED"), ("BINARY-SHORT", "UNSIGNED"),
-        ("BINARY-LONG", "SIGNED"), ("BINARY-LONG", "UNSIGNED"),
-        ("BINARY-DOUBLE", "SIGNED"), ("BINARY-DOUBLE", "UNSIGNED"),
-        ("PACKED-DECIMAL", "WITH NO SIGN"),
-        ("FLOAT-BINARY-32", "HIGH-ORDER-LEFT"), ("FLOAT-BINARY-32", "HIGH-ORDER-RIGHT"),
-        ("FLOAT-BINARY-64", "HIGH-ORDER-LEFT"), ("FLOAT-BINARY-64", "HIGH-ORDER-RIGHT"),
-        ("FLOAT-BINARY-128", "HIGH-ORDER-LEFT"), ("FLOAT-BINARY-128", "HIGH-ORDER-RIGHT"),
-        ("FLOAT-DECIMAL-16", "BINARY-ENCODING"), ("FLOAT-DECIMAL-16", "DECIMAL-ENCODING"),
-        ("FLOAT-DECIMAL-16", "HIGH-ORDER-LEFT"), ("FLOAT-DECIMAL-16", "HIGH-ORDER-RIGHT"),
-        ("FLOAT-DECIMAL-34", "BINARY-ENCODING"), ("FLOAT-DECIMAL-34", "DECIMAL-ENCODING"),
-        ("FLOAT-DECIMAL-34", "HIGH-ORDER-LEFT"), ("FLOAT-DECIMAL-34", "HIGH-ORDER-RIGHT"),
-    ];
-
-    /// <summary>Every keyword-only USAGE-clause phrase of <see cref="UsageClausePhrases"/>, as a theory row.</summary>
-    public static TheoryData<string, string> AllUsagePhrases()
-    {
-        var d = new TheoryData<string, string>();
-        foreach ((string word, string phrase) in UsageClausePhrases) d.Add(word, phrase);
-        return d;
-    }
-
-    /// <summary>The compile verdict, reduced to what GR1 makes comparable: the diagnostic CODES (order-
-    /// insensitive, de-duplicated) and — for a clean compile — the item's width as the program itself reports it.
-    /// Positions and message text legitimately differ (each names its own entry); the VERDICT may not.</summary>
-    private static string Verdict(string source)
-    {
-        var (ok, stdout, detail) = new WiseOwlCobolCompiler(2023).CompileAndRun(source);
-        string text = ok ? stdout : detail;
-        var codes = Regex.Matches(text, @"COBOL\d{4}").Select(m => m.Value).Distinct().Order().ToList();
-        if (!ok && codes.Count == 0) codes.Add("FAIL-WITHOUT-A-CODE:" + text.Split('\n')[0].Trim());
-        return codes.Count > 0 ? string.Join(",", codes) : "OK " + stdout.Trim();
-    }
-
-    private static string Program(string id, string ws) =>
-        $"""
-         IDENTIFICATION DIVISION.
-         PROGRAM-ID. {id}.
-         DATA DIVISION.
-         WORKING-STORAGE SECTION.
-         {ws}
-         PROCEDURE DIVISION.
-             DISPLAY "LEN=" FUNCTION BYTE-LENGTH(A).
-             STOP RUN.
-         """;
-
-    [Theory]
-    [MemberData(nameof(AllUsages))]
-    public void InheritedUsage_IsTheSameItemAsAWrittenOne(Usage usage) =>
-        AssertGr1Equivalence(UsageFamilies.UsageWord(usage), "");
-
-    /// <summary>The SAME equivalence over the USAGE clause's optional PHRASES (<see cref="UsageClausePhrases"/>).
-    /// A phrase is part of the clause §13.18.60.4 GR1 applies, so `01 G USAGE u p. 05 A ⟨pic⟩.` describes the
-    /// same item as `01 G. 05 A ⟨pic⟩ USAGE u p.` — including the SR31 rejection when the picture carries 'S'
-    /// and the phrase is WITH NO SIGN. Before kb/Work PB570 the second spelling was the only one adjudicated at
-    /// all: the first lost both its syntax rule and its width, in silence.</summary>
-    [Theory]
-    [MemberData(nameof(AllUsagePhrases))]
-    public void InheritedUsagePhrase_IsTheSameItemAsAWrittenOne(string word, string phrase) =>
-        AssertGr1Equivalence(word, phrase);
-
-    /// <summary>One usage-clause spelling, compared written-on-the-leaf against written-on-the-group over every
-    /// picture in <see cref="Pictures"/>. The ONE comparison both theories run — the §13.18.60.4 GR1 equivalence
-    /// is a single rule, and a second copy of the walk would be a second place for it to be wrong.</summary>
-    private static void AssertGr1Equivalence(string word, string phrase)
-    {
-        string clause = phrase.Length == 0 ? word : word + " " + phrase;
-        string tag = Regex.Replace(clause, "[^A-Z0-9]", "");
-        foreach (string pic in Pictures)
-        {
-            // Unique PROGRAM-IDs per cell — .NET serves a stale same-named assembly otherwise.
-            string cell = tag + Regex.Replace(pic, "[^A-Z0-9]", "");
-            string direct = Program($"UD{cell}", $"01 G.\n    05 A {pic} USAGE {clause}.");
-            string inherited = Program($"UI{cell}", $"01 G USAGE {clause}.\n    05 A {pic}.");
-            string dv = Verdict(direct), iv = Verdict(inherited);
-            string label = $"{clause} / {(pic.Length == 0 ? "(no picture)" : pic)}";
-
-            Assert.Equal($"{label} → {dv}", $"{label} → {iv}");
-
-            // ⛔ THE THIRD SPELLING (kb/Work PB3682): the same group written in a TYPE DECLARATION, which is "as though
-            // … coded in place" (§13.18.57.4 GR1). A subject typed by it is the same item (same verdict, same width), and
-            // the declaration answers for itself whether or not anything references it — the usage walk used to run over
-            // the storage roots only, so every refusal above was silent for an unreferenced declaration.
-            string typed = Program($"UT{cell}", $"01 TG TYPEDEF USAGE {clause}.\n    05 A {pic}.\n01 V TYPE TG.");
-            Assert.Equal($"{label} → {dv}", $"{label} → {Verdict(typed)}");
-            string declared = ProgramNoReference($"UX{cell}", $"01 TG TYPEDEF USAGE {clause}.\n    05 A {pic}.");
-            Assert.Equal($"{label} → {Outcome(dv)}", $"{label} → {Outcome(Verdict(declared))}");
-        }
-    }
-
-    /// <summary>The verdict a program with NO reference to the item can share with one that has it: the refusal's codes,
-    /// or just "OK" (the width is only printed by the program that names the item).</summary>
-    private static string Outcome(string verdict) => verdict.StartsWith("OK") ? "OK" : verdict;
-
-    private static string ProgramNoReference(string id, string ws) =>
-        $"""
-         IDENTIFICATION DIVISION.
-         PROGRAM-ID. {id}.
-         DATA DIVISION.
-         WORKING-STORAGE SECTION.
-         {ws}
-         PROCEDURE DIVISION.
-             DISPLAY "X".
-             STOP RUN.
-         """;
-
     /// <summary>The set against the REPRESENTATION MACHINERY — not against the standard (that is
     /// <c>PicturelessUsageSetDriftTests</c>, and this one cannot substitute for it: the SR8 screen is driven by
     /// the same predicate, so the first assertion below is circular by construction and is kept only to pin the
@@ -201,13 +62,13 @@ public sealed class UsageInheritanceDriftTests
     /// PB504's open mechanism (§13.16.3 SR9's VALUE-implied picture is synthesized nowhere), so it is asserted
     /// as the CURRENT state with the note named, not as the rule.</para></summary>
     [Theory]
-    [MemberData(nameof(AllUsages))]
+    [MemberData(nameof(UsageInheritanceEquivalence.AllUsages), MemberType = typeof(UsageInheritanceEquivalence))]
     public void Sr8Set_MatchesWhatTheCompilerActuallyDoes(Usage usage)
     {
         string word = UsageFamilies.UsageWord(usage);
         string tag = Regex.Replace(word, "[^A-Z0-9]", "");
-        string withPicture = Verdict(Program($"S8P{tag}", $"01 G.\n    05 A PIC 9(4) USAGE {word}."));
-        string without = Verdict(Program($"S8N{tag}", $"01 G.\n    05 A USAGE {word}."));
+        string withPicture = UsageInheritanceEquivalence.Verdict(UsageInheritanceEquivalence.Program($"S8P{tag}", $"01 G.\n    05 A PIC 9(4) USAGE {word}."));
+        string without = UsageInheritanceEquivalence.Verdict(UsageInheritanceEquivalence.Program($"S8N{tag}", $"01 G.\n    05 A USAGE {word}."));
 
         // The keyword itself refused (documented non-support COBOL1564): neither spelling is SR8 evidence,
         // because no picture rule is ever reached.
@@ -474,4 +335,162 @@ public sealed class UsageInheritanceDriftTests
         Assert.DoesNotContain(body.Split('\n').Where(l => !l.TrimStart().StartsWith("//")),
             l => Regex.IsMatch(l, @"\.IsGroup\b"));
     }
+}
+
+/// <summary>
+/// The §13.18.60.4 GR1 equivalence, SHARED by the classes that run it (kb/Work PB4325): the usages and the pictures the
+/// clause is written beside, the compile verdict reduced to what GR1 makes comparable, and the one comparison
+/// (<see cref="AssertGr1Equivalence"/>). Held once so that the equivalence over the usages and over the usage phrases,
+/// which are separate classes so that they run in parallel, cannot drift apart.
+/// </summary>
+internal static class UsageInheritanceEquivalence
+{
+    /// <summary>Every <see cref="Usage"/> member, spelled as a programmer would write it.</summary>
+    public static TheoryData<Usage> AllUsages()
+    {
+        var d = new TheoryData<Usage>();
+        foreach (Usage u in Enum.GetValues<Usage>()) d.Add(u);
+        return d;
+    }
+
+    /// <summary>The pictures the §13.18.60.3 screens discriminate between: none, numeric, SIGNED numeric,
+    /// alphanumeric, national, boolean, numeric-edited. One representative per category the rules name.
+    /// <para>The signed representative is not decoration: §13.18.40.3 SR31 ("The symbol 'S' shall not be
+    /// specified in character-string-1 when the NO SIGN phrase of the USAGE Clause is specified for the subject
+    /// of the entry") is written over exactly that distinction, and with only an UNSIGNED numeric cell the
+    /// matrix could not see it on either arm (kb/Work PB570).</para></summary>
+    internal static readonly string[] Pictures =
+        ["", "PIC 9(4)", "PIC S9(4)", "PIC X(3)", "PIC N(2)", "PIC 1(3)", "PIC ZZ9"];
+
+    /// <summary>⛔ THE OPTIONAL PHRASES §13.18.60.2 PRINTS INSIDE A USAGE ALTERNATIVE — read off the rendered
+    /// general format, keyed by the usage word they ride on. A phrase is PART OF the USAGE clause, not a clause
+    /// of its own, so §13.18.60.4 GR1 applies it to each elementary item in the group exactly as it applies the
+    /// word: the equivalence below is asserted over `word + phrase`, not just over `word`.
+    /// <para><b>Why the table exists.</b> kb/Work PB570: `WITH NO SIGN` was read from the ENTRY'S OWN
+    /// <c>usageClause</c> and adjudicated against the entry's own PICTURE, which a group header has not got, so
+    /// the group spelling lost BOTH §13.18.40.3 SR31 and §13.18.60.4 GR11's width — silently, at every nesting
+    /// depth — while the enum-driven matrix above stayed green because it only ever wrote the bare word.</para>
+    /// <para>⛔ EXCLUDED BY PREDICATE, not by omission: a phrase that carries an OPERAND (<c>POINTER TO
+    /// type-name-1</c>, <c>FUNCTION-POINTER TO function-prototype-name-1</c>, <c>PROGRAM-POINTER TO
+    /// program-prototype-name-1</c>, and OBJECT REFERENCE's interface-name / <c>FACTORY OF</c> / <c>ONLY</c>)
+    /// needs a declared name, so the two arms would not be the same PROGRAM and the comparison would not be
+    /// about GR1. Those belong to their own subsystem's tests. Every keyword-only phrase in the figure is
+    /// here.</para></summary>
+    internal static readonly (string Word, string Phrase)[] UsageClausePhrases =
+    [
+        ("BINARY-CHAR", "SIGNED"), ("BINARY-CHAR", "UNSIGNED"),
+        ("BINARY-SHORT", "SIGNED"), ("BINARY-SHORT", "UNSIGNED"),
+        ("BINARY-LONG", "SIGNED"), ("BINARY-LONG", "UNSIGNED"),
+        ("BINARY-DOUBLE", "SIGNED"), ("BINARY-DOUBLE", "UNSIGNED"),
+        ("PACKED-DECIMAL", "WITH NO SIGN"),
+        ("FLOAT-BINARY-32", "HIGH-ORDER-LEFT"), ("FLOAT-BINARY-32", "HIGH-ORDER-RIGHT"),
+        ("FLOAT-BINARY-64", "HIGH-ORDER-LEFT"), ("FLOAT-BINARY-64", "HIGH-ORDER-RIGHT"),
+        ("FLOAT-BINARY-128", "HIGH-ORDER-LEFT"), ("FLOAT-BINARY-128", "HIGH-ORDER-RIGHT"),
+        ("FLOAT-DECIMAL-16", "BINARY-ENCODING"), ("FLOAT-DECIMAL-16", "DECIMAL-ENCODING"),
+        ("FLOAT-DECIMAL-16", "HIGH-ORDER-LEFT"), ("FLOAT-DECIMAL-16", "HIGH-ORDER-RIGHT"),
+        ("FLOAT-DECIMAL-34", "BINARY-ENCODING"), ("FLOAT-DECIMAL-34", "DECIMAL-ENCODING"),
+        ("FLOAT-DECIMAL-34", "HIGH-ORDER-LEFT"), ("FLOAT-DECIMAL-34", "HIGH-ORDER-RIGHT"),
+    ];
+
+    /// <summary>Every keyword-only USAGE-clause phrase of <see cref="UsageClausePhrases"/>, as a theory row.</summary>
+    public static TheoryData<string, string> AllUsagePhrases()
+    {
+        var d = new TheoryData<string, string>();
+        foreach ((string word, string phrase) in UsageClausePhrases) d.Add(word, phrase);
+        return d;
+    }
+
+    /// <summary>The compile verdict, reduced to what GR1 makes comparable: the diagnostic CODES (order-
+    /// insensitive, de-duplicated) and — for a clean compile — the item's width as the program itself reports it.
+    /// Positions and message text legitimately differ (each names its own entry); the VERDICT may not.</summary>
+    internal static string Verdict(string source)
+    {
+        var (ok, stdout, detail) = new WiseOwlCobolCompiler(2023).CompileAndRun(source);
+        string text = ok ? stdout : detail;
+        var codes = Regex.Matches(text, @"COBOL\d{4}").Select(m => m.Value).Distinct().Order().ToList();
+        if (!ok && codes.Count == 0) codes.Add("FAIL-WITHOUT-A-CODE:" + text.Split('\n')[0].Trim());
+        return codes.Count > 0 ? string.Join(",", codes) : "OK " + stdout.Trim();
+    }
+
+    internal static string Program(string id, string ws) =>
+        $"""
+         IDENTIFICATION DIVISION.
+         PROGRAM-ID. {id}.
+         DATA DIVISION.
+         WORKING-STORAGE SECTION.
+         {ws}
+         PROCEDURE DIVISION.
+             DISPLAY "LEN=" FUNCTION BYTE-LENGTH(A).
+             STOP RUN.
+         """;
+
+    /// <summary>One usage-clause spelling, compared written-on-the-leaf against written-on-the-group over every
+    /// picture in <see cref="Pictures"/>. The ONE comparison both theories run — the §13.18.60.4 GR1 equivalence
+    /// is a single rule, and a second copy of the walk would be a second place for it to be wrong.</summary>
+    internal static void AssertGr1Equivalence(string word, string phrase)
+    {
+        string clause = phrase.Length == 0 ? word : word + " " + phrase;
+        string tag = Regex.Replace(clause, "[^A-Z0-9]", "");
+        foreach (string pic in Pictures)
+        {
+            // Unique PROGRAM-IDs per cell — .NET serves a stale same-named assembly otherwise.
+            string cell = tag + Regex.Replace(pic, "[^A-Z0-9]", "");
+            string direct = Program($"UD{cell}", $"01 G.\n    05 A {pic} USAGE {clause}.");
+            string inherited = Program($"UI{cell}", $"01 G USAGE {clause}.\n    05 A {pic}.");
+            string dv = Verdict(direct), iv = Verdict(inherited);
+            string label = $"{clause} / {(pic.Length == 0 ? "(no picture)" : pic)}";
+
+            Assert.Equal($"{label} → {dv}", $"{label} → {iv}");
+
+            // ⛔ THE THIRD SPELLING (kb/Work PB3682): the same group written in a TYPE DECLARATION, which is "as though
+            // … coded in place" (§13.18.57.4 GR1). A subject typed by it is the same item (same verdict, same width), and
+            // the declaration answers for itself whether or not anything references it — the usage walk used to run over
+            // the storage roots only, so every refusal above was silent for an unreferenced declaration.
+            string typed = Program($"UT{cell}", $"01 TG TYPEDEF USAGE {clause}.\n    05 A {pic}.\n01 V TYPE TG.");
+            Assert.Equal($"{label} → {dv}", $"{label} → {Verdict(typed)}");
+            string declared = ProgramNoReference($"UX{cell}", $"01 TG TYPEDEF USAGE {clause}.\n    05 A {pic}.");
+            Assert.Equal($"{label} → {Outcome(dv)}", $"{label} → {Outcome(Verdict(declared))}");
+        }
+    }
+
+    /// <summary>The verdict a program with NO reference to the item can share with one that has it: the refusal's codes,
+    /// or just "OK" (the width is only printed by the program that names the item).</summary>
+    internal static string Outcome(string verdict) => verdict.StartsWith("OK") ? "OK" : verdict;
+
+    internal static string ProgramNoReference(string id, string ws) =>
+        $"""
+         IDENTIFICATION DIVISION.
+         PROGRAM-ID. {id}.
+         DATA DIVISION.
+         WORKING-STORAGE SECTION.
+         {ws}
+         PROCEDURE DIVISION.
+             DISPLAY "X".
+             STOP RUN.
+         """;
+}
+
+/// <summary>The §13.18.60.4 GR1 equivalence over every <see cref="Usage"/> member (kb/Work PB495); its own class so
+/// that it runs beside the phrase equivalence and the other witnesses (kb/Work PB4325).</summary>
+public sealed class UsageInheritanceUsageDriftTests
+{
+    [Theory]
+    [MemberData(nameof(UsageInheritanceEquivalence.AllUsages), MemberType = typeof(UsageInheritanceEquivalence))]
+    public void InheritedUsage_IsTheSameItemAsAWrittenOne(Usage usage) =>
+        UsageInheritanceEquivalence.AssertGr1Equivalence(UsageFamilies.UsageWord(usage), "");
+}
+
+/// <summary>The §13.18.60.4 GR1 equivalence over the USAGE clause's optional phrases (kb/Work PB570); its own class so
+/// that it runs beside the usage equivalence and the other witnesses (kb/Work PB4325).</summary>
+public sealed class UsageInheritancePhraseDriftTests
+{
+    /// <summary>The SAME equivalence over the USAGE clause's optional PHRASES (<see cref="UsageInheritanceEquivalence.UsageClausePhrases"/>).
+    /// A phrase is part of the clause §13.18.60.4 GR1 applies, so `01 G USAGE u p. 05 A ⟨pic⟩.` describes the
+    /// same item as `01 G. 05 A ⟨pic⟩ USAGE u p.` — including the SR31 rejection when the picture carries 'S'
+    /// and the phrase is WITH NO SIGN. Before kb/Work PB570 the second spelling was the only one adjudicated at
+    /// all: the first lost both its syntax rule and its width, in silence.</summary>
+    [Theory]
+    [MemberData(nameof(UsageInheritanceEquivalence.AllUsagePhrases), MemberType = typeof(UsageInheritanceEquivalence))]
+    public void InheritedUsagePhrase_IsTheSameItemAsAWrittenOne(string word, string phrase) =>
+        UsageInheritanceEquivalence.AssertGr1Equivalence(word, phrase);
 }

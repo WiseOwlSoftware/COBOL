@@ -2290,9 +2290,9 @@ more than one page per call, and that `ArrayPool<byte>.Shared.Rent` with a file-
 m changed records writes ≤ m × ((k + 1) × d) + the HOLDINGS pages its entries sit on + the statement's own bookkeeping
 (the ROLLBACK row above) and leaves every record of another run unit byte-identical; a COMMIT reads its UNDO tree once.
 Witness (d) is `WholeStoreBanDriftTests` (kb/Work PB3335); (a) to (c) are `tests/WiseOwl.Cobol.Tests.Unit/Store/
-KeyedStorePerformanceWitnessTests.cs` (kb/Work PB3336: one class per file shape, the real connectors over `PageArrayMedium`,
+KeyedStorePerformanceWitnessTests.cs` (kb/Work PB3336: one class per file shape for the statement witnesses and one per file shape and sharing mode for the load witness (kb/Work PB4325), the real connectors over `PageArrayMedium`,
 an in-memory page array per physical file, so a load costs no host I/O and the counts are the same on every host); (e) needs
-the transaction runtime and is `KeyedStorePerformanceWitnessTests.A_transaction_costs_its_own_records_only` (kb/Work
+the transaction runtime and is `KeyedStoreStatementWitnessTests.A_transaction_costs_its_own_records_only` (kb/Work
 PB3337: 40 records rolled back write 30 pages at d = 2 with no alternate key and 104 under two, and the COMMIT after them reads
 its one-page UNDO tree once, 7 and 9 pages in all). For the
 record, the prototype's wall-clock arithmetic: a million-record sequential relative load is about 6 page writes a statement at
