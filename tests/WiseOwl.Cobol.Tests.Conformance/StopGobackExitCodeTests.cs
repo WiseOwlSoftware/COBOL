@@ -86,6 +86,63 @@ public sealed class StopGobackExitCodeTests
     }
 
     /// <summary>
+    /// ⛔ <c>GOBACK RETURNING x</c> WITH NO HEADER RETURNING ITEM IS THE MAIN PROGRAM'S EXIT STATUS, AND A STATUS PHRASE
+    /// IS NEVER DROPPED (kb/Work PB4335).
+    /// <para>The accepted extension (<c>goback-returning</c>, GnuCOBOL / Micro Focus) moves the operand to the header's
+    /// RETURNING item (§14.9.18.4 GR2 — "If a RETURNING phrase is specified in the procedure division header …");
+    /// with none, the old emit compiled clean and died at run time with NotImplementedCobolFeatureException. The
+    /// vendor meaning in a main program (GR3: it "operates as if executing a STOP statement, with a status phrase, if
+    /// any") is the exit status, the same value GR10 passes for identifier-2 — so the operand exits through the
+    /// status path, DOC-A.1-192's mapping. A written status phrase is the standard's own and wins over the
+    /// extension's operand.</para>
+    /// <para>The RAISING arms are the sibling the fix swept: <c>GOBACK RAISING … WITH ERROR STATUS 3</c> used to
+    /// build its bound node WITHOUT the phrase (§14.9.18.2's choice indicators allow both), exiting 0; GR3 ignores
+    /// RAISING in a main program but GR10 still hands the status over.</para></summary>
+    [Theory]
+    [InlineData("GOBACK RETURNING WS-CODE.", 13)]                                  // the extension: operand ⇒ exit status
+    [InlineData("GOBACK RETURNING WS-CODE WITH NORMAL STATUS 2.", 2)]              // the written phrase wins
+    [InlineData("GOBACK RETURNING WS-CODE RAISING EXCEPTION EC-STORAGE-NOT-AVAIL.", 13)]   // GR3: RAISING ignored, operand kept
+    [InlineData("GOBACK RAISING EXCEPTION EC-STORAGE-NOT-AVAIL WITH ERROR STATUS 3.", 3)]  // GR3 + GR10: the status survives RAISING
+    [InlineData("GOBACK RAISING EXCEPTION EC-STORAGE-NOT-AVAIL WITH ERROR.", 1)]           // GR7: no value ⇒ the error indication
+    public void GobackReturningWithoutAHeaderItem_AndStatusBesideRaising_SetProcessExitCode(string proc, int expectedExit)
+    {
+        var (exit, stdout, detail) = new WiseOwlCobolCompiler(2023).CompileAndRunExit(Prog("PB4335EXIT", proc));
+        Assert.True(stdout == "ran", detail);
+        Assert.Equal(expectedExit, exit);
+    }
+
+    /// <summary>⛔ A CALLED PROGRAM'S <c>GOBACK RETURNING x</c> WITH NO HEADER ITEM HAS NO RESULT TO HAND OVER (kb/Work
+    /// PB4335): §14.9.18.4 GR2's activation result exists only for a header RETURNING phrase, and a status is inert
+    /// in a called program (GR3 confines it to a program "not under the control of a calling runtime element"). The
+    /// activator continues and the run unit's exit status is the MAIN program's.</summary>
+    [Fact]
+    public void CalledGobackReturningWithoutAHeaderItem_IsInert_AndTheMainProgramsStatusStands()
+    {
+        const string src = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB4335CALLER.
+            PROCEDURE DIVISION.
+            MAIN.
+                CALL "PB4335CALLEE".
+                DISPLAY "back".
+                GOBACK WITH ERROR STATUS 6.
+            END PROGRAM PB4335CALLER.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB4335CALLEE.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 CODE-X PIC 9 VALUE 4.
+            PROCEDURE DIVISION.
+            P.
+                GOBACK RETURNING CODE-X.
+            END PROGRAM PB4335CALLEE.
+            """;
+        var (exit, stdout, detail) = new WiseOwlCobolCompiler(2023).CompileAndRunExit(src);
+        Assert.True(stdout == "back", detail);
+        Assert.Equal(6, exit);
+    }
+
+    /// <summary>
     /// ⛔ THE NON-NUMERIC STATUS OPERAND — LEGAL COBOL THIS COMPILER USED TO REJECT (kb/Work PB169).
     /// <para>§14.9.42.2 writes the operand <c>{identifier-1 | literal-1}</c>, not
     /// <c>arithmetic-expression-1</c>, so §8.8.1.1 never governed the position — yet both arms were bound

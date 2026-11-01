@@ -1132,14 +1132,22 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                                    && ctx.Refs.ResolveItem(retItem) is { } retPlace
             ? host.Move.BindMoveOf(new BoundFieldOperand(source), [retPlace], ImplicitMovePhrase.GobackReturning)
             : null;
+        // GOBACK … WITH {NORMAL|ERROR} STATUS [value] (§14.9.18.2, COBOL-2023, 2023-gated in the pass). The emit passes
+        // the decoded status to the OS only in a MAIN program (§14.9.18.4 GR3/GR10 — a called-program status is inert).
+        // ⛔ THE STATUS TRAVELS WITH EVERY SHAPE OF THE STATEMENT (kb/Work PB4335): §14.9.18.2's bracket carries CHOICE
+        // INDICATORS, so RAISING and the status phrase may both be written — and the RAISING arm used to build its node
+        // without p.Status, so `GOBACK RAISING EXCEPTION x WITH ERROR STATUS 3` compiled clean and exited 0 in a main
+        // program (GR3 ignores RAISING there; GR10 still hands the status to the OS).
+        // A RETURNING source with no header RETURNING item to move into is the extension's exit status (see
+        // ControlFlowBinder.ReturningAsStatus); a written status phrase is the standard's and wins over it.
+        var status = p.Status;
+        if (status is null && source is not null && returningMove is null)
+            status = host.ControlFlow.ReturningAsStatus(source, p.Returning!.GetText());
         if (p.Raising is { } raising)
             return host.Ec.EcBindRaising(raising, g.Start.Line, EcRaiseSite.Goback) is { } r
-                ? new BoundGoback(source, r) { ReturningMove = returningMove }
+                ? new BoundGoback(source, r, status) { ReturningMove = returningMove }
                 : new BoundUnsupported("GOBACK RAISING identifier (the exception-object form of the RAISING phrase — the OO wave)");
-        // GOBACK … WITH {NORMAL|ERROR} STATUS [value] (§14.9.18.2, COBOL-2023, 2023-gated in the pass; mutually
-        // exclusive with RAISING by the grammar). The emit passes the decoded status to the OS only in a MAIN
-        // program (§14.9.18.4 GR3/GR10 — a called-program status is inert).
-        return new BoundGoback(source, null, p.Status) { ReturningMove = returningMove };
+        return new BoundGoback(source, null, status) { ReturningMove = returningMove };
     }
 
     /// <summary>⛔ <b>THE ONE DECODE of every phrase §14.9.18.2's general format gives GOBACK</b>, run BEFORE the
