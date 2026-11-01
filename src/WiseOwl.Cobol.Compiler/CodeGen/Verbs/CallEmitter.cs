@@ -1647,14 +1647,11 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             w.Line($"if ({inGlobalRange}) ExceptionState.FlowGlobalGobackError(\"a GOBACK statement executed "
                 + "within the range of a USE ... GLOBAL declarative procedure of the same program "
                 + "(ISO 14.9.18.4 GR6)\");");
-        if (g.ReturningSource is not null)
-        {
-            // The move was BOUND by CallBinder.BindGoback (kb/Work PB880) into the same RETURNING item.
-            if (g.ReturningMove is { } rm)
-                move.Emit(rm);
-            else
-                w.Line(LoudStmt("GOBACK RETURNING without a PROCEDURE DIVISION RETURNING item (ISO §14.9.18.4 GR2)"));
-        }
+        // The move was BOUND by CallBinder.BindGoback (kb/Work PB880) into the header's RETURNING item. A RETURNING
+        // source with no such item has no move: the binder folded it into Status (the main-program exit status,
+        // kb/Work PB4335), emitted below with the written status phrase.
+        if (g.ReturningMove is { } rm)
+            move.Emit(rm);
         if (g.Raising is { } r)
             // §14.9.18.4 GR3 (the P13 review C3 fix): in a program NOT under the control of a calling runtime
             // element, GOBACK operates as STOP and "a RAISING phrase, if specified, is ignored" — so the staging
