@@ -1103,7 +1103,10 @@ reference formats, and the only place source comments are recognized. Its model:
   merged driver flushes between directive lines; a spliced library
   text hands its end division back to the text it was spliced into. And the `D` indicator is
   gated by the registry row `debugging-line-removed-2014` (accepted at 85, obsolete at 2002 — COBOL0903 — removed at
-  2014 — COBOL0902; the NIST S / Y letters are the CCVS dialect, never gated, and excluded as comment lines). A `D`
+  2014 — COBOL0902; the NIST S / Y letters are the CCVS dialect, never gated, and excluded as comment lines). The 2002
+  FLOATING spelling `>>D`, in either reference format, is the same line in a second spelling (kb/Work PB4298): both
+  classifiers call `LogicalLineBuilder.TryEmitFloatingDebugging`, its own row `floating-debugging-indicator-2002` gates
+  it (introduced 2002, obsolete 2002, removed 2014), and SR8 (it on a fixed `D` or `-` line) is COBOL5770. A `D`
   line is NOT decided here (kb/Work PB1705, owner decision R56): the clause that makes it source is further down the text
   than the line, so the converter CARRIES it — `ReferenceFormatProcessor.DebugLineCarrier` + its program text — and the
   lexer reads the carrier as the hidden `DEBUG_LINE` marker and the text as ordinary tokens. The builder reads the line
@@ -1131,6 +1134,20 @@ reference formats, and the only place source comments are recognized. Its model:
   `HideAll` is exactly right for them.
 - **The program-text area is always positions 8–72**, a shorter record read as space-filled to margin R
   (DOC-A.1-157), so a continued literal carries every position to margin R (§6.3.5).
+- **A syntax error beside text the margin cut NAMES the cut** (kb/Work PB2555; COBOL5788). Text past margin R is not program
+  text (§6.3.1; Annex A.1 item 158), so the reference format drops it; a statement that ran past the margin then ends early and
+  the parse fails at the NEXT token, or at a word the margin cut in two (`END-SEND` written across position 72 reaches the
+  parser as `END-SEN`). The reference format RECORDS the cut and the syntax-error listener ASKS, the same split as the areas
+  below: `ReferenceFormatMap.CutAt(line)` holds, per fixed-form physical line, the text past margin R (`MarginRCut`, in
+  `Frontend.Common`), and `FixedFormAreas.MarginRCutAt` composes it with the resultant-line map, so the listener
+  (`CobolErrorListener.NoteMarginRCut`, behind `IMarginRCutLocator`, which keeps `Parsing` off `Preprocessor`) asks about a
+  token's position. The warning is reported BESIDE the error (the cause first, PB4131), once per cut, in two shapes: the
+  OFFENDING token ends at margin R with the cut text right behind it (the word was cut), or the token BEFORE the offending one
+  is the last of a cut line and the offending token stands on a later line (the statement ended early). It is never reported
+  for a line with no cut: text past margin R that is blank, the rest of an inline comment (§6.3.7.3), a comment line, a
+  numeric sequence area (`MarginRCut.IsSequenceNumber`), or the identification tags (`FitsIdentificationArea`: one word of at
+  most eight characters, positions 73–80, the COBOL-85 card-image convention) of a file that labels most of its code lines with
+  one. Only a parse error asks, so a program that parses never hears of its tags.
 - **COBOL-85's areas A and B are a fact the reference format RECORDS and a pass after the parse ASKS** (kb/Work PB3147;
   VCR Table 7 row 7.35). ANSI X3.23-1985 split the program-text area into area A (positions 8–11) and area B (12 to
   margin R) and placed every item by where it begins its line; ISO/IEC 1989:2002 removed the split (§6.3.1, §6.3.5), so
@@ -1196,7 +1213,7 @@ reference formats, and the only place source comments are recognized. Its model:
   `floating-comment-indicator-2002` and `floating-literal-continuation-2002` (COBOL0900, once per compilation, asked
   in FIXED form only: free form is itself a 2002 introduction reached below 2002 only through the `--source-format
   free|auto` selection, and its comment and its literal continuation are the floating ones), `debugging-line-removed-2014`,
-  `col7-continuation-obsolete-2023` and `fixed-form-word-continuation-removed-2023` — and the syntax-rule diagnostics
+  `floating-debugging-indicator-2002`, `col7-continuation-obsolete-2023` and `fixed-form-word-continuation-removed-2023` — and the syntax-rule diagnostics
   above, plus SR2 (a `*>` not preceded by a separator space — COBOL2495; the text after it is still the comment) and
   SR3 (a continuation line completing a `*>` or `>>` begun at the end of the line it continues — COBOL2496).
 

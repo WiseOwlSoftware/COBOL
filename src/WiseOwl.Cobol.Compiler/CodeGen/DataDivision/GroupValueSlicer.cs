@@ -347,7 +347,7 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
         {
             if (filler.Kind is BitFillerKind.RunTail)
             {
-                parts.Add($"{filler.Field} = {EmitText.CsLiteral(BitWindow(area, filler.StartBit, filler.Bits).Text)}");
+                parts.Add($"{filler.ClrName} = {EmitText.CsLiteral(BitWindow(area, filler.StartBit, filler.Bits).Text)}");
                 continue;
             }
             // The pads between the occurrences of a strided table: one gap after another, composed once per run of gaps
@@ -357,7 +357,7 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
             int first = filler.StartBit;
             var gaps = OccurrenceRunEmit.RunsOfRepeats(n - 1, area.PeriodFor(stride),
                 (a, b) => area.SameWindow(first + (a - 1) * stride, first + (b - 1) * stride, pad));
-            parts.Add($"{filler.Field} = " + OccurrenceRunEmit.Image(gaps,
+            parts.Add($"{filler.ClrName} = " + OccurrenceRunEmit.Image(gaps,
                 o => EmitText.CsLiteral(BitWindow(area, first + (o - 1) * stride, pad).Text)));
         }
         return $"new {item.StructName} {{ {string.Join(", ", parts)} }}";
