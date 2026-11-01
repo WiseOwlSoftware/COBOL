@@ -280,6 +280,50 @@ public sealed class DebugFacilityTests
         EditionHarness.AssertHasDiagnostic(diags, "COBOL1571");
     }
 
+    /// <summary>In <c>[ALL REFERENCES OF] identifier-1</c> only ALL is a keyword — REFERENCES and OF are optional
+    /// words (GnuCOBOL <c>-std=cobol85</c> accepts all four spellings; CCVS DB201A writes <c>ALL ID-2</c>; kb/Work
+    /// PB4237). Every spelling is the ONE data-item operand and reaches the same staged COBOL1571, naming its
+    /// operand, under WITH DEBUGGING MODE. <c>ALL P1</c> with P1 a PARAGRAPH is the same operand, never a
+    /// procedure-name subject: the binder reads ALL, not REFERENCES, so it cannot fall to the bare-name arm and
+    /// silently debug P1. The pre-fix grammar refused the first two spellings with COBOL5506.</summary>
+    [Theory]
+    [InlineData("ALL T", "T")]
+    [InlineData("ALL OF T", "T")]
+    [InlineData("ALL REFERENCES T", "T")]
+    [InlineData("ALL REFERENCES OF T", "T")]
+    [InlineData("ALL P1", "P1")]
+    public void AllIdentifier_EverySpelling_At85_IsTheStagedDataItemOperand(string operand, string name)
+    {
+        string src = $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. DBGALLSPELL.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            SOURCE-COMPUTER. IBM-PC WITH DEBUGGING MODE.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 T PIC X(5).
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            DBG SECTION.
+                USE FOR DEBUGGING ON {operand}.
+            DBG-BODY.
+                DISPLAY DEBUG-NAME.
+            END DECLARATIVES.
+            MAIN SECTION.
+            P1.
+                MOVE "Z" TO T.
+                STOP RUN.
+            """;
+        var (ok, diags) = EditionHarness.Compile(src, 85);
+        Assert.False(ok);
+        EditionHarness.AssertNoDiagnostic(diags, "COBOL5506");
+        EditionHarness.AssertHasDiagnostic(diags, $"COBOL1571: declarative section 'DBG': USE FOR DEBUGGING ON ALL REFERENCES OF '{name}'");
+        // At the operand (line 12), never bare: FinalizeDebug runs after every walker (kb/Work PB2034).
+        EditionHarness.AssertHasDiagnostic(diags, "(12,");
+        EditionHarness.AssertEveryDiagnosticPositioned(diags, operand);
+    }
+
     /// <summary>A SORT/MERGE INPUT/OUTPUT procedure that is also a debug subject is STAGED — rejected loud
     /// COBOL1571 (the SORT INPUT/OUTPUT / MERGE OUTPUT DEBUG-CONTENTS cause is not modeled; reject rather than
     /// emit a stale cause).</summary>
@@ -321,6 +365,9 @@ public sealed class DebugFacilityTests
             """;
         var (ok, diags) = EditionHarness.Compile(src, 85);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diags, "COBOL1571");
+        // At the INPUT PROCEDURE phrase (line 25), never bare: the check runs after every walker (kb/Work PB2034).
+        EditionHarness.AssertHasDiagnostic(diags, "(25,");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL1571: the SORT/MERGE INPUT PROCEDURE");
+        EditionHarness.AssertEveryDiagnosticPositioned(diags, nameof(SortProcedureSubject_At85_StagedLoud1571));
     }
 }
