@@ -1,4 +1,4 @@
-## Pipeline step 8: the landing gates nothing, waits for the gate lock, and every merge-queue red gets a class (PB4331, PB4204, PB4271); step 11 begun: CLAUDE.md Testing states the new rule (PB4334)
+## Pipeline step 8: the landing gates nothing, waits for the gate lock, and every merge-queue red gets a class (PB4331, PB4204, PB4271); step 11: the docs state the new rule and DESIGN-test-build-ci.md is rewritten (PB4334)
 
 Step 8 of the pipeline redesign (kb/Work PB4323, PIPELINE-REVIEW.md §10 and §5.1), one implementer for the three files
 that share it (`enqueue.py`, `land_lane.py`, `landing_measure.py`).
@@ -49,13 +49,23 @@ layout notice, and another class's harness cleanup printed `SCRATCH-LEFT` into t
 parallelization disabled (`ConsoleErrorCollection`), so it runs alone after the parallel ones (0.1 s); the swap is the
 only in-process stderr swap in the test assemblies (`Console.SetError` swept).
 
-**Step 11, begun (PB4334).** After step 8 was gated GREEN (run 000002-20261101T151522Z), the owner-approved CLAUDE.md
+**Step 11 (PB4334).** After step 8 was gated GREEN (run 000002-20261101T151522Z), the owner-approved CLAUDE.md
 "Testing" wording of PIPELINE-REVIEW.md §13 is applied, its placeholders filled (2026-10-31, kb/Work PB4323) and one
 clause adjusted to what landed: a tooling change runs the code lane plus its self-tests, not the self-tests alone.
 MANDATORY-PRACTICES I1 states THE RULE and its five first-run classes, I2 that a flake is a defect never re-gated past;
 the gate and workstream skills, DOC_INDEX's landing entry, kb/Work PB1957 (restated to the five classes; its drift test
-still to build) and the memory note follow. DESIGN-test-build-ci.md gains §0, THE PIPELINE AS IT IS, and current
-titles for §3.15 and §3.17; its rewrite proper (the history of the targeted leg out of §1 to §3.18) is PB4334's rest.
+still to build) and the memory note follow. DESIGN-test-build-ci.md gains §0, THE PIPELINE AS IT IS, and is then
+rewritten (the wave-20261808 finisher that continued the split work): 2,942 to 1,786 lines, 315 KB to 195 KB. The rewrite
+keeps every section number any file cites (a sweep over the tracked tree resolved each citation to a heading), retires the
+sections that only told history (the old §2, §3.4, §3.6 to §3.8, §3.14.7 to §3.14.9, §3.17.7, §4 to §7), condenses the
+measurement narratives of §3.11, §3.14.5, §3.14.6, §3.14.10, §3.15 and §3.17 to the decision each rests on, and corrects what
+the old text had wrong (the diagnostics registry exists, ConformanceSuiteTests has 32 partitions above a floor of 24,
+gate_slot.py declares fourteen arms, the merge drivers sit in landing step 3 and three citations said step 2, the gate
+record is schema 5, a NOT RUN's causes are one table). The text that went out is in git history (the parent of this
+change's DESIGN-test-build-ci.md). The wave's cherry-pick of the four commits of the predecessor (w20261807a) onto
+current main had one conflict (DESIGN-test-build-ci.md, §3.14.13 against the §3.15 title), kept both sides. Self-review:
+the CITATIONS audit reads a section sign in a kb note as an ISO clause, so PB4334 writes "section N" for this design's
+sections.
 
 **Register.** PB4331, PB4204 and PB4271 landed (no inventory row; process tooling). PB3804's `SLOT_DRIVER` comment item
 left with its code. Lead: `gate_slot.py`'s landing gate class (CLASS_ENV=landing, served first) has no starter now.

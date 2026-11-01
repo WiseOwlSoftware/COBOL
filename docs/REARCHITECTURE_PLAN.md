@@ -3359,13 +3359,13 @@ Close the version-correctness program to zero open work and make the greenfield 
 
 This phase is the load-bearing hinge between "the compiler works" and "we can safely delete the oracle." The survey/critique findings it closes:
 
-- **The net evaporates at G8 unless a faithful replacement is proven first** (`DESIGN-test-build-ci.md` §1.2, §3.4, §6 risk 4; `COMPLETION_ROADMAP_COUNCIL.md` §4 risk 4). ⭐ **RESOLVED 2026-09-06 by kb/Work/PB750 and R69.** `scripts/guard.sh`/`guard-fast.sh` compiled+ran ~353 programs through the legacy CLI and diffed `tests/nist/valid/*.txt`; they now drive `cobol` over all 376 in-scope programs, so the census coverage the greenfield lacked — the golden-less residue, the run-only programs, the compile+run health of the full corpus — is greenfield and was not lost when the engine went (PB2109 retired the legacy arm, PB2110 deleted the engine). What survives of this risk is narrower: the guard's NIST leg is bash/Linux-only, and `NistDifferentialTests` still asserts only the 349 green∪divergent rows in-process, so the two must stay reconcilable (`CorpusManifestTests` asserts the containment structurally, `guard-nist-audit.sh` per program).
+- **The net evaporates at G8 unless a faithful replacement is proven first** (`DESIGN-test-build-ci.md` §1.2; `COMPLETION_ROADMAP_COUNCIL.md` §4 risk 4). ⭐ **RESOLVED 2026-09-06 by kb/Work/PB750 and R69.** `scripts/guard.sh`/`guard-fast.sh` compiled+ran ~353 programs through the legacy CLI and diffed `tests/nist/valid/*.txt`; they now drive `cobol` over all 376 in-scope programs, so the census coverage the greenfield lacked — the golden-less residue, the run-only programs, the compile+run health of the full corpus — is greenfield and was not lost when the engine went (PB2109 retired the legacy arm, PB2110 deleted the engine). What survives of this risk is narrower: the guard's NIST leg is bash/Linux-only, and `NistDifferentialTests` still asserts only the 349 green∪divergent rows in-process, so the two must stay reconcilable (`CorpusManifestTests` asserts the containment structurally, `guard-nist-audit.sh` per program).
 
 - **Version-gating is unaudited and the VCR ledger is stale** (`DESIGN-edition-framework.md` P7/P8; `VERSION_CHANGE_REFERENCE.md` — `grep -c TODO` = 117 rows still open, 6 done/GATED as of this writing). The "four compilers in one" mission (`docs/VERSION_TEST_MATRIX_DESIGN.md`) is only validated at its deltas/boundaries; a `TODO` row is an un-proven claim. P3 made the audit harness-driven (`scripts/gen-vcr.ps1` + `--emit-status`); P14 is where the burn-down actually reaches zero and the ledger becomes structurally incapable of drifting.
 
 - **The default shipping edition (2023) is never behaviorally executed before G8** — the critics' one *fatal* challenge (`COMPLETION_ROADMAP_COUNCIL.md` §2 Phase 1, decision #10). `NistDifferentialTests` hard-compiles at `DialectLevel 85` (`CompilerUnderTest.cs`: `WiseOwlCobolCompiler(int dialectLevel = 85)`); the INV-1 sweep only asks "does it *compile*" via `check-batch` (`scripts/version-continuity-sweep.sh`), never runs. The `WISEOWL_COBOL_NIST_STD` / `WISEOWL_COBOL_NIST_PERMISSIVE` env override (`NistDifferentialTests.cs`) exists precisely so the whole golden run can be re-targeted to `--std 2023 --permissive` and asserted byte-identical; P14 promotes that leg to a hard, always-on G7 exit criterion.
 
-- **Diagnostics are unaddressable without a coverage floor** (`DESIGN-test-build-ci.md` §1.6, §3.5). P2 built the first-class descriptor registry; P14 is where "every rule has a test" becomes an enforced invariant (`DiagnosticRegistryCoverageTests`), so a registered code with no negative-corpus case is a red — closing the false-green class the 0899 catch-all and the `1533`-style code reuse used to hide.
+- **Diagnostics are unaddressable without a coverage floor** (`DESIGN-test-build-ci.md` §3.5). P2 built the first-class descriptor registry; P14 is where "every rule has a test" becomes an enforced invariant (`DiagnosticRegistryCoverageTests`), so a registered code with no negative-corpus case is a red — closing the false-green class the 0899 catch-all and the `1533`-style code reuse used to hide.
 
 
 ---
@@ -3606,7 +3606,7 @@ Expected: coverage test green (no uncovered descriptor); corpus manifest drift g
 dotnet test tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj \
   --filter "VersionMatrixTests|VersionBehaviorMatrixTests|Inv1StrongGoldenTests"
 bash scripts/version-continuity-sweep.sh | tee /tmp/sweep.log ; ! grep -q BREAKS /tmp/sweep.log
-pwsh scripts/version-continuity-sweep.ps1   # add a .ps1 sibling if P3 didn't (DESIGN-test-build-ci §3.7)
+pwsh scripts/version-continuity-sweep.ps1   # add a .ps1 sibling if P3 didn't
 ```
 Expected: all green; sweep no `BREAKS`; strict breaks (if any) all edition-band-coded.
 
@@ -3680,7 +3680,7 @@ Expected: `=== ALL GREEN ===`, census summary `≥357 GREEN`, exit 0. On Windows
 
 **Change:** confirm the census guard's `green` set == the `NistDifferentialTests` golden set == the `corpus.tsv` `green` rows == `guard.sh` `NIST_TESTS`. Any mismatch is a triplication artifact — fix it in `corpus.tsv` (the single source) and re-point the in-process test's `[MemberData]` at it (if P0 left `[InlineData]` in place, do the fold here). Add/confirm `CorpusManifestTests` asserting: every `tests/nist/programs/*.cob` is listed; every `green` row has a `valid/<name>.txt`.
 
-**Why:** the in-process and the CLI-level NIST runners must enumerate the *same universe* from the *same manifest* (`DESIGN-test-build-ci.md` §6 risk 4).
+**Why:** the in-process and the CLI-level NIST runners must enumerate the *same universe* from the *same manifest* (`DESIGN-test-build-ci.md` §1.2).
 
 **Verify:**
 ```
