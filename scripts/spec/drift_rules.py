@@ -122,7 +122,12 @@ COMMENT = re.compile(r"//[^\n]*")
 TREE_ROOTS = r"(?:src|tests|docs|scripts|specs|kb|grammars|\.github|adjudication|conformance-suite)"
 LITERAL = re.compile(r'"(' + TREE_ROOTS + r'/[^"\s{}*]+)"')
 SUMMARY = re.compile(r"///\s*<summary>(.*?)</summary>", re.S)
-CLASS = re.compile(r"\bclass\s+(\w*DriftTests)\b")
+#: A drift class as a gate display name sees it: a partition `Family_P<k>` is the FAMILY (gate_plan.name_key), and an
+#: abstract base such as `FamilyDriftTestsBase` is no test, so neither matches.
+# A DECLARATION, which starts its line (attributes and modifiers before it): a `class XDriftTests {` a drift test PLANTS
+# inside a string literal, mid-line, declares no class of the assembly (kb/Work PB4325 review R1-4).
+CLASS = re.compile(r"^[ \t]*(?:\[[^\]\n]*\][ \t]*)*(?:(?:public|internal|private|protected|sealed|static|partial|abstract|file)\s+)*"
+                   r"class\s+(\w*DriftTests)(?:_P\d+)?\b", re.MULTILINE)
 CREF = re.compile(r'<(?:see|seealso)\s+(?:cref|langword|href)="(?:[A-Z]:)?([^"]+)"\s*/>')
 PARAMREF = re.compile(r'<(?:paramref|typeparamref)\s+name="([^"]+)"\s*/>')
 TAG = re.compile(r"<[^>]+>")
@@ -530,16 +535,19 @@ def owners(scope):
 
 
 def index(root=ROOT, sources=None):
-    """One row per drift test: its class, file, rule, the paths it names ("paths"), the paths it reads only through a
-    helper class ("through": {path: helper source}), its declared scopes and the calls that read a repo path of which
-    no segment is spelled ("unresolved", `Sources.reads`)."""
+    """One row per drift test FILE: its class ("test", the first the file declares), every drift class the file declares
+    ("classes": a file whose cases were split into several classes or partitions is governed by each of them, kb/Work
+    PB4325 review R1-1), its file, rule, the paths it names ("paths"), the paths it reads only through a helper class
+    ("through": {path: helper source}), its declared scopes and the calls that read a repo path of which no segment is
+    spelled ("unresolved", `Sources.reads`)."""
     sources = sources or Sources(root)
     rows = []
     for f in drift_files(root):
         rel = f.relative_to(root).as_posix()
         text = sources.text(rel)
         m = CLASS.search(text)
-        rows.append({"test": m.group(1) if m else f.stem, "file": rel, "rule": rule_of(text),
+        classes = list(dict.fromkeys(CLASS.findall(text)))
+        rows.append({"test": m.group(1) if m else f.stem, "classes": classes or [f.stem], "file": rel, "rule": rule_of(text),
                      "paths": sources.own(rel), "through": sources.inherited(rel), "scopes": scopes_of(text)[0],
                      "unresolved": sources.unresolved(rel)})
     return rows
@@ -618,7 +626,7 @@ def governed(rows, paths):
     out = set()
     for rel in paths:
         specific, sweeps = governing(rows, rel)
-        out |= {r["test"] for r in specific + sweeps}
+        out |= {c for r in specific + sweeps for c in r["classes"]}
     return out
 
 
@@ -683,7 +691,7 @@ def data_files(rows):
     out = {}
     for p in sorted({p for r in rows for p in reads(r) if not p.endswith(".cs")}):
         if (ROOT / p).is_file():
-            out[p] = sorted(r["test"] for r in governing(rows, p)[0])
+            out[p] = sorted({c for r in governing(rows, p)[0] for c in r["classes"]})
         elif (ROOT / p).is_dir():
             # A register kept one row per file is JSON (corpora, goldens and build outputs are not registers: only the
             # TRACKED files count, so an untracked cache or bin/obj JSON under the directory is never one). The files of
@@ -693,7 +701,7 @@ def data_files(rows):
                 if rel.endswith(".json"):
                     parent = rel.rpartition("/")[0]
                     if parent not in by_parent:
-                        by_parent[parent] = sorted(r["test"] for r in governing(rows, rel)[0])
+                        by_parent[parent] = sorted({c for r in governing(rows, rel)[0] for c in r["classes"]})
                     out.setdefault(rel, by_parent[parent])
     return out
 
@@ -918,6 +926,15 @@ def self_test():
                                                       '    string A => Src("Dir", "A.cs");\n'
                                                       '    IEnumerable<string> B => names.Select(Src);'),
             "tests/P/BlindDriftTests.cs": drift("BlindDriftTests", '    string A(string tree) => TestRepo.At(tree);'),
+            # A file whose cases were split (kb/Work PB4325 review R1-1): a second class, a partitioned family (its
+            # display name is the family, gate_plan.name_key) and an abstract base, which is no test; and a class
+            # PLANTED in a string literal (review R1-4: TrackedTreeScopeDriftTests.cs), which is no class either.
+            "tests/P/SplitDriftTests.cs": drift("SplitDriftTests", '    string A => TestRepo.Docs("OTHER.md");')
+                                          + "public sealed class SplitSecondDriftTests { }\n"
+                                          + "public abstract class SplitFamilyDriftTestsBase<T> { }\n"
+                                          + "public sealed class SplitFamilyDriftTests_P0 : SplitFamilyDriftTestsBase<int>;\n"
+                                          + "public sealed class SplitFamilyDriftTests_P1 : SplitFamilyDriftTestsBase<long>;\n"
+                                          + 'string planted = "public sealed class PlantedLiteralDriftTests { }";\n',
             "conformance-suite/cases/1.2-Clause/g1.cob": "", "conformance-suite/cases/1.2-Clause/g1.out": "",
             "tests/nist/cases/N1.txt": "", "docs/OTHER.md": "", "src/Proj/Dir/A.cs": ""}
         for rel, text in planted.items():
@@ -940,6 +957,11 @@ def self_test():
               by["ReadsNotesDriftTests"]["through"])
         check("a helper of another test project is not this project's (tests/Q/Chain.cs reads docs/OTHER.md)",
               "ReadsCorpusDriftTests" not in gov("docs/OTHER.md"), by["ReadsCorpusDriftTests"]["through"])
+        check("every class a split file declares governs what the file reads, a partition as its family, a base not at all, "
+              "a class planted in a string literal not at all",
+              by["SplitDriftTests"]["classes"] == ["SplitDriftTests", "SplitSecondDriftTests", "SplitFamilyDriftTests"]
+              and gov("docs/OTHER.md") >= {"SplitDriftTests", "SplitSecondDriftTests", "SplitFamilyDriftTests"},
+              (by["SplitDriftTests"]["classes"], sorted(gov("docs/OTHER.md"))))
         check("a comment naming a helper is no use of it",
               "CommentOnlyDriftTests" not in gov("conformance-suite/cases/1.2-Clause/g1.cob"),
               by["CommentOnlyDriftTests"]["through"])
