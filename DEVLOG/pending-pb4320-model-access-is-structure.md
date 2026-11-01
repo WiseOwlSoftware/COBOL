@@ -20,7 +20,10 @@ the root segment by `Reroot`; `CallBridge` carries the member name and its ancho
 unanchored source (`GlobalBridgeMembersOf`) that the member-name reservation reads too. A sort key carries its member
 chain of items (`BoundTableSortKey.MemberChain`). The Roslyn backend spells every one: `PlaceRenderer.RootStorage`,
 `PlaceRenderer.Anchored`, `ProgramEmitter.ClassRef`, the sort comparer. `BoundUnit.AnchorOf` no longer reaches into
-`CodeGen.RuntimeApi`.
+`CodeGen.RuntimeApi`, which was the last `Binding.Model → CodeGen` use: that is kb/Work PB2397's extract wave, landed
+here with a census record at b8e4a3b58 and the tolerated row deleted from `architecture-edges.json` by the ratchet.
+The inventory rows that named the renamed members (GR-14.9.4.4-12 `RootOf`, SR-14.9.40.3-14 `SortMemberPath`) carry
+the new names through a `record_verdicts` batch that retires the old witnesses (GAP 19 → 19).
 
 **Behavior neutrality.** `scripts/arch/compare_oracle.py` against the base commit's capture: IDENTICAL over all 15712
 cases (emitted C# and diagnostics). The corpus holds 304 programs with a carrier-resident formal, 5 with a guarded
