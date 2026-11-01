@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SELF-TEST-CLOCK: real — the long-hold arm compares a holder process's real start time with the clock
 """gate_slot.py — THE CROSS-WORKTREE GATE CAP: one FIFO counting semaphore per repository (kb/Work PB1708, PB1720),
 and THE SHARED GATE SETTING, the cap, that every gate reads from the same place (kb/Work PB2514).
 
