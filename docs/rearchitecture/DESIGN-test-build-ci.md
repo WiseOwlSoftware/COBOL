@@ -58,7 +58,7 @@ Every later section describes one mechanism of it in detail.
    NIST guard (`scripts/guard-fast.sh`), every self-test on both operating systems, the GnuCOBOL differential, the
    toolchain's latest-version check and the shard-weights report. It blocks nothing.
 8. **Per accumulated batch**, before a release: the comprehensive battery plus the GnuCOBOL differential in its own
-   worktree (§5; the `gate` skill).
+   worktree (plan section 9; the `gate` skill).
 
 ---
 
