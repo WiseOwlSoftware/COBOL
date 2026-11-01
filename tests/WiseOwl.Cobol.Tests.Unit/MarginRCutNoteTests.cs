@@ -92,7 +92,7 @@ public sealed class MarginRCutNoteTests : IDisposable
 
         string note = Assert.Single(Notes(diagnostics));
         Assert.Contains("main.cob(9,66): warning", note);                                  // the column the file holds position 73 at
-        Assert.Contains("it ends at position 72 (a tab counts the positions it fills, so the cut stands at column 66 of the line", note);
+        Assert.Contains("it ends at position 72 (a tab counts the positions it fills, so the column this warning names, where the file holds the cut, is less than that)", note);
         Assert.Contains("'CONTENT WS-REPLY' (positions 73 to 88)", note);                   // positions, not columns 66 to 81
         Assert.Contains("Shorten the line to end at position 72", note);
         AssertStopRunIsTheErrorAfterTheCut(diagnostics);
