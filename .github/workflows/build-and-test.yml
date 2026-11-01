@@ -65,7 +65,7 @@ concurrency:
 # downloads and scripts/shard_weights.py reads. Each such step also sets WISEOWL_COBOL_HARNESS_LOG to
 # <its results directory>/harness-observations.log and its job uploads that file with the TRX: the test harness's every
 # retry and non-observation of a child process, with the budget, the work it covered and the host's load, so a
-# non-observation on CI is read from the artifact (kb/Work PB3108; CiHarnessLogDriftTests).
+# non-observation on CI is read from the artifact (kb/Work PB3108; scripts/test_linux_gate.py).
 #
 # ⛔ AN ARTIFACT NEVER DECIDES A VERDICT (kb/Work PB3140; CiArtifactDriftTests): every upload goes through ONE step,
 # ./.github/actions/upload-results (tried three times; when all fail it warns and passes), and every download through
