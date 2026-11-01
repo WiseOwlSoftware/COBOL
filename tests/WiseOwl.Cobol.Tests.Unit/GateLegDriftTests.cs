@@ -323,6 +323,15 @@ public sealed class GateLegDriftTests
             $"{Ns}.Dup.Long(s: \"0123456789012345678901234567890123456789012345678\"···)"),
         ("", ""),
         ("NoDots", "NoDots"),
+        // THE TRX'S SPELLING (kb/Work PB4274): xunit lists a supplementary-plane character literally and the trx logger
+        // writes each of its surrogates as \uXXXX, so the key is the logger's spelling. A lone surrogate xunit already
+        // wrote as \xd800, and the literal text that xunit writes with a doubled backslash, are left as they are.
+        ($"{Ns}.C_P2.M(s: \"A\U0001E900\")", $"{Ns}.C.M(s: \"A\\ud83a\\udd00\")"),
+        ($"{Ns}.C.M(s: \"\U0001D15E\")", $"{Ns}.C.M(s: \"\\ud834\\udd5e\")"),
+        ($"{Ns}.C.M(s: \"\\ud834\\udd5e\")", $"{Ns}.C.M(s: \"\\ud834\\udd5e\")"),
+        ($"{Ns}.C.M(s: \"\\\\ud834\\\\udd5e\")", $"{Ns}.C.M(s: \"\\\\ud834\\\\udd5e\")"),
+        ($"{Ns}.C.M(s: \"x\\xd800y\")", $"{Ns}.C.M(s: \"x\\xd800y\")"),
+        ($"{Ns}.C.M(s: \"z￿\")", $"{Ns}.C.M(s: \"z\\uffff\")"),
     ];
 
     [Fact]
