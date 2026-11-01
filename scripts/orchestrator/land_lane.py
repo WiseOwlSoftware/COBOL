@@ -870,7 +870,7 @@ def classify_red(f: RedFacts) -> tuple[str, str]:
                        "Linux, Release, host or runner difference, or a flake")
 
 
-def red_facts(att: dict[str, Any], pr: Any, fetch: Callable[[str, pathlib.Path], str] | None = None) -> RedFacts:
+def red_facts(att: dict[str, Any], pr: Any, fetch: Callable[[str, pathlib.Path], queue_facts.BounceFetch] | None = None) -> RedFacts:
     """THE FACTS OF A BOUNCE, read (the queue watch's `red_facts` effect): the failed merge-group run's red cases and the
     branch's GREEN gate record of the queued head (`end_head`), both in the attempt's worktree. `fetch(branch, dest)`
     downloads the run's results (queue_facts.fetch_bounce_results, GitHub's one reader; the self-test plants it). Never
@@ -884,10 +884,13 @@ def red_facts(att: dict[str, Any], pr: Any, fetch: Callable[[str, pathlib.Path],
     if not att.get("worktree") or not wt.is_dir():
         return RedFacts(unobserved=f"the branch's worktree {att.get('worktree') or '(none recorded)'} is gone")
     dest = wt / gate.CI_BOUNCE_RESULTS
-    line = (fetch or queue_facts.fetch_bounce_results)(str(att["branch"]), dest)
+    got = (fetch or queue_facts.fetch_bounce_results)(str(att["branch"]), dest)
     src = queue_facts.bounce_source(dest)
-    if src is None or src.pr != pr.number:
-        return RedFacts(unobserved=line)
+    # The results are the newest failed run's only when the fetch says it holds them now: a download that failed, an
+    # expired artifact or an unreachable GitHub leaves dest as it was, and it then holds an OLDER bounce's results of the
+    # same pull request (a reused one keeps its number), which would classify this red on another run's cases.
+    if not got.run or src is None or src.run != got.run or src.pr != pr.number:
+        return RedFacts(unobserved=got.line)
     try:
         failed = frozenset(tp.red_cases(sorted(dest.rglob("*.trx"))))
     except tp.UnreadableTrx as e:
@@ -2443,9 +2446,11 @@ def self_test() -> int:
                                        (green_gate,), "o/r")
         fetched: list[str] = []
 
-        def fetch(b: str, d: pathlib.Path) -> str:
+        answered = [9001]   # the run the planted fetch says the directory holds now (0: its download failed)
+
+        def fetch(b: str, d: pathlib.Path) -> queue_facts.BounceFetch:
             fetched.append(b)
-            return "ci bounce: planted"
+            return queue_facts.BounceFetch("ci bounce: planted", answered[0])
         plant_bounce(893, [("A.Pass", ["Failed"]), ("C.Other", ["Passed"])])
         ran_green = red_facts(att18, pr18, fetch)
         plant_bounce(1, [("A.Pass", ["Failed"])])
@@ -2460,6 +2465,22 @@ def self_test() -> int:
         (rec_dir / "Unit.trx").unlink()
         pruned = red_facts(att18, pr18, fetch)
         gone = red_facts({**att18, "worktree": str(root / "no-such-worktree")}, pr18, fetch)
+        # An EARLIER bounce's results of the same pull request (run 9001, a reused pull request keeps its number) still
+        # sit in the directory when the NEW red's results cannot be downloaded (the fetch answers run 0), or when the
+        # fetch answers another run than the one the directory's marker names (kb/Work PB4271, review w20261808a r1).
+        plant_bounce(893, [("A.Pass", ["Failed"])])
+        answered[0] = 0
+        stale = red_facts(att18, pr18, fetch)
+        answered[0] = 9003
+        other_run = red_facts(att18, pr18, fetch)
+        answered[0] = 9001
+        expect("red_facts: results of an OLDER bounce are never the new red's: a fetch that could not download the new run's "
+               "results (it answers run 0) or answers a run the directory's marker does not name leaves the red "
+               "UNCLASSIFIED, the finisher's, with the fetch's own line, never classified RUNNER and re-queued on another "
+               "run's cases (kb/Work PB4271)",
+               stale.unobserved == other_run.unobserved == "ci bounce: planted" and not stale.failed and not other_run.failed
+               and classify_red(stale)[0] == classify_red(other_run)[0] == lm.UNCLASSIFIED,
+               f"{stale} {other_run}")
         expect("red_facts: the bounce's red cases (by name) beside the gate record that covers the queued head, the run a "
                "REUSED record names read for its cases; results of another pull request, a record whose results are gone "
                "and a worktree that is gone are said, never guessed (kb/Work PB4271)",
@@ -2468,7 +2489,7 @@ def self_test() -> int:
                and other_pr.unobserved == "ci bounce: planted" and classify_red(other_pr)[0] == lm.UNCLASSIFIED
                and reused.record == rec_dir.name and classify_red(reused)[0] == lm.GENUINE
                and not pruned.record and "keeps no test results" in pruned.no_record
-               and classify_red(pruned)[0] == lm.UNCLASSIFIED and "gone" in gone.unobserved and fetched == ["w18"] * 4,
+               and classify_red(pruned)[0] == lm.UNCLASSIFIED and "gone" in gone.unobserved and fetched == ["w18"] * 6,
                f"{ran_green} {other_pr} {reused} {pruned} {gone} {fetched}")
 
         c18 = fresh("reds")

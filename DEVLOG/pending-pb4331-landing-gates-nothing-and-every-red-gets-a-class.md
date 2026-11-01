@@ -32,6 +32,13 @@ every other class, a second red of a re-queued landing, the same bounce read aga
 watch BOUNCED for the finisher with the class on its line. `test_population.red_cases` names the red cases (one
 iterator under it and `red_classes`).
 
+**Review round 1 (blocking R1-1).** `queue_facts.fetch_bounce_results` leaves the results directory as it was when the new
+run's download fails, so `red_facts` could classify a new red on an OLDER bounce's cases of the same pull request (a
+reused pull request keeps its number) and re-queue it as RUNNER. The fetch now answers a `BounceFetch` (the line, and the
+`run` whose results the directory holds now, 0 when it holds none of the newest failed run's) and `red_facts` trusts the
+provenance marker only when it names that run; otherwise the red is UNCLASSIFIED with the fetch's line. Arms: queue_facts.py
+(the run each fetch answers) and land_lane.py arm 18 (a failed download, a mismatched run).
+
 **Self-tests.** enqueue.py: the gate arms deleted; new arms for a running gate beside an older covering GREEN record
 (exit 12, nothing written), a STARTING run, an unreviewed lane with no record (exit 14) and a true textual merge
 landed with no gate; 60 arms PASS. land_lane.py arm 18 (classify_red's every class, red_facts on a planted worktree,

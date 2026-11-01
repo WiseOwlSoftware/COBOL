@@ -48,7 +48,9 @@ Every later section describes one mechanism of it in detail.
    infrastructure, never an untested case. kb/Work PB1957 is the record of each class's differences and rate.
 6. **Every merge-queue red is classified before anyone is blamed** (`scripts/orchestrator/land_lane.py`, the queue
    watch; kb/Work PB4271, PB4331): the failed run's red cases (downloaded into the worktree's `TestResults/ci-bounce`,
-   which the finisher's gate runs first) are compared with the branch's GREEN record. INFRA (no test failed, or the run
+   which the finisher's gate runs first, and trusted only when `fetch_bounce_results` answers that they are the failed run's:
+   a failed download leaves an older bounce's results there, and the red is then UNCLASSIFIED) are compared with the
+   branch's GREEN record. INFRA (no test failed, or the run
    timed out) and RUNNER (every red case ran GREEN in the record, or the record is the inert lane's) are re-queued once
    with no agent and filed against the pipeline (`landing_measure.py`'s `reds`, the `infrastructure` cause); GENUINE (a
    case the record listed but did not run), MERGE (a case it lacks), UNCLASSIFIED and a second red of a re-queued
