@@ -322,46 +322,34 @@ public sealed class CatalogCoverageDriftTests
     /// <summary>A line that WRITES the general-format heading as a pattern: a regex literal or a substring test
     /// spelling the words itself. The words are built from parts so this file is not its own offender (it is also
     /// excluded by name, as the one reader allowed to talk about the pattern). A lower-case spelling counts only as a
-    /// regex (<c>general\s+form…</c>): lower-case words in a keyword list are prose, not the heading.</summary>
+    /// regex (<c>general\s+form…</c>): lower-case words in a keyword list are prose, not the heading. This is the C#
+    /// half of the no-copy sweep; the Python half, over the scripts, is <c>scripts/spec/spec_headings.py --self-test</c>
+    /// (<c>spells_the_heading</c>, kb/Work PB4395 item 1: a fact about the scripts lives in a script's self-test).</summary>
     private static readonly Regex HeadingWordsSpelledOut =
         new(@"General(?:\\s[+*]?|\s)\(?\??:?form|general\\s[+*]?\(?\??:?form", RegexOptions.Compiled);
 
-    private static readonly Regex PatternContext =
-        new(@"\bre\.(?:compile|search|match|fullmatch|findall|sub)\(|\bcompile\(|\bnew\(@""|\bRegex\b|@""", RegexOptions.Compiled);
+    /// <summary>A C# line that builds or applies a pattern: a <c>Regex</c>, or a verbatim string literal.</summary>
+    private static readonly Regex PatternContext = new(@"\bnew\(@""|\bRegex\b|@""", RegexOptions.Compiled);
 
-    /// <summary>A substring test of the heading in ANY case: <c>"General format" not in page_text</c>,
-    /// <c>"general format" in title.lower()</c>, <c>title.startswith("general form")</c>,
-    /// <c>title.Contains("general format", …)</c>. Case-insensitive on purpose: the audit_code_citations copy found in
-    /// branch review round 2 (R2-1) was exactly the case-folded shape the capital-G-only test could not see.</summary>
+    /// <summary>A substring test of the heading in ANY case: <c>title.Contains("general format", …)</c>,
+    /// <c>title.StartsWith("General form")</c>. Case-insensitive on purpose: the audit_code_citations copy found in
+    /// branch review round 2 (R2-1) was exactly the case-folded shape a capital-G-only test could not see.</summary>
     private static readonly Regex MembershipTest =
-        new(@"[""']general\s?form[^""']*[""']\s+(?:not\s+)?in\b"
-            + @"|\.(?:startswith|endswith|find|count|contains|indexof)\(\s*[""']general\s?form",
-            RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    /// <summary>A lower-case regex of the heading in a PYTHON <c>re</c> call: <c>re.compile(r"general formats?", re.I)</c>.
-    /// Python-only (the call is part of the shape), so a C# keyword alternation that merely contains the words stays prose.</summary>
-    private static readonly Regex PythonLowerPattern =
-        new(@"\bre\.(?:compile|search|match|fullmatch|findall|sub)\(.*general(?:\\s[+*]?|\s)\(?\??:?form", RegexOptions.Compiled);
+        new(@"\.(?:startswith|endswith|contains|indexof)\(\s*""general\s?form", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     private static bool SpellsTheHeading(string line)
     {
-        string t = line.TrimStart();
-        if (t.StartsWith('#') || t.StartsWith("//")) return false;
-        return HeadingWordsSpelledOut.IsMatch(line) && PatternContext.IsMatch(line)
-               || MembershipTest.IsMatch(line) || PythonLowerPattern.IsMatch(line);
+        if (line.TrimStart().StartsWith("//", StringComparison.Ordinal)) return false;
+        return HeadingWordsSpelledOut.IsMatch(line) && PatternContext.IsMatch(line) || MembershipTest.IsMatch(line);
     }
 
-    /// <summary>The no-copy sweep can fail: each way of writing the heading pattern is flagged, and a keyword list
-    /// that merely contains the words is not.</summary>
+    /// <summary>The no-copy sweep can fail: each C# way of writing the heading pattern is flagged, and a keyword list
+    /// or a doc comment that merely contains the words is not.</summary>
     [Theory]
-    [InlineData("GF = re.compile(r\"general\\s+formats?$\", re.I)", true)]
-    [InlineData("if \"General format\" not in page.get_text():", true)]
     [InlineData("var m = Regex.Match(line, @\"^#+\\s+(\\d+)\\s+General formats?\\s*$\");", true)]
     [InlineData("new(@\"^#{2,6}\\s+General\\s+form(?:at)?s?\\.?\\s*$\")", true)]
-    [InlineData("in_formats = \"general format\" in title.lower()", true)]
-    [InlineData("GF = re.compile(r\"general formats?\", re.I)", true)]
     [InlineData("if (title.Contains(\"general format\", StringComparison.OrdinalIgnoreCase))", true)]
-    [InlineData("if title.lower().startswith(\"general form\"):", true)]
+    [InlineData("if (title.StartsWith(\"General form\", StringComparison.Ordinal))", true)]
     [InlineData("@\"\\bSR\\s?\\d|syntax rule|general format|non-ISO\",", false)]
     [InlineData("    /// the clause that prints its General formats", false)]
     public void TheNoCopySweep_FlagsEachSpellingAndNotAKeywordList(string line, bool flagged)
@@ -369,26 +357,24 @@ public sealed class CatalogCoverageDriftTests
         Assert.Equal(flagged, SpellsTheHeading(line));
     }
 
-    /// <summary>The scripts the no-copy sweep reads: every tracked Python script but the heading's owner.</summary>
-    private static readonly TreeScope HeadingScripts = new(Under: ["scripts/"], Except: ["scripts/spec/spec_headings.py"], Kinds: [".py"]);
-
     /// <summary>The C# the no-copy sweep reads: the compiler's and the tests', but the heading's owner and this file.</summary>
     private static readonly TreeScope HeadingSources = new(Under: ["src/", "tests/"],
         Except: ["tests/_shared/SpecClauseText.cs", "tests/WiseOwl.Cobol.Tests.Unit/CatalogCoverageDriftTests.cs"], Kinds: [".cs"]);
 
-    /// <summary>⛔ ONE RULE, ONE PLACE: NO SCRIPT AND NO TEST SPELLS THE GENERAL-FORMAT HEADING ITSELF (kb/Work PB284,
-    /// branch review round 1). The extractor was repaired for the one clause headed "General forms" while seven
+    /// <summary>⛔ ONE RULE, ONE PLACE: NO COMPILER OR TEST SOURCE SPELLS THE GENERAL-FORMAT HEADING ITSELF (kb/Work
+    /// PB284, branch review round 1). The extractor was repaired for the one clause headed "General forms" while seven
     /// sibling copies of the heading regex kept keying on "format" alone: the figure sweep located 0 figures for
     /// §14.9.7.2 and answered CHECK: clean, and was equally blind to §7.3.23.2 ("General format." with a period).
-    /// The Python readers import <c>spec_headings.py</c>; the C# guards compose <c>SpecClauseText.GeneralFormatNoun</c>
-    /// (the two are held to the same clause set by <c>spec_headings.py --self-test</c>). A pattern written anywhere
-    /// else is a copy that will miss the next spelling.</summary>
+    /// The C# guards compose <c>SpecClauseText.GeneralFormatNoun</c>, the Python readers import
+    /// <c>spec_headings.py</c> (the two are held to the same clause set by <c>spec_headings.py --self-test</c>, which
+    /// also sweeps the scripts for a private copy). A pattern written anywhere else is a copy that will miss the next
+    /// spelling.</summary>
     [Fact]
-    public void NoScriptOrTest_SpellsTheGeneralFormatHeadingItself()
+    public void NoCompilerOrTestSource_SpellsTheGeneralFormatHeadingItself()
     {
         var offenders = new List<string>();
         int scanned = 0;
-        foreach (string path in TrackedTree.Files(HeadingScripts).Concat(TrackedTree.Files(HeadingSources)))
+        foreach (string path in TrackedTree.Files(HeadingSources))
         {
             scanned++;
             string[] lines = File.ReadAllLines(TestRepo.At(path));
@@ -397,10 +383,10 @@ public sealed class CatalogCoverageDriftTests
                 if (SpellsTheHeading(lines[i])) offenders.Add($"{path}:{i + 1}: {lines[i].Trim()}");
             }
         }
-        Assert.True(scanned > 100, $"only {scanned} script/test sources scanned — the sweep reads nothing");
+        Assert.True(scanned > 100, $"only {scanned} compiler/test sources scanned — the sweep reads nothing");
         Assert.True(offenders.Count == 0,
-            "a script or test writes the general-format heading pattern itself. Import scripts/spec/spec_headings.py "
-            + "(GENERAL_FORMAT_TITLE / GENERAL_FORMAT_PRINTED) or compose SpecClauseText.GeneralFormatNoun / "
+            "a compiler or test source writes the general-format heading pattern itself. Compose "
+            + "SpecClauseText.GeneralFormatNoun / "
             + "GeneralFormatHeading, so the one clause headed 'General forms' (14.9.7.2) and the one headed "
             + "'General format.' (7.3.23.2) are never skipped again:\n  " + string.Join("\n  ", offenders));
     }

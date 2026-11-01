@@ -320,9 +320,9 @@ CLASSIFICATION = Classification(inert={
                                 "the eleven test_orchestrate_*.ps1 parts",
    },
    # ⛔ CODE_READS: the tooling the compiler's build or tests read (module docstring, THE TOOLING LANE), held by the
-   # watch on every Linux test run and by `check` (the INERT LANE audit) on every host. An entry names its readers. A
-   # whole-tree entry names the pipeline classes still in the compiler's test assembly that walk it (kb/Work PB4395
-   # item 1 moves each into a script's self-test, and the entry narrows when its last walker leaves).
+   # watch on every Linux test run and by `check` (the INERT LANE audit) on every host. An entry names its readers: the
+   # exact file a compiler test or the build reads, or a directory a compiler test reads below; a fact about the tooling
+   # alone lives in that tooling's self-test, never here (kb/Work PB4395 item 1).
    code_reads={
        ".gitattributes": "every compiler test: the checkout's bytes (line endings) of every file it reads",
        "toolchain.env": "every compiler test and the build: the SDK they run on (the toolchain manifest, kb/Work PB4007)",
@@ -362,6 +362,28 @@ TEST_REPO_RE = re.compile(r"\bTestRepo\.(?P<method>Scripts|At|Src|Tests|Docs|Sui
 TEST_REPO_PREFIX = {"Scripts": "scripts", "At": "", "Src": "src", "Tests": "tests", "Docs": "docs",
                     "Suite": "conformance-suite"}
 STRING_LITERAL_RE = re.compile(r'^\s*"(?P<s>[^"\\{}]*)"\s*$')
+#: A compiler test LISTING a repository directory: `Directory.EnumerateFiles(TestRepo.<method>(…), "<pattern>"[, option])`
+#: (or `GetFiles`). With a literal pattern it reads the files the pattern matches in that directory alone, or in its
+#: whole subtree when the option is `SearchOption.AllDirectories` (or computed); a computed pattern is not this form.
+ENUMERATE_RE = re.compile(r"\bDirectory\.(?:EnumerateFiles|GetFiles)\(\s*(?P<call>TestRepo\.\w+\([^()]*\))\s*,\s*"
+                          r'"(?P<pattern>[^"\\{}]*)"\s*(?:,\s*(?P<option>[\w.]+)\s*)?\)')
+
+
+def _repo_call_path(m: re.Match[str]) -> str | None:
+    """The repository path a `TEST_REPO_RE` match names ("" for the repository root), or None for a computed argument."""
+    if not m.group(0).endswith(")"):
+        return None  # a nested call: a computed argument
+    literals = [STRING_LITERAL_RE.match(a) for a in m.group("args").split(",") if a.strip()]
+    if not all(literals):
+        return None
+    return "/".join(p for p in [TEST_REPO_PREFIX[m.group("method")]] + [lit.group("s") for lit in literals] if p)
+
+
+def _listing_glob(pattern: str, recursive: bool) -> re.Pattern[str]:
+    """A .NET search pattern (`*`, `?`; case-insensitive, as on Windows, so the scan never reads less than a test can)
+    as a regex over the path below the listed directory."""
+    body = "".join("[^/]*" if ch == "*" else "[^/]" if ch == "?" else re.escape(ch) for ch in pattern)
+    return re.compile(("(?:[^/]+/)*" if recursive else "") + body, re.IGNORECASE)
 
 
 def path_literal_re(trees: Iterable[str]) -> re.Pattern[str]:
@@ -393,7 +415,9 @@ def _build_readers(root: Path, paths: list[str]) -> Iterable[tuple[str, str]]:
 def _test_readers(root: Path, paths: list[str], literal: re.Pattern[str]) -> Iterable[tuple[str, str]]:
     """Every repository path a compiler test NAMES through `TestRepo.<method>(…)` with string-literal arguments only: the
     file, or the directory (every path below it), the literals spell; with none, the method's own directory
-    (`TestRepo.Scripts()` is all of scripts/). A call with a computed argument names no path
+    (`TestRepo.Scripts()` is all of scripts/), except the directory of a LISTING by a literal pattern
+    (`Directory.EnumerateFiles(TestRepo.Scripts(), "guard*.sh")`, `ENUMERATE_RE`), which reads only the files the pattern
+    matches there, or below it with `SearchOption.AllDirectories`. A call with a computed argument names no path
     this scan can know; what such a test reads is the watch's to see (module docstring), and its literal prefix alone
     would make whole trees code (measured 2026-11-01: 26 classes' computed calls spelled the whole repository)."""
     for rel in paths:
@@ -404,15 +428,24 @@ def _test_readers(root: Path, paths: list[str], literal: re.Pattern[str]) -> Ite
         except OSError:
             continue
         code = "\n".join(x for x in text.splitlines() if not x.lstrip().startswith("//"))
+        # A listing of one directory by a literal pattern reads the files it matches, never the directory's whole tree
+        # (kb/Work PB4395 review R1-1: CorpusManifestTests lists only the top-level scripts/guard*.sh).
+        listed: set[int] = set()
+        for e in ENUMERATE_RE.finditer(code):
+            call = TEST_REPO_RE.match(code, e.start("call"))
+            where = _repo_call_path(call) if call else None
+            if where is None:
+                continue  # a computed directory: the generic scan below and the watch
+            listed.add(e.start("call"))
+            option = e.group("option")
+            glob = _listing_glob(e.group("pattern"), option is not None and option != "SearchOption.TopDirectoryOnly")
+            prefix = where + "/" if where else ""
+            yield from ((p, rel) for p in paths if p.startswith(prefix) and glob.fullmatch(p[len(prefix):]))
         for m in TEST_REPO_RE.finditer(code):
-            if not m.group(0).endswith(")"):
-                continue  # a nested call: a computed argument
-            parts = [TEST_REPO_PREFIX[m.group("method")]]
-            literals = [STRING_LITERAL_RE.match(a) for a in m.group("args").split(",") if a.strip()]
-            if not all(literals) or not (literals or parts[0]):
-                continue  # computed, or `TestRepo.At()`: the root itself, whose walks the watch sees
-            path = "/".join(p for p in parts + [lit.group("s") for lit in literals] if p)
-            if path:
+            if m.start() in listed:
+                continue
+            path = _repo_call_path(m)
+            if path:  # None is computed; "" is `TestRepo.At()`, the root itself, whose walks the watch sees
                 yield path, rel
         # A repository path spelled whole in a string literal (`"scripts/orchestrator/groups.py"`, a TreeScope's
         # `Under: ["scripts/", ".claude/"]`): a message names no path (it holds a space or a placeholder).
@@ -735,9 +768,12 @@ def self_test() -> int:
                         "tests/version-matrix/", "docs/CONFORMANCE.md", "docs/DESIGN.md", "docs/REARCHITECTURE_PLAN.md",
                         "src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin") if e not in real.tooling_reads], [])
     expect("the real classification: the build's and the compiler tests' tooling is CODE_READS (.gitattributes, "
-           "toolchain.env, the generators under scripts/), while a tool no compiler test names is the tooling lane",
+           "toolchain.env, the generators under scripts/), while a tool no compiler test names is the tooling lane "
+           "(PB4395's acceptance: scripts/orchestrator/steer.ps1, which no CODE_READS entry may swallow again)",
            [real.classify([p]).name for p in (".gitattributes", "toolchain.env", "scripts/gen-reserved-words.ps1",
-                                              "tools/a-new-tool.py")], ["full", "full", "full", "tooling"])
+                                              "scripts/gen-grammar-diagrams.ps1", "tools/a-new-tool.py",
+                                              "scripts/orchestrator/steer.ps1")],
+           ["full", "full", "full", "full", "tooling", "tooling"])
     from scratch_repo import ScratchRepo, scratch_dir  # noqa: PLC0415
 
     root = scratch_dir("inert-lane-")
@@ -778,6 +814,19 @@ def self_test() -> int:
                 "scripts/Gen.ps1": "", "scripts/a.py": "", "scripts/built.py": "", "scripts/spec/": "",
                 "src/P/": ""}).check(root)),
            (4, ["the CODE_READS entry 'src/P/' lies in no tooling tree (TOOLING_UNDER), so it changes no lane: remove it"]))
+    # A listing by a literal pattern reads what it matches (PB4395 review R1-1: CorpusManifestTests lists the top-level
+    # scripts/guard*.sh): never a sibling the pattern misses, never a subdirectory without AllDirectories.
+    repo.commit("listings", {
+        "scripts/guard-a.sh": "x\n", "scripts/Guard-B.sh": "x\n", "scripts/other.sh": "x\n", "scripts/sub/guard-c.sh": "x\n",
+        "scripts/deep/x.py": "x\n", "scripts/deep/y/z.py": "x\n", "scripts/deep/y/z.sh": "x\n",
+        "tests/L.cs": "class L { void M() {\n"
+                      "  foreach (var f in Directory.EnumerateFiles(TestRepo.Scripts(), \"guard*.sh\").Order()) { }\n"
+                      "  var d = Directory.GetFiles(TestRepo.Scripts(\"deep\"), \"*.py\", SearchOption.AllDirectories);\n"
+                      "  var t = Directory.EnumerateFiles(TestRepo.Scripts(\"deep\"), \"?.sh\", SearchOption.TopDirectoryOnly); } }\n"})
+    expect("code_readers: a literal listing reads the files its pattern matches in that directory, or below it with "
+           "AllDirectories; the directory's other files and subdirectories are not read",
+           sorted(p for p, r in code_readers(root, tracked(root), tc2.tooling_under) if r == "tests/L.cs"),
+           ["scripts/Guard-B.sh", "scripts/deep/x.py", "scripts/deep/y/z.py", "scripts/guard-a.sh"])
     if sys.platform.startswith("linux"):
         py = [sys.executable, "-c"]
         out: list[str] = []

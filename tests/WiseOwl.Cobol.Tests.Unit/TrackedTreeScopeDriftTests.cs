@@ -18,8 +18,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <remarks>
 /// Why: a sweep that read <c>git ls-files</c> and filtered it in code named no path, so the index could not see it.
 /// Seven such classes were invisible to <c>drift_rules.py</c>; one of them
-/// (<c>CatalogCoverageDriftTests.NoScriptOrTest_SpellsTheGeneralFormatHeadingItself</c>) was not listed for the script
-/// PB3523's branch edited, the Windows gate left it in leg 2, and the landing's Linux unit leg found the red.
+/// (the general-format heading's no-copy sweep, whose half over the scripts is now <c>spec_headings.py --self-test</c>)
+/// was not listed for the script PB3523's branch edited, the Windows gate left it in leg 2, and the landing's Linux unit leg found the red.
 /// </remarks>
 [Trait("Sweep", "tree")]
 public sealed class TrackedTreeScopeDriftTests
