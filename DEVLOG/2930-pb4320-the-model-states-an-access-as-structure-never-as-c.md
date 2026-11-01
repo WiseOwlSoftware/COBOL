@@ -1,4 +1,4 @@
-## PB4320: the model states an access as structure, never as C# text built from names (leak L7)
+## Entry 2930 — 2026-11-01 01:17 PST — PB4320: the model states an access as structure, never as C# text built from names (leak L7)
 
 kb/Work PB4320 (campaign PB2293, DESIGN-backend-abstraction §1.3 L7). PB4265 made the model's names CLR names; four
 binder sites then composed C# member-access text from them, so the model held expressions a CIL backend would have to
@@ -43,3 +43,4 @@ member. Duplication: the ten `anchorOf(x) + x` copies became one.
 
 **Gate.** `build-local.ps1 -Priority BelowNormal`, leg 1 at the branch head; its run directory and verdict line are
 in the wave report (`w20261800d-PB4320-report.md`). `semgrep/verify.py`: PASS, no rule's count rose.
+
