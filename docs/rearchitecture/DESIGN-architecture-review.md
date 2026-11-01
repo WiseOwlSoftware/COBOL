@@ -858,16 +858,20 @@ product assemblies, not a source scan and not an MSBuild workspace, so it costs 
   (`member_index.note_file_set`, §8.7) holds a file that declares A, and the reaching notes that name A or B among what
   they move or change were its removers (all reaching ones when none named either end), in `blocked_by` order. That
   rule was fit for the first seeding only (a pair it reaches through A's file need not be one the note removes), so its
-  tool was deleted once the file was seeded. The gate checks the removers against the register (`RemoverDefects`): each
-  is an open kb/Work note whose `**Removes …**` line names the row.
+  tool was deleted once the file was seeded. The register's audit checks the removers (`work.py check`,
+  `edges_remover_problems`: the gate's WORK REGISTER audit, CI's audits job and the landing's merged-head check): each
+  is an open kb/Work note whose `**Removes …**` line names the row as `` `From → To` ``, and every note a plan names
+  exists. It is the register's, not the drift test's, because no test reads `kb/Work/` (`scripts/inert_lane.py`: a
+  register-only change runs the audits and no test).
 - It is seen failing once, on a planted edge, before it lands (`brent-tools:architecture-audit` Phase 3), through
   self-tests that feed the checker a synthetic edge set: a planted edge, a planted pair inside a tolerated row (growth),
   a pair with no remover, a census-only row with no remover, an unplaced namespace, a dead allowance, a vanished pair, a
   what-if re-key and cut, and the census observer's growth and unadmitted edge
   (`TheChecker_FailsOnEveryPlantedViolation_AndPassesTheCleanInput`); the ratchet over an added pair, the review's
   swapped pair, a new row and a grown census count, each still red after it, and over every fall
-  (`TheRatchet_OnlyFalls_AndNeverAdmitsAPairARowOrAGrownCount`); and a remover kb/Work lacks, a landed one, one whose
-  Removes line omits the row and a plan's missing note (`TheRemovers_AreOpenNotesWhoseRemovesLineNamesTheRow`).
+  (`TheRatchet_OnlyFalls_AndNeverAdmitsAPairARowOrAGrownCount`); and, in `scripts/orchestrator/test_plan_wave.py`, a
+  remover kb/Work lacks, a landed one, one whose Removes line omits the row or names only a longer row, and a plan's
+  missing note (`edges_remover_problems`).
 - **The file as measured (kb/Work PB2417, census `7cb79581e`).** The walk and its checks take about half a second of
   the gate; the file places two namespaces R1 did not know — `WiseOwl.Cobol.Binding.Repository` (the external
   repository's reader, codec and records, `Binding/Repository/`, which reads the binder: compiler.binding) by its folder,

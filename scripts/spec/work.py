@@ -714,6 +714,7 @@ def register_problems(work_dir: pathlib.Path = WORK) -> tuple[list[dict], list[s
 
         bad += work_inventory.live_problems(items, TERMINAL_STATUSES)
         bad += r3_program_problems(items)
+        bad += edges_remover_problems(items)
     return items, bad
 
 
@@ -1764,6 +1765,48 @@ def r3_program_problems(items: list[dict], slice_files: set[str] | None = None,
             bad.append(f"{it['_file']}: an R3 {wave} wave that does not wait for {R3_DRIFT_TEST}, the architecture "
                        f"drift test — its neutrality is 'the walk shows no row growing' (DESIGN-architecture-review "
                        f"§8.1), which needs the walk landed first; add {R3_DRIFT_TEST} to blocked_by")
+    return bad
+
+
+EDGES_FILE = "docs/rearchitecture/architecture-edges.json"
+_REMOVES_LINE = re.compile(r"^\*\*Removes\b[^\n]*", re.M)
+_NOTE_ID = re.compile(r"\bPB\d+\b")
+
+
+def edges_remover_problems(items: list[dict], edges: dict | None = None) -> list[str]:
+    """The register's side of the architecture edges file's removers (DESIGN-architecture-review §8.1 "The ratchet and
+    the removers"; kb/Work PB2417's review, R1-1 and R1-2). Every note the file names as a remover — a tolerated pair's,
+    or a census-only row's own — is a note of the register that is not terminal (one that landed or retired while its
+    pair is still measured removed nothing, so the pair has no live remover), and its `**Removes …**` line names the
+    row as `` `From → To` `` (backticked, so `CodeGen → Binding` is never read inside `CodeGen → Binding.Repository`);
+    every note a row's `plan` names is a note of the register. The drift test (`ArchitectureEdgesDriftTests`) holds the
+    file against the code; this holds it against the register, here because no test reads `kb/Work/`
+    (scripts/inert_lane.py). `edges` is the parsed file (read from the tree when None)."""
+    if edges is None:
+        path = REPO / EDGES_FILE
+        if not path.exists():
+            return []
+        edges = json.loads(path.read_text(encoding="utf-8"))
+    by_id = {i.get("id"): i for i in items}
+    bad = []
+    for row in edges.get("tolerated") or []:
+        name = f"{EDGES_FILE}: tolerated row {row['from']} -> {row['to']}"
+        link = f"`{row['from']} → {row['to']}`"
+        removers = set(row.get("removedBy") or []) | {n for p in row.get("pairs") or [] for n in p.get("removedBy") or []}
+        for n in sorted(removers):
+            it = by_id.get(n)
+            if it is None:
+                bad.append(f"{name} names {n} as a remover, which kb/Work does not hold")
+            elif it.get("status") in TERMINAL_STATUSES:
+                bad.append(f"{name} names {n} as a remover, but {n} is {it.get('status')}: it removed what it removes, "
+                           f"so delete it from every removedBy that still names it (a pair left with no remover is a "
+                           f"dependency nobody removes; DESIGN-architecture-review §8.1)")
+            elif link not in "\n".join(_REMOVES_LINE.findall(it.get("_body", ""))):
+                bad.append(f"{name} names {n} as a remover, but {n}'s **Removes** line does not name the row ({link}): "
+                           f"a remover names every row it removes from")
+        for n in dict.fromkeys(_NOTE_ID.findall(row.get("plan") or "")):
+            if n not in by_id:
+                bad.append(f"{name}: its plan names {n}, which kb/Work does not hold")
     return bad
 
 

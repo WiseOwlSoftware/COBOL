@@ -14,7 +14,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// over the built product assemblies (<see cref="TypeReferenceWalk"/>) measures every (outermost authored type,
 /// outermost product type) pair, and <c>docs/rearchitecture/architecture-edges.json</c> — the ONE place the layers and
 /// their allowed edges are written — must place every product namespace, allow or tolerate every cross-layer pair,
-/// list every tolerated pair with the open kb/Work notes that remove it, and carry each tolerated row's walk count exactly.
+/// list every tolerated pair with the kb/Work notes that remove it, and carry each tolerated row's walk count exactly.
+/// The removers' register side (each an open note whose Removes line names the row) is <c>work.py check</c>'s
+/// (<c>edges_remover_problems</c>), because no test reads kb/Work (scripts/inert_lane.py).
 /// </summary>
 /// <remarks>
 /// <para>
@@ -49,14 +51,6 @@ public sealed class ArchitectureEdgesDriftTests
         + "that files the kb/Work note removing it and names that note (DESIGN-architecture-review §8.1). A pair or count "
         + "that fell is removed work: ratchet the file (" + RatchetCommand + ").";
 
-    private static readonly Regex TerminalStatuses = new(@"^TERMINAL_STATUSES = \((?<list>[^)]*)\)", RegexOptions.Multiline | RegexOptions.NonBacktracking);
-
-    private static readonly Regex Quoted = new("\"(?<s>[^\"]+)\"", RegexOptions.NonBacktracking);
-
-    private static readonly Regex StatusLine = new(@"^status:\s*(?<s>\S+)", RegexOptions.Multiline | RegexOptions.NonBacktracking);
-
-    private static readonly Regex RemovesLine = new(@"^\*\*Removes\b[^\n]*", RegexOptions.Multiline | RegexOptions.NonBacktracking);
-
     private static readonly Regex SolutionProject = new(
         "^Project\\(\"\\{[0-9A-Fa-f-]+\\}\"\\)\\s*=\\s*\"(?<name>WiseOwl\\.Cobol\\.[^\"]+)\",\\s*\"(?<path>(?<dir>src[\\\\/][^\"]+)[\\\\/][^\"\\\\/]+\\.csproj)\"",
         RegexOptions.Multiline | RegexOptions.NonBacktracking);
@@ -82,39 +76,13 @@ public sealed class ArchitectureEdgesDriftTests
         WhatIf? whatIf = Environment.GetEnvironmentVariable("WISEOWL_COBOL_ARCH_EDGES_WHATIF") is { Length: > 0 } map
             ? WhatIf.Load(map)
             : null;
-        List<string> failures = [.. edges.CheckWalk(m.Pairs, m.Namespaces, censusEdges, whatIf), .. edges.RemoverDefects(KbNote, RegisterTerminalStatuses())];
+        var failures = edges.CheckWalk(m.Pairs, m.Namespaces, censusEdges, whatIf);
         Assert.True(failures.Count == 0,
             $"the architecture walk disagrees with docs/rearchitecture/architecture-edges.json ({failures.Count}"
             + (whatIf is null ? "" : ", under the what-if") + "):\n  " + string.Join("\n  ", failures.Take(200))
             + (failures.Count > 200 ? $"\n  … and {failures.Count - 200} more" : "")
             + "\n" + NewDependencyAdvice);
     }
-
-    /// <summary>The kb/Work note a remover names, or null when kb/Work does not hold it.</summary>
-    private static RemoverNote? KbNote(string id)
-    {
-        string path = TestRepo.At("kb", "Work", id + ".md");
-        if (!File.Exists(path))
-        {
-            return null;
-        }
-
-        string text = File.ReadAllText(path);
-        return new RemoverNote(StatusLine.Match(text) is { Success: true } s ? s.Groups["s"].Value : "",
-            string.Join("\n", RemovesLine.Matches(text).Select(r => r.Value)));
-    }
-
-    /// <summary>The register's terminal statuses, read from their one home (<c>scripts/spec/work.py</c>
-    /// <c>TERMINAL_STATUSES</c>), never restated here.</summary>
-    private static HashSet<string> RegisterTerminalStatuses()
-    {
-        Match list = TerminalStatuses.Match(File.ReadAllText(TestRepo.At("scripts", "spec", "work.py")));
-        Assert.True(list.Success, "scripts/spec/work.py no longer declares TERMINAL_STATUSES = (…): the edges file's remover check reads it there");
-        var statuses = Quoted.Matches(list.Groups["list"].Value).Select(q => q.Groups["s"].Value).ToHashSet(StringComparer.Ordinal);
-        Assert.NotEmpty(statuses);
-        return statuses;
-    }
-
     /// <summary>The walk applies the census's population rule: every type both name agrees on generated-ness, and the
     /// walk reads every type the newest census record lists that the built assemblies still define (a type added or
     /// deleted since the record is drift the next census records, not a disagreement of rules).</summary>
@@ -270,28 +238,6 @@ public sealed class ArchitectureEdgesDriftTests
         var afterRemoval = Planted.Ratchet(removed, noCensus, Next);
         Assert.Empty(afterRemoval.Tolerated);
         Assert.Empty(afterRemoval.CheckWalk(removed, PlantedNamespaces, noCensus));
-    }
-
-    /// <summary>The register's side of the removers (§8.1): a remover is a kb/Work note, it is not terminal, and its
-    /// Removes line names the row — for a pair's remover and a census-only row's alike — and every note a plan names is
-    /// a note kb/Work holds.</summary>
-    [Fact]
-    public void TheRemovers_AreOpenNotesWhoseRemovesLineNamesTheRow()
-    {
-        var open = new RemoverNote("open", "**Removes (planted):** `P.Low → P.Mid` 1");
-        var terminal = new HashSet<string>(["landed", "retired"]);
-        Assert.Empty(Planted.RemoverDefects(id => id == "PB1" ? open : null, terminal));
-        Assert.Contains(Planted.RemoverDefects(_ => null, terminal), f => f.Contains("PB1 as a remover, which kb/Work does not hold", StringComparison.Ordinal));
-        Assert.Contains(Planted.RemoverDefects(_ => open with { Status = "landed" }, terminal), f => f.Contains("PB1 is landed", StringComparison.Ordinal));
-        Assert.Contains(Planted.RemoverDefects(_ => open with { Removes = "**Removes:** `P.Low → P.High` 1" }, terminal),
-            f => f.Contains("does not name the row", StringComparison.Ordinal));
-        // a row whose name is a prefix of another's is not named by the longer one
-        Assert.Contains(Planted.RemoverDefects(_ => open with { Removes = "**Removes:** `P.Low → P.Mid.Sub` 1" }, terminal),
-            f => f.Contains("does not name the row", StringComparison.Ordinal));
-        var censusOnly = Planted with { Tolerated = [new EdgesRow("P.Mid", "P.High", 1, 0, ["PB2"], "PB2, then PB3", [])] };
-        var failures = censusOnly.RemoverDefects(id => id == "PB2" ? open : null, terminal);
-        Assert.Contains(failures, f => f.Contains("PB2's **Removes** line does not name the row (`P.Mid → P.High`)", StringComparison.Ordinal));
-        Assert.Contains(failures, f => f.Contains("its plan names PB3, which kb/Work does not hold", StringComparison.Ordinal));
     }
 
     private static Measurement Measure()
