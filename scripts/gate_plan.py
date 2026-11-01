@@ -18,8 +18,10 @@ Inputs, each optional except the listings:
   * the REDS (trx outcome `Failed`) of the worktree's previous gates ON BOTH HOSTS (`previous_gates`, TRX_WRITERS;
     kb/Work PB3155): that previous gate's, and the newest Linux gate's (`<worktree>/TestResults/linux-gate/`).
 
-THE NAME KEY. Every lookup keys on `name_key(display name)`: the display name with the partition suffix `_P<k>`
-removed from its CLASS segment. A partitioned family (`TestPartitioning.Slice`) puts row i in class
+THE NAME KEY. Every lookup keys on `name_key(display name)`: the display name in the trx logger's spelling
+(`test_population.trx_spelling`: a supplementary-plane character is listed literally and written in a trx as two
+backslash-u escapes, so a trx red or duration meets its listed case only there; kb/Work PB4274) with the partition
+suffix `_P<k>` removed from its CLASS segment. A partitioned family (`TestPartitioning.Slice`) puts row i in class
 `_P{i % Partitions}`, so adding one suite test renames every later row of the family; keyed without the
 suffix, the append leaves ONE unknown case (evidence `impact-map-pb1708/b7`).
 
@@ -107,7 +109,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import impacted_tests  # noqa: E402
 import live_tools  # noqa: E402 — the one list of the live tools' trees, and the one listing of them
 from test_population import (GATED_ASSEMBLIES, LISTED_MARK, TRX_NS, PopulationError, UnreadableTrx,  # noqa: E402
-                             parse_listing, trx_root)
+                             parse_listing, trx_root, trx_spelling)
 from standard_streams import ensure_utf8  # noqa: E402
 
 PLAN_SCHEMA = 1
@@ -148,9 +150,10 @@ PARTITION_CLASS_RE = re.compile(r"(?P<family>.+)_P\d+")
 
 
 def name_key(display: str) -> str:
-    """The display name with the partition suffix `_P<k>` removed from its CLASS segment (the one before the method;
-    a theory's arguments are never touched)."""
-    head, paren, args = display.partition("(")
+    """The display name IN THE TRX'S SPELLING (`test_population.trx_spelling`, kb/Work PB4274: a listed or in-process
+    name and the trx name of one case meet only there) with the partition suffix `_P<k>` removed from its CLASS
+    segment (the one before the method; a theory's arguments are never touched)."""
+    head, paren, args = trx_spelling(display).partition("(")
     parts = head.split(".")
     if len(parts) >= 3:
         m = PARTITION_CLASS_RE.fullmatch(parts[-2])
@@ -738,6 +741,11 @@ def self_test() -> int:
           name_key(ns + 'T.M(path: "a.B_P1.c")') == ns + 'T.M(path: "a.B_P1.c")')
     check("NameKey leaves a class without a numeric partition suffix alone",
           name_key(ns + "Foo_Pbar.M") == ns + "Foo_Pbar.M" and name_key(ns + "Foo.M") == ns + "Foo.M")
+    listed_uni, trx_uni = ns + "U_P1.M(s: A" + chr(0x1E900) + ")", ns + "U_P1.M(s: A\\ud83a\\udd00)"
+    check("NameKey is the trx's spelling (kb/Work PB4274): a supplementary-plane case as listed and as its trx names "
+          "it are one key; the literal text with xunit's doubled backslash stays another",
+          name_key(listed_uni) == name_key(trx_uni) == ns + "U.M(s: A\\ud83a\\udd00)"
+          and name_key(ns + "U.M(s: A\\\\ud83a\\\\udd00)") != name_key(trx_uni), ascii(name_key(listed_uni)))
 
     def ctx(**kw) -> Context:
         base = dict(tiers={}, map_known=set(), every_tier1=False, changed_tests=set(), goldens=set(), reds=set(),
@@ -1014,6 +1022,12 @@ def self_test() -> int:
         check("a malformed store is refused on read and REPLACED (named) on publish",
               malformed_read_refused and "replaced a malformed store" in note
               and read_shared_timings(store).seconds(short_c) == 3.0, note)
+        uni_store = timings_store(Path(tmp) / "uni")
+        trx_with(Path(tmp) / "run-uni", [(trx_uni, "00:00:04.0")])
+        n_uni, _ = publish_timings(uni_store, Path(tmp) / "run-uni", {listed_uni}, "gate uni", "t4")
+        check("a supplementary-plane case's trx duration is published for its LISTED name and times it (kb/Work "
+              "PB4274: the store dropped it as no longer discovered)",
+              n_uni == 1 and read_shared_timings(uni_store).seconds(name_key(listed_uni)) == 4.0, n_uni)
 
     # RED AT THE PREVIOUS GATE MEANS EITHER HOST'S (kb/Work PB3155, PB3184): build-local's previous run and the Linux
     # gate's newest run (TRX_WRITERS) are both read, and a Linux-only red is tier 0a of the next plan.

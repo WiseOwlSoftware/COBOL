@@ -1231,7 +1231,16 @@ because the raw name is not stable (`b7`):
   keyed that way, the append leaves ONE unknown test (the new golden) and the floor unchanged — re-run through
   `gate_plan.py` itself (`b7`'s last table): one tier-0u case, a 15.3 s floor. Appending to 2002 renames 838 rows, to
   2014 677; to 2023 or the negative manifest, only the sentinel.
-- **The contract** (`gate_plan.py#name_key`; the test hosts' leg filter mirrors it exactly, M12): split the display
+- the trx logger does not spell a name the way `--list-tests` and the test host do (kb/Work PB4274): it rewrites every
+  UTF-16 code unit outside XML's character range `[^\x09\x0A\x0D\x20-\uD7FF\uE000-\uFFFD]` as `\u` and four
+  lowercase hex digits (`RemoveInvalidXmlChar` in the SDK's `Microsoft.VisualStudio.TestPlatform.Extensions.Trx.TestLogger`),
+  so a theory argument holding a supplementary-plane character is listed literally and named `\ud834\udd5e` in the
+  trx; xunit's argument formatter has already written a lone surrogate as `\xd800` and a backslash as `\\`, so those
+  reach both sides alike. A red or a duration read from a trx then met no listed case. `NameKey` therefore starts
+  from the logger's spelling (`test_population.py#trx_spelling`, mirrored by `GateNameKey.TrxSpelling`), the identity
+  on a trx name.
+- **The contract** (`gate_plan.py#name_key`; the test hosts' leg filter mirrors it exactly, M12): put the display name
+  in the trx logger's spelling (above), then split the display
   name at its FIRST `(`; in the part before it, split on `.`; when there are at least three segments and the
   second-to-last (the CLASS) matches `(.+)_P\d+` in full, replace it with the capture; rejoin, and append the `(` and
   everything after it unchanged. A theory's arguments are never touched. Only a partition class may carry the suffix:
@@ -1684,10 +1693,16 @@ of a `--list-tests` output (`parse_listing`); `filter_population.py` and `record
   discovered case that executed). Not the RESULT names: xunit lists a theory whose data it cannot serialize as ONE
   case and then reports one result per row, so Unit's results carry 33 names `--list-tests` never printed and miss 2
   it did, while its 29,703 definitions equal the listing exactly (`b8`).
-- a name short → `NEVER RAN` (red, each named) — unless the run stopped early, when the remainder is reported as NOT
-  RUN and the verdict is already RED/INCOMPLETE;
-- a name over → `RAN TWICE` (red, named);
-- a definition the listing never printed → `NOT IN THE POPULATION` (red, named: a trx of another build or assembly);
+- **One spelling** (kb/Work PB4274): the two sides are compared in the trx logger's spelling (`trx_spelling`, the name
+  key's first step above), which is what the logger did to the listed name, so a case always meets itself. The rewrite
+  cannot be inverted (the logger escapes no backslash), so two LISTED names it spells alike are an error naming both,
+  never one merged count.
+- a name short → `NEVER RAN` (red, each named) — unless the run stopped early (a fail-fast stop, a leg-1-only gate),
+  when the remainder is reported as NOT RUN and the verdict is already RED/INCOMPLETE, or LEG 1 ONLY;
+- a name over → `RAN TWICE` (red, named), whether or not the run stopped early;
+- a definition the listing never printed → `NOT IN THE POPULATION` (red, named: a trx of another build or assembly),
+  whether or not the run stopped early (`Population.defective`; until PB4274 a leg-1-only gate printed it and stayed
+  GREEN);
 - a definition with no Passed or Failed result → counted as SKIPPED on the verdict line, never as ran;
 - an input it cannot read (a missing or non-trx file, a listing without vstest's marker, an EMPTY population,
   listings that disagree) → exit 2, an error, never a finding. Each run prints one line,
