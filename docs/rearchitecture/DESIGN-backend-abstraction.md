@@ -144,15 +144,19 @@ public interface ICodeGenBackend
 
 public enum BackendId { Roslyn, Cil }
 
-public sealed record BackendOptions(
+public sealed record BackendOptions(           // what EVERY backend reads; nothing one target's (kb/Work PB4272)
     string OutputPath, string AssemblyName, EditionInfo Edition,
-    bool EmitPdb = true, bool WriteSource = true /* .g.cs — Roslyn only */);
+    bool EmitPdb = true, CompilationInputs? Inputs = null, bool RepositoryUpdate = true);
+
+public sealed record BackendDiagnostic(       // the seam's own diagnostic: no Roslyn type crosses it (kb/Work PB4272)
+    string Code, DiagnosticSeverity Severity, string Message,
+    SourceLocation? Location);                 // null: names no position; renders through Diagnostic.Render
 
 public sealed record BackendArtifact(
     bool Success,
-    IReadOnlyList<Diagnostic> Diagnostics,     // ONE structured Diagnostic type (driver/editions dim)
-    string? GeneratedSourcePath,               // .g.cs for Roslyn; null for Cil
-    string? AssemblyPath);
+    IReadOnlyList<BackendDiagnostic> Diagnostics,
+    string? GeneratedSourcePath,               // .g.cs for Roslyn (always written); null for Cil
+    string? AssemblyPath, IReadOnlyList<string> OutputFiles, bool Library);
 
 public static class BackendFactory
 {
@@ -166,6 +170,14 @@ public static class BackendFactory
 }
 ```
 
+- **The seam is Roslyn-free (kb/Work PB4272).** Nothing the contract names is a Roslyn type or a C#-only choice:
+  each backend translates its own diagnostics into `BackendDiagnostic` (`RoslynBackend.Neutral`, which renders the
+  line Roslyn's own formatter renders), the driver reads only those, and the `.g.cs` is the Roslyn backend's own
+  artifact rather than a seam option. The seam file, the model, the binders and the driver reference no
+  `Microsoft.CodeAnalysis` type; the facts the model used to ask Roslyn (the identifier characters,
+  `CsNames.IsIdentifierStartCharacter`/`IsIdentifierPartCharacter`, and the C# reserved keywords) it states, each
+  pinned to Roslyn by a drift test (`RoslynFreeSeamDriftTests`, `CsNameReservationDriftTests`). The factory still takes
+  the bind host until kb/Work PB2290 deletes it; PB4273 then makes a Roslyn use outside the Roslyn backend a build error.
 - **Consumes:** the immutable `BoundCompilation` (P6 result) — units, the OO class model, the `SymbolTable`, and
   structural `Place`s — plus `BackendOptions`. **Performs no binding** (binding is the Binder phase's job —
   `BinderDriver` produces the `BoundCompilation`, per `DESIGN-binder-bound-tree.md §3.1`).
@@ -249,7 +261,8 @@ an ABI: another compilation unit, another assembly and a host bind to them, and 
 names as a Roslyn-built one (kb/Work PB2104). A per-backend name mangler applied at render time would be the defect.
 
 **A CLR name is never a C# keyword (kb/Work PB4265).** Every scope kind is seeded with
-`CsNames.CSharpReservedKeywords` (derived from Roslyn's `SyntaxFacts`, like `CsNames.ImportedTypeNames`), so a
+`CsNames.CSharpReservedKeywords` (written in the model, which references no Roslyn, and pinned to Roslyn's
+`SyntaxFacts.GetReservedKeywordKinds` by `CsNameReservationDriftTests`; kb/Work PB4272), so a
 lowercase data-name `int` is allocated `int_2`. The allocated name is then the same text in the metadata and in the
 generated C#, needs no `@` spelling anywhere, and stays a valid identifier when a prefix or suffix is joined to it
 (`_redef_int_2`). The `@int` escape it replaced was a C#-only spelling on the model, and the names derived from it

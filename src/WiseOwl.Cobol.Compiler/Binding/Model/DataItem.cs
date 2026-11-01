@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Runtime;
-using Microsoft.CodeAnalysis.CSharp;
 
 namespace WiseOwl.Cobol.Binding.Model;
 
@@ -1528,7 +1527,7 @@ public sealed class DataItem
     public static string Sanitize(string cobolName)
     {
         string s = IdentifierCharacters(cobolName);
-        return s.Length == 0 || !SyntaxFacts.IsIdentifierStartCharacter(s[0]) ? "_" + s : s;
+        return s.Length == 0 || !CsNames.IsIdentifierStartCharacter(s[0]) ? "_" + s : s;
     }
 
     /// <summary>The C# identifier of a COBOL word whose IDENTITY is the word — a class, interface, method, property,
@@ -1564,7 +1563,7 @@ public sealed class DataItem
         {
             char c = cobolName[i];
             bool plainHyphen = c == '-' && i > 0 && (i + 1 == cobolName.Length || cobolName[i + 1] != 'u');
-            if (plainHyphen || c == '_' || c == '-' || !SyntaxFacts.IsIdentifierPartCharacter(c))
+            if (plainHyphen || c == '_' || c == '-' || !CsNames.IsIdentifierPartCharacter(c))
             {
                 sb ??= new System.Text.StringBuilder(cobolName.Length + 8).Append(cobolName, 0, i);
                 if (plainHyphen) { sb.Append('_'); continue; }
