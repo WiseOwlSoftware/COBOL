@@ -28,7 +28,7 @@ public sealed class IntegerArgumentConstantWitnessTests
             new AccessPath([new RootFieldSegment(name.Replace('-', '_'))]),
             new DataItem
             {
-                Level = 1, CobolName = name, CsName = name.Replace('-', '_'),
+                Level = 1, CobolName = name, ClrName = name.Replace('-', '_'),
                 Pic = new PicInfo(PicCategory.Numeric, Usage.Display, Length: digits, Digits: digits, Scale: scale, Signed: false),
             }));
 

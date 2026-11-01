@@ -84,8 +84,8 @@ public sealed class IdentifierInjectivityTests
     [Fact]
     public void TheRuntimeBaseFactory_IsTheConventionsNameForBase()
     {
-        Assert.Equal(typeof(WiseOwl.Cobol.Runtime.__FACTORY_BASE).Name, OoStandardClasses.BaseFactoryCsName);
-        Assert.Equal(OoStandardClasses.BaseFactoryCsName,
+        Assert.Equal(typeof(WiseOwl.Cobol.Runtime.__FACTORY_BASE).Name, OoStandardClasses.BaseFactoryClrName);
+        Assert.Equal(OoStandardClasses.BaseFactoryClrName,
             ObjectRefDescriptor.ActiveClass(OoStandardClasses.BaseName, factory: true).ClrTypeName);
     }
 

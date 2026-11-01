@@ -8,20 +8,23 @@ using WiseOwl.Cobol.Runtime;
 namespace WiseOwl.Cobol.Compiler.Oo;
 
 /// <summary>One class of the pass-1 table: identity, base link, and the method roster (name → symbol,
-/// case-insensitive per §8.3.2.2). <see cref="CsName"/> is the emitted C# type name — the SAME mapping
+/// case-insensitive per §8.3.2.2). <see cref="ClrName"/> is the emitted C# type name — the SAME mapping
 /// <c>PicInfo.ClrType</c> applies to a typed object reference's declared class (Sanitize + uppercase).</summary>
-public sealed class OoClassSymbol(string name, string csName, CobolParserCore.ClassDefinitionContext? ctx)
+public sealed class OoClassSymbol(string name, string clrName, CobolParserCore.ClassDefinitionContext? ctx)
 {
     public string Name { get; } = name;
     /// <summary>The name externalized to the operating environment (ISO §11.3.4 GR1: "literal-1, if
     /// specified, is the name of the class that is externalized to the operating environment"), from the
     /// CLASS-ID <c>AS literal-1</c>; else <see cref="Name"/>. An object-class-name is only ever referenced
     /// by a user-defined WORD (§8.4.6.4 — the containing definition or a REPOSITORY entry), so nothing
-    /// in COBOL resolves against this, and <see cref="CsName"/> deliberately does NOT derive from it: the
+    /// in COBOL resolves against this, and <see cref="ClrName"/> deliberately does NOT derive from it: the
     /// emitted type name is a WIRE CONTRACT with <c>PicInfo.ClrType</c>, which maps a declared
     /// object-class-name to a C# type with no access to this table. kb/Work PB303.</summary>
     public string ExternalizedName { get; init; } = name;
-    public string CsName { get; } = csName;
+    /// <summary>The CLR type name of the class's OBJECT half — the module's ABI, the same for every backend
+    /// (kb/Work PB4265): <see cref="DataItem.WordIdentifier"/> of the class-name, an upper-case fold, so never a C#
+    /// keyword.</summary>
+    public string ClrName { get; } = clrName;
     /// <summary>The CLASS-ID definition this symbol was built from. Every class of the compilation group has one;
     /// the STANDARD class (<see cref="IsStandard"/>) does not, and reading this on it is a loud internal error rather
     /// than a null the caller forgot to test — no consumer of a group class's source should ever reach the standard
@@ -78,11 +81,11 @@ public sealed class OoClassSymbol(string name, string csName, CobolParserCore.Cl
     /// copy of inherited factory data; SELF in a factory method is polymorphic §14.9.23.3 SR4f + §8.4.3.8
     /// GR2; factory resolution walks INHERITS §9.3.6. A <see cref="NamingConvention.FactoryClassName"/> prefix
     /// family, which no class-name spells — kb/Work PB2921).</summary>
-    public string FactoryCsName => NamingConvention.FactoryClassName(CsName);
+    public string FactoryClrName => NamingConvention.FactoryClassName(ClrName);
 
     /// <summary>⛔ THE root of every RUN-UNIT key this class owns — its factory and object file connectors and its
     /// SORT stores (<c>BinderDriver.QualifyClassFiles</c>) — formed by the run-time table's own former
-    /// (<see cref="ProgramTable.ClassPath"/>) from the EXTERNALIZED name, never from <see cref="CsName"/>: the C# name
+    /// (<see cref="ProgramTable.ClassPath"/>) from the EXTERNALIZED name, never from <see cref="ClrName"/>: the C# name
     /// is a wire contract with <c>PicInfo.ClrType</c> and is the DECLARED name, which two separately compiled modules
     /// may both use for different classes (kb/Work PB2920; ISO §8.3.2.2 2)).</summary>
     public string RunUnitPath => ProgramTable.ClassPath(ExternalizedName);
@@ -95,15 +98,15 @@ public sealed class OoClassSymbol(string name, string csName, CobolParserCore.Cl
     /// WITHOUT distinguishing the two object kinds — ISO/IEC 1989:2023 §14.9.49.4 GR14 a): "the exception
     /// object that was raised is a factory object or instance object of object-class-name-1 or of a subclass
     /// of object-class-name-1". A COBOL class is emitted as TWO DISJOINT C# hierarchies —
-    /// <see cref="CsName"/> rooted at its base's instance half, <see cref="FactoryCsName"/> at its base's
+    /// <see cref="ClrName"/> rooted at its base's instance half, <see cref="FactoryClrName"/> at its base's
     /// FACTORY half — so ONE COBOL class-name is a SET of C# types, never one, and a single
-    /// <c>is CsName</c> test silently answers false for every factory object (kb/Work PB366). Both halves
+    /// <c>is ClrName</c> test silently answers false for every factory object (kb/Work PB366). Both halves
     /// mirror INHERITS, so the pair of C# type tests covers "or of a subclass" in both hierarchies.
     /// A rule that names only ONE kind takes the single name it means instead — §13.18.60.4 GR22 d) 1. b):
     /// "If the FACTORY phrase is not specified, the object referenced by this data item shall be an instance
     /// object of the specified class or of a subclass of the specified class" (the typed OBJECT REFERENCE
     /// narrow in <c>OoEmitter.EmitSetObjectRef</c> is instance-only for exactly that reason).</summary>
-    public IReadOnlyList<string> FactoryOrInstanceCsTypes => [CsName, FactoryCsName];
+    public IReadOnlyList<string> FactoryOrInstanceCsTypes => [ClrName, FactoryClrName];
 
     private readonly Dictionary<string, OoMethodSymbol> _factoryMethods = new(CobolNames.Comparer);
 

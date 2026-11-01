@@ -286,13 +286,13 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
                 int at = off;
                 var runs = OccurrenceRunEmit.RunsOfRepeats(n, slice.PeriodFor(w),
                     (a, b) => slice.SameWindow(at + (a - 1) * w, at + (b - 1) * w, w));
-                parts.Add($"{c.CsName} = " + OccurrenceRunEmit.Array(c.ElementType, n, runs,
+                parts.Add($"{c.ClrName} = " + OccurrenceRunEmit.Array(c.ElementType, n, runs,
                     o => SliceInit(c, slice.Window(at + (o - 1) * w, w, ' '), depth + 1), depth));
                 off += w * n;
             }
             else
             {
-                parts.Add($"{c.CsName} = {SliceInit(c, slice.Window(off, w, ' '), depth)}");
+                parts.Add($"{c.ClrName} = {SliceInit(c, slice.Window(off, w, ' '), depth)}");
                 off += w;
             }
         }
@@ -334,10 +334,10 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
                 int stride = BitLayout.StrideBits(c);
                 var runs = OccurrenceRunEmit.RunsOfRepeats(n, area.PeriodFor(stride),   // kb/Work PB1722
                     (a, b) => area.SameWindow(at + (a - 1) * stride, at + (b - 1) * stride, per));
-                parts.Add($"{c.CsName} = " + OccurrenceRunEmit.Array(c.ElementType, n, runs,
+                parts.Add($"{c.ClrName} = " + OccurrenceRunEmit.Array(c.ElementType, n, runs,
                     o => SliceBitInit(c, BitWindow(area, at + (o - 1) * stride, per), depth + 1), depth));
             }
-            else parts.Add($"{c.CsName} = {SliceBitInit(c, BitWindow(area, at, per), depth)}");
+            else parts.Add($"{c.ClrName} = {SliceBitInit(c, BitWindow(area, at, per), depth)}");
         }
         // ⛔ THE IMPLICIT FILLER IS PART OF THE AREA THE VALUE INITIALIZES (§13.18.63.4 GR5 — "the group area is initialized
         // without consideration for the individual elementary or group items contained within this group", kb/Work

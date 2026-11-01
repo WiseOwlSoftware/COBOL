@@ -64,7 +64,7 @@ public sealed class DataItem
     /// A globally-unique id assigned at bind time. It backs the collision-free names for an item's
     /// <c>record struct</c> type (<see cref="StructName"/>) and its numeric profile field (<see cref="ProfileName"/>)
     /// — two distinct groups both named <c>REC</c>, or two leaves both named <c>NUM</c> in different groups, would
-    /// otherwise collide. (The member/field name, <see cref="CsName"/>, only needs to be unique within its struct.)
+    /// otherwise collide. (The member/field name, <see cref="ClrName"/>, only needs to be unique within its struct.)
     /// </summary>
     [DescriptionCopy(DescriptionCopyKind.None,
         "identity — every clone gets a FRESH Uid; StructName/ProfileName ride on it, so a shared one would collide the clone's emitted type with the template's")]
@@ -75,10 +75,15 @@ public sealed class DataItem
         "both GR-1 exclusion lists exclude the NAME of a subject; a cloned SUBORDINATE keeps its own (ISO §13.18.49.4 GR2a — 'the same names, descriptions, and hierarchy')")]
     public string? CobolName { get; init; }
 
-    /// <summary>The C#-safe member/field identifier for this item (unique within its containing struct scope).</summary>
+    /// <summary>The CLR name of this item's member or field — the same for every backend (kb/Work PB4265;
+    /// DESIGN-backend-abstraction §1.2): <see cref="CsNames.Allocate"/>d at bind time in the item's scope (its group's
+    /// record struct, or the program class for a root), so it is unique there and never a C# keyword.
+    /// <para>⛔ ONE EXCEPTION, a known leak: a CARRIER-RESIDENT linkage formal's is rewritten to its carrier's C# access
+    /// text, <c>__lnk7.Value</c> (<c>DataBinder.CallBindLinkage</c>, <c>DataBinder.OoBindMethodData</c>), which is a C#
+    /// fragment, not a name (DESIGN-backend-abstraction §1.3 L7).</para></summary>
     [DescriptionCopy(DescriptionCopyKind.None,
         "identity — re-uniquified among the clone's NEW siblings")]
-    public required string CsName { get; set; }
+    public required string ClrName { get; set; }
 
     /// <summary>The analyzed PICTURE/USAGE for an elementary item; <see langword="null"/> for a group.</summary>
     [DescriptionCopy(DescriptionCopyKind.Clause,
@@ -680,12 +685,12 @@ public sealed class DataItem
     private CsNameScope? _memberNames;
 
     /// <summary>Append <paramref name="member"/> as this group's next subordinate, ALLOCATING its
-    /// <see cref="CsName"/> in this group's record-struct scope (<see cref="CsNames.Allocate"/>; kb/Work PB2093): a
+    /// <see cref="ClrName"/> in this group's record-struct scope (<see cref="ClrNames.Allocate"/>; kb/Work PB2093): a
     /// member spelled like a sibling, or like a member the struct itself carries (<c>AsImage</c>, <c>Equals</c>),
     /// takes the smallest free <c>_n</c>. The ONE way a member joins a group, so no path can bypass the scope.</summary>
     public void AddMember(DataItem member)
     {
-        member.CsName = CsNames.Allocate(member.CsName, _memberNames ??= CsNameScope.RecordStruct());
+        member.ClrName = CsNames.Allocate(member.ClrName, _memberNames ??= CsNameScope.RecordStruct());
         _children.Add(member);
     }
 
@@ -1485,15 +1490,17 @@ public sealed class DataItem
     // (The ClrType back-compat alias is DELETED — P5.10: zero readers, grep-proven by the topology audit.)
 
     /// <summary>
-    /// Convert a COBOL data-name to a valid, collision-safe C# identifier: <see cref="IdentifierCharacters"/>, then a
-    /// leading character C# cannot start an identifier with (a digit) gets an underscore prefix, and C# keywords are
-    /// escaped with <c>@</c>.
+    /// Convert a COBOL word (or another name, such as an assembly simple name) to the BASE of a CLR name, the same for
+    /// every backend: <see cref="IdentifierCharacters"/>, then a leading character an identifier cannot start with (a
+    /// digit) gets an underscore prefix. The result may spell a C# keyword (<c>int</c>): a name a module declares is
+    /// <see cref="CsNames.Allocate"/>d from it in a scope that refuses one (kb/Work PB4265), and the base is a valid
+    /// identifier part, so a prefix or suffix joined to it (<c>_redef_</c>, <c>_Record</c>) never breaks it — the
+    /// <c>@</c> escape this used to append made <c>_redef_@int</c>.
     /// </summary>
     public static string Sanitize(string cobolName)
     {
         string s = IdentifierCharacters(cobolName);
-        if (s.Length == 0 || !SyntaxFacts.IsIdentifierStartCharacter(s[0])) s = "_" + s;
-        return SyntaxFacts.GetKeywordKind(s) != SyntaxKind.None ? "@" + s : s;
+        return s.Length == 0 || !SyntaxFacts.IsIdentifierStartCharacter(s[0]) ? "_" + s : s;
     }
 
     /// <summary>The C# identifier of a COBOL word whose IDENTITY is the word — a class, interface, method, property,

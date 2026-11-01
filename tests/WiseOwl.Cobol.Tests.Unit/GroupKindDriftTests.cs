@@ -29,11 +29,11 @@ public sealed class GroupKindDriftTests
         new(PicCategory.Alphanumeric, Usage.Display, Length: len, Digits: 0, Scale: 0, Signed: false);
 
     private static DataItem Elem(string name, PicInfo pic, int level = 5) =>
-        new() { Level = level, CobolName = name, CsName = name, Pic = pic };
+        new() { Level = level, CobolName = name, ClrName = name, Pic = pic };
 
     private static DataItem Group(string name, GroupUsage usage = GroupUsage.None, DataItem? child = null)
     {
-        var g = new DataItem { Level = 1, CobolName = name, CsName = name, GroupUsage = usage };
+        var g = new DataItem { Level = 1, CobolName = name, ClrName = name, GroupUsage = usage };
         DataItem c = child ?? Elem(name + "C", Alnum());
         c.Parent = g;
         g.AddMember(c);
@@ -122,7 +122,7 @@ public sealed class GroupKindDriftTests
         Assert.Equal(GroupKinds.None, ItemCategory.GroupKindsOf(Elem("E", Alnum(), level: 1)));
         // A PICTURE-less entry with no subordinates — the compiler's error-recovery artifact.
         Assert.Equal(GroupKinds.None,
-            ItemCategory.GroupKindsOf(new DataItem { Level = 1, CobolName = "Z", CsName = "Z" }));
+            ItemCategory.GroupKindsOf(new DataItem { Level = 1, CobolName = "Z", ClrName = "Z" }));
     }
 
     /// <summary>⛔ THE RULE ROWS CARRY WHAT THE CLAUSES SAY. ADD §14.9.2.3 SR6 and SUBTRACT §14.9.44.3 SR6 are
