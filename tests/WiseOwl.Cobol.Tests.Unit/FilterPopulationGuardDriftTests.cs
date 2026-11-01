@@ -40,7 +40,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <item><description>a call to <c>scripts/filter_population.py</c>, which asks vstest per TERM whether the term
 /// names a real test — the ONE place that rule lives;</description></item>
 /// <item><description>the SHARDED form: the leg lists its build's population with
-/// <c>scripts/test_population.py list</c> and publishes it beside its trx, and the <c>conformance-population</c>
+/// <c>scripts/test_population.py list</c> and publishes it beside its trx, and the <c>ci-gate</c>
 /// job runs <c>test_population.py check</c> over every shard's trx against that listing — the shards' UNION must be
 /// the discovered population case by case (kb/Work PB1718). That is a STRONGER assertion than a per-term floor,
 /// which is why the shard legs are not made to call the guard as well — a second, weaker guard beside a stronger
@@ -170,13 +170,17 @@ public sealed class FilterPopulationGuardDriftTests
             .ToList();
 
         Assert.True(checking.Count > 0,
-            "No CI job checks the conformance shards' union against the discovered population. The sharded\n"
+            "No CI job checks the test shards' union against the discovered population. The sharded\n"
             + "legs are exempt from calling scripts/filter_population.py ONLY because that job asserts something\n"
-            + "STRONGER on their behalf (kb/Work PB752, PB1718). With it gone, every shard filter is an unverified\n"
+            + "STRONGER on their behalf (kb/Work PB752, PB1718, PB4329). With it gone, every shard is an unverified\n"
             + "claim again: either restore the checking job, or make each shard leg call the guard.");
 
-        // The check reads BOTH halves — the shards' listings and their trx files — never a count of either.
-        string code = checking[0].Code;
+        // The check reads BOTH halves — the shards' listings and their trx files — never a count of either. Read at the
+        // STEP that runs it: the job (`ci-gate`, since kb/Work PB4329) also counts its `needs`, which is not this check.
+        string workflowText = File.ReadAllText(workflow);
+        string code = string.Join("\n", CiWorkflow.Jobs(workflowText).Single(j => j.Id == checking[0].Name).Steps
+            .Where(s => string.Join("\n", s.CodeLines).Contains(PopulationTool + " check", StringComparison.Ordinal))
+            .Select(s => string.Join("\n", s.CodeLines)));
         Assert.Contains("--listing", code, StringComparison.Ordinal);
         Assert.Contains("--trx", code, StringComparison.Ordinal);
         Assert.DoesNotContain("grep -c", code, StringComparison.Ordinal);

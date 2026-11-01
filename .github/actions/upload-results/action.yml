@@ -9,7 +9,7 @@
 #
 # So an upload is TRIED three times (30 s, then 90 s apart; a retry overwrites any artifact a failed attempt left
 # half-made), and when all three fail the step WARNS and passes: losing a diagnostic never decides a verdict. An
-# artifact a verdict does depend on (a conformance shard's trx and listing, which `conformance-population` reads
+# artifact a verdict does depend on (a test shard's trx and shard 1's listings, which `ci-gate`'s name check reads
 # through ./.github/actions/download-results) is checked by the job that consumes it: that job finds it missing and
 # fails there, naming it.
 name: Upload results

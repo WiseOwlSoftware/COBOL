@@ -199,7 +199,7 @@ public sealed class SelfTestDiscoveryDriftTests
     /// <summary>
     /// Every gate entry point runs the runner: the local gate's AUDITS (beside the build and the legs, outside the slot; its
     /// SELF-TESTS one only for a change that touches tooling, <c>TOOLING_ONLY</c>) and its post-build half, the
-    /// Linux gate's two legs, CI's audits job on Linux, greenfield-unit's post-build step and windows-self-tests on
+    /// Linux gate's two legs, CI's audits job on Linux, its linux-built-self-tests job and windows-self-tests on
     /// Windows. And none of them runs a discovered self-test itself: a self-test named in a gate is a hand list again,
     /// and a list goes stale the day a self-test is added.
     /// </summary>
@@ -230,14 +230,16 @@ public sealed class SelfTestDiscoveryDriftTests
 
         var jobs = CiWorkflow.Jobs(workflow).ToDictionary(j => j.Id, StringComparer.Ordinal);
         Assert.Contains("python3 scripts/self_tests.py", RunCommands(jobs["audits"]));
-        Assert.Contains("python3 scripts/self_tests.py --built", RunCommands(jobs["greenfield-unit"]));
+        Assert.Contains("python3 scripts/self_tests.py --built", RunCommands(jobs["linux-built-self-tests"]));
         Assert.Contains("python scripts/self_tests.py", RunCommands(jobs["windows-self-tests"]));
         Assert.StartsWith("ubuntu", jobs["audits"].Value("runs-on"), StringComparison.Ordinal);
-        Assert.StartsWith("ubuntu", jobs["greenfield-unit"].Value("runs-on"), StringComparison.Ordinal);
+        Assert.StartsWith("ubuntu", jobs["linux-built-self-tests"].Value("runs-on"), StringComparison.Ordinal);
         Assert.StartsWith("windows", jobs["windows-self-tests"].Value("runs-on"), StringComparison.Ordinal);
-        // kb/Work PB3581: the Windows self-tests are their own job, never a step after a build (the default phase never
-        // builds, and as windows-build-test's last step they were 7.4 minutes of the merge queue's longest job).
-        Assert.DoesNotContain("self_tests.py", string.Join("\n", RunCommands(jobs["windows-build-test"])), StringComparison.Ordinal);
+        // kb/Work PB3581, PB4329: the self-tests are their own jobs, never a step of a test shard (the default phase never
+        // builds, and as the Windows test job's last step they were 7.4 minutes of the merge queue's longest job; the
+        // weights deal only tests, so a self-test step would make its shard the longest).
+        Assert.DoesNotContain("self_tests.py", string.Join("\n", RunCommands(jobs["windows-shard"])), StringComparison.Ordinal);
+        Assert.DoesNotContain("self_tests.py", string.Join("\n", RunCommands(jobs["linux-shard"])), StringComparison.Ordinal);
         Assert.DoesNotContain("dotnet build", jobs["windows-self-tests"].Code, StringComparison.Ordinal);
 
         // No entry point runs a self-test by hand: a flag-handling self-test named with `--self-test`, or a standalone

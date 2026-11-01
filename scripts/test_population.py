@@ -6,8 +6,8 @@ docs/rearchitecture/DESIGN-test-build-ci.md §3.14.3–3.14.4)
 once", and until this tool three runs asserted it three different ways or not at all: CI summed each shard's
 `Total:` line against a `grep -c` of the listing (a count cannot see a dropped case offset by one that ran twice),
 while the battery accepted any `Passed!` line with exit 0 and the gate checked nothing. Its callers are the
-battery (`scripts/battery.sh` PHASE 1, all three assemblies) and CI's `conformance-population` job (each platform's
-shard trx files); the ordered gate's driver (DESIGN §3.14.9 M13) calls `list_population` and `check` per assembly
+battery (`scripts/battery.sh` PHASE 1, all three assemblies) and CI's `ci-gate` job (each platform's weighted
+shards' trx files, per assembly, kb/Work PB4329); the ordered gate's driver (DESIGN §3.14.9 M13) calls `list_population` and `check` per assembly
 over both legs.
 
 THE QUESTION, answered as multisets of display names:
@@ -50,7 +50,10 @@ exiting 0, and every one of them is an ENVIRONMENT variable:
                            `VSTestTestCaseFilter=FullyQualifiedName~Snapshot` narrowed Characterization from 33
                            cases to 31, in the run AND in `--list-tests`, exit 0;
   RunSettingsFilePath      the same channel through the Test SDK's run-settings property (MEASURED: a runsettings
-                           file carrying a TestCaseFilter narrowed the listing to 31 the same way).
+                           file carrying a TestCaseFilter narrowed the listing to 31 the same way);
+  WISEOWL_COBOL_SHARD      CI's weighted shards (kb/Work PB4329): the test framework runs only shard k of N. The one
+                           variable a workflow may set, and only one that also runs `check` over its shards' trx
+                           (`ci-gate`), which is what makes the narrowing a division and never a loss.
 Because the VSTest channel narrows DISCOVERY too, a population listed in the caller's environment would be blind
 to it — which is why the listing here always runs scrubbed. `is_scrubbed` is the ONE statement of the rule;
 python callers pass `env=scrubbed_env()`, every other caller runs `python scripts/test_population.py scrubbed
@@ -60,7 +63,7 @@ what the workflow declares, so a workflow that sets none is scrubbed by construc
 
 Usage:
   python scripts/test_population.py check --label L (--project P [--configuration C] [--save-listing F]
-                                                     | --listing F [F …]) --trx T [T …] [--stopped-early]
+                                                     | --listing F [F …]) --trx T [T …] [--stopped-early] [--method M]
   python scripts/test_population.py list --project P [--configuration C] --out F
   python scripts/test_population.py scrubbed <command> [args …]
   python scripts/test_population.py audit-callers
@@ -104,8 +107,11 @@ GATED_ASSEMBLIES = {
 
 #: The gate's leg handshake (§3.14.3): written by the gate driver alone.
 HANDSHAKE = ("WISEOWL_COBOL_GATE_PLAN", "WISEOWL_COBOL_GATE_LEG", "WISEOWL_COBOL_GATE_PLAN_SHA256")
+#: CI's weighted shards (kb/Work PB4329; tests/_shared/GateLegs.cs `GateShard`): the one narrowing a WORKFLOW may set,
+#: because the workflow that sets it checks its shards' union with `check` (`audit_callers` holds it to that).
+SHARD = "WISEOWL_COBOL_SHARD"
 _SCRUBBED_PREFIXES = ("WISEOWL_COBOL_GATE_", "VSTEST")
-_SCRUBBED_NAMES = frozenset({"RUNSETTINGSFILEPATH"})
+_SCRUBBED_NAMES = frozenset({"RUNSETTINGSFILEPATH", SHARD})
 
 
 class PopulationError(Exception):
@@ -214,6 +220,13 @@ def list_population(project: str | Path, configuration: str | None = None,
         raise PopulationError(f"{project}: `--list-tests` failed (exit {proc.returncode}) — build the solution "
                               f"first, it runs --no-build:\n{tail}")
     return parse_listing(text, str(project)), text
+
+
+def of_method(listed: Counter, method: str) -> Counter:
+    """The listed cases of the test method named `method` (a display name's segment after its last `.` before its
+    first `(`): the population of a run filtered `FullyQualifiedName~<method>` where the method name is unique in the
+    assembly, as INV-1-strong's NistProgram_MatchesGolden is (kb/Work PB4329)."""
+    return Counter({n: c for n, c in listed.items() if n.split("(", 1)[0].rsplit(".", 1)[-1] == method})
 
 
 def read_listings(paths: list[str]) -> Counter:
@@ -357,6 +370,8 @@ _ANY_DOTNET_TEST = re.compile(r"\bdotnet\s+test\b")
 _SCRUBBED_RUN = re.compile(r"\bscrubbed\s+dotnet\s+test\b")
 #: A name immediately followed by `=` or `:` — an assignment, an `env:` key, `-p:Name=`, `$env:Name =`.
 _ASSIGNED = re.compile(r"([A-Za-z_][A-Za-z0-9_]*)\s*[:=]")
+#: A run of the union check (`check` always reads `--trx`): what licenses a workflow to set SHARD.
+_CHECKS_UNION = re.compile(r"\btest_population\.py\s+check\b")
 MECHANISM = "scripts/test_population.py"
 #: Documentation and data under scripts/ — prose that may QUOTE a command, never a runner.
 _PROSE_SUFFIXES = frozenset({".md", ".txt", ".json", ".tsv", ".csv"})
@@ -433,8 +448,12 @@ def audit_callers(root: Path = REPO) -> tuple[list[str], list[str]]:
         code = _code_lines(path.read_text(encoding="utf-8", errors="replace"))
         if any(_ANY_DOTNET_TEST.search(line) for _, line in code):
             sites.append(rel)
+        # The shard variable divides a run only where the same workflow checks the shards' union (`ci-gate`).
+        checks_union = any(_CHECKS_UNION.search(line) for _, line in code)
         offenders += [f"{rel}:{i}: sets `{m.group(1)}`, a variable that narrows a `dotnet test` run"
-                      for i, line in code for m in _ASSIGNED.finditer(line) if is_scrubbed(m.group(1))]
+                      + (", and runs no `test_population.py check` over its shards' trx" if m.group(1).upper() == SHARD else "")
+                      for i, line in code for m in _ASSIGNED.finditer(line)
+                      if is_scrubbed(m.group(1)) and not (m.group(1).upper() == SHARD and checks_union)]
     return sites, offenders
 
 
@@ -515,6 +534,17 @@ def self_test() -> int:
             executed == sum(listed.values()) and p.ran_twice == Counter({"N.A.Two": 1})
             and p.never_ran == Counter({"N.B.Three": 1}), f"counted {executed}; {p.verdict_line()}")
 
+        methods = read_listings([synthetic_listing(d / "methods.list.txt",
+                                                   ["N.G_P0.Golden(p: 1)", "N.G_P1.Golden(p: 2)", "N.G_P1.Golden",
+                                                    "N.G_P1.NotGolden(p: \"x.Golden(\")", "N.H.Golden_Other"])])
+        golden = of_method(methods, "Golden")
+        arm("--method keeps exactly the listed cases of that method, partition classes included (kb/Work PB4329: "
+            "INV-1-strong's filtered shards)", sorted(golden) == ["N.G_P0.Golden(p: 1)", "N.G_P1.Golden",
+                                                                 "N.G_P1.Golden(p: 2)"], str(sorted(golden)))
+        rc, why = rc_of(lambda: check("none", of_method(methods, "Absent"), [synthetic_trx(d / "m.trx", [])]).exact)
+        arm("--method naming no listed method is an EMPTY population: an ERROR, never clean", rc == RC_ERROR
+            and "EMPTY" in why, why)
+
         p = check("skip", listed, [synthetic_trx(d / "skip.trx", full)])
         arm("skipped: a NotExecuted-only definition is counted skipped, never ran", p.skipped == 1 and p.ran == 5)
 
@@ -591,8 +621,11 @@ def self_test() -> int:
         scrubbed = ["WISEOWL_COBOL_GATE_PLAN", "wiseowl_cobol_gate_leg", "WISEOWL_COBOL_GATE_PLAN_SHA256", "VSTestTestCaseFilter",
                     "VSTestSetting", "vstest_host_debug", "RunSettingsFilePath"]
         kept = ["WISEOWL_COBOL_COMPILE_CACHE", "PATH", "RUNSETTINGS", "WISEOWL_COBOL_GATE"]
-        arm("the scrub rule names the handshake, VSTest* and RunSettingsFilePath (any case), nothing else",
-            all(map(is_scrubbed, scrubbed)) and not any(map(is_scrubbed, kept)) and all(map(is_scrubbed, HANDSHAKE)))
+        scrubbed.append("wiseowl_cobol_shard")
+        kept.append("WISEOWL_COBOL_SHARDS")
+        arm("the scrub rule names the handshake, VSTest*, RunSettingsFilePath and CI's shard variable (any case), "
+            "nothing else", all(map(is_scrubbed, scrubbed)) and not any(map(is_scrubbed, kept))
+            and all(map(is_scrubbed, HANDSHAKE)) and is_scrubbed(SHARD))
         planted = {**os.environ, "WISEOWL_COBOL_GATE_LEG": "1", "VSTestTestCaseFilter": "X~Y", "W71D_KEEP": "kept"}
         probe = subprocess.run([sys.executable, __file__, "scrubbed", sys.executable, "-c",
                                 "import os; print(sorted(k for k in os.environ if k.upper() in "
@@ -623,6 +656,14 @@ def self_test() -> int:
                                         "      - run: echo \"WISEOWL_COBOL_GATE_LEG=1\" >> $GITHUB_ENV\n",
             ".github/workflows/good.yml": "jobs:\n  a:\n    env:\n      WISEOWL_COBOL_NIST_STD: '2023'\n    steps:\n"
                                          "      - run: dotnet test tests/X\n",
+            # CI's shards (kb/Work PB4329): set where the workflow checks their union, a narrowing everywhere else.
+            ".github/workflows/sharded.yml": "jobs:\n  a:\n    env:\n      WISEOWL_COBOL_SHARD: 1/2\n    steps:\n"
+                                            "      - run: dotnet test tests/X\n  gate:\n    steps:\n"
+                                            "      - run: python scripts/test_population.py check --label X \\\n"
+                                            "          --listing l.txt --trx s-*/X.trx\n",
+            ".github/workflows/unchecked.yml": "jobs:\n  a:\n    env:\n      WISEOWL_COBOL_SHARD: 1/2\n    steps:\n"
+                                              "      - run: dotnet test tests/X\n"
+                                              "      # python scripts/test_population.py check in a comment checks nothing\n",
         }
         for rel, text in files.items():
             (r / rel).parent.mkdir(parents=True, exist_ok=True)
@@ -630,7 +671,7 @@ def self_test() -> int:
         sites, offenders = audit_callers(r)
         flagged = {o.split(":", 1)[0] for o in offenders}
         want = {"scripts/bad.sh", "scripts/bad.ps1", "scripts/bad.py", "scripts/instruction.py",
-                "scripts/runner.cmd", ".github/workflows/bad.yml"}
+                "scripts/runner.cmd", ".github/workflows/bad.yml", ".github/workflows/unchecked.yml"}
         arm("audit-callers flags every unscrubbed shape and passes every scrubbed one (an unparsable runner type "
             "fails closed, a Markdown note is prose)", flagged == want,
             f"flagged {sorted(flagged)}")
@@ -672,6 +713,7 @@ def main(argv: list[str]) -> int:
     c.add_argument("--save-listing", help="with --project: also write the raw listing here")
     c.add_argument("--trx", nargs="+", required=True)
     c.add_argument("--stopped-early", action="store_true", help="the run stopped at a red: short = NOT RUN")
+    c.add_argument("--method", help="check only the listed cases of this test method (a run filtered to it)")
     ls = sub.add_parser("list", help="write a project's scrubbed `--list-tests` output to a file")
     ls.add_argument("--project", required=True)
     ls.add_argument("--configuration")
@@ -705,6 +747,8 @@ def main(argv: list[str]) -> int:
             if args.configuration or args.save_listing:
                 ap.error("--configuration and --save-listing go with --project")
             listed = read_listings(args.listing)
+        if args.method:
+            listed = of_method(listed, args.method)
         result = check(args.label, listed, args.trx, args.stopped_early)
     except PopulationError as e:
         print(f"=== POPULATION {getattr(args, 'label', '')}: ERROR — the check could not run: {e} ===")
