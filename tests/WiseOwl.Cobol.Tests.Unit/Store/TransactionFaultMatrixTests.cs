@@ -840,9 +840,11 @@ public sealed class TransactionFaultMatrixTests
     // ── 2.2.1.12's adoption matrix, the transaction column ──────────────────────────────────────────────────────
 
     /// <summary>2.2.1.12 R6 "every matrix row × a transaction open at the crash": A under commit control completed a WRITE
-    /// and dies at every write of its next statement (a REWRITE). An INPUT OPEN in the interval reads the file as it stands
-    /// (A's completed WRITE included: the dead transaction is not yet rolled back, D.2.5's tolerated read) and leaves it in
-    /// place; the first writable OPEN — or, after a power loss, the OPEN that adopts — rolls every before-image of A back.</summary>
+    /// and dies at every write of its next statement (a REWRITE). An INPUT OPEN in the interval reads the file as §9.1.18.5
+    /// leaves it (<i>"When a run unit terminates abnormally, all file changes made since the previous commit or, if none, the
+    /// beginning of the run unit are rolled back"</i>; kb/Work PB4097): the reader's own OPEN rolled every before-image of A back,
+    /// A's completed WRITE included, through a handle opened for the purpose; the first writable OPEN of a writer finds nothing
+    /// to roll back, and so does, after a power loss, the OPEN that adopts.</summary>
     [Theory]
     [MemberData(nameof(OrgsByContinuation))]
     public void A_transaction_open_at_a_crash_inside_its_next_statement_is_rolled_back_by_the_first_writable_open(FileOrg org,
@@ -867,7 +869,7 @@ public sealed class TransactionFaultMatrixTests
             else
             {
                 var reader = w.Open("R", commit: false, FileOpenMode.Input);
-                Assert.Equal(Rec(7, "A007"), reader.Contents()[7]);
+                Assert.Equal(Seed(), reader.Contents());   // A's completed WRITE of record 7 is not in the file the reader reads
                 reader.End();
                 if (continuation == "writer")
                 {
