@@ -12,3 +12,10 @@ finisher arms use) when it builds a finisher's claim, exempts the group's own wo
 finisher. The self-test's PB4352 block fails on main's planner (both notes waiting, 0 groups) and passes with the fix
 (504/504). On the live state the 54d-29 finisher is planned, and the 54d-26 finisher waits only on
 `worktree-wf_39ac352f-b1c-1`, which is unlanded and gates RED on PB4338.
+
+The branch review then found a hole in the same rule (R1-1): `branch_carrier` also answered for a branch whose tip is on
+origin/main. A live agent's worktree before its first commit is an ancestor of every finished branch that merged main,
+so the partition read its files as the work of the newest such branch, exempted that branch's finisher from them and
+planned a second agent on a file a running one was editing. The guard now lives in `branch_carrier` (a branch in
+`LANDED_CLASSES` has no carrier, and git is not asked), where every other caller's class guard already pointed. Two
+checks in the PB4352 block fail without it and pass with it (506/506).
