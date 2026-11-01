@@ -367,14 +367,19 @@ public sealed class ProcessObservationDriftTests
     }
 
     /// <summary>
-    /// ⛔ The same slow process under ONE unit is a non-observation, and its report carries what PB3108 asked for: the
-    /// budget, the work it covered, the process's own processor time and the host's load across each attempt.
+    /// ⛔ A process past ONE unit is a non-observation, and its report carries what PB3108 asked for: the budget, the
+    /// work it covered, the process's own processor time and the host's load across each attempt.
     /// </summary>
+    /// <remarks>The child never ends by itself (<see cref="RunsForever"/>), so no scheduling can make it finish within
+    /// the budget. The budget's clock starts when the observer's wait does, after <c>Process.Start</c> returns and stdin
+    /// is closed: with the slow 3 s child, a test host starved for 2 s on a host 85-100 % busy saw it exit before the
+    /// wait began, and the wait returned at once with exit 0 (gate run 000003-20261101T003516Z, its observation log:
+    /// <c>RETRY … ping -n 4 … TimedOut</c>, then <c>RECOVERED … exit 0</c>).</remarks>
     [Fact]
-    public void ASlowProcess_UnderOneUnit_IsANonObservationThatNamesItsWorkAndTheHostLoad()
+    public void AProcessPastOneUnit_IsANonObservationThatNamesItsWorkAndTheHostLoad()
     {
         var ex = Assert.Throws<HarnessNonObservationException>(
-            () => ProcessObserver.ObserveOrThrow(SleepsAFewSeconds(), budget: OneSecond));
+            () => ProcessObserver.ObserveOrThrow(RunsForever(), budget: OneSecond));
         Assert.Contains("budget  : 1000 ms for a probe (1 unit(s) of 1000 ms", ex.Message, StringComparison.Ordinal);
         Assert.Contains("of processor time itself", ex.Message, StringComparison.Ordinal);
         Assert.Contains($"host: {Environment.ProcessorCount} logical processor(s)", ex.Message, StringComparison.Ordinal);
@@ -433,7 +438,8 @@ public sealed class ProcessObservationDriftTests
     /// <summary>A process that sleeps about 3 s and exits 0: longer than one 1 s unit on any host.</summary>
     private static ProcessStartInfo SleepsAFewSeconds() => Shell("ping -n 4 127.0.0.1 >nul", "sleep 3");
 
-    /// <summary>A process that does not finish within any budget this test would set.</summary>
+    /// <summary>A process that never ends by itself (the observer kills its tree), so a test that needs a timeout gets
+    /// one whatever the host's load: a 30 s child could still exit before a wait that a starved test host began late.</summary>
     private static ProcessStartInfo RunsForever() =>
-        Shell("ping -n 30 127.0.0.1 >nul", "sleep 30");
+        Shell("ping -t 127.0.0.1 >nul", "exec sleep infinity");
 }
