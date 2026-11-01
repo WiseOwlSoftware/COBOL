@@ -460,6 +460,11 @@ jobs:
       - name: Inert lane — the lanes' classification against the tree (inert_lane.py check)
         if: ${{ !cancelled() }}
         run: python3 scripts/inert_lane.py check
+      # The gate has ONE shape (kb/Work PB3022): no live line tells anyone to run a gate mode. An audit since kb/Work
+      # PB4395: as a compiler test that walked every script, skill and workflow it made each of them a compiler test input.
+      - name: One shape — no live line names a gate mode (gate.py --audit-shape)
+        if: ${{ !cancelled() }}
+        run: python3 scripts/gate.py --audit-shape
       # Every diagnostic code is COBOL####, every number kept (kb/Work PB3575): the rename's own rules asked as a
       # question, so a branch that merged main without converting itself is red here. An audit, not a Unit test, for the
       # reason the conflict-marker check is one (kb/Work PB2878).

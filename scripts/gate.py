@@ -4,6 +4,7 @@ docs/rearchitecture/DESIGN-test-build-ci.md §3.14.1, §3.14.3, §3.14.6, §3.17
 
     python scripts/gate.py [--base <sha>]          # the gate, DETACHED, its output followed to the verdict
     python scripts/gate.py --await <run> [--worktree W] [--wait-s N]  # a gate's verdict, from its run dir
+    python scripts/gate.py --audit-shape        # the ONE SHAPE audit: no live line names a gate mode (kb/Work PB3022)
     python scripts/gate.py --self-test
     (python scripts/gate.py --run <run> [--base <sha>] is the detached gate itself; never run it by hand)
 
@@ -323,6 +324,8 @@ AUDITS = (
     # kb/Work PB2878, PB4395: THE lanes' classification against the tree (every entry names a tracked path; every script
     # the build or a compiler test is seen to read is CODE_READS), a question over the committed tree, so an audit.
     ("INERT LANE", ["scripts/inert_lane.py", "check"]),
+    # kb/Work PB3022, PB4395: the gate has ONE shape, so no live line names a mode; a question over the committed tree.
+    ("ONE SHAPE", ["scripts/gate.py", "--audit-shape"]),
     # kb/Work PB3575: every diagnostic code is COBOL####; the rename's own rules, asked as a question over the committed
     # tree, an audit for the reason CONFLICT MARKERS is one (PB2878).
     ("DIAGNOSTIC PREFIX", ["scripts/rename_diagnostic_prefix.py", "--check"]),
@@ -2421,10 +2424,132 @@ def self_test() -> int:
     finally:
         remove_tree(root)
 
+    shape = audit_shape_arms()
+    arm("ONE SHAPE (kb/Work PB3022): the audit names every line of the live trees that tells anyone to run a gate mode, "
+        "skips history and frozen evidence, and finds the tree it walks", shape == "", shape)
+    missing = [d for d in DECLARED_ARMS if not any(d in n for n, _, _ in results)]
+    arm("every DECLARED arm ran (DESIGN-test-build-ci.md §3.14.4 (3); a self-test quietly reduced to its happy path "
+        "also exits 0)", not missing, "; ".join(missing))
     failed = [n for n, ok, _ in results if not ok]
     print(f"=== gate SELF-TEST: {'PASS' if not failed else 'FAIL'} ({len(results)} arms"
           + (f"; failed: {'; '.join(failed)}" if failed else "") + ") ===")
     return 0 if not failed else 1
+
+
+#: ⛔ THE ARMS THIS SELF-TEST MUST RUN (DESIGN-test-build-ci.md §3.14.4 arm (3); kb/Work PB1721, PB4395): a self-test
+#: quietly reduced to its happy path also exits 0, so the run checks that an arm naming each of these ran. Until kb/Work
+#: PB4395 this list was GateLegDriftTests' (a compiler test reading this file's text); it is the self-test's own now.
+DECLARED_ARMS = (
+    "a whole planted population is GREEN, every assembly EXACT",
+    "every assembly runs its WHOLE population in one host, handed no narrowing",
+    "a dropped case is NEVER RAN",
+    "a case run twice is RAN TWICE",
+    "a trx definition the listing never printed is NOT IN THE POPULATION",
+    "a skipped case is counted skipped, never as ran",
+    "a host that wrote no trx is UNMEASURED",
+    "a red host makes the gate RED",
+    "a red host's whole output, its failure message included",
+    "a re-gate hands every host the classes red at the previous run and in the bounce",   # kb/Work PB4328
+    "an unreadable trx among the first classes' sources is named and KEPT",
+    "a test host's environment is scrubbed",
+    "a population that cannot be listed is NOT RUN [population]",
+    "a red audit (a tracked rendered view) that is known before the slot STOPS the gate before the build",
+    "the corpus fetch runs BEFORE the gate slot is taken, a red audit never queues for one",
+    "an audit that turns RED while the gate queues for the slot ends the gate before the build",   # kb/Work PB4326
+    "an audit that is RED only after the test hosts have started STOPS them",
+    "the script self-tests (the audits in TOOLING_ONLY, and the post-build ones) run ONLY when the change touches tooling",
+    "the audits a change that touches no tooling runs are AUDITS less TOOLING_ONLY",
+    "the verdict file records, per assembly, the seconds its host ran and the hosts' effective concurrency",
+    "a change in the INERT LANE (kb/Work PB2878) runs the audits and then ends GREEN",
+    "a red audit is RED in the inert lane too",
+    "a change in the TOOLING LANE (kb/Work PB4395) runs the audits WITH the script self-tests",
+    "a red audit is RED in the tooling lane",
+    "shared gate settings that turn malformed while the gate queues: NOT RUN",
+    "a hung self-test is `SELF-TESTS HANG` in the gate's reasons, never RED, and every gate's self-tests run with --reuse",
+    "a failed audit prerequisite (CI's `git submodule update --init tools/claude-skills`) is its RED, with its output, "
+    "and no audit runs",
+    "a defect in work beside the critical path is a named RED with its traceback",
+    "ONE SHAPE (kb/Work PB3022): every gate takes a slot, runs its audits beside the build and the hosts and runs the "
+    "whole population",
+    "a second gate in the same worktree is REFUSED",
+    "its verdict is BUSY with its own exit code, which the one verdict reader reads as BUSY, never RED",
+    "the one verdict reader: GREEN and an older gate's LEG 1 ONLY: GREEN pass",
+    "a defect in the driver still ends in ONE verdict line",
+    "every NOT RUN verdict a gate prints names a cause NOT_RUN_CAUSES classifies",   # kb/Work PB3526
+    "the gate lock is per worktree",
+    "the measured tree is the working tree's content",
+    "a re-gate of an unchanged tree answers from the recorded GREEN",
+    "a chain of reuses names the run that MEASURED the tree",
+    "a re-gate of a CHANGED tree runs the gate",
+    "a RED is never reused",
+    "a GREEN a gate before PB4328 wrote (record schema below SCHEMA_WHOLE",
+    "a gate whose tree changed WHILE it ran is never reused",
+    "--await reads the verdict file",
+    "the measured tree leaves out coord.NEVER_WORK",
+    "a relative run name resolves against the worktree that gated it",
+    "a record with no exit code takes it from its verdict through the one verdict reader",
+    "build-local's gate runs DETACHED and is followed",
+    "a detached gate OUTLIVES its follower's tree kill",
+)
+
+#: ⛔ ONE SHAPE (owner 2026-10-11, kb/Work PB3015 Q1a, PB3022; DESIGN-test-build-ci.md §3.17.3): the gate takes no mode,
+#: so no brief, skill, script, doc or test may tell anyone to run one: a caller left naming the deleted lander mode would
+#: fail at the parameter binder, and one naming the implementer mode would teach a distinction that no longer exists.
+#: History (the DEVLOG, the kb/Work notes, frozen evidence) keeps its words. The `--audit-shape` audit (AUDITS' ONE SHAPE)
+#: reads the tracked files of these trees and the root's Markdown files; until kb/Work PB4395 it was a compiler test
+#: (GateLegDriftTests) that walked them all, which made every script, skill and workflow a path a compiler test reads.
+SHAPE_MODE_RE = re.compile(r"(?:-Mode|--mode)\s+(?:" + "implementer" + "|" + "lander" + r")\b")
+SHAPE_TREES = (".claude/", ".github/", "scripts/", "docs/", "tests/")
+SHAPE_EXTENSIONS = (".md", ".py", ".ps1", ".sh", ".js", ".cs", ".yml", ".json")
+SHAPE_SKIPPED = ("bin", "obj", "TestResults", "claude-skills", "evidence", "Work", "worktrees")
+
+
+def audit_shape(root: Path, paths: list[str]) -> list[str]:
+    """ONE SHAPE's offenders among the tracked `paths` (`SHAPE_MODE_RE`): `path:line: text` for each line that names a
+    gate mode, in the shape trees and the root's Markdown files, history and frozen evidence left out."""
+    out: list[str] = []
+    for rel in paths:
+        parts = rel.split("/")
+        in_tree = rel.startswith(SHAPE_TREES) and rel.endswith(SHAPE_EXTENSIONS)
+        if not (in_tree and not any(p in SHAPE_SKIPPED for p in parts[:-1])) and not (len(parts) == 1 and rel.endswith(".md")):
+            continue
+        try:
+            text = (root / rel).read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        out += [f"{rel}:{i}: {line.strip()}" for i, line in enumerate(text.splitlines(), 1) if SHAPE_MODE_RE.search(line)]
+    return out
+
+
+def audit_shape_main(root: Path = REPO) -> int:
+    paths = subprocess.run(["git", "-C", str(root), "ls-files", "-z"], capture_output=True, check=True).stdout
+    tracked = [p for p in paths.decode("utf-8").split("\0") if p]
+    if ".claude/skills/workstream/templates/MANDATORY-PRACTICES.md" not in tracked:
+        print("=== ONE SHAPE: NOT RUN — the tracked tree has no MANDATORY-PRACTICES.md: the walk is broken ===")
+        return 2
+    bad = audit_shape(root, tracked)
+    for b in bad:
+        print(f"    {b}")
+    print("=== ONE SHAPE: " + (f"RED — {len(bad)} line(s) tell someone to run a gate mode; the gate has ONE shape, "
+                                "`pwsh scripts/build-local.ps1 -Priority BelowNormal` (kb/Work PB3022) ===" if bad
+                                else "GREEN — no live line names a gate mode ==="))
+    return 1 if bad else 0
+
+
+def audit_shape_arms() -> str:
+    """The audit on a planted tree: '' when every arm holds, else what failed."""
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        planted = {"scripts/a.ps1": "pwsh build-local.ps1 -Mode " + "lander\n", "docs/b.md": "ok\nrun --mode " + "implementer now\n",
+                   "README.md": "-Mode " + "implementer\n", "DEVLOG/1.md": "-Mode " + "lander\n",
+                   "docs/rearchitecture/evidence/x.md": "-Mode " + "lander\n", "tests/T.cs": "-Modest lander\n",
+                   "src/a.cs": "-Mode " + "lander\n"}
+        for rel, text in planted.items():
+            (root / rel).parent.mkdir(parents=True, exist_ok=True)
+            (root / rel).write_text(text, encoding="utf-8")
+        got = [b.split(":", 2)[0] + ":" + b.split(":", 2)[1] for b in audit_shape(root, sorted(planted))]
+        want = ["README.md:1", "docs/b.md:2", "scripts/a.ps1:1"]
+        return "" if got == want else f"got {got}, want {want}"
 
 
 def print_flush(line: str) -> None:
@@ -2443,9 +2568,13 @@ def main() -> int:
                     f"(default {AWAIT_WAIT_S}, under a tool call's 10-minute limit)")
     ap.add_argument("--run", metavar="RUN", help="(the detached gate itself, started by build-local; not by hand)")
     ap.add_argument("--self-test", action="store_true", help="fire every arm on planted inputs (DESIGN §3.14.4 (3))")
+    ap.add_argument("--audit-shape", action="store_true", help="the ONE SHAPE audit: no live line names a gate mode "
+                    "(kb/Work PB3022)")
     args = ap.parse_args()
     if args.self_test:
         return self_test()
+    if args.audit_shape:
+        return audit_shape_main()
     if args.await_run:
         run = resolve_run(args.await_run, args.worktree)
         code, line = watch(run, args.wait_s, gate_running(run))
