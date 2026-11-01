@@ -50,7 +50,7 @@ public sealed class LinkageCarrierDriftTests : WiseOwlCobolTestBase
     private static DataItem ItemOf(PicCategory category) => new()
     {
         Level = 1,
-        CsName = "L_X",
+        ClrName = "L_X",
         CobolName = "L-X",
         Uid = 7,
         Pic = category is PicCategory.Group ? null : new PicInfo(category, Usage.Display, 4, 4, 0, false),

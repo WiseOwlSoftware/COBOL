@@ -154,7 +154,7 @@ public sealed class NumericByteFormDriftTests
     [MemberData(nameof(AllUsages))]
     public void EveryImageCapableLeaf_HasAByteForm(Usage usage)
     {
-        var item = new DataItem { Level = 5, CobolName = "X", CsName = "X", Pic = Pic(usage) };
+        var item = new DataItem { Level = 5, CobolName = "X", ClrName = "X", Pic = Pic(usage) };
         if (!item.IsImageCapable) return;
         Assert.NotEqual(NumericByteForm.None, item.Pic!.ByteForm);
     }

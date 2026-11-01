@@ -56,7 +56,7 @@ public sealed record LinkageFormal(DataItem Item, int Position, string CarrierFi
 }
 
 /// <summary>The synthesized run-unit backing of one EXTERNAL record (ISO §13.18.22 / §8.6.7): the emitter
-/// renders <c>private ref string {BackingCsName} =&gt; ref ExternalStore.Cell({ExternalName}, «seed»).Ref;</c>
+/// renders <c>private ref string {BackingClrName} =&gt; ref ExternalStore.Cell({ExternalName}, «seed»).Ref;</c>
 /// and every reference windows it through the Tier-B view machinery. <see cref="Record"/> carries the record's own
 /// DataItem, which is ALL the emitter needs: the seed is composed by the ONE Tier-B seeder
 /// (<c>GroupImageCodec.ImageInitOf</c>), with VALUEs suppressed for a plain external item — whose VALUE takes
@@ -65,11 +65,11 @@ public sealed record LinkageFormal(DataItem Item, int Position, string CarrierFi
 /// initialized at initial state "except for those with the CONSTANT RECORD clause"). ⛔ There is no precomputed
 /// InitImage field any more: it was a SECOND seeder, hand-rolled in the binder from a char-fill model that
 /// predated the pinned byte forms (kb/Work PB164).</summary>
-/// <param name="CellCsName">The <c>StorageCell</c> property the backing is defined over
-/// (<c>RedefinesClass.BackingCellCsName</c>) — the cell holds BOTH halves of the one shared area, its byte image
+/// <param name="CellClrName">The <c>StorageCell</c> property the backing is defined over
+/// (<c>RedefinesClass.BackingCellClrName</c>) — the cell holds BOTH halves of the one shared area, its byte image
 /// and its MANAGED SLOTS, so a pointer-class member of an external record addresses the same storage every other
 /// describer does (kb/Work PB231).</param>
-public sealed record CallExternalBacking(string BackingCsName, string CellCsName, string ExternalName, int Width,
+public sealed record CallExternalBacking(string BackingClrName, string CellClrName, string ExternalName, int Width,
                                          DataItem Record);
 
 /// <summary>The kind of thing an EXTERNAL entry externalizes (ISO §8.3.2.2 list item 2: "data-names, file-names, and
@@ -225,9 +225,9 @@ public sealed partial class DataBinder
     {
         if (g.Class is { Tier: RedefinesTier.StringCanonical } cls)
         {
-            yield return new CallBridge(cls.BackingCsName, anchorOf(cls.BackingCsName) + cls.BackingCsName, CallBridgeKind.Backing, null);
+            yield return new CallBridge(cls.BackingClrName, anchorOf(cls.BackingClrName) + cls.BackingClrName, CallBridgeKind.Backing, null);
             if (cls.IsCellBacked)
-                yield return new CallBridge(cls.BackingCellCsName, anchorOf(cls.BackingCellCsName) + cls.BackingCellCsName, CallBridgeKind.Cell, null);
+                yield return new CallBridge(cls.BackingCellClrName, anchorOf(cls.BackingCellClrName) + cls.BackingCellClrName, CallBridgeKind.Cell, null);
             // An AREA formal's carrier IS this pointer (LinkageFormal.IsArea), so the bridge names the formal too.
             if (cls.BasedPointerField is { } addr)
                 yield return new CallBridge(addr, anchorOf(addr) + addr, CallBridgeKind.Address, null,
@@ -251,7 +251,7 @@ public sealed partial class DataBinder
                         CallBridgeKind.ArgumentArea, anchor, rf);
             }
             else
-                yield return new CallBridge(anchor.CsName, anchorOf(anchor.CsName) + anchor.CsName, CallBridgeKind.Field, anchor);
+                yield return new CallBridge(anchor.ClrName, anchorOf(anchor.ClrName) + anchor.ClrName, CallBridgeKind.Field, anchor);
             if (!ReferenceEquals(anchor, g))
                 foreach (var idx in IndexDeclarationsUnder(anchor))
                     yield return new CallBridge(idx.Cell, anchorOf(idx.Cell) + idx.Cell, CallBridgeKind.Index, null);
@@ -358,7 +358,7 @@ public sealed partial class DataBinder
     /// CLASS — the bridge members <see cref="GlobalBridgesOf"/> emits AND the root's own C# name (with its REDEFINES
     /// canonical's), because that name is the STEM every derived member is spelled from: a REDEFINES class's
     /// <c>_redef_</c> backing, its <c>_scell_</c> cell, a BASED class's <c>__addr_</c> pointer
-    /// (<see cref="Model.RedefinesClass.BackingCsName"/>). A contained unit uniques its local roots against these, so
+    /// (<see cref="Model.RedefinesClass.BackingClrName"/>). A contained unit uniques its local roots against these, so
     /// a local stem never equals an inherited one and no derived member can re-spell a bridge (those prefixes cannot
     /// begin a COBOL word). Reserving only the bridge members left a local <c>01 G</c> + <c>01 K REDEFINES G</c> the
     /// stem <c>G</c>, and its class backing re-spelled the container's <c>_redef_G</c> bridge (CS0102; wave 69 Z,
@@ -366,8 +366,8 @@ public sealed partial class DataBinder
     internal IEnumerable<string> InheritedMemberNamesOf(DataItem g)
     {
         foreach (var bridge in GlobalBridgesOf(g, static _ => "")) yield return bridge.Field;
-        yield return g.CsName;
-        if (g.Class is { } cls) yield return cls.Canonical.CsName;
+        yield return g.ClrName;
+        if (g.Class is { } cls) yield return cls.Canonical.ClrName;
     }
 
     /// <summary>Reserve the C# member names a container's GLOBAL roots occupy in this unit's class
@@ -474,7 +474,7 @@ public sealed partial class DataBinder
                 continue;
             }
             // SR1: uniqueness, and no REDEFINES / BASED clause — the ONE header screen. A BASED formal's flag clears
-            // there: a carrier-resident formal's CsName rewrite would poison the based class's BackingCsName into
+            // there: a carrier-resident formal's ClrName rewrite would poison the based class's BackingClrName into
             // invalid C#, so the entry binds as an ordinary (already-diagnosed) formal. A REPEATED formal is not
             // admitted a second time (`USING A A` reached the backend as a duplicate carrier member).
             if (!header.AdmitFormal(pname, item)) { pos++; continue; }
@@ -515,8 +515,8 @@ public sealed partial class DataBinder
             {
                 // The item's C# "path" becomes the carrier's Value accessor: every Place built over it reads
                 // and writes the caller's storage directly (MemberPlace path text — no new Place subtype).
-                item.CsName = carrier + ".Value";
-                _callSuppressedRootFields.Add(item.CsName);
+                item.ClrName = carrier + ".Value";
+                _callSuppressedRootFields.Add(item.ClrName);
             }
             _linkageFormals.Add(new LinkageFormal(item, pos, carrier, resident, byValue, optional));
             pos++;
@@ -834,14 +834,14 @@ public sealed partial class DataBinder
         // otherwise. `externalName` overrides both — it is the FD-record case, whose key is the FILE
         // connector's externalized name (GR4b/GR5's first alternative), already resolved at the FD entry.
         _callExternalBackings.Add(new CallExternalBacking(
-            cls.BackingCsName, cls.BackingCellCsName,
+            cls.BackingClrName, cls.BackingCellClrName,
             externalName ?? item.ExternalizedAs ?? CobolNames.UpperFold(item.CobolName!),
             cls.Width, item));
     }
 
     /// <summary>The ONE cell-backing forcer (increment-2 factoring of the proven EXTERNAL re-basing —
     /// feedback_one_mechanism_per_job): make <paramref name="item"/>'s class Tier-B StringCanonical with NO stored
-    /// member, so a heap-cell-backed <c>ref</c>-property with the class's <see cref="RedefinesClass.BackingCsName"/>
+    /// member, so a heap-cell-backed <c>ref</c>-property with the class's <see cref="RedefinesClass.BackingClrName"/>
     /// can supply the storage (EXTERNAL records → the run-unit <c>ExternalStore</c> cell; ADDRESS-OF-taken items →
     /// a per-instance <c>StorageCell</c>; BASED items → the pointer-deref bridge). Every byte-form numeric
     /// leaf rides the cell since the Step D arm-1 dissolution (the gate reads THE ONE image predicate);
@@ -895,7 +895,7 @@ public sealed partial class DataBinder
             rejectReason: null);
         // ⛔ THE CELL CLAIM, made HERE because this method IS the one cell-backing forcer and its three callers
         // ARE the three cell surfaces: from now on the class has a StorageCell behind its backing
-        // (RedefinesClass.BackingCellCsName), which is what a pointer-class member's MANAGED SLOT addresses
+        // (RedefinesClass.BackingCellClrName), which is what a pointer-class member's MANAGED SLOT addresses
         // (kb/Work PB231 — the pointer third; §14.9.3.4 GR9). A REDEFINES class never reaches this line and
         // never gets one, which is exactly why ComputeTier still refuses a pointer leaf.
         cls.IsCellBacked = true;

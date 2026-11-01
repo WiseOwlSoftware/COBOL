@@ -1165,10 +1165,20 @@ fragment DEC_COMMA_BODY : [0-9]+ ',' [0-9]+ | ',' [0-9]+ ;                      
 // legal last); only hyphen and underscore are barred from the ends here.
 fragment EXT_CHAR  : ~[\u0000-\u007F\uFDD0-\uFDEF\uFFFE\uFFFF] ;
 fragment NAME_TAIL : ([a-z0-9_-] | EXT_CHAR)* ([a-z0-9] | EXT_CHAR) ;   // cannot END on a separator (§8.3.2.1)
+// ⛔ A WORD THAT STARTS OR ENDS ON AN UNDERSCORE IS STILL A WORD, ILL-FORMED (kb/Work PB4234). §8.3.2.1: "The hyphen or
+// underscore shall not appear as the first or last character in such words" — a rule about a COBOL word, so `_A` and `A_`
+// are words that break it, not an `_` beside a word. Without the last two alternatives below the lexer split them at the
+// underscore (ANY_CHAR) and the user read "unexpected '_'" with the rule never named. Superset-parse / bind-narrow, as
+// EXT_CHAR is: the lexer takes the whole character-string as one IDENTIFIER and WordCharacterScreen names the position
+// (CobolCharacterRepertoire.SeparatorPositionViolation). The underscore only: a hyphen touching a word is also the
+// arithmetic minus (and a signed-number sign), so it is not a word edge the lexer can decide.
+fragment WORD_CHAR : [a-z0-9_-] | EXT_CHAR ;
 fragment NAME_BODY                                                                   // IDENTIFIER
     : [0-9]+ [-_] ([a-z0-9] | EXT_CHAR) NAME_TAIL?   // digit-start with separator: 42-DATANAMES, 42_DATANAMES
     | [0-9]+ ([a-z] | EXT_CHAR) NAME_TAIL?           // digit-start with letter: 11A, 25COUNT, 80PARTS, 1É
     | ([a-z] | EXT_CHAR) NAME_TAIL?                  // alpha-start: A, WRK-DS-01V00, MY_NAME, CAFÉ
+    | '_' WORD_CHAR*                                 // ILL-FORMED, first character an underscore: _A, __, _42
+    | ([a-z0-9] | EXT_CHAR) WORD_CHAR* '_'           // ILL-FORMED, last character an underscore: A_, MY-NAME_, 42_
     ;
 
 // ── List-region signed literals (P7 Step 12; kb/Work PB2113) ──

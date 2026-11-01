@@ -1361,6 +1361,15 @@ because the raw name is not stable (`b7`):
 - **Leg 1** = tier 0a + the admitted tier 0u + the cheapest cases of tier 1 while their recorded time stays within
   `LEG_ONE_BUDGET` = 2 % of the assembly's recorded test-seconds AND the case's collection's budgeted leg-1 time stays
   within `LEG_ONE_COLLECTION_CAP` = 15 s (tier 0 is exempt from the cap). **Leg 2** = everything else.
+- **A whole tier 1 when the change cannot be attributed precisely** (owner 2026-10-31, kb/Work PB4269: "Run the whole
+  tier"). The budget above holds only for a change the map attributes by method. When it cannot, tier 1 is a superset
+  the map could not narrow, and its cheapest 2 % is chosen by duration, not by what the change reaches. PR #880's
+  GREEN gate left out all 11 cases it broke that way. Then EVERY tier-1 case, and every tier-0u case, is in leg 1,
+  exempt from both budgets and the cap (`gate_plan.whole_tier_reason`). There are two causes: `every_tier1` (no usable
+  map, a grammar or build input, a file the map never saw: every case is tier 1, so the plan is the whole population),
+  and `drifted` (a changed file that differs between the map's commit and the base, taken at the file level,
+  `impacted_tests.drifted_change`). The gate's verdict line names the reason (`tier 1 whole (kb/Work PB4269): …`), so a
+  slow gate names the attribution hole that made it slow: PB4228 (reflection sweeps), PB4270 (stale maps), PB2696.
 - **Why the collection cap.** xunit runs a collection serially, so leg 1's wall is at least its largest collection's
   part, and on a GREEN gate every other core idles at the leg barrier until that part ends. Uncapped, a 2 % budget
   holds 2,883 of 9,217 Conformance cases and one `CorpusRunnerTests` partition holds 46 s of it; capped at 15 s it
@@ -1380,12 +1389,12 @@ because the raw name is not stable (`b7`):
 **The plan file** (`plan.json` in the gate's run directory) holds, per assembly, the leg-1 KEYS, the leg-2 KEYS, the
 per-key rank, and the plan's SHA-256. Its format (schema 1), written by `gate_plan.py --out` as canonical JSON (UTF-8,
 no BOM, sorted keys, no insignificant whitespace):
-`{"schema": 1, "base", "map", "map_state", "timings", "every_tier1": [reasons], "constants": {LEG_ONE_BUDGET, …},
+`{"schema": 1, "base", "map", "map_state", "timings", "every_tier1": [reasons], "drifted": [paths], "whole_tier": reason or "", "constants": {LEG_ONE_BUDGET, …},
 "reds": {<source label>: {"keys": n, "listed": n}, …},
 "assemblies": {"Conformance": {"legs": [1, 2] | [1] | [2], "leg1": [key, …], "leg2": [key, …], "stats": {…}}, …},
 "sha256": …}`. `leg1` and `leg2` are in RANK order — a key's rank is its position, leg 1's list first — so the rank
 needs no second structure; `legs` names the legs the driver invokes the assembly for; `stats` is for people (tier
-counts, leg-1 cases, seconds and floor, the one-leg reason); `reds` names the two sources whose reds are tier 0a
+counts, leg-1 cases, seconds and floor, the one-leg reason, the whole-tier reason); `reds` names the two sources whose reds are tier 0a
 (build-local's previous run under its timings label, `previous run: none` when there is none; the Linux gate's newest
 run as `linux gate <its results directory>`; `gate_plan.previous_gates`) with how many red keys each gave and how
 many of them name a case discovered here (`{"keys": 0, "listed": 0}` for a source that left none). Every plan the gate

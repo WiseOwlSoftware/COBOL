@@ -99,9 +99,9 @@ public sealed partial class DataBinder
                     + "is recognized but not yet implemented (kb/Work PB164; ISO §13.18.5 / §14.9.3)");
                 continue;
             }
-            string addr = NamingConvention.AddressCarrierName(root.CsName);
+            string addr = NamingConvention.AddressCarrierName(root.ClrName);
             cls.BasedPointerField = addr;
-            _ptrBasedBridges.Add((cls.BackingCsName, cls.BackingCellCsName, addr, cls.Width));
+            _ptrBasedBridges.Add((cls.BackingClrName, cls.BackingCellClrName, addr, cls.Width));
         }
 
         // ⛔ A FORMAL WHOSE STORAGE IS AN AREA IS LAID OVER ITS ARGUMENT'S CELL (kb/Work PB2087). ISO §14.2.3 GR8: "If the
@@ -122,7 +122,7 @@ public sealed partial class DataBinder
             if (!CellCanCarry(item)) continue;
             if (ForceStringCanonical(item, "LINKAGE formal parameter") is not { } cls) continue;
             cls.BasedPointerField = pointer;
-            _ptrBasedBridges.Add((cls.BackingCsName, cls.BackingCellCsName, pointer, cls.Width));
+            _ptrBasedBridges.Add((cls.BackingClrName, cls.BackingCellClrName, pointer, cls.Width));
         }
 
         // The addressed names: this unit's own procedure division(s), plus — kb/Work PB1009 — every CONTAINED
@@ -224,17 +224,17 @@ public sealed partial class DataBinder
         root.IsBased
         || root.Class is { BasedPointerField: not null }
         || root.Class is { } existing && PtrAddressableCellOf.ContainsKey(existing)
-        || root.Class is { Tier: RedefinesTier.StringCanonical } ext && CallExternalBackings.Any(b => b.BackingCsName == ext.BackingCsName);
+        || root.Class is { Tier: RedefinesTier.StringCanonical } ext && CallExternalBackings.Any(b => b.BackingClrName == ext.BackingClrName);
 
     /// <summary>Record a forced class's per-instance cell. ⛔ THE CLASS NAMES ITS OWN CELL (kb/Work PB231): the field used
     /// to carry an ad-hoc <c>_cell_{NAME}</c> spelling that only this list knew, so a place builder could not reach the
-    /// cell to address the area's MANAGED SLOTS. It is now <see cref="RedefinesClass.BackingCellCsName"/>, the ONE name
+    /// cell to address the area's MANAGED SLOTS. It is now <see cref="RedefinesClass.BackingCellClrName"/>, the ONE name
     /// every cell surface uses and <c>ReferenceResolver.BuildCellPath</c> resolves.</summary>
     private void ClaimAddressableCell(RedefinesClass cls)
     {
-        string cell = cls.BackingCellCsName;
+        string cell = cls.BackingCellClrName;
         _ptrAddressableCellOf[cls] = cell;
-        _ptrAddressableBackings.Add((cls.BackingCsName, cell, cls.Canonical, cls.Width));
+        _ptrAddressableBackings.Add((cls.BackingClrName, cell, cls.Canonical, cls.Width));
     }
 
     /// <summary>⛔ THE ONE RESOLUTION OF A SCANNED STORAGE-CLAIM HEAD (an <c>ADDRESS OF</c> head or a BY REFERENCE operand;

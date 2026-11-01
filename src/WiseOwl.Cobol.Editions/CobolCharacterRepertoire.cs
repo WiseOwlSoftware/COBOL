@@ -69,7 +69,7 @@ public static partial class CobolCharacterRepertoire
     /// character". The edition's Annex B question is <see cref="Violation"/>, asked of the word afterwards.</summary>
     public static bool IsWordShape(string word)
     {
-        if (word.Length == 0 || word[0] is '-' or '_' || word[^1] is '-' or '_') return false;
+        if (word.Length == 0 || SeparatorPositionViolation(word) is not null) return false;
         foreach (char c in word) if (!IsWordCharacter(c)) return false;
         return true;
     }
@@ -108,12 +108,30 @@ public static partial class CobolCharacterRepertoire
     /// is null at 2023 or at 2014, whose table 2002 shares; COBOL-85's basic repertoire is a subset of both)? A word
     /// no edition admits is no COBOL word whatever edition is targeted, so a reading of the source that takes it for
     /// one is no reading the standard has (the parse layer's missing-period guess, kb/Work PB3832).</summary>
-    public static bool IsWordAtSomeEdition(string word) => Violation(word, 2023) is null || Violation(word, 2014) is null;
+    public static bool IsWordAtSomeEdition(string word) =>
+        SeparatorPositionViolation(word) is null && (Violation(word, 2023) is null || Violation(word, 2014) is null);
+
+    /// <summary>⛔ THE BASIC SEPARATORS' POSITION RULE, as a message — §8.3.2.1: "The hyphen or underscore shall not
+    /// appear as the first or last character in such words." Edition-free (it holds at COBOL-85 as at 2023), so it
+    /// belongs to no Annex B table: <see cref="Violation"/> judges the extended letters by the edition's Annex B.3, whose
+    /// item 3 mirrors this rule for them, and this judges the two basic characters. Null when the word starts and ends
+    /// on something else. The lexer's word class takes <c>_A</c> and <c>A_</c> whole so that this rule can name them
+    /// (kb/Work PB4234); <see cref="IsWordShape"/> asks the same position question of the text-stage word readers.</summary>
+    public static string? SeparatorPositionViolation(string word)
+    {
+        if (word.Length == 0) return null;
+        bool first = word[0] is '-' or '_';
+        if (!first && word[^1] is not ('-' or '_')) return null;
+        char edge = first ? word[0] : word[^1];
+        return $"the COBOL word '{word}' has the {(edge == '_' ? "underscore" : "hyphen")} as its "
+            + $"{(first ? "first" : "last")} character: \"The hyphen or underscore shall not appear as the first or last "
+            + "character in such words\" (ISO §8.3.2.1)";
+    }
 
     /// <summary>The first Annex B violation in <paramref name="word"/> at <paramref name="dialectLevel"/> — a
     /// character outside the repertoire, a B.3 item 2 character first, or a B.3 item 3 character first or last — as
-    /// the diagnostic's message; null when every character is where Annex B permits it. Hyphen and underscore never
-    /// reach the position arms: the lexer cannot end or start a word on them (§8.3.2.1, <c>NAME_TAIL</c>).</summary>
+    /// the diagnostic's message; null when every character is where Annex B permits it. The basic hyphen and
+    /// underscore are not judged here: their position rule is edition-free (<see cref="SeparatorPositionViolation"/>).</summary>
     public static string? Violation(string word, int dialectLevel)
     {
         int edition = dialectLevel >= 2023 ? 2023 : dialectLevel >= 2014 ? 2014 : 2002;

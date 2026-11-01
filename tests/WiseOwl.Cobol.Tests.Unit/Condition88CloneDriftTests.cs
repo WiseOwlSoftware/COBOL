@@ -28,7 +28,7 @@ public sealed class Condition88CloneDriftTests
     {
         Level = 1,
         CobolName = name,
-        CsName = name,
+        ClrName = name,
     };
 
     /// <summary>Every writable instance member of <see cref="Condition88"/> — settable properties plus

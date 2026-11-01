@@ -24,7 +24,7 @@ public sealed class TableValueElementCountTests
 
     private static TableValueDim Unbounded() => new(Item(), null, Dynamic: true);
 
-    private static DataItem Item() => new() { Level = 5, CobolName = "T", CsName = "T" };
+    private static DataItem Item() => new() { Level = 5, CobolName = "T", ClrName = "T" };
 
     private static Subscripts S(params int[] v) => new(v);
 

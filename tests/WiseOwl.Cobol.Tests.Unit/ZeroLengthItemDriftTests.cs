@@ -24,13 +24,13 @@ public sealed class ZeroLengthItemDriftTests
     private static DataItem Elem(string name, int width = 1, OccursSpec? occurs = null, int? fixedOccurs = null) =>
         new()
         {
-            Level = 5, CobolName = name, CsName = name, Pic = AlnumX(width),
+            Level = 5, CobolName = name, ClrName = name, Pic = AlnumX(width),
             OccursSpec = occurs, Occurs = fixedOccurs,
         };
 
     private static DataItem Group(string name, params DataItem[] children)
     {
-        var g = new DataItem { Level = 1, CobolName = name, CsName = name };
+        var g = new DataItem { Level = 1, CobolName = name, ClrName = name };
         foreach (var c in children) g.AddMember(c);
         return g;
     }

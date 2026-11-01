@@ -521,7 +521,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         if (truth is BoundConditionError) return truth;
         var model = new DataItem
         {
-            Level = 1, CobolName = "__SENDTRUTH", CsName = "__sendtruth",
+            Level = 1, CobolName = "__SENDTRUTH", ClrName = "__sendtruth",
             Pic = new PicInfo(PicCategory.Boolean, Usage.Display, Length: 1, Digits: 0, Scale: 0, Signed: false),
         };
         var temp = ctx.Data.CreateCompilerTemp(model, "__SENDTRUTH-", "__sendtruth", tag);
@@ -546,7 +546,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     {
         var model = new DataItem
         {
-            Level = 1, CobolName = "__SENDBOOL", CsName = "__sendbool",
+            Level = 1, CobolName = "__SENDBOOL", ClrName = "__sendbool",
             Pic = new PicInfo(PicCategory.Boolean, Usage.Display, Length: positions, Digits: 0, Scale: 0, Signed: false),
         };
         var temp = ctx.Data.CreateCompilerTemp(model, "__SENDBOOL-", "__sendbool", tag);
@@ -653,7 +653,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         {
             var numberModel = new DataItem
             {
-                Level = 1, CobolName = "__HELDALLN", CsName = "__heldalln",
+                Level = 1, CobolName = "__HELDALLN", ClrName = "__heldalln",
                 Pic = new PicInfo(PicCategory.Numeric, Usage.Display, Length: 10, Digits: 10, Scale: 0, Signed: false),
             };
             var number = ctx.Data.CreateCompilerTemp(numberModel, "__HELDALLN-", "__heldalln", tag);
@@ -767,7 +767,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         {
             var pic = IntermediatePic(c, use);
             return new TempModel(
-                new DataItem { Level = 1, CobolName = "__SENDVAL-FN", CsName = "__sendvalFn", Pic = pic },
+                new DataItem { Level = 1, CobolName = "__SENDVAL-FN", ClrName = "__sendvalFn", Pic = pic },
                 DynLimit: 0, FunctionValue: true, Approximation: pic.IsFloat && IsBinary64Approximation(c),
                 DeviceDigits: c.Expr is BoundIntrinsicCall { Sig.DeviceForm: FunctionDeviceForm.FixedDigits } fixedDigits
                     ? fixedDigits.Sig.DeviceDigits : null);
@@ -783,7 +783,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     private static TempModel CharacterCarrier(string cobolName, string csName, PicCategory category, Usage usage, int limit) =>
         new(new DataItem
             {
-                Level = 1, CobolName = cobolName, CsName = csName,
+                Level = 1, CobolName = cobolName, ClrName = csName,
                 Pic = new PicInfo(category, usage, Length: 0, Digits: 0, Scale: 0, Signed: false),
             },
             DynLimit: limit);

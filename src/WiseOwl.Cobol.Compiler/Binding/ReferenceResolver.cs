@@ -417,7 +417,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     {
         string written = DataBinder.WrittenText(dref);
         if (gap.Deferred is { } shape) return RefResolution.Deferred(shape, written);
-        ReportRefusedDeclaration(dref, gap.Refused.CobolName ?? gap.Refused.CsName, gap.Refused.Class?.RejectReason);
+        ReportRefusedDeclaration(dref, gap.Refused.CobolName ?? gap.Refused.ClrName, gap.Refused.Class?.RejectReason);
         return RefResolution.Refused(written);
     }
 
@@ -1369,7 +1369,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
         if (written == enclosing) return false;
         if (_probing) return true;   // R30 purity: a probe never diagnoses (kb/Work PB157)
         if (!_diagnosed.Add(dref)) return true;
-        string subject = table.CobolName ?? table.CsName;
+        string subject = table.CobolName ?? table.ClrName;
         data.Edition.Error(DiagnosticCatalog.SubscriptCountMismatch,
             $"'{DataBinder.WrittenText(dref)}': the table '{subject}' sits inside {enclosing} enclosing OCCURS "
             + $"clause{(enclosing == 1 ? "" : "s")}, so the SORT subject writes {enclosing} subscript"
@@ -1464,7 +1464,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
         if (_probing) return true;
         if (!_diagnosed.Add(dref)) return true;
         string text = DataBinder.WrittenText(dref);
-        string subject = item.CobolName ?? item.CsName;
+        string subject = item.CobolName ?? item.ClrName;
         if (written == 0)
             data.Edition.Error(DiagnosticCatalog.TableElementNotSubscripted,
                 $"'{text}': '{subject}' is a table element — its description contains, or is subordinate to, "
@@ -1827,10 +1827,10 @@ public sealed partial class ReferenceResolver(DataBinder data)
     private AccessPath? BuildBackingPath(RedefinesClass cls, IReadOnlyList<Position> outerIndexExprs)
     {
         if (cls.Canonical.Parent is not { } parent)
-            return new AccessPath([new RootFieldSegment(cls.BackingCsName, OmittedFormalGuard.Of(cls.Canonical))]);
+            return new AccessPath([new RootFieldSegment(cls.BackingClrName, OmittedFormalGuard.Of(cls.Canonical))]);
         // The enclosing element carries the same §13.18.38.4 GR7 OCCURS DEPENDING check every other element path does.
         return BuildAccessPath(parent, outerIndexExprs, OdoReferenceCheckFor) is { } parentPath
-            ? parentPath.Add(new MemberSegment(cls.BackingCsName)) : null;
+            ? parentPath.Add(new MemberSegment(cls.BackingClrName)) : null;
     }
 
     /// <summary>The STRUCTURAL access path to the <c>StorageCell</c> behind a CELL-BACKED class's backing —
@@ -1845,8 +1845,8 @@ public sealed partial class ReferenceResolver(DataBinder data)
         cls is { IsCellBacked: true, Canonical.Parent: null }
             // The cell is a reference-type StorageCell held in a READONLY field, so its guard passes it through
             // rather than taking it by ref (kb/Work PB971).
-            ? new AccessPath([new RootFieldSegment(cls.BackingCellCsName,
-                OmittedFormalGuard.Of(cls.Canonical) is { } g ? g with { CarrierPrefix = cls.BackingCellCsName } : null)])
+            ? new AccessPath([new RootFieldSegment(cls.BackingCellClrName,
+                OmittedFormalGuard.Of(cls.Canonical) is { } g ? g with { CarrierPrefix = cls.BackingCellClrName } : null)])
             : null;
 
     /// <summary>⛔ THE COMPONENT-ORDINAL BASE OF A CELL-BACKED CLASS'S RECORD SCOPE (kb/Work PB2094), as the leading term of
@@ -1938,7 +1938,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// *-ARG-OMITTED guard when the item is a formal parameter (<see cref="OmittedFormalGuard.Of"/>), so every
     /// path builder — element, whole table, Tier-B backing — checks a reference to an omitted formal the same
     /// way, and a new builder that roots through here cannot forget it.</summary>
-    private static RootFieldSegment RootOf(DataItem root) => new(root.CsName, OmittedFormalGuard.Of(root));
+    private static RootFieldSegment RootOf(DataItem root) => new(root.ClrName, OmittedFormalGuard.Of(root));
 
     // ── Name resolution ──────────────────────────────────────────────────────────────────────────────────
 
@@ -2179,8 +2179,8 @@ public sealed partial class ReferenceResolver(DataBinder data)
         bool report = !_probing && _diagnosed.Add(dref);
         if (!report && cap.Fault is not CapacityRefFault.Ambiguous) return null;
         string text = DataBinder.WrittenText(dref);
-        string subject = cap.Register.CobolName ?? cap.Register.CsName;
-        string table = cap.Table.CobolName ?? cap.Table.CsName;
+        string subject = cap.Register.CobolName ?? cap.Register.ClrName;
+        string table = cap.Table.CobolName ?? cap.Table.ClrName;
         void ReportUnderATable() =>
             data.Edition.Error(DiagnosticCatalog.CapacityRegisterUnderTable,
                 $"'{text}': '{subject}' is the CAPACITY register of '{table}', which is itself subordinate to a "
@@ -2393,7 +2393,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
         bool first = true;
         foreach (var seg in chain)
         {
-            segs.Add(first ? RootOf(seg) : new MemberSegment(seg.CsName));
+            segs.Add(first ? RootOf(seg) : new MemberSegment(seg.ClrName));
             first = false;
             if (seg.Occurs is not null) segs.Add(new FixedTableSegment(indexExprs[si++], odo?.Invoke(seg)));   // fixed OCCURS → CobolTable.At
             else if (seg.IsDynamicTable) segs.Add(new DynTableSegment(indexExprs[si++]));         // dynamic OCCURS → RefSending/RefReceiving
@@ -2462,7 +2462,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
         int oi = 0;
         foreach (var n in chain)
         {
-            segs.Add(first ? RootOf(n) : new MemberSegment(n.CsName));
+            segs.Add(first ? RootOf(n) : new MemberSegment(n.ClrName));
             first = false;
             if (ReferenceEquals(n, table)) break;
             if (!n.IsTable) continue;

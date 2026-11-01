@@ -107,7 +107,7 @@ public sealed partial class StatementBinder
 
         // The MODEL is a description carrier only: CreateCompilerTemp clones its Pic (and, for a group, its
         // subtree) and mints the temp's own names, so the model's own names are never emitted or registered.
-        var model = new DataItem { Level = 1, CobolName = "__SUBEXPR-MODEL", CsName = "__subexprModel",
+        var model = new DataItem { Level = 1, CobolName = "__SUBEXPR-MODEL", ClrName = "__subexprModel",
                                   Pic = SegmentTempPic };
         var temp = data.CreateCompilerTemp(model, "__SUBEXPR-", "__subexpr", $"L{line}");
         if (Ctx.Refs.ResolveItem(temp) is not { } place) return null;

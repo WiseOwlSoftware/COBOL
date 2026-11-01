@@ -558,7 +558,7 @@ REDEFINES class + to all subordinates; monotone; terminating), re-verdicted to t
 - **Class width = MAX storage width across all views** (SR8 exception: a level-01 non-EXTERNAL original may be
   redefined larger).
 - **A numeric view still emits its `NumProfile`** (`_P_<view>`) and carries its PICTURE's natural surface type even
-  though its stored VALUE field is suppressed — because `EmitArithAssign` references `_P_<CsName>`, so a numeric view
+  though its stored VALUE field is suppressed — because `EmitArithAssign` references `_P_<ClrName>`, so a numeric view
   used as an arithmetic target must compile. (Advisor correction baked in.)
 - **RENAMES THRU over a heterogeneous span** composes via each leaf's EXISTING read/write: get = concat each leaf's
   DISPLAY image (`CobolNum.FormatDisplay` for a numeric leaf); set = distribute the value left-to-right by width via
@@ -1990,7 +1990,7 @@ The free helpers (`DecodeCobolString`, `CsStringLiteral`, `Children`, `FirstToke
 | **switch expressions** | total mapping from one closed set to another | side-effecting branches (use a `switch` statement) | `MapOperator`, `Combine`, `PicInfo.ClrType` |
 | **file-scoped namespaces** | every file (one ns per file here) | — | every `.cs` in the project |
 | **`using` aliases** | taming a long generated type name | aliasing for brevity's sake | `using Core = CobolParserCore;` |
-| **`required` members** | a non-nullable field with no sensible default | optional/defaulted state | `DataItem.Level`/`.CsName` are `required` |
+| **`required` members** | a non-nullable field with no sensible default | optional/defaulted state | `DataItem.Level`/`.ClrName` are `required` |
 | **raw / interpolated string literals** | emitting multi-line C#/JSON templates | single tokens | the `$$"""…"""` `runtimeconfig.json` in `RoslynBackend` |
 | **`static` lambdas** | a closure that captures nothing (signals + prevents capture) | when capture is intended | `.Where(static p => p.EndsWith(".dll", …))` |
 | **`params` collections (C# 13+)** | variadic helpers taking spans/lists | — | candidate for `CodeWriter` multi-line helpers |

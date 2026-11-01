@@ -336,7 +336,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             ok = false;
             ctx.Edition.Error(DiagnosticCatalog.EvaluateRangeOperandInvalid,
                 $"the {(end == 0 ? "first" : "second")} operand of the range-expression '{DataBinder.WrittenText(range)}' "
-                + $"references '{item.CobolName ?? item.CsName}', a variable-length group (ISO §8.5.1.12.1 — a "
+                + $"references '{item.CobolName ?? item.ClrName}', a variable-length group (ISO §8.5.1.12.1 — a "
                 + "dynamic-length elementary item or a dynamic-capacity table is subordinate to it); ISO "
                 + "§14.9.13.3 SR9 forbids either end of a range-expression to reference one");
         }

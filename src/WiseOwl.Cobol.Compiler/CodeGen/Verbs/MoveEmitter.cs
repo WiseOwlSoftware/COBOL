@@ -586,11 +586,11 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     /// something GR9 introduces.</summary>
     private static string VarShapeReason(DataItem g, string role) =>
         VariableLengthCompatibility.IsVariableLength(g)
-            ? $"{role}, '{g.CobolName ?? g.CsName}', is a variable-length group whose current extent this "
+            ? $"{role}, '{g.CobolName ?? g.ClrName}', is a variable-length group whose current extent this "
               + "implementation cannot compose (an OCCURS DEPENDING table inside a dynamic-capacity table's element or "
               + "beneath another table's element, or a member with no character image) "
               + "— ISO §14.9.25.4 GR9 over §8.5.1.12; CONFORMANCE.md A.1 item 57"
-            : $"{role}, '{g.CobolName ?? g.CsName}', is a fixed-length group whose record image this "
+            : $"{role}, '{g.CobolName ?? g.ClrName}', is a fixed-length group whose record image this "
               + "implementation cannot lay out in character positions (a USAGE BIT leaf, or a leaf with no "
               + "character image) — ISO §14.9.25.4 GR9 over §8.5.1.12.3; DESIGN §4.2";
 

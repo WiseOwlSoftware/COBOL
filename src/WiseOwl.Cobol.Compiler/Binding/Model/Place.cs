@@ -266,7 +266,7 @@ public sealed record RedefViewPlace(AccessPath Backing, Position Offset, int Wid
     /// <param name="occursBitTerms">The <c>(index − 1) × bits</c> terms for each OCCURS level crossed WITHIN
     /// the class, already in bit units (<see cref="BitLayout.StrideBits"/> per level). Null or empty when none.</param>
     /// <param name="cell">The structural path to the class's backing <c>StorageCell</c> — supplied only by the
-    /// three CELL-BACKED surfaces (BASED, EXTERNAL, ADDRESS OF; <c>RedefinesClass.BackingCellCsName</c>) and
+    /// three CELL-BACKED surfaces (BASED, EXTERNAL, ADDRESS OF; <c>RedefinesClass.BackingCellClrName</c>) and
     /// null for a REDEFINES class, whose backing is a plain stored string field. It is what a
     /// <see cref="SlotWindow"/> member needs (kb/Work PB231); see <see cref="SlotWindow.CarriedBySlot"/> for
     /// why a REDEFINES class can never hold one.</param>
@@ -299,7 +299,7 @@ public sealed record RedefViewPlace(AccessPath Backing, Position Offset, int Wid
             return cell is not null
                 ? window with { Coding = new SlotWindow(cell) }
                 : throw new System.InvalidOperationException(
-                    $"'{item.CobolName ?? item.CsName}' is of a pointer class and its storage class has no "
+                    $"'{item.CobolName ?? item.ClrName}' is of a pointer class and its storage class has no "
                     + "backing StorageCell — a managed slot has nowhere to live (ISO §14.9.3.4 GR9; kb/Work "
                     + "PB231). Such a class must be Rejected at classification, never given a byte window.");
         // ⛔ A DYNAMIC-LENGTH MEMBER'S CONTENT IS NOT IN THE BYTES EITHER (kb/Work PB1026): it rides the cell's
@@ -309,7 +309,7 @@ public sealed record RedefViewPlace(AccessPath Backing, Position Offset, int Wid
         if (DynSlotWindow.CarriedBySlot(item) || VarGroupWindow.Applies(item))
             return cell is null
                 ? throw new System.InvalidOperationException(
-                    $"'{item.CobolName ?? item.CsName}' is or contains a dynamic-length item and its storage class "
+                    $"'{item.CobolName ?? item.ClrName}' is or contains a dynamic-length item and its storage class "
                     + "has no backing StorageCell — the content has nowhere to live (ISO §8.5.1.10.3; kb/Work "
                     + "PB1026). Such a class must be Rejected at classification, never given a byte window.")
                 : window with

@@ -40,7 +40,7 @@ public sealed class MoveOperandClassDriftTests
 
     private static DataItem ItemOf(Usage u)
     {
-        var item = new DataItem { Level = 1, CobolName = "OP", CsName = "OP", OwnUsage = u };
+        var item = new DataItem { Level = 1, CobolName = "OP", ClrName = "OP", OwnUsage = u };
         // The resolved PicInfo each usage carries once PictureAnalyzer has run. MESSAGE-TAG and, before
         // kb/Work PB452/PB817, FUNCTION-POINTER never gain one — the WRITTEN clause is all there is — so those
         // are modelled as OwnUsage alone, which is exactly the asymmetry ItemCategory.IsIndexMessageTagObjectOrPointer
@@ -100,7 +100,7 @@ public sealed class MoveOperandClassDriftTests
     [InlineData(PicCategory.Boolean, Usage.Bit)]
     public void AnAdmittedClassPassesInBothOperandPositions(PicCategory cat, Usage usage)
     {
-        var item = new DataItem { Level = 1, CobolName = "OK", CsName = "OK", OwnUsage = usage };
+        var item = new DataItem { Level = 1, CobolName = "OK", ClrName = "OK", OwnUsage = usage };
         item.Pic = new PicInfo(cat, usage, Length: 4, Digits: cat is PicCategory.Numeric ? 4 : 0,
             Scale: 0, Signed: false);
         var place = new MemberPlace(new AccessPath([]), item);

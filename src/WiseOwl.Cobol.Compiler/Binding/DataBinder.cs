@@ -443,7 +443,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     {
         Level = 1,
         CobolName = "EXCEPTION-OBJECT",
-        CsName = "__exceptionObject",
+        ClrName = "__exceptionObject",
         Pic = PicInfo.ObjectReferenceItem(ObjectRefDescriptor.Universal),
         // ⚠ SR2's "as an external data item" is NOT carried as HasExternalClause: that flag drives the
         // §13.18.22 EXTERNAL-store re-basing of a DECLARED record, and this item is never declared, laid out or
@@ -468,7 +468,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             _debugRegisters[name] = (new DataItem
             {
                 Level = 49,
-                CsName = NamingConvention.DebugRegisterName(name),
+                ClrName = NamingConvention.DebugRegisterName(name),
                 CobolName = name,
                 Pic = new PicInfo(PicCategory.Alphanumeric, Usage.Display, Length: width, Digits: 0, Scale: 0, Signed: false),
                 Uid = _uidCounter++,
@@ -886,7 +886,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     private void RouteStaticRoot(DataItem root, string section)
     {
         if (root.Class is { Tier: RedefinesTier.StringCanonical } cls
-            && CallExternalBackings.Any(b => b.BackingCsName == cls.BackingCsName))
+            && CallExternalBackings.Any(b => b.BackingClrName == cls.BackingClrName))
             return;   // an EXTERNAL-backed class (canonical AND views) — run-unit cell storage (§14.6.2.3.3), not a class static
         if (root.IsBased)
         {
@@ -929,8 +929,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             return;
         }
         if (root.Class is { Tier: RedefinesTier.StringCanonical } c2 && ReferenceEquals(c2.Canonical, root))
-            _staticRootFields.Add(c2.BackingCsName);   // Tier-B: the ONE string backing IS the storage
-        _staticRootFields.Add(root.CsName);
+            _staticRootFields.Add(c2.BackingClrName);   // Tier-B: the ONE string backing IS the storage
+        _staticRootFields.Add(root.ClrName);
         foreach (var idx in IndexDeclarationsUnder(root))
             _staticIndexCells.Add(idx.Cell);
     }
@@ -1192,7 +1192,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     templateRoot = null;
                     // A 01/77 emits as a Program-level static field — its C# name must be unique across every root
                     // (FILE SECTION records and WORKING-STORAGE alike), so record it in the shared scope.
-                    item.CsName = CsNames.Allocate(item.CsName, rootNames);
+                    item.ClrName = CsNames.Allocate(item.ClrName, rootNames);
                     if (!outOfOrder) _roots.Add(item);   // an out-of-order record joins the forest at its source position
                     newRoots.Add(item);
                     openRecord = item;
@@ -1249,7 +1249,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     private void RegisterTypeDecl(DataItem item)
     {
         if (item.Level != 1)
-            Edition.Error(DiagnosticCatalog.TypeDeclarationShape, $"TYPEDEF '{item.CobolName ?? item.CsName}': a type declaration shall be a "
+            Edition.Error(DiagnosticCatalog.TypeDeclarationShape, $"TYPEDEF '{item.CobolName ?? item.ClrName}': a type declaration shall be a "
                 + "level-01 record-description entry (ISO §13.18.58 / §13.16)");
         if (item.CobolName is null)
         {
@@ -2294,7 +2294,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             Level = 1,
             DeclaredAt = Edition.Cursor,
             CobolName = null,   // implied, so unnamed and unreferenceable — never RegisterName'd
-            CsName = CsNames.Allocate($"_impliedRecord{DataItem.Sanitize(fdName)}", rootNames),
+            ClrName = CsNames.Allocate($"_impliedRecord{DataItem.Sanitize(fdName)}", rootNames),
         };
         record.Uid = _uidCounter++;
         record.RootSection = EntrySection.File;   // §14.9.30.4 GR6's implied record is a FILE SECTION record
@@ -2303,7 +2303,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             Level = 2,
             DeclaredAt = Edition.Cursor,
             CobolName = null,
-            CsName = $"_filler{_fillerCounter++}",
+            ClrName = $"_filler{_fillerCounter++}",
             Pic = new PicInfo(PicCategory.Alphanumeric, Usage.Display, Length: max.Value, Digits: 0, Scale: 0,
                 Signed: false),
             Parent = record,
@@ -3944,7 +3944,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         using var _ = Edition.At(item);
         string typeName = item.TypeRefName!;
         item.TypeRefName = null;   // mark expanded (idempotent)
-        string subject = item.CobolName ?? item.CsName;
+        string subject = item.CobolName ?? item.ClrName;
         var scope = ScopeOf(item.Root);   // the element whose entry writes the clause (§11.7.4 GR5; kb/Work PB3192)
         if (!TryFindTypeDecl(typeName, scope, out var template)
             && !(BindLaterTypeDeclaration(typeName, scope) && TryFindTypeDecl(typeName, scope, out template)))
@@ -4115,7 +4115,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 || !TryFindTypeDecl(tn, ScopeOf(typed.Root), out var decl) || !decl.DeclaresStrongType || decl.IsExternalTypedef)
                 continue;
             using var _ = Edition.At(typed);
-            Edition.Error(DiagnosticCatalog.ExternalTypeRule, $"'{typed.CobolName ?? typed.CsName}': a record that is "
+            Edition.Error(DiagnosticCatalog.ExternalTypeRule, $"'{typed.CobolName ?? typed.ClrName}': a record that is "
                 + "an external item (its own EXTERNAL clause, or the record of an EXTERNAL file) is described with "
                 + $"STRONG type '{tn}', which requires that type declaration to be external too "
                 + "(ISO §13.18.22.3 SR5, §13.18.22.4 GR4 b))");
@@ -4303,7 +4303,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <summary>Deep-clone one template node under <paramref name="newParent"/> (generalizes the flat OO compiler-temp
     /// clone, <c>CreateCompilerTemp</c>): a FRESH <see cref="DataItem.Uid"/> (StructName/ProfileName ride on it, so a
     /// shared Uid would collide the clone's emitted type/profile with the template's), the immutable
-    /// <see cref="DataItem.Pic"/> shared, the description fields copied, the <see cref="DataItem.CsName"/> re-uniquified
+    /// <see cref="DataItem.Pic"/> shared, the description fields copied, the <see cref="DataItem.ClrName"/> re-uniquified
     /// in the NEW scope, and — unlike the template — REGISTERED (clones ARE referenceable) unless the copy lands
     /// inside a type declaration (<see cref="InTypeDeclaration"/>), whose members stay off the name index.
     /// ⛔ THE SOURCE IS COMPLETE: a template was completed by <see cref="ExpandTemplate"/> and a SAME AS target's
@@ -4315,7 +4315,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// GR2c; TYPE expansion passes 0 — its templates clone level-verbatim, byte-stable).
     ///
     /// <para>⛔ THE CLAUSES ARE NOT LISTED HERE. This initializer carries only what is NOT a data description
-    /// clause — identity (a fresh Uid, a re-uniquified CsName), the renumbered level, and the
+    /// clause — identity (a fresh Uid, a re-uniquified ClrName), the renumbered level, and the
     /// <see cref="DescriptionCopyKind.MemberOnly"/> fields the two ENTRY-copy GR-1s exclude but §13.18.58.4 GR1
     /// reproduces on a subordinate (the name, OCCURS, REDEFINES, a nested TYPE / SAME AS reference, the
     /// declaration cursor). Every actual clause goes through <see cref="CopyEntryDescription"/>, the ONE copy,
@@ -4332,7 +4332,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             Level = src.Level + levelDelta,
             DeclaredAt = src.DeclaredAt,
             CobolName = src.CobolName,
-            CsName = src.CsName,   // the base name: newParent.AddMember allocates it among the NEW siblings (PB2093)
+            ClrName = src.ClrName,   // the base name: newParent.AddMember allocates it among the NEW siblings (PB2093)
             Occurs = src.Occurs,
             // Clone the OccursSpec — never SHARE it: its Depending / CapacityRegister are RESOLVED per-clone by the
             // post-build OdoResolve / DynamicResolve, so a shared object would let two clones of the same group type
@@ -4428,7 +4428,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         using var _ = Edition.At(item);
         string targetName = item.SameAsName!;
         item.SameAsName = null;
-        string subject = item.CobolName ?? item.CsName;
+        string subject = item.CobolName ?? item.ClrName;
 
         // §13.18.49.3 SR2: the entry shall not be immediately followed by a subordinate data description entry
         // or level-88 entry — the copied description IS the subject's whole shape.
@@ -4726,8 +4726,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         string by = item.RedefinesKind is RedefinitionKind.SameRecordArea
                             ? "a record-area SAME clause (ISO §12.4.6.4.4 GR2)"
                             : "the FD/SD's multiple level 1 entries (ISO §13.18.33.4 GR3)";
-                        Edition.Error("COBOL1532", $"'{strong.CobolName ?? strong.CsName}' is a strongly-typed item "
-                            + $"and shares its storage area with '{other.CobolName ?? other.CsName}' — an implicit redefinition by {by}: "
+                        Edition.Error("COBOL1532", $"'{strong.CobolName ?? strong.ClrName}' is a strongly-typed item "
+                            + $"and shares its storage area with '{other.CobolName ?? other.ClrName}' — an implicit redefinition by {by}: "
                             + "a strongly-typed item shall not be implicitly or explicitly redefined in whole or in "
                             + "part (ISO §13.18.57.3 SR4)");
                     }
@@ -4741,8 +4741,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 && !ReferenceEquals(StrongTypeModel.StrongRoot(item), StrongTypeModel.StrongRoot(tgt)))
             {
                 using var _ = Edition.At(item);
-                Edition.Error("COBOL1532", $"'{item.CobolName ?? item.CsName}' REDEFINES strongly-typed item "
-                    + $"'{tgt.CobolName ?? tgt.CsName}': a strongly-typed item shall not be redefined in whole or in "
+                Edition.Error("COBOL1532", $"'{item.CobolName ?? item.ClrName}' REDEFINES strongly-typed item "
+                    + $"'{tgt.CobolName ?? tgt.ClrName}': a strongly-typed item shall not be redefined in whole or in "
                     + "part (ISO §13.18.57.3 SR4)");
             }
 
@@ -4754,7 +4754,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         || ri.SpanLeaves.Any(StrongTypeModel.IsStronglyTyped)))
                 {
                     using var _ = Edition.At(ren66);
-                    Edition.Error("COBOL1532", $"RENAMES '{ren66.CobolName ?? ren66.CsName}' renames a "
+                    Edition.Error("COBOL1532", $"RENAMES '{ren66.CobolName ?? ren66.ClrName}' renames a "
                         + "strongly-typed item in whole or in part — prohibited (ISO §13.18.57.3 SR3)");
                 }
     }
@@ -4783,7 +4783,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             Level = 66,
             DeclaredAt = Edition.Cursor,
             CobolName = name,
-            CsName = DataItem.Sanitize(name),
+            ClrName = DataItem.Sanitize(name),
             Renames = new RenamesInfo
             {
                 // The base word AND its IN/OF qualifiers (`SUB-GRP-1 OF GRP` — NC252A RENAMES-TEST-2). The
@@ -4823,8 +4823,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             DeclaredAt = src.DeclaredAt,
             CobolName = src.CobolName,
             // A level-66 alias is no C# member (the place renderer composes it as a view over its span), so — as at
-            // its declaration — its CsName is the word's and names nothing that could collide (kb/Work PB2093).
-            CsName = src.CsName,
+            // its declaration — its ClrName is the word's and names nothing that could collide (kb/Work PB2093).
+            ClrName = src.ClrName,
             Renames = new RenamesInfo
             {
                 FromName = info.FromName,
@@ -6101,7 +6101,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         {
             Level = level,
             CobolName = isFiller ? null : cobolName,
-            CsName = csName,
+            ClrName = csName,
             Pic = pic,
             // The profile above came from the USAGE, not from a PICTURE character-string — §13.18.60.4 GR1 gives
             // it to the elementary items under this entry rather than to the entry itself when the entry turns
@@ -6166,7 +6166,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             }
             // BASED × EXTERNAL (§13.16.3 SR5) is the clause-placement table's NotWith row, screened above with
             // its REDEFINES sibling (kb/Work PB519); the refusal drops EXTERNAL, so `hasExternal` is false here
-            // and the two bridge mechanisms can never both claim the one BackingCsName (the former CS0102).
+            // and the two bridge mechanisms can never both claim the one BackingClrName (the former CS0102).
             // A VALUE clause on a BASED entry is LEGAL (its data seeds ALLOCATE … INITIALIZED per §14.9.3
             // GR7's TO-VALUE leg); without INITIALIZED the allocated content is undefined (GR8), so the
             // space-filled cell is conformant — the clause simply has no stored field to seed here.
@@ -7926,7 +7926,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                  { ("the subject of the REDEFINES entry", item), ("data-name-2 of a REDEFINES entry", target) })
             if (VariableLengthCompatibility.DynamicLengthOrVariableLengthGroup(sideItem) is { } shape)
                 Edition.Error(DiagnosticCatalog.RedefinesVariableLength,
-                    $"'{sideItem.CobolName ?? sideItem.CsName}' is {side} but is {shape}: neither "
+                    $"'{sideItem.CobolName ?? sideItem.ClrName}' is {side} but is {shape}: neither "
                     + "data-name-2 nor the subject of the entry shall be a variable-length group or a "
                     + "dynamic-length elementary item (ISO §13.18.44.3 SR17)");
         // §13.18.44.3 SR5 SENTENCE 1 — the OBJECT side, per written entry like its two neighbours above.
@@ -7948,7 +7948,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // this arm would also match. One rule, four sentences, two disjoint screens.
         if (target.IsTable && target.OccursSpec?.DependingName is null)
             Edition.Error(DiagnosticCatalog.RedefinesTargetOccurs,
-                $"'{item.CobolName ?? item.CsName}' REDEFINES '{target.CobolName ?? target.CsName}', "
+                $"'{item.CobolName ?? item.ClrName}' REDEFINES '{target.CobolName ?? target.ClrName}', "
                 + "whose data description entry contains an OCCURS clause: the data description entry for "
                 + "data-name-2 shall not contain an OCCURS clause (ISO §13.18.44.3 SR5) — data-name-2 may be "
                 + "SUBORDINATE to an item that has one, but shall not carry one itself");
@@ -8044,7 +8044,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 && cls.Members.FirstOrDefault(m => !ReferenceEquals(m, cls.Canonical) && m.IsDynamicTable) is { } dynSubject)
             {
                 using var dynamicSubjectAt = Edition.At(dynSubject);   // the REDEFINES entry as written; this pass runs post-build (kb/Work PB2034)
-                Edition.Error("COBOL1525", $"REDEFINES entry '{dynSubject.CobolName ?? dynSubject.CsName}' is "
+                Edition.Error("COBOL1525", $"REDEFINES entry '{dynSubject.CobolName ?? dynSubject.ClrName}' is "
                     + "itself a dynamic-capacity table: its capacity \"may vary during execution\" (ISO "
                     + "§8.5.1.9.1), so it has no fixed area for the storage association §13.18.44.4 GR1 requires; "
                     + "it shall not be the subject of a REDEFINES");
@@ -8061,7 +8061,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 if (m.RedefinesKind is RedefinitionKind.Clause && m.RedefinesTarget is { IsTable: true } occTarget)
                 {
                     tier = RedefinesTier.Rejected;
-                    reject = $"REDEFINES over '{occTarget.CobolName ?? occTarget.CsName}', whose data "
+                    reject = $"REDEFINES over '{occTarget.CobolName ?? occTarget.ClrName}', whose data "
                         + "description entry contains an OCCURS clause (ISO §13.18.44.3 SR5)";
                 }
             // The SR12/SR14 TIER verdict for a retained class (the DIAGNOSTIC fired per written entry in the
@@ -8094,7 +8094,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     if (VariableLengthCompatibility.DynamicLengthOrVariableLengthGroup(m) is { } vlShape)
                     {
                         tier = RedefinesTier.Rejected;
-                        reject = $"REDEFINES entry side '{m.CobolName ?? m.CsName}' is {vlShape} "
+                        reject = $"REDEFINES entry side '{m.CobolName ?? m.ClrName}' is {vlShape} "
                             + "(ISO §13.18.44.3 SR17)";
                     }
             // ⛔ THE IMPLICIT-AREA ARM (kb/Work PB836, narrowed by PB981). No syntax rule forbids a file's records
@@ -8115,7 +8115,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                           + "(ISO §13.18.33.4 GR3)";
                     using var __ = Edition.At(cls.Members.FirstOrDefault(m => m.RedefinesImplicitly) ?? cls.Canonical);
                     Edition.Error(DiagnosticCatalog.ImplicitRecordAreaShape,
-                        $"the record area of '{cls.Canonical.CobolName ?? cls.Canonical.CsName}' is shared — {rule} — "
+                        $"the record area of '{cls.Canonical.CobolName ?? cls.Canonical.ClrName}' is shared — {rule} — "
                         + $"and {reject}: a shared record area of that shape is recognized but not yet implemented");
                 }
             }
@@ -8194,7 +8194,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // entry (RedefinesTargetName = null, kb/Work PB93, COBOL1654), so no live child can carry it here.
             if (starts[i] < 0)
                 throw new InvalidOperationException(
-                    $"'{c.CobolName ?? c.CsName}' REDEFINES '{c.RedefinesTargetName}', which is not a sibling in its group");
+                    $"'{c.CobolName ?? c.ClrName}' REDEFINES '{c.RedefinesTargetName}', which is not a sibling in its group");
             AssignClassBitOffsets(c, bitOff + starts[i], cls);
         }
     }
@@ -8350,21 +8350,21 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     private static string? Sr12Sr14Violation(DataItem subject, DataItem target)
     {
         if (PointerObjectClass(subject))
-            return $"'{subject.CobolName ?? subject.CsName}' is the subject of a REDEFINES entry but is of "
+            return $"'{subject.CobolName ?? subject.ClrName}' is the subject of a REDEFINES entry but is of "
                 + "class object/pointer (ISO §13.18.44.3 SR12)";
         if (StrongTypeModel.IsStrongGroup(subject))
-            return $"'{subject.CobolName ?? subject.CsName}' is the subject of a REDEFINES entry but is a "
+            return $"'{subject.CobolName ?? subject.ClrName}' is the subject of a REDEFINES entry but is a "
                 + "strongly-typed group item (ISO §13.18.44.3 SR12)";
         if (PointerObjectClass(target))
-            return $"'{target.CobolName ?? target.CsName}' is redefined (data-name-2) but is of class "
+            return $"'{target.CobolName ?? target.ClrName}' is redefined (data-name-2) but is of class "
                 + "object/pointer (ISO §13.18.44.3 SR14)";
         if (StrongTypeModel.IsStrongGroup(target))
-            return $"'{target.CobolName ?? target.CsName}' is redefined (data-name-2) but is a strongly-typed "
+            return $"'{target.CobolName ?? target.ClrName}' is redefined (data-name-2) but is a strongly-typed "
                 + "group item (ISO §13.18.44.3 SR14)";
         if (StrongTypeModel.StrongRoot(target) is { } tRoot)
-            return $"'{target.CobolName ?? target.CsName}' is redefined (data-name-2) but is subordinate to "
+            return $"'{target.CobolName ?? target.ClrName}' is redefined (data-name-2) but is subordinate to "
                 + "the strongly-typed group item "
-                + $"'{tRoot.CobolName ?? tRoot.CsName}' (ISO §13.18.44.3 SR14)";
+                + $"'{tRoot.CobolName ?? tRoot.ClrName}' (ISO §13.18.44.3 SR14)";
         return null;
     }
 

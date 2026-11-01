@@ -21,11 +21,11 @@ namespace WiseOwl.Cobol.Compiler.Oo;
 /// </summary>
 public static class NamingConvention
 {
-    /// <summary>The factory singleton class of the class whose C# name is <paramref name="classCsName"/> (brief D11 —
+    /// <summary>The factory singleton class of the class whose C# name is <paramref name="classClrName"/> (brief D11 —
     /// <c>__FACTORY_FOO</c>, a REAL sibling class; the runtime's standard class BASE is <c>__FACTORY_BASE</c>). A
     /// prefix family, so no class-name can spell it: the suffix form <c>FOO__FACTORY</c> it replaced was also the
     /// spelling of the legal class-name <c>FOO--FACTORY</c> (kb/Work PB2921).</summary>
-    public static string FactoryClassName(string classCsName) => FactoryClassPrefix + classCsName;
+    public static string FactoryClassName(string classClrName) => FactoryClassPrefix + classClrName;
 
     /// <summary>The <see cref="FactoryClassName"/> family's tag.</summary>
     public const string FactoryClassPrefix = "__FACTORY_";
@@ -35,7 +35,7 @@ public static class NamingConvention
     /// its enclosing type, CS0542; the method-name and the class-name sit in different source elements, so the COBOL is
     /// legal — <c>OoClassTable.NameMethodSlots</c>, kb/Work PB3342). A prefix family: the <c>_M</c> suffix it replaced was also the
     /// spelling of the method-name <c>FOO-M</c> beside it (CS0111; kb/Work PB2921).</summary>
-    public static string ClassNamedMethodName(string methodCsName) => ClassNamedMethodPrefix + methodCsName;
+    public static string ClassNamedMethodName(string methodClrName) => ClassNamedMethodPrefix + methodClrName;
 
     /// <summary>The <see cref="ClassNamedMethodName"/> family's tag.</summary>
     public const string ClassNamedMethodPrefix = "__method_";
@@ -91,7 +91,7 @@ public static class NamingConvention
     ];
 
     /// <summary>A method formal's C# <c>ref</c> parameter (the carrier; the body reads the capturable LOCAL
-    /// named <see cref="DataItem.CsName"/>, and a C# local may not shadow a parameter — CS0136).</summary>
+    /// named <see cref="DataItem.ClrName"/>, and a C# local may not shadow a parameter — CS0136).</summary>
     public const string FormalParameterPrefix = "__formal_";
     /// <summary>A BASED record's address carrier field (ALLOCATE / SET ADDRESS OF).</summary>
     public const string AddressCarrierPrefix = "__addr_";
@@ -108,19 +108,18 @@ public static class NamingConvention
     public static string FormalParameterName(string cobolWord) =>
         FormalParameterPrefix + DataItem.WordIdentifier(cobolWord);
 
-    /// <summary>A BASED record's address-carrier field name, spelled from the root's C# name — the unit-unique STEM
+    /// <summary>A BASED record's address-carrier field name, spelled from the root's CLR name — the unit-unique STEM
     /// (<c>DataBinder.InheritedMemberNamesOf</c>), never its COBOL word: a contained program's own BASED <c>B</c>
     /// and a container's GLOBAL BASED <c>B</c> (bridged into the same class) are one word but two stems (<c>B</c>,
-    /// <c>B_2</c>), and a word-keyed name made them one member (CS0102; wave 69 Z). A keyword stem's verbatim
-    /// <c>@</c> is dropped — the prefix already keeps the name off every keyword.</summary>
-    public static string AddressCarrierName(string rootCsName) =>
-        AddressCarrierPrefix + rootCsName.TrimStart('@');
+    /// <c>B_2</c>), and a word-keyed name made them one member (CS0102; wave 69 Z). An allocated stem is never a C#
+    /// keyword and carries no <c>@</c> (<see cref="CsNames.CSharpReservedKeywords"/>; kb/Work PB4265).</summary>
+    public static string AddressCarrierName(string rootClrName) => AddressCarrierPrefix + rootClrName;
 
     /// <summary>A method-scope file's instance connector-key field name.</summary>
     public static string InstanceFileKeyName(string fileName) => InstanceFileKeyPrefix + DataItem.Sanitize(fileName);
 
     /// <summary>An OCCURS DYNAMIC table's CAPACITY register name (keyed on the table's own C# name).</summary>
-    public static string CapacityRegisterName(string tableCsName) => CapacityRegisterPrefix + tableCsName;
+    public static string CapacityRegisterName(string tableClrName) => CapacityRegisterPrefix + tableClrName;
 
     /// <summary>A DEBUG-ITEM register name (<c>DEBUG-ITEM</c>, <c>DEBUG-LINE</c>, …).</summary>
     public static string DebugRegisterName(string registerWord) => DebugRegisterPrefix + DataItem.Sanitize(registerWord);

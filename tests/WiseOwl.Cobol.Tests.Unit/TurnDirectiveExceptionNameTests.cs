@@ -37,7 +37,6 @@ public sealed class TurnDirectiveExceptionNameTests
     [Theory]   // SR2: unknown name, the EC-IMP- family this implementation does not define, a 2023-only family at 2002/2014
     [InlineData("EC-NOSUCH CHECKING ON", 2023, "COBOL0711")]
     [InlineData("EC-IMP-WIBBLE CHECKING ON", 2023, "COBOL0711")]
-    [InlineData("EC-USER-BAD- CHECKING ON", 2023, "COBOL0711")]
     [InlineData("EC-EXTERNAL-FORMAT-CONFLICT CHECKING ON", 2002, "COBOL0878")]
     [InlineData("EC-EXTERNAL-FORMAT-CONFLICT CHECKING ON", 2014, "COBOL0878")]
     [InlineData("EC-SIZE EC-NOSUCH CHECKING OFF", 2023, "COBOL0711")]
@@ -45,6 +44,17 @@ public sealed class TurnDirectiveExceptionNameTests
     {
         Assert.Equal([code], Compiled(operand, dialectLevel, out _));
         Assert.Equal([code], Omitted(operand, dialectLevel));
+    }
+
+    /// <summary>A name ending on a hyphen is two faults, each its own rule: it is no COBOL word (§8.3.2.1: "The hyphen or
+    /// underscore shall not appear as the first or last character in such words", COBOL2773, asked of every directive-carried
+    /// word by <c>CobolWordRule.DirectiveWordViolations</c>, kb/Work PB4234) and, spelled so, no exception name (SR2, COBOL0711).</summary>
+    [Fact]
+    public void ANameEndingOnAHyphen_IsNoWord_AndNoExceptionName_InBothStages()
+    {
+        string[] expected = ["COBOL2773", "COBOL0711"];
+        Assert.Equal(expected, Compiled("EC-USER-BAD- CHECKING ON", 2023, out _));
+        Assert.Equal(expected, Omitted("EC-USER-BAD- CHECKING ON", 2023));
     }
 
     [Theory]   // a name the edition has is accepted by both, including the open EC-USER- family and an EC-I-O file-name

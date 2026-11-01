@@ -1085,11 +1085,22 @@ reference formats, and the only place source comments are recognized. Its model:
   (`DivisionCursor` reads it off the text-words before the COPY; `CopyProcessor` hands it to the shared walker, and the
   state is carried across a text's SOURCE FORMAT segments in either format, `ConvertSegment`) — a `REMARKS.` paragraph
   copied into a PROCEDURE DIVISION is program text. `DivisionCursor` is the ONE rule for which division a text is in
-  (kb/Work PB2739), fed by the fixed-form and free-form converters line by line and by the COPY driver over logical text: a `DIVISION` word preceded by `IDENTIFICATION` / `ID`
-  enters, any other `… DIVISION` leaves, and `PROGRAM-ID` / `CLASS-ID` / `FUNCTION-ID` / `INTERFACE-ID` / `METHOD-ID`
-  enter (the header being optional, §11.2.1) — wherever the word begins in the program-text area (§6.3.1 draws no Area A
-  line), a word merely ending in `-ID` being a user's name; within the conversion only the comment-entry paragraph's
-  start and end are Area-A facts (the COBOL-85 placement rules are asked after the parse, below). The cursor belongs to a TEXT, not to a block the merged driver flushes between directive lines; a spliced library
+  (kb/Work PB2739, PB4241), fed by the fixed-form and free-form converters over the LOGICAL lines they have settled
+  (`LogicalLineBuilder.ReadInto`, asked where a new TEXT line is about to be classified — a blank or comment line is discarded and joins nothing, so it asks nothing — so a header continued onto a
+  second line, `PROCEDURE DIVI` / `-SION.`, is one word) and by the COPY driver over logical text: a `DIVISION` word
+  preceded by `IDENTIFICATION` / `ID` enters, any other `… DIVISION` leaves, and `PROGRAM-ID` / `CLASS-ID` /
+  `FUNCTION-ID` / `INTERFACE-ID` / `METHOD-ID` enter (the header being optional, §11.2.1) — wherever the word begins in
+  the program-text area (§6.3.1 draws no Area A line), a word merely ending in `-ID` being a user's name; within the
+  conversion only the comment-entry paragraph's start and end are Area-A facts (the COBOL-85 placement rules are asked
+  after the parse, below). A COPY or REPLACE statement is not text that stands in a division: the cursor passes over it
+  from its COPY / REPLACE word to its separator period outside pseudo-text, across lines, so a `REPLACING ==PROCEDURE
+  DIVISION== BY …` operand moves nothing. §6.5 converts BEFORE conditional compilation, so the converter cannot know which
+  branch of a `>>IF` / `>>EVALUATE` is compiled: the cursor counts a division word inside such a group only when every
+  branch (the one no condition selects included, absent an `>>ELSE` / `>>WHEN OTHER`) ends in the same division, else the
+  text is taken for no IDENTIFICATION DIVISION (a comment-entry needs one certain, and no edition with the group has the
+  entry; docs/CONFORMANCE.md D-CE2); the COPY driver's cursor reads the
+  text the conditional-compilation stage has already cut, so it is exact. The cursor belongs to a TEXT, not to a block the
+  merged driver flushes between directive lines; a spliced library
   text hands its end division back to the text it was spliced into. And the `D` indicator is
   gated by the registry row `debugging-line-removed-2014` (accepted at 85, obsolete at 2002 — COBOL0903 — removed at
   2014 — COBOL0902; the NIST S / Y letters are the CCVS dialect, never gated, and excluded as comment lines). A `D`
@@ -2043,8 +2054,14 @@ lowercase with Annex C. Three pieces, each in one place:
   UTF-16 code units (a supplementary letter is two surrogates, both in the class), it has no edition, and a character
   outside Annex B must be NAMED rather than end the word with "unexpected". Every text-stage word scanner (the
   directive line, `>>DEFINE` / `>>COBOL-WORDS` word shapes, the fixed-form word-continuation test) asks the same
-  predicate, so all stages agree where a word ends.
-- **The legality** — `CobolCharacterRepertoire.Violation(word, edition)` over the edition's Annex B.3 position classes
+  predicate, so all stages agree where a word ends. The lexer also takes a word that STARTS or ENDS on an underscore
+  (`_A`, `A_`, `_`) whole, as an ill-formed IDENTIFIER (the last two `NAME_BODY` alternatives, kb/Work PB4234), so that
+  §8.3.2.1's "The hyphen or underscore shall not appear as the first or last character" is named by the legality
+  below instead of the word being split at the `_` into "unexpected '_'". A hyphen at an edge is not taken whole: it is
+  also the arithmetic minus and a sign.
+- **The legality** — `CobolCharacterRepertoire.SeparatorPositionViolation` (the edition-free hyphen/underscore position
+  rule, COBOL2773 at every edition; at COBOL-85 the underscore gate COBOL0900 also applies, and the edge is no 2023
+  removal), then `CobolCharacterRepertoire.Violation(word, edition)` over the edition's Annex B.3 position classes
   (anywhere / not first / medial), asked by `CobolWordRule` from `WordCharacterScreen` and the directive
   stages: COBOL2773 for a character outside the edition's Annex B or a B.3 item 2 character first; the construct
   `user-word-character-removed-2023` (COBOL0902) for a character only COBOL 2023 refuses (E.2 item 4); the construct

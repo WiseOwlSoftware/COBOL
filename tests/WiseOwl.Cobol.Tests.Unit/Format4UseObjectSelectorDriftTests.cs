@@ -130,7 +130,7 @@ public sealed class Format4UseObjectSelectorDriftTests
         var cls = classes.Find("F4CBASE");
         Assert.NotNull(cls);
 
-        var emitted = Regex.Matches(csharp, @"\bclass\s+((?:__[A-Z]+_)?" + cls!.CsName + @")\b\s*:")
+        var emitted = Regex.Matches(csharp, @"\bclass\s+((?:__[A-Z]+_)?" + cls!.ClrName + @")\b\s*:")
             .Select(m => m.Groups[1].Value)
             .ToHashSet(StringComparer.Ordinal);
 
@@ -148,7 +148,7 @@ public sealed class Format4UseObjectSelectorDriftTests
         var ifc = classes.FindInterface("F4IDRIFT");
         Assert.NotNull(ifc);
 
-        var emitted = Regex.Matches(csharp, @"\binterface\s+(" + ifc!.CsName + @"(?:__[A-Z0-9_]+)?)\b")
+        var emitted = Regex.Matches(csharp, @"\binterface\s+(" + ifc!.ClrName + @"(?:__[A-Z0-9_]+)?)\b")
             .Select(m => m.Groups[1].Value)
             .ToHashSet(StringComparer.Ordinal);
 
@@ -189,10 +189,10 @@ public sealed class Format4UseObjectSelectorDriftTests
         Assert.NotNull(ifc);
         string predicate = Selector(csharp);
 
-        int classAt = predicate.IndexOf($"is {cls!.CsName} or", StringComparison.Ordinal);
-        int ifaceAt = predicate.IndexOf($"is {ifc!.CsName})", StringComparison.Ordinal);
-        Assert.True(classAt >= 0, $"no class-pass test for {cls.CsName} in:\n{predicate}");
-        Assert.True(ifaceAt >= 0, $"no interface-pass test for {ifc.CsName} in:\n{predicate}");
+        int classAt = predicate.IndexOf($"is {cls!.ClrName} or", StringComparison.Ordinal);
+        int ifaceAt = predicate.IndexOf($"is {ifc!.ClrName})", StringComparison.Ordinal);
+        Assert.True(classAt >= 0, $"no class-pass test for {cls.ClrName} in:\n{predicate}");
+        Assert.True(ifaceAt >= 0, $"no interface-pass test for {ifc.ClrName} in:\n{predicate}");
         Assert.True(classAt < ifaceAt,
             "the interface-name-1 test precedes the object-class-name-1 test — GR14 a) runs to exhaustion "
             + $"BEFORE the USE statements are analyzed again for b):\n{predicate}");

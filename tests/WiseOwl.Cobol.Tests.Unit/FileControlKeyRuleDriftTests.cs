@@ -298,7 +298,7 @@ public sealed class FileControlKeyRuleDriftTests
         // ⛔ THE OPERAND CARRIES A REAL ITEM. It used to be null, so every row that RENDERS the operand's
         // description — the category arms of both SR2s name what the key IS — was rendered down its absent-item
         // branch and the test proved nothing about the message a program actually reads (kb/Work PB743).
-        var item = new DataItem { Level = 5, CobolName = "K", CsName = "K" };
+        var item = new DataItem { Level = 5, CobolName = "K", ClrName = "K" };
         foreach (var rule in FileControlKeyRules.Catalog)
         {
             // An ALTERNATE RECORD KEY operand carries a SUPPRESS WHEN literal-1 too, so the §12.4.5.6.3 SR7 rows

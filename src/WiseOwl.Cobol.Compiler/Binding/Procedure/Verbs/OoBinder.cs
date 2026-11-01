@@ -110,9 +110,9 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                         $"the object-property reference {where} is a RECEIVING operand but the class has no "
                         + "SET property method (ISO §8.4.3.9.3 SR4 — WITH NO SET, or no accessor defined)");
                 else
-                    close.Add(new BoundInvoke(op.Form, op.ClassCsName, receiver, op.Set.CsName, null,
+                    close.Add(new BoundInvoke(op.Form, op.ClassClrName, receiver, op.Set.ClrName, null,
                         [new BoundInvokeArg(op.Set.Binding!.Formals[0].Item, tempPlace, null, null, WriteBack: false)],
-                        null, op.OwnerCsNameOf(op.Set)));
+                        null, op.OwnerClrNameOf(op.Set)));
             }
             if (op.Interleaved) brackets.Add(new ReceiverBracket(op.Temp, [.. open.Select(Operand)], [.. close.Select(Operand)]));
             else
@@ -152,7 +152,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     }
 
     private BoundInvoke GetInvoke(DataBinder.OoPendingPropertyOp op, OoMethodSymbol get, Place? receiver) =>
-        new(op.Form, op.ClassCsName, receiver, get.CsName, ctx.Refs.ResolveItem(op.Temp)!, null, get.Binding!.Returning, op.OwnerCsNameOf(get));
+        new(op.Form, op.ClassClrName, receiver, get.ClrName, ctx.Refs.ResolveItem(op.Temp)!, null, get.Binding!.Returning, op.OwnerClrNameOf(get));
 
     /// <summary>Drain the property references registered since <paramref name="mark"/> for a PER-EVALUATION
     /// window (<c>UdfBinder.UdfAttachPerEvaluation</c> — a PERFORM UNTIL / VARYING condition, a SEARCH WHEN, an
@@ -708,7 +708,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (fm.Standard is not StandardMethod.None)
                 return OoBindStandardInvoke(site, fm, InvokeForm.New, receiver: null, cls, classView);
             var bound = OoBindResolvedInvoke(site, fm, InvokeForm.Factory, null, classView);
-            return bound is BoundInvoke bi ? bi with { ClassCsName = cls.CsName } : bound;
+            return bound is BoundInvoke bi ? bi with { ClassClrName = cls.ClrName } : bound;
         }
         if (IsStandardNew(method))
             return NewWithoutBase($"INVOKE {cls.Name} \"{method}\"", cls,
@@ -784,10 +784,10 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                     InvokeForm.Super => InvokeForm.NewSuper,
                     _ => InvokeForm.New,
                 },
-                receiverClass?.CsName, receiver, null, ret),
+                receiverClass?.ClrName, receiver, null, ret),
             // FactoryObject is an ordinary instance call on the runtime BASE's virtual member (a COBOL override
-            // adopts its CsName), so the Instance/Self/Super rendering and its GR5 null guard apply unchanged.
-            _ => new BoundInvoke(form, null, receiver, m.CsName, ret, [], m.Binding!.Returning, m.Owner.CsName),
+            // adopts its ClrName), so the Instance/Self/Super rendering and its GR5 null guard apply unchanged.
+            _ => new BoundInvoke(form, null, receiver, m.ClrName, ret, [], m.Binding!.Returning, m.Owner.ClrName),
         };
     }
     /// <summary><c>INVOKE identifier-1 "method" …</c>: virtual dispatch through a TYPED object reference; the
@@ -836,7 +836,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                     + "(ISO §14.9.23.3 SR4 e))");
             }
             var ibound = OoBindResolvedInvoke(site, proto, InvokeForm.Instance, receiver, rdesc);
-            return ibound is BoundInvoke ibi ? ibi with { OwnerCsName = recvIface.CsName } : ibound;
+            return ibound is BoundInvoke ibi ? ibi with { OwnerClrName = recvIface.ClrName } : ibound;
         }
         if (host.OoClasses?.Find(className) is not { } cls)
         {
@@ -887,7 +887,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         var bound = OoBindResolvedInvoke(site, m, InvokeForm.Instance, receiver, rdesc);
         // A factory-object receiver's argument PROFILES live in the FACTORY singleton type, not the instance
         // class — the same qualification InvokeForm.Factory gets by appending the suffix at emit time.
-        return rdesc.Factory && bound is BoundInvoke fbi ? fbi with { OwnerCsName = cls.FactoryCsName } : bound;
+        return rdesc.Factory && bound is BoundInvoke fbi ? fbi with { OwnerClrName = cls.FactoryClrName } : bound;
     }
 
     /// <summary>⛔ AN INVOCATION WHOSE METHOD IS SELECTED IN EACH EXPANSION (kb/Work PB2937; OO deep-dive D12 determination
@@ -985,8 +985,8 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (ctx.Refs.ResolveItem(temp) is not { } tempPlace)
                 return new BoundUnsupported($"the inline method invocation of \"{m.Name}\" (result temporary)");
             site.ImplicitReturningPlace = tempPlace;
-            return new BoundInvoke(form, null, receiver, m.CsName, tempPlace, args, m.Binding!.Returning,
-                m.Owner?.CsName);
+            return new BoundInvoke(form, null, receiver, m.ClrName, tempPlace, args, m.Binding!.Returning,
+                m.Owner?.ClrName);
         }
         if (retRef is not null && m.Binding!.Returning is null)
         {
@@ -1023,7 +1023,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             }
             retPlace = rp;
         }
-        return new BoundInvoke(form, null, receiver, m.CsName, retPlace, args, m.Binding!.Returning, m.Owner?.CsName);
+        return new BoundInvoke(form, null, receiver, m.ClrName, retPlace, args, m.Binding!.Returning, m.Owner?.ClrName);
     }
 
     /// <summary>ISO §14.9.23.3 SR11 and SR12 over a RESOLVED RETURNING item (identifier-4) — through the typed and the
@@ -1982,7 +1982,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                     ctx.Edition.NoteExpansionDeferred($"SET … TO {sname}");
                     return new BoundDeferredToExpansion($"SET … TO {sname}");
                 }
-                srcFactoryClassCs = scls.FactoryCsName;
+                srcFactoryClassCs = scls.FactoryClrName;
             }
             else
             {

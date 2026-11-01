@@ -471,7 +471,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
                     // The child is a dotted path off the anchor local: RootFieldSegment(anchor) + one MemberSegment
                     // per chain step (byte-identical to the former "{local}.{c1}.{c2}" string).
                     var segs = new List<AccessSegment> { new RootFieldSegment(Hoist(isRef: true)) };
-                    segs.AddRange(chain.Select(c => new MemberSegment(c.CsName)));
+                    segs.AddRange(chain.Select(c => new MemberSegment(c.ClrName)));
                     return new MemberPlace(new AccessPath(segs), leaf);
                 }
                 // A chain member inside a non-alias REDEFINES class stores in the class BACKING, not as a struct

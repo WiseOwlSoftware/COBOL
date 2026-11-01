@@ -6,14 +6,16 @@ using WiseOwl.Cobol.Runtime;
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
-/// THE ONE C# NAME ALLOCATOR for a member named after a COBOL word (docs/rearchitecture/DESIGN-external-repository.md
-/// §4.5; kb/Work PB2093). Uniqueness bites on a REFERENCE, not on a declaration (ISO §8.4.2.1: "In order to use a
-/// resource, a statement shall contain a reference that uniquely identifies that resource"), so two subordinates of
-/// one group may share a data-name; and a data-name may legally be spelled like a member the emitter
-/// itself writes into the same C# type — a subordinate named <c>AsImage</c> or <c>Equals</c>, a record named
-/// <c>CloseFiles</c>. So every such name is ALLOCATED in a <see cref="CsNameScope"/> that is SEEDED with the scope's
-/// reserved names: the base name if it is free, else the smallest free <c>_2</c>, <c>_3</c>, … in source order. The
-/// COBOL word itself is untouched (<see cref="DataItem.CobolName"/>); the C# name is display only.
+/// THE ONE ALLOCATOR OF THE CLR NAMES a module emits for a COBOL word (docs/rearchitecture/DESIGN-external-repository.md
+/// §4.5; docs/rearchitecture/DESIGN-backend-abstraction.md §2.4; kb/Work PB2093, PB4265). The names are decided HERE, at
+/// bind time, and are the module's ABI: a program compiled by either backend (Roslyn, or a direct-CIL one) exposes the
+/// same type, field and method names, so one can call or inherit from the other. Uniqueness bites on a REFERENCE, not on
+/// a declaration (ISO §8.4.2.1: "In order to use a resource, a statement shall contain a reference that uniquely
+/// identifies that resource"), so two subordinates of one group may share a data-name; and a data-name may legally be
+/// spelled like a member the emitter itself writes into the same type — a subordinate named <c>AsImage</c> or
+/// <c>Equals</c>, a record named <c>CloseFiles</c>. So every such name is ALLOCATED in a <see cref="CsNameScope"/> that
+/// is SEEDED with the scope's reserved names: the base name if it is free, else the smallest free <c>_2</c>, <c>_3</c>,
+/// … in source order. The COBOL word itself is untouched (<see cref="DataItem.CobolName"/>).
 /// <para>⛔ A NEW MEMBER THE EMITTER WRITES INTO A RECORD STRUCT OR A PROGRAM CLASS IS ADDED TO ITS SET HERE, in the
 /// same change — <c>CsNameReservationDriftTests</c> reads every member declaration the code generator writes and is
 /// red when one is spelled like a COBOL word and is in neither set.</para>
@@ -21,6 +23,12 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// <c>System</c> and the runtime's namespaces and names their types by SIMPLE name (<c>CobolString.Store(…)</c>,
 /// <c>HostLanding.LandText(…)</c>, <c>Int128</c>), and a member, field or parameter spelled like one of them shadows the
 /// type for every such reference in its scope — the CS errors that rejected legal COBOL.</para>
+/// <para>⛔ AND WITH <see cref="CSharpReservedKeywords"/> (kb/Work PB4265): a lowercase data-name such as <c>int</c> or
+/// <c>double</c> is a legal COBOL word and a legal CLR name, but not a C# identifier. A name allocated here is therefore
+/// never a C# keyword, so it is the SAME text in the CLR metadata and in the generated C#, and it stays a valid
+/// identifier when a prefix or suffix is joined to it (<c>_redef_int_2</c>, <c>_scell_int_2</c>). The <c>@int</c> escape
+/// it replaced was a C#-only spelling stored on the model, and every name derived from it (<c>_redef_@int</c>) was
+/// refused by the C# compiler. A CIL backend loses nothing: <c>int_2</c> is an ordinary CLR name.</para>
 /// </summary>
 public static class CsNames
 {
@@ -72,6 +80,16 @@ public static class CsNames
     /// <c>HOSTLANDING</c> is a different identifier.</summary>
     public static readonly FrozenSet<string> ImportedTypeNames = DeriveImportedTypeNames();
 
+    /// <summary>The C# reserved keywords (<c>int</c>, <c>double</c>, <c>void</c>, …), DERIVED from the Roslyn the
+    /// compiler builds against, never listed by hand. Every <see cref="CsNameScope"/> holds them, so
+    /// <see cref="Allocate"/> never returns one and a CLR name needs no C#-only <c>@</c> spelling (kb/Work PB4265). The
+    /// contextual keywords (<c>var</c>, <c>value</c>, <c>record</c>) are identifiers wherever a declaration puts a name,
+    /// so they are not here.</summary>
+    public static readonly FrozenSet<string> CSharpReservedKeywords =
+        Microsoft.CodeAnalysis.CSharp.SyntaxFacts.GetReservedKeywordKinds()
+            .Select(Microsoft.CodeAnalysis.CSharp.SyntaxFacts.GetText)
+            .ToFrozenSet(StringComparer.Ordinal);
+
     private static FrozenSet<string> DeriveImportedTypeNames()
     {
         var names = new HashSet<string>(StringComparer.Ordinal);
@@ -93,17 +111,16 @@ public static class CsNames
     }
 
     /// <summary>The namespace every type a module emits lives in (docs/rearchitecture/DESIGN-external-repository.md
-    /// §4.5; kb/Work PB2097): <c>Cobol.&lt;S&gt;</c>, where <c>&lt;S&gt;</c> is the assembly simple name made ONE C#
+    /// §4.5; kb/Work PB2097): <c>Cobol.&lt;S&gt;</c>, where <c>&lt;S&gt;</c> is the assembly simple name made ONE CLR
     /// identifier by <see cref="DataItem.Sanitize"/> (each character an identifier cannot hold, <c>.</c> included,
-    /// written <c>_uXXXX_</c>; a leading digit prefixed; a keyword escaped), so <c>PAY.V2.dll</c> is
-    /// <c>Cobol.PAY_u002E_V2</c> and never meets a type <c>V2</c> in <c>Cobol.PAY</c>, and no emitted type lives directly
-    /// in <c>Cobol</c>. Two COBOL assemblies one host references therefore never collide on a program or class name or on
-    /// <c>__CobolModule</c>.</summary>
-    public static ModuleNamespace ModuleNamespaceOf(string assemblySimpleName)
-    {
-        string segment = DataItem.Sanitize(assemblySimpleName);
-        return new ModuleNamespace($"Cobol.{segment}", $"Cobol.{segment.TrimStart('@')}");
-    }
+    /// written <c>_uXXXX_</c>; a leading digit prefixed), so <c>PAY.V2.dll</c> is <c>Cobol.PAY_u002E_V2</c> and never
+    /// meets a type <c>V2</c> in <c>Cobol.PAY</c>, and no emitted type lives directly in <c>Cobol</c>. Two COBOL
+    /// assemblies one host references therefore never collide on a program or class name or on <c>__CobolModule</c>.
+    /// A namespace is not allocated in a scope, so a segment may be a C# keyword (an assembly named <c>class</c> gives
+    /// <c>Cobol.class</c>); the C# spelling of its declaration (<c>Cobol.@class</c>) is the Roslyn backend's
+    /// (<c>ProgramEmitter.CSharpNamespace</c>).</summary>
+    public static ModuleNamespace ModuleNamespaceOf(string assemblySimpleName) =>
+        new($"Cobol.{DataItem.Sanitize(assemblySimpleName)}");
 
     /// <summary>Allocate <paramref name="baseName"/> (a <see cref="DataItem.Sanitize"/>d word, or a synthesized base
     /// such as <c>_impliedRecordF</c>) in <paramref name="scope"/>: itself when it is free, else the smallest free
@@ -116,11 +133,10 @@ public static class CsNames
     }
 }
 
-/// <summary>A module's namespace (<see cref="CsNames.ModuleNamespaceOf"/>) in its two spellings.</summary>
-/// <param name="CsName">The C# spelling the generated source declares (<c>namespace Cobol.@class;</c> for an assembly
-/// named <c>class</c>).</param>
-/// <param name="ClrName">The metadata name a reflection lookup or an attribute string names (<c>Cobol.class</c>).</param>
-public sealed record ModuleNamespace(string CsName, string ClrName)
+/// <summary>A module's namespace (<see cref="CsNames.ModuleNamespaceOf"/>).</summary>
+/// <param name="ClrName">The metadata name a reflection lookup or an attribute string names (<c>Cobol.class</c>); the
+/// Roslyn backend spells it as C# source (<c>Cobol.@class</c>) where it declares the namespace.</param>
+public sealed record ModuleNamespace(string ClrName)
 {
     /// <summary>The module's registrar type, as metadata names it: what <c>[assembly: CobolRepository(Registrar = …)]</c>
     /// records and <c>RegisterModule</c> keys the run unit's registration set on (design §11.2).</summary>
@@ -130,13 +146,13 @@ public sealed record ModuleNamespace(string CsName, string ClrName)
     public const string RegistrarClass = "__CobolModule";
 }
 
-/// <summary>One C# name scope (the members of one record struct, or of one program class): the names already
+/// <summary>One CLR name scope (the members of one record struct, or of one program class): the names already
 /// claimed in it, seeded with the scope's reserved names (<see cref="CsNames"/>). Names are allocated only through
 /// <see cref="CsNames.Allocate"/>.</summary>
 public sealed class CsNameScope
 {
-    /// <summary>The names every scope of a kind holds before it claims one: the kind's own members and
-    /// <see cref="CsNames.ImportedTypeNames"/>. Shared, never copied — a program with a thousand groups makes a thousand
+    /// <summary>The names every scope of a kind holds before it claims one: the kind's own members,
+    /// <see cref="CsNames.ImportedTypeNames"/> and <see cref="CsNames.CSharpReservedKeywords"/>. Shared, never copied — a program with a thousand groups makes a thousand
     /// record-struct scopes.</summary>
     private readonly FrozenSet<string> _reserved;
 
@@ -148,21 +164,25 @@ public sealed class CsNameScope
         _claimed = new HashSet<string>(claimed, StringComparer.Ordinal);
     }
 
+    /// <summary>What every scope kind reserves beyond its own members.</summary>
+    private static readonly FrozenSet<string> EveryScopeReserved =
+        CsNames.ImportedTypeNames.Union(CsNames.CSharpReservedKeywords).ToFrozenSet(StringComparer.Ordinal);
+
     private static readonly FrozenSet<string> RecordStructReserved =
-        CsNames.RecordStructMembers.Union(CsNames.ImportedTypeNames).ToFrozenSet(StringComparer.Ordinal);
+        CsNames.RecordStructMembers.Union(EveryScopeReserved).ToFrozenSet(StringComparer.Ordinal);
 
     private static readonly FrozenSet<string> ProgramClassReserved =
-        CsNames.ProgramClassMembers.Union(CsNames.ImportedTypeNames).ToFrozenSet(StringComparer.Ordinal);
+        CsNames.ProgramClassMembers.Union(EveryScopeReserved).ToFrozenSet(StringComparer.Ordinal);
 
     private static readonly FrozenSet<string> HostEntryReserved =
-        CsNames.HostEntryMembers.Union(CsNames.ImportedTypeNames).ToFrozenSet(StringComparer.Ordinal);
+        CsNames.HostEntryMembers.Union(EveryScopeReserved).ToFrozenSet(StringComparer.Ordinal);
 
     /// <summary>A record struct's member scope (<see cref="CsNames.RecordStructMembers"/> and
-    /// <see cref="CsNames.ImportedTypeNames"/>).</summary>
+    /// <see cref="EveryScopeReserved"/>).</summary>
     public static CsNameScope RecordStruct() => new(RecordStructReserved, []);
 
     /// <summary>A program class's member scope (<see cref="CsNames.ProgramClassMembers"/> and
-    /// <see cref="CsNames.ImportedTypeNames"/>).</summary>
+    /// <see cref="EveryScopeReserved"/>).</summary>
     public static CsNameScope ProgramClass() => new(ProgramClassReserved, []);
 
     /// <summary>A host-entry class's member scope (<see cref="CsNames.HostEntryMembers"/>), seeded with the class's
@@ -173,9 +193,10 @@ public sealed class CsNameScope
     /// <summary>A module namespace's type scope (DESIGN-external-repository §4.5): the host-entry classes are allocated in
     /// it, seeded with every type name the module already declares there (<paramref name="reserved"/> — the
     /// registrar, the entry class, the atom table, the program classes and the OO classes and interfaces) and with
-    /// <see cref="CsNames.ImportedTypeNames"/>: a host class spelled like an imported type would capture that type's
-    /// simple name for the whole namespace, since a namespace's own types win over a using directive's.</summary>
-    public static CsNameScope ModuleTypes(IEnumerable<string> reserved) => new(CsNames.ImportedTypeNames, reserved);
+    /// <see cref="EveryScopeReserved"/>: a host class spelled like an imported type would capture that type's simple
+    /// name for the whole namespace, since a namespace's own types win over a using directive's, and one spelled like a
+    /// C# keyword could not be declared at all.</summary>
+    public static CsNameScope ModuleTypes(IEnumerable<string> reserved) => new(EveryScopeReserved, reserved);
 
     /// <summary>Claim names this scope already holds from elsewhere — a container's GLOBAL roots, bridged into this
     /// unit's class under their own member names (kb/Work PB1047).</summary>

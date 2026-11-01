@@ -423,7 +423,7 @@ public sealed class IntrinsicArgumentClassDriftTests
     private static BoundFieldOperand ItemOperand(Usage usage, PicInfo pic) =>
         new(new MemberPlace(
             new AccessPath([new RootFieldSegment("WS_" + usage)]),
-            new DataItem { Level = 1, CobolName = "WS-" + usage, CsName = "WS_" + usage, Pic = pic }));
+            new DataItem { Level = 1, CobolName = "WS-" + usage, ClrName = "WS_" + usage, Pic = pic }));
 
     /// <summary>Every <see cref="Usage"/> whose synthesized profile is a FLOATING-POINT item (§14.6.8.3 plus the
     /// COMP-1/COMP-2 synonyms), derived from <see cref="PicInfo.IsFloat"/> rather than listed — a new float

@@ -383,7 +383,7 @@ build; there was a predicate that stopped short.
 Split the god-struct into a **mostly-immutable declared core** plus **init-only pass-computed facts**, all in
 `Binding/Model/`:
 
-- **Declared core (immutable after `BindEntries`)**: `Level`, `CobolName`, `CsName`, `Pic`, `OwnSign`, `OwnUsage`,
+- **Declared core (immutable after `BindEntries`)**: `Level`, `CobolName`, `ClrName`, `Pic`, `OwnSign`, `OwnUsage`,
   `RawValue`, `Occurs`, `OccursSpec`, `IndexNames`, `Justified`, `BlankWhenZero`, `Children`, `Own88s`,
   `RedefinesTargetName`, `Renames`, `IsTypedef`, `TypedefStrong`, `Parent`. (`Parent`/`Uid` set during tree build,
   then frozen.)

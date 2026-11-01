@@ -40,7 +40,7 @@ public sealed class OoConformanceCategoryDriftTests
     {
         Level = 1,
         CobolName = "P",
-        CsName = "P",
+        ClrName = "P",
         Pic = PicFor(category),
     };
 
@@ -93,7 +93,7 @@ public sealed class OoConformanceCategoryDriftTests
         if (formal.Pic!.Length == 0) return;   // PICTURE-less carrier — no size clause exists
         var wider = new DataItem
         {
-            Level = 1, CobolName = "Q", CsName = "Q",
+            Level = 1, CobolName = "Q", ClrName = "Q",
             Pic = formal.Pic with
             {
                 Length = formal.Pic.Length + 2,
@@ -112,7 +112,7 @@ public sealed class OoConformanceCategoryDriftTests
         var bit = Item(PicCategory.Boolean);
         var display = new DataItem
         {
-            Level = 1, CobolName = "Q", CsName = "Q",
+            Level = 1, CobolName = "Q", ClrName = "Q",
             Pic = bit.Pic! with { Usage = Usage.Display },
         };
         Assert.NotNull(OoConformance.SignatureDifference(bit, display, "formal", "argument"));
@@ -126,7 +126,7 @@ public sealed class OoConformanceCategoryDriftTests
         var zz9 = Item(PicCategory.NumericEdited);
         var starred = new DataItem
         {
-            Level = 1, CobolName = "Q", CsName = "Q",
+            Level = 1, CobolName = "Q", ClrName = "Q",
             Pic = zz9.Pic! with { EditMask = "**9", Clause = PictureClauseIdentity.Of("**9", '$', "$", decimalPointIsComma: false) },
         };
         Assert.NotNull(OoConformance.SignatureDifference(zz9, starred, "formal", "argument"));

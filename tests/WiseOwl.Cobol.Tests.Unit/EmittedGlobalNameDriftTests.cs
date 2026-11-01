@@ -101,7 +101,7 @@ public sealed class EmittedGlobalNameDriftTests
     public void ModuleNamespace_IsOneIdentifierUnderCobol(string assembly, string cs, string clr)
     {
         var ns = CsNames.ModuleNamespaceOf(assembly);
-        Assert.Equal(cs, ns.CsName);
+        Assert.Equal(cs, WiseOwl.Cobol.CodeGen.ProgramEmitter.CSharpNamespace(ns));   // the Roslyn spelling (kb/Work PB4265)
         Assert.Equal(clr, ns.ClrName);
         Assert.Equal($"{clr}.__CobolModule", ns.RegistrarClrName);
     }

@@ -436,7 +436,7 @@ public static class StrongTypeModel
         /// <inheritdoc/>
         public override string ToString() => Name is null ? "(unrestricted)"
             : Member is null ? Name
-            : $"{Member.CobolName ?? Member.CsName} (a subordinate item of type '{Name}')";
+            : $"{Member.CobolName ?? Member.ClrName} (a subordinate item of type '{Name}')";
     }
 
     /// <summary>The type a DATA-POINTER ITEM's value is restricted to — Annex D.9.2.2 source 1, the declared

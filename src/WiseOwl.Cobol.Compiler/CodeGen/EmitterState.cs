@@ -383,7 +383,7 @@ internal sealed class EcState
         [.. raising.SelectMany(t => t.Kind switch
         {
             Binding.Model.RaisingTargetKind.ObjectClass when table?.Find(t.Name) is { } c =>
-                (IEnumerable<string>)[t.Factory ? c.FactoryCsName : c.CsName],
+                (IEnumerable<string>)[t.Factory ? c.FactoryClrName : c.ClrName],
             Binding.Model.RaisingTargetKind.Interface when table?.FindInterface(t.Name) is { } i => i.ImplementedCsTypes,
             _ => [],
         }).Distinct(StringComparer.Ordinal)];

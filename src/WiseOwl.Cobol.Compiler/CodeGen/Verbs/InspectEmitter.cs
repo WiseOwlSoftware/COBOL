@@ -245,7 +245,7 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
         {
             if (!(p.Item.StoreAsImage || p is RedefViewPlace))
                 throw new InvalidOperationException(
-                    $"INSPECT identifier-1 '{p.Item.CsName}' is a numeric item stored natively; UsageCollectionPass must have promoted it to its character image (PB1128)");
+                    $"INSPECT identifier-1 '{p.Item.ClrName}' is a numeric item stored natively; UsageCollectionPass must have promoted it to its character image (PB1128)");
             // ⛔ THE REPLACED IMAGE OF A NUMERIC ITEM IS NOT AN ALPHANUMERIC SENDING OPERAND. The signed arm takes
             // CobolNum.DigitMagnitude, never the §14.9.25.4 GR6 d) 3 capped FromAlphanumeric: this image is the ITEM'S
             // OWN and its PICTURE already fixes the size, so GR6 d) 3 asks nothing here (kb/Work PB426 split the two

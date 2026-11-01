@@ -737,7 +737,6 @@ public sealed class CopyProcessor(
 
             bool standsInIdentification = division.InIdentificationDivisionAt(text, copyIdx);
             var one = ResolveOneCopy(mapped, copyIdx, alreadyIncluded, inLibraryText: depth > 0, standsInIdentification, out int afterCopy);
-            division.Skip(text, afterCopy);
             if (one.Outcome == CopyOutcome.Found)
             {
                 w.NewLine(copyLine);

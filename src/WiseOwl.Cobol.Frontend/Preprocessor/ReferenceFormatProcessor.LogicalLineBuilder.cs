@@ -51,6 +51,38 @@ public static partial class ReferenceFormatProcessor
         /// that is not a comment or blank line is its continuation line (§6.5 8)), never a line a classifier reads.</summary>
         public bool AwaitsFloatingContinuation => _latest >= 0 && _literal.AwaitsFloating;
 
+        /// <summary>How many resultant lines <see cref="ReadInto"/> has handed to the division cursor.</summary>
+        private int _divisionRead;
+
+        /// <summary>Whether the program text of a line holds TEXT: its first non-space character begins at
+        /// <paramref name="first"/> and is not the floating comment indicator. A blank line or a comment line is "logically
+        /// discarded" (§6.5 2)): it keeps its slot, is never the join target of §6.5 6) or 8) and adds nothing to the latest
+        /// logical line, so only a line that holds text can begin a new logical line or continue the latest one.</summary>
+        public static bool TryFirstText(string programText, out int first)
+        {
+            first = FirstNonSpace(programText);
+            return first >= 0 && !CobolSourceText.CommentIndicatorAt(programText, first);
+        }
+
+        /// <summary>Hand <paramref name="division"/> the resultant lines it has not read — the LOGICAL text, after §6.5 has
+        /// joined a continued word or literal and removed the comments — so the one rule for which division the text is in
+        /// (<see cref="DivisionCursor"/>, kb/Work PB4241) never reads a half of a continued <c>PROCEDURE DIVI</c> /
+        /// <c>-SION.</c> header. Call it where the next physical line, one <see cref="TryFirstText"/> says holds text, is
+        /// about to be classified as a NEW logical line: every line read so far is then complete, unless the latest one
+        /// still awaits its floating-indicator continuation (§6.5 8)), whose join the classifiers never ask the division
+        /// about. ⛔ NEVER for a blank or comment line: it is discarded, and a continuation line that follows it still
+        /// joins the latest logical line (§6.3.6 "A blank line may be written as any line of a compilation group"; §6.5 6)
+        /// b)), which is therefore not yet complete. A debugging line is not read: it is source or commentary as the unit's
+        /// WITH DEBUGGING MODE clause says, which is known only later.</summary>
+        public void ReadInto(DivisionCursor division)
+        {
+            for (; _divisionRead < _lines.Count; _divisionRead++)
+            {
+                string line = _lines[_divisionRead];
+                if (line.Length > 0 && !line.StartsWith(DebugLineCarrier, StringComparison.Ordinal)) division.Read(line);
+            }
+        }
+
         /// <summary>The resultant lines and, per line, where its characters came from (kb/Work PB82, PB1801): the physical
         /// line and column of each stretch — a continuation line's text joins its latest logical line, which keeps the
         /// line that began it as its name, and the joined text keeps its own line and column.</summary>

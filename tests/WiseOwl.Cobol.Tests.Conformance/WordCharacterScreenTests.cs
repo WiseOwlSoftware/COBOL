@@ -353,4 +353,90 @@ public sealed class WordCharacterScreenTests
         Assert.Contains(errors, e => e.Contains("COBOL2631"));
         Assert.Contains(errors, e => e.Contains("COBOL0900") && e.Contains("MY_NAME"));
     }
+
+    /// <summary>⛔ A WORD THAT STARTS OR ENDS ON AN UNDERSCORE IS A WORD, ILL-FORMED (kb/Work PB4234). ISO §8.3.2.1: "The hyphen
+    /// or underscore shall not appear as the first or last character in such words." The lexer used to split <c>_NAME</c> and
+    /// <c>NAME_</c> at the underscore, so the user read "unexpected '_'" and the rule was never named. The word is now one
+    /// IDENTIFIER and the screen names it, in either position, at every edition, from both word sources (the lexer's stream when
+    /// the parse fails; the tree when it parses), beside the COBOL-85 underscore gate that applies to it too.</summary>
+    [Theory]
+    [InlineData(85, "_NAME", "first", false)]
+    [InlineData(85, "NAME_", "last", false)]
+    [InlineData(85, "NAME_", "last", true)]
+    [InlineData(2002, "_NAME", "first", true)]
+    [InlineData(2014, "NAME_", "last", false)]
+    [InlineData(2023, "_NAME", "first", false)]
+    [InlineData(2023, "NAME_", "last", true)]
+    [InlineData(2023, "__", "first", true)]
+    [InlineData(2023, "_1", "first", true)]
+    [InlineData(2023, "1_", "last", true)]
+    [InlineData(2023, "NAME-X_", "last", true)]
+    public void AnUnderscoreAtAWordEdge_IsNamedByTheSection8321Rule_AtEveryEdition(int edition, string word, string position, bool parses)
+    {
+        string source = Unparseable(word, word);
+        if (parses) source = source.Replace(" MOVE MOVE", "");
+        var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition);
+        Assert.False(ok);
+        Assert.Contains(errors, e => e.Contains("COBOL2773") && e.Contains($"'{word}'") && e.Contains($"as its {position} character")
+                                     && e.Contains("§8.3.2.1"));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL0902"));
+        string all = string.Join('\n', errors.Concat(warnings));
+        Assert.Equal(edition == 85, all.Contains("COBOL0900"));
+        Assert.Equal(!parses, all.Contains("COBOL0001"));
+        Assert.DoesNotContain("unexpected '_'", all);
+    }
+
+    /// <summary>The edge underscore is no 2023 REMOVAL: the 2014 rule is violated too, so <c>--permissive</c>, which keeps the
+    /// removed-construct warning for U+30FB, keeps the ERROR here (<c>CobolWordRule.RemovedAt2023</c> asks the whole character rule).</summary>
+    [Fact]
+    public void AnUnderscoreAtAWordEdge_IsAnErrorUnderPermissive()
+    {
+        var (ok, errors, _) = EditionHarness.CompileFull(Unparseable("NAME_", "NAME_").Replace(" MOVE MOVE", ""), 2023, permissive: true);
+        Assert.False(ok);
+        Assert.Contains(errors, e => e.Contains("COBOL2773") && e.Contains("'NAME_'"));
+    }
+
+    /// <summary>The directive stages scan their own words (a directive is removed before the lexer runs) and ask the same
+    /// §8.3.2.1 position rule (kb/Work PB4234): a <c>&gt;&gt;DEFINE</c> name and a <c>&gt;&gt;COBOL-WORDS</c> fresh word that
+    /// start or end on an underscore are refused AND the refusal names the rule, not only "not a COBOL word".</summary>
+    [Fact]
+    public void AnEdgeUnderscore_InADirectiveWord_NamesTheRule()
+    {
+        string source = string.Join('\n',
+            ">>SOURCE FORMAT FREE",
+            ">>DEFINE FLAG_ AS 1",
+            ">>DEFINE _FLAG AS 1",
+            ">>COBOL-WORDS EQUATE \"ADD\" WITH \"ADD_\"",
+            "IDENTIFICATION DIVISION.",
+            "PROGRAM-ID. PB4234D.",
+            "PROCEDURE DIVISION.",
+            "    STOP RUN.",
+            "");
+        var (ok, errors, _) = EditionHarness.CompileFull(source, 2023);
+        Assert.False(ok);
+        Assert.Contains(errors, e => e.Contains("'FLAG_'") && e.Contains("as its last character") && e.Contains("compilation-variable-name-1"));
+        Assert.Contains(errors, e => e.Contains("'_FLAG'") && e.Contains("as its first character") && e.Contains("compilation-variable-name-1"));
+        Assert.Contains(errors, e => e.Contains("'ADD_'") && e.Contains("as its last character"));
+    }
+
+    /// <summary>The same word as a statement operand, a paragraph-name and a comment-entry: the first two are words of the program,
+    /// the comment-entry is not (<c>AUTHOR. _JOSE_</c> is legal COBOL-85 comment text).</summary>
+    [Fact]
+    public void AnEdgeUnderscore_IsAWordInEveryPosition_AndNoWordInACommentEntry()
+    {
+        string source = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB4234W.
+            AUTHOR. _JOSE_.
+            PROCEDURE DIVISION.
+            _PARA.
+                MOVE 1 TO _CNT.
+                STOP RUN.
+            """;
+        var (ok, errors, _) = EditionHarness.CompileFull(source, 85);
+        Assert.False(ok);
+        Assert.Contains(errors, e => e.Contains("COBOL2773") && e.Contains("'_PARA'"));
+        Assert.Contains(errors, e => e.Contains("COBOL2773") && e.Contains("'_CNT'"));
+        Assert.DoesNotContain(errors, e => e.Contains("'_JOSE_'"));
+    }
 }

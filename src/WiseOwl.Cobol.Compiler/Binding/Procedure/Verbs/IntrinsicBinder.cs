@@ -2265,7 +2265,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // An INDEX result is the index carrier, a compile-time constant. Every other result, string or numeric, is measured at run time.
         if (args[0] is BoundComputedOperand { Expr: BoundIntrinsicCall fn } && fn.ResultType is IntrinsicType.Index)
         {
-            var item = new DataItem { Level = 1, CobolName = "__FN-RESULT", CsName = "__fnResult", Pic = PicInfo.IndexItem };
+            var item = new DataItem { Level = 1, CobolName = "__FN-RESULT", ClrName = "__fnResult", Pic = PicInfo.IndexItem };
             return new BoundNumLiteral((bytes ? item.ByteWidth : ItemLength.Positions(item)).ToString());
         }
         return new BoundIntrinsicCall(sig, args, PicCategory.Numeric);   // the renderer measures the result image (string) or the temporary (FunctionDeviceText)
@@ -2433,7 +2433,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         Place inner = op.Place.Undecorated;
         DataItem group = inner.Item;
         AccessPath? basePath = inner switch { MemberPlace m => m.Path, DynTablePlace d => d.Path, _ => null };
-        BoundExprError Stage(string what) => BoundExprError.Unbuilt(ctx.Edition, $"FUNCTION {sig.Name} of '{group.CobolName ?? group.CsName}': {what} (ISO {rules})");
+        BoundExprError Stage(string what) => BoundExprError.Unbuilt(ctx.Edition, $"FUNCTION {sig.Name} of '{group.CobolName ?? group.ClrName}': {what} (ISO {rules})");
         // ⛔ A TABLE OF VARIABLE-LENGTH ELEMENTS (kb/Work PB244) — an OCCURS DEPENDING or dynamic-capacity table
         // whose occurrences each hold a runtime-length member — is a per-occurrence loop over run-time storage the
         // term-by-term sum below cannot write down. The group's own CurrentImage composes exactly that extent (A.1
@@ -2478,18 +2478,18 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             foreach (var c in g.Children.Where(x => x.RedefinesTargetName is null))
             {
                 if (failure is not null) return;
-                var cPath = path?.Add(new MemberSegment(c.CsName));
+                var cPath = path?.Add(new MemberSegment(c.ClrName));
                 if (c.IsDynamicTable)
                 {
                     // r7c / r6c — the current capacity × the element width. ByteWidth counted ONE occurrence.
                     if (HasRuntimeLength(c) || (c.IsElementary && c.IsDynamicLength))
-                    { failure = ImageOrStage($"the dynamic-capacity table '{c.CobolName ?? c.CsName}' has a runtime-length element — a per-occurrence sum"); return; }
+                    { failure = ImageOrStage($"the dynamic-capacity table '{c.CobolName ?? c.ClrName}' has a runtime-length element — a per-occurrence sum"); return; }
                     // A CELL-BACKED group's table is a component of the cell (kb/Work PB1042): its path is the
                     // group's cell and its ordinal relative to the group's first component.
                     var tablePath = cPath ?? (inner is RedefViewPlace { Coding: VarGroupWindow tg }
                         ? tg.Cell.Add(CellTableSegment.Of(c, CellOrdinal(tg, c, shift))) : null);
                     if (tablePath is null || c.OccursSpec?.CapacityRegister is not { } reg)
-                    { failure = Stage($"the dynamic-capacity table '{c.CobolName ?? c.CsName}' could not be addressed"); return; }
+                    { failure = Stage($"the dynamic-capacity table '{c.CobolName ?? c.ClrName}' could not be addressed"); return; }
                     fixedPart -= c.ByteWidth;
                     dynamicBytes += c.ByteWidth;
                     Add(new BoundBinary(new BoundNumRef(new CapacityRegisterPlace(tablePath, reg)), '*',
@@ -2502,9 +2502,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     // MAXIMUM. data-name-1's place is the one the resolver wrapped the operand with (SR22 makes
                     // the table the record's trailing part, so the operand IS the OdoGroupPlace).
                     if (HasRuntimeLength(c))
-                    { failure = ImageOrStage($"the OCCURS DEPENDING table '{c.CobolName ?? c.CsName}' has a runtime-length element — a per-occurrence sum"); return; }
+                    { failure = ImageOrStage($"the OCCURS DEPENDING table '{c.CobolName ?? c.ClrName}' has a runtime-length element — a per-occurrence sum"); return; }
                     if (odo is null)   // the resolver wraps every ODO group operand — struct member or class-tier window (kb/Work PB80); reaching here is a shape it could not resolve
-                    { failure = Stage($"the OCCURS DEPENDING table '{c.CobolName ?? c.CsName}' has no resolvable data-name-1 place"); return; }
+                    { failure = Stage($"the OCCURS DEPENDING table '{c.CobolName ?? c.ClrName}' has no resolvable data-name-1 place"); return; }
                     int elem = c.ByteWidth, max = c.Occurs ?? 1;
                     // r4a / r2a — a BASED entry not associated with actual data answers the maximum (GR8b): the
                     // entry's data-address field guards the ODO term (kb/Work PB80).
@@ -2519,7 +2519,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                         // takes the ceiling (§15.50.4 r9 / §15.14.4 r4); a bit group's LENGTH is the positions.
                         int prefixBits = BitLayout.StartBitOf(group, c), strideBits = BitLayout.StrideBits(c);
                         if (prefixBits < 0)
-                        { failure = Stage($"the OCCURS DEPENDING table '{c.CobolName ?? c.CsName}' follows an overlay chain whose layout is not modelled"); return; }
+                        { failure = Stage($"the OCCURS DEPENDING table '{c.CobolName ?? c.ClrName}' follows an overlay chain whose layout is not modelled"); return; }
                         // A table whose occurrences stride whole bytes (an ALIGNED table or member, §13.18.1.4 GR2) has
                         // its occurrences a stride apart and the LAST one's padding is not part of the extent
                         // (BitLayout.TableBits; §8.5.1.6.3 generates filler "as needed to advance alignment to a required
@@ -2563,7 +2563,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                             Walk(c, cPath?.Add(new FixedTableSegment(new PositionConstant(i))), shift + (i - 1) * CellComponents.PerOccurrence(c));
                     }
                     else if (HasRuntimeLength(c) || c.IsDynamicLength)
-                    { failure = ImageOrStage($"the table '{c.CobolName ?? c.CsName}' has a runtime-length element — a per-occurrence sum"); return; }
+                    { failure = ImageOrStage($"the table '{c.CobolName ?? c.ClrName}' has a runtime-length element — a per-occurrence sum"); return; }
                 }
                 else if (c.IsDynamicLength)
                 {
@@ -2577,7 +2577,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                         : inner is RedefViewPlace { Coding: VarGroupWindow vg } rv
                             ? RedefViewPlace.For(rv.Backing, c, rv.Offset, cell: vg.Cell, dynOrdinal: CellOrdinal(vg, c, shift))
                             : null;
-                    if (cPlace is null) { failure = Stage($"the dynamic-length subordinate '{c.CobolName ?? c.CsName}' could not be addressed"); return; }
+                    if (cPlace is null) { failure = Stage($"the dynamic-length subordinate '{c.CobolName ?? c.ClrName}' could not be addressed"); return; }
                     Add(new BoundIntrinsicCall(sig, [new BoundFieldOperand(cPlace)], PicCategory.Numeric)
                             { LengthInBytes = !bytes && c.Pic is { Usage: Usage.National } });
                 }

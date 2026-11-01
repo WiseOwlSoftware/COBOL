@@ -537,7 +537,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
             {
                 case MoveRule.StrongGroup:
                     ctx.Edition.Error(DiagnosticCatalog.StrongMoveMismatch, "MOVE to strongly-typed group "
-                        + $"'{t.Item.CobolName ?? t.Item.CsName}': {refusal.Reason}{ImplicitMovePhrase.Via(implicitOf)}");
+                        + $"'{t.Item.CobolName ?? t.Item.ClrName}': {refusal.Reason}{ImplicitMovePhrase.Via(implicitOf)}");
                     break;
                 case MoveRule.VariableLength:
                     // Name the operand that IS the variable-length group — the receiver when it is one.
@@ -545,7 +545,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
                     var vl = recv is not null && VariableLengthCompatibility.IsVariableLength(recv)
                         ? recv : MoveTable16.OperandItem(source)!;
                     ctx.Edition.Error(DiagnosticCatalog.MoveVariableLengthIncompatible,
-                        $"MOVE involving the variable-length group '{vl.CobolName ?? vl.CsName}': {refusal.Reason} — "
+                        $"MOVE involving the variable-length group '{vl.CobolName ?? vl.ClrName}': {refusal.Reason} — "
                         + "ISO §14.9.25.3 SR9 requires the two groups to be compatible as specified in §8.5.1.12"
                         + ImplicitMovePhrase.Via(implicitOf));
                     break;

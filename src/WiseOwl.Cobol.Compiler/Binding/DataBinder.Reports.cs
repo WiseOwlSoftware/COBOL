@@ -1138,7 +1138,7 @@ public sealed partial class DataBinder
                     Level = 49,
                     DeclaredAt = Edition.Cursor,
                     CobolName = "PAGE-COUNTER",
-                    CsName = $"__pagectr_{Reports.Count}",
+                    ClrName = $"__pagectr_{Reports.Count}",
                     Pic = PicInfo.ReportCounterItem(),
                     Uid = _uidCounter++,
                 },
@@ -1445,7 +1445,7 @@ public sealed partial class DataBinder
                 ? "is reference-modified with a leftmost-position or length that is not a single integer literal, so the "
                   + "characters it occupies in every logical record (§13.18.12.4 GR2) are not a fixed number"
             : OdoModel.TableUnder(item) is { } odo
-                ? $"is a group with the occurs-depending-on table '{odo.CobolName ?? odo.CsName}' subordinate to it"
+                ? $"is a group with the occurs-depending-on table '{odo.CobolName ?? odo.ClrName}' subordinate to it"
             : item.IsGroup && ReferenceResolver.HasVariableLengthSubordinate(item)
                 ? "is a variable-length group"
             : item.IsDynamicLength || item.IsDynamicTable
@@ -3287,7 +3287,7 @@ public sealed partial class DataBinder
                     Level = level,
                     DeclaredAt = Edition.Cursor,
                     CobolName = entryName,
-                    CsName = "_rptItem" + _uidCounter,
+                    ClrName = "_rptItem" + _uidCounter,
                     Pic = pic,
                     OwnSign = ownSign,
                     Justified = justified,
@@ -3844,7 +3844,7 @@ public sealed partial class DataBinder
             {
                 Level = 48,
                 DeclaredAt = Edition.Cursor,
-                CsName = $"{NamingConvention.SumCounterName(model.Name, baseId)}_occ{k}",
+                ClrName = $"{NamingConvention.SumCounterName(model.Name, baseId)}_occ{k}",
                 Occurs = st.Repetitions[k].Spec.Max,
                 Parent = parent,
             };
@@ -3870,7 +3870,7 @@ public sealed partial class DataBinder
                 Level = 49,
                 DeclaredAt = Edition.Cursor,
                 CobolName = entryName,
-                CsName = NamingConvention.SumCounterName(model.Name, baseId),
+                ClrName = NamingConvention.SumCounterName(model.Name, baseId),
                 Pic = PicInfo.SumCounterItem(pic is null ? 18 : SumCounterDigits(pic), sumScale),
                 Occurs = columnCount > 1 ? columnCount : null,
                 Parent = parent,
@@ -5288,11 +5288,11 @@ public sealed partial class DataBinder
         // INNERMOST level, which is the one the hand-written self→parent loop used to report.
         if (item.SubscriptLevels() is [.., var innermost])
             return (DiagnosticCatalog.ReportControlOperandShape,
-                $"is subject to the OCCURS clause on '{innermost.CobolName ?? innermost.CsName}': data-name-1 shall "
+                $"is subject to the OCCURS clause on '{innermost.CobolName ?? innermost.ClrName}': data-name-1 shall "
                 + "not be subject to any OCCURS clauses (ISO §13.18.16.3 SR3)");
         if (OdoModel.TableUnder(item) is { } odo)
             return (DiagnosticCatalog.ReportControlOperandShape,
-                $"has the occurs-depending table '{odo.CobolName ?? odo.CsName}' subordinate to it: the "
+                $"has the occurs-depending table '{odo.CobolName ?? odo.ClrName}' subordinate to it: the "
                 + "entry specified by data-name-1 shall not have an occurs-depending table subordinate to it "
                 + "(ISO §13.18.16.3 SR5)");
         if (item.IsGroup && ReferenceResolver.HasVariableLengthSubordinate(item))

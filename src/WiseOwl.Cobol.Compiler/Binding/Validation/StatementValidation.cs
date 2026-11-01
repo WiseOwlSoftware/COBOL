@@ -1132,7 +1132,7 @@ internal sealed class StatementValidation(DataBinder data)
     private static bool AdmitsIntoRecord(DataItem item) => ItemCategory.IsAlphanumericOrNational(item);
 
     /// <summary>How identifier-1 names itself in these two diagnostics.</summary>
-    private static string ReceiverFace(Place p) => p.Item.CobolName ?? p.Item.CsName;
+    private static string ReceiverFace(Place p) => p.Item.CobolName ?? p.Item.ClrName;
 
     /// <summary>How the description entry names itself in these two diagnostics. A method rather than a local,
     /// so the string is built on the DIAGNOSTIC path only — <see cref="CheckIntoReceiver"/> runs on every INTO
