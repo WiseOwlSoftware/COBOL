@@ -2940,6 +2940,30 @@ check("PB3528 R1-1: a one-sided meeting between two finishers chains them; neith
       (sorted(dl3), {g.after for g in dl3.values() if g.after} <= {g.letter for g in dl3.values()},
        sum(1 for g in dl3.values() if g.after) == 1),
       (["PB5", "PB9"], True, True))
+# PB4352: ... and a branch is read as the branch its work LANDS THROUGH. Two finished branches each carry a SPLIT
+# predecessor their review finisher merged (54d-26 carried 54d-2, 54d-29 carried 54d-25 and 54d-4); the survey reads
+# each carried branch IN FLIGHT, and each one's files met the OTHER carrier's finisher. Keyed on the exact branch, the
+# exemption held both finishers on a branch that lands only through the other finisher, and `--drain` planned 0 groups.
+CARRIED = {"worktree-dl-1b": "worktree-dl-1", "worktree-dl-2b": "worktree-dl-2"}
+DL4_BUSY = {**DL_BUSY,
+            "worktree dl-1b (worktree-dl-1b)": InFlight({"src/X/Misc.cs"}, "worktree-dl-1b", set(), state="IN FLIGHT"),
+            "worktree dl-2b (worktree-dl-2b)": InFlight({F_BIND}, "worktree-dl-2b", set(), state="IN FLIGHT")}
+pdl4 = pw.plan(notes, [cl(F_BIND, "PB5"), cl("src/X/Misc.cs", "PB9")], [], load_reports(DL_REPORTS),
+               lambda b: "UNLANDED", {}, RULES, budget_points=100, busy=DL4_BUSY, carrier=CARRIED.get)
+dl4 = {n: g for g in pdl4["groups"] for n in g.notes}
+check("PB4352: two finishers each meeting a branch the OTHER one's branch carries are both planned, chained",
+      (sorted(dl4), sorted(n for n in pdl4["waiting"] if n in ("PB5", "PB9")),
+       sum(1 for g in dl4.values() if g.after) == 1,
+       {g.after for g in dl4.values() if g.after} <= {g.letter for g in dl4.values()}),
+      (["PB5", "PB9"], [], True, True))
+check("PB4352: a finisher's claim includes what the branch it continues CARRIES (the carried branch's files)",
+      sorted(dl4["PB5"].claim.files) if "PB5" in dl4 else None, sorted({F_BIND, "docs/CONFORMANCE.md", "src/X/Misc.cs"}))
+# ... and a carried branch whose carrier no group of this wave finishes still holds a group that meets it
+pdl5 = pw.plan(notes, [cl(F_BIND, "PB5")], [], [], lambda b: "ABSENT", {}, RULES, budget_points=100,
+               busy={"worktree dl-3b (worktree-dl-3b)": InFlight({F_BIND}, "worktree-dl-3b", set(), state="IN FLIGHT")},
+               carrier={"worktree-dl-3b": "worktree-dl-3"}.get)
+check("PB4352: a branch carried by one this wave does not finish still holds a group on its files",
+      ([g.notes for g in pdl5["groups"]], "worktree-dl-3b" in pdl5["waiting"].get("PB5", "")), ([], True))
 
 # PB3625: THE REPORT ORDER IS A CLOCK, NEVER A WAVE NUMBER. The loop numbers its waves by date (20261024) and the Mythos
 # lane serially (1157), so ordering by the integer wave ranked every date-numbered report above every serial one: a
