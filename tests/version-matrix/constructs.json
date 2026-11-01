@@ -2174,6 +2174,18 @@
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB64T6NL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 N PIC S9(7)V99.\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE N = FUNCTION NUMVAL-C(\"1234.56\" LOCALE).\n    STOP RUN.\n"
   },
   {
+   "id": "numval-c-anycase-keyword-2002",
+   "description": "The ANYCASE keyword of FUNCTION NUMVAL-C / TEST-NUMVAL-C (argument-1 [argument-2 | LOCALE [locale-name-1]] [ANYCASE]), ISO 15.68.2 / 15.94.2 - introduced 2002 (kb/Work PB4359): the printed 2002 formats (15.55 / 15.76 of ISO/IEC 1989:2002) already carry [ ANYCASE ], 15.68.3 r4f folds the currency-string match, and ANYCASE is a reserved word only from 2002 (reserved-words.json r85 false), so below 2002 it is an ordinary user-defined word and the keyword is refused by edition. ONE row covers both functions - 15.94.3 r1 imports 15.68.3 whole; TEST-NUMVAL-C is itself a 2002 function (its own COBOL1502 gate answers first below 2002). FIND-STRING and SUBSTITUTE carry ANYCASE too but are 2023 functions whose catalog gate covers the keyword. Gated in the binder (BindNumvalCFamily) like numval-c-locale-phrase-2002.",
+   "display": "the ANYCASE keyword of NUMVAL-C / TEST-NUMVAL-C",
+   "diagnosticCode": "COBOL0900",
+   "citation": "ISO §15.68.2 / §15.94.2 (the ANYCASE keyword); §15.68.3 r4f; binder gate (BindNumvalCFamily)",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOL0900",
+   "vcr": "2002 introduction (ANYCASE reserved from 2002; printed in the 2002 NUMVAL-C format; kb/Work PB4359)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB4359NA.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 N PIC S9(7)V99.\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE N = FUNCTION NUMVAL-C(\"$1,234.56\" ANYCASE).\n    STOP RUN.\n"
+  },
+  {
    "id": "standard-compare-2002",
    "description": "FUNCTION STANDARD-COMPARE (ISO 15.85) - the cultural-ordering comparison returning the single character \"<\", \"=\" or \">\" (15.85.4 r6/r7) over the ordering table an ORDER TABLE ordering-name identifies or, absent one, the default table 'ISO 14651_2020_TABLE1' (15.85.3 r5). LIVE (kb/Work PB101 T7): CobolIntrinsics.StandardCompare over the derived CLDR/UCA collation engine, argument-4's four ordering levels (15.85.4 r1/r2) and the 15.85.4 r4 trailing-space rule. Below 2002 the D8 catalog window rejects by name+edition (COBOL1502) - the window is now enforced rather than suppressed, because the row's Bind is no longer Unsupported.",
    "display": "FUNCTION STANDARD-COMPARE (cultural ordering)",
