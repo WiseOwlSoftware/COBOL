@@ -156,7 +156,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         int digits = kind.ConceptualDigits();
         var model = new DataItem
         {
-            Level = 1, CobolName = "__ACCEPT-" + kind, CsName = "__accept" + kind,
+            Level = 1, CobolName = "__ACCEPT-" + kind, ClrName = "__accept" + kind,
             Pic = new PicInfo(PicCategory.Numeric, Usage.Display, Length: digits, Digits: digits, Scale: 0, Signed: false),
         };
         var temp = ctx.Data.CreateCompilerTemp(model, "__ACCEPT-", "__accept", $"{kind}L{line}");

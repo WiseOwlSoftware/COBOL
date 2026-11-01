@@ -17,7 +17,7 @@ using Core = CobolParserCore;
 public enum InvokeForm
 {
     /// <summary>The standard class BASE's New (ISO §16.2.1) on a NAMED factory object: <c>INVOKE Class "New"
-    /// RETURNING obj</c> (<see cref="BoundInvoke.ClassCsName"/> — the class's factory singleton) or through a FACTORY OF
+    /// RETURNING obj</c> (<see cref="BoundInvoke.ClassClrName"/> — the class's factory singleton) or through a FACTORY OF
     /// reference (<see cref="BoundInvoke.Receiver"/>). Both render <c>obj = (T)factory.__New()</c>: the runtime
     /// __FACTORY_BASE's one body, whose covariant <c>__Create</c> is the generated constructor (deep-dive D4).</summary>
     New,
@@ -48,16 +48,16 @@ public enum InvokeForm
 }
 
 /// <summary>A bound INVOKE (ISO §14.9.23; deep-dive D5): the RESOLVED call form plus everything the backend
-/// needs to render it — no name lookup happens at emit time. <paramref name="ClassCsName"/> is the emitted C#
-/// type (New form); <paramref name="Receiver"/>/<paramref name="MethodCsName"/> drive the Instance form (the
+/// needs to render it — no name lookup happens at emit time. <paramref name="ClassClrName"/> is the emitted C#
+/// type (New form); <paramref name="Receiver"/>/<paramref name="MethodClrName"/> drive the Instance form (the
 /// method name is the ROSTER's exact spelling — COBOL names compare case-insensitively, §8.3.2.2, and the
 /// C# override chain must reuse one spelling — the legacy trap-#2 rule); <paramref name="Returning"/> receives
 /// the invocation result (NEW's created object, or the method's <paramref name="ReturningSource"/> item per
 /// §14.9.23.4 GR8); <paramref name="Args"/> carries the positionally-bound USING arguments (D6 — GR3).</summary>
 public sealed record BoundInvoke(
-    InvokeForm Form, string? ClassCsName, Place? Receiver, string? MethodCsName, Place? Returning,
+    InvokeForm Form, string? ClassClrName, Place? Receiver, string? MethodClrName, Place? Returning,
     IReadOnlyList<BoundInvokeArg>? Args = null, DataItem? ReturningSource = null,
-    string? OwnerCsName = null)
+    string? OwnerClrName = null)
     : BoundStatement, IActivatingStatement
 {
     /// <inheritdoc/>

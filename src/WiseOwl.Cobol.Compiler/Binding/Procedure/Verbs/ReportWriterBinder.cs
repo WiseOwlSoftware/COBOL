@@ -192,7 +192,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         if (MoveTable16.OperandItem(operand) is { } item && VariableLengthCompatibility.IsVariableLength(item))
         {
             ctx.Edition.Error(DiagnosticCatalog.ReportSourceOperandRule, $"{where}: identifier-1 references the "
-                + $"variable-length group '{item.CobolName ?? item.CsName}', which a SOURCE clause shall not name "
+                + $"variable-length group '{item.CobolName ?? item.ClrName}', which a SOURCE clause shall not name "
                 + "(ISO §13.18.53.3 SR8)");
             return true;
         }

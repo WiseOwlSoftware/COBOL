@@ -108,7 +108,7 @@ public sealed class ReceiverBracketDriftTests
         string src = File.ReadAllText(Binding("Procedure", "Verbs", "OoBinder.cs"));
         Assert.Contains("ctx.Data.OoCreateIdentifiedObjectTemp(described)", src);
         Assert.Contains("PropertyGet(op, receiver)", src);
-        Assert.Contains("close.Add(new BoundInvoke(op.Form, op.ClassCsName, receiver, op.Set.CsName", src);
+        Assert.Contains("close.Add(new BoundInvoke(op.Form, op.ClassClrName, receiver, op.Set.ClrName", src);
     }
 
     [Fact]

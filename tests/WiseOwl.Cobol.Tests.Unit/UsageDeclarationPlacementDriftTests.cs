@@ -152,16 +152,16 @@ public sealed class UsageDeclarationPlacementDriftTests
         ];
         foreach (var (pic, classPredicate, phrase) in profiles)
         {
-            var item = new DataItem { Level = 5, CsName = "X", Pic = pic };
+            var item = new DataItem { Level = 5, ClrName = "X", Pic = pic };
             Assert.Equal(classPredicate, PointerObjectClass(item));
             Assert.Equal(phrase, Sr14PhraseOf(item));
         }
         // The WRITTEN clause alone (no profile): the phrase reader sees it for every usage the rule names.
         foreach (var u in Enum.GetValues<Usage>())
-            Assert.Equal(Sr14Verdict[u.ToString()], Sr14PhraseOf(new DataItem { Level = 5, CsName = "X", OwnUsage = u }));
+            Assert.Equal(Sr14Verdict[u.ToString()], Sr14PhraseOf(new DataItem { Level = 5, ClrName = "X", OwnUsage = u }));
         // And a PICTURE-less group item (no usage, no profile) is in neither.
-        Assert.Null(Sr14PhraseOf(new DataItem { Level = 1, CsName = "G" }));
-        Assert.False(PointerObjectClass(new DataItem { Level = 1, CsName = "G" }));
+        Assert.Null(Sr14PhraseOf(new DataItem { Level = 1, ClrName = "G" }));
+        Assert.False(PointerObjectClass(new DataItem { Level = 1, ClrName = "G" }));
     }
 
     /// <summary>⛔ INDEX IS NOT AMONG SR14's PHRASES. An index data item's <c>PicInfo</c> is
@@ -170,8 +170,8 @@ public sealed class UsageDeclarationPlacementDriftTests
     [Fact]
     public void IndexIsNotAmongTheSr14Phrases()
     {
-        var resolved = new DataItem { Level = 5, CsName = "IX", Pic = PicInfo.IndexItem };
-        var written = new DataItem { Level = 5, CsName = "IX", OwnUsage = Usage.Index };
+        var resolved = new DataItem { Level = 5, ClrName = "IX", Pic = PicInfo.IndexItem };
+        var written = new DataItem { Level = 5, ClrName = "IX", OwnUsage = Usage.Index };
         Assert.Null(Sr14PhraseOf(resolved));
         Assert.Null(Sr14PhraseOf(written));
         Assert.False(PointerObjectClass(resolved));
