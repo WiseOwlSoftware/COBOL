@@ -105,8 +105,8 @@ public static class NonstandardExtensionRegister
             "the fixed-width USAGE BINARY-CHAR, BINARY-SHORT, BINARY-LONG or BINARY-DOUBLE (ISO §13.18.60.4)", "5"),
         new(ExtensionIds.GobackReturning, "GOBACK RETURNING / GIVING identifier", ExtensionSupport.Accepted,
             "GnuCOBOL and Micro Focus",
-            "move the value to the RETURNING item of the PROCEDURE DIVISION header, then GOBACK (ISO §14.9.18.2 has "
-            + "no RETURNING phrase)",
+            "move the value to the RETURNING item of the PROCEDURE DIVISION header, then GOBACK; with no such item "
+            + "the value is the main program's exit status (ISO §14.9.18.2 has no RETURNING phrase)",
             Distinguishable: true, Spellings: [], ReservedWords: []),
         new(ExtensionIds.SetProgramPointerToEntry, "SET program-pointer TO ENTRY literal-or-identifier",
             ExtensionSupport.Accepted, "IBM Enterprise COBOL and Micro Focus",
