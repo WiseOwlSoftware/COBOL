@@ -1392,7 +1392,15 @@ target:
   word is a scope terminator, because whoever wrote `END-INVOKE` (no ISO word, kb/Work PB758) or `END-OF-PAGE` at a
   sentence end meant to close something; there the spelling is the evidence, and keying it on the token type
   turns the `pb758-invoke-end-invoke-*` negatives into a false "A period may be missing". No hint is ever ADDED
-  because of a spelling. The misplaced-scope-terminator hint (COBOL0306, ISO
+  because of a spelling, with ONE exception that is not a guess: an embedded precompiler block, a word EXEC that a
+  word follows, through the first END-EXEC of the unit (kb/Work PB4341, `CobolErrorStrategy.EmbeddedBlock`). ISO/IEC
+  1989 defines no EXEC construct, the vendor construct IS its spelling, and EXEC and END-EXEC are not reserved, so
+  the block is recognized only where the parse cannot read it as COBOL: at a decision whose walk cannot take the
+  block's tokens and the token after them (`SkipsEmbeddedBlock`, which consumes it there, and the period after it
+  where the block stood where the list may end and the parse cannot take the period, `WasAWholeUnit`), and at a
+  syntax error whose token lies in one (`ReportEmbeddedBlock`; the report covers the block and the resynchronization
+  consumes it whole). Either way it draws COBOL5818 at its EXEC (§4.2.14 names precompilers as components outside
+  the implementation), once, and the parse goes on after it. The misplaced-scope-terminator hint (COBOL0306, ISO
   §14.5.3.2) reads from the ATN, once, which `…Statement` rules match each END-x token (`ScopeTerminator`):
   END-SEARCH closes both SEARCH rules, and a word no statement rule matches (END-OF-PAGE, a user word spelled
   END-…) is no terminator. It carries no edition logic: edition diagnosis lives in the
@@ -1426,6 +1434,23 @@ target:
   same finding for the block an owner's terminator ends, which sits one element downstream of the state the parser stands
   at. Both Sync (a decision) and `RecoverInline` (a match) reach it through the one override.
   `ParseRecoveryDeletionTests` pins the count.
+- ⛔ **The verb of a complete next statement is never deleted where the open statement could have ended** (kb/Work
+  PB4286; ISO §14.9.31.2). The PB4133 test asks what may follow the ONE element the parser stands before, so a statement
+  missing two required elements in a row slipped past it: after `RECEIVE FROM W-X GIVING` (identifier-1 and data-name-2,
+  both unbracketed) the next statement's verb is not in identifier-1's follow, `DISPLAY W-Y.` lost its DISPLAY to the
+  deletion (W-Y fits identifier-1), and the period drew a false second COBOL0001 where data-name-2 was due.
+  `SingleTokenDeletion` also declines when `BeginsTheNextStatement`: the base deletion would act, the token may follow
+  the innermost open `statement` completed, in its real context (the ATN's follow from where it was called), and it
+  begins a statement that is a complete reading (`LookaheadBeginsAStatementThatParses`, PB3248's test). A reserved word
+  written as the operand begins no statement that parses, so it is still deleted as the refused name.
+- ⛔ **A recovery that makes no progress is one at the same state of the same CALL** (kb/Work PB4286). ANTLR's
+  `Recover` consumes one token first when the last recovery stood at this token and this ATN state, keyed on the state
+  alone, and a rule called twice in one statement fails at the same state in both calls: the missing identifier-1
+  resynchronized at the DISPLAY above and the missing data-name-2, the same `dataReference` state, then consumed it, so
+  the next statement was lost into the RECEIVE's tail and a fault in it went unreported.
+  `CobolErrorStrategy.Resynchronize` keys the guard on (state, invoking state): a loop failing again re-enters the same
+  state from the same call and still consumes, and at one token the pairs are finite, so every recovery still makes
+  progress. `EndErrorCondition` clears it as the base clears its own.
 - Recovery beyond that and the sync-point behavior is out of scope for this rearchitecture (the battery does
   not exercise multi-error recovery quality; changing it risks the green net for no measured gain) — but a
   change in the diagnostics a negative fixture produces is visible to the oracle
