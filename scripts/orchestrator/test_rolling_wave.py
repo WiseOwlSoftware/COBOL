@@ -389,7 +389,7 @@ def main() -> int:
 
         solo = [{"letter": "A", "lead": "PB1", "notes": "PB1", "codes": "C1"}]
         gate_args = {"gate_await_wait_s": 0, "gate_await_windows": 2}
-        green_run = gate_run("green", "LEG 1 ONLY (batched gating, PB2515): GREEN")
+        green_run = gate_run("green", "GREEN")
         # the form an agent returns (review R1-1 of wave 1152): the run RELATIVE to its worktree, read from elsewhere
         r = run(tmp, "gate-green", {"args": args(solo, **gate_args), "agents": {
             "impl-A-PB1": [{**pending("bA", "a1", "green"), "worktree": str(runs)}],
@@ -402,7 +402,7 @@ def main() -> int:
               and [x["branch"] for x in r["out"]["ready"]] == ["bA"] and res["A"].get("status") == "DONE"
               and res["A"].get("claimed") == "GATE-PENDING" and "GREEN — planted" in (res["A"].get("gate_verdict") or ""),
               (ev, res.get("A")))
-        red_run = gate_run("red", "LEG 1 ONLY (batched gating, PB2515): RED", 1)
+        red_run = gate_run("red", "RED", 1)
         r = run(tmp, "gate-red", {"args": args(solo, **gate_args), "agents": {
             "impl-A-PB1": [pending("bA", "a1", red_run)], "gatefix-A-r1": [impl("bA3", "a3")],
             "w9a-review-r1": [review("CLEAN", "a3")]}})

@@ -8,8 +8,8 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE HOST-ONLY WITNESSES AND THE TREE-WIDE SWEEPS ARE NAMED BY TRAIT (kb/Work PB3022; DESIGN-test-build-ci.md
-/// §3.17.3): every Unit test class that drives the file-sharing layer's host types
+/// ⛔ THE HOST-ONLY WITNESSES AND THE TREE-WIDE SWEEPS ARE NAMED BY TRAIT (kb/Work PB3022;
+/// DESIGN-test-build-ci.md §3.17.3): every Unit test class that drives the file-sharing layer's host types
 /// (<c>src/WiseOwl.Cobol.Runtime/IO/Sharing/</c>, <c>HostFile</c>) from concurrent workers carries
 /// <c>[Trait("Host", "ReFS")]</c>, and every drift test that <c>scripts/spec/drift_rules.py --sweeps</c> classifies as a
 /// tree-wide sweep carries <c>[Trait("Sweep", "tree")]</c> and no other class does. Since kb/Work PB4328 every gate runs

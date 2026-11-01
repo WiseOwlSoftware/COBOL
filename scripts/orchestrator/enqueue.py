@@ -1760,7 +1760,7 @@ def self_test() -> int:
             d = results_dir / f"{n:06d}-20261029T000000Z"
             d.mkdir(parents=True, exist_ok=True)
             head_now = fix.git("rev-parse", "HEAD")
-            record_ = {"schema": gate.RECORD_SCHEMA, "verdict": "LEG 1 ONLY (batched gating, PB2515): GREEN",
+            record_ = {"schema": gate.RECORD_SCHEMA, "verdict": "GREEN",
                        "line": "=== planted ===", "exit_code": 0, "head": head_now,
                        "tree": "T", "head_tree": "T", "lane": "full"}
             record_.update(rec)
@@ -1773,7 +1773,7 @@ def self_test() -> int:
         none_yet = seen()
         gate_run(1)
         covered = seen()
-        gate_run(2, verdict="LEG 1 ONLY (batched gating, PB2515): RED")
+        gate_run(2, verdict="RED")
         red_after = seen()          # a later RED does not unrecord an earlier GREEN of the same head
         shutil.rmtree(results_dir)
         gate_run(1, tree="T-dirty")
@@ -1815,7 +1815,7 @@ def self_test() -> int:
         shutil.rmtree(results_dir)
         gate_run(1, tree="T-dirty")
         still_dirty = seen()
-        gate_run(2, verdict="LEG 1 ONLY (batched gating, PB2515): RED", **old_gate)
+        gate_run(2, verdict="RED", **old_gate)
         red_not_old = seen()      # the newest run read RED: the remedy is about the newest GREEN one, which is dirty here
         shutil.rmtree(results_dir)
         # The remedy rides the BLOCKED line: an old driver's record -> merge first; a dirty tree -> gate the tip.
