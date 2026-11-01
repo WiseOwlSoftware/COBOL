@@ -30,7 +30,7 @@ WHAT ONE READ RETURNS ({head branch: PullRequest}, or None when GitHub could not
     commit stayed in_progress for 50 minutes, the queue empty, the merge state BLOCKED): `CheckRun.stuck`.
 `fetch_bounce_results` asks for the REDS of a bounce (kb/Work PB3644): it downloads the test results of the
 newest failed merge-group run of a branch's open pull request into the worktree (`gate.CI_BOUNCE_RESULTS`), where the
-gate planner reads them as tier 0a, called by `gate.Host.fetch_bounce_results` before every gate's plan.
+gate runs their classes first (`gate.Host.fetch_bounce_results`, called before every gate's order is drawn).
 `live_heads` asks which commits the queue is TESTING (kb/Work PB3769): it returns the head commit of each of the
 queue's current entries (`mergeQueue(branch: "main").entries.headCommit`: the merge-group commit its workflow run tests)
 for CI's `supersede` job (scripts/orchestrator/cancel_superseded.py), which cancels every unfinished merge-group run whose
@@ -327,7 +327,7 @@ def fetch_bounce_results(branch: str, dest: pathlib.Path, gh: Gh | None = None) 
     """THE REDS OF A BOUNCE, where the gate reads their classes to run first (kb/Work PB3644, PB4328; gate.CI_BOUNCE_RESULTS): the test
     results (TRX) of the newest FAILED merge-group run of `branch`'s open pull request, downloaded into `dest`. The
     queue's bounce lives in GitHub's CI run, never in a worktree, so a finisher's re-gate planned from local files alone
-    ran the failed cases by impact like any other (tier 0a is for exactly them). Returns a BounceFetch: the line saying what `dest`
+    ran the failed cases in the order of any other gate (the bounce's classes go first). Returns a BounceFetch: the line saying what `dest`
     now holds, and the run whose results it holds now (0: none of the newest failed run's). `dest` is REPLACED by the newest bounce's results, EMPTIED when the pull request has no failed
     merge-group run (a stale bounce's reds would mis-order the next plan), and LEFT AS IT WAS when GitHub cannot be
     asked or the download fails (a non-observation changes nothing, kb/Work PB3716). The download goes into a sibling

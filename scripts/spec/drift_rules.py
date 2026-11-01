@@ -604,7 +604,7 @@ def is_sweep(row):
     (`trait_findings`, run by `--check`, holds the two equal; kb/Work PB3022). A declared scope of the committed tree reads
     above SPECIFIC_DEPTH when one of its prefixes does. Only the class's OWN scan decides (the paths it names, its
     scopes), never a path it reads through a helper class (`Sources.inherited`): that closure is file-grained, so it
-    governs a changed file (`governed`, tier 0d) but must not make a class a sweep, or a path literal added to one
+    governs a changed file (`governed`) but must not make a class a sweep, or a path literal added to one
     helper would move the `Sweep` trait of every class that uses it (kb/Work PB3247)."""
     return (any(len(p.split("/")) < SPECIFIC_DEPTH for p in row["paths"])
             or any(segments(u) < SPECIFIC_DEPTH for sc in readable(row) for u in sc["under"]))
@@ -963,7 +963,7 @@ def citing(rows, removals, read=None, tree=None):
     """{drift class: (data file, citation)} for every data file (`data_files`) holding a citation one of `removals`
     breaks: the classes that govern that file specifically. A change that deletes a member, renames a test or deletes a file a
     register cites breaks the register's check WITHOUT touching the register (kb/Work PB3131: four landings stopped in
-    CI's Linux unit leg on SpecTraceabilityInventoryDriftTests after a Windows leg 1 that never ran it). `read`
+    CI's Linux unit leg on SpecTraceabilityInventoryDriftTests after a Windows gate that selected around it, before PB4328 made the gate run the whole population). `read`
     (repo-relative path -> text) defaults to the tree; `tree` (the paths before the change, which a deleted file's
     path citation resolves against) defaults to the tracked tree plus the deleted paths."""
     read = read or (lambda p: (ROOT / p).read_text(encoding="utf-8", errors="replace"))
@@ -1073,7 +1073,7 @@ def self_test():
 
         def gov(rel):
             return governed(rows, [rel])
-        check("a helper's path is inherited through a helper chain: a suite golden governs the class (tier 0d)",
+        check("a helper's path is inherited through a helper chain: a suite golden governs the class",
               "ReadsCorpusDriftTests" in gov("conformance-suite/cases/1.2-Clause/g1.cob"),
               by["ReadsCorpusDriftTests"]["through"])
         check("a path read through TestRepo.Nist governs a file under it", "ReadsNotesDriftTests" in gov("tests/nist/cases/N1.txt"),
