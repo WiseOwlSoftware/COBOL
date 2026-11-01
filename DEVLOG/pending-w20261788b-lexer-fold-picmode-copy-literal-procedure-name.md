@@ -62,3 +62,10 @@ because a leg-1-only gate ignored a stopped population whole: 15 leg-1-only runs
 lines and stayed GREEN, until PB4269's whole-tier leg made the population exact. `Population.defective` now holds a
 stopped run to RAN TWICE and NOT IN THE POPULATION. CI never saw the mismatch because it checked only Conformance's
 population; `greenfield-unit` and `windows-build-test` now check Unit and Characterization too (PB1957 row 50).
+
+**PB4322 (the same finisher, the next gate's red).** The gate on c4aac6fe3 went RED on one Unit case,
+`ProcessObservationDriftTests.ASlowProcess_UnderOneUnit_…`. The case ran a 3 s child against a 1 s budget whose clock
+starts only at `WaitForExit`, and on a host 85 % busy the starved test host saw the child exit before the wait began:
+a wall-clock race, not a regression in the observer. The witness now runs a child that never ends by itself (`ping -t`,
+`exec sleep infinity`), which also hardens `RunsForever`'s two other users. The case is renamed
+`AProcessPastOneUnit_…`, and the whole-population gate on 94b05879c is GREEN on both hosts.
