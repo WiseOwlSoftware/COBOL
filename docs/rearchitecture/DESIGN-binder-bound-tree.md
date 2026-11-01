@@ -923,9 +923,10 @@ public sealed record PositionConstant(long Value) : Position;       // an intege
 public sealed record PositionIndexCell(string Cell) : Position;     // an index-name: its occurrence cell (IndexDeclaration.Cell)
 public sealed record PositionItemRead(AccessPath Path, DataItem Item, PositionReadForm Form) : Position;
         // a data item read as an ordinal position through its own profile (CobolTable.Occ / CobolString.RefModPosition)
-public sealed record PositionLocal(string CsName, bool AsLong = false) : Position;   // a statement local: a hoisted
-        // identification, a report VARYING counter, an INITIALIZE loop variable, a CORRESPONDING view anchor
-public sealed record LocalVector(string CsName);                    // a table(ALL) enumeration's index vector (ISO §15.3)
+public sealed record PositionLocal(MethodLocal Local, bool AsLong = false) : Position;   // a statement local: a hoisted
+        // identification, a report VARYING counter, an INITIALIZE loop variable, a CORRESPONDING view anchor — by its
+        // identity (Binding/Model/MethodLocal.cs; the Roslyn backend spells it in LocalNames.Of, kb/Work PB4321)
+public sealed record LocalVector(MethodLocal Local);                // a table(ALL) enumeration's index vector (ISO §15.3)
 public sealed record PositionLocalElement(LocalVector Vector, int Index) : Position;   // one ALL level's occurrence
 public sealed record PositionBinary(Position Left, PositionOperator Op, Position Right) : Position;   // + - *
 public sealed record PositionNegate(Position Operand) : Position;
@@ -1024,7 +1025,8 @@ identical. `PlaceRenderer`, `RuntimeApi.RefModStart` / `RefModLength`, `CallEmit
 `CorrespondingEmitter` and `InitializeEmitter` call it wherever they read a position field. A formal's *-ARG-OMITTED
 root guard renders in `PlaceRenderer.GuardedRoot`, beside the one path renderer that emits a root.
 
-`PlaceIdentification.Freeze` hoists NODES: `Hoist(p) => p.IsSelfEvaluating ? p : new PositionLocal(hoist(Render(p)))`,
+`PlaceIdentification.Freeze` hoists NODES: `Hoist(p) => p.IsSelfEvaluating ? p : CSharpLocal.Position(hoist(Render(p)))`
+(a position over a local the backend declares itself, kb/Work PB4321),
 over every position of the place model's own walk (`FreezePath`, `FreezeView`, `FreezeCoding`, `FreezeRefMod`): the
 table indices, the cell ordinals, the view offset and ordinal, the ref-mod bounds. A `BitWindow`'s offset is not
 hoisted, because no verb that identifies its operands there can receive a USAGE BIT item with a run-time subscript: a

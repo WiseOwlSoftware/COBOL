@@ -318,11 +318,11 @@ internal sealed class ReportWriterEmitter(
             if (uses.Any(u => u.Counter.Recurrent))
             {
                 foreach (var u in uses)
-                    w.Line($"Int128 {u.Counter.CsName} = {VaryValue(r, u.Counter, u.Counter.From, "FROM")};"
+                    w.Line($"Int128 {LocalNames.Of(u.Counter.Local)} = {VaryValue(r, u.Counter, u.Counter.From, "FROM")};"
                         + $"   // VARYING {u.Counter.Name} FROM (§13.18.64.4 GR3a)");
                 if (n > 0)
                     w.Line($"for (int __vi = 0; __vi < {n}; __vi++) {{ "
-                        + string.Join(" ", uses.Select(u => $"{u.Counter.CsName} += {VaryValue(r, u.Counter, u.Counter.By, "BY")};"))
+                        + string.Join(" ", uses.Select(u => $"{LocalNames.Of(u.Counter.Local)} += {VaryValue(r, u.Counter, u.Counter.By, "BY")};"))
                         + " }   // occurrence " + (n + 1) + ": BY added per step (§13.18.64.4 GR3b, §13.18.64.3 SR3)");
                 continue;
             }
@@ -330,8 +330,8 @@ internal sealed class ReportWriterEmitter(
             {
                 string from = VaryValue(r, u.Counter, u.Counter.From, "FROM");
                 w.Line(n == 0
-                    ? $"Int128 {u.Counter.CsName} = {from};   // VARYING {u.Counter.Name}, occurrence 1 (§13.18.64.4 GR3a)"
-                    : $"Int128 {u.Counter.CsName} = {from} + {n} * {VaryValue(r, u.Counter, u.Counter.By, "BY")};"
+                    ? $"Int128 {LocalNames.Of(u.Counter.Local)} = {from};   // VARYING {u.Counter.Name}, occurrence 1 (§13.18.64.4 GR3a)"
+                    : $"Int128 {LocalNames.Of(u.Counter.Local)} = {from} + {n} * {VaryValue(r, u.Counter, u.Counter.By, "BY")};"
                         + $"   // VARYING {u.Counter.Name}, occurrence {n + 1} (§13.18.64.4 GR3)");
             }
         }
