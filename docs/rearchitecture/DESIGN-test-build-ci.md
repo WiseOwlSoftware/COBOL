@@ -90,15 +90,15 @@ neither guard hard-coding a CLI path or naming the retired engine); `guard-nist-
 per program.
 
 ### 1.4 CI (`.github/workflows/build-and-test.yml`) — a gated matrix behind ONE required check
-Twelve jobs. `changes` decides whether the matrix runs at all; `audits` runs on every push; then, concurrently, `guard` (WiseOwl COBOL parallel NIST,
+Fourteen jobs. `changes` decides whether the matrix runs at all; `supersede` (merge group only) cancels the runs the queue replaced; `audits` runs on every push; then, concurrently, `guard` (WiseOwl COBOL parallel NIST,
 ubuntu) · `greenfield-conformance` (ubuntu, 6 shards) · `greenfield-unit` (ubuntu) ·
 `windows-conformance` (windows, the same 6 shards, Release) · `conformance-population` (the shards' union against
 each platform's discovered population, `scripts/test_population.py`, §3.14.4) ·
 `inv1-strong-2023` · `windows-build-test` (Release warnings-as-errors) · `windows-self-tests` (every script self-test
-on a Windows checkout, no build, kb/Work PB3581); `toolchain-cache` (push to main only, both OSes: saves the
-manifest's tools under main, below); and finally `ci-gate`. (The nightly
+on a Windows checkout, no build, kb/Work PB3581); `toolchain-cache` and `package-cache` (push to main only, both OSes: save the
+manifest's tools, Python's directory, the NuGet packages and the GnuCOBOL tarball under main, below); and finally `ci-gate`. (The nightly
 `legacy-oracle` job and the guard's legacy Unit and Integration legs were retired with the engine, kb/Work PB2108,
-PB2109.) NuGet cached; `Generated/` regenerated per checkout (java+pwsh prerequisites). A second workflow,
+PB2109.) NuGet cached (restored by every matrix job, saved by `package-cache` alone); `Generated/` regenerated per checkout (java+pwsh prerequisites). A second workflow,
 `nightly.yml`, runs once a day and blocks nothing (§1.4a).
 
 **⛔ CI and every local host run the tool versions ONE manifest names, and each is the tool's latest release (kb/Work
@@ -113,10 +113,12 @@ must be exactly its install-tool rows (`toolchain.py check` refuses otherwise, i
 action installs what `toolchain.py ci-installs` prints and the host setups loop over `install-tool.sh --list`; and the
 drift tests read the rows from `toolchain.py`'s text, keeping no list of their own. So a new tool is one row, one
 manifest line and, for an install-tool row, one `tool_spec` arm. Every job of every workflow runs
-`.github/actions/setup-toolchain` as the step right after its checkout. The action installs Python with
+`.github/actions/setup-toolchain` as the step right after its checkout (and the checkout's one retry, below). The action installs Python with
 `actions/setup-python` at the manifest's version, and every `ci-installs` tool (the SDK, the JDK, pwsh, gh and jq) with
 `scripts/install-tool.sh`, all restored from one Actions cache entry keyed on the manifest's version lines, the OS and the
-architecture. It puts them first on `PATH` (with `DOTNET_ROOT` and `JAVA_HOME`), then runs `python scripts/toolchain.py
+architecture. The entry also holds Python's directory in the runner's tool cache (`$RUNNER_TOOL_CACHE/Python/<version>`), restored
+before `actions/setup-python`, which then finds it and downloads nothing (its download was 48.9 s in each of the eight Windows
+jobs, measured 2026-10-31). It puts them first on `PATH` (with `DOTNET_ROOT` and `JAVA_HOME`), then runs `python scripts/toolchain.py
 check --scope ci`, which fails the job unless every tool it installed reports the manifest's version. git is the one tool
 CI cannot install: `actions/checkout` runs the image's git before any repository file exists, and no publisher ships a
 Linux git of a chosen version (the Ubuntu image lacks the zlib and libcurl headers a source build needs). So the manifest
@@ -156,7 +158,7 @@ checksum list: PowerShell's UTF-16 `hashes.sha256`, gh's `checksums.txt`, jq's `
 asset against it, unpacks it, and only then writes a completion marker that records where the executable is. A transfer
 that breaks off is retried on the same feed, while a refusal (an HTTP error, a 404 or a 409) moves on to the next feed.
 A merge group's run restores only what its own ref or main saved, and its ref is new every time, so `toolchain-cache`
-saves the tools under main on every push to main: a merge group then finds them even while every feed refuses. A warm-up
+saves the tools (and Python's directory) under main on every push to main: a merge group then finds them even while every feed refuses. A warm-up
 that fails warns and passes, because the merge group's own install still tries the feeds. `scripts/wsl/setup-wsl.sh`
 calls the script. `scripts/cloud/setup-env.sh` runs before the repository is cloned, so it carries the script's install
 block byte for byte between the `tool-install` markers. Before PB3308, every building job ran `actions/setup-dotnet`
@@ -164,6 +166,25 @@ with `dotnet-version: 10.0.x`, which resolves "the newest 10.0" through aka.ms o
 transfer cost one merge group (run 38974314534, 2026-10-16). From about 18:50Z on 2026-10-25 the redirect's storage
 origin answered `409 PublicAccessNotPermitted`, so every code merge group failed `Setup .NET 10` while
 builds.dotnet.microsoft.com served the same file. An exact version never goes through aka.ms.
+
+**⛔ CI is bounded, and every cache is saved from main only (kb/Work PB4227, PB4324; `CiBoundsDriftTests`).** Merge-group run
+41226218068 (pull request #893, 2026-10-31) sat 45 minutes in `actions/checkout` of a job whose code was fine, and the queue
+removed the pull request: the workflow had no `timeout-minutes`. Now every job states one, about twice its measured p90
+(2026-10-31, 18 to 70 runs a job): `changes`, `supersede`, `audits`, `conformance-population`, `inv1-strong-2023` and `ci-gate`
+10 minutes, `greenfield-conformance` 15, `toolchain-cache` and `package-cache` 20, `greenfield-unit`, `windows-conformance` and
+`windows-self-tests` 25, `guard` and `windows-build-test` 30 (the guard's NIST loop alone is 14.1 minutes, so the review's 15 minute
+bound for a Linux shard waits for the re-sharding of pipeline step 6, kb/Work PB4329, which sizes each shard and its bound
+together); in the nightly (§1.4a), `latest` and `images` 10, `shard-spread` 15, and `guard`, `self-tests` and `differential` 60,
+the most any job may state (the nightly blocks no landing, so its bound only stops a hang). Every `actions/checkout` step and every `setup-toolchain`
+step is killed after 5 minutes; a job's first step is a checkout with `id: checkout` and `continue-on-error: true`, and its
+second is the same checkout (the same `with:` block, which the drift test compares) run `if: steps.checkout.outcome !=
+'success'`, so one transient failure or hang costs at most 10 minutes and the job, not the queue's verdict, absorbs it (the
+`supersede` job's retry is `checkout-retry` and is itself `continue-on-error`, kb/Work PB3820). Caches: the matrix jobs only
+RESTORE (`actions/cache/restore`; `actions/cache@` is refused, since it saves on every ref), and a merge group's ref is new
+every time, so a copy it saved was never read again and only filled the 10 GB budget (10.77 GB held on 2026-10-31, main's
+own copies evicted). The saves are the `setup-toolchain` action's (when `github.ref` is main) and the `toolchain-cache` and
+`package-cache` jobs', which run on a push to main alone: main's push run skips the matrix, so these jobs are what keeps the
+caches a merge group restores. `CiBoundsDriftTests` holds all of it, with a fixture arm for each shape it forbids.
 
 **⛔ An artifact never decides a verdict (kb/Work PB3140; `CiArtifactDriftTests`).** Every test job uploads its
 results (TRX, population listing, shard log, harness observation log) `if: ${{ always() }}`, so a red job's results
@@ -211,7 +232,9 @@ landing lease are deleted (kb/Work PB3024's closing change).
 
 One scheduled workflow (09:17 UTC, and `workflow_dispatch`) that no branch protection, ruleset or merge queue names, so a
 red job is a morning's reading and never a refused landing. Its jobs have no `needs` (one red never hides another's
-verdict) and each carries `timeout-minutes`:
+verdict) and each is bounded as §1.4 states (`timeout-minutes`, a checkout retried once, 5 minutes on each checkout and
+toolchain step), and only RESTORES its caches: main's push run saves them (`toolchain-cache`, `package-cache`), and main
+is the ref a scheduled run reads:
 
 | job | measures | red when |
 |---|---|---|
@@ -3061,7 +3084,7 @@ by every gate's self-tests and CI's `audits` job). Landed with kb/Work PB3107: `
 landing is held to a record of its own tree. Landed with kb/Work PB3769:
 `TheMergeGroupRun_CancelsTheRunsTheQueueSuperseded_AndNothingElse` (the `supersede` job runs on `merge_group` alone
 with no `needs`, runs `cancel_superseded.py` with the run's id and head commit, is the only job with `actions: write`,
-has every step `continue-on-error` (kb/Work PB3820: the checkout too, the script gated on the checkout's outcome, a failed checkout said as a warning; `StepsThatCanFailTheJob` is the step reader, held by its own arms) and is a `needs` of `ci-gate`; the arms of `cancel_superseded.py` and of `queue_facts.live_heads`
+has every step `continue-on-error` (kb/Work PB3820: the checkout and its retry too, the script gated on either checkout's outcome, a failed checkout said as a warning; `StepsThatCanFailTheJob` is the step reader, held by its own arms) and is a `needs` of `ci-gate`; the arms of `cancel_superseded.py` and of `queue_facts.live_heads`
 are declared), the supersession rule of §3.17.2 step 4. Landed with kb/Work PB3787: `SparseCheckoutDriftTests` (reader:
 `SparseCheckoutAudit`): every workflow job whose checkout has a `sparse-checkout` list (`supersede`, `toolchain-cache`, `ci-gate`, the nightly's `latest` and `images` jobs)
 lists each repository file its steps name, each file its local action names, and each repository module a Python script

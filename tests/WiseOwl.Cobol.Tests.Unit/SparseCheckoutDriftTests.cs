@@ -60,8 +60,10 @@ public sealed class SparseCheckoutDriftTests
     {
         IReadOnlyList<SparseCheckoutAudit.SparseJob> jobs = RealJobs();
         // The population: a reader that found no sparse job would pass over nothing.
-        int declared = TrackedTree.Files(Workflows).Sum(f =>
-            File.ReadAllLines(TestRepo.At(f.Split('/'))).Count(l => l.TrimStart().StartsWith("sparse-checkout:", StringComparison.Ordinal)));
+        // A job's checkout and its one retry (kb/Work PB4324) each carry the list, and CiBoundsDriftTests holds the two equal,
+        // so the audit reads one list per JOB.
+        int declared = TrackedTree.Files(Workflows).Sum(f => CiWorkflow.Jobs(File.ReadAllText(TestRepo.At(f.Split('/'))))
+            .Count(j => j.Lines.Any(l => l.TrimStart().StartsWith("sparse-checkout:", StringComparison.Ordinal))));
         Assert.True(declared >= 2, "the workflows declare fewer than two sparse-checkout lists: the reader or the workflow moved");
         Assert.Equal(declared, jobs.Count);
         Assert.Contains(jobs, j => j.Id == "supersede");
@@ -95,11 +97,13 @@ public sealed class SparseCheckoutDriftTests
     {
         string wf = File.ReadAllText(TestRepo.At(Workflow.Split('/'))).ReplaceLineEndings("\n");
         const string Entry = "\n            scripts/standard_streams.py\n";
-        // The supersede job's list is the file's first; the toolchain-cache and ci-gate lists name the file too.
-        int at = wf.IndexOf(Entry, StringComparison.Ordinal);
-        Assert.True(at > wf.IndexOf("\n  supersede:", StringComparison.Ordinal) && at < wf.IndexOf("\n  audits:", StringComparison.Ordinal),
-            "the first sparse list naming scripts/standard_streams.py is no longer the supersede job's");
-        string without = wf[..at] + "\n" + wf[(at + Entry.Length)..];
+        // The supersede job's lists (its checkout and the checkout's retry) are the file's first two; the toolchain-cache and
+        // ci-gate lists name the file too.
+        int from = wf.IndexOf("\n  supersede:", StringComparison.Ordinal), to = wf.IndexOf("\n  audits:", StringComparison.Ordinal);
+        Assert.True(from >= 0 && to > from, "the workflow no longer holds the supersede job before the audits job");
+        string supersede = wf[from..to];
+        Assert.Equal(2, supersede.Split(Entry).Length - 1);
+        string without = wf[..from] + supersede.Replace(Entry, "\n", StringComparison.Ordinal) + wf[to..];
         IReadOnlyList<string> problems = SparseCheckoutAudit.Problems(RealJobs(without), ReadRepo);
         string problem = Assert.Single(problems);
         Assert.Contains("job `supersede`", problem, StringComparison.Ordinal);
@@ -119,6 +123,22 @@ public sealed class SparseCheckoutDriftTests
         Assert.Contains("`leaf.py` (reached from tools/mid.py)", problem, StringComparison.Ordinal);
 
         Assert.Empty(SparseCheckoutAudit.Problems(OneJob("j", ["tools", "leaf.py"], "      - run: python3 tools/run.py"), repo));
+    }
+
+    /// <summary>A job's checkout retry (kb/Work PB4324) repeats the list: the audit takes the patterns from the first list
+    /// and reads neither list as a step's text, so "reached from" still names the script that imports the file.</summary>
+    [Fact]
+    public void ARetryCheckoutsRepeatedList_IsNotAStepsText()
+    {
+        var repo = Repo(("tools/run.py", "import leaf\n"), ("leaf.py", "pass\n"));
+        const string Retry = "      - if: steps.checkout.outcome != 'success'\n        uses: actions/checkout@v7\n        with:\n"
+            + "          sparse-checkout: |\n            tools\n            leaf.py\n          sparse-checkout-cone-mode: false\n";
+        var jobs = OneJob("j", ["tools"], Retry + "      - run: python3 tools/run.py");
+        SparseCheckoutAudit.SparseJob job = Assert.Single(jobs);
+        Assert.Equal(["tools"], job.Patterns);
+        Assert.DoesNotContain("leaf.py", job.Steps, StringComparison.Ordinal);
+        string problem = Assert.Single(SparseCheckoutAudit.Problems(jobs, repo));
+        Assert.Contains("`leaf.py` (reached from tools/run.py)", problem, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -86,6 +86,7 @@ jobs:
   changes:
     name: changes (does this commit need the matrix?)
     runs-on: ubuntu-26.04
+    timeout-minutes: 10
     permissions:
       contents: read
       checks: read            # for the already-verified short-circuit below — read-only, nothing else
@@ -99,7 +100,10 @@ jobs:
       # to its own default, the merge-base with origin/main.
       base: ${{ steps.decide.outputs.base }}
     steps:
-      - uses: actions/checkout@v7
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
         with:
           submodules: false
           # Full history so `git diff <before> <sha>` can resolve BOTH ends (a train pushes several commits at
@@ -107,8 +111,16 @@ jobs:
           # all `--name-only` reads — seconds, not a full clone with every historical blob.
           fetch-depth: 0
           filter: blob:none
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        with:
+          submodules: false
+          fetch-depth: 0
+          filter: blob:none
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
         uses: ./.github/actions/setup-toolchain
+        timeout-minutes: 5
       - name: Decide — the inert lane, or does the matrix have to run?
         id: decide
         shell: bash
@@ -257,6 +269,7 @@ jobs:
     name: supersede (cancel the merge-group runs the queue replaced)
     if: github.event_name == 'merge_group'
     runs-on: ubuntu-26.04
+    timeout-minutes: 10
     permissions:
       actions: write          # cancel a superseded workflow run: this job only
       contents: read          # the sparse checkout of the script
@@ -264,7 +277,8 @@ jobs:
     steps:
       - id: checkout
         uses: actions/checkout@v7
-        continue-on-error: true
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
         with:
           submodules: false
           # scripts/standard_streams.py: every orchestrator script imports its one UTF-8 switch (kb/Work PB3637)
@@ -281,12 +295,30 @@ jobs:
             scripts/install-tool.sh
             scripts/toolchain.py
           sparse-checkout-cone-mode: false
+      - id: checkout-retry
+        if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true
+        with:
+          submodules: false
+          sparse-checkout: |
+            scripts/orchestrator
+            scripts/standard_streams.py
+            scripts/live_tools.py
+            scripts/scratch_repo.py
+            .github/actions/setup-toolchain
+            toolchain.env
+            scripts/install-tool.sh
+            scripts/toolchain.py
+          sparse-checkout-cone-mode: false
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
-        if: steps.checkout.outcome == 'success'
+        if: steps.checkout.outcome == 'success' || steps.checkout-retry.outcome == 'success'
         continue-on-error: true
         uses: ./.github/actions/setup-toolchain
+        timeout-minutes: 5
       - name: Cancel the superseded merge-group runs (cancel_superseded.py)
-        if: steps.checkout.outcome == 'success'
+        if: steps.checkout.outcome == 'success' || steps.checkout-retry.outcome == 'success'
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
@@ -295,10 +327,10 @@ jobs:
           SHA: ${{ github.sha }}
         run: python3 scripts/orchestrator/cancel_superseded.py --repo "$REPO" --run-id "$RUN_ID" --sha "$SHA"
       - name: Say that the checkout failed, so nothing was cancelled
-        if: steps.checkout.outcome != 'success'
+        if: steps.checkout.outcome != 'success' && steps.checkout-retry.outcome != 'success'
         continue-on-error: true
         env:
-          CHECKOUT_OUTCOME: ${{ steps.checkout.outcome }}
+          CHECKOUT_OUTCOME: ${{ steps.checkout-retry.outcome }}
         run: echo "::warning::supersede - the checkout ended $CHECKOUT_OUTCOME, so no superseded merge-group run was cancelled; housekeeping never decides a verdict (kb/Work PB3820)"
 
   # ── ⛔ THE STATIC AUDITS — ON EVERY PUSH, DOCS-ONLY PUSHES INCLUDED (kb/Work/PB1574). A wrong clause number is
@@ -321,16 +353,28 @@ jobs:
     name: audits (citations · evidence supersession · witness loss · work register)
     needs: changes
     runs-on: ubuntu-26.04
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
         with:
           submodules: false
           # The witness-loss audit reads the inventory AT THE BASE (`git show <base>:…`): full history, blobs
           # fetched on demand — the same partial clone `changes` uses.
           fetch-depth: 0
           filter: blob:none
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        with:
+          submodules: false
+          fetch-depth: 0
+          filter: blob:none
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
         uses: ./.github/actions/setup-toolchain
+        timeout-minutes: 5
       # tooling_check.py's self-test proves every agent role and skill definition LOADS by parsing its frontmatter with
       # PyYAML (kb/Work PB3097: an unparseable role printed OK and was never loaded). The local hosts carry PyYAML 6.0.3
       # (Windows pip; under WSL the uv-managed CPython that linux-gate.sh runs, installed by scripts/wsl/setup-wsl.sh,
@@ -450,16 +494,26 @@ jobs:
     needs: changes
     if: needs.changes.outputs.run_matrix == 'true'
     runs-on: ubuntu-26.04
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v7
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
         with:
           # The specs/ submodule is a private repo and is NOT needed to build or test (only the spec text,
           # referenced from doc comments). Skipping it keeps CI credential-free.
           submodules: false
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        with:
+          submodules: false
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
         uses: ./.github/actions/setup-toolchain
-      - name: Cache NuGet packages
-        uses: actions/cache@v6
+        timeout-minutes: 5
+      - name: Restore main's NuGet packages (saved by toolchain-cache alone, kb/Work PB4324)
+        uses: actions/cache/restore@v6
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
@@ -489,6 +543,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.run_matrix == 'true'
     runs-on: ubuntu-26.04
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
@@ -519,13 +574,22 @@ jobs:
           - shard: rest
             filter: "FullyQualifiedName!~VersionMatrixTests&FullyQualifiedName!~ConformanceSuiteTests&FullyQualifiedName!~NistDifferentialTests"
     steps:
-      - uses: actions/checkout@v7
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
+        with:
+          submodules: false
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
         with:
           submodules: false
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
         uses: ./.github/actions/setup-toolchain
-      - name: Cache NuGet packages
-        uses: actions/cache@v6
+        timeout-minutes: 5
+      - name: Restore main's NuGet packages (saved by toolchain-cache alone, kb/Work PB4324)
+        uses: actions/cache/restore@v6
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
@@ -564,14 +628,24 @@ jobs:
     needs: changes
     if: needs.changes.outputs.run_matrix == 'true'
     runs-on: ubuntu-26.04
+    timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v7
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
+        with:
+          submodules: false
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
         with:
           submodules: false
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
         uses: ./.github/actions/setup-toolchain
-      - name: Cache NuGet packages
-        uses: actions/cache@v6
+        timeout-minutes: 5
+      - name: Restore main's NuGet packages (saved by toolchain-cache alone, kb/Work PB4324)
+        uses: actions/cache/restore@v6
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
@@ -580,8 +654,8 @@ jobs:
       # drift gate (PB209) fails loud when it cannot measure the corpus it exists to measure. CI therefore
       # fetches ON DEMAND — the exact contract scripts/fetch-gnucobol-tests.ps1 exists for — pinned and
       # sha256-verified, with the tarball cached so the network is touched only on a cold cache. (kb/Work PB277)
-      - name: Cache GnuCOBOL testsuite tarball (GPL — fetched on demand, never committed)
-        uses: actions/cache@v6
+      - name: Restore main's GnuCOBOL testsuite tarball (GPL, fetched on demand, never committed; saved by toolchain-cache alone)
+        uses: actions/cache/restore@v6
         with:
           path: tests/external/gnucobol-3.2.tar.xz
           key: gnucobol-tests-3.2-3bb48af4
@@ -626,6 +700,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.run_matrix == 'true'
     runs-on: windows-2025-vs2026
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
@@ -656,13 +731,22 @@ jobs:
           - shard: rest
             filter: "FullyQualifiedName!~VersionMatrixTests&FullyQualifiedName!~ConformanceSuiteTests&FullyQualifiedName!~NistDifferentialTests"
     steps:
-      - uses: actions/checkout@v7
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
+        with:
+          submodules: false
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
         with:
           submodules: false
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
         uses: ./.github/actions/setup-toolchain
-      - name: Cache NuGet packages
-        uses: actions/cache@v6
+        timeout-minutes: 5
+      - name: Restore main's NuGet packages (saved by toolchain-cache alone, kb/Work PB4324)
+        uses: actions/cache/restore@v6
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
@@ -707,12 +791,22 @@ jobs:
     needs: [changes, greenfield-conformance, windows-conformance]
     if: needs.changes.outputs.run_matrix == 'true'
     runs-on: ubuntu-26.04
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
+        with:
+          submodules: false
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
         with:
           submodules: false
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
         uses: ./.github/actions/setup-toolchain
+        timeout-minutes: 5
       - name: Download every shard's trx and population listing
         uses: ./.github/actions/download-results
         with:
@@ -744,14 +838,24 @@ jobs:
     needs: changes
     if: needs.changes.outputs.run_matrix == 'true'
     runs-on: ubuntu-26.04
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
+        with:
+          submodules: false
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
         with:
           submodules: false
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
         uses: ./.github/actions/setup-toolchain
-      - name: Cache NuGet packages
-        uses: actions/cache@v6
+        timeout-minutes: 5
+      - name: Restore main's NuGet packages (saved by toolchain-cache alone, kb/Work PB4324)
+        uses: actions/cache/restore@v6
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
@@ -793,14 +897,24 @@ jobs:
     needs: changes
     if: needs.changes.outputs.run_matrix == 'true'
     runs-on: windows-2025-vs2026
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v7
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
+        with:
+          submodules: false
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
         with:
           submodules: false
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
         uses: ./.github/actions/setup-toolchain
-      - name: Cache NuGet packages
-        uses: actions/cache@v6
+        timeout-minutes: 5
+      - name: Restore main's NuGet packages (saved by toolchain-cache alone, kb/Work PB4324)
+        uses: actions/cache/restore@v6
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
@@ -810,8 +924,8 @@ jobs:
       # Greenfield conformance moved to the windows-conformance SHARDED job (kb/Work A14) — same coverage,
       # a third of the wall time; the population guard proves nothing fell between the shards.
       # GPL corpus fetched on demand for the PB209 population drift gate — see the Linux job's twin. (PB277)
-      - name: Cache GnuCOBOL testsuite tarball (GPL — fetched on demand, never committed)
-        uses: actions/cache@v6
+      - name: Restore main's GnuCOBOL testsuite tarball (GPL, fetched on demand, never committed; saved by toolchain-cache alone)
+        uses: actions/cache/restore@v6
         with:
           path: tests/external/gnucobol-3.2.tar.xz
           key: gnucobol-tests-3.2-3bb48af4
@@ -845,12 +959,22 @@ jobs:
     needs: changes
     if: needs.changes.outputs.run_matrix == 'true'
     runs-on: windows-2025-vs2026
+    timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v7
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
+        with:
+          submodules: false
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
         with:
           submodules: false
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
         uses: ./.github/actions/setup-toolchain
+        timeout-minutes: 5
       # Windows has no system IANA time-zone database, so Python's zoneinfo (scripts/orchestrator/budget.py) needs the
       # tzdata package; the local hosts carry it (2026.4) and actions/setup-python's does not, so every orchestrator
       # self-test went red here and green locally (train 1037t, run 37748130457). Pinned to the local version. PyYAML
@@ -868,24 +992,45 @@ jobs:
         shell: pwsh
         run: python scripts/line_endings.py --check
 
-  # ── ⛔ THE TOOLCHAIN CACHE IS SAVED UNDER MAIN (kb/Work PB3308, PB4007; .github/actions/setup-toolchain). A merge
-  # group's run restores only what its own ref or main saved, and its ref (`gh-readonly-queue/main/pr-<n>-<sha>`) is new
-  # every time, so what a merge group's jobs save is never read again; main's push run skips the matrix (the
-  # already-verified short-circuit in `changes`), so no matrix job saves it there either. This job does, on every push
-  # to main, on both OSes: it restores toolchain.env's tools in seconds when main's cache holds them and installs and
-  # saves them when not, so a merge group finds them even while a publisher refuses. A warm-up that fails warns and
-  # passes: a merge group's own install still tries the publishers, and only a job that uses the tools decides a
-  # verdict. ──
+  # ── ⛔ EVERY CACHE IS SAVED UNDER MAIN, AND BY THE TWO JOBS BELOW ALONE (kb/Work PB3308, PB4007, PB4324;
+  # .github/actions/setup-toolchain; CiBoundsDriftTests). A merge group's run restores only what its own ref or main
+  # saved, and its ref (`gh-readonly-queue/main/pr-<n>-<sha>`) is new every time, so what a merge group's jobs save is
+  # never read again: it only fills the repository's 10 GB cache budget (10.77 GB held on 2026-10-31, every queue branch
+  # holding its own NuGet and toolchain copy). The matrix jobs therefore only RESTORE (`actions/cache/restore`), and
+  # main's push run, which skips the matrix (the already-verified short-circuit in `changes`), saves on both OSes: the
+  # `toolchain-cache` job the toolchain and Python's tool-cache directory, the `package-cache` job the NuGet packages and
+  # the GnuCOBOL tarball. Each restores in seconds when main's cache holds it and is installed and saved when not, so a
+  # merge group finds them even while a publisher refuses. A warm-up that fails warns and passes: a merge group's own
+  # install still tries the publishers, and only a job that uses the tools decides a verdict. ──
   toolchain-cache:
     name: toolchain-cache (${{ matrix.os }})
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-26.04, windows-2025-vs2026]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
+        with:
+          submodules: false
+          sparse-checkout: |
+            .github/actions/setup-toolchain
+            toolchain.env
+            scripts/install-tool.sh
+            scripts/toolchain.py
+            scripts/standard_streams.py
+            scripts/live_tools.py
+            scripts/scratch_repo.py
+            global.json
+          sparse-checkout-cone-mode: false
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
         with:
           submodules: false
           sparse-checkout: |
@@ -902,9 +1047,80 @@ jobs:
         name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
         continue-on-error: true
         uses: ./.github/actions/setup-toolchain
+        timeout-minutes: 5
       - if: ${{ steps.warm.outcome == 'failure' }}
         shell: bash
         run: echo "::warning::toolchain.env's tools are not in main's cache (their install failed above); a merge group's jobs install them from the publishers"
+
+  # The NuGet packages and the GnuCOBOL testsuite tarball every matrix job restores (the same keys and paths as theirs),
+  # saved here under main (see the banner above). A whole checkout (no submodule): the NuGet key hashes every csproj and
+  # the solution restores every project. Without the toolchain the job restores nothing: `dotnet` would be the image's.
+  package-cache:
+    name: package-cache (${{ matrix.os }})
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-26.04, windows-2025-vs2026]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
+        with:
+          submodules: false
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        with:
+          submodules: false
+      - id: warm
+        name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
+        continue-on-error: true
+        uses: ./.github/actions/setup-toolchain
+        timeout-minutes: 5
+      - id: nuget
+        name: Restore main's NuGet packages
+        if: ${{ steps.warm.outcome == 'success' }}
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
+      - name: Restore the solution's packages (dotnet restore)
+        if: ${{ steps.warm.outcome == 'success' && steps.nuget.outputs.cache-hit != 'true' }}
+        continue-on-error: true
+        run: dotnet restore WiseOwl.Cobol.sln
+      - name: Save the NuGet packages under main
+        if: ${{ steps.warm.outcome == 'success' && steps.nuget.outputs.cache-hit != 'true' }}
+        continue-on-error: true
+        uses: actions/cache/save@v6
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
+      # The GnuCOBOL testsuite tarball (GPL, fetched on demand, never committed; kb/Work PB277).
+      - id: corpus
+        name: Restore main's GnuCOBOL testsuite tarball
+        if: ${{ steps.warm.outcome == 'success' }}
+        uses: actions/cache/restore@v6
+        with:
+          path: tests/external/gnucobol-3.2.tar.xz
+          key: gnucobol-tests-3.2-3bb48af4
+      - name: Fetch the GnuCOBOL testsuite (pinned 3.2, sha256-verified)
+        if: ${{ steps.warm.outcome == 'success' && steps.corpus.outputs.cache-hit != 'true' }}
+        continue-on-error: true
+        shell: pwsh
+        run: ./scripts/fetch-gnucobol-tests.ps1
+      - name: Save the GnuCOBOL testsuite tarball under main
+        if: ${{ steps.warm.outcome == 'success' && steps.corpus.outputs.cache-hit != 'true' }}
+        continue-on-error: true
+        uses: actions/cache/save@v6
+        with:
+          path: tests/external/gnucobol-3.2.tar.xz
+          key: gnucobol-tests-3.2-3bb48af4
+
 
   # ── ⛔ `ci-gate` IS THE ONE STABLE CHECK NAME `main`'s branch protection REQUIRES (owner decision 2026-09-06
   # on question 23, kb/Work/PB796). Nothing else in this file can be that name:
@@ -921,11 +1137,30 @@ jobs:
   ci-gate:
     name: ci-gate
     if: always()
-    needs: [changes, supersede, audits, guard, greenfield-conformance, greenfield-unit, windows-conformance, conformance-population, inv1-strong-2023, windows-build-test, windows-self-tests, toolchain-cache]
+    needs: [changes, supersede, audits, guard, greenfield-conformance, greenfield-unit, windows-conformance, conformance-population, inv1-strong-2023, windows-build-test, windows-self-tests, toolchain-cache, package-cache]
     runs-on: ubuntu-26.04
+    timeout-minutes: 10
     steps:
       # The verdict reads `needs` with jq, toolchain.env's (kb/Work PB4007); the checkout is only what its action reads.
-      - uses: actions/checkout@v7
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
+        with:
+          submodules: false
+          sparse-checkout: |
+            .github/actions/setup-toolchain
+            toolchain.env
+            scripts/install-tool.sh
+            scripts/toolchain.py
+            scripts/standard_streams.py
+            scripts/live_tools.py
+            scripts/scratch_repo.py
+            global.json
+          sparse-checkout-cone-mode: false
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
         with:
           submodules: false
           sparse-checkout: |
@@ -940,6 +1175,7 @@ jobs:
           sparse-checkout-cone-mode: false
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
         uses: ./.github/actions/setup-toolchain
+        timeout-minutes: 5
       - name: Verdict
         shell: bash
         env:
