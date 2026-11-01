@@ -19,7 +19,9 @@ Every later section describes one mechanism of it in detail.
 1. **The one gate, at the branch's head** (`pwsh scripts/build-local.ps1 -Priority BelowNormal`, `scripts/gate.py`;
    §3.13, §3.14; kb/Work PB4328). THE POPULATION IS THE PLAN (owner decision 1 of PB4323): the gate decides a lane from
    the diff's paths (`scripts/inert_lane.py classify`, §3.18). An INERT change runs the tree audits alone (about 40 s,
-   no slot). Any other change builds the solution once and runs the WHOLE Unit, Conformance and Characterization
+   no slot). A TOOLING-LANE change (every non-inert path in `scripts/`, `.github/`, `tools/` or `.claude/` and none the
+   build or a compiler test reads, `CODE_READS`; kb/Work PB4395) runs the audits with the script self-tests whose
+   recorded inputs it touches, no slot and no build. Any other change builds the solution once and runs the WHOLE Unit, Conformance and Characterization
    populations on Windows, three assemblies at once under a gate slot (cap 3), the classes red last time first and then
    longest first by `tests/_shared/test-weights.json` (`GateOrderer`), each population checked by name against its
    listing (`scripts/test_population.py check`); the audits run beside the build and the hosts, and a TOOLING change
@@ -51,7 +53,7 @@ Every later section describes one mechanism of it in detail.
    which the finisher's gate runs first, and trusted only when `fetch_bounce_results` answers that they are the failed run's:
    a failed download leaves an older bounce's results there, and the red is then UNCLASSIFIED) are compared with the
    branch's GREEN record. INFRA (no test failed, or the run
-   timed out) and RUNNER (every red case ran GREEN in the record, or the record is the inert lane's) are re-queued once
+   timed out) and RUNNER (every red case ran GREEN in the record, or the record is the inert or the tooling lane's) are re-queued once
    with no agent and filed against the pipeline (`landing_measure.py`'s `reds`, the `infrastructure` cause); GENUINE (a
    case the record listed but did not run), MERGE (a case it lacks), UNCLASSIFIED and a second red of a re-queued
    landing go to the enqueue unit's finisher with the class on the BOUNCED line. No flake is retried inside a run: a
@@ -1816,24 +1818,50 @@ not when a listed file is edited.
 `self_tests.py` on Linux in every merge group, and those self-tests are audits that read the inert paths by design (the
 register, the DEVLOG, the skills submodule), so the inert watch cannot vouch for them and a `kb/` or `DEVLOG/` change can turn
 them red on Linux. The Windows gate's inert lane ends after its audits and takes no slot, and the merge group is the first
-Linux run of a notes-only change. `InertLaneDriftTests` holds the CI job and the local lane's lack of a Linux step.
+Linux run of a notes-only change. `inert_lane.py --self-test` (its `wiring` arm) holds the CI job and the local lane's lack of
+a Linux step.
+
+**The tooling lane (kb/Work PB4395; PIPELINE-REVIEW §13, owner 2026-11-01 "Build the approved lane").** A change whose every
+non-inert path lies in a tooling tree (`TOOLING_UNDER`: `scripts/`, `.github/`, `tools/`, `.claude/`) and under no
+`CODE_READS` entry is the TOOLING LANE (`lane=tooling`): the gate joins the audits, the script self-tests among them, and ends,
+with no corpus fetch, slot, build or test host (`gate.py` `_tooling`), and its record says `lane: tooling`. `CODE_READS` is
+the tooling the compiler's build or tests read, each entry naming its readers: the scripts a csproj `Exec` runs, the generators
+and extractors whose output a C# test checks (`gen-reserved-words.ps1`, `gen-constructs.ps1`, `scripts/spec/`, ...),
+`filter_population.py` (its self-test reads the built assemblies, `SELF-TEST-NEEDS: build`), `.gitattributes` and
+`toolchain.env`. A change to one is the code lane with the self-tests beside it. A script file outside the tooling trees
+(`conformance-suite/harness/*.py`, a `.sh` under `tests/`) and a `TOOLING_READS` entry lie in trees the compiler reads, so they
+are never the tooling lane. The proof is the watch below, which also watches every tooling-lane path, and its static twin, the
+`INERT LANE` audit (`inert_lane.py check`, in every gate's audits and CI's `audits` job): every csproj `Exec` of a script,
+every build-needing self-test's script and every script or directory a compiler test names through `TestRepo.<dir>(...)` with
+literal arguments lies under a CODE_READS entry. The residue, named: a Windows-only compiler test that reads a tooling path
+through a computed name (the watch runs on Linux only). A whole-tree CODE_READS entry names the pipeline classes still in the
+compiler's test assembly that walk it; kb/Work PB4395 item 1 moves each into the self-test of the script it checks, and the
+entry narrows when its last walker leaves. CI runs the whole population for a tooling-lane change (it is the regression net),
+and the landing reads a tooling-lane record as it reads an inert one (`land_lane.red_facts`: no compiler test reads the
+change, `inert_lane.TEST_FREE_LANES`).
 
 **The proof — the inert watch.** A list of "what no test reads" that nobody proves drifts from the tests, and a test that
 starts reading an inert path would let an inert change land untested. So every whole-assembly test run on Linux runs under
-`inert_lane.py watch`: an inotify watch (through `ctypes`) of every directory an inert tracked file lies in and of every inert
-directory itself, so an OPEN of an inert file or a LISTING of an inert directory, by the test or by any process it starts, is
-recorded; the run is RED naming each such path (`opened: …`), and an overflowed event queue is RED too (it proves nothing).
+`inert_lane.py watch`: an inotify watch (through `ctypes`) of every directory an inert or tooling-lane tracked file lies in and
+of every such directory itself (a submodule's whole checked-out tree), so an OPEN of a watched file or a LISTING of a watched
+directory, by the test or by any process it starts, is recorded; the run is RED naming each such path (`opened: …`), and an
+overflowed event queue is RED too (it proves nothing). The watched command runs with a fresh `PYTHONPYCACHEPREFIX`, so a
+script a test imports is opened as source at least once per run, never served unseen from an earlier run's `__pycache__`.
 CI's four Linux `dotnet test` steps run under it, and the hand-run Linux tool runs one watch over its parallel test legs (the
 `inert-watch` leg) in a clone that runs those legs and nothing else, with the script self-tests and the guard in a second
 clone with its own build (kb/Work PB3529). Windows has no open events, so the Windows runs carry no watch. The answer to a RED
-watch is a READ entry naming the reader (the path leaves the inert lane) or making the reader an audit, never deleting the
-watch.
+watch is a READ entry naming the reader (the path leaves the inert lane) or making the reader an audit, and for a tooling-lane
+path a CODE_READS entry naming it or making the reader a script's self-test, never deleting the watch.
 
-**Drift test.** `InertLaneDriftTests`: the `changes` job classifies through the module and carries no path regex; every
-`dotnet test` line of a Linux job runs under the watch; `gate.py` classifies through the module, and `linux-gate.sh` classifies
-nothing but watches its test legs; `inert_lane.py check` is GREEN (every entry names a tracked path, every READ entry lies under
-an INERT one). The classification's logic and the watch's firing (a read, a listing, a READ path, the command's own exit code)
-are `inert_lane.py --self-test`'s arms, run by the self-test runner in every gate and in CI (the inotify arms on Linux).
+**Drift test.** `inert_lane.py --self-test`'s `wiring` arm (the real tree; kb/Work PB4395 moved it out of the compiler's test
+assembly, where `InertLaneDriftTests` held it): the `changes` job classifies through the module and carries no path regex;
+every `dotnet test` line of a Linux job runs under the watch; `gate.py` classifies through the module and its inert and
+tooling lanes take no slot and build nothing, and `linux-gate.sh` classifies nothing but watches its test legs; CI's `audits`
+job runs the self-tests and `inert_lane.py check`. The `INERT LANE` audit (`inert_lane.py check`) holds every entry to a
+tracked path, every READ entry under an INERT one and every tooling the build or a compiler test is seen to read under
+CODE_READS. The classification's logic and the watch's firing (a read, a listing, a READ path, a tooling-lane import served
+from a stale bytecode cache, a CODE_READS read, the command's own exit code) are `inert_lane.py --self-test`'s arms, run by
+the self-test runner in every gate that touches tooling and in CI (the inotify arms on Linux).
 `SelfTestDiscoveryDriftTests` holds both self-test legs of the Linux tool to the audit clone.
 
 **What the lane covers.** A notes landing changes `DEVLOG/` and `kb/Work/` (107 of the 137 landings above changed only those),

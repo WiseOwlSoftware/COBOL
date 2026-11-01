@@ -126,8 +126,9 @@ The owner decided on 2026-10-31 (kb/Work PB4323): THE POPULATION IS THE PLAN. **
 `pwsh scripts/build-local.ps1 -Priority BelowNormal`** (`scripts/gate.py`), run once at a branch's head before it is
 enqueued, and after every fix. It decides a lane from the diff's paths: an **inert** change (`inert_lane.py classify`,
 proven by the inotify watch in CI) runs the tree audits (≈ 40 s); a **tooling** change (`scripts/`, `.github/`, `tools/`,
-`.claude/`, any `*.py`/`*.ps1`/`*.sh`) runs what a code change runs and, beside it, the script self-tests whose recorded
-inputs it touches; every other change is a **code** change and runs the build once and the WHOLE Unit, Conformance and
+`.claude/`, any `*.py`/`*.ps1`/`*.sh`) runs the audits and the self-tests whose recorded inputs it touches, with no build
+(kb/Work PB4395: the tooling a compiler test or the build reads, `inert_lane.py`'s `CODE_READS`, and a script outside
+those four trees are code; the same watch proves it); every other change is a **code** change and runs the build once and the WHOLE Unit, Conformance and
 Characterization populations on Windows, three assemblies at once, longest collections first, the audits beside them.
 There is no impact map, no tier, no selected leg and no Linux half per change; the inner loop (`dotnet test --filter` by
 hand) is the agent's and claims nothing. **A branch lands through ONE script, `python scripts/orchestrator/enqueue.py
