@@ -11,7 +11,8 @@
 named five, CI's audits job named those five plus `landing_check.py`, linux-gate.sh named three, and eleven of the
 fourteen orchestrator self-tests (the loop's unit choice, the allocator's lock, the wave planner, …) ran in no gate and
 no CI job at all, so a regression in any of them passed everything. A list goes stale the day a self-test is added.
-This runner FINDS them, and the local gate (scripts/run_gate_legs.py AUDITS, before the gate slot), the Linux gate
+This runner FINDS them, and the local gate (scripts/run_gate_legs.py AUDITS, only for a change that touches tooling,
+kb/Work PB4326, and beside its build and legs, never inside the gate slot), the Linux gate
 (scripts/linux-gate.sh leg `selftests`) and CI (the `audits` job on Linux and `windows-self-tests` on Windows) all run
 THIS entry point, so no gate can run a self-test CI does not, or the reverse (the CI invariant, kb/Work PB1957).
 
@@ -37,9 +38,15 @@ BUILD: a self-test that reads the BUILT test assemblies (filter_population.py as
 declares it the same way:
     # SELF-TEST-NEEDS: build — <what it reads>
 The default run names it `deferred to --built` in its verdict; `--built` runs exactly those, after a solution build
-(the gate driver right after its build, concurrently with the legs; CI's `greenfield-unit` job; linux-gate.sh after its
-unit and conformance legs). The default run never builds: it is one of the gate's audits, which run before the gate
-slot, and the slot is what rations builds.
+(the gate driver right after its build, concurrently with the legs, only for a change that touches tooling; CI's
+`greenfield-unit` job; linux-gate.sh after its unit and conformance legs). The default run never builds: it is one of the
+gate's audits, which run outside the gate slot, and the slot is what rations builds.
+
+POPULATION (kb/Work PB4326): every self-test that passes is held to the tooling flag (scripts/inert_lane.py): what it read
+must be tooling, a TOOLING_READS entry or an inert corpus, else it is RED naming the path. The one exemption is a self-test
+that reads the tracked tree as a population, declared the same way and checked against the trace (a declaration whose
+trace shows no git command over the whole repository is RED; a whole-tree git command without the declaration is judged):
+    # SELF-TEST-POPULATION: tree — <why it reads the whole tracked tree>
 
 ISOLATION: each self-test runs with `COBOL_COORD_DIR` pointed at a fresh private directory, so none can read or write
 the live coordination state (`E:\\COBOL-coord`: the loop's units, leases and allocations), and without git's
@@ -69,7 +76,7 @@ THE BUDGET (kb/Work PB2914): at most BUDGET_CAP self-tests run at once on the MA
 together — one OS lock file per place under `<git common dir>/cobol-self-test-slots/`. A self-test waits for a place
 before it starts and holds it to its end, so one gate alone runs as wide as the cores, and N gates share the cores
 instead of multiplying them: a gate's self-test time no longer grows with the number of gates. A gate's
-self-tests keep running BEFORE its gate slot (kb/Work PB2524: a red one fails the gate without queueing behind other
+self-tests keep running OUTSIDE its gate slot (kb/Work PB2524, PB4326: a red one fails the gate without queueing behind other
 gates' builds and legs, PB2523); the budget is their own, so they never wait for a whole gate either.
 WHETHER THE CORES ARE THE LIMIT (kb/Work PB3585): the verdict line says how busy the host's processors were across the
 phase (`HostCpu`, the reading HostLoad.cs takes). Near 100 % the cores were the limit and a wider budget cannot shorten
@@ -114,6 +121,7 @@ from typing import Callable, Iterator
 
 import sharedfile  # this directory's: the one Windows share-retry rule for files several processes read and replace
 import live_tools  # this directory's: the one list of the live tools' trees, which discovery reads
+import inert_lane  # this directory's: the one classification of what a change touches, whose tooling flag `_record` proves
 import self_test_inputs as inputs  # this directory's: what a self-test read, and the tracer that records it
 from gate_slot import ExclusiveLock, git_common_dir  # this directory's: the OS file lock every gate place is
 # this directory's: the one scratch-repository fixture, whose identity, maintenance settings and scrubbed environment
@@ -148,6 +156,7 @@ HEADER_LINES = 5
 
 PLATFORM_RE = re.compile(r"^#\s*SELF-TEST-PLATFORM:\s*(windows|linux)\s*[—-]+\s*(\S.*?)\s*$", re.MULTILINE)
 NEEDS_RE = re.compile(r"^#\s*SELF-TEST-NEEDS:\s*(build)\s*[—-]+\s*(\S.*?)\s*$", re.MULTILINE)
+POPULATION_RE = re.compile(r"^#\s*SELF-TEST-POPULATION:\s*(tree)\s*[—-]+\s*(\S.*?)\s*$", re.MULTILINE)
 SH_FLAG_RE = re.compile(r"""^(?!\s*#).*(?:^|\s)--self-test\)|^(?!\s*#).*=\s*["']--self-test["']""", re.MULTILINE)
 
 
@@ -187,6 +196,7 @@ class SelfTest:
     platform_reason: str
     needs_build: bool = False  # reads the built test assemblies: run by `--built`, never by the default run
     build_reason: str = ""
+    population: str = ""      # why it reads the tracked tree as a population (SELF-TEST-POPULATION); "" when it does not
 
     def command(self) -> list[str]:
         """The command line, run with the repository root as its cwd. The path stays RELATIVE with forward slashes:
@@ -245,8 +255,9 @@ def classify(rel: str, text: str) -> SelfTest | None:
     header = "\n".join(text.splitlines()[:HEADER_LINES])
     m = PLATFORM_RE.search(header)
     b = NEEDS_RE.search(header)
+    pop = POPULATION_RE.search(header)
     return SelfTest(rel, handles, m.group(1) if m else None, m.group(2) if m else "", b is not None,
-                    b.group(2) if b else "")
+                    b.group(2) if b else "", pop.group(2) if pop else "")
 
 
 def discover(repo: Path = REPO) -> list[SelfTest]:
@@ -503,6 +514,8 @@ class Runner:
     store: PassStore | None = None
     hang_after_s: float = HANG_AFTER_S
     by: str = ""
+    #: What counts as tooling when a PASS is recorded (`_record`'s proof); the fleet arms plant their own.
+    classification: inert_lane.Classification = inert_lane.CLASSIFICATION
 
     def __post_init__(self) -> None:
         self.budget = self.budget or Budget.for_repo(self.repo)
@@ -599,9 +612,23 @@ class Runner:
         seen = inputs.read_trace(trace_dir, self.tree)
         if test.path.endswith(".py") and not seen.saw(test.path):
             return "no PASS recorded: the trace does not show the self-test's own file, so the tracer did not run"
-        self.store.record(test.path, self.platform, inputs.run_deps(test.path, self.tree, self.deriver, seen),
-                          seconds, self.by)
+        deps = inputs.run_deps(test.path, self.tree, self.deriver, seen)
         whole = {kind for kind, d in seen.git_read if d == ""}
+        if test.population and not whole:  # a declaration the trace does not bear out would exempt a self-test unproved
+            raise ValueError(f"{test.path} declares SELF-TEST-POPULATION but its trace shows no git command over the "
+                             f"whole tree: remove the declaration (the self-test no longer reads the tree as a population)")
+        if not test.population:  # only a DECLARED population reader is exempt: the flag's accepted residue (inert_lane.py)
+            stray = self.classification.unclassified_reads((p for p, blob in deps.files.items() if blob != inputs.UNTRACKED),
+                                                                 deps.trees)
+            if stray:
+                raise ValueError(
+                    f"it read {', '.join(stray[:6])}{' and more' if len(stray) > 6 else ''}, which the tooling flag does "
+                    f"not see: a change to only {'it' if len(stray) == 1 else 'one of them'} would skip this self-test in "
+                    f"a gate and turn it red in CI's merge group. Give the path a TOOLING_READS entry naming "
+                    f"{test.path} in scripts/inert_lane.py"
+                    + (f"; or, if it reads the tracked tree as a population, declare `# SELF-TEST-POPULATION: tree — "
+                       f"<why>` in its first {HEADER_LINES} lines" if whole else "") + " (kb/Work PB4326)")
+        self.store.record(test.path, self.platform, deps, seconds, self.by)
         if whole:
             what = "the whole tree's content" if "content" in whole else "the name of every tracked file"
             return (f"its PASS is keyed on {what}: a git command it ran inside the repository read it "
@@ -768,6 +795,9 @@ def self_test() -> int:
     b = classify("scripts/x.py", "# SELF-TEST-NEEDS: build — reads the built assemblies\nap.add_argument('--self-test')\n")
     check("arm: the build marker is read with its reason", (b.needs_build, b.build_reason),
           (True, "reads the built assemblies"))
+    pop = classify("scripts/test_p.py", "#!/usr/bin/env python3\n# SELF-TEST-POPULATION: tree — walks every tracked file\nx = 1\n")
+    check("arm: the population marker is read with its reason, and a self-test without one has none",
+          (pop.population, b.population), ("walks every tracked file", ""))
     shown = classify("scripts/test_doc.py", '"""\n1\n2\n3\n4\n    # SELF-TEST-PLATFORM: windows — shown, not declared\n"""\n')
     check("arm: a marker SHOWN past the header (a docstring example) declares nothing", shown.platform, None)
     check("arm: --built runs exactly the build-needing ones, the default run the rest",
@@ -920,15 +950,31 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
         for name, body in bodies.items():
             (root / "scripts" / name).write_text(body + span.format(sleep=_FLEET_SLEEP_S), encoding="utf-8", newline="\n")
         (root / "scripts" / "test_hang.py").write_text("import time\ntime.sleep(60)\n", encoding="utf-8", newline="\n")
+        # The proof of the tooling flag (`_record`): a self-test that reads a file `planted` does not see; one that reads
+        # it while walking the whole tree with git, undeclared (judged) and declared a population (the accepted residue);
+        # and a declaration its trace does not bear out.
+        (root / "elsewhere").mkdir()
+        (root / "elsewhere" / "x.txt").write_text("x\n", encoding="utf-8", newline="\n")
+        walk = ("import subprocess\nsubprocess.run(['git', 'ls-files'], check=True, capture_output=True)\n"
+                "open('elsewhere/x.txt').read()\n")
+        declare = "# SELF-TEST-POPULATION: tree — the arm's walker\n"
+        for name, body in (("test_stray.py", "open('elsewhere/x.txt').read()\n"), ("test_walker.py", walk),
+                           ("test_population.py", declare + walk), ("test_claim.py", declare + "open('data/a.txt').read()\n")):
+            (root / "scripts" / name).write_text(body, encoding="utf-8", newline="\n")
         ScratchRepo.init(root).git("add", "-A")
         found = {t.path.rsplit("/", 1)[-1]: t for t in discover(root)}
         tests = [found[n] for n in sorted(bodies)]
         plat = this_platform()
+        # The planted repository's own classification: its scripts are tooling, and the data its self-tests read is
+        # declared, as scripts/inert_lane.py declares the real tree's (the proof of the tooling flag, `_record`).
+        planted = inert_lane.Classification(inert={}, tooling_under=("scripts/",), tooling_suffixes=(".py",),
+                                            tooling_reads={"data/": "the fleet arms' fixtures"})
         budget_dir, store_dir = root / ".git" / BUDGET_DIR, root / ".git" / PASS_STORE_DIR
 
         def gate(reuse: bool, said: list[str], hang_after_s: float = HANG_AFTER_S, which=None) -> list[Result]:
             return Runner(root, plat, said.append, reuse=reuse, budget=Budget(budget_dir, _FLEET_CAP),
-                          store=PassStore(store_dir), hang_after_s=hang_after_s, by="fleet arm").run(which or tests)
+                          store=PassStore(store_dir), hang_after_s=hang_after_s, by="fleet arm",
+                          classification=planted).run(which or tests)
 
         def fleet(reuse: bool, which=None) -> list[list[Result]]:
             barrier = threading.Barrier(_FLEET_GATES)
@@ -1002,7 +1048,8 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
               (notes["scripts/test_b.py"], notes["scripts/test_a.py"].startswith("the PASS of")),
               ("re-run: 1 input(s) changed since the newest PASS — scripts/helper_u.py", True))
         fresh = Runner(root, plat, lambda _: None, reuse=True, budget=Budget(budget_dir, _FLEET_CAP),
-                       store=PassStore(Path(tempfile.mkdtemp(dir=s))), by="fleet arm").run([found["test_a.py"]])
+                       store=PassStore(Path(tempfile.mkdtemp(dir=s))), by="fleet arm",
+                       classification=planted).run([found["test_a.py"]])
         check("arm: a self-test with no PASS recorded at all says so — `first run` — rather than naming a change "
               "(kb/Work PB3061)", (fresh[0].state, fresh[0].note.startswith("first run: no PASS recorded for")),
               (GREEN, True))
@@ -1014,7 +1061,7 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
         odd._dir("scripts/test_a.py", plat).mkdir(parents=True, exist_ok=True)
         (odd._dir("scripts/test_a.py", plat) / src.name).write_text(json.dumps(rec_a), encoding="utf-8", newline="\n")
         other = Runner(root, plat, lambda _: None, reuse=True, budget=Budget(budget_dir, _FLEET_CAP), store=odd,
-                       by="fleet arm").run([found["test_a.py"]])
+                       by="fleet arm", classification=planted).run([found["test_a.py"]])
         check("arm: a self-test whose recorded PASSes are all unusable says so — never `first run` (train 1063 review)",
               (other[0].state, other[0].note.startswith("re-run: 1 recorded PASS(es)")), (GREEN, True))
         said: list[str] = []
@@ -1024,9 +1071,30 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
               "never RED", (hung[0].state, rc, line.startswith(VERDICT + "HANG")), (HANG, HANG_EXIT, True))
         check("arm: a hung self-test's output names the hang",
               any("HANG: still running" in s for s in said), True)
+        stray = gate(False, [], which=[found["test_stray.py"]])
+        check("arm: a self-test that passes but read a file the tooling flag does not see is RED, naming the file and "
+              "TOOLING_READS, and records no PASS (kb/Work PB4326, review R1-1)",
+              (stray[0].state, "elsewhere/x.txt" in stray[0].output and "TOOLING_READS" in stray[0].output,
+               PassStore(store_dir).find("scripts/test_stray.py", plat, inputs.Tree.load(root))), (RED, True, None))
+        walker = gate(False, [], which=[found["test_walker.py"]])
+        check("arm: a self-test that walks the whole tree with git WITHOUT declaring a population is judged like any "
+              "other: RED, naming the file and the declaration, and records no PASS (kb/Work PB4326, review R2-1)",
+              (walker[0].state, "elsewhere/x.txt" in walker[0].output and "SELF-TEST-POPULATION" in walker[0].output,
+               PassStore(store_dir).find("scripts/test_walker.py", plat, inputs.Tree.load(root))), (RED, True, None))
+        population = gate(False, [], which=[found["test_population.py"]])
+        check("arm: a self-test that declares a population and walks the whole tree with git is not judged: GREEN and "
+              "recorded",
+              (population[0].state,
+               PassStore(store_dir).find("scripts/test_population.py", plat, inputs.Tree.load(root)) is not None),
+              (GREEN, True))
+        claim = gate(False, [], which=[found["test_claim.py"]])
+        check("arm: a declared population its trace does not bear out is RED and records no PASS (the declaration "
+              "would otherwise exempt a self-test unproved)",
+              (claim[0].state, "SELF-TEST-POPULATION" in claim[0].output,
+               PassStore(store_dir).find("scripts/test_claim.py", plat, inputs.Tree.load(root))), (RED, True, None))
         empty = Path(tempfile.mkdtemp(dir=s))
         note = Runner(root, plat, lambda _: None, budget=Budget(budget_dir, 1),
-                      store=PassStore(store_dir))._record(found["test_a.py"], empty, 1.0)
+                      store=PassStore(store_dir), classification=planted)._record(found["test_a.py"], empty, 1.0)
         check("arm: a Python self-test whose trace does not show its own file records no PASS (the tracer did not run)",
               note.startswith("no PASS recorded"), True)
 
