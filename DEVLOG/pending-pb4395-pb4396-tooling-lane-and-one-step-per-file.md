@@ -441,7 +441,7 @@ watch would have ended the Unit and Conformance steps RED after a green gate. `c
 of every script it finds named file by file (a literal path, a listing's matches, a computed name under a literal
 directory such as ArchReviewFleetDriftTests' `[InlineData("r2_cost.py")]`), read through `ast` and resolved against the
 importer's directory and the `sys.path` edits the chain makes, a lazy import included. A directory a test only names (an
-existence check) seeds no import. The closure demanded fourteen CODE_READS entries, each naming its importer
+existence check) seeds no import. The closure demanded twelve CODE_READS entries, each naming its importer
 (`standard_streams.py`, `live_tools.py`, `scratch_repo.py`, `ci_workflow.py`, `rendered_views.py`, `detached.py`,
 `sharedfile.py`, `orchestrator/coord.py`, `budget.py`, `account.py`, `telemetry/usage_report.py`, `otlp_sink.py`), and
 the Linux watch three data files only it sees (`model_rules.json`, `wf_r2_review.js`, `tools/rr/rr.war`). The import
