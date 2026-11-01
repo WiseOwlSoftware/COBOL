@@ -82,6 +82,43 @@ public sealed class MarginRCutNoteTests : IDisposable
         AssertStopRunIsTheErrorAfterTheCut(diagnostics);
     }
 
+    [Fact] // PB4373: a tab states margin R as the POSITION the format fixes (72), not the column the file holds it at
+    public void ALineHoldingATab_StatesMarginRAtPosition72_AndTheColumnTheFileHoldsIt()
+    {
+        // The tab fills positions 1-8 (DOC-A.1-157: tab stops at 1, 9, 17, ...), so the line is seven characters shorter than
+        // its positions: position 73 is the 66th character of the line (column 66), the margin the format fixes is still 72.
+        string tabbed = "\t" + CutBetweenWords[8..];
+        var diagnostics = Compile(Program([.. Head, tabbed, "           STOP RUN."]));
+
+        string note = Assert.Single(Notes(diagnostics));
+        Assert.Contains("main.cob(9,66): warning", note);                                  // the column the file holds position 73 at
+        Assert.Contains("it ends at position 72 (a tab counts the positions it fills, so the column this warning names, where the file holds the cut, is less than that)", note);
+        Assert.Contains("'CONTENT WS-REPLY' (positions 73 to 88)", note);                   // positions, not columns 66 to 81
+        Assert.Contains("Shorten the line to end at position 72", note);
+        AssertStopRunIsTheErrorAfterTheCut(diagnostics);
+    }
+
+    [Fact] // PB4373: a supplementary-plane character is ONE position (kb/Work PB1966), so the cut text counts characters
+    public void ACutHoldingASupplementaryCharacter_CountsItsPositionsInCharacters()
+    {
+        string cut = CutBetweenWords[..72] + "CONTENT WS-\U0001E900";                      // 12 characters from position 73, 13 UTF-16 units
+        var diagnostics = Compile(Program([.. Head, cut, "           STOP RUN."]));
+
+        string note = Assert.Single(Notes(diagnostics));
+        Assert.Contains("main.cob(9,73): warning", note);
+        Assert.Contains("(positions 73 to 84)", note);
+    }
+
+    [Fact] // PB4373: the quoted cut is shortened at a CHARACTER, never between the two units of a supplementary one
+    public void AQuotedCutShortenedAtASupplementaryCharacter_KeepsTheCharacterWhole()
+    {
+        string cut = CutBetweenWords[..72] + "ABCDEFGHIJKLMNOPQRSTUVW\U0001E900ZZ";        // 26 characters: the 24th position is the astral one
+        var diagnostics = Compile(Program([.. Head, cut, "           STOP RUN."]));
+
+        string note = Assert.Single(Notes(diagnostics));
+        Assert.Contains("'ABCDEFGHIJKLMNOPQRSTUVW\U0001E900...' (positions 73 to 98)", note);
+    }
+
     [Fact] // a CAUSE READS BEFORE ITS EFFECT: the cut precedes the error it may explain
     public void TheNote_IsReportedBeforeTheError()
     {
