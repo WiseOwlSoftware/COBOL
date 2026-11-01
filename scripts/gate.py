@@ -24,10 +24,11 @@ ONE GATE, ONE SHAPE (owner 2026-10-11, kb/Work PB3015 Q1a, PB3022; §3.17.3), in
   2. a fresh RUN DIRECTORY `TestResults/build-local/<n>-<UTC stamp>Z/` (n = the run's number in its run root, taken under
      `runs.lock`, so start order never depends on the clock) holding the listings, every trx and log, the first-classes
      file and the verdict file; five are kept;
-  3. the toolchain (toolchain.env's versions, kb/Work PB4007), then the change's LANE (scripts/inert_lane.py: inert, or
-     a code lane with or without TOOLING touched), then the audits (the one list below, run CONCURRENTLY; when the change
-     touches tooling one of them is every script self-test, found by scripts/self_tests.py — kb/Work PB2563, PB4326),
-     started BESIDE everything after them: the inert lane joins them at once (they are its whole gate); a code lane runs
+  3. the toolchain (toolchain.env's versions, kb/Work PB4007), then the change's LANE (scripts/inert_lane.py: inert;
+     tooling, a change no compiler test or build reads, kb/Work PB4395; or a code lane with or without TOOLING touched),
+     then the audits (the one list below, run CONCURRENTLY; when the change touches tooling one of them is every script
+     self-test, found by scripts/self_tests.py — kb/Work PB2563, PB4326), started BESIDE everything after them: the inert
+     and the tooling lanes join them at once (they are the whole gate: `_inert`, `_tooling`); a code lane runs
      them beside the corpus fetch, the slot wait, the build and the test hosts, and a red one STOPS the hosts
      (`Host.stop_hosts`) and ends the gate RED (kb/Work PB2523, PB4326). The GnuCOBOL corpus, by the ONE rule
      scripts/external_corpus.py (kb/Work PB2611), is fetched BEFORE the slot (kb/Work PB2524);
@@ -319,6 +320,9 @@ AUDITS = (
     ("LINE ENDINGS", ["scripts/line_endings.py", "--check"]),
     # kb/Work PB735, PB2878: a byte-level fact about the committed tree, an audit so that no test reads every path.
     ("CONFLICT MARKERS", ["scripts/conflict_markers.py", "--check"]),
+    # kb/Work PB2878, PB4395: THE lanes' classification against the tree (every entry names a tracked path; every script
+    # the build or a compiler test is seen to read is CODE_READS), a question over the committed tree, so an audit.
+    ("INERT LANE", ["scripts/inert_lane.py", "check"]),
     # kb/Work PB3575: every diagnostic code is COBOL####; the rename's own rules, asked as a question over the committed
     # tree, an audit for the reason CONFLICT MARKERS is one (PB2878).
     ("DIAGNOSTIC PREFIX", ["scripts/rename_diagnostic_prefix.py", "--check"]),
@@ -445,11 +449,11 @@ class Host:
         """The change's lane: what `tree` (the measured working tree) changes against `base`, classified by THE one
         classification (scripts/inert_lane.py). No base or no tree, or a change git cannot list, is the full lane."""
         if not base or not tree:
-            return inert_lane.Lane(False, "no base or no measured tree: the full lane", True)
+            return inert_lane.Lane("full", "no base or no measured tree: the full lane", True)
         try:
             return inert_lane.CLASSIFICATION.classify(inert_lane.changed(self.repo, base, tree))
         except (subprocess.CalledProcessError, OSError) as e:
-            return inert_lane.Lane(False, f"the change could not be listed ({e}): the full lane", True)
+            return inert_lane.Lane("full", f"the change could not be listed ({e}): the full lane", True)
 
     def head(self) -> str | None:
         try:
@@ -1190,6 +1194,16 @@ class Gate:
             if out.audit_reds:
                 return self._audit_red(out, run, "the inert lane runs nothing but the audits, and one is RED: NO TEST RAN")
             return self._inert(out, run, lane)
+        if lane.name == "tooling":
+            # ⭐ THE TOOLING LANE (kb/Work PB4395; PIPELINE-REVIEW.md §13, owner 2026-11-01 "Build the approved lane"):
+            # every changed path is tooling no compiler test and no build reads (CODE_READS, proved by the watch of every
+            # Linux test run and the INERT LANE audit), or inert. The audits, the script self-tests among them, are the
+            # gate: joined here, with no corpus fetch, slot, build or test host.
+            self._join_beside(out)
+            if out.audit_reds:
+                return self._audit_red(out, run, "the tooling lane runs the audits and the script self-tests, and one is "
+                                       "RED: NO TEST RAN")
+            return self._tooling(out, run, lane)
         out.reasons += self.host.fetch_corpus(_no_slot, self.say)
         if self._audits_known_red(out):
             return self._audit_red(out, run, "an audit was RED before the slot, the build and any test host: NO TEST RAN")
@@ -1244,6 +1258,14 @@ class Gate:
         out.tree_end = self.host.measured_tree()
         return self._finish(out, run, "GREEN", f"INERT LANE (kb/Work PB2878): {lane.reason}; the audits are GREEN, "
                             f"and no build or test host ran · toolchain {out.toolchain} (run {run.name})", 0)
+
+    def _tooling(self, out: Outcome, run: Path, lane: inert_lane.Lane) -> Outcome:
+        """THE TOOLING LANE's end (kb/Work PB4395): no build and no test host, because no compiler test reads the change;
+        the audits, the script self-tests among them, were joined, GREEN, before this."""
+        out.tree_end = self.host.measured_tree()
+        return self._finish(out, run, "GREEN", f"TOOLING LANE (kb/Work PB4395): {lane.reason}; the audits and the script "
+                            f"self-tests are GREEN, and no build or test host ran · toolchain {out.toolchain} "
+                            f"(run {run.name})", 0)
 
     def _tested(self, out: Outcome, run: Path, slot: Slot, started: float) -> Outcome:
         """The build, the three whole populations, the checks: the part of the gate the slot rations."""
@@ -1490,10 +1512,13 @@ class FakeHost(Host):
         return self.base_sha
 
     def lane(self, base, tree):
-        """The planted lane: `inert` plants a change no test reads; the classification itself is inert_lane.py's
-        self-test."""
-        return (inert_lane.Lane(True, "planted: all 2 changed path(s) are inert", False) if "inert" in self.plant
-                else inert_lane.Lane(False, "planted: the full lane", "tooling" in self.plant))
+        """The planted lane: `inert` plants a change no test reads, `tooling-lane` one no compiler test reads; the
+        classification itself is inert_lane.py's self-test."""
+        if "inert" in self.plant:
+            return inert_lane.Lane("inert", "planted: all 2 changed path(s) are inert", False)
+        if "tooling-lane" in self.plant:
+            return inert_lane.Lane("tooling", "planted: 1 of 1 changed path(s) are tooling no compiler test reads", True)
+        return inert_lane.Lane("full", "planted: the full lane", "tooling" in self.plant)
 
     def head(self) -> str | None:
         return "head-1"
@@ -1780,6 +1805,18 @@ def self_test() -> int:
         arm("a red audit is RED in the inert lane too: the audits ARE the inert lane's gate",
             o.verdict == "RED" and o.exit_code == 1 and h.audited and h.events == [] and o.lane == "inert"
             and "RENDERED VIEWS RED" in o.line, o.line)
+        o, h = gate("tooling-lane", plant={"tooling-lane"})
+        rec = json.loads(run_dirs(root / "tooling-lane" / "runs")[-1].joinpath(VERDICT_FILE).read_text(encoding="utf-8"))
+        arm("a change in the TOOLING LANE (kb/Work PB4395) runs the audits WITH the script self-tests and then ends "
+            "GREEN, with no fetch, slot, build or test host, its record saying `lane: tooling`",
+            o.verdict == "GREEN" and o.exit_code == 0 and "TOOLING LANE (kb/Work PB4395)" in o.line
+            and h.audited and h.tooling_seen is True and h.events == [] and not h.built and not o.runs
+            and o.lane == "tooling" and rec["lane"] == "tooling" and rec["tooling"] is True and h.growth == []
+            and read_verdict(o.line[len(VERDICT):]) == GREEN_READING, f"{o.line} {h.events}")
+        o, h = gate("tooling-lane-audit", plant={"tooling-lane", "audit"})
+        arm("a red audit is RED in the tooling lane: the audits and the self-tests ARE its gate",
+            o.verdict == "RED" and o.exit_code == 1 and h.audited and h.events == [] and not h.built
+            and o.lane == "tooling" and "RENDERED VIEWS RED" in o.line, o.line)
         o, h = gate("post-build", plant={"post-build", "tooling"})
         arm("a red post-build self-test (one that reads the built assemblies, kb/Work PB2563) runs beside the hosts and "
             "makes the gate RED after them, its output printed whole",

@@ -1743,7 +1743,7 @@ comment "the SAME list as the gate driver's AUDITS" names `gate_host.py`. Import
 `build-local.{ps1,sh}` (unchanged entry; their comments name
 `gate_verdict.NOT_RUN_CAUSES`), `wf_rolling_wave.js` (`gate.resolve_run`, `AWAIT_PENDING_EXIT` → `gate_runs`
 in its comments and its `--await` call, which stays `gate.py --await`), `inert_lane.py`, `gate_slot.py`'s
-docstring, `GateLegDriftTests`, `LinuxGateDriftTests`, `InertLaneDriftTests`.
+docstring, `GateLegDriftTests`, `LinuxGateDriftTests`.
 
 ### 16.6 `enqueue.py` → the landing step's modules (`scripts/orchestrator/`)
 

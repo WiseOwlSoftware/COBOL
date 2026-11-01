@@ -812,7 +812,8 @@ def _iso(t: str) -> dt.datetime | None:
 # queue_facts.fetch_bounce_results into the worktree, where the finisher's gate reads them too) with the branch's GREEN
 # gate record (enqueue.tested_locally: the run that covers the queued head, or the run a REUSED answer names):
 #   INFRA         no test failed in the run (a job died before or outside its tests), or the run timed out
-#   RUNNER        every red case ran GREEN in that record, or the record is the inert lane's (no test reads the change):
+#   RUNNER        every red case ran GREEN in that record, or the record is a lane's that runs no compiler test (the
+#                 inert or the tooling lane, inert_lane.TEST_FREE_LANES: no compiler test reads the change):
 #                 a Linux, Release, host or runner difference, or a flake
 #   GENUINE       a red case the record lists but did not run (skipped on Windows): the merge group ran it first
 #   MERGE         a red case not in the record at all: main brought it, or the merged tree made it
@@ -837,7 +838,7 @@ class RedFacts:
     unobserved: str = ""                  # why the run's results could not be read ("" when they were)
     record: str = ""                      # the GREEN gate run that measured the queued head ("" when there is none)
     no_record: str = ""                   # why there is none (the record's own reason, or that its results are gone)
-    inert: bool = False                   # that record is the inert lane's: no test reads the change
+    test_free: str = ""                   # that record's lane when it runs no compiler test (inert, tooling)
     passed: frozenset[str] = frozenset()  # the cases the record ran and passed
     listed: frozenset[str] = frozenset()  # every case the record lists, run or skipped
 
@@ -857,9 +858,9 @@ def classify_red(f: RedFacts) -> tuple[str, str]:
         return lm.INFRA, f"no test failed in merge-group run {f.run}: a job died before or outside its tests"
     if not f.record:
         return lm.UNCLASSIFIED, f"{len(f.failed)} case(s) failed ({some(f.failed)}), and no gate record to compare: {f.no_record}"
-    if f.inert:
+    if f.test_free:
         return lm.RUNNER, (f"{len(f.failed)} case(s) failed ({some(f.failed)}), and the branch's gate {f.record} is the "
-                           "inert lane's: no test reads its change")
+                           f"{f.test_free} lane's: no compiler test reads its change")
     if skipped := (f.failed & f.listed) - f.passed:
         return lm.GENUINE, (f"{len(skipped)} red case(s) the branch's gate {f.record} listed but did not run "
                             f"({some(skipped)}): the merge group ran them first")
@@ -878,6 +879,7 @@ def red_facts(att: dict[str, Any], pr: Any, fetch: Callable[[str, pathlib.Path],
     bounce was before."""
     import enqueue  # noqa: PLC0415  (the one reader of a gate record that covers a head)
     import gate  # noqa: PLC0415  (scripts/: the record, the run root, where a bounce's results land)
+    import inert_lane  # noqa: PLC0415  (scripts/: the lanes whose record keeps no test result)
     import queue_facts  # noqa: PLC0415
     import test_population as tp  # noqa: PLC0415  (scripts/: THE trx reader)
     wt = pathlib.Path(str(att.get("worktree") or ""))
@@ -904,8 +906,8 @@ def red_facts(att: dict[str, Any], pr: Any, fetch: Callable[[str, pathlib.Path],
         return dataclasses.replace(facts, no_record=proof.text)
     rec = gate.read_record(proof.run) or {}
     measured = proof.run.parent / str(rec["reused_from"]) if rec.get("reused_from") else proof.run
-    if rec.get("lane") == "inert":
-        return dataclasses.replace(facts, record=measured.name, inert=True)
+    if rec.get("lane") in inert_lane.TEST_FREE_LANES:
+        return dataclasses.replace(facts, record=measured.name, test_free=str(rec["lane"]))
     trx = sorted(measured.glob("*.trx"))
     if not trx:
         return dataclasses.replace(facts, no_record=f"the gate run {measured.name} that measured the head keeps no test "
@@ -2414,15 +2416,17 @@ def self_test() -> int:
             "timed out": dataclasses.replace(rec_, conclusion="timed_out", failed=frozenset({"A.Pass"})),
             "no test failed": rec_,
             "no record": RedFacts(run=9001, conclusion="failure", failed=frozenset({"A.Pass"}), no_record="none covers"),
-            "inert": RedFacts(run=9001, conclusion="failure", failed=frozenset({"B.New"}), record="000001-r", inert=True),
+            "inert": RedFacts(run=9001, conclusion="failure", failed=frozenset({"B.New"}), record="000001-r", test_free="inert"),
+            "tooling": RedFacts(run=9001, conclusion="failure", failed=frozenset({"B.New"}), record="000001-r",
+                                test_free="tooling"),
             "skipped": dataclasses.replace(rec_, failed=frozenset({"A.Pass", "A.Skip"})),
             "absent": dataclasses.replace(rec_, failed=frozenset({"A.Pass", "B.New"})),
             "ran green": dataclasses.replace(rec_, failed=frozenset({"A.Pass"}))}.items()}
         expect("classify_red: results unread or no record is UNCLASSIFIED; a timed-out run or one where no test failed is "
-               "INFRA; red cases that all ran GREEN in the record, or an inert record, are RUNNER; a red case the record "
+               "INFRA; red cases that all ran GREEN in the record, or an inert or a tooling-lane record, are RUNNER; a red case the record "
                "listed but did not run is GENUINE; one the record lacks is MERGE (kb/Work PB4271, PB4331)",
                cls_of == {"unobserved": lm.UNCLASSIFIED, "timed out": lm.INFRA, "no test failed": lm.INFRA,
-                          "no record": lm.UNCLASSIFIED, "inert": lm.RUNNER, "skipped": lm.GENUINE, "absent": lm.MERGE,
+                          "no record": lm.UNCLASSIFIED, "inert": lm.RUNNER, "tooling": lm.RUNNER, "skipped": lm.GENUINE, "absent": lm.MERGE,
                           "ran green": lm.RUNNER}, str(cls_of))
         import gate  # noqa: PLC0415
         wt18 = root / "wt-w18"
