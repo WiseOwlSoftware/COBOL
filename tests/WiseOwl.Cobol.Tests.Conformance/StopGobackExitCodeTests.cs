@@ -130,6 +130,27 @@ public sealed class StopGobackExitCodeTests
         Assert.Equal(expectedExit, exit);
     }
 
+    /// <summary>⛔ THE USER MANUAL'S EXIT STATUS EXAMPLES ARE THE PRODUCT'S (kb/Work PB1610, review round 1 R1-1).
+    /// <c>docs/manual/user-guide/run-units.md</c> once said <c>--run</c> exits with "the value of STOP RUN WITH ERROR
+    /// STATUS n, 1 for an abnormal termination, 0 otherwise", which is wrong for <c>WITH NORMAL STATUS 4</c> (exit 4)
+    /// and for <c>WITH ERROR</c> alone (exit 1). Each example the page prints is run here and must also be on the
+    /// page, so neither the page nor DOC-A.1-192's mapping can move without the other.</summary>
+    [Theory]
+    [InlineData("STOP RUN WITH ERROR STATUS 0.", "`STOP RUN WITH ERROR STATUS 0`", 0)]
+    [InlineData("STOP RUN WITH NORMAL STATUS 7.", "`STOP RUN WITH NORMAL STATUS 7`", 7)]
+    [InlineData("STOP RUN WITH ERROR.", "`STOP RUN WITH ERROR`, with no status", 1)]
+    [InlineData("STOP RUN WITH ERROR STATUS \"007\".", "`STATUS \"007\"` is 7", 7)]
+    [InlineData("STOP RUN WITH ERROR STATUS \"ABEND\".", "`STATUS \"ABEND\"` is 0", 0)]
+    [InlineData("GOBACK WITH NORMAL STATUS 4.", "A main program's `GOBACK` takes the same phrases in COBOL 2023", 4)]
+    public void TheManualsExitStatusExamples_AreWhatTheProgramExitsWith(string proc, string pageSpan, int expectedExit)
+    {
+        string page = File.ReadAllText(TestRepo.Docs(Path.Combine("manual", "user-guide", "run-units.md"))).ReplaceLineEndings(" ");
+        Assert.Contains(pageSpan, page.Replace("  ", " "), StringComparison.Ordinal);
+        var (exit, stdout, _) = new WiseOwlCobolCompiler(2023).CompileAndRunExit(Prog("PB1610EXIT", proc));
+        Assert.Equal("ran", stdout);
+        Assert.Equal(expectedExit, exit);
+    }
+
     /// <summary>⛔ THE EMIT FLOOR FOR THE CARRIER WIDENING. <c>TerminationStatus.Value</c> became a
     /// <c>BoundOperand</c>, and the numeric arm must keep producing the SAME generated C# — otherwise every
     /// existing STOP-RUN-STATUS program's emitted text drifts on a fix that was supposed to only WIDEN
