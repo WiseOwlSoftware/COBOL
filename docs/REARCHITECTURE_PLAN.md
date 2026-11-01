@@ -3216,8 +3216,9 @@ already-derivable coverage; none change the pipeline.
   landing's at Normal priority); bash `scripts/build-local.sh`. There is no mode and no filter. The driver is `scripts/gate.py` (`--self-test` proves every arm); each
   gate writes a fresh run directory `TestResults/build-local/<n>-<UTC stamp>/`, n its number in the worktree (listings, `plan.json`, every
   leg's log, trx and identity record, `verdict.json` with the timings and the first red; the newest five are kept)
-  and prints one `=== BUILD-LOCAL GATE: GREEN|RED|RED/INCOMPLETE|LEG 1 ONLY (batched gating, PB2515):
-  GREEN|RED|BUILD FAILED|BUSY|NOT RUN [<cause>] — … ===` line (under the default scope `leg1`, `LEG 1 ONLY …`).
+  and prints one `=== BUILD-LOCAL GATE: GREEN|RED|RED/INCOMPLETE|BUILD FAILED|BUSY|NOT RUN [<cause>] — … ===` line;
+  a change of only inert paths says `GREEN — INERT LANE`, and one of only tooling no compiler test reads says
+  `GREEN — TOOLING LANE`, neither with a build or a test host (kb/Work PB4328, PB4395).
   ⛔ Any OTHER filtered `dotnet test` you run or script goes through `scripts/filter_population.py` first (PB708,
   PB751/PB752 — vstest answers an unmatched filter with a passing run of zero tests); add `--allow-build` when the
   run itself is what builds the project.

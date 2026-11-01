@@ -11,7 +11,7 @@ PB2878, PB4395; docs/rearchitecture/DESIGN-test-build-ci.md §3.18).
 
 ⛔ WHY (owner 2026-10-09, on a one-change landing that edited a practices file and two briefs: "Should this require a
 full CI run? I would think not"). Measured over the 300 landings of 2026-10-16..23, 137 changed only files the CI
-matrix's old doc-only list named, and each paid the local gate (median ~14 min: audits, a slot, a build, leg 1) and
+matrix's old doc-only list named, and each paid the local gate (median ~14 min: audits, a slot, a build, the tests) and
 the landing's four Linux legs; but that list was not a classification at all: `docs/` and `kb/Work/` are test INPUTS
 (kb/Work PB3603: a kb/Work-only branch went RED on the Linux gate), so CI skipping the matrix for them broke the CI
 invariant (kb/Work PB1957) silently. THIS MODULE IS THE ONE CLASSIFICATION, used by every runner: CI's `changes` job,

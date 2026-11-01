@@ -1003,6 +1003,23 @@ check("... an overlay naming a reference file that does not exist (its own, or t
 check("... a gate, review or spec-lookup overlay still has to name its base skill",
       (check_practices.overlay_problems("gate", "no base named here"), check_practices.overlay_problems("gate", "Invoke `brent-tools:test-gate`")),
       (["gate overlay does not invoke its brent-tools base skill first"], []))
+# 7c5. THE RETIRED GATING INSTRUCTS NO ONE (kb/Work PB4334, review R2-1 of wave 20261808). Expected from the rule: the gate runs
+#      the whole population (PB4328), so an instruction surface (.github, .claude, CLAUDE.md) that tells a reader about batched
+#      gating, a LEG 1 ONLY verdict, tier 0a-0d, a leg 1 or the impact map is stale, unless the line cites PB4328 (history) or
+#      says "no impact map"; the real tree has none. Each arm is seen refused on a plant.
+import live_tools  # noqa: E402  (the one listing of the tracked live tools, .claude/ among them; .github/ and CLAUDE.md are read from disk)
+TRACKED_SURFACES = [*live_tools.tracked(coord.REPO, (".md", ".py", ".js", ".yml", ".json", ".txt")),
+                    *(f.relative_to(coord.REPO).as_posix() for f in (coord.REPO / ".github").rglob("*") if f.is_file()), "CLAUDE.md"]
+TRACKED_SURFACES = [rel for rel in TRACKED_SURFACES if rel.startswith(check_practices.GATING_SURFACES)]
+check("the real instruction surfaces carry no retired gating wording",
+      [m for rel in TRACKED_SURFACES for m in check_practices.retired_gating_lines(rel, (coord.REPO / rel).read_text(encoding="utf-8"))], [])
+check("... each retired phrase is refused on a surface; a PB4328 line and a negation pass; a code file is no surface",
+      ([len(check_practices.retired_gating_lines(".github/X.md", p)) for p in
+        ("verdict LEG 1 ONLY (batched gating): GREEN", "tier 0a", "batched gating", "the impact map", "runs in leg 1")],
+       check_practices.retired_gating_lines(".claude/skills/x.md", "the impact map ended with PB4328"),
+       check_practices.retired_gating_lines("CLAUDE.md", "There is no impact map, no tier"),
+       check_practices.retired_gating_lines("scripts/gate.py", "LEG 1 ONLY")),
+      ([1, 1, 1, 1, 1], [], [], []))
 # 7d. A HOST-I-O GROUP RUNS CI'S LINUX LEGS AT ITS OWN GATE (kb/Work PB3381; MANDATORY-PRACTICES I8). Expected from the
 #     rule: a file under src/WiseOwl.Cobol.Runtime/IO/ (either separator) makes a group host-I-O, a compiler or other runtime
 #     file does not; the file set is the group's file_set list, else (absent or empty) what its notes declare; a

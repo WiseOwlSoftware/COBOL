@@ -100,7 +100,7 @@ public sealed class TrackedTreeScopeDriftTests
         Assert.True(scanning >= 6, $"only {scanning} test source(s) read the committed tree — the scan of the sources is broken");
         Assert.True(offenders.Count == 0,
             "these reads of the committed tree are invisible to scripts/spec/drift_rules.py, so it never names the sweep "
-            + "for a file it reads and the gate's planner never puts it in leg 1 (kb/Work PB3531). Declare the scope in "
+            + "for a file it reads (kb/Work PB3531). Declare the scope in "
             + "the drift-test class as a static readonly field of type TreeScope, initialized `new(Under: [...], "
             + "Except: [...], Kinds: [...])` with string literals only, and pass that field:\n  " + string.Join("\n  ", offenders));
     }
@@ -357,7 +357,7 @@ public sealed class TrackedTreeScopeDriftTests
 
     /// <summary>Every path a scope sets aside BY NAME (an exact-path <c>Except</c> entry: the rule's owner, where its
     /// one pattern lives, or the test itself) is one the per-file query lists its class as governing SPECIFICALLY — so
-    /// an agent editing the owner is told the rule, and the gate's planner puts the class in leg 1 (tier 0d). Review
+    /// an agent editing the owner is told the rule. Review
     /// R1-1 of PB3531: the index blanked the declarations, and <c>scripts/spec/spec_headings.py</c> and
     /// <c>tests/_shared/SpecClauseText.cs</c> lost <c>CatalogCoverageDriftTests</c>, which governed both on main.</summary>
     [Fact]
