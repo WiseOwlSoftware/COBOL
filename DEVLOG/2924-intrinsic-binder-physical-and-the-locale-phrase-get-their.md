@@ -1,4 +1,4 @@
-## Intrinsic binder: PHYSICAL and the LOCALE phrase get their 2014 edge, and a function a COBOL-WORDS directive removed says so (PB4308, PB4309, PB4311)
+## Entry 2924 — 2026-11-01 01:16 PDT — Intrinsic binder: PHYSICAL and the LOCALE phrase get their 2014 edge, and a function a COBOL-WORDS directive removed says so (PB4308, PB4309, PB4311)
 
 Three defects shared one root file, `IntrinsicBinder.cs`, and one shape: a function phrase or a refusal that told the
 user less than the standard does.
@@ -40,3 +40,4 @@ directive's story only for a word `IntrinsicCatalog` holds; any other removed wo
 `Intrinsic_RemovedReservedWordThatIsNoFunction_KeepsNotAnIntrinsicFunction`, UNDEFINE and SUBSTITUTE arms). Two leads
 fixed in files already touched: the `numval-c-locale-phrase-2002` row text cites the renamed `-2014` row, and the PB4308
 golden no longer names RV-15.50.4-8 / RV-15.14.4-7 (it holds no variable-length group).
+
