@@ -67,6 +67,14 @@ public readonly record struct CompilerDirectiveLine(string Word, string Operand)
         return true;
     }
 
+    /// <summary>Whether <paramref name="s"/> (an operand, or the rest of one) begins with <paramref name="word"/> as a WORD: the
+    /// word, then the end of the text or a separator (§8.3.5), so <c>OTHER</c> and <c>OTHER x</c> begin with the word OTHER and
+    /// <c>OTHERV</c> does not. The one answer for every stage that reads a directive's phrase word — <c>&gt;&gt;WHEN OTHER</c>
+    /// (§7.3.13.3 SR5/SR6) in the conditional-compilation stage and in the converter's division cursor alike (kb/Work PB4241).</summary>
+    public static bool StartsWithWord(string s, string word) =>
+        CobolNames.StartsWith(s, word)
+        && (s.Length == word.Length || CobolSpace.IsSeparator(s[word.Length]));
+
     /// <summary>The index in <paramref name="line"/> where its compiler-directive indicator stands — after the spaces
     /// that alone may precede it (§7.3.3 SR2) — the column a diagnostic about the directive line names (kb/Work
     /// PB1801).</summary>
