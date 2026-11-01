@@ -90,16 +90,33 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
     /// activation-result item to move into (ISO §14.9.18.4 GR2 is conditioned on the HEADER'S RETURNING phrase), and
     /// its vendor meaning is the main-program exit status — GnuCOBOL moves <c>x</c> to RETURN-CODE, which the
     /// process reports. The same value is exactly what GR10 hands the operating system for a status phrase's
-    /// identifier-2, so the source becomes an implicit <c>WITH NORMAL STATUS x</c>: the SAME termination-status node,
-    /// screen (SR6 — an index data item, a non-integer non-display item, a pointer and an object reference are refused as for the phrase) and
-    /// rendering (<c>NumericRenderer.ExitStatus</c>, DOC-A.1-192's mapping) that <see cref="BindTerminationStatus"/>
+    /// identifier-2, so the source becomes an implicit <c>WITH NORMAL STATUS x</c>: the SAME termination-status node
+    /// and rendering (<c>NumericRenderer.ExitStatus</c>, DOC-A.1-192's mapping) that <see cref="BindTerminationStatus"/>
     /// yields. A called program has no result to hand over and a status is inert there (GR2), so the emit's
-    /// <c>!__asCalled</c> guard makes it a no-op, as for the written phrase.</summary>
-    internal TerminationStatus ReturningAsStatus(Place source, string text)
+    /// <c>!__asCalled</c> guard makes it a no-op, as for the written phrase.
+    /// <para>⛔ THE OPERAND IS SCREENED AS THE MOVE SENDER IT IS, NOT AS A STATUS-PHRASE OPERAND (kb/Work PB4361).
+    /// The user wrote no status phrase, so §14.9.18.3 SR6's "integer data item or … usage display or usage national"
+    /// is no rule of this statement (it governs identifier-2 of the WITH … STATUS phrase; the first cut applied it
+    /// here and refused a COMP-3 item with decimals under a clause the program does not contain), and the SAME
+    /// operand is accepted when the header names a RETURNING item, where the extension is "move x to that item"
+    /// (<see cref="ImplicitMovePhrase.GobackReturning"/>). The operand is therefore asked what that MOVE would ask
+    /// of it, through the SAME entry the written MOVE's screens use: <see cref="MoveBinder.ScreenImplicitMoveToPosition"/>
+    /// over the exit status's position, an elementary integer — §14.9.25.3 SR1 (an index, message-tag, object or
+    /// pointer operand is COBOL0809) and the whole validity chain, SR2 and SR6–SR10, whose Table 16 refuses a
+    /// boolean sender to a numeric receiver as COBOL0819 exactly as the header arm does (review round 1, R1-1;
+    /// <c>MoveTable16AskerDriftTests</c> forbids a hand-composed subset of that question). Any other operand
+    /// renders through <c>NumericRenderer.ExitStatus</c>, so a scaled or floating one is accepted as GnuCOBOL
+    /// accepts it. §14.9.18.4 GR10 only says the contents are passed to the operating system, with constraints
+    /// the implementor defines; the truncation toward zero is that determination, docs/CONFORMANCE.md item 192,
+    /// not an ISO rule.</para></summary>
+    internal TerminationStatus ReturningAsStatus(Place source)
     {
-        // The source is a resolved PLACE, so an index-name (a computed operand, refused by ResolveSending) never reaches
-        // here; an index DATA item, a pointer and an object reference are refused by SR6's screen below.
-        return new TerminationStatus(false, ScreenStatusOperand(new BoundFieldOperand(source), text));
+        // The source is a resolved PLACE, so an index-name (a computed operand, refused by ResolveSending) never
+        // reaches here; an index DATA item, a pointer and an object reference are refused by SR1's class screen.
+        var operand = new BoundFieldOperand(source);
+        host.Move.ScreenImplicitMoveToPosition(operand, new Table16Operand(PicCategory.Numeric),
+            "the program's exit status", ImplicitMovePhrase.GobackReturning);
+        return new TerminationStatus(false, operand);
     }
 
     /// <summary>The STATUS phrase's <c>{identifier-1 | literal-1}</c> operand, bound as the position's own operand
@@ -488,7 +505,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             // where BOTH ends are resolved and both still carry their owning sections, because the composition
             // below throws the sections away and leaves a pc pair no later pass can ask the question of.
             if (!ctx.Validation.CheckDeclarativesRange(
-                    first, thru, ProcedureNameShape.Head(names[0]), ProcedureNameShape.Head(names[1]), "PERFORM"))
+                    first, thru, ProcedureNameShape.AsWritten(names[0]), ProcedureNameShape.AsWritten(names[1]), "PERFORM"))
                 return BoundRejected.Reported(ctx.Edition);
             // An INVERTED range (the THRU procedure physically precedes the first, reached by GO TO — GR6
             // "there is no necessary relationship between procedure-name-1 and procedure-name-2"; NIST NC102A
