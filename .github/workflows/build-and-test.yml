@@ -7,8 +7,9 @@ name: Build and Test
 # mutually exclusive; measured 2026-09-06, the three docs-only pushes after train 21 produced NO run at all.
 # The saving the ignore list bought is kept, one layer down: the `changes` job below decides whether the MATRIX runs,
 # from THE INERT LANE (scripts/inert_lane.py, kb/Work PB2878): a change confined to paths no test reads still starts a
-# run, but that run is `changes` + `audits` + `ci-gate` and finishes in about a minute. (`audits` is never skipped: an
-# inert change is exactly where a wrong citation or a malformed register note arrives.)
+# run, but its merge-group run is `changes` + `audits` + `ci-gate` and finishes in about five minutes. (`audits` is never
+# skipped in the merge group: an inert change is exactly where a wrong citation or a malformed register note arrives.
+# A pull request's and a push's run is `changes` + `ci-gate`, and a push adds the cache jobs, kb/Work PB4330.)
 on:
   push:
     # `main` — the branch the protection guards, and the branch every instrument already reads
@@ -20,7 +21,7 @@ on:
     # is the merge-queue commit main advances to, which its `merge_group` run below already tested.
     branches: [ main ]
   # ── THE MERGE QUEUE (kb/Work PB3024; DESIGN-test-build-ci.md §3.17.2 steps 4–5, §3.17.6). A pull request runs the
-  # CHEAP jobs only (`changes`, `audits`, `ci-gate`), so twenty queued PRs never put twenty full matrices behind the
+  # REQUIRED CHECK only (`changes`, `ci-gate`; the audits run once, in the merge group, kb/Work PB4330), so twenty queued PRs never put twenty full matrices behind the
   # organization's 60-concurrent-job limit (GitHub Team, 2026-10-25; the Free plan's was 20); the MERGE GROUP (several queued PRs on top of main) runs the matrix and is the
   # one whole-population run each change gets. `ci-gate` is the required check on both; on the group it is the full
   # verdict. The merge-queue commit IS the commit main advances to, so its `push` run takes the already-verified
@@ -95,8 +96,12 @@ jobs:
       code: ${{ steps.decide.outputs.code }}
       verified: ${{ steps.decide.outputs.verified }}
       reason: ${{ steps.decide.outputs.reason }}
-      # What this push proposes to add is `base..sha` — the `audits` job's witness-loss check compares against it.
-      # Empty when no honest base exists (a non-push event, an unresolvable `before`); that check then falls back
+      # Whether the change TOUCHES TOOLING (scripts/inert_lane.py `classify`, kb/Work PB4326): a path a script self-test
+      # reads (the scripts, and the data TOOLING_READS names, held complete by self_tests.py's proof), so `windows-self-tests`
+      # runs only then. `true` whenever nothing proves otherwise.
+      tooling: ${{ steps.decide.outputs.tooling }}
+      # What this merge group proposes to add is `base..sha` — the `audits` job's witness-loss check compares against it.
+      # Empty when no honest base exists (a dispatch run, an unresolvable `before`); that check then falls back
       # to its own default, the merge-base with origin/main.
       base: ${{ steps.decide.outputs.base }}
     steps:
@@ -126,9 +131,8 @@ jobs:
         shell: bash
         env:
           BEFORE: ${{ github.event.before }}
-          # What a merge group or a pull request adds to main is measured from ITS base, not from `before`.
+          # What a merge group adds to main is measured from ITS base, not from `before`.
           GROUP_BASE: ${{ github.event.merge_group.base_sha }}
-          PR_BASE: ${{ github.event.pull_request.base.sha }}
           SHA: ${{ github.sha }}
           REF: ${{ github.ref }}
           EVENT: ${{ github.event_name }}
@@ -137,14 +141,14 @@ jobs:
         run: |
           set -uo pipefail
           ZERO=0000000000000000000000000000000000000000
-          code=true; verified=false; reason=""; BASE=""
+          code=true; verified=false; reason=""; BASE=""; tooling=true
           if [ "$EVENT" = "pull_request" ]; then
-            # ⛔ THE CHEAP JOBS ONLY (kb/Work PB3024): the matrix runs on the MERGE GROUP, which tests this PR on top
-            # of main together with the others queued. A PR run is `audits` (citations, self-tests, the work register,
-            # the fleet practices) and `ci-gate`, and its base is the PR's base for the witness-loss audit.
+            # ⛔ THE REQUIRED CHECK ONLY (kb/Work PB3024, PB4330): the matrix AND the audits run on the MERGE GROUP, which
+            # tests this PR on top of main together with the others queued and is the one run each change gets. A PR run
+            # is `changes` and `ci-gate`, nothing else: the audits (citations, self-tests, the work register, the fleet
+            # practices) ran in the implementer's gate and run once more in the merge group, not a third time here.
             code=false
-            BASE="${PR_BASE:-}"
-            reason="event=pull_request — the matrix runs on the merge group (kb/Work PB3024); this run is the cheap jobs only"
+            reason="event=pull_request — the matrix and the audits run on the merge group (kb/Work PB3024, PB4330); this run is changes and ci-gate only"
           elif [ "$EVENT" != "push" ] && [ "$EVENT" != "merge_group" ]; then
             reason="event=$EVENT — a dispatch run is always the full matrix"
           else
@@ -174,6 +178,8 @@ jobs:
               # evidence of a no-op or a probe, never that no test reads the change (feedback_verdict_evidence_invariant).
               lane_out="$(python3 scripts/inert_lane.py classify --base "$BASE" --head "$SHA")"
               lane_reason="$(printf '%s\n' "$lane_out" | sed -n 's/^reason=//p')"
+              # A change proved to touch no tooling (kb/Work PB4326): any other answer, or none, leaves it true.
+              if printf '%s\n' "$lane_out" | grep -qx 'tooling=false'; then tooling=false; fi
               if printf '%s\n' "$lane_out" | grep -qx 'lane=inert'; then
                 code=false
                 reason="inert lane over $BASE..$SHA: $lane_reason — the matrix is skipped"
@@ -211,13 +217,14 @@ jobs:
             echo "code=$code"
             echo "verified=$verified"
             echo "reason=$reason"
+            echo "tooling=$tooling"
             echo "base=$BASE"
           } >> "$GITHUB_OUTPUT"
-          echo "run_matrix=$run_matrix (code=$code verified=$verified): $reason"
+          echo "run_matrix=$run_matrix (code=$code verified=$verified tooling=$tooling): $reason"
           {
             echo "### changes"
             echo
-            echo "\`run_matrix\` = **$run_matrix**  (code=$code, verified=$verified)"
+            echo "\`run_matrix\` = **$run_matrix**  (code=$code, verified=$verified, tooling=$tooling)"
             echo
             echo "$reason"
           } >> "$GITHUB_STEP_SUMMARY"
@@ -333,14 +340,19 @@ jobs:
           CHECKOUT_OUTCOME: ${{ steps.checkout-retry.outcome }}
         run: echo "::warning::supersede - the checkout ended $CHECKOUT_OUTCOME, so no superseded merge-group run was cancelled; housekeeping never decides a verdict (kb/Work PB3820)"
 
-  # ── ⛔ THE STATIC AUDITS — ON EVERY PUSH, DOCS-ONLY PUSHES INCLUDED (kb/Work/PB1574). A wrong clause number is
+  # ── ⛔ THE STATIC AUDITS — ON EVERY MERGE GROUP, DOCS-ONLY LANDINGS INCLUDED, AND NOWHERE ELSE (kb/Work PB1574,
+  # PB4330). A wrong clause number is
   # the one defect class no test can fail on (`// MOVE (§14.9.24)` compiles; §14.9.24 is MERGE), so CLAUDE.md
   # rule 1 is enforced by these scripts and nothing else — and until PB1574 they ran only in the local gate
   # and battery phase -1. Every commit that never ran the local gate (a cloud registrar's, a golden lane's, any
   # docs-only landing) therefore reached main unaudited: FOURTEEN wrong or unqualified clause numbers did, and every
   # later wave-local verdict went RED on findings nobody in that wave had written. They run HERE, where `ci-gate`
   # can refuse them, and NOT behind `run_matrix`: `kb/` and `DEVLOG/` are the inert lane's paths, which skip the
-  # matrix, and they carry citations.
+  # matrix, and they carry citations. They ran three times per landing (the pull request, the merge group and the
+  # push of the merge-queue commit, 5.7 minutes each); they run ONCE, in the merge group, which is the first run of the
+  # merged tree and the only one a landing waits for (kb/Work PB4330): the pull request's run is `changes` and `ci-gate`
+  # (the required check), and main's push run adds only the cache jobs. A dispatch run, and a push no merge group
+  # verified (its matrix runs), are full runs and audit too.
   # They need no build and no submodule — `specs/ISO_COBOL.md` is tracked in this repository (the private
   # submodule holds only the PDF) — and only the standard library of toolchain.env's Python, which also runs their
   # `--self-test`s inside the Unit leg (`CitationAuditSelfTestDriftTests`), proving each check can still fail.
@@ -352,6 +364,7 @@ jobs:
   audits:
     name: audits (citations · evidence supersession · witness loss · work register)
     needs: changes
+    if: github.event_name == 'merge_group' || needs.changes.outputs.run_matrix == 'true'
     runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
@@ -409,22 +422,15 @@ jobs:
           fi
       - name: DEVLOG — the landing carries exactly one new, stamped entry file (devlog.py check)
         # Every landing on main carries its one DEVLOG entry (CLAUDE.md rule 6; kb/Work PB2605, PB3025). Checked on what
-        # a landing PROPOSES — a pull request or a merge group — against the main it would land on; a push to main
-        # (the merge-queue commit) was checked as its merge group, and a dispatch run proposes nothing.
-        if: ${{ !cancelled() && (github.event_name == 'pull_request' || github.event_name == 'merge_group') }}
+        # a landing PROPOSES — its merge group — against the group's base; a push to main (the merge-queue commit) was
+        # checked as its merge group, a pull request runs no audit (kb/Work PB4330) and a dispatch run proposes nothing.
+        if: ${{ !cancelled() && github.event_name == 'merge_group' }}
         shell: bash
         env:
-          EVENT: ${{ github.event_name }}
           MG_BASE: ${{ github.event.merge_group.base_sha }}
         run: |
           set -euo pipefail
-          # a pull request checks out its merge with the CURRENT base, whose first parent is that base
-          case "$EVENT" in
-            pull_request) BASE="$(git rev-parse HEAD^1)" ;;
-            merge_group)  BASE="$MG_BASE" ;;
-            *)            echo "devlog step: unexpected event '$EVENT' (the step's if: admits only pull_request and merge_group)"; exit 2 ;;
-          esac
-          python3 scripts/devlog.py check --base "$BASE" --rev HEAD
+          python3 scripts/devlog.py check --base "$MG_BASE" --rev HEAD
       - name: Rule catalog — the unharvested-rule manifest agrees with the transcription (extract_rule_catalog.py --check)
         if: ${{ !cancelled() }}
         run: python3 scripts/spec/extract_rule_catalog.py --check
@@ -950,14 +956,17 @@ jobs:
             TestResults/${{ runner.os }}-build-test/harness-observations.log
 
   # ── Every script self-test on Windows, the Windows-only ones included (the orchestrator loop's test_orchestrate_*.ps1
-  # and test_autostart.ps1), which the Linux audits job reports NOT RUN (kb/Work PB2563). ITS OWN JOB, beside
+  # and test_autostart.ps1), which the Linux audits job reports NOT RUN (kb/Work PB2563). ONLY WHEN THE CHANGE TOUCHES
+  # TOOLING (`changes` says so, from scripts/inert_lane.py; kb/Work PB4326): a script self-test reads tooling and the
+  # data TOOLING_READS names (a whole-tree reader and the DEVLOG/kb corpora are the named residue), so no other change
+  # turns one red, and the Linux audits job runs every Linux self-test whatever the change. ITS OWN JOB, beside
   # windows-build-test (kb/Work PB3581): the default phase never builds (self_tests.py BUILD), so it waits for no build,
   # and as a step after windows-build-test's test legs it was 7.4 of that job's 16.5 minutes, the merge queue's longest
   # job (merge group run 40004159292: 440 s; the next job ended four minutes earlier). ──
   windows-self-tests:
     name: Windows script self-tests
     needs: changes
-    if: needs.changes.outputs.run_matrix == 'true'
+    if: needs.changes.outputs.run_matrix == 'true' && needs.changes.outputs.tooling == 'true'
     runs-on: windows-2025-vs2026
     timeout-minutes: 25
     steps:
