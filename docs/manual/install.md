@@ -43,7 +43,8 @@ cobol --help
 
 ## What a compile deploys
 
-Each compile writes the program's assembly, its `.runtimeconfig.json`, a copy of the COBOL runtime library
-`WiseOwl.Cobol.Runtime.dll` and the C# the compiler generated (`.g.cs`) beside the output file. On Windows and Linux
+Each compile writes the program's assembly, its `.runtimeconfig.json` (a library, which has no main program, gets
+none), a copy of the COBOL runtime library `WiseOwl.Cobol.Runtime.dll` and the C# the compiler generated (`.g.cs`)
+beside the output file. On Windows and Linux
 x64 the runtime library copied is the precompiled (ReadyToRun) image for that platform; on any other platform it is
 the portable runtime. The set of files is everything a machine with the .NET 10 runtime needs to run the program.

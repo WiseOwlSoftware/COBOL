@@ -12,7 +12,9 @@ A compilation group is written in fixed form or free form. The default is fixed 
 
 - **Fixed form** keeps the sequence number in columns 1 to 6, the indicator area in column 7, and program text in
   columns 8 to 72. A `*` or `/` in column 7 makes the line a comment, and a `-` continues a literal or word from the
-  line before. Any character in column 7 other than a space, `*`, `/` or `-` is an error (COBOL2616).
+  line before. A `D` in column 7 marks a debugging line, which the editions treat by age: accepted at `--std 85`,
+  obsolete (COBOL0903, a warning) at 2002, and removed (COBOL0902, an error) at 2014 and 2023. Any other character in
+  column 7 other than a space is an error (COBOL2616).
 - **Free form** has no columns: a line is program text from its first character, and comments start with `*>`.
 
 `--source-format` chooses the format the source starts in:

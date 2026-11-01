@@ -16,9 +16,16 @@ A program built by `cobol` and started with `dotnet program.dll`, or with `cobol
 
 | Ending | Process exit status |
 |---|---|
-| the main program's GOBACK, EXIT PROGRAM or `STOP RUN` | 0 |
-| `STOP RUN WITH ERROR STATUS n` | n |
+| the main program's GOBACK, EXIT PROGRAM or `STOP RUN`, with no phrase, or with `WITH NORMAL` and no status | 0 |
+| `STOP RUN` with a `STATUS n`, after `WITH ERROR` or `WITH NORMAL` | n, whichever of ERROR or NORMAL was written |
+| `STOP RUN WITH ERROR`, with no status | 1 |
 | a fatal exception condition (an abnormal termination) | 1 |
+
+A status value, when one is present, wins over ERROR and NORMAL: `STOP RUN WITH ERROR STATUS 0` ends with 0 and
+`STOP RUN WITH NORMAL STATUS 7` ends with 7. A main program's `GOBACK` takes the same phrases in COBOL 2023. The status
+is an integer; an alphanumeric operand is read as the digits it holds (`STATUS "007"` is 7, `STATUS "ABEND"` is 0), a
+value beyond the 32-bit range is clamped to it, and a POSIX host keeps only the low 8 bits of what it receives
+(`STATUS 300` ends with 44). This is the determination for Annex A.1 item 192 in the conformance statement.
 
 A normal ending performs the actions of ISO/IEC 1989:2023 section 14.6.11, including an implicit CLOSE for every file
 that is open (general rule 2). Section 14.6.12 requires the operating system to indicate an abnormal termination when
@@ -38,8 +45,8 @@ run unit as the host's current one, and throws one documented, catchable excepti
 `WiseOwl.Cobol.Runtime.RunUnitEndedException`. Its `ExitStatus` is the `STOP RUN` status, or 1 for an abnormal
 termination, and its `Abnormal` property says which kind of ending it was. The runtime never calls `Environment.Exit`,
 and no other exception type reaches the host for a run-unit ending. This is the determination for Annex A.1 item 167
-in the conformance statement. Section 14.9.42.4 general rule 6 says STOP "transfers control to the operating system",
-and for a COBOL program called from .NET the host is that system's counterpart.
+in the conformance statement. Section 14.9.42.4 general rule 6 says that "control is transferred to the operating
+system" when the run unit terminates, and for a COBOL program called from .NET the host is that system's counterpart.
 
 Given this COBOL program, which counts its activations in WORKING-STORAGE and ends the run unit on the second:
 
