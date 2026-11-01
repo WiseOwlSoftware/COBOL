@@ -2,7 +2,7 @@
 """self_test_arms.py — ⛔ EVERY PIPELINE SELF-TEST STILL DECLARES THE ARMS ITS DESIGN REQUIRES (DESIGN-test-build-ci.md
 section 3.14.4 arm (3); kb/Work PB1721, PB2882, PB4395).
 
-    python scripts/self_test_arms.py --self-test     # the planted arms, then every DECLARED script of the real tree
+    python scripts/self_test_arms.py --self-test     # the planted arms, then every DECLARED script and the WIRING
 
 A self-test quietly reduced to its happy path also exits 0, and a check that has never been seen to fail is not
 evidence. So each script below must still DECLARE every arm named here: its source holds each string (adjacent string
@@ -12,9 +12,14 @@ order, through `arm("<label>"` calls, and count them in their ALL GREEN line.
 ⛔ WHY HERE (kb/Work PB4395, owner 2026-11-01): until then each list was a C# class in the compiler's test assembly
 (GateLegDriftTests arm (3), GateSlotDriftTests, TestLegReportDriftTests, PerfBaselineSelfTestDriftTests,
 LandingMeasureDriftTests, ReviewLaneDriftTests, HeldAnalyzerOutputDriftTests, GitBatchDriftTests,
-CitationAuditSelfTestDriftTests) reading a script's text through `SelfTestArmSource`, so every change to one of these
-scripts was a compiler change that only a build could check. The lists are the pipeline's, and so is this check: it runs
-in the tooling lane, with the self-tests, and reads only the scripts it names. The compiler's own generators and
+CitationAuditSelfTestDriftTests, SelfTestDiscoveryDriftTests, SelfTestFixtureDriftTests) reading a script's text through
+`SelfTestArmSource`, so every change to one of these scripts was a compiler change that only a build could check. The
+lists are the pipeline's, and so is this check: it runs in the tooling lane, with the self-tests, and reads only the
+scripts it names.
+
+THE LOOP'S WIRING (`WIRING`): the same kind of fact about the code no self-test runs, the supervisor's starting of the
+review lane and the enqueue unit's reading of it (until kb/Work PB4395 ReviewLaneDriftTests), held as patterns a
+PowerShell function, a Markdown step or a whole file must and must not hold. The compiler's own generators and
 extractors (scripts/arch/census.py, scripts/spec/derive_verdict_batch.py) keep their C# lists: a compiler test checks
 their output (kb/Work PB4395 item 2).
 """
@@ -239,7 +244,128 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'fires EMPTY-NEEDLE (check)', 'fires EMPTY-NEEDLE (find)', 'pins 14.7.7 2) bare', 'pins 14.9.8.4 1) b)',
         'accepts the PRINTED form (C6)', 'fires on a wrong clause',
     ),
+    # THE RUNNER (kb/Work PB2563, PB2914): the planted-tree arms are the "a failing self-test turns the gate red" proof,
+    # the fleet arms the reuse, the machine-wide budget and the hang detector; the real-tree arms the net and the entry
+    # points (until kb/Work PB4395, SelfTestDiscoveryDriftTests). The `({planted})` arm runs once per planted unreadable
+    # script, so both stay planted.
+    'scripts/self_tests.py': tuple("arm: " + a for a in (
+        "a script that only PASSES --self-test to another is not",
+        "a docstring or comment mention is not",
+        "a bash `--self-test)` case arm is a self-test",
+        "test_*.ps1 is a standalone self-test",
+        "a windows-only self-test does not run on linux",
+        "a marker SHOWN past the header (a docstring example) declares nothing",
+        "--built runs exactly the build-needing ones, the default run the rest",
+        "discovery finds the planted tree's three self-tests",
+        "a tracked script discovery cannot read ({planted}) fails discovery, never drops out",
+        "each self-test gets a private COBOL_COORD_DIR",
+        "each self-test commits under the private global config's identity, never the caller's",
+        "a failing self-test is RED",
+        "a failing self-test's output reaches the console",
+        "a self-test for another platform is NOT RUN, not run",
+        "one red makes the verdict RED",
+        "the verdict names the red and the not-run one with its reason",
+        "a full run (CI, the Linux gate, a hand run) runs every self-test and records each PASS",
+        "the recorded PASS holds a file read through a name built at run time (the trace saw it)",
+        "a malformed record in the store is skipped, never a crash of the gate, and the good PASS still found",
+        "{_FLEET_GATES} concurrent gates on an unchanged tree re-run nothing (every one REUSED)",
+        "a changed input re-runs exactly the self-test that read it (each run a real one); the others are REUSED in "
+        "every gate",
+        "{_FLEET_GATES} gates running the same self-test at once run at most the budget's {_FLEET_CAP} at a time, and "
+        "none hangs",
+        "an edited import re-runs the self-test that imports it, and only that one",
+        "a self-test still running past the hang detector is HANG — its own state, verdict and exit code, never RED",
+        "a Python self-test whose trace does not show its own file records no PASS (the tracer did not run)",
+        "the net finds a flag beside argv, a test_* name and a shell case arm, never a comment or a list that only "
+        "passes the flag",
+        "THE REAL TREE: every self-test the net finds is discovered by the runner",
+        "a self-test named in an entry point is found: a flag-handling one with its flag, a standalone one at all",
+        "THE REAL TREE: no gate entry point runs one of the {len(tests)} discovered self-tests by hand",
+    )) + ('("broken.py", ', '("latin1.py", '),
+    # THE SCRATCH-REPOSITORY FIXTURE (kb/Work PB3584, PB3194): an arm for each guarantee and each audit arm (until kb/Work
+    # PB4395, SelfTestFixtureDriftTests).
+    'scripts/scratch_repo.py': (
+        "isolation: a caller's GIT_DIR never reaches a fixture command",
+        "isolate() drops git's repository-selection variables from this process",
+        "settings: the identity, no automatic maintenance and no signing are the repository's own config",
+        "checking: a failing fixture command raises, naming the command and the directory",
+        "run: the unchecked form returns git's exit code",
+        "origin: a bare repository with the fixture's settings, added as the remote, receives a push",
+        "clone: a second clone of the origin, with the fixture's settings",
+        "worktree: a linked worktree on its own branch, its commit dated by `when`",
+        "options: given to every command of the object that holds them",
+        "audit SPAWN: a git argv in a self-test function",
+        "audit INIT: an `init` argv list and an `init` helper call in a self-test",
+        "audit HELPER: a self-test's nested helper over the module's own git function",
+        "audit INIT: a top-level function only self-test code reaches is read by the INIT arm",
+        "audit: the code under test's git, and a self-test CALLING it, are no finding",
+        "audit EMPTY: a tree with no self-test code is RED, never a green over nothing",
+        "audit SCRATCH: a self-test's tempfile.mkdtemp and rmtree(ignore_errors=True) are findings",
+        "remove_tree: a read-only file (git writes its objects so) goes with its directory",
+        "scratch_dir: its directory, read-only entries included, is removed when the process ends by",
+        "the tree: no self-test drives git around the fixture",
+        "rules once: a hand-made repository (never a comment), a second --local-env-vars reading, a second identity, a "
+        "scrub away from its home and a runner that no longer imports the settings are each named",
+        "THE REAL TREE: no script but the fixture creates a repository",
+    ),
 }
+
+
+#: ⛔ THE LOOP'S WIRING, which no self-test runs: (file, scope, the patterns the scope must hold, the patterns it must
+#: not), each pattern a regular expression. A scope is `function <Name>` (a PowerShell function, to the next one), `step
+#: <n>` (a Markdown unit's numbered step, to the next one) or "" (the whole file); a scope the file no longer has is a
+#: finding. Until kb/Work PB4395 these were ReviewLaneDriftTests in the compiler's test assembly (kb/Work PB3608;
+#: DESIGN-orchestrator-loop.md section 4.9.1): the loop's review lane reviews and finishes conflicts BESIDE the landing
+#: lane, so the supervisor starts `review_lane.py tick` as a BACKGROUND process from `Start-ReviewTick`, which
+#: `Complete-LaneTick` calls the moment a landing-lane tick ends (the lane reads the survey that tick wrote), and never
+#: waits for it (the event loop reads the unit's stream, ticks the startup watchdog and checks STOP: kb/Work PB2590);
+#: `-ReviewAgents 0` runs no review lane; and the enqueue unit's step 2 reads the lane and starts no reviewer (two
+#: reviewers would race for one branch). The lane's own decisions are review_lane.py's self-test's (DECLARED above).
+WIRING: tuple[tuple[str, str, tuple[str, ...], tuple[str, ...]], ...] = (
+    ("scripts/orchestrator/orchestrate.ps1", "function Start-ReviewTick",
+     (r"'review_lane\.py'", r"'tick'", r"Resolve-Launch \$ClaudeExe", r"Start-PyBackground", r"\$ReviewAgents -le 0"),
+     (r"WaitForExit",)),
+    ("scripts/orchestrator/orchestrate.ps1", "function Complete-LaneTick", (r"\bStart-ReviewTick\b",), ()),
+    ("scripts/orchestrator/orchestrate.ps1", "function Step-Lane", (r"\bComplete-ReviewTick\b",), ()),
+    ("scripts/orchestrator/orchestrate.ps1", "", (r"\[int\]\$ReviewAgents\s*=\s*[1-9]\d*",), ()),
+    ("scripts/orchestrator/units/enqueue.md", "step 2",
+     (r"review_lane\.py status", r"review_lane\.py tick", r"review_lane\.py collect"), ()),
+    # The retired wording: step 2 dispatched a reviewer for EVERY WAITING FOR REVIEW row.
+    ("scripts/orchestrator/units/enqueue.md", "", (), (r"REVIEW FIRST",)),
+)
+
+
+def scope_of(text: str, scope: str) -> str | None:
+    """The text of `scope` in `text` (see WIRING), or None when the file has no such scope."""
+    if not scope:
+        return text
+    kind, _, name = scope.partition(" ")
+    if kind == "function":
+        m = re.search(rf"^function {re.escape(name)}\b.*?(?=^function |\Z)", text, re.MULTILINE | re.DOTALL)
+    elif kind == "step":
+        m = re.search(rf"^{re.escape(name)}\. .*?(?=^\d+[a-z]?\. |\Z)", text, re.MULTILINE | re.DOTALL)
+    else:
+        raise ValueError(f"no such scope kind: {scope!r}")
+    return m.group(0) if m else None
+
+
+def wiring_findings(root: Path = REPO, wiring=WIRING) -> list[str]:
+    """Every file of `wiring` that is missing, every scope it no longer has, every pattern its scope no longer holds and
+    every one it holds that it must not."""
+    bad: list[str] = []
+    for rel, scope, holds, lacks in wiring:
+        path = root / rel
+        if not path.is_file():
+            bad.append(f"{rel}: missing")
+            continue
+        text = scope_of(path.read_text(encoding="utf-8").replace("\r\n", "\n"), scope)
+        where = f"{rel} ({scope})" if scope else rel
+        if text is None:
+            bad.append(f"{where}: no such scope")
+            continue
+        bad += [f"{where}: no longer holds /{p}/" for p in holds if not re.search(p, text)]
+        bad += [f"{where}: holds /{p}/, which it must not" for p in lacks if re.search(p, text)]
+    return bad
 
 
 def joined(source: str) -> str:
@@ -295,7 +421,24 @@ def self_test() -> int:
         expect("an EXACT script must call exactly its arms in order and count them",
                (findings(root, {"x.py": ("first", "second")}, frozenset({"x.py"})),
                 len(findings(root, {"x.py": ("second", "first")}, frozenset({"x.py"})))), ([], 1))
+        (root / "s.ps1").write_text("function Start-It {\n    Start-PyBackground 'x.py' 'tick'\n    $p.WaitForExit()\n}\n"
+                                    "function Next {\n    Start-It\n}\n", encoding="utf-8", newline="\n")
+        (root / "u.md").write_text("1. one\n2. read `x.py status`\n   then go\n3. three REVIEW FIRST\n", encoding="utf-8",
+                                   newline="\n")
+        planted = (("s.ps1", "function Start-It", (r"Start-PyBackground", r"'tick'", r"'other'"), (r"WaitForExit",)),
+                   ("s.ps1", "function Next", (r"\bStart-It\b",), ()), ("s.ps1", "function Gone", (), ()),
+                   ("u.md", "step 2", (r"x\.py status", r"then go"), (r"REVIEW FIRST",)),
+                   ("u.md", "", (), (r"REVIEW FIRST",)), ("gone.md", "", (), ()))
+        expect("wiring: a pattern a scope no longer holds, one it must not hold, a scope the file no longer has and a "
+               "missing file are named; a function ends at the next, a step at the next step",
+               wiring_findings(root, planted),
+               ["s.ps1 (function Start-It): no longer holds /'other'/",
+                "s.ps1 (function Start-It): holds /WaitForExit/, which it must not",
+                "s.ps1 (function Gone): no such scope",
+                "u.md: holds /REVIEW FIRST/, which it must not", "gone.md: missing"])
     expect("THE REAL TREE: every script still declares every arm its design requires", findings(), [])
+    expect("THE REAL TREE: the supervisor starts the review lane in the background after every landing tick, and the "
+           "enqueue unit's step 2 reads the lane and starts no reviewer (kb/Work PB3608)", wiring_findings(), [])
     print(f"=== SELF-TEST ARMS SELF-TEST: {'FAIL — ' + str(len(failures)) if failures else 'PASS'} "
           f"({len(DECLARED)} scripts) ===")
     return 1 if failures else 0

@@ -36,6 +36,8 @@ from standard_streams import ensure_utf8
 
 from standard_streams import ensure_utf8
 
+from standard_streams import ensure_utf8  # this directory's: the one UTF-8 switch for the standard streams (PB3637)
+
 JOBS_KEY = re.compile(r"^jobs:[ \t]*(?:#.*)?$")
 JOB_HEADER = re.compile(r"^  (?P<id>[A-Za-z0-9_.-]+):[ \t]*(?:#.*)?$")
 STEPS_KEY = re.compile(r"^\s*steps:[ \t]*(?:#.*)?$")

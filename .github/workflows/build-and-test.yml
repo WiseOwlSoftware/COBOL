@@ -974,6 +974,7 @@ jobs:
             scripts/live_tools.py
             scripts/scratch_repo.py
             scripts/test_population.py
+            scripts/ci_workflow.py
             .github/actions/download-results
             global.json
           sparse-checkout-cone-mode: false
@@ -991,6 +992,7 @@ jobs:
             scripts/live_tools.py
             scripts/scratch_repo.py
             scripts/test_population.py
+            scripts/ci_workflow.py
             .github/actions/download-results
             global.json
           sparse-checkout-cone-mode: false
