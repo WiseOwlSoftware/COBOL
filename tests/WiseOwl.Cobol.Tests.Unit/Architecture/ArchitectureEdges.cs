@@ -2,7 +2,6 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
 
 namespace WiseOwl.Cobol.Tests.Unit.Architecture;
 
@@ -22,10 +21,6 @@ internal sealed record EdgesPair(string From, string To, IReadOnlyList<string> R
 /// pair: its uses are inlined consts or <c>nameof</c>s), the row's own removers.</summary>
 internal sealed record EdgesRow(string From, string To, int Uses, int WalkUses, IReadOnlyList<string> RemovedBy, string Plan,
     IReadOnlyList<EdgesPair> Pairs);
-
-/// <summary>What the edges file reads of a kb/Work note it names as a remover: its <c>status</c> and its
-/// <c>**Removes …**</c> lines (the rows it removes from).</summary>
-internal sealed record RemoverNote(string Status, string Removes);
 
 /// <summary>
 /// THE ARCHITECTURE EDGES FILE, <c>docs/rearchitecture/architecture-edges.json</c> (kb/Work PB2417;
@@ -52,8 +47,6 @@ internal sealed record ArchitectureEdges(
         DefaultIgnoreCondition = JsonIgnoreCondition.Never,
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
-
-    private static readonly Regex NoteId = new(@"\bPB\d+\b", RegexOptions.NonBacktracking);
 
     public static ArchitectureEdges Load(string path) =>
         JsonSerializer.Deserialize<ArchitectureEdges>(File.ReadAllText(path), Json)
@@ -149,49 +142,6 @@ internal sealed record ArchitectureEdges(
             {
                 failures.Add($"{name}: removedBy [{string.Join(", ", row.RemovedBy)}] is not the union of its pairs' removers "
                              + $"[{string.Join(", ", union)}]");
-            }
-        }
-
-        return failures;
-    }
-
-    /// <summary>
-    /// The register's side of the removers (§8.1 "The ratchet and the removers"): every note the file names — a pair's or
-    /// a census-only row's remover, or a note a row's plan names — is a kb/Work note (<paramref name="note"/> answers null
-    /// for one kb/Work does not hold); a remover is not terminal (<paramref name="terminal"/>, the register's
-    /// <c>TERMINAL_STATUSES</c>: a note that landed or retired while its pair is still measured removes nothing, so the
-    /// pair has no live remover); and a remover's <c>**Removes …**</c> line names every row it removes from (the two
-    /// directions of one link: the row names the note, the note names the row).
-    /// </summary>
-    public IReadOnlyList<string> RemoverDefects(Func<string, RemoverNote?> note, IReadOnlySet<string> terminal)
-    {
-        var failures = new List<string>();
-        foreach (EdgesRow row in Tolerated)
-        {
-            string name = $"tolerated row {row.From} -> {row.To}";
-            // backticked, so `CodeGen → Binding` is never read inside `CodeGen → Binding.Repository`
-            string link = $"`{row.From} → {row.To}`";
-            foreach (string id in row.RemovedBy.Concat(row.Pairs.SelectMany(p => p.RemovedBy)).Distinct().Order(StringComparer.Ordinal))
-            {
-                if (note(id) is not { } n)
-                {
-                    failures.Add($"{name} names {id} as a remover, which kb/Work does not hold");
-                }
-                else if (terminal.Contains(n.Status))
-                {
-                    failures.Add($"{name} names {id} as a remover, but {id} is {n.Status}: it removed what it removes, so delete it "
-                                 + "from every removedBy that still names it (a pair left with no remover is a dependency nobody removes)");
-                }
-                else if (!n.Removes.Contains(link, StringComparison.Ordinal))
-                {
-                    failures.Add($"{name} names {id} as a remover, but {id}'s **Removes** line does not name the row ({link}): "
-                                 + "a remover names every row it removes from");
-                }
-            }
-
-            foreach (string id in NoteId.Matches(row.Plan).Select(m => m.Value).Distinct().Where(id => note(id) is null))
-            {
-                failures.Add($"{name}: its plan names {id}, which kb/Work does not hold");
             }
         }
 

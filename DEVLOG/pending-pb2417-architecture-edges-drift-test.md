@@ -70,10 +70,12 @@ absorbed at the next recording. §8.1 approved a file seeded once and then ratch
 `WISEOWL_COBOL_ARCH_EDGES_RATCHET=1` runs `ArchitectureEdges.Ratchet`, which deletes vanished pairs and dead rows and
 lowers counts, and never adds a pair or a row, raises a count or names a remover. Admitting a dependency is a hand
 edit in the change that files the note removing it. `scripts/arch/edges.py` did its one job and is deleted. Its
-Removes-line check moved into the gate as `ArchitectureEdges.RemoverDefects`, which also refuses a remover kb/Work
-does not hold and a landed or retired one (`work.py`'s `TERMINAL_STATUSES`, read from there). Ratcheting the seeded
-file changes no byte of it. Two new self-tests plant the reviewer's swap, an added pair, a new row and census growth
-(each still red after the ratchet), every fall, and each remover defect.
+Removes-line check moved into `work.py check` as `edges_remover_problems`, which also refuses a remover kb/Work does
+not hold and a landed or retired one. It is the register's audit, not the drift test's: a first cut read the notes from
+the drift test, and the Linux half's inert watch went red on the 25 notes it opened, because `kb/` is inert (no test
+may read it, so a register-only change runs no test). Ratcheting the seeded file changes no byte of it. A new
+self-test plants the reviewer's swap, an added pair, a new row and census growth (each still red after the ratchet)
+and every fall; `test_plan_wave.py` plants each remover defect.
 
 **A census-only row names its remover (R1-2).** `Binding.Bound → Frontend.Parsing` has one census use and no walked
 pair, so it passed with no remover at all. A row with no pair now names its own removers in `removedBy`. This one

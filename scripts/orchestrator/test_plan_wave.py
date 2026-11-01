@@ -2052,6 +2052,35 @@ check("a planted R3 note naming the generated file AND its grammar passes the bu
 check("an untracked path is missing even if a local file has that name",
       work.named_missing_paths("`src/WiseOwl.Cobol.Frontend/obj/project.assets.json`"), ["src/WiseOwl.Cobol.Frontend/obj/project.assets.json"])
 
+# PB2417 review (R1-1, R1-2): the register's side of the architecture edges file's removers, on a planted file and notes.
+def edges_note(pid, status, removes):
+    return {"_file": pid + ".md", "id": pid, "status": status, "_body": NL + "**Removes (planted):** " + removes + NL}
+
+
+EDGES = {"tolerated": [{"from": "P.Low", "to": "P.Mid", "removedBy": ["PB1"], "plan": "PB1",
+                        "pairs": [{"from": "P.Low.A", "to": "P.Mid.B", "removedBy": ["PB1"]}]},
+                       {"from": "P.Mid", "to": "P.High", "removedBy": ["PB2"], "plan": "PB2, then PB3", "pairs": []}]}
+NOTES = [edges_note("PB1", "open", "`P.Low → P.Mid` 1"), edges_note("PB2", "open", "`P.Mid → P.High` 1"),
+         edges_note("PB3", "open", "nothing")]
+check("the edges file's removers: open notes whose Removes lines name their rows pass",
+      work.edges_remover_problems(NOTES, EDGES), [])
+check("a remover the register lacks (a pair's), and a plan's missing note",
+      [m.split(": ", 1)[1] for m in work.edges_remover_problems(NOTES[1:], EDGES)],
+      ["tolerated row P.Low -> P.Mid names PB1 as a remover, which kb/Work does not hold",
+       "tolerated row P.Low -> P.Mid: its plan names PB1, which kb/Work does not hold"])
+check("a landed remover removes nothing",
+      any("PB1 is landed" in m for m in work.edges_remover_problems([edges_note("PB1", "landed", "`P.Low → P.Mid` 1")] + NOTES[1:], EDGES)),
+      True)
+check("a census-only row's own remover is checked like a pair's (its Removes line names another row)",
+      any("PB2's **Removes** line does not name the row (`P.Mid → P.High`)" in m
+          for m in work.edges_remover_problems([NOTES[0], edges_note("PB2", "open", "`P.Low → P.Mid` 1"), NOTES[2]], EDGES)),
+      True)
+check("a row whose name is a prefix of another's is not named by the longer one",
+      any("PB1's **Removes** line does not name the row" in m
+          for m in work.edges_remover_problems([edges_note("PB1", "open", "`P.Low → P.Mid.Sub` 1")] + NOTES[1:], EDGES)),
+      True)
+check("the live edges file's removers are open notes that name their rows", work.edges_remover_problems(REAL), [])
+
 # PB2562: a train label is a taken wave number, because a wave's first train is labelled with the wave number.
 with tempfile.TemporaryDirectory() as td:
     tdir = pathlib.Path(td)
