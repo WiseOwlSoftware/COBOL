@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SELF-TEST-CLOCK: real — its arms commit scratch repositories at real time and compare their ages with the clock (idle hours, --min-age)
 """Every local branch, every branch of origin and every worktree, by CONTENT against origin/main and by LIFECYCLE (who
 acts on it next); with --apply, remove the ones whose work is on main, and the ones abandoned by a recorded decision.
 

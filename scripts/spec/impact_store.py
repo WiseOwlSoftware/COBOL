@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SELF-TEST-CLOCK: real — `tidy` compares temp-file and work-directory modification times with the clock
 """impact_store.py — THE ONE HOME OF THE IMPACT-MAP STORE (kb/Work PB1683, PB3663; DESIGN-test-build-ci.md §3.13).
 
     python scripts/spec/impact_store.py --self-test

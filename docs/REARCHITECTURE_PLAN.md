@@ -3240,7 +3240,10 @@ already-derivable coverage; none change the pipeline.
   `--reuse` (the implementer gate's) reports a self-test REUSED while everything its recorded PASS read is unchanged;
   every other run records; each self-test that runs takes a place in one machine-wide budget, and a hung one is HANG,
   never RED (kb/Work PB2914; DESIGN-test-build-ci.md §3.14.10). `python scripts/self_test_inputs.py <self-test>` prints
-  a self-test's static inputs.
+  a self-test's static inputs. A Python self-test that can read the wall clock passes only if it also passes with the
+  clock moved forward 400 days, so a fixture dated near its authoring day fails at once (a self-test comparing the clock
+  with a real one declares `# SELF-TEST-CLOCK: real — <why>`; a recorded PASS is reused only inside the horizon it
+  proved; kb/Work PB4358, `scripts/self_test_clock.py`, DESIGN-test-build-ci.md §3.14.10 item 5).
 - The order plan (kb/Work PB1683, PB1717, PB1721; `docs/rearchitecture/DESIGN-test-build-ci.md` sections 3.13 and
   3.14.2): the gate builds it in-process — `impacted_tests.py`'s tiers of the change against the impact map for the
   cut point, then `gate_plan.py` (`NameKey`, tiers 0a/0u/1–3, the leg-1 budgets and collection cap). By hand:
