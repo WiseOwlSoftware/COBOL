@@ -1846,6 +1846,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} format");
                 }
                 anycase = true;
+                // ANYCASE is a 2002 introduction (§15.68.2 / §15.94.2 print it; ISO/IEC 1989:2002 §15.55 / §15.76
+                // already did, and §8.9 reserves the word only from 2002): below 2002 it is an ordinary user-defined
+                // word, so the keyword is refused by edition like the LOCALE keyword below (kb/Work PB4359).
+                ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.NumvalCAnycaseKeyword2002,
+                    $"the ANYCASE keyword of FUNCTION {sig.Name}");
                 continue;
             }
             if (anycase)
