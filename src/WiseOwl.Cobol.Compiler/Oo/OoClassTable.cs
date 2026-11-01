@@ -405,7 +405,7 @@ public sealed class OoClassTable
             // COBOL-2002 introduction gate: VersionConformancePass ParseArm.VisitInterfaceDefinition (rearch 14g.3,
             // recognition — fires per parse node, so a duplicate/colliding definition dropped below still names its edition).
             var isym = NewInterfaceSymbol(ictx);
-            string icsName = isym.CsName;
+            string icsName = isym.ClrName;
             if (table._ifaceByName.ContainsKey(iname) || table._byName.ContainsKey(iname)
                 || !usedCsNames.Add(icsName))
             {
@@ -482,7 +482,7 @@ public sealed class OoClassTable
                     HasReturning: pd?.returningClause() is not null,
                     m)
                 {
-                    CsName = psel is null ? DataItem.WordIdentifier(pname) : protoName,
+                    ClrName = psel is null ? DataItem.WordIdentifier(pname) : protoName,
                     Accessor = psel is null ? '\0' : psel.GET() is not null ? 'G' : 'S',
                     PropertyName = psel is null ? null : pname,
                     // §11.7.2 prints [AS literal-1] on the method-name-1 arm only (the class arm's rule).
@@ -578,7 +578,7 @@ public sealed class OoClassTable
             // COBOL-2002 introduction gate: VersionConformancePass ParseArm.VisitClassDefinition (rearch 14g.3,
             // recognition — fires per parse node, so a duplicate/colliding definition dropped below still names its edition).
             var sym = NewClassSymbol(ctx);
-            string csName = sym.CsName;
+            string csName = sym.ClrName;
             ScreenInheritsNames(id, name, edition);
             // A class named like an interface is ONE report, not two: the interface already holds the emitted name, so
             // the duplicate-class arm below would also have fired on the same definition.
@@ -599,9 +599,9 @@ public sealed class OoClassTable
             }
             // The factory class's name is a NamingConvention prefix family no class-name spells (kb/Work PB2921), so it
             // is free whenever the class's own name was: a failure here is a defect of the naming convention.
-            if (!usedCsNames.Add(sym.FactoryCsName))
+            if (!usedCsNames.Add(sym.FactoryClrName))
                 throw new InvalidOperationException(
-                    $"factory class name '{sym.FactoryCsName}' of class '{name}' is already taken (kb/Work PB2921)");
+                    $"factory class name '{sym.FactoryClrName}' of class '{name}' is already taken (kb/Work PB2921)");
             table._classes.Add(sym);
             // The END CLASS and END METHOD names are §10.7.3 SR4 / SR5, asked by Validation.EndMarkerPass.
             AddMethods(sym);
@@ -650,7 +650,7 @@ public sealed class OoClassTable
                     HasUsing: pd?.usingClause() is not null,
                     HasReturning: pd?.returningClause() is not null,
                     m)
-                { CsName = mcs, Owner = sym, HasOverride = m.OVERRIDE() is not null, IsFinal = m.FINAL() is not null,
+                { ClrName = mcs, Owner = sym, HasOverride = m.OVERRIDE() is not null, IsFinal = m.FINAL() is not null,
                   Accessor = sel is null ? '\0' : sel.GET() is not null ? 'G' : 'S',
                   PropertyName = sel?.propertyName().GetText(),
                   // §11.7.2 prints [AS literal-1] on the method-name-1 arm only — a GET/SET PROPERTY
@@ -687,7 +687,7 @@ public sealed class OoClassTable
                     HasUsing: pd?.usingClause() is not null,
                     HasReturning: pd?.returningClause() is not null,
                     m)
-                { CsName = fcs, Owner = sym, IsFactory = true,
+                { ClrName = fcs, Owner = sym, IsFactory = true,
                   HasOverride = m.OVERRIDE() is not null, IsFinal = m.FINAL() is not null,
                   Accessor = fsel is null ? '\0' : fsel.GET() is not null ? 'G' : 'S',
                   PropertyName = fsel?.propertyName().GetText(),
@@ -991,7 +991,7 @@ public sealed class OoClassTable
     /// (kb/Work PB975), so an override of an inherited method spelled like the class was refused (COBOL4213, retired)
     /// and an implementation of a prototype spelled like the class failed in Roslyn (CS0535).</para>
     /// <para>Run once every override is marked (<see cref="ResolveOverrides"/>), before any procedure binds an INVOKE
-    /// (<c>OoBinder</c> reads <see cref="OoMethodSymbol.CsName"/>).</para></summary>
+    /// (<c>OoBinder</c> reads <see cref="OoMethodSymbol.ClrName"/>).</para></summary>
     private void NameMethodSlots()
     {
         var parent = new Dictionary<OoMethodSymbol, OoMethodSymbol>(ReferenceEqualityComparer.Instance);
@@ -1010,17 +1010,17 @@ public sealed class OoClassTable
         void Join(OoMethodSymbol a, OoMethodSymbol b) => parent[Root(a)] = Root(b);
 
         foreach (var iface in _interfaces)
-            foreach (var proto in iface.Prototypes) Add(proto, iface.CsName);
+            foreach (var proto in iface.Prototypes) Add(proto, iface.ClrName);
         foreach (var cls in _classes)
         {
-            foreach (var m in cls.Methods) Add(m, cls.CsName);
-            foreach (var m in cls.FactoryMethods) Add(m, cls.FactoryCsName);
+            foreach (var m in cls.Methods) Add(m, cls.ClrName);
+            foreach (var m in cls.FactoryMethods) Add(m, cls.FactoryClrName);
         }
         foreach (var cls in _classes)
             foreach (var m in cls.Methods.Concat(cls.FactoryMethods))
                 if (m.OverrideOf is { } baseM)
                 {
-                    Add(baseM, baseM.Owner is { } o ? (baseM.IsFactory ? o.FactoryCsName : o.CsName) : "");
+                    Add(baseM, baseM.Owner is { } o ? (baseM.IsFactory ? o.FactoryClrName : o.ClrName) : "");
                     Join(m, baseM);
                 }
         foreach (var cls in _classes)
@@ -1033,11 +1033,11 @@ public sealed class OoClassTable
         foreach (var slot in order.GroupBy(Root, ReferenceEqualityComparer.Instance))
         {
             var members = slot.ToList();
-            string name = members.FirstOrDefault(m => m.Standard is not StandardMethod.None)?.CsName
-                ?? members.First(m => m.OverrideOf is null).CsName;
+            string name = members.FirstOrDefault(m => m.Standard is not StandardMethod.None)?.ClrName
+                ?? members.First(m => m.OverrideOf is null).ClrName;
             if (members.Any(m => enclosing[m] == name)) name = NamingConvention.ClassNamedMethodName(name);
             foreach (var m in members)
-                if (m.Standard is StandardMethod.None) m.CsName = name;
+                if (m.Standard is StandardMethod.None) m.ClrName = name;
         }
     }
 }

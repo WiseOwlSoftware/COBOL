@@ -493,7 +493,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         string usage = ItemCategory.UsageOf(outside)?.ToString() ?? "(none)";
         const string requirement = "which has no character image; SR1 requires every identifier except the POINTER to be usage display or national";
         if (!ReferenceEquals(outside, operand))
-            return $"is a strongly-typed group item holding '{outside.CobolName ?? outside.CsName}' of USAGE {usage}, "
+            return $"is a strongly-typed group item holding '{outside.CobolName ?? outside.ClrName}' of USAGE {usage}, "
                 + requirement + ", and a strongly-typed group's usage is that of the elementary items it is made of "
                 + "(§8.5.2.1 gives only an alphanumeric group the usage of display)";
         return outside.IsGroup

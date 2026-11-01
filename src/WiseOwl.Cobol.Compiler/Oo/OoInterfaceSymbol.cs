@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Compiler.Oo;
 /// <see cref="OoMethodSymbol"/> — headers + LINKAGE formals, no bodies), the INHERITS list (repetition
 /// SUPPORTED — C# interface lists are native; the deliberate asymmetry with the class-side single-base
 /// restriction, SSOT §18.18), and the emitted C# interface name.</summary>
-public sealed class OoInterfaceSymbol(string name, string csName, CobolParserCore.InterfaceDefinitionContext ctx)
+public sealed class OoInterfaceSymbol(string name, string clrName, CobolParserCore.InterfaceDefinitionContext ctx)
 {
     public string Name { get; } = name;
     /// <summary>The name externalized to the operating environment (ISO §11.6.4 GR1: "literal-1, if
@@ -21,7 +21,9 @@ public sealed class OoInterfaceSymbol(string name, string csName, CobolParserCor
     /// the operating-environment identity this implementation records for the definition (kb/Work
     /// PB303).</summary>
     public string ExternalizedName { get; init; } = name;
-    public string CsName { get; } = csName;
+    /// <summary>The CLR type name of the interface — the module's ABI, the same for every backend (kb/Work
+    /// PB4265).</summary>
+    public string ClrName { get; } = clrName;
     public CobolParserCore.InterfaceDefinitionContext Ctx { get; } = ctx;
     public List<OoInterfaceSymbol> Inherits { get; } = [];
 
@@ -39,7 +41,7 @@ public sealed class OoInterfaceSymbol(string name, string csName, CobolParserCor
     /// intf-1, b) implements an interface that inherits intf-1, c) the class … inherits a class whose instance
     /// object implements intf-1") ride C#'s <c>is</c> rather than this census: the emitted interface carries its
     /// own INHERITS as C# bases and the emitted class carries its base's implementations.</para></summary>
-    public IReadOnlyList<string> ImplementedCsTypes => [CsName];
+    public IReadOnlyList<string> ImplementedCsTypes => [ClrName];
 
     private readonly Dictionary<string, OoMethodSymbol> _protos = new(CobolNames.Comparer);
     public IReadOnlyList<OoMethodSymbol> Prototypes => _protoList;

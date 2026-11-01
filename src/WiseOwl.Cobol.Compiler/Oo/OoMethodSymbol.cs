@@ -31,12 +31,13 @@ public sealed record OoMethodSymbol(
     /// the Annex C fold, <see cref="WiseOwl.Cobol.Runtime.CobolNames"/>). Never <see cref="Name"/>: an AS phrase replaces it.</summary>
     public string DispatchKey => WiseOwl.Cobol.Runtime.CobolObject.NormalizeMethodName(ExternalizedName);
 
-    /// <summary>The emitted C# method name. Starts as the sanitized-uppercase COBOL name; an OVERRIDE adopts
+    /// <summary>The emitted CLR method name — the module's ABI, the same for every backend and the one the
+    /// repository records (<c>RepositoryMethod.ClrName</c>; kb/Work PB4265). Starts as the sanitized-uppercase COBOL name; an OVERRIDE adopts
     /// its base slot's name verbatim (C# requires the override member name to match), and a collision with
     /// the owning class's type name (C# CS0542) or an emitted field takes a deterministic suffix — always a
     /// SYMBOL-level rename so every INVOKE site in the group follows automatically (§8.3.2.2: the
     /// user-word→externalized-name mapping is implementor-defined).</summary>
-    public required string CsName { get; set; }
+    public required string ClrName { get; set; }
 
     /// <summary>The class that declares this method (set at pass-1) — the marshaling qualifier for the
     /// formal's class-level statics (numeric profiles) at CONTENT-conversion call sites.</summary>
@@ -76,7 +77,7 @@ public sealed record OoMethodSymbol(
 
     /// <summary>True for a FACTORY method (§11.4) — the SELF/SUPER roster selector and diagnostic wording;
     /// its formals' profiles/statics live on the FACTORY class, so CONTENT-conversion call sites qualify by
-    /// <see cref="OoClassSymbol.FactoryCsName"/>.</summary>
+    /// <see cref="OoClassSymbol.FactoryClrName"/>.</summary>
     public bool IsFactory { get; init; }
 
     /// <summary>METHOD-ID … OVERRIDE (§11.7 SR3/SR4a — the OVERRIDE/FINAL wave, DEVLOG 605): an explicit

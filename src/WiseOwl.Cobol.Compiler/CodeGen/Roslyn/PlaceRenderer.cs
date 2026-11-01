@@ -160,7 +160,7 @@ internal static class PlaceRenderer
         // intrinsic argument-list renderers expand it (IntrinsicRenderer.ArgArray); reaching a read here is a
         // renderer that forgot to, and it must fail at compile time rather than emit an unbound index variable.
         TableAllPlace a => throw new System.InvalidOperationException(
-            $"a table(ALL) argument over '{a.Element.Item.CobolName ?? a.Element.Item.CsName}' reached a single-value read — the argument-list renderer must enumerate it"),
+            $"a table(ALL) argument over '{a.Element.Item.CobolName ?? a.Element.Item.ClrName}' reached a single-value read — the argument-list renderer must enumerate it"),
         _ => throw Unhandled(p),
     };
 

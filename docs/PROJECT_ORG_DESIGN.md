@@ -186,7 +186,7 @@ The free helpers (`DecodeCobolString`, `CsStringLiteral`, `Children`, `FirstToke
 | **switch expressions** | total mapping from one closed set to another | side-effecting branches (use a `switch` statement) | `MapOperator`, `Combine`, `PicInfo.ClrType` |
 | **file-scoped namespaces** | every file (one ns per file here) | — | every `.cs` in the project |
 | **`using` aliases** | taming a long generated type name | aliasing for brevity's sake | `using Core = CobolParserCore;` |
-| **`required` members** | a non-nullable field with no sensible default | optional/defaulted state | `DataItem.Level`/`.CsName` are `required` |
+| **`required` members** | a non-nullable field with no sensible default | optional/defaulted state | `DataItem.Level`/`.ClrName` are `required` |
 | **raw / interpolated string literals** | emitting multi-line C#/JSON templates | single tokens | the `$$"""…"""` `runtimeconfig.json` in `RoslynBackend` |
 | **`static` lambdas** | a closure that captures nothing (signals + prevents capture) | when capture is intended | `.Where(static p => p.EndsWith(".dll", …))` |
 | **`params` collections (C# 13+)** | variadic helpers taking spans/lists | — | candidate for `CodeWriter` multi-line helpers |

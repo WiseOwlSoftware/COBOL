@@ -563,7 +563,7 @@ public sealed partial class DataBinder
         if (!IsConstantRecordItem(place.Item)) return null;
         DataItem root = place.Item;
         while (root.Parent is { } p) root = p;
-        return $"{what} names a data item of the CONSTANT RECORD '{root.CobolName ?? root.CsName}' — the content "
+        return $"{what} names a data item of the CONSTANT RECORD '{root.CobolName ?? root.ClrName}' — the content "
             + "of a structured constant cannot be modified (ISO §13.18.15.3 SR2)";
     }
 
@@ -1047,7 +1047,7 @@ public sealed partial class DataBinder
         {
             Level = ReportEntryLevel(entry.Entry),
             CobolName = baseName,
-            CsName = DataItem.WordIdentifier(baseName),
+            ClrName = DataItem.WordIdentifier(baseName),
             DeclaredAt = Edition.Cursor,
             Pic = pic,
             OwnSign = described.OwnSign,

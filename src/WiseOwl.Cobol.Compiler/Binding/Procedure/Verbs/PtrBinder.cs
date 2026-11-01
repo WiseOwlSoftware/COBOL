@@ -350,7 +350,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             // is never resident, kb/Work PB1019).
             string why = root.Class is { Tier: RedefinesTier.Rejected, RejectReason: { } reason }
                 ? reason
-                : $"record '{root.CobolName ?? root.CsName}' was not claimed for a cell by the data pass; its storage "
+                : $"record '{root.CobolName ?? root.ClrName}' was not claimed for a cell by the data pass; its storage "
                   + $"tier is {(root.Class is { } stored ? stored.Tier.ToString() : "unassigned")}";
             ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                 $"ADDRESS OF '{DataBinder.WrittenText(addrRef)}': the operand's record could not be placed on addressable "

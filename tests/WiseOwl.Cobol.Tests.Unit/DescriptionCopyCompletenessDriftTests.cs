@@ -298,7 +298,7 @@ public sealed class DescriptionCopyCompletenessDriftTests
     private static void RealCopy(DataItem from, DataItem to, DescriptionCopyScope scope) =>
         CopyEntryDescription.Invoke(null, [from, to, scope, null]);   // the 4th: the PICTURE side as written (null = as it is)
 
-    private static DataItem NewItem() => new() { Level = 1, CsName = "SUBJECT" };
+    private static DataItem NewItem() => new() { Level = 1, ClrName = "SUBJECT" };
 
     /// <summary>Give <paramref name="target"/>'s <paramref name="p"/> a value DIFFERENT from the one a fresh item
     /// carries, so both directions are measurable: a field that should travel is seen to arrive, and a field that

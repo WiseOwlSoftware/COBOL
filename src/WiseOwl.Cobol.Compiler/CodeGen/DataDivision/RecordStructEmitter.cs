@@ -82,8 +82,8 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
             else if (root.Class is { Tier: RedefinesTier.StringCanonical } cls)
             {
                 // The class's ONE string backing is the storage; members are windows. Reset once, at the canonical.
-                if (ReferenceEquals(cls.Canonical, root) && ctx.Data.StaticRootFields.Contains(cls.BackingCsName))
-                    stmts.Add($"{cls.BackingCsName} = {RuntimeApi.StrStore(codec.ImageInitOf(root), $"{cls.Width}")};   // {root.CobolName ?? "FILLER"} (Tier-B backing)");
+                if (ReferenceEquals(cls.Canonical, root) && ctx.Data.StaticRootFields.Contains(cls.BackingClrName))
+                    stmts.Add($"{cls.BackingClrName} = {RuntimeApi.StrStore(codec.ImageInitOf(root), $"{cls.Width}")};   // {root.CobolName ?? "FILLER"} (Tier-B backing)");
                 // An ADDRESS-OF-taken record's static StorageCell (kb/Work PB234): re-seeded IN PLACE with the SAME
                 // image its declaration carries (ProgramEmitter's cell initializer — one composer, ImageInitOf), so
                 // a pointer taken before the CANCEL still names the unit's one copy (§13.5.4 GR1).
@@ -93,8 +93,8 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
                     stmts.Add($"{cell}.Reinitialize({RuntimeApi.StrStore(codec.ImageInitOf(root), $"{cls.Width}")}){codec.CellDynSeeds(root)};   // {root.CobolName ?? "FILLER"} (ADDRESS-OF cell, §14.6.2.3.2 #2)");
             }
             else if (!(root.Class is { Tier: RedefinesTier.Alias } && !root.IsCanonical)   // a Tier-A view has no field
-                && ctx.Data.StaticRootFields.Contains(root.CsName))
-                stmts.Add($"{root.CsName} = {vals.FieldInit(root)};   // {root.CobolName ?? "FILLER"}");
+                && ctx.Data.StaticRootFields.Contains(root.ClrName))
+                stmts.Add($"{root.ClrName} = {vals.FieldInit(root)};   // {root.CobolName ?? "FILLER"}");
             foreach (var idx in DataBinder.IndexDeclarationsUnder(root))
                 if (ctx.Data.StaticIndexCells.Contains(idx.Cell))
                     stmts.Add($"{idx.Cell} = 1;   // INDEX-NAME {idx.Name}");
@@ -124,7 +124,7 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
         // class-level `ref` bridge over the cell, and a local of the same name would SHADOW it, splitting the
         // one storage area in two.
         root.Class is { Tier: RedefinesTier.StringCanonical, IsCellBacked: false } cls && ReferenceEquals(cls.Canonical, root)
-            ? (cls.BackingCsName, RuntimeApi.StrStore(codec.ImageInitOf(root), $"{cls.Width}"))
+            ? (cls.BackingClrName, RuntimeApi.StrStore(codec.ImageInitOf(root), $"{cls.Width}"))
             : null;
 
     private void EmitStructTypeDecls(DataItem item, CodeWriter w)

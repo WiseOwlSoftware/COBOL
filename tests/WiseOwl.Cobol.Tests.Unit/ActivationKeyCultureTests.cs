@@ -42,7 +42,7 @@ public sealed class ActivationKeyCultureTests
         var pic = PictureAnalyzer.Analyze(picture, Usage.Display, new EditionContext(2023), "data item 'P'",
             currencies: dollar, decimalPointIsComma: false);
         Assert.False(pic.IsRecovery, $"PIC {picture} did not analyze");
-        return new DataItem { Level = 1, CobolName = "P", CsName = "P", Pic = pic, PictureText = picture };
+        return new DataItem { Level = 1, CobolName = "P", ClrName = "P", Pic = pic, PictureText = picture };
     }
 
     private static string Under(CultureInfo culture, Func<string> key)

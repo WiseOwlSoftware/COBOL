@@ -2930,8 +2930,8 @@ aspirational — it is a scheduled deliverable and a *cross-cutting architectura
   decisions, .NET type names, or format literals. Phases 05/06/07 must each enforce this (see
   `DESIGN-backend-abstraction.md` for the exact contract + the "backend-neutrality" test).
 - Code generation is **one visitor per backend over that IR**, behind `ICodeGenBackend`; `RoslynBackend` and the future
-  `CilBackend` share the model walk, a neutral `RuntimeMembers` runtime-op vocabulary + a shared `NameMangler` (both call
-  the same `WiseOwl.Cobol.Runtime`), and the name-mangling rules. **Backend = Mono.Cecil** (chosen for real portable-PDB /
+  `CilBackend` share the model walk, a neutral `RuntimeMembers` runtime-op vocabulary (both call the same `WiseOwl.Cobol.Runtime`), and the ONE CLR
+  name allocator `CsNames.Allocate`, whose bind-time names are the module's ABI for both backends. **Backend = Mono.Cecil** (chosen for real portable-PDB /
   sequence-point support — Reflection.Emit lacks it — plus explicit metadata authoring for EXTERNAL/GLOBAL/cross-CALL
   + OO hierarchies, MIT license, decades-mature; isolated in a leaf `WiseOwl.Cobol.Backend.Cil` assembly so the default
   Roslyn path stays Cecil-free). Reflection.Emit is used ONLY for the throwaway seam-proof.
@@ -2944,7 +2944,7 @@ aspirational — it is a scheduled deliverable and a *cross-cutting architectura
   `--backend roslyn` and `--backend cil`).
 - ⚠ **Neutrality is broader than `Place`.** The backfill review found the leak reaches into `BoundTree.cs` itself
   (bound *statement* nodes carrying C# path/identifier strings — `BoundSearch.IndexField/DependCount/DynTable`,
-  `BoundSetCapacity.TablePath`, `CapacityRegisterPlace.TablePath`, `BoundIndexRef.IndexField`, `BoundMethod.CsName`)
+  `BoundSetCapacity.TablePath`, `CapacityRegisterPlace.TablePath`, `BoundIndexRef.IndexField`)
   and into the whole **program skeleton** (PC dispatcher, `ICobolProgram` ABI, USE/`__IoCheck`, GLOBAL bridges, entry
   wrapper, file registration) — none of which the original P07 covered. `DESIGN-backend-abstraction.md` folds these
   in as required PHASE-05/06/07 additions + a program-skeleton neutralization checklist (see §7).
@@ -3109,8 +3109,8 @@ phase** (detail + file:line in the cited `SURVEY-*.md` / `CRITIQUE-*.md` ROADMAP
 
 - **R1 — Backend-neutrality is broader than `Place`** *(→ PHASE-05/06/07, PHASE-16).* The C#-leak reaches into
   `BoundTree.cs` itself (bound *statement* nodes carry C# path/identifier strings: `BoundSearch.IndexField/DependCount/
-  DynTable`, `BoundSetCapacity.TablePath`, `CapacityRegisterPlace.TablePath`, `BoundIndexRef.IndexField`,
-  `BoundMethod.CsName`) and into the whole **program skeleton** (PC dispatcher, `ICobolProgram` ABI, USE/`__IoCheck`,
+  DynTable`, `BoundSetCapacity.TablePath`, `CapacityRegisterPlace.TablePath`, `BoundIndexRef.IndexField`)
+  and into the whole **program skeleton** (PC dispatcher, `ICobolProgram` ABI, USE/`__IoCheck`,
   GLOBAL bridges, entry wrapper, file registration) — none covered by the original P07. Fold in the exact PHASE-05/06/07
   additions + the program-skeleton neutralization checklist in `DESIGN-backend-abstraction.md`; make `RuntimeApi` a
   neutral `RuntimeMembers` op-vocabulary, not a Roslyn-only façade. *(SURVEY-codegen-emitter.md, DESIGN-backend-abstraction.md)*
@@ -4229,7 +4229,7 @@ grep -rln "interface ICodeGenBackend"     src/WiseOwl.Cobol.Compiler/CodeGen   #
 grep -rln "record BoundCompilation"        src/WiseOwl.Cobol.Compiler/Binding   # P6 immutable result
 grep -rln "record AccessPath"              src/WiseOwl.Cobol.Compiler/Binding   # P7 Step 11 structural Place
 grep -rln "class RuntimeMembers"             src/WiseOwl.Cobol.Compiler           # neutral runtime catalogue (DESIGN-backend-abstraction §2.3)
-grep -rln "class NameMangler"              src/WiseOwl.Cobol.Compiler/Model     # shared naming service (§2.4)
+grep -rln "CSharpReservedKeywords"        src/WiseOwl.Cobol.Compiler/Binding/Model/CsNames.cs   # the one CLR name allocator (§2.4)
 # The bound tree must be neutral: these must return NOTHING (L3/L4 de-C#'d in P6):
 grep -rn  "string TablePath\|string IndexField\|string CsName\|string SendingPath" \
           src/WiseOwl.Cobol.Compiler/Binding/Bound src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs
@@ -4400,7 +4400,7 @@ When P16 is DONE, these exist with these responsibilities (grounded in `DESIGN-b
 - **Change:** `CilRuntimeApi` imports `MethodReference`s from `RuntimeMembers` (`DESIGN-backend-abstraction.md §2.3`).
   `CilPlaceLower.Read(Place)` lowers a `MemberPlace` `AccessPath` to `ldsfld`/`ldfld`/`ldelem` (the SENDING side).
   `CilStatementEmitter` implements `Visit(BoundDisplay)`/`Visit(BoundStop)` → `Console.Write*` + the runtime image
-  calls (`CobolNum.FormatDisplay` via `CilRuntimeApi`). Names come from the shared `NameMangler`.
+  calls (`CobolNum.FormatDisplay` via `CilRuntimeApi`). Names are the allocated CLR names the model carries (`CsNames.Allocate`, §2.4).
 - **Verify:** DISPLAY of a group/field/numeric matches Roslyn byte-for-byte (probe below); battery 1+2+3 green.
   ```bash
   diff <(dotnet /tmp/r.dll) <(dotnet /tmp/c.dll)   # for a DISPLAY-of-fields program
@@ -4470,8 +4470,8 @@ When P16 is DONE, these exist with these responsibilities (grounded in `DESIGN-b
 - **Files:** extend `CilProgramEmitter` (class/factory/interface `TypeDefinition`s, `__CobolInvoke` dispatch),
   `CilStatementEmitter` (`BoundInvoke*`, `BoundSetObjectRef`, `BoundRaise`/`Resume`/`RaiseObject`/`Raising`,
   `BoundEcChecked` → IL try/finally, pointers/`ALLOCATE`/`FREE`).
-- **Change:** lower the OO type model (the method names via the shared `NameMangler`, the `OoMethodSymbol` the node
-  carries after L4 removal — not `BoundMethod.CsName`) and the EC machinery (try/finally + the runtime
+- **Change:** lower the OO type model (the method names are the allocated CLR names, `BoundMethod.ClrName` /
+  `OoMethodSymbol.ClrName`, DESIGN-backend-abstraction §2.4) and the EC machinery (try/finally + the runtime
   `ExceptionState`/`__EcDispatch` calls via `RuntimeMembers`). This is the last feature family; at its end the manifest
   can grow toward the full corpus.
 - **Verify:** equivalence harness green over the OO + EC subset (IC/OBSQ families, `>>TURN`, RAISE/RESUME, USE F3).
