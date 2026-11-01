@@ -1116,7 +1116,7 @@ than three run one after another. The review's bound for three overlapped gates 
 change builds once and runs the three populations whole, three hosts at once, the audits beside them, the population
 checked by name (§3.14.4). Ordering is the one lever left (§3.14.2): the classes red at the previous run first, then
 longest first by the committed weights file. The growth trigger of PB4323 §3.4 (step 10, kb/Work PB4333) reads the
-`assembly_wall_s` and `timings.tests_s` every `verdict.json` records.
+`timings.tests_s` of every GREEN code-lane gate, kept beyond its worktree (§3.14.13).
 
 ### 3.14 THE WHOLE-POPULATION GATE, WHOLE-SUITE SPEED AND THE GATE CAP (kb/Work PB1708, PB4328)
 
@@ -1842,6 +1842,43 @@ A reused record carries its own seconds (`timings.wall_s`), so `landing_measure.
 **What it would have saved on 2026-10-22.** The wave journals of the day name one rerun of this shape (wave 1150 group
 A, PB3527: a whole finisher dispatched to re-run the gate its predecessor's return killed, plus the second review
 round it waited on); with the gate detached and handed over, the wave awaits the verdict and goes straight to round 2.
+
+#### 3.14.13 The growth trigger, and the program differential it would build (kb/Work PB4333, step 10 of PB4323)
+
+The whole-population gate grows with the suite (Conformance: 10,503 cases on 2026-10-05, 20,406 on 2026-10-31), the owner's
+"drift back to more delay" built in. PIPELINE-REVIEW.md §3.4 answers with a TRIGGER, and nothing is built until it fires:
+**the weekly median of the code lane's test phase (`timings.tests_s`) exceeds 6 minutes, or Conformance exceeds 1.5 times
+its 20,406 cases (30,609).**
+
+**The mechanism** (`scripts/gate_growth.py`). A gate's `verdict.json` goes with its worktree when the branch lands, so a
+week of them is never on disk at once. `Gate._record_growth` therefore writes one small file per GREEN code-lane gate that
+ran its hosts (a RED, a REUSED verdict and the inert lane are no sample) under `<git common dir>/cobol-gate-growth/`: the
+run's UTC start, `tests_s` and the Conformance cases discovered. `gate_growth.py status` reads the trailing 7 days and
+prints one line, which `session-probe.ps1` shows every session: **WITHIN**; **FIRED** (the population arm needs no window;
+the time arm needs a complete one); **PARTIAL** (the samples span under 7 days or number under 10: the median is shown, never
+judged, because one afternoon of a dozen concurrent gates is not a week: the first reading, 2026-11-01, was a 7.7-minute
+median over 16 gates in a single day, the box's three-gate steady state of §3.14.5); or **NOT MEASURED**. FIRED exits 1 and
+names the next step.
+
+**The differential, if it fires** (not built). The merge group writes, per main commit, a manifest of case to hash of the
+emitted program; a local code-lane gate whose diff leaves `src/WiseOwl.Cobol.Runtime` alone compiles the population, and
+runs only the Conformance cases whose program bytes differ from main's, plus every case that is not a compiled program. It
+is sound only while the other inputs of a case are byte-identical to main's: the runtime, and the harness (the test
+assembly's code, its goldens, the build properties). It is built only if the median fraction of changed programs over the
+newest 20 non-runtime landings is under 10 % (`python scripts/arch/emit_fraction.py`, which captures each landing and its
+first parent through the architecture oracle, `scripts/arch/capture_oracle.py`: one capture mechanism).
+
+**What was measured on 2026-11-01** (the oracle's capture of each of the 20 newest non-runtime landings of `8fd4ad387`,
+2026-10-31 to 2026-11-01, and of its first parent: a population of about 15,700 cases of which about 4,700 emit a
+program; evidence in kb/Work PB4333): the
+median fraction of changed programs is 0.00 % (0.03 % counting the programs a landing adds, which have no entry in main's
+manifest); the largest is 0.08 % (0.34 %); 2 of the 20 landings changed the emitted C# of any program (1 and 4 programs).
+The review's three landings (0.0, 0.4, 0.9 %) were measured the same way. So the 10 % criterion is met by two orders of
+magnitude. What the criterion did NOT measure is the other half of soundness: of the 54 code-lane landings since
+2026-10-31, 28 (52 %) leave the runtime AND the Conformance harness alone (`tests/_shared`, the Conformance assembly's
+code, `conformance-suite/harness`, the build properties); the other 26 change an input the differential must treat as
+"run everything" unless a finer rule is proved. A builder starts there: the selection is only as sound as the
+classification of a harness change, which is the failure class that ended the impact map (kb/Work PB2696, PB4228).
 
 ### 3.15 THE LOCAL LINUX GATE — CI's Linux legs under WSL before a push (kb/Work PB1732)
 
