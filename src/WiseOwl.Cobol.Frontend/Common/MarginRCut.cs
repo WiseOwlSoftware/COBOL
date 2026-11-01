@@ -16,11 +16,16 @@ namespace WiseOwl.Cobol.Frontend.Common;
 /// ordinary uses of the positions past margin R that remain are <see cref="IsSequenceNumber"/> and a file's identification
 /// tags (<see cref="FitsIdentificationArea"/>).</para>
 /// </summary>
-/// <param name="Margin">The 0-based PHYSICAL column — the character position the file holds it at (kb/Work PB2983) — of the
-/// first position past the program-text area, where the program text was cut; equally the 1-based POSITION of the last
-/// position of the program-text area (72), which is how a message names it.</param>
+/// <param name="Margin">The 0-based PHYSICAL column — the column the file holds it at (kb/Work PB2983) — of the first
+/// position past the program-text area, where the program text was cut. On a line holding a tab it is NOT the position a
+/// message names (<paramref name="LastProgramTextPosition"/>): a tab is one column of the file and several positions.</param>
 /// <param name="Text">The text from the margin to the last non-space character of the line.</param>
-public readonly record struct MarginRCut(int Margin, string Text)
+/// <param name="HoldsProgramText">Whether the program-text area of the line holds any character that is not a space. False
+/// for a line whose ONLY text lies past margin R: the reference format reads it as blank, so a statement written there
+/// vanishes wholly and there is no token of the line to anchor a diagnostic to (kb/Work PB4372).</param>
+/// <param name="LastProgramTextPosition">The 1-based POSITION of the last position of the program-text area (72), which is how
+/// a message names margin R whatever the line holds before it.</param>
+public readonly record struct MarginRCut(int Margin, string Text, bool HoldsProgramText, int LastProgramTextPosition)
 {
     /// <summary>Positions in the COBOL-85 card-image IDENTIFICATION AREA, positions 73–80 — the area a program's name and a
     /// card's number were punched in. ISO/IEC 1989:2023 has no such area (§6.3.1 makes margin R the implementor's and says
@@ -28,14 +33,19 @@ public readonly record struct MarginRCut(int Margin, string Text)
     /// a statement.</summary>
     public const int IdentificationAreaWidth = 8;
 
-    /// <summary>The 1-based position of the last position of the program-text area.</summary>
-    public int LastProgramTextPosition => Margin;
+    /// <summary>How many lines of one file must carry a tag-shaped word (<see cref="FitsIdentificationArea"/>) past margin R
+    /// for the positions to be read as a tag column and not as cut statements (kb/Work PB4372). A tag is a CONVENTION and
+    /// repeats; a cut is an accident of one line, and a word one line alone carries is indistinguishable from the tail of a
+    /// statement, so the note stays (it says "may"). Shape cannot tell a lone tag from a lone one-word tail — only
+    /// recurrence can — and this is the smallest recurrence there is.</summary>
+    public const int RecurrenceThatMakesATag = 2;
 
     /// <summary>The 1-based position of the first character that was cut.</summary>
-    public int FirstCutPosition => Margin + 1;
+    public int FirstCutPosition => LastProgramTextPosition + 1;
 
-    /// <summary>The 1-based position of the last character that was cut.</summary>
-    public int LastCutPosition => Margin + Text.Length;
+    /// <summary>The 1-based position of the last character that was cut (a position is a character, not a UTF-16 unit:
+    /// <c>CharacterPositions</c>).</summary>
+    public int LastCutPosition => LastProgramTextPosition + CharacterPositions.Count(Text);
 
     /// <summary>Whether the text begins AT margin R, with no space between it and the program-text area: a word the margin
     /// ends may then go on past it, so the cut can fall INSIDE a word.</summary>
@@ -54,8 +64,8 @@ public readonly record struct MarginRCut(int Margin, string Text)
     }
 
     /// <summary>Whether the text fits the card-image identification area (<see cref="IdentificationAreaWidth"/>) as ONE
-    /// word: the shape of an identification tag. A file whose code lines mostly carry such text past margin R uses the
-    /// positions that way (<c>ReferenceFormatMap.CutAt</c>).</summary>
+    /// word: the shape of an identification tag. A file in which such text recurs past margin R uses the positions that way
+    /// (<see cref="RecurrenceThatMakesATag"/>, <c>ReferenceFormatMap.CutAt</c>).</summary>
     public bool FitsIdentificationArea =>
         Text.Length <= IdentificationAreaWidth && !CobolSpace.TrimSpaces(Text).AsSpan().ContainsAny(CobolSpace.Separators);
 }
