@@ -2655,153 +2655,213 @@
       "to": "WiseOwl.Cobol.Binding.Repository",
       "uses": 26,
       "walkUses": 29,
-      "removedBy": [],
-      "plan": "no note yet (a row the external repository slices landed after R1; kb/Work PB2417 measured it): the repository record family (Binding/Repository/RepositoryRecord.cs, RecordList<T>, and the codec the backend calls, RepositoryCodec) moves to compiler.model, so HostEntryEmitter, OoEmitter and RepositoryAttributeRenderer read model facts; RepositoryReader, which reads the binder, stays in compiler.binding. Name the note that does it here and run `python scripts/arch/edges.py --assign`",
+      "removedBy": [
+        "PB4319"
+      ],
+      "plan": "PB4319 (a row the external repository slices landed after R1; kb/Work PB2417 measured it): the repository record family (Binding/Repository/RepositoryRecord.cs: RepositoryRecord, its sub-records and RecordList<T>) moves to compiler.model; the encode leaves the backend (each published unit's record is written by RepositoryCodec.Of at the end of BinderDriver.Bind and carried on the bound compilation) and RepositoryCodec.KindOf becomes a BoundUnit fact, so HostEntryEmitter, OoEmitter and RepositoryAttributeRenderer read model data; RepositoryCodec, RepositoryVocabulary and RepositoryReader, which read the binder, stay in compiler.binding",
       "pairs": [
         {
           "from": "WiseOwl.Cobol.CodeGen.HostEntryEmitter",
           "to": "WiseOwl.Cobol.Binding.Repository.DescriptionRecord",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.HostEntryEmitter",
           "to": "WiseOwl.Cobol.Binding.Repository.FormalRecord",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.HostEntryEmitter",
           "to": "WiseOwl.Cobol.Binding.Repository.RecordList`1",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.HostEntryEmitter",
           "to": "WiseOwl.Cobol.Binding.Repository.RepositoryCodec",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.HostEntryEmitter",
           "to": "WiseOwl.Cobol.Binding.Repository.RepositoryRecord",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
           "to": "WiseOwl.Cobol.Binding.Repository.ClassRecord",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
           "to": "WiseOwl.Cobol.Binding.Repository.DescriptionRecord",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
           "to": "WiseOwl.Cobol.Binding.Repository.FormalRecord",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
           "to": "WiseOwl.Cobol.Binding.Repository.MethodRecord",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
           "to": "WiseOwl.Cobol.Binding.Repository.RecordList`1",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
           "to": "WiseOwl.Cobol.Binding.Repository.RepositoryCodec",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
           "to": "WiseOwl.Cobol.Binding.Repository.RepositoryRecord",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
           "to": "WiseOwl.Cobol.Binding.Repository.ClassRecord",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
           "to": "WiseOwl.Cobol.Binding.Repository.CurrencyRecord",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
           "to": "WiseOwl.Cobol.Binding.Repository.DescriptionRecord",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
           "to": "WiseOwl.Cobol.Binding.Repository.EditRuleRecord",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
           "to": "WiseOwl.Cobol.Binding.Repository.FormalRecord",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
           "to": "WiseOwl.Cobol.Binding.Repository.LocaleEditRecord",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
           "to": "WiseOwl.Cobol.Binding.Repository.MethodRecord",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
           "to": "WiseOwl.Cobol.Binding.Repository.OccursRecord",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
           "to": "WiseOwl.Cobol.Binding.Repository.PicRecord",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
           "to": "WiseOwl.Cobol.Binding.Repository.PictureClauseRecord",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
           "to": "WiseOwl.Cobol.Binding.Repository.PropertyRecord",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
           "to": "WiseOwl.Cobol.Binding.Repository.PrototypeRecord",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
           "to": "WiseOwl.Cobol.Binding.Repository.RaisingRecord",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
           "to": "WiseOwl.Cobol.Binding.Repository.RecordList`1",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
           "to": "WiseOwl.Cobol.Binding.Repository.RepositoryCodec",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
           "to": "WiseOwl.Cobol.Binding.Repository.RepositoryRecord",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
           "to": "WiseOwl.Cobol.Binding.Repository.StructureRecord",
-          "removedBy": []
+          "removedBy": [
+            "PB4319"
+          ]
         }
       ]
     },
