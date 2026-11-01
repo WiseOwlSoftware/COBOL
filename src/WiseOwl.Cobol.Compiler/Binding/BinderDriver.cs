@@ -273,7 +273,7 @@ internal sealed class BinderDriver
             foreach (var file in unit.Data.Files)
                 file.CobolName = file is { IsExternal: true, ExternalName: { } ext }
                     ? NamingConvention.ExternalFileBand + ext
-                    : unit.Path + "::" + file.CobolName;
+                    : unit.RegistryKey + "::" + file.CobolName;
 
         // VCR 18/31 (ISO §12.4.5.3 GR1(i)/(h); §14.8.4.2; Annex E.2 items 12/24) — a COBOL-2023 requirement: all
         // corresponding file control entries of an EXTERNAL file connector in the run unit shall specify FILE STATUS

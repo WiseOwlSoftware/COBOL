@@ -1016,7 +1016,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             // with (§13.18.29.4 GR1b), so a MOVE of m boolean positions to the group stores them all.
             foreach (var filler in BitLayout.FillersOf(group))
                 if (filler.Kind is BitFillerKind.RunTail)
-                    w.Line($"{filler.Field} = {RuntimeApi.BitsSlice("__b", $"{filler.StartBit}", $"{filler.Bits}")};");
+                    w.Line($"{filler.ClrName} = {RuntimeApi.BitsSlice("__b", $"{filler.StartBit}", $"{filler.Bits}")};");
         }
     }
 
@@ -1055,7 +1055,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             if (start < 0) start = at;      // an unmodelled overlay chain — keep the composition total
             if (start > at)
                 parts.Add(stored is not null && stored.TryGetValue(at, out var filler)
-                    ? (filler.Bits == start - at ? filler.Field
+                    ? (filler.Bits == start - at ? filler.ClrName
                         : throw new InvalidOperationException($"the implicit filler after bit {at} of '{group.CobolName}' is {filler.Bits} bits, the walk's gap {start - at} (kb/Work PB3564)"))
                     : EmitText.CsLiteral(new string('0', start - at)));
             parts.Add(carrierOf(m));
@@ -1140,7 +1140,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                     : $"{m.ClrName}[__i] = {RuntimeApi.BitsSlice(carrier, $"{at} + __i * {stride}", $"{per}")};");
             // The stored filler BETWEEN the occurrences (§8.5.1.6.3, kb/Work PB3564) takes what the carrier holds there.
             if (BitLayout.TablePadOf(m) is { } pad)
-                w.Line($"{pad.Field} = {RuntimeApi.BitsStridePads(carrier, $"{at}", $"{per}", $"{stride}", $"{o}")};");
+                w.Line($"{pad.ClrName} = {RuntimeApi.BitsStridePads(carrier, $"{at}", $"{per}", $"{stride}", $"{o}")};");
         }
         else
         {
@@ -1177,7 +1177,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             ? $"string.Concat({occurrences})"
             : RuntimeApi.BitsStrided(occurrences, $"{BitLayout.StrideBits(m)}",
                 (BitLayout.TablePadOf(m) ?? throw new InvalidOperationException(
-                    $"the strided bit table '{m.CobolName}' has no stored filler field (kb/Work PB3564)")).Field);
+                    $"the strided bit table '{m.CobolName}' has no stored filler field (kb/Work PB3564)")).ClrName);
     }
 
     /// <summary>The C# name of the string backing that STORES bit member <paramref name="m"/> when it is the canonical of a
@@ -1210,7 +1210,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     {
         var tail = ImageTailOf(run);
         var carriers = run.Select(BitCarrierOf).ToList();
-        if (tail is not null) carriers.Add(tail.Field);
+        if (tail is not null) carriers.Add(tail.ClrName);
         return RuntimeApi.BitsPack(string.Join(" + ", carriers), $"{run.Sum(BitLayout.RunBits) + (tail?.Bits ?? 0)}");
     }
 
@@ -1298,7 +1298,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             // ⛔ WHAT THE IMAGE HELD AFTER THE LAST MEMBER IS THE FILLER'S VALUE NOW — MOVE "AB" TO G stores 'A''s low
             // seven bits here, and the next DISPLAY of G reads them back (§14.9.25.4 GR4: the group move is an
             // alphanumeric move and so round-trips the bytes).
-            if (tail is not null) w.Line($"{tail.Field} = {RuntimeApi.BitsSlice(carrier, $"{at}", $"{tail.Bits}")};");
+            if (tail is not null) w.Line($"{tail.ClrName} = {RuntimeApi.BitsSlice(carrier, $"{at}", $"{tail.Bits}")};");
             return;
         }
         if (f.Width == 0) return;   // a run continuation — its value came from the leader's unpack
