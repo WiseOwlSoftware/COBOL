@@ -53,7 +53,7 @@ public sealed class BoundaryImageChannelTests
     /// mechanical pass (rule 5's warning about hand-maintained lists applies to this list itself).</summary>
     private static readonly Dictionary<string, (int Count, string Why)> AllowList = new()
     {
-        // SortEmitter.TableCompare renders `a.{MemberPath}` STRUCT RVALUES (the sort comparer's two element
+        // SortEmitter.TableCompare renders the key's member chain (BoundTableSortKey.MemberChain) as STRUCT RVALUES (off the comparer's two element
         // parameters), never a Place — so no window, ODO or Tier-C shape can reach it and there is no Place to
         // hand PlaceRenderer. Its own IsImageCapable guard sits one line above. Self-spelled by NECESSITY.
         // The count is FOUR because §14.9.40.4 GR5 gives a key of each CLASS its own operand face and the

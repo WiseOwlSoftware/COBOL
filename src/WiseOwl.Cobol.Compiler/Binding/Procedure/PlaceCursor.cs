@@ -177,7 +177,7 @@ internal sealed record ViewCursor(
             // of its own — its members' offsets and ordinals start at zero there.
             ? this with
             {
-                Backing = ElementCell(cell, oneBasedIndex).Add(new MemberSegment(nameof(WiseOwl.Cobol.Runtime.StorageCell.Ref))),
+                Backing = ElementCell(cell, oneBasedIndex).Add(CellBackingSegment.Instance),
                 Cell = ElementCell(cell, oneBasedIndex),
                 Base = new PositionConstant(0), BaseOffset = 0, OccursTerms = [], OccursBitTerms = [], EntryOrdinal = null,
                 OrdinalBase = null, OrdinalTerms = [],
@@ -215,7 +215,7 @@ internal sealed record ViewCursor(
     public static ViewCursor AtElementCell(DataItem table, string cellLocal)
     {
         var cell = new AccessPath([new RootFieldSegment(cellLocal)]);
-        return new ViewCursor(cell.Add(new MemberSegment(nameof(WiseOwl.Cobol.Runtime.StorageCell.Ref))), new PositionConstant(0), 0,
+        return new ViewCursor(cell.Add(CellBackingSegment.Instance), new PositionConstant(0), 0,
             table, cell) { ScopeTable = table };
     }
 

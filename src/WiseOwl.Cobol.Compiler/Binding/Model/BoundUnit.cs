@@ -56,13 +56,13 @@ internal sealed class BoundUnit
     public BoundProgram Bound = null!;
     public List<CallBridge> Bridges = [];
 
-    /// <summary>The run-unit-unique containment path id (registry key; §8.4.6.3 scoping), formed by the run-time
-    /// table's own two formers: an outermost unit's is rooted at its EXTERNALIZED name, which alone identifies it in a
-    /// run unit (§8.3.2.2 2), so two separately compiled modules declaring the same program-name never share one
-    /// (kb/Work PB2843).</summary>
-    public string Path => Parent is null
+    /// <summary>The run-unit-unique registry key, the program table's containment path id (§8.4.6.3, the scope of
+    /// program-names), formed by the run-time table's own two formers: an outermost unit's is rooted at its EXTERNALIZED
+    /// name, which alone identifies it in a run unit (§8.3.2.2 2), so two separately compiled modules declaring the same
+    /// program-name never share one (kb/Work PB2843). A run-time datum, never C# text (DESIGN-backend-abstraction §1.1).</summary>
+    public string RegistryKey => Parent is null
         ? WiseOwl.Cobol.Runtime.ProgramTable.OutermostPath(ExternalizedName)
-        : WiseOwl.Cobol.Runtime.ProgramTable.ContainedPath(Parent.Path, Name);
+        : WiseOwl.Cobol.Runtime.ProgramTable.ContainedPath(Parent.RegistryKey, Name);
 
     /// <summary>⛔ THE ONE ANCHOR OF A CONTAINER MEMBER (kb/Work PB1133): how a program <paramref name="depth"/>
     /// containment levels INSIDE this unit reaches this unit's class member <paramref name="csMember"/> — through the
@@ -88,11 +88,11 @@ internal sealed class BoundUnit
 /// FORMAL PARAMETER of the container — its carrier (<see cref="CallBridgeKind.Carrier"/>, whose cell type the emitter
 /// derives from it), its argument area (<see cref="CallBridgeKind.ArgumentArea"/>) or an area formal's data-address
 /// pointer (<see cref="CallBridgeKind.Address"/>) — so the contained program knows the GLOBAL formals in its scope
-/// (<see cref="BoundUnit.InheritedFormals"/>; kb/Work PB2096). <paramref name="Field"/> is the member's name, which
+/// (<see cref="BoundUnit.InheritedFormals"/>; kb/Work PB2096). <paramref name="MemberClrName"/> is the member's CLR name, which
 /// the bridge declares under the same name, and <paramref name="Anchor"/> is how the contained program reaches the
 /// container's member of that name (<see cref="BoundUnit.AnchorOf"/>) — two facts the backend joins (kb/Work
 /// PB4320).</summary>
-internal sealed record CallBridge(string Field, ContainerAnchor Anchor, CallBridgeKind Kind, DataItem? Item,
+internal sealed record CallBridge(string MemberClrName, ContainerAnchor Anchor, CallBridgeKind Kind, DataItem? Item,
     LinkageFormal? Formal = null);
 
 /// <summary>The member shape a <see cref="CallBridge"/> aliases (kb/Work PB1009).</summary>

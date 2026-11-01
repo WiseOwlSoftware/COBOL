@@ -819,7 +819,7 @@ a constant-name, on the literal §13.10.4 GR1/GR2 substitutes.
   in one place per half. BIND: `EcBinder.MarkFormals` gives every formal's root `DataItem` an
   `OmittedFormalGuard` (presence expression · `ActivatedElementKind` · name) — only when the compilation group can
   enable the kind's name at all, so a unit with no such >>TURN renders byte-identically — and every access-path
-  builder roots through `ReferenceResolver.RootOf` / `RootText`, so EVERY rendered reference (any verb, any operand,
+  builder roots through `ReferenceResolver.AddRoot` (the guard rides the root segment), so EVERY rendered reference (any verb, any operand,
   a subordinate, a REDEFINES view, a subscript or ref-mod position, a GLOBAL formal from a contained program) wraps
   its root in `OmittedFormal.Ref(ref …)` / `OmittedFormal.Carrier(…)`; and every statement queries >>TURN for
   `OmittedFormal.ConditionName(EcBinder.ElementKindOf(element))`, so the statement's §7.3.25.4 scope sets the flag

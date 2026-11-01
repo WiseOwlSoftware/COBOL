@@ -2976,6 +2976,20 @@ public static class DiagnosticCatalog
         + "the COBOL character repertoire to the implementor, and Annex A.1 item 25 requires it documented. Save the "
         + "file as UTF-8 (or with a byte-order mark) if the characters are not the Latin-1 ones.",
         "ISO §8.1.3.2 GR1 / Annex A.1 item 25");
+    /// <summary>COBOL5788 — the NOTE that accompanies a syntax error whose cause may be the text a fixed-form line carries past
+    /// margin R (kb/Work PB2555; ISO §6.3.1, Annex A.1 item 158). Margin R is the implementor's (position 72 here), so the
+    /// compiler is right to drop what lies past it, but a statement that runs past it ends early and the parse fails at the
+    /// NEXT token (<c>cannot parse construct near STOP</c>) or at a word the margin cut in two (<c>unexpected 'END-SEN'</c>),
+    /// with nothing pointing at the truncation. The note is reported only BESIDE a syntax error whose offending token or
+    /// predecessor stands on a cut line, and only for a cut that may have been program text: a numeric area (the sequence
+    /// number convention) and the tail of an inline comment (§6.3.7.3) are the ordinary uses of those positions.</summary>
+    public static readonly DiagnosticDescriptor ProgramTextPastMarginR = new(
+        "COBOL5788", "program-text-past-margin-r", EditionSeverity.Warning,
+        "The program-text area of a fixed-form line ends at margin R, and a syntax error stands where the text of this line "
+        + "was cut: ISO §6.3.1 makes margin R the implementor's position (position 72 here, Annex A.1 item 158) and what "
+        + "lies past it is not program text, so it is ignored. If that text was meant to be part of the statement, "
+        + "continue it on the next line with a continuation indicator, or shorten the line to end at position 72.",
+        "ISO §6.3.1 / Annex A.1 item 158");
     /// <summary>COBOL2449 — a COPY or REPLACE statement that does not follow its general format (kb/Work PB1354).
     /// Both statements are parsed over §7.2.2.5 text-words in general-format order (COPY: text-name-1/literal-1, the
     /// OF/IN phrase, SUPPRESS [PRINTING], REPLACING operands, the separator period); a word out of place, a missing BY,
@@ -3059,6 +3073,17 @@ public static class DiagnosticCatalog
         + "that contains a fixed literal continuation indicator.\" Continue the literal with one form only.",
         "ISO §6.2.3.2 SR5");
 
+    /// <summary>COBOL5770 — the 2002 floating debugging indicator <c>&gt;&gt;D</c> on a line that holds a fixed debugging
+    /// indicator or a fixed continuation indicator (kb/Work PB4298). ISO/IEC 1989:2002 clause 6.1.2.1 SR8; the 2002 text is
+    /// not in the repository.</summary>
+    public static readonly DiagnosticDescriptor FloatingDebuggingOnFixedIndicator = new(
+        "COBOL5770", "floating-debugging-on-fixed-indicator", EditionSeverity.Error,
+        "A line with a fixed debugging indicator (D in column 7) or the fixed continuation indicator (a hyphen in "
+        + "column 7) also begins its program text with the floating debugging indicator >>D. ISO/IEC 1989:2002 "
+        + "clause 6.1.2.1 SR8: \"A floating debugging indicator shall not be specified on a line that contains a fixed "
+        + "debugging indicator or a fixed continuation indicator.\" Use one indicator on the line.",
+        "ISO/IEC 1989:2002 clause 6.1.2.1 SR8");
+
     /// <summary>COBOL2687 — a literal continued with both the fixed and the floating form (kb/Work PB1359).
     /// §6.2.3.2 SR4, second sentence.</summary>
     public static readonly DiagnosticDescriptor LiteralContinuedTwoForms = new(
@@ -3085,7 +3110,7 @@ public static class DiagnosticCatalog
     /// ("continuation character expected"). Without the clause the same line is a comment and the literal is joined.</summary>
     public static readonly DiagnosticDescriptor DebuggingLineBetweenLiteralParts = new(
         "COBOL3473", "debugging-line-between-literal-parts", EditionSeverity.Error,
-        "A debugging line (indicator D) stands between the parts of a continued literal, and under WITH DEBUGGING MODE "
+        "A debugging line (indicator D or >>D) stands between the parts of a continued literal, and under WITH DEBUGGING MODE "
         + "it is source, not a comment. ISO §6.3.5 2): \"Comment lines and blank lines may be interspersed among lines "
         + "containing the parts of a literal\" - a source line may not. Move the debugging line out of the literal, or "
         + "remove WITH DEBUGGING MODE so that the line is a comment.", "ISO §6.3.5 2)");
@@ -5346,8 +5371,8 @@ public static class DiagnosticCatalog
     //    the constant-name spelling (DataBinder.Constants.ExpandPicConstants rewrites it to `(integer)` and
     //    hands it to the same expander) can reach an unchecked `StringBuilder.Append(char, int)`. ──
 
-    /// <summary>COBOL2146 — character-string-1 is longer than the 63 characters ISO §13.18.40.3 SR4
-    /// allows.</summary>
+    /// <summary>COBOL2146 — character-string-1 is longer than the characters ISO §13.18.40.3 SR4 allows the
+    /// edition (63 from COBOL-2014, 50 at COBOL-2002, 30 at COBOL-85).</summary>
     public static readonly DiagnosticDescriptor PictureStringTooLong = new(
         "COBOL2146", "picture-string-too-long", EditionSeverity.Error,
         "ISO §13.18.40.3 syntax rule 4: \"The maximum number of characters allowed in character-string-1 is "
@@ -5357,7 +5382,11 @@ public static class DiagnosticCatalog
         + "counted toward the maximum number of characters in character-string-1\"), and the expanded reading "
         + "would outlaw `PIC X(30000)`, which is four characters long. So 64 written X's are rejected while "
         + "`PIC X(30000)` stays legal, and a constant-name repetition factor is counted by the digit length of "
-        + "the integer substituted for it (kb/Work PB532).",
+        + "the integer substituted for it (kb/Work PB532). The 63 is the 2023 text's bound, in force from COBOL-2014; "
+        + "the 2002 text's SR4 says 50, and COBOL-85 allowed 30, so a string of 31 to 63 characters is a length "
+        + "error at --std 85 and one of 51 to 63 at --std 2002, the message naming the edition's bound and where "
+        + "63 begins (constructs rows picture-string-50-2002 and picture-string-63-2014, VCR row 7.46; "
+        + "kb/Work PB4304).",
         "ISO §13.18.40.3 SR4");
 
     /// <summary>COBOL2147 — a parenthesized repetition factor that is not an unsigned nonzero integer (ISO

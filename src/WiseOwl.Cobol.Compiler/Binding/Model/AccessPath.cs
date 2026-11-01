@@ -66,6 +66,18 @@ public sealed record CarrierValueSegment : AccessSegment
     private CarrierValueSegment() { }
 }
 
+/// <summary>The character-string BACKING of a CELL-BACKED area: the step from the area's <c>StorageCell</c> (the
+/// accumulated path: the class's cell, or an element cell of a dynamic-capacity table, kb/Work PB1042) to the storage
+/// the area's members are read from and written to. A structural step, so no model string spells the runtime cell's
+/// member; each backend lowers it, the Roslyn backend to <c>StorageCell.Ref</c> (DESIGN-backend-abstraction §1.3 L7;
+/// kb/Work PB4320).</summary>
+public sealed record CellBackingSegment : AccessSegment
+{
+    /// <summary>The one instance: the step carries no data.</summary>
+    public static readonly CellBackingSegment Instance = new();
+    private CellBackingSegment() { }
+}
+
 /// <summary>⛔ HOW A CONTAINED PROGRAM REACHES A MEMBER OF A CONTAINING PROGRAM. ISO §13.18.27.4 GR2: "A statement in a
 /// program contained directly or indirectly within a program that describes a global name may reference that name
 /// without describing it again" — the storage stays the container's. Decided once per member by
@@ -92,8 +104,10 @@ public abstract record ContainerAnchor
 /// member, so <see cref="AccessPath.Reroot"/>, which anchors only a <see cref="RootFieldSegment"/>, leaves it as it is.</summary>
 public sealed record LocalRootSegment(MethodLocal Local) : AccessSegment;
 
-/// <summary>A <c>.Member</c> access on the accumulated path (a nested <c>record struct</c> member).</summary>
-public sealed record MemberSegment(string CsMember) : AccessSegment;
+/// <summary>A <c>.Member</c> access on the accumulated path: <paramref name="MemberClrName"/> is the CLR name of a
+/// nested <c>record struct</c> member or a class's backing member, never a runtime type's member (a cell's backing is
+/// a <see cref="CellBackingSegment"/>).</summary>
+public sealed record MemberSegment(string MemberClrName) : AccessSegment;
 
 /// <summary>A FIXED OCCURS subscript — the accumulated path is wrapped in <c>CobolTable.At(path, index)</c>
 /// (ISO §8.4.2.3.4 GR2, benign out-of-range). <paramref name="OneBasedIndex"/> is the typed occurrence number.

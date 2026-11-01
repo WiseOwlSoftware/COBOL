@@ -190,7 +190,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         if (!ProcedureNameShape.IsQualified(pn)) return ProcedureNameShape.Head(pn);
         using (ctx.Edition.At(pn))   // the HEADER's position — a paragraph in a section is collected under its section's At
             ctx.Edition.Error(DiagnosticCatalog.QualifiedProcedureHeader,
-                $"{kind}-name '{pn.GetChild(0).GetText()}{ProcedureNameShape.QualifierAsWritten(pn)}' is written qualified in its "
+                $"{kind}-name '{ProcedureNameShape.AsWritten(pn)}' is written qualified in its "
                 + $"{kind} header — a {kind}-name that is being defined is written alone (ISO §14.2.1: "
                 + "\"section-name-1 SECTION.\", \"paragraph-name-1.\"); qualification (§8.4.2.2.2) belongs to a "
                 + "reference, and §14.4.1 gives it to the procedure-name that refers to a paragraph. Write "
@@ -250,7 +250,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     {
         var resolved = Resolve(pn);
         if (resolved.Procedure is { } procedure)
-            return ctx.Validation.CheckDeclarativesBoundary(procedure, ctx.CurrentSection, pn.GetText(), verb, kind)
+            return ctx.Validation.CheckDeclarativesBoundary(procedure, ctx.CurrentSection, ProcedureNameShape.AsWritten(pn), verb, kind)
                 ? procedure : null;
         string head = ProcedureNameShape.Head(pn);
         // ⛔ "IDENTIFIES MORE THAN ONE" IS NOT "IDENTIFIES NONE" (kb/Work PB466). Both fail §8.4.2.1's "a
@@ -263,7 +263,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             ctx.Validation.RejectAmbiguousProcedureName(ambiguity, verb);
             return null;
         }
-        ctx.Validation.RejectProcedureName(head + ProcedureNameShape.QualifierAsWritten(pn), head, verb, rule, ctx.CurrentMethodScope is not null);
+        ctx.Validation.RejectProcedureName(ProcedureNameShape.AsWritten(pn), head, verb, rule, ctx.CurrentMethodScope is not null);
         return null;
     }
 

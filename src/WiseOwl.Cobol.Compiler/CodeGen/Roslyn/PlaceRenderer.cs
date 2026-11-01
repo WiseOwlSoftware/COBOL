@@ -388,9 +388,11 @@ internal static class PlaceRenderer
                 RootFieldSegment r => r.Guard is { } g ? GuardedRoot(g, RootStorage(r)) : RootStorage(r),
                 // A statement local the binder declared, spelled from its identity (kb/Work PB4321).
                 LocalRootSegment l => LocalNames.Of(l.Local),
-                MemberSegment m => path + "." + m.CsMember,
+                MemberSegment m => path + "." + m.MemberClrName,
                 // A carrier-resident formal's storage is the carrier's value (ISO §14.2.3 GR8; kb/Work PB4320).
                 CarrierValueSegment => path + "." + nameof(ManagedPointer<int>.Value),
+                // A cell-backed area's members live in its cell's character-string backing (kb/Work PB1042, PB4320).
+                CellBackingSegment => path + "." + nameof(StorageCell.Ref),
                 // An OCCURS DEPENDING level carries §13.18.38.4 GR7's reference-time bound check when the
                 // compilation group can enable EC-BOUND-ODO (kb/Work PB1268).
                 FixedTableSegment { Odo: { } o } f => RuntimeApi.TableAtOdo(path, PositionRenderer.Render(f.OneBasedIndex),
@@ -398,7 +400,8 @@ internal static class PlaceRenderer
                 FixedTableSegment f => RuntimeApi.TableAt(path, PositionRenderer.Render(f.OneBasedIndex)),
                 DynTableSegment d => $"{path}.{(dir == AccessDir.Sending ? "RefSending" : "RefReceiving")}({PositionRenderer.Render(d.OneBasedIndex)})",
                 CellTableSegment c => RuntimeApi.CellDynTable(path, PositionRenderer.Render(c.Ordinal), c.Min, c.ElementWidth),   // kb/Work PB1042
-                _ => path,
+                // Every segment kind has its arm: one without would drop its step from the access silently.
+                _ => throw new System.InvalidOperationException($"PlaceRenderer.RenderPath has no arm for {seg.GetType().Name}"),
             };
         return path;
     }

@@ -172,7 +172,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // declaratives portion consists of sections), and that is now what the resolution hands over.
         if (target.IsDeclarative)
         {
-            return BoundRejected.Report(ctx.Edition, "COBOL0714", $"RESUME AT '{pn.GetText()}': the procedure shall be in the "
+            return BoundRejected.Report(ctx.Edition, "COBOL0714", $"RESUME AT '{ProcedureNameShape.AsWritten(pn)}': the procedure shall be in the "
                 + "nondeclarative portion of the program (ISO §14.9.33.3 SR3)");
         }
         return new BoundResume(target.Range.Start);   // GR3 — as if GO TO procedure-name-1

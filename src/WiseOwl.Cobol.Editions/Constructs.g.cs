@@ -30,6 +30,8 @@ public static class Constructs
     public const string SetDynLengthSize2023 = "set-dyn-length-size-2023";
     public const string WordLength632023 = "word-length-63-2023";
     public const string LiteralLength81912014 = "literal-length-8191-2014";
+    public const string PictureString502002 = "picture-string-50-2002";
+    public const string PictureString632014 = "picture-string-63-2014";
     public const string CopyLiteralName2002 = "copy-literal-name-2002";
     public const string CopySuppress2002 = "copy-suppress-2002";
     public const string ContinueAfter2023 = "continue-after-2023";
@@ -50,6 +52,7 @@ public static class Constructs
     public const string FloatingCommentIndicator2002 = "floating-comment-indicator-2002";
     public const string FloatingLiteralContinuation2002 = "floating-literal-continuation-2002";
     public const string DebuggingLineRemoved2014 = "debugging-line-removed-2014";
+    public const string FloatingDebuggingIndicator2002 = "floating-debugging-indicator-2002";
     public const string SourceFormatDirective2002 = "source-format-directive-2002";
     public const string TurnDirective2002 = "turn-directive-2002";
     public const string DisplayDirective2023 = "display-directive-2023";

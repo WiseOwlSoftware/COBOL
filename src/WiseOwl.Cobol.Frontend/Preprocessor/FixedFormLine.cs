@@ -114,4 +114,8 @@ internal readonly struct FixedFormLine
 
     /// <summary>The text past margin R, which is ignored (Annex A item 158).</summary>
     public ReadOnlySpan<char> BeyondMarginR => _text.AsSpan(_marginRAt);
+
+    /// <summary>The index in the line of the first position past the program-text area — where <see cref="BeyondMarginR"/>
+    /// begins, and so where the line's program text is cut (<see cref="MarginRCut"/>).</summary>
+    public int MarginRIndex => _marginRAt;
 }

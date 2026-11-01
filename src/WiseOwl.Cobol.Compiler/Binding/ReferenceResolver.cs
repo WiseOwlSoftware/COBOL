@@ -1923,7 +1923,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
                 if (cell is null) return null;
                 cell = cell.Add(CellTableSegment.Of(level, new PositionOffset(OrdinalOrigin(level.ClassDynOrdinal, ordinalBase), [.. ordinalTerms])))
                            .Add(new DynTableSegment(indexExprs[k]));
-                backing = cell.Add(new MemberSegment(nameof(WiseOwl.Cobol.Runtime.StorageCell.Ref)));
+                backing = cell.Add(CellBackingSegment.Instance);
                 (terms, bitTerms, ordinalBase, ordinalTerms, nested) = ([], [], null, [], true);
                 continue;
             }

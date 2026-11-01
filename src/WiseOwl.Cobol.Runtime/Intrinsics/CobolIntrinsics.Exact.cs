@@ -82,7 +82,7 @@ public static partial class CobolIntrinsics
     /// <summary>INTEGER-PART (§15.49.4): the integer part of the argument (truncation toward zero), scale 0.</summary>
     public static Int128 Truncate(Int128 v, int scale) => scale <= 0 ? ExactMul(v, Pow10.AsWide(-scale), "INTEGER-PART") : v / Pow10.AsWide(scale);
 
-    /// <summary>ABS (§15.7.4, COBOL-2014+): the absolute value, at the argument's own scale.</summary>
+    /// <summary>ABS (§15.7.4, COBOL-2002+): the absolute value, at the argument's own scale.</summary>
     /// <remarks>⛔ <see cref="Int128.MinValue"/> HAS NO REPRESENTABLE MAGNITUDE (kb/Work PB2698). A signed 16-byte binary
     /// item holds −2^127 (its container, DOC-A.1-208), <c>-v</c> on it wraps to itself, and the former
     /// <c>v &lt; 0 ? -v : v</c> returned a NEGATIVE "absolute value" that a signed receiver then stored as garbage. The

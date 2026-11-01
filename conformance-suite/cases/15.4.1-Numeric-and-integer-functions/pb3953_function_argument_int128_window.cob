@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb3953_function_argument_int128_window
 *> rules: [RV-15.4.1-1, DOC-A.1-123]
-*> accept: [2014, 2023]
+*> accept: [2002, 2014, 2023]
 *> source-format: free
 *> portable: unverified
 *>---
