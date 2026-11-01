@@ -1,4 +1,4 @@
-## PB4272: the backend seam, the model, the binders and the driver reference no Roslyn
+## Entry 2923 — 2026-11-01 01:13 PDT — PB4272: the backend seam, the model, the binders and the driver reference no Roslyn
 
 Wave 20261800 C, the PB2293 campaign lane. The `ICodeGenBackend` contract was Roslyn-shaped, so a direct-IL backend
 could not implement it without loading Roslyn, and PB4273's model assembly could not be built without a Roslyn package.
@@ -40,3 +40,4 @@ checks that the keyword set equals Roslyn's, element by element.
 **Docs.** DESIGN-backend-abstraction §2.1 (the contract block, and the statement that the seam is Roslyn-free) and §2.4,
 DESIGN-codegen-backend §2.2, DESIGN-external-repository's keyword-seed paragraph and DESIGN-architecture-review §8.1 now
 describe the current code. PB4273 records that this landed.
+
