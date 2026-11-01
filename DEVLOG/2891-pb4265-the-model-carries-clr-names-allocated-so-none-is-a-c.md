@@ -1,4 +1,4 @@
-## PB4265: the model carries CLR names, allocated so none is a C# keyword
+## Entry 2891 — 2026-10-31 17:25 PDT — PB4265: the model carries CLR names, allocated so none is a C# keyword
 
 **Why.** The owner asked for the backend seam leaks to go first (PB2293 campaign). PB4265 found that
 DESIGN-backend-abstraction §1.2, L4, §2.4 and §6 still said a render-time `NameMangler` names everything and that no
@@ -32,3 +32,4 @@ GR2, §13.18.27.4 GR2, §8.1.3.2 3) a), each checked with cite.py). It needs no 
 introduced the rule. The drift test `CsNameReservationDriftTests.EveryScopeKind_RefusesEveryCSharpReservedKeyword_AndSanitizeNeverEscapes`
 covers the seed, and `EmittedGlobalNameDriftTests` reads the namespace's C# spelling from the backend. No inventory
 row changed.
+
