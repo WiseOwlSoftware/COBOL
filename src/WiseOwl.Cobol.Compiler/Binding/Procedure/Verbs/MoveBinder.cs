@@ -95,7 +95,7 @@ internal sealed record FromPhraseRules(
 
 internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, CorrespondingBinder corr)
 {
-    private int _elementLoopVar;   // program-unique §14.6.9.2 element-loop counter (__vlmN — `__` cannot occur in COBOL names)
+    private int _elementLoopVar;   // program-unique §14.6.9.2 element-loop ordinal (a StatementLocalRole.ElementMoveOccurrence local)
 
     public BoundStatement Bind(Core.MoveStatementContext move)
     {
@@ -274,7 +274,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     private TableElementMove ElementMove(int target, Place send, VariableLengthCompatibility.TableSite sSite,
                                          Place recv, VariableLengthCompatibility.TableSite rSite)
     {
-        string v = $"__vlm{_elementLoopVar++}";
+        MethodLocal v = new StatementLocal(StatementLocalRole.ElementMoveOccurrence, _elementLoopVar++);
         var s = ReachElement(send, sSite, v);
         var r = ReachElement(recv, rSite, v);
         if (s is not { } sReach || r is not { } rReach)
@@ -294,7 +294,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     /// the RECORD's table at the outer occurrences its span part names (<see cref="RenamesSpanPart.SubscriptsFor"/>),
     /// through the ONE item→place builder every verb operand uses. Null when no element place is built for the table's
     /// storage form.</summary>
-    private (Place Element, AllCount Count)? ReachElement(Place group, VariableLengthCompatibility.TableSite site, string v)
+    private (Place Element, AllCount Count)? ReachElement(Place group, VariableLengthCompatibility.TableSite site, MethodLocal v)
     {
         var table = site.Table;
         if (site.Part is { } part)
@@ -322,7 +322,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     /// <summary>Occurrence <paramref name="v"/> of <paramref name="table"/> at its cursor: a dynamic-capacity
     /// table's element through its direction-specific accessor (data-model D9 — a read is RefSending, a store
     /// RefReceiving, which within the current capacity never grows it), any other table through its OCCURS index.</summary>
-    private static Place ElementPlace(PlaceCursor tableCursor, DataItem table, string v) =>
+    private static Place ElementPlace(PlaceCursor tableCursor, DataItem table, MethodLocal v) =>
         (table.IsDynamicTable ? tableCursor.DynamicElement(new PositionLocal(v)) : null)?.ToPlace() ?? tableCursor.Indexed(new PositionLocal(v)).ToPlace();
 
     /// <summary>

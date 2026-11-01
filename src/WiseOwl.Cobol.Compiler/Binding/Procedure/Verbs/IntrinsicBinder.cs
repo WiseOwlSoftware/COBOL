@@ -3160,7 +3160,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             return true;
         }
 
-        var indices = new LocalVector($"__all{_allSerial++}");
+        var indices = new LocalVector(new StatementLocal(StatementLocalRole.TableAllIndices, _allSerial++));
         var exprs = new Position[innerSegs.Count];
         var counts = new List<AllCount>();
         var outerExprs = new List<Position>();   // the index of every level ABOVE the current one
@@ -3215,7 +3215,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         return true;
     }
 
-    /// <summary>One index variable per table(ALL) operand in the unit (<c>__all0</c>, <c>__all1</c>, …): a nested
+    /// <summary>One index vector per table(ALL) operand in the unit (the ordinal of its
+    /// <see cref="StatementLocalRole.TableAllIndices"/> local): a nested
     /// function inside a fixed subscript of an ALL argument renders its own enumeration lambda INSIDE the outer
     /// one, and C# forbids a lambda parameter that shadows an enclosing one.</summary>
     private int _allSerial;

@@ -39,7 +39,7 @@ declares it the same way:
     # SELF-TEST-NEEDS: build — <what it reads>
 The default run names it `deferred to --built` in its verdict; `--built` runs exactly those, after a solution build
 (the gate driver right after its build, concurrently with the legs, only for a change that touches tooling; CI's
-`greenfield-unit` job; linux-gate.sh after its unit and conformance legs). The default run never builds: it is one of the
+`linux-built-self-tests` job; linux-gate.sh after its unit and conformance legs). The default run never builds: it is one of the
 gate's audits, which run outside the gate slot, and the slot is what rations builds.
 
 POPULATION (kb/Work PB4326): every self-test that passes is held to the tooling flag (scripts/inert_lane.py): what it read
