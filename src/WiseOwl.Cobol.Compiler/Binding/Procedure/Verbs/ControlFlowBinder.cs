@@ -100,18 +100,22 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
     /// here and refused a COMP-3 item with decimals under a clause the program does not contain), and the SAME
     /// operand is accepted when the header names a RETURNING item, where the extension is "move x to that item"
     /// (<see cref="ImplicitMovePhrase.GobackReturning"/>). The operand is therefore asked what that MOVE would ask
-    /// of its sender: <see cref="MoveTable16.SenderClassRefusal"/>, §14.9.25.3 SR1 — the class shall not be index,
-    /// message-tag, object or pointer (an index DATA item is refused here as the header arm refuses it). Any other
-    /// value renders through GR5's truncation to an integer, so a scaled or floating operand is accepted as
-    /// GnuCOBOL accepts it.</para></summary>
+    /// of it, through the SAME entry the written MOVE's screens use: <see cref="MoveBinder.ScreenImplicitMoveToPosition"/>
+    /// over the exit status's position, an elementary integer — §14.9.25.3 SR1 (an index, message-tag, object or
+    /// pointer operand is COBOL0809) and the whole validity chain, SR2 and SR6–SR10, whose Table 16 refuses a
+    /// boolean sender to a numeric receiver as COBOL0819 exactly as the header arm does (review round 1, R1-1;
+    /// <c>MoveTable16AskerDriftTests</c> forbids a hand-composed subset of that question). Any other operand
+    /// renders through <c>NumericRenderer.ExitStatus</c>, so a scaled or floating one is accepted as GnuCOBOL
+    /// accepts it. §14.9.18.4 GR10 only says the contents are passed to the operating system, with constraints
+    /// the implementor defines; the truncation toward zero is that determination, docs/CONFORMANCE.md item 192,
+    /// not an ISO rule.</para></summary>
     internal TerminationStatus ReturningAsStatus(Place source)
     {
         // The source is a resolved PLACE, so an index-name (a computed operand, refused by ResolveSending) never
         // reaches here; an index DATA item, a pointer and an object reference are refused by SR1's class screen.
         var operand = new BoundFieldOperand(source);
-        if (MoveTable16.SenderClassRefusal(operand) is { } classRefusal)
-            ctx.Edition.Error("COBOL0809", classRefusal
-                + $" — MOVE {source.Item.CobolName}{ImplicitMovePhrase.Via(ImplicitMovePhrase.GobackReturning)}");
+        host.Move.ScreenImplicitMoveToPosition(operand, new Table16Operand(PicCategory.Numeric),
+            "the program's exit status", ImplicitMovePhrase.GobackReturning);
         return new TerminationStatus(false, operand);
     }
 

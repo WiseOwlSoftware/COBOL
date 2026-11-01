@@ -11,7 +11,7 @@
       *> RETURNING item the operand is the main program exit status, screened as the sender of the MOVE the
       *> extension stands for (14.9.25.3 SR1: not index, message-tag, object or pointer). A scaled COMP-3 item was
       *> refused under SR6 although the same statement is accepted when a header RETURNING item exists. 14.9.18.4
-      *> GR10 hands the OS an integer: 0.5 truncates to 0 (CONFORMANCE.md item 192), so the run exits 0.
+      *> the run unit passes an integer to the OS: 0.5 truncates to 0 (the implementor determination of CONFORMANCE.md item 192), so the run exits 0.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4361POS.
        DATA DIVISION.

@@ -22,3 +22,14 @@ and no accepted or refused program changes.
 
 Self-review: the architecture lens found one rule per place (the sender class screen is `MoveTable16`'s, not a copy); the
 code lens checked the STATUS phrase arms still ask SR6 and nothing else calls the status screen; no hot path is touched.
+
+**Review round 1 (PB4361).** The reviewer found that `ReturningAsStatus` asked only SR1's class half of the MOVE it stands
+for, a hand-composed subset of the validity question that `MoveTable16AskerDriftTests` exists to forbid. A boolean operand
+(`PIC 1(8) USAGE BIT`) that the old SR6 screen refused compiled clean and aborted at run time, while the header-RETURNING
+arm refuses it as COBOL0819 (SR10, Table 16). The screen now goes through `MoveBinder.ScreenImplicitMoveToPosition`: SR1 and
+the whole `MoveTable16.Validity` chain against an elementary-integer receiver position, framed by `FrameMoveRefusal`, which
+`MoveCategoryLegality` also uses now, so the written MOVE and this implicit one word a refusal alike. Golden:
+`pb4361-goback-returning-boolean-item` (COBOL0819 at 2002, 2014, 2023). Two comment and doc leads were also fixed: the
+truncation to an integer is item 192's implementor determination, not an ISO rule, and the CONFORMANCE.md row now says a
+COMP-2 operand beyond the 128-bit integer range ends the run unit with EC-SIZE-OVERFLOW. One lead is left: a display
+boolean item under the STATUS phrase aborts at run time (`NumericRenderer.StatusNum`), pre-existing and outside this diff.
