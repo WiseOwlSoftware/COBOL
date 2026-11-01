@@ -1,4 +1,4 @@
-## PB4373: the margin-R warning states margin R as the position the format fixes, not the column the file holds it at
+## Entry 2956 — 2026-11-01 12:35 PST — PB4373: the margin-R warning states margin R as the position the format fixes, not the column the file holds it at
 
 `MarginRCut.Margin` was the PHYSICAL column of margin R (`PhysicalLine.ColumnOf`, the unit a source location names, PB2983) but
 its doc comment and the COBOL5788 message called it the 1-based position of the last position of the program-text area (72).
@@ -24,3 +24,4 @@ half a surrogate pair; both now count characters (`CharacterPositions`, PB1966).
 **Tests.** Three in `MarginRCutNoteTests`: the tab line (position 72, positions 73 to 88, column 66), the supplementary-plane cut
 (positions 73 to 84) and the quote shortened at a supplementary character. No conformance golden: the change is the wording of a
 warning beside an error, which no golden's output carries. No inventory row changes verdict (`closes_rows: []`, with its reason).
+
