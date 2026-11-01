@@ -3283,8 +3283,8 @@ check("PB3476: ... and a header with neither describes no commit",
 
 # PB3474: THE NEVER-WORK RULE HAS ONE HOME, coord.NEVER_WORK (coord.is_work, coord.NEVER_WORK_PATHSPECS). A module that
 # tests a path against STATUS.md, TestResults/ or the settings file in its own way is a second copy of it: prune_worktrees'
-# classify() kept one (with a `tools/` exclusion NEVER_WORK lacks, which hid every file added under tools/), and
-# impacted_tests.changed_files another.
+# classify() kept one (with a `tools/` exclusion NEVER_WORK lacks, which hid every file added under tools/), and the
+# gate's former impact analysis another.
 def never_work_copies(sources):
     """The modules (not coord.py, the owner, nor a test file: its fixtures name these paths) that compare a path with
     one of coord.NEVER_WORK's entries or test its prefix by hand."""
