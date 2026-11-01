@@ -870,12 +870,15 @@ jobs:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
           restore-keys: ${{ runner.os }}-nuget-
-      - name: Restore the solution's packages (dotnet restore)
+      # A restore that failed partway leaves a partial package set, and nothing re-saves an exact key until a csproj or
+      # Directory.Packages.props changes, so the save runs only after a restore that succeeded (kb/Work PB4348).
+      - id: restore
+        name: Restore the solution's packages (dotnet restore)
         if: ${{ steps.warm.outcome == 'success' && steps.nuget.outputs.cache-hit != 'true' }}
         continue-on-error: true
         run: dotnet restore WiseOwl.Cobol.sln
       - name: Save the NuGet packages under main
-        if: ${{ steps.warm.outcome == 'success' && steps.nuget.outputs.cache-hit != 'true' }}
+        if: ${{ steps.restore.outcome == 'success' }}
         continue-on-error: true
         uses: actions/cache/save@v6
         with:
@@ -889,13 +892,14 @@ jobs:
         with:
           path: tests/external/gnucobol-3.2.tar.xz
           key: gnucobol-tests-3.2-3bb48af4
-      - name: Fetch the GnuCOBOL testsuite (pinned 3.2, sha256-verified)
+      - id: fetch
+        name: Fetch the GnuCOBOL testsuite (pinned 3.2, sha256-verified)
         if: ${{ steps.warm.outcome == 'success' && steps.corpus.outputs.cache-hit != 'true' }}
         continue-on-error: true
         shell: pwsh
         run: ./scripts/fetch-gnucobol-tests.ps1
       - name: Save the GnuCOBOL testsuite tarball under main
-        if: ${{ steps.warm.outcome == 'success' && steps.corpus.outputs.cache-hit != 'true' }}
+        if: ${{ steps.fetch.outcome == 'success' }}
         continue-on-error: true
         uses: actions/cache/save@v6
         with:
