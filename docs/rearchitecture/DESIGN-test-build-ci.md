@@ -183,7 +183,11 @@ RESTORE (`actions/cache/restore`; `actions/cache@` is refused, since it saves on
 every time, so a copy it saved was never read again and only filled the 10 GB budget (10.77 GB held on 2026-10-31, main's
 own copies evicted). The saves are the `setup-toolchain` action's (when `github.ref` is main) and the `toolchain-cache` and
 `package-cache` jobs', which run on a push to main alone: main's push run skips the matrix, so these jobs are what keeps the
-caches a merge group restores. `CiBoundsDriftTests` holds all of it, with a fixture arm for each shape it forbids.
+caches a merge group restores. A save runs only after the step that produced what it stores succeeded: `package-cache`'s
+`dotnet restore` and GnuCOBOL fetch continue on error, so their saves require `steps.restore.outcome` and
+`steps.fetch.outcome` to be `success`, since a failed restore would store a partial package set under the exact key and a
+run that hits an exact key never saves it again (kb/Work PB4348). `CiBoundsDriftTests` holds all of it, with a fixture arm
+for each shape it forbids.
 
 **⛔ The tests run as weighted shards, and `ci-gate` proves they ran the population (kb/Work PB4329, step 6 of PB4323;
 `GateLegDriftTests` `Shard_*`, `FilterPopulationGuardDriftTests`).** Each shard job builds the solution and runs every
