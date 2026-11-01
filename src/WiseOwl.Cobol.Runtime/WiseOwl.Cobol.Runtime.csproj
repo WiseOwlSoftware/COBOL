@@ -69,8 +69,7 @@
       what the tool package packs. CodeGen/AssemblyPackager.cs picks this platform's image.
     * RuntimeIdentifiers + PublishReadyToRun are static so restore fetches the crossgen2 pack and each platform's
       runtime pack; the portable build itself is unchanged.
-    * CobolRuntimeReadyToRun=false turns it off: tools/impact/ImpactRecording.targets does, because the impact
-      map's probes are woven into the portable assembly, which then is the one programs must load.
+    * CobolRuntimeReadyToRun=false turns it off: the portable assembly is then the one programs load.
   -->
   <PropertyGroup>
     <RuntimeIdentifiers>$(CobolRuntimeReadyToRunIdentifiers)</RuntimeIdentifiers>

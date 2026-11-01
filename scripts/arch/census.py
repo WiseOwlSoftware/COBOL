@@ -114,7 +114,7 @@ NOTICE = re.compile(r"(?i)readme|license|notice")
 ARTIFACT_CLASSES = {"script": ("scripts/", "tools/"), "doc": ("docs/",)}
 SUBMODULES = ("tools/claude-skills/", "specs-private")
 # A file inside a C# project's folder is compiled through its project (MSBuild globs it), never named by a caller: the
-# PROJECT is the artifact, and a caller names it by its file or its folder (`dotnet build tools/impact/X`).
+# PROJECT is the artifact, and a caller names it by its file or its folder (`dotnet build tools/X`).
 PROJECT_MEMBERS = (".cs", ".targets", ".props", ".json", ".resx")
 # A path-like token; `$`, `{`, `}` and `%` keep a COMPOSED name (`units/$unit.md`) whole, so it reads as a template.
 PATHLIKE = re.compile(r"[A-Za-z0-9_.\-/\\${}%]+")

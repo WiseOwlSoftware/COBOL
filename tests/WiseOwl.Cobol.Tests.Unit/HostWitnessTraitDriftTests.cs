@@ -8,14 +8,13 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE GATE'S LEG 1 HOLDS EVERY HOST-ONLY WITNESS AND EVERY CHEAP TREE-WIDE SWEEP, BY TRAIT (kb/Work PB3022;
+/// ⛔ THE HOST-ONLY WITNESSES AND THE TREE-WIDE SWEEPS ARE NAMED BY TRAIT (kb/Work PB3022;
 /// DESIGN-test-build-ci.md §3.17.3): every Unit test class that drives the file-sharing layer's host types
 /// (<c>src/WiseOwl.Cobol.Runtime/IO/Sharing/</c>, <c>HostFile</c>) from concurrent workers carries
-/// <c>[Trait("Host", "ReFS")]</c>, so <c>scripts/gate_plan.py</c> puts it in leg 1 (tier 0h) at every gate; every drift
-/// test that <c>scripts/spec/drift_rules.py --sweeps</c> classifies as a tree-wide sweep carries
-/// <c>[Trait("Sweep", "tree")]</c> and no other class does (tier 0c); and the planner's source scan of the traits
-/// agrees with the attributes the compiler sees. This class is itself leg 1 at every gate, whatever its cost
-/// (<c>gate_plan.TRAIT_GUARD</c>, tier 0h).
+/// <c>[Trait("Host", "ReFS")]</c>, and every drift test that <c>scripts/spec/drift_rules.py --sweeps</c> classifies as a
+/// tree-wide sweep carries <c>[Trait("Sweep", "tree")]</c> and no other class does. Since kb/Work PB4328 every gate runs
+/// the whole population, so no gate reads the traits to choose a case: they name the two classes for a reader (a
+/// <c>dotnet test --filter Host=ReFS</c> by hand, the review), and this class keeps the names true.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -85,7 +84,7 @@ public sealed class HostWitnessTraitDriftTests
     }
 
     [Fact]
-    public void TheSweepTrait_IsExactlyDriftRulesTreeWideSweeps_AndThePlannerSeesEveryTrait()
+    public void TheSweepTrait_IsExactlyDriftRulesTreeWideSweeps()
     {
         ProcessObservation sweeps = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts("spec", "drift_rules.py"), "--sweeps");
         Assert.True(sweeps.ExitCode == 0, $"drift_rules.py --sweeps failed (exit {sweeps.ExitCode}):\n{sweeps.Stdout}{sweeps.Stderr}");
@@ -93,44 +92,15 @@ public sealed class HostWitnessTraitDriftTests
             .ToHashSet(StringComparer.Ordinal);
         Assert.Contains(nameof(HostWitnessTraitDriftTests), expected); // the population check: it reads scripts/
 
-        ProcessObservation scan = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts("gate_plan.py"), "--traits");
-        Assert.True(scan.ExitCode == 0, $"gate_plan.py --traits failed (exit {scan.ExitCode}):\n{scan.Stdout}{scan.Stderr}");
-        using var json = System.Text.Json.JsonDocument.Parse(scan.Stdout);
-        var scanned = json.RootElement.EnumerateObject()
-            .SelectMany(asm => asm.Value.EnumerateObject().Select(cls => (Assembly: asm.Name, Class: cls.Name, Traits: cls.Value)))
-            .ToList();
-        var traited = scanned.Where(x => x.Traits.TryGetProperty("Sweep", out _)).Select(x => x.Class)
-            .ToHashSet(StringComparer.Ordinal);
+        // This assembly's classes only: the compiled attributes are read here, and the other assemblies' sweeps were held
+        // through the deleted planner's source scan (kb/Work PB4328; the report names the gap as a lead).
+        var here = UnitTypes.Where(t => t.DeclaringType is null).Select(t => t.Name).ToHashSet(StringComparer.Ordinal);
+        expected.IntersectWith(here);
+        var traited = UnitTypes.Where(t => t.DeclaringType is null && ClassTraits(t).Any(tr => tr.Name == "Sweep"))
+            .Select(t => t.Name).ToHashSet(StringComparer.Ordinal);
         Assert.True(traited.SetEquals(expected),
-            "the classes carrying [Trait(\"Sweep\", \"tree\")] are not exactly drift_rules.py's tree-wide sweeps "
-            + "(kb/Work PB3022: the planner's tier 0c reads the trait):\n  missing the trait: "
-            + string.Join(", ", expected.Except(traited).Order(StringComparer.Ordinal))
+            "the classes carrying [Trait(\"Sweep\", \"tree\")] are not exactly drift_rules.py's tree-wide sweeps:\n  missing "
+            + "the trait: " + string.Join(", ", expected.Except(traited).Order(StringComparer.Ordinal))
             + "\n  trait on a non-sweep: " + string.Join(", ", traited.Except(expected).Order(StringComparer.Ordinal)));
-
-        // The planner reads traits from the SOURCES (it plans before any build); in this assembly, what it read must be
-        // what the compiler attached, class by class.
-        var compiled = UnitTypes.Where(t => t.DeclaringType is null)
-            .SelectMany(t => ClassTraits(t).Select(tr => $"{t.Name} {tr.Name}={tr.Value}"))
-            .ToHashSet(StringComparer.Ordinal);
-        var read = scanned.Where(x => x.Assembly == "Unit")
-            .SelectMany(x => x.Traits.EnumerateObject()
-                .SelectMany(tr => tr.Value.EnumerateArray().Select(v => $"{x.Class} {tr.Name}={v.GetString()}")))
-            .ToHashSet(StringComparer.Ordinal);
-        Assert.True(read.SetEquals(compiled),
-            "gate_plan.py's trait scan disagrees with the compiled [Trait] attributes of the Unit assembly:\n  compiled only: "
-            + string.Join(", ", compiled.Except(read).Order(StringComparer.Ordinal))
-            + "\n  scanned only: " + string.Join(", ", read.Except(compiled).Order(StringComparer.Ordinal)));
-    }
-
-    [Fact]
-    public void ThePlan_OrdersTheHostAndSweepTiers_AfterTheChangesOwnCases()
-    {
-        string planner = File.ReadAllText(TestRepo.Scripts("gate_plan.py"));
-        Assert.Matches(@"(?m)^TIER_ORDER = \(""0a"", ""0h"", ""0c"", ""0d"", ""0u"", ""1"", ""2"", ""3""\)\r?$", planner);
-        Assert.Matches(@"(?m)^HOST_ONLY = \{\r?$", planner);
-        // ⛔ THIS CLASS RUNS AT EVERY GATE (tier 0h, kb/Work PB2730's finisher): its scans cost 5-11 s under a gate's
-        // load, over SWEEP_CHEAP_SECONDS, so as a plain sweep it sat in leg 2 and two branches gated GREEN on Windows
-        // over a trait drift the landing's whole Linux unit leg then found. The planner names it; a rename is red here.
-        Assert.Matches($@"(?m)^TRAIT_GUARD = ""{nameof(HostWitnessTraitDriftTests)}""\r?$", planner);
     }
 }

@@ -17,8 +17,8 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// measured the Conformance leg 32-wide for about 90-160 s and then 95-220 s at 1-4 threads, because the corpus ran as
 /// 3 partitions of about 1,546 cases (246-282 s each) and the optional-word sweep as one 23-row class (131-152 s).
 /// Replaying the measured durations onto 32 workers modeled the leg 247 s to 118 s with 24 corpus partitions, an 8-way
-/// optional-word split and longest-first order (the order is the gate plan's, timed from the shared timings store:
-/// <c>scripts/gate_plan.py</c>'s self-test arms).
+/// optional-word split and longest-first order (today the test framework's orderer by the committed weights file,
+/// tests/_shared/GateLegs.cs <c>GateOrderer</c>, kb/Work PB4328).
 /// <para>Why the floors and not a size bound (DESIGN-test-build-ci.md section 3.11): a partition's time is the family's
 /// time over P, and the leg's ideal wall is the leg's time over the host's T workers, so a partition stays under the
 /// wall while P ≥ T × (the family's share of the leg). The family's rows set neither side: a suite that doubles doubles
