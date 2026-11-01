@@ -1,4 +1,4 @@
-## PB4304 - the PICTURE character-string bound is the edition's: 30 at COBOL-85, 50 at 2002, 63 from 2014
+## Entry 2933 — 2026-11-01 01:34 PST — PB4304 - the PICTURE character-string bound is the edition's: 30 at COBOL-85, 50 at 2002, 63 from 2014
 
 **Mechanism.** `PictureAnalyzer.AnalyzeCharacterString` measured character-string-1 against one constant, 63, at every
 edition (ISO §13.18.40.3 SR4 is the 2023 text's number). The 2002 text's own SR4 reads 50 and its Annex F.2 item 94 records
@@ -29,3 +29,4 @@ clause, t2002.txt:16902 under the heading at :16889), not 13.16.39.3, which is t
 number had been inherited from the note and never re-derived; it is corrected in the `MaxPictureStringLength2002` comment,
 VCR row 7.46, the `picture-string-50-2002` constructs row, the SR-13.18.40.3-4 inventory notes (by `record_verdicts`
 batch, not by hand) and the note. F.2 item 94 ("from 30 to 50", :44179) was re-checked and stands.
+
