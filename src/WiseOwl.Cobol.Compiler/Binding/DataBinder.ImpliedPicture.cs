@@ -107,7 +107,7 @@ public sealed partial class DataBinder
     /// later passes over these entries.</summary>
     private void SynthesizeImpliedPicturesUnder(DataItem root)
     {
-        foreach (var item in PreOrder(root))
+        foreach (var item in DataItem.SelfAndDescendantsOf(root))
             if (IsWrittenEntry(item)) SynthesizeImpliedPicture(item);
     }
 

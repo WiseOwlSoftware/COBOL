@@ -80,20 +80,24 @@ public sealed class ParseRecoveryHintTruthTests
     /// once, on the fault's FIRST report, at depth 0 and inside an open statement alike (kb/Work PB3832, review R2-1).
     /// The parse fails there as a failed prediction, whose report carried no expected set, so the hint spoke only on
     /// the recovery's repeat at the same token, and the one-report-per-fault rule drops that repeat: the commonest
-    /// COBOL syntax error drew a bare COBOL0001. The rows pin that path: inside a section, the header fails a
-    /// prediction that looked past it ("cannot parse construct near").</summary>
+    /// COBOL syntax error drew a bare COBOL0001. Each row pins the report kind its fault takes: inside an open
+    /// statement the header fails a prediction that looked past it ("cannot parse construct near", PBHT37); at depth 0
+    /// the header is the token the sentence's statement loop cannot take ("unexpected"), in a section exactly as in a
+    /// division without sections, since a section's paragraphs are its own in the grammar's shape and no prediction
+    /// there looks past a header (kb/Work PB4230).</summary>
     [Theory]
-    [InlineData("PBHT31", "MOVE 1 TO W-N", "S2 SECTION.", "SECTION")]
-    [InlineData("PBHT32", "DISPLAY \"X\"", "S2 SECTION.", "SECTION")]
-    [InlineData("PBHT33", "ADD 1 TO W-N", "S2 SECTION.", "SECTION")]
-    [InlineData("PBHT34", "COMPUTE W-N = W-N + 1", "P2.", "P2")]
-    [InlineData("PBHT35", "STOP RUN", "P2.", "P2")]
-    [InlineData("PBHT36", "IF W-N = 0 MOVE 1 TO W-N", "S2 SECTION.", "SECTION")]
-    [InlineData("PBHT37", "IF W-N = 0 DISPLAY \"A\" ELSE IF W-N = 2 DISPLAY \"B\" END-IF DISPLAY \"C\"", "S2 SECTION.", "SECTION")]
+    [InlineData("PBHT31", "MOVE 1 TO W-N", "S2 SECTION.", "unexpected 'SECTION'")]
+    [InlineData("PBHT32", "DISPLAY \"X\"", "S2 SECTION.", "unexpected 'SECTION'")]
+    [InlineData("PBHT33", "ADD 1 TO W-N", "S2 SECTION.", "unexpected 'SECTION'")]
+    [InlineData("PBHT34", "COMPUTE W-N = W-N + 1", "P2.", "unexpected 'P2'")]
+    [InlineData("PBHT35", "STOP RUN", "P2.", "unexpected 'P2'")]
+    [InlineData("PBHT36", "IF W-N = 0 MOVE 1 TO W-N", "S2 SECTION.", "unexpected 'SECTION'")]
+    [InlineData("PBHT37", "IF W-N = 0 DISPLAY \"A\" ELSE IF W-N = 2 DISPLAY \"B\" END-IF DISPLAY \"C\"", "S2 SECTION.",
+        "cannot parse construct near 'SECTION'")]
     // a context-sensitive word is a legal paragraph-name, so this header IS the next sentence (kb/Work PB906): the
     // negative of PBHT42, whose IGNORING is followed by a LOCK no paragraph header takes
-    [InlineData("PBHT38", "CONTINUE", "IGNORING.", "IGNORING")]
-    public void AMissingSeparatorPeriod_IsNamedOnTheFaultsOneReport(string pid, string statement, string header, string near)
+    [InlineData("PBHT38", "CONTINUE", "IGNORING.", "unexpected 'IGNORING'")]
+    public void AMissingSeparatorPeriod_IsNamedOnTheFaultsOneReport(string pid, string statement, string header, string report)
     {
         var (ok, diagnostics) = EditionHarness.Compile($"""
                    IDENTIFICATION DIVISION.
@@ -111,7 +115,7 @@ public sealed class ParseRecoveryHintTruthTests
             """, 2023);
         Assert.False(ok, $"{pid}: '{statement}' lacks the period that ends its sentence, and it compiled");
         Assert.Equal(["COBOL0307"], Codes(diagnostics));
-        EditionHarness.AssertHasDiagnostic(diagnostics, $"cannot parse construct near '{near}'. A period may be missing");
+        EditionHarness.AssertHasDiagnostic(diagnostics, $"{report}. A period may be missing");
     }
 
     /// <summary>A COMPLETE statement followed by a word its general formats do not print there is that statement written

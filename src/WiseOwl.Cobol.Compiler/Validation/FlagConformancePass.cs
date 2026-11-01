@@ -647,9 +647,12 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     //    EC-RANGE-INDEX, so it is NOT flagged. A receiver is an index-name iff its base name is in the current unit's
     //    INDEXED BY registry (DataBinder.IndexNames); a data-name / pointer / capacity / dynamic-length receiver of
     //    the SHARED SET-TO / SET-UP/DOWN grammar (Formats 5/10/14/16) is intrinsically excluded (never an index-name). ──
-    public override object? VisitSetToValueStatement(CobolParserCore.SetToValueStatementContext ctx)
+    //    The one setToStatement rule carries every SET … TO shape (kb/Work PB4231); Format 1's is the one whose sender is
+    //    the arithmetic arm and which spells no ADDRESS phrase (a NULL sender and Format 7's spelling are never Format 1).
+    public override object? VisitSetToStatement(CobolParserCore.SetToStatementContext ctx)
     {
-        FlagIndexSet(SetReceiverReferences(ctx.setReceivingIdentifier()), ctx.Start.Line);
+        if (ctx.setToSender().arithmeticExpression() is not null && !ctx.SpellsAddressPhrase())
+            FlagIndexSet(SetReceiverReferences(ctx.setToReceiver()), ctx.Start.Line);
         return base.VisitChildren(ctx);
     }
 
@@ -663,6 +666,12 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     /// PB1551, and is no index-name).</summary>
     private static CobolParserCore.DataReferenceContext[] SetReceiverReferences(
         CobolParserCore.SetReceivingIdentifierContext[] receivers) =>
+        receivers.Select(r => r.dataReference()).OfType<CobolParserCore.DataReferenceContext>().ToArray();
+
+    /// <summary>The data-reference receivers of a Format-1-shaped setToStatement (one that spells no ADDRESS phrase, so
+    /// no receiver carries <c>ADDRESS OF</c>).</summary>
+    private static CobolParserCore.DataReferenceContext[] SetReceiverReferences(
+        CobolParserCore.SetToReceiverContext[] receivers) =>
         receivers.Select(r => r.dataReference()).OfType<CobolParserCore.DataReferenceContext>().ToArray();
 
     /// <summary>Flag the SET once (GR4 e) when a receiving operand is an index-name of the current unit AND

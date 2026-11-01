@@ -247,7 +247,7 @@ public sealed partial class DataBinder
         if (!IsConstantRecordItem(item)) return false;
         var carrier = item.TypeName is null
             ? (Sr4ConstantRecordUsage(item) is null ? null : item)
-            : PreOrder(item).FirstOrDefault(d => Sr4ConstantRecordUsage(d) is not null);
+            : DataItem.SelfAndDescendantsOf(item).FirstOrDefault(d => Sr4ConstantRecordUsage(d) is not null);
         if (carrier is null) return false;
 
         string phrase = Sr4ConstantRecordUsage(carrier)!;

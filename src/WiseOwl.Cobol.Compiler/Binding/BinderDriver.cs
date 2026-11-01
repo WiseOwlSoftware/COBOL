@@ -691,6 +691,7 @@ internal sealed class BinderDriver
             RefModZeroLength = session.RefModZeroLength,
             CobolWords = session.CobolWords,   // >>COBOL-WORDS intrinsic-function-name synonym/removal (§7.3.10)
             Retypes = session.Retypes,         // the fragment re-parses read words as the tree does (kb/Work PB655)
+            ClaimScans = session.ClaimScans,   // the group's one storage-claim walk, sliced per element (kb/Work PB4302)
             LeapSecond = session.LeapSecond.IsOnAt(UnitFirstLine(unit.Ctx)),   // >>LEAP-SECOND ON at THIS unit — the §15.3 seconds-subfield / time-form bound (§7.3.17, §7.3.4 GR5)
             CompilationVariables = session.CompilationVariables,   // CONSTANT … FROM reads the >>DEFINE table at its own line (§7.3.11.4 GR1)
             // The ANY LENGTH placement facts (ISO §13.18.2.3 SR2–SR4 — the rules differ for a contained
