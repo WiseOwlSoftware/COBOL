@@ -51,6 +51,7 @@ public static partial class ReferenceFormatProcessor
         {
             foreach (var line in physicalLines)
                 ConvertLine(line);
+            _builder.ReadInto(_division);   // the division the text ENDS in is the next segment's start
             return _builder.Result;
         }
 
@@ -178,9 +179,16 @@ public static partial class ReferenceFormatProcessor
         {
             if (kind == LineKind.Continuation) return _inCommentEntry ? CommentEntryText.Body : CommentEntryText.None;
             if (kind is not (LineKind.Source or LineKind.NotAnIndicator)) return CommentEntryText.None;
+            // The latest logical line awaits a floating-indicator continuation (§6.5 8)): this line is its continuation
+            // line, whatever it spells, and neither opens nor ends a comment-entry.
+            if (_builder.AwaitsFloatingContinuation) return CommentEntryText.None;
             // COBOL-85's comment-entry paragraph begins at an Area-A word and ends at the next one — the only place the
-            // Area A / Area B line matters here. WHERE the text is (the division) is read from the words of the line
-            // wherever they begin (§6.3.1: the program-text area has no such line), by the one DivisionCursor rule.
+            // Area A / Area B line matters here. WHERE the text is (the division) is read from the words of the LOGICAL
+            // lines before this one, wherever they begin (§6.3.1: the program-text area has no such line), by the one
+            // DivisionCursor rule.
+            // A blank or comment line is a new logical line of nothing (§6.5 2)): a continuation line after it still joins
+            // the latest logical line, so that line is not complete and the cursor must not read it yet (kb/Work PB4241).
+            if (LogicalLineBuilder.TryFirstText(area, out _)) _builder.ReadInto(_division);
             string? firstAreaAWord = FirstAreaAWord(line, area);
             if (_division.InIdentificationDivision && firstAreaAWord is not null && CommentEntryParagraphs.Contains(firstAreaAWord))
             {
@@ -189,7 +197,6 @@ public static partial class ReferenceFormatProcessor
             }
             if (_inCommentEntry && firstAreaAWord is null) return CommentEntryText.Body;   // Area-B text (or blank): the entry goes on
             _inCommentEntry = false;                        // the next Area-A word ends it
-            _division.Read(area);
             return CommentEntryText.None;
         }
     }
@@ -251,18 +258,14 @@ public static partial class ReferenceFormatProcessor
                 if (positions > FreeFormMaxPositions) gates?.OnFreeFormLineTooLong(file, line.Number, positions);
                 var site = new TextSite(line.Number, Index: 0, line.Columns);
                 // A comment line (§6.5 2)) is neither a header nor words of a division, as in fixed form.
-                int first = FirstNonSpace(line.Text);
-                if (first >= 0 && !CobolSourceText.CommentIndicatorAt(line.Text, first))
+                if (LogicalLineBuilder.TryFirstText(line.Text, out int first) && BeginsCommentEntry(line.Text, first))
                 {
-                    if (BeginsCommentEntry(line.Text, first))
-                    {
-                        _builder.Emit(CommentEntryHeader(line.Text), site);
-                        continue;
-                    }
-                    _division.Read(line.Text);
+                    _builder.Emit(CommentEntryHeader(line.Text), site);
+                    continue;
                 }
                 _builder.Add(line.Text, site, fixedContinuation: false);
             }
+            _builder.ReadInto(_division);   // the division the text ENDS in is the next segment's start
             return _builder.Result;
         }
 
@@ -270,9 +273,12 @@ public static partial class ReferenceFormatProcessor
         /// paragraph: the text stands in an IDENTIFICATION DIVISION, the line's first word is one of
         /// <see cref="CommentEntryParagraphs"/>, and the line is not the continuation line a floating literal continuation
         /// indicator asks for (§6.5 8)), whose text is the literal's whatever it spells.</summary>
-        private bool BeginsCommentEntry(string text, int first) =>
-            _division.InIdentificationDivision && !_builder.AwaitsFloatingContinuation
-            && CommentEntryParagraphs.Contains(text[first..WordEnd(text, first)]);
+        private bool BeginsCommentEntry(string text, int first)
+        {
+            if (_builder.AwaitsFloatingContinuation) return false;
+            _builder.ReadInto(_division);   // the division is that of the logical lines before this one
+            return _division.InIdentificationDivision && CommentEntryParagraphs.Contains(text[first..WordEnd(text, first)]);
+        }
     }
 
     /// <summary>The most character positions a free-form line may have (§6.1 3) a): "ranging from a minimum of 0 to a
