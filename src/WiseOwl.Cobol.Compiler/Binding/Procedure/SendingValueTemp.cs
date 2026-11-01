@@ -635,7 +635,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         var table = ctx.Data.CreateCompilerTempTable(model.Item, dynamic ? null : (int)capacity, "__HELDALL-", "__heldall", tag, out var cell);
         cell.IsDynamicLength = model.DynLimit > 0;   // the run-time-length attributes are no part of the cloned description (Freeze)
         if (cell.IsDynamicLength) cell.DynMaxSize = model.DynLimit;
-        var held = new LocalVector($"__hold{table.Uid}");
+        var held = new LocalVector(new StatementLocal(StatementLocalRole.HeldTableAllIndices, table.Uid));
         // A compiler temporary always resolves; a refusal here would quietly leave the argument un-held, the defect this exists to remove.
         if (ctx.Refs.ResolveItemAt(cell, [new PositionLocalElement(held, 0)]) is not { } heldElement)
             throw new InvalidOperationException($"SendingValueTemp: the held table(ALL) cell '{cell.CobolName}' did not resolve to a place");

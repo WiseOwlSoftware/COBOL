@@ -152,15 +152,16 @@ public enum PositionReadForm
 /// <paramref name="Path"/> is the item's structural access path; the profile is <paramref name="Item"/>'s.</summary>
 public sealed record PositionItemRead(AccessPath Path, DataItem Item, PositionReadForm Form) : Position;
 
-/// <summary>A statement-local integer: a report VARYING counter (rendered as a <c>long</c> when
-/// <paramref name="AsLong"/>), a hoisted item identification (ISO §14.6.4 7), a loop variable.</summary>
-public sealed record PositionLocal(string CsName, bool AsLong = false) : Position;
+/// <summary>A statement-local integer <paramref name="Local"/> — a report VARYING counter (rendered as a <c>long</c> when
+/// <paramref name="AsLong"/>), a hoisted item identification (ISO §14.6.4), a loop variable — by its identity, never
+/// its name (<see cref="MethodLocal"/>, kb/Work PB4321).</summary>
+public sealed record PositionLocal(MethodLocal Local, bool AsLong = false) : Position;
 
-/// <summary>A statement-local integer array named <paramref name="CsName"/> — a table(ALL) enumeration's index vector
-/// (ISO §15.3), one current occurrence per ALL level. Not itself a position: each element is one
-/// (<see cref="PositionLocalElement"/>), and the enumeration that declares it (<see cref="TableAllPlace"/>) and the
-/// subscripts that read it name the SAME vector.</summary>
-public sealed record LocalVector(string CsName);
+/// <summary>A statement-local integer array <paramref name="Local"/> — a table(ALL) enumeration's index vector (ISO §15.3),
+/// one current occurrence per ALL level. Not itself a position: each element is one (<see cref="PositionLocalElement"/>),
+/// and the enumeration that declares it (<see cref="TableAllPlace"/>) and the subscripts that read it name the SAME
+/// vector, by its identity (<see cref="MethodLocal"/>, kb/Work PB4321).</summary>
+public sealed record LocalVector(MethodLocal Local);
 
 /// <summary>One element of a statement-local integer array — a table(ALL) enumeration's current occurrence of one
 /// level (ISO §15.3): <c>Vector[Index]</c>.</summary>
