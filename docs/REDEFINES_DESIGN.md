@@ -98,7 +98,7 @@ WiseOwl COBOL stores a datum as its VALUE (PIC 9(4)→a long holding unscaled 12
 > binder/data model (`RedefinesModel.cs`) — "computed accessor" is the backend-neutral concept. This section shows
 > how the PRIMARY Roslyn backend renders it as C# properties; a future CIL backend (`--backend cil`) renders the
 > SAME model with its own private lowering (get/set method pairs over the same canonical). No REDEFINES semantics
-> may exist only in the rendered C#; `BackingClrName` and friends are rendering policy, not semantics.
+> may exist only in the rendered C#; `BackingClrName` and friends are CLR names the model allocates once for every backend (DESIGN-backend-abstraction §2.4), not semantics.
 
 TIER A (alias): 01 WS-COUNTER PIC 9(4). / 01 WS-COUNT-ALIAS REDEFINES WS-COUNTER PIC 9(4). →
   private static long WS_COUNTER = 0L; private static readonly NumProfile _P_WS_COUNTER = ...;
@@ -150,7 +150,7 @@ TIER C (scoped byte[] — mixed-USAGE pun): 01 PUN. / 05 AS-TEXT PIC X(4). / 05 
 MODEL (IMPLEMENTED — `src/WiseOwl.Cobol.Compiler/Binding/Model/RedefinesModel.cs` + `src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs`): DataItem carries string? RedefinesTargetName; DataItem? RedefinesTarget; RenamesInfo? Renames; RedefinesClass? Class; bool IsCanonical; and List<DataItem> Renames66 on the owning record.
   class RenamesInfo { required string FromName; string? ThruName; DataItem? From; DataItem? Thru; List<DataItem> SpanLeaves; bool IsAlias => ThruName is null; }
   enum RedefinesTier { Alias, StringCanonical, Rejected }   // ByteCanonical DELETED — Step D, kb/Work PB164
-  class RedefinesClass { required DataItem Canonical; List<DataItem> Members; RedefinesTier Tier; int Width; string BackingClrName => "_redef_"+Canonical.CsName; string? RejectReason; }
+  class RedefinesClass { required DataItem Canonical; List<DataItem> Members; RedefinesTier Tier; int Width; string BackingClrName => "_redef_"+Canonical.ClrName; string? RejectReason; }
   DataBinder: binds the REDEFINES clause to RedefinesTargetName (resolved after the forest is built) through RedefinesDataName2, which
   screens the WRITTEN operand first — §13.18.44.3 SR6 no qualifier (COBOL2915), SR5 no subscript and §8.4.3.3.3 no reference-modifier
   (the one data-name-n screen, COBOL2024) — and keeps only the base data-name, never the reference's glued text (kb/Work PB1281);
