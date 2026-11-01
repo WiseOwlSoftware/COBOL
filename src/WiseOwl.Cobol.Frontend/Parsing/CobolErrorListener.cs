@@ -132,9 +132,16 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
     {
         if (!_cutNoted.Add((cut.At.FileName, cut.At.Line))) return;
         var dropped = cut.Cut;
-        string shown = dropped.Text.Length > MaxDroppedShown ? dropped.Text[..MaxDroppedShown] + "..." : dropped.Text;
+        string shown = CharacterPositions.Count(dropped.Text) > MaxDroppedShown
+            ? dropped.Text[..CharacterPositions.IndexAt(dropped.Text, MaxDroppedShown)] + "..."
+            : dropped.Text;
+        // The message counts POSITIONS, which a tab fills and a character is one of; the location beside it is the COLUMN the
+        // file holds the cut at (kb/Work PB4373), so a line whose two differ says so rather than state two margins.
+        string held = dropped.Column == dropped.LastProgramTextPosition
+            ? ""
+            : $" (a tab counts the positions it fills, so the cut stands at column {dropped.Column + 1} of the line as the file holds it)";
         diagnostics.ReportWarning(DiagnosticCatalog.ProgramTextPastMarginR.Code,
-            $"the program text of this line was cut at margin R: it ends at position {dropped.LastProgramTextPosition}, and what "
+            $"the program text of this line was cut at margin R: it ends at position {dropped.LastProgramTextPosition}{held}, and what "
             + $"follows, '{shown}' (positions {dropped.FirstCutPosition} to {dropped.LastCutPosition}), is outside the "
             + $"program-text area and was ignored (ISO §6.3.1). The syntax error at {errorAt} may be this: {consequence}. "
             + $"Shorten the line to end at position {dropped.LastProgramTextPosition} or continue it on the next line.",

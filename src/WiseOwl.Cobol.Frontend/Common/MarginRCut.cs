@@ -16,11 +16,15 @@ namespace WiseOwl.Cobol.Frontend.Common;
 /// ordinary uses of the positions past margin R that remain are <see cref="IsSequenceNumber"/> and a file's identification
 /// tags (<see cref="FitsIdentificationArea"/>).</para>
 /// </summary>
-/// <param name="Margin">The 0-based PHYSICAL column — the character position the file holds it at (kb/Work PB2983) — of the
-/// first position past the program-text area, where the program text was cut; equally the 1-based POSITION of the last
-/// position of the program-text area (72), which is how a message names it.</param>
-/// <param name="Text">The text from the margin to the last non-space character of the line.</param>
-public readonly record struct MarginRCut(int Margin, string Text)
+/// <param name="Column">The 0-based PHYSICAL column — the character position the file holds it at (kb/Work PB2983) — of the
+/// first character past the program-text area, where the program text was cut: the column an editor shows and a
+/// <see cref="SourceLocation"/> names. It is NOT the position a message states (kb/Work PB4373): a tab of the line counts the
+/// positions it fills (DOC-A.1-157) and one column, so on a line holding a tab the column is less than the position.</param>
+/// <param name="LastProgramTextPosition">The 1-based POSITION of the last position of the program-text area, which the format
+/// fixes (72: <c>FixedFormLine.MarginR</c>) wherever the file holds it, and which is how a message names the margin. A
+/// position counts the spaces a tab expands to and one per character, a supplementary-plane one included
+/// (<see cref="CharacterPositions"/>).</param>
+public readonly record struct MarginRCut(int Column, int LastProgramTextPosition, string Text)
 {
     /// <summary>Positions in the COBOL-85 card-image IDENTIFICATION AREA, positions 73–80 — the area a program's name and a
     /// card's number were punched in. ISO/IEC 1989:2023 has no such area (§6.3.1 makes margin R the implementor's and says
@@ -28,14 +32,11 @@ public readonly record struct MarginRCut(int Margin, string Text)
     /// a statement.</summary>
     public const int IdentificationAreaWidth = 8;
 
-    /// <summary>The 1-based position of the last position of the program-text area.</summary>
-    public int LastProgramTextPosition => Margin;
-
     /// <summary>The 1-based position of the first character that was cut.</summary>
-    public int FirstCutPosition => Margin + 1;
+    public int FirstCutPosition => LastProgramTextPosition + 1;
 
     /// <summary>The 1-based position of the last character that was cut.</summary>
-    public int LastCutPosition => Margin + Text.Length;
+    public int LastCutPosition => LastProgramTextPosition + CharacterPositions.Count(Text);
 
     /// <summary>Whether the text begins AT margin R, with no space between it and the program-text area: a word the margin
     /// ends may then go on past it, so the cut can fall INSIDE a word.</summary>
@@ -67,13 +68,13 @@ public readonly record struct MarginRCut(int Margin, string Text)
 /// <param name="Cut">The cut of that physical line.</param>
 public readonly record struct LocatedMarginRCut(SourceLocation At, MarginRCut Cut)
 {
-    /// <summary>Where the line's program text was cut: the file and line of <see cref="At"/> and the column of margin R.</summary>
-    public SourceLocation CutLocation => new(At.FileName, 0, At.Line, Cut.Margin);
+    /// <summary>Where the line's program text was cut: the file and line of <see cref="At"/> and the physical column of margin R.</summary>
+    public SourceLocation CutLocation => new(At.FileName, 0, At.Line, Cut.Column);
 
     /// <summary>Whether the text asked about ENDS AT margin R and the text past it begins right there: its last character
     /// stands at the position just before margin R, with no space between it and what was cut, so the cut falls inside what
     /// is one word if the cut text goes on with word characters.</summary>
-    public bool EndsAtMarginR => At.Column == Cut.Margin - 1 && Cut.BeginsAtMargin;
+    public bool EndsAtMarginR => At.Column == Cut.Column - 1 && Cut.BeginsAtMargin;
 }
 
 /// <summary>The question a diagnostic asks of the reference-format stage about a position of the resultant text: was the
