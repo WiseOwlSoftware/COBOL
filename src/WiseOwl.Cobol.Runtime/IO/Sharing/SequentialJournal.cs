@@ -679,9 +679,10 @@ internal sealed class SequentialJournal
             names = medium.ListNames(directory, NamePrefix);
         }
         catch (UnauthorizedAccessException) { return Holdings.Unreadable; }
-        // A spelling the host cannot make absolute, or name a directory beside, names no file, so no transaction lives on it: the
-        // OPEN's own probe answers for it (a data-name-1 holds an arbitrary string, §12.4.5.3 GR3 b); kb/Work PB2848).
-        catch (PathTooLongException) { return Holdings.None; }
+        // A spelling the host cannot make absolute, or has no directory beside (a root: "C:/", "/"), names no file, so no transaction
+        // lives on it: the OPEN's own probe answers for it (a data-name-1 holds an arbitrary string, §12.4.5.3 GR3 b); kb/Work PB2848,
+        // PB4097). The three exception types are SidecarRegionLocks's own set for the same call.
+        catch (Exception e) when (e is PathTooLongException or ArgumentException or NotSupportedException) { return Holdings.None; }
         if (names.Count == 0) return Holdings.None;
         var ids = new SortedSet<int>();
         foreach (string name in names)

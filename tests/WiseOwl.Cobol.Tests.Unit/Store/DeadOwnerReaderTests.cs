@@ -182,6 +182,43 @@ public sealed class DeadOwnerReaderTests : CommitRollbackRuntimeHarness
         }
     }
 
+    /// <summary>The same refusal at a STATEMENT's entry (review round 1, R1-4): the reader is open (SHARING WITH ALL OTHER) when the
+    /// owner dies and the file becomes read-only to this process, so the reader's next READ finds the dead transaction and cannot
+    /// settle it. The entry's host failure is a permanent error ('30', §9.1.13.6 1); <c>KeyedConnector.Enter</c>), in effect for the
+    /// file's later statements (§9.1.13.1); the dead change is never returned, the IGNORING LOCK read (§14.9.30.4 GR12) included.</summary>
+    [Theory]
+    [MemberData(nameof(OrgsByIgnoring))]
+    public void A_reader_whose_statement_entry_cannot_settle_the_dead_owner_answers_30_not_the_dead_change(FileOrg org, bool ignoringLock)
+    {
+        string host = Tmp($"pb4097-entry-{org}-{ignoringLock}");
+        try
+        {
+            Seed(host, org);
+            var reader = Open(host, org, commit: false, FileOpenMode.Input, name: "C");
+            var (a, medium) = Change(host, org);
+            File.SetAttributes(host, FileAttributes.ReadOnly);
+            if (HostFile.PermitsWrite(host)) { Die(a, medium); reader.CloseAll(); return; }
+            Die(a, medium);
+            Assert.Equal("30", Read(reader, org, 1, out var image, ignoringLock, name: "C"));
+            Assert.NotEqual(Rec(1, "X001"), image);
+            Assert.Equal("30", Read(reader, org, 5, out _, ignoringLock, name: "C"));   // the permanent error stays in effect
+            reader.CloseAll();
+        }
+        finally
+        {
+            if (File.Exists(host)) File.SetAttributes(host, FileAttributes.Normal);
+            TryDelete(host);
+        }
+    }
+
+    public static TheoryData<FileOrg, bool> OrgsByIgnoring()
+    {
+        var data = new TheoryData<FileOrg, bool>();
+        foreach (var org in KeyedOrgs)
+            foreach (bool ignoring in new[] { false, true }) data.Add(org, ignoring);
+        return data;
+    }
+
     /// <summary>Records 1 to 9 as one reader reads them (absent: null), ignoring locks when asked.</summary>
     private static string?[] ReadAll(FileRegistry reader, FileOrg org, bool ignoringLock = false)
     {

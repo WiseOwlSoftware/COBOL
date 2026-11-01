@@ -421,14 +421,27 @@ public sealed partial class SequentialConnector : IJournalData
     /// record it rewrote, one it appended — with '51' (§9.1.13.8 1)), and a dead one's is settled before the READ. The record
     /// a forward READ makes available starts at the file position indicator's offset; a backward one's is told by its ordinal.
     /// The lock test is <see cref="JournalLockTest"/>'s, the statement's RETRY phrase applying. Null when the READ may proceed.
-    /// The caller asks it after the record-lock conflict check (DOC-A.1-104's point).</summary>
-    internal string? ReadHoldingsGate(bool previous)
+    /// The caller asks it after the record-lock conflict check (DOC-A.1-104's point).
+    /// <para>⛔ A READ THAT TESTS NO LOCK (<paramref name="testsLocks"/> false: IGNORING LOCK, §14.9.30.4 GR12, <i>"the requested
+    /// record is made available, even if it is locked"</i>; ADVANCING ON LOCK, GR22) takes this entry step alone, with no holding
+    /// judged (kb/Work PB4097; §9.1.18.5: <i>"When a run unit terminates abnormally, all file changes made since the previous commit
+    /// or, if none, the beginning of the run unit are rolled back"</i>): it ignores a LIVE transaction's holdings, never a rollback
+    /// that is owed, since a dead transaction's rewritten record is not in the file once its owner's locks are gone.</para>
+    /// <para>A host refusal of the settle (the file is read-only to this process, the medium refused a page) is the entry's host
+    /// failure: '30', a permanent error as every statement's entry gives (<c>KeyedConnector.Enter</c>; §9.1.13.6 1)), never an
+    /// exception out of the statement and never the dead change shown to the reader.</para></summary>
+    internal string? ReadHoldingsGate(bool previous, bool testsLocks)
     {
         if (!MeetsAnotherRunUnitsTransactions) return null;
-        long at = _lineSequential ? _lineByteOffset : _readOffset;
-        long ordinal = previous ? TargetReadOrdinal(previous) : 0;
-        return JournalLockTest(Journal?.Id,
-            previous ? h => h.HoldsRecordBefore(ordinal, at) : h => h.HoldsRecordAt(at), underMutex: false);
+        try
+        {
+            if (!testsLocks) return JournalLockTest(Journal?.Id, static _ => false, underMutex: false);
+            long at = _lineSequential ? _lineByteOffset : _readOffset;
+            long ordinal = previous ? TargetReadOrdinal(previous) : 0;
+            return JournalLockTest(Journal?.Id,
+                previous ? h => h.HoldsRecordBefore(ordinal, at) : h => h.HoldsRecordAt(at), underMutex: false);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return FileStatusCode.PermanentError; }
     }
 
     /// <summary>Whether another run unit's transaction can begin, and die, beside this READER while it is open: its file lock admits
@@ -436,17 +449,6 @@ public sealed partial class SequentialConnector : IJournalData
     /// no writer can open the file beside it, and the dead transactions that stood before its OPEN were settled by the OPEN
     /// (<c>FileConnector.EnterPhysicalFile</c>).</summary>
     private bool MeetsAnotherRunUnitsTransactions => FileLockPosture.AdmitsAnotherWriter(HostShare) && HostPath.Length != 0 && _reader is not null;
-
-    /// <summary>⛔ THE DEAD-OWNER STEP OF A READ THAT TESTS NO LOCK (kb/Work PB4097; §9.1.18.5: <i>"When a run unit terminates
-    /// abnormally, all file changes made since the previous commit or, if none, the beginning of the run unit are rolled back"</i>):
-    /// a READ IGNORING LOCK (§14.9.30.4 GR12, <i>"the requested record is made available, even if it is locked"</i>) or ADVANCING
-    /// ON LOCK (GR22) ignores a LIVE transaction's holdings, never a rollback that is owed: a dead transaction's rewritten record
-    /// is not in the file once its owner's locks are gone. This is <see cref="ReadHoldingsGate"/>'s entry step alone — the
-    /// dead transactions settled, no holding judged — so the lock-ignoring READ reads the file as §9.1.18.5 leaves it.</summary>
-    internal void SettleDeadTransactions()
-    {
-        if (MeetsAnotherRunUnitsTransactions) _ = JournalLockTest(Journal?.Id, static _ => false, underMutex: false);
-    }
 
     /// <summary>⛔ THE JOURNAL ARM OF THE LOCK TEST, UNDER THE STATEMENT'S RETRY PHRASE (2.2.2.3: <i>"held, '51' (RETRY
     /// applies)"</i>; §14.7.9.3 GR4 b): a record operation conflict is attempted again as GR1 to GR3 specify, and an attempt the

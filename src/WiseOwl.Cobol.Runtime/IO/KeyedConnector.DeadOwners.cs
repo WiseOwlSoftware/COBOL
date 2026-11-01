@@ -40,8 +40,8 @@ public abstract partial class KeyedConnector
     /// <summary>⛔ THE OPEN OF A CONNECTOR WITH NO WRITABLE HANDLE SETTLES THE DEAD OWNERS BEFORE ANY RECORD IS READ (§9.1.18.5;
     /// kb/Work PB4097): the store the OPEN just attached is entered under the mutex (a live store another connector of the run unit
     /// holds is not re-read by the OPEN) and asked for a dead owner. None: the OPEN proceeds. One: the OPEN's own handle goes first
-    /// when its share mode could refuse the settle's writable one (a host whose share modes are mandatory refuses a writer beside
-    /// a handle that excludes writers; <see cref="HostFile.ShareModesAreMandatory"/>), the owners are rolled back, and the OPEN
+    /// (a host whose share modes are mandatory refuses a writer beside a handle that excludes writers, which INPUT's default
+    /// <c>READ ONLY</c> share mode is, and the step does not ask which host it is on), the owners are rolled back, and the OPEN
     /// takes its handle and attaches again — the Table 19 column (the file lock between run units) stays held throughout, so no
     /// run unit the table refuses gets in between. A connector holding the handle a CLOSE under commit control kept keeps it
     /// (that handle is the transaction's file lock and liveness byte). A host refusal of the settle is the OPEN's own: '37' for

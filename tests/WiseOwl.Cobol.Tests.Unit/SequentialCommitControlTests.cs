@@ -989,6 +989,80 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     }
 
     [Fact]
+    public void A_reader_that_cannot_write_the_file_is_refused_not_shown_the_dead_change()
+    {
+        // kb/Work PB4097 (review round 1, R1-3): the settle of a dead run unit's REWRITE is a write the reader's OPEN cannot make
+        // when the file is read-only to this process: the authority it lacks, '37' (§14.9.27.4 GR3; §9.1.13.6 6) b)), as a keyed
+        // reader is refused (DeadOwnerReaderTests), never the dead change and never a '30' the host's other refusals share.
+        string dir = ScratchDirectory.Create("scc-");
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            File.WriteAllText(f, "C1C2", Encoding.Latin1);
+            var medium = new FaultHostMedium();
+            using (medium.OwnColumnLocks())
+            {
+                var a = new Unit(f, covered: true, medium);
+                Ok(a.Open(FileOpenMode.IO));
+                Ok(a.Read(out _));
+                Ok(a.Rewrite("Y1"));
+            }
+            medium.Kill();
+            File.SetAttributes(f, FileAttributes.ReadOnly);
+            if (HostFile.PermitsWrite(f)) return;   // a host where this process may write a read-only file anyway
+            var reader = new Unit(f, covered: false);
+            Assert.Equal("37", reader.Open(FileOpenMode.Input));
+            Assert.Equal("47", reader.Read(out _));   // not open: nothing was read
+            reader.Reg.CloseAll();
+        }
+        finally
+        {
+            if (File.Exists(f)) File.SetAttributes(f, FileAttributes.Normal);
+            ScratchDirectory.Remove(dir);
+        }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void A_reader_whose_settle_of_a_killed_run_units_change_the_host_refuses_answers_30(bool ignoringLock)
+    {
+        // kb/Work PB4097 (review round 1, R1-1): the reader is open (SHARING WITH ALL OTHER) when the owner dies and the file
+        // becomes read-only to this process, so its next READ cannot make the rollback §9.1.18.5 owes. The entry step's host
+        // failure is a permanent error ('30', §9.1.13.6 1), §9.1.13.1: it stays in effect for the file's later statements), the
+        // statement of every organization (KeyedConnector.Enter), never an exception out of the run unit and never the dead
+        // change - the IGNORING LOCK READ (§14.9.30.4 GR12) included, since it ignores a live owner's lock, not a rollback.
+        string dir = ScratchDirectory.Create("scc-");
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            File.WriteAllText(f, "C1C2", Encoding.Latin1);
+            var reader = new Unit(f, covered: false, sharing: FileSharing.AllOther);
+            Ok(reader.Open(FileOpenMode.Input));
+            var medium = new FaultHostMedium();
+            using (medium.OwnColumnLocks())
+            {
+                var a = new Unit(f, covered: true, medium, sharing: FileSharing.AllOther);
+                Ok(a.Open(FileOpenMode.IO));
+                Ok(a.Read(out _));
+                Ok(a.Rewrite("Y1"));
+            }
+            medium.Kill();
+            File.SetAttributes(f, FileAttributes.ReadOnly);
+            if (HostFile.PermitsWrite(f)) return;   // a host where this process may write a read-only file anyway
+            Assert.Equal("30", reader.Read(out string first, ignoringLock: ignoringLock));
+            Assert.NotEqual("Y1", first);
+            Assert.Equal("30", reader.Read(out _, ignoringLock: ignoringLock));   // the permanent error stays in effect
+            reader.Reg.CloseAll();
+        }
+        finally
+        {
+            if (File.Exists(f)) File.SetAttributes(f, FileAttributes.Normal);
+            ScratchDirectory.Remove(dir);
+        }
+    }
+
+    [Fact]
     public void Normal_termination_commits_and_abnormal_termination_rolls_back()
     {
         // §14.6.11 1): "An implicit COMMIT statement is executed for the files specified in all active APPLY COMMIT clauses";
