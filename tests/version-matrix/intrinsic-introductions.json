@@ -1,0 +1,44 @@
+{
+ "about": "The edition each ISO/IEC 1989 intrinsic function was INTRODUCED in, derived from the standards themselves and committed because the 2002 and 2009 drafts are not tracked in git (kb/Work PB4296). specs/ISO_COBOL.md is the 2023 text, whose section 8.11 lists names with no edition data and whose Annex E covers only 2014 to 2023, so an introduction year below 2023 can be read only from the older standards' own new-function lists. IntrinsicIntroductionDriftTests holds IntrinsicCatalog's IntroducedIn equal to this file for every clause-15 function, in BOTH directions (a catalog row with no list, a listed name with no catalog row, a name in two lists), and holds the 2023 list equal to Annex E.2 item 13 of specs/ISO_COBOL.md re-read on every run.",
+ "editions": [
+  {
+   "edition": 85,
+   "source": "ISO/IEC 1989:2002 section 8.11 'Intrinsic function names' (76 names) LESS Annex F.2 item 78 (34 names): the 42 functions the 1989 Intrinsic Function Module amendment to ISO 1989:1985 had already defined, i.e. the NIST CCVS85 IF101A-IF142A surface. Derived by set difference from the two lists, and equal to the 42 catalog rows the compiler has always windowed at 85.",
+   "functions": [
+    "ACOS", "ANNUITY", "ASIN", "ATAN", "CHAR", "COS", "CURRENT-DATE", "DATE-OF-INTEGER", "DAY-OF-INTEGER",
+    "FACTORIAL", "INTEGER", "INTEGER-OF-DATE", "INTEGER-OF-DAY", "INTEGER-PART", "LENGTH", "LOG", "LOG10",
+    "LOWER-CASE", "MAX", "MEAN", "MEDIAN", "MIDRANGE", "MIN", "MOD", "NUMVAL", "NUMVAL-C", "ORD", "ORD-MAX",
+    "ORD-MIN", "PRESENT-VALUE", "RANDOM", "RANGE", "REM", "REVERSE", "SIN", "SQRT", "STANDARD-DEVIATION", "SUM",
+    "TAN", "UPPER-CASE", "VARIANCE", "WHEN-COMPILED"
+   ]
+  },
+  {
+   "edition": 2002,
+   "source": "ISO/IEC 1989:2002 Annex F.2 item 78: \"Intrinsic functions. New intrinsic functions are:\" followed by the 34 names below, ABS first. Corroborated by the same edition's section 8.11 (every one is on its list) and section 15.6 'ABS function'.",
+   "functions": [
+    "ABS", "BOOLEAN-OF-INTEGER", "BYTE-LENGTH", "CHAR-NATIONAL", "DATE-TO-YYYYMMDD", "DAY-TO-YYYYDDD",
+    "DISPLAY-OF", "E", "EXCEPTION-FILE", "EXCEPTION-FILE-N", "EXCEPTION-LOCATION", "EXCEPTION-LOCATION-N",
+    "EXCEPTION-STATEMENT", "EXCEPTION-STATUS", "EXP", "EXP10", "FRACTION-PART", "HIGHEST-ALGEBRAIC",
+    "INTEGER-OF-BOOLEAN", "LOCALE-COMPARE", "LOCALE-DATE", "LOCALE-TIME", "LOWEST-ALGEBRAIC", "NATIONAL-OF",
+    "NUMVAL-F", "PI", "SIGN", "STANDARD-COMPARE", "TEST-DATE-YYYYMMDD", "TEST-DAY-YYYYDDD", "TEST-NUMVAL",
+    "TEST-NUMVAL-C", "TEST-NUMVAL-F", "YEAR-TO-YYYY"
+   ]
+  },
+  {
+   "edition": 2014,
+   "source": "ISO/IEC CD 1989 (WG4 committee draft 1.2, 2009) Annex D.2 item 4 'New intrinsic functions': \"The intrinsic functions listed below have been introduced in this committee draft International Standard.\" followed by the 11 names below (kb/Work R28). ABS is not among them.",
+   "functions": [
+    "COMBINED-DATETIME", "FORMATTED-CURRENT-DATE", "FORMATTED-DATE", "FORMATTED-DATETIME", "FORMATTED-TIME",
+    "INTEGER-OF-FORMATTED-DATE", "LOCALE-TIME-FROM-SECONDS", "SECONDS-FROM-FORMATTED-TIME",
+    "SECONDS-PAST-MIDNIGHT", "TEST-FORMATTED-DATETIME", "TRIM"
+   ]
+  },
+  {
+   "edition": 2023,
+   "source": "ISO/IEC 1989:2023 Annex E.2 item 13 'FUNCTION ALL INTRINSIC and new intrinsic functions' (specs/ISO_COBOL.md): the 7 new intrinsic function names. Re-read from the specification on every run by IntrinsicIntroductionDriftTests.",
+   "functions": [
+    "BASECONVERT", "CONCAT", "CONVERT", "FIND-STRING", "MODULE-NAME", "SMALLEST-ALGEBRAIC", "SUBSTITUTE"
+   ]
+  }
+ ]
+}

@@ -36,6 +36,20 @@ failed with `L-X: '__lnk4.Value'`. No golden: the change is behavior-neutral and
 internal shape (`closes_rows: []`). DESIGN-backend-abstraction §1.2 and §1.3 L7 (now DONE), INTERPROGRAM_DESIGN and
 OO_DESIGN describe the new shape.
 
+**The backend-contract test (merged from main).** kb/Work PB4266 landed while this branch waited. Its
+`BackendContract.Table` tolerated seven members as this note's L7 leak row and refuses a row whose member is gone, so
+bringing main in conflicted in DESIGN-backend-abstraction §1.3 and, with no textual conflict, in the table. The fix
+had deleted four of the seven (`CallBridge.Path`, `BoundTableSortKey.MemberPath`, `BoundUnit.ClassRef`, the
+text-returning `AnchorOf`) and the L9 row's `OmittedFormalGuard.CarrierPrefix`. The conflict finisher answered the
+other three. `CallBridge.Field` held only a CLR name, so it became `MemberClrName`, neutral by construction.
+`MemberSegment.CsMember` also held the runtime member `StorageCell.Ref`; that step is now a structural
+`CellBackingSegment`, so the member became `MemberClrName` too, and `PlaceRenderer.RenderPath`'s silent default arm
+now throws. `RootFieldSegment.CsField` still roots three accesses at a C# method local: the method arm's carrier
+(`DataItem.ResidentCarrier`), `FreezeView`'s hoisted cell and `AtElementCell`'s element cell. They are §1.3 L8's
+residue, filed as kb/Work PB4380 and held as the table's one L8 leak row, so the table has no L7 row. The same pass
+fixed the branch review's stale-name leads (R1-1: `OoFormal`, `Place.cs`, two tests, INTERPROGRAM_DESIGN) and the
+P7 Step 11 sketch in DESIGN-codegen-backend §2.3.
+
 **Self-review.** Architecture: one anchor decision (`AnchorOf`), one anchor spelling (`Anchored`), one root builder
 (`AddRoot`), one bridge list. Code: the guard renders byte-identically (the carrier was always the root's whole
 reference-type part). Performance: `CarrierValueSegment` is a singleton; the bridge list allocates one small struct per

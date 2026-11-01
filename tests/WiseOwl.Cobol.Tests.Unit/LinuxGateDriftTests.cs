@@ -8,8 +8,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE LOCAL LINUX GATE RUNS WHAT CI'S LINUX JOBS RUN (kb/Work PB1732, PB1955): every test project a Linux job of
-/// <c>.github/workflows/build-and-test.yml</c> runs with <c>dotnet test</c>, and every repository script it runs with
-/// <c>bash</c>, is a default leg of <c>scripts/linux-gate.sh</c>.
+/// <c>.github/workflows/build-and-test.yml</c> runs with <c>dotnet test</c>, and every repository script a Linux job of
+/// it or of <c>.github/workflows/nightly.yml</c> runs with <c>bash</c> as its test, is a default leg of
+/// <c>scripts/linux-gate.sh</c>, the tool that reproduces a Linux CI red.
 /// </summary>
 /// <remarks>
 /// Train 71b's first push went red in CI's Linux unit job on a Windows path literal that was green on Windows, and
@@ -51,7 +52,9 @@ public sealed class LinuxGateDriftTests
     }
 
     /// <summary>
-    /// ⛔ AND EVERY REPOSITORY SCRIPT A LINUX JOB RUNS AS A TEST STEP IS A LEG TOO (kb/Work PB1955, PB1957 row 40).
+    /// ⛔ AND EVERY REPOSITORY SCRIPT A LINUX JOB RUNS AS A TEST STEP IS A LEG TOO (kb/Work PB1955, PB1957 row 40), the
+    /// nightly's included: CI's <c>guard</c> job moved there from the merge group (kb/Work PB4329), and a nightly red is
+    /// reproduced with the same tool.
     /// </summary>
     /// <remarks>
     /// The fact above reads only <c>dotnet test</c> lines, and CI's <c>guard</c> job runs none: its whole test is
@@ -64,11 +67,11 @@ public sealed class LinuxGateDriftTests
     [Fact]
     public void EveryScriptCisLinuxJobsRun_IsALegOfTheLinuxGate()
     {
-        string workflow = File.ReadAllText(TestRepo.At(".github", "workflows", "build-and-test.yml"));
         string gate = File.ReadAllText(TestRepo.Scripts("linux-gate.sh"));
 
         var linuxScripts = new SortedSet<string>(StringComparer.Ordinal);
-        foreach (string job in LinuxJobs(workflow))
+        foreach (string job in new[] { "build-and-test.yml", "nightly.yml" }
+                     .SelectMany(w => LinuxJobs(File.ReadAllText(TestRepo.At(".github", "workflows", w)))))
         {
             foreach (Match m in Regex.Matches(job, @"^\s+run:\s*bash (scripts/[^\s]+\.sh)\s*$", RegexOptions.Multiline))
             {

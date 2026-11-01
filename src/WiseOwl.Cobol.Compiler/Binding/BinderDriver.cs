@@ -273,7 +273,7 @@ internal sealed class BinderDriver
             foreach (var file in unit.Data.Files)
                 file.CobolName = file is { IsExternal: true, ExternalName: { } ext }
                     ? NamingConvention.ExternalFileBand + ext
-                    : unit.Path + "::" + file.CobolName;
+                    : unit.RegistryKey + "::" + file.CobolName;
 
         // VCR 18/31 (ISO §12.4.5.3 GR1(i)/(h); §14.8.4.2; Annex E.2 items 12/24) — a COBOL-2023 requirement: all
         // corresponding file control entries of an EXTERNAL file connector in the run unit shall specify FILE STATUS
@@ -810,7 +810,7 @@ internal sealed class BinderDriver
             // member declared twice is CS0102. The member names are unique along the container chain
             // (ReserveInheritedMemberNames), so equal names are the same member.
             foreach (var bridge in anc.Data.GlobalBridgesOf(g, member => anc.AnchorOf(member, depth)))   // consumed here, within this iteration
-                if (bridgedMembers.Add(bridge.Field)) unit.Bridges.Add(bridge);
+                if (bridgedMembers.Add(bridge.MemberClrName)) unit.Bridges.Add(bridge);
         }
 
         // Every tier is in place now — this unit's own names and every container's globals — so an inherited

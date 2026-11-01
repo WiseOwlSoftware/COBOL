@@ -181,7 +181,7 @@ internal static class PlaceIdentification
         var anchored = new AccessPath([new RootFieldSegment(local, root.Guard is { } g ? g with { PassesCarrier = true } : null)]);
         return frozen with
         {
-            Backing = anchored.Add(new MemberSegment(nameof(WiseOwl.Cobol.Runtime.StorageCell.Ref))),
+            Backing = anchored.Add(CellBackingSegment.Instance),
             Cell = anchored,
             Coding = frozen.Coding is CellWindowCoding c && c.Cell is { Segments: [RootFieldSegment cr] }
                      && cr.CsField == root.CsField && cr.Anchor == root.Anchor

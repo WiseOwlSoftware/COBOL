@@ -293,7 +293,7 @@ internal sealed class ProgramEmitter
         var data = unit.Data;
         BeginUnit(w, data, unit.Refs);
         var refs = Current.Refs;
-        _callState.SelfPath = unit.Path;
+        _callState.SelfPath = unit.RegistryKey;
         _callState.ReturningPlace = data.LinkageReturning is { } ret ? refs.ResolveItem(ret) : null;
         // §8.8.4.8.4 GR1c forwarding (kb/Work PB165) — of this unit's own formals AND of every container formal it sees
         // as a GLOBAL name, whose forward passes on the same carrier, presence and argument area (kb/Work PB2096).
@@ -367,14 +367,14 @@ internal sealed class ProgramEmitter
             foreach (var b in unit.Bridges)
             {
                 // The container's member of the same name, reached through the bridge's anchor (kb/Work PB4320).
-                string target = PlaceRenderer.Anchored(b.Anchor, b.Field);
+                string target = PlaceRenderer.Anchored(b.Anchor, b.MemberClrName);
                 switch (b.Kind)
                 {
                     case CallBridgeKind.Presence:
-                        w.Line($"private bool {b.Field} => {target};   // a GLOBAL formal's omitted-argument presence (ISO §8.8.4.8.4 GR1; kb/Work PB971)");
+                        w.Line($"private bool {b.MemberClrName} => {target};   // a GLOBAL formal's omitted-argument presence (ISO §8.8.4.8.4 GR1; kb/Work PB971)");
                         continue;
                     case CallBridgeKind.Cell:
-                        w.Line($"private StorageCell {b.Field} => {target};   // the cell behind a GLOBAL cell-backed item of a containing program (ISO §13.18.27.4 GR2; kb/Work PB1009)");
+                        w.Line($"private StorageCell {b.MemberClrName} => {target};   // the cell behind a GLOBAL cell-backed item of a containing program (ISO §13.18.27.4 GR2; kb/Work PB1009)");
                         continue;
                 }
                 string type = b.Kind switch
@@ -388,7 +388,7 @@ internal sealed class ProgramEmitter
                     CallBridgeKind.Carrier => $"ManagedPointer<{FormalCarrierType(b.Formal!, FormalCrossing(b.Formal!, null))}>",
                     _ => b.Item!.Occurs is not null ? b.Item.ElementType + "[]" : b.Item.ElementType,
                 };
-                w.Line($"private ref {type} {b.Field} => ref {target};   // GLOBAL item of a containing program (ISO §13.18.27.4 GR2 — container storage, contained visibility)");
+                w.Line($"private ref {type} {b.MemberClrName} => ref {target};   // GLOBAL item of a containing program (ISO §13.18.27.4 GR2 — container storage, contained visibility)");
             }
             _oo.EmitExternalBackings(data, w);
 
@@ -473,7 +473,7 @@ internal sealed class ProgramEmitter
                     w.Line("__Activate();");
                 }
                 if (describes)
-                    _oo.EmitExternalDescribes(data, unit.Path, "public void DescribeExternals()", $"{data.ExternalCheckMask}", w);
+                    _oo.EmitExternalDescribes(data, unit.RegistryKey, "public void DescribeExternals()", $"{data.ExternalCheckMask}", w);
             }
             else
                 w.Line("void ICobolProgram.Activate() => __Activate();");
@@ -855,7 +855,7 @@ internal sealed class ProgramEmitter
             foreach (var u in units)
             {
                 if (u.IsPrototype) continue;   // a prototype registers no runtime module — the separately-compiled definition does (§10.6.3 GR1)
-                string parentPath = u.Parent is { } p ? CsLiteral(p.Path) : "null";
+                string parentPath = u.Parent is { } p ? CsLiteral(p.RegistryKey) : "null";
                 string factory = u.Parent is { } pp
                     ? $"static __o => new {ClassRef(u)}(({ClassRef(pp)})__o!)"
                     : $"static __o => new {ClassRef(u)}()";
@@ -904,7 +904,7 @@ internal sealed class ProgramEmitter
                 // AS-less unit's Register line stays byte-identical (kb/Work PB303).
                 string extName = string.Equals(u.ExternalizedName, u.Name, StringComparison.Ordinal)
                     ? "" : $", externalizedName: {CsLiteral(u.ExternalizedName)}";
-                w.Line($"ProgramRegistry.Register({CsLiteral(u.Path)}, {CsLiteral(u.Name)}, {parentPath}, "
+                w.Line($"ProgramRegistry.Register({CsLiteral(u.RegistryKey)}, {CsLiteral(u.Name)}, {parentPath}, "
                     + $"{CallEmitter.CallBool(u.Initial)}, {CallEmitter.CallBool(u.Common)}, {CallEmitter.CallBool(u.Recursive)}, {factory}{resetNamed}{argMeta}{fnFlag}{extName});");
             }
         }
@@ -943,7 +943,7 @@ internal sealed class ProgramEmitter
             // saw — not just this group (SSOT §18.16 keeps the wrapper scaffolding-free). The entry wrapper only
             // catches StopRun, the normal STOP RUN / main-program-GOBACK unwind boundary.
             string ensure = $"{ModuleNamespace.RegistrarClass}.EnsureRegistered";
-            w.Line($"try {{ {RuntimeApi.RunModule(ensure, CsLiteral(mainUnit.Path))}; }}");
+            w.Line($"try {{ {RuntimeApi.RunModule(ensure, CsLiteral(mainUnit.RegistryKey))}; }}");
             w.Line("catch (StopRun) { }");
         }
     }

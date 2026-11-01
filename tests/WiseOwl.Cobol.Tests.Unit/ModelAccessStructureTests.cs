@@ -93,13 +93,13 @@ public sealed class ModelAccessStructureTests
 
         // The contained program's bridge to it: the carrier's name, anchored one containing instance out.
         var carrierBridge = Unit("PB4320B").Bridges.Single(b => b.Kind == CallBridgeKind.Carrier);
-        Assert.Equal(formal.CarrierField, carrierBridge.Field);
+        Assert.Equal(formal.CarrierField, carrierBridge.MemberClrName);
         Assert.Equal(new ContainerAnchor.Instance(1), carrierBridge.Anchor);
 
         // A RECURSIVE container's static GLOBAL item: anchored at the container's CLASS.
         var staticBridge = Unit("PB4320D").Bridges.Single(b => b.Kind == CallBridgeKind.Field);
         Assert.Equal(new ContainerAnchor.Static(Unit("PB4320C").ClassName), staticBridge.Anchor);
-        Assert.Matches(Identifier, staticBridge.Field);
+        Assert.Matches(Identifier, staticBridge.MemberClrName);
 
         // The table-sort key: the member chain from the element down to K, as items.
         var sort = Unit("PB4320A").Bound.Paragraphs.SelectMany(p => p.Sentences).SelectMany(s => s)
@@ -112,7 +112,7 @@ public sealed class ModelAccessStructureTests
     /// <summary>The two records that held joined access text now carry no string but the bridged member's NAME: a new
     /// string property on either is a failure here until it is shown to be a name, not an access.</summary>
     [Theory]
-    [InlineData(typeof(CallBridge), "Field")]
+    [InlineData(typeof(CallBridge), "MemberClrName")]
     [InlineData(typeof(BoundTableSortKey))]
     public void TheFormerAccessTextCarriers_HoldNoStringButAName(Type carrier, params string[] names)
     {

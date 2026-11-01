@@ -9,8 +9,8 @@ how `CSharpEmitter` stops being a god class.
 `EmitContext` + `ReceiverContext` parameter (save/restore re-entrant public render entries), the typed `RuntimeApi`
 façade, cached framework references, the `AssemblyPackager` split, the dissolved emitter god class (`CSharpEmitter`
 is a thin bind-host facade until P9), the backend-neutral **structural `Place`** (§2.3 — rendered by
-`CodeGen/Roslyn/PlaceRenderer`; `PlaceNeutralityTests` = the §6 R5 net), and the SINGLE-channel `IntrinsicRenderer`
-(§2.5 — the static evaluator is deleted; FUNCTION args parse as real expressions and render through the ONE
+`CodeGen/Roslyn/PlaceRenderer`; the §6 R5 net is `BackendContractDriftTests`, DESIGN-backend-abstraction §6), and
+the SINGLE-channel `IntrinsicRenderer` (§2.5 — the static evaluator is deleted; FUNCTION args parse as real expressions and render through the ONE
 expression renderer). OUTSTANDING: the `Emit/`→`Roslyn/` renderer consolidation + the `NumericRenderer`→
 `ExpressionRenderer` rename (ride P9), and the future **`CilBackend`**.
 
@@ -60,8 +60,9 @@ The string-carrying `Place` (§1.2) that stood between this and a fully backend-
 
 ### 1.2 Bound tree and `Place` carried C# text (RESOLVED at P7 Step 11)
 The G4 invariant (SSOT §3.3): *"bound nodes carry no pre-rendered C#-specific fragments; the CIL backend lowers the
-same structure."* The pre-Step-11 reality this section recorded (now historical — every item below is fixed;
-`PlaceNeutralityTests` enforces the invariant):
+same structure."* The pre-Step-11 reality this section recorded (now historical — every item below is fixed; the
+leaks that remain elsewhere on the bound tree are DESIGN-backend-abstraction §1.3's open rows, and
+`BackendContractDriftTests`, that design's §6, holds every text member of the backend input to the invariant):
 - `Place.Read()/Write(rhs)` return **C# strings** (`Place.cs:22-25`). Every subtype hard-codes runtime call text:
   `MemberPlace` → `"{Path} = {rhs};"`; `RedefViewPlace` → `"CobolString.SpliceInto(...)"` (`Place.cs:94-101`);
   `NumericImagePlace` → `"CobolNum.FormatDisplay(...)"` (`Place.cs:160-164`); `RefModPlace`, `RenamesPlace`,
@@ -256,11 +257,15 @@ public sealed record MemberPlace(AccessPath Path, DataItem MemberItem) : Place;
 // AccessPath = an ordered chain of segments the backend renders:
 public sealed record AccessPath(IReadOnlyList<AccessSegment> Segments);
 public abstract record AccessSegment;
-public sealed record RootFieldSegment(string CsField) : AccessSegment;           // a static/instance root field
-public sealed record MemberSegment(string CsMember) : AccessSegment;             // .Foo
-public sealed record IndexSegment(BoundExpr ZeroBased) : AccessSegment;          // [expr]  (1→0 already applied)
-public sealed record FixedTableSegment(BoundExpr OneBased, AccessDir Dir) : AccessSegment; // CobolTable.At polarity
-public sealed record DynTableSegment(BoundExpr OneBased, AccessDir Dir) : AccessSegment;   // RefSending/RefReceiving
+public sealed record RootFieldSegment(string CsField, OmittedFormalGuard? Guard = null,   // a program-class member,
+    ContainerAnchor? Anchor = null) : AccessSegment;                               // guarded and anchored
+public sealed record LocalRootSegment(MethodLocal Local) : AccessSegment;        // a statement local, by identity
+public sealed record MemberSegment(string MemberClrName) : AccessSegment;        // .Foo
+public sealed record CarrierValueSegment : AccessSegment;                        // a carrier formal's storage
+public sealed record CellBackingSegment : AccessSegment;                         // a cell-backed area's backing
+public sealed record FixedTableSegment(Position OneBasedIndex, OdoReferenceCheck? Odo = null) : AccessSegment; // CobolTable.At
+public sealed record DynTableSegment(Position OneBasedIndex) : AccessSegment;    // RefSending/RefReceiving
+public sealed record CellTableSegment(Position Ordinal, int Min, int ElementWidth) : AccessSegment; // a cell's dynamic table
 
 // The wrapping subtypes carry STRUCTURE + resolved DataItems, never call text:
 public sealed record RefModPlace(Place Inner, BoundExpr Start, BoundExpr? Length) : Place;
@@ -270,8 +275,8 @@ public sealed record RenamesPlace(IReadOnlyList<Place> Leaves, DataItem AliasIte
 public sealed record CapacityRegisterPlace(Place Table, DataItem RegisterItem) : Place;  // read-only view
 ```
 
-`AccessDir` (`Read`/`Write`) already exists for OCCURS DYNAMIC polarity — promote it to the shared segment model so
-`DynTablePlace`'s two-string hack disappears; polarity is a render-time choice from the segment + the operation.
+`AccessDir` (`Sending`/`Receiving`) is the OCCURS DYNAMIC polarity, a render-time choice from the operation
+(`PlaceRenderer.RenderPath(path, dir)`), so `DynTablePlace`'s two-string hack is gone and no segment carries it.
 
 The Roslyn backend gets **`PlaceRenderer`**, the sole owner of the old `Read()/Write()` logic:
 
@@ -510,9 +515,9 @@ compile-error-on-missing-visitor-arm after M4.
    mis-sequenced merge could double-move `CallEmitRunUnit`. Mitigation: land M6 only after those dimensions publish the
    `BoundCompilation` type; treat it as a joint checkpoint.
 5. **CIL backend never actually built ⇒ neutrality bit-rots.** If M8 is indefinitely deferred, the G4 neutrality could
-   silently regress. Mitigation: a lightweight `NeutralityTest` that asserts no `Place` subtype or bound node exposes a
-   `string`-returning render method (reflection/analyzer) — keeps the invariant enforced even without a live CIL
-   backend.
+   silently regress. Mitigation: `BackendContractDriftTests` (DESIGN-backend-abstraction §6), a reflection walk of the
+   backend input that refuses every unclassified text member of a bound or model node — keeps the invariant enforced
+   even without a live CIL backend.
 
 ---
 

@@ -227,11 +227,11 @@ public sealed partial class DataBinder
     internal IEnumerable<CallBridge> GlobalBridgesOf(DataItem g, Func<string, ContainerAnchor> anchorOf)
     {
         foreach (var m in GlobalBridgeMembersOf(g))
-            yield return new CallBridge(m.Field, anchorOf(m.Field), m.Kind, m.Item, m.Formal);
+            yield return new CallBridge(m.MemberClrName, anchorOf(m.MemberClrName), m.Kind, m.Item, m.Formal);
     }
 
     /// <summary>One member <see cref="GlobalBridgesOf"/> bridges, before it is anchored in a contained program.</summary>
-    private readonly record struct GlobalBridgeMember(string Field, CallBridgeKind Kind, DataItem? Item,
+    private readonly record struct GlobalBridgeMember(string MemberClrName, CallBridgeKind Kind, DataItem? Item,
         LinkageFormal? Formal = null);
 
     /// <summary>The members of <see cref="GlobalBridgesOf"/>, unanchored — also the names
@@ -379,7 +379,7 @@ public sealed partial class DataBinder
     /// found by the train-68b review).</summary>
     internal IEnumerable<string> InheritedMemberNamesOf(DataItem g)
     {
-        foreach (var member in GlobalBridgeMembersOf(g)) yield return member.Field;
+        foreach (var member in GlobalBridgeMembersOf(g)) yield return member.MemberClrName;
         // A carrier-resident formal declares no member of its own name and derives none from it: its one member is
         // the carrier, a bridge member above (kb/Work PB4320).
         if (g.ResidentCarrier is null) yield return g.ClrName;

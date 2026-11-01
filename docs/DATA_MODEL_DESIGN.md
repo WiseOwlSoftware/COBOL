@@ -2349,7 +2349,10 @@ Goldens `2023/pb491_editing_variable_width` (Annex D.24's own images and sizes) 
 §13.18.40.3 SR4 caps character-string-1 at 63 characters AS WRITTEN — SR6's second sentence ("the length of the
 integer, not the length of the constant-name, is counted toward the maximum number of characters in
 character-string-1") is what fixes that reading, and it is what keeps `PIC X(30000)` legal — reported as
-**COBOL2146**. SR6's repetition factor is validated ONCE, in `PictureAnalyzer.TryExpandRepeats`, against "an
+**COBOL2146**. The 63 is the 2023 text's number, in force from COBOL-2014; the bound is the EDITION's, ONE function
+`PictureAnalyzer.MaxStringLength(dialectLevel)` (30 at COBOL-85, 50 at COBOL-2002 — the 2002 text's own SR4 and Annex
+F.2 item 94 — and 63 from 2014), its two edges the registry rows `picture-string-50-2002` and `picture-string-63-2014`
+(VCR row 7.46; kb/Work PB4304), a length error also under `--permissive`. SR6's repetition factor is validated ONCE, in `PictureAnalyzer.TryExpandRepeats`, against "an
 unsigned nonzero integer": a sign, a zero, an empty or non-numeric factor and an unclosed parenthesis each draw
 **COBOL2147**, by the literal route and by the constant-name route alike, since
 `DataBinder.Constants.ExpandPicConstants` rewrites `(constant-name)` to `(integer)` in the source string and

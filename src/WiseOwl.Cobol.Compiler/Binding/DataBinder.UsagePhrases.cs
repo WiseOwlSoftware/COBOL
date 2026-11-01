@@ -81,7 +81,7 @@ public sealed partial class DataBinder
         bool Admitted(UsagePhrase written)
         {
             var rule = UsagePhraseRules.Of(written);
-            if (rule.Admits(usage)) return true;
+            if (rule.Admits.Contains(usage)) return true;
             Edition.Error(rule.Refusal, $"{entryWhere}: the {rule.Words} is written only with {rule.AdmittedOn}, "
                 + $"not USAGE {usageText} (ISO §13.18.60.2 general format; {rule.Rule})");
             return false;
