@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace WiseOwl.Cobol.Tests.Unit.Architecture;
 
@@ -17,9 +18,14 @@ internal sealed record EdgesPair(string From, string To, IReadOnlyList<string> R
 
 /// <summary>A cross-layer namespace edge the layers do not allow, tolerated until its removers land: the census's
 /// count (<see cref="Uses"/>), the walk's (<see cref="WalkUses"/>), every type pair the walk measures in it with its
-/// removers, and the union of those removers (<see cref="RemovedBy"/>).</summary>
+/// removers, and <see cref="RemovedBy"/>: the union of those removers, or, for a row the census alone sees (no walked
+/// pair: its uses are inlined consts or <c>nameof</c>s), the row's own removers.</summary>
 internal sealed record EdgesRow(string From, string To, int Uses, int WalkUses, IReadOnlyList<string> RemovedBy, string Plan,
     IReadOnlyList<EdgesPair> Pairs);
+
+/// <summary>What the edges file reads of a kb/Work note it names as a remover: its <c>status</c> and its
+/// <c>**Removes …**</c> lines (the rows it removes from).</summary>
+internal sealed record RemoverNote(string Status, string Removes);
 
 /// <summary>
 /// THE ARCHITECTURE EDGES FILE, <c>docs/rearchitecture/architecture-edges.json</c> (kb/Work PB2417;
@@ -46,6 +52,8 @@ internal sealed record ArchitectureEdges(
         DefaultIgnoreCondition = JsonIgnoreCondition.Never,
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
+
+    private static readonly Regex NoteId = new(@"\bPB\d+\b", RegexOptions.NonBacktracking);
 
     public static ArchitectureEdges Load(string path) =>
         JsonSerializer.Deserialize<ArchitectureEdges>(File.ReadAllText(path), Json)
@@ -124,7 +132,19 @@ internal sealed record ArchitectureEdges(
                              + "and name it in the pair's removedBy (DESIGN-architecture-review §8.1: a pair no note removes blocks the file)");
             }
 
-            var union = row.Pairs.SelectMany(p => p.RemovedBy).Distinct().Order(StringComparer.Ordinal).ToList();
+            if (row.Pairs.Count == 0)
+            {
+                if (row.RemovedBy.Count == 0)
+                {
+                    failures.Add($"{name} is seen only by the census (no walked pair: inlined consts or nameofs) and names no "
+                                 + "remover — name the kb/Work note that removes its uses in the row's removedBy (§8.1: a "
+                                 + "dependency no note removes blocks the file)");
+                }
+
+                continue;
+            }
+
+            var union = RemoversOf(row.Pairs);
             if (!union.SequenceEqual(row.RemovedBy.Order(StringComparer.Ordinal)))
             {
                 failures.Add($"{name}: removedBy [{string.Join(", ", row.RemovedBy)}] is not the union of its pairs' removers "
@@ -134,6 +154,87 @@ internal sealed record ArchitectureEdges(
 
         return failures;
     }
+
+    /// <summary>
+    /// The register's side of the removers (§8.1 "The ratchet and the removers"): every note the file names — a pair's or
+    /// a census-only row's remover, or a note a row's plan names — is a kb/Work note (<paramref name="note"/> answers null
+    /// for one kb/Work does not hold); a remover is not terminal (<paramref name="terminal"/>, the register's
+    /// <c>TERMINAL_STATUSES</c>: a note that landed or retired while its pair is still measured removes nothing, so the
+    /// pair has no live remover); and a remover's <c>**Removes …**</c> line names every row it removes from (the two
+    /// directions of one link: the row names the note, the note names the row).
+    /// </summary>
+    public IReadOnlyList<string> RemoverDefects(Func<string, RemoverNote?> note, IReadOnlySet<string> terminal)
+    {
+        var failures = new List<string>();
+        foreach (EdgesRow row in Tolerated)
+        {
+            string name = $"tolerated row {row.From} -> {row.To}";
+            string link = $"{row.From} → {row.To}";
+            foreach (string id in row.RemovedBy.Concat(row.Pairs.SelectMany(p => p.RemovedBy)).Distinct().Order(StringComparer.Ordinal))
+            {
+                if (note(id) is not { } n)
+                {
+                    failures.Add($"{name} names {id} as a remover, which kb/Work does not hold");
+                }
+                else if (terminal.Contains(n.Status))
+                {
+                    failures.Add($"{name} names {id} as a remover, but {id} is {n.Status}: it removed what it removes, so delete it "
+                                 + "from every removedBy that still names it (a pair left with no remover is a dependency nobody removes)");
+                }
+                else if (!n.Removes.Contains(link, StringComparison.Ordinal))
+                {
+                    failures.Add($"{name} names {id} as a remover, but {id}'s **Removes** line does not name the row ({link}): "
+                                 + "a remover names every row it removes from");
+                }
+            }
+
+            foreach (string id in NoteId.Matches(row.Plan).Select(m => m.Value).Distinct().Where(id => note(id) is null))
+            {
+                failures.Add($"{name}: its plan names {id}, which kb/Work does not hold");
+            }
+        }
+
+        return failures;
+    }
+
+    /// <summary>
+    /// THE RATCHET (§8.1 "The ratchet and the removers"): the file after the measurement, where every change is a fall —
+    /// a listed pair the walk no longer measures is deleted, <c>walkUses</c> becomes the pairs that remain, <c>uses</c>
+    /// becomes the census's count when that is LOWER (never higher), a row both observers read zero is deleted, a row
+    /// whose last walked pair goes keeps its removers as a census-only row, and the file is keyed to
+    /// <paramref name="census"/>. It never adds a row or a pair, never raises a count and never names a remover: a new
+    /// pair, a new row or a grown count stays red after it, until a change files the note that removes it and adds it
+    /// by hand (the file was SEEDED once, by kb/Work PB2417, and only ratchets after).
+    /// </summary>
+    public ArchitectureEdges Ratchet(IReadOnlyCollection<MeasuredPair> measured,
+        IReadOnlyDictionary<(string From, string To), int> censusEdges, string census)
+    {
+        var walked = measured.ToLookup(p => (p.FromNamespace, p.ToNamespace), p => (p.From, p.To));
+        var rows = new List<EdgesRow>();
+        foreach (EdgesRow row in Tolerated)
+        {
+            var still = walked[(row.From, row.To)].ToHashSet();
+            var kept = row.Pairs.Where(p => still.Contains((p.From, p.To))).ToList();
+            int uses = Math.Min(row.Uses, censusEdges.GetValueOrDefault((row.From, row.To)));
+            if (kept.Count == 0 && uses == 0)
+            {
+                continue;
+            }
+
+            rows.Add(row with
+            {
+                Uses = uses,
+                WalkUses = Math.Min(row.WalkUses, kept.Count),
+                Pairs = kept,
+                RemovedBy = kept.Count == 0 ? row.RemovedBy : RemoversOf(kept),
+            });
+        }
+
+        return this with { Census = census, Tolerated = rows };
+    }
+
+    private static List<string> RemoversOf(IEnumerable<EdgesPair> pairs) =>
+        pairs.SelectMany(p => p.RemovedBy).Distinct().Order(StringComparer.Ordinal).ToList();
 
     /// <summary>
     /// The walk's checks, over the namespaced type pairs it measured (after an optional what-if: <paramref name="moves"/>
@@ -246,7 +347,7 @@ internal sealed record ArchitectureEdges(
         if (newestRecord != Census)
         {
             failures.Add($"the edges file's uses are keyed to census {Short(Census)} but the newest record is "
-                         + $"{Short(newestRecord)}: re-seed the file in the change that records the census");
+                         + $"{Short(newestRecord)}: ratchet the file in the change that records the census");
         }
 
         var rows = Tolerated.ToDictionary(r => (r.From, r.To));

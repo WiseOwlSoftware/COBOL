@@ -690,18 +690,18 @@ landing: three landings after it (861110338, 8a22e2a37, cad6957d0) gave `Stateme
 `Binding.Validation` and two more onto `Binding.Procedure` (the sixth refuter, H1), so a file frozen at the census fails
 its own walk on the day it lands. The rows above are the census's values plus what the walk measured at `669e32aa9`
 (the one new row, and the grown `Binding.Bound → Binding.Procedure` pairs inside its cap); they are the proposal, not the
-landed file. PB2417 lands the file by measuring it, never by copying this block: on its landing tree it runs a new
-census record and the walk's seed mode; the seed writes `uses` (census) and `walkUses` (walk) for every row, and lists
-EVERY cross-layer type pair the file does not allow, the pairs inside an already-tolerated row included. The checker's
-what-if then names the remover of each pair mechanically: it replays the planned Move/rename and Extract notes' move
-maps in their `blocked_by` order (the maps are the targets file's) and names the first note after which the pair is
-allowed or intra-layer; each tolerated row keeps its pairs with their removers (`pairs`), its `removedBy` is their
-union, and a pair no note removes blocks PB2417 until a note is filed for it. Per row was not enough (the seventh
-refuter, J1): a fix-lane pair added before PB2417 inside a row the file already tolerates raised only that row's count,
-which the seed rewrites, so it entered with no remover and "no tolerated pair is left at the end" failed with no
-ratchet noticing. From PB2417 on, a landing that adds a cross-layer pair fails the drift test in that landing's own
-gate, because the file lists the pairs and a pair it does not list fails even when its row's count does not grow; no
-hand refresh of this file is ever the mechanism that notices drift.
+landed file. PB2417 SEEDED the file by measuring it, ONCE, never by copying this block: on its tree it recorded a
+census and wrote `uses` (census) and `walkUses` (walk) for every row, and listed EVERY cross-layer type pair the file
+does not allow, the pairs inside an already-tolerated row included; it named the remover of each pair from the planned
+Move/rename and Extract notes (the file-level image of their move maps, "The ratchet and the removers" below); each
+tolerated row keeps its pairs with their removers (`pairs`), its `removedBy` is their union, and a pair no note removed
+blocked PB2417 until a note was filed for it (PB4319). Per row was not enough (the seventh refuter, J1): a fix-lane pair
+added before PB2417 inside a row the file already tolerates raised only that row's count, which a seed rewrites, so it
+entered with no remover and "no tolerated pair is left at the end" failed with no ratchet noticing. From PB2417 on the
+file only RATCHETS: a landing that adds a cross-layer pair fails the drift test in that landing's own gate, because
+the file lists the pairs and a pair it does not list fails even when its row's count does not grow, and no tool
+re-seeds it (a re-seed admits exactly that pair: kb/Work PB2417's branch review, R1-1); no hand refresh of this file is
+ever the mechanism that notices drift, and only a hand decision admits a dependency.
 
 **Where a moved type lands: its closure, measured before the wave.** A Move changes no reference; it changes only the
 namespace a type is in. So the rows after a move are today's type pairs re-keyed by the move map, and that what-if is
@@ -808,22 +808,27 @@ product assemblies, not a source scan and not an MSBuild workspace, so it costs 
   in the block above are its measure at `a02b165da`; the landed file's are the record its `census` field names), and
   `ArchCensusDriftTests.TheNewestRecord_CrossesNoLayerTheEdgesFileDoesNotAllowOrTolerate` asserts that every cross-layer
   entry of the newest record's `namespaceEdges` is allowed, or tolerated by a row whose `uses` is that count, and that
-  the file is keyed to the newest record: recording a census re-seeds the file in the same change. The walk
-  cannot see what the compiler erased — an inlined `const` read (`ConditionRenderer.cs:830` reads
-  `ClassConditionModel.Numeric`; `OoEmitter.cs:398` reads a `NamingConvention` const) and a `nameof` — so its count can
-  sit below the census's; it therefore keeps its own column, `walkUses`, which its first run writes (the test's seed
-  mode, run once in kb/Work PB2417, the note that lands the test and the file as the program's first wave) and every
-  later run ratchets; the seed runs on PB2417's landing tree and keys the file to it (above). Every Move/rename and Extract note of PB2119 waits for PB2417, and `work.py check` fails one that
-  does not. Each observer fails when its count for
-  a row grows, and a row is deleted only when BOTH measure zero (a pair whose last uses are consts or `nameof`s is
-  still a dependency).
+  the file is keyed to the newest record: recording a census RATCHETS the file in the same change (its counts may
+  fall, never grow). The walk cannot see what the compiler erased — an inlined `const` read
+  (`ConditionRenderer.cs:830` reads `ClassConditionModel.Numeric`; `OoEmitter.cs:398` reads a `NamingConvention`
+  const) and a `nameof` — so its count can sit below the census's; it therefore keeps its own column, `walkUses`, which
+  the seed wrote once (kb/Work PB2417, the note that lands the test and the file as the program's first wave, on its
+  own tree, above) and every later run ratchets. Every Move/rename and Extract note of PB2119 waits for PB2417, and
+  `work.py check` fails one that does not. Each observer fails when its count for a row grows, and a row is deleted
+  only when BOTH measure zero (a pair whose last uses are consts or `nameof`s is still a dependency). A row only the
+  census sees (no walked pair: `Binding.Bound → Frontend.Parsing`, whose one use is `StatementBinder`'s read of the
+  enum constant `ConditionalPhraseFamily.SizeError`) has no pair to carry a remover, so it names its own in the row's
+  `removedBy`, which is the union of its pairs' only for a row that has pairs (PB2417 review, R1-2).
 - **It fails when:** a product namespace is not placed by the file, or two layers place it; a cross-layer edge is
   neither allowed nor tolerated; a type pair inside a tolerated row is not listed in the row's `pairs` (a row never
   gains a pair, even when its count does not grow; J1); a tolerated row's `walkUses` grows, or a listed pair is no longer
   measured (the ratchet only falls, so the file stays the code's current picture and a removed pair is deleted in the
-  change that removes it); a listed pair names no remover, or a row's `removedBy` is not the union of its pairs'; a
-  tolerated row is an edge the layers allow, or measures zero in both observers; a namespace the file names exists in no
-  assembly; an allowed pair that is not from a composition root measures zero in both observers (a dead allowance is
+  change that removes it); a listed pair names no remover, a row's `removedBy` is not the union of its pairs', or a
+  row with no pair names no remover; a remover is not a kb/Work note, is terminal (`work.py`'s `TERMINAL_STATUSES`: a
+  note that landed while its pair is still measured removes nothing), or has a `**Removes …**` line that does not name
+  the row, or a row's plan names a note kb/Work does not hold; a census count grows past a row's `uses`, or names an
+  edge no row tolerates; a tolerated row is an edge the layers allow, or measures zero in both observers; a namespace
+  the file names exists in no assembly; an allowed pair that is not from a composition root measures zero in both observers (a dead allowance is
   deleted, never kept). The checker (`ArchitectureEdges`, beside the walk) holds every one of these rules once; the
   census observer calls the same file model.
 - **The what-if.** The checker takes an optional move map (type → namespace) and cut list (type pairs an Extract
@@ -833,26 +838,42 @@ product assemblies, not a source scan and not an MSBuild workspace, so it costs 
   tolerates, fails; a move wave's brief records that answer for its map. A rename wave (a folder-equals-namespace move
   or a root flip) re-keys the file in the same change: the new namespace joins its folder's layer, so no layer pair
   changes, and each tolerated row it splits is re-measured by the walk, the parts summing to the row (refute 4, lead 1).
-- **The seed and the removers.** `WISEOWL_COBOL_ARCH_EDGES_SEED=1` on the drift test rewrites every tolerated row from
-  the walk and the newest census record (`uses`, `walkUses`, `pairs`; a listed pair keeps its removers) and then asserts
-  as the gate does. `python scripts/arch/edges.py --assign` names each new pair's removers: the targets file carries no
-  type → namespace move map (schema 2: one step of R0-0001 lists member moves, none a type move), so the replay is its
-  file-level image — of the notes the row's `plan` (R1's account of the row) names, a note REACHES the pair A → B when its
-  computed file set (`member_index.note_file_set`, §8.7) holds a file that declares A (a Move or Extract that ends the pair
-  edits A's file: the reference is cut there, A moves, or B moves and A's `using` changes), and the reaching notes that
-  name A or B among what they move or change are its removers (all reaching ones when none names either end); they are
-  written in `blocked_by` order, and a remover whose `Removes` line does not name the row is reported. A pair no note
-  reaches keeps an empty `removedBy`, and the drift test is red on it until a note that removes it is filed and named.
-- It is seen failing once, on a planted edge, before it lands (`brent-tools:architecture-audit` Phase 3), through a
-  self-test that feeds the checker a synthetic edge set: a planted edge, a planted pair inside a tolerated row (growth),
-  a pair with no remover, an unplaced namespace, a dead allowance, a vanished pair, a what-if re-key and cut, and the
-  census observer's growth and unadmitted edge (`TheChecker_FailsOnEveryPlantedViolation_AndPassesTheCleanInput`).
+- **The ratchet and the removers.** The file was SEEDED once (PB2417) and only RATCHETS after, as approved:
+  `WISEOWL_COBOL_ARCH_EDGES_RATCHET=1` on the drift test (`ArchitectureEdges.Ratchet`) writes the falls the
+  measurement shows — a listed pair the walk no longer measures is deleted, `walkUses` becomes the pairs that remain,
+  `uses` becomes the census's count when that is lower, a row both observers read zero is deleted, a row whose last
+  walked pair goes keeps its removers as a census-only row, and the file is keyed to the newest census record — and
+  then asserts as the gate does. It never adds a pair or a row, never raises a count and never names a remover, so a
+  new pair, a new row or a grown count (in either observer) stays red after it. A routine re-seed would have admitted
+  them: a move that deletes one pair and adds another in the same row changes no count, and a remover rule that
+  reaches the new pair through its from type's file names a remover for it (the branch review's plant, `CodeGen.CSharpEmitter
+  → Binding.SomeNewBinderType`, was assigned PB2290). Tolerating a new dependency is therefore a decision made by hand,
+  in the change that files the kb/Work note removing it: that change adds the pair (or row) to the file with the note in
+  its `removedBy`, raises the counts, and gives the note a `**Removes …**` line naming the row, so the edges file's diff
+  shows the admission to the change's review. A rename wave (above) re-keys the file's names in the same change the
+  same way, each re-keyed pair keeping its removers; a pair the rename does not carry over is new. The seed named the
+  removers of its 359 pairs once, from the planned notes: the targets file carries no type → namespace move map (schema
+  2: one step of R0-0001 lists member moves, none a type move), so it used their file-level image — of the notes a
+  row's `plan` (R1's account of the row) names, a note reached the pair A → B when its computed file set
+  (`member_index.note_file_set`, §8.7) holds a file that declares A, and the reaching notes that name A or B among what
+  they move or change were its removers (all reaching ones when none named either end), in `blocked_by` order. That
+  rule was fit for the first seeding only (a pair it reaches through A's file need not be one the note removes), so its
+  tool was deleted once the file was seeded. The gate checks the removers against the register (`RemoverDefects`): each
+  is an open kb/Work note whose `**Removes …**` line names the row.
+- It is seen failing once, on a planted edge, before it lands (`brent-tools:architecture-audit` Phase 3), through
+  self-tests that feed the checker a synthetic edge set: a planted edge, a planted pair inside a tolerated row (growth),
+  a pair with no remover, a census-only row with no remover, an unplaced namespace, a dead allowance, a vanished pair, a
+  what-if re-key and cut, and the census observer's growth and unadmitted edge
+  (`TheChecker_FailsOnEveryPlantedViolation_AndPassesTheCleanInput`); the ratchet over an added pair, the review's
+  swapped pair, a new row and a grown census count, each still red after it, and over every fall
+  (`TheRatchet_OnlyFalls_AndNeverAdmitsAPairARowOrAGrownCount`); and a remover kb/Work lacks, a landed one, one whose
+  Removes line omits the row and a plan's missing note (`TheRemovers_AreOpenNotesWhoseRemovesLineNamesTheRow`).
 - **The file as measured (kb/Work PB2417, census `7cb79581e`).** The walk and its checks take about half a second of
   the gate; the file places two namespaces R1 did not know — `WiseOwl.Cobol.Binding.Repository` (the external
   repository's reader, codec and records, `Binding/Repository/`, which reads the binder: compiler.binding) by its folder,
   and allows `cli → compiler.binding` by the composition-root rule (the CLI parses `--numeric-display` into the
-  option type `NumericDisplayForm`, `Binding/NumericDisplayForm.cs`). It tolerates 28 rows holding 359 type pairs; 330
-  name their removers from R1's notes, and the 29 pairs of the new row `WiseOwl.Cobol.CodeGen →
+  option type `NumericDisplayForm`, `Binding/NumericDisplayForm.cs`). It tolerates 28 rows holding 359 type pairs (and
+  one census-only row, `Binding.Bound → Frontend.Parsing`, which names PB2347); 330 name their removers from R1's notes, and the 29 pairs of the new row `WiseOwl.Cobol.CodeGen →
   WiseOwl.Cobol.Binding.Repository` (`HostEntryEmitter`, `OoEmitter` and `RepositoryAttributeRenderer` read the
   repository records and call its codec) are removed by kb/Work PB4319: the record family (`RepositoryRecord.cs`)
   moves to compiler.model, and the encode leaves the backend (the binder writes each unit's record at bind time,
