@@ -42,6 +42,12 @@ The default run names it `deferred to --built` in its verdict; `--built` runs ex
 `greenfield-unit` job; linux-gate.sh after its unit and conformance legs). The default run never builds: it is one of the
 gate's audits, which run outside the gate slot, and the slot is what rations builds.
 
+POPULATION (kb/Work PB4326): every self-test that passes is held to the tooling flag (scripts/inert_lane.py): what it read
+must be tooling, a TOOLING_READS entry or an inert corpus, else it is RED naming the path. The one exemption is a self-test
+that reads the tracked tree as a population, declared the same way and checked against the trace (a declaration whose
+trace shows no git command over the whole repository is RED; a whole-tree git command without the declaration is judged):
+    # SELF-TEST-POPULATION: tree — <why it reads the whole tracked tree>
+
 ISOLATION: each self-test runs with `COBOL_COORD_DIR` pointed at a fresh private directory, so none can read or write
 the live coordination state (`E:\\COBOL-coord`: the loop's units, leases and allocations), and without git's
 repository-selection variables (`git rev-parse --local-env-vars`), so a self-test that builds a scratch repository
@@ -150,6 +156,7 @@ HEADER_LINES = 5
 
 PLATFORM_RE = re.compile(r"^#\s*SELF-TEST-PLATFORM:\s*(windows|linux)\s*[—-]+\s*(\S.*?)\s*$", re.MULTILINE)
 NEEDS_RE = re.compile(r"^#\s*SELF-TEST-NEEDS:\s*(build)\s*[—-]+\s*(\S.*?)\s*$", re.MULTILINE)
+POPULATION_RE = re.compile(r"^#\s*SELF-TEST-POPULATION:\s*(tree)\s*[—-]+\s*(\S.*?)\s*$", re.MULTILINE)
 SH_FLAG_RE = re.compile(r"""^(?!\s*#).*(?:^|\s)--self-test\)|^(?!\s*#).*=\s*["']--self-test["']""", re.MULTILINE)
 
 
@@ -189,6 +196,7 @@ class SelfTest:
     platform_reason: str
     needs_build: bool = False  # reads the built test assemblies: run by `--built`, never by the default run
     build_reason: str = ""
+    population: str = ""      # why it reads the tracked tree as a population (SELF-TEST-POPULATION); "" when it does not
 
     def command(self) -> list[str]:
         """The command line, run with the repository root as its cwd. The path stays RELATIVE with forward slashes:
@@ -247,8 +255,9 @@ def classify(rel: str, text: str) -> SelfTest | None:
     header = "\n".join(text.splitlines()[:HEADER_LINES])
     m = PLATFORM_RE.search(header)
     b = NEEDS_RE.search(header)
+    pop = POPULATION_RE.search(header)
     return SelfTest(rel, handles, m.group(1) if m else None, m.group(2) if m else "", b is not None,
-                    b.group(2) if b else "")
+                    b.group(2) if b else "", pop.group(2) if pop else "")
 
 
 def discover(repo: Path = REPO) -> list[SelfTest]:
@@ -605,7 +614,10 @@ class Runner:
             return "no PASS recorded: the trace does not show the self-test's own file, so the tracer did not run"
         deps = inputs.run_deps(test.path, self.tree, self.deriver, seen)
         whole = {kind for kind, d in seen.git_read if d == ""}
-        if not whole:  # a whole-tree reader reads the tree as a population: the flag's accepted residue (inert_lane.py)
+        if test.population and not whole:  # a declaration the trace does not bear out would exempt a self-test unproved
+            raise ValueError(f"{test.path} declares SELF-TEST-POPULATION but its trace shows no git command over the "
+                             f"whole tree: remove the declaration (the self-test no longer reads the tree as a population)")
+        if not test.population:  # only a DECLARED population reader is exempt: the flag's accepted residue (inert_lane.py)
             stray = self.classification.unclassified_reads((p for p, blob in deps.files.items() if blob != inputs.UNTRACKED),
                                                                  deps.trees)
             if stray:
@@ -613,7 +625,9 @@ class Runner:
                     f"it read {', '.join(stray[:6])}{' and more' if len(stray) > 6 else ''}, which the tooling flag does "
                     f"not see: a change to only {'it' if len(stray) == 1 else 'one of them'} would skip this self-test in "
                     f"a gate and turn it red in CI's merge group. Give the path a TOOLING_READS entry naming "
-                    f"{test.path} in scripts/inert_lane.py (kb/Work PB4326)")
+                    f"{test.path} in scripts/inert_lane.py"
+                    + (f"; or, if it reads the tracked tree as a population, declare `# SELF-TEST-POPULATION: tree — "
+                       f"<why>` in its first {HEADER_LINES} lines" if whole else "") + " (kb/Work PB4326)")
         self.store.record(test.path, self.platform, deps, seconds, self.by)
         if whole:
             what = "the whole tree's content" if "content" in whole else "the name of every tracked file"
@@ -781,6 +795,9 @@ def self_test() -> int:
     b = classify("scripts/x.py", "# SELF-TEST-NEEDS: build — reads the built assemblies\nap.add_argument('--self-test')\n")
     check("arm: the build marker is read with its reason", (b.needs_build, b.build_reason),
           (True, "reads the built assemblies"))
+    pop = classify("scripts/test_p.py", "#!/usr/bin/env python3\n# SELF-TEST-POPULATION: tree — walks every tracked file\nx = 1\n")
+    check("arm: the population marker is read with its reason, and a self-test without one has none",
+          (pop.population, b.population), ("walks every tracked file", ""))
     shown = classify("scripts/test_doc.py", '"""\n1\n2\n3\n4\n    # SELF-TEST-PLATFORM: windows — shown, not declared\n"""\n')
     check("arm: a marker SHOWN past the header (a docstring example) declares nothing", shown.platform, None)
     check("arm: --built runs exactly the build-needing ones, the default run the rest",
@@ -933,14 +950,17 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
         for name, body in bodies.items():
             (root / "scripts" / name).write_text(body + span.format(sleep=_FLEET_SLEEP_S), encoding="utf-8", newline="\n")
         (root / "scripts" / "test_hang.py").write_text("import time\ntime.sleep(60)\n", encoding="utf-8", newline="\n")
-        # The proof of the tooling flag (`_record`): a self-test that reads a file `planted` does not see, and one that
-        # reads the same file while walking the whole tree with git (the flag's accepted residue).
+        # The proof of the tooling flag (`_record`): a self-test that reads a file `planted` does not see; one that reads
+        # it while walking the whole tree with git, undeclared (judged) and declared a population (the accepted residue);
+        # and a declaration its trace does not bear out.
         (root / "elsewhere").mkdir()
         (root / "elsewhere" / "x.txt").write_text("x\n", encoding="utf-8", newline="\n")
-        (root / "scripts" / "test_stray.py").write_text("open('elsewhere/x.txt').read()\n", encoding="utf-8", newline="\n")
-        (root / "scripts" / "test_walker.py").write_text(
-            "import subprocess\nsubprocess.run(['git', 'ls-files'], check=True, capture_output=True)\n"
-            "open('elsewhere/x.txt').read()\n", encoding="utf-8", newline="\n")
+        walk = ("import subprocess\nsubprocess.run(['git', 'ls-files'], check=True, capture_output=True)\n"
+                "open('elsewhere/x.txt').read()\n")
+        declare = "# SELF-TEST-POPULATION: tree — the arm's walker\n"
+        for name, body in (("test_stray.py", "open('elsewhere/x.txt').read()\n"), ("test_walker.py", walk),
+                           ("test_population.py", declare + walk), ("test_claim.py", declare + "open('data/a.txt').read()\n")):
+            (root / "scripts" / name).write_text(body, encoding="utf-8", newline="\n")
         ScratchRepo.init(root).git("add", "-A")
         found = {t.path.rsplit("/", 1)[-1]: t for t in discover(root)}
         tests = [found[n] for n in sorted(bodies)]
@@ -1057,9 +1077,21 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
               (stray[0].state, "elsewhere/x.txt" in stray[0].output and "TOOLING_READS" in stray[0].output,
                PassStore(store_dir).find("scripts/test_stray.py", plat, inputs.Tree.load(root))), (RED, True, None))
         walker = gate(False, [], which=[found["test_walker.py"]])
-        check("arm: a self-test that walks the whole tree with git is not judged by the flag: GREEN and recorded",
-              (walker[0].state, PassStore(store_dir).find("scripts/test_walker.py", plat, inputs.Tree.load(root)) is not None),
+        check("arm: a self-test that walks the whole tree with git WITHOUT declaring a population is judged like any "
+              "other: RED, naming the file and the declaration, and records no PASS (kb/Work PB4326, review R2-1)",
+              (walker[0].state, "elsewhere/x.txt" in walker[0].output and "SELF-TEST-POPULATION" in walker[0].output,
+               PassStore(store_dir).find("scripts/test_walker.py", plat, inputs.Tree.load(root))), (RED, True, None))
+        population = gate(False, [], which=[found["test_population.py"]])
+        check("arm: a self-test that declares a population and walks the whole tree with git is not judged: GREEN and "
+              "recorded",
+              (population[0].state,
+               PassStore(store_dir).find("scripts/test_population.py", plat, inputs.Tree.load(root)) is not None),
               (GREEN, True))
+        claim = gate(False, [], which=[found["test_claim.py"]])
+        check("arm: a declared population its trace does not bear out is RED and records no PASS (the declaration "
+              "would otherwise exempt a self-test unproved)",
+              (claim[0].state, "SELF-TEST-POPULATION" in claim[0].output,
+               PassStore(store_dir).find("scripts/test_claim.py", plat, inputs.Tree.load(root))), (RED, True, None))
         empty = Path(tempfile.mkdtemp(dir=s))
         note = Runner(root, plat, lambda _: None, budget=Budget(budget_dir, 1),
                       store=PassStore(store_dir), classification=planted)._record(found["test_a.py"], empty, 1.0)

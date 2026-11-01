@@ -148,9 +148,22 @@ public sealed class InertLaneDriftTests
         Assert.True(runner.IndexOf("self.classification.unclassified_reads(", StringComparison.Ordinal)
                     < runner.IndexOf("self.store.record(test.path", StringComparison.Ordinal));
 
+        // The one exemption is a DECLARED population, held to the trace; a whole-tree git command alone exempts nothing.
+        Assert.Contains("if not test.population:", runner, StringComparison.Ordinal);
+        Assert.Contains("if test.population and not whole:", runner, StringComparison.Ordinal);
+        Assert.DoesNotContain("if not whole:", runner, StringComparison.Ordinal);
+        foreach (string[] population in new[] { new[] { "hooks", "test_dispatch_guard.py" }, new[] { "orchestrator", "test_plan_wave.py" },
+                                                new[] { "spec", "impacted_tests.py" } })
+        {
+            Assert.Contains("# SELF-TEST-POPULATION: tree", File.ReadAllText(TestRepo.Scripts(population)), StringComparison.Ordinal);
+        }
+
         string classification = File.ReadAllText(TestRepo.Scripts("inert_lane.py")).ReplaceLineEndings("\n");
         foreach (string read in new[] { "\"tests/_shared/TestRepo.cs\"", "\"src/WiseOwl.Cobol.Frontend/Grammar/\"", "\".agent-fleet.json\"",
-                                        "\"tests/version-matrix/\"", "\"docs/CONFORMANCE.md\"" })
+                                        "\"tests/version-matrix/\"", "\"docs/CONFORMANCE.md\"",
+                                        // Specific reads of self-tests that also run a whole-tree git command (review round 2, R2-1).
+                                        "\"docs/DESIGN.md\"", "\"docs/REARCHITECTURE_PLAN.md\"",
+                                        "\"src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin\"" })
         {
             Assert.Contains(read + ":", classification, StringComparison.Ordinal);
         }

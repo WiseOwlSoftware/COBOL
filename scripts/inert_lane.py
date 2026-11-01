@@ -40,10 +40,13 @@ the path gets a TOOLING_READS entry naming its reader. A path-prefix list alone 
 tests/_shared/TestRepo.cs is read by drift_rules.py's self-test, the .g4 files by grammar_source.py's, and a change to only
 one of them turned a self-test red in CI's merge group after a green gate.
 THE ACCEPTED RESIDUE, named (owner 2026-10-31, kb/Work PB4323: a merge-group red may be one of five first-run classes, and
-the CI invariant is weakened knowingly): (a) a WHOLE-TREE reader, a self-test that ran a git command over the whole
-repository (the tracer records a read of directory ""), reads the tree as a population (test_plan_wave.py and
+the CI invariant is weakened knowingly): (a) a DECLARED POPULATION reader: a self-test whose first
+lines say `# SELF-TEST-POPULATION: tree — <why>` reads the tracked tree as a population (test_plan_wave.py and
 test_dispatch_guard.py walk every markdown file, impacted_tests.py every path), so no set of paths bounds it and the proof
-does not apply to it; (b) the INERT corpora, DEVLOG/ and kb/, which devlog.py and the register's self-tests read as
+does not apply to it. The declaration is checked against the trace (scripts/self_tests.py): one that ran no git command over
+the whole repository (the tracer records a read of directory "") is RED, and a self-test that ran such a command WITHOUT
+the declaration is judged like any other, so its specific reads (work.py's docs/DESIGN.md, merge_drivers.py's ABI pin) are
+TOOLING_READS entries, not a blind spot (review round 2, finding R2-1); (b) the INERT corpora, DEVLOG/ and kb/, which devlog.py and the register's self-tests read as
 fixtures: every landing adds to both, the audits that govern an entry (`devlog.py check`, `work.py check`) run in every
 lane, and a change to how they are read is a script edit; (c) a directory LISTING (`entries:`) records names, which
 change when a file is added or removed and not when any listed file is edited, so the proof checks the files a self-test
@@ -195,6 +198,11 @@ CLASSIFICATION = Classification(inert={
    tooling_reads={
        "WiseOwl.Cobol.sln": "scripts/arch/census.py, scripts/linux-gate.sh, scripts/orchestrator/test_orchestrate_account.ps1",
        "LICENSE": "scripts/arch/census.py (read on Linux)",
+       "Directory.Build.props": "scripts/merge_drivers.py (settling the ABI pin)",
+       "src/WiseOwl.Cobol.Runtime/Control/RuntimeAbi.cs": "scripts/merge_drivers.py (settling the ABI pin)",
+       "src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin": "scripts/merge_drivers.py (settling the ABI pin)",
+       "docs/DESIGN.md": "scripts/spec/work.py (the site rule: a Markdown file named by its section number)",
+       "docs/REARCHITECTURE_PLAN.md": "scripts/orchestrator/test_orchestrate_steer.ps1 and test_orchestrate_stop.ps1",
        ".gitmodules":"scripts/devlog.py, scripts/orchestrator/landing_devlog.py, scripts/hooks/test_forbidden_commands.py",
        ".agent-fleet.json": "scripts/spec/ledger_plan.py, scripts/orchestrator/test_orchestrate_adopt.ps1 and _ledger.ps1",
        "conformance-suite/adapters/": "scripts/differential_fuzz.py (the GnuCOBOL and WiseOwl adapter files)",
@@ -369,16 +377,18 @@ def self_test() -> int:
     # The tooling flag (PB4326), on the real classification.
     expect("tooling: scripts, workflows, tools, the agent definitions, the two root files the self-tests read, any "
            "Python, PowerShell or shell file anywhere, and the data the self-tests read (TOOLING_READS: the test helper "
-           "TestRepo.cs, the grammar, the agent-fleet settings, the inventory, docs/CONFORMANCE.md) are tooling; "
+           "TestRepo.cs, the grammar, the agent-fleet settings, the inventory, docs/CONFORMANCE.md, docs/DESIGN.md) are tooling; "
            "code, tests, the other docs and a name that only starts like a tooling directory or a read file are not",
            [real.is_tooling(p) for p in ("scripts/gate_slot.py", ".github/workflows/build-and-test.yml", "tools/claude-skills",
                                          ".claude/agents/x.md", ".gitattributes", "toolchain.env", "conformance-suite/harness/x.py",
                                          "tests/x/run.sh", "tests/_shared/TestRepo.cs",
                                          "src/WiseOwl.Cobol.Frontend/Grammar/Core/Data.g4", ".agent-fleet.json",
                                          "tests/version-matrix/inventory/GR-4.4-1.json", "docs/CONFORMANCE.md",
-                                         "src/a.cs", "tests/b.cs", "docs/DESIGN.md", "scriptsx/a.md", "toolchain.env.bak",
+                                         "docs/DESIGN.md", "docs/REARCHITECTURE_PLAN.md",
+                                         "src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin",
+                                         "src/a.cs", "tests/b.cs", "docs/DOC_INDEX.md", "scriptsx/a.md", "toolchain.env.bak",
                                          "tests/_shared/TestRepoX.cs", ".agent-fleet.json.bak", "tests/_shared/Other.cs")],
-           [True] * 13 + [False] * 8)
+           [True] * 16 + [False] * 8)
     expect("a full-lane change that touches tooling says so, one that does not says so, and an inert one never does; "
            "a change to only a file a script self-test reads is a tooling change (review R1-1)",
            [real.classify(["src/a.cs", "scripts/x.py"]).tooling, real.classify(["src/a.cs", "docs/x.md"]).tooling,
