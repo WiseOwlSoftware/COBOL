@@ -352,6 +352,26 @@ def overlay_problems(name, text, repo=None):
     return found
 
 
+# kb/Work PB4334 (owner decision 1 of PB4323, kb/Work PB4328): the gate runs the WHOLE population, so the words of the
+# gating it retired (batched gating, a plan's legs and tiers, the impact map) must not instruct anyone. They belong to the
+# surfaces an agent or an author is TOLD what to do by; a line may name them only as history, citing PB4328 (the landing that
+# retired them), and "no impact map" is the statement of the retirement itself.
+RETIRED_GATING = re.compile(r'\btier 0[a-d]\b|LEG 1 ONLY|batched gating|(?<!no )impact map|\bleg 1\b', re.IGNORECASE)
+GATING_SURFACES = ('.github/', '.claude/', 'CLAUDE.md')
+GATING_HISTORY = 'PB4328'
+
+
+def retired_gating_lines(rel, text):
+    """The lines of the instruction surface `rel` that instruct in the words of the retired gating, as `rel:line: text`
+    messages: a line is history, and passes, when it cites PB4328. This module names the words, so it is no surface."""
+    if not rel.startswith(GATING_SURFACES) or rel == '.claude/skills/workstream/check_practices.py':
+        return []
+    return [f'{rel}:{n}: {line.strip()[:100]} (the gate runs the whole population, kb/Work PB4328; name the retired gating '
+            f'only as history, citing PB4328)'
+            for n, line in enumerate(text.splitlines(), 1)
+            if RETIRED_GATING.search(line) and GATING_HISTORY not in line]
+
+
 def fleet_tooling():
     plugin = SKILLS / '.claude-plugin' / 'plugin.json'
     if not plugin.exists():
@@ -385,6 +405,7 @@ def fleet_tooling():
             text = (REPO / rel).read_text(encoding='utf-8')
         except (OSError, UnicodeDecodeError):
             continue
+        found += retired_gating_lines(rel, text)
         if RETIRED.search(text):
             found.append(f'{rel} still calls a retired project copy (use the tools/claude-skills path)')
         found += [f'{rel} names tools/claude-skills/{m}, which the pinned submodule does not have'
