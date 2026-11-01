@@ -47,10 +47,16 @@ public sealed record AccessPath(IReadOnlyList<AccessSegment> Segments)
 public abstract record AccessSegment;
 
 /// <summary>The root of the path — a static or instance C# field (or, after <see cref="AccessPath.Reroot"/>, a
-/// contained-program <c>__outer</c>-prefixed root expression, or a CORRESPONDING anchor local).
+/// contained-program <c>__outer</c>-prefixed root expression).
 /// <paramref name="Guard"/> is non-null when the root is a FORMAL PARAMETER whose reference can raise its
 /// *-ARG-OMITTED condition (kb/Work PB971): the backend then renders the root through the runtime guard.</summary>
 public sealed record RootFieldSegment(string CsField, OmittedFormalGuard? Guard = null) : AccessSegment;
+
+/// <summary>A root that is a method local the statement declared — a CORRESPONDING statement's hoisted group anchor
+/// (ISO §14.7.6 6): the identification is done at the start of the statement), held by reference — named by its
+/// identity, never its name (<see cref="MethodLocal"/>, kb/Work PB4321). A local is never behind a contained program's
+/// <c>__outer</c> chain, so <see cref="AccessPath.Reroot"/> leaves it as it is.</summary>
+public sealed record LocalRootSegment(MethodLocal Local) : AccessSegment;
 
 /// <summary>A <c>.Member</c> access on the accumulated path (a nested <c>record struct</c> member).</summary>
 public sealed record MemberSegment(string CsMember) : AccessSegment;

@@ -1037,7 +1037,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private static string AllArgsExpr(TableAllPlace all, string csType, Func<BoundOperand, string> element,
         Func<BoundOperand, string>? lead = null)
     {
-        string v = all.Indices.CsName;
+        string v = LocalNames.Of(all.Indices.Local);
         var counts = all.Counts.Select(c => $"{v} => (long)({AllCountExpr(c)})");
         var e = new BoundFieldOperand(all.Element);
         return RuntimeApi.TableAllArgs(csType, counts, $"{v} => {element(e)}", lead is null ? null : $"{v} => {lead(e)}");

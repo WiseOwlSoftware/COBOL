@@ -64,7 +64,8 @@ public sealed record InitializeStore(BoundMove Move) : InitializeAction
 /// count is its CURRENT CAPACITY (GR10). Three counts, one model, one renderer
 /// (<c>PlaceRenderer.OccurrenceCount</c>) — kb/Work PB393; before it, the ODO arm silently initialized to the
 /// maximum in both quadrants and the dynamic arm aborted the run unit.</para></summary>
-public sealed record InitializeLoop(string Var, AllCount Count, IReadOnlyList<InitializeAction> Body) : InitializeAction;
+/// <param name="Var">The loop counter, by its identity (<see cref="MethodLocal"/>, kb/Work PB4321): the backend names it.</param>
+public sealed record InitializeLoop(MethodLocal Var, AllCount Count, IReadOnlyList<InitializeAction> Body) : InitializeAction;
 
 /// <summary>⛔ THE PER-OCCURRENCE ARM SELECTOR — the ONE place a receiver's sending-operand is allowed to differ
 /// between occurrences of the same table element (ISO §14.9.20.4 GR5c1c: an item is a receiving-operand when "a

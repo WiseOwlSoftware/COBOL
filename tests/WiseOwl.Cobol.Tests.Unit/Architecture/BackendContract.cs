@@ -150,12 +150,6 @@ internal static class BackendContract
             "Model.RootFieldSegment.CsField", "Model.MemberSegment.CsMember", "Model.CallBridge.Field", "Model.CallBridge.Path",
             "Bound.BoundTableSortKey.MemberPath", "Model.BoundUnit.AnchorOf()", "Model.BoundUnit.ClassRef",
         ]),
-        // L8: the names of C# method locals.
-        new("L8", ["PB4321"],
-        [
-            "Model.PositionLocal.CsName", "Model.LocalVector.CsName", "Bound.BoundReportVaryingRef.CsName",
-            "Bound.CorrespondingHoist.Local", "Bound.InitializeLoop.Var", "Bound.TableElementMove.Var",
-        ]),
         // L9: C# source text, runtime type and member spellings, and C# operators on the model and the bound tree.
         new("L9", ["PB3252"],
         [
