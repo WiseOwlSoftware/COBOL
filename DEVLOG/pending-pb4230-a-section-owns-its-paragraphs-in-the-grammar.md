@@ -46,3 +46,9 @@ unnamed sentence, A-1 and COMMON-P and stops before B-S (0111). COMMON-P is defi
 qualified from MAIN-S (§8.4.2.2.3 SR7): `COMMON-P OF B-S` gives 1000 and `COMMON-P IN A-S` gives 0100. The expected
 values come from §14.4.2 and §14.9.28.4 GR4. The inventory row FMT-14.2.1 stays CONFORMS and gains the golden and the
 drift test as witnesses (record_verdicts batch `w20261795a-pb4230-section-owns-paragraphs`, GAP 19 to 19).
+
+**Gate.** Run 000001-20261101T044521Z on db751f279 was RED on the seven ParseRecoveryHintTruthTests rows above (fixed in
+2c5fba4ac). Run 000002-20261101T050807Z on 2c5fba4ac: every case passed (Conformance 20,375/20,375, Unit 39,097/39,097,
+Characterization 36/36), and the verdict is `=== BUILD-LOCAL GATE: RED — Unit POPULATION NOT EXACT` on the four
+astral-character theory names alone, which is kb/Work PB4338 (open, outside this group): the grammar change makes the
+plan hold the whole of tier 1, which is the plan PB4338 bites.
