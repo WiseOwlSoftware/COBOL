@@ -20,7 +20,7 @@
 # trip cost ~30 min and a dropped cluster. MANDATORY-PRACTICES I8 names this script as the
 # reproduction tool, and LinuxGateDriftTests keeps its legs equal to what CI's
 # Linux jobs run: every test project they `dotnet test`, and every repository script they `bash` (the `guard` leg,
-# CI's guard job, added 2026-10-04 by kb/Work PB1955 after that job's red reached CI unseen).
+# CI's guard job, added 2026-10-04 by kb/Work PB1955 after that job's red reached CI unseen; the nightly's since PB4329).
 #
 # HOW: a LINUX CLONE OF THE COMMIT, never the Windows tree. The tree's committed HEAD is cloned (`--shared`: it
 # borrows the Windows repository's object store read-only, so it copies nothing) into ~/linux-gate/<tree>.<pid>/<tree>
@@ -628,9 +628,9 @@ selftests_leg() {  # <leg name> <clone> [runner arguments…]
   fi
 }
 guard_leg() {
-  # CI's `guard` job (kb/Work PB1955, PB1957 row 40): the NIST suite through the `cobol` CLI from bash, the manifest
-  # audit, the baseline check and the guard's own self-tests — the one CI Linux job that runs a SCRIPT rather than
-  # `dotnet test`, so it was the one no local gate ran. Train 1013's CI red on PB322's TERMINATES rows was invisible to
+  # CI's `guard` job, the nightly's since kb/Work PB4329 (kb/Work PB1955, PB1957 row 40): the NIST suite through the
+  # `cobol` CLI from bash, the manifest audit, the baseline check and the guard's own self-tests — the one CI Linux
+  # job that runs a SCRIPT rather than `dotnet test`, so it was the one no local gate ran. Train 1013's CI red on PB322's TERMINATES rows was invisible to
   # every local leg. Its scratch is private to this clone (guard-fast.sh's own mktemp directory and every
   # group's lie under TMPDIR, and implementers run this gate concurrently; kb/Work PB2922). It runs in the AUDIT clone
   # (kb/Work PB2878), whose build its own `dotnet build` of the CLI finds up to date (kb/Work PB3529).

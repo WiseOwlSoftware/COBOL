@@ -1,7 +1,7 @@
 # ⛔ THE ONE WAY A JOB OF THIS REPOSITORY DOWNLOADS AN ARTIFACT (kb/Work PB3140; CiArtifactDriftTests).
 #
 # The download's twin of ./.github/actions/upload-results. A job that downloads artifacts NEEDS them for its verdict
-# (`conformance-population` checks the shards' union against the discovered population from the shards' trx and
+# (`ci-gate` checks the shards' union against the discovered population from the shards' trx and
 # listings), so a download that never succeeds fails the job. A TRANSIENT failure of the artifact service is not a
 # verdict, though, so a download is tried three times (30 s, then 90 s apart, into an emptied destination each time)
 # and only the third attempt's failure fails the step.

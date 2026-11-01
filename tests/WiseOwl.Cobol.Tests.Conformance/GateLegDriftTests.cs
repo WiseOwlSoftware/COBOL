@@ -24,4 +24,9 @@ public sealed class GateLegDriftTests
     [Fact]
     public void ThisTestHost_IsConfiguredForServerGc() =>
         GateLegAudit.AssertTestHostConfiguredForServerGc(typeof(GateLegDriftTests).Assembly);
+
+    /// <summary>This assembly embeds the weights CI's shards are dealt by (kb/Work PB4329).</summary>
+    [Fact]
+    public void ThisAssembly_EmbedsTheShardWeights() =>
+        GateLegAudit.AssertEmbedsTheWeights(typeof(GateLegDriftTests).Assembly);
 }
