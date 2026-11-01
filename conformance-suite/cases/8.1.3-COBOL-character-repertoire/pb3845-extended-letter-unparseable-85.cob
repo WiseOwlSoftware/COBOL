@@ -13,5 +13,5 @@
        WORKING-STORAGE SECTION.
        01 CAFÉ PIC X(5) VALUE "CREME".
        PROCEDURE DIVISION.
-           DISPLAY CAFÉ MOVE MOVE.
+           DISPLAY CAFÉ MOVE TO.
            STOP RUN.

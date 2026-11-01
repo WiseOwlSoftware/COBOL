@@ -48,3 +48,13 @@ Goldens: `ReservedWordPositionConformanceTests` (23 rows added to the operand th
 word-status read `ReservedWord`. Self-review (architecture, full code, performance, duplication): one decision under `ReservedUserWordViolation` and
 `ReservedGatedWord`, the second statement-parse question deleted, the new parses run only on the error path for a reserved verb or gated word. No diagnostic
 code used. Gate: see the landing's record.
+
+**The landing's merge: one tail, spelled once.** Bringing main in was clean, and the gate on the merged head went red on seven rows of PB4234's
+`AnUnderscoreAtAWordEdge_IsNamedByTheSection8321Rule_AtEveryEdition`, every row that should parse: COBOL0001 where none belongs. PB4234 landed its tests
+on main against the `WordCharacterScreenTests` fixture's old tail and made the parsed form with `Replace(" MOVE MOVE", "")`; this branch had changed the
+tail to `MOVE TO`, because `MOVE MOVE` is now the §8.3.2.1 1) refusal COBOL0901 ("Reserved words shall not be used as user-defined words"), not a generic
+parse error. The replace matched nothing, so the parsed rows compiled the unparsed program. Neither side's code or expectation was wrong; the fixture's
+shape was, a magic tail copied into every test and removed by string replacement. The tail is now one constant (`NoSender`) and the parsed form a
+`parses` argument of the one `Program` helper, so no test spells it. The sweep found the same tail in the three `pb3845-*-unparseable` refusals
+(underscore and extended letter at '85, U+30FB at 2023): they took `MOVE TO` too, so "the statement below does not parse" is again the generic parse
+error they describe. Nothing else in the tree uses a reserved verb as an operand for a generic parse error.
