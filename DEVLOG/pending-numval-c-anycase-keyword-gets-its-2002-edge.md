@@ -24,8 +24,13 @@ them. No inventory row closed (GAP 19 -> 19); FMT-15.68.2 and FMT-15.94.2 gained
 **Review round 1: the gate refused legal 85 source.** Below 2002 ANYCASE is a free word, so a COBOL-85 program may declare
 `01 ANYCASE PIC X(3)` and write `NUMVAL-C("USD1,234.56" ANYCASE)` with the data item as argument-2. The ANYCASE arm took every
 bare ANYCASE at slot 1 as the keyword and now answered COBOL0900 for that conforming program (before the gate it had silently
-swallowed the operand). The fix is in the funnel, `IntrinsicBinder.KeywordWordOf`: a bare word that §8.9 leaves free at the
+swallowed the operand). The fix is in the funnel, `IntrinsicBinder.KeywordWordOf`: a bare word introduced after the
 edition and that a declaration names is an operand (null keyword), the same determination the parser makes in
 `IsKeywordReadingHere`; an undeclared free word keeps its keyword reading and the edition gate still answers. LOCALE, the
 neighbouring 2002 word, had the same swallowing at 85 and is covered by the same line. Golden
 `pb4359_numval_c_anycase_free_word_85` (accept 85) declares both words as data items: 1234.56 and 9.99.
+
+The first form of the funnel line asked "not reserved at this edition", and the gate's first run caught it: `pb124_keyword_positions`
+(2023) writes `LENGTH(WS-G PHYSICAL)` beside a data item named PHYSICAL, and PHYSICAL is a word 2014 reserved and 2023 dropped,
+which stays the keyword in its own position. The line now asks `ReservedWords.AdmitsAsKeyword`, the repo's one "introduced
+after this edition" predicate, which keeps that case.
