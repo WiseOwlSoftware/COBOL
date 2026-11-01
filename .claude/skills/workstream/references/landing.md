@@ -117,7 +117,8 @@
   (`git worktree add --detach <path> <sha>`), never stash/build/probe/pop.
 - The GPL GnuCOBOL corpus (`tests/external/gnucobol`) is git-ignored and **per worktree**. The gate (`scripts/gate.py`) fetches it
   when absent (train 23), so a fresh implementer or lander worktree measures the population from its first gate;
-  `ExternalCorpusPopulationDriftTests` is RED BY DESIGN without it (`kb/Work/PB209`). ⛔ **The two population reds are NOT
+  the population gate (`scripts/corpus_sweep.py --self-test`, which applies the same rule itself) is RED BY DESIGN
+  without it (`kb/Work/PB209`). ⛔ **The two population reds are NOT
   "the known worktree shape" any more** (`kb/Work/PB897`): the fetch was broken on every host whose PATH `tar` is GNU tar —
   it deleted the corpus and then failed to extract — so those reds were permanent and everyone was told to ignore them.
   The fetch now stages and swaps, tries each `tar` it can find, and prints one `FETCH FAILED: <cause>` line; a failed fetch

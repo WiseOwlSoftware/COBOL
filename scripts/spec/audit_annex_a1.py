@@ -856,7 +856,7 @@ def main(argv: list[str]) -> int:
 
     if '--json' in argv:
         # ⛔ ONE LINE, PREFIXED, so a C# gate can find it without parsing the report — the idiom
-        # scripts/corpus_sweep.py --json established and ExternalCorpusPopulationDriftTests reads. `filed` is
+        # scripts/corpus_sweep.py --json established and its --self-test reads. `filed` is
         # the POPULATION: a run that observed nothing must be distinguishable from a run that found nothing
         # wrong (feedback_verdict_evidence_invariant).
         print('JSON ' + json.dumps({

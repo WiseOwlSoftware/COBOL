@@ -18,7 +18,8 @@ Three rules follow from that, and they are the design:
   3. **The instrument proves itself before it is believed.** `--verify-population` asserts the external
      population equals the differential's committed per-case baseline; a sweep whose population check fails
      REFUSES to report hit counts, because "zero hits" from a broken reader is the exact defect above.
-     `ExternalCorpusPopulationDriftTests` runs that check every build.
+     `--self-test` runs that check on the real corpus, and drives its red on an emptied one, whenever this script,
+     the extractor, the fetch or the committed baseline changes (kb/Work PB4395).
 
 ⚖ LICENSING: the GnuCOBOL corpus is GPL-3.0 and lives only in the git-ignored `tests/external/gnucobol/`.
 Program TEXT is held in memory and matched; it is never written out. Hits are reported by our own coordinate
@@ -30,6 +31,7 @@ Usage:
     python scripts/corpus_sweep.py --verify-population              # the drift check, alone
     python scripts/corpus_sweep.py --pattern 'REDEFINES' --name redefines
     python scripts/corpus_sweep.py --codes COBOL1698,COBOL1701   # which diagnostics FIRED (compiled)
+    python scripts/corpus_sweep.py --self-test                      # the population gate (PB209), below
 """
 from __future__ import annotations
 import argparse, json, os, re, sys
@@ -66,10 +68,9 @@ class Program:
         self.population, self.coordinate, self.text = population, coordinate, text
 
 
-def load_file_population(name: str, rel: str, suffixes: tuple[str, ...]) -> list[Program]:
-    root = os.path.join(ROOT, rel)
+def load_file_population(name: str, rel: str, suffixes: tuple[str, ...], tree: str = ROOT) -> list[Program]:
     out: list[Program] = []
-    for dirpath, _dirs, files in os.walk(root):
+    for dirpath, _dirs, files in os.walk(os.path.join(tree, rel)):
         for f in sorted(files):
             if f.lower().endswith(suffixes):
                 p = os.path.join(dirpath, f)
@@ -77,7 +78,7 @@ def load_file_population(name: str, rel: str, suffixes: tuple[str, ...]) -> list
                     text = open(p, encoding='utf-8', errors='replace').read()
                 except OSError:
                     continue
-                out.append(Program(name, os.path.relpath(p, ROOT).replace('\\', '/'), text))
+                out.append(Program(name, os.path.relpath(p, tree).replace('\\', '/'), text))
     return out
 
 
@@ -145,7 +146,7 @@ def code_census(report: str, codes: list[str]) -> dict[str, list[dict]]:
     return hits
 
 
-def main() -> int:
+def main(argv: list[str] | None = None, tree: str = ROOT) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument('--src', default=gx.DEFAULT_SRC, help='the .at wrapper directory of the external corpus')
     ap.add_argument('--baseline', default=BASELINE)
@@ -156,7 +157,7 @@ def main() -> int:
     ap.add_argument('--verify-population', action='store_true', help='run the drift check alone')
     ap.add_argument('--show', type=int, default=25, help='max hits printed per population')
     ap.add_argument('--json', action='store_true', help='emit one machine-readable JSON line as well')
-    a = ap.parse_args()
+    a = ap.parse_args(argv)
 
     ok, message, detail = verify_population(a.src, a.baseline)
     print(f'{"POPULATION OK  " if ok else "POPULATION BAD "} {message}')
@@ -169,7 +170,7 @@ def main() -> int:
     pops: list[Program] = []
     counts: dict[str, int] = {}
     for name, rel, sfx in FILE_POPULATIONS:
-        progs = load_file_population(name, rel, sfx)
+        progs = load_file_population(name, rel, sfx, tree)
         counts[name] = len(progs)
         pops.extend(progs)
     ext, state = load_external_population(a.src)
@@ -236,6 +237,111 @@ def main() -> int:
     return rc
 
 
+# ── the self-test: the gate that keeps "the corpus" one population (PB209) ─────────────────────────────────────────
+#
+# Until kb/Work PB4395 a C# class of the compiler's test assembly (ExternalCorpusPopulationDriftTests) ran this
+# instrument, so a change to it, to the extractor or to the fetch was a compiler change only a build could check. The
+# INVARIANT arm compares two sides produced independently, one read live from the corpus and one written by the
+# differential and committed, so their agreement is evidence rather than a tautology; the EMPTIED arm is not a formality
+# (a check observed only passing is indistinguishable from one that inspects nothing, and "inspects nothing, reports a
+# clean zero" is exactly PB209). A corpus that cannot be obtained is a LOUD failure, never a skip: a missing population is
+# not an empty one. The census arms run on a planted tree, so this self-test reads the compiler's test corpora only
+# through the external corpus and the committed baseline.
+
+#: ⛔ THE ARMS scripts/external_corpus.py's self-test must declare (DESIGN-test-build-ci.md §3.14.4 arm (3); kb/Work
+#: PB2611, PB4395). Held here, in the corpus family's other script, because a list in the file it checks would satisfy
+#: a source search by itself; scripts/self_test_arms.py `DECLARED` is the register it belongs in.
+EXTERNAL_CORPUS_ARMS = (
+    'a present corpus runs NO fetch and is not red',
+    'an absent corpus runs the fetch script once, in that tree, and is not red when it lands',
+    'a fetch that exits non-zero is the named FETCH FAILED red',
+    'a fetch that exits 0 but leaves no marker is the named FETCH FAILED red, never a green',
+    'a fetch that cannot start (no pwsh) is the named FETCH FAILED red, never a crash',
+)
+
+
+def _run(argv: list[str], tree: str = ROOT) -> tuple[int, str, str]:
+    """`main(argv)` in this process: (its exit code, its stdout, its stderr)."""
+    import contextlib  # noqa: PLC0415
+    import io  # noqa: PLC0415
+    out, err = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+        rc = main(argv, tree)
+    return rc, out.getvalue(), err.getvalue()
+
+
+def _json_line(stdout: str) -> dict:
+    line = next((x.strip() for x in stdout.splitlines() if x.strip().startswith('JSON ')), '')
+    return json.loads(line[len('JSON '):]) if line else {}
+
+
+def self_test() -> int:
+    import tempfile  # noqa: PLC0415
+    import external_corpus  # noqa: PLC0415  (scripts/: THE one rule for obtaining the corpus)
+    import self_test_arms  # noqa: PLC0415  (scripts/: the one reader of a self-test's declared arms)
+    from pathlib import Path  # noqa: PLC0415
+    results: list[tuple[str, bool, str]] = []
+
+    def arm(name: str, ok: bool, detail: object = '') -> None:
+        results.append((name, bool(ok), '' if ok else str(detail)))
+
+    committed = baseline_case_count(BASELINE)
+    src = os.path.join(ROOT, gx.DEFAULT_SRC)
+    reds = external_corpus.ensure(Path(ROOT))
+    ok, message, detail = verify_population(src, BASELINE)
+    arm('THE INVARIANT: the sweep reads, live from the .at wrappers, exactly the external population the '
+        "differential's committed baseline records (a corpus that cannot be obtained is RED, never a pass)",
+        not reds and committed and ok and detail == {'state': 'ok', 'external': committed, 'baseline': committed},
+        f'{reds} {message} {detail}; the committed baseline holds {committed} case(s)')
+    programs, state = load_external_population(src)
+    arm('the external population is PROGRAMS extracted from AT_DATA, at least one per case, never the two files a '
+        '*.cob glob over the same tree returns', state == 'present' and committed and len(programs) >= committed,
+        f'{state}: {len(programs)} program(s) for {committed} case(s)')
+
+    with tempfile.TemporaryDirectory(prefix='corpus-sweep-selftest-') as tmp:
+        tree = os.path.join(tmp, 'tree')
+        empty = os.path.join(tmp, 'empty')
+        os.makedirs(empty)
+        planted = {'conformance-suite/cases/a/a.cob': 1, 'tests/nist/programs/b.cbl': 2, 'tests/nist/copylib/c.cpy': 3,
+                   'tests/characterization/d.cob': 4, 'tests/version-matrix/e.cbl': 5, 'tests/differential/f.cpy': 6}
+        for rel, n in planted.items():
+            for i in range(n):
+                path = os.path.join(tree, os.path.dirname(rel), f'{i}{os.path.basename(rel)}')
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                with open(path, 'w', encoding='utf-8', newline='\n') as fh:
+                    fh.write('       IDENTIFICATION DIVISION.\n       DATA DIVISION.\n       01 R REDEFINES S.\n')
+        baseline = os.path.join(tree, 'baseline.tsv')
+        with open(baseline, 'w', encoding='utf-8', newline='\n') as fh:
+            fh.write('# id\tverdict\nc1\tok\nc2\tok\nc3\tok\n')
+
+        rc, out, _ = _run(['--verify-population', '--json', '--src', empty, '--baseline', baseline], tree)
+        arm('an EMPTIED extraction makes the population check RED and NAMES the drift, never a clean zero',
+            rc != 0 and _json_line(out) == {'state': 'drift', 'external': 0, 'baseline': 3}
+            and 'POPULATION DRIFT' in out, f'exit {rc}\n{out}')
+        rc, out, err = _run(['--pattern', 'REDEFINES', '--src', empty, '--baseline', baseline], tree)
+        arm('a PATTERN sweep over that broken population REFUSES TO REPORT HITS, and still prints the census',
+            rc != 0 and 'REFUSING TO REPORT HITS' in err and '=== SWEEP:' not in out
+            and 'SWEEP POPULATION CENSUS' in out, f'exit {rc}\n{out}{err}')
+        rc, out, _ = _run(['--src', empty, '--baseline', baseline], tree)
+        census = {x.split()[0]: x.split()[1] for x in out.splitlines() if x.startswith('  ') and len(x.split()) > 1}
+        want = {name: str(sum(n for k, n in planted.items() if k.startswith(rel + '/')))
+                for name, rel, _ in FILE_POPULATIONS}
+        arm('the census names EVERY population and the programs it read, the external one included',
+            all(census.get(n) == c for n, c in want.items()) and census.get(EXTERNAL) == '0',
+            f'want {want}; got {census}')
+
+    gaps = self_test_arms.findings(declared={'scripts/external_corpus.py': EXTERNAL_CORPUS_ARMS}, exact=frozenset())
+    arm("scripts/external_corpus.py's self-test still declares every arm of the one corpus rule (kb/Work PB2611)",
+        not gaps, '; '.join(gaps))
+
+    for name, passed, why in results:
+        print(f"  {'PASS' if passed else 'FAIL'}  {name}" + ('' if passed or not why else f'\n        {why}'))
+    failed = sum(1 for _, passed, _ in results if not passed)
+    print(f"=== CORPUS SWEEP SELF-TEST: {'FAIL — ' + str(failed) + ' of ' if failed else 'ALL GREEN — '}"
+          f'{len(results)} arms ===')
+    return 1 if failed else 0
+
+
 if __name__ == '__main__':
     ensure_utf8()
-    sys.exit(main())
+    sys.exit(self_test() if sys.argv[1:] == ['--self-test'] else main())

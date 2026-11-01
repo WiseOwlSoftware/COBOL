@@ -193,14 +193,14 @@ that fails warns and passes, because the merge group's own install still tries t
 calls the script. `scripts/cloud/setup-env.sh` runs before the repository is cloned, so it carries the script's install
 block byte for byte between the `tool-install` markers. An exact version never goes through aka.ms.
 
-**⛔ CI is bounded, and every cache is saved from main only (kb/Work PB4227, PB4324; `CiBoundsDriftTests`).** Every job states a `timeout-minutes`, about twice its measured p90
+**⛔ CI is bounded, and every cache is saved from main only (kb/Work PB4227, PB4324; `scripts/ci_bounds.py`).** Every job states a `timeout-minutes`, about twice its measured p90
 (2026-10-31, 18 to 70 runs a job): `changes`, `supersede`, `audits` and `ci-gate` 10 minutes, `linux-shard` and
 `linux-built-self-tests` 15, `windows-shard`, `toolchain-cache` and `package-cache` 20, `windows-self-tests` 25 (the
 weighted shards of kb/Work PB4329 took the review's bounds, 15 minutes a Linux shard and 20 a Windows one, with their
 size: about 4 minutes of a shard's tests where the name split's longest job, Windows Unit, ran 8); in the nightly (§1.4a), `latest` and `images` 10, `shard-spread` 15, and `guard`, `self-tests` and `differential` 60,
 the most any job may state (the nightly blocks no landing, so its bound only stops a hang). Every `actions/checkout` step and every `setup-toolchain`
 step is killed after 5 minutes; a job's first step is a checkout with `id: checkout` and `continue-on-error: true`, and its
-second is the same checkout (the same `with:` block, which the drift test compares) run `if: steps.checkout.outcome !=
+second is the same checkout (the same `with:` block, which the audit compares) run `if: steps.checkout.outcome !=
 'success'`, so one transient failure or hang costs at most 10 minutes and the job, not the queue's verdict, absorbs it (the
 `supersede` job's retry is `checkout-retry` and is itself `continue-on-error`, kb/Work PB3820). Caches: the matrix jobs only
 RESTORE (`actions/cache/restore`; `actions/cache@` is refused, since it saves on every ref), and a merge group's ref is new
@@ -209,8 +209,9 @@ every time, so a copy it saved was never read again and only filled the 10 GB bu
 caches a merge group restores. A save runs only after the step that produced what it stores succeeded: `package-cache`'s
 `dotnet restore` and GnuCOBOL fetch continue on error, so their saves require `steps.restore.outcome` and
 `steps.fetch.outcome` to be `success`, since a failed restore would store a partial package set under the exact key and a
-run that hits an exact key never saves it again (kb/Work PB4348). `CiBoundsDriftTests` holds all of it, with a fixture arm
-for each shape it forbids.
+run that hits an exact key never saves it again (kb/Work PB4348). `scripts/ci_bounds.py` holds all of it: `--check` over every workflow and action, and a
+`--self-test` that fires each audit on the shape it forbids before it runs them over the real tree (kb/Work PB4395 moved
+the audits out of the compiler's test assembly).
 
 **⛔ The tests run as weighted shards, and `ci-gate` proves they ran the population (kb/Work PB4329, step 6 of PB4323;
 `GateLegDriftTests` `Shard_*`, `FilterPopulationGuardDriftTests`).** Each shard job builds the solution and runs every
@@ -564,9 +565,9 @@ and it fails the gate as UNRESOLVED so it gets read rather than absorbed.
 | `scripts/guard-verify.sh` | `--self-test`, discovered by `scripts/self_tests.py` (every gate and CI's audits) and run again by `guard-fast.sh` before it measures. **The evidence-rule witnesses** — synthetic runs through the REAL `guard-run-group.sh` over a fake repo root with `dotnet`/`diff` shims on `PATH` and a fake `corpus.tsv`, one rule per case, no corpus and no compiler: absent report → NO-VERDICT, 0-byte report → NO-VERDICT, `diff` forced to exit 2 → NO-VERDICT, `rc≠0` with empty stderr → NO-VERDICT, **a genuinely wrong report → REGRESSION** and `rc≠0` *with* a reason → REGRESSION (the discriminators, without which the fix could turn every regression into a NO-VERDICT and look green), plus the compile arm, the FAIL*/footer rules, the written-files and termination arms, the forensics, **the run directory** (a consumer is not corrupted by a non-predecessor that wrote its file, and gets its declared predecessor's file when run alone — both red against the pre-PB3334 shared-directory runner — with a discriminator proving the consumer needs the file) and the structural checks (no process substitution in a verdict path; one copy of the rules; one runner of NIST programs). Re-run them against an old runner with `GUARD_GROUP_RUNNER=<old copy>`. |
 | `scripts/gnucobol_differential.py` | A rejection needs a non-zero exit **and** a diagnostic; an acceptance needs the artifact. Evidence-free compiles are retried once and then bucketed `NO_COMPILER_EVIDENCE`, which counts as a harness failure and is **named for re-run**, never folded into a divergence bucket. Its population is no longer its own: it filters with `gnucobol_extract.differential_cases()` before dispatch, so `len(payload)` IS `cases run` and the corpus has one definition. |
 | `scripts/gnucobol_extract.py` | **THE external-corpus population, as an API** — `primary_source` (the one "is this a case" predicate, returning the `(member, compile-check)` pair the caller actually needs so nothing re-derives half of it), `differential_cases` (the 1,323), `iter_programs` (the 1,611 COBOL members, what a sweep must read). Both readers call it; there is no second place to define the corpus. |
-| `scripts/corpus_sweep.py` + `ExternalCorpusPopulationDriftTests` | The reachability instrument and its lock. The sweep prints a per-population census on EVERY run and refuses to report hit counts when its population check fails. The drift test asserts the sweep's live external population equals the differential's COMMITTED per-case baseline — two independently produced numbers, so agreement is evidence. It was **proved failing first**, driven against the old `*.cob` reader, where it reported `{"external": 2, "baseline": 1323, "state": "drift"}`; `TheDriftCheck_ActuallyFails_WhenTheExtractionIsEmptied` keeps that red permanently reachable. A missing interpreter or an absent corpus is a LOUD failure, never a skip. |
-| `scripts/fetch-gnucobol-tests.ps1` | **THE fetch the population gate depends on, and a gate in its own right** (kb/Work PB897). Extraction lands in a STAGING directory and is swapped in only after tar succeeded **and** the payload was verified (nothing is deleted before its replacement exists); the archive is named RELATIVE to its own directory, which neither GNU tar nor bsdtar misreads (⛔ `--force-local` is the wrong repair: bsdtar rejects it); and the tar is chosen by ATTEMPTING the work down an ordered candidate list rather than by trusting `Get-Command` (Git-for-Windows' GNU tar cannot read a `.tar.xz`). Every failure prints one `FETCH FAILED: <cause>` line and exits non-zero, and `build-local.{ps1,sh}` both surface it: the gate goes RED with `EXTERNAL CORPUS FETCH FAILED, POPULATION UNMEASURED`. `-SelfTest` drives the REAL `Invoke-CorpusExtraction` over a synthetic `.tar.xz`, failure branches included, and `ExternalCorpusFetchTests` runs it. |
-| `scripts/external_corpus.py` | **THE one rule for obtaining the corpus in a tree** (`kb/Work/PB2611`): present when `tests/external/gnucobol/tests/testsuite.src` exists, otherwise the fetch script runs there, and a fetch that exits non-zero, exits 0 with no corpus or cannot start is ONE named red, `EXTERNAL CORPUS FETCH FAILED, POPULATION UNMEASURED`. The gate driver (`Host.fetch_corpus`), `battery.sh` (phase −½, before the Unit leg and the differential), `record_impact_map.py`, `linux-gate.sh` and the cloud session hook all apply it; battery #89 read NOT GREEN at a green tree because `battery.sh` alone had no fetch. Its `--self-test` drives every arm and `ExternalCorpusFetchTests` runs it, and `OnlyTheCorpusRule_InvokesTheFetchScript` keeps any other script under `scripts/` from naming the fetch script; CI's two fetch steps are the recorded exception (a fresh checkout never holds the corpus, and the step's exit status is the red). |
+| `scripts/corpus_sweep.py` | The reachability instrument and its lock. The sweep prints a per-population census on EVERY run and refuses to report hit counts when its population check fails. Its `--self-test` asserts the sweep's live external population equals the differential's COMMITTED per-case baseline — two independently produced numbers, so agreement is evidence — obtaining the corpus through `external_corpus.ensure` first. The check was **proved failing first**, driven against the old `*.cob` reader, where it reported `{"external": 2, "baseline": 1323, "state": "drift"}`; the self-test's emptied-extraction arm keeps that red permanently reachable, and its census arms run on a planted tree. An absent corpus is a LOUD failure, never a skip. |
+| `scripts/fetch-gnucobol-tests.ps1` | **THE fetch the population gate depends on, and a gate in its own right** (kb/Work PB897). Extraction lands in a STAGING directory and is swapped in only after tar succeeded **and** the payload was verified (nothing is deleted before its replacement exists); the archive is named RELATIVE to its own directory, which neither GNU tar nor bsdtar misreads (⛔ `--force-local` is the wrong repair: bsdtar rejects it); and the tar is chosen by ATTEMPTING the work down an ordered candidate list rather than by trusting `Get-Command` (Git-for-Windows' GNU tar cannot read a `.tar.xz`). Every failure prints one `FETCH FAILED: <cause>` line and exits non-zero, and `build-local.{ps1,sh}` both surface it: the gate goes RED with `EXTERNAL CORPUS FETCH FAILED, POPULATION UNMEASURED`. `-SelfTest` drives the REAL `Invoke-CorpusExtraction` over a synthetic `.tar.xz`, failure branches included, and `scripts/external_corpus.py --self-test` runs it and reads its named check lines. |
+| `scripts/external_corpus.py` | **THE one rule for obtaining the corpus in a tree** (`kb/Work/PB2611`): present when `tests/external/gnucobol/tests/testsuite.src` exists, otherwise the fetch script runs there, and a fetch that exits non-zero, exits 0 with no corpus or cannot start is ONE named red, `EXTERNAL CORPUS FETCH FAILED, POPULATION UNMEASURED`. The gate driver (`Host.fetch_corpus`), `battery.sh` (phase −½, before the Unit leg and the differential), `record_impact_map.py`, `linux-gate.sh` and the cloud session hook all apply it; battery #89 read NOT GREEN at a green tree because `battery.sh` alone had no fetch. Its `--self-test` drives every arm (`corpus_sweep.py --self-test` holds them declared), runs the fetch's `-SelfTest`, refuses a `--force-local` tar invocation and keeps any other script under `scripts/` from naming the fetch script; CI's two fetch steps are the recorded exception (a fresh checkout never holds the corpus, and the step's exit status is the red). |
 
 **What this does not claim.** The invariant makes a false GREEN and a false RED *visible*; it does not by itself
 prove the battery is deterministic. That is the measurement A12/A12d asks for, and it is recorded in plan §11
@@ -1593,7 +1594,7 @@ one-file-per-entry DEVLOG stand.
    EVERY step is `continue-on-error` (the checkout too, kb/Work PB3820): housekeeping never decides a verdict, and the job
    stays a `needs` of `ci-gate` because the drift check wires every job. ⛔ The job checks out only `scripts/orchestrator` and
    `scripts/standard_streams.py` (a sparse checkout), so a module its scripts import that the list leaves out would make it
-   cancel nothing while the run stays green: `SparseCheckoutDriftTests` (kb/Work PB3787) reads the closure of every
+   cancel nothing while the run stays green: `scripts/sparse_checkout.py` (kb/Work PB3787) reads the closure of every
    sparse-checkout job and refuses a file it runs or imports that the list does not cover (§3.17.8).
 5. **On `main`**: the merged commit is the tested merge-group tree. The `push` run keeps only `changes` + `ci-gate` (the record
    the probe reads) and the cache jobs (`toolchain-cache`, `package-cache`); the matrix and the audits run on `merge_group` and
@@ -1614,7 +1615,8 @@ the only run of the merged tree.
 - **Host-only witnesses and tree-wide sweeps are named by trait** (kb/Work PB3022): every Unit test class that drives the
   file-sharing layer's host types from concurrent workers carries `[Trait("Host", "ReFS")]`, and every drift test that
   `drift_rules.py --sweeps` classifies as a tree-wide sweep carries `[Trait("Sweep", "tree")]`; membership is DERIVED from the
-  trait, never listed, and `HostWitnessTraitDriftTests` asserts it. The whole-population gate runs them all; CI runs the same
+  trait, never listed, and `drift_rules.py --check` (the RENDERED VIEWS audit, in every lane) asserts it over every test
+  project's sources, with a planted fixture for each shape in its `--self-test`. The whole-population gate runs them all; CI runs the same
   tests on NTFS, where the race may not reproduce.
 - **Audits only when their inputs changed** (§3.14.10): a script self-test, a drift-rules regeneration or a citation check with
   inputs unchanged since a recorded PASS is reused; CI's `audits` job runs them all on every merge group.
@@ -1747,12 +1749,12 @@ self-test arms of `enqueue.py` and `ruleset.py` are declared; the direct-push la
 the train applier and the landing oracle do not exist, the push trigger is `[ main ]` with no `ci/**`, and no tracked file
 outside the history paths names them; no generated index is tracked; `NoTrackedRecord_DescribesOneBranchsTree` (no committed
 arch-oracle baseline and `capture_oracle.py` has no `--record`, the rule of §3.17.2 step 4). Beside it:
-the ONE SHAPE audit (`gate.py --audit-shape`: no live line names a gate mode; kb/Work PB4395), `HostWitnessTraitDriftTests` (the traits of §3.17.3), `devlog.py
+the ONE SHAPE audit (`gate.py --audit-shape`: no live line names a gate mode; kb/Work PB4395), `drift_rules.py --check`'s trait rules (the traits of §3.17.3), `devlog.py
 --self-test`'s `lint` arm over the repository's own `DEVLOG/`, `TheMergeGroupRun_CancelsTheRunsTheQueueSuperseded_AndNothingElse`
 (the `supersede` job runs on `merge_group` alone with no `needs`, runs `cancel_superseded.py` with the run's id and head
 commit, is the only job with `actions: write`, has every step `continue-on-error` and is a `needs` of `ci-gate`; the arms of
-`cancel_superseded.py` and `queue_facts.live_heads` are declared) and `SparseCheckoutDriftTests` (reader: `SparseCheckoutAudit`,
-over the workflow's jobs from the one reader `CiWorkflow.Jobs`): every job whose checkout has a `sparse-checkout` list lists
+`cancel_superseded.py` and `queue_facts.live_heads` are declared) and `scripts/sparse_checkout.py --self-test` (over the workflow's jobs from
+the one reader `scripts/ci_workflow.py`): every job whose checkout has a `sparse-checkout` list lists
 each repository file its steps name, each file its local action names and each repository module a Python script it runs
 imports, transitively (a function body's lazy import is followed, kb/Work PB3810), and sets `sparse-checkout-cone-mode: false`.
 

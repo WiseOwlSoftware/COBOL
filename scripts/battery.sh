@@ -121,9 +121,8 @@ note "$(printf '%-16s %s' 'retired names:' "$(grep -E '^=== RETIRED NAMES' "$OUT
 [ "$RETIRED" -eq 0 ] || { note "retired names:   ⛔ a path or line spells a retired name — see $OUT/citations.log"; RC=1; }
 
 # ⛔ THE EXTERNAL CORPUS, BY THE GATE'S OWN RULE (kb/Work PB2611). The GPL GnuCOBOL corpus is git-ignored and per
-# worktree, and two legs below measure it: phase 1's Unit (ExternalCorpusPopulationDriftTests) and phase 3 (the
-# differential). Battery #89 ran in a fresh worktree with no fetch here, so both were red for a reason that was not the
-# tree's. scripts/external_corpus.py is THE rule the gate driver applies too: fetch when absent, and a failed fetch is
+# worktree, and phase 3 below (the differential) measures it. Battery #89 ran in a fresh worktree with no fetch here,
+# so its corpus legs were red for a reason that was not the tree's. scripts/external_corpus.py is THE rule the gate driver applies too: fetch when absent, and a failed fetch is
 # the one named red, `EXTERNAL CORPUS FETCH FAILED, POPULATION UNMEASURED`. The battery goes on running every leg, so
 # the reds the missing corpus causes are seen and attributed to it.
 if [ "${SKIP_TESTS:-0}" != "1" ] || [ "${SKIP_DIFF:-0}" != "1" ]; then
