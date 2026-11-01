@@ -1508,20 +1508,12 @@
       "from": "WiseOwl.Cobol.Binding.Model",
       "to": "WiseOwl.Cobol.CodeGen",
       "uses": 1,
-      "walkUses": 1,
+      "walkUses": 0,
       "removedBy": [
         "PB2397"
       ],
       "plan": "PB2397 (extract: the C# member chain leaves the model — BoundUnit.cs:67, RuntimeApi.OuterChain)",
-      "pairs": [
-        {
-          "from": "WiseOwl.Cobol.Binding.Model.BoundUnit",
-          "to": "WiseOwl.Cobol.CodeGen.RuntimeApi",
-          "removedBy": [
-            "PB2397"
-          ]
-        }
-      ]
+      "pairs": []
     },
     {
       "from": "WiseOwl.Cobol.Binding.Model",
