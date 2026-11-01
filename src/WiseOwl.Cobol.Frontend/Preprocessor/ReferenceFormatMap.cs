@@ -122,8 +122,8 @@ public sealed class ReferenceFormatMap
         if (fixedLine.Indicator.Value is '*' or '/') return null;
         string area = fixedLine.ProgramText;
         if (CobolSourceText.InlineCommentAt(area) < area.Length) return null;
-        return new MarginRCut(PhysicalLine.ColumnOf(line.Columns, fixedLine.MarginRIndex),
-            fixedLine.BeyondMarginR.ToString().TrimSpacesEnd(), fixedLine.ProgramTextStart >= 0, FixedFormLine.MarginR);
+        return new MarginRCut(PhysicalLine.ColumnOf(line.Columns, fixedLine.MarginRIndex), FixedFormLine.MarginR,
+            fixedLine.BeyondMarginR.ToString().TrimSpacesEnd(), fixedLine.ProgramTextStart >= 0);
     }
 
     /// <summary>The initial reference format of library text copied by a COPY statement at 1-based physical line

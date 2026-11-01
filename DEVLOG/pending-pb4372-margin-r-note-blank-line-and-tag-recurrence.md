@@ -19,8 +19,10 @@ its lines (a revision mark on the lines an edit touched) kept firing. Shape cann
 a file whose only overflows are one-word tails on two lines or more: it hears no note.
 
 **Found on the way (I9).** `MarginRCut.Margin` (a physical file column) doubled as the 1-based position of margin R in the message, so a
-line holding a tab named a margin other than 72 (PB2555 review R1-2); `LastProgramTextPosition` is its own member now, set from
-`FixedFormLine.MarginR`, and the last cut position counts characters, not UTF-16 units. `ACommentLinePastMarginR_IsNotACut` could not
+line holding a tab named a margin other than 72 (PB2555 review R1-2). PB4373 landed the same fix on main while this branch waited; the
+merge takes main's shape (`MarginRCut(Column, LastProgramTextPosition, Text, HoldsProgramText)`: main's `Column` and its tab remark
+in the message, this branch's `HoldsProgramText`), and the no-program-text form of the message carries the tab remark too
+(`ALineWithNoProgramTextHoldingATab_StatesMarginRAtPosition72`). `ACommentLinePastMarginR_IsNotACut` could not
 fail (R1-3); the comment line now stands between the two tokens.
 
 **Tests.** `MarginRCutNoteTests`: 16 cases (6 new: only-past-R, several lines between, a sequence number on a blank line, tags on a

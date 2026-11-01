@@ -145,16 +145,23 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
     {
         if (!_cutNoted.Add((cut.At.FileName, cut.At.Line))) return;
         var dropped = cut.Cut;
-        string shown = dropped.Text.Length > MaxDroppedShown ? dropped.Text[..MaxDroppedShown] + "..." : dropped.Text;
-        // A line whose program-text area is blank has no "end" to name: all of its text lies past margin R.
+        string shown = CharacterPositions.Count(dropped.Text) > MaxDroppedShown
+            ? dropped.Text[..CharacterPositions.IndexAt(dropped.Text, MaxDroppedShown)] + "..."
+            : dropped.Text;
+        // The message counts POSITIONS, which a tab fills and a character is one of; the location beside it is the COLUMN the
+        // file holds the cut at (kb/Work PB4373), so a line whose two differ says so rather than state two margins.
+        string held = dropped.Column == dropped.LastProgramTextPosition
+            ? ""
+            : " (a tab counts the positions it fills, so the column this warning names, where the file holds the cut, is less than that)";
+        // A line whose program-text area is blank has no "end" to name: all of its text lies past margin R (kb/Work PB4372).
         (string cutAt, string remedy) = dropped.HoldsProgramText
-            ? ($"the program text of this line was cut at margin R: it ends at position {dropped.LastProgramTextPosition}, and what "
+            ? ($"the program text of this line was cut at margin R: it ends at position {dropped.LastProgramTextPosition}{held}, and what "
                + $"follows, '{shown}' (positions {dropped.FirstCutPosition} to {dropped.LastCutPosition}), is outside the "
                + "program-text area and was ignored (ISO §6.3.1).",
                $"Shorten the line to end at position {dropped.LastProgramTextPosition} or continue it on the next line.")
             : ($"this line has no program text: all that it holds, '{shown}' (positions {dropped.FirstCutPosition} to "
-               + $"{dropped.LastCutPosition}), lies past margin R, outside the program-text area, so it was ignored and the line "
-               + "reads as blank (ISO §6.3.1).",
+               + $"{dropped.LastCutPosition}), lies past margin R, after position {dropped.LastProgramTextPosition}{held}, outside "
+               + "the program-text area, so it was ignored and the line reads as blank (ISO §6.3.1).",
                $"Write the text within positions 8 to {dropped.LastProgramTextPosition}.");
         diagnostics.ReportWarning(DiagnosticCatalog.ProgramTextPastMarginR.Code,
             $"{cutAt} The syntax error at {errorAt} may be this: {consequence}. {remedy}", cut.CutLocation, TextSpan.Empty);
