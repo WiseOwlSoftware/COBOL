@@ -1771,9 +1771,8 @@ def r3_program_problems(items: list[dict], slice_files: set[str] | None = None,
 EDGES_FILE = "docs/rearchitecture/architecture-edges.json"
 _REMOVES_LINE = re.compile(r"^\*\*Removes\b[^\n]*", re.M)
 _NOTE_ID = re.compile(r"\bPB\d+\b")
-# The ratchet run, as ArchitectureEdgesDriftTests.RatchetCommand spells it (test_plan_wave.py holds the two equal).
-EDGES_RATCHET = ("WISEOWL_COBOL_ARCH_EDGES_RATCHET=1 dotnet test tests/WiseOwl.Cobol.Tests.Unit --no-build --filter "
-                 "FullyQualifiedName~ArchitectureEdgesDriftTests.EveryProductDependency")
+# The ratchet run, named by the drift test's own command constant (its one spelling) rather than restated here.
+EDGES_RATCHET = "WISEOWL_COBOL_ARCH_EDGES_RATCHET=1 on the drift test, as ArchitectureEdgesDriftTests.RatchetCommand runs it"
 # The one way a census-only row's last remover leaves the file (DESIGN-architecture-review §8.1 "The landing of a
 # remover"): the remover's landing records a census and ratchets, so the row's uses fall to what the code still holds.
 EDGES_CENSUS_LANDING = (f"record a census in the remover's landing (`python scripts/arch/census.py` on the committed "

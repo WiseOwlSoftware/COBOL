@@ -93,8 +93,9 @@ at zero. A row the new census still counts keeps its landed remover and stays re
 path for a census-only row whose every remover landed. It keeps the delete advice for a pair, and for a landed remover
 that sits beside an open one. The drift test's no-remover refusal and the census-key refusal name it too. §8.1 gains
 "The landing of a remover". PB4319's Removes line and sites name the census its landing records. A new drift test plants
-the PB4319 shape, and `test_plan_wave.py` plants the three landed-remover cases and holds `work.py`'s ratchet command
-equal to the drift test's.
+the PB4319 shape, and `test_plan_wave.py` plants the three landed-remover cases. `work.py` names the ratchet by
+the drift test's `RatchetCommand` rather than spelling a second `dotnet test` line, which the filter-population
+guard (`FilterPopulationGuardDriftTests`) refuses in a script that does not call `filter_population.py`.
 
 **Merged with main (finisher).** PB4265 (PR #924) rewrote DESIGN-backend-abstraction §1.3 and added rows L7 and L8.
 The merge keeps this branch's L6, which adds the emit-time repository encode, alongside main's L7 and L8.
