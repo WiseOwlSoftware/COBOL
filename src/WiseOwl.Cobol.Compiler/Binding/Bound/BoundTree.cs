@@ -258,10 +258,11 @@ public sealed record BoundReportCounterRef(ReportModel Report, bool IsPage, int 
 // read-only BoundExpr could never have.
 
 /// <summary>A report VARYING counter read (ISO §13.18.64.4 GR3/GR4 — the per-repetition counter persists
-/// through its occurrence and acts as a source item): a scale-0 integer, <paramref name="CsName"/> naming the
-/// compose-local counter variable. Produced only by the report-section compose emission (a counter is
-/// referable only within its entry, §13.18.64.3 SR2).</summary>
-public sealed record BoundReportVaryingRef(string CsName) : BoundExpr;
+/// through its occurrence and acts as a source item): a scale-0 integer, <paramref name="Counter"/> the compose-local
+/// counter by its identity (<see cref="MethodLocal"/>, kb/Work PB4321), which the backend names where it declares it.
+/// Produced only by the report-section compose emission (a counter is referable only within its entry, §13.18.64.3
+/// SR2).</summary>
+public sealed record BoundReportVaryingRef(MethodLocal Counter) : BoundExpr;
 
 /// <summary>An OCCURS DEPENDING table's CURRENT extent (ISO §13.18.38 GR8 — "the rules of the OCCURS clause for a
 /// sending data item", which §15.50.4 r4b / §15.14.4 r2b invoke; kb/Work PB61): <paramref name="FixedWidth"/> plus
@@ -1329,8 +1330,10 @@ public sealed record BoundMove(BoundOperand Source, IReadOnlyList<Place> Targets
 /// implementation cannot build (a table reached through a storage form the bind-time cursor does not walk); the
 /// backend renders that loud rather than leave the element images unconverted.</para></summary>
 /// <param name="Target">The index of the receiving operand in <see cref="BoundMove.Targets"/>.</param>
+/// <param name="Var">The element loop counter, by its identity (<see cref="MethodLocal"/>, kb/Work PB4321): the backend
+/// names it.</param>
 public sealed record TableElementMove(
-    int Target, string Var, AllCount? SendingCount, AllCount? ReceivingCount, BoundMove? Move, string? Unsupported);
+    int Target, MethodLocal Var, AllCount? SendingCount, AllCount? ReceivingCount, BoundMove? Move, string? Unsupported);
 
 // The arithmetic verbs, each a small explicit node: the source operands are bound numeric expressions, the
 // receivers are resolved Places paired with a rounding mode (the ROUNDED phrase, ISO §14.7.4). The in-place forms
