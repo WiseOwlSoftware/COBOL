@@ -685,7 +685,7 @@ internal sealed record BitFiller(BitFillerKind Kind, DataItem Subject, string Fi
     private DataItem? _item;
 
     /// <summary>⛔ THE FILLER AS THE ELEMENTARY BIT DATA ITEM §8.5.1.6.3 SAYS IT IS ("implicitly described as a filler
-    /// elementary bit data item"): a nameless boolean item of <see cref="Bits"/> positions whose <see cref="DataItem.CsName"/>
+    /// elementary bit data item"): a nameless boolean item of <see cref="Bits"/> positions whose <see cref="DataItem.ClrName"/>
     /// is the hidden <see cref="Field"/>, so a statement that walks a group's elementary items as receivers (INITIALIZE
     /// ... WITH FILLER, §14.9.20.4 5) a) 2.) reaches it through the ordinary place cursor and the ordinary MOVE, with no
     /// second storage law (kb/Work PB3564 review R1-4). It is in no <c>Children</c> list: the owner's layout is the
@@ -693,7 +693,7 @@ internal sealed record BitFiller(BitFillerKind Kind, DataItem Subject, string Fi
     public DataItem Item => _item ??= new DataItem
     {
         Level = Subject.Level,
-        CsName = Field,
+        ClrName = Field,
         Pic = new PicInfo(PicCategory.Boolean, Usage.Bit, Length: Bits, Digits: 0, Scale: 0, Signed: false),
         Parent = Subject.Parent,
     };
@@ -705,7 +705,7 @@ internal sealed record BitFiller(BitFillerKind Kind, DataItem Subject, string Fi
     public static DataItem GapItem(DataItem subject, int classBit, int bits) => new()
     {
         Level = subject.Level,
-        CsName = "",
+        ClrName = "",
         Pic = new PicInfo(PicCategory.Boolean, Usage.Bit, Length: bits, Digits: 0, Scale: 0, Signed: false),
         Parent = subject.Parent,
         Class = subject.Class,

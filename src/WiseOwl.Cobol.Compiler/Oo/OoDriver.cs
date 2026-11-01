@@ -143,7 +143,7 @@ internal sealed class OoDriver(BindSession session)
         data.InheritConfiguration(classData);   // carries the class's OPTIONS model, the §11.9.4 GR1 baseline
         data.UseSkeletonOptions(obj?.optionsParagraph());
         var synthetic = OoReparent(obj?.environmentDivision(), obj?.dataDivision());
-        data.ReserveClassMemberNames(cls.Symbol.CsName, cls.Symbol.Methods);   // one C# class holds the object data AND the methods
+        data.ReserveClassMemberNames(cls.Symbol.ClrName, cls.Symbol.Methods);   // one C# class holds the object data AND the methods
         data.BindDeclarations(synthetic);
         foreach (var m in cls.Symbol.Methods.ToList())   // snapshot — property synthesis appends accessors
             data.OoBindMethodData(m);
@@ -164,7 +164,7 @@ internal sealed class OoDriver(BindSession session)
         fdata.InheritConfiguration(classData);
         fdata.UseSkeletonOptions(fac?.optionsParagraph());   // §11.9.4 GR1 (kb/Work PB135)
         var fsynthetic = OoReparent(fac?.environmentDivision(), fac?.dataDivision());
-        fdata.ReserveClassMemberNames(cls.Symbol.FactoryCsName, cls.Symbol.FactoryMethods);   // the factory class holds both, likewise
+        fdata.ReserveClassMemberNames(cls.Symbol.FactoryClrName, cls.Symbol.FactoryMethods);   // the factory class holds both, likewise
         fdata.BindDeclarations(fsynthetic);
         foreach (var m in cls.Symbol.FactoryMethods.ToList())
             fdata.OoBindMethodData(m);

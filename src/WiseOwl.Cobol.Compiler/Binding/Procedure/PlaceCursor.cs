@@ -58,7 +58,7 @@ internal abstract record PlaceCursor(DataItem Item)
     };
 }
 
-/// <summary>A plain member-access cursor, mirroring <c>ReferenceResolver.AccessPath</c>: <c>CsName</c> segments
+/// <summary>A plain member-access cursor, mirroring <c>ReferenceResolver.AccessPath</c>: <c>ClrName</c> segments
 /// chained with <c>.</c>, each OCCURS level routed through the ref-returning <c>CobolTable.At</c> (benign
 /// subscripting, ISO §8.4.2.3.4 GR2). Entering a Tier-B (string-canonical) REDEFINES class — whose ONE stored
 /// string backing lives in the containing struct (DESIGN §4.2) — switches to a <see cref="ViewCursor"/>;
@@ -71,11 +71,11 @@ internal sealed record MemberCursor(AccessPath Path, DataItem Item) : PlaceCurso
         if (child.Class is { } cls)
         {
             if (cls.Tier == RedefinesTier.StringCanonical && child.IsCanonical)
-                return new ViewCursor(Path.Add(new MemberSegment(cls.BackingCsName)),
+                return new ViewCursor(Path.Add(new MemberSegment(cls.BackingClrName)),
                     new PositionConstant(child.ClassOffset), child.ClassOffset, child, ReferenceResolver.BuildCellPath(cls));
             if (cls.Tier != RedefinesTier.Alias || !child.IsCanonical) return null;
         }
-        return new MemberCursor(Path.Add(new MemberSegment(child.CsName)), child);
+        return new MemberCursor(Path.Add(new MemberSegment(child.ClrName)), child);
     }
 
     /// <inheritdoc/>
@@ -90,7 +90,7 @@ internal sealed record MemberCursor(AccessPath Path, DataItem Item) : PlaceCurso
 }
 
 /// <summary>A cursor at one occurrence of an OCCURS DYNAMIC table (data-model D9): entered at the element level
-/// with the direction-specific accessor path already applied. Children append their <c>.CsName</c>; a nested
+/// with the direction-specific accessor path already applied. Children append their <c>.ClrName</c>; a nested
 /// FIXED OCCURS below the element wraps the path in <c>CobolTable.At</c>. Yields a <see cref="DynTablePlace"/>, so a
 /// store writes through <c>RefReceiving</c> and a read through <c>RefSending</c>. A REDEFINES view under the
 /// element is not wired here (null).</summary>
@@ -99,7 +99,7 @@ internal sealed record DynElementCursor(AccessPath Path, DataItem Item) : PlaceC
     /// <inheritdoc/>
     public override PlaceCursor? Child(DataItem child) =>
         child.Class is null
-            ? new DynElementCursor(Path.Add(new MemberSegment(child.CsName)), child)
+            ? new DynElementCursor(Path.Add(new MemberSegment(child.ClrName)), child)
             : null;
 
     /// <inheritdoc/>

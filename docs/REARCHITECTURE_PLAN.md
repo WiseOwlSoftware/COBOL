@@ -47,9 +47,10 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   `scripts/orchestrator/landing_measure.py` (the trial's train records are its BEFORE column). The trial's measurement (15 batched trains 3.43 changes landed/h against 8
   whole-population trains 0.71/h, confounded by the cap; no CI red that batching let through) is in PB2515. They are
   `gate_slot.py`'s coded defaults (`DEFAULT_SCOPE`, `DEFAULT_SLOTS`; train 1052), and `gate_slot.py clear` drops the
-  bridging settings that carried them before. **Amended by the owner on 2026-10-31 (kb/Work PB4269, open, not yet in
-  `gate_plan.py`):** when the gate cannot attribute an assembly's change precisely, leg 1 runs that whole tier, not the
-  cheapest `LEG_ONE_BUDGET` slice. That day PRs #880 and #894 bounced on cases their GREEN gates had listed as not run.
+  bridging settings that carried them before. **Amended by the owner on 2026-10-31 (kb/Work PB4269, in
+  `gate_plan.whole_tier_reason`):** when the gate cannot attribute a change precisely (`every_tier1`, or a changed file
+  taken at the file level against a drifted map), leg 1 runs the whole tier 1, not the cheapest `LEG_ONE_BUDGET` slice,
+  and the verdict line names the reason. That day PRs #880 and #894 bounced on cases their GREEN gates had listed as not run.
   The attribution holes are PB4228 (reflection sweeps), PB4270 (stale impact maps) and PB2696, and PB4271 classifies
   every merge-queue red.
 - **▶ LANDING PIPELINE REDESIGN (owner 2026-10-11, kb/Work PB3015 Q1a/Q1b/Q2/Q3; design
@@ -2929,8 +2930,8 @@ aspirational — it is a scheduled deliverable and a *cross-cutting architectura
   decisions, .NET type names, or format literals. Phases 05/06/07 must each enforce this (see
   `DESIGN-backend-abstraction.md` for the exact contract + the "backend-neutrality" test).
 - Code generation is **one visitor per backend over that IR**, behind `ICodeGenBackend`; `RoslynBackend` and the future
-  `CilBackend` share the model walk, a neutral `RuntimeMembers` runtime-op vocabulary + a shared `NameMangler` (both call
-  the same `WiseOwl.Cobol.Runtime`), and the name-mangling rules. **Backend = Mono.Cecil** (chosen for real portable-PDB /
+  `CilBackend` share the model walk, a neutral `RuntimeMembers` runtime-op vocabulary (both call the same `WiseOwl.Cobol.Runtime`), and the ONE CLR
+  name allocator `CsNames.Allocate`, whose bind-time names are the module's ABI for both backends. **Backend = Mono.Cecil** (chosen for real portable-PDB /
   sequence-point support — Reflection.Emit lacks it — plus explicit metadata authoring for EXTERNAL/GLOBAL/cross-CALL
   + OO hierarchies, MIT license, decades-mature; isolated in a leaf `WiseOwl.Cobol.Backend.Cil` assembly so the default
   Roslyn path stays Cecil-free). Reflection.Emit is used ONLY for the throwaway seam-proof.
@@ -2943,7 +2944,7 @@ aspirational — it is a scheduled deliverable and a *cross-cutting architectura
   `--backend roslyn` and `--backend cil`).
 - ⚠ **Neutrality is broader than `Place`.** The backfill review found the leak reaches into `BoundTree.cs` itself
   (bound *statement* nodes carrying C# path/identifier strings — `BoundSearch.IndexField/DependCount/DynTable`,
-  `BoundSetCapacity.TablePath`, `CapacityRegisterPlace.TablePath`, `BoundIndexRef.IndexField`, `BoundMethod.CsName`)
+  `BoundSetCapacity.TablePath`, `CapacityRegisterPlace.TablePath`, `BoundIndexRef.IndexField`)
   and into the whole **program skeleton** (PC dispatcher, `ICobolProgram` ABI, USE/`__IoCheck`, GLOBAL bridges, entry
   wrapper, file registration) — none of which the original P07 covered. `DESIGN-backend-abstraction.md` folds these
   in as required PHASE-05/06/07 additions + a program-skeleton neutralization checklist (see §7).
@@ -3108,8 +3109,8 @@ phase** (detail + file:line in the cited `SURVEY-*.md` / `CRITIQUE-*.md` ROADMAP
 
 - **R1 — Backend-neutrality is broader than `Place`** *(→ PHASE-05/06/07, PHASE-16).* The C#-leak reaches into
   `BoundTree.cs` itself (bound *statement* nodes carry C# path/identifier strings: `BoundSearch.IndexField/DependCount/
-  DynTable`, `BoundSetCapacity.TablePath`, `CapacityRegisterPlace.TablePath`, `BoundIndexRef.IndexField`,
-  `BoundMethod.CsName`) and into the whole **program skeleton** (PC dispatcher, `ICobolProgram` ABI, USE/`__IoCheck`,
+  DynTable`, `BoundSetCapacity.TablePath`, `CapacityRegisterPlace.TablePath`, `BoundIndexRef.IndexField`)
+  and into the whole **program skeleton** (PC dispatcher, `ICobolProgram` ABI, USE/`__IoCheck`,
   GLOBAL bridges, entry wrapper, file registration) — none covered by the original P07. Fold in the exact PHASE-05/06/07
   additions + the program-skeleton neutralization checklist in `DESIGN-backend-abstraction.md`; make `RuntimeApi` a
   neutral `RuntimeMembers` op-vocabulary, not a Roslyn-only façade. *(SURVEY-codegen-emitter.md, DESIGN-backend-abstraction.md)*
@@ -4228,7 +4229,7 @@ grep -rln "interface ICodeGenBackend"     src/WiseOwl.Cobol.Compiler/CodeGen   #
 grep -rln "record BoundCompilation"        src/WiseOwl.Cobol.Compiler/Binding   # P6 immutable result
 grep -rln "record AccessPath"              src/WiseOwl.Cobol.Compiler/Binding   # P7 Step 11 structural Place
 grep -rln "class RuntimeMembers"             src/WiseOwl.Cobol.Compiler           # neutral runtime catalogue (DESIGN-backend-abstraction §2.3)
-grep -rln "class NameMangler"              src/WiseOwl.Cobol.Compiler/Model     # shared naming service (§2.4)
+grep -rln "CSharpReservedKeywords"        src/WiseOwl.Cobol.Compiler/Binding/Model/CsNames.cs   # the one CLR name allocator (§2.4)
 # The bound tree must be neutral: these must return NOTHING (L3/L4 de-C#'d in P6):
 grep -rn  "string TablePath\|string IndexField\|string CsName\|string SendingPath" \
           src/WiseOwl.Cobol.Compiler/Binding/Bound src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs
@@ -4399,7 +4400,7 @@ When P16 is DONE, these exist with these responsibilities (grounded in `DESIGN-b
 - **Change:** `CilRuntimeApi` imports `MethodReference`s from `RuntimeMembers` (`DESIGN-backend-abstraction.md §2.3`).
   `CilPlaceLower.Read(Place)` lowers a `MemberPlace` `AccessPath` to `ldsfld`/`ldfld`/`ldelem` (the SENDING side).
   `CilStatementEmitter` implements `Visit(BoundDisplay)`/`Visit(BoundStop)` → `Console.Write*` + the runtime image
-  calls (`CobolNum.FormatDisplay` via `CilRuntimeApi`). Names come from the shared `NameMangler`.
+  calls (`CobolNum.FormatDisplay` via `CilRuntimeApi`). Names are the allocated CLR names the model carries (`CsNames.Allocate`, §2.4).
 - **Verify:** DISPLAY of a group/field/numeric matches Roslyn byte-for-byte (probe below); battery 1+2+3 green.
   ```bash
   diff <(dotnet /tmp/r.dll) <(dotnet /tmp/c.dll)   # for a DISPLAY-of-fields program
@@ -4469,8 +4470,8 @@ When P16 is DONE, these exist with these responsibilities (grounded in `DESIGN-b
 - **Files:** extend `CilProgramEmitter` (class/factory/interface `TypeDefinition`s, `__CobolInvoke` dispatch),
   `CilStatementEmitter` (`BoundInvoke*`, `BoundSetObjectRef`, `BoundRaise`/`Resume`/`RaiseObject`/`Raising`,
   `BoundEcChecked` → IL try/finally, pointers/`ALLOCATE`/`FREE`).
-- **Change:** lower the OO type model (the method names via the shared `NameMangler`, the `OoMethodSymbol` the node
-  carries after L4 removal — not `BoundMethod.CsName`) and the EC machinery (try/finally + the runtime
+- **Change:** lower the OO type model (the method names are the allocated CLR names, `BoundMethod.ClrName` /
+  `OoMethodSymbol.ClrName`, DESIGN-backend-abstraction §2.4) and the EC machinery (try/finally + the runtime
   `ExceptionState`/`__EcDispatch` calls via `RuntimeMembers`). This is the last feature family; at its end the manifest
   can grow toward the full corpus.
 - **Verify:** equivalence harness green over the OO + EC subset (IC/OBSQ families, `>>TURN`, RAISE/RESUME, USE F3).
@@ -4563,7 +4564,7 @@ lowering **privately**, and the bound tree it consumes is the SAME neutral tree 
 | The `ICodeGenBackend` seam (CIL adds a sibling impl) | `CodeGen/ICodeGenBackend.cs`; `CodeGen/RoslynBackend.cs:16` (`RoslynBackend : ICodeGenBackend`; refs cached `:95-98`) |
 | Bind/emit split (P6-extracted) | `Binding/BinderDriver.cs` → `BoundCompilation`; `CodeGen/CSharpEmitter.cs:31,39` = the `Bind`/`EmitBound` bind-host facade (emit lives in `ProgramEmitter`/`DispatchEmitter`/`Verbs/*Emitter`) |
 | `Place.Read()/Write()` C# strings (P7 Step 11 removes) | `Binding/Model/Place.cs:22-25` + every subtype |
-| C#-path node fields (P6 L3/L4 de-C#, `DESIGN-backend-abstraction §1.3`) | `Binding/Bound/BoundTree.cs:34` (`BoundMethod.CsName`), `:112` (`BoundIndexRef.IndexField`), `:494` (`SetIndexTarget.IndexField`), `:516` (`BoundSetCapacity.TablePath`), `:531` (`BoundSearch`), `Binding/Model/Place.cs:59,176` |
+| C#-path node fields (P6 L3/L4 de-C#, `DESIGN-backend-abstraction §1.3`) | `Binding/Bound/BoundTree.cs:238` (`BoundIndexRef.IndexField`), `:1749` (`SetIndexTarget.IndexField`), `:1843` (`BoundSearch.IndexField`); `BoundSetCapacity` now carries an `AccessPath`, and `BoundMethod.ClrName` is a CLR name both backends emit, not a leak (kb/Work PB4265) |
 | Shared `WriteRuntimeConfig` JSON (share with CIL) | `CodeGen/AssemblyPackager.cs:40-54` |
 | The PC dispatcher (Roslyn `while`/`switch(__pc)` → CIL branch table) | `CodeGen/DispatchEmitter.cs:76-104` |
 | Exhaustive visitor interfaces (CIL visitors inherit exhaustiveness) | P7 Step 6 (`Binding/Bound/BoundTree.cs` `[BoundNode]`) |
