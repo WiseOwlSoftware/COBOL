@@ -100,3 +100,16 @@ guard (`FilterPopulationGuardDriftTests`) refuses in a script that does not call
 **Merged with main (finisher).** PB4265 (PR #924) rewrote DESIGN-backend-abstraction §1.3 and added rows L7 and L8.
 The merge keeps this branch's L6, which adds the emit-time repository encode, alongside main's L7 and L8.
 
+
+**Bounced from the merge queue, and fixed (finisher).** Pull request #930's merge group (run 41264062410) failed in
+`Windows build + tests` on one case: the drift test said the walk no longer measures `OoEmitter -> CellLifetime`.
+Main had not moved under it. CI's Windows unit job tests a Release build, while every local gate and CI's Linux
+unit job test Debug (kb/Work PB1957 rows 1 and 48). The Release optimizer drops the slot of
+`OoEmitter.EmitPointerBackings`' `var lifetime`, so the walk read a different graph. Dropping local slots from the
+walk did not fix it: Debug still names `FunctionDeviceForm` through the `ValueTuple` that a tuple `switch` builds in
+`FunctionDeviceText.CallField`, and Release never builds it. Now the walk names the image it read (from the
+assembly's `[Debuggable]` modes), and the edges file is the unoptimized image's measure. On an optimized image the
+checker runs every growth check and no fall, and the ratchet refuses to run there.
+`TheWalk_ReadsEitherImage_AndAnOptimizedOneOnlyForGrowth` compiles one source at both levels and pins the rule. The
+edges file and the census record are unchanged: no row fell on the merged head's Debug walk. PB1957 records the red
+as evidence for its Release rows.

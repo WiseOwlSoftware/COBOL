@@ -1,7 +1,14 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Text;
 using WiseOwl.Cobol.Tests.Shared;
 using WiseOwl.Cobol.Tests.Unit.Architecture;
 using Xunit;
@@ -22,7 +29,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>
 /// A pair the file does not list fails even when its row's count does not grow (PB2118 Draft 8, J1: a row-level count
 /// let a pair added inside a tolerated row through with no remover), and a pair the walk no longer measures fails too,
-/// so the file is the code's current dependency picture and only ever shrinks. The census record is the second
+/// so the file is the code's current dependency picture and only ever shrinks. The file is the UNOPTIMIZED (Debug)
+/// image's measure; on a Release build the walk reads an optimized image, which can lack a reference Debug carries, so
+/// there only growth is checked and the ratchet refuses (TypeReferenceWalk's "Two images"). The census record is the second
 /// observer over the same file (<see cref="ArchCensusDriftTests.TheNewestRecord_CrossesNoLayerTheEdgesFileDoesNotAllowOrTolerate"/>).
 /// </para>
 /// <para>
@@ -69,6 +78,9 @@ public sealed class ArchitectureEdgesDriftTests
 
         if (Environment.GetEnvironmentVariable("WISEOWL_COBOL_ARCH_EDGES_RATCHET") == "1")
         {
+            Assert.False(m.Walk.Optimized,
+                "the ratchet writes the unoptimized image's measure, and this test host reads a Release build, which can lack a "
+                + "reference Debug carries (TypeReferenceWalk's \"Two images\"): build WiseOwl.Cobol.sln in Debug and ratchet there");
             edges = edges.Ratchet(m.Pairs, censusEdges, record.RootElement.GetProperty("commit").GetString()!);
             File.WriteAllText(EdgesFile, edges.ToJson());
         }
@@ -76,10 +88,10 @@ public sealed class ArchitectureEdgesDriftTests
         WhatIf? whatIf = Environment.GetEnvironmentVariable("WISEOWL_COBOL_ARCH_EDGES_WHATIF") is { Length: > 0 } map
             ? WhatIf.Load(map)
             : null;
-        var failures = edges.CheckWalk(m.Pairs, m.Namespaces, censusEdges, whatIf);
+        var failures = edges.CheckWalk(m.Pairs, m.Namespaces, censusEdges, whatIf, optimizedImage: m.Walk.Optimized);
         Assert.True(failures.Count == 0,
             $"the architecture walk disagrees with docs/rearchitecture/architecture-edges.json ({failures.Count}"
-            + (whatIf is null ? "" : ", under the what-if") + "):\n  " + string.Join("\n  ", failures.Take(200))
+            + (whatIf is null ? "" : ", under the what-if") + (m.Walk.Optimized ? ", on an optimized image: growth only" : "") + "):\n  " + string.Join("\n  ", failures.Take(200))
             + (failures.Count > 200 ? $"\n  … and {failures.Count - 200} more" : "")
             + "\n" + NewDependencyAdvice);
     }
@@ -280,6 +292,110 @@ public sealed class ArchitectureEdgesDriftTests
         Assert.Empty(left.CheckCensus(Landing, oldCensus));
     }
 
+    /// <summary>TWO IMAGES, ONE FILE (TypeReferenceWalk's remarks, "Two images"; DESIGN-architecture-review §8.1): the
+    /// local gate builds Debug and CI's Windows unit job Release, and pull request #930's merge group failed on a pair
+    /// only Debug's local slot carried. One source in the <c>OoEmitter.EmitPointerBackings</c> shape (an enum local
+    /// compared twice, never stored) is compiled at both optimization levels; the control proves the plant (Debug's
+    /// local signature names the enum, Release's does not). The walk names each image, the optimized image's pairs are
+    /// the unoptimized one's less the erased one, and over a file measured on the unoptimized image the strict check
+    /// fails on the optimized image exactly as the merge group did, the optimized check passes, and a planted new pair is
+    /// red on the optimized image too.</summary>
+    [Fact]
+    public void TheWalk_ReadsEitherImage_AndAnOptimizedOneOnlyForGrowth()
+    {
+        const string Source = """
+            namespace P.Low
+            {
+                public enum Lifetime { Static, Activation, Instance }
+                public static class Classifier { public static Lifetime Of(int cell) => (Lifetime)(cell % 3); }
+            }
+            namespace P.High
+            {
+                public static class Emitter
+                {
+                    public static string Modifier(int cell)
+                    {
+                        var lifetime = P.Low.Classifier.Of(cell);
+                        bool isStatic = lifetime == P.Low.Lifetime.Static;
+                        bool perActivation = lifetime == P.Low.Lifetime.Activation;
+                        return isStatic ? "static" : perActivation ? "activation" : "instance";
+                    }
+                }
+            }
+            """;
+        string dir = ScratchDirectory.Create("pb2417walk");
+        try
+        {
+            var walks = new Dictionary<OptimizationLevel, TypeReferenceWalk>();
+            foreach (OptimizationLevel level in new[] { OptimizationLevel.Debug, OptimizationLevel.Release })
+            {
+                string outDir = Path.Combine(dir, level.ToString());
+                Directory.CreateDirectory(outDir);
+                string dll = Path.Combine(outDir, "Walked.dll");
+                var compilation = CSharpCompilation.Create("Walked",
+                    [CSharpSyntaxTree.ParseText(SourceText.From(Source, System.Text.Encoding.UTF8), path: Path.Combine(outDir, "Emitter.cs"))],
+                    [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)],
+                    new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: level));
+                using (var pe = File.Create(dll))
+                using (var pdb = File.Create(Path.ChangeExtension(dll, ".pdb")))
+                {
+                    var emitted = compilation.Emit(pe, pdb, options: new EmitOptions(debugInformationFormat: DebugInformationFormat.PortablePdb));
+                    Assert.True(emitted.Success, string.Join("\n", emitted.Diagnostics));
+                }
+
+                Assert.Equal(level == OptimizationLevel.Debug, LocalSlotNames(dll, "Modifier", "Lifetime"));
+                walks[level] = TypeReferenceWalk.Read([dll], _ => outDir);
+                Assert.Equal(level == OptimizationLevel.Release, walks[level].Optimized);
+            }
+
+            TypeReferenceWalk debug = walks[OptimizationLevel.Debug], release = walks[OptimizationLevel.Release];
+            var erased = new TypePair("P.High.Emitter", "P.Low.Lifetime");
+            Assert.True(release.Pairs.IsSubsetOf(debug.Pairs) && debug.Pairs.Except(release.Pairs).SequenceEqual([erased]),
+                $"Debug {string.Join(", ", debug.Pairs)}; Release {string.Join(", ", release.Pairs)}");
+
+            var file = new ArchitectureEdges(1, "planted", "c0ffee000000",
+                [new EdgesLayer("low", ["P.Low"]), new EdgesLayer("high", ["P.High"])], [], [], [],
+                [new EdgesRow("P.High", "P.Low", 2, 2, ["PB1"], "planted",
+                    [new EdgesPair("P.High.Emitter", "P.Low.Classifier", ["PB1"]), new EdgesPair("P.High.Emitter", "P.Low.Lifetime", ["PB1"])])]);
+            var census = new Dictionary<(string, string), int> { [("P.High", "P.Low")] = 2 };
+            HashSet<string> namespaces = ["P.Low", "P.High"];
+            Assert.Empty(file.CheckWalk(PairsOf(debug), namespaces, census));
+            Assert.Contains(file.CheckWalk(PairsOf(release), namespaces, census),
+                f => f.Contains("lists P.High.Emitter -> P.Low.Lifetime, which the walk no longer measures", StringComparison.Ordinal));
+            Assert.Empty(file.CheckWalk(PairsOf(release), namespaces, census, optimizedImage: true));
+            MeasuredPair[] grown = [.. PairsOf(release), new("P.High.Emitter", "P.High", "P.Low.Planted", "P.Low")];
+            Assert.Contains(file.CheckWalk(grown, namespaces, census, optimizedImage: true),
+                f => f.Contains("P.High.Emitter -> P.Low.Planted is a pair the tolerated row", StringComparison.Ordinal));
+        }
+        finally
+        {
+            ScratchDirectory.Remove(dir);
+        }
+    }
+
+    /// <summary>Whether method <paramref name="method"/>'s local signature in <paramref name="dll"/> holds a slot typed
+    /// by the type definition named <paramref name="type"/> (ECMA-335 II.23.2.6: a value-type local is
+    /// <c>ELEMENT_TYPE_VALUETYPE</c> followed by its compressed TypeDefOrRefOrSpec coded index).</summary>
+    private static bool LocalSlotNames(string dll, string method, string type)
+    {
+        using var pe = new PEReader(File.OpenRead(dll));
+        MetadataReader md = pe.GetMetadataReader();
+        TypeDefinitionHandle typeDef = md.TypeDefinitions.Single(t => md.GetString(md.GetTypeDefinition(t).Name) == type);
+        MethodDefinition body = md.GetMethodDefinition(md.MethodDefinitions.Single(m => md.GetString(md.GetMethodDefinition(m).Name) == method));
+        StandaloneSignatureHandle locals = pe.GetMethodBody(body.RelativeVirtualAddress).LocalSignature;
+        if (locals.IsNil)
+        {
+            return false;
+        }
+
+        var encoded = new BlobBuilder();
+        encoded.WriteByte((byte)SignatureTypeKind.ValueType);
+        encoded.WriteCompressedInteger(CodedIndex.TypeDefOrRefOrSpec(typeDef));
+        byte[] needle = encoded.ToArray();
+        byte[] blob = md.GetBlobBytes(md.GetStandaloneSignature(locals).Signature);
+        return Enumerable.Range(0, blob.Length - needle.Length + 1).Any(i => blob.AsSpan(i, needle.Length).SequenceEqual(needle));
+    }
+
     private static Measurement Measure()
     {
         var edges = ArchitectureEdges.Load(EdgesFile);
@@ -295,12 +411,13 @@ public sealed class ArchitectureEdgesDriftTests
         var directoryOf = projects.ToDictionary(p => p.Assembly, p => p.Directory, StringComparer.Ordinal);
         var walk = TypeReferenceWalk.Read([.. projects.Select(p => Path.Combine(AppContext.BaseDirectory, p.Assembly + ".dll"))],
             assembly => directoryOf[assembly]);
-        var measured = walk.Pairs
-            .Select(p => new MeasuredPair(p.From, walk.NamespaceOf(p.From), p.To, walk.NamespaceOf(p.To)))
-            .ToList();
         var namespaces = walk.Types.Values.Select(t => t.Namespace).ToHashSet(StringComparer.Ordinal);
-        return new Measurement(walk, measured, namespaces);
+        return new Measurement(walk, PairsOf(walk), namespaces);
     }
+
+    /// <summary>The walk's type pairs, each with the namespaces of its two ends.</summary>
+    private static List<MeasuredPair> PairsOf(TypeReferenceWalk walk) =>
+        walk.Pairs.Select(p => new MeasuredPair(p.From, walk.NamespaceOf(p.From), p.To, walk.NamespaceOf(p.To))).ToList();
 
     private sealed record Measurement(TypeReferenceWalk Walk, IReadOnlyCollection<MeasuredPair> Pairs, IReadOnlySet<string> Namespaces);
 }

@@ -801,6 +801,19 @@ product assemblies, not a source scan and not an MSBuild workspace, so it costs 
   constructor and its `typeof` arguments (decoded from the blob's serialized type names); a generic instantiation
   contributes each of its arguments, and a member reference the type that declares the member (the census's
   `TargetType`), never the member's signature.
+- **Two images, one file.** The walk reads the compiler's output, and the optimizer changes it: a Release build
+  stack-schedules a local it reads only in sequence and drops its slot (`OoEmitter.EmitPointerBackings`' `var
+  lifetime`, a `CellLifetime` compared twice, has a slot in Debug and none in Release), and never builds the
+  `ValueTuple` a tuple `switch` names, where Debug does (`FunctionDeviceText.CallField`). No choice of what to read
+  makes the two images agree: without the local slots, Debug still names `FunctionDeviceForm` through the tuple and
+  Release does not. So the walk names the image it read (`TypeReferenceWalk.Optimized`, from the assembly's
+  `[Debuggable]` modes). The edges file is the UNOPTIMIZED image's measure, which every local gate and CI's Linux unit
+  job build. On an optimized image the checker runs every growth check and no fall (a vanished pair, a dead allowance),
+  and the ratchet refuses to run. CI's Windows unit job tests Release (kb/Work PB1957 rows 1 and 48), and pull request
+  #930's merge group (run 41264062410) failed there on the one pair only Debug's slot carried; on the product the
+  Release image's pairs are the Debug image's less that one.
+  `TheWalk_ReadsEitherImage_AndAnOptimizedOneOnlyForGrowth` compiles one source at both optimization levels and pins
+  the rule.
 - **"uses" is defined once:** the number of distinct (outermost source type, outermost target type) pairs between two
   namespaces — the census's unit (`RawEdge.Pairs`, `tools/ArchCensus/RawCensus.cs:64`), counted over the walk's own
   population.
@@ -888,7 +901,9 @@ product assemblies, not a source scan and not an MSBuild workspace, so it costs 
   (`TheRatchet_OnlyFalls_AndNeverAdmitsAPairARowOrAGrownCount`); and, in `scripts/orchestrator/test_plan_wave.py`, a
   remover kb/Work lacks, a landed one (a pair's, a census-only row's last, and one beside an open remover), one whose
   Removes line omits the row or names only a longer row, and a plan's missing note (`edges_remover_problems`); and the
-  landing of a remover in the PB4319 shape (`TheRemoversLanding_RecordsACensus_TheOnlyWayACensusOnlyRowEnds`, above).
+  landing of a remover in the PB4319 shape (`TheRemoversLanding_RecordsACensus_TheOnlyWayACensusOnlyRowEnds`, above);
+  and both optimization levels of one compiled source (`TheWalk_ReadsEitherImage_AndAnOptimizedOneOnlyForGrowth`,
+  "Two images, one file" above).
 - **The file as measured (kb/Work PB2417, census `7cb79581e`).** The walk and its checks take about half a second of
   the gate; the file places two namespaces R1 did not know — `WiseOwl.Cobol.Binding.Repository` (the external
   repository's reader, codec and records, `Binding/Repository/`, which reads the binder: compiler.binding) by its folder,
