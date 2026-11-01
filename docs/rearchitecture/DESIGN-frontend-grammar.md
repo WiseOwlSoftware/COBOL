@@ -1141,13 +1141,19 @@ reference formats, and the only place source comments are recognized. Its model:
   below: `ReferenceFormatMap.CutAt(line)` holds, per fixed-form physical line, the text past margin R (`MarginRCut`, in
   `Frontend.Common`), and `FixedFormAreas.MarginRCutAt` composes it with the resultant-line map, so the listener
   (`CobolErrorListener.NoteMarginRCut`, behind `IMarginRCutLocator`, which keeps `Parsing` off `Preprocessor`) asks about a
-  token's position. The warning is reported BESIDE the error (the cause first, PB4131), once per cut, in two shapes: the
-  OFFENDING token ends at margin R with the cut text right behind it (the word was cut), or the token BEFORE the offending one
-  is the last of a cut line and the offending token stands on a later line (the statement ended early). It is never reported
+  token's position. The warning is reported BESIDE the error (the cause first, PB4131), once per cut, in three shapes: the
+  OFFENDING token ends at margin R with the cut text right behind it (the word was cut), the token BEFORE the offending one
+  is the last of a cut line and the offending token stands on a later line (the statement ended early), or a line BETWEEN
+  those two tokens holds text only past margin R (PB4372: its program-text area is blank, so it reads as blank, no token of it
+  anchors a question, and the listener asks of every resultant line between the tokens; `MarginRCut.HoldsProgramText` tells the
+  two kinds of line apart and the message names a line that "has no program text"). It is never reported
   for a line with no cut: text past margin R that is blank, the rest of an inline comment (§6.3.7.3), a comment line, a
   numeric sequence area (`MarginRCut.IsSequenceNumber`), or the identification tags (`FitsIdentificationArea`: one word of at
-  most eight characters, positions 73–80, the COBOL-85 card-image convention) of a file that labels most of its code lines with
-  one. Only a parse error asks, so a program that parses never hears of its tags.
+  most eight characters, positions 73–80, the COBOL-85 card-image convention) of a file in which such a word recurs on at
+  least `MarginRCut.RecurrenceThatMakesATag` (two) lines, a tagged blank line counting. Shape cannot tell ONE tag from the
+  one-word tail of a statement, so a lone tag-shaped word still draws the note, which says "may". A message names POSITIONS
+  (`MarginRCut.LastProgramTextPosition`, 72 whatever a tab does to the file's columns) and locates by the file's column
+  (`MarginRCut.Margin`). Only a parse error asks, so a program that parses never hears of its tags.
 - **COBOL-85's areas A and B are a fact the reference format RECORDS and a pass after the parse ASKS** (kb/Work PB3147;
   VCR Table 7 row 7.35). ANSI X3.23-1985 split the program-text area into area A (positions 8–11) and area B (12 to
   margin R) and placed every item by where it begins its line; ISO/IEC 1989:2002 removed the split (§6.3.1, §6.3.5), so
