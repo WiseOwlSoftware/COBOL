@@ -285,7 +285,7 @@ internal sealed partial class EcBinder
     private void Ban<TStmt>(IEnumerable<IParseTree> region, Func<TStmt, bool> offends,
         DiagnosticDescriptor rule, string message) where TStmt : Antlr4.Runtime.ParserRuleContext
     {
-        foreach (var stmt in region.SelectMany(Descendants<TStmt>).Where(offends))
+        foreach (var stmt in region.SelectMany(r => ParseTreeWalk.Descendants(r).OfType<TStmt>()).Where(offends))
         {
             using var at = ctx.Edition.At(stmt);
             ctx.Edition.Error(rule, message);
@@ -462,7 +462,7 @@ internal sealed partial class EcBinder
     /// NEXT SENTENCE and STOP RUN (§14.9.42.4 GR6). A bare EXIT (Format 1, no operation), EXIT PERFORM and the
     /// obsolete STOP literal (which resumes at the next statement) are not members.</summary>
     private static IEnumerable<Antlr4.Runtime.ParserRuleContext> TransfersOut(IParseTree node) =>
-        Descendants<Antlr4.Runtime.ParserRuleContext>(node).Where(s => s switch
+        ParseTreeWalk.Descendants(node).OfType<Antlr4.Runtime.ParserRuleContext>().Where(s => s switch
         {
             Core.GoToStatementContext or Core.GobackStatementContext or Core.NextSentenceStatementContext => true,
             Core.StopStatementContext stop => stop.RUN() is not null,
@@ -470,14 +470,4 @@ internal sealed partial class EcBinder
                 || e.PROGRAM() is not null || e.methodKeyword() is not null || e.FUNCTION() is not null,
             _ => false,
         });
-
-    private static IEnumerable<T> Descendants<T>(IParseTree node) where T : class
-    {
-        for (int i = 0; i < node.ChildCount; i++)
-        {
-            var child = node.GetChild(i);
-            if (child is T t) yield return t;
-            foreach (var d in Descendants<T>(child)) yield return d;
-        }
-    }
 }
