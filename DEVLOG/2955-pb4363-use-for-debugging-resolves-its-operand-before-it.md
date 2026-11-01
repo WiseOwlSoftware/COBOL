@@ -1,4 +1,4 @@
-## PB4363 — USE FOR DEBUGGING resolves its operand before it names it: ALL on a procedure is COBOL5848, an undeclared word is COBOL1639, a qualified procedure-name is a subject
+## Entry 2955 — 2026-11-01 11:36 PST — PB4363 — USE FOR DEBUGGING resolves its operand before it names it: ALL on a procedure is COBOL5848, an undeclared word is COBOL1639, a qualified procedure-name is a subject
 
 **Mechanism.** `ProcedureTableBuilder.FinalizeDebug` read the operand of `USE FOR DEBUGGING` by its parse shape and
 never looked the name up. PB4237 had made `ALL identifier` parse at `--std 85`, and its ALL arm printed COBOL1571 ("the
@@ -42,3 +42,4 @@ screen (DB201A: ten COBOL1571, no COBOL2270). A lead in the same file is also fi
 its section (`P1 OF NOSEC`) is reported through `RejectProcedureName` ("names no procedure") instead of the data resolver's
 "no declaration gives the name P1". Tests `OperandNamingAnUnsubscriptedTableElement_At85_StaysStaged` (4) and
 `ProcedureNameUnderTheWrongQualifier_At85_NamesNoProcedure` (3).
+
