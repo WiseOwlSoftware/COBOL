@@ -1,4 +1,4 @@
-## PB4335 — GOBACK RETURNING with no header RETURNING item is the main program's exit status, and a status phrase survives RAISING
+## Entry 2920 — 2026-11-01 00:23 PDT — PB4335 — GOBACK RETURNING with no header RETURNING item is the main program's exit status, and a status phrase survives RAISING
 
 **Mechanism 1 (PB4335).** `GOBACK RETURNING x` in a program whose PROCEDURE DIVISION header names no RETURNING item
 compiled clean and died at run time with `NotImplementedCobolFeatureException`: PB880 had made the implicit move a bound
@@ -19,3 +19,4 @@ so a main program exited 0 where GR3 ignores RAISING and GR10 passes the status.
 (extension operand, written phrase wins, RAISING beside the operand, RAISING beside STATUS, a called program's inert use).
 Docs: manual migrating page, CONFORMANCE.md extension row, INTERPROGRAM_DESIGN, the extension register text.
 No inventory row is claimed (`closes_rows: []`).
+
