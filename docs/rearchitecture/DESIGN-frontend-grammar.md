@@ -1375,7 +1375,15 @@ target:
   word is a scope terminator, because whoever wrote `END-INVOKE` (no ISO word, kb/Work PB758) or `END-OF-PAGE` at a
   sentence end meant to close something; there the spelling is the evidence, and keying it on the token type
   turns the `pb758-invoke-end-invoke-*` negatives into a false "A period may be missing". No hint is ever ADDED
-  because of a spelling. The misplaced-scope-terminator hint (COBOL0306, ISO
+  because of a spelling, with ONE exception that is not a guess: an embedded precompiler block, a word EXEC that a
+  word follows, through the first END-EXEC of the unit (kb/Work PB4341, `CobolErrorStrategy.EmbeddedBlock`). ISO/IEC
+  1989 defines no EXEC construct, the vendor construct IS its spelling, and EXEC and END-EXEC are not reserved, so
+  the block is recognized only where the parse cannot read it as COBOL: at a decision whose walk cannot take the
+  block's tokens and the token after them (`SkipsEmbeddedBlock`, which consumes it there, and the period after it
+  where the block stood where the list may end and the parse cannot take the period, `WasAWholeUnit`), and at a
+  syntax error whose token lies in one (`ReportEmbeddedBlock`; the report covers the block and the resynchronization
+  consumes it whole). Either way it draws COBOL5818 at its EXEC (§4.2.14 names precompilers as components outside
+  the implementation), once, and the parse goes on after it. The misplaced-scope-terminator hint (COBOL0306, ISO
   §14.5.3.2) reads from the ATN, once, which `…Statement` rules match each END-x token (`ScopeTerminator`):
   END-SEARCH closes both SEARCH rules, and a word no statement rule matches (END-OF-PAGE, a user word spelled
   END-…) is no terminator. It carries no edition logic: edition diagnosis lives in the
