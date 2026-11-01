@@ -51,16 +51,16 @@ public sealed class EditionGateArmDriftTests
     {
         ["SetObjectReference2002"] =
             "the Format-5 RE-ROUTE: `SET a TO b` reaches OoBinder as an object-reference SET only when both "
-            + "operands RESOLVE to PicCategory.ObjectReference — setObjectReferenceStatement is one spelling of "
-            + "several, and the generic setToValueStatement carries the rest (ISO §14.9.39 Format 5)",
+            + "operands RESOLVE to PicCategory.ObjectReference — setToStatement is the one shape every SET … TO "
+            + "format shares, NULL sender included (kb/Work PB4231), so no parse rule names Format 5 (ISO §14.9.39 Format 5)",
         ["SetFunctionPointer2014"] =
             "the Format-8 RE-ROUTE, the SetObjectReference2002 shape over the other carrier: `SET fp1 TO fp2` "
-            + "parses as setToValueStatement and `SET fp TO NULL` as setObjectReferenceStatement, and only the "
+            + "and `SET fp TO NULL` parse as setToStatement, the shape every SET … TO format shares, and only the "
             + "operands' RESOLVED PicCategory.FunctionPointer selects §14.9.39.2 Format 8 — the printed format "
             + "is `SET { identifier-12 } … TO identifier-13` and has no keyword a parse rule could recognize",
         ["SetProgramPointer2002"] =
             "the Format-9 RE-ROUTE, and the one the Format-8 entry above is modelled on: `SET pp1 TO pp2` "
-            + "parses as setToValueStatement and `SET pp TO NULL` as setObjectReferenceStatement, and only the "
+            + "and `SET pp TO NULL` parse as setToStatement, the shape every SET … TO format shares, and only the "
             + "operands' RESOLVED PicCategory.ProgramPointer selects §14.9.39.2 Format 9 — the printed format "
             + "is `SET { identifier-7 } … TO identifier-8` and has no keyword a parse rule could recognize. "
             + "The two SENDER spellings that DO carry keywords (the ISO §8.4.3.13 ADDRESS OF PROGRAM rule and "
