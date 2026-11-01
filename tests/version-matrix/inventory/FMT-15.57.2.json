@@ -7,9 +7,9 @@
  "rule-digest": "80986737a241",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindCaseFunctionWithLocale; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#HasLocalePhrase; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog",
- "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/pb64t5_case_locale_phrase; conformance:cases/15.3-Arguments/pb64t5-case-phrase-name-undeclared; conformance-test:LocaleDispositionTests.CaseFunctionLocalePhrase_IsLive; conformance-test:LocaleDispositionTests.SupportedFunctions_WithoutLocale_StillWork",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/pb64t5_case_locale_phrase; conformance:cases/15.3-Arguments/pb64t5-case-phrase-name-undeclared; conformance-test:LocaleDispositionTests.CaseFunctionLocalePhrase_IsLive; conformance-test:LocaleDispositionTests.SupportedFunctions_WithoutLocale_StillWork; conformance:cases/15.97.2-General-format/pb4311-case-locale-phrase-below-2014",
  "derivation": "",
  "editions": "85,2002,2014,2023",
- "notes": "kb/Work PB64 T5 (2026-08-19) — was PARTIAL (the bracketed [LOCALE locale-name-1] arm refused by name). Both arms accepted now: argument-1 alone (85+), and argument-1 LOCALE locale-name-1 (2002+ — the construct row case-function-locale-phrase-2002; COBOL0900 below 2002). LOCALE is still not a lexer token — the phrase arrives as two extra function arguments and BindCaseFunctionWithLocale checks the shape (exactly LOCALE + one word, COBOL1504 otherwise) and resolves the word as a SPECIAL-NAMES locale-name (COBOL1664 otherwise). Format --check verified at 15.57.2.",
+ "notes": "kb/Work PB64 T5 (2026-08-19) - was PARTIAL (the bracketed [LOCALE locale-name-1] arm refused by name). Both arms accepted now: argument-1 alone (85+), and argument-1 LOCALE locale-name-1 (2014+ per kb/Work PB4311: the printed 2002 format has no phrase - the construct row case-function-locale-phrase-2014; COBOL0900 below 2014). LOCALE is still not a lexer token - the phrase arrives as two extra function arguments and BindCaseFunctionWithLocale checks the shape (exactly LOCALE + one word, COBOL1504 otherwise) and resolves the word as a SPECIAL-NAMES locale-name (COBOL1664 otherwise). Format --check verified at 15.57.2.",
  "state": "OK"
 }

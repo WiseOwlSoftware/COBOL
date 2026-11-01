@@ -495,13 +495,41 @@ public sealed class CobolWordsDirectiveTests
         Assert.DoesNotContain(errors, e => e.Contains("COBOL1501"));
     }
 
-    [Fact] // GR3 — UNDEFINE an intrinsic; FUNCTION MAX(...) is no longer a function (COBOL1501).
+    [Fact] // GR3 — UNDEFINE an intrinsic; FUNCTION MAX(...) is no longer a function: COBOL5776 names the directive (kb/Work PB4309).
     public void Intrinsic_Undefine_NoLongerAFunction()
     {
         var errors = CompileErrors(IntrinsicProgram
             .Replace("{DIRECTIVE}", "       >>COBOL-WORDS UNDEFINE \"MAX\"\n")
             .Replace("{NAME}", "MAX"));
-        Assert.Contains(errors, e => e.Contains("COBOL1501"));
+        // The refusal tells the directive's story, never the misspelling's: MAX IS an intrinsic function of ISO/IEC 1989.
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL1501"));
+        var refusal = Assert.Single(errors, e => e.Contains("COBOL5776"));
+        Assert.Contains(">>COBOL-WORDS UNDEFINE \"MAX\"", refusal);
+        Assert.Contains("line 1", refusal);   // the directive's own line, mapped to the user's source (CobolWordsOp.At)
+        Assert.Contains("§7.3.10.4 GR3", refusal);
+    }
+
+    [Fact] // The control (kb/Work PB4309): a name that is no intrinsic function at all keeps COBOL1501 with a directive in force.
+    public void Intrinsic_Misspelled_StaysNotAnIntrinsicFunction()
+    {
+        var errors = CompileErrors(IntrinsicProgram
+            .Replace("{DIRECTIVE}", "       >>COBOL-WORDS UNDEFINE \"MAX\"\n")
+            .Replace("{NAME}", "MAXX"));
+        Assert.Contains(errors, e => e.Contains("COBOL1501") && e.Contains("FUNCTION MAXX is not an intrinsic function"));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL5776"));
+    }
+
+    [Theory] // Review r1 R1-1 (kb/Work PB4309): a RESERVED word the directive removed that never named a function
+    [InlineData("UNDEFINE \"ACCEPT\"")]                  // GR3 — SR3 lets UNDEFINE name any reserved word
+    [InlineData("SUBSTITUTE \"ACCEPT\" BY \"MYACCEPT\"")] // GR4 — the same for literal-4
+    public void Intrinsic_RemovedReservedWordThatIsNoFunction_KeepsNotAnIntrinsicFunction(string directive)
+    {
+        var errors = CompileErrors(IntrinsicProgram
+            .Replace("{DIRECTIVE}", $"       >>COBOL-WORDS {directive}\n")
+            .Replace("{NAME}", "ACCEPT"));
+        // ACCEPT is no intrinsic function of ISO/IEC 1989, so the directive withdrew no function: COBOL1501 is true.
+        Assert.Contains(errors, e => e.Contains("COBOL1501") && e.Contains("FUNCTION ACCEPT is not an intrinsic function"));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL5776"));
     }
 
     [Fact] // GR4 — SUBSTITUTE: the new name resolves; the old intrinsic name is no longer a function.
@@ -510,11 +538,16 @@ public sealed class CobolWordsDirectiveTests
         var okErrors = CompileErrors(IntrinsicProgram
             .Replace("{DIRECTIVE}", "       >>COBOL-WORDS SUBSTITUTE \"MAX\" BY \"MYMAX\"\n")
             .Replace("{NAME}", "MYMAX"));
-        Assert.DoesNotContain(okErrors, e => e.Contains("COBOL1501"));
+        Assert.DoesNotContain(okErrors, e => e.Contains("COBOL1501") || e.Contains("COBOL5776"));
 
         var oldErrors = CompileErrors(IntrinsicProgram
             .Replace("{DIRECTIVE}", "       >>COBOL-WORDS SUBSTITUTE \"MAX\" BY \"MYMAX\"\n")
             .Replace("{NAME}", "MAX"));
-        Assert.Contains(oldErrors, e => e.Contains("COBOL1501"));
+        // PB4309: the refusal names the SUBSTITUTE and the spelling that now denotes the function (GR4's literal-5).
+        Assert.DoesNotContain(oldErrors, e => e.Contains("COBOL1501"));
+        var refusal = Assert.Single(oldErrors, e => e.Contains("COBOL5776"));
+        Assert.Contains(">>COBOL-WORDS SUBSTITUTE \"MAX\" BY \"MYMAX\"", refusal);
+        Assert.Contains("FUNCTION MYMAX now denotes it", refusal);
+        Assert.Contains("§7.3.10.4 GR4", refusal);
     }
 }
