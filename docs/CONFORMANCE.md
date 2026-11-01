@@ -2028,6 +2028,32 @@ of an unsupported facility.
   `conformance:cases/_unassigned/pb1705_debugging_lines_copy_replacing`, `conformance:cases/_unassigned/pb1494_debugging_line_85` (no clause: a
   comment), `conformance:cases/_unassigned/pb1705_debugging_mode_obsolete_2002`, `conformance:cases/_unassigned/debugging-mode`,
   `conformance:cases/_unassigned/pb1494-debugging-line-at-2014`, `unit:DebuggingLineRewriterTests`.
+  **The FLOATING spelling `>>D`** (ISO/IEC 1989:2002 clause 6.1.2 "`>>D` debugging indicator — a debugging line when followed by
+  at least one space character", clause 6.3.4, clause 6.1.2.1 SR7 and SR8; the 2002 text is not in the repository and is read from the
+  archived draft, so `cite.py` cannot check those clauses; kb/Work PB4298). ISO/IEC 1989:2023 §6.2.3.1 lets a floating
+  indicator stand "in fixed-form or free-form reference format" (`cite.py --check 6.2.3.1 "Floating indicators may be used
+  in fixed-form or free-form reference format"` → OK) and lists none for debugging, so, like the fixed `D`, the spelling is
+  the earlier editions'. It is the SAME facility in a second spelling, so it is the same construct all the way down: the
+  §6.5 conversion's `LogicalLineBuilder.TryEmitFloatingDebugging` (called by both reference formats' classifiers) writes
+  the indicator as three spaces, so every later character keeps its column, and carries the line as the fixed `D` line is
+  carried — `DebuggingLineRewriter`, the PICTURE / subscript re-lex and the between-literal-parts rule (COBOL3473, at the
+  indicator's own column) read the carrier, not the indicator. **Determinations:** (a) the indicator is the first
+  character-string of the line, after spaces only (SR7), spelled `>>D` or `>>d` (as the fixed indicator's letter is
+  read in either case) with NO space inside it and at least one space after it; `>>DISPLAY`, `>> D` and a `>>D` that
+  follows program text are no debugging line. (b) "Followed by at least one space" is read literally: in free form a line
+  that ENDS in `>>D` is not a debugging line (its next character is the end of the line, not a space) and draws the
+  parser's `>>` error as any unknown directive does, while a fixed-form program-text area is space-filled to margin R
+  (Annex A.1 item 157), so a bare `>>D` there is followed by spaces and is a debugging line of spaces, a blank line (§6.5 2)).
+  (c) SR8: `>>D` as the first character-string of a line whose indicator area holds the fixed `D` or the continuation
+  hyphen is refused, COBOL5770, at the indicator; the line is then read as its fixed indicator says. **Edition window
+  (registry row `floating-debugging-indicator-2002`):** introduced WITH the floating indicators at 2002 (COBOL0900 below,
+  an error under `--permissive` too), obsolete from 2002 (COBOL0903), removed from 2014 (COBOL0902, an error under strict,
+  a warning under `--permissive`, where the facility keeps working); GnuCOBOL 3.2 agrees at both edges (`-std=cobol2002`
+  accepts all three of the review's probes, `-std=cobol2014` refuses "debugging indicator does not conform"). Witnesses:
+  `conformance:cases/_unassigned/pb4298_floating_debugging_free` (under the clause: runs),
+  `conformance:cases/_unassigned/pb4298_floating_debugging_fixed` (no clause: a comment),
+  `conformance:cases/_unassigned/pb4298-floating-debugging-below-2002`, `conformance:cases/_unassigned/pb4298-floating-debugging-at-2014`,
+  `conformance:cases/_unassigned/pb4298-floating-debugging-on-fixed-indicator`, `unit:LogicalLineBuilderTests.FloatingDebuggingIndicator_*`.
 
 - **D-DEBUG-USE — how USE FOR DEBUGGING spells its data-item operand** (kb/Work PB4237). ISO/IEC 1989:2023 prints no
   debug format (the facility left in 2002, VCR Table 7 row 7.17), and the 1985 text is not in the repository, so the
@@ -2083,8 +2109,16 @@ of an unsupported facility.
   the SELECTED branch is not undone (`>>DEFINE X AS 1 / >>IF X IS DEFINED / PROCEDURE DIVISION. … >>END-IF` in an
   IDENTIFICATION DIVISION). The residue is a non-standard text that mixes the two: a COBOL-85 comment-entry
   paragraph directly after a group whose branches disagree on the division (and no PROGRAM-ID paragraph between) is read
-  as program text; reading it exactly needs the comment-entry decision made after conditional compilation, a stage-order
-  redesign registered in the PB4241 report. A `>>WHEN` whose selection object merely begins with the letters OTHER
+  as program text (`>>DEFINE X AS 1` / `IDENTIFICATION DIVISION.` / `>>IF X IS DEFINED` / `PROGRAM-ID. CE1.` / `>>ELSE` /
+  `PROCEDURE DIVISION.` / `>>END-IF` / `AUTHOR. Pat O'Brien.`, `--permissive`, draws COBOL5563 and COBOL2633 on the
+  apostrophe, where the same text with agreeing branches is accepted); reading it exactly needs the comment-entry decision
+  made after conditional compilation, a stage-order redesign registered as kb/Work PB4281. The same root has a second
+  instance, probed in PB4281: the converter reads the division words AS WRITTEN, and `>>COBOL-WORDS` is applied after it,
+  so a program that respells the word the cursor reads (`>>COBOL-WORDS EQUATE "DIVISION" WITH "DIV"`, then `PROCEDURE
+  DIV.`) leaves the cursor in the division it was in, and a PROCEDURE DIVISION paragraph named REMARKS written in area A
+  with text after it is read as a comment-entry (`REMARKS. DISPLAY "HI".` draws COBOL0001 on the second period). A synonym
+  of IDENTIFICATION (`IDENT DIVISION.`) does no harm, because the first PROGRAM-ID paragraph enters the division all the
+  same. A `>>WHEN` whose selection object merely begins with the letters OTHER
   (`>>WHEN OTHERV`) is not the `>>WHEN OTHER` default branch (§7.3.13.3 SR5/SR6: the phrase is a word, asked of
   `CompilerDirectiveLine.StartsWithWord` by this cursor and by the conditional-compilation stage alike). The COPY driver
   reads the text the conditional-compilation stage has already cut, so a COPY's library text starts in the true division. The
