@@ -267,19 +267,32 @@ def trx_root(path: str | Path) -> ET.Element:
     return root
 
 
+def _red_definitions(paths: list[str | Path]):
+    """Every `<UnitTest>` definition in these trx files one of whose results Failed (red_classes, red_cases). A file that
+    cannot be read raises `UnreadableTrx` naming it."""
+    for path in paths:
+        root = trx_root(path)
+        failed = {r.get("testId", "") for r in root.iter(TRX_NS + "UnitTestResult") if r.get("outcome") == "Failed"}
+        yield from (u for u in root.iter(TRX_NS + "UnitTest") if u.get("id", "") in failed)
+
+
 def red_classes(paths: list[str | Path]) -> set[str]:
     """THE CLASSES WITH A RED CASE in these trx files (kb/Work PB4328): the `className` of the test method of every
     definition one of whose results Failed — the spelling the weights file, the shards and the gate's orderer use
     (tests/_shared/GateLegs.cs `GateShard.ClassOf`). A file that cannot be read raises `UnreadableTrx` naming it."""
     classes: set[str] = set()
-    for path in paths:
-        root = trx_root(path)
-        failed = {r.get("testId", "") for r in root.iter(TRX_NS + "UnitTestResult") if r.get("outcome") == "Failed"}
-        for u in root.iter(TRX_NS + "UnitTest"):
-            method = u.find(TRX_NS + "TestMethod")
-            if u.get("id", "") in failed and method is not None and method.get("className"):
-                classes.add(method.get("className"))
+    for u in _red_definitions(paths):
+        method = u.find(TRX_NS + "TestMethod")
+        if method is not None and method.get("className"):
+            classes.add(method.get("className"))
     return classes
+
+
+def red_cases(paths: list[str | Path]) -> set[str]:
+    """THE RED CASES in these trx files, by the definition's `name` (the spelling `read_trx` counts, so a merge-queue
+    red is compared case by case with a local gate's record: the landing lane's classification, kb/Work PB4271). A file
+    that cannot be read raises `UnreadableTrx` naming it."""
+    return {u.get("name", "") for u in _red_definitions(paths)}
 
 
 # ── RED AT THE PREVIOUS GATE MEANS ANY HOST'S (kb/Work PB3155, PB3184, PB3644): the sources of the first classes ──────
@@ -764,6 +777,10 @@ def self_test() -> int:
         (reds / "torn.trx").write_text("<TestRun", encoding="utf-8", newline="\n")
         rc, why = rc_of(lambda: red_classes([reds / "torn.trx"]))
         arm("red_classes: an unreadable trx raises UnreadableTrx naming the file", rc == RC_ERROR and "torn.trx" in why, why)
+        arm("red_cases: the name of every definition with a Failed result, across files (the landing lane's "
+            "classification compares them with a gate record, kb/Work PB4271); none for a pass or a skip",
+            red_cases(red_files) == {"N.A.Two", "N.B.T(x: \"a.b\")", "N.D.One"} and red_cases([]) == set(),
+            str(red_cases(red_files)))
         arm("the XML range is stated once, as escapes: the kept and the rewritten characters are its two sides",
             all(ord(ch) < 0x80 for ch in XML_RANGE) and _IS_XML.match("\ud7ff") and _IS_XML.match("\ue000")
             and _IS_XML.match("\ufffd") and not _IS_XML.match("\uffff") and _NOT_XML.search("\uffff")
