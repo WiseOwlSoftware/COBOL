@@ -28,15 +28,32 @@ public sealed class CollationRuntimeInitializeTests
         s_runtime.GetField(name, BindingFlags.Static | BindingFlags.NonPublic)
         ?? throw new InvalidOperationException($"CollationRuntime.{name} is gone: update this test's reset to the new one-shot state.");
 
+    /// <summary>
+    /// Sets the whole one-shot state (default configuration, host flag, last warm-up, then the latch) as ONE step under the
+    /// runtime's own <c>s_initLock</c>. Run units built by tests of other collections (<c>new RunUnit()</c> calls
+    /// <see cref="CollationRuntime.Initialize"/>) run in parallel with this class; were the reset a series of bare field
+    /// writes, such a call could win the latch BETWEEN them and the test would then overwrite the configuration that
+    /// winner computed (review R1-1). Held under the lock, a foreign winner either finishes before the reset or starts
+    /// after it, and the environment variable is process-global, so it reads the same configured size this test expects.
+    /// </summary>
+    private static void SetOneShotState(object? latch, object? hostConfigured, object? lastWarmup, CacheConfig config)
+    {
+        object gate = Field("s_initLock").GetValue(null)!;
+        lock (gate)
+        {
+            CollationKeyCache.DefaultConfig = config;
+            Field("s_hostConfigured").SetValue(null, hostConfigured);
+            Field("s_lastWarmup").SetValue(null, lastWarmup);
+            Field("s_initialized").SetValue(null, latch);        // last: the latch is what publishes the state above
+        }
+    }
+
     [Fact]
     public void ConcurrentInitializers_AllSeeTheEnvironmentsCacheConfiguration_NeverTheCompiledInDefault()
     {
-        var initialized = Field("s_initialized");
-        var hostConfigured = Field("s_hostConfigured");
-        var lastWarmup = Field("s_lastWarmup");
-        object? savedInitialized = initialized.GetValue(null);
-        object? savedHost = hostConfigured.GetValue(null);
-        object? savedWarmup = lastWarmup.GetValue(null);
+        object? savedInitialized = Field("s_initialized").GetValue(null);
+        object? savedHost = Field("s_hostConfigured").GetValue(null);
+        object? savedWarmup = Field("s_lastWarmup").GetValue(null);
         var savedConfig = CollationKeyCache.DefaultConfig;
         string? savedEnv = Environment.GetEnvironmentVariable(CacheConfig.SizeVariable);
         string? savedWarm = Environment.GetEnvironmentVariable(CollationRuntime.WarmupVariable);
@@ -49,10 +66,7 @@ public sealed class CollationRuntimeInitializeTests
             Environment.SetEnvironmentVariable(CollationRuntime.WarmupVariable, null);
             for (int trial = 0; trial < Trials; trial++)
             {
-                initialized.SetValue(null, 0);                       // a fresh process, as far as the one-shot can tell
-                hostConfigured.SetValue(null, false);
-                lastWarmup.SetValue(null, null);
-                CollationKeyCache.DefaultConfig = CacheConfig.Default;
+                SetOneShotState(0, false, null, CacheConfig.Default);   // a fresh process, as far as the one-shot can tell
                 using var barrier = new Barrier(Threads);
                 var sizes = new int[Threads];
                 var notInitialized = new bool[Threads];
@@ -79,10 +93,7 @@ public sealed class CollationRuntimeInitializeTests
         {
             Environment.SetEnvironmentVariable(CacheConfig.SizeVariable, savedEnv);
             Environment.SetEnvironmentVariable(CollationRuntime.WarmupVariable, savedWarm);
-            CollationKeyCache.DefaultConfig = savedConfig;
-            initialized.SetValue(null, savedInitialized);
-            hostConfigured.SetValue(null, savedHost);
-            lastWarmup.SetValue(null, savedWarmup);
+            SetOneShotState(savedInitialized, savedHost, savedWarmup, savedConfig);
         }
         Assert.True(stale == 0, $"{stale} caller(s) read a cache size other than {ConfiguredSize} after Initialize returned: {string.Join(",", seen.Distinct())}");
     }
@@ -90,17 +101,15 @@ public sealed class CollationRuntimeInitializeTests
     [Fact]
     public void ConfigureCache_ByTheHost_IsNeverOverwrittenByTheEnvironment()
     {
-        var initialized = Field("s_initialized");
-        var hostConfigured = Field("s_hostConfigured");
-        object? savedInitialized = initialized.GetValue(null);
-        object? savedHost = hostConfigured.GetValue(null);
+        object? savedInitialized = Field("s_initialized").GetValue(null);
+        object? savedHost = Field("s_hostConfigured").GetValue(null);
+        object? savedWarmup = Field("s_lastWarmup").GetValue(null);
         var savedConfig = CollationKeyCache.DefaultConfig;
         string? savedEnv = Environment.GetEnvironmentVariable(CacheConfig.SizeVariable);
         try
         {
             Environment.SetEnvironmentVariable(CacheConfig.SizeVariable, ConfiguredSize.ToString());
-            initialized.SetValue(null, 0);
-            hostConfigured.SetValue(null, false);
+            SetOneShotState(0, false, null, CacheConfig.Default);
             CollationRuntime.ConfigureCache(new CacheConfig(MaxEntries: 123));
             CollationRuntime.Initialize();
             Assert.Equal(123, CollationKeyCache.DefaultConfig.MaxEntries);
@@ -109,9 +118,7 @@ public sealed class CollationRuntimeInitializeTests
         finally
         {
             Environment.SetEnvironmentVariable(CacheConfig.SizeVariable, savedEnv);
-            CollationKeyCache.DefaultConfig = savedConfig;
-            initialized.SetValue(null, savedInitialized);
-            hostConfigured.SetValue(null, savedHost);
+            SetOneShotState(savedInitialized, savedHost, savedWarmup, savedConfig);
         }
     }
 }
