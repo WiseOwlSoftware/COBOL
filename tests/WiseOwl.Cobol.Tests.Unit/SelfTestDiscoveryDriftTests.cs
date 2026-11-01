@@ -7,11 +7,13 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ EVERY SCRIPT SELF-TEST RUNS IN EVERY GATE AND IN CI, THROUGH ONE DISCOVERING RUNNER (kb/Work PB2563):
+/// ⛔ EVERY SCRIPT SELF-TEST RUNS IN CI, AND IN THE GATE OF A CHANGE THAT TOUCHES TOOLING, THROUGH ONE DISCOVERING RUNNER
+/// (kb/Work PB2563, PB4326):
 /// <c>scripts/self_tests.py</c> finds every self-test under the live tools' trees (<c>scripts/live_tools.py</c>'s
-/// <c>ROOTS</c>: <c>scripts/</c>, <c>.claude/</c> and <c>conformance-suite/harness/</c>), and the local gate's audits, the Linux gate
-/// and CI's jobs all run that runner and name no self-test by hand; only the gate (one shape, kb/Work PB3022) may
-/// REUSE a PASS recorded for unchanged inputs, while the Linux gate and CI run them all (kb/Work PB2914).
+/// <c>ROOTS</c>: <c>scripts/</c>, <c>.claude/</c> and <c>conformance-suite/harness/</c>), and the local gate's audits (the
+/// SELF-TESTS one only when the change touches tooling), the Linux gate and CI's jobs all run that runner and name no
+/// self-test by hand; only the gate (one shape, kb/Work PB3022) may REUSE a PASS recorded for unchanged inputs, while the
+/// Linux gate and CI run them all (kb/Work PB2914).
 /// </summary>
 /// <remarks>
 /// Until PB2563 the gates ran self-tests from hand lists: the gate driver's AUDITS named five, CI's audits job six,
@@ -195,7 +197,8 @@ public sealed class SelfTestDiscoveryDriftTests
     }
 
     /// <summary>
-    /// Every gate entry point runs the runner: the local gate's AUDITS (before the slot) and its post-build half, the
+    /// Every gate entry point runs the runner: the local gate's AUDITS (beside the build and the legs, outside the slot; its
+    /// SELF-TESTS one only for a change that touches tooling, <c>TOOLING_ONLY</c>) and its post-build half, the
     /// Linux gate's two legs, CI's audits job on Linux, greenfield-unit's post-build step and windows-self-tests on
     /// Windows. And none of them runs a discovered self-test itself: a self-test named in a gate is a hand list again,
     /// and a list goes stale the day a self-test is added.
@@ -211,6 +214,8 @@ public sealed class SelfTestDiscoveryDriftTests
         Assert.True(audits.Success, "scripts/run_gate_legs.py no longer declares its audits as `AUDITS = (…)`");
         Assert.Contains(@"(""SELF-TESTS"", [""scripts/self_tests.py""])", audits.Groups[1].Value, StringComparison.Ordinal);
         Assert.Matches(@"(?m)^BUILT_SELF_TESTS = \[""scripts/self_tests.py"", ""--built""\]\r?$", driver);
+        // kb/Work PB4326: the gate's SELF-TESTS audit is the one that runs only when the change touches tooling.
+        Assert.Matches(@"(?m)^TOOLING_ONLY = \(""SELF-TESTS"",\)\r?$", driver);
         // kb/Work PB2914, PB3022: only the gate REUSES a recorded PASS (run_gate_legs adds SELF_TESTS_REUSE to its
         // audits); CI and the Linux gate run every self-test, and so record the PASSes.
         Assert.Matches(@"(?m)^SELF_TESTS_REUSE = ""--reuse""\r?$", driver);
