@@ -107,8 +107,8 @@ dotnet test tests/WiseOwl.Cobol.Tests.Conformance --no-build --filter "FullyQual
 ```
 
 On Windows, `bash scripts/linux-gate.sh` runs CI's Linux legs under WSL to reproduce a Linux red. It clones the committed
-HEAD into the Linux filesystem and builds and tests it there, the way CI's Ubuntu jobs do; `build-local` runs the Linux
-half of its own plan the same way (`--legs targeted`).
+HEAD into the Linux filesystem and builds and tests it there, the way CI's Ubuntu jobs do. The per-change gate
+(`build-local`) runs nothing on Linux (kb/Work PB4327): CI's merge group runs the whole Linux population.
 
 The test populations:
 

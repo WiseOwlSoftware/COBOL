@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections.Frozen;
+using System.Globalization;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding.Model;
@@ -80,15 +81,49 @@ public static class CsNames
     /// <c>HOSTLANDING</c> is a different identifier.</summary>
     public static readonly FrozenSet<string> ImportedTypeNames = DeriveImportedTypeNames();
 
-    /// <summary>The C# reserved keywords (<c>int</c>, <c>double</c>, <c>void</c>, …), DERIVED from the Roslyn the
-    /// compiler builds against, never listed by hand. Every <see cref="CsNameScope"/> holds them, so
-    /// <see cref="Allocate"/> never returns one and a CLR name needs no C#-only <c>@</c> spelling (kb/Work PB4265). The
-    /// contextual keywords (<c>var</c>, <c>value</c>, <c>record</c>) are identifiers wherever a declaration puts a name,
-    /// so they are not here.</summary>
-    public static readonly FrozenSet<string> CSharpReservedKeywords =
-        Microsoft.CodeAnalysis.CSharp.SyntaxFacts.GetReservedKeywordKinds()
-            .Select(Microsoft.CodeAnalysis.CSharp.SyntaxFacts.GetText)
-            .ToFrozenSet(StringComparer.Ordinal);
+    /// <summary>The C# reserved keywords (<c>int</c>, <c>double</c>, <c>void</c>, …). Every <see cref="CsNameScope"/>
+    /// holds them, so <see cref="Allocate"/> never returns one and a CLR name needs no C#-only <c>@</c> spelling (kb/Work
+    /// PB4265). The contextual keywords (<c>var</c>, <c>value</c>, <c>record</c>) are identifiers wherever a declaration
+    /// puts a name, so they are not here. WRITTEN here rather than read from Roslyn, because the model references no
+    /// code-generation backend (kb/Work PB4272): <c>CsNameReservationDriftTests</c> is red the day the set differs from the
+    /// reserved keywords of the Roslyn the compiler builds against (<c>SyntaxFacts.GetReservedKeywordKinds</c>), so a
+    /// Roslyn upgrade that reserves a keyword is caught by the build that takes it.</summary>
+    public static readonly FrozenSet<string> CSharpReservedKeywords = FrozenSet.ToFrozenSet(
+    [
+        "__arglist", "__makeref", "__reftype", "__refvalue",
+        "abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char", "checked", "class", "const",
+        "continue", "decimal", "default", "delegate", "do", "double", "else", "enum", "event", "explicit", "extern",
+        "false", "finally", "fixed", "float", "for", "foreach", "goto", "if", "implicit", "in", "int", "interface",
+        "internal", "is", "lock", "long", "namespace", "new", "null", "object", "operator", "out", "override", "params",
+        "private", "protected", "public", "readonly", "ref", "return", "sbyte", "sealed", "short", "sizeof",
+        "stackalloc", "static", "string", "struct", "switch", "this", "throw", "true", "try", "typeof", "uint", "ulong",
+        "unchecked", "unsafe", "ushort", "using", "virtual", "void", "volatile", "while",
+    ], StringComparer.Ordinal);
+
+    /// <summary>Whether <paramref name="c"/> may BEGIN a CLR name the module emits: a letter (Unicode categories Lu, Ll,
+    /// Lt, Lm, Lo), a letter number (Nl) or the underscore. These are the identifier characters of the CLS (ECMA-335
+    /// Partition I, CLS Rule 4, after Unicode Technical Report 15 Annex 7) and of a C# identifier, so a name built from
+    /// them is the same text in either backend's output and the Roslyn backend writes it unescaped. Stated here, never
+    /// asked of Roslyn, because the model references no code-generation backend (kb/Work PB4272);
+    /// <c>RoslynFreeSeamDriftTests</c> pins it to <c>SyntaxFacts.IsIdentifierStartCharacter</c> for every UTF-16 code
+    /// unit.</summary>
+    public static bool IsIdentifierStartCharacter(char c) =>
+        c < 0x80 ? char.IsAsciiLetter(c) || c == '_' : IsLetter(CharUnicodeInfo.GetUnicodeCategory(c));
+
+    /// <summary>Whether <paramref name="c"/> may CONTINUE a CLR name the module emits: a character that may begin one
+    /// (<see cref="IsIdentifierStartCharacter"/>), a decimal digit (Nd), a connector punctuation (Pc), a combining mark
+    /// (Mn, Mc) or a formatting character (Cf); the same CLS and C# rule, pinned to
+    /// <c>SyntaxFacts.IsIdentifierPartCharacter</c> by <c>RoslynFreeSeamDriftTests</c>.</summary>
+    public static bool IsIdentifierPartCharacter(char c) =>
+        c < 0x80
+            ? char.IsAsciiLetterOrDigit(c) || c == '_'
+            : CharUnicodeInfo.GetUnicodeCategory(c) is var cat
+                && (IsLetter(cat) || cat is UnicodeCategory.DecimalDigitNumber or UnicodeCategory.ConnectorPunctuation
+                    or UnicodeCategory.NonSpacingMark or UnicodeCategory.SpacingCombiningMark or UnicodeCategory.Format);
+
+    private static bool IsLetter(UnicodeCategory cat) => cat is UnicodeCategory.UppercaseLetter
+        or UnicodeCategory.LowercaseLetter or UnicodeCategory.TitlecaseLetter or UnicodeCategory.ModifierLetter
+        or UnicodeCategory.OtherLetter or UnicodeCategory.LetterNumber;
 
     private static FrozenSet<string> DeriveImportedTypeNames()
     {

@@ -84,7 +84,7 @@ internal sealed class SetSenders(StatementBinder host)
         if (ConditionBinder.SoleFunctionCall(amount) is { } fc)
             return Identified(fc, host.Intrinsic.BindIntrinsic(fc));
         // SELF / SUPER (Format 6) are carried by NAME: the SET rules speak of them as such (kb/Work PB1425). They parse
-        // here, not as `setObjectReferenceStatement`, since the expression tier carries them (that alternative follows).
+        // here, through setToSender's arithmeticExpression arm, since the expression tier carries them.
         if (ConditionBinder.SolePredefinedObject(amount) is { } predefined)
             return new SetSender(DataBinder.WrittenText(amount), null, null, predefined, predefined);
         // An inline invocation or an object-view (Formats 4 and 5) references a temporary item, bound once here.

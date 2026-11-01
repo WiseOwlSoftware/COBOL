@@ -64,13 +64,8 @@ internal sealed class SetAlterBinder(BinderContext ctx)
 
     /// <summary>Every <c>alterStatement</c> context under <paramref name="node"/> (ALTER is an imperative
     /// statement — it may sit inside IF branches etc., so the scan is a full subtree walk).</summary>
-    private static IEnumerable<Core.AlterStatementContext> AlterStatementsIn(IParseTree node)
-    {
-        if (node is Core.AlterStatementContext al) { yield return al; yield break; }
-        for (int i = 0; i < node.ChildCount; i++)
-            foreach (var inner in AlterStatementsIn(node.GetChild(i)))
-                yield return inner;
-    }
+    private static IEnumerable<Core.AlterStatementContext> AlterStatementsIn(IParseTree node) =>
+        ParseTreeWalk.SelfAndDescendants(node).OfType<Core.AlterStatementContext>();
 
     /// <summary>The pc of the paragraph lexically containing <paramref name="node"/> (walk to the enclosing
     /// <c>paragraphDefinition</c>), or null outside any collected paragraph. Requires <see cref="AlterEnsureScan"/>.</summary>

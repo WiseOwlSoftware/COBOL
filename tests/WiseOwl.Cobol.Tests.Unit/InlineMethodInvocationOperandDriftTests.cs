@@ -127,12 +127,20 @@ public sealed class InlineMethodInvocationOperandDriftTests
         // invocation operator (e), so it is what an inline invocation's segments apply to (kb/Work PB1425).
         Assert.True(Mentions(atom, "objectView"),
             "objectReferenceAtom does not offer an object-view (ISO §8.4.3.1.2 Format 5)");
-        foreach (string position in new[] { "invokeTarget", "raiseStatement", "setObjectReferenceStatement" })
+        foreach (string position in new[] { "invokeTarget", "raiseStatement" })
         {
             Assert.True(rules.TryGetValue(position, out string? body), $"the {position} rule is gone");
             Assert.True(Mentions(body, "objectReference"),
                 $"'{position}' no longer takes the shared objectReference operand rule");
         }
+        // SET Format 5's sender is setToSender's arithmetic arm (kb/Work PB4231: one rule for every SET … TO shape),
+        // whose primaryExpression offers both computed formats beside the object-view and SELF / SUPER.
+        Assert.True(rules.TryGetValue("setToSender", out string? setSender), "the setToSender rule is gone");
+        Assert.True(Mentions(setSender, "arithmeticExpression"),
+            "setToSender no longer takes an arithmeticExpression, the arm that carries SET Format 5's identifier sender");
+        Assert.True(rules.TryGetValue("primaryExpression", out string? primary), "the primaryExpression rule is gone");
+        Assert.True(Mentions(primary, "inlineMethodInvocation") && Mentions(primary, "functionCall"),
+            "primaryExpression no longer offers both computed identifier formats, so SET Format 5's sender lost one");
     }
 
     /// <summary>The purely receiving rules must admit NEITHER — for them §8.4.3.4.3 SR1 holds STRUCTURALLY, by

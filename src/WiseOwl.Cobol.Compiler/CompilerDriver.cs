@@ -3,7 +3,6 @@
 using WiseOwl.Cobol.CodeGen;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Runtime;
-using Microsoft.CodeAnalysis;
 
 namespace WiseOwl.Cobol;
 
@@ -210,10 +209,8 @@ public static class CompilerDriver
             RepositoryUpdate: options.RepositoryUpdate));
         if (!artifact.Success)
             return new Result(Outcome.BackendError, outputDll, artifact.GeneratedSourcePath,
-                artifact.Diagnostics
-                    .Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
-                    .Select(d => d.ToString())
-                    .ToList(), [.. feWarnings, .. edition.Warnings])
+                artifact.Diagnostics.Where(d => d.IsError).Select(d => d.ToString()).ToList(),
+                [.. feWarnings, .. edition.Warnings])
                 { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = artifact.OutputFiles };
 
         return new Result(Outcome.Success, outputDll, artifact.GeneratedSourcePath, [],

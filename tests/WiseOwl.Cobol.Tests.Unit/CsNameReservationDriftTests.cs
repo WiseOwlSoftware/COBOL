@@ -128,14 +128,15 @@ public sealed class CsNameReservationDriftTests
     /// escape <see cref="DataItem.Sanitize"/> used to append was a C# spelling stored on the model, and every name built
     /// from it — <c>_redef_@int</c>, <c>_scell_@int</c>, <c>__cap_@int</c>, <c>__sum_@int_1</c> — was refused by the C#
     /// compiler on legal COBOL. Every scope kind refuses every reserved keyword the Roslyn the compiler builds against
-    /// knows, so the derivation cannot fall behind a new C# version.</summary>
+    /// knows, and <see cref="CsNames.CSharpReservedKeywords"/> — written in the model, which references no Roslyn
+    /// (kb/Work PB4272) — is exactly that set, so the list cannot fall behind a new C# version.</summary>
     [Fact]
     public void EveryScopeKind_RefusesEveryCSharpReservedKeyword_AndSanitizeNeverEscapes()
     {
         var keywords = Microsoft.CodeAnalysis.CSharp.SyntaxFacts.GetReservedKeywordKinds()
             .Select(Microsoft.CodeAnalysis.CSharp.SyntaxFacts.GetText).ToList();
         Assert.Contains("int", keywords);   // the probe sees what it guards
-        Assert.Equal(keywords.Count, CsNames.CSharpReservedKeywords.Count);
+        Assert.Equal(keywords.Order(StringComparer.Ordinal), CsNames.CSharpReservedKeywords.Order(StringComparer.Ordinal));
         var scopes = new (string Kind, Func<CsNameScope> Make)[]
         {
             ("record struct", CsNameScope.RecordStruct), ("program class", CsNameScope.ProgramClass),

@@ -17,25 +17,41 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>PhysicalFileTable</c>, so Table 19's in-memory arbitration cannot be what answers, and not a host handle,
 /// so a host share mode cannot be what answers for the host that cannot express the rule — and the file lock is
 /// the only thing standing between them.</para>
+/// <para>⛔ THE PAIRS ARE PARTITIONED (<see cref="TestPartitioning"/>; kb/Work PB4325): as one class the pairs ran
+/// serially, 773 cases that took 108 s on Windows CI (13 s on a quiet local host), the longest class of the Unit
+/// assembly there. <see cref="Partitions"/> classes run in parallel, each its even share of the pairs
+/// (<see cref="TestPartitionAudit"/> refuses a lost pair); the cases that are not a pair are
+/// <see cref="RunUnitFileLockDriftTests"/>.</para>
 /// </summary>
-[Trait("Host", "ReFS")]
-public sealed class RunUnitFileLockDriftTests
+/// <typeparam name="TSlot">This partition's slot.</typeparam>
+/// <remarks>It carries no <c>[Trait("Host", "ReFS")]</c> itself: each partition class does. The planner's source scan
+/// names a generic definition without its arity, the compiled assembly with it, and the two must agree
+/// (<c>HostWitnessTraitDriftTests</c>).</remarks>
+public abstract class RunUnitFileLockPairDriftTestsBase<TSlot>
+    where TSlot : ITestPartitionSlot
 {
-    public static TheoryData<FileSharing?, FileOpenMode, FileSharing?, FileOpenMode, FileOrg> EveryPair()
+    /// <summary>Partition count: the pairs in eighths, about 96 a partition (768 pairs in 2026-10). The stride gives each
+    /// partition an eighth whatever the number of pairs, so a sharing or open mode added later grows every partition
+    /// alike (kb/Work PB4146).</summary>
+    public const int Partitions = 8;
+
+    [PartitionedRowSource(nameof(Pairs))]
+    public static IEnumerable<object[]> EveryPair()
     {
-        var data = new TheoryData<FileSharing?, FileOpenMode, FileSharing?, FileOpenMode, FileOrg>();
         FileSharing?[] spellings = [null, FileSharing.NoOther, FileSharing.ReadOnly, FileSharing.AllOther];
         foreach (var org in Enum.GetValues<FileOrg>())
             foreach (var sa in spellings)
                 foreach (var ma in Enum.GetValues<FileOpenMode>())
                     foreach (var sb in spellings)
                         foreach (var mb in Enum.GetValues<FileOpenMode>())
-                            data.Add(sa, ma, sb, mb, org);
-        return data;
+                            yield return [sa!, ma, sb!, mb, org];
     }
 
+    /// <summary>This partition's share of the pairs.</summary>
+    public static IEnumerable<object[]> Pairs() => TestPartitioning.SliceRows<TSlot>(EveryPair(), Partitions);
+
     [Theory]
-    [MemberData(nameof(EveryPair))]
+    [MemberData(nameof(Pairs))]
     public void ASecondRunUnitsOpenIsArbitratedByTable19(FileSharing? sa, FileOpenMode ma, FileSharing? sb,
         FileOpenMode mb, FileOrg org)
     {
@@ -74,7 +90,14 @@ public sealed class RunUnitFileLockDriftTests
         }
         finally { FileHarness.TryDelete(host); }
     }
+}
 
+/// <summary>The run-unit file lock's cases that are not a (sharing × open mode) pair: the lock given back by the CLOSE,
+/// a device node carrying none, and two simultaneous exclusive opens (the pairs are
+/// <see cref="RunUnitFileLockPairDriftTestsBase{TSlot}"/>, partitioned).</summary>
+[Trait("Host", "ReFS")]
+public sealed class RunUnitFileLockDriftTests
+{
     /// <summary>§9.1.15: <i>"The file lock is removed by an explicit or implicit CLOSE statement executed for that
     /// file connector"</i> — so the refusal is not sticky: the CLOSE gives the lock back and the very next OPEN of
     /// the other run unit succeeds, in every organization.</summary>
@@ -159,3 +182,38 @@ public sealed class RunUnitFileLockDriftTests
         finally { FileHarness.TryDelete(host); }
     }
 }
+
+// ⛔ THE EIGHT PARTITIONS of the pairs, each its own xUnit collection. TestPartitionAudit proves they cover every pair
+// exactly once; a deleted partition class drops an eighth of the pairs without it.
+
+/// <summary>Run-unit file lock pair partition 0 of <see cref="RunUnitFileLockPairDriftTestsBase{TSlot}.Partitions"/>.</summary>
+[Trait("Host", "ReFS")]
+public sealed class RunUnitFileLockPairDriftTests_P0 : RunUnitFileLockPairDriftTestsBase<Slot0>;
+
+/// <summary>Run-unit file lock pair partition 1 of <see cref="RunUnitFileLockPairDriftTestsBase{TSlot}.Partitions"/>.</summary>
+[Trait("Host", "ReFS")]
+public sealed class RunUnitFileLockPairDriftTests_P1 : RunUnitFileLockPairDriftTestsBase<Slot1>;
+
+/// <summary>Run-unit file lock pair partition 2 of <see cref="RunUnitFileLockPairDriftTestsBase{TSlot}.Partitions"/>.</summary>
+[Trait("Host", "ReFS")]
+public sealed class RunUnitFileLockPairDriftTests_P2 : RunUnitFileLockPairDriftTestsBase<Slot2>;
+
+/// <summary>Run-unit file lock pair partition 3 of <see cref="RunUnitFileLockPairDriftTestsBase{TSlot}.Partitions"/>.</summary>
+[Trait("Host", "ReFS")]
+public sealed class RunUnitFileLockPairDriftTests_P3 : RunUnitFileLockPairDriftTestsBase<Slot3>;
+
+/// <summary>Run-unit file lock pair partition 4 of <see cref="RunUnitFileLockPairDriftTestsBase{TSlot}.Partitions"/>.</summary>
+[Trait("Host", "ReFS")]
+public sealed class RunUnitFileLockPairDriftTests_P4 : RunUnitFileLockPairDriftTestsBase<Slot4>;
+
+/// <summary>Run-unit file lock pair partition 5 of <see cref="RunUnitFileLockPairDriftTestsBase{TSlot}.Partitions"/>.</summary>
+[Trait("Host", "ReFS")]
+public sealed class RunUnitFileLockPairDriftTests_P5 : RunUnitFileLockPairDriftTestsBase<Slot5>;
+
+/// <summary>Run-unit file lock pair partition 6 of <see cref="RunUnitFileLockPairDriftTestsBase{TSlot}.Partitions"/>.</summary>
+[Trait("Host", "ReFS")]
+public sealed class RunUnitFileLockPairDriftTests_P6 : RunUnitFileLockPairDriftTestsBase<Slot6>;
+
+/// <summary>Run-unit file lock pair partition 7 of <see cref="RunUnitFileLockPairDriftTestsBase{TSlot}.Partitions"/>.</summary>
+[Trait("Host", "ReFS")]
+public sealed class RunUnitFileLockPairDriftTests_P7 : RunUnitFileLockPairDriftTestsBase<Slot7>;

@@ -289,6 +289,10 @@
     ],
     [
       "compiler.codegen",
+      "frontend.diagnostics"
+    ],
+    [
+      "compiler.codegen",
       "frontend.common"
     ],
     [
