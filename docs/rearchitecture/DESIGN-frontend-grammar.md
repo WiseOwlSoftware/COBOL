@@ -1145,8 +1145,10 @@ reference formats, and the only place source comments are recognized. Its model:
   OFFENDING token ends at margin R with the cut text right behind it (the word was cut), the token BEFORE the offending one
   is the last of a cut line and the offending token stands on a later line (the statement ended early), or a line BETWEEN
   those two tokens holds text only past margin R (PB4372: its program-text area is blank, so it reads as blank, no token of it
-  anchors a question, and the listener asks of every resultant line between the tokens; `MarginRCut.HoldsProgramText` tells the
-  two kinds of line apart and the message names a line that "has no program text"). It is never reported
+  anchors a question, and the listener asks of every resultant line between the tokens that holds no program text
+  (`MarginRCut.HoldsProgramText` false; the message names a line that "has no program text"). A tokenless line that DOES hold
+  program text was OMITTED by a stage after the reference format — a false `>>IF` branch, ISO §7.3.16.4 3), or a debugging line
+  without debugging mode — and is never asked about). It is never reported
   for a line with no cut: text past margin R that is blank, the rest of an inline comment (§6.3.7.3), a comment line, a
   numeric sequence area (`MarginRCut.IsSequenceNumber`), or the identification tags (`FitsIdentificationArea`: one word of at
   most eight characters, positions 73–80, the COBOL-85 card-image convention) of a file in which such a word recurs on at

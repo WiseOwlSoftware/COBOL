@@ -27,3 +27,5 @@ fail (R1-3); the comment line now stands between the two tokens.
 minority, a lone tag, a tab). Conformance refusal `pb4372-statement-only-past-margin-r` (all four editions).
 
 **Rows.** None changes verdict (a diagnostic's quality; every program was already refused); `closes_rows: []` with its reason.
+
+**Review round 1 (R1-1, blocking).** The between-lines arm also asked about lines that HOLD program text and stand tokenless, which are lines the compiler omitted (a false `>>IF` branch, ISO 7.3.16.4 3); a debugging line without debugging mode), so their cut was blamed for the error. The arm now asks only of lines whose program-text area is blank (`HoldsProgramText` false), and the "text of that line may have been needed" message is gone with it. Tests: `ALineOfAnOmittedConditionalBranch_IsNotAskedAbout`, `ADebuggingLineWithoutDebuggingMode_IsNotAskedAbout`. R1-3 (the member summary said two shapes) corrected to three. A line with text ONLY past margin R inside an omitted branch is still asked about: no stage tells the listener which blank lines were omitted.

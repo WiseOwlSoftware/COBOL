@@ -179,6 +179,28 @@ public sealed class MarginRCutNoteTests : IDisposable
         Assert.Contains("main.cob(14,12) may be this", note);
     }
 
+    /// <summary>A DISPLAY with program text AND a cut (<c>UPON CONSOLE</c> from position 73): the line holds a statement.</summary>
+    private static readonly string TextAndCut = "           DISPLAY \"TRACE\" WS-MSG".PadRight(72) + "UPON CONSOLE";
+
+    [Fact] // PB4372 (review R1-1): ISO §7.3.16.4 3): a false >>IF branch is omitted, so its tokenless line is no cut's effect
+    public void ALineOfAnOmittedConditionalBranch_IsNotAskedAbout()
+    {
+        var diagnostics = Compile(Program([.. Head, "           CALL \"SUBPROG\" USING WS-MSG BY", "       >>IF TRACING IS DEFINED", TextAndCut,
+            "       >>END-IF", "           STOP RUN."]));
+
+        Assert.Empty(Notes(diagnostics));
+        Assert.Single(diagnostics, d => d.Contains("error") && d.Contains("main.cob(13,12)") && d.Contains("'STOP'"));
+    }
+
+    [Fact] // PB4372 (review R1-1): a debugging line compiled without debugging mode is a comment line, no cut's effect
+    public void ADebuggingLineWithoutDebuggingMode_IsNotAskedAbout()
+    {
+        var diagnostics = Compile(Program([.. Head, "           CALL \"SUBPROG\" USING WS-MSG BY", "      D" + TextAndCut[7..], "           STOP RUN."]));
+
+        Assert.Empty(Notes(diagnostics));
+        Assert.Single(diagnostics, d => d.Contains("error") && d.Contains("main.cob(11,12)") && d.Contains("'STOP'"));
+    }
+
     [Fact] // PB4372: a sequence number on a line with no program text is still the ordinary use of the positions
     public void ASequenceNumberOnABlankLine_IsNotACut()
     {

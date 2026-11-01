@@ -88,14 +88,19 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
 
     /// <summary>Name the margin-R cut that may be why the syntax error at <paramref name="errorAt"/> stands there (kb/Work
     /// PB2555; ISO §6.3.1: the program-text area ends at margin R, which the implementor fixes, so the text past it is not
-    /// program text and the reference format drops it). The error is the cut's effect in two shapes, each with its evidence
+    /// program text and the reference format drops it). The error is the cut's effect in three shapes, each with its evidence
     /// in the token stream, and only where the cut text may have been program text (<see cref="MarginRCut"/>):
     /// <list type="bullet">
     /// <item>the OFFENDING token ends the program text of its line AT margin R and the cut text begins right there
     /// (<see cref="LocatedMarginRCut.EndsAtMarginR"/>): a word the margin cut in two, <c>END-SEN</c> for <c>END-SEND</c>;</item>
     /// <item>the token BEFORE the offending one is the last of a physical line that was cut and the offending token stands on
     /// a later line: the statement the line began ended early and the parse failed at the next one, <c>STOP</c> after a
-    /// <c>CALL</c> whose last arguments lay past margin R.</item>
+    /// <c>CALL</c> whose last arguments lay past margin R;</item>
+    /// <item>a line BETWEEN the two tokens holds text ONLY past margin R: its program-text area is blank, so it reads as blank
+    /// and a statement written there vanished wholly (kb/Work PB4372). A line between the tokens that HOLDS program text and
+    /// yet no token is text the compiler OMITTED (a false conditional-compilation branch, ISO §7.3.16.4 GR 3: "all lines of
+    /// text-1 are omitted from the resultant text"; a debugging line compiled without debugging mode), never a cut's effect,
+    /// and is not asked about.</item>
     /// </list>
     /// Reported once per cut, as a warning beside the error.</summary>
     private void NoteMarginRCut(IRecognizer? recognizer, IToken? offending, SourceLocation errorAt)
@@ -115,14 +120,13 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
             && (before.At.FileName, before.At.Line) != (errorAt.FileName, errorAt.Line))
             ReportMarginRCut(before, "the statement that line began may have continued past it", errorAt);
         // A line between the two tokens holds no token, so none anchors a question about it. One that holds text ONLY past
-        // margin R reads as blank, and a statement written there vanishes wholly (kb/Work PB4372). The column is immaterial:
-        // the question is of the line.
+        // margin R reads as blank, and a statement written there vanishes wholly (kb/Work PB4372). A line that HOLDS program
+        // text and yet stands tokenless was omitted by a stage after the reference format (a false >>IF branch, a debugging
+        // line without debugging mode), so it is not asked about. The column is immaterial: the question is of the line.
         for (int line = previous.Line + 1; line < offending.Line; line++)
-            if (cuts.MarginRCutAt(line, 0) is { } between && !between.Cut.IsSequenceNumber
+            if (cuts.MarginRCutAt(line, 0) is { } between && !between.Cut.HoldsProgramText && !between.Cut.IsSequenceNumber
                 && (between.At.FileName, between.At.Line) != (errorAt.FileName, errorAt.Line))
-                ReportMarginRCut(between, between.Cut.HoldsProgramText
-                    ? "the text of that line that was cut may have been needed here"
-                    : "the statement written on that line vanished, so the parse failed at the next one", errorAt);
+                ReportMarginRCut(between, "the statement written on that line vanished, so the parse failed at the next one", errorAt);
     }
 
     /// <summary>The token before <paramref name="token"/> on the parser's default channel, or null when there is none or no
