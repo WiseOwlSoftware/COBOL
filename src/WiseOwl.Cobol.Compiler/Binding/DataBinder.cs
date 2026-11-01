@@ -4574,7 +4574,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // Both hold already inside the pipeline (no-ops there); a subject expanded AHEAD of it for a constant's length
         // phrase (CompleteDescriptionAhead, kb/Work PB2465) may copy a source the pipeline has not reached.
         SynthesizeImpliedPicturesUnder(target);
-        foreach (var pending in PreOrder(target).Where(t => t.TypeRefName is not null).ToList()) ExpandType(pending);
+        foreach (var pending in DataItem.SelfAndDescendantsOf(target).Where(t => t.TypeRefName is not null).ToList()) ExpandType(pending);
         bool wroteBased = item.IsBased;   // §13.16.3 SR12 admits no BASED beside SAME AS; an error-recovery guard
         CopyClauseDescription(target, item, DescriptionCopyScope.Entry);
         if (!wroteBased && item.IsBased) ScreenComposedBased(item, $"SAME AS '{targetName}'");
@@ -7861,7 +7861,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// FUNCTION-POINTER).</para></summary>
     private static string? RenamesRangeFault(DataItem record, DataItem from, DataItem? thru)
     {
-        var ordered = PreOrder(record).ToList();
+        var ordered = DataItem.SelfAndDescendantsOf(record).ToList();
         int first = ordered.IndexOf(from);
         var last = thru ?? from;
         int lastAt = ordered.IndexOf(last);
@@ -8534,7 +8534,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     private IEnumerable<DataItem> ClauseResolutionForest() => AllItems().Concat(AllTypeDecls()).Concat(TemplateItems());
 
     /// <summary>Every item in the WORKING-STORAGE forest, in declaration (pre-order DFS) order.</summary>
-    private IEnumerable<DataItem> AllItems() => Roots.SelectMany(PreOrder);
+    private IEnumerable<DataItem> AllItems() => Roots.SelectMany(DataItem.SelfAndDescendantsOf);
 
     /// <summary>The SUBORDINATE items of this forest's own TYPEDEF templates (<see cref="AllTypeDecls"/>, kept
     /// off <see cref="Roots"/>), pre-order in declaration order: the members the programmer wrote and the clones
@@ -8543,14 +8543,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// it hold of the declaration as written (§4.3): the REDEFINES passes ask them here (kb/Work PB2071). A template's
     /// level-1 entry is not included: it is the type declaration itself, and an inherited GLOBAL template is its
     /// container's.</summary>
-    private IEnumerable<DataItem> TemplateItems() => AllTypeDecls().SelectMany(t => t.Children).SelectMany(PreOrder);
-
-    private static IEnumerable<DataItem> PreOrder(DataItem d)
-    {
-        yield return d;
-        foreach (var c in d.Children)
-            foreach (var x in PreOrder(c)) yield return x;
-    }
+    private IEnumerable<DataItem> TemplateItems() => AllTypeDecls().SelectMany(t => t.Children).SelectMany(DataItem.SelfAndDescendantsOf);
 
     /// <summary>
     /// Every SOURCE-DECLARED data item this unit binds, for the post-bind <c>VersionConformancePass</c> data-attribute

@@ -442,10 +442,15 @@ public sealed partial class DataBinder
         var header = new ProcedureHeaderScreen(Edition, "PROCEDURE DIVISION");   // §14.2.2 SR1/SR5/SR6 — the ONE screen (kb/Work PB1145)
         // The names any ADDRESS OF in this unit or a contained one takes (the SAME scan the pointer pass forces
         // cells from — a GLOBAL formal can be addressed from a contained program, kb/Work PB1009/PB1019).
-        var addressed = DataBinder.PtrScanAddressOfSenders(pd)
-            .Concat(program.nestedProgram().SelectMany(DataBinder.PtrScanAddressOfSenders))
-            .Select(t => t.Name).ToHashSet(CobolNames.Comparer);
-        foreach (var prm in pd.usingClause()?.usingParameter() ?? [])
+        // Asked only of a unit that has formals to classify (kb/Work PB4302): the set is read per formal, and a procedure
+        // division with no USING phrase would otherwise collect every contained program's names to read none of them.
+        var formals = pd.usingClause()?.usingParameter() ?? [];
+        var addressed = formals.Length == 0
+            ? new HashSet<string>(CobolNames.Comparer)
+            : ClaimScans.AddressTargets(pd)
+                .Concat(program.nestedProgram().SelectMany(ClaimScans.AddressTargets))
+                .Select(t => t.Name).ToHashSet(CobolNames.Comparer);
+        foreach (var prm in formals)
         {
             using var _ = Edition.At(prm);
             Core.DataReferenceContext dref;

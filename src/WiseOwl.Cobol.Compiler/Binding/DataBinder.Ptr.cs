@@ -24,6 +24,12 @@ using WiseOwl.Cobol.Compiler.Oo;
 /// </summary>
 public sealed partial class DataBinder
 {
+    /// <summary>The group's one walk of the parse tree for storage-claim operands (<see cref="BindSession.ClaimScans"/>; kb/Work
+    /// PB4302), shared by every unit's binder because the units share the tree — a unit's question about the programs it
+    /// contains is then a slice of the container-independent answer, not a re-walk. A binder made outside a session (direct
+    /// test construction) walks for itself.</summary>
+    internal StorageClaimScan ClaimScans { get; init; } = new();
+
     /// <summary>The per-instance cell backings the emitter renders for ADDRESS-OF-taken records:
     /// <c>private readonly StorageCell {CellField} = new StorageCell {{ Ref = «ImageInitOf(Canonical)» }};</c> +
     /// <c>private ref string {Backing} =&gt; ref {CellField}.Ref;</c>. The seed honors the record's VALUE
@@ -132,8 +138,13 @@ public sealed partial class DataBinder
         // decision that the storage must be addressable belongs here, where the storage is declared. (A name the
         // contained program also declares locally shadows the global one; forcing the global's cell anyway is
         // harmless — it changes where the value lives, never what it is.)
+        // ⛔ A UNIT WITH NO GLOBAL NAME HAS NO CONTAINED PROGRAM TO ASK ABOUT (kb/Work PB4302): both claim loops below keep a
+        // contained head only when it resolves among this unit's GLOBAL roots (ResolveStorageClaimHead's contained arm, then
+        // `CallGlobalRoots.Contains(root)`), so a unit that declares none can claim nothing from any program it contains — and
+        // the question is not asked of them, instead of resolving every contained operand to throw it away.
+        Core.NestedProgramContext[] containedPrograms = CallGlobalRoots.Count == 0 ? [] : program.nestedProgram();
         var targets = PtrScanAddressOfTargets(program).Select(t => (t.Name, t.Qualifiers, t.Method, Contained: false))
-            .Concat(program.nestedProgram().SelectMany(PtrScanAddressOfSenders)
+            .Concat(containedPrograms.SelectMany(ClaimScans.AddressTargets)
                 .Select(t => (t.Name, t.Qualifiers, Method: (OoMethodSymbol?)null, Contained: true)));
         foreach (var (name, quals, method, contained) in targets)
         {
@@ -173,12 +184,12 @@ public sealed partial class DataBinder
         bool IsUserFunction(string fn) => UserFunctionNames.Contains(fn) || UnitIsFunction && ContainingDefinitionNames.Contains(fn);
         var own = OoIsClassUnit
             ? OoBoundMethods.Where(m => m.Ctx?.procedureDivision() is not null)
-                .SelectMany(m => ScanByReferenceOperands(m.Ctx!.procedureDivision(), IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)m)))
+                .SelectMany(m => ClaimScans.ByReferenceOperands(m.Ctx!.procedureDivision(), IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)m)))
             : program.procedureDivision() is { } opd
-                ? ScanByReferenceOperands(opd, IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)null))
+                ? ClaimScans.ByReferenceOperands(opd, IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)null))
                 : [];
         var operands = own.Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, t.Method, Contained: false))
-            .Concat(program.nestedProgram().SelectMany(n => ScanByReferenceOperands(n, IsUserFunction))
+            .Concat(containedPrograms.SelectMany(n => ClaimScans.ByReferenceOperands(n, IsUserFunction))
                 .Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)null, Contained: true)));
         foreach (var (name, quals, invoke, slotsOnly, method, contained) in operands)
         {
@@ -278,88 +289,11 @@ public sealed partial class DataBinder
         return hit is not null && DeclaringDepth(hit) == 0 ? hit : null;
     }
 
-    /// <summary>The data-name heads of every operand an activation may pass BY REFERENCE under one parse subtree, each tagged
-    /// with whether an INVOKE passes it (its object-data screen differs, §14.9.23.3 SR10): each INVOKE argument passed BY
-    /// REFERENCE (§14.9.23.4 GR6 a) 1.), each
-    /// CALL USING operand in a BY REFERENCE phrase or before any phrase (ISO §14.9.4.4 GR5: "Both the BY CONTENT and BY
-    /// REFERENCE phrases are transitive across the parameters that follow them until another BY CONTENT or BY REFERENCE
-    /// phrase is encountered"; GR9 a) 1.: "BY REFERENCE is assumed"), and each argument of a USER-DEFINED function
-    /// (<paramref name="isUserFunction"/>), whose identifier argument is passed by reference whenever its formal is — a
-    /// fact of the function's header, not of the reference, so every one is a candidate. Only an operand that IS one
-    /// identifier is yielded (<see cref="OperandIdentifier"/>): a subscript, a reference modifier's operands or an
-    /// arithmetic expression's terms are SENDING operands of the reference, never passed — and an expression argument
-    /// is passed by content. An address-identifier is ADDRESS OF's own surface.
-    /// <para>Also yielded, tagged <c>SlotsOnly</c> (kb/Work PB1940): each CALL USING operand passed BY CONTENT and each CALL
-    /// RETURNING receiver — claimed only when it is a group whose values ride managed slots, which crosses only as an
-    /// area.</para></summary>
-    internal static IEnumerable<(string Name, List<string> Qualifiers, bool Invoke, bool SlotsOnly)> ScanByReferenceOperands(IParseTree root,
-        Func<string, bool> isUserFunction)
-    {
-        foreach (var node in PtrDescendants(root))
-        {
-            // An INVOKE argument (§14.9.23.2): BY REFERENCE, or written with no BY phrase — which §14.9.23.4 GR6 a) 1.
-            // passes BY REFERENCE whenever the formal is BY REFERENCE and the argument is an identifier.
-            if (node is Core.InvokeUsingContext invokeUsing)
-            {
-                foreach (var ia in invokeUsing.invokeArgument())
-                {
-                    IParseTree? operand = ia.REFERENCE() is not null ? ia.receivingIdentifier()?.dataReference()
-                        : ia.CONTENT() is null && ia.VALUE() is null ? ia.arithmeticExpression() : null;
-                    if (operand is not null && OperandIdentifier(operand) is { } ih) yield return (ih.Name, ih.Qualifiers, true, false);
-                }
-                continue;
-            }
-            if (node is Core.FunctionCallContext fc && fc.functionArgList() is { } fargs && fc.functionName() is { } fname
-                && isUserFunction(fname.GetText()))
-            {
-                foreach (var farg in fargs.functionArgument())
-                    if (OperandIdentifier(farg) is { } h) yield return (h.Name, h.Qualifiers, false, false);
-                continue;
-            }
-            if (node is Core.CallReturningPhraseContext ret)
-            {
-                if (ret.receivingIdentifier().dataReference() is { } rd && HeadOf(rd) is { } rh)
-                    yield return (rh.Name, rh.Qualifiers, false, true);
-                continue;
-            }
-            if (node is not Core.CallUsingPhraseContext phrase) continue;
-            // The phrase in force (§14.9.4.4 GR5 — transitive until the next BY phrase): null = BY VALUE.
-            bool? byReference = true;
-            foreach (var arg in phrase.callArgument())
-            {
-                IParseTree? operand;
-                if (arg.callByReference() is { } r) { byReference = true; operand = r.receivingIdentifier()?.dataReference(); }
-                else if (arg.callByContent() is { } c) { byReference = false; operand = c.arithmeticExpression(); }
-                else if (arg.callByValue() is not null) { byReference = null; operand = null; }
-                else operand = byReference is null ? null : arg.arithmeticExpression();
-                if (operand is not null && OperandIdentifier(operand) is { } h)
-                    yield return (h.Name, h.Qualifiers, false, byReference is false);
-            }
-        }
-
-        // The identifier an operand consists of, or null when the operand is anything more (an expression, a literal):
-        // the OUTERMOST data reference under it, when its text is the whole operand's.
-        static (string Name, List<string> Qualifiers)? OperandIdentifier(IParseTree operand) =>
-            PtrDescendants(operand).Prepend(operand).OfType<Core.DataReferenceContext>().FirstOrDefault() is { } dref
-            && dref.GetText() == operand.GetText()
-                ? HeadOf(dref)
-                : null;
-
-        static (string Name, List<string> Qualifiers)? HeadOf(Core.DataReferenceContext dref)
-        {
-            if (dref.cobolWord() is not { } head) return null;
-            var quals = new List<string>();
-            foreach (var suffix in dref.dataReferenceSuffix())
-                if (suffix.qualification() is { } q) quals.Add(q.cobolWord().GetText());
-            return (head.GetText(), quals);
-        }
-    }
-
-    /// <summary>Collect the data-names taken by every §8.4.3.11 DATA-ADDRESS-IDENTIFIER in the procedure
-    /// division. The head name + its OF/IN qualifiers are yielded for EVERY operand shape (a subscripted operand
-    /// forces the same containing record — the occurrence displacement is a bind-time offset over the ONE cell,
-    /// never separate storage).
-    /// <para>⛔ IT WALKS THE IDENTIFIER'S OWN RULE, NOT A STATEMENT (kb/Work PB239). It used to recognize only a
+    /// <summary>The data-names taken by every §8.4.3.11 DATA-ADDRESS-IDENTIFIER in the unit's own procedure division(s)
+    /// (<see cref="StorageClaimScan.AddressTargets"/> — the head name + its OF/IN qualifiers, for EVERY operand shape: a
+    /// subscripted operand forces the same containing record, the occurrence displacement being a bind-time offset over
+    /// the ONE cell, never separate storage).
+    /// <para>⛔ IT ASKS THE IDENTIFIER'S OWN RULE, NOT A STATEMENT (kb/Work PB239). It used to recognize only a
     /// SET Format-7 sender, so the day a second surface took the identifier — the CALL argument §14.9.4.3
     /// SR3/SR4 name — its record would have been left off cell storage and the bind would have refused it.
     /// Every surface now spells the identifier through the ONE <c>dataAddressIdentifier</c> rule, so every one
@@ -375,37 +309,12 @@ public sealed partial class DataBinder
         {
             foreach (var m in OoBoundMethods)
                 if (m.Ctx?.procedureDivision() is { } mpd)
-                    foreach (var (n, q) in PtrScanAddressOfSenders(mpd))
+                    foreach (var (n, q) in ClaimScans.AddressTargets(mpd))
                         yield return (n, q, m);
             yield break;
         }
         if (program.procedureDivision() is not { } pd) yield break;
-        foreach (var (n, q) in PtrScanAddressOfSenders(pd))
+        foreach (var (n, q) in ClaimScans.AddressTargets(pd))
             yield return (n, q, null);
-    }
-
-    /// <summary>The data-address-identifier heads under one parse subtree (a procedure division or a whole
-    /// contained program) — shared with <c>DataBinder.CallBindLinkage</c>'s addressed-formal scan (kb/Work PB1019).</summary>
-    internal static IEnumerable<(string Name, List<string> Qualifiers)> PtrScanAddressOfSenders(IParseTree pd)
-    {
-        foreach (var ctx in PtrDescendants(pd))
-            if (ctx is Core.DataAddressIdentifierContext { } dai && dai.dataReference() is { } target)
-            {
-                if (target.cobolWord() is not { } head) continue;
-                var quals = new List<string>();
-                foreach (var suffix in target.dataReferenceSuffix())
-                    if (suffix.qualification() is { } q) quals.Add(q.cobolWord().GetText());
-                yield return (head.GetText(), quals);
-            }
-    }
-
-    private static IEnumerable<IParseTree> PtrDescendants(IParseTree node)
-    {
-        for (int i = 0; i < node.ChildCount; i++)
-        {
-            var child = node.GetChild(i);
-            yield return child;
-            foreach (var sub in PtrDescendants(child)) yield return sub;
-        }
     }
 }
