@@ -46,6 +46,19 @@ internal readonly record struct TypePair(string From, string To);
 /// member, as the census's <c>TargetType</c> does. The walk cannot see what the C# compiler erased (an inlined
 /// <c>const</c>, a <c>nameof</c>), which is why the edges file keeps the census's count beside the walk's.
 /// </para>
+/// <para>
+/// <b>Two images.</b> What the walk reads is the C# compiler's output, and the optimizer changes it: a Release build
+/// stack-schedules a local it reads only in sequence and drops its slot (<c>OoEmitter.EmitPointerBackings</c>'
+/// <c>var lifetime</c>, a <c>CellLifetime</c> compared twice, has a slot in Debug and none in Release), and never
+/// builds the <c>ValueTuple</c> a tuple <c>switch</c> names, where Debug does (<c>FunctionDeviceText.CallField</c>).
+/// No choice of what to read makes the two images agree: without the local slots Debug still names
+/// <c>FunctionDeviceForm</c> through the tuple and Release does not. So the walk reports which image it read
+/// (<see cref="Optimized"/>, from the assembly's <c>[Debuggable]</c>), the edges file is the UNOPTIMIZED image's
+/// measure (every local gate and CI's Linux unit job build Debug), and on an optimized image the checker asks only
+/// whether a dependency grew, never whether one vanished (<c>ArchitectureEdges.CheckWalk</c>). CI's Windows unit job
+/// tests Release (kb/Work PB1957 rows 1 and 48), and pull request #930's merge group failed there on the one pair only
+/// Debug's slot carried. <c>TheWalk_ReadsEitherImage_AndAnOptimizedOneOnlyForGrowth</c> pins both images.
+/// </para>
 /// </remarks>
 internal sealed class TypeReferenceWalk
 {
@@ -66,6 +79,11 @@ internal sealed class TypeReferenceWalk
     /// <summary>The distinct cross-type dependencies between outermost types, a type's use of itself excluded.</summary>
     public IReadOnlySet<TypePair> Pairs => pairs;
 
+    /// <summary>Whether the C# compiler optimized the images the walk read (a Release build). An optimized image can
+    /// lack a reference the unoptimized one carries (the remarks' "Two images"), so the edges file is the unoptimized
+    /// image's measure and an optimized walk answers only whether a dependency grew.</summary>
+    public bool Optimized { get; private set; }
+
     /// <summary>The namespace of an outermost product type the walk read.</summary>
     public string NamespaceOf(string outermost) => types[outermost].Namespace;
 
@@ -83,6 +101,14 @@ internal sealed class TypeReferenceWalk
                 readers.Add(new AssemblyReader(path, projectDirectoryOf(Path.GetFileNameWithoutExtension(path))));
             }
 
+            if (readers.Select(r => r.Optimized).Distinct().Count() > 1)
+            {
+                throw new InvalidOperationException("the product assemblies were built under different optimization settings ("
+                    + string.Join(", ", readers.Select(r => $"{r.AssemblyName} {(r.Optimized ? "optimized" : "unoptimized")}"))
+                    + "): the walk measures one build of WiseOwl.Cobol.sln");
+            }
+
+            walk.Optimized = readers.Count > 0 && readers[0].Optimized;
             var product = readers.Select(r => r.AssemblyName).ToHashSet(StringComparer.Ordinal);
             var enums = new Dictionary<string, PrimitiveTypeCode>(StringComparer.Ordinal);
             foreach (AssemblyReader r in readers)
@@ -196,9 +222,43 @@ internal sealed class TypeReferenceWalk
             pdb = pdbProvider.GetMetadataReader();
             this.projectDirectory = projectDirectory;
             AssemblyName = md.GetString(md.GetAssemblyDefinition().Name);
+            Optimized = !OptimizerDisabled();
         }
 
         public string AssemblyName { get; }
+
+        /// <summary>Whether the C# compiler optimized this image: it was, unless the assembly's
+        /// <c>[Debuggable]</c> carries <c>DisableOptimizations</c> (the C# compiler writes the attribute under every
+        /// configuration that emits a PDB, its modes saying which).</summary>
+        public bool Optimized { get; }
+
+        private bool OptimizerDisabled()
+        {
+            const int DisableOptimizations = 0x100;   // DebuggableAttribute.DebuggingModes.DisableOptimizations
+            foreach (CustomAttributeHandle a in md.GetAssemblyDefinition().GetCustomAttributes())
+            {
+                CustomAttribute attribute = md.GetCustomAttribute(a);
+                if (AttributeTypeName(md, attribute.Constructor) != "System.Diagnostics.DebuggableAttribute")
+                {
+                    continue;
+                }
+
+                // ECMA-335 II.23.3: the prolog 0x0001, the fixed arguments, then the uint16 count of named arguments.
+                // The (DebuggingModes) constructor's one argument is an int32; the (bool isJITTrackingEnabled,
+                // bool isJITOptimizerDisabled) constructor's two are a byte each.
+                BlobReader blob = md.GetBlobReader(attribute.Value);
+                blob.ReadUInt16();
+                if (blob.RemainingBytes == sizeof(int) + sizeof(ushort))
+                {
+                    return (blob.ReadInt32() & DisableOptimizations) != 0;
+                }
+
+                blob.ReadBoolean();
+                return blob.ReadBoolean();
+            }
+
+            return false;
+        }
 
         public MethodBodyBlock Body(int relativeVirtualAddress) => pe.GetMethodBody(relativeVirtualAddress);
 

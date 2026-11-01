@@ -202,11 +202,16 @@ internal sealed record ArchitectureEdges(
     /// re-keys an outermost type to another namespace, <paramref name="cuts"/> removes pairs, before the pairs
     /// aggregate). <paramref name="productNamespaces"/> is every namespace an assembly declares a product type in;
     /// <paramref name="censusEdges"/> is the census's cross-namespace counts (the other observer of a dead allowance).
+    /// The FALLS (a listed pair the walk no longer measures, a dead allowance) are checked only on the measure the file
+    /// is: never under a what-if, whose shrinking rows are its point, and never on an OPTIMIZED image
+    /// (<paramref name="optimizedImage"/>, <see cref="TypeReferenceWalk.Optimized"/>), which can lack a reference the
+    /// unoptimized image the file measures carries; every growth check runs on both images.
     /// </summary>
     public IReadOnlyList<string> CheckWalk(IReadOnlyCollection<MeasuredPair> measured, IReadOnlySet<string> productNamespaces,
-        IReadOnlyDictionary<(string From, string To), int> censusEdges, WhatIf? whatIf = null)
+        IReadOnlyDictionary<(string From, string To), int> censusEdges, WhatIf? whatIf = null, bool optimizedImage = false)
     {
         var failures = new List<string>(FileDefects());
+        bool checksFalls = whatIf is null && !optimizedImage;
         IReadOnlyCollection<MeasuredPair> pairs = whatIf is null ? measured : whatIf.Apply(measured);
         var namespaces = new HashSet<string>(productNamespaces, StringComparer.Ordinal);
         namespaces.UnionWith(pairs.SelectMany(p => new[] { p.FromNamespace, p.ToNamespace }));
@@ -274,9 +279,9 @@ internal sealed record ArchitectureEdges(
                 failures.Add($"tolerated row {row.From} -> {row.To} grew: the walk measures {walked} pair(s) against walkUses {row.WalkUses}");
             }
 
-            if (whatIf is not null)
+            if (!checksFalls)
             {
-                continue;   // a what-if answers what a move does; the rows it shrinks are its point
+                continue;
             }
 
             foreach (EdgesPair listed in row.Pairs.Where(l => set is null || !set.Contains((l.From, l.To))))
@@ -289,7 +294,7 @@ internal sealed record ArchitectureEdges(
         foreach (IReadOnlyList<string> pair in Allowed.Where(p => p.Count == 2 && !CompositionRoots.Contains(p[0])))
         {
             bool census = censusEdges.Any(e => LayerOf(e.Key.From) == pair[0] && LayerOf(e.Key.To) == pair[1] && e.Value > 0);
-            if (whatIf is null && !census && !measuredLayerPairs.Contains((pair[0], pair[1])))
+            if (checksFalls && !census && !measuredLayerPairs.Contains((pair[0], pair[1])))
             {
                 failures.Add($"allowed pair [{pair[0]}, {pair[1]}] measures zero in both observers and is from no composition "
                              + "root: a dead allowance is deleted, never kept");
