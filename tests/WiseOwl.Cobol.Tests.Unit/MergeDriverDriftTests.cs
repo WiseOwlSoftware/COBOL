@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE FILES TWO LANDINGS BOTH EDIT ARE MERGED BY DRIVER, AND ONE FUNCTION MERGES MAIN IN (kb/Work PB3610;
-/// docs/rearchitecture/DESIGN-test-build-ci.md §3.17.2 step 2). <c>scripts/merge_drivers.py</c> keeps a registry
+/// docs/rearchitecture/DESIGN-test-build-ci.md §3.17.2 step 3). <c>scripts/merge_drivers.py</c> keeps a registry
 /// (<c>DRIVERS</c>) of the catalogues a landing appends to — <c>constructs.json</c>, the work notes — of the runtime ABI pin, which
 /// <c>scripts/abi_pin.py</c> measures, and of the public-API baselines, merged as SETS of symbol lines (kb/Work PB3727;
 /// docs/rearchitecture/DESIGN-orchestrator-loop.md section 16.9); <c>.gitattributes</c> repeats its patterns, and <c>--check</c> holds the two
