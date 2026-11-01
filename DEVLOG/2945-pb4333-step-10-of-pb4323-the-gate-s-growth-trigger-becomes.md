@@ -1,4 +1,4 @@
-## PB4333 (step 10 of PB4323): the gate's growth trigger becomes an instrument, and its second criterion is measured
+## Entry 2945 — 2026-11-01 08:02 PST — PB4333 (step 10 of PB4323): the gate's growth trigger becomes an instrument, and its second criterion is measured
 
 PB4323 section 3.4 builds the emitted-program differential when "the weekly median of the code lane's test phase
 (recorded in `verdict.json`) exceeds 6 min, or Conformance exceeds 1.5 times today's", and only if the median share of
@@ -40,3 +40,4 @@ no inventory row. No diagnostic code was used (COBOL5830 to COBOL5832 returned).
 PowerShell line). Linux gate: not part of the per-change gate (PB4327).
 
 **Review round 1.** The reviewer found that `gate_growth.record` pruned the shared store by reading every file in it, so one sample it could not parse (another schema, a corrupt file) escaped `_record_growth` and turned a GREEN gate into NOT RUN. The prune now reads the stamp from each file name and parses nothing, and `samples` skips a file that vanished between the listing and the read; the self-test plants a schema-2 file, a corrupt old one and a stray `.json`. `emit_fraction.non_runtime` now matches the runtime as a directory (`RUNTIME_DIR`), so a sibling project whose name starts with the runtime's counts as the compiler's, as its self-test label always said.
+
