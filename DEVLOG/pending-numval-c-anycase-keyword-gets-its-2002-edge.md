@@ -20,3 +20,12 @@ makes `"usd 1,234.56" "USD"` conform (1234.56, TEST 0), and the same call withou
 **Sweep.** FIND-STRING and SUBSTITUTE also write ANYCASE, but both are 2023 functions whose catalog gate covers the keyword.
 The other function phrase words (LEADING, TRAILING, FIRST, LAST, START, AFTER, ANY) sit in functions introduced at or after
 them. No inventory row closed (GAP 19 -> 19); FMT-15.68.2 and FMT-15.94.2 gained witnesses.
+
+**Review round 1: the gate refused legal 85 source.** Below 2002 ANYCASE is a free word, so a COBOL-85 program may declare
+`01 ANYCASE PIC X(3)` and write `NUMVAL-C("USD1,234.56" ANYCASE)` with the data item as argument-2. The ANYCASE arm took every
+bare ANYCASE at slot 1 as the keyword and now answered COBOL0900 for that conforming program (before the gate it had silently
+swallowed the operand). The fix is in the funnel, `IntrinsicBinder.KeywordWordOf`: a bare word that §8.9 leaves free at the
+edition and that a declaration names is an operand (null keyword), the same determination the parser makes in
+`IsKeywordReadingHere`; an undeclared free word keeps its keyword reading and the edition gate still answers. LOCALE, the
+neighbouring 2002 word, had the same swallowing at 85 and is covered by the same line. Golden
+`pb4359_numval_c_anycase_free_word_85` (accept 85) declares both words as data items: 1234.56 and 9.99.
