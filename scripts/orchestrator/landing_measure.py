@@ -96,7 +96,7 @@ STALL_CAUSES = ("stuck-check-run", "not-queued", "closed")
 #: What the watch did on that read: re-ran the stuck check's run, closed, reopened and re-queued the pull request, or
 #: alerted the operator (the read after the last remedy; it acts no more).
 STALL_ACTS = ("rerun", "requeue", "alert")
-#: THE CLASS OF A MERGE-QUEUE RED (kb/Work PB4271, PB4331; PB4323 §5.1), the record's vocabulary: the landing lane
+#: THE CLASS OF A MERGE-QUEUE RED (kb/Work PB4271, PB4331; the rule of CLAUDE.md Testing), the record's vocabulary: the landing lane
 #: decides it (land_lane.classify_red) by comparing the failed run's red cases with the branch's GREEN gate record.
 #: INFRA: no test failed, or the run timed out. RUNNER: every red case ran GREEN in that record (or the record is the
 #: inert lane's). MERGE: a red case is not in the branch's population at its head. GENUINE: a red case the gate listed

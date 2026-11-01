@@ -1768,7 +1768,7 @@ def self_test() -> int:
 
         # kb/Work PB4331 (step 8 of PB4323): bringing main in changed a file the branch also changes (a true textual merge
         # in a shared file). The former exception re-gated the merged head here; the merge group is now the first run of
-        # the merged tree (PB4323 §5.1), so the landing merges, stamps and queues it like any other.
+        # the merged tree (the rule of CLAUDE.md Testing), so the landing merges, stamps and queues it like any other.
         main_moves("shared.txt", chr(10).join(f"line {i}" for i in range(1, 10)) + chr(10))
         assert fetch_main(lw) is None
         merge_main(lw, "fix", base_ref)
