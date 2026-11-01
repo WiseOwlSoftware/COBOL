@@ -41,12 +41,17 @@ stay as an earlier call left them, because no single tool sees the whole life of
                 of STALL_CAUSES, act: what the watch did (one of STALL_ACTS), ok: whether GitHub took it, at}. A stall
                 is not a bounce: `bounces` counts failed merge-group runs, which `complete` re-reads from GitHub, and a
                 stalled pull request never reached a merge group (the lane writes them, `record_stall`)
+  reds          each merge-queue red the landing lane CLASSIFIED (kb/Work PB4271, PB4331): {run: the failed merge-group
+                run, class: one of RED_CLASSES, why, act: one of RED_ACTS (re-queued by the lane, or left to a
+                finisher), ok, at}, once per run (`record_red`). An INFRA or RUNNER red is filed against the pipeline as
+                the `infrastructure` bounce cause in the same write: no finisher is woken to name it
   ci_wall_s     the successful merge-group run's wall time (`complete`)
   local_gate_s  the seconds of every local gate the landing worktree ran (the sum of its verdict.json `timings.wall_s`)
-  landing_gate_runs  how many of those gates the LANDING ran itself (`enqueue.py land`): 0 under the rule of 2026-10-23
-                (a branch is gated once, at its head, by its implementer; the merge with main is the merge queue's to
-                test, kb/Work PB3612), 1 when bringing main in changed a file the branch also changes or the lane gates
-                nowhere else; null for a landing recorded before that rule or by hand, and `summary` says so
+  landing_gate_runs  how many of those gates the LANDING ran itself (`enqueue.py land`): 0 since kb/Work PB4331 (the
+                landing gates nothing; the merge group is the first run of the merged tree), 0 or 1 under the rule of
+                2026-10-23 that preceded it (kb/Work PB3612: 1 when bringing main in changed a file the branch also
+                changed, or a lane gated nowhere else); null for a landing recorded before that rule or by hand, and
+                `summary` says so
 A field never observed stays null and `summary` says how many landings lack it: a MISSING observation is not a zero.
 
 `summary` prints the after column (this file) beside the before column (the retired train records, then the frozen
@@ -91,6 +96,18 @@ STALL_CAUSES = ("stuck-check-run", "not-queued", "closed")
 #: What the watch did on that read: re-ran the stuck check's run, closed, reopened and re-queued the pull request, or
 #: alerted the operator (the read after the last remedy; it acts no more).
 STALL_ACTS = ("rerun", "requeue", "alert")
+#: THE CLASS OF A MERGE-QUEUE RED (kb/Work PB4271, PB4331; PB4323 §5.1), the record's vocabulary: the landing lane
+#: decides it (land_lane.classify_red) by comparing the failed run's red cases with the branch's GREEN gate record.
+#: INFRA: no test failed, or the run timed out. RUNNER: every red case ran GREEN in that record (or the record is the
+#: inert lane's). MERGE: a red case is not in the branch's population at its head. GENUINE: a red case the gate listed
+#: but did not run. UNCLASSIFIED: the run's results or the record could not be read.
+INFRA, RUNNER, MERGE, GENUINE, UNCLASSIFIED = "INFRA", "RUNNER", "MERGE", "GENUINE", "UNCLASSIFIED"
+RED_CLASSES = (INFRA, RUNNER, MERGE, GENUINE, UNCLASSIFIED)
+#: The classes the lane re-queues once with no agent, and files against the pipeline: each is the `infrastructure`
+#: bounce cause (CAUSES), so no finisher is woken to name it.
+PIPELINE_CLASSES = (INFRA, RUNNER)
+#: What the lane did about a red: re-queued it (a PIPELINE_CLASSES red, once per landing) or left it to a finisher.
+RED_ACTS = ("requeue", "finisher")
 STAMPS = ("dispatched", "done", "review_clean", "enqueued", "merged")      # in the order a landing passes them
 #: THE OWNER'S FIX-CYCLE BAR (kb/Work PB3638, 2026-10-24: "As an individual developer, I can make a bug fix, compile it
 #: to ensure it compiles cleanly, and run various local tests to ensure it's working, all within 10-15 mins"): a simple
@@ -188,6 +205,11 @@ def validate(rec: dict) -> dict:
                 or s.get("cause") not in STALL_CAUSES or s.get("act") not in STALL_ACTS or not s.get("at"):
             raise ValueError(f"stall {s!r} is not {{read >= 1, cause in {STALL_CAUSES}, act in {STALL_ACTS}, at}}")
         iso_time(s["at"])
+    for red in rec["reds"]:
+        if not isinstance(red, dict) or not isinstance(red.get("run"), int) or red["run"] < 0 \
+                or red.get("class") not in RED_CLASSES or red.get("act") not in RED_ACTS or not red.get("at"):
+            raise ValueError(f"red {red!r} is not {{run >= 0, class in {RED_CLASSES}, act in {RED_ACTS}, at}}")
+        iso_time(red["at"])
     return rec
 
 
@@ -198,14 +220,18 @@ def patch_record(existing: dict | None, patch: dict) -> dict:
     rec = {"schema": SCHEMA, "pr": patch["pr"], "branch": None, "changes": 1, "dispatched": None, "done": None,
            "review_clean": None,
            "enqueued": None, "merged": None, "bounces": None, "bounce_causes": [], "pre_queue_reds": None,
-           "done_each": [], "stalls": [], "ci_wall_s": None,
+           "done_each": [], "stalls": [], "reds": [], "ci_wall_s": None,
            "local_gate_s": None, "local_gate_runs": None, "landing_gate_runs": None, "note": "", **(existing or {})}
     for k, v in patch.items():
-        if v is None or (k in ("bounce_causes", "done_each", "stalls") and not v):
+        if v is None or (k in ("bounce_causes", "done_each", "stalls", "reds") and not v):
             continue
         if k == "stalls":   # each read is recorded once, whatever patch repeats it: a list that only grows
             have = {s.get("read") for s in rec["stalls"] if isinstance(s, dict)}
             rec["stalls"] = [*rec["stalls"], *(s for s in v if s.get("read") not in have)]
+            continue
+        if k == "reds":     # each failed merge-group run is classified once: a list that only grows
+            have = {red.get("run") for red in rec["reds"] if isinstance(red, dict)}
+            rec["reds"] = [*rec["reds"], *(red for red in v if red.get("run") not in have)]
             continue
         if k in ("enqueued", "done_each") and rec.get(k):
             continue
@@ -228,6 +254,20 @@ def record_stall(path: pathlib.Path, pr: int, branch: str, read: int, cause: str
     """One stalled read of the landing lane's queue watch on pull request `pr` (kb/Work PB3527; `stalls` above)."""
     return record(path, {"pr": pr, "branch": branch,
                          "stalls": [{"read": read, "cause": cause, "act": act, "ok": ok, "at": at or now_iso()}]})
+
+
+def record_red(path: pathlib.Path, pr: int, branch: str, run: int, cls: str, why: str, act: str, ok: bool,
+               at: str | None = None) -> dict:
+    """One merge-queue red of pull request `pr`, classified by the landing lane (kb/Work PB4271, PB4331; `reds` above):
+    the failed run, its class, why, and what the lane did. A PIPELINE_CLASSES red is filed against the pipeline here, as
+    the `infrastructure` bounce cause, since no finisher is woken to name it; `complete` re-counts the bounces later."""
+    old = next((r for r in read_all(path) if r.get("pr") == pr), None) or {}
+    patch: dict = {"pr": pr, "branch": branch, "reds": [{"run": run, "class": cls, "why": why[:240], "act": act,
+                                                         "ok": ok, "at": at or now_iso()}]}
+    if cls in PIPELINE_CLASSES and run not in {red.get("run") for red in old.get("reds") or []}:
+        causes = [*(old.get("bounce_causes") or []), "infrastructure"]
+        patch.update(bounce_causes=causes, bounces=max(old.get("bounces") or 0, len(causes)))
+    return record(path, patch)
 
 
 # ── the figures ──────────────────────────────────────────────────────────────────────────────────────────────────
@@ -284,7 +324,10 @@ def after_figures(recs: list[dict]) -> dict:
     out["stalls"] = {"landings": sum(1 for r in landed if r.get("stalls")), "reads": len(reads),
                      "causes": {c: sum(s["cause"] == c for s in reads) for c in STALL_CAUSES},
                      "alerts": sum(s["act"] == "alert" for s in reads)}
-    ci = [r["ci_wall_s"] / 60 for r in landed if r.get("ci_wall_s") is not None]
+    reds = [red for r in recs for red in r.get("reds") or []]   # every record: a red belongs to the queue, landed or not
+    out["reds"] = {"n": len(reds), "classes": {c: sum(red["class"] == c for red in reds) for c in RED_CLASSES},
+                   "requeued": sum(red["act"] == "requeue" for red in reds)}
+    ci =[r["ci_wall_s"] / 60 for r in landed if r.get("ci_wall_s") is not None]
     out["ci_wall"] = _spread(ci)
     gate = [r["local_gate_s"] / 60 for r in landed if r.get("local_gate_s") is not None]
     out["local_gate"] = {"n": len(gate), "median": median(gate), "total": sum(gate)} if gate else None
@@ -382,6 +425,12 @@ def summarize(recs: list[dict], trains: list[dict], since: dt.datetime | None = 
                   + (f": {stall_causes}" if stall_causes else "") + (f"; {st['alerts']} alert(s)" if st["alerts"] else ""))
                  if a["landings"] else UNMEASURED,
                  f"{UNMEASURED} (a train opened no pull request)"))
+    rd = a["reds"]
+    red_classes = ", ".join(f"{c} {n}" for c, n in rd["classes"].items() if n)
+    rows.append(("merge-queue reds by class (PB4271)",
+                 f"{rd['n']} red(s): {red_classes}; {rd['requeued']} re-queued by the landing lane" if rd["n"] else
+                 f"{UNMEASURED} (the landing lane has classified no red)",
+                 f"{UNMEASURED} (no red was classified before kb/Work PB4331)"))
     ci = a["ci_wall"]
     rows.append(("merge-group CI wall, minutes",
                  (f"median {ci['median']:.1f}, p90 {ci['p90']:.1f} ({ci['n']} landing(s))" if ci else UNMEASURED),
@@ -749,13 +798,16 @@ ARMS = ("a record is a patch: later calls fill fields, the first enqueue time st
         "findings record, a stamp out of order stays null, a re-enqueue after a bounce and a re-review is bounded by "
         "the record's first enqueue, for its DONE and its CLEAN alike (its record is never refused, kb/Work PB3710), "
         "and summary prints each stage and "
-        "marks a span over the owner's bar")
+        "marks a span over the owner's bar",
+        "a merge-queue red the landing lane classified is recorded once per run with its class and what the lane did, "
+        "an INFRA or RUNNER red is filed against the pipeline as the infrastructure cause, an unknown class is refused, "
+        "and summary counts the reds by class (kb/Work PB4271, PB4331)")
 
 
 def _self_test(tmp: pathlib.Path) -> list[str]:
     fails: list[str] = []
     (patch_arm, refuse_arm, done_arm, gate_arm, complete_arm, summary_arm, headline_arm, freeze_arm, prequeue_arm,
-     stall_arm, stage_arm) = ARMS
+     stall_arm, stage_arm, red_arm) = ARMS
     path = tmp / FILE
     z = "2026-10-12T"
 
@@ -1020,6 +1072,24 @@ def _self_test(tmp: pathlib.Path) -> list[str]:
             or s385["bounces"] != 0 or s385["bounce_causes"] or refused != [True] * 4 \
             or "1 of 1 landing(s), 2 stalled read(s): stuck-check-run 1, not-queued 1" not in stall_text:
         fails.append(f"{stall_arm}: {s385} refused={refused}\n{stall_text}")
+    # merge-queue reds the landing lane classified (kb/Work PB4271, PB4331): once per run; INFRA and RUNNER are filed as
+    # the `infrastructure` cause in the same write, a MERGE red is left to the finisher, who names its cause
+    reds = tmp / "reds.jsonl"
+    record(reds, {"pr": 893, "branch": "b893", "enqueued": "2026-10-31T10:00:00Z"})
+    record_red(reds, 893, "b893", 7001, INFRA, "no test failed", "requeue", True, "2026-10-31T10:20:00Z")
+    record_red(reds, 893, "b893", 7001, INFRA, "no test failed", "requeue", True, "2026-10-31T10:20:00Z")   # kept once
+    record_red(reds, 893, "b893", 7002, MERGE, "a case main brought", "finisher", True, "2026-10-31T10:40:00Z")
+    r893 = read_all(reds)[0]
+    try:
+        record(reds, {"pr": 893, "reds": [{"run": 7003, "class": "SELECTION", "act": "requeue", "at": "2026-10-31T11:00:00Z"}]})
+        red_refused = False
+    except ValueError:
+        red_refused = True
+    red_text = "\n".join(summarize(read_all(reds), []))
+    if [(r["run"], r["class"], r["act"]) for r in r893["reds"]] != [(7001, INFRA, "requeue"), (7002, MERGE, "finisher")] \
+            or r893["bounce_causes"] != ["infrastructure"] or r893["bounces"] != 1 or not red_refused \
+            or "2 red(s): INFRA 1, MERGE 1; 1 re-queued by the landing lane" not in red_text:
+        fails.append(f"{red_arm}: {r893} refused={red_refused}\n{red_text}")
     # summary / headline
     record(path, {"pr": 17, "bounce_causes": ["cluster-defect"], "bounces": 1})
     trains = [{"gating": "batched", "started": "2026-10-10T10:00:00-07:00", "pushed": "2026-10-10T12:00:00-07:00",

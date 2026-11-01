@@ -373,13 +373,35 @@ def fetch_bounce_results(branch: str, dest: pathlib.Path, gh: Gh | None = None) 
         return f'ci bounce: not observed ({type(e).__name__}: {str(e).splitlines()[0] if str(e) else ""}); {dest} left as it was'
 
 
+#: THE PROVENANCE MARKER's reading (`fetch_bounce_results` writes it beside the downloaded results): the run, the pull
+#: request and the run's conclusion. The conclusion is optional only for a marker written before it was read.
+SOURCE_MARKER = re.compile(r'GitHub Actions run (\d+) \((?:merge group of pull request #(\d+), ([a-z_]+),)?')
+
+
+@dataclasses.dataclass(frozen=True)
+class BounceSource:
+    """What a results directory holds by its provenance marker (`bounce_source`)."""
+    run: int
+    pr: int            # 0: a marker that names no pull request
+    conclusion: str    # '' when the marker names none
+
+
+def bounce_source(dest: pathlib.Path) -> BounceSource | None:
+    """THE ONE READER of `dest`'s provenance marker (BOUNCE_SOURCE): which failed merge-group run's results it holds,
+    or None when it holds none or no readable marker. The landing lane reads it after `fetch_bounce_results`, so it
+    classifies a red only on the results of the run it is classifying (kb/Work PB4271), never a stale bounce's."""
+    try:
+        m = SOURCE_MARKER.match((dest / BOUNCE_SOURCE).read_text(encoding='utf-8'))
+    except OSError:
+        return None
+    return BounceSource(int(m.group(1)), int(m.group(2) or 0), m.group(3) or '') if m else None
+
+
 def _holds(dest: pathlib.Path) -> str:
     """What `dest` holds, for the message that says it was left as it was: the run its provenance marker names."""
-    try:
-        m = re.match(r'GitHub Actions run (\d+) \(', (dest / BOUNCE_SOURCE).read_text(encoding='utf-8'))
-    except OSError:
-        return 'no bounce results' if not dest.is_dir() or not any(dest.iterdir()) else 'files without a provenance marker'
-    return f'the test results of run {m.group(1)}' if m else 'files without a provenance marker'
+    if (src := bounce_source(dest)) is not None:
+        return f'the test results of run {src.run}'
+    return ('no bounce results' if not dest.is_dir() or not any(dest.iterdir()) else 'files without a provenance marker')
 
 
 def _swap_in(staging: pathlib.Path, dest: pathlib.Path) -> None:
@@ -612,6 +634,10 @@ def self_test() -> int:
                and downloaded[0][downloaded[0].index('--pattern') + 1] == RESULTS_PATTERN
                and (dest / 'test-results-Linux-unit' / 'unit.trx').is_file()
                and 'run 800' in (dest / BOUNCE_SOURCE).read_text(encoding='utf-8'), f'{note} {asked}')
+        expect("bounce_source reads the provenance marker back: the run, its pull request and its conclusion (the landing "
+               "lane classifies only on the run it is classifying, kb/Work PB4271); a directory with none reads None",
+               bounce_source(dest) == BounceSource(800, 547, 'failure') and bounce_source(pathlib.Path(tmp)) is None,
+               str(bounce_source(dest)))
         asked.clear()
         again = fetch_bounce_results('fix', dest, bounce_gh(runs, asked=asked))
         expect("the same bounce is downloaded once: a re-gate finds its provenance marker and asks GitHub no download",

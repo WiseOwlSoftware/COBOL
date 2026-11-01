@@ -69,23 +69,23 @@ kb/Work PB2526), each population then checked by name against its `--list-tests`
   worktree shares; every gate re-reads it while it waits, so a change reaches the queue at once, and an expired setting
   is the coded default again with no one acting. `gate_slot.py clear` returns it to its coded default at once, and
   `gate_slot.py status` prints the cap, every held slot and the queue. No environment variable sets it. **An inert-lane
-  gate takes no slot at all** (kb/Work PB4327). A waiting gate's log says why a later ticket went first (landing gates
-  are served before implementer gates, PB3103).
+  gate takes no slot at all** (kb/Work PB4327).
 - **The gate runs nothing on Linux** (owner 2026-10-31, kb/Work PB4327; MANDATORY-PRACTICES I8): CI's merge group runs
   the whole Linux population and every Linux self-test, so a Linux-only red is found in the queue. `bash
   scripts/linux-gate.sh --nice` (CI's whole Linux legs, ~6 min; `--legs unit,conformance,characterization,guard` picks)
   is the tool that reproduces a Linux CI red on this box, run by hand and not a step of any change's gate; its newest
   run's red classes go first at the worktree's next gate.
 
-## Per landing — the landing reads the record; it gates nothing (owner 2026-10-23, kb/Work PB3612)
+## Per landing — the landing reads the record; it gates nothing (owner 2026-10-23, kb/Work PB3612, PB4331)
 
 A branch is gated locally ONCE, at its head, by its implementer or finisher: that run is the whole definition of "tested
 locally". `enqueue.py land` does not gate the merge with main and does not gate again when main moves: it READS the
 worktree's newest `TestResults/build-local/*/verdict.json` runs and refuses (exit 14, UNTESTED) a tip none of them covers
 GREEN (a finisher gates the tip). The merge queue's `ci-gate` runs the whole population on the exact
-merge, on both operating systems, before `main` moves. One exception, the case a developer would also re-test: when
-bringing main in changed a file the branch also changes, the one gate runs once on the merged head
-(`pwsh scripts/build-local.ps1` at Normal priority, MANDATORY-PRACTICES L2).
+merge, on both operating systems, before `main` moves: it is the FIRST run of the merged tree, a true textual merge in
+a shared file included (kb/Work PB4331), and the landing lane classifies every red it bounces against this record
+(INFRA and RUNNER re-queued once, MERGE and GENUINE to a finisher, kb/Work PB4271). A gate of the worktree that
+runs when the landing would write it is exit 12, GATE BUSY, whatever record exists (kb/Work PB4204).
 
 **Do NOT run per commit:** the battery or the NIST guard (`scripts/guard-fast.sh`).
 

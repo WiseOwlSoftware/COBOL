@@ -678,9 +678,11 @@ the lane never relaunches a stopped or queued head by itself, so the unit re-arm
 fix), or an UNREVIEWED exit 11 whose tip step 2's reviewer has since stamped CLEAN (kb/Work PB3103 review R1-1). When
 `status` says the survey is stale, the unit runs one `land_lane.py tick` itself. `next_unit.py` starts an enqueue unit only for that agent work (section 3.2 rule 6).
 
-**Landing gates first.** The gate a landing starts is served before every waiting implementer gate
-(`DESIGN-test-build-ci.md` section 3.14.6, `gate_slot.py`'s landing class); the cap is unchanged, so the machine's
-total gate load is the same.
+**The landing runs no gate** (kb/Work PB4331): it reads the branch's own gate record, and the merge group is the first
+run of the merged tree. **Every merge-queue red is classified** before anyone is blamed (kb/Work PB4271): the queue
+watch compares the failed run's red cases with that record, re-queues an INFRA or RUNNER red once with no agent,
+and leaves a MERGE, GENUINE or UNCLASSIFIED red, or a second red, BOUNCED to the enqueue unit's finisher
+(`land_lane.py`, the class section above `watch_step`; `landing_measure.py` records each).
 
 **Measured** after it lands by `landing_measure.py summary`: DONE -> enqueued -> merged per pull request for the first
 waves after the lane, against wave 1069's landings, which went through the enqueue unit.
@@ -1747,10 +1749,10 @@ docstring, `GateLegDriftTests`, `LinuxGateDriftTests`, `InertLaneDriftTests`.
 
 | Module | The job it owns | What moves there |
 |---|---|---|
-| `landing_verdict.py` | THE vocabulary the landing writes and the lane reads: the exit codes, the verdict line, the ENQUEUED line and its parser, the remedies | `EXIT_CONFLICT`, `EXIT_GATE`, `EXIT_QUEUE_NOT_ACTIVE`, `EXIT_GITHUB`, `EXIT_UNREVIEWED`, `EXIT_GATE_BUSY`, `EXIT_LAND_BUSY`, `EXIT_UNTESTED`, `EXIT_PREDECESSOR_QUEUED`, `VERDICT`, `QUEUED`, `QUEUED_LINE`, `REMEDY_GATE_TIP`, `REMEDY_OLD_GATE`, `UNREVIEWED_LANES`, `CATCH_UP` |
+| `landing_verdict.py` | THE vocabulary the landing writes and the lane reads: the exit codes, the verdict line, the ENQUEUED line and its parser, the remedies | `EXIT_CONFLICT`, `EXIT_MERGE_INCOMPLETE`, `EXIT_QUEUE_NOT_ACTIVE`, `EXIT_GITHUB`, `EXIT_UNREVIEWED`, `EXIT_GATE_BUSY`, `EXIT_LAND_BUSY`, `EXIT_UNTESTED`, `EXIT_PREDECESSOR_QUEUED`, `VERDICT`, `QUEUED`, `QUEUED_LINE`, `REMEDY_GATE_TIP`, `REMEDY_OLD_GATE`, `UNREVIEWED_LANES`, `CATCH_UP` |
 | `land_checks.py` | The landing checks (`enqueue.py checks`): the table, the range run, the re-run | `CHECKS`, `run_checks`, `rerun_check`, `_script_runner` |
-| `land_tree.py` | The worktree a landing acts in: its state, dirty paths, the land lock, main fetched and merged in through the drivers, the overlap | `LAND_LOCK_NAME`, `worktree_of`, `land_lock_path`, `WorktreeState`, `worktree_state`, `dirty_paths`, `fetch_main`, `merge_main`, `merge_overlap`, `_git` |
-| `land_evidence.py` | Whether the tip is tested: the recorded gate, the gate rows a landing may run, the main-side gate | `Tested`, `tested_locally`, `unslotted`, `SLOT_DRIVER`, `_DRIVER_ACQUIRES`, `GateRow`, `GATES_WINDOWS`, `GATES_LINUX`, `host_gates`, `gate_argv`, `run_gates`, `MainRun`, `MAIN_RUNS`, `gate_main` |
+| `land_tree.py` | The worktree a landing acts in: its state, dirty paths, the land lock, main fetched and merged in through the drivers | `LAND_LOCK_NAME`, `worktree_of`, `land_lock_path`, `WorktreeState`, `worktree_state`, `dirty_paths`, `fetch_main`, `merge_main`, `_git` |
+| `land_evidence.py` | Whether the tip is tested: the gate lock and the recorded gate (the landing runs no gate, kb/Work PB4331) | `Tested`, `gate_busy`, `tested_locally` |
 | `land_queue.py` | GitHub's side of a landing: the queue state, open or queue the pull request, requeue, its text, the predecessors, the record of a block, the review gate, the landing measure | `queue_state`, `queue`, `requeue`, `pull_request_text`, `PR_LIST_FIELDS`, `FILES_LISTED`, `open_predecessors`, `awaited_predecessors`, `record_blocked`, `review_gate`, `measure_landing` |
 | `enqueue.py` (stays, the step) | `land` in its four numbered steps, `_stamp`, `main` | `land`, `_stamp`, `main` |
 
