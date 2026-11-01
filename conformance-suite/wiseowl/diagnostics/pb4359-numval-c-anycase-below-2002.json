@@ -1,1 +1,1 @@
-{"refuse-at": ["85"], "expect": "the ANYCASE keyword of FUNCTION NUMVAL-C requires COBOL-2002"}
+{"refuse-at": ["85"], "expect": "the ANYCASE keyword of NUMVAL-C / TEST-NUMVAL-C requires COBOL-2002"}
