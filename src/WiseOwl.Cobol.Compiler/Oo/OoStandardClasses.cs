@@ -58,7 +58,7 @@ public static class OoStandardClasses
 
     /// <summary>The runtime type of BASE's factory object, <c>WiseOwl.Cobol.Runtime.__FACTORY_BASE</c> — the emitted-type
     /// convention's name for the class-name BASE, never a second spelling of it.</summary>
-    public static readonly string BaseFactoryCsName = NamingConvention.FactoryClassName(DataItem.WordIdentifier(BaseName));
+    public static readonly string BaseFactoryClrName = NamingConvention.FactoryClassName(DataItem.WordIdentifier(BaseName));
 
     /// <summary>The method-name of BaseFactoryInterface's factory method, as §16.2 spells it (method-names compare
     /// case-insensitively, §8.3.2.2, so <c>INVOKE C "NEW"</c> names it).</summary>
@@ -70,17 +70,17 @@ public static class OoStandardClasses
     /// <summary>The runtime member that implements New: the virtual <c>__New()</c> of <c>__FACTORY_BASE</c>, which
     /// creates through the covariant <c>__Create</c> every BASE-derived factory class overrides (OO deep-dive D4). It is
     /// NOT the uppercase method-name: a COBOL <c>METHOD-ID. NEW OVERRIDE.</c> in a BASE subclass adopts it as a C#
-    /// <c>override</c> (the override takes its base slot's CsName, <c>OoClassTable.ResolveOverrides</c>), while a factory
+    /// <c>override</c> (the override takes its base slot's ClrName, <c>OoClassTable.ResolveOverrides</c>), while a factory
     /// method NEW in a class outside BASE's hierarchy is an ordinary method emitted under its own name (kb/Work
     /// PB1582).</summary>
-    public const string NewCsName = "__New";
+    public const string NewClrName = "__New";
 
     /// <summary>The runtime member that implements FactoryObject: the virtual <c>__FactoryObject()</c> of
     /// <c>WiseOwl.Cobol.Runtime.BASE</c>, which a COBOL <c>METHOD-ID. FactoryObject OVERRIDE.</c> adopts as a C#
     /// <c>override</c> (its slot is named by <c>OoClassTable.NameMethodSlots</c>). It is NOT the uppercase method-name,
-    /// for the reason <see cref="NewCsName"/> is not: a class named FactoryObject may override it, and a C# member may not
+    /// for the reason <see cref="NewClrName"/> is not: a class named FactoryObject may override it, and a C# member may not
     /// be named like its enclosing type (CS0542; kb/Work PB3342), so the slot's name is one no class-name spells.</summary>
-    public const string FactoryObjectCsName = "__FactoryObject";
+    public const string FactoryObjectClrName = "__FactoryObject";
 
     /// <summary>Build one compilation group's symbol for the standard class BASE, with its §16.2 method rosters.
     /// One per <see cref="OoClassTable"/> (never a shared static): a group's pass-1 marks overrides against it,
@@ -109,7 +109,7 @@ public static class OoStandardClasses
         // dispatch descriptors — sees BASE's methods exactly as it sees a method written in COBOL.
         var m = new OoMethodSymbol(name, HasUsing: false, HasReturning: true, Ctx: null!)
         {
-            CsName = which is StandardMethod.New ? NewCsName : FactoryObjectCsName,
+            ClrName = which is StandardMethod.New ? NewClrName : FactoryObjectClrName,
             Owner = owner, IsFactory = factory, Standard = which,
         };
         m.Binding = new OoMethodBinding
@@ -118,7 +118,7 @@ public static class OoStandardClasses
             {
                 Level = 1,
                 CobolName = returningName,
-                CsName = returningName,
+                ClrName = returningName,
                 Pic = PicInfo.ObjectReferenceItem(returning),
             },
         };

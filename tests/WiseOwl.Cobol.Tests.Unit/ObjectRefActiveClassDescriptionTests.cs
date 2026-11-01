@@ -24,7 +24,7 @@ public sealed class ObjectRefActiveClassDescriptionTests
 
     private static DataItem Item(ObjectRefDescriptor d) => new()
     {
-        Level = 1, CobolName = "R", CsName = "R",
+        Level = 1, CobolName = "R", ClrName = "R",
         Pic = new PicInfo(PicCategory.ObjectReference, Usage.ObjectReference, Length: 0, Digits: 0, Scale: 0, Signed: false)
             { ObjectRef = d },
     };

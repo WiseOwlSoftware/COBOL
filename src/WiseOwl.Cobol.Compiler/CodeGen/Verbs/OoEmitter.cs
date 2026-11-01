@@ -47,7 +47,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// struct root: never a <c>RedefViewPlace</c>, never an <c>OdoGroupPlace</c> (a method boundary carries the
     /// FULL allocation, §14.2.3 GR8, exactly as <c>CallEmitter.CallStringRead</c> derives for CALL).</para></summary>
     private static Place MethodRootPlace(DataItem root) =>
-        new MemberPlace(new AccessPath([new RootFieldSegment(root.CsName)]), root);
+        new MemberPlace(new AccessPath([new RootFieldSegment(root.ClrName)]), root);
 
     /// <summary>⛔ THE ONE VALUE A METHOD LINKAGE ROOT HANDS BACK ACROSS THE ACTIVATION BOUNDARY — the BY REFERENCE
     /// copy-out (§14.2.3 GR8) and the RETURNING delivery (§14.9.23.4 GR8) both read it, so the storage arms
@@ -64,7 +64,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // A strong group with no character image hands back its leaf vector (kb/Work PB1116).
         : OoClassTable.LeafCarried(root) ? PlaceRenderer.GroupLeaves(MethodRootPlace(root))
         : root.IsGroup ? PlaceRenderer.GroupImage(MethodRootPlace(root), what)
-        : root.CsName;
+        : root.ClrName;
 
     /// <summary>An ADDRESS-OF-taken method LINKAGE root (kb/Work PB1019, method arm) lives in its per-activation
     /// <c>StorageCell</c> (<see cref="ActivationPointerSeeds"/>), so its crossing value is read from that storage: a
@@ -133,9 +133,9 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // ⛔ THE CELL FIRST, THE BACKING OVER IT (kb/Work PB231): the byte image and the area's MANAGED SLOTS
             // are two halves of ONE StorageCell, so naming the cell once and defining the backing as `ref
             // {cell}.Ref` makes that an identity rather than two expressions that happen to agree.
-            w.Line($"private StorageCell {ext.CellCsName} => ExternalStore.Cell({CsLiteral(ext.ExternalName)}, "
+            w.Line($"private StorageCell {ext.CellClrName} => ExternalStore.Cell({CsLiteral(ext.ExternalName)}, "
                 + $"{init});   // EXTERNAL — ONE storage copy per run unit (ISO §8.6.7); survives CANCEL (§14.9.5.4 GR8)");
-            w.Line($"private ref string {ext.BackingCsName} => ref {ext.CellCsName}.Ref;");
+            w.Line($"private ref string {ext.BackingClrName} => ref {ext.CellClrName}.Ref;");
         }
     }
 
@@ -390,8 +390,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // IMPLEMENTS list joins the base list (§11.8 — the closure arrives transitively at the C# level);
         // covariant-return conformances render as EXPLICIT interface implementations (D-I1's adapter cure:
         // C# forbids covariant interface implementations that §9.3.8.2.3 5a/5c2 permit).
-        string instBase = string.Join(", ", new[] { cls.Symbol.Base?.CsName ?? "CobolObject" }
-            .Concat(cls.Symbol.Implements.Select(i => i.CsName)));
+        string instBase = string.Join(", ", new[] { cls.Symbol.Base?.ClrName ?? "CobolObject" }
+            .Concat(cls.Symbol.Implements.Select(i => i.ClrName)));
         var instExtras = adapters
             .Where(a => !a.Factory && ReferenceEquals(a.Impl.Owner, cls.Symbol))
             .Select(a =>
@@ -403,7 +403,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // class (implicit upcast, the cast is redundant) but rule 5 a) admits an INTERFACE-typed return for a
                 // universal prototype, which C# converts to the universal class only by a cast (kb/Work PB1499).
                 string conv = protoRet == "void" ? "" : $"({protoRet})";
-                return $"{protoRet} {a.Iface.CsName}.{a.Proto.CsName}({protoSig}) => {conv}this.{a.Impl.CsName}({args});   // covariant-return adapter (§9.3.8.2.3 5a/5c2)";
+                return $"{protoRet} {a.Iface.ClrName}.{a.Proto.ClrName}({protoSig}) => {conv}this.{a.Impl.ClrName}({args});   // covariant-return adapter (§9.3.8.2.3 5a/5c2)";
             })
             .ToList();
         // §16.2.2.2 GR1 — FactoryObject "determines the class of the object": the runtime BASE reads it from this
@@ -413,9 +413,9 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // §9.3.6 match rule 3 d) 4./5. — "the class specified in the invocation" of a universal INVOKE is the class of the
         // object it runs on; each half names the other half's type, so the run-time relation can ask an ACTIVE-CLASS
         // formal's question of either (CobolObject.__FactoryClassType / __InstanceClassType; kb/Work PB1112).
-        instExtras.Add($"protected override global::System.Type? __FactoryClassType => typeof({cls.Symbol.FactoryCsName});");
+        instExtras.Add($"protected override global::System.Type? __FactoryClassType => typeof({cls.Symbol.FactoryClrName});");
         if (lifeCycle)
-            instExtras.Add($"protected override {OoStandardClasses.BaseFactoryCsName} __FactoryOfClass => {cls.Symbol.FactoryCsName}."
+            instExtras.Add($"protected override {OoStandardClasses.BaseFactoryClrName} __FactoryOfClass => {cls.Symbol.FactoryClrName}."
                 + $"{NamingConvention.FactoryInstanceField};   // FactoryObject (ISO §16.2.2.2 GR1)");
         // The class's repository record (ISO §8.13; DESIGN-external-repository §6.2): its [CobolUnit] always, and with
         // --repository-update on its facts and tables on this type, each method's on its CLR method, each property's on the
@@ -426,7 +426,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         if (record is not null)
             instAttributes.AddRange(RepositoryAttributeRenderer.TableRecords(record)
                 .Concat(RepositoryAttributeRenderer.PropertyRecords(record.Class!, factory: false)));
-        EmitTypeHalf(cls.Name, cls.CsName, cls.Symbol.HalfPath(factory: false), instBase,
+        EmitTypeHalf(cls.Name, cls.Symbol.ClrName, cls.Symbol.HalfPath(factory: false), instBase,
             cls.Data, cls.Refs, cls.Bound, cls.Symbol.Methods, w,
             headerExtras: instExtras.Count > 0 ? instExtras : null,
             sealedType: cls.Symbol.IsFinal,
@@ -437,8 +437,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // inherited factory data; SELF-in-factory polymorphism SR4f + GR2; §9.3.6 chain resolution). Every
         // CLASS-ID emits one — a class with no FACTORY paragraph still needs its own factory object and a
         // chain node for inherited factory methods.
-        string facBase = string.Join(", ", new[] { cls.Symbol.Base?.FactoryCsName ?? "CobolObject" }
-            .Concat(cls.Symbol.FactoryImplements.Select(i => i.CsName)));
+        string facBase = string.Join(", ", new[] { cls.Symbol.Base?.FactoryClrName ?? "CobolObject" }
+            .Concat(cls.Symbol.FactoryImplements.Select(i => i.ClrName)));
         var extras = new List<string>
         {
             // The factory object (§9.3.14.2: "created before it is first referenced by a run unit" and "deleted
@@ -447,9 +447,9 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // factory data (kb/Work PB1069). A factory with ANY superclass hides that superclass's accessor — a COBOL
             // class's, or the runtime __FACTORY_BASE's, which declares the same singleton so that BASE's own factory is
             // reached as every other is (kb/Work PB2489).
-            $"public {(cls.Symbol.Base is not null ? "new " : "")}static {cls.Symbol.FactoryCsName} "
-                + $"{NamingConvention.FactoryInstanceField} => {RuntimeApi.FactoryObject(cls.Symbol.FactoryCsName)};",
-            $"protected override global::System.Type? __InstanceClassType => typeof({cls.CsName});",
+            $"public {(cls.Symbol.Base is not null ? "new " : "")}static {cls.Symbol.FactoryClrName} "
+                + $"{NamingConvention.FactoryInstanceField} => {RuntimeApi.FactoryObject(cls.Symbol.FactoryClrName)};",
+            $"protected override global::System.Type? __InstanceClassType => typeof({cls.Symbol.ClrName});",
         };
         // New's creation step (§16.2.1.2 GR1), exactly when the class has BaseFactoryInterface through INHERITS
         // (§16.2; §9.3.9): a covariant override of __FACTORY_BASE.__Create, so New invoked on a subclass's factory —
@@ -457,20 +457,20 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // constructor IS the initialization (deep-dive D4); __FACTORY_BASE.__New wraps it with GR2's
         // resource-failure leg. A class that does not inherit BASE has no New at all (kb/Work PB1548).
         if (lifeCycle)
-            extras.Add($"protected override {cls.CsName} __Create() => new {cls.CsName}();   // New (ISO §16.2.1.2 GR1)");
+            extras.Add($"protected override {cls.Symbol.ClrName} __Create() => new {cls.Symbol.ClrName}();   // New (ISO §16.2.1.2 GR1)");
         // The class's METHOD working-storage is static data (OO deep-dive D3), so a new run unit cannot make it fresh
         // by construction: each half that has any emits __ResetStatics (the ONE predicate, DataBinder.EmitsStaticReset,
         // shared with RecordStructEmitter), and the factory ADOPTS both into the run unit that creates it — reset at
         // its start (§14.6.2.3.2 case 1) and released at its termination (§14.6.11 3/4/6; kb/Work PB1069). The base
         // call keeps a superclass's own adoption on the chain.
-        var adopt = new[] { (cls.Data, cls.CsName), (cls.FactoryData, cls.Symbol.FactoryCsName) }
+        var adopt = new[] { (cls.Data, cls.Symbol.ClrName), (cls.FactoryData, cls.Symbol.FactoryClrName) }
             .Where(h => h.Item1.EmitsStaticReset)
             .Select(h => $"runUnit.AdoptStaticStorage({h.Item2}.__ResetStatics);")
             .ToList();
         if (adopt.Count > 0)
             extras.Add("protected override void __AdoptRunUnitStorage(RunUnit runUnit) { base.__AdoptRunUnitStorage(runUnit); "
                 + string.Join(" ", adopt) + " }   // method WORKING-STORAGE → this run unit (ISO §14.6.2.3.2 / §14.6.11)");
-        EmitTypeHalf(cls.Name, cls.Symbol.FactoryCsName, cls.Symbol.HalfPath(factory: true), facBase,
+        EmitTypeHalf(cls.Name, cls.Symbol.FactoryClrName, cls.Symbol.HalfPath(factory: true), facBase,
             cls.FactoryData, cls.FactoryRefs, cls.FactoryBound, cls.Symbol.FactoryMethods, w, extras,
             sealedType: cls.Symbol.IsFinal,
             typeAttributes: record is null ? [] : [.. RepositoryAttributeRenderer.PropertyRecords(record.Class!, factory: true)],
@@ -560,8 +560,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
 
     /// <summary>The factory singleton class of the class an INVOKE names by class-name (the New and Factory forms): the
     /// binder sets that form's class C# name, so a null here is a binder defect, never a name to emit.</summary>
-    private static string FactoryClassOf(string? classCsName) =>
-        NamingConvention.FactoryClassName(classCsName
+    private static string FactoryClassOf(string? classClrName) =>
+        NamingConvention.FactoryClassName(classClrName
             ?? throw new InvalidOperationException("a class-name INVOKE form carries no class C# name"));
 
     /// <summary>Render the §14.9.23.4 GR7c two-arm stop for one <c>__CobolInvoke</c> conformance check.
@@ -774,7 +774,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             w.Line($"var __p{i} = __o{i} ? ManagedPointer<{crossing}>.Cell(default!) : {view};");
         }
         string argList = string.Join(", ", Enumerable.Range(0, formals).Select(i => OoArgPair($"__p{i}", $"__o{i} ? null : __a[{i}].Area", $"__o{i}")));
-        w.Line(returning is null ? $"this.{m.CsName}({argList});" : $"var __rv = this.{m.CsName}({argList});");
+        w.Line(returning is null ? $"this.{m.ClrName}({argList});" : $"var __rv = this.{m.ClrName}({argList});");
         if (returning is not null)
             w.Line(OoUnivGroupCarried(returning) is not null
                 ? $"__ret!.Value = {nameof(UniversalGroupCarrier)}.{nameof(UniversalGroupCarrier.Deliver)}({OoUnivRebox(returning, "__rv")}, "
@@ -1062,16 +1062,16 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             string pmods = pmod.Length == 0 ? "" : pmod + " ";
             // ⛔ THROUGH THE SUBJECT'S PLACE, never its C# name (kb/Work PB956): a subject whose record is
             // cell-backed (an ADDRESS OF target) or a Tier-B REDEFINES window has NO field of its own — its storage
-            // is a window over the class backing — so `=> {CsName}` was a CS0103 on legal source. A plain field's
+            // is a window over the class backing — so `=> {ClrName}` was a CS0103 on legal source. A plain field's
             // place renders as its name, so the ordinary accessor is unchanged.
             var subjPlace = Refs.ResolveItem(subject);
-            string getExpr = subjPlace is null ? subject.CsName : PlaceRenderer.Read(subjPlace);
+            string getExpr = subjPlace is null ? subject.ClrName : PlaceRenderer.Read(subjPlace);
             // An accessor is a method activation too (§14.9.23.4 GR7 d) — its external-item check precedes its body.
             string check = MethodExternalCheck(m) is { } mx ? mx + " " : "";
             if (m.Accessor == 'G')
                 w.Line(check.Length == 0
-                    ? $"public {pmods}{retType} {m.CsName}() => {getExpr};   // PROPERTY {m.PropertyName} GET (§13.18.42.4 GR1)"
-                    : $"public {pmods}{retType} {m.CsName}() {{ {check}return {getExpr}; }}   // PROPERTY {m.PropertyName} GET (§13.18.42.4 GR1)");
+                    ? $"public {pmods}{retType} {m.ClrName}() => {getExpr};   // PROPERTY {m.PropertyName} GET (§13.18.42.4 GR1)"
+                    : $"public {pmods}{retType} {m.ClrName}() {{ {check}return {getExpr}; }}   // PROPERTY {m.PropertyName} GET (§13.18.42.4 GR1)");
             else
             {
                 // The setter's one formal (§11.7.3 SR7) crosses through the SAME signature builder as every
@@ -1080,8 +1080,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // An ACTIVE-CLASS property's setter formal crosses as the universal type (OoFormalCrossingType); the
                 // subject is the containing class's reference, so the store narrows it (GR22 e)).
                 string value = OoIsActiveClassFormal(m.Binding!.Formals[0].Item) ? $"({subject.ElementType}){param}.Value" : $"{param}.Value";
-                string store = subjPlace is null ? $"{subject.CsName} = {value};" : PlaceRenderer.Write(subjPlace, value);
-                w.Line($"public {pmods}void {m.CsName}({sig}) {{ {check}{store} }}   // PROPERTY {m.PropertyName} SET (GR2)");
+                string store = subjPlace is null ? $"{subject.ClrName} = {value};" : PlaceRenderer.Write(subjPlace, value);
+                w.Line($"public {pmods}void {m.ClrName}({sig}) {{ {check}{store} }}   // PROPERTY {m.PropertyName} SET (GR2)");
             }
             w.Line();
             return;
@@ -1095,7 +1095,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             ? (m.IsFinal && !m.Owner.IsFinal ? "sealed override" : "override")
             : (m.IsFinal || m.Owner.IsFinal) ? ""
             : "virtual";
-        using (w.Block($"public {(modifier.Length == 0 ? "" : modifier + " ")}{retType} {m.CsName}({sig})   // METHOD-ID {m.Name} (ISO §11.7)"))
+        using (w.Block($"public {(modifier.Length == 0 ? "" : modifier + " ")}{retType} {m.ClrName}({sig})   // METHOD-ID {m.Name} (ISO §11.7)"))
         {
             // This body's formals, for the §8.8.4.8.4 GR1c forwarding recognition (CallUnitState.WholeFormalProbe)
             // that every CALL and INVOKE argument inside the body consults (kb/Work PB757). Cleared below.
@@ -1227,10 +1227,10 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 if (formal is null && root is { IsAnyLength: true, Pic: { } anyPic })
                     // An ANY LENGTH RETURNING item starts as n repetitions of its picture symbol, n being the activator's
                     // receiver length (§13.18.2.4 GR1 b)) — OoSignatureOf's trailing parameter.
-                    w.Line($"{type} {root.CsName} = new string({RuntimeApi.AnyLengthFill(anyPic)}, {RetLenParam});   "
+                    w.Line($"{type} {root.ClrName} = new string({RuntimeApi.AnyLengthFill(anyPic)}, {RetLenParam});   "
                         + $"// LINKAGE {root.CobolName} (ANY LENGTH RETURNING — n is the activator's, §13.18.2.4 GR1 b))");
                 else if (formal is null)
-                    w.Line($"{type} {root.CsName} = {init};   // LINKAGE {root.CobolName} (§14.2.3 GR6)");
+                    w.Line($"{type} {root.ClrName} = {init};   // LINKAGE {root.CobolName} (§14.2.3 GR6)");
                 else if (root.IsGroup)
                 {
                     // The image crossing: construct (arrays allocated), then distribute the caller's image
@@ -1242,7 +1242,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                     // side (`DataBinder.Oo`) applies no image screen and the relations' description of such a
                     // group (`ActivationDescriptions.Of` answers none) is asked only when an INVOKE or an
                     // override/implements PAIR exists, so a merely-DECLARED method must not emit uncompilable C#.
-                    w.Line($"{type} {root.CsName} = {init};   // LINKAGE formal {root.CobolName} (group — image crossing)");
+                    w.Line($"{type} {root.ClrName} = {init};   // LINKAGE formal {root.CobolName} (group — image crossing)");
                     w.Line($"if (!{formal.OmittedFlag}) {{ " + (OoVarGroupCarried(root)
                         // §8.5.1.12's component carrier (kb/Work PB204) — the variable-length twin of the
                         // image distribution, through the SAME ONE channel.
@@ -1259,7 +1259,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 else
                     // An ACTIVE-CLASS formal crosses as the universal type (OoFormalCrossingType) and is viewed as the
                     // containing class here — GR22 e) guarantees the invoker's class is that class or a subclass.
-                    w.Line($"{type} {root.CsName} = {formal.OmittedFlag} ? {init} : "
+                    w.Line($"{type} {root.ClrName} = {formal.OmittedFlag} ? {init} : "
                         + $"{(OoIsActiveClassFormal(root) ? $"({type})" : "")}{formal.ParamName}.Value;   "
                         + $"// LINKAGE formal {root.CobolName} (BY REFERENCE copy-in; omitted → initial state)");
             }
@@ -1282,7 +1282,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 }
                 if (root.Class is { Tier: RedefinesTier.StringCanonical }) continue;   // a view — a window over the backing, no local (kb/Work PB203)
                 var (type, init) = fields.RootDecl(root);
-                w.Line($"{type} {root.CsName} = {init};   // LOCAL-STORAGE {root.CobolName} — re-initialized each activation (§8.6.4)");
+                w.Line($"{type} {root.ClrName} = {init};   // LOCAL-STORAGE {root.CobolName} — re-initialized each activation (§8.6.4)");
             }
             Ctx.Data.Options = savedOptions;   // an emission error abandons the whole compile, so no finally is owed
             Ctx.ActivationLocalRoots = savedActivationRoots;
@@ -1529,7 +1529,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // host's null-or-stale _refs field here, equally unread). The fresh renderers are unused but harmless.
         program.BeginUnit(w, data, null!);
         string bases = iface.Inherits.Count > 0
-            ? " : " + string.Join(", ", iface.Inherits.Select(b => b.CsName))
+            ? " : " + string.Join(", ", iface.Inherits.Select(b => b.ClrName))
             : "";
         // The interface's repository record (ISO §8.13; DESIGN-external-repository §6.2): its [CobolUnit] always, and with
         // --repository-update on its facts, tables and properties here and each prototype's on its CLR method.
@@ -1539,7 +1539,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             foreach (string attribute in RepositoryAttributeRenderer.TableRecords(record)
                          .Concat(RepositoryAttributeRenderer.PropertyRecords(record.Class!, factory: false)))
                 w.Line(attribute);
-        using (w.Block($"public interface {iface.CsName}{bases}"))
+        using (w.Block($"public interface {iface.ClrName}{bases}"))
         {
             new DataEmitter(Ctx).Emit();   // profiles + struct types only (LINKAGE roots are suppressed)
             for (int i = 0; i < iface.Prototypes.Count; i++)
@@ -1548,7 +1548,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 var methodRecord = record?.Class!.Methods[i];
                 var (retType, sig) = OoSignatureOf(proto, methodRecord);
                 EmitMethodRecord(methodRecord, w);
-                w.Line($"{retType} {proto.CsName}({sig});   // METHOD-ID {proto.Name} (prototype, §10.6.2 SR4)");
+                w.Line($"{retType} {proto.ClrName}({sig});   // METHOD-ID {proto.Name} (prototype, §10.6.2 SR4)");
             }
             // §11.6.3 SR5: a name inherited from SEVERAL interfaces is ONE method of this interface (the prototype the
             // others conform to). C# sees two base-interface members and every call through this interface is ambiguous
@@ -1559,7 +1559,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             foreach (var presented in iface.PresentedInherited)
             {
                 var (retType, sig) = OoSignatureOf(presented, record: null);
-                w.Line($"new {retType} {presented.CsName}({sig});   // METHOD-ID {presented.Name} inherited from several interfaces (§11.6.3 SR5)");
+                w.Line($"new {retType} {presented.ClrName}({sig});   // METHOD-ID {presented.Name} inherited from several interfaces (§11.6.3 SR5)");
             }
         }
         w.Line();
@@ -1682,9 +1682,9 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             w.Line($"var {factory} = {RuntimeApi.ObjRequireNonNull(PlaceRenderer.Read(recv))};   // §14.9.23.4 GR5");
         }
         else
-            factory = $"{FactoryClassOf(inv.ClassCsName)}.{NamingConvention.FactoryInstanceField}";
+            factory = $"{FactoryClassOf(inv.ClassClrName)}.{NamingConvention.FactoryInstanceField}";
         w.Line(PlaceRenderer.Write(ret, "null") + "   // §16.2.1.2 GR2 — NULL unless New creates the object");
-        w.Line(PlaceRenderer.Write(ret, $"({ret.Item.Pic!.ClrType}){factory}.{OoStandardClasses.NewCsName}()")
+        w.Line(PlaceRenderer.Write(ret, $"({ret.Item.Pic!.ClrType}){factory}.{OoStandardClasses.NewClrName}()")
             + "   // INVOKE … \"New\" (ISO §16.2.1.2)");
         U.Call.EmitActivationReturned(inv);   // a NEW OVERRIDE is a user method (kb/Work PB1582): it returns like any other
     }
@@ -1711,7 +1711,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             var a = args[i];
             bool stringCarried = OoStringCarried(a.Formal);
             string qualProfile = a.Formal.Pic is { Category: PicCategory.Numeric }
-                ? $"{(inv.Form is InvokeForm.Factory ? FactoryClassOf(inv.OwnerCsName) : inv.OwnerCsName)}.{a.Formal.ProfileName}" : "";
+                ? $"{(inv.Form is InvokeForm.Factory ? FactoryClassOf(inv.OwnerClrName) : inv.OwnerClrName)}.{a.Formal.ProfileName}" : "";
 
             string crossing = OoFormalCrossingType(a.Formal);
             // ⛔ THE OMITTED ARGUMENT (kb/Work PB757) — spelled, or trailing-omitted: its carrier is a placeholder cell of
@@ -1965,10 +1965,10 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             InvokeForm.Super => "base",
             // The factory singleton is never null — no GR5 guard (brief D11); virtual dispatch through the
             // factory hierarchy realizes §9.3.6 factory resolution.
-            InvokeForm.Factory => $"{FactoryClassOf(inv.ClassCsName)}.{NamingConvention.FactoryInstanceField}",
+            InvokeForm.Factory => $"{FactoryClassOf(inv.ClassClrName)}.{NamingConvention.FactoryInstanceField}",
             _ => RuntimeApi.ObjRequireNonNull(PlaceRenderer.Read(inv.Receiver!)),
         };
-        string call = $"{target}.{inv.MethodCsName}(" + string.Join(", ", argExprs) + ")";
+        string call = $"{target}.{inv.MethodClrName}(" + string.Join(", ", argExprs) + ")";
 
         if (inv.ReturningSource is { } rs && inv.Returning is { } recv)
         {

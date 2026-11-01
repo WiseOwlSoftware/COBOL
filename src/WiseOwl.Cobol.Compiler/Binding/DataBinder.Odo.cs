@@ -229,7 +229,7 @@ public sealed partial class DataBinder
         {
             if (table.OccursSpec is not { Keys.Count: > 0 } spec) continue;
             using var _ = Edition.At(table);
-            string subject = table.CobolName ?? table.CsName;
+            string subject = table.CobolName ?? table.ClrName;
             spec.ResolvedKeys.Clear();
             for (int i = 0; i < spec.Keys.Count; i++)
             {
@@ -293,7 +293,7 @@ public sealed partial class DataBinder
         // charge the key with any OCCURS group that merely ENCLOSES the table (a table inside OUTER OCCURS 2).
         for (DataItem? g = ReferenceEquals(key, table) ? null : key.Parent; g is not null && !ReferenceEquals(g, table); g = g.Parent)
             if (g.IsTable && (ItemCategory.GroupKindsOf(g) & Sr4Kinds) != 0)
-                return $"the key is subordinate to '{g.CobolName ?? g.CsName}', a group within the table that contains an "
+                return $"the key is subordinate to '{g.CobolName ?? g.ClrName}', a group within the table that contains an "
                     + "OCCURS clause — \"If data-name-2 is subordinate to an alphanumeric group item, bit group item, "
                     + "national group item, or strongly-typed group item that is subordinate to the entry containing the "
                     + "OCCURS clause, that group item shall not contain an OCCURS clause\" (ISO §13.18.38.3 SR4)";
@@ -336,7 +336,7 @@ public sealed partial class DataBinder
             if (table.ClonedFrom is { SubscriptArity: 8 }) continue;
             using var _ = Edition.At(table.ReferenceSite);
             Edition.Error(DiagnosticCatalog.TableNestingTooDeep,
-                $"table '{table.CobolName ?? table.CsName}' is nested under seven other OCCURS entries: a reference to "
+                $"table '{table.CobolName ?? table.ClrName}' is nested under seven other OCCURS entries: a reference to "
                 + "it needs eight subscripts, and \"as long as the number of subscripts required does not exceed "
                 + "seven\" (ISO §13.18.38.3 SR10) — at most seven subscripts may be specified (§8.4.2.3.3 SR3)"
                 + ViaReference(table));
@@ -346,7 +346,7 @@ public sealed partial class DataBinder
         {
             if (item.OccursSpec is not { DependingName: { } depName } spec) continue;
             using var _ = Edition.At(item);
-            string subject = item.CobolName ?? item.CsName;
+            string subject = item.CobolName ?? item.ClrName;
             // ⛔ A TYPE DECLARATION IS SCREENED, NOT PLACED (kb/Work PB2548). Its OCCURS DEPENDING ON phrase is source (§4.3),
             // so every rule that is a fact of the declaration alone — SR16's bounds, the counter's own SR17/SR2 when it
             // resolves — is asked of it; a use site is asked again through its clone. But §13.18.57.4 GR1 makes a TYPE
@@ -640,7 +640,7 @@ public sealed partial class DataBinder
         {
             if (item.OccursSpec is not { IsDynamic: true } spec) continue;
             using var _ = Edition.At(item);
-            string subject = item.CobolName ?? item.CsName;
+            string subject = item.CobolName ?? item.ClrName;
 
             // §8.5.1.9.1 item 3 (:8195) — a dynamic-capacity table "may be defined in any place, OTHER THAN the file
             // section" (its out-of-line CobolDynTable has no place in a record image). Reject a dynamic table whose
@@ -739,7 +739,7 @@ public sealed partial class DataBinder
             var reg = new DataItem
             {
                 Level = 49,
-                CsName = NamingConvention.CapacityRegisterName(item.CsName),
+                ClrName = NamingConvention.CapacityRegisterName(item.ClrName),
                 CobolName = spec.CapacityName,
                 Pic = PicInfo.BinaryItem(Usage.BinaryLong, signed: false),
                 Parent = item.Parent,

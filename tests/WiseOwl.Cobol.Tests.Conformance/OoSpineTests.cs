@@ -1071,7 +1071,7 @@ public sealed class OoSpineTests
     }
 
     /// <summary>Trap #2 — a CASE-MISMATCHED override spelling ("Speak" vs "SPEAK") still overrides and still
-    /// dispatches virtually (COBOL names are case-insensitive, §8.3.2.2; the uppercase CsName convention
+    /// dispatches virtually (COBOL names are case-insensitive, §8.3.2.2; the uppercase ClrName convention
     /// collapses both onto ONE C# slot — the legacy silently took a NEW slot and dispatched to the base).</summary>
     [Fact]
     public void Trap2_CaseMismatchedOverride_StillDispatches()

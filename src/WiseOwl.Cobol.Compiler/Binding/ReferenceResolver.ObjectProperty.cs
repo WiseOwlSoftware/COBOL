@@ -288,8 +288,8 @@ public sealed partial class ReferenceResolver
         // "wherever a data item with that description would be valid" as a sending / receiving item.
         var temp = data.OoCreatePropertyTemp(model, name);
         data.OoPendingPropertyOps.Add(new DataBinder.OoPendingPropertyOp(
-            temp, receiver.Form, receiver.Receiver, receiver.Interface?.CsName ?? receiver.Class!.CsName,
-            get, set, name, objWritten, prelude, InterfaceCsName: receiver.Interface?.CsName));
+            temp, receiver.Form, receiver.Receiver, receiver.Interface?.ClrName ?? receiver.Class!.ClrName,
+            get, set, name, objWritten, prelude, InterfaceClrName: receiver.Interface?.ClrName));
         return (temp, null);
     }
 
