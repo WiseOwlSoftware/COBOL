@@ -190,7 +190,7 @@ def _read_label(path: Path) -> str:
 
 class ExclusiveLock:
     """An exclusive OS lock on ONE file, taken WITHOUT waiting — the gate driver's per-worktree gate lock
-    (DESIGN-test-build-ci.md §3.14.3 step 1). The same primitive as a slot: the OS drops it when its holder dies, so
+    (DESIGN-test-build-ci.md §3.14.12 item 1). The same primitive as a slot: the OS drops it when its holder dies, so
     no stale-pid cleanup exists, and the holder's label at the start of the file names it to the gate it refuses."""
 
     def __init__(self, path: Path, fd: int):

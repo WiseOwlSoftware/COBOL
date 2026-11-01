@@ -39,8 +39,9 @@ reporter that could not look is not a green, feedback_green_gates_arent_evidence
 `--self-test` drives the rule against a REAL vstest failure transcript (the one golden lane #2's lander captured,
 DEVLOG 1700, with a planted token for its message) and proves, arm by arm, that the message and the stack frames
 reach the printed report — and, as the calibration that makes the proof mean something, that BOTH retired filters
-drop that same message. `tests/WiseOwl.Cobol.Tests.Unit/TestLegReportDriftTests.cs` runs it in every Unit leg and
-asserts every gate script routes its legs through this file.
+drop that same message. The self-test also asserts, over the real tree, that no script filters test output by keyword
+and that the gate driver routes its hosts through this file (kb/Work PB4395 moved that from a compiler test), and
+scripts/self_test_arms.py holds its arms.
 """
 from __future__ import annotations
 
@@ -191,8 +192,40 @@ def self_test() -> int:
         case("fires UNREADABLE: a log the reporter cannot read exits 2, never 0", r.returncode == 2,
              f"rc={r.returncode}\n{r.stdout}{r.stderr}")
 
+    # THE REAL TREE (kb/Work PB1573; kb/Work PB4395 moved it here from TestLegReportDriftTests, a compiler test that
+    # walked every script): no script selects lines out of a test run's output by keyword, and the gate driver, the
+    # script that runs and prints `dotnet test` hosts, routes them through this reporter.
+    offenders, callers = keyword_filters(pathlib.Path(__file__).resolve().parent)
+    case("the real tree: no script under scripts/ filters a test run's output by keyword, and scripts/gate.py routes "
+         "through the reporter (a scan that stopped seeing it would report a clean tree over nothing)",
+         not offenders and "scripts/gate.py" in callers, "; ".join(offenders) or f"callers: {callers}")
+
     print(f"SELF-TEST: {'PASS' if not failures else 'FAIL — ' + '; '.join(failures)}")
     return 0 if not failures else 1
+
+
+#: The retired keyword filter: a line with a verdict word and an error word, in either order (kb/Work PB1573).
+KEYWORD_FILTER = re.compile(r"(Passed!|Failed!).*(error|\[FAIL\])|(error|\[FAIL\]).*(Passed!|Failed!)")
+
+
+def keyword_filters(scripts: pathlib.Path) -> tuple[list[str], list[str]]:
+    """(`path:line: text` of every script line that filters test output by keyword, outside a comment; the scripts that
+    name this reporter), over every file under `scripts` but this one and the bytecode caches."""
+    offenders: list[str] = []
+    callers: list[str] = []
+    me = pathlib.Path(__file__).name
+    for path in sorted(p for p in scripts.rglob("*") if p.is_file()):
+        rel = "scripts/" + path.relative_to(scripts).as_posix()
+        if "__pycache__" in rel or rel.endswith(me):
+            continue
+        for i, line in enumerate(path.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
+            if line.lstrip().startswith("#"):
+                continue
+            if KEYWORD_FILTER.search(line):
+                offenders.append(f"{rel}:{i}: {line.strip()}")
+            if me in line and rel not in callers:
+                callers.append(rel)
+    return offenders, callers
 
 
 def main() -> int:
