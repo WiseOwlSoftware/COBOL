@@ -1,4 +1,4 @@
-## CI is bounded and its caches are saved from main only (PB4324, pipeline step 1; closes PB4227)
+## Entry 2904 — 2026-10-31 19:59 PDT — CI is bounded and its caches are saved from main only (PB4324, pipeline step 1; closes PB4227)
 
 Step 1 of the pipeline redesign (PB4323). Merge-group run 41226218068 (PR #893) sat 45 minutes in `actions/checkout` of a job
 whose code was fine, and the queue removed the PR; the workflow had no `timeout-minutes`. Re-probed on this build:
@@ -41,3 +41,4 @@ main ref, so a manual dispatch from a branch saves nothing.
 
 **Not verifiable off CI.** setup-python finding the restored Windows tool-cache directory, and the first `package-cache` run,
 happen on the first push to main after landing; the first merge group after it reads their effect.
+
