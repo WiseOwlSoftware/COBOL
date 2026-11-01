@@ -169,7 +169,8 @@ internal sealed record ArchitectureEdges(
         foreach (EdgesRow row in Tolerated)
         {
             string name = $"tolerated row {row.From} -> {row.To}";
-            string link = $"{row.From} → {row.To}";
+            // backticked, so `CodeGen → Binding` is never read inside `CodeGen → Binding.Repository`
+            string link = $"`{row.From} → {row.To}`";
             foreach (string id in row.RemovedBy.Concat(row.Pairs.SelectMany(p => p.RemovedBy)).Distinct().Order(StringComparer.Ordinal))
             {
                 if (note(id) is not { } n)

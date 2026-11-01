@@ -285,9 +285,12 @@ public sealed class ArchitectureEdgesDriftTests
         Assert.Contains(Planted.RemoverDefects(_ => open with { Status = "landed" }, terminal), f => f.Contains("PB1 is landed", StringComparison.Ordinal));
         Assert.Contains(Planted.RemoverDefects(_ => open with { Removes = "**Removes:** `P.Low → P.High` 1" }, terminal),
             f => f.Contains("does not name the row", StringComparison.Ordinal));
+        // a row whose name is a prefix of another's is not named by the longer one
+        Assert.Contains(Planted.RemoverDefects(_ => open with { Removes = "**Removes:** `P.Low → P.Mid.Sub` 1" }, terminal),
+            f => f.Contains("does not name the row", StringComparison.Ordinal));
         var censusOnly = Planted with { Tolerated = [new EdgesRow("P.Mid", "P.High", 1, 0, ["PB2"], "PB2, then PB3", [])] };
         var failures = censusOnly.RemoverDefects(id => id == "PB2" ? open : null, terminal);
-        Assert.Contains(failures, f => f.Contains("PB2's **Removes** line does not name the row (P.Mid → P.High)", StringComparison.Ordinal));
+        Assert.Contains(failures, f => f.Contains("PB2's **Removes** line does not name the row (`P.Mid → P.High`)", StringComparison.Ordinal));
         Assert.Contains(failures, f => f.Contains("its plan names PB3, which kb/Work does not hold", StringComparison.Ordinal));
     }
 
