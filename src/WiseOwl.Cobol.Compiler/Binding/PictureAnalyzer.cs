@@ -128,7 +128,7 @@ public static class PictureAnalyzer
 
         // ── ISO §13.18.40.3 SR4 ── "The maximum number of characters allowed in character-string-1 is 63."
         // That is the 2023 text's bound; the edition's own is MaxStringLength (50 at COBOL-2002, 30 at COBOL-85 —
-        // the 2002 text's SR4 and its Annex F.2 item 94; kb/Work PB4304), a length error below the edition that
+        // the 2002 text's 13.16.38.2 SR4 and its Annex F.2 item 94; kb/Work PB4304), a length error below the edition that
         // relaxed it, so also under --permissive.
         // The count is over character-string-1 AS WRITTEN — SR6's second sentence ("the length of the integer,
         // not the length of the constant-name, is counted toward the maximum number of characters in
@@ -764,7 +764,7 @@ public static class PictureAnalyzer
     /// <see cref="Analyze"/>'s prologue.</summary>
     internal const int MaxPictureStringLength = 63;
 
-    /// <summary>The bound at COBOL-2002 — 50 characters. QUOTED: the 2002 text's own 13.16.39.3 SR4 reads "The maximum
+    /// <summary>The bound at COBOL-2002 — 50 characters. QUOTED: the 2002 text's own 13.16.38.2 SR4 reads "The maximum
     /// number of characters allowed in character-string-1 is 50" and its Annex F.2 item 94 records the increase "from 30
     /// to 50" (kb/Work PB4304; docs/VERSION_CHANGE_REFERENCE.md row 7.46).</summary>
     internal const int MaxPictureStringLength2002 = 50;
