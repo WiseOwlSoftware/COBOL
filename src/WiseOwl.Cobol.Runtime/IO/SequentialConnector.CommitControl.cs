@@ -424,11 +424,28 @@ public sealed partial class SequentialConnector : IJournalData
     /// The caller asks it after the record-lock conflict check (DOC-A.1-104's point).</summary>
     internal string? ReadHoldingsGate(bool previous)
     {
-        if (!FileLockPosture.AdmitsAnotherWriter(HostShare) || HostPath.Length == 0 || _reader is null) return null;
+        if (!MeetsAnotherRunUnitsTransactions) return null;
         long at = _lineSequential ? _lineByteOffset : _readOffset;
         long ordinal = previous ? TargetReadOrdinal(previous) : 0;
         return JournalLockTest(Journal?.Id,
             previous ? h => h.HoldsRecordBefore(ordinal, at) : h => h.HoldsRecordAt(at), underMutex: false);
+    }
+
+    /// <summary>Whether another run unit's transaction can begin, and die, beside this READER while it is open: its file lock admits
+    /// another run unit's writer, and it has a file to read (<c>SHARING WITH ALL OTHER</c>; kb/Work PB4097). Under any other posture
+    /// no writer can open the file beside it, and the dead transactions that stood before its OPEN were settled by the OPEN
+    /// (<c>FileConnector.EnterPhysicalFile</c>).</summary>
+    private bool MeetsAnotherRunUnitsTransactions => FileLockPosture.AdmitsAnotherWriter(HostShare) && HostPath.Length != 0 && _reader is not null;
+
+    /// <summary>⛔ THE DEAD-OWNER STEP OF A READ THAT TESTS NO LOCK (kb/Work PB4097; §9.1.18.5: <i>"When a run unit terminates
+    /// abnormally, all file changes made since the previous commit or, if none, the beginning of the run unit are rolled back"</i>):
+    /// a READ IGNORING LOCK (§14.9.30.4 GR12, <i>"the requested record is made available, even if it is locked"</i>) or ADVANCING
+    /// ON LOCK (GR22) ignores a LIVE transaction's holdings, never a rollback that is owed: a dead transaction's rewritten record
+    /// is not in the file once its owner's locks are gone. This is <see cref="ReadHoldingsGate"/>'s entry step alone — the
+    /// dead transactions settled, no holding judged — so the lock-ignoring READ reads the file as §9.1.18.5 leaves it.</summary>
+    internal void SettleDeadTransactions()
+    {
+        if (MeetsAnotherRunUnitsTransactions) _ = JournalLockTest(Journal?.Id, static _ => false, underMutex: false);
     }
 
     /// <summary>⛔ THE JOURNAL ARM OF THE LOCK TEST, UNDER THE STATEMENT'S RETRY PHRASE (2.2.2.3: <i>"held, '51' (RETRY

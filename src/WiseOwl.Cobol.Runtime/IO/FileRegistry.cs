@@ -2141,10 +2141,12 @@ public sealed class FileRegistry
     /// writer and every reader not IGNORING LOCK"; kb/Work PB3337): a record a transaction changed is held IN THE FILE, not
     /// in the region, and a READ that does not ignore locks meets it with '51' while its owner lives (§9.1.16: <i>"The
     /// implementor may specify circumstances other than a locked logical record that result in the return of a locked
-    /// record status."</i>; DOC-A.1-152) — its RETRY phrase applying — and rolls a dead owner back at the test
-    /// (<paramref name="reevaluate"/>: the record to read is named again). IGNORING LOCK tests nothing (§14.9.30.4 GR12;
-    /// D.2.5's tolerated read). Returns the conflict status — already stored on the connector — or null. A SEQUENTIAL
-    /// file's transactions hold their records in their journals instead (<see cref="JournalConflict"/>).</summary>
+    /// record status."</i>; DOC-A.1-152) — its RETRY phrase applying — and, through a writable handle, rolls a dead owner back at
+    /// the test (<paramref name="reevaluate"/>: the record to read is named again). IGNORING LOCK tests nothing (§14.9.30.4 GR12:
+    /// it ignores a LIVE owner's lock); a dead owner's change is not in the file for it either, because the statement's ENTRY
+    /// settled every dead owner before any test ran (<c>KeyedConnector.Enter</c>; §9.1.18.5, kb/Work PB4097). Returns the conflict
+    /// status — already stored on the connector — or null. A SEQUENTIAL file's transactions hold their records in their journals
+    /// instead (<see cref="JournalConflict"/>).</summary>
     private string? HoldingsConflict(string name, FileConnector c, string recId, bool ignoringLock, out bool reevaluate)
     {
         reevaluate = false;
@@ -2159,13 +2161,19 @@ public sealed class FileRegistry
     /// record-lock tables (and the peek they gate) do not see it; a READ that does not ignore locks, through a connector whose
     /// file lock admits another run unit's writer, meets it with '51' (§9.1.13.8 1); §9.1.16's implementor-specified
     /// circumstance, DOC-A.1-152) and settles a dead owner's transaction first (<see cref="SequentialConnector.ReadHoldingsGate"/>).
-    /// A connector whose permanent error is in effect asks no lock question (§9.1.13.1, PB3416). Returns the conflict status —
-    /// stored on the connector — or null.</summary>
-    private string? JournalConflict(string name, FileConnector c, bool previous, bool ignoringLock)
+    /// A READ that tests no lock (<paramref name="testsLocks"/> false: IGNORING LOCK, §14.9.30.4 GR12; ADVANCING ON LOCK, GR22)
+    /// still settles the dead owners, since a rollback owed by §9.1.18.5 is not a lock it may ignore
+    /// (<see cref="SequentialConnector.SettleDeadTransactions"/>; kb/Work PB4097). A connector whose permanent error is in effect
+    /// asks no lock question (§9.1.13.1, PB3416). Returns the conflict status — stored on the connector — or null.</summary>
+    private string? JournalConflict(string name, FileConnector c, bool previous, bool testsLocks)
     {
-        if (ignoringLock || c is not SequentialConnector sequential || PermanentErrorOutranksLocks(c)
-            || sequential.ReadHoldingsGate(previous) is not { } held)
+        if (c is not SequentialConnector sequential || PermanentErrorOutranksLocks(c)) return null;
+        if (!testsLocks)
+        {
+            sequential.SettleDeadTransactions();
             return null;
+        }
+        if (sequential.ReadHoldingsGate(previous) is not { } held) return null;
         SetStatusOf(name, held);   // as ConflictOnLockedRecord: the status assignment drops the '43' gate (PB140)
         return held;
     }
@@ -2337,7 +2345,7 @@ public sealed class FileRegistry
             // conflict condition out and its skip-scan below is post-read on every organization. Nor does a READ on a
             // connector whose permanent error is in effect (NoLockQuestion).
             string peek = advancingOnLock || NoLockQuestion(st, c) ? "" : c.PeekSequentialRecordId(previous);
-            if (!advancingOnLock && JournalConflict(name, c, previous, ignoringLock) is { } journaled)
+            if (JournalConflict(name, c, previous, testsLocks: !advancingOnLock && !ignoringLock) is { } journaled)
             {
                 image = "";
                 return journaled;    // GR10 — nothing has moved
