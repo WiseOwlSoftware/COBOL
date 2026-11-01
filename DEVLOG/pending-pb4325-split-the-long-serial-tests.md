@@ -48,3 +48,13 @@ equivalence witnesses in leg 1 (tier 0d). Fixed at the index: a row now carries 
 partition as its family, an abstract base not at all), and `governed`/`data_files` return all of them; a planted split file in
 `drift_rules.py --self-test` pins it. R1-2 (lead): the design docs, CONFORMANCE.md and a comment named the emptied classes; they name
 the new homes.
+
+**Review round 2.** R1-1 (blocking, tier 0h): the 768 Table 19 pairs became `RunUnitFileLockPairDriftTests_P0..P7`, each carrying
+`[Trait("Host", "ReFS")]`, but `gate_plan.tier_of` looks a case up by the class WITHOUT its partition suffix, so `trait_sets`
+(which kept the raw class names) never matched and the host-only witnesses fell to tier 1, the 0h sibling of round 1's 0d gap.
+Fixed at `trait_sets`: classes are keyed by their family (`family_of`, the one partition-suffix rule `name_key` now also uses);
+`gate_plan.py --self-test` pins a partitioned witness to tier 0h, and `--traits` still lists the raw names that
+`HostWitnessTraitDriftTests` compares with the compiled attributes. R1-4: `drift_rules.CLASS` took a `class XDriftTests`
+planted inside a string literal (TrackedTreeScopeDriftTests.cs) as a governing class; a declaration must now start its line
+(the index differs from before in exactly that one row; a planted literal in the self-test pins it). R1-2 and R1-3 were comment
+errors (773 pairs and 97 a partition, where the code says 768 and 96; where a missing test is read), fixed.
