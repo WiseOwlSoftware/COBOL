@@ -1,0 +1,7 @@
+## kb/Work: file wave 20261791's leads (PB4335-PB4345)
+
+Wave 20261791's four finisher reports (PB4264, PB380, PB1610, PB1652) listed leads that no note held. Each was grepped against `kb/Work` first and filed with its report as source; no spec clause is cited except where `cite.py --check` printed OK, and nothing is adjudicated.
+
+PB4335 (MAJOR, crash): `GOBACK RETURNING` in a main program with no RETURNING item compiles, then dies at run time (the arm PB880 left). PB4336: `StandardStreams.EnsureUtf8` publishes its one-shot flag before the work, PB380's shape. PB4337: no test reads `DefaultConfig` through `CollationRuntime.Initialize`; it applies to whichever of the two in-flight PB380 fixes lands. PB4338: astral theory names read NEVER RAN on a whole-tier-1 plan (`scripts/test_population.py`). PB4339: the `.tailor` docs omit PB4264's two refusals, blocked by PB4338. PB4340: `check-batch --help` prints the root `<source>`. PB4341: `EXEC SQL` draws the generic COBOL0001. PB4342: the manual's exit-status drift test pins less than it claims and repeats work, landing with PR #933. PB4343: the manual and the preprocessor disagree on a lower-case column-7 `d`; the spec decides. PB4344: the PB1652 golden and DEVLOG 2896 cite GR7 where the text is GR8 (`cite.py --check` printed OK 8). PB4345: the planner planned a second PB380 finisher on a branch whose live successor `prune_worktrees.py` did not see.
+
+Appended: PB1613 (the CLI prints version 21.0.0) and PB1611 (only 4 construct rows carry COBOL0903 against Annex F.1/F.2).
