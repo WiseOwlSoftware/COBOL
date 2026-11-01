@@ -1,4 +1,4 @@
-## PB4097: a dead APPLY COMMIT owner's rollback is every reader's, so no run unit reads its uncommitted change
+## Entry 2959 — 2026-11-01 14:45 PST — PB4097: a dead APPLY COMMIT owner's rollback is every reader's, so no run unit reads its uncommitted change
 
 A run unit under APPLY COMMIT that is killed leaves its changes since the last COMMIT in the file. §9.1.18.5 rolls them back
 and only then releases the dead run unit's file and record locks, so a run unit that opens or reads the file afterwards must never
@@ -72,3 +72,4 @@ pinned (read-only file after the reader's OPEN, owner killed: '30', then '30' ag
 comment saying the OPEN's handle goes back only on some hosts, now says what the code does. New tests: two in
 `SequentialCommitControlTests`, four in `DeadOwnerReaderTests`, five in `FileAuthorityPresenceTests`; the inventory row retires the
 folded `SettleDeadTransactions` site (batch `w20261808b-pb4097-review-r1`).
+
