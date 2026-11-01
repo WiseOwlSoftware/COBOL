@@ -767,7 +767,8 @@ failed-checks bounce, a DEVLOG refusal) stay its step 4.
 **Tests.** `review_lane.py --self-test` (discovered and run by `scripts/self_tests.py` in every gate and in CI) drives
 the tick over planted surveys and stubbed spawn/liveness/budget collaborators, and the runner over a stub agent;
 `test_orchestrate_lane.ps1` proves the supervisor ticks it beside the landing lane and not at `-ReviewAgents 0`;
-`ReviewLaneDriftTests` holds the supervisor's chaining, the enqueue unit's step 2 and the self-test arms.
+`scripts/self_test_arms.py` holds the supervisor's chaining and the enqueue unit's step 2 (its `WIRING`) and the
+self-test arms (kb/Work PB4395).
 
 ### 4.10 The loop adopts what landed (`adopt_main.py`, kb/Work PB2699)
 
@@ -1591,7 +1592,7 @@ The three rules, each paired with a drift test so the next case is automatic (CL
    module by every caller in the same landing, and the old name is gone: a split's `git grep` of the old
    `module.member` spellings over `scripts/`, `.claude/`, `tests/`, `conformance-suite/harness/` and `.github/` finds
    nothing. A C# drift test that read a script's source for a `def` (`LandingPipelineDriftTests` reads `def land(` and
-   `def queue(` in `enqueue.py`; `SelfTestDiscoveryDriftTests` reads `AUDITS = (` in `gate.py`;
+   `def queue(` in `enqueue.py`; `self_tests.py --self-test` reads `AUDITS = (` in `gate.py`;
    `MergeDriverDriftTests` reads the `merge_drivers.` call sites in `enqueue.py`, `prune_worktrees.py` and
    `land_lane.py`) is re-pointed at the module that now holds the text, in the same landing.
 
@@ -1660,8 +1661,8 @@ become case names (`case_exit_5_is_never_relaunched_at_the_same_head`).
 **The layout drift test: `SelfTestCaseLayoutDriftTests`** (Unit, `[Trait("Sweep", "tree")]`), the test that refuses
 an in-file case list, by structure and not by list:
 - for every directory under `scripts/selftests/`, the script it mirrors exists, handles no `--self-test`
-  (`self_tests.classify` reads the flag from the syntax tree; the C# twin reads the same net
-  `SelfTestDiscoveryDriftTests` uses) and defines no `self_test`;
+  (`self_tests.classify` reads the flag from the syntax tree; the broader text net is `self_tests.net`) and
+  defines no `self_test`;
 - every `test_*.py` under `scripts/selftests/` calls `selftest_cases.run`, defines at least one `case_` function,
   keeps them in name order, and places every `expect(` call inside a `case_` function (a module-level expectation is
   a case list again);
@@ -1755,7 +1756,7 @@ and `is_drivers_merge`'s caller), `abi_pin.py`, `git_batch.py`'s docstring, `tes
 | `gate.py` (stays, the driver) | The one gate: `Gate.run` and its stages, the outcome, `main` | `Gate`, `LegRun`, `Outcome`, `NOT_RUN_SHOWN`, `print_flush`, `main` |
 | `scripts/selftests/gate/fixtures.py` | The planted machine | `FakeHost` (today a class in the driver), `POPULATION`, `LEGS` |
 
-`SelfTestDiscoveryDriftTests` reads `AUDITS = (` from `gate_host.py` after this; `.github/workflows/build-and-test.yml`'s
+`self_tests.py --self-test` reads `AUDITS = (` from `gate_host.py` after this; `.github/workflows/build-and-test.yml`'s
 comment "the SAME list as the gate driver's AUDITS" names `gate_host.py`. Importers re-pointed: `enqueue.py`
 (`Reading`, `NOT_RUN_CAUSES`, `read_verdict`, `read_record`, `predates_landing`, `RUN_ROOT`, `RECORD_SCHEMA`),
 `land_lane.py` (`live_gate`, `lock_of_run` → `gate_runs`), `gate_plan.py`
@@ -1955,12 +1956,12 @@ does), so a rename never reads as "not created yet".
 
 | Tier | Note | Step | Files claimed whole | Oracle (what proves nothing changed) |
 |---|---|---|---|---|
-| 1 | PB3637 | The UTF-8 switch: one function, `scripts/standard_streams.py#ensure_utf8`, the first statement of every live Python entry point — in the program, not the environment, by the owner's direction of 2026-10-10 (kb/Work PB1546) and because `PYTHONIOENCODING=cp1252` beats `PYTHONUTF8=1` (measured), so an environment variable cannot pass this row's oracle — every per-script `reconfigure` copy deleted, the `--help` drift test | the live tools' Python files (173, the five among them), `standard_streams.py`, one new Unit test (`ScriptStandardStreamsDriftTests`) | `standard_streams.py --check`: every argparse entry point's `--help` and a usage error exit 0 and 2 under `PYTHONIOENCODING=cp1252`; the self-test runner GREEN |
+| 1 | PB3637 | The UTF-8 switch: one function, `scripts/standard_streams.py#ensure_utf8`, the first statement of every live Python entry point — in the program, not the environment, by the owner's direction of 2026-10-10 (kb/Work PB1546) and because `PYTHONIOENCODING=cp1252` beats `PYTHONUTF8=1` (measured), so an environment variable cannot pass this row's oracle — every per-script `reconfigure` copy deleted, the `--help` drift test | the live tools' Python files (173, the five among them), `standard_streams.py`, one new Unit test (`ScriptStandardStreamsDriftTests`, since kb/Work PB4395 the script's own `--self-test` over the tree) | `standard_streams.py --check`: every argparse entry point's `--help` and a usage error exit 0 and 2 under `PYTHONIOENCODING=cp1252`; the self-test runner GREEN |
 | 1 | PB3727 | §16.9, the PublicAPI driver | `scripts/merge_drivers.py`, `.gitattributes`, `MergeDriverDriftTests.cs`, the two baselines | the driver's arms; `merge_drivers.py --check`; a `merge-tree` of the two baselines against the last three landings that touched them reproduces main's result |
 | 2 | PB3728 | §16.3, `plan_wave.py` split by job, `plan()` in stages | `plan_wave.py`, `test_plan_wave.py`, the five new modules, every importer §16.3 names | `test_plan_wave.py` GREEN with the same 416 `check(` labels (460 checks run); `--dry-run` before/after identical; the golden `testdata/plan_wave_default.json` unchanged |
 | 2 | PB3738 | §16.8, CONFORMANCE.md one file per determination | `docs/CONFORMANCE.md`, `docs/conformance/**`, `rendered_views.py`, `.gitignore`, the five readers, `ConformanceRegister.cs`, `session-probe.ps1`, `DOC_INDEX.md`, the briefs and skills that name the file | the render is byte-identical to the file it cut; every citation resolves (`--check`); `audit_annex_a1.py`, `audit_derivations.py`, `gen_ledger.py --check` and `AnnexA1RegisterDriftTests` GREEN with the same counts |
 | 3 | PB3729 | §16.2 for plan_wave: the collector `selftest_cases.py`, the layout drift test, `AssertCases`; `test_plan_wave.py` becomes `scripts/selftests/orchestrator/plan_wave/` | `selftest_cases.py`, `SelfTestArmSource.cs`, the new drift test, the plan_wave case files, `test_plan_wave.py` (deleted), `self_tests.py`'s docstring | the same 416 `check(` labels; `self_tests.py --list` finds every case file; the layout test GREEN |
-| 4 | PB3730 | §16.2 for prune_worktrees: cases out | `prune_worktrees.py`, `scripts/selftests/prune_worktrees/`, `SelfTestFixtureDriftTests`' population | the same 84 labels; the git-process count grows by at most the file count |
+| 4 | PB3730 | §16.2 for prune_worktrees: cases out | `prune_worktrees.py`, `scripts/selftests/prune_worktrees/`, `scratch_repo.py --self-test`'s population | the same 84 labels; the git-process count grows by at most the file count |
 | 5 | PB3731 | §16.4, prune_worktrees split | `prune_worktrees.py`, the four new modules, `reports.py`, every importer §16.4 names | the case files GREEN; a survey before/after identical; `plan_wave`'s and `land_lane`'s cases GREEN |
 | 6 | PB3732 | §16.2 for gate: cases out, `FakeHost` into fixtures | `gate.py`, `scripts/selftests/gate/`, `GateLegDriftTests` | the same 84 arms |
 | 7 | PB3733 | §16.5, gate split | `gate.py`, the three new modules, every importer §16.5 names | the case files GREEN; `--await` of a recorded run reads the same verdict; the gate GREEN |

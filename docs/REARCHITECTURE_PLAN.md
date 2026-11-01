@@ -1920,8 +1920,8 @@ result. Run the long legs ONE AT A TIME.
   collection split took the Conformance leg from 721 s to 600 s on the dev box — the box is saturated, so the next
   lever is less WORK, never more partitions (§3.11). ⛔ Every OTHER filtered `dotnet test` in the repo (the two doc
   regenerators, the verdict recorder, the two single-purpose CI legs) puts each term back to vstest first
-  (`scripts/filter_population.py`, PB708/PB751/PB752), and `FilterPopulationGuardDriftTests` fails if a new one
-  does not. It is NOT the comprehensive gate.
+  (`scripts/filter_population.py`, PB708/PB751/PB752), and `test_population.py`'s self-test (`audit_filtered_runs`,
+  over the real tree) fails if a new one does not. It is NOT the comprehensive gate.
 - **PER ACCUMULATED BATCH / PRE-MERGE — the comprehensive gate:** full greenfield Conformance + characterization +
   the GnuCOBOL differential, plus `scripts/guard-fast.sh` (the CLI-level NIST leg through `cobol`, every program in
   its own directory, in parallel).
@@ -3228,7 +3228,7 @@ already-derivable coverage; none change the pipeline.
   handles `--self-test`, or a file named `test_*.py`/`test_*.ps1`), in parallel, each with a private `COBOL_COORD_DIR`
   and git global config; `--built` runs the ones that read the built test assemblies; `--list` prints what it found.
   The gate runs it as its `SELF-TESTS` audit, a hand-run Linux gate as legs `selftests`/`selftests-built`, and CI in its
-  `audits`, `greenfield-unit` and `windows-self-tests` jobs (kb/Work PB2563; `SelfTestDiscoveryDriftTests`). A
+  `audits`, `greenfield-unit` and `windows-self-tests` jobs (kb/Work PB2563; the runner's own self-test holds it). A
   self-test that cannot run on one platform says so in its header (`# SELF-TEST-PLATFORM: windows — <reason>`).
   `--reuse` (the implementer gate's) reports a self-test REUSED while everything its recorded PASS read is unchanged;
   every other run records; each self-test that runs takes a place in one machine-wide budget, and a hung one is HANG,
