@@ -47,3 +47,18 @@ rows.
 
 No inventory row was claimed or re-verdicted (each row these rules map to already CONFORMS); every note writes
 `closes_rows: []` with its reason. Codes: COBOL5704 used, COBOL5705 and COBOL5706 returned.
+
+**PB4274 (the finisher, at the landing's GATE RED).** The landing's gate on ecc64a97de64 ran every case and every case
+passed on both hosts, but Unit's population read 4 NEVER RAN and 4 NOT IN THE POPULATION. The four are main's theory
+cases whose argument holds a supplementary-plane character (PB107's NormalizerTests, PB4234's WordCharacterEveryEditionTests).
+The tools spell those names differently. xunit leaves the character literal and `--list-tests` prints it as UTF-8. The
+SDK's trx logger rewrites every UTF-16 code unit outside XML's character range as a backslash-u escape
+(`RemoveInvalidXmlChar`), so each surrogate of the pair becomes six characters. A lone surrogate matched because xunit
+already writes it as `\xd800`. The check compared raw strings. `test_population.trx_spelling` now states the logger's
+rewrite once, and `check` compares both sides in it. The rewrite is not invertible, so two listed names it spells alike
+are an error. `gate_plan.name_key` and the test hosts' `GateNameKey.Of` start from the same spelling, which also fixes two
+siblings: such a case's previous red never reached tier 0a, and the shared store dropped its timing. The defect hid
+because a leg-1-only gate ignored a stopped population whole: 15 leg-1-only runs printed these NOT IN THE POPULATION
+lines and stayed GREEN, until PB4269's whole-tier leg made the population exact. `Population.defective` now holds a
+stopped run to RAN TWICE and NOT IN THE POPULATION. CI never saw the mismatch because it checked only Conformance's
+population; `greenfield-unit` and `windows-build-test` now check Unit and Characterization too (PB1957 row 50).

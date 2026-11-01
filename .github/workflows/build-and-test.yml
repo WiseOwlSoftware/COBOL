@@ -558,7 +558,9 @@ jobs:
           path: TestResults/${{ runner.os }}-${{ matrix.shard }}/
 
   # Unit + characterization moved OFF the conformance job's critical path (A14 option 1): they are
-  # project-granular (nothing hand-listed), so no population guard is needed here.
+  # project-granular (nothing hand-listed), and each run is still held to its discovered population, case by case,
+  # by the one population check (scripts/test_population.py, kb/Work PB1718, PB4274): CI is the only whole-population
+  # run, and the local gate holds its legs of the same assemblies to the same check.
   greenfield-unit:
     name: Greenfield unit + characterization (Linux)
     needs: changes
@@ -603,6 +605,19 @@ jobs:
         env:
           WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-unit/harness-observations.log
         run: python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.Characterization/WiseOwl.Cobol.Tests.Characterization.csproj --no-build --logger "trx;LogFileName=characterization.trx" --results-directory TestResults/${{ runner.os }}-unit
+      # THE POPULATION, ASSERTED (kb/Work PB1718, PB4274): each whole-project run above executed exactly what discovery
+      # lists, case by case. After both test legs, so a red test never hides the other's results.
+      - name: Assert the unit and characterization runs are exactly their discovered populations (test_population.py)
+        if: ${{ !cancelled() }}
+        run: |
+          fail=0
+          python3 scripts/test_population.py check --label "Unit (Linux)" \
+            --project tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj \
+            --trx TestResults/${{ runner.os }}-unit/unit.trx || fail=1
+          python3 scripts/test_population.py check --label "Characterization (Linux)" \
+            --project tests/WiseOwl.Cobol.Tests.Characterization/WiseOwl.Cobol.Tests.Characterization.csproj \
+            --trx TestResults/${{ runner.os }}-unit/characterization.trx || fail=1
+          exit $fail
       # The self-tests that read the BUILT assemblies (`SELF-TEST-NEEDS: build`; filter_population.py lists what the
       # Conformance and Unit assemblies discover), which the audits job cannot run (kb/Work PB2563). After the test
       # legs, so a red self-test never hides their results.
@@ -826,6 +841,20 @@ jobs:
         env:
           WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-build-test/harness-observations.log
         run: dotnet test tests/WiseOwl.Cobol.Tests.Characterization/WiseOwl.Cobol.Tests.Characterization.csproj --no-build --configuration Release --logger "trx;LogFileName=characterization.trx" --results-directory TestResults/${{ runner.os }}-build-test
+      # THE POPULATION, ASSERTED (kb/Work PB1718, PB4274): the Linux greenfield-unit job's twin, on the Release build.
+      - name: Assert the unit and characterization runs are exactly their discovered populations (test_population.py)
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          . scripts/python-resolve.sh
+          fail=0
+          "$PY" scripts/test_population.py check --label "Unit (Windows)" --configuration Release \
+            --project tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj \
+            --trx TestResults/${{ runner.os }}-build-test/unit.trx || fail=1
+          "$PY" scripts/test_population.py check --label "Characterization (Windows)" --configuration Release \
+            --project tests/WiseOwl.Cobol.Tests.Characterization/WiseOwl.Cobol.Tests.Characterization.csproj \
+            --trx TestResults/${{ runner.os }}-build-test/characterization.trx || fail=1
+          exit $fail
       - name: Upload test results (TRX)
         if: ${{ always() }}
         uses: ./.github/actions/upload-results
