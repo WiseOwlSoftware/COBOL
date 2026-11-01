@@ -115,7 +115,8 @@ public static partial class ReferenceFormatProcessor
         /// at <paramref name="site"/>: the §6.5 6) join target from now on, outside any literal.</summary>
         public void Emit(string text, TextSite site) => Emit(text, site.Spans(file, 0, 0, text.Length), LiteralState.Outside, isDirective: false);
 
-        /// <summary>A fixed-form DEBUGGING line (indicator <c>D</c>), carried as <paramref name="carrier"/> (the
+        /// <summary>A DEBUGGING line — the fixed indicator <c>D</c> or the floating indicator <c>&gt;&gt;D</c>, the one
+        /// construct in two spellings (<see cref="TryEmitFloatingDebugging"/>) — carried as <paramref name="carrier"/> (the
         /// <see cref="DebugLineCarrier"/> and the line's program text) for <c>DebuggingLineRewriter</c> to keep or hide
         /// per source unit (docs/CONFORMANCE.md D-DEBUG; kb/Work PB1705). Which of the two it is is decided after this
         /// walk, so the walk must read the line so that BOTH readings agree on every OTHER line:
@@ -131,7 +132,7 @@ public static partial class ReferenceFormatProcessor
         /// <item>any other debugging line is a new logical line and the join target from now on, so a continuation line
         /// after it continues the debugging line ("continuation of debugging lines is permitted").</item>
         /// </list></summary>
-        public void EmitDebugging(string carrier, string programText, TextSite site)
+        public void EmitDebugging(string carrier, string programText, TextSite site, int indicatorColumn)
         {
             // The line is read like any source line (§6.5 3) and 4): an inline comment is removed, a floating literal
             // continuation indicator ends it, and the literal state it ends in is tracked), so a continuation line after
@@ -147,12 +148,56 @@ public static partial class ReferenceFormatProcessor
             var spans = site.Spans(file, carrier.Length, 0, text.Length - carrier.Length);   // the carrier is written, not read
             if (_latest >= 0 && (_literal.AwaitsFloating || _literal.InLiteral && !_literal.PendingClose))
             {
-                gates?.NoteDebuggingLineBetweenLiteralParts(file, site.Line);
+                gates?.NoteDebuggingLineBetweenLiteralParts(file, site.Line, indicatorColumn);
                 _lines.Add(text);
                 _origins.Add(spans);
                 return;
             }
             Emit(text, spans, state, isDirective: false);
+        }
+
+        /// <summary>The FLOATING debugging indicator <c>&gt;&gt;D</c> (ISO/IEC 1989:2002 §6.1.2, "a debugging line when
+        /// followed by at least one space character"; §6.3.4 "A debugging line consists of a debugging indicator,
+        /// optionally preceded by one or more space characters, followed by all successive character positions on the
+        /// line"; §6.1.2.1 SR7 "preceded on a line only by zero or more space characters"): where it stands in
+        /// <paramref name="programText"/>, in either reference format — ISO/IEC 1989:2023 §6.2.3.1 "Floating indicators
+        /// may be used in fixed-form or free-form reference format". The 2002 text is not in the repository (read from
+        /// the archived draft, docs/CONFORMANCE.md D-DEBUG), so those clauses are no <c>cite.py</c> citation.
+        /// <paramref name="spaceFilled"/> is a fixed-form program-text area, which is space-filled to margin R
+        /// (DOC-A.1-157): an indicator that ends the text is followed by spaces there, and in free form, which has no
+        /// margin, it is not. The letter is read in either case, as the fixed indicator's is.</summary>
+        public static bool TryFloatingDebugging(string programText, bool spaceFilled, out int at)
+        {
+            at = FirstNonSpace(programText);
+            const string Indicator = CompilerDirectiveLine.Indicator + "D";
+            if (at < 0 || !programText.AsSpan(at).StartsWith(Indicator, StringComparison.OrdinalIgnoreCase)) return false;
+            int next = at + Indicator.Length;
+            return next < programText.Length ? programText[next] == ' ' : spaceFilled;
+        }
+
+        /// <summary>A line whose program text begins with the floating debugging indicator <c>&gt;&gt;D</c> is a
+        /// DEBUGGING line, whichever reference format it is in: carried exactly as the fixed indicator's line is
+        /// (<see cref="EmitDebugging"/>, docs/CONFORMANCE.md D-DEBUG; kb/Work PB4298), so <c>DebuggingLineRewriter</c>, the
+        /// PICMODE re-lex and the between-literal-parts rule treat the two spellings as one construct. The indicator is
+        /// written as three spaces, so every character after it keeps its column. Gated by the registry row
+        /// <c>floating-debugging-indicator-2002</c> (introduced 2002 with the floating indicators, obsolete at 2002,
+        /// removed at 2014). Returns false, and does nothing, when the line is not one.</summary>
+        public bool TryEmitFloatingDebugging(string programText, TextSite site, bool spaceFilled)
+        {
+            if (!TryFloatingDebugging(programText, spaceFilled, out int at)) return false;
+            gates?.OnFloatingDebuggingLine(file, site.Line, site.Col(at));
+            EmitDebugging(DebugLineCarrier, string.Concat(programText.AsSpan(0, at), "   ", programText.AsSpan(at + 3)), site, site.Col(at));
+            return true;
+        }
+
+        /// <summary>2002 §6.1.2.1 SR8: "A floating debugging indicator shall not be specified on a line that contains a
+        /// fixed debugging indicator or a fixed continuation indicator" — COBOL5770 for the fixed-form line whose
+        /// indicator area holds <c>D</c> or the continuation hyphen and whose program text begins with <c>&gt;&gt;D</c>.
+        /// The line is then read as its fixed indicator says.</summary>
+        public void CheckNoFloatingDebuggingOnFixedIndicator(string programText, TextSite site)
+        {
+            if (TryFloatingDebugging(programText, spaceFilled: true, out int at))
+                gates?.OnFloatingDebuggingOnFixedIndicator(file, site.Line, site.Col(at));
         }
 
         /// <summary>One line of program text. <paramref name="text"/> is the program-text area — characters 8 through

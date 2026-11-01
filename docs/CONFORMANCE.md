@@ -2029,6 +2029,33 @@ of an unsupported facility.
   comment), `conformance:cases/_unassigned/pb1705_debugging_mode_obsolete_2002`, `conformance:cases/_unassigned/debugging-mode`,
   `conformance:cases/_unassigned/pb1494-debugging-line-at-2014`, `unit:DebuggingLineRewriterTests`.
 
+  **The FLOATING spelling `>>D`** (ISO/IEC 1989:2002 §6.1.2 "`>>D` debugging indicator — a debugging line when followed by
+  at least one space character", §6.3.4, §6.1.2.1 SR7 and SR8; the 2002 text is not in the repository and is read from the
+  archived draft, so `cite.py` cannot check those clauses; kb/Work PB4298). ISO/IEC 1989:2023 §6.2.3.1 lets a floating
+  indicator stand "in fixed-form or free-form reference format" (`cite.py --check 6.2.3.1 "Floating indicators may be used
+  in fixed-form or free-form reference format"` → OK) and lists none for debugging, so, like the fixed `D`, the spelling is
+  the earlier editions'. It is the SAME facility in a second spelling, so it is the same construct all the way down: the
+  §6.5 conversion's `LogicalLineBuilder.TryEmitFloatingDebugging` (called by both reference formats' classifiers) writes
+  the indicator as three spaces, so every later character keeps its column, and carries the line as the fixed `D` line is
+  carried — `DebuggingLineRewriter`, the PICTURE / subscript re-lex and the between-literal-parts rule (COBOL3473, at the
+  indicator's own column) read the carrier, not the indicator. **Determinations:** (a) the indicator is the first
+  character-string of the line, after spaces only (SR7), spelled `>>D` or `>>d` (as the fixed indicator's letter is
+  read in either case) with NO space inside it and at least one space after it; `>>DISPLAY`, `>> D` and a `>>D` that
+  follows program text are no debugging line. (b) "Followed by at least one space" is read literally: in free form a line
+  that ENDS in `>>D` is not a debugging line (its next character is the end of the line, not a space) and draws the
+  parser's `>>` error as any unknown directive does, while a fixed-form program-text area is space-filled to margin R
+  (DOC-A.1-157), so a bare `>>D` there is followed by spaces and is a debugging line of spaces, a blank line (§6.5 2)).
+  (c) SR8: `>>D` as the first character-string of a line whose indicator area holds the fixed `D` or the continuation
+  hyphen is refused, COBOL5770, at the indicator; the line is then read as its fixed indicator says. **Edition window
+  (registry row `floating-debugging-indicator-2002`):** introduced WITH the floating indicators at 2002 (COBOL0900 below,
+  an error under `--permissive` too), obsolete from 2002 (COBOL0903), removed from 2014 (COBOL0902, an error under strict,
+  a warning under `--permissive`, where the facility keeps working); GnuCOBOL 3.2 agrees at both edges (`-std=cobol2002`
+  accepts all three of the review's probes, `-std=cobol2014` refuses "debugging indicator does not conform"). Witnesses:
+  `conformance:cases/_unassigned/pb4298_floating_debugging_free` (under the clause: runs),
+  `conformance:cases/_unassigned/pb4298_floating_debugging_fixed` (no clause: a comment),
+  `conformance:cases/_unassigned/pb4298-floating-debugging-below-2002`, `conformance:cases/_unassigned/pb4298-floating-debugging-at-2014`,
+  `conformance:cases/_unassigned/pb4298-floating-debugging-on-fixed-indicator`, `unit:LogicalLineBuilderTests.FloatingDebuggingIndicator_*`.
+
 - **D-CE1 — where a FREE-form comment-entry ends** (kb/Work PB3245, review finding R1-1; PB1494, PB1758). The
   comment-entry paragraphs (AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED, SECURITY, REMARKS) are COBOL-85's,
   removed by COBOL-2002, the edition that introduced free form, so no edition of the standard says where a free-form
