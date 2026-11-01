@@ -284,6 +284,7 @@ CLASSIFICATION = Classification(inert={
    tooling_reads={
        "WiseOwl.Cobol.sln": "scripts/arch/census.py, scripts/linux-gate.sh, scripts/orchestrator/test_orchestrate_account.ps1",
        "LICENSE": "scripts/arch/census.py (read on Linux)",
+       "global.json": "scripts/toolchain_audit.py (the SDK pin global.json's version and rollForward must accept)",
        "Directory.Build.props": "scripts/merge_drivers.py (settling the ABI pin)",
        "src/WiseOwl.Cobol.Runtime/Control/RuntimeAbi.cs": "scripts/merge_drivers.py (settling the ABI pin)",
        "src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin": "scripts/merge_drivers.py (settling the ABI pin)",

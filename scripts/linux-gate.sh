@@ -18,7 +18,7 @@
 # characterization (Linux)`: group F's new GateLegDriftTests.Arm5 planted the Windows root `E:\COBOL-wt\battery87`,
 # which `Path.GetFullPath` treats as RELATIVE on Linux. The unit leg reproduces exactly that one red; the CI round
 # trip cost ~30 min and a dropped cluster. MANDATORY-PRACTICES I8 names this script as the
-# reproduction tool, and LinuxGateDriftTests keeps its legs equal to what CI's
+# reproduction tool, and scripts/test_linux_gate.py keeps its legs equal to what CI's
 # Linux jobs run: every test project they `dotnet test`, and every repository script they `bash` (the `guard` leg,
 # CI's guard job, added 2026-10-04 by kb/Work PB1955 after that job's red reached CI unseen; the nightly's since PB4329).
 #
