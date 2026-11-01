@@ -62,21 +62,34 @@ internal static class SuiteManifest
     /// <summary>The generator, the one reader of the test headers.</summary>
     internal static string Generator { get; } = TestRepo.Suite("harness", "generate.py");
 
+    private static readonly Lazy<string> s_generated =
+        new(GenerateOnce, LazyThreadSafetyMode.ExecutionAndPublication);
+
     private static readonly Lazy<WiseOwlManifest> s_manifest =
-        new(LoadManifest, LazyThreadSafetyMode.ExecutionAndPublication);
+        new(() => WiseOwlManifest.Parse(File.ReadAllText(Path.Combine(Generated, "wiseowl", "manifest.json"))),
+            LazyThreadSafetyMode.ExecutionAndPublication);
+
+    /// <summary>The generator's output for this test process: <c>wiseowl/manifest.json</c> and the per-edition suites
+    /// (<c>&lt;edition&gt;/manifest.json</c>) that <c>run.py</c> runs. Generated once and kept until the test host
+    /// ends, which removes it (<see cref="ScratchDirectory"/>), so every test that reads the manifest or runs
+    /// <c>run.py</c> over the suites, whatever its partition, shares the one generation (about 10 s) instead of making
+    /// its own (kb/Work PB4325).</summary>
+    internal static string Generated => s_generated.Value;
 
     /// <summary>The wiseowl manifest: every test of both trees at each edition it names, and the refusals.</summary>
     internal static WiseOwlManifest Manifest => s_manifest.Value;
 
-    /// <summary>Run the generator, writing every manifest under <paramref name="outDir"/>; throws, with the
+    /// <summary>Run the generator once, writing every manifest under a directory of this host's own; throws, with the
     /// generator's own output, when it refuses the tree.</summary>
-    internal static void Generate(string outDir)
+    private static string GenerateOnce()
     {
-        ProcessObservation r = PythonInstrument.Run(ObservationBudget.OneProcess, Generator, "--out", outDir);
+        string dir = ScratchDirectory.Create("WiseOwlCobol_Suite_");
+        ProcessObservation r = PythonInstrument.Run(ObservationBudget.OneProcess, Generator, "--out", dir);
         if (r.ExitCode != 0)
             throw new InvalidOperationException(
                 $"conformance-suite/harness/generate.py refused the suite (exit {r.ExitCode}), so no manifest exists "
                 + $"to run:\n{r.Stdout}\n{r.Stderr}");
+        return dir;
     }
 
     /// <summary>The theory rows of the suite's tests: <c>(edition, id)</c> for every test at every edition the
@@ -89,17 +102,6 @@ internal static class SuiteManifest
     internal static IEnumerable<object[]> Refusals() =>
         Manifest.Refusals.Values.OrderBy(r => r.Id, StringComparer.Ordinal)
             .SelectMany(r => r.RefuseAt.Select(e => new object[] { r.Id, e }));
-
-    private static WiseOwlManifest LoadManifest()
-    {
-        string dir = ScratchDirectory.Create("WiseOwlCobol_Suite_");
-        try
-        {
-            Generate(dir);
-            return WiseOwlManifest.Parse(File.ReadAllText(Path.Combine(dir, "wiseowl", "manifest.json")));
-        }
-        finally { ScratchDirectory.Remove(dir); }
-    }
 
 }
 
