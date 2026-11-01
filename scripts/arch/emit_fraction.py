@@ -86,7 +86,7 @@ def verdict(landings: list[Landing]) -> tuple[str, int]:
     worst = max(landing.fraction for landing in landings)
     facts = f"median {median:.2%} (max {worst:.2%}) of the programs changed over {len(landings)} non-runtime landings"
     if median < BUILD_IF_UNDER:
-        return f"{VERDICT_PREFIX}UNDER {BUILD_IF_UNDER:.0%} -- {facts}: the differential may be built ===", 0
+        return f"{VERDICT_PREFIX}UNDER {BUILD_IF_UNDER:.0%} -- {facts}: the fraction criterion for building the differential is met (how often it applies is decided by the harness-change rule, DESIGN-test-build-ci.md section 3.14.13) ===", 0
     return f"{VERDICT_PREFIX}OVER {BUILD_IF_UNDER:.0%} -- {facts}: the differential would run most programs; do not build ===", 1
 
 
