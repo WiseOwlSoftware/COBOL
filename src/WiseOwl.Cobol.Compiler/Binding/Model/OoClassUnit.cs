@@ -15,7 +15,6 @@ internal sealed class OoClassUnit
 {
     public required OoClassSymbol Symbol;
     public string Name => Symbol.Name;
-    public string CsName => Symbol.CsName;
     public DataBinder Data = null!;
     public ReferenceResolver Refs = null!;
     public BoundProgram Bound = null!;

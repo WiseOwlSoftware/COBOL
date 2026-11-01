@@ -88,7 +88,7 @@ public sealed class TypedAndUniversalInvokeVerdictsAgreeDriftTests
         Assert.False(pic.IsRecovery, $"PIC {picture} did not analyze");
         return new DataItem
         {
-            Level = 1, CobolName = "P", CsName = "P", Pic = pic, PictureText = picture, IsAnyLength = anyLength,
+            Level = 1, CobolName = "P", ClrName = "P", Pic = pic, PictureText = picture, IsAnyLength = anyLength,
         };
     }
 

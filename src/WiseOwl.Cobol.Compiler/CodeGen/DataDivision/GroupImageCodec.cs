@@ -449,7 +449,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// (§14.2.3 GR8) and which <c>PlaceRenderer.Read</c> already agrees on an elementary reference
     /// (<c>ReadsForeignDynamicLength</c>); <c>"__agree"</c>: the same, decided at run time by the caller.</param>
     private string CurrentMemberImage(DataItem d, string? agree = null) =>
-        d.IsDynamicTable ? $"{d.CsName}.CurrentImage({DynElementImage(d)})"
+        d.IsDynamicTable ? $"{d.ClrName}.CurrentImage({DynElementImage(d)})"
         // §15.50.4 r7b — a dynamic-length leaf's current content at its current length, as the image it occupies: a
         // NATIONAL leaf's characters are its UTF-16BE byte pairs (D-N1), exactly as a fixed national member's are
         // (AsImageOf; kb/Work PB3441), so the group's image is its storage and DISPLAY, LENGTH and CONVERT ANY agree.
@@ -459,9 +459,9 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// <summary>A dynamic-length leaf's current content in ITS OWN characters (<see cref="CurrentMemberImage"/> images it).</summary>
     private static string DynLeafContent(DataItem d, string? agree) =>
         agree is not null && d.Section is EntrySection.Linkage
-            ? agree == "true" ? RuntimeApi.DynAgree(d.CsName, d.DynMaxSize)
-                              : $"({agree} ? {RuntimeApi.DynAgree(d.CsName, d.DynMaxSize)} : {d.CsName})"
-        : d.CsName;
+            ? agree == "true" ? RuntimeApi.DynAgree(d.ClrName, d.DynMaxSize)
+                              : $"({agree} ? {RuntimeApi.DynAgree(d.ClrName, d.DynMaxSize)} : {d.ClrName})"
+        : d.ClrName;
 
     /// <summary>The lambda that renders ONE element of the dynamic-capacity table <paramref name="d"/> as its image — what
     /// the table's current-extent image concatenates (<see cref="CurrentMemberImage"/>) and what its created element is
@@ -557,7 +557,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             .Where(c => c.RedefinesTargetName is null && (c.IsGroup || c.IsElementary)
                 && (c.IsDynamicTable || c.IsDynamicLength || (c.IsGroup && !c.TransferImageCapable)
                     || DataItem.HasOdoOnOrBeneath(c)))
-            .ToDictionary(c => c.CsName, StringComparer.Ordinal);
+            .ToDictionary(c => c.ClrName, StringComparer.Ordinal);
         var parts = new List<VarPart>();
         var runContinuations = new HashSet<string>(StringComparer.Ordinal);
         foreach (var f in phys.PhysicalChildrenOf(group))
@@ -571,8 +571,8 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             DataItem? d;
             if (f.BitRun is { } run)
             {
-                foreach (var m in run.Skip(1)) runContinuations.Add(m.CsName);
-                d = run.Select(m => composite.GetValueOrDefault(m.CsName)).LastOrDefault(x => x is not null);
+                foreach (var m in run.Skip(1)) runContinuations.Add(m.ClrName);
+                d = run.Select(m => composite.GetValueOrDefault(m.ClrName)).LastOrDefault(x => x is not null);
             }
             else d = runContinuations.Contains(f.Name) ? null : composite.GetValueOrDefault(f.Name);
             if (d is null)
@@ -1136,8 +1136,8 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             int stride = BitLayout.StrideBits(m);
             using (w.Block($"for (int __i = 0; __i < {o}; __i++)"))
                 w.Line(m.IsGroup
-                    ? $"{m.CsName}[__i].FromBits({RuntimeApi.BitsSlice(carrier, $"{at} + __i * {stride}", $"{per}")});"
-                    : $"{m.CsName}[__i] = {RuntimeApi.BitsSlice(carrier, $"{at} + __i * {stride}", $"{per}")};");
+                    ? $"{m.ClrName}[__i].FromBits({RuntimeApi.BitsSlice(carrier, $"{at} + __i * {stride}", $"{per}")});"
+                    : $"{m.ClrName}[__i] = {RuntimeApi.BitsSlice(carrier, $"{at} + __i * {stride}", $"{per}")};");
             // The stored filler BETWEEN the occurrences (§8.5.1.6.3, kb/Work PB3564) takes what the carrier holds there.
             if (BitLayout.TablePadOf(m) is { } pad)
                 w.Line($"{pad.Field} = {RuntimeApi.BitsStridePads(carrier, $"{at}", $"{per}", $"{stride}", $"{o}")};");
@@ -1145,8 +1145,8 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         else
         {
             w.Line(m.IsGroup
-                ? $"{m.CsName}.FromBits({RuntimeApi.BitsSlice(carrier, $"{at}", $"{per}")});"
-                : $"{m.CsName} = {RuntimeApi.BitsSlice(carrier, $"{at}", $"{per}")};");
+                ? $"{m.ClrName}.FromBits({RuntimeApi.BitsSlice(carrier, $"{at}", $"{per}")});"
+                : $"{m.ClrName} = {RuntimeApi.BitsSlice(carrier, $"{at}", $"{per}")};");
         }
     }
 
@@ -1163,10 +1163,10 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     {
         // ⛔ A TIER-B CANONICAL HAS NO FIELD OF ITS OWN NAME, only its class's one string backing (§13.18.44.4 GR1 — the
         // shared area is addressed through the backing; PhysicalModel.BuildPhysicals), so its carrier is its first
-        // WidthBits bits unpacked from that backing (kb/Work PB3166). `m.CsName` named a field that does not exist.
+        // WidthBits bits unpacked from that backing (kb/Work PB3166). `m.ClrName` named a field that does not exist.
         if (BackingOf(m) is { } backing) return RuntimeApi.BitsReadWindow(backing, "0", $"{BitLayout.WidthBits(m)}");
-        if (m.Occurs is null) return m.IsGroup ? $"{m.CsName}.AsBits()" : m.CsName;
-        string occurrences = m.IsGroup ? $"global::System.Array.ConvertAll({m.CsName}, __e => __e.AsBits())" : m.CsName;
+        if (m.Occurs is null) return m.IsGroup ? $"{m.ClrName}.AsBits()" : m.ClrName;
+        string occurrences = m.IsGroup ? $"global::System.Array.ConvertAll({m.ClrName}, __e => __e.AsBits())" : m.ClrName;
         // ⛔ THE OCCURRENCES SIT ONE STRIDE APART, NOT ONE WIDTH (§13.18.1.4 GR2, kb/Work PB3156): an ALIGNED table puts
         // every occurrence at the first bit of a byte, so the carrier carries the filler between them — the extent
         // BitLayout.TableBits states, which BitAreaOf and the run packer both advance by. A table whose layout does not
@@ -1187,7 +1187,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// A bit item is never an OCCURS data-name-2 (§13.18.44.3 SR5), so the backing holds exactly one occurrence.</summary>
     private static string? BackingOf(DataItem m) =>
         m.IsCanonical && m.Class is { Tier: RedefinesTier.StringCanonical } cls && ReferenceEquals(cls.Canonical, m)
-            ? cls.BackingCsName
+            ? cls.BackingClrName
             : null;
 
     /// <summary>The stored trailing filler of <paramref name="run"/> as the run's PACKED IMAGE carries it: the filler

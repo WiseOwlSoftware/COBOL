@@ -66,6 +66,13 @@ internal sealed class ProgramEmitter
         => Current = new UnitEmitters(w, data, refs, _names, _atoms, _dispatchState, _ecState, _callState, _oo,
             _whenCompiledStamp);
 
+    /// <summary>The C# spelling of a module namespace (kb/Work PB4265): its CLR name with every segment that is a C#
+    /// reserved keyword written <c>@</c>-escaped (<c>Cobol.class</c> is declared <c>namespace Cobol.@class;</c>). The
+    /// namespace is the one emitted name not allocated in a scope that refuses a keyword
+    /// (<see cref="CsNames.ModuleNamespaceOf"/>), so its C# spelling is formed here, by the Roslyn backend.</summary>
+    internal static string CSharpNamespace(ModuleNamespace ns) =>
+        string.Join('.', ns.ClrName.Split('.').Select(static s => CsNames.CSharpReservedKeywords.Contains(s) ? "@" + s : s));
+
     /// <summary>The EMIT half (rearch PHASE-03 Step 14a / PHASE-06 Step 2): render the run unit's C# from an
     /// already-bound immutable <see cref="BoundCompilation"/> — reached ONLY after the driver confirmed the edition
     /// sink is clean, so codegen never runs on an errored tree (exit criterion 9). Reads the compilation
@@ -102,7 +109,7 @@ internal sealed class ProgramEmitter
         w.Line(RepositoryAttributeRenderer.ModuleRecord(ns.RegistrarClrName,
             RepositoryAttributeRenderer.IndexOf(comp.OoClasses.Interfaces, classes, HostEntryEmitter.EntryUnits(units)), comp.Edition,
             hasSignatures: repositoryUpdate));
-        w.Line($"namespace {ns.CsName};");
+        w.Line($"namespace {CSharpNamespace(ns)};");
         w.Line();
         // ⛔ Every namespace imported here is listed in CsNames.ImportedNamespaces, whose types' simple names no C# name
         // generated from a COBOL word may spell (kb/Work PB3270); ImportedTypeNameDriftTests is red on a directive not listed.
@@ -149,7 +156,7 @@ internal sealed class ProgramEmitter
             data => new DataEmitter(new EmitContext(w, data, _names, _atoms, _whenCompiledStamp))).Emit(units,
             units.Where(u => u.Parent is null).Select(u => u.ClassName)
                 .Concat(comp.OoClasses.Classes.SelectMany(c => c.FactoryOrInstanceCsTypes))
-                .Concat(comp.OoClasses.Interfaces.Select(i => i.CsName))
+                .Concat(comp.OoClasses.Interfaces.Select(i => i.ClrName))
                 .Append(ModuleNamespace.RegistrarClass).Append("Program").Append(GroupAtomTable.ClassName), w);
         EmitEntryWrapper(units, w, anyFiles, ns);
         _atoms.Emit(w);   // every §8.5.1.12 atom array a unit named, once (kb/Work PB2690)
@@ -639,14 +646,14 @@ internal sealed class ProgramEmitter
                 var fields = new DataEmitter(Current.Ctx);
                 foreach (var root in unit.Data.LocalStorageRoots)
                 {
-                    if (unit.Data.CallSuppressedRootFields.Contains(root.CsName)) continue;
+                    if (unit.Data.CallSuppressedRootFields.Contains(root.ClrName)) continue;
                     if (root.Class is { Tier: RedefinesTier.Alias } && !root.IsCanonical) continue;   // Tier-A view — no field
                     if (fields.MethodRedefinesBackingDecl(root) is { } bkl)   // Tier-B canonical → the ONE string backing
                         w.Line($"{bkl.Name} = {bkl.Init};   // LOCAL-STORAGE {root.CobolName} (Tier-B backing) — initial state each activation (§13.6.4 GR1 / §14.6.2.3.2)");
                     else if (root.Class is { Tier: RedefinesTier.StringCanonical })
                         continue;   // a non-canonical Tier-B member — a window over the backing, no field
                     else
-                        w.Line($"{root.CsName} = {fields.RootDecl(root).Init};   // LOCAL-STORAGE {root.CobolName ?? "FILLER"} — initial state each activation (§13.6.4 GR1 / §14.6.2.3.2)");
+                        w.Line($"{root.ClrName} = {fields.RootDecl(root).Init};   // LOCAL-STORAGE {root.CobolName ?? "FILLER"} — initial state each activation (§13.6.4 GR1 / §14.6.2.3.2)");
                     foreach (var idx in DataBinder.IndexDeclarationsUnder(root))
                         if (!unit.Data.CallSuppressedRootFields.Contains(idx.Cell))
                             w.Line($"{idx.Cell} = 1;   // INDEX-NAME {idx.Name} (LOCAL-STORAGE table cell)");
@@ -657,7 +664,7 @@ internal sealed class ProgramEmitter
                 if (f.CarrierResident)
                 {
                     // Per-access aliasing of the caller's storage (§14.2.3 GR8): every reference to the formal
-                    // reads/writes through this carrier (its CsName IS `__lnk{Uid}.Value`). An ANY LENGTH formal
+                    // reads/writes through this carrier (its ClrName IS `__lnk{Uid}.Value`). An ANY LENGTH formal
                     // (ISO §13.18.2 GR1 — its length IS the caller's argument length) takes the FULL-STRING
                     // view (the width -1 sentinel), never a Pic.Length=1 window that would truncate the caller.
                     // A BY VALUE formal adopts the DETACHED value-copy cell instead (§14.2.3 GR10 — the

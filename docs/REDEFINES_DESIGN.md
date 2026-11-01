@@ -78,7 +78,7 @@ WiseOwl COBOL stores a datum as its VALUE (PIC 9(4)→a long holding unscaled 12
 
 ### D9. A view suppresses only its stored VALUE field; a numeric view STILL emits its NumProfile and carries its PICTURE's natural C# surface type.
 
-**Rationale.** EmitArithAssign emits `<CsName> = CobolNum.Store(value, scale, _P_<CsName>)`; if a numeric view is an arithmetic target and ALL its emit were suppressed, _P_<view> would not exist and generated C# would not compile. Keeping the NumProfile + natural type lets the existing FieldNum/ReadAsString/Store/Compare paths operate on a view unchanged.
+**Rationale.** EmitArithAssign emits `<ClrName> = CobolNum.Store(value, scale, _P_<ClrName>)`; if a numeric view is an arithmetic target and ALL its emit were suppressed, _P_<view> would not exist and generated C# would not compile. Keeping the NumProfile + natural type lets the existing FieldNum/ReadAsString/Store/Compare paths operate on a view unchanged.
 
 **Rejected alternatives.** "Views emit nothing" (too absolute — breaks the emitter contract on the first numeric view targeted by arithmetic).
 
@@ -98,7 +98,7 @@ WiseOwl COBOL stores a datum as its VALUE (PIC 9(4)→a long holding unscaled 12
 > binder/data model (`RedefinesModel.cs`) — "computed accessor" is the backend-neutral concept. This section shows
 > how the PRIMARY Roslyn backend renders it as C# properties; a future CIL backend (`--backend cil`) renders the
 > SAME model with its own private lowering (get/set method pairs over the same canonical). No REDEFINES semantics
-> may exist only in the rendered C#; `BackingCsName` and friends are rendering policy, not semantics.
+> may exist only in the rendered C#; `BackingClrName` and friends are rendering policy, not semantics.
 
 TIER A (alias): 01 WS-COUNTER PIC 9(4). / 01 WS-COUNT-ALIAS REDEFINES WS-COUNTER PIC 9(4). →
   private static long WS_COUNTER = 0L; private static readonly NumProfile _P_WS_COUNTER = ...;
@@ -114,7 +114,7 @@ TIER B (string canonical — IC101A CCVS pattern): 03 COMPUTED-A PIC X(20) VALUE
   // DISPLAY-numeric view (off,len,scale,signed): get-as-number = CobolNum.ParseDisplay(backing.Substring(off,len), _P_view) → scaled long;
   //   set-from-number = StorePunch(backing, off, len, CobolNum.FormatDisplaySigned(value, scale, _P_view)).
   // IMPORTANT: a view SUPPRESSES only its stored VALUE field; a NUMERIC view STILL EMITS its NumProfile (_P_<view>) —
-  //   the accessor needs it, and EmitArithAssign already references _P_<CsName>. Each view's C# surface type = its PICTURE's natural type
+  //   the accessor needs it, and EmitArithAssign already references _P_<ClrName>. Each view's C# surface type = its PICTURE's natural type
   //   (numeric→long, Int128 above 18 digits, alphanumeric/edited→string) so the existing FieldNum/ReadAsString/Store/Compare paths work unchanged.
   private static readonly NumProfile _P_COMPUTED_18V0 = new NumProfile { Digits=18, FractionDigits=0, Signed=true, ... };
 
@@ -150,7 +150,7 @@ TIER C (scoped byte[] — mixed-USAGE pun): 01 PUN. / 05 AS-TEXT PIC X(4). / 05 
 MODEL (IMPLEMENTED — `src/WiseOwl.Cobol.Compiler/Binding/Model/RedefinesModel.cs` + `src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs`): DataItem carries string? RedefinesTargetName; DataItem? RedefinesTarget; RenamesInfo? Renames; RedefinesClass? Class; bool IsCanonical; and List<DataItem> Renames66 on the owning record.
   class RenamesInfo { required string FromName; string? ThruName; DataItem? From; DataItem? Thru; List<DataItem> SpanLeaves; bool IsAlias => ThruName is null; }
   enum RedefinesTier { Alias, StringCanonical, Rejected }   // ByteCanonical DELETED — Step D, kb/Work PB164
-  class RedefinesClass { required DataItem Canonical; List<DataItem> Members; RedefinesTier Tier; int Width; string BackingCsName => "_redef_"+Canonical.CsName; string? RejectReason; }
+  class RedefinesClass { required DataItem Canonical; List<DataItem> Members; RedefinesTier Tier; int Width; string BackingClrName => "_redef_"+Canonical.CsName; string? RejectReason; }
   DataBinder: binds the REDEFINES clause to RedefinesTargetName (resolved after the forest is built) through RedefinesDataName2, which
   screens the WRITTEN operand first — §13.18.44.3 SR6 no qualifier (COBOL2915), SR5 no subscript and §8.4.3.3.3 no reference-modifier
   (the one data-name-n screen, COBOL2024) — and keeps only the base data-name, never the reference's glued text (kb/Work PB1281);

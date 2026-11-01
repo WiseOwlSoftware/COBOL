@@ -70,7 +70,7 @@ public sealed class PlaceStorageCellDriftTests
     [Fact]
     public void DecoratorsForwardTheAnswer()
     {
-        var item = new DataItem { Level = 49, CobolName = "CTR", CsName = "CTR" };
+        var item = new DataItem { Level = 49, CobolName = "CTR", ClrName = "CTR" };
         var counter = new ReportSumCounterPlace(0, 0, item);
         Assert.False(counter.OwnsStorageCell);
         Assert.False(new NumericImagePlace(counter).OwnsStorageCell);

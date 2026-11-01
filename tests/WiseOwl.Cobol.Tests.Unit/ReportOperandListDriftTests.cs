@@ -37,7 +37,7 @@ public sealed class ReportOperandListDriftTests
     private static ReportFieldModel Field(int columns, params ReportFieldSource[] sources) => new()
     {
         Columns = Enumerable.Range(1, columns).Select(c => new ReportColumnSpec(false, c * 5)).ToList(),
-        PrintItem = new DataItem { Level = 3, CsName = "_t", CobolName = "T" },
+        PrintItem = new DataItem { Level = 3, ClrName = "_t", CobolName = "T" },
         Sources = sources,
     };
 
