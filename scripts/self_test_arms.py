@@ -24,6 +24,9 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from standard_streams import ensure_utf8  # noqa: E402
+
 REPO = Path(__file__).resolve().parents[1]
 
 #: Adjacent string literals (`"a "` then `"b"` on the next line, an f-string included): joined before a search.
@@ -299,6 +302,7 @@ def self_test() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     if sys.argv[1:] == ["--self-test"]:
         sys.exit(self_test())
     print(__doc__.splitlines()[0])
