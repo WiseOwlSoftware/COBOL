@@ -23,8 +23,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ IT WAS RUN ONLY WHEN A HUMAN REMEMBERED. Measured 2026-09-01: <c>audit_annex_a1.py</c> appeared nowhere in
 /// <c>scripts/battery.sh</c>, <c>.github/workflows/build-and-test.yml</c> or <c>scripts/build-local.*</c> — the
 /// register's own correctness was enforced by habit. This class is the wiring, and it follows the repo's
-/// established precedent for a Python gate that runs every build:
-/// <see cref="ExternalCorpusPopulationDriftTests"/> shells <c>scripts/corpus_sweep.py</c> from the Unit project.
+/// established shape for a Python gate that runs every build: a Unit class that shells the script.
 /// That placement is strictly broader than a battery line would be — the Unit assembly runs in the per-commit
 /// wave-local gate, in battery phase 1, and in both CI unit jobs (which run the project unfiltered, so this
 /// class is picked up with no workflow edit at all).

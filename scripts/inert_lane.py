@@ -296,6 +296,7 @@ CLASSIFICATION = Classification(inert={
                                      "names of the harness files)",
        "docs/CONFORMANCE.md": "scripts/spec/audit_witness_loss.py, scripts/differential_fuzz.py",
        "docs/VERSION_CHANGE_REFERENCE.md": "scripts/orchestrator/test_orchestrate_account.ps1",
+       "docs/rearchitecture/DESIGN-test-build-ci.md": "scripts/ci_bounds.py (the section its docstring cites, kb/Work PB4349)",
        "docs/rearchitecture/spec-rule-catalog.json": "scripts/spec/audit_annex_a1.py, audit_code_citations.py",
        "docs/rearchitecture/evidence/fleet-optimization/": "scripts/orchestrator/landing_measure.py, scripts/test_fuzz_triage.py",
        "specs/ISO_COBOL.md": "scripts/spec/cite.py, audit_code_citations.py, audit_doc_citations.py, "
@@ -310,6 +311,7 @@ CLASSIFICATION = Classification(inert={
        "tests/WiseOwl.Cobol.Tests.Unit/CarrierLandingFormTests.cs": "scripts/spec/audit_annex_a1.py",
        "tests/_shared/TestRepo.cs": "scripts/spec/drift_rules.py",
        "tests/_shared/SpecClauseText.cs": "scripts/spec/spec_headings.py",
+       "tests/external/gnucobol-verdict-baseline.tsv": "scripts/corpus_sweep.py (the differential's committed cases)",
        "tests/nist/corpus.tsv": "scripts/guard-nist-audit.sh, guard-verify.sh, linux-gate.sh, "
                                 "scripts/orchestrator/test_orchestrate_account.ps1",
        "tests/version-matrix/": "the inventory and its schema: scripts/spec/audit_*.py, ledger_plan.py, "
