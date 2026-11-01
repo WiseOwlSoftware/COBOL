@@ -27,9 +27,12 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// <para>⛔ EXEC IS NO RESERVED WORD (§8.9 lists none of EXEC, END-EXEC), so a program may name a data item EXEC, and
 /// then <c>DISPLAY EXEC SQL END-EXEC.</c> is three operands. The source reads EXEC as a block's opener only where it
 /// cannot be a word: when no EXEC of the source is one. An EXEC that opens no block (a declaration, <c>01 EXEC PIC
-/// X.</c>; a reference; <see cref="Scan"/> tells it from a block left without its END-EXEC) means the program writes EXEC
-/// as a COBOL word, and the whole source is read as COBOL, as the standard reads it. A precompiler, which takes every EXEC
-/// as a block's opener, could not translate that source either.</para>
+/// X.</c>; a reference) means the program writes EXEC as a COBOL word, and the whole source is read as COBOL, as the
+/// standard reads it. A precompiler, which takes every EXEC as a block's opener, could not translate that source either.
+/// An EXEC followed by a user-defined word whose sentence ends before any END-EXEC (<see cref="Scan"/>) is a block left
+/// unterminated, or a word the text cannot tell from one (<c>INDEXED BY EXEC IDX.</c>, <c>SYMBOLIC CHARACTERS EXEC BEL ARE
+/// …</c>: a declaration followed by another user-defined word); only the COBOL grammar settles it, so <see cref="Read"/>
+/// asks the parse (kb/Work PB4381, review R1-1).</para>
 /// <para>One reading per lex: the tokens it changed are that stream's, and every parse pass over it reads them.</para>
 /// </summary>
 public sealed class EmbeddedBlockReading
@@ -46,20 +49,28 @@ public sealed class EmbeddedBlockReading
 
     /// <summary>Make every embedded block of <paramref name="stream"/> one <c>EMBEDDED_BLOCK</c> token, unless one EXEC
     /// of it is a COBOL word (the source writes EXEC as a word): one scan of the default channel, which reads the text
-    /// only of a four-character IDENTIFIER, and of the tokens of a block.</summary>
-    public static EmbeddedBlockReading Read(BufferedTokenStream stream)
+    /// only of a four-character IDENTIFIER, and of the tokens of a block.
+    /// <para><paramref name="parsesAsCobol"/> is asked only when an EXEC is followed by a user-defined word and its
+    /// sentence ends before any END-EXEC (a block left unterminated, or a word the text cannot tell from one): does the
+    /// source parse with no syntax error when every EXEC is read as a COBOL word? Then EXEC is one, the source is legal
+    /// COBOL and is read as such; otherwise that EXEC opens a block left unterminated (COBOL5842). It is never asked of a
+    /// source of closed blocks alone, nor of one that holds an EXEC no block can open.</para></summary>
+    public static EmbeddedBlockReading Read(BufferedTokenStream stream, Func<bool> parsesAsCobol)
     {
         stream.Fill();
         var tokens = stream.GetTokens();
         var found = new List<(int Exec, string Language, int Last, bool Closed)>();
+        bool unterminated = false;
         for (int i = 0; i < tokens.Count; i++)
         {
             if (!IsExec(tokens[i])) continue;
             var (opening, language, last) = Scan(tokens, i);
             if (opening == Opening.Word) return new([]);
             found.Add((i, language, last, opening == Opening.Closed));
+            unterminated |= opening == Opening.Unterminated;
             i = last;
         }
+        if (unterminated && parsesAsCobol()) return new([]);
         var blocks = new List<(IToken Exec, string Language, bool Closed)>(found.Count);
         foreach (var (exec, language, last, closed) in found)
         {
@@ -86,12 +97,13 @@ public sealed class EmbeddedBlockReading
     /// that ends an unterminated one).
     /// <para>⛔ A block needs a word after its EXEC. When that word is a user-defined word (an IDENTIFIER: SQL, CICS and
     /// DLI are none of the reserved words of any edition, ISO §8.9) and the sentence ends before an END-EXEC (ISO §8.3.5
-    /// rule 3, "The COBOL character period, when followed by a space, is a separator"), the EXEC opens a block left
-    /// unterminated, a fault of the embedded text: it is reported as itself and the blocks that do close stay one token
-    /// each. EXEC followed by anything else is a COBOL word. That is sound for the all-or-nothing rule above: a program
-    /// that uses EXEC as a word declares it, and every declaration of a word (<c>01 EXEC PIC X.</c>, <c>EXEC SECTION.</c>,
-    /// <c>FD EXEC.</c>, <c>SELECT EXEC ASSIGN …</c>) has a reserved word or the period after it, never a user-defined word,
-    /// so such a source holds an EXEC that is a word and is read as COBOL throughout.</para></summary>
+    /// rule 3, "The COBOL character period, when followed by a space, is a separator"), the EXEC may open a block left
+    /// unterminated, a fault of the embedded text: <see cref="Read"/> reports it as itself and the blocks that do close
+    /// stay one token each. EXEC followed by anything else (a reserved word, the period, a literal) is a COBOL word.</para>
+    /// <para>That shape is only a CANDIDATE: a declaration that takes a list of user-defined words (<c>INDEXED BY EXEC
+    /// IDX</c>, <c>SYMBOLIC CHARACTERS EXEC BEL</c>, <c>ASCENDING KEY IS EXEC B</c>) puts a user-defined word after a
+    /// declared EXEC too, and so does any operand list. Which it is, only the grammar knows, and <see cref="Read"/> asks
+    /// the parse rather than keep a list of the positions.</para></summary>
     private static (Opening Opening, string Language, int Last) Scan(IList<IToken> tokens, int exec)
     {
         int at = NextDefault(tokens, exec);

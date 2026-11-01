@@ -467,7 +467,8 @@ public sealed class Frontend
         // ISO §4.2.14 — each embedded precompiler block (EXEC … END-EXEC) becomes the one token that stands for what its
         // precompiler writes, BEFORE every reader of the stream: the screens below skip its text, which is another
         // language, and every prediction of the parse sees the token (kb/Work PB4341). A no-op for a source with none.
-        var embeddedBlocks = EmbeddedBlockReading.Read(tokens);
+        var embeddedBlocks = EmbeddedBlockReading.Read(tokens,
+            () => ParsesCleanly(tokens, retypes, edition, cobolWordsMap, sourcePath, cuts));
 
         // ISO §13.18.40.3 SR7 — decided from the characters PICMODE delimited, once per PICTURE clause of every
         // entry kind (kb/Work PB569). Reported through the syntax-error listener so it is located exactly like a
@@ -546,6 +547,19 @@ public sealed class Frontend
         }
 
         return (tree, parser.NumberOfSyntaxErrors == 0 && !embeddedBlocks.Any, sourceDebuggingLines);
+    }
+
+    /// <summary>Does the source parse with no syntax error as it stands? Asked by <see cref="EmbeddedBlockReading.Read"/> of an
+    /// EXEC only the grammar can classify (kb/Work PB4381): one whole parse, the gate's loop included, of a COPY of the
+    /// stream (the loop retypes the tokens it is handed) into a bag nothing reads.</summary>
+    private bool ParsesCleanly(CommonTokenStream tokens, TokenRetypes retypes, EditionInfo edition,
+        CobolWordsMap cobolWordsMap, string sourcePath, IMarginRCutLocator cuts)
+    {
+        var copy = new CommonTokenStream(new ListTokenSource(tokens.GetTokens().Select(t => (IToken)new CommonToken(t)).ToList()));
+        var parser = new CobolParserCore(copy) { Edition = edition, CobolWords = cobolWordsMap };
+        ReservationGateRewriter.ParseToFixpoint(parser, copy, retypes, new DiagnosticBag(),
+            (bag, witness) => ParsePass(parser, copy, bag, witness, sourcePath, cuts));
+        return parser.NumberOfSyntaxErrors == 0;
     }
 
     /// <summary>One parse of the whole token stream from token 0: fast SLL prediction first (with a

@@ -1420,9 +1420,12 @@ target:
   separator period is a closed block (COBOL5818); EXEC, a USER-DEFINED word (SQL, CICS, DLI are reserved in no edition)
   and a separator period (§8.3.5 rule 3) before any END-EXEC is a block left unterminated (COBOL5842, kb/Work PB4381),
   taken through the text before that period and one token like any block, so the blocks that do close stay blocks;
-  anything else is a word. The split is sound because every declaration of a word is followed by a reserved word or the
-  period (`01 EXEC PIC X.`, `EXEC SECTION.`, `FD EXEC.`), never a user-defined word, so a program that uses EXEC as a
-  word always holds an EXEC the scan calls a word. Every token of a block that is COBOL text moves to
+  anything else is a word. The unterminated shape is a CANDIDATE only: a declaration that takes a list of user-defined
+  words (`INDEXED BY EXEC IDX.`, `SYMBOLIC CHARACTERS EXEC BEL ARE …`, any operand list) has the same one, and no lexical
+  rule or list of declaration positions can tell them apart (review R1-1). Only when the scan finds such a candidate and
+  no EXEC that is certainly a word, `Read` asks the parse (`Frontend.ParsesCleanly`: one whole parse of a copy of the
+  stream with every EXEC a COBOL word); a source that parses cleanly that way is COBOL, EXEC a word, and one that does not
+  holds the unterminated block. A source of closed blocks alone, and every source with no candidate, pays no parse. Every token of a block that is COBOL text moves to
   `EMBEDDED_BLOCK_TEXT`, whatever its channel (kb/Work PB4384: the HIDDEN-channel semicolon of `A;B` was still judged
   by `SeparatorRule.Violations`). The misplaced-scope-terminator hint (COBOL0306, ISO
   §14.5.3.2) reads from the ATN, once, which `…Statement` rules match each END-x token (`ScopeTerminator`):
