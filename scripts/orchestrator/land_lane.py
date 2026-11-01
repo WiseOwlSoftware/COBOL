@@ -1042,7 +1042,7 @@ class WatchEffects:
 
 
 def real_effects(cdir: pathlib.Path, say: Say) -> WatchEffects:
-    import enqueue  # noqa: PLC0415  (the only file that queues a pull request: LandingPipelineDriftTests)
+    import enqueue  # noqa: PLC0415  (the only file that queues a pull request: landing_rules.py)
     import landing_measure  # noqa: PLC0415
     import ruleset  # noqa: PLC0415
 
@@ -2684,6 +2684,20 @@ def self_test() -> int:
                tick.__kwdefaults__["start"] is spawn_detached)
     finally:
         remove_tree(root)
+
+    # 14. THE SHAPE OF THIS FILE'S OWN CODE (kb/Work PB3310, PB3642, PB3640 review R1-1 and R1-3, PB3714): exit 13 and
+    #     exit 16 are waits, and the conflict brief foresees the merge through the drivers and reads the outcome through
+    #     the verdict line's one home. Read from this file's code outside this self-test, which spells what it forbids.
+    source = pathlib.Path(__file__).read_text(encoding="utf-8").replace("\r\n", "\n")
+    at = source.index("\ndef self_test(")
+    code = source[:at] + source[source.index("\ndef ", at + 1):]
+    expect("shape: a second land (exit 13) and a shared driver file (exit 16) are WAITS, each answered by its own reader",
+           EXIT_LAND_BUSY in WAITS and EXIT_DRIVER_FILE_QUEUED in WAITS and "if rc == EXIT_LAND_BUSY:" in code
+           and "enqueue.driver_file_holders(" in code)
+    expect("shape: the conflict brief foresees the merge with merge_drivers.merge_conflicts and reads the outcome with "
+           "verdict_line.outcome_files, never a merge-tree or a CONFLICT parse of its own",
+           "merge_drivers.merge_conflicts(" in code and "verdict_line.outcome_files(" in code
+           and '"merge' + '-tree"' not in code and "CONFLICT" + " in " not in code)
     print(f"=== land_lane.py self-test: {'FAIL' if failures else 'PASS'} ({len(failures)} failure(s)) ===")
     return 1 if failures else 0
 
