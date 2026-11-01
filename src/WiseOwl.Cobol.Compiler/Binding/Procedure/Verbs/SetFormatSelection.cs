@@ -89,7 +89,7 @@ internal enum SetFormat
 }
 
 /// <summary>Which written shape the receiving operands stand in — the two grammar rules that carry more than one
-/// general format (<c>setToValueStatement</c> / <c>setObjectReferenceStatement</c> and
+/// general format (<c>setToStatement</c> and
 /// <c>setIndexStatement</c>).</summary>
 [Flags]
 internal enum SetDirections

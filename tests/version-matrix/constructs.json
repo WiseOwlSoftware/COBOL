@@ -1298,7 +1298,7 @@
   {
    "id": "set-function-pointer-2014",
    "status": "active",
-   "description": "SET { identifier-12 } … TO identifier-13 (ISO §14.9.39.2 Format 8, function-pointer-assignment), including the §8.4.3.12 ADDRESS OF FUNCTION function-address-identifier sender — dated 2014 by its only possible operand, the 2014 USAGE FUNCTION-POINTER item (usage-function-pointer-2014). The plain form reuses the setToValueStatement / setObjectReferenceStatement shapes and re-routes on the receiver's category in SetBinder (the Format-9 pattern); the ADDRESS OF FUNCTION sender is its own grammar rule (setFunctionAddressStatement). SR20's same-signature screen is COBOL1959 and §8.4.3.12.3 SR1/SR2 is COBOL1960. LIVE as of kb/Work PB452 + PB817.",
+   "description": "SET { identifier-12 } … TO identifier-13 (ISO §14.9.39.2 Format 8, function-pointer-assignment), including the §8.4.3.12 ADDRESS OF FUNCTION function-address-identifier sender — dated 2014 by its only possible operand, the 2014 USAGE FUNCTION-POINTER item (usage-function-pointer-2014). The plain form reuses the setToStatement shape every SET ... TO format shares (kb/Work PB4231) and re-routes on the receiver's category in SetBinder (the Format-9 pattern); the ADDRESS OF FUNCTION sender is its own grammar rule (setFunctionAddressStatement). SR20's same-signature screen is COBOL1959 and §8.4.3.12.3 SR1/SR2 is COBOL1960. LIVE as of kb/Work PB452 + PB817.",
    "display": "SET TO function-pointer (Format 8)",
    "diagnosticCode": "COBOL0900",
    "citation": "ISO §14.9.39.2 Format 8 / §14.9.39.3 SR20 / §14.9.39.4 GR14 / §8.4.3.12",
@@ -1310,7 +1310,7 @@
   {
    "id": "set-program-pointer-2002",
    "status": "active",
-   "description": "SET { identifier-7 } \u2026 TO identifier-8 (ISO \u00a714.9.39.2 Format 9, program-pointer-assignment), including the \u00a78.4.3.13 ADDRESS OF PROGRAM program-address-identifier sender \u2014 dated 2002 by its only possible operand, the 2002 USAGE PROGRAM-POINTER item (usage-program-pointer-2002), since \u00a714.9.39.3 SR21 makes every receiving operand category program-pointer. The plain form reuses the setToValueStatement / setObjectReferenceStatement shapes and re-routes on the receiver's category in SetBinder; the ADDRESS OF PROGRAM sender is its own grammar rule (setProgramAddressStatement over programAddressIdentifier), and OF is an optional word because the \u00a78.4.3.13.2 figure underlines ADDRESS and PROGRAM only. SR22's same-signature screen is COBOL1959 and \u00a78.4.3.13.3 SR1/SR2/SR3 is COBOL2157. LIVE as of kb/Work PB549, which measured the gap: the ISO spelling was a bare parse error at EVERY edition and the Micro Focus / IBM `SET pp TO ENTRY` extension (whose words are in no ISO general format) was the only route into a program-pointer.",
+   "description": "SET { identifier-7 } \u2026 TO identifier-8 (ISO \u00a714.9.39.2 Format 9, program-pointer-assignment), including the \u00a78.4.3.13 ADDRESS OF PROGRAM program-address-identifier sender \u2014 dated 2002 by its only possible operand, the 2002 USAGE PROGRAM-POINTER item (usage-program-pointer-2002), since \u00a714.9.39.3 SR21 makes every receiving operand category program-pointer. The plain form reuses the setToStatement shape every SET ... TO format shares (kb/Work PB4231) and re-routes on the receiver's category in SetBinder; the ADDRESS OF PROGRAM sender is its own grammar rule (setProgramAddressStatement over programAddressIdentifier), and OF is an optional word because the \u00a78.4.3.13.2 figure underlines ADDRESS and PROGRAM only. SR22's same-signature screen is COBOL1959 and \u00a78.4.3.13.3 SR1/SR2/SR3 is COBOL2157. LIVE as of kb/Work PB549, which measured the gap: the ISO spelling was a bare parse error at EVERY edition and the Micro Focus / IBM `SET pp TO ENTRY` extension (whose words are in no ISO general format) was the only route into a program-pointer.",
    "display": "SET TO program-pointer (Format 9)",
    "diagnosticCode": "COBOL0900",
    "citation": "ISO \u00a714.9.39.2 Format 9 / \u00a714.9.39.3 SR21 / SR22 / \u00a78.4.3.13",
@@ -2330,10 +2330,10 @@
   {
    "id": "set-object-reference-2002",
    "status": "active",
-   "description": "SET ... TO object-reference (ISO 14.9.39 Format 5) - introduced 2002 (OO). Grammar-gated (setObjectReferenceStatement) for NULL/SELF senders; a dataReference sender parses as the Format-1 shape and re-routes SEMANTICALLY in BindSetTo (the ANTLR alternative-order reality). Below 2002 the W1.5 mapping fires on the NULL/SELF-after-TO signature (0900). SR8/SR9/SR12/SR13 violations are COBOL0867; LIVE as of the universal wave (D-U7, DEVLOG 608).",
+   "description": "SET ... TO object-reference (ISO 14.9.39 Format 5) - introduced 2002 (OO). Bound-arm gated: every SET ... TO shape parses as the one setToStatement rule (kb/Work PB4231), and the receivers' RESOLVED object-reference category selects Format 5 in SetFormatSelection (BindSetToNull for a NULL sender, BindSetTo for every other), so the gate fires on the BoundSetObjectRef node (0900). SR8/SR9/SR12/SR13 violations are COBOL0867; LIVE as of the universal wave (D-U7, DEVLOG 608).",
    "display": "SET TO object-reference (Format 5)",
    "diagnosticCode": "COBOL0900",
-   "citation": "ISO §14.9.39 F5 (OO); grammar-gated (setObjectReferenceStatement) for NULL/SELF senders + the BindSetTo semantic re-route for data senders (ANTLR alternative-order reality); LIVE as of the universal wave (D-U7) — SR8/SR9/SR12/SR13 = COBOL0867",
+   "citation": "ISO §14.9.39 F5 (OO); bound-arm gated on BoundSetObjectRef (the receivers' category selects Format 5; kb/Work PB4231); LIVE as of the universal wave (D-U7) — SR8/SR9/SR12/SR13 = COBOL0867",
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOL0900",

@@ -1002,7 +1002,7 @@ THE OO IDENTIFIERS IN THE EXPRESSION TIER (§8.4.3.1.3 SR1; live — kb/Work PB1
   `inlineMethodInvocation`, so every SENDING position the expression tier serves takes them: a relation or EVALUATE
   operand (§8.8.4.2.15, reference identity — `IF O = SELF`, `IF U AS C = D`), an INVOKE argument (the `SELF` arms
   of `invokeArgument` are gone: SELF is the sole primary of its expression arm), an inline-invocation argument, a
-  SET sender (`SET O TO SELF` now parses as `setToValueStatement`, which precedes the object-reference alternative;
+  SET sender (`SET O TO SELF` parses through `setToSender`'s arithmetic arm, the expression tier carrying SELF;
   that alternative is left with NULL). The GOBACK / EXIT RAISING phrase's identifier-1 (`raisingPhrase`) is
   `objectReference`, RAISE's operand rule. A RECEIVING position never parses an expression; it parses SELF, SUPER,
   NULL and the view only as a `nonReceivableIdentifier`, refused by §8.4.3.8.3 SR2 (COBOL3978), §8.4.3.7.3 SR1

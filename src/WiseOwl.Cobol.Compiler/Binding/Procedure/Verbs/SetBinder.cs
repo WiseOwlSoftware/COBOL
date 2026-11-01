@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
+using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime;
 
@@ -54,7 +55,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 _ = host.Expr.ResolveReceiving(r);
                 refused = true;
             }
-        foreach (var r in format.GetRuleContexts<Core.SetAddressReceiverContext>())
+        foreach (var r in format.GetRuleContexts<Core.SetToReceiverContext>())
             if (r.nonReceivableIdentifier() is { } n)
             {
                 _ = host.Expr.RefuseNonReceivable(n);
@@ -68,6 +69,11 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     private static Core.DataReferenceContext[] Receivers(Core.SetReceivingIdentifierContext[] receivers) =>
         Array.ConvertAll(receivers, r => r.dataReference());
 
+    /// <summary>The receiving data references of a <c>setToStatement</c> that spells no ADDRESS phrase (the Format-7
+    /// statements that do go to <c>PtrBinder.BindSetAddress</c> with their receivers whole).</summary>
+    private static Core.DataReferenceContext[] Receivers(Core.SetToReceiverContext[] receivers) =>
+        Array.ConvertAll(receivers, r => r.dataReference());
+
     /// <summary>Bind a SET statement, dispatching by format (ISO §14.9.39; DESIGN §12.3). The COBOL-85
     /// surface — Format 1 index/value assignment, Format 2 UP/DOWN BY, Format 4 condition-name TO TRUE — binds here;
     /// the later-edition formats (switches need SPECIAL-NAMES, pointers/objects their 2002 subsystems, TO FALSE the
@@ -76,7 +82,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     {
         // ⛔ A RECEIVING OPERAND WRITTEN IN AN IDENTIFIER FORMAT THAT IS NEVER ONE (kb/Work PB1551): SELF, SUPER, NULL, an
         // object-view, a function- or program-address-identifier. Every SET receiving list parses them (the grammar's
-        // `setReceivingIdentifier`, and Format 7's `setAddressReceiver`) so each is refused by its OWN rule at the
+        // `setReceivingIdentifier`, and setToStatement's `setToReceiver`) so each is refused by its OWN rule at the
         // receiving chokepoint — once, here, before a format is selected from a list that holds a non-reference.
         if (RefuseNonReceivable(set) is { } nonReceivable) return nonReceivable;
         // F11 set-locale / F12 save-locale (§14.9.39; Annex A.4.9 item 9) — IMPLEMENTED since kb/Work PB64 T1 (it
@@ -99,77 +105,28 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (set.setEntryStatement() is { } se) return BindSetEntry(se);   // F9 + §8.4.3.13 ENTRY sender (P10 Step 7)
         if (set.setSizeStatement() is { } ss)
             return BindSetSize(ss.setReceivingIdentifier().dataReference(), ss.arithmeticExpression(), explicitSizeOf: true);   // F16 explicit SIZE OF (2023)
-        if (set.setToValueStatement() is { } tv) return BindSetTo(tv);
+        if (set.setToStatement() is { } st)
+        {
+            var sender = st.setToSender();
+            // ⛔ FORMAT 7 BY ITS SPELLING (kb/Work PB4231). An `ADDRESS OF data-name-1` receiver or a data-address-
+            // identifier sender is printed by Format 7 alone, so such a statement goes to Format 7's own binder before
+            // any receiver is resolved, and no other format ever meets the phrase. Its arithmetic-arm sender is read by
+            // the ONE classifier, as every other SET … TO sender is. Every other shape is selected from the receiving
+            // list (SetFormatSelection).
+            if (st.SpellsAddressPhrase())
+            {
+                SetSender? addressSender = sender.arithmeticExpression() is { } arith ? _senders.Classify(arith) : null;
+                if (addressSender is not null && SetSenders.IsRefused(addressSender)) return BoundRejected.Reported(ctx.Edition);
+                return host.Ptr.BindSetAddress(st, addressSender);   // F7 both directions + ADDRESS OF senders
+            }
+            var recvs = Receivers(st.setToReceiver());
+            return sender.predefinedNull() is { } toNull ? BindSetToNull(recvs, toNull) : BindSetTo(recvs, sender.arithmeticExpression());
+        }
         if (set.setIndexStatement() is { } ud) return BindSetUpDown(ud);
         if (set.setBooleanStatement() is { } b) return BindSetCondition(b);
         if (set.setSwitchStatement() is { } sw) return host.Alter.SwitchBindSet(sw);   // Format 3 — external switches (ISO §14.9.39)
         if (set.setFunctionAddressStatement() is { } sfa) return BindSetFunctionAddress(sfa);   // F8 + §8.4.3.12 sender (kb/Work PB452)
         if (set.setProgramAddressStatement() is { } spa) return BindSetProgramAddress(spa);     // F9 + §8.4.3.13 sender (kb/Work PB549)
-        if (set.setAddressStatement() is { } sa)
-            return host.Ptr.BindSetAddress(sa);   // F7 both directions + ADDRESS OF senders (Phase-4b inc 2)
-        if (set.setObjectReferenceStatement() is { } sor)
-        {
-            // `SET receivers… TO {NULL | SELF | SUPER | reference}` is the shape of Formats 5, 7, 8 and 9 at
-            // once, so the format is SELECTED from the whole receiving list (§14.9.39.2; kb/Work PB449) and the
-            // chosen format's own syntax rule then refuses any operand it does not admit — SR17 (Format 7),
-            // SR20 (Format 8), SR21 (Format 9), SR8 (Format 5). This used to sniff `dataReference(0)` alone,
-            // which made `SET P1 X TO NULL` and `SET X P1 TO NULL` two different verdicts.
-            // ⛔ WITHOUT THE FUNCTION-POINTER ARM a declarable function-pointer falls through into the OO
-            // Format-5 bind and, through BindSetTo, into the Format-1 arithmetic store — the silent wrong
-            // answer PB817 filed as "the other end, which a fixer will otherwise miss".
-            var sorRefs = Receivers(sor.setReceivingIdentifier());
-            var objRef = sor.objectReference();
-            // NULL is the sender that arrives here: every identifier the expression tier carries — a data reference,
-            // a function-identifier, an inline invocation, an object-view, SELF / SUPER (kb/Work PB1425) — parses as
-            // setToValueStatement (it precedes this alternative), whose ONE classifier (SetSenders.Classify) reads it.
-            // `objectReference` is the shared object-reference operand rule, so its other forms are still read here
-            // by the shared binder, never left to fall through unread.
-            // The plain term — null for an inline invocation or an object-view, which the computed arm below binds.
-            var atom = objRef.objectReferenceAtom()?.objectReferenceTerm();
-            SetSender? sorSender = null;
-            if (host.Oo.OoBindComputedObjectReference(objRef) is { } computed)
-            {
-                sorSender = new SetSender(DataBinder.WrittenText(objRef), null, computed, objRef);
-                if (SetSenders.IsRefused(sorSender)) return BoundRejected.Reported(ctx.Edition);
-            }
-            else if (atom?.dataReference() is { } sorRef)
-                sorSender = SetSender.OfReference(sorRef);
-            bool sorNull = atom?.predefinedNull() is not null;
-            // ⛔ SET IS AN SR1 CONTEXT, SO IT ASKS THE EDITION TOO (kb/Work PB1673, review w20261769b R1-2). The predefined
-            // NULL exists only where §8.9 reserves the word (COBOL 2002 on); at COBOL-85 an undeclared NULL token names
-            // nothing declared, the §8.4.2.1 undefined reference every other NULL position draws there
-            // (ExpressionBinder.NullAdmittingOperand, PredefinedNullRule.Report) — never the object-reference SET's SR8
-            // of a facility the edition does not have.
-            if (sorNull && UnreservedKeywordReference.IsFreeAt("NULL", ctx.Edition))
-            {
-                UnreservedKeywordReference.Report(ctx.Edition, "NULL");
-                return BoundRejected.Reported(ctx.Edition);
-            }
-            bool sorSelf = atom?.selfAndSuper()?.SELF() is not null;
-            bool sorSuper = atom?.selfAndSuper()?.SUPER() is not null;
-            return SetFormatSelection.Select(_fmt.KindsOf(sorRefs), SetDirections.To, out _) switch
-            {
-                // ⛔ THE SENDER'S OWN WORD TRAVELS WITH THE FLAG (kb/Work PB388). `sorSelf || sorSuper` collapses
-                // two different statements into one bool, and the three arms behind it then had nothing to name
-                // but the pair — so a program that wrote SUPER was told about "SELF/SUPER" beside a receiver
-                // list rendered as `…`. `objRef.GetText()` is the word as written; the flag still selects the arm.
-                SetFormat.F7 => BindSetPointer(sorRefs, sorSender, sorNull, sorSelf || sorSuper,
-                    objRef.GetText()),
-                SetFormat.F9 => BindSetProgramPointer(sorRefs, sorSender, sorNull, sorSelf || sorSuper,
-                    objRef.GetText()),
-                SetFormat.F8 => BindSetFunctionPointer(sorRefs, sorSender, sorNull, sorSelf || sorSuper,
-                    objRef.GetText()),
-                // ⛔ THE SECOND ARM OF THE SAME DISPATCH (kb/Work PB453; feedback_two_arm_dispatch). `SET MT TO
-                // NULL` arrives HERE rather than through BindSetTo — NULL is not an arithmeticExpression — and
-                // it was this arm that produced the §14.9.39.3 SR8 object-reference diagnostic the note measured.
-                SetFormat.F17 => BindMessageTagSet(sorRefs, objRef.GetText()),
-                // Format 5, and the residual: NULL/SELF/SUPER are senders of no other format, so a receiving
-                // list that selects Format 1/14/16 here is refused by SR8 inside — the diagnostic that names
-                // what the statement was trying to be.
-                _ => host.Oo.OoBindSetObjectRef(sorRefs, sorSender,
-                        senderNull: sorNull, senderSelf: sorSelf, senderSuper: sorSuper),
-            };
-        }
         return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, $"SET '{set.GetText()}': the statement matches no SET format (ISO §14.9.39.2)");
     }
 
@@ -495,7 +452,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// be USAGE POINTER (COBOL0869 otherwise); the sender is the NULL figurative or another data pointer
     /// (SELF/SUPER are object-only — 0869). A pointer-item sender is screened per receiver for §14.9.39.3 SR19's
     /// restricted-data-pointer rule through PtrBinder's one screen (kb/Work PB548); the <c>ADDRESS OF</c>
-    /// spellings reach Format 7 through setAddressStatement / <c>PtrBinder.BindSetAddress</c>.</summary>
+    /// spellings reach Format 7 through <c>PtrBinder.BindSetAddress</c> (<c>SetToStatementCst.SpellsAddressPhrase</c>).</summary>
     private BoundStatement BindSetPointer(
         IReadOnlyList<Core.DataReferenceContext> targetRefs, SetSender? sender,
         bool toNull, bool senderIsSelfSuper, string? senderText = null)
@@ -573,7 +530,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             }
         }
         // Every receiver on THIS route is identifier-5 (§14.9.39.3 SR17) — the `ADDRESS OF data-name-1`
-        // spelling of the printed brace reaches Format 7 through setAddressStatement / PtrBinder instead, and
+        // spelling of the printed brace reaches Format 7 through PtrBinder.BindSetAddress instead, and
         // both routes build the SAME receiver list so GR12 and GR13 stay one loop in the emitter.
         return new BoundSetPointer([.. targets.Select(t => new BoundPointerReceiver(t, null))], source, toNull);
     }
@@ -1293,19 +1250,55 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         return null;
     }
 
-    /// <summary><c>SET receivers… TO value</c>. ⛔ THE FORMAT IS SELECTED ONCE, FROM EVERY RECEIVING OPERAND
-    /// (§14.9.39.2; <see cref="SetFormatSelection"/>, kb/Work PB449 + PB456). Formats 1, 5, 7, 8, 9, 14 and 16
-    /// all reach this grammar rule, and each of their receiving braces is written <c>{ … } …</c>, so the whole
-    /// list decides — never <c>receivers[0]</c>, and never the SENDER.
+    /// <summary><c>SET receivers… TO NULL</c> — the predefinedNull arm of <c>setToSender</c>, which no other arm
+    /// derives (kb/Work PB4231). NULL is the sender of Formats 5, 7, 8, 9 and 17 at once, so the format is SELECTED from
+    /// the whole receiving list (§14.9.39.2; kb/Work PB449) and the chosen format's own syntax rule then refuses any
+    /// operand it does not admit — SR17 (Format 7), SR20 (Format 8), SR21 (Format 9), SR8 (Format 5). This used to
+    /// sniff <c>dataReference(0)</c> alone, which made <c>SET P1 X TO NULL</c> and <c>SET X P1 TO NULL</c> two different
+    /// verdicts. ⛔ WITHOUT THE FUNCTION-POINTER ARM a declarable function-pointer falls through into the OO Format-5
+    /// bind and, through BindSetTo, into the Format-1 arithmetic store — the silent wrong answer PB817 filed as "the
+    /// other end, which a fixer will otherwise miss".</summary>
+    private BoundStatement BindSetToNull(Core.DataReferenceContext[] recvs, Core.PredefinedNullContext toNull)
+    {
+        // ⛔ SET IS AN SR1 CONTEXT, SO IT ASKS THE EDITION TOO (kb/Work PB1673, review w20261769b R1-2). The predefined
+        // NULL exists only where §8.9 reserves the word (COBOL 2002 on); at COBOL-85 an undeclared NULL token names
+        // nothing declared, the §8.4.2.1 undefined reference every other NULL position draws there
+        // (ExpressionBinder.NullAdmittingOperand, PredefinedNullRule.Report) — never the object-reference SET's SR8
+        // of a facility the edition does not have.
+        if (UnreservedKeywordReference.IsFreeAt("NULL", ctx.Edition))
+        {
+            UnreservedKeywordReference.Report(ctx.Edition, "NULL");
+            return BoundRejected.Reported(ctx.Edition);
+        }
+        // The word as written (kb/Work PB388): each format's diagnostic quotes the sender the program spelled.
+        string written = toNull.GetText();
+        return SetFormatSelection.Select(_fmt.KindsOf(recvs), SetDirections.To, out _) switch
+        {
+            SetFormat.F7 => BindSetPointer(recvs, null, toNull: true, senderIsSelfSuper: false, written),
+            SetFormat.F9 => BindSetProgramPointer(recvs, null, toNull: true, senderIsSelfSuper: false, written),
+            SetFormat.F8 => BindSetFunctionPointer(recvs, null, toNull: true, senderIsSelfSuper: false, written),
+            // ⛔ THE SECOND ARM OF THE SAME DISPATCH (kb/Work PB453; feedback_two_arm_dispatch). `SET MT TO NULL`
+            // arrives HERE rather than through BindSetTo, and it was this arm that produced the §14.9.39.3 SR8
+            // object-reference diagnostic the note measured.
+            SetFormat.F17 => BindMessageTagSet(recvs, written),
+            // Format 5, and the residual: NULL is a sender of no other format, so a receiving list that selects
+            // Format 1/14/16 here is refused by SR8 inside — the diagnostic that names what the statement was
+            // trying to be.
+            _ => host.Oo.OoBindSetObjectRef(recvs, null, senderNull: true, senderSelf: false, senderSuper: false),
+        };
+    }
+
+    /// <summary><c>SET receivers… TO value</c>, the arithmeticExpression arm of <c>setToSender</c>. ⛔ THE FORMAT IS
+    /// SELECTED ONCE, FROM EVERY RECEIVING OPERAND (§14.9.39.2; <see cref="SetFormatSelection"/>, kb/Work PB449 +
+    /// PB456). Formats 1, 5, 7, 8, 9, 14 and 16 all reach this grammar rule, and each of their receiving braces is
+    /// written <c>{ … } …</c>, so the whole list decides — never <c>receivers[0]</c>, and never the SENDER.
     /// <para>The sender used to be half the sniff, and that is what let <c>SET U TO 5</c> escape every rule:
     /// the Format-5 re-route's precondition was "the sender is exactly one bare data reference", a literal is
     /// not one, so the re-route declined and an object reference landed in the Format-1 arithmetic store. Now
     /// the receivers select Format 5 whatever the sender looks like, and SR9 refuses the literal by name.</para></summary>
-    public BoundStatement BindSetTo(Core.SetToValueStatementContext tv)
+    private BoundStatement BindSetTo(Core.DataReferenceContext[] recvs, Core.ArithmeticExpressionContext amount)
     {
-        var recvs = Receivers(tv.setReceivingIdentifier());
         var kinds = _fmt.KindsOf(recvs);
-        var amount = tv.arithmeticExpression();
         // As written: GetText() prints a bare ZERO as its rewritten ZERO_ARITH token "0" (kb/Work PB4209, PB3961).
         string senderText = DataBinder.WrittenText(amount);
         // ⛔ THE FORMATS THAT TAKE THE AMOUNT AS AN EXPRESSION OF THEIR OWN are decided from the receiving list alone,
