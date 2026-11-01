@@ -1,4 +1,4 @@
-## PB2417: the architecture drift test lands as a metadata walk and one edges file; PB4319 removes the new repository row
+## Entry 2897 — 2026-10-31 19:03 PDT — PB2417: the architecture drift test lands as a metadata walk and one edges file; PB4319 removes the new repository row
 
 The first wave of the R3 program (DESIGN-architecture-review §8.1) puts the layering under a gate. Until now the layers
 and their allowed edges lived only in §8.1's proposed JSON block, and nothing failed when a landing added a cross-layer
@@ -99,3 +99,4 @@ guard (`FilterPopulationGuardDriftTests`) refuses in a script that does not call
 
 **Merged with main (finisher).** PB4265 (PR #924) rewrote DESIGN-backend-abstraction §1.3 and added rows L7 and L8.
 The merge keeps this branch's L6, which adds the emit-time repository encode, alongside main's L7 and L8.
+
