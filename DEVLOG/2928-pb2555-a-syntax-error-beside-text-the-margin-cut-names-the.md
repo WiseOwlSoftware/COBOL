@@ -1,4 +1,4 @@
-## PB2555 — a syntax error beside text the margin cut names the cut (COBOL5788)
+## Entry 2928 — 2026-11-01 01:07 PST — PB2555 — a syntax error beside text the margin cut names the cut (COBOL5788)
 
 **What a user saw.** In fixed form the program-text area ends at margin R (§6.3.1; position 72 here, Annex A.1 item 158), so the
 compiler is right to drop what lies past it. But a statement that ran past position 72 then ended early, and the only diagnostic was
@@ -31,3 +31,4 @@ and the six non-cut shapes plus a cut inside library text naming the copybook); 
 `pb2555-statement-cut-at-margin-r` and `pb2555-word-cut-by-margin-r` (the refusal harness matches errors only, so the warning itself is pinned
 by the unit tests). Rows re-verdicted: none (`closes_rows: []` with its reason). DOC-A.1-158 in docs/CONFORMANCE.md and the frontend
 design document carry the rule.
+
