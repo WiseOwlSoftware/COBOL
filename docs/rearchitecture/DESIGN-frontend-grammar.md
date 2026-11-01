@@ -1409,6 +1409,23 @@ target:
   same finding for the block an owner's terminator ends, which sits one element downstream of the state the parser stands
   at. Both Sync (a decision) and `RecoverInline` (a match) reach it through the one override.
   `ParseRecoveryDeletionTests` pins the count.
+- ⛔ **The verb of a complete next statement is never deleted where the open statement could have ended** (kb/Work
+  PB4286; ISO §14.9.31.2). The PB4133 test asks what may follow the ONE element the parser stands before, so a statement
+  missing two required elements in a row slipped past it: after `RECEIVE FROM W-X GIVING` (identifier-1 and data-name-2,
+  both unbracketed) the next statement's verb is not in identifier-1's follow, `DISPLAY W-Y.` lost its DISPLAY to the
+  deletion (W-Y fits identifier-1), and the period drew a false second COBOL0001 where data-name-2 was due.
+  `SingleTokenDeletion` also declines when `BeginsTheNextStatement`: the base deletion would act, the token may follow
+  the innermost open `statement` completed, in its real context (the ATN's follow from where it was called), and it
+  begins a statement that is a complete reading (`LookaheadBeginsAStatementThatParses`, PB3248's test). A reserved word
+  written as the operand begins no statement that parses, so it is still deleted as the refused name.
+- ⛔ **A recovery that makes no progress is one at the same state of the same CALL** (kb/Work PB4286). ANTLR's
+  `Recover` consumes one token first when the last recovery stood at this token and this ATN state, keyed on the state
+  alone, and a rule called twice in one statement fails at the same state in both calls: the missing identifier-1
+  resynchronized at the DISPLAY above and the missing data-name-2, the same `dataReference` state, then consumed it, so
+  the next statement was lost into the RECEIVE's tail and a fault in it went unreported.
+  `CobolErrorStrategy.Resynchronize` keys the guard on (state, invoking state): a loop failing again re-enters the same
+  state from the same call and still consumes, and at one token the pairs are finite, so every recovery still makes
+  progress. `EndErrorCondition` clears it as the base clears its own.
 - Recovery beyond that and the sync-point behavior is out of scope for this rearchitecture (the battery does
   not exercise multi-error recovery quality; changing it risks the green net for no measured gain) — but a
   change in the diagnostics a negative fixture produces is visible to the oracle
