@@ -870,9 +870,11 @@ longest first by the committed weights file. The growth trigger of PB4323 §3.4 
 #### 3.14.4 Soundness: the population check — ONE tool for every whole-assembly run
 
 `scripts/test_population.py` (a module and a CLI) answers one question for any run: did the union of its trx files
-execute exactly the discovered population? Its callers are the gate driver (per assembly: the module's `list_population` and `check`), the battery (`battery.sh` PHASE 1, all three assemblies — `check --project … --trx …`), and CI's `ci-gate` job (`check --listing … --trx …` per OS
-and test assembly over the weighted shards' trx files, and `--method NistProgram_MatchesGolden` over INV-1-strong's,
-kb/Work PB4329; a bare count cannot see a dropped test offset by one that ran twice). Shard 1 of each OS lists its build's population (`test_population.py list`, 2 s) and uploads it beside its trx as
+execute exactly the discovered population? Its callers are the gate driver (per assembly: the module's
+`list_population` and `check`), the battery (`battery.sh` PHASE 1, all three assemblies — `check --project … --trx …`) and
+CI's `ci-gate` job (`check --listing … --trx …` per OS and test assembly over the weighted shards' trx files, and `--method
+NistProgram_MatchesGolden` over INV-1-strong's, kb/Work PB4329; a bare count cannot see a dropped test offset by one that
+ran twice). Shard 1 of each OS lists its build's population (`test_population.py list`, 2 s) and uploads it beside its trx as
 `test-results-<OS>-conformance-<shard>`, so the checking job needs no .NET and no build of its own, and the listings
 of one platform must be identical — the shards ran one build — or the check is an error. It also owns the ONE parser
 of a `--list-tests` output (`parse_listing`); `filter_population.py` imports it.
@@ -883,8 +885,8 @@ of a `--list-tests` output (`parse_listing`); `filter_population.py` imports it.
   discovered case that executed). Not the RESULT names: xunit lists a theory whose data it cannot serialize as ONE
   case and then reports one result per row, so Unit's results carry 33 names `--list-tests` never printed and miss 2
   it did, while its 29,703 definitions equal the listing exactly (`b8`).
-- **One spelling** (kb/Work PB4274): the two sides are compared in the trx logger's spelling (`trx_spelling`), which is what the logger did to the listed name, so a case always meets itself. The rewrite
-  cannot be inverted (the logger escapes no backslash), so two LISTED names it spells alike are an error naming both,
+- **One spelling** (kb/Work PB4274): the two sides are compared in the trx logger's spelling (`trx_spelling`), which is
+  what the logger did to the listed name, so a case always meets itself. The rewrite cannot be inverted (the logger escapes no backslash), so two LISTED names it spells alike are an error naming both,
   never one merged count.
 - a name short → `NEVER RAN` (red, each named) — unless the run was stopped early (a red audit stops the hosts), when the
   remainder is reported as NOT RUN and the verdict is already RED;
