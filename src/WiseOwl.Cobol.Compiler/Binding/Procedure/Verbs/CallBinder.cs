@@ -1142,7 +1142,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // ControlFlowBinder.ReturningAsStatus); a written status phrase is the standard's and wins over it.
         var status = p.Status;
         if (status is null && source is not null && returningMove is null)
-            status = host.ControlFlow.ReturningAsStatus(source, p.Returning!.GetText());
+            status = host.ControlFlow.ReturningAsStatus(source);
         if (p.Raising is { } raising)
             return host.Ec.EcBindRaising(raising, g.Start.Line, EcRaiseSite.Goback) is { } r
                 ? new BoundGoback(source, r, status) { ReturningMove = returningMove }

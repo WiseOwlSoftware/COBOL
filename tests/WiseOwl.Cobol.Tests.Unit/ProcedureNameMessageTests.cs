@@ -67,8 +67,42 @@ public sealed class ProcedureNameMessageTests
             STOP RUN.
         """;
 
+    // PB4368: the PERFORM THRU declaratives-range message (ISO §14.9.28.3 SR11) and the ALTER shape message quote the
+    // same ProcedureNameShape.AsWritten form as the arms above.
+    private const string PerformThruStraddle = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. PB4368A.
+        PROCEDURE DIVISION.
+        DECLARATIVES.
+        D1 SECTION.
+            USE AFTER STANDARD EXCEPTION PROCEDURE ON INPUT.
+        DP1.
+            DISPLAY "X".
+        END DECLARATIVES.
+        S1 SECTION.
+        P1.
+            DISPLAY "A".
+        P2.
+            PERFORM P1 OF S1 THRU DP1 OF D1.
+            STOP RUN.
+        """;
+
+    private const string AlterOfNonGoToParagraph = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. PB4368B.
+        PROCEDURE DIVISION.
+        S1 SECTION.
+        P1.
+            DISPLAY "A".
+        P2.
+            ALTER P1 OF S1 TO PROCEED TO P2.
+            STOP RUN.
+        """;
+
     [Theory]
-    [InlineData(Sr4Error, "COBOL2376", true, "GO TO 'DP1 OF D1': 'DP1 OF D1' is a procedure of declarative section 'D1'")]
+    [InlineData(PerformThruStraddle, "COBOL2186", true, "PERFORM 'P1 OF S1' THRU 'DP1 OF D1': 'P1 OF S1' is in the nondeclarative portion")]
+    [InlineData(AlterOfNonGoToParagraph, "COBOL1757", true, "ALTER 'P1 OF S1' — the procedure to be altered")]
+    [InlineData(Sr4Error,"COBOL2376", true, "GO TO 'DP1 OF D1': 'DP1 OF D1' is a procedure of declarative section 'D1'")]
     [InlineData(Sr3Warning, "COBOL2375", false, "GO TO 'MAIN-P OF S1': 'MAIN-P OF S1' is in the nondeclarative portion")]
     [InlineData(ResumeIntoDeclarative, "COBOL0714", true, "RESUME AT 'DP2 OF D1': the procedure shall be in the nondeclarative portion")]
     public void AQualifiedProcedureNameIsQuotedAsWritten(string source, string code, bool isError, string expectedText)
