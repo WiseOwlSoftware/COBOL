@@ -414,7 +414,8 @@ string field fails the build, exactly the "missing-arm-is-a-compile-error" cultu
   `BoundCompilation` (through arrays and generic arguments, and to every subtype of a reached type) inside the layers
   `docs/rearchitecture/architecture-edges.json` places as `compiler.model` and `compiler.bound`; a field whose type lies
   outside them is a walk exit, not descended. So the test holds every `Bound*` record, every `Place` and access-path
-  type and every model type a backend can reach (§1.1), and a new node is held the day a field reaches it.
+  type and every model type a backend can reach (§1.1), and a new node is held the day a field reaches it. A field
+  typed `object` or a delegate is refused: the walk cannot see through it, and a delegate is code, not a fact.
 - **Assertions 1 and 2 classify every text member.** A member that carries text (an instance field whose type holds
   `string`, directly or as an element) or returns it (a method or computed property) is either neutral by construction
   (a field named `ClrName` or `*ClrName`, §2.4), a NEUTRAL row of `BackendContract.Table` (the curated allow-list, by

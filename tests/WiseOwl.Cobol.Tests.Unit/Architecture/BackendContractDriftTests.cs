@@ -115,6 +115,21 @@ public sealed class BackendContractDriftTests
             + "no longer pins the backend input's leaks at their tolerated rows: " + string.Join(", ", allowed));
     }
 
+    /// <summary>A field typed <see cref="object"/> or a delegate hides what it holds from the walk (a node behind it is
+    /// never checked) or carries CODE where §1.1 admits only facts, so the backend input has none.</summary>
+    [Fact]
+    public void TheBackendInput_HasNoUntypedOrDelegateField()
+    {
+        var opaque = OpaqueExits(Measured.Value);
+        Assert.True(opaque.Count == 0,
+            "a backend-input field is typed object or a delegate, which the backend-contract walk cannot see through "
+            + "(DESIGN-backend-abstraction §1.1 admits symbols, structure and data): " + string.Join(", ", opaque));
+    }
+
+    private static List<string> OpaqueExits(BackendInput input) =>
+        input.Exits.Where(e => e.Target == typeof(object) || typeof(Delegate).IsAssignableFrom(e.Target))
+            .Select(e => $"{e.Member} : {e.Target.FullName}").ToList();
+
     [Fact]
     public void TheSeam_HasNoBackendTheContractDoesNotProve()
     {
@@ -162,7 +177,7 @@ public sealed class BackendContractDriftTests
 
     // ── The planted self-tests: each failure arm fires on a planted backend input, for the right reason. ──
 
-    private sealed record PlantedRoot(PlantedNode Node, Antlr4.Runtime.ParserRuleContext? Tree);
+    private sealed record PlantedRoot(PlantedNode Node, Antlr4.Runtime.ParserRuleContext? Tree, object? Payload, Func<int>? Hook);
 
     private abstract record PlantedNode;
 
@@ -189,6 +204,8 @@ public sealed class BackendContractDriftTests
             [KeyOf("ClrName"), KeyOf("CobolName"), KeyOf("CsField"), KeyOf("Lines"), KeyOf("RenderAll()")],
             input.StringMembers.Where(m => m.Declaring == typeof(PlantedLeaf)).Select(m => m.Key).ToList());
         Assert.Contains(input.Exits, e => e.Target == typeof(Antlr4.Runtime.ParserRuleContext));
+        Assert.Equal([BackendInput.KeyOf(typeof(PlantedRoot), "Payload") + " : System.Object", BackendInput.KeyOf(typeof(PlantedRoot), "Hook") + " : System.Func`1"],
+            OpaqueExits(input));
     }
 
     [Fact]
