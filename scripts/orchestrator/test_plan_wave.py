@@ -991,9 +991,10 @@ check("... a gate, review or spec-lookup overlay still has to name its base skil
 #      the whole population (PB4328), so an instruction surface (.github, .claude, CLAUDE.md) that tells a reader about batched
 #      gating, a LEG 1 ONLY verdict, tier 0a-0d, a leg 1 or the impact map is stale, unless the line cites PB4328 (history) or
 #      says "no impact map"; the real tree has none. Each arm is seen refused on a plant.
-TRACKED_SURFACES = [rel for rel in subprocess.run(["git", "ls-files", "-z"], cwd=coord.REPO, capture_output=True, text=True,
-                                                  encoding="utf-8").stdout.split(chr(0))
-                    if rel.startswith(check_practices.GATING_SURFACES) and rel.endswith((".md", ".py", ".js", ".yml", ".json", ".txt"))]
+import live_tools  # noqa: E402  (the one listing of the tracked live tools, .claude/ among them; .github/ and CLAUDE.md are read from disk)
+TRACKED_SURFACES = [*live_tools.tracked(coord.REPO, (".md", ".py", ".js", ".yml", ".json", ".txt")),
+                    *(f.relative_to(coord.REPO).as_posix() for f in (coord.REPO / ".github").rglob("*") if f.is_file()), "CLAUDE.md"]
+TRACKED_SURFACES = [rel for rel in TRACKED_SURFACES if rel.startswith(check_practices.GATING_SURFACES)]
 check("the real instruction surfaces carry no retired gating wording",
       [m for rel in TRACKED_SURFACES for m in check_practices.retired_gating_lines(rel, (coord.REPO / rel).read_text(encoding="utf-8"))], [])
 check("... each retired phrase is refused on a surface; a PB4328 line and a negation pass; a code file is no surface",
