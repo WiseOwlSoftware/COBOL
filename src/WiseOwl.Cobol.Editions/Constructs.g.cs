@@ -52,6 +52,7 @@ public static class Constructs
     public const string FloatingCommentIndicator2002 = "floating-comment-indicator-2002";
     public const string FloatingLiteralContinuation2002 = "floating-literal-continuation-2002";
     public const string DebuggingLineRemoved2014 = "debugging-line-removed-2014";
+    public const string FloatingDebuggingIndicator2002 = "floating-debugging-indicator-2002";
     public const string SourceFormatDirective2002 = "source-format-directive-2002";
     public const string TurnDirective2002 = "turn-directive-2002";
     public const string DisplayDirective2023 = "display-directive-2023";

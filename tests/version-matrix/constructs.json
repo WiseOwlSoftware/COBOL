@@ -615,7 +615,7 @@
   },
   {
    "id": "debugging-line-removed-2014",
-   "description": "The fixed-form DEBUGGING LINE (indicator D in column 7) - the COBOL-85 debug module's lines, compiled only under WITH DEBUGGING MODE. ISO 6.2.2 lists no such fixed indicator at COBOL-2023. Owner decision kb/Work R61 (researched against GnuCOBOL's per-standard dialect files, debugging-mode: ok at 85, obsolete at 2002, unconformable at 2014): accepted at 85, OBSOLETE at 2002 (the obsolete-element warning COBOL0903), REMOVED at 2014 (COBOL0902, error strict / warning permissive, the pre-removal comment semantics kept). Medium confidence on the 2002/2014 edge (the ISO 2002 and 2014 texts are not in the repository). Recognized in ONE place, the fixed-form classifier of the 6.5 logical conversion (kb/Work PB1494). The WITH DEBUGGING MODE clause and USE FOR DEBUGGING keep their own rows.",
+   "description": "The fixed-form DEBUGGING LINE (indicator D in column 7) - the COBOL-85 debug module's lines, compiled only under WITH DEBUGGING MODE. ISO 6.2.2 lists no such fixed indicator at COBOL-2023. Owner decision kb/Work R61 (researched against GnuCOBOL's per-standard dialect files, debugging-mode: ok at 85, obsolete at 2002, unconformable at 2014): accepted at 85, OBSOLETE at 2002 (the obsolete-element warning COBOL0903), REMOVED at 2014 (COBOL0902, error strict / warning permissive, the pre-removal comment semantics kept). Medium confidence on the 2002/2014 edge (the ISO 2002 and 2014 texts are not in the repository). Recognized in ONE place, the fixed-form classifier of the 6.5 logical conversion (kb/Work PB1494); the 2002 floating spelling >>D is the row floating-debugging-indicator-2002 (kb/Work PB4298). The WITH DEBUGGING MODE clause and USE FOR DEBUGGING keep their own rows.",
    "display": "the fixed-form debugging line (indicator D)",
    "diagnosticCode": "COBOL0902",
    "citation": "ISO 6.2.2 (no D indicator at 2023); kb/Work R61 (owner decision 2026-09-30): obsolete 2002, removed 2014",
@@ -625,6 +625,20 @@
    "expectDiagnostic": "COBOL0902",
    "vcr": "VCR rows 7.9 and 7.17 (the debug facility); kb/Work R61",
    "source": "000100 IDENTIFICATION DIVISION.\n000200 PROGRAM-ID. PB1494DL.\n000300 PROCEDURE DIVISION.\n000400 MAIN.\n000500     DISPLAY \"A\".\n000600D    DISPLAY \"DEBUG\".\n000700     STOP RUN.\n"
+  },
+  {
+   "id": "floating-debugging-indicator-2002",
+   "description": "The FLOATING debugging indicator >>D (ISO/IEC 1989:2002 6.1.2: \"a debugging line when followed by at least one space character\"; 6.3.4 debugging lines; 6.1.2.1 SR7 it is preceded on a line only by spaces, SR8 it is not specified on a line that holds a fixed debugging or fixed continuation indicator, COBOL5770) - the same debug-module facility as the fixed indicator D (row debugging-line-removed-2014), in EITHER reference format: ISO 2023 6.2.3.1 \"Floating indicators may be used in fixed-form or free-form reference format\". Unlike the fixed D it is a COBOL-2002 INTRODUCTION, because the floating indicators are (rows floating-comment-indicator-2002, floating-literal-continuation-2002): the facility is OBSOLETE from 2002 (the 2002 text's own NOTE \"The debugging indicators and the debugging feature are obsolete and are to be removed in the next revision\") and REMOVED at 2014 (COBOL0902, error strict / warning permissive; owner decision kb/Work R61 dates the facility's edges, and GnuCOBOL 3.2 -std=cobol2014 refuses it: \"debugging indicator does not conform\"). ISO 2023 has no >>D (6.2.3.1 lists no debugging indicator), so the window is read from the archived 2002 draft, not from the 2023 text. Recognized in ONE place with the fixed D, the 6.5 logical conversion (LogicalLineBuilder.TryEmitFloatingDebugging, kb/Work PB4298), which carries the line for DebuggingLineRewriter. The witness is fixed-form: free form is itself a 2002 introduction, reached below 2002 only through the documented extension.",
+   "display": "the floating debugging indicator >>D",
+   "diagnosticCode": "COBOL0902",
+   "citation": "ISO/IEC 1989:2002 6.1.2, 6.3.4 (the 2002 text is not in the repository); ISO 2023 6.2.3.1 (floating indicators, both reference formats; no debugging indicator at 2023); kb/Work R61: obsolete 2002, removed 2014",
+   "introducedIn": 2002,
+   "removedIn": 2014,
+   "obsoleteIn": 2002,
+   "expectDiagnostic": "COBOL0902",
+   "expectDiagnosticBelow": "COBOL0900",
+   "vcr": "VCR row 7.25 (the debug facility); floating indicators (6.2.3) - 2002 introduction; kb/Work PB4298",
+   "source": "000100 IDENTIFICATION DIVISION.\n000200 PROGRAM-ID. PB4298DL.\n000300 PROCEDURE DIVISION.\n000400 MAIN.\n000500     DISPLAY \"A\".\n000600     >>D DISPLAY \"DEBUG\".\n000700     STOP RUN.\n"
   },
   {
    "id": "source-format-directive-2002",
