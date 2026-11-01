@@ -18,7 +18,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// 120 s per-process budget (<c>WISEOWL_COBOL_RUN_TIMEOUT_MS</c>), and under a lander's whole-population gate beside the WSL
 /// Linux gate each went past it: <c>self_tests.py --self-test</c> took 19 s alone and over 120 s twice in train 1058's
 /// first gate (a harness non-observation, with every arm passing in the runner). A fixed time limit in a test is a
-/// defect; train 1055 fixed the first of them (<see cref="GateSlotDriftTests"/>) and named these as its siblings.
+/// defect; train 1055 fixed the first of them (GateSlotDriftTests, whose arms are scripts/self_test_arms.py's since kb/Work
+/// PB4395) and named these as its siblings.
 /// <see cref="SelfTestDiscoveryDriftTests.TheArmReader_ReportsADeletedArm_AndFindsASplitLabelWhole"/> sees it fire.
 /// </remarks>
 internal static class SelfTestArmSource

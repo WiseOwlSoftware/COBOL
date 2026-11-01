@@ -118,6 +118,16 @@ public sealed class LandingLaneDriftTests
             // kb/Work PB3145: a merged predecessor's open pull request is a wait, not a stop
             "exit 15 (a merged predecessor's pull request is still open): a retry-when-free class, never the enqueue "
                 + "unit's",
+            // kb/Work PB4271, PB4331 (the rule of CLAUDE.md Testing): every merge-queue red is classified before anyone is blamed
+            "classify_red: results unread or no record is UNCLASSIFIED; a timed-out run or one where no test failed is "
+                + "INFRA; red cases that all ran GREEN in the record, or an inert record, are RUNNER; a red case the "
+                + "record listed but did not run is GENUINE; one the record lacks is MERGE",
+            "red_facts: the bounce's red cases (by name) beside the gate record that covers the queued head",
+            "red_facts: results of an OLDER bounce are never the new red's: a fetch that could not download the new run's "
+                + "results (it answers run 0) or answers a run the directory's marker does not name leaves the red "
+                + "UNCLASSIFIED",
+            "queue watch: an INFRA red is re-queued ONCE by the lane (no agent: the branch is no enqueue-unit work while "
+                + "its watch runs), recorded with its class; a MERGE red ends the watch BOUNCED with its class",
         });
         SelfTestArmSource.AssertDeclares(TestRepo.Scripts("orchestrator", "queue_facts.py"), new[]
         {
@@ -129,6 +139,9 @@ public sealed class LandingLaneDriftTests
             "a superseded run's check-runs are history (kb/Work PB4052): the newer run of the same workflow on the head "
                 + "decides, so the cancelled run's FAILED ci-gate is no red",
             "offline, a gh failure or a malformed answer is None (a non-observation), never {}",
+            "a fetch answers the run whose results the directory holds NOW: the newest failed run when it was downloaded "
+                + "(800, then 810) or is already there; 0 when the download failed and the directory still holds an older "
+                + "bounce's results",
         });
     }
 

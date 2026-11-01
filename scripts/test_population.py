@@ -56,7 +56,7 @@ exiting 0, and every one of them is an ENVIRONMENT variable:
 Because the VSTest channel narrows DISCOVERY too, a population listed in the caller's environment would be blind
 to it — which is why the listing here always runs scrubbed. `is_scrubbed` is the ONE statement of the rule;
 python callers pass `env=scrubbed_env()`, every other caller runs `python scripts/test_population.py scrubbed
-dotnet test …`, and `audit-callers` (GateLegDriftTests arm 6) is red on a `dotnet test` under `scripts/` that
+dotnet test …`, and `audit-callers` (arm 6, run over the real tree by the self-test) is red on a `dotnet test` under `scripts/` that
 does neither, or on a CI workflow that SETS a scrubbed variable (a GitHub-hosted job's environment is exactly
 what the workflow declares, so a workflow that sets none is scrubbed by construction).
 
@@ -267,26 +267,39 @@ def trx_root(path: str | Path) -> ET.Element:
     return root
 
 
+def _red_definitions(paths: list[str | Path]):
+    """Every `<UnitTest>` definition in these trx files one of whose results Failed (red_classes, red_cases). A file that
+    cannot be read raises `UnreadableTrx` naming it."""
+    for path in paths:
+        root = trx_root(path)
+        failed = {r.get("testId", "") for r in root.iter(TRX_NS + "UnitTestResult") if r.get("outcome") == "Failed"}
+        yield from (u for u in root.iter(TRX_NS + "UnitTest") if u.get("id", "") in failed)
+
+
 def red_classes(paths: list[str | Path]) -> set[str]:
     """THE CLASSES WITH A RED CASE in these trx files (kb/Work PB4328): the `className` of the test method of every
     definition one of whose results Failed — the spelling the weights file, the shards and the gate's orderer use
     (tests/_shared/GateLegs.cs `GateShard.ClassOf`). A file that cannot be read raises `UnreadableTrx` naming it."""
     classes: set[str] = set()
-    for path in paths:
-        root = trx_root(path)
-        failed = {r.get("testId", "") for r in root.iter(TRX_NS + "UnitTestResult") if r.get("outcome") == "Failed"}
-        for u in root.iter(TRX_NS + "UnitTest"):
-            method = u.find(TRX_NS + "TestMethod")
-            if u.get("id", "") in failed and method is not None and method.get("className"):
-                classes.add(method.get("className"))
+    for u in _red_definitions(paths):
+        method = u.find(TRX_NS + "TestMethod")
+        if method is not None and method.get("className"):
+            classes.add(method.get("className"))
     return classes
+
+
+def red_cases(paths: list[str | Path]) -> set[str]:
+    """THE RED CASES in these trx files, by the definition's `name` (the spelling `read_trx` counts, so a merge-queue
+    red is compared case by case with a local gate's record: the landing lane's classification, kb/Work PB4271). A file
+    that cannot be read raises `UnreadableTrx` naming it."""
+    return {u.get("name", "") for u in _red_definitions(paths)}
 
 
 # ── RED AT THE PREVIOUS GATE MEANS ANY HOST'S (kb/Work PB3155, PB3184, PB3644): the sources of the first classes ──────
 #: ⛔ EVERY LIVE TOOL THAT WRITES TEST RESULTS (a trx file) INTO A WORKTREE IS ONE ROW HERE: the results directory it
 #: writes, relative to the worktree (None: it writes none there), and what the gate takes from it (scripts/gate.py `Gate._first`).
-#: `GateLegDriftTests` holds this table equal to the live tools that write a trx file (`audit-trx-writers`), so a new
-#: writer is classified here or that test is red.
+#: The self-test holds this table equal to the live tools that write a trx file (`audit-trx-writers` over the real tree),
+#: so a new writer is classified here or the self-test is red.
 TRX_WRITERS: dict[str, tuple[str | None, str]] = {
     "scripts/gate.py": ("TestResults/build-local", "the previous run (`Gate.previous_run`): its red classes run first"),
     "scripts/linux-gate.sh": ("TestResults/linux-gate", "the hand-run Linux gate's newest run: its red classes run first"),
@@ -429,7 +442,7 @@ def check(label: str, listed: Counter, trx_paths: list[str], stopped_early: bool
                       stopped_early=stopped_early)
 
 
-# ── the caller audit (GateLegDriftTests arm 6) ────────────────────────────────────────────────────────────────
+# ── the caller audit (DESIGN-test-build-ci.md §3.14.4 arm 6) ────────────────────────────────────────────────────────────────
 
 #: `dotnet test` in COMMAND position: at the start of a line or string, or after a shell separator, `&`, `(`,
 #: `$(` or a quote (not a backtick: in this tree that is Markdown prose far more often than a substitution). The
@@ -557,6 +570,7 @@ def synthetic_listing(path: Path, names: list[str]) -> str:
     path.write_text("Test run for X.dll (.NETCoreApp,Version=v10.0)\n" + LISTED_MARK + "\n"
                     + "".join(f"    {n}\n" for n in names), encoding="utf-8", newline="\n")
     return str(path)
+
 
 
 def self_test() -> int:
@@ -764,10 +778,36 @@ def self_test() -> int:
         (reds / "torn.trx").write_text("<TestRun", encoding="utf-8", newline="\n")
         rc, why = rc_of(lambda: red_classes([reds / "torn.trx"]))
         arm("red_classes: an unreadable trx raises UnreadableTrx naming the file", rc == RC_ERROR and "torn.trx" in why, why)
+        arm("red_cases: the name of every definition with a Failed result, across files (the landing lane's "
+            "classification compares them with a gate record, kb/Work PB4271); none for a pass or a skip",
+            red_cases(red_files) == {"N.A.Two", "N.B.T(x: \"a.b\")", "N.D.One"} and red_cases([]) == set(),
+            str(red_cases(red_files)))
         arm("the XML range is stated once, as escapes: the kept and the rewritten characters are its two sides",
             all(ord(ch) < 0x80 for ch in XML_RANGE) and _IS_XML.match("\ud7ff") and _IS_XML.match("\ue000")
             and _IS_XML.match("\ufffd") and not _IS_XML.match("\uffff") and _NOT_XML.search("\uffff")
             and _NOT_XML.search("\U0001d15e") and not _NOT_XML.search("\t\n\r ~"), XML_RANGE)
+
+    # THE REAL TREE (kb/Work PB4395: until then GateLegDriftTests, a compiler test, ran these three audits). Each must
+    # also SEE its population: a scan that stopped seeing the callers, writers or readers it names would report a clean
+    # tree over nothing.
+    sites, offenders = audit_callers(REPO)
+    want_sites = ("scripts/battery.sh", "scripts/gate.py", "scripts/gen-vcr.ps1", "scripts/gen-diagnostics-doc.ps1",
+                  "scripts/spec/record_verdicts.py", "scripts/abi_pin.py", ".github/workflows/build-and-test.yml")
+    arm("arm (6), the real tree: every `dotnet test` caller under scripts/ and .github/workflows/ runs scrubbed, and the "
+        "audit sees the callers DESIGN-test-build-ci.md §3.14.3 names",
+        not offenders and all(s in sites for s in want_sites),
+        f"offenders {offenders}; missing {[s for s in want_sites if s not in sites]}")
+    seen, bad = audit_trx_writers(REPO)
+    want_writers = ("scripts/gate.py  TestResults/build-local", "scripts/linux-gate.sh  TestResults/linux-gate",
+                    "scripts/battery.sh  -")
+    arm("the real tree: every live tool that writes a trx file is a TRX_WRITERS row (PB3155), and the audit sees the "
+        "gate, the Linux gate and the battery",
+        not bad and all(any(f"  writer  {w}  " in s for s in seen) for w in want_writers), f"{bad} {seen}")
+    seen, bad = audit_trx_readers(REPO)
+    want_readers = ("  trx-schema  scripts/test_population.py  parses XML", "  trx-schema  scripts/gate.py  no XML parser",
+                    "  trx-schema  scripts/profile-test-parallelism.py  no XML parser")
+    arm("the real tree: every live tool reads a trx file through trx_root (PB3661), and the audit sees the one reader "
+        "and the tools that only name the schema", not bad and all(w in seen for w in want_readers), f"{bad} {seen}")
 
     for name, passed, detail in results:
         print(f"  {'PASS' if passed else 'FAIL'}  {name}" + ("" if passed or not detail else f"\n        {detail}"))
@@ -806,7 +846,7 @@ def main(argv: list[str]) -> int:
     ls.add_argument("--project", required=True)
     ls.add_argument("--configuration")
     ls.add_argument("--out", required=True)
-    sub.add_parser("audit-callers", help="every `dotnet test` caller scrubs (GateLegDriftTests arm 6)")
+    sub.add_parser("audit-callers", help="every `dotnet test` caller scrubs (DESIGN-test-build-ci.md §3.14.4 arm 6)")
     sub.add_parser("audit-trx-writers", help="every live tool that writes a trx file has its TRX_WRITERS row (PB3155)")
     sub.add_parser("audit-trx-readers", help="every live tool reads a trx file through trx_root (kb/Work PB3661)")
     args = ap.parse_args(argv)
