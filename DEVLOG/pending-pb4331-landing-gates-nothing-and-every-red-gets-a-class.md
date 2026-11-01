@@ -42,5 +42,12 @@ test_population.py's `red_cases` arm. The C# drift tests that hold the arms by n
 cost-law-and-budget.md; units/enqueue.md steps 3 and 5; DESIGN-test-build-ci.md §3.17.2 step 3 and
 DESIGN-orchestrator-loop.md §4.9 and §16.6. The whole-pipeline rewrite of DESIGN-test-build-ci.md is step 11 (PB4334).
 
+**A flake found and fixed at its root.** The first gate (run 000001-20261101T145055Z) was RED on one case,
+`RecordLayoutNoticeTests.OutputMode_IsNeverReported`: it swaps the process-wide `Console.Error` to capture the record
+layout notice, and another class's harness cleanup printed `SCRATCH-LEFT` into the swapped stream. The class shared the
+`process-globals` collection (PB126), which serialized only its own members. It now has its own collection with
+parallelization disabled (`ConsoleErrorCollection`), so it runs alone after the parallel ones (0.1 s); the swap is the
+only in-process stderr swap in the test assemblies (`Console.SetError` swept).
+
 **Register.** PB4331, PB4204 and PB4271 landed (no inventory row; process tooling). PB3804's `SLOT_DRIVER` comment item
 left with its code. Lead: `gate_slot.py`'s landing gate class (CLASS_ENV=landing, served first) has no starter now.
