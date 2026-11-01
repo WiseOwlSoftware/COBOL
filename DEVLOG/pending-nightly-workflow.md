@@ -38,3 +38,9 @@ re-baselines; that is the job, not a defect of it. They are reported as leads, n
 DotnetSdkInstallDriftTests, ToolchainManifestDriftTests, SparseCheckoutDriftTests, ReadyToRunRuntimeDriftTests,
 FilterPopulationGuardDriftTests): the new file meets them (toolchain-manifest images and installs, artifacts through
 `upload-results`, the two sparse jobs listing what their scripts import). No new diagnostic code was needed.
+
+**What the gate found.** The first gate was RED on `GateLegDriftTests.EveryTrxReader_IsTheOneReader_ThatNamesTheFileItCannotRead`:
+`shard_weights.py` parsed trx with its own XML parser. It now reads through `test_population.trx_root` (kb/Work PB3661), the
+one reader, so a torn trx is an `UnreadableTrx` naming the file and the day is UNMEASURED (exit 2) rather than a bare parse
+error. `test_population.py` is deleted by step 5 (PB4328); that note's Sites now say the reader moves first and its
+importers (`profile-test-parallelism.py`, `shard_weights.py`) are re-pointed.

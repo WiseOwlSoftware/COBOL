@@ -34,11 +34,11 @@ import json
 import subprocess
 import sys
 import tempfile
-import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Callable
 
 from standard_streams import ensure_utf8  # (scripts/, this file's own directory)
+from test_population import UnreadableTrx, trx_root  # THE one trx reader, which names a file it cannot read (kb/Work PB3661)
 
 #: The spread above which the division is OVER (PIPELINE-REVIEW section 3.1: "above 1.5 times is a kb/Work note").
 THRESHOLD = 1.5
@@ -63,9 +63,10 @@ class GhError(RuntimeError):
 
 
 def trx_times(trx: Path) -> float:
-    """The wall seconds of one trx's test run: its `<Times>` finish minus start. Raises ValueError for a file that
-    holds no `<Times>` (not a test result, or truncated): a shard with an unreadable trx is UNMEASURED, never zero."""
-    root = ET.parse(trx).getroot()
+    """The wall seconds of one trx's test run: its `<Times>` finish minus start. Raises UnreadableTrx (naming the file)
+    for a file that is not a trx, and ValueError for a trx with no `<Times>`: a shard with an unreadable trx is
+    UNMEASURED, never zero."""
+    root = trx_root(trx)
     times = root.find(f"{_TRX_NS}Times")
     if times is None or not times.get("start") or not times.get("finish"):
         raise ValueError(f"{trx}: no <Times start= finish=> element")
@@ -180,7 +181,7 @@ def report(from_dir: Path | None, hours: int, threshold: float, gh: Gh = _gh) ->
         with tempfile.TemporaryDirectory(prefix="shard-weights-") as scratch:
             fetch(Path(scratch), hours, gh)
             return verdict(gather(Path(scratch)), hours, threshold)
-    except (GhError, ValueError, ET.ParseError, OSError) as error:
+    except (GhError, ValueError, UnreadableTrx, OSError) as error:
         return f"=== SHARD SPREAD: UNMEASURED -- {error} ===", 2
 
 
@@ -246,9 +247,13 @@ def self_test() -> int:
         # report --from-dir, and the failure arms: an unreadable trx and a missing directory are UNMEASURED, exit 2.
         check("report --from-dir", report(root, 24, THRESHOLD)[1], 1)
         (root / "4" / "test-results-Linux-bad").mkdir(parents=True)
-        (root / "4" / "test-results-Linux-bad" / "x.trx").write_text("<TestRun/>", encoding="utf-8", newline="\n")
+        bad = root / "4" / "test-results-Linux-bad" / "x.trx"
+        bad.write_text('<TestRun xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010"/>', encoding="utf-8", newline="\n")
         line, code = report(root, 24, THRESHOLD)
-        check("a trx without <Times> is UNMEASURED, never zero", (code, "UNMEASURED" in line), (2, True))
+        check("a trx without <Times> is UNMEASURED, never zero", (code, "UNMEASURED" in line, "<Times" in line), (2, True, True))
+        bad.write_text("<torn", encoding="utf-8", newline="\n")
+        line, code = report(root, 24, THRESHOLD)
+        check("a torn trx is UNMEASURED and the line names the file", (code, "UNMEASURED" in line, "x.trx" in line), (2, True, True))
         check("a missing directory is UNMEASURED", report(Path(scratch) / "absent", 24, THRESHOLD)[1], 2)
 
         # fetch / window_run_ids with a fake gh.
