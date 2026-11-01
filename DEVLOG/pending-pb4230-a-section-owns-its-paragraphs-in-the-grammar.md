@@ -26,6 +26,15 @@ why the one-loop form is excluded.
 null_nosec_400: 3,215 ms. The review's refuter had already shown the reshape tree-neutral (procedureUnit spliced out)
 and diagnostic-neutral on all 6,201 corpus files.
 
+**One diagnostic changed wording, by design.** A paragraph or section header written after a statement with no
+period, inside a section, drew COBOL0307 as a failed prediction ("cannot parse construct near 'P2'. A period may be
+missing ..."), because the ambiguous loop's prediction looked past the header. It now draws the COBOL0307 the same
+fault draws in a division without sections ("unexpected 'P2'. A period may be missing at the end of the previous
+sentence."): still one report, the same code, at the same token. `ParseRecoveryHintTruthTests` rows PBHT31-36 and 38
+now pin that wording, and PBHT37 (the header after an open IF ... ELSE IF ... END-IF) still pins the failed-prediction
+path, which is unchanged. `PrototypeUnitRulesTests.Sr4f_ProcedureStatements_AreRefused` gained a section row and a
+leading-sentence row, so each body element §10.6.2 SR4 f) now asks about separately has its own witness.
+
 **Guard.** `ProcedureDivisionShapeDriftTests` parses one program, with DECLARATIVES, leading paragraphs, two sections and
 a nested program, in LL mode under ANTLR's profiler at 3 and at 60 paragraphs per section. No decision of the
 procedure-division structure rules may report an ambiguity, look further than one qualified section header, or look
