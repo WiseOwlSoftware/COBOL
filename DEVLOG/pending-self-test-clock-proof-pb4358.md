@@ -30,9 +30,19 @@ A self-test that compares the clock with a real one the shift cannot move declar
 own clock unmoved and cannot run on the Windows hosts the implementers use; a syntax-tree-only rule (candidate 2) judges
 intent. The hybrid runs the proof where the clock can be read and lets a self-test opt out visibly, with its reason.
 
-**Measured.** A full run on this host shifted 53 of 137 self-tests (all green) and the five Python ones named above went
-red for the reason PB4353 gave, until they declared the real clock. The proof adds about a third to the summed seconds
-of a full run (CI), and nothing to a gate whose reused PASSes are inside their horizon.
+**Measured.** A full run on this host shifted 49 of 138 self-tests (all green; 55 reach the clock) and the five Python
+ones named above went red for the reason PB4353 gave, until they declared the real clock. The proof adds about 30 % to the
+summed seconds of a full run (CI), and nothing to a gate whose reused PASSes are inside their horizon.
+
+**Review lenses.** Architecture: the rule lives in one module (`self_test_clock.py`) that the tracer, the runner and the
+PASS store call; no second copy of the clock list (the shim's self-test derives its coverage from the detection's
+constants). Full code: the first run scrubs the shift variable, so a nested runner measures the real clock (found by an
+arm, fixed). Silent failure: a malformed `clock` record or an unreadable closure file never counts as proof (the record
+is unusable; an unreadable file reads no clock, as an un-opened one would). Performance: the detection is cached by
+source, and the proof run adds no trace. Duplication: none.
+
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run 000001-20261101T141849Z; SELF-TESTS
+GREEN, 138 ran; leg 1 Unit 5,701 and Characterization 37 cases GREEN).
 
 **Residue, named.** A PowerShell or bash self-test is not shifted (`Get-Date` and `date` read a clock no Python process
 moves), and neither is a clock that is not Python's; those self-tests still run at today's clock in every gate, CI and the
