@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """merge_drivers.py — THE GIT MERGE DRIVERS FOR THE FILES TWO LANDINGS BOTH EDIT, and the one way main is merged in
-(kb/Work PB3610; DESIGN-test-build-ci.md section 3.17.2 step 2).
+(kb/Work PB3610; DESIGN-test-build-ci.md section 3.17.2 step 3).
 
     python scripts/merge_drivers.py merge <ref> [--message M] [--keep] [--repo DIR]   merge <ref> with the drivers, settle the ABI pin
     python scripts/merge_drivers.py driver <name> <base> <ours> <theirs> [<path>]   what git runs per conflicting file
