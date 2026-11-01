@@ -177,6 +177,37 @@ public sealed class CollationTailoringTests
         Assert.Same(CollationEngine.Root, CollationEngine.ForLocale("fr-FR"));
     }
 
+    /// <summary>A number's lead (<see cref="CollationTable.NumericLead"/>) stands at the digit zero's primary - 1, which no
+    /// character may carry; a hand-written <c>.tailor</c> weight at exactly that value is refused, naming the file and the
+    /// line, the way the CLDR builder keeps the value free (kb/Work PB4264). The neighbouring values stay legal.</summary>
+    [Fact]
+    public void Apply_RefusesAWeightAtTheNumericLeadPrimary()
+    {
+        int lead = CollationTable.Root.NumericLead.Primary;
+        Assert.Equal(CollationTable.Root.Lookup('0').Primary - 1, lead);
+        var rules = TailoringRules.Parse(new StringReader($"@locale zz\nU+00F1 {lead - 1:X} 0020 0002\nU+E000 {lead:X} 0020 0002\n"), "lead.tailor");
+        var ex = Assert.Throws<LocaleCollationException>(() => rules.Apply(CollationTable.Root));
+        Assert.Equal("lead.tailor", ex.DataSource);
+        Assert.Equal(3, ex.Line);
+        Assert.Contains("numeric", ex.Reason);
+        var below = TailoringRules.Parse(new StringReader($"U+E000 {lead - 1:X} 0020 0002\n"), "below.tailor").Apply(CollationTable.Root);
+        Assert.Equal(lead - 1, below.Lookup(0xE000).Primary);
+    }
+
+    /// <summary>The lead follows the table the tailoring PRODUCES: a <c>.tailor</c> that moves the digit zero itself
+    /// moves the reserved value with it, so the value below the NEW zero is the one refused (and the old one is free).</summary>
+    [Fact]
+    public void Apply_RefusesAWeightAtTheLeadOfTheTailoredZero()
+    {
+        int zero = CollationTable.Root.Lookup('0').Primary;
+        int moved = zero + 3;
+        var collides = TailoringRules.Parse(new StringReader($"U+0030 {moved:X} 0020 0002\nU+E000 {moved - 1:X} 0020 0002\n"), "zero.tailor");
+        var ex = Assert.Throws<LocaleCollationException>(() => collides.Apply(CollationTable.Root));
+        Assert.Equal(2, ex.Line);
+        var free = TailoringRules.Parse(new StringReader($"U+0030 {moved:X} 0020 0002\nU+E000 {zero - 1:X} 0020 0002\n"), "zero.tailor").Apply(CollationTable.Root);
+        Assert.Equal(moved - 1, free.NumericLead.Primary);
+    }
+
     [Fact]
     public void Load_FromDisk_AndAppliedOverrides_AreIndependentOfTheRoot()
     {
