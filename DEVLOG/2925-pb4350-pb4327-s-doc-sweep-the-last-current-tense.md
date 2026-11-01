@@ -1,4 +1,4 @@
-## PB4350 - PB4327's doc sweep: the last current-tense descriptions of the deleted Linux half of the per-change gate
+## Entry 2925 — 2026-11-01 01:27 PDT — PB4350 - PB4327's doc sweep: the last current-tense descriptions of the deleted Linux half of the per-change gate
 
 PB4327 removed the Linux half of `build-local`; its branch review found four sites that still described it. Re-probed on a
 tree cut from b56ecd0be: three reproduced, one did not. MANDATORY-PRACTICES row L2 said the gate ran "the same plan's legs
@@ -10,3 +10,4 @@ the `InertLaneDriftTests` class summary naming one script twice, had already bee
 sweep found one more: `references/landing.md` section 3 still said the landing runs the ordered gate and CI's Linux legs on
 the merged head; it now says the landing reads the branch's gate record (L2). `CLAUDE.md` and `DESIGN-test-build-ci.md`
 are PB4334's. Documentation only: no code, no diagnostic, no golden, no inventory row (`closes_rows: []` with its reason).
+
