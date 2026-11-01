@@ -1779,22 +1779,29 @@ daylight-saving change between now and then), which would make the module's own 
 local zone while CI (UTC) stayed green (review R1-1).
 *Residue, named.* A PowerShell or bash self-test is not shifted (`Get-Date` and `date` read a clock no Python process
 moves; the two PowerShell ones that compare a meter reading with the clock are the 2026-11-01 sweep's other false reds).
-One whose OWN text reads a clock (`SCRIPT_CLOCK_RE`: `Get-Date`, `[DateTime]`, `date`, `$SECONDS`, `stat`, `-mtime`...)
-is held to the day it was recorded, like a declared real clock; a helper script it sources is not traced, so a clock read
-there is the remaining residue. A clock that is not Python's (an mtime, a process start time, a commit time) cannot be
+One whose CLOSURE reads a clock is held to the day it was recorded, like a declared real clock. The closure is what the
+PASS is already keyed on (`Deriver.closure`: the files its text names, transitively, and the directories it reads whole,
+so a sourced helper, a fake and a library are in it) plus the tracked `.py` files its Python children opened (the
+tracer's trace); a script of it matching `SCRIPT_CLOCK_RE` (`Get-Date`, `[DateTime]`, `date`, `$SECONDS`, `stat`,
+`-mtime`...) or a Python file of it that reads the wall clock makes it so (review R2-1: the first cut read only the
+self-test's own text, so `test_orchestrate_lane.ps1`, whose clock reads are in `orchestrate.ps1` and its fakes, recorded no
+horizon and was reused forever). Measured: 19 of the 23 PowerShell and bash self-tests are day-bound, an over-approximation
+(`date` in a comment) that costs one re-run a day each. A script the closure does not name (a path built from a variable
+at run time) is the remaining residue. A clock that is not Python's (an mtime, a process start time, a commit time) cannot be
 shifted by this shim: the self-test that reads one declares it real. CI's merge group and the nightly still run every
 self-test at today's clock. A clock every process agrees on (libfaketime on Linux, the note's first candidate) is the
 root fix for the PowerShell and bash ones.
 *No arm limits how long a process takes.* The module's arms compare each child reading with the interval the PARENT's own
-clock brackets the child's run in (a slow start-up only widens it), and a second of allowance covers the clocks' rounding
-and the whole-second readers, never slowness (review R1-3; the owner's no-wall-clock rule).
+clock brackets the child's run in (a slow start-up only widens it), and an allowance (`RESOLUTION`, two seconds in the module's arms, one in the planted `test_child.py`) covers the clocks'
+rounding and the whole-second readers, never slowness (review R1-3; the owner's no-wall-clock rule).
 *Proof.* `self_test_clock.py --self-test` (the detection's arms; the shim in a child process against the parent's
 bracketing clock, every function once; a shift across a daylight-saving change under a POSIX `TZ` with a daylight rule;
 the horizon, the day-bound clock) and `self_tests.py --self-test` (`fleet_arms`: a fixture written at arm time and compared
 with the wall clock is RED in the proof run and records no PASS; the same test deriving its fixture from the clock, a child
 process that must agree with its parent, a self-test that cannot read the clock and one declared real; an mtime comparison
 undeclared is RED; the recorded horizon; reuse inside it and a fresh run past it; a declared-real PASS of an earlier day is
-not reused; a bash self-test reading `date` is day-bound).
+not reused; a bash self-test reading `date` is day-bound, so is one that sources a helper reading `date` and one whose
+traced Python child opened a file that reads the clock).
 
 #### 3.14.11 The one Python interpreter the gate scripts run (kb/Work PB1637, PB3197)
 

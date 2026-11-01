@@ -336,6 +336,12 @@ class Deriver:
             self._mentions[rel] = (files, dirs)
         return self._mentions[rel]
 
+    def closure(self, test: str) -> set[str]:
+        """Every tracked file `static` reaches, a static directory's files included: what a script self-test may RUN
+        that no Python tracer sees (kb/Work PB4358 uses it to find the clock reads of the scripts it runs)."""
+        files, dirs = self.static(test)
+        return files.union(*(self.tree.under(d) for d in dirs))
+
     def static(self, test: str) -> tuple[set[str], set[str]]:
         """(files, directories) the trace cannot see for self-test `test` — its own file, the runner, its declared
         reads, and for an untraced script the closure over its mentions (module docstring)."""
