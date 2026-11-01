@@ -186,7 +186,7 @@ public sealed class EditionReadDriftTests
         // The carriers: the driver and the fragment parser prime each lexer and hand each parser the edition, and the
         // fragment parser's callers pass one on (a directive expression parses at the newest edition's word status).
         ["src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs | Frontend.LexAndParseOnce | PrimeLexer"] = (1, Verdict.Carrier),
-        ["src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs | Frontend.LexAndParseOnce | Edition="] = (1, Verdict.Carrier),
+        ["src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs | Frontend.NewParser | Edition="] = (1, Verdict.Carrier),
         ["src/WiseOwl.Cobol.Frontend/Parsing/FragmentParse.cs | FragmentParse.Parse | PrimeLexer"] = (1, Verdict.Carrier),
         ["src/WiseOwl.Cobol.Frontend/Parsing/FragmentParse.cs | FragmentParse.Parse | Edition="] = (1, Verdict.Carrier),
         ["src/WiseOwl.Cobol.Frontend/Parsing/FragmentParse.cs | FragmentParse.ParseTokens | Edition="] = (1, Verdict.Carrier),

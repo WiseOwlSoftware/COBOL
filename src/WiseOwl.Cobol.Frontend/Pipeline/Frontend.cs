@@ -497,11 +497,7 @@ public sealed class Frontend
         // the parse dying. Setting only DialectLevel left Permissive false for every real compile, so
         // `--permissive` could not save a program that names a reservation-gated word — the one thing the mode
         // exists for. Every other stage of this pipeline is already handed `Permissive`; the parser was the gap.
-        var parser = new CobolParserCore(tokens)
-        {
-            Edition = edition,
-            CobolWords = cobolWordsMap,
-        };
+        var parser = NewParser(tokens, edition, cobolWordsMap);
 
         // ⛔ THE TOKEN-LEVEL §8.9 GATE (kb/Work PB655): the ONE loop both front ends share —
         // ReservationGateRewriter.ParseToFixpoint re-parses until no newly declared free gated word remains.
@@ -549,6 +545,11 @@ public sealed class Frontend
         return (tree, parser.NumberOfSyntaxErrors == 0 && !embeddedBlocks.Any, sourceDebuggingLines);
     }
 
+    /// <summary>The whole-group parser of <paramref name="tokens"/>: the ONE place the driver hands it the edition (both axes) and
+    /// the words map (see the call in <see cref="LexAndParseOnce"/>).</summary>
+    private static CobolParserCore NewParser(CommonTokenStream tokens, EditionInfo edition, CobolWordsMap cobolWordsMap)
+        => new(tokens) { Edition = edition, CobolWords = cobolWordsMap };
+
     /// <summary>Does the source parse with no syntax error as it stands? Asked by <see cref="EmbeddedBlockReading.Read"/> of an
     /// EXEC only the grammar can classify (kb/Work PB4381): one whole parse, the gate's loop included, of a COPY of the
     /// stream (the loop retypes the tokens it is handed) into a bag nothing reads.</summary>
@@ -556,7 +557,7 @@ public sealed class Frontend
         CobolWordsMap cobolWordsMap, string sourcePath, IMarginRCutLocator cuts)
     {
         var copy = new CommonTokenStream(new ListTokenSource(tokens.GetTokens().Select(t => (IToken)new CommonToken(t)).ToList()));
-        var parser = new CobolParserCore(copy) { Edition = edition, CobolWords = cobolWordsMap };
+        var parser = NewParser(copy, edition, cobolWordsMap);
         ReservationGateRewriter.ParseToFixpoint(parser, copy, retypes, new DiagnosticBag(),
             (bag, witness) => ParsePass(parser, copy, bag, witness, sourcePath, cuts));
         return parser.NumberOfSyntaxErrors == 0;
