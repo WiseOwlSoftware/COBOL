@@ -294,7 +294,7 @@ jobs:
         with:
           submodules: false
           # scripts/standard_streams.py: every orchestrator script imports its one UTF-8 switch (kb/Work PB3637)
-          # SparseCheckoutDriftTests (kb/Work PB3787) holds this list: every file the job runs, and every module those
+          # scripts/sparse_checkout.py (kb/Work PB3787) holds this list: every file the job runs, and every module those
           # import anywhere in their text (a function body's lazy import too, kb/Work PB3810), must be listed, or the
           # continue-on-error script step cancels nothing while the run stays green
           sparse-checkout: |
@@ -401,6 +401,13 @@ jobs:
       # pinned here.
       - name: Python YAML parser for the tooling self-test (pyyaml, pinned)
         run: python3 -m pip install --disable-pip-version-check --no-input pyyaml==6.0.3
+      # scripts/corpus_sweep.py's self-test (the PB209 population gate) obtains the GPL corpus through
+      # scripts/external_corpus.py; main's tarball, restored here, keeps the network to a cold cache (kb/Work PB4395).
+      - name: Restore main's GnuCOBOL testsuite tarball (GPL, fetched on demand, never committed; saved by toolchain-cache alone)
+        uses: actions/cache/restore@v6
+        with:
+          path: tests/external/gnucobol-3.2.tar.xz
+          key: gnucobol-tests-3.2-3bb48af4
       - name: Code citations — the clause vs the construct it names (audit_code_citations.py --check)
         run: python3 scripts/spec/audit_code_citations.py --check
       - name: Doc citations — a quoted fragment vs the clause it is filed under (audit_doc_citations.py --check)
@@ -779,6 +786,13 @@ jobs:
       - name: Python packages for the script self-tests (tzdata, pyyaml, pinned)
         shell: pwsh
         run: python -m pip install --disable-pip-version-check --no-input tzdata==2026.4 pyyaml==6.0.3
+      # scripts/corpus_sweep.py's self-test (the PB209 population gate) obtains the GPL corpus through
+      # scripts/external_corpus.py; main's tarball, restored here, keeps the network to a cold cache (kb/Work PB4395).
+      - name: Restore main's GnuCOBOL testsuite tarball (GPL, fetched on demand, never committed; saved by toolchain-cache alone)
+        uses: actions/cache/restore@v6
+        with:
+          path: tests/external/gnucobol-3.2.tar.xz
+          key: gnucobol-tests-3.2-3bb48af4
       - name: Script self-tests on Windows (self_tests.py)
         shell: pwsh
         run: python scripts/self_tests.py
@@ -790,7 +804,7 @@ jobs:
         run: python scripts/line_endings.py --check
 
   # ── ⛔ EVERY CACHE IS SAVED UNDER MAIN, AND BY THE TWO JOBS BELOW ALONE (kb/Work PB3308, PB4007, PB4324;
-  # .github/actions/setup-toolchain; CiBoundsDriftTests). A merge group's run restores only what its own ref or main
+  # .github/actions/setup-toolchain; scripts/ci_bounds.py). A merge group's run restores only what its own ref or main
   # saved, and its ref (`gh-readonly-queue/main/pr-<n>-<sha>`) is new every time, so what a merge group's jobs save is
   # never read again: it only fills the repository's 10 GB cache budget (10.77 GB held on 2026-10-31, every queue branch
   # holding its own NuGet and toolchain copy). The matrix jobs therefore only RESTORE (`actions/cache/restore`), and

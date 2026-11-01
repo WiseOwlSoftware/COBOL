@@ -5,7 +5,7 @@
 .DESCRIPTION
     Plan §11 row A4 / PHASE-14 Step 13 — the EXTERNAL DIFFERENTIAL CORPUS.
     Design SSOT: docs/rearchitecture/DESIGN-test-build-ci.md §3.10 (the instrument-gate inventory row for
-    `ExternalCorpusPopulationDriftTests`) and plan §9 (corpus mechanics).
+    `scripts/corpus_sweep.py`, whose self-test is the population gate) and plan §9 (corpus mechanics).
 
     ⚖ LICENSING POSTURE (load-bearing — do NOT deviate):
     GnuCOBOL and its testsuite are GPL-3.0; this repository is BSL 1.1. Their test TEXT is therefore
@@ -19,7 +19,7 @@
 
     A missing corpus is handled two ways, deliberately different (PB209/PB277): the adapter conformance
     suite SKIPS with a loud notice rather than silently passing, while the population drift gate
-    (ExternalCorpusPopulationDriftTests) FAILS — a gate that cannot see its population must not read as
+    (scripts/corpus_sweep.py --self-test) FAILS — a gate that cannot see its population must not read as
     green. CI runs this script on demand (cached, pinned) so that gate measures everywhere.
 
     ⛔ THREE RULES THIS SCRIPT EXISTS TO KEEP (kb/Work PB897 — it broke all three, and the resulting permanent
@@ -54,7 +54,7 @@
     Prove the two rules above by DRIVING THEM, over a synthetic archive in a temporary sandbox: no network,
     no repository state touched. A check that has never been observed failing is not evidence
     (`feedback_green_gates_arent_evidence`), so the self-test asserts the FAILURE branch preserves the prior
-    corpus, not merely that the success branch works. `ExternalCorpusFetchTests` (tests/WiseOwl.Cobol.Tests.Unit)
+    corpus, not merely that the success branch works. `scripts/external_corpus.py --self-test`
     runs it, and so must anyone changing the extraction.
 #>
 [CmdletBinding()]

@@ -1148,6 +1148,11 @@ reference formats, and the only place source comments are recognized. Its model:
   numeric sequence area (`MarginRCut.IsSequenceNumber`), or the identification tags (`FitsIdentificationArea`: one word of at
   most eight characters, positions 73–80, the COBOL-85 card-image convention) of a file that labels most of its code lines with
   one. Only a parse error asks, so a program that parses never hears of its tags.
+  `MarginRCut` carries the margin twice because the two units differ on a line holding a tab (kb/Work PB4373): `Column` is the
+  physical column the file holds the cut at (what the warning's location names), `LastProgramTextPosition` is the position the
+  format fixes (72, `FixedFormLine.MarginR`) and the one the message states, so the positions it quotes for the cut text
+  (`FirstCutPosition`, `LastCutPosition`, counted in characters, `CharacterPositions`) continue from it; a line whose two
+  differ says so in the message.
 - **COBOL-85's areas A and B are a fact the reference format RECORDS and a pass after the parse ASKS** (kb/Work PB3147;
   VCR Table 7 row 7.35). ANSI X3.23-1985 split the program-text area into area A (positions 8–11) and area B (12 to
   margin R) and placed every item by where it begins its line; ISO/IEC 1989:2002 removed the split (§6.3.1, §6.3.5), so

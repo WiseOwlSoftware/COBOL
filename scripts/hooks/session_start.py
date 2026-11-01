@@ -67,8 +67,8 @@ def local_skills_hint() -> str:
 
 def fetch_cloud_corpus() -> str:
     """The git-ignored GnuCOBOL corpus (tests/external/) is per CLONE, so a cloud session starts without it and the
-    population drift gate (ExternalCorpusPopulationDriftTests) is red by design (PB209/PB277) — cloud smoke #2,
-    2026-09-24. setup-env.sh pre-caches the pinned tarball; copying it in first makes the fetch skip the download.
+    population gate (scripts/corpus_sweep.py --self-test) and the differential cannot measure it (PB209/PB277) —
+    cloud smoke #2, 2026-09-24. setup-env.sh pre-caches the pinned tarball; copying it in first makes the fetch skip the download.
     The rule (fetch when absent, a failed fetch named) is scripts/external_corpus.py's, the one every gate applies
     (kb/Work PB2611)."""
     import shutil
