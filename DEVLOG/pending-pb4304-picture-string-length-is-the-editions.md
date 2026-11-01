@@ -23,3 +23,9 @@ written characters found no program that a 30-character 85 bound would newly ref
 **Register.** Row SR-13.18.40.3-4 stays CONFORMS with its notes restated (they said the text read identically at all four
 editions); the GAP count stays 19. VCR row 7.46 added; the `DATA_MODEL_DESIGN.md` PICTURE-shape paragraph carries the
 edition-keyed bound.
+
+**Review round 1.** The reviewer found the 2002 clause number wrong: the bound is the 2002 text's 13.16.38.2 SR4 (PICTURE
+clause, t2002.txt:16902 under the heading at :16889), not 13.16.39.3, which is the PRESENT WHEN clause's general rules. The
+number had been inherited from the note and never re-derived; it is corrected in the `MaxPictureStringLength2002` comment,
+VCR row 7.46, the `picture-string-50-2002` constructs row, the SR-13.18.40.3-4 inventory notes (by `record_verdicts`
+batch, not by hand) and the note. F.2 item 94 ("from 30 to 50", :44179) was re-checked and stands.
