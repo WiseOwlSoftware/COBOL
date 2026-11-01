@@ -1,4 +1,4 @@
-## PB4277 — ProcedureNameShape is the one reader of a procedureName node, and a drift test says so
+## Entry 2932 — 2026-11-01 01:34 PST — PB4277 — ProcedureNameShape is the one reader of a procedureName node, and a drift test says so
 
 PB4238 gave the grammar's `procedureName` node (`word ((OF | IN) word)?`, ISO §8.4.2.2.2 qualification) one reader,
 `ProcedureNameShape`, and wrote that nothing else reads it. Three consumers still called `GetText()`, which glues the
@@ -24,3 +24,4 @@ conformance golden: the rules are unchanged and the conformance suite compares c
 
 **Not closed.** PB4252 (the glued `GetText()` class across the other contexts) and PB4267 (EVALUATE, OO, MOVE, CALL, SET
 messages) stay open. PB4277 claims no inventory row.
+
