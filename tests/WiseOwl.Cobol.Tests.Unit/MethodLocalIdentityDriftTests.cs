@@ -26,7 +26,6 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <item>every role has a spelling, and no two roles' locals of one ordinal share it.</item>
 /// </list>
 /// </summary>
-[Trait("Sweep", "tree")]
 public sealed class MethodLocalIdentityDriftTests
 {
     private static readonly Regex LocalShapedName = new(@"^(CsName|Var|Local|.+Local|.+Var)$", RegexOptions.Compiled);

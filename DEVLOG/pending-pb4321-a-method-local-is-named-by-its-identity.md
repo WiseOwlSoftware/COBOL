@@ -26,10 +26,13 @@ REPORT_WRITER_DESIGN.md name the identity too.
 `=== ARCH-ORACLE: IDENTICAL — 15712 cases (baseline 2e48863d5802, new 2e48863d5802-dirty) ===`. The probe's emitted
 C# is byte-identical too. `python scripts/semgrep/verify.py`: PASS, no rule's count moved.
 
-**The witness.** `MethodLocalIdentityDriftTests` (a tree sweep) holds three facts: no `WiseOwl.Cobol.Binding` type has
+**The witness.** `MethodLocalIdentityDriftTests` (a drift rule over `src/WiseOwl.Cobol.Compiler/Binding`) holds three facts: no `WiseOwl.Cobol.Binding` type has
 a `string` property named for a local, no binder source spells a role's stem, and every role has its own spelling. The
 first two failed on a planted offender (`record ProbeL8Temp(string Var)` returning `$"__kv{n}"`) before it was
-removed. `PositionCarrierDriftTests` dropped its `PositionLocal.CsName` adjudication.
+removed. `PositionCarrierDriftTests` dropped its `PositionLocal.CsName` adjudication. The first gate was RED on one
+case, `HostWitnessTraitDriftTests.TheSweepTrait_IsExactlyDriftRulesTreeWideSweeps…`: the new test carried
+`[Trait("Sweep", "tree")]`, but it reads `src/WiseOwl.Cobol.Compiler/Binding`, a SPECIFIC path in `drift_rules.py`'s
+reckoning, so the trait came off.
 
 **Left as it is.** The Roslyn backend still roots two of its own locals in a `RootFieldSegment`
 (`PlaceIdentification.FreezeView`, `PlaceCursor.AtElementCell`). That is §1.3 L7's `CsField` shape, and moving them
