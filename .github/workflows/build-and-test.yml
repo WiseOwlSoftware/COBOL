@@ -53,8 +53,9 @@ concurrency:
 # jobs are independent gates — a failure in one is never masked by another.
 #
 # ⛔ EVERY LINUX `dotnet test` STEP RUNS UNDER THE INERT WATCH (`python3 scripts/inert_lane.py watch -- dotnet test …`;
-# kb/Work PB2878, InertLaneDriftTests): a test that opens a path the inert lane classes as read by no test turns its step
-# RED naming the path, so the classification that lets an inert change skip this matrix stays true. The Windows steps
+# kb/Work PB2878, PB4395; inert_lane.py's self-test holds it): a test that opens a path the inert lane classes as read by no
+# test, or a tooling-lane path (one no compiler test reads, kb/Work PB4395), turns its step RED naming the path, so the
+# classification that lets an inert change skip this matrix, and a tooling change gate with no build, stays true. The Windows steps
 # run the same tests and need no watch of their own (Windows has no open events).
 #
 # EVERY direct `dotnet test` step also writes a TRX log (--logger trx, --results-directory TestResults/<OS>-<job>/)
@@ -185,7 +186,10 @@ jobs:
                 code=false
                 reason="inert lane over $BASE..$SHA: $lane_reason — the matrix is skipped"
               else
-                reason="full lane over $BASE..$SHA: ${lane_reason:-$lane_out}"
+                # The code (full) lane, or the tooling lane (kb/Work PB4395): the local gate of a tooling-lane change ran
+                # no compiler test, and CI runs the whole population whatever the lane, the regression net.
+                lane_name="$(printf '%s\n' "$lane_out" | sed -n 's/^lane=//p')"
+                reason="${lane_name:-full} lane over $BASE..$SHA: ${lane_reason:-$lane_out}"
               fi
             fi
           fi
@@ -356,7 +360,8 @@ jobs:
   # verified (its matrix runs), are full runs and audit too.
   # They need no build and no submodule — `specs/ISO_COBOL.md` is tracked in this repository (the private
   # submodule holds only the PDF) — and only the standard library of toolchain.env's Python, which also runs their
-  # `--self-test`s inside the Unit leg (`CitationAuditSelfTestDriftTests`), proving each check can still fail.
+  # `--self-test`s through scripts/self_tests.py (and scripts/self_test_arms.py holds their arms, kb/Work PB4395),
+  # proving each check can still fail.
   # ONE STEP PER AUDIT, each `if: !cancelled()`, so one red never hides the others' verdicts.
   # ⛔ This is the SAME list, in the same order, as the gate driver's (`scripts/gate.py` AUDITS) and battery
   # phase -1; the
@@ -450,6 +455,17 @@ jobs:
       - name: Conflict markers — no tracked file carries an unresolved merge conflict (conflict_markers.py --check)
         if: ${{ !cancelled() }}
         run: python3 scripts/conflict_markers.py --check
+      # THE lanes' classification against the tree (kb/Work PB2878, PB4395): every entry names a tracked path, and every
+      # script the build or a compiler test is seen to read is CODE_READS, so a tooling-lane change never skips a compiler
+      # test that reads it. An audit, for the reason the conflict-marker check is one; its Linux test runs' twin is the watch.
+      - name: Inert lane — the lanes' classification against the tree (inert_lane.py check)
+        if: ${{ !cancelled() }}
+        run: python3 scripts/inert_lane.py check
+      # The gate has ONE shape (kb/Work PB3022): no live line tells anyone to run a gate mode. An audit since kb/Work
+      # PB4395: as a compiler test that walked every script, skill and workflow it made each of them a compiler test input.
+      - name: One shape — no live line names a gate mode (gate.py --audit-shape)
+        if: ${{ !cancelled() }}
+        run: python3 scripts/gate.py --audit-shape
       # Every diagnostic code is COBOL####, every number kept (kb/Work PB3575): the rename's own rules asked as a
       # question, so a branch that merged main without converting itself is red here. An audit, not a Unit test, for the
       # reason the conflict-marker check is one (kb/Work PB2878).
