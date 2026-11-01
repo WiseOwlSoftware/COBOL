@@ -2,7 +2,8 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 //
 // THE IN-ASSEMBLY LEG FILTER of the ordered gate (kb/Work PB1719; docs/rearchitecture/DESIGN-test-build-ci.md
-// section 3.14.3). tests/Directory.Build.props links this file into every test project under tests/ and names
+// section 3.14.3), and CI's SHARD HOOK (GateShard, TestWeights; kb/Work PB4329, the same document's section 1.4).
+// tests/Directory.Build.props links this file into every test project under tests/ and names
 // GateTestFramework in each one's [assembly: Xunit.TestFramework] (except in the impact-recording build, whose
 // ImpactTestFramework derives from GateTestFramework, so an assembly always names exactly one framework).
 #nullable enable
