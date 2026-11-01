@@ -32,7 +32,7 @@ prefix that holds the file is SPECIFIC_DEPTH segments deep, as a tree-wide sweep
 such classes were invisible here, and one stopped PB3523's landing). An Except entry is a directory the rule does not
 apply to, or ONE EXACT PATH: a file the scope sets aside BY NAME is the rule's OWNER (where its pattern may be written,
 or the test itself), so the class governs that file SPECIFICALLY too (`owners`): editing the owner edits the rule
-(PB3531 review R1-1: CatalogCoverageDriftTests owns scripts/spec/spec_headings.py). `TrackedTreeScopeDriftTests` holds every
+(PB3531 review R1-1: CatalogCoverageDriftTests owns tests/_shared/SpecClauseText.cs). `TrackedTreeScopeDriftTests` holds every
 declaration this reads equal to the value the compiler builds (`--scopes`), and every `TrackedTree.Files` call to a
 declared field of a drift test.
 
