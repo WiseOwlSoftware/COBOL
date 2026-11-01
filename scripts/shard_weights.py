@@ -361,8 +361,10 @@ def self_test() -> int:
         check("a gh failure is UNMEASURED and exits 2", (code, "UNMEASURED" in line and "HTTP 502" in line), (2, True))
         line, code = report(None, 24, THRESHOLD, 8, fake_gh, repo, now)
         check("the live report measures", (code, "OVER" in line), (1, True))
-        # The planted runs are dated against `now`; read against any other clock the window holds none of them, and the
-        # case above would pass only on the day it was written (it went red at 2026-11-01T09:00Z, kb/Work PB4353).
+        # The planted runs are dated against the fixed `now`. The arm above is the guard: the wall clock is past every
+        # planted run, so a report() that dropped `now` and read the wall clock would find its window empty and answer
+        # NOT MEASURED there (it went red that way at 2026-11-01T09:00Z, kb/Work PB4353). This arm only checks that the
+        # window's end follows a clock passed in two days later; on its own it would also pass with that regression.
         line, code = report(None, 24, THRESHOLD, 8, fake_gh, repo, now + datetime.timedelta(days=2))
         check("the live report's window ends at the clock it is given", (code, "NOT MEASURED" in line), (0, True))
 
