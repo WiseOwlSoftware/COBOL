@@ -46,6 +46,8 @@ from standard_streams import ensure_utf8  # noqa: E402
 BUILD_IF_UNDER = 0.10
 DEFAULT_LANDINGS = 20
 RUNTIME = "src/WiseOwl.Cobol.Runtime"
+#: A directory prefix, so a sibling project whose name starts with the runtime's is the compiler's.
+RUNTIME_DIR = RUNTIME + "/"
 VERDICT_PREFIX = "=== EMIT FRACTION: "
 
 
@@ -63,8 +65,8 @@ class Landing:
 
 def non_runtime(files: list[str]) -> bool:
     """A landing the differential applies to: it changes the compiler and not the runtime."""
-    return (any(f.startswith("src/") and not f.startswith(RUNTIME) for f in files)
-            and not any(f.startswith(RUNTIME) for f in files))
+    return (any(f.startswith("src/") and not f.startswith(RUNTIME_DIR) for f in files)
+            and not any(f.startswith(RUNTIME_DIR) for f in files))
 
 
 def changed_programs(old: dict, new: dict) -> tuple[int, int]:
@@ -128,7 +130,7 @@ def self_test() -> int:
     expect("a compiler change is a non-runtime landing", non_runtime(["src/WiseOwl.Cobol.Binding/A.cs", "docs/x.md"]), True)
     expect("a runtime change is not", non_runtime(["src/WiseOwl.Cobol.Runtime/IO/A.cs", "src/WiseOwl.Cobol.Binding/A.cs"]), False)
     expect("a change with no src file is not (it changes no program)", non_runtime(["tests/A.cs", "kb/Work/PB1.md"]), False)
-    expect("a prefix is a directory: src/WiseOwl.Cobol.RuntimeX is the compiler's", non_runtime(["src/WiseOwl.Cobol.RuntimeX/A.cs"]), False)
+    expect("a prefix is a directory: src/WiseOwl.Cobol.RuntimeX is the compiler's", non_runtime(["src/WiseOwl.Cobol.RuntimeX/A.cs"]), True)
 
     old = {"a": ["c1", "d1"], "b": ["c2", "d2"], "c": ["c3", "d3"], "r": [None, "dr"], "gone": ["c9", "d9"]}
     new = {"a": ["c1", "d1"], "b": ["c2x", "d2"], "c": ["c3", "d3x"], "r": [None, "drx"], "added": ["c7", "d7"],
