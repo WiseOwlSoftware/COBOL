@@ -833,7 +833,7 @@ longest first by the committed weights file. The growth trigger of PB4323 §3.4 
   (the class of each trx definition with a Failed result, through the one trx reader, kb/Work PB3661). They are written
   one per line to `<run>/first-classes.txt`, whose path every host gets as `WISEOWL_COBOL_GATE_FIRST`.
   `test_population.TRX_WRITERS` names every live tool that writes a trx file and what the gate takes from it, and
-  `GateLegDriftTests` holds it equal to the tools (`test_population.py audit-trx-writers`). A trx the gate cannot read
+  `test_population.py --self-test` holds it equal to the tools (`audit-trx-writers` over the real tree). A trx the gate cannot read
   is named on the console and KEPT in the run directory as `unreadable-<its directory>-<its name>.bad` (never `.trx`:
   later readers glob a run's trx files), and the gate goes on without it: this orders the run, it never selects it.
 - **The orderer** (tests/_shared/GateLegs.cs `GateOrderer`, installed by `GateAssemblyRunner` in every run): the test
@@ -903,17 +903,19 @@ of a `--list-tests` output (`parse_listing`); `filter_population.py` imports it.
   `=== POPULATION <label>: EXACT — 9,317/9,317 cases ran (skipped 0) across 1 trx ===` or `RED — …` followed by the named
   cases.
 
-**The drift tests that prove it fails** (`GateLegDriftTests`, one per assembly, each arm one method named for its number):
+**The drift tests that prove it fails** (`GateLegDriftTests`, one per assembly, each arm one method named for its number,
+for the test assemblies' half; the scripts' half is their own self-tests', kb/Work PB4395):
 (2) the orderer runs the named classes first, then longest first, and its output is a permutation of its input (a planted
-non-permutation throws); (3) `gate.py --self-test` and `test_population.py --self-test` declare every arm (a dropped case, a
-duplicated case, a skipped case, a foreign definition, a red audit that stops the hosts, a second gate in the same worktree
-refused, one shape for every gate); (4) every test project under `tests/` links `GateLegs.cs` and names `GateTestFramework`;
+non-permutation throws); (3) `gate.py --self-test` and `test_population.py --self-test` each RUN every arm their
+`DECLARED_ARMS` names (a dropped case, a duplicated case, a skipped case, a foreign definition, a red audit that stops the
+hosts, a second gate in the same worktree refused, one shape for every gate), checked at the end of the run; (4) every test project under `tests/` links `GateLegs.cs` and names `GateTestFramework`;
 (5) no discovered display name in a gated assembly contains the repository root (the audit reads the attribute and xunit's
 own discovery with theories pre-enumerated, `tests/_shared/GateLegAudit.cs`, and matches the root as TEXT in its written, `/`
 and xunit-escaped forms, never through the host's path rules; Unit's witness plants a Windows, a POSIX and the host's own
 root, so the arm is proven on each OS CI runs); (6) every `dotnet test` caller scrubs `WISEOWL_COBOL_GATE_*`, `VSTest*` and
-`RunSettingsFilePath` (`test_population.py audit-callers`, §3.14.3); plus `Shard_*` for CI's deal (§1.4) and the arms that
-hold `test_population.TRX_WRITERS` and the one trx reader (§3.14.2).
+`RunSettingsFilePath` (`test_population.py audit-callers`, §3.14.3, run over the real tree by `test_population.py
+--self-test`); plus `Shard_*` for CI's deal (§1.4), and `test_population.py --self-test`'s real-tree arms that hold
+`test_population.TRX_WRITERS` and the one trx reader (§3.14.2).
 
 #### 3.14.5 Whole-suite speed: what was measured, and what it fixed
 
@@ -1744,7 +1746,7 @@ self-test arms of `enqueue.py` and `ruleset.py` are declared; the direct-push la
 the train applier and the landing oracle do not exist, the push trigger is `[ main ]` with no `ci/**`, and no tracked file
 outside the history paths names them; no generated index is tracked; `NoTrackedRecord_DescribesOneBranchsTree` (no committed
 arch-oracle baseline and `capture_oracle.py` has no `--record`, the rule of §3.17.2 step 4). Beside it:
-`GateLegDriftTests` (no caller names a gate mode), `HostWitnessTraitDriftTests` (the traits of §3.17.3), `devlog.py
+the ONE SHAPE audit (`gate.py --audit-shape`: no live line names a gate mode; kb/Work PB4395), `HostWitnessTraitDriftTests` (the traits of §3.17.3), `devlog.py
 --self-test`'s `lint` arm over the repository's own `DEVLOG/`, `TheMergeGroupRun_CancelsTheRunsTheQueueSuperseded_AndNothingElse`
 (the `supersede` job runs on `merge_group` alone with no `needs`, runs `cancel_superseded.py` with the run's id and head
 commit, is the only job with `actions: write`, has every step `continue-on-error` and is a `needs` of `ci-gate`; the arms of

@@ -56,7 +56,7 @@ exiting 0, and every one of them is an ENVIRONMENT variable:
 Because the VSTest channel narrows DISCOVERY too, a population listed in the caller's environment would be blind
 to it — which is why the listing here always runs scrubbed. `is_scrubbed` is the ONE statement of the rule;
 python callers pass `env=scrubbed_env()`, every other caller runs `python scripts/test_population.py scrubbed
-dotnet test …`, and `audit-callers` (GateLegDriftTests arm 6) is red on a `dotnet test` under `scripts/` that
+dotnet test …`, and `audit-callers` (arm 6, run over the real tree by the self-test) is red on a `dotnet test` under `scripts/` that
 does neither, or on a CI workflow that SETS a scrubbed variable (a GitHub-hosted job's environment is exactly
 what the workflow declares, so a workflow that sets none is scrubbed by construction).
 
@@ -298,8 +298,8 @@ def red_cases(paths: list[str | Path]) -> set[str]:
 # ── RED AT THE PREVIOUS GATE MEANS ANY HOST'S (kb/Work PB3155, PB3184, PB3644): the sources of the first classes ──────
 #: ⛔ EVERY LIVE TOOL THAT WRITES TEST RESULTS (a trx file) INTO A WORKTREE IS ONE ROW HERE: the results directory it
 #: writes, relative to the worktree (None: it writes none there), and what the gate takes from it (scripts/gate.py `Gate._first`).
-#: `GateLegDriftTests` holds this table equal to the live tools that write a trx file (`audit-trx-writers`), so a new
-#: writer is classified here or that test is red.
+#: The self-test holds this table equal to the live tools that write a trx file (`audit-trx-writers` over the real tree),
+#: so a new writer is classified here or the self-test is red.
 TRX_WRITERS: dict[str, tuple[str | None, str]] = {
     "scripts/gate.py": ("TestResults/build-local", "the previous run (`Gate.previous_run`): its red classes run first"),
     "scripts/linux-gate.sh": ("TestResults/linux-gate", "the hand-run Linux gate's newest run: its red classes run first"),
@@ -442,7 +442,7 @@ def check(label: str, listed: Counter, trx_paths: list[str], stopped_early: bool
                       stopped_early=stopped_early)
 
 
-# ── the caller audit (GateLegDriftTests arm 6) ────────────────────────────────────────────────────────────────
+# ── the caller audit (DESIGN-test-build-ci.md §3.14.4 arm 6) ────────────────────────────────────────────────────────────────
 
 #: `dotnet test` in COMMAND position: at the start of a line or string, or after a shell separator, `&`, `(`,
 #: `$(` or a quote (not a backtick: in this tree that is Markdown prose far more often than a substitution). The
@@ -570,6 +570,25 @@ def synthetic_listing(path: Path, names: list[str]) -> str:
     path.write_text("Test run for X.dll (.NETCoreApp,Version=v10.0)\n" + LISTED_MARK + "\n"
                     + "".join(f"    {n}\n" for n in names), encoding="utf-8", newline="\n")
     return str(path)
+
+
+#: ⛔ THE ARMS THIS SELF-TEST MUST RUN (DESIGN-test-build-ci.md §3.14.4 arm (3); kb/Work PB4395: until then
+#: GateLegDriftTests, a compiler test, read this file's text for them).
+DECLARED_ARMS = (
+    "short: a dropped case is NEVER RAN",
+    "over: a case twice is RAN TWICE",
+    "shard overlap that KEEPS THE COUNT",
+    "skipped: a NotExecuted-only definition is counted skipped",
+    "definitions, not result names",
+    "a definition the listing never printed is NOT IN THE POPULATION",
+    "stopped early",
+    "two listings that disagree are an ERROR",
+    "an EMPTY population is an ERROR",
+    "`scrubbed <command>` runs the command without a planted gate variable",
+    "red_classes: the class of every definition with a Failed result",
+    "the XML range is stated once, as escapes",
+    "audit-callers flags every unscrubbed shape",
+)
 
 
 def self_test() -> int:
@@ -786,6 +805,31 @@ def self_test() -> int:
             and _IS_XML.match("\ufffd") and not _IS_XML.match("\uffff") and _NOT_XML.search("\uffff")
             and _NOT_XML.search("\U0001d15e") and not _NOT_XML.search("\t\n\r ~"), XML_RANGE)
 
+    # THE REAL TREE (kb/Work PB4395: until then GateLegDriftTests, a compiler test, ran these three audits). Each must
+    # also SEE its population: a scan that stopped seeing the callers, writers or readers it names would report a clean
+    # tree over nothing.
+    sites, offenders = audit_callers(REPO)
+    want_sites = ("scripts/battery.sh", "scripts/gate.py", "scripts/gen-vcr.ps1", "scripts/gen-diagnostics-doc.ps1",
+                  "scripts/spec/record_verdicts.py", "scripts/abi_pin.py", ".github/workflows/build-and-test.yml")
+    arm("arm (6), the real tree: every `dotnet test` caller under scripts/ and .github/workflows/ runs scrubbed, and the "
+        "audit sees the callers DESIGN-test-build-ci.md §3.14.3 names",
+        not offenders and all(s in sites for s in want_sites),
+        f"offenders {offenders}; missing {[s for s in want_sites if s not in sites]}")
+    seen, bad = audit_trx_writers(REPO)
+    want_writers = ("scripts/gate.py  TestResults/build-local", "scripts/linux-gate.sh  TestResults/linux-gate",
+                    "scripts/battery.sh  -")
+    arm("the real tree: every live tool that writes a trx file is a TRX_WRITERS row (PB3155), and the audit sees the "
+        "gate, the Linux gate and the battery",
+        not bad and all(any(f"  writer  {w}  " in s for s in seen) for w in want_writers), f"{bad} {seen}")
+    seen, bad = audit_trx_readers(REPO)
+    want_readers = ("  trx-schema  scripts/test_population.py  parses XML", "  trx-schema  scripts/gate.py  no XML parser",
+                    "  trx-schema  scripts/profile-test-parallelism.py  no XML parser")
+    arm("the real tree: every live tool reads a trx file through trx_root (PB3661), and the audit sees the one reader "
+        "and the tools that only name the schema", not bad and all(w in seen for w in want_readers), f"{bad} {seen}")
+    missing = [d for d in DECLARED_ARMS if not any(d in n for n, _, _ in results)]
+    arm("every DECLARED arm ran (DESIGN-test-build-ci.md §3.14.4 arm (3): a self-test quietly reduced to its happy "
+        "path also exits 0)", not missing, "; ".join(missing))
+
     for name, passed, detail in results:
         print(f"  {'PASS' if passed else 'FAIL'}  {name}" + ("" if passed or not detail else f"\n        {detail}"))
     failed = sum(1 for _, passed, _ in results if not passed)
@@ -823,7 +867,7 @@ def main(argv: list[str]) -> int:
     ls.add_argument("--project", required=True)
     ls.add_argument("--configuration")
     ls.add_argument("--out", required=True)
-    sub.add_parser("audit-callers", help="every `dotnet test` caller scrubs (GateLegDriftTests arm 6)")
+    sub.add_parser("audit-callers", help="every `dotnet test` caller scrubs (DESIGN-test-build-ci.md §3.14.4 arm 6)")
     sub.add_parser("audit-trx-writers", help="every live tool that writes a trx file has its TRX_WRITERS row (PB3155)")
     sub.add_parser("audit-trx-readers", help="every live tool reads a trx file through trx_root (kb/Work PB3661)")
     args = ap.parse_args(argv)

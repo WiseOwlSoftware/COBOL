@@ -84,10 +84,11 @@ served unseen from a `__pycache__` an earlier run left. A watch that overflows i
 Linux runs are the whole population on every code change (the Linux gate and CI's merge group).
 
 What is NOT inert, and why, measured 2026-10-23 (deleting each candidate and running the three assemblies on Windows;
-then the watch over the whole Linux population): `docs/` (SortRuntimeDocShapeDriftTests and GateLegDriftTests read every
-doc; twenty-odd Unit and Conformance classes read CONFORMANCE.md, the rule catalog, VERSION_CHANGE_REFERENCE.md);
-`.claude/` and the root `*.md` files (GateLegDriftTests walks them for mode names, ArchReviewFleetDriftTests reads the
-briefs, SelfTestDiscoveryDriftTests classifies the scripts there); the `tools/claude-skills` pin. The conflict-marker
+then the watch over the whole Linux population): `docs/` (SortRuntimeDocShapeDriftTests reads every doc;
+twenty-odd Unit and Conformance classes read CONFORMANCE.md, the rule catalog, VERSION_CHANGE_REFERENCE.md);
+`.claude/` and the root `*.md` files (ArchReviewFleetDriftTests reads the briefs, SelfTestDiscoveryDriftTests classifies
+the scripts there; GateLegDriftTests' mode sweep, which walked every one, is the ONE SHAPE audit since kb/Work PB4395);
+the `tools/claude-skills` pin. The conflict-marker
 sweep, which read every tracked file, became an audit (scripts/conflict_markers.py) so that it no longer made every
 path a test input; and `kb/` became inert once the register drift tests (which read every `kb/Work/`
 note through a C# twin of `work.py`'s reader) became the audit `scripts/spec/work_inventory.py`, the retired-name sweep
@@ -256,7 +257,7 @@ class Classification:
                 if not any(_under(e, i) for i in self.inert)]
         bad += [f"the CODE_READS entry {e!r} lies in no tooling tree (TOOLING_UNDER), so it changes no lane: remove it"
                 for e in self.code_reads if not self.in_tooling_tree(e)]
-        for path, reader in code_readers(root, paths, self.in_tooling_tree):
+        for path, reader in code_readers(root, paths, self.tooling_under):
             if self.in_tooling_lane(path):
                 bad.append(f"{reader} reads {path}, which is in the tooling lane: a change to it would gate with no build "
                            "and no compiler test; give it a CODE_READS entry naming that reader, or make the reader a "
@@ -322,15 +323,21 @@ CLASSIFICATION = Classification(inert={
    code_reads={
        ".gitattributes": "every compiler test: the checkout's bytes (line endings) of every file it reads",
        "toolchain.env": "every compiler test and the build: the SDK they run on (the toolchain manifest, kb/Work PB4007)",
-       "scripts/": "the pipeline classes that walk every script (GateLegDriftTests, FilterPopulationGuardDriftTests, "
-                   "PythonInterpreterDriftTests, TestLegReportDriftTests, ExternalCorpusFetchTests) and the "
-                   "Conformance assembly's CorpusManifestTests; scripts/test_population.py runs every Linux gate leg; "
+       "scripts/": "the pipeline classes that walk every script (SelfTestFixtureDriftTests, SparseCheckoutDriftTests, "
+                   "ToolchainManifestDriftTests, FilterPopulationGuardDriftTests, SelfTestDiscoveryDriftTests, "
+                   "ExternalCorpusFetchTests, LandingLaneDriftTests, PythonInterpreterDriftTests, "
+                   "ScriptLayeringDriftTests, TestLegReportDriftTests), CatalogCoverageDriftTests and the Conformance "
+                   "assembly's CorpusManifestTests; scripts/test_population.py runs every Linux gate leg; "
                    "the generators and extractors whose output a compiler test checks (gen-reserved-words.ps1, "
                    "gen-cobol-words.ps1, gen-constructs.ps1, gen-diagnostics-doc.ps1, scripts/spec/, arch/census.py); "
                    "the build's Exec steps (gen-vault-reference.ps1, gen-grammar-diagrams.ps1); filter_population.py, "
                    "whose self-test reads the built assemblies",
-       ".claude/": "GateLegDriftTests (it walks every skill, agent and workflow for mode names)",
-       ".github/": "GateLegDriftTests, DotnetSdkInstallDriftTests (every workflow and action), the CI drift classes",
+       ".claude/": "SelfTestFixtureDriftTests (every Python file of the live tools' trees), MergeDriverDriftTests (the "
+                   "workstream templates it names)",
+       ".github/": "SparseCheckoutDriftTests, ToolchainManifestDriftTests, DotnetSdkInstallDriftTests (every workflow "
+                   "and action), the CI drift classes (CiBounds, CiArtifact, CiHarnessLog, ReadyToRunRuntime, "
+                   "LandingPipeline, LinuxGate, FilterPopulationGuard, SelfTestDiscovery)",
+       "tools/claude-skills": "SelfTestDiscoveryDriftTests (it names the submodule's path)",
    })
 
 
@@ -345,6 +352,11 @@ TEST_REPO_RE = re.compile(r"\bTestRepo\.(?P<method>Scripts|At|Src|Tests|Docs|Sui
 TEST_REPO_PREFIX = {"Scripts": "scripts", "At": "", "Src": "src", "Tests": "tests", "Docs": "docs",
                     "Suite": "conformance-suite"}
 STRING_LITERAL_RE = re.compile(r'^\s*"(?P<s>[^"\\{}]*)"\s*$')
+
+
+def path_literal_re(trees: Iterable[str]) -> re.Pattern[str]:
+    """A string literal that spells a path in one of the tooling `trees` (each a directory entry ending in `/`)."""
+    return re.compile(r'"(?P<path>(?:' + "|".join(re.escape(t) for t in trees) + r')[\w./-]*)"')
 
 
 def _build_readers(root: Path, paths: list[str]) -> Iterable[tuple[str, str]]:
@@ -368,7 +380,7 @@ def _build_readers(root: Path, paths: list[str]) -> Iterable[tuple[str, str]]:
                 yield os.path.normpath(token.replace("\\", "/")).replace("\\", "/"), f"the build ({rel}, an Exec)"
 
 
-def _test_readers(root: Path, paths: list[str]) -> Iterable[tuple[str, str]]:
+def _test_readers(root: Path, paths: list[str], literal: re.Pattern[str]) -> Iterable[tuple[str, str]]:
     """Every repository path a compiler test NAMES through `TestRepo.<method>(…)` with string-literal arguments only: the
     file, or the directory (every path below it), the literals spell; with none, the method's own directory
     (`TestRepo.Scripts()` is all of scripts/). A call with a computed argument names no path
@@ -392,20 +404,26 @@ def _test_readers(root: Path, paths: list[str]) -> Iterable[tuple[str, str]]:
             path = "/".join(p for p in parts + [lit.group("s") for lit in literals] if p)
             if path:
                 yield path, rel
+        # A repository path spelled whole in a string literal (`"scripts/orchestrator/groups.py"`, a TreeScope's
+        # `Under: ["scripts/", ".claude/"]`): a message names no path (it holds a space or a placeholder).
+        for m in literal.finditer(code):
+            yield m.group("path"), rel
 
 
-def code_readers(root: Path, paths: list[str], keep: Callable[[str], bool] = lambda p: True) -> list[tuple[str, str]]:
-    """THE STATIC TWIN OF THE TOOLING LANE'S WATCH (module docstring): (tracked path, its reader) for every tooling path
-    the build or a compiler test is seen to read: a csproj `Exec`'s script, the script of every self-test that reads the
-    built assemblies (`SELF-TEST-NEEDS: build`, scripts/self_tests.py), and every path or directory a compiler test names
-    through `TestRepo`. A directory read is every tracked path below it that `keep` keeps."""
+def code_readers(root: Path, paths: list[str], trees: tuple[str, ...]) -> list[tuple[str, str]]:
+    """THE STATIC TWIN OF THE TOOLING LANE'S WATCH (module docstring): (tracked path in one of `trees`, its reader) for
+    every tooling path the build or a compiler test is seen to read: a csproj `Exec`'s script, the script of every
+    self-test that reads the built assemblies (`SELF-TEST-NEEDS: build`, scripts/self_tests.py), and every path or
+    directory a compiler test names through `TestRepo` or spells whole in a string literal. `trees` are the tooling trees
+    (TOOLING_UNDER: a directory ends in `/`); a directory read is every tracked path below it."""
     import self_tests  # noqa: PLC0415 — it imports this module; the build marker's one home is its NEEDS_RE
 
     found: list[tuple[str, str]] = list(_build_readers(root, paths))
     found += [(t.path, "its own post-build self-test (SELF-TEST-NEEDS: build)") for t in self_tests.discover(root)
               if t.needs_build]
-    found += list(_test_readers(root, paths))
-    tracked_set, kept = set(paths), [p for p in paths if keep(p)]
+    found += list(_test_readers(root, paths, path_literal_re(t for t in trees if t.endswith("/"))))
+    tracked_set = set(paths)
+    kept = [p for p in paths if any(_under(p, t) for t in trees)]
     out: list[tuple[str, str]] = []
     for path, reader in found:
         if path.endswith("/") or path not in tracked_set:
@@ -707,9 +725,9 @@ def self_test() -> int:
                         "tests/version-matrix/", "docs/CONFORMANCE.md", "docs/DESIGN.md", "docs/REARCHITECTURE_PLAN.md",
                         "src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin") if e not in real.tooling_reads], [])
     expect("the real classification: the build's and the compiler tests' tooling is CODE_READS (.gitattributes, "
-           "toolchain.env, the generators under scripts/), while a tools/ pin is the tooling lane",
+           "toolchain.env, the generators under scripts/), while a tool no compiler test names is the tooling lane",
            [real.classify([p]).name for p in (".gitattributes", "toolchain.env", "scripts/gen-reserved-words.ps1",
-                                              "tools/claude-skills")], ["full", "full", "full", "tooling"])
+                                              "tools/a-new-tool.py")], ["full", "full", "full", "tooling"])
     from scratch_repo import ScratchRepo, scratch_dir  # noqa: PLC0415
 
     root = scratch_dir("inert-lane-")
@@ -741,7 +759,7 @@ def self_test() -> int:
     tc2 = Classification(inert={"DEVLOG/": "", "kb/": ""}, tooling_under=("scripts/",))
     expect("code_readers: the build's Exec (its property resolved), a test's literal TestRepo names (a directory is every "
            "path below it), the build-needing self-test; never a comment or a computed name",
-           sorted(p for p, _ in code_readers(root, tracked(root), tc2.in_tooling_tree)),
+           sorted(p for p, _ in code_readers(root, tracked(root), tc2.tooling_under)),
            ["scripts/Gen.ps1", "scripts/a.py", "scripts/built.py", "scripts/spec/b.py"])
     expect("check: each tooling path the build or a compiler test reads must lie under a CODE_READS entry; with them "
            "it is clean, and a CODE_READS entry outside the tooling trees is refused",
@@ -819,7 +837,7 @@ def main(argv: list[str]) -> int:
     for b in bad:
         print(f"    {b}")
     n = sum(1 for p in tracked(args.root) if CLASSIFICATION.is_inert(p))
-    print(f"=== INERT LANE CHECK: {'RED — ' + str(len(bad)) + ' stale entr(ies)' if bad else 'GREEN'} — "
+    print(f"=== INERT LANE CHECK: {'RED — ' + str(len(bad)) + ' finding(s)' if bad else 'GREEN'} — "
           f"{n} tracked inert path(s) under {len(CLASSIFICATION.inert)} INERT entr(ies), "
           f"{len(CLASSIFICATION.read)} READ ===")
     return 1 if bad else 0
