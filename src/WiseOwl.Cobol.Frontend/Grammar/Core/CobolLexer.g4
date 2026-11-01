@@ -1142,36 +1142,43 @@ fragment DEC_COMMA_BODY : [0-9]+ ',' [0-9]+ | ',' [0-9]+ ;                      
 // or last character in such words." Without it `01 MY_NAME PIC X(6).` — legal at three of the four editions this
 // compiler targets — did not parse at any of them, dying as `no viable alternative at input 'MY_'`.
 // ⚠ SUPERSET-PARSE / BIND-NARROW, the repo's standing doctrine: the underscore is admitted at EVERY edition here
-// and the COBOL-85 rejection is a BIND-time gate (Constructs.UserWordUnderscore2002 → COBOL0900, raised beside
-// the §8.3.2.1 word-LENGTH check in VersionConformancePass.VisitCobolWord — same clause, same visitor). A lexer
-// that refused it below 2002 would produce `no viable alternative`, which is an unexplained rejection rather
-// than a named edition diagnostic.
-// ⛔ AND "NOR LAST" IS NOW ENFORCED FOR BOTH SEPARATORS, WHICH IT WAS NOT. The same sentence bars a leading OR
-// trailing hyphen or underscore. NOT-FIRST was already structural (every alternative opens with a letter or a
-// digit) and NOT-LAST held only in the ALPHA-start alternative, whose tail is `[a-z0-9]`; the two DIGIT-start
-// alternatives ended in `*` over the separator class, so `1A-` and `42-X-` were ACCEPTED — a pre-existing hole
-// for the hyphen that the underscore would have silently inherited. Factoring the tail into NAME_TAIL, which
-// cannot end on a separator, closes it for both characters in all three alternatives at once.
+// and the COBOL-85 rejection is the construct gate Constructs.UserWordUnderscore2002 (COBOL0900), asked of every
+// finished word by WordCharacterScreen beside the rest of §8.3.2.1's character rule. A lexer that refused it below
+// 2002 would produce `no viable alternative`, which is an unexplained rejection rather than a named edition diagnostic.
 // ⛔ EXTENDED LETTERS ARE WORD CHARACTERS (kb/Work PB1402; Annex A.4.6, claimed). §8.3.2.1 puts "extended letters"
 // in the same sentence as the basic ones, and §8.1.3.2 GR4 makes them the Annex B repertoire; this class used to be
 // [a-z0-9_-] alone, so `01 CAFÉ PIC X(3).` died as COBOL0001 at the É. EXT_CHAR is the LEXICAL class
 // CobolCharacterRepertoire.IsWordCharacter states — every character outside the basic repertoire except the
 // noncharacters the text stages use as markers (U+FDD0 is the debugging-line carrier) — a SUPERSET of Annex B on
 // purpose: which of those characters a word may hold, and where, is the edition's Annex B.3 (three position classes,
-// changed by Annex E between 2014 and 2023), asked of the finished word by CobolWordRule at bind time, where a
-// character outside it is NAMED (COBOL2773) instead of ending the word with an unexplained "unexpected". The
+// changed by Annex E between 2014 and 2023), asked of the finished word by WordCharacterScreen (CobolWordRule), where
+// a character outside it is NAMED (COBOL2773) instead of ending the word with an unexplained "unexpected". The
 // AntlrInputStream holds UTF-16 code units, so a supplementary-plane letter arrives as two surrogates — both in this
 // class, so the pair stays inside its word. A word may END on an extended character (a combining mark is B.3 item 2,
-// legal last); only hyphen and underscore are barred from the ends here.
+// legal last).
+// ⛔ THE FIRST-OR-LAST RULE FOR THE TWO SEPARATORS, AND WHERE EACH CASE OF IT IS DECIDED. The same sentence bars a
+// leading OR trailing hyphen or underscore, and the lexer reads three cases differently:
+// - A WELL-FORMED word is one of the first three NAME_BODY alternatives: each opens with a letter, a digit or an
+//   extended character and ends in NAME_TAIL, which cannot end on a separator, so neither separator stands first or
+//   last in one. (The two DIGIT-start alternatives once ended in `*` over the separator class, so `1A-` and `42-X-`
+//   lexed as words; factoring the tail into NAME_TAIL closed that for both characters in all three at once.)
+// - An UNDERSCORE at an edge has no other meaning, so the last two alternatives take the whole character-string as one
+//   ILL-FORMED IDENTIFIER (`_A`, `A_`; kb/Work PB4234) and WordCharacterScreen names the position
+//   (CobolCharacterRepertoire.SeparatorPositionViolation, COBOL2773).
+// - A HYPHEN at an edge is never part of a word this lexer makes: `-` is also the arithmetic minus and a signed
+//   number's sign, and whether `A -B` is a subtraction missing a space (§8.7.1) or `-B` a word (§8.3.1: "A
+//   character-string is delimited by separators", and the hyphen is none) is the PARSE's question. So `A-` lexes as
+//   IDENTIFIER MINUS, and WordCharacterScreen joins the adjacent tokens back into the word `A-` and names it by the
+//   same rule, unless the tree made that MINUS an arithmetic operator (SeparatorRule's §8.7.1 report) or it is a
+//   numeric literal's sign (kb/Work PB4278).
 fragment EXT_CHAR  : ~[\u0000-\u007F\uFDD0-\uFDEF\uFFFE\uFFFF] ;
 fragment NAME_TAIL : ([a-z0-9_-] | EXT_CHAR)* ([a-z0-9] | EXT_CHAR) ;   // cannot END on a separator (§8.3.2.1)
 // ⛔ A WORD THAT STARTS OR ENDS ON AN UNDERSCORE IS STILL A WORD, ILL-FORMED (kb/Work PB4234). §8.3.2.1: "The hyphen or
 // underscore shall not appear as the first or last character in such words" — a rule about a COBOL word, so `_A` and `A_`
 // are words that break it, not an `_` beside a word. Without the last two alternatives below the lexer split them at the
 // underscore (ANY_CHAR) and the user read "unexpected '_'" with the rule never named. Superset-parse / bind-narrow, as
-// EXT_CHAR is: the lexer takes the whole character-string as one IDENTIFIER and WordCharacterScreen names the position
-// (CobolCharacterRepertoire.SeparatorPositionViolation). The underscore only: a hyphen touching a word is also the
-// arithmetic minus (and a signed-number sign), so it is not a word edge the lexer can decide.
+// EXT_CHAR is: the lexer takes the whole character-string as one IDENTIFIER and WordCharacterScreen names the position.
+// The underscore only: the hyphen's edge is the screen's to join (above).
 fragment WORD_CHAR : [a-z0-9_-] | EXT_CHAR ;
 fragment NAME_BODY                                                                   // IDENTIFIER
     : [0-9]+ [-_] ([a-z0-9] | EXT_CHAR) NAME_TAIL?   // digit-start with separator: 42-DATANAMES, 42_DATANAMES

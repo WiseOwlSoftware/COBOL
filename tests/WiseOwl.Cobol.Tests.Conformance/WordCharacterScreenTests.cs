@@ -439,4 +439,133 @@ public sealed class WordCharacterScreenTests
         Assert.Contains(errors, e => e.Contains("COBOL2773") && e.Contains("'_CNT'"));
         Assert.DoesNotContain(errors, e => e.Contains("'_JOSE_'"));
     }
+
+    /// <summary>⛔ A HYPHEN AT A WORD'S EDGE IS THAT WORD'S EDGE (kb/Work PB4278). ISO §8.3.1: "A character-string is delimited by
+    /// separators", and the hyphen is none, so <c>NAME-</c> and <c>-NAME</c> are each one COBOL word that §8.3.2.1 forbids ("The
+    /// hyphen or underscore shall not appear as the first or last character in such words"). The lexer splits it (the hyphen is
+    /// also the minus), so the user read only the parse error the split causes (COBOL1941 / COBOL5506) and the rule was never
+    /// named; the screen joins the adjacent tokens back into the word and names it, at every edition, before the parse error,
+    /// with a reserved word (<c>END-IF-</c>), an integer (<c>1-</c>) and a word that holds an underscore too.</summary>
+    [Theory]
+    [InlineData(85, "NAME-", "last")]
+    [InlineData(2002, "-NAME", "first")]
+    [InlineData(2014, "NAME--", "last")]
+    [InlineData(2023, "-NAME-X", "first")]
+    [InlineData(2023, "END-IF-", "last")]
+    [InlineData(2023, "1-", "last")]
+    [InlineData(2023, "MY_NAME-", "last")]
+    [InlineData(2023, "-1A", "first")]
+    public void AHyphenAtAWordEdge_IsNamedByTheSection8321Rule_AtEveryEdition(int edition, string word, string position)
+    {
+        var (ok, errors, warnings) = EditionHarness.CompileFull(Unparseable("NAME", word), edition);
+        Assert.False(ok);
+        var named = errors.Where(e => e.Contains("COBOL2773") && e.Contains($"'{word}'")).ToList();
+        var only = Assert.Single(named);
+        Assert.Contains("has the hyphen as its " + position + " character", only);
+        Assert.Contains("§8.3.2.1", only);
+        // A word token inside the joined word is judged only as part of it, so MY_NAME is never reported alone.
+        Assert.DoesNotContain(errors.Concat(warnings), e => e.Contains("COBOL2773") && !e.Contains($"'{word}'"));
+    }
+
+    /// <summary>The joined word is the word the cause names, so it reads at the word's FIRST character and before the parse
+    /// error the split caused: <c>01 A- PIC X.</c> draws COBOL2773 at the <c>A</c>, then COBOL1941 at <c>PIC</c>.</summary>
+    [Fact]
+    public void AHyphenAtAWordEdge_IsReportedAtTheWordsFirstCharacter_BeforeTheParseError()
+    {
+        string source = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB4278C.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 A- PIC X.
+            PROCEDURE DIVISION.
+                STOP RUN.
+            """;
+        var (ok, errors, _) = EditionHarness.CompileFull(source, 2023);
+        Assert.False(ok);
+        int cause = errors.ToList().FindIndex(e => e.Contains("COBOL2773") && e.Contains("'A-'"));
+        int effect = errors.ToList().FindIndex(e => e.Contains("COBOL1941"));
+        Assert.True(cause >= 0 && effect > cause, string.Join('\n', errors));
+        Assert.Contains("(5,4)", errors[cause]);
+    }
+
+    /// <summary>A hyphen the TREE made an arithmetic operator is §8.7.1's boundary ("shall be preceded by a space and followed by
+    /// a space"), reported by the separator rule as COBOL2993 and never also as a word; a sign touching its digits is a
+    /// numeric literal's leftmost character (§8.3.3.3.2 2)), and a list region's <c>A -1</c> is two arguments: none of them
+    /// is a word's edge. The same holds when another error stops the compile (the screen then reads the lexer's stream).</summary>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void AnOperatorOrASign_IsNoWordEdge(bool failsElsewhere)
+    {
+        string source = $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB4278O.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 A PIC S9(3) VALUE -1.
+            01 B PIC S9(3) VALUE 2.
+            PROCEDURE DIVISION.
+                COMPUTE A = A- B.
+                COMPUTE A = A -B.
+                COMPUTE A = -B.
+                MOVE -1 TO A.
+                COMPUTE A = FUNCTION MAX(A -1).
+                {(failsElsewhere ? "DISPLAY \"X\" MOVE MOVE." : "")}
+                STOP RUN.
+            """;
+        var (ok, errors, warnings) = EditionHarness.CompileFull(source, 2023);
+        string all = string.Join('\n', errors.Concat(warnings));
+        Assert.False(ok);
+        Assert.Equal(3, errors.Count(e => e.Contains("COBOL2993") && e.Contains("§8.7.1")));
+        Assert.DoesNotContain("COBOL2773", all);
+    }
+
+    /// <summary>The PARSED word source joins too: a screen item's <c>LINE -X</c> parses (the format's MINUS arm, the facility
+    /// refused by name at bind), and <c>-X</c> is one character-string, so the tree's screen names it beside the binder's
+    /// diagnostics.</summary>
+    [Fact]
+    public void AHyphenAtAWordEdge_InAParsedSource_IsNamedOnTheBinderChannel()
+    {
+        string source = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB4278T.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 X PIC 9 VALUE 1.
+            SCREEN SECTION.
+            01 S1.
+               05 LINE -X COLUMN 1 VALUE "A".
+            PROCEDURE DIVISION.
+                STOP RUN.
+            """;
+        var (ok, errors, _) = EditionHarness.CompileFull(source, 2023);
+        Assert.False(ok);
+        Assert.Contains(errors, e => e.Contains("COBOL1560"));
+        Assert.Contains(errors, e => e.Contains("COBOL2773") && e.Contains("'-X'") && e.Contains("as its first character"));
+    }
+
+    /// <summary>Only a run of WORD-CHARACTER tokens joins: a hyphen touching a literal's opening delimiter (<c>-X"41"</c>) is
+    /// §8.3.5 5)'s business (COBOL2633), never a word <c>-X</c>; a comment-entry's hyphens are comment text; and a debugging
+    /// line that is a comment holds no words of the program.</summary>
+    [Fact]
+    public void ALiteralACommentEntryAndACommentDebuggingLine_HoldNoHyphenEdgeWord()
+    {
+        string source = string.Join('\n',
+            "       IDENTIFICATION DIVISION.",
+            "       PROGRAM-ID. PB4278N.",
+            "       AUTHOR. JOHN- -SMITH.",
+            "       DATA DIVISION.",
+            "       WORKING-STORAGE SECTION.",
+            "       01 T PIC X VALUE -X\"41\".",
+            "       PROCEDURE DIVISION.",
+            "      D    DISPLAY T- .",
+            "           STOP RUN.",
+            "");
+        var (ok, errors, warnings) = EditionHarness.CompileFull(source, 85);
+        string all = string.Join('\n', errors.Concat(warnings));
+        Assert.False(ok);
+        Assert.Contains("COBOL2633", all);
+        Assert.DoesNotContain("COBOL2773", all);
+    }
 }
