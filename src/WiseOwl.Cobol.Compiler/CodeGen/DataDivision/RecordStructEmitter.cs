@@ -30,7 +30,8 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
         // (ISO §13.5.4 GR1) — ONE copy in last-used state across all activations (§14.6.2.3.3) — while its
         // fresh-per-activation instance carries the automatic data (LOCAL-STORAGE, §13.6.4 GR1) and formals.
         // The suppression filter skips members another mechanism provides: a carrier-resident LINKAGE formal
-        // (its field is `__lnk{Uid}.Value` — caller storage, ISO §13.7.1). An inherited GLOBAL table's index cell
+        // (it has no field: its storage is the caller's, reached through its carrier, ISO §13.7.1 /
+        // DataItem.ResidentCarrier). An inherited GLOBAL table's index cell
         // is never among the unit's OWN declarations — the container emits it and a ref-bridge reaches it
         // (§13.18.27 GR2; kb/Work PB919).
         foreach (var idx in ctx.Data.IndexNames.Own)

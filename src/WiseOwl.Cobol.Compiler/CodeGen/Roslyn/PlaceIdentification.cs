@@ -175,13 +175,16 @@ internal static class PlaceIdentification
             DynOrdinal = v.DynOrdinal is { } ordinal ? Hoist(ordinal, hoist) : null,
         };
         if (v.Cell is not { Segments: [RootFieldSegment root] }) return frozen;
-        string local = hoist(root.CsField);
-        var anchored = new AccessPath([new RootFieldSegment(local, root.Guard is { } g ? g with { CarrierPrefix = local } : null)]);
+        // The hoist reads the cell's storage (its container anchor included), never through the guard; the local is
+        // the referencing program's own, so it carries no anchor.
+        string local = hoist(PlaceRenderer.RootStorage(root));
+        var anchored = new AccessPath([new RootFieldSegment(local, root.Guard is { } g ? g with { PassesCarrier = true } : null)]);
         return frozen with
         {
             Backing = anchored.Add(new MemberSegment(nameof(WiseOwl.Cobol.Runtime.StorageCell.Ref))),
             Cell = anchored,
-            Coding = frozen.Coding is CellWindowCoding c && c.Cell is { Segments: [RootFieldSegment cr] } && cr.CsField == root.CsField
+            Coding = frozen.Coding is CellWindowCoding c && c.Cell is { Segments: [RootFieldSegment cr] }
+                     && cr.CsField == root.CsField && cr.Anchor == root.Anchor
                 ? c with { Cell = anchored } : frozen.Coding,
         };
     }

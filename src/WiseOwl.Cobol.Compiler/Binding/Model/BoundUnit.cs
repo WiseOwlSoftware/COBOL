@@ -64,18 +64,15 @@ internal sealed class BoundUnit
         ? WiseOwl.Cobol.Runtime.ProgramTable.OutermostPath(ExternalizedName)
         : WiseOwl.Cobol.Runtime.ProgramTable.ContainedPath(Parent.Path, Name);
 
-    /// <summary>The C# nested-type reference from the top-level scope (factory construction).</summary>
-    public string ClassRef => Parent is null ? ClassName : Parent.ClassRef + "." + ClassName;
-
-    /// <summary>⛔ THE ONE ANCHOR OF A CONTAINER MEMBER (kb/Work PB1133): the C# expression prefix by which a program
-    /// <paramref name="depth"/> containment levels INSIDE this unit reaches this unit's class member
-    /// <paramref name="csMember"/> — the <c>__outer</c> instance chain for an instance member, this unit's CLASS name
-    /// for a static one (<see cref="DataBinder.IsStaticMember"/>: ISO §13.5.4 GR1's one copy per run unit is a C#
-    /// static, which no instance expression may name). Every place a contained program's text reaches into a
-    /// container's data asks here: the GLOBAL bridges (<see cref="DataBinder.GlobalBridgesOf"/>) and the inherited
-    /// FILE STATUS places (<c>ProgramEmitter</c>).</summary>
-    public string AnchorOf(string csMember, int depth) =>
-        Data.IsStaticMember(csMember) ? ClassName + "." : CodeGen.RuntimeApi.OuterChain(depth);
+    /// <summary>⛔ THE ONE ANCHOR OF A CONTAINER MEMBER (kb/Work PB1133): how a program <paramref name="depth"/>
+    /// containment levels INSIDE this unit reaches this unit's class member <paramref name="csMember"/> — through the
+    /// chain of containing instances for an instance member, through this unit's CLASS for a static one
+    /// (<see cref="DataBinder.IsStaticMember"/>: ISO §13.5.4 GR1's static data is one copy on the class, which no
+    /// instance names). Every place a contained program reaches into a container's data asks here: the GLOBAL bridges
+    /// (<see cref="DataBinder.GlobalBridgesOf"/>) and the inherited FILE STATUS places (<c>ProgramEmitter</c>). The
+    /// answer is structure, which each backend spells (kb/Work PB4320).</summary>
+    public ContainerAnchor AnchorOf(string csMember, int depth) =>
+        Data.IsStaticMember(csMember) ? new ContainerAnchor.Static(ClassName) : new ContainerAnchor.Instance(depth);
 
     /// <summary>The FORMAL PARAMETERS of containing programs that this unit sees as GLOBAL names (ISO §13.18.27.4 GR2),
     /// read off the bridges that reach them (kb/Work PB2096). Their member names are Uid-keyed and bridged under the same
@@ -91,8 +88,11 @@ internal sealed class BoundUnit
 /// FORMAL PARAMETER of the container — its carrier (<see cref="CallBridgeKind.Carrier"/>, whose cell type the emitter
 /// derives from it), its argument area (<see cref="CallBridgeKind.ArgumentArea"/>) or an area formal's data-address
 /// pointer (<see cref="CallBridgeKind.Address"/>) — so the contained program knows the GLOBAL formals in its scope
-/// (<see cref="BoundUnit.InheritedFormals"/>; kb/Work PB2096).</summary>
-internal sealed record CallBridge(string Field, string Path, CallBridgeKind Kind, DataItem? Item,
+/// (<see cref="BoundUnit.InheritedFormals"/>; kb/Work PB2096). <paramref name="Field"/> is the member's name, which
+/// the bridge declares under the same name, and <paramref name="Anchor"/> is how the contained program reaches the
+/// container's member of that name (<see cref="BoundUnit.AnchorOf"/>) — two facts the backend joins (kb/Work
+/// PB4320).</summary>
+internal sealed record CallBridge(string Field, ContainerAnchor Anchor, CallBridgeKind Kind, DataItem? Item,
     LinkageFormal? Formal = null);
 
 /// <summary>The member shape a <see cref="CallBridge"/> aliases (kb/Work PB1009).</summary>

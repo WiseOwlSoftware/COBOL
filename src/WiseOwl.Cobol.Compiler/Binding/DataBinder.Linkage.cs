@@ -185,8 +185,9 @@ public sealed partial class DataBinder
     public DataItem? LinkageReturning { get; private set; }
 
     /// <summary>The C# names of class-level fields the <c>FieldEmitter</c> must NOT declare because another
-    /// mechanism provides the member: a carrier-resident LINKAGE formal's "field" IS the carrier accessor
-    /// (<c>__lnk{Uid}.Value</c> — the caller owns the storage, ISO §13.7.1 / §14.2.3 GR8), and an inherited
+    /// mechanism provides the member: a carrier-resident LINKAGE formal has no field, because its storage is reached
+    /// through its carrier (<see cref="DataItem.ResidentCarrier"/> — the caller owns the storage, ISO §13.7.1 /
+    /// §14.2.3 GR8), and an inherited
     /// GLOBAL table's index field is a <c>ref</c>-bridge to the containing instance (ISO §13.18.27 GR2 —
     /// global index-names are shared, never duplicated). (READ-ONLY view — P6 Step 5; written by the LINKAGE and
     /// OO binders. The inherited-index seeding member this comment once named was deleted by kb/Work PB919, whose
@@ -220,17 +221,31 @@ public sealed partial class DataBinder
     /// <item>any other root → its field;</item>
     /// <item>a guarded formal → its omitted-presence member (kb/Work PB971); a table → its index fields.</item>
     /// </list>
-    /// ⛔ A new residence adds its member HERE, and <c>GlobalBridgeResidenceDriftTests</c> is red until it does.</summary>
-    internal IEnumerable<CallBridge> GlobalBridgesOf(DataItem g, Func<string, string> anchorOf)
+    /// ⛔ A new residence adds its member HERE, and <c>GlobalBridgeResidenceDriftTests</c> is red until it does.
+    /// <para>Each bridge carries its member's NAME and its <see cref="ContainerAnchor"/> as two facts, and the backend
+    /// spells the access (kb/Work PB4320 — the bridge used to hold the joined text <c>anchor + member</c>).</para></summary>
+    internal IEnumerable<CallBridge> GlobalBridgesOf(DataItem g, Func<string, ContainerAnchor> anchorOf)
+    {
+        foreach (var m in GlobalBridgeMembersOf(g))
+            yield return new CallBridge(m.Field, anchorOf(m.Field), m.Kind, m.Item, m.Formal);
+    }
+
+    /// <summary>One member <see cref="GlobalBridgesOf"/> bridges, before it is anchored in a contained program.</summary>
+    private readonly record struct GlobalBridgeMember(string Field, CallBridgeKind Kind, DataItem? Item,
+        LinkageFormal? Formal = null);
+
+    /// <summary>The members of <see cref="GlobalBridgesOf"/>, unanchored — also the names
+    /// <see cref="InheritedMemberNamesOf"/> reserves, so the two cannot list different members.</summary>
+    private IEnumerable<GlobalBridgeMember> GlobalBridgeMembersOf(DataItem g)
     {
         if (g.Class is { Tier: RedefinesTier.StringCanonical } cls)
         {
-            yield return new CallBridge(cls.BackingClrName, anchorOf(cls.BackingClrName) + cls.BackingClrName, CallBridgeKind.Backing, null);
+            yield return new(cls.BackingClrName, CallBridgeKind.Backing, null);
             if (cls.IsCellBacked)
-                yield return new CallBridge(cls.BackingCellClrName, anchorOf(cls.BackingCellClrName) + cls.BackingCellClrName, CallBridgeKind.Cell, null);
+                yield return new(cls.BackingCellClrName, CallBridgeKind.Cell, null);
             // An AREA formal's carrier IS this pointer (LinkageFormal.IsArea), so the bridge names the formal too.
             if (cls.BasedPointerField is { } addr)
-                yield return new CallBridge(addr, anchorOf(addr) + addr, CallBridgeKind.Address, null,
+                yield return new(addr, CallBridgeKind.Address, null,
                     _linkageFormals.FirstOrDefault(f => f.IsArea && f.CarrierField == addr));
         }
         else
@@ -243,27 +258,26 @@ public sealed partial class DataBinder
             var anchor = AnchorOf(g);
             if (_linkageFormals.FirstOrDefault(f => f.CarrierResident && ReferenceEquals(f.Item, anchor)) is { } rf)
             {
-                yield return new CallBridge(rf.CarrierField, anchorOf(rf.CarrierField) + rf.CarrierField, CallBridgeKind.Carrier, anchor, rf);
+                yield return new(rf.CarrierField, CallBridgeKind.Carrier, anchor, rf);
                 // Its argument area (kb/Work PB2096): a contained program's BY REFERENCE forward of this formal passes
                 // the area on, as the container's own forward does (ISO §14.2.3 GR8).
                 if (rf.KeepsArgumentArea)
-                    yield return new CallBridge(rf.ArgumentAreaField, anchorOf(rf.ArgumentAreaField) + rf.ArgumentAreaField,
-                        CallBridgeKind.ArgumentArea, anchor, rf);
+                    yield return new(rf.ArgumentAreaField, CallBridgeKind.ArgumentArea, anchor, rf);
             }
             else
-                yield return new CallBridge(anchor.ClrName, anchorOf(anchor.ClrName) + anchor.ClrName, CallBridgeKind.Field, anchor);
+                yield return new(anchor.ClrName, CallBridgeKind.Field, anchor);
             if (!ReferenceEquals(anchor, g))
                 foreach (var idx in IndexDeclarationsUnder(anchor))
-                    yield return new CallBridge(idx.Cell, anchorOf(idx.Cell) + idx.Cell, CallBridgeKind.Index, null);
+                    yield return new(idx.Cell, CallBridgeKind.Index, null);
             if (anchor.OmittedGuard is { } ag && !ReferenceEquals(anchor, g))
-                yield return new CallBridge(ag.Presence, anchorOf(ag.Presence) + ag.Presence, CallBridgeKind.Presence, anchor);
+                yield return new(ag.Presence, CallBridgeKind.Presence, anchor);
         }
         // A GLOBAL FORMAL PARAMETER of the container: its guarded references in the contained program read the
         // container's presence member under the same Uid-keyed name (kb/Work PB971).
         if (g.OmittedGuard is { } og)
-            yield return new CallBridge(og.Presence, anchorOf(og.Presence) + og.Presence, CallBridgeKind.Presence, g);
+            yield return new(og.Presence, CallBridgeKind.Presence, g);
         foreach (var idx in IndexDeclarationsUnder(g))
-                yield return new CallBridge(idx.Cell, anchorOf(idx.Cell) + idx.Cell, CallBridgeKind.Index, null);
+            yield return new(idx.Cell, CallBridgeKind.Index, null);
     }
 
     /// <summary>The item whose emitted member a reference to <paramref name="item"/> renders: itself, except a Tier-A
@@ -365,8 +379,10 @@ public sealed partial class DataBinder
     /// found by the train-68b review).</summary>
     internal IEnumerable<string> InheritedMemberNamesOf(DataItem g)
     {
-        foreach (var bridge in GlobalBridgesOf(g, static _ => "")) yield return bridge.Field;
-        yield return g.ClrName;
+        foreach (var member in GlobalBridgeMembersOf(g)) yield return member.Field;
+        // A carrier-resident formal declares no member of its own name and derives none from it: its one member is
+        // the carrier, a bridge member above (kb/Work PB4320).
+        if (g.ResidentCarrier is null) yield return g.ClrName;
         if (g.Class is { } cls) yield return cls.Canonical.ClrName;
     }
 
@@ -518,9 +534,10 @@ public sealed partial class DataBinder
             bool resident = FormalIsCarrierResident(item, LinkageRoots, addressed);
             if (resident)
             {
-                // The item's C# "path" becomes the carrier's Value accessor: every Place built over it reads
-                // and writes the caller's storage directly (MemberPlace path text — no new Place subtype).
-                item.ClrName = carrier + ".Value";
+                // Every place built over the item starts at the carrier and steps to the caller's storage
+                // (ReferenceResolver.AddRoot, a CarrierValueSegment) — the item keeps its own name, which no member
+                // declares (kb/Work PB4320).
+                item.ResidentCarrier = carrier;
                 _callSuppressedRootFields.Add(item.ClrName);
             }
             _linkageFormals.Add(new LinkageFormal(item, pos, carrier, resident, byValue, optional));
