@@ -12,9 +12,8 @@ check is the layer that does not depend on anyone remembering to run it.
 
 ⭐ AN AUDIT, NOT A TEST (kb/Work PB2878). This rule was a Unit drift test (ConflictMarkerDriftTests) until the inert lane:
 a test that reads EVERY tracked file makes every path one a test reads, so no change could ever skip the test legs.
-As an audit it runs where every audit runs — the local gate's audit phase before the slot, CI's `audits` job on EVERY
-event (a pull request, a merge group, a push; a docs-only change included, where the test never ran in CI because the
-matrix was skipped), the battery's phase -1 — and it reads the tree without a build.
+As an audit it runs where every audit runs — the local gate's audit phase beside its build and legs, CI's `audits` job in
+EVERY merge group (a docs-only change included, where the test never ran in CI because the matrix was skipped), the battery's phase -1 — and it reads the tree without a build.
 
 THE RULE, as git writes a conflict: a marker is a run of exactly seven identical characters at the start of a line —
 an opener (seven `<`) or a closer (seven `>`) followed by a space or the end of the line, the diff3 ancestor divider

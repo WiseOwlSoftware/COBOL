@@ -11,7 +11,8 @@
 named five, CI's audits job named those five plus `landing_check.py`, linux-gate.sh named three, and eleven of the
 fourteen orchestrator self-tests (the loop's unit choice, the allocator's lock, the wave planner, …) ran in no gate and
 no CI job at all, so a regression in any of them passed everything. A list goes stale the day a self-test is added.
-This runner FINDS them, and the local gate (scripts/run_gate_legs.py AUDITS, before the gate slot), the Linux gate
+This runner FINDS them, and the local gate (scripts/run_gate_legs.py AUDITS, only for a change that touches tooling,
+kb/Work PB4326, and beside its build and legs, never inside the gate slot), the Linux gate
 (scripts/linux-gate.sh leg `selftests`) and CI (the `audits` job on Linux and `windows-self-tests` on Windows) all run
 THIS entry point, so no gate can run a self-test CI does not, or the reverse (the CI invariant, kb/Work PB1957).
 
@@ -37,9 +38,9 @@ BUILD: a self-test that reads the BUILT test assemblies (filter_population.py as
 declares it the same way:
     # SELF-TEST-NEEDS: build — <what it reads>
 The default run names it `deferred to --built` in its verdict; `--built` runs exactly those, after a solution build
-(the gate driver right after its build, concurrently with the legs; CI's `greenfield-unit` job; linux-gate.sh after its
-unit and conformance legs). The default run never builds: it is one of the gate's audits, which run before the gate
-slot, and the slot is what rations builds.
+(the gate driver right after its build, concurrently with the legs, only for a change that touches tooling; CI's
+`greenfield-unit` job; linux-gate.sh after its unit and conformance legs). The default run never builds: it is one of the
+gate's audits, which run outside the gate slot, and the slot is what rations builds.
 
 ISOLATION: each self-test runs with `COBOL_COORD_DIR` pointed at a fresh private directory, so none can read or write
 the live coordination state (`E:\\COBOL-coord`: the loop's units, leases and allocations), and without git's
@@ -69,7 +70,7 @@ THE BUDGET (kb/Work PB2914): at most BUDGET_CAP self-tests run at once on the MA
 together — one OS lock file per place under `<git common dir>/cobol-self-test-slots/`. A self-test waits for a place
 before it starts and holds it to its end, so one gate alone runs as wide as the cores, and N gates share the cores
 instead of multiplying them: a gate's self-test time no longer grows with the number of gates. A gate's
-self-tests keep running BEFORE its gate slot (kb/Work PB2524: a red one fails the gate without queueing behind other
+self-tests keep running OUTSIDE its gate slot (kb/Work PB2524, PB4326: a red one fails the gate without queueing behind other
 gates' builds and legs, PB2523); the budget is their own, so they never wait for a whole gate either.
 WHETHER THE CORES ARE THE LIMIT (kb/Work PB3585): the verdict line says how busy the host's processors were across the
 phase (`HostCpu`, the reading HostLoad.cs takes). Near 100 % the cores were the limit and a wider budget cannot shorten
