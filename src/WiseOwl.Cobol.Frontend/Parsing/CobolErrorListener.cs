@@ -139,7 +139,7 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
         // file holds the cut at (kb/Work PB4373), so a line whose two differ says so rather than state two margins.
         string held = dropped.Column == dropped.LastProgramTextPosition
             ? ""
-            : $" (a tab counts the positions it fills, so the cut stands at column {dropped.Column + 1} of the line as the file holds it)";
+            : " (a tab counts the positions it fills, so the column this warning names, where the file holds the cut, is less than that)";
         diagnostics.ReportWarning(DiagnosticCatalog.ProgramTextPastMarginR.Code,
             $"the program text of this line was cut at margin R: it ends at position {dropped.LastProgramTextPosition}{held}, and what "
             + $"follows, '{shown}' (positions {dropped.FirstCutPosition} to {dropped.LastCutPosition}), is outside the "

@@ -12,8 +12,8 @@ its tab stop, DOC-A.1-157), so the note printed a margin other than 72.
 **Fix.** `MarginRCut(Column, LastProgramTextPosition, Text)` carries both: `Column` stays the location's unit (the cut's
 `CutLocation`, `EndsAtMarginR`), `LastProgramTextPosition` is the position the reference format fixes
 (`FixedFormLine.MarginR`, passed by `ReferenceFormatMap.CutOf`). `FirstCutPosition` and `LastCutPosition` continue from it. A
-line whose column differs from its position now says so in the message ("a tab counts the positions it fills, so the cut stands
-at column 66 of the line as the file holds it"), because the warning's location prints the column and the text prints the
+line whose column differs from its position now says so in the message ("a tab counts the positions it fills, so the column this warning
+names, where the file holds the cut, is less than that"), because the warning's location prints the column and the text prints the
 position. Cite: ISO §6.3.1 (cite.py --check OK for "Margin R is immediately to the right of the rightmost character position of
 the program-text area").
 
