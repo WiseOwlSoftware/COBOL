@@ -532,30 +532,62 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
             // reference a numeric or numeric-edited item" — a group item does not satisfy. MOVE CORRESPONDING's
             // pairing filter already read it that way (kb/Work PB391); the written MOVE now agrees with it.
             if (MoveTable16.Validity(source, t) is not { } refusal) continue;
-            string where = ImplicitMovePhrase.WhereOf(implicitOf, t.Item.CobolName);
-            switch (refusal.Rule)
-            {
-                case MoveRule.StrongGroup:
-                    ctx.Edition.Error(DiagnosticCatalog.StrongMoveMismatch, "MOVE to strongly-typed group "
-                        + $"'{t.Item.CobolName ?? t.Item.ClrName}': {refusal.Reason}{ImplicitMovePhrase.Via(implicitOf)}");
-                    break;
-                case MoveRule.VariableLength:
-                    // Name the operand that IS the variable-length group — the receiver when it is one.
-                    var recv = MoveTable16.OperandItem(t);
-                    var vl = recv is not null && VariableLengthCompatibility.IsVariableLength(recv)
-                        ? recv : MoveTable16.OperandItem(source)!;
-                    ctx.Edition.Error(DiagnosticCatalog.MoveVariableLengthIncompatible,
-                        $"MOVE involving the variable-length group '{vl.CobolName ?? vl.ClrName}': {refusal.Reason} — "
-                        + "ISO §14.9.25.3 SR9 requires the two groups to be compatible as specified in §8.5.1.12"
-                        + ImplicitMovePhrase.Via(implicitOf));
-                    break;
-                case MoveRule.SourceShape:
-                    ctx.Edition.Error("COBOL0819", $"{where}: {refusal.Reason}");
-                    break;
-                default:
-                    Table16Framing(source, t, where, refusal.Reason);
-                    break;
-            }
+            FrameMoveRefusal(refusal, source, Table16Operand.Of(t), t is RefModPlace, MoveTable16.OperandItem(t),
+                             t.Item.CobolName, implicitOf);
+        }
+    }
+
+    /// <summary>⛔ THE VALIDITY QUESTION OF AN IMPLICIT MOVE WHOSE RECEIVER IS A POSITION, NOT A DATA ITEM — asked of
+    /// the SAME screens and framed by the SAME code as the written MOVE (kb/Work PB4361). <c>GOBACK RETURNING x</c>
+    /// with no header RETURNING item moves <c>x</c> to the run unit's exit status, an elementary integer with no
+    /// description entry. The first cut asked only §14.9.25.3 SR1's class half of that MOVE, so a boolean operand
+    /// that the header-RETURNING arm refuses (SR10, Table 16: boolean to numeric is "No") compiled clean and
+    /// aborted at run time. The sender-class screen (SR1) and the whole
+    /// <see cref="MoveTable16.Validity(BoundOperand, Table16Operand, DataItem?)"/> chain (SR2, SR6–SR10) are asked
+    /// here, in the order <see cref="BindMoveOf"/> asks them of a place, and a refusal is reported under the
+    /// rule's own diagnostic.</summary>
+    /// <param name="source">The sending operand.</param>
+    /// <param name="receiver">The Table-16 position of the conceptual receiving item.</param>
+    /// <param name="receiverName">How a diagnostic names that receiver.</param>
+    /// <param name="implicitOf">The phrase that made the move.</param>
+    internal void ScreenImplicitMoveToPosition(BoundOperand source, Table16Operand receiver, string receiverName,
+                                               ImplicitMovePhrase implicitOf)
+    {
+        MoveOperandClassChecks(source, [], implicitOf);
+        if (MoveTable16.Validity(source, receiver, receiverItem: null) is { } refusal)
+            FrameMoveRefusal(refusal, source, receiver, receiverIsView: false, receiverItem: null, receiverName, implicitOf);
+    }
+
+    /// <summary>One refused receiver of a MOVE, framed under its rule's own diagnostic (COBOL1533 · COBOL1931 ·
+    /// COBOL0819) — the framing shared by the written MOVE (per place) and an implicit move to a position
+    /// (<see cref="ScreenImplicitMoveToPosition"/>), so the two cannot word one refusal differently.</summary>
+    private void FrameMoveRefusal(MoveRefusal refusal, BoundOperand source, Table16Operand receiverPos,
+                                  bool receiverIsView, DataItem? receiverItem, string? receiverName,
+                                  ImplicitMovePhrase? implicitOf)
+    {
+        string where = ImplicitMovePhrase.WhereOf(implicitOf, receiverName);
+        switch (refusal.Rule)
+        {
+            case MoveRule.StrongGroup:
+                // StrongGroup is keyed on a strongly-typed group RECEIVER, which is always a plain data item.
+                ctx.Edition.Error(DiagnosticCatalog.StrongMoveMismatch, "MOVE to strongly-typed group "
+                    + $"'{receiverItem!.CobolName ?? receiverItem.ClrName}': {refusal.Reason}{ImplicitMovePhrase.Via(implicitOf)}");
+                break;
+            case MoveRule.VariableLength:
+                // Name the operand that IS the variable-length group — the receiver when it is one.
+                var vl = receiverItem is not null && VariableLengthCompatibility.IsVariableLength(receiverItem)
+                    ? receiverItem : MoveTable16.OperandItem(source)!;
+                ctx.Edition.Error(DiagnosticCatalog.MoveVariableLengthIncompatible,
+                    $"MOVE involving the variable-length group '{vl.CobolName ?? vl.ClrName}': {refusal.Reason} — "
+                    + "ISO §14.9.25.3 SR9 requires the two groups to be compatible as specified in §8.5.1.12"
+                    + ImplicitMovePhrase.Via(implicitOf));
+                break;
+            case MoveRule.SourceShape:
+                ctx.Edition.Error("COBOL0819", $"{where}: {refusal.Reason}");
+                break;
+            default:
+                Table16Framing(source, receiverPos, receiverIsView, where, refusal.Reason);
+                break;
         }
     }
 
@@ -565,14 +597,14 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     /// 2026-08-09 erasure) — accepted under --permissive with a warning when the lenient reading admits the move;
     /// every other refusal is an error on both axes. It re-asks TABLE 16 ALONE, and that is the rule: the lenient
     /// reading is defined against Table 16's cells, and the chain has already cleared SR2/SR8/SR9 to get here.</summary>
-    private void Table16Framing(BoundOperand source, Place t, string where, string refusal)
+    private void Table16Framing(BoundOperand source, Table16Operand receiverPos, bool receiverIsView, string where, string refusal)
     {
         Table16Operand senderPos = MoveTable16.SenderPosition(source);
         bool senderIsFunction = source is BoundComputedOperand { Expr: BoundIntrinsicCall };
         bool senderIsView = source is BoundFieldOperand { Place: RefModPlace };
         if (ctx.Edition.Permissive
             && MoveValidity.Table16Refusal(Table16Operand.Lenient(senderPos, senderIsFunction, senderIsView).Heading,
-                Table16Operand.Lenient(Table16Operand.Of(t), false, t is RefModPlace).Heading) is null)
+                Table16Operand.Lenient(receiverPos, false, receiverIsView).Heading) is null)
             ctx.Edition.Warning("COBOL0819", $"{where}: {refusal}; accepted under --permissive "
                 + (senderIsFunction ? "as the function's literal text (a NUMERIC-typed function is the Noninteger sender, ISO §15.2 item 4)"
                                     : "reading the reference-modified view as plain alphanumeric (ISO §8.4.3.3.4 GR6 keeps it alphabetic)"));
