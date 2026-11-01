@@ -320,10 +320,10 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
     }
 
     /// <summary>2.2.1.12's dead owner (finding R3-1): A under commit control DELETEs K5 and REWRITEs K1, and dies (its later
-    /// writes never reach the medium; the operating environment frees its liveness byte with its handle). An INPUT reader
-    /// between the death and the next writer reads the file as it stands (K5 absent). B, live and not under commit control,
-    /// then WRITEs K5: its entry rolls A back first, so the WRITE answers '22', and K1 and K5 read back as at A's last
-    /// COMMIT; nothing of A is left in the file.</summary>
+    /// writes never reach the medium; the operating environment frees its liveness byte with its handle). B, live and not under
+    /// commit control, then WRITEs K5: its entry rolls A back first, so the WRITE answers '22', and K1 and K5 read back as at A's
+    /// last COMMIT; nothing of A is left in the file. (A reader that comes between the death and B's statement is
+    /// <see cref="DeadOwnerReaderTests"/>'s: its OPEN settles, kb/Work PB4097.)</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
     public void A_dead_owner_is_rolled_back_by_the_next_writable_statement(FileOrg org)
@@ -343,17 +343,12 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
             medium!.DieAfter = medium.Writes;   // A dies here: nothing it does afterwards reaches the file
             a.CloseAll();                       // its handles and their bytes go with it
 
-            var c = Open(host, org, commit: false, FileOpenMode.Input, name: "C");
-            Assert.Equal("23", Read(c, org, 5, out _, name: "C"));   // the file as it stands, dead transaction included
             Assert.Equal("22", Write(b, org, 5, "Z005"));
             if (org == FileOrg.Indexed) Assert.Equal("22", Write(b, org, 7, "A005"));   // K5's unique value is K5's again
             Assert.Equal("00", Read(b, org, 1, out var one));
             Assert.Equal(Rec(1, "A001"), one);
             AssertNoTransactionLeft(b);
-            Assert.Equal("00", Read(c, org, 5, out var five, name: "C"));   // the reader adopts the restored file
-            Assert.Equal(Rec(5, "A005"), five);
             b.CloseAll();
-            c.CloseAll();
             Assert.Equal(Seeded(), Contents(host, org));
         }
         finally { TryDelete(host); }
