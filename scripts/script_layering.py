@@ -10,8 +10,8 @@ land_lane.py), and every fix appended to them; PB3726 splits each into library m
 kept only if the modules stay layered: a report reader that imports the planner, or a survey module that imports the
 CLI built on it, is the tangle coming back. This audit holds the layering by structure, not by a list of forbidden
 pairs: the DAG below is the one declaration, read from each module's own syntax tree (every `import` and `from ...
-import`, at module level, inside a function, or under `if TYPE_CHECKING:`), and the C# sweep
-tests/WiseOwl.Cobol.Tests.Unit/ScriptLayeringDriftTests.cs runs `--check` in every gate's leg 1.
+import`, at module level, inside a function, or under `if TYPE_CHECKING:`), and the self-test
+runs `--check` over the tree (kb/Work PB4395: until then a C# sweep, ScriptLayeringDriftTests, did).
 
 THE RULES (--check):
   1. DECLARED   a declared module may import another declared module only where the DAG lets it: a module of an
@@ -309,6 +309,11 @@ def self_test() -> int:
            cycle(allowed_edges(LINES)) is None and {m for l in LINES for t in l for m in t} <= set(NODES))
     rc = run_check(REPO)
     expect("--check over this tree", rc == 0)
+    # kb/Work PB4395 (until then ScriptLayeringDriftTests, a compiler test): a net over nothing is no net; the
+    # planner's split (PB3728) put at least its six modules on disk.
+    _, real = check(REPO)
+    expect("--check over this tree checks at least the planner's six declared modules", real["checked"] >= 6,
+           str(real))
     print(f"=== script_layering self-test: {'FAIL' if fails else 'PASS'} ({len(fails)} failed) ===")
     return 1 if fails else 0
 
