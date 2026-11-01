@@ -1,4 +1,4 @@
-## The user manual exists: docs/manual/ and its hand-written chapters (kb/Work PB1610)
+## Entry 2900 — 2026-10-31 19:29 PDT — The user manual exists: docs/manual/ and its hand-written chapters (kb/Work PB1610)
 
 **What was wrong.** ISO/IEC 1989:2023 section 4.2.16 makes the implementor's documentation of clauses 4.2.3, 4.2.4, 4.2.5, 4.2.6,
 4.2.10, 4.2.12 and 4.2.13 a conformance obligation, and owner decision R50 chose docs-as-code (Astro Starlight on
@@ -60,3 +60,4 @@ debugging indicator by edition (accepted at 85, COBOL0903 at 2002, COBOL0902 at 
 states that `GOBACK RETURNING` needs a RETURNING item (a main program without one stops with
 `NotImplementedCobolFeatureException`; the compiler defect is reported, not fixed here). (R1-7) DESIGN-USER-DOCUMENTATION
 section 5 now describes the drift mechanism for the hand-written pages.
+
