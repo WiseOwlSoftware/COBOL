@@ -1,4 +1,4 @@
-## NUMVAL-C's ANYCASE keyword gets its 2002 edge (PB4359)
+## Entry 2954 — 2026-11-01 11:15 PST — NUMVAL-C's ANYCASE keyword gets its 2002 edge (PB4359)
 
 PB4308 gated the PHYSICAL phrase of LENGTH and BYTE-LENGTH and left one sibling as a lead: `FUNCTION NUMVAL-C(X "USD" ANYCASE)`
 compiled and ran at `--std 85`, where ANYCASE is a user-defined word. `BindNumvalCFamily` gated the LOCALE keyword
@@ -34,3 +34,4 @@ The first form of the funnel line asked "not reserved at this edition", and the 
 (2023) writes `LENGTH(WS-G PHYSICAL)` beside a data item named PHYSICAL, and PHYSICAL is a word 2014 reserved and 2023 dropped,
 which stays the keyword in its own position. The line now asks `ReservedWords.AdmitsAsKeyword`, the repo's one "introduced
 after this edition" predicate, which keeps that case.
+
