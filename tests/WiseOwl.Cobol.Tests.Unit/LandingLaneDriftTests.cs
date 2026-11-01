@@ -118,7 +118,7 @@ public sealed class LandingLaneDriftTests
             // kb/Work PB3145: a merged predecessor's open pull request is a wait, not a stop
             "exit 15 (a merged predecessor's pull request is still open): a retry-when-free class, never the enqueue "
                 + "unit's",
-            // kb/Work PB4271, PB4331 (PB4323 §5.1): every merge-queue red is classified before anyone is blamed
+            // kb/Work PB4271, PB4331 (the rule of CLAUDE.md Testing): every merge-queue red is classified before anyone is blamed
             "classify_red: results unread or no record is UNCLASSIFIED; a timed-out run or one where no test failed is "
                 + "INFRA; red cases that all ran GREEN in the record, or an inert record, are RUNNER; a red case the "
                 + "record listed but did not run is GENUINE; one the record lacks is MERGE",

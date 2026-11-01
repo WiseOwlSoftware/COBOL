@@ -803,7 +803,7 @@ def _iso(t: str) -> dt.datetime | None:
     return v if v.tzinfo else None
 
 
-# ── THE CLASS OF A MERGE-QUEUE RED (kb/Work PB4271, PB4331; PB4323 §5.1) ─────────────────────────────────────────────
+# ── THE CLASS OF A MERGE-QUEUE RED (kb/Work PB4271, PB4331; the rule of CLAUDE.md Testing) ─────────────────────────────────────────────
 # THE RULE (owner 2026-10-31, replacing the CI invariant of 2026-10-04): every case the merge group runs on Windows
 # already ran green at the pushed head, on this host, under the same toolchain.env. The merge group is the FIRST run of
 # the merged tree, of Linux, of Release with a cold compile cache, of the Windows tooling self-tests on a tooling change
@@ -2397,7 +2397,7 @@ def self_test() -> int:
                and "GitHub gave no answer" in reads16[0]["detail"] and ("measure", 416, 1, RERUN, False) in recorded
                and [r["act"] for r in reads16b] == [RERUN, REQUEUE], f"{hung} {launched} {reads16b} {recorded}")
 
-        # 18. THE CLASS OF A MERGE-QUEUE RED (kb/Work PB4271, PB4331; PB4323 §5.1). First the one decision, pure: each
+        # 18. THE CLASS OF A MERGE-QUEUE RED (kb/Work PB4271, PB4331; the rule of CLAUDE.md Testing). First the one decision, pure: each
         #     class from planted facts. Then the facts read from a worktree (a planted gate record and a planted bounce's
         #     results, the fetch planted: no GitHub). Then the queue watch: an INFRA or RUNNER red re-queued once with no
         #     agent, a second red (or the same one again) left to the finisher, a MERGE red left at once, a failed
