@@ -50,10 +50,16 @@ WHAT EACH READER GUARANTEES
   patch_ids    one `git diff-tree --stdin --root -p` piped into one `git patch-id --stable`: each commit's patch id
                (the key `git cherry` matches on); a merge commit and an empty commit have none and are absent.
 Every reader raises GitError when git fails: an unmeasured answer is never read as an empty one.
+
+⛔ THE CALLERS ASK THROUGH IT (kb/Work PB3582): `READERS` (the survey, the landing check, the planner and the readers it
+was split into) spawn no `merge-base --is-ancestor`, `rev-list --count` or `log -1` outside their self-tests;
+prune_worktrees.py's `drop_remote` (one question per branch an `--apply` deletes) is the one named exception. This
+self-test holds it (`per_object_questions`, over the real files and a planted one).
 """
 from __future__ import annotations
 
 import pathlib
+import re
 import subprocess
 import sys
 import tempfile
@@ -61,6 +67,15 @@ from typing import Callable, Iterable, Iterator, Sequence
 from standard_streams import ensure_utf8
 
 BASE = "refs/remotes/origin/main"
+#: The scripts whose code outside their self-tests asks git through these readers, never per object.
+READERS = ("scripts/prune_worktrees.py", "scripts/orchestrator/landing_check.py", "scripts/orchestrator/plan_wave.py",
+           "scripts/orchestrator/inflight.py", "scripts/orchestrator/clusters.py", "scripts/orchestrator/reports.py")
+#: The one named exception: (the reader, the top-level function that may ask one question per branch it deletes).
+PER_OBJECT_EXCEPTION = ("scripts/prune_worktrees.py", "drop_remote")
+#: A per-object ancestry or last-commit question spelled as a git argument list.
+PER_OBJECT_QUESTION = re.compile(r"""["']merge-base["']\s*,\s*["']--is-ancestor["']|["']rev-list["']\s*,\s*["']--count["']"""
+                                 r"""|["']log["']\s*,\s*["']-1["']""")
+_TOP_LEVEL_DEF = re.compile(r"^def (\w+)\(", re.MULTILINE)
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"   # git's empty tree: a root commit's diff is taken against it
 
 
@@ -383,6 +398,20 @@ def diff_patches(repo: pathlib.Path | str, pairs: Sequence[tuple[str, str]], *pa
     return ["\n".join(b) for b in _diff_tree(repo, pairs, ["-p", "-U0"], pathspec, git)]
 
 
+def per_object_questions(rel: str, source: str) -> list[str]:
+    """`line <n> in <function>` of each per-object git question in `source`'s code above its `def self_test(`, but the
+    named exception's (PER_OBJECT_EXCEPTION). `rel` is the file's repository path."""
+    selftest = re.search(r"^def self_test\(", source, re.MULTILINE)
+    code = source[:selftest.start()] if selftest else source
+    hits = []
+    for m in PER_OBJECT_QUESTION.finditer(code):
+        defs = _TOP_LEVEL_DEF.findall(code, 0, m.start())
+        function = defs[-1] if defs else ""
+        if (rel, function) != PER_OBJECT_EXCEPTION:
+            hits.append(f"line {code.count(chr(10), 0, m.start()) + 1} in {function or 'module level'}")
+    return hits
+
+
 # ── self-test: each reader against the one-process-per-object form it replaces ──────────────────────────────────────
 def self_test() -> int:
     from scratch_repo import ScratchRepo, isolate, remove_tree, scratch_dir  # noqa: PLC0415  (scripts/: the one fixture)
@@ -509,6 +538,18 @@ def self_test() -> int:
         check("patch_ids: no commits, no process", patch_ids(r, []) == {} and patch_ids(r, [""]) == {})
     finally:
         remove_tree(tmp)
+    planted = ("def survey(b):\n    git('merge-base', '--is-ancestor', b, 'origin/main')\n\n"
+               "def drop_remote(b):\n    git('merge-base', '--is-ancestor', b, 'x')\n\n"
+               "def self_test():\n    git('log', '-1', 'x')\n")
+    check("callers: a planted per-branch question is a hit; drop_remote's is excused only in prune_worktrees.py, and a "
+          "self-test's is no code",
+          per_object_questions("scripts/other.py", planted) == ["line 2 in survey", "line 5 in drop_remote"]
+          and per_object_questions(PER_OBJECT_EXCEPTION[0], planted) == ["line 2 in survey"],
+          per_object_questions("scripts/other.py", planted))
+    root = pathlib.Path(__file__).resolve().parents[1]
+    hits = {rel: h for rel in READERS if (h := per_object_questions(rel, (root / rel).read_text(encoding="utf-8")))}
+    check("callers: the survey, the landing check and the planner's readers ask git no per-object ancestry or "
+          "last-commit question: they read it from Ancestry, diff_names/diff_patches and object_ids", not hits, hits)
     print(f"=== git_batch self-test: {'GREEN' if not fails else 'RED'} ({len(fails)} failure(s)) ===")
     return 1 if fails else 0
 
