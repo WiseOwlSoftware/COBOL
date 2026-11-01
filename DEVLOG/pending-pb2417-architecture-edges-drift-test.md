@@ -29,7 +29,7 @@ name.
 `CheckCensus` runs the same file model over the newest census record's `namespaceEdges`. It requires exact `uses` and
 the file keyed to that record, and `ArchCensusDriftTests` gains that assertion. The what-if
 (`WISEOWL_COBOL_ARCH_EDGES_WHATIF`: a move map and a cut list) re-keys the pairs before they aggregate. The seed
-(`WISEOWL_COBOL_ARCH_EDGES_SEED=1`) rewrites the rows from both observers. The self-test plants every violation and
+wrote the rows once from both observers; it is now the ratchet (below). The self-test plants every violation and
 the clean input.
 
 **The removers.** The targets file carries no type-to-namespace move maps, so `scripts/arch/edges.py --assign`
@@ -59,5 +59,24 @@ repository's types, so `work.py check` could not resolve the note's `**Moves or 
 tree is now recorded beside it, and every open R3 note resolves against it. The row's `plan` names PB4319, and
 `edges.py --assign` names it on all 29 pairs (359 of 359 assigned). DESIGN-backend-abstraction §1.3 L6 now lists the
 emit-time encode as a seam leak. Self-review covered the architecture (one checker, one file model, one census reader moved out of
-`ArchCensusDriftTests`), cost (the walk and checks take about half a second) and duplication (the C# seed and the
-Python assigner write byte-identical JSON).
+`ArchCensusDriftTests`) and cost (the walk and checks take about half a second).
+
+**The ratchet, after the branch review (R1-1).** The review found that the seed admitted new dependencies. The
+vanished-pair remedy and every census recording re-seeded the file, the seed listed every measured pair and overwrote
+`uses` with the census count, and the assigner's reach rule named a remover for any new pair whose from type already
+had a pair in the row: the reviewer's plant `CodeGen.CSharpEmitter → Binding.SomeNewBinderType` was assigned PB2290.
+So a move that deleted one pair and added another went green after the prescribed command, and census growth was
+absorbed at the next recording. §8.1 approved a file seeded once and then ratcheted, so the seed mode is gone.
+`WISEOWL_COBOL_ARCH_EDGES_RATCHET=1` runs `ArchitectureEdges.Ratchet`, which deletes vanished pairs and dead rows and
+lowers counts, and never adds a pair or a row, raises a count or names a remover. Admitting a dependency is a hand
+edit in the change that files the note removing it. `scripts/arch/edges.py` did its one job and is deleted. Its
+Removes-line check moved into the gate as `ArchitectureEdges.RemoverDefects`, which also refuses a remover kb/Work
+does not hold and a landed or retired one (`work.py`'s `TERMINAL_STATUSES`, read from there). Ratcheting the seeded
+file changes no byte of it. Two new self-tests plant the reviewer's swap, an added pair, a new row and census growth
+(each still red after the ratchet), every fall, and each remover defect.
+
+**A census-only row names its remover (R1-2).** `Binding.Bound → Frontend.Parsing` has one census use and no walked
+pair, so it passed with no remover at all. A row with no pair now names its own removers in `removedBy`. This one
+names PB2347: the use is `StatementBinder.BindSizeError` reading the enum constant
+`ConditionalPhraseFamily.SizeError`, which the compiler inlines. PB4319's Removes line now counts 26 record pairs and
+three codec pairs, one per emitter (R1-3).

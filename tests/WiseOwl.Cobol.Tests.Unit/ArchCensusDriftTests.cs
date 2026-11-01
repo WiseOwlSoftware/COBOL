@@ -58,9 +58,10 @@ public sealed class ArchCensusDriftTests
     /// THE CENSUS OBSERVER OF THE LAYERING (kb/Work PB2417; DESIGN-architecture-review §8.1 "Two observers, two
     /// ratchets, one file"): every cross-layer entry of the newest record's <c>namespaceEdges</c> is allowed by
     /// <c>docs/rearchitecture/architecture-edges.json</c>, or tolerated by a row whose <c>uses</c> is exactly the count
-    /// that record measured — and the file is keyed to that record, so recording a census re-seeds the file in the same
-    /// change. The census sees what the walk cannot (an inlined <c>const</c>, a <c>nameof</c>), which is why it keeps
-    /// its own column; <see cref="ArchitectureEdgesDriftTests"/> is the per-gate observer over the same file.
+    /// that record measured — and the file is keyed to that record, so recording a census ratchets the file in the same
+    /// change (its counts may fall, never grow). The census sees what the walk cannot (an inlined <c>const</c>, a
+    /// <c>nameof</c>), which is why it keeps its own column; <see cref="ArchitectureEdgesDriftTests"/> is the per-gate
+    /// observer over the same file.
     /// </summary>
     [Fact]
     public void TheNewestRecord_CrossesNoLayerTheEdgesFileDoesNotAllowOrTolerate()
@@ -71,7 +72,7 @@ public sealed class ArchCensusDriftTests
             CensusRecord.NamespaceEdges(record.RootElement));
         Assert.True(failures.Count == 0,
             $"the census record disagrees with the architecture edges file ({failures.Count}):\n  " + string.Join("\n  ", failures)
-            + "\nre-seed it: " + ArchitectureEdgesDriftTests.SeedCommand);
+            + "\n" + ArchitectureEdgesDriftTests.NewDependencyAdvice);
     }
 
     [Fact]

@@ -1241,8 +1241,10 @@
       "to": "WiseOwl.Cobol.Frontend.Parsing",
       "uses": 1,
       "walkUses": 0,
-      "removedBy": [],
-      "plan": "PB2347 and PB2398 (the StatementBinder move and the parse-context extract)",
+      "removedBy": [
+        "PB2347"
+      ],
+      "plan": "PB2347 (the StatementBinder move out of Bound/: the row's one use is StatementBinder.BindSizeError's read of the enum constant ConditionalPhraseFamily.SizeError, StatementBinder.cs:696, which the compiler inlines, so only the census sees it; kb/Work PB2417 review R1-2). PB2398 (the parse-context extract) also names the row in its Removes line, but no BoundOo.cs use reaches Frontend.Parsing",
       "pairs": []
     },
     {
