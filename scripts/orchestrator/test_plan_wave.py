@@ -2095,9 +2095,10 @@ check("a pair's landed remover is deleted from removedBy (the ratchet takes a va
       any("PB1 is landed" in m and "delete it from" in m and work.EDGES_RATCHET in m
           for m in work.edges_remover_problems([edges_note("PB1", "landed", "`P.Low → P.Mid` 1")] + NOTES[1:], EDGES)), True)
 _ratchet_cs = (HERE.parents[1] / "tests" / "WiseOwl.Cobol.Tests.Unit" / "ArchitectureEdgesDriftTests.cs").read_text(encoding="utf-8")
-_ratchet_m = re.search(r'RatchetCommand =\s*"([^"]*)"\s*\+\s*"([^"]*)";', _ratchet_cs)
-check("work.py's ratchet command is the drift test's RatchetCommand",
-      bool(_ratchet_m) and _ratchet_m.group(1) + _ratchet_m.group(2) == work.EDGES_RATCHET, True)
+check("the ratchet work.py names is the drift test's: the switch its RatchetCommand sets, and that constant",
+      bool(re.search(r'RatchetCommand =\s*"WISEOWL_COBOL_ARCH_EDGES_RATCHET=1 ', _ratchet_cs))
+      and work.EDGES_RATCHET.startswith("WISEOWL_COBOL_ARCH_EDGES_RATCHET=1 ")
+      and "ArchitectureEdgesDriftTests.RatchetCommand" in work.EDGES_RATCHET, True)
 
 # PB2562: a train label is a taken wave number, because a wave's first train is labelled with the wave number.
 with tempfile.TemporaryDirectory() as td:

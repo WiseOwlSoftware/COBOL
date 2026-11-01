@@ -877,7 +877,7 @@ product assemblies, not a source scan and not an MSBuild workspace, so it costs 
   refused until the note is reopened or the note that removes the rest is named in its place. The rule stays strict:
   no landed remover is ever accepted on a row, so a row is deleted only when an observer measures it gone. Both
   refusals name this path (`work.py`'s `EDGES_CENSUS_LANDING` and the checker's `ArchitectureEdges.CensusLanding`;
-  `test_plan_wave.py` holds `work.py`'s ratchet command equal to the drift test's `RatchetCommand`), and the drift test
+  `work.py` names the ratchet by the drift test's `RatchetCommand`, its one spelling, which `test_plan_wave.py` checks), and the drift test
   `TheRemoversLanding_RecordsACensus_TheOnlyWayACensusOnlyRowEnds` plants the shape.
 - It is seen failing once, on a planted edge, before it lands (`brent-tools:architecture-audit` Phase 3), through
   self-tests that feed the checker a synthetic edge set: a planted edge, a planted pair inside a tolerated row (growth),
