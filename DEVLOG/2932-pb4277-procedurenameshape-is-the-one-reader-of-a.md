@@ -12,8 +12,9 @@ reproduced, so the note stood.
 **Fix.** `ProcedureNameShape.AsWritten(pn)` is the name as the program wrote it (`Head` + `QualifierAsWritten`).
 `ResolveProcedureOperand` passes it to `CheckDeclarativesBoundary` and to the COBOL1639 report (which built the same string
 inline), `HeaderName` uses it for its COBOL5716 message instead of `pn.GetChild(0).GetText()`, and `EcBinder`'s RESUME AT
-message uses it. After the fix the same programs print `DP1 OF D1`, `MAIN-P OF S1` and `DP2 OF D1`. No code is added or changed
-and no behavior other than the text of those three messages differs.
+message uses it. After the fix the same programs print `DP1 OF D1`, `MAIN-P OF S1` and `DP2 OF D1`. `AsWritten` is added and
+three call sites change (corrected by PB4368: the first draft said no code changed); no rule and no accepted or refused
+program changes, and no behavior other than the text of those three messages differs.
 
 **Drift test.** `ProcedureNameReaderDriftTests` parses every compiler source and refuses `GetText()` on a value that is a
 `ProcedureNameContext` (a typed parameter, local, foreach or pattern variable, a variable bound from `.procedureName(...)`,

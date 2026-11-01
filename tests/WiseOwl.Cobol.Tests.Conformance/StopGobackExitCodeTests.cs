@@ -111,6 +111,32 @@ public sealed class StopGobackExitCodeTests
         Assert.Equal(expectedExit, exit);
     }
 
+    /// <summary>⛔ THE RETURNING OPERAND IS A MOVE SENDER, NOT A STATUS-PHRASE OPERAND (kb/Work PB4361). The operand of
+    /// the extension is screened as the sender of the move that §14.9.18.4 GR2 would make into a header RETURNING
+    /// item (§14.9.25.3 SR1 admits every class but index, message-tag, object and pointer), so a scaled COMP-3 and a
+    /// COMP-2 item are accepted — they were refused under §14.9.18.3 SR6, a phrase the program did not write — and
+    /// GR5's truncation toward zero (docs/CONFORMANCE.md item 192) gives the exit status: 7.5 exits 7.</summary>
+    [Theory]
+    [InlineData("01 SCALED PIC S9(3)V99 COMP-3 VALUE 7.5.")]
+    [InlineData("01 SCALED COMP-2 VALUE 7.5.")]
+    public void GobackReturningAScaledOperandWithoutAHeaderItem_ExitsWithItsTruncatedValue(string item)
+    {
+        string src = $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB4361EXIT.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            {item}
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY "ran".
+                GOBACK RETURNING SCALED.
+            """;
+        var (exit, stdout, detail) = new WiseOwlCobolCompiler(2023).CompileAndRunExit(src);
+        Assert.True(stdout == "ran", detail);
+        Assert.Equal(7, exit);
+    }
+
     /// <summary>⛔ A CALLED PROGRAM'S <c>GOBACK RETURNING x</c> WITH NO HEADER ITEM HAS NO RESULT TO HAND OVER (kb/Work
     /// PB4335): §14.9.18.4 GR2's activation result exists only for a header RETURNING phrase, and a status is inert
     /// in a called program (GR3 confines it to a program "not under the control of a calling runtime element"). The
