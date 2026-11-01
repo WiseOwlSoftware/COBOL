@@ -2836,7 +2836,15 @@ which IS the §4.2.10 warning mechanism for them; they are never accepted in sil
 Extensions of **class 3** (§4.2.10: a required element with different functionality, "provided that standard-conforming
 behavior is also implemented and that an implementor-defined mechanism exists for selection of the nonstandard behavior")
 are the options themselves: `--source-format` selects its nonstandard auto mode, and the standard behavior is the default.
-The reserved words added for these extensions are D-RW1.
+The reserved words added for these extensions are D-RW1. (4) **Embedded precompiler blocks** (`EXEC SQL … END-EXEC`,
+`EXEC CICS … END-EXEC`, `EXEC DLI …`; kb/Work PB4341): no support is claimed, and no word is reserved for them. ISO/IEC
+1989 defines no EXEC construct; the block's text is another language that a vendor's precompiler translates to COBOL
+before compilation, the arrangement §4.2.14 permits (`cite.py --check 4.2.14 "This permits an implementation to require
+components outside the COBOL implementation, such as precompilers"` → OK), and this implementation has no precompiler.
+Where the parse cannot read a block as COBOL it is refused by **COBOL5818**, once, at its EXEC, and the parse resumes after
+its END-EXEC, so every block and every fault of the program's own is reported. EXEC and END-EXEC stay user-defined words
+(no edition's §8.9 list holds them): `DISPLAY EXEC SQL END-EXEC.` names three data items and compiles
+(`wiseowl/cases/4.2.10-Nonstandard-extensions/pb4341-*`).
 
 ## 4. Documented non-support facilities (§4.2.6 / §4.2.7 / §4.2.13)
 

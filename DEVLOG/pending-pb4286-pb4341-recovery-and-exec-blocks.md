@@ -25,3 +25,20 @@ mechanism); `ParseRecoveryDeletionTests` pins the count at one for six shapes an
 The whole Unit, Conformance and Characterization projects ran green on the change before the gate (the two
 ExternalCorpusPopulation drift tests need the external corpus a fresh worktree lacks). No inventory row changes
 verdict. Design: DESIGN-frontend-grammar.md §3.11 carries both rules.
+
+**PB4341.** Re-probed: `EXEC SQL SELECT A INTO :W-X FROM T END-EXEC.` drew `COBOL0001: cannot parse construct near
+'SQL'`, the message of a typo, and a program with blocks in WORKING-STORAGE and the procedure division drew ONE
+diagnostic in all: each block failed in a decision of `compilationUnit` or `procedureDivision`, whose recovery lost the
+rest of the program. ISO/IEC 1989 defines no EXEC construct and §8.9 reserves neither EXEC nor END-EXEC; §4.2.14 names
+precompilers as components outside the implementation. No support is claimed, so the block draws a named refusal,
+COBOL5818 (`embedded-precompiler-block`), once, at its EXEC. `CobolErrorStrategy` recognizes a block (EXEC that a word
+follows, through the first END-EXEC of the unit) only where the parse cannot read it as COBOL: at a decision whose walk
+cannot take the block's tokens and the next token (`SkipsEmbeddedBlock`, from `Sync`; the block is consumed there, and
+its period with it where the block stood where the list may end, `WasAWholeUnit`), and at a syntax error inside a block
+the decision read (`ReportEmbeddedBlock` covers the block; `ConsumeUntil` consumes it whole and leaves a period right
+after it for the unit). `DISPLAY EXEC SQL END-EXEC.` naming three data items still compiles. Goldens:
+`wiseowl/cases/4.2.10-Nonstandard-extensions/pb4341-exec-sql-block-refused` (four blocks, four COBOL5818, nothing else,
+at all four editions) and `pb4341-exec-is-a-user-word` (accepted at all four, output derived from §14.9.11.4 GR1);
+`EmbeddedPrecompilerBlockTests` pins the counts. Docs: CONFORMANCE.md §3.2 item 4, the manual's migrating table,
+DESIGN-frontend-grammar §3.9 (the one spelling-keyed recognition, and why it is not a guess). Codes used: COBOL5818;
+COBOL5819 and COBOL5820 returned.

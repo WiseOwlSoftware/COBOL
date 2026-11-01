@@ -66,6 +66,11 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     {
         var at = new OffendingPosition(recognizer, token, IsPredictionFailedAt(e, token));
         if (Reported(at)) return;
+        if (EmbeddedBlock.Around((ITokenStream)recognizer.InputStream, token.TokenIndex) is { } block)
+        {
+            ReportEmbeddedBlock(recognizer, Math.Min(at.ParserTokenIndex, at.Token.TokenIndex), block, e);
+            return;
+        }
         var hints = GuessCobolIntent(recognizer, at);
         if (!HasStructuralHint(hints) && at.Carried is { } carried)
         {
@@ -78,6 +83,118 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         _reportedReservedWordUse = violation is not null;
         recognizer.NotifyErrorListeners(at.Token,
             violation is not null ? $"[{EditionCodes.ReservedWord}] {violation}" : BuildMessage(at.Token, kind, hints), e);
+    }
+
+    /// <summary>⛔ AN EMBEDDED PRECOMPILER BLOCK IS REFUSED BY NAME, ONCE (kb/Work PB4341). <c>EXEC SQL … END-EXEC</c>,
+    /// <c>EXEC CICS … END-EXEC</c> and their kin are not COBOL: ISO/IEC 1989 defines no EXEC construct, and the text of
+    /// the block is another language that a vendor's precompiler translates to COBOL before the compiler sees it. ISO
+    /// §4.2.14 names exactly that arrangement ("This permits an implementation to require components outside the COBOL
+    /// implementation, such as precompilers"), and this implementation has no precompiler. So the block is reported as
+    /// itself (COBOL5818, at its EXEC), never as "cannot parse construct near 'SQL'", the message of a typo, and the parse
+    /// goes on after its END-EXEC. Two arms, before the failure and at it:
+    /// <list type="bullet">
+    /// <item>at a decision (<see cref="Sync"/>, <see cref="SkipsEmbeddedBlock"/>), where a block begins that the parse
+    /// cannot read as COBOL: the block is reported and consumed there, so the list the parser stands in (the sentences of
+    /// a paragraph, the entries of WORKING-STORAGE) goes on with what follows it. Without it the failure surfaced only
+    /// in the paragraph or the compilation unit's own decision, whose recovery lost the rest of the program;</item>
+    /// <item>at a syntax error whose token lies in a block the first arm did not take (<see cref="Report"/>: the walk is
+    /// predicate-blind, and a match fails without a decision): the report covers every token through END-EXEC, so the
+    /// recovery's re-meetings of the same fault inside the block are that one fault (<see cref="Reported"/>), and the
+    /// resynchronization consumes the block whole (<see cref="ConsumeUntil"/>), so a word of the embedded language that
+    /// is also a COBOL verb (DELETE, RETURN) never resumes the parse as a statement.</item>
+    /// </list>
+    /// <para>Only where the parse cannot read the text: EXEC and END-EXEC are not reserved (§8.9), so
+    /// <c>DISPLAY EXEC SQL END-EXEC.</c> names three data items and compiles.</para></summary>
+    private void ReportEmbeddedBlock(Parser recognizer, int from, EmbeddedBlock block, RecognitionException? e)
+    {
+        _lastReported = (Math.Min(from, block.Exec.TokenIndex), block.EndExec);
+        _embeddedBlockEnd = block.EndExec;
+        _orphansItsTail = false;
+        _reportedReservedWordUse = false;
+        recognizer.NotifyErrorListeners(block.Exec,
+            $"[{Diagnostics.DiagnosticDescriptors.COBOL5818.Code}] EXEC {block.Language}: ISO/IEC 1989 defines no EXEC "
+            + $"construct. The text through END-EXEC is an embedded {block.Language} block, the input of a precompiler that "
+            + "translates it to COBOL before compilation (ISO §4.2.14), and this implementation has no precompiler. Run "
+            + "the source through the precompiler first and compile the COBOL it writes.", e);
+    }
+
+    /// <summary>The first arm of <see cref="ReportEmbeddedBlock"/>: at a decision, does an embedded block begin at the
+    /// lookahead that the parse, in its real context, cannot take as COBOL (its tokens through END-EXEC and the token after
+    /// it, <see cref="ResimulationWalk.TakesAll"/>)? Then it is reported and consumed, and a separator period after it that
+    /// the parse cannot take here (an entry's or a sentence's, where the block was the whole of it) with it. The hot path
+    /// (every decision of every parse) is a token-type and a source-extent test, which read no text: only a four-character
+    /// IDENTIFIER has its text read and compared with EXEC.</summary>
+    private bool SkipsEmbeddedBlock(Parser recognizer)
+    {
+        var stream = (ITokenStream)recognizer.InputStream;
+        var exec = stream.LT(1);
+        if (exec.Type != CobolKeywordTokens.IdentifierType || exec.StopIndex - exec.StartIndex != 3 || !CobolNames.Same(exec.Text, "EXEC")
+            || EmbeddedBlock.Around(stream, exec.TokenIndex) is not { } block || block.Exec.TokenIndex != exec.TokenIndex)
+            return false;
+        var walk = ResimulationWalk.To(recognizer, exec);
+        var written = new List<int>();
+        int ahead = 1;
+        for (; stream.LT(ahead).TokenIndex <= block.EndExec; ahead++) written.Add(stream.LA(ahead));
+        if (stream.LA(ahead) != TokenConstants.EOF) written.Add(stream.LA(ahead));
+        if (walk is null || walk.TakesAll(written.ToArray())) return false;
+        ReportEmbeddedBlock(recognizer, exec.TokenIndex, block, null);
+        _embeddedBlockEnd = -1;
+        while (stream.LA(1) != TokenConstants.EOF && stream.LT(1).TokenIndex <= block.EndExec) recognizer.Consume();
+        if (stream.LA(1) == CobolLexer.DOT && WasAWholeUnit(recognizer, walk)) recognizer.Consume();
+        // The block stood where the precompiler's COBOL would: a fault the parse meets at the very next token is the
+        // block's absence (an IF whose one statement it was, COBOL2072 at the END-IF), the same fault, never a second.
+        else if (stream.LA(1) != TokenConstants.EOF) _lastReported = (_lastReported.From, stream.LT(1).TokenIndex);
+        return true;
+    }
+
+    /// <summary>Was the skipped block a whole unit, so that the separator period after it is the block's own: does the
+    /// block stand where the list the parser is in may END (the rule-local next set of the state holds epsilon: the
+    /// sentences of a paragraph, the entries of WORKING-STORAGE), and can the parse here not take the period
+    /// (<paramref name="walk"/>, positioned where the block began)? Where an element is required (an IF's statement, a
+    /// MOVE's receiver), the block stood for that element, and where the parse takes a period (after a DISPLAY's
+    /// operands), the period ends the sentence the block sits in: either way it is left for the unit.</summary>
+    private static bool WasAWholeUnit(Parser recognizer, ResimulationWalk walk)
+        => recognizer.Atn.NextTokens(recognizer.Atn.states[recognizer.State]).Contains(TokenConstants.EPSILON)
+           && !walk.Takes(CobolLexer.DOT);
+
+    /// <summary>The token index of the END-EXEC that ends the block the last report named
+    /// (<see cref="ReportEmbeddedBlock"/>), or -1.</summary>
+    private int _embeddedBlockEnd = -1;
+
+    /// <summary>An embedded block: the EXEC token, the word after it that names the embedded language (SQL, CICS, DLI),
+    /// and the token index of the END-EXEC that ends it.</summary>
+    private readonly record struct EmbeddedBlock(IToken Exec, string Language, int EndExec)
+    {
+        /// <summary>The block that holds the token at <paramref name="index"/>: the nearest EXEC at or before it that a
+        /// word follows, whose first END-EXEC is at or after it, both within the sentence or entry (no separator period
+        /// between them, the same unit every resynchronization of a fault keeps to); null when the token is in none. An
+        /// END-EXEC before the token ends any block it could have been in. Read only on a report, so the scans cost
+        /// nothing in a program that parses.</summary>
+        public static EmbeddedBlock? Around(ITokenStream stream, int index)
+        {
+            for (var t = GetToken(stream, index); t is not null; t = PreviousDefault(stream, t.TokenIndex))
+            {
+                if (t.Channel != TokenConstants.DefaultChannel || t.Type == TokenConstants.EOF) continue;
+                if (t.TokenIndex < index && (t.Type == CobolLexer.DOT || IsWordSpelled(t, "END-EXEC"))) return null;
+                if (!IsWordSpelled(t, "EXEC") || NextDefault(stream, t.TokenIndex) is not { } language || !IsWord(language))
+                    continue;
+                for (var u = NextDefault(stream, language.TokenIndex); u is not null && u.Type != CobolLexer.DOT;
+                     u = NextDefault(stream, u.TokenIndex))
+                    if (IsWordSpelled(u, "END-EXEC"))
+                        return u.TokenIndex >= index ? new EmbeddedBlock(t, CobolNames.UpperFold(language.Text), u.TokenIndex) : null;
+                return null;
+            }
+            return null;
+        }
+
+        /// <summary>A COBOL word token (a user-defined word or a keyword) whose spelling is <paramref name="word"/>.</summary>
+        private static bool IsWordSpelled(IToken token, string word) => IsWord(token) && CobolNames.Same(token.Text, word);
+
+        /// <summary>A COBOL word: an IDENTIFIER, or a keyword token of its own spelling (a literal, a separator or a
+        /// picture string is none).</summary>
+        private static bool IsWord(IToken token)
+            => token.Type == CobolKeywordTokens.IdentifierType
+               || CobolKeywordTokens.TryTokenType(token.Text, out int type) && type == token.Type;
     }
 
     /// <summary>Did the last report name its token's §8.9 violation (<see cref="ReservedWordUse"/>)? The recovery that
@@ -442,6 +559,21 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         var discard = BeginUnitTailDiscard(recognizer);
         if (discard is not null) set = UnitEnd;
         var input = (ITokenStream)recognizer.InputStream;
+        // An embedded block the report named is consumed whole, through its END-EXEC, before the set is asked (PB4341):
+        // its text is another language, and a word of it that begins a COBOL statement is no resynchronization point.
+        // A period right after it is the period of the unit the block stood in, and is left for that unit, as a
+        // discarded tail's is (FinishUnitTailDiscard): consumed as the resynchronization's, the next sentence was then
+        // refused at its first word.
+        if (_embeddedBlockEnd >= 0 && input.LT(1).TokenIndex >= _lastReported.From && input.LT(1).TokenIndex <= _embeddedBlockEnd)
+        {
+            while (input.LA(1) != TokenConstants.EOF && input.LT(1).TokenIndex <= _embeddedBlockEnd) recognizer.Consume();
+            _embeddedBlockEnd = -1;
+            if (input.LA(1) == CobolLexer.DOT)
+            {
+                _discardedUnitTail = true;
+                return;
+            }
+        }
         // A reserved word the report named as an operand is consumed before the resynchronization asks the set (PB3248).
         // A unit-tail discard's set is the period alone, which is never such a word: the discard consumes the word
         // with the rest of the tail (or stops at it where the structure around the unit resumes there), so the two
@@ -617,6 +749,9 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// rule cannot continue with — once per clause list's end in a legal program.</para></summary>
     public override void Sync(Parser recognizer)
     {
+        // An embedded block the parse cannot read is consumed here, each of a run of them, and the decision then
+        // syncs on what follows them as if the precompiler had already replaced them (PB4341).
+        while (!InErrorRecoveryMode(recognizer) && SkipsEmbeddedBlock(recognizer)) { }
         if (!InErrorRecoveryMode(recognizer) && IsClosedFormatResidueAhead(recognizer))
         {
             ReportUnwantedToken(recognizer);
