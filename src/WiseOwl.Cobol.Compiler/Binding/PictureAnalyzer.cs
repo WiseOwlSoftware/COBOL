@@ -127,6 +127,9 @@ public static class PictureAnalyzer
         }
 
         // ── ISO §13.18.40.3 SR4 ── "The maximum number of characters allowed in character-string-1 is 63."
+        // That is the 2023 text's bound; the edition's own is MaxStringLength (50 at COBOL-2002, 30 at COBOL-85 —
+        // the 2002 text's SR4 and its Annex F.2 item 94; kb/Work PB4304), a length error below the edition that
+        // relaxed it, so also under --permissive.
         // The count is over character-string-1 AS WRITTEN — SR6's second sentence ("the length of the integer,
         // not the length of the constant-name, is counted toward the maximum number of characters in
         // character-string-1") fixes that reading, and it is already the form that reaches here:
@@ -135,12 +138,13 @@ public static class PictureAnalyzer
         // expanded reading would outlaw `PIC X(30000)` — four characters long (kb/Work PB532). A space is not a
         // picture symbol (SR2), so the spaces ExpandRepeats skips are not characters OF character-string-1.
         int written = picture.Count(c => c != ' ');
-        if (written > MaxPictureStringLength)
+        int maxLength = MaxStringLength(edition.DialectLevel);
+        if (written > maxLength)
         {
             edition.Error(DiagnosticCatalog.PictureStringTooLong, $"{where}: character-string-1 is {written} "
-                + $"characters long — the maximum is {MaxPictureStringLength} (ISO §13.18.40.3 SR4; the count is "
-                + "over character-string-1 as WRITTEN, so a repetition factor counts as its own digits, not as "
-                + "the symbols it expands to)");
+                + $"characters long — the maximum is {maxLength}{BoundProvenance(edition.DialectLevel)} "
+                + "(ISO §13.18.40.3 SR4; the count is over character-string-1 as WRITTEN, so a repetition factor "
+                + "counts as its own digits, not as the symbols it expands to)");
             return PicInfo.Recovery();
         }
 
@@ -755,9 +759,41 @@ public static class PictureAnalyzer
         return (new string(mask!), [.. rules, .. twins]);
     }
 
-    /// <summary>ISO §13.18.40.3 SR4 — "The maximum number of characters allowed in character-string-1 is 63."
-    /// Measured on character-string-1 AS WRITTEN (kb/Work PB532); see <see cref="Analyze"/>'s prologue.</summary>
+    /// <summary>ISO §13.18.40.3 SR4 — "The maximum number of characters allowed in character-string-1 is 63." The
+    /// 2023 text's bound, in force from COBOL-2014; measured on character-string-1 AS WRITTEN (kb/Work PB532); see
+    /// <see cref="Analyze"/>'s prologue.</summary>
     internal const int MaxPictureStringLength = 63;
+
+    /// <summary>The bound at COBOL-2002 — 50 characters. QUOTED: the 2002 text's own 13.16.39.3 SR4 reads "The maximum
+    /// number of characters allowed in character-string-1 is 50" and its Annex F.2 item 94 records the increase "from 30
+    /// to 50" (kb/Work PB4304; docs/VERSION_CHANGE_REFERENCE.md row 7.46).</summary>
+    internal const int MaxPictureStringLength2002 = 50;
+
+    /// <summary>The bound at COBOL-85 — 30 characters (the "from 30 to 50" of the 2002 text's Annex F.2 item 94; GnuCOBOL
+    /// <c>cobol85.conf</c> carries <c>pic-length: 30</c>).</summary>
+    internal const int MaxPictureStringLength85 = 30;
+
+    /// <summary>⭐ THE EDITION-KEYED CHARACTER-STRING BOUND, in one place beside <see cref="CobolWordRule.MaxLength"/> and
+    /// <see cref="CobolLiteral.MaxPositions"/>: how many characters character-string-1 of <paramref name="dialectLevel"/> may
+    /// hold. Two RELAXATIONS, 30 to 50 and 50 to 63, each with the edge its construct registry row carries
+    /// (<see cref="ConstructRegistry.IsAvailable"/>: <see cref="Constructs.PictureString502002"/>,
+    /// <see cref="Constructs.PictureString632014"/>), so the number of an edition and the matrix that samples it can never
+    /// name different editions. A longer string is a LENGTH error at the older edition, so it draws COBOL2146, also under
+    /// <c>--permissive</c> (the word-length ceiling's posture). Above 63 is refused at every edition.</summary>
+    public static int MaxStringLength(int dialectLevel)
+    {
+        var edition = new EditionInfo(dialectLevel);
+        return ConstructRegistry.IsAvailable(edition, Constructs.PictureString632014) ? MaxPictureStringLength
+            : ConstructRegistry.IsAvailable(edition, Constructs.PictureString502002) ? MaxPictureStringLength2002
+            : MaxPictureStringLength85;
+    }
+
+    /// <summary>The tail a COBOL2146 message shares: empty where the 2023 text's bound is in force; before it, where the
+    /// 2023 text's 63 begins (<c> at COBOL-2002 (63 from COBOL-2014)</c>), so the diagnostic says why a string ISO/IEC
+    /// 1989:2023 allows is refused.</summary>
+    private static string BoundProvenance(int dialectLevel) =>
+        MaxStringLength(dialectLevel) == MaxPictureStringLength ? ""
+            : $" at COBOL-{dialectLevel} ({MaxPictureStringLength} from COBOL-{ConstructRegistry.Find(Constructs.PictureString632014)!.IntroducedIn})";
 
     /// <summary>⚠ THE IMPLEMENTOR-DEFINED MAXIMUM number of character positions in one elementary item. The
     /// standard sets none: §13.18.40.3 SR4 bounds only the WRITTEN character-string, SR14 bounds only a numeric
