@@ -1837,9 +1837,16 @@ and extractors whose output a C# test checks (`gen-reserved-words.ps1`, `gen-con
 (`conformance-suite/harness/*.py`, a `.sh` under `tests/`) and a `TOOLING_READS` entry lie in trees the compiler reads, so they
 are never the tooling lane. The proof is the watch below, which also watches every tooling-lane path, and its static twin, the
 `INERT LANE` audit (`inert_lane.py check`, in every gate's audits and CI's `audits` job): every csproj `Exec` of a script,
-every build-needing self-test's script and every script or directory a compiler test names through `TestRepo.<dir>(...)` with
-literal arguments lies under a CODE_READS entry. The residue, named: a Windows-only compiler test that reads a tooling path
-through a computed name (the watch runs on Linux only). A whole-tree CODE_READS entry names the pipeline classes still in the
+every build-needing self-test's script, every script or directory a compiler test names through `TestRepo.<dir>(...)` with
+literal arguments (or runs by a computed name under a literal directory, `[InlineData("r2_cost.py")]`), every pattern a
+compiler test lists a tooling directory by, and every Python module one of those scripts IMPORTS, transitively, lies under a
+CODE_READS entry (kb/Work PB4395 review R2-1: `conformance-suite/harness/run.py` and the spec extractors import
+`scripts/standard_streams.py`, so it is code). The import closure is read statically (`ast`): each module is resolved
+against its importer's directory and every directory the importing chain puts on `sys.path`, a lazy import included (the
+twin over-reads rather than under-reads; whether a lazy import runs is the watch's to see). A CODE_READS entry may be a
+LISTING PATTERN (`scripts/guard*.sh`, CorpusManifestTests' listing), which covers a file added later that it matches. The
+residue, named: a Windows-only compiler test that reads a tooling path through a computed name (the watch runs on Linux
+only), and tooling DATA a script reads (`model_rules.json`, `tools/rr/rr.war`), which only the watch sees. A whole-tree CODE_READS entry names the pipeline classes still in the
 compiler's test assembly that walk it; kb/Work PB4395 item 1 moves each into the self-test of the script it checks, and the
 entry narrows when its last walker leaves. CI runs the whole population for a tooling-lane change (it is the regression net),
 and the landing reads a tooling-lane record as it reads an inert one (`land_lane.red_facts`: no compiler test reads the
@@ -1850,8 +1857,14 @@ starts reading an inert path would let an inert change land untested. So every w
 `inert_lane.py watch`: an inotify watch (through `ctypes`) of every directory an inert or tooling-lane tracked file lies in and
 of every such directory itself (a submodule's whole checked-out tree), so an OPEN of a watched file or a LISTING of a watched
 directory, by the test or by any process it starts, is recorded; the run is RED naming each such path (`opened: …`), and an
-overflowed event queue is RED too (it proves nothing). The watched command runs with a fresh `PYTHONPYCACHEPREFIX`, so a
-script a test imports is opened as source at least once per run, never served unseen from an earlier run's `__pycache__`.
+overflowed event queue is RED too (it proves nothing). A LISTING judges a lane only when every name the directory can list
+is watched: an inert directory, or a tooling-lane directory that holds no CODE_READS entry. A directory that holds one
+(`scripts/`, which Python's import system lists to resolve `scripts/standard_streams.py`) may be listed for that entry's
+name, which the watch cannot tell from any other; the static twin knows which name the lister wants (the import closure's
+module, a literal listing's pattern), so it judges those listings (kb/Work PB4395 review R2-1). The watched command runs
+with a fresh `PYTHONPYCACHEPREFIX`, and so does each test leg of the Linux tool (whose watch runs beside its legs, not
+above them), so a script a test imports is opened as source at least once per run, never served unseen from an earlier
+run's `__pycache__` (measured 2026-11-01: without it the Linux tool's watch missed `scripts/standard_streams.py`).
 CI's four Linux `dotnet test` steps run under it, and the hand-run Linux tool runs one watch over its parallel test legs (the
 `inert-watch` leg) in a clone that runs those legs and nothing else, with the script self-tests and the guard in a second
 clone with its own build (kb/Work PB3529). Windows has no open events, so the Windows runs carry no watch. The answer to a RED

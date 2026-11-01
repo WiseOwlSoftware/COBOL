@@ -433,3 +433,24 @@ REARCHITECTURE_PLAN, DESIGN-test-build-ci, -orchestrator-loop, -conformance-suit
 -architecture-review) now name `landing_rules.py --self-test`, `merge_drivers.py --self-test` or `git_batch.py
 --self-test`; `linux-gate.sh` attributes a failed corpus fetch to `corpus_sweep.py --self-test`; `inventory_store.py` and
 `inflight.py` name the script self-tests. R1-4 (the generated shard weights) is left to `shard_weights.py generate`.
+
+**Review round 2, R2-1: the static twin never followed an import.** `code_readers` saw the scripts a compiler test runs
+but not the modules they import, so `inert_lane.py check` was GREEN while `conformance-suite/harness/run.py`, the spec
+extractors and the R2 fleet instruments imported `scripts/standard_streams.py`, a tooling-lane path, and CI's Linux
+watch would have ended the Unit and Conformance steps RED after a green gate. `code_readers` now adds the import closure
+of every script it finds named file by file (a literal path, a listing's matches, a computed name under a literal
+directory such as ArchReviewFleetDriftTests' `[InlineData("r2_cost.py")]`), read through `ast` and resolved against the
+importer's directory and the `sys.path` edits the chain makes, a lazy import included. A directory a test only names (an
+existence check) seeds no import. The closure demanded fourteen CODE_READS entries, each naming its importer
+(`standard_streams.py`, `live_tools.py`, `scratch_repo.py`, `ci_workflow.py`, `rendered_views.py`, `detached.py`,
+`sharedfile.py`, `orchestrator/coord.py`, `budget.py`, `account.py`, `telemetry/usage_report.py`, `otlp_sink.py`), and
+the Linux watch three data files only it sees (`model_rules.json`, `wf_r2_review.js`, `tools/rr/rr.war`). The import
+system's listing of `scripts/` (`opened: scripts/`): a listing reads names, and the watch cannot tell which one the lister
+wanted. A listing is now judged by the watch only when every name the directory can list is watched (an inert directory,
+or a tooling-lane one holding no CODE_READS entry), and by the static twin otherwise. The twin knows the name: the import
+closure's module, or a literal listing's pattern. A CODE_READS entry may now be such a pattern: `scripts/guard*.sh`
+replaces the nine guard entries, so a guard script added later is the code lane too. The Linux tool's test legs get a
+fresh `PYTHONPYCACHEPREFIX` each, as CI's watched steps do. Without it the tool's watch, which runs beside the legs, missed
+`standard_streams.py`, served from the build's `__pycache__`. The `wiring` arm holds this. New self-test arms: the closure,
+check requiring an imported module, listing patterns, which listings the watch judges, and (on Linux) an import through an
+appended `scripts/` that is GREEN when the module is CODE_READS.

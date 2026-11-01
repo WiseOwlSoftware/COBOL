@@ -671,7 +671,12 @@ test_leg() {  # <leg> <project> — `dotnet test --no-build` against the ONE bui
   # re-read the file lost 8 to 14 of 800 lines per run, and the reader's read failed with ENODATA ("No data available");
   # the same run on the Linux filesystem lost none and failed none. HarnessLogTests reads the log beside its writers,
   # and on /mnt/e its read failed (the landing at c89014b6b, kb/Work PB3194).
+  # A FRESH Python bytecode cache per leg, as CI's watched steps get from `inert_lane.py watch` (kb/Work PB4395 review
+  # R2-1): the watch here runs beside the legs, never above them, so without it a script a test runs was served from the
+  # __pycache__ an earlier import left (the build's), unopened and unseen: measured 2026-11-01, this watch missed
+  # scripts/standard_streams.py, which CI's watch reported.
   ( cd "$snap" && export WISEOWL_COBOL_HARNESS_LOG="$gate/$leg.observations.log" \
+      && export PYTHONPYCACHEPREFIX="$gate/$leg.pycache" \
       && "${nice_prefix[@]}" "$PY" "$snap/scripts/test_population.py" scrubbed dotnet test "$proj" \
       --no-build --no-restore --logger "trx;LogFileName=$leg.trx" --results-directory "$out" ) > "$out/$leg.log" 2>&1
   rc=$?

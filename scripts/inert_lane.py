@@ -50,8 +50,16 @@ THE PROOF OF THE TOOLING LANE is the same watch as the inert lane's (below): eve
 tooling-lane path, so a compiler test that opens one, directly or through a script it runs, is RED naming it, until the
 path gets a CODE_READS entry naming its reader (or the reader becomes a script's self-test, kb/Work PB4395 item 1). The
 `check` audit is its static twin, on every host: every csproj `Exec` of a script, every script whose self-test needs a
-build and every script a compiler test names through `TestRepo.Scripts(…)` lies under a CODE_READS entry. The residue,
-named: a Windows-only compiler test that reads a tooling path through a computed name (the watch runs on Linux only).
+build, every script a compiler test names through `TestRepo.Scripts(…)` (or runs by a computed name under a literal
+directory), every pattern a compiler test LISTS a tooling directory by (a CODE_READS entry may be that pattern,
+`scripts/guard*.sh`, so a file added later that it matches is code too) and every Python module one of those scripts
+IMPORTS, transitively (the import closure: resolved against the importer's directory and the `sys.path` edits the
+chain makes, read statically through `ast`, a lazy import included; kb/Work PB4395 review R2-1) lies under a CODE_READS
+entry. A LISTING the watch sees is judged by it only when every name the directory can list is watched (an inert
+directory, or a tooling-lane one holding no CODE_READS entry): the import system lists scripts/ to find
+scripts/standard_streams.py, a CODE_READS module, and only the static twin knows which name a lister wants. The residue,
+named: a Windows-only compiler test that reads a tooling path through a computed name (the watch runs on Linux only), and
+a tooling DATA file a script reads (model_rules.json, rr.war), which only the watch sees.
 
 THE PROOF OF THE TOOLING FLAG (`Classification.unclassified_reads`, run by scripts/self_tests.py on every self-test it
 runs and records; kb/Work PB4326, review round 1 finding R1-1). The PASS store (kb/Work PB2914) records what each
@@ -75,7 +83,8 @@ read and its `paths:` and `content:` reads of a directory.
 
 THE PROOF (`watch`, the drift test the classification needs). Every whole-assembly `dotnet test` run on Linux — CI's
 Linux test steps and the Linux gate — runs under an inotify watch of every inert path and every tooling-lane path
-(directories included, so a test that LISTS a watched directory is caught too; a submodule's whole checked-out tree), through
+(directories included, so a test that LISTS a watched directory is caught too, `Classification.is_watched` saying which
+listings judge a lane; a submodule's whole checked-out tree), through
 this module: a test that opens one, directly or through a script it runs, turns the run RED naming the path. So the day a
 test starts reading an inert path, the change that made it read it is red until that path leaves INERT (or gains a READ
 entry naming its reader); a tooling-lane one, until it gains a CODE_READS entry. The watched command runs with a fresh
@@ -98,7 +107,10 @@ a note.
 from __future__ import annotations
 
 import argparse
+import ast
+import functools
 import os
+import posixpath
 import re
 import select
 import shutil
@@ -115,7 +127,11 @@ REPO = Path(__file__).resolve().parents[1]
 
 
 def _under(path: str, entry: str) -> bool:
-    """`path` lies under `entry`: a directory prefix ending in `/`, or one exact path (and anything below it)."""
+    """`path` lies under `entry`: a directory prefix ending in `/`, one exact path (and anything below it), or a
+    LISTING PATTERN (`scripts/guard*.sh`: `*` and `?` within one directory, case-insensitive as a .NET listing matches),
+    which covers every path it matches, a file added later included, and the pattern itself (`code_readers`)."""
+    if "*" in entry or "?" in entry:
+        return path == entry or _listing_glob(entry, False).fullmatch(path) is not None
     return path.startswith(entry) if entry.endswith("/") else path == entry or path.startswith(entry + "/")
 
 
@@ -178,7 +194,15 @@ class Classification:
         return self.in_tooling_tree(path) and not any(_under(path, e) for e in self.code_reads)
 
     def is_watched(self, path: str) -> bool:
-        """What the watch reports when a compiler test opens it: an inert path or a tooling-lane path."""
+        """What the watch reports when a compiler test opens it: an inert path or a tooling-lane path. A DIRECTORY
+        (`path` ends in `/`: the watch saw it LISTED) is a read of its entries' names, which judges a lane when every
+        name it can list is a watched path's: an inert directory, or a tooling-lane directory that holds no CODE_READS
+        entry. One that holds one (scripts/: the import system lists it to resolve scripts/standard_streams.py, and
+        CorpusManifestTests to find scripts/guard*.sh) may be listed for that entry's name, so its listing is judged by
+        the static twin, which knows which name the lister wants (`code_readers`: the import closure's module file, a
+        literal listing's pattern), never by the watch, which cannot (module docstring, THE PROOF)."""
+        if path.endswith("/") and not self.is_inert(path):
+            return self.in_tooling_lane(path) and not any(_under(e, path) for e in self.code_reads)
         return self.is_inert(path) or self.in_tooling_lane(path)
 
     def is_tooling(self, path: str) -> bool:
@@ -336,17 +360,34 @@ CLASSIFICATION = Classification(inert={
        "scripts/gen-diagnostics-doc.ps1": "a generator whose output a compiler drift test checks",
        "scripts/gen-vault-reference.ps1": "the build (the Cli project's Exec step) and VaultReferenceGeneratorDriftTests",
        "scripts/gen-grammar-diagrams.ps1": "the build (the Cli project's Exec step) and GrammarDiagramGeneratorDriftTests",
-       "scripts/guard-baselines.sh": "CorpusManifestTests (every scripts/guard*.sh)",
-       "scripts/guard-compile.sh": "CorpusManifestTests (every scripts/guard*.sh)",
-       "scripts/guard-compiler.sh": "CorpusManifestTests (every scripts/guard*.sh)",
-       "scripts/guard-fast.sh": "CorpusManifestTests (every scripts/guard*.sh)",
-       "scripts/guard-nist-audit.sh": "CorpusManifestTests (every scripts/guard*.sh)",
-       "scripts/guard-population.sh": "CorpusManifestTests (every scripts/guard*.sh)",
-       "scripts/guard-run-group.sh": "CorpusManifestTests (every scripts/guard*.sh)",
-       "scripts/guard-verdict.sh": "CorpusManifestTests (every scripts/guard*.sh)",
-       "scripts/guard-verify.sh": "CorpusManifestTests (every scripts/guard*.sh)",
+       "scripts/guard*.sh": "CorpusManifestTests, which LISTS scripts/ for every guard*.sh: a pattern, so a guard script "
+                            "added later is the code lane too",
        "scripts/test_population.py": "every gate leg: it plans the population the compiler tests run",
        "scripts/filter_population.py": "its self-test reads the built test assemblies",
+       # The modules the scripts above IMPORT (`code_readers`' import closure, kb/Work PB4395 review R2-1).
+       "scripts/standard_streams.py": "imported at startup by every script a compiler test runs: conformance-suite/"
+                                      "harness/run.py and generate.py, scripts/spec/drift_rules.py, audit_annex_a1.py, "
+                                      "extract_annex_a2.py, audit_derivations.py, derive_verdict_batch.py, "
+                                      "scripts/arch/census.py and r2_*.py, test_population.py",
+       "scripts/live_tools.py": "imported by scripts/standard_streams.py, scratch_repo.py and test_population.py",
+       "scripts/scratch_repo.py": "imported by conformance-suite/harness/generate.py (SuiteManifest) and "
+                                  "test_population.py",
+       "scripts/ci_workflow.py": "imported by scripts/test_population.py",
+       "scripts/rendered_views.py": "imported by scripts/spec/work.py (scripts/arch/r2_inputs.py, ArchReviewFleetDriftTests)",
+       "scripts/detached.py": "imported by scripts/orchestrator/coord.py",
+       "scripts/sharedfile.py": "imported by scripts/orchestrator/coord.py",
+       "scripts/orchestrator/coord.py": "imported by scripts/arch/r2_inputs.py, r2_cost.py and scripts/spec/work.py "
+                                        "(ArchReviewFleetDriftTests)",
+       "scripts/orchestrator/budget.py": "imported by scripts/arch/r2_cost.py (ArchReviewFleetDriftTests)",
+       "scripts/orchestrator/account.py": "imported by scripts/orchestrator/budget.py",
+       "scripts/telemetry/usage_report.py": "imported by scripts/orchestrator/budget.py",
+       "scripts/telemetry/otlp_sink.py": "imported by scripts/telemetry/usage_report.py",
+       # Data the scripts above read, seen only by the watch (measured on Linux 2026-11-01, kb/Work PB4395 review R2-1).
+       "scripts/orchestrator/model_rules.json": "scripts/orchestrator/coord.py (RULES_PATH) for scripts/arch/r2_cost.py's "
+                                                "self-test, which ArchReviewFleetDriftTests runs",
+       ".claude/skills/workstream/templates/wf_r2_review.js": "scripts/arch/test_wf_r2_review.mjs, the workflow's dry "
+                                                               "run ArchReviewFleetDriftTests runs",
+       "tools/rr/rr.war": "scripts/gen-grammar-diagrams.ps1 (the build's Exec and GrammarDiagramGeneratorDriftTests)",
        ".github/": "CiArtifactDriftTests, ReadyToRunRuntimeDriftTests (every workflow and the results actions)",
    })
 
@@ -362,6 +403,9 @@ TEST_REPO_RE = re.compile(r"\bTestRepo\.(?P<method>Scripts|At|Src|Tests|Docs|Sui
 TEST_REPO_PREFIX = {"Scripts": "scripts", "At": "", "Src": "src", "Tests": "tests", "Docs": "docs",
                     "Suite": "conformance-suite"}
 STRING_LITERAL_RE = re.compile(r'^\s*"(?P<s>[^"\\{}]*)"\s*$')
+#: A bare script file name a compiler test spells (`[InlineData("r2_cost.py", …)]`): what a computed `TestRepo` call
+#: under a literal directory may run (`_test_readers`).
+SCRIPT_NAME_RE = re.compile(r'"(?P<name>[\w.-]+\.(?:py|ps1|sh))"')
 #: A compiler test LISTING a repository directory: `Directory.EnumerateFiles(TestRepo.<method>(…), "<pattern>"[, option])`
 #: (or `GetFiles`). With a literal pattern it reads the files the pattern matches in that directory alone, or in its
 #: whole subtree when the option is `SearchOption.AllDirectories` (or computed); a computed pattern is not this form.
@@ -379,6 +423,21 @@ def _repo_call_path(m: re.Match[str]) -> str | None:
     return "/".join(p for p in [TEST_REPO_PREFIX[m.group("method")]] + [lit.group("s") for lit in literals] if p)
 
 
+def _repo_call_prefix(m: re.Match[str]) -> str | None:
+    """The literal directory a computed `TEST_REPO_RE` call names before its first computed argument
+    (`TestRepo.Scripts("arch", script)` is scripts/arch), or None when no literal argument leads it."""
+    if not m.group(0).endswith(")"):
+        return None
+    lead: list[str] = []
+    for a in m.group("args").split(","):
+        lit = STRING_LITERAL_RE.match(a)
+        if not lit:
+            break
+        lead.append(lit.group("s"))
+    return "/".join(p for p in [TEST_REPO_PREFIX[m.group("method")]] + lead if p) if lead else None
+
+
+@functools.cache
 def _listing_glob(pattern: str, recursive: bool) -> re.Pattern[str]:
     """A .NET search pattern (`*`, `?`; case-insensitive, as on Windows, so the scan never reads less than a test can)
     as a regex over the path below the listed directory."""
@@ -420,6 +479,7 @@ def _test_readers(root: Path, paths: list[str], literal: re.Pattern[str]) -> Ite
     matches there, or below it with `SearchOption.AllDirectories`. A call with a computed argument names no path
     this scan can know; what such a test reads is the watch's to see (module docstring), and its literal prefix alone
     would make whole trees code (measured 2026-11-01: 26 classes' computed calls spelled the whole repository)."""
+    tracked_set = set(paths)
     for rel in paths:
         if not (rel.startswith("tests/") and rel.endswith(".cs")):
             continue
@@ -441,23 +501,190 @@ def _test_readers(root: Path, paths: list[str], literal: re.Pattern[str]) -> Ite
             glob = _listing_glob(e.group("pattern"), option is not None and option != "SearchOption.TopDirectoryOnly")
             prefix = where + "/" if where else ""
             yield from ((p, rel) for p in paths if p.startswith(prefix) and glob.fullmatch(p[len(prefix):]))
+            if option is None or option == "SearchOption.TopDirectoryOnly":
+                # The pattern itself: a file the change ADDS that it matches is listed too (kb/Work PB4395 review
+                # R2-1), so a listing pattern entry must cover it (`_under`).
+                yield prefix + e.group("pattern"), rel
+        names = {s.group("name") for s in SCRIPT_NAME_RE.finditer(code)}
         for m in TEST_REPO_RE.finditer(code):
             if m.start() in listed:
                 continue
             path = _repo_call_path(m)
             if path:  # None is computed; "" is `TestRepo.At()`, the root itself, whose walks the watch sees
                 yield path, rel
+            elif path is None and (prefix := _repo_call_prefix(m)):
+                # A script run by a computed name under a literal directory (`TestRepo.Scripts("arch", script)` with
+                # `[InlineData("r2_cost.py", …)]`): each script name the file spells that the directory holds.
+                yield from ((f"{prefix}/{n}", rel) for n in sorted(names) if f"{prefix}/{n}" in tracked_set)
         # A repository path spelled whole in a string literal (`"scripts/orchestrator/groups.py"`, a TreeScope's
         # `Under: ["scripts/", ".claude/"]`): a message names no path (it holds a space or a placeholder).
         for m in literal.finditer(code):
             yield m.group("path"), rel
 
 
+def _static_dir(node: ast.expr, names: dict[str, str]) -> str | None:
+    """The repository-relative POSIX directory (or file) a path expression of a script names, evaluated statically
+    ("" is the repository root), or None when it is computed past what this reader knows. `names` holds the module's
+    own static names (`HERE = Path(__file__).resolve().parent`), and `__file__` the script itself. The forms are the ones
+    the scripts write: `Path(__file__)` / `pathlib.Path(…)`, `.resolve()` / `.absolute()`, `.parent`, `.parents[n]`,
+    `/ "x"`, `str(…)` / `os.fspath(…)`, and `os.path.dirname` / `abspath` / `realpath` / `join`."""
+    def up(p: str | None, n: int) -> str | None:
+        for _ in range(n):
+            if p is None or p == "":
+                return None  # above the repository: nothing tracked
+            p = p.rpartition("/")[0]
+        return p
+
+    def join(a: str | None, b: str) -> str | None:
+        if a is None:
+            return None
+        j = posixpath.normpath(posixpath.join(a, b)) if a else posixpath.normpath(b)
+        return None if j.startswith("..") or posixpath.isabs(j) else ("" if j == "." else j)
+
+    if isinstance(node, ast.Name):
+        return names.get(node.id)
+    if isinstance(node, ast.Attribute) and node.attr == "parent":
+        return up(_static_dir(node.value, names), 1)
+    if (isinstance(node, ast.Subscript) and isinstance(node.value, ast.Attribute) and node.value.attr == "parents"
+            and isinstance(node.slice, ast.Constant) and isinstance(node.slice.value, int)):
+        return up(_static_dir(node.value.value, names), node.slice.value + 1)
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div) and isinstance(node.right, ast.Constant) \
+            and isinstance(node.right.value, str):
+        return join(_static_dir(node.left, names), node.right.value)
+    if not isinstance(node, ast.Call):
+        return None
+    f, args = node.func, node.args
+    callee = f.id if isinstance(f, ast.Name) else (
+        f"{f.value.id}.{f.attr}" if isinstance(f, ast.Attribute) and isinstance(f.value, ast.Name) else
+        f"{f.value.value.id}.{f.value.attr}.{f.attr}" if isinstance(f, ast.Attribute)
+        and isinstance(f.value, ast.Attribute) and isinstance(f.value.value, ast.Name) else None)
+    if isinstance(f, ast.Attribute) and f.attr in ("resolve", "absolute") and not args:
+        return _static_dir(f.value, names)
+    if callee in ("Path", "pathlib.Path", "str", "os.fspath", "os.path.abspath", "os.path.realpath") and len(args) == 1:
+        return _static_dir(args[0], names)
+    if callee == "os.path.dirname" and len(args) == 1:
+        return up(_static_dir(args[0], names), 1)
+    if callee == "os.path.join" and args:
+        out = _static_dir(args[0], names)
+        for a in args[1:]:
+            if not (isinstance(a, ast.Constant) and isinstance(a.value, str)):
+                return None
+            out = join(out, a.value)
+        return out
+    return None
+
+
+def _imports(rel: str, text: str) -> tuple[list[tuple[int, str, list[str]]], list[str]]:
+    """What the Python file `rel` imports and where it looks: every `import`/`from … import` anywhere in it (a lazy import
+    inside a function included) as (relative level, module, imported names), and every directory a `sys.path.insert` /
+    `sys.path.append` of it names statically (`_static_dir`, over its module-level names). A file that does not parse
+    imports nothing this reader can know (the watch sees what it opens)."""
+    try:
+        tree = ast.parse(text, filename=rel)
+    except (SyntaxError, ValueError):
+        return [], []
+    names = {"__file__": rel}
+
+    def bind(body: list[ast.stmt]) -> None:  # module-level names, in order, through if/try/with blocks
+        for s in body:
+            if isinstance(s, (ast.Assign, ast.AnnAssign)) and s.value is not None:
+                targets = s.targets if isinstance(s, ast.Assign) else [s.target]
+                value = _static_dir(s.value, names)
+                for t in targets:
+                    if isinstance(t, ast.Name) and value is not None:
+                        names[t.id] = value
+            for block in ("body", "orelse", "finalbody"):
+                if isinstance(s, (ast.If, ast.Try, ast.With)) and getattr(s, block, None):
+                    bind(getattr(s, block))
+            if isinstance(s, ast.Try):
+                for h in s.handlers:
+                    bind(h.body)
+
+    bind(tree.body)
+    imports: list[tuple[int, str, list[str]]] = []
+    dirs: list[str] = []
+    for n in ast.walk(tree):
+        if isinstance(n, ast.Import):
+            imports += [(0, a.name, []) for a in n.names]
+        elif isinstance(n, ast.ImportFrom):
+            imports.append((n.level, n.module or "", [a.name for a in n.names]))
+        elif (isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute) and n.func.attr in ("insert", "append")
+              and isinstance(n.func.value, ast.Attribute) and n.func.value.attr == "path"
+              and isinstance(n.func.value.value, ast.Name) and n.func.value.value.id == "sys" and n.args):
+            d = _static_dir(n.args[-1], names)
+            if d is not None:
+                dirs.append(d)
+    return imports, dirs
+
+
+def _module_files(base: str, dotted: list[str], tracked_set: set[str], tracked_dirs: set[str]) -> list[str]:
+    """The tracked module files `import a.b.c` reaches from the directory `base`: each component's `<name>.py` or
+    `<name>/__init__.py`, descending while a package (or a namespace directory) holds the next one."""
+    out: list[str] = []
+    here = base
+    for part in dotted:
+        stem = f"{here}/{part}" if here else part
+        if f"{stem}.py" in tracked_set:
+            out.append(f"{stem}.py")
+            break  # a module file: what follows is its attributes
+        if f"{stem}/__init__.py" in tracked_set:
+            out.append(f"{stem}/__init__.py")
+        elif stem not in tracked_dirs:
+            break
+        here = stem
+    return out
+
+
+def _import_closure(root: Path, seeds: list[tuple[str, str]], tracked_set: set[str]) -> Iterable[tuple[str, str]]:
+    """THE IMPORT CLOSURE (kb/Work PB4395 review R2-1): every tracked Python module a script in `seeds` (path, reader)
+    imports, directly or through a module it imports, with its reader (`<reader>, through <importer>`). A module is
+    resolved against the importing file's directory and every directory the importing chain put on `sys.path` statically
+    (`_imports`: a `sys.path` edit lasts for the process, so an imported module inherits its importer's), and over-reads
+    rather than under-reads: every directory that holds the name counts, whatever the order."""
+    tracked_dirs = {p[:i] for p in tracked_set for i, ch in enumerate(p) if ch == "/"}
+    seeded = {p for p, _ in seeds}
+    parsed: dict[str, tuple[list[tuple[int, str, list[str]]], list[str]]] = {}
+    search: dict[str, set[str]] = {}
+    via: dict[str, str] = {}
+    todo = [(p, r, frozenset()) for p, r in seeds if p.endswith(".py") and p in tracked_set]
+    while todo:
+        rel, reader, inherited = todo.pop()
+        known = search.setdefault(rel, set())
+        if rel in via and inherited <= known:
+            continue
+        via.setdefault(rel, reader)
+        if rel not in parsed:
+            try:
+                parsed[rel] = _imports(rel, (root / rel).read_text(encoding="utf-8"))
+            except (OSError, UnicodeDecodeError):
+                parsed[rel] = ([], [])
+        imports, dirs = parsed[rel]
+        here = rel.rpartition("/")[0]
+        known |= inherited | {here, *dirs}
+        for level, module, names in imports:
+            dotted = [x for x in module.split(".") if x]
+            if level:
+                base = here
+                for _ in range(level - 1):
+                    base = base.rpartition("/")[0]
+                bases = [base]
+            else:
+                bases = sorted(known)
+            for base in bases:
+                for target in (_module_files(base, dotted, tracked_set, tracked_dirs)
+                               + [f for n in names for f in _module_files(base, dotted + [n], tracked_set, tracked_dirs)]):
+                    if target != rel:
+                        todo.append((target, via.get(target, f"{via[rel]}, through {rel}"), frozenset(known)))
+    yield from ((rel, reader) for rel, reader in via.items() if rel not in seeded)
+
+
 def code_readers(root: Path, paths: list[str], trees: tuple[str, ...]) -> list[tuple[str, str]]:
     """THE STATIC TWIN OF THE TOOLING LANE'S WATCH (module docstring): (tracked path in one of `trees`, its reader) for
     every tooling path the build or a compiler test is seen to read: a csproj `Exec`'s script, the script of every
-    self-test that reads the built assemblies (`SELF-TEST-NEEDS: build`, scripts/self_tests.py), and every path or
-    directory a compiler test names through `TestRepo` or spells whole in a string literal. `trees` are the tooling trees
+    self-test that reads the built assemblies (`SELF-TEST-NEEDS: build`, scripts/self_tests.py), every path or
+    directory a compiler test names through `TestRepo` or spells whole in a string literal, and every Python module one
+    of those scripts IMPORTS, transitively (`_import_closure`, kb/Work PB4395 review R2-1: a script outside the tooling
+    trees, conformance-suite/harness/run.py, imports scripts/standard_streams.py). `trees` are the tooling trees
     (TOOLING_UNDER: a directory ends in `/`); a directory read is every tracked path below it."""
     import self_tests  # noqa: PLC0415 — it imports this module; the build marker's one home is its NEEDS_RE
 
@@ -466,15 +693,17 @@ def code_readers(root: Path, paths: list[str], trees: tuple[str, ...]) -> list[t
               if t.needs_build]
     found += list(_test_readers(root, paths, path_literal_re(t for t in trees if t.endswith("/"))))
     tracked_set = set(paths)
-    kept = [p for p in paths if any(_under(p, t) for t in trees)]
-    out: list[tuple[str, str]] = []
+    files = [(p, r) for p, r in found if p in tracked_set]
+    below = [(p, r) for p, r in found if "*" in p or "?" in p]  # a listing's pattern: a read of the names it matches
     for path, reader in found:
-        if path.endswith("/") or path not in tracked_set:
+        if path not in tracked_set and not ("*" in path or "?" in path):
             prefix = path if path.endswith("/") else path + "/"
-            out += [(p, reader) for p in kept if p.startswith(prefix) or not prefix.strip("/")]
-        else:
-            out.append((path, reader))
-    return sorted(set(out))
+            below += [(p, reader) for p in paths if p.startswith(prefix) or not prefix.strip("/")]
+    # The scripts a test or the build RUNS are named file by file (a literal path, a listing's matches, a computed name
+    # under a literal directory): their imports are read too. A directory a test names (`TestRepo.Scripts("spec")`, an
+    # existence check) is a read of every file below it, never a run of every script there, so it seeds no import.
+    read = files + below + list(_import_closure(root, files, tracked_set))
+    return sorted({(p, r) for p, r in read if any(_under(p, t) for t in trees)})
 
 
 def changed(root: Path, base: str, head: str = "HEAD") -> list[str]:
@@ -629,6 +858,9 @@ def wiring(root: Path) -> list[str]:
     linux_gate, driver, runner = text("scripts/linux-gate.sh"), text("scripts/gate.py"), text("scripts/self_tests.py")
     need('inert_lane.py" classify' not in linux_gate, "the Linux gate classifies again (it classifies nothing, PB4327)")
     need("scripts/inert_lane.py watch" in linux_gate, "the Linux gate's test legs no longer run under the watch")
+    need('export PYTHONPYCACHEPREFIX="$gate/$leg.pycache"' in linux_gate,
+         "the Linux gate's test legs no longer run with a fresh bytecode cache, so its watch misses a script served from "
+         "an earlier __pycache__ that CI's watch sees (PB4395 review R2-1)")
     for want in ("import inert_lane", "inert_lane.CLASSIFICATION.classify(", "return self._inert(out, run, lane)",
                  "return self._tooling(out, run, lane)", 'TOOLING_ONLY = ("SELF-TESTS",)',
                  "if tooling or name not in TOOLING_ONLY", "self.host.audits(_no_slot, lines.append, tooling)",
@@ -751,9 +983,21 @@ def self_test() -> int:
            [tl.in_tooling_lane(p) for p in ("scripts/gen.ps1", "scripts/gen.ps1x", "scripts/specx/a.py")],
            [False, True, True])
     expect("the watch reports an inert path and a tooling-lane path, never a CODE_READS one or code",
-           [tl.is_watched(p) for p in ("DEVLOG/a.md", "scripts/a.py", "scripts/", "scripts/gen.ps1", "scripts/spec/x.py",
+           [tl.is_watched(p) for p in ("DEVLOG/a.md", "scripts/a.py", "scripts/gen.ps1", "scripts/spec/x.py",
                                        "src/a.cs", "docs/CONFORMANCE.md")],
+           [True, True, False, False, False, False])
+    expect("a LISTING (a directory) is reported when every name it can list is watched: an inert directory and a "
+           "tooling-lane one that holds no CODE_READS entry; never one that holds one (scripts/, which the import system "
+           "lists to resolve a CODE_READS module: kb/Work PB4395 review R2-1), a CODE_READS directory, or code",
+           [tl.is_watched(p) for p in ("DEVLOG/", "kb/W/", "scripts/orch/", "scripts/", "scripts/spec/", "scripts/spec/x/",
+                                       "src/")],
            [True, True, True, False, False, False, False])
+    expect("a LISTING PATTERN entry covers every path it matches, a file added later and the pattern itself included, "
+           "case-insensitively within its one directory",
+           [_under(p, "scripts/guard*.sh") for p in ("scripts/guard-a.sh", "scripts/guard-new.sh", "scripts/Guard-B.sh",
+                                                     "scripts/guard*.sh", "scripts/sub/guard-a.sh", "scripts/guard-a.py",
+                                                     "scripts/xguard.sh")],
+           [True, True, True, True, False, False, False])
     expect("a lane is one of the three, and the tooling lane always runs the self-tests while the inert one never does",
            [_refused(lambda n=n, t=t: Lane(n, "", t)) for n, t in
             (("inert", True), ("tooling", False), ("code", True), ("full", False))], [True, True, True, False])
@@ -771,9 +1015,10 @@ def self_test() -> int:
            "toolchain.env, the generators under scripts/), while a tool no compiler test names is the tooling lane "
            "(PB4395's acceptance: scripts/orchestrator/steer.ps1, which no CODE_READS entry may swallow again)",
            [real.classify([p]).name for p in (".gitattributes", "toolchain.env", "scripts/gen-reserved-words.ps1",
-                                              "scripts/gen-grammar-diagrams.ps1", "tools/a-new-tool.py",
+                                              "scripts/gen-grammar-diagrams.ps1", "scripts/standard_streams.py",
+                                              "scripts/guard-a-new-guard.sh", "tools/a-new-tool.py",
                                               "scripts/orchestrator/steer.ps1")],
-           ["full", "full", "full", "full", "tooling", "tooling"])
+           ["full", "full", "full", "full", "full", "full", "tooling", "tooling"])
     from scratch_repo import ScratchRepo, scratch_dir  # noqa: PLC0415
 
     root = scratch_dir("inert-lane-")
@@ -824,9 +1069,34 @@ def self_test() -> int:
                       "  var d = Directory.GetFiles(TestRepo.Scripts(\"deep\"), \"*.py\", SearchOption.AllDirectories);\n"
                       "  var t = Directory.EnumerateFiles(TestRepo.Scripts(\"deep\"), \"?.sh\", SearchOption.TopDirectoryOnly); } }\n"})
     expect("code_readers: a literal listing reads the files its pattern matches in that directory, or below it with "
-           "AllDirectories; the directory's other files and subdirectories are not read",
+           "AllDirectories, and a one-directory listing its pattern too (a file added later); the directory's other "
+           "files and subdirectories are not read",
            sorted(p for p, r in code_readers(root, tracked(root), tc2.tooling_under) if r == "tests/L.cs"),
-           ["scripts/Guard-B.sh", "scripts/deep/x.py", "scripts/deep/y/z.py", "scripts/guard-a.sh"])
+           ["scripts/Guard-B.sh", "scripts/deep/?.sh", "scripts/deep/x.py", "scripts/deep/y/z.py", "scripts/guard*.sh",
+            "scripts/guard-a.sh"])
+    # THE IMPORT CLOSURE (kb/Work PB4395 review R2-1): a script a compiler test runs is read with every module it
+    # imports, through the sys.path edits of the chain. A harness outside the tooling trees appends scripts/ and imports
+    # a module there; a script inserts its lib/ and imports a module there, which imports a package's module lazily.
+    repo.commit("imports", {
+        "suite/h.py": "import os, sys\nsys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', "
+                      "'scripts'))\nfrom streams import ensure\n",
+        "scripts/streams.py": "X = 1\n",
+        "scripts/run.py": "import sys\nfrom pathlib import Path\nHERE = Path(__file__).resolve().parent\n"
+                          "sys.path.insert(0, str(HERE / 'lib'))\nimport helper\n",
+        "scripts/lib/helper.py": "def f():\n    from pkg import mod\n",
+        "scripts/lib/pkg/__init__.py": "", "scripts/lib/pkg/mod.py": "Y = 2\n", "scripts/lib/unused.py": "Z = 3\n",
+        "scripts/dir/x.py": "import sys\nfrom pathlib import Path\n"
+                            "sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'lib'))\nimport unused\n",
+        "tests/I.cs": "class I { string h = TestRepo.At(\"suite\", \"h.py\"); string r = TestRepo.Scripts(\"run.py\");\n"
+                      "  string d = TestRepo.Scripts(\"dir\"); }\n"})
+    imported = sorted(p for p, r in code_readers(root, tracked(root), tc2.tooling_under) if r.startswith("tests/I.cs"))
+    expect("code_readers: the import closure of every script a test names reads each module it imports, through the "
+           "harness's appended scripts/, a script's inserted lib/, a lazy import and a package; a module nobody imports "
+           "and the imports of a script under a directory the test only names are not read",
+           imported, ["scripts/dir/x.py", "scripts/lib/helper.py", "scripts/lib/pkg/__init__.py",
+                      "scripts/lib/pkg/mod.py", "scripts/run.py", "scripts/streams.py"])
+    expect("check: an imported module is required to be CODE_READS, naming the importer",
+           [b for b in tc2.check(root) if "reads scripts/streams.py" in b and "through suite/h.py" in b] != [], True)
     if sys.platform.startswith("linux"):
         py = [sys.executable, "-c"]
         out: list[str] = []
@@ -853,6 +1123,15 @@ def self_test() -> int:
                (watch(root, imp, None, out.append, tw) != 0, any("opened: scripts/mod.py" in s for s in out),
                 watch(root, py + [f"open({str(root / 'scripts' / 'a.py')!r}).read()"], None, out.append, tw)),
                (True, True, 0))
+        out.clear()
+        tm = Classification(inert={"DEVLOG/": ""}, tooling_under=("scripts/",), code_reads={"scripts/mod.py": "x"})
+        app = py + [f"import sys; sys.path.append({str(root / 'scripts')!r}); import mod"]
+        expect("the import system's LISTING of a directory that holds a CODE_READS module is GREEN when the module it "
+               "imports is CODE_READS (kb/Work PB4395 review R2-1: scripts/ for scripts/standard_streams.py); a listing "
+               "of a directory that holds none is RED, naming it",
+               (watch(root, app, None, out.append, tm),
+                watch(root, py + [f"import os; os.listdir({str(root / 'scripts' / 'deep')!r})"], None, out.append, tm) != 0,
+                any("opened: scripts/deep/" in s for s in out)), (0, True, True))
     else:
         print(f"  skip the inotify arms: this host is {sys.platform} (they run in CI's audits job and the Linux gate)")
     print(f"=== INERT LANE SELF-TEST: {'FAIL — ' + str(len(failures)) if failures else 'PASS'} ===")
