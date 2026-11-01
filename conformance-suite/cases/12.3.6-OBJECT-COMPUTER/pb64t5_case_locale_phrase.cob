@@ -4,7 +4,7 @@
 *>    GR-14.6.6-2, RV-15.57.4-2, RV-15.57.4-3, RV-15.57.4-4,
 *>    AR-15.97.3-1, RV-15.97.4-1, RV-15.97.4-2, RV-15.97.4-3,
 *>    RV-15.97.4-4, FMT-12.3.6.2, FMT-15.57.2, FMT-15.97.2, DOC-A.1-35]
-*> accept: [2002]
+*> accept: [2014, 2023]
 *> source-format: free
 *> portable: unverified
 *>---
@@ -25,6 +25,10 @@
       *>           state — the SET moved the run unit's LC_CTYPE, not a module's established classification) → 74.
       *>   PLAIN   — a program (the second top-level unit) with NO classification and no phrase: r4, the implementor's
       *>           correspondence — the invariant map — "i" → "I" (74) even while LC_CTYPE is Turkish.
+      *> It is accepted from 2014, the edition that introduced the LOCALE phrase of UPPER-CASE / LOWER-CASE (kb/Work
+      *> PB4311: the printed 2002 formats are ( argument-1 ) alone); the CHARACTER CLASSIFICATION half is a 2002 form,
+      *> witnessed at 2002 by pb64t5_character_classification. The refusal below 2014 is
+      *> pb4311-case-locale-phrase-below-2014.
       *> Non-ASCII appears only inside literals (UTF-8 source); every DISPLAY is ASCII.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB64T5PH.

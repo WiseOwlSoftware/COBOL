@@ -36,7 +36,7 @@ cobol program.cob --std 85 --flag-extensions
 | `USAGE COMP-3`, `COMPUTATIONAL-3` | accepted extension; the standard form is `PACKED-DECIMAL`. |
 | `USAGE COMP-1`, `COMP-2` | accepted extensions; the standard forms are `FLOAT-SHORT` and `FLOAT-LONG`. |
 | `USAGE COMP`, `COMP-4`, `COMP-5` | `COMP` is the standard abbreviation of `BINARY`; `COMP-4` and `COMP-5` are accepted extensions (standard forms: `BINARY`, and the fixed-width `BINARY-CHAR`, `BINARY-SHORT`, `BINARY-LONG`, `BINARY-DOUBLE`). |
-| `GOBACK RETURNING` | accepted extension (GnuCOBOL, Micro Focus), returning the value to a caller through the PROCEDURE DIVISION RETURNING item; in a program with no such item (the GnuCOBOL main-program use that sets the exit status) the run stops with `NotImplementedCobolFeatureException`, so use `STOP RUN WITH ... STATUS n` there. |
+| `GOBACK RETURNING` | accepted extension (GnuCOBOL, Micro Focus), returning the value to a caller through the PROCEDURE DIVISION RETURNING item; in a program with no such item the operand is the exit status of a main program (the GnuCOBOL use) and is ignored in a called program, which has no result to return. A written `WITH ... STATUS` phrase wins over it. |
 | `SET program-pointer TO ENTRY` | accepted extension (IBM, Micro Focus). |
 | Signed DISPLAY numbers | both conventions, chosen with `--sign-encoding`. |
 | Binary items | two's complement, most significant byte first, in 1 byte for 1 to 2 digits, 2 for 3 to 4, 4 for 5 to 9, 8 for 10 to 18 and 16 for 19 to 38 (Annex A.1 item 205). |
