@@ -53,19 +53,19 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     public void OnDebuggingLine(string file, int line)
         => GateOnce(ref _debuggingLineFlagged, Constructs.DebuggingLineRemoved2014, file, line, FixedFormLine.IndicatorColumn);
 
-    /// <summary>A line with the 2002 FLOATING debugging indicator <c>&gt;&gt;D</c> (§6.1.2), in either reference format —
+    /// <summary>A line with the 2002 FLOATING debugging indicator <c>&gt;&gt;D</c> (clause 6.1.2), in either reference format —
     /// the same obsolete-at-2002, removed-at-2014 facility as the fixed indicator, but introduced with the floating
     /// indicators at 2002 (row <c>floating-debugging-indicator-2002</c>; kb/Work PB4298). Gated once per compilation, at
     /// its first use, at the indicator's column.</summary>
     public void OnFloatingDebuggingLine(string file, int line, int column)
         => GateOnce(ref _floatingDebuggingFlagged, Constructs.FloatingDebuggingIndicator2002, file, line, column);
 
-    /// <summary>2002 §6.1.2.1 SR8 — COBOL5770: the floating debugging indicator on a line that holds a fixed debugging
+    /// <summary>2002 clause 6.1.2.1 SR8 — COBOL5770: the floating debugging indicator on a line that holds a fixed debugging
     /// indicator or a fixed continuation indicator.</summary>
     public void OnFloatingDebuggingOnFixedIndicator(string file, int line, int column)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.FloatingDebuggingOnFixedIndicator.Code,
             "a floating debugging indicator (>>D) shall not be specified on a line that contains a fixed debugging "
-            + "indicator or a fixed continuation indicator (ISO/IEC 1989:2002 §6.1.2.1 SR8)", At(file, line, column), default);
+            + "indicator or a fixed continuation indicator (ISO/IEC 1989:2002 clause 6.1.2.1 SR8)", At(file, line, column), default);
 
     /// <summary>A debugging line written between the parts of a continued literal, passed over by the logical conversion
     /// as it would a comment line (kb/Work PB2490). Whether it is one is decided later, per source unit, by

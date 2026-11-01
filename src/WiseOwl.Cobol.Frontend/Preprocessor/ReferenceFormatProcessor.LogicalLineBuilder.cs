@@ -156,10 +156,10 @@ public static partial class ReferenceFormatProcessor
             Emit(text, spans, state, isDirective: false);
         }
 
-        /// <summary>The FLOATING debugging indicator <c>&gt;&gt;D</c> (ISO/IEC 1989:2002 §6.1.2, "a debugging line when
-        /// followed by at least one space character"; §6.3.4 "A debugging line consists of a debugging indicator,
+        /// <summary>The FLOATING debugging indicator <c>&gt;&gt;D</c> (ISO/IEC 1989:2002 clause 6.1.2, "a debugging line when
+        /// followed by at least one space character"; clause 6.3.4 "A debugging line consists of a debugging indicator,
         /// optionally preceded by one or more space characters, followed by all successive character positions on the
-        /// line"; §6.1.2.1 SR7 "preceded on a line only by zero or more space characters"): where it stands in
+        /// line"; clause 6.1.2.1 SR7 "preceded on a line only by zero or more space characters"): where it stands in
         /// <paramref name="programText"/>, in either reference format — ISO/IEC 1989:2023 §6.2.3.1 "Floating indicators
         /// may be used in fixed-form or free-form reference format". The 2002 text is not in the repository (read from
         /// the archived draft, docs/CONFORMANCE.md D-DEBUG), so those clauses are no <c>cite.py</c> citation.
@@ -190,7 +190,7 @@ public static partial class ReferenceFormatProcessor
             return true;
         }
 
-        /// <summary>2002 §6.1.2.1 SR8: "A floating debugging indicator shall not be specified on a line that contains a
+        /// <summary>2002 clause 6.1.2.1 SR8: "A floating debugging indicator shall not be specified on a line that contains a
         /// fixed debugging indicator or a fixed continuation indicator" — COBOL5770 for the fixed-form line whose
         /// indicator area holds <c>D</c> or the continuation hyphen and whose program text begins with <c>&gt;&gt;D</c>.
         /// The line is then read as its fixed indicator says.</summary>
