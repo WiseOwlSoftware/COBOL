@@ -30,7 +30,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 public abstract class RunUnitFileLockPairDriftTestsBase<TSlot>
     where TSlot : ITestPartitionSlot
 {
-    /// <summary>Partition count: the pairs in eighths, about 97 a partition (773 pairs in 2026-10). The stride gives each
+    /// <summary>Partition count: the pairs in eighths, about 96 a partition (768 pairs in 2026-10). The stride gives each
     /// partition an eighth whatever the number of pairs, so a sharing or open mode added later grows every partition
     /// alike (kb/Work PB4146).</summary>
     public const int Partitions = 8;

@@ -123,7 +123,9 @@ public sealed class ConformanceSuiteRunnerDriftTests
 /// <para>The row set is the wiseowl manifest's in-suite tests, <c>(edition, id)</c>. That it equals the set <c>run.py</c>
 /// runs is asserted ONCE, by <see cref="ConformanceSuiteRunnerDriftTests.BothRunners_RunExactlyTheSameTests"/> (an
 /// inherited <c>[Fact]</c> would run in every partition); each partition still asserts that <c>run.py</c> ran exactly
-/// the tests it was asked to, so a test <c>run.py</c> cannot find reads "only in-process" instead of passing.</para>
+/// the tests it was asked to: a test <c>run.py</c> was given and left out of its results reads "only in-process", and
+/// one the chosen suite does not hold at all fails <c>run.py</c> itself (<c>--test names X, which no chosen suite
+/// holds</c>, exit 2), which <c>RunPyHarness.Run</c> reports first.</para>
 /// </remarks>
 /// <typeparam name="TSlot">This partition's slot.</typeparam>
 public abstract class BothRunnersVerdictDriftTestsBase<TSlot>

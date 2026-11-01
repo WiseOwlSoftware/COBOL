@@ -1271,7 +1271,9 @@ because the raw name is not stable (`b7`):
   the cap. **Tier 0c — the cheap tree-wide sweeps**: every case whose class carries `[Trait("Sweep", "tree")]` — the
   drift tests `drift_rules.py --sweeps` classifies as reading a whole tree — and costs at most `SWEEP_CHEAP_SECONDS`
   of recorded time; leg 1 within the collection cap. Both traits are read from the test SOURCES (`class_traits`, so
-  the plan needs no build), and `HostWitnessTraitDriftTests` holds the scan equal to the compiled attributes, the
+  the plan needs no build; a trait declared on partition classes `Family_P<k>` is found under the FAMILY, because the
+  tier is looked up by the class without its partition suffix: `gate_plan.trait_sets`/`family_of`, kb/Work PB4325
+  review), and `HostWitnessTraitDriftTests` holds the scan equal to the compiled attributes, the
   Sweep set equal to the sweeps, and every race witness (a Unit class driving the sharing layer's host types from
   concurrent workers) traited `Host`. That class, `gate_plan.TRAIT_GUARD`, is itself tier 0h: its cases spawn the
   scans and cost 5-11 s under a gate's load, over `SWEEP_CHEAP_SECONDS`, so as a plain sweep it sat in leg 2 and the
