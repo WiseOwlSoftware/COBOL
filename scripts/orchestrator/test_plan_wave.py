@@ -1634,6 +1634,35 @@ own = pw.plan(notes, [cl("src/X/Misc.cs", "PB9")], [], [], lambda b: "ABSENT", {
               busy={"worktree e (worktree-old)": InFlight({"src/X/Misc.cs"}, "worktree-old", {"PB9"}, state="DECISION")})
 check("a branch working on the group's OWN note (an earlier attempt) never defers it",
       [g.notes for g in own["groups"]], [["PB9"]])
+# kb/Work PB4396 review R1-2: THE NEXT WAVE OF AN OVERFLOW CHAIN. Wave N (s7c above) gave group A three notes of
+# src/X/Seven.cs and left four as its overflow; A finished, was reviewed CLEAN, and the survey holds its branch IN FLIGHT
+# for that overflow (prune_worktrees.chain_links, from the dispatch ledger's chain record). Wave N+1 reads the survey as
+# plan_wave.main does (inflight.survey_states) and must plan the overflow ONTO A's branch: read as running work, the
+# overflow's group would wait for A and A for the overflow, every wave, with nothing red.
+OVF_A = s7c["groups"][0]
+OVF_REPORT = dataclasses.replace(FIN, path=TMP / "w9400a-PB6-report.md", wave=9400, slug="w9400a", lead=OVF_A.notes[0],
+                                 notes=list(OVF_A.notes), branch="worktree-seven", worktree="E:/w/seven")
+OVF_ROWS = [prune.Row("worktree-seven", "UNLANDED", [], [], 3, "E:/w/seven", None, 0, 600.0, "x", state="WAITING TO LAND",
+                      report=prune.IndexedReport(OVF_REPORT.path, "DONE", OVF_REPORT.lead, False, 600.0, finished=True))]
+prune.chain_links(OVF_ROWS, [prune.ChainRecord("w9400a", tuple(OVF_A.notes), (), tuple(OVF_A.overflow))])
+OVF_OWNER = "worktree seven (worktree-seven)"
+
+
+def next_wave(states):
+    busy = classify_inflight({OVF_OWNER: {"src/X/Seven.cs"}}, {OVF_OWNER: {"branch": "worktree-seven", "rev": "x"}},
+                             [OVF_REPORT], states, {})
+    return pw.plan(notes, [c for c in SEVEN if c["notes"][0]["id"] in OVF_A.overflow], [], [], lambda b: "ABSENT", {},
+                   rules_capped(LIVE_RULES, 3), budget_points=100, busy=busy)
+
+
+OVF_NEXT = next_wave(inb.survey_states(OVF_ROWS))
+check("PB4396 R1-2: the next wave plans an overflow ONTO the chain link the survey holds for it, never waits on it",
+      ((OVF_ROWS[0].state, OVF_ROWS[0].overflow), [(g.notes, g.continues) for g in OVF_NEXT["groups"]],
+       sorted(i for i, w in OVF_NEXT["waiting"].items() if "in-flight work" in w)),
+      (("IN FLIGHT", tuple(OVF_A.overflow)), [(list(OVF_A.overflow[:3]), ["worktree-seven"])], []))
+check("PB4396 R1-2: ... and the arm can fail: read as the bare IN FLIGHT, every overflow note waits on the link",
+      sorted((i for i, w in next_wave({r.name: r.state for r in OVF_ROWS})["waiting"].items() if "worktree-seven" in w),
+             key=pw.work.id_order), sorted(OVF_A.overflow, key=pw.work.id_order))
 check("the one collision rule, path separators folded",
       file_set_collisions(Claim.of(["src" + chr(92) + "A.cs"]),
                              {"t": Claim.of({"src/A.cs"}), "u": Claim.of({"src/B.cs"})}), ["t (src/A.cs)"])

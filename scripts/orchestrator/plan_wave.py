@@ -200,7 +200,8 @@ from standard_streams import ensure_utf8  # noqa: E402
 from reports import FINISH_STATUSES, Report, load_reports, parse_report  # noqa: E402  (THE fleet-report reader)
 from inflight import (LANDED_CLASSES, SLICE_OWNER, Claim, InFlight, IndexPolicy, branch_carrier,  # noqa: E402
                       branch_replays, classify_inflight, collision, collision_hits, declared_sets, git_branch_classifier,
-                      inflight_file_sets, inflight_units, local_branches, slice_reservation, unlanded_branch_notes)
+                      inflight_file_sets, inflight_units, local_branches, slice_reservation, survey_states,
+                      unlanded_branch_notes)
 from clusters import (Note, add_closed_notes, branch_lead_notes, campaign_clusters, cluster_claim,  # noqa: E402
                       declare_fix_lane, harm_weights, lift_tiers, load_fix_clusters, load_notes, notes_cap,
                       predicted_turns, run_fix_clusters, turn_budget)
@@ -1139,7 +1140,7 @@ def plan_main(argv: list[str] | None, stack: contextlib.ExitStack) -> int:
         # requests included (ENQUEUED and BOUNCED are read from them), exactly as the landing lane reads it
         import prune_worktrees  # noqa: PLC0415
         rows = prune_worktrees.live_survey(coord_dir=cdir, reports_dir=reports_dir, terminal=terminal)
-        states, owned, locked = {r.name: r.state for r in rows}, prune_worktrees.owned(rows), prune_worktrees.locked(rows)
+        states, owned, locked = survey_states(rows), prune_worktrees.owned(rows), prune_worktrees.locked(rows)
         coverage = prune_worktrees.Coverage(rows)   # the survey's own coverage rules, kb/Work PB3394, PB3446
 
         def review_covers(rep: Report) -> bool:

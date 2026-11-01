@@ -1127,8 +1127,8 @@ processes in `prune_worktrees.py`'s self-test alone). `scripts/git_batch.py` ans
 `is_ancestor`, the count ahead and the subjects are read from memory; a tip that names no commit raises, never reads "on the
 base"), `diff_names` / `diff_patches` (one `diff-tree --stdin --always` over `<commit> <parent>` pairs), `object_ids` and
 `tree_entries` / `blobs` (one `cat-file --batch` each). The survey, the landing check, the planner and the ledger read through
-it, `git_batch.py --self-test` holds each reader to the one-process form, and `GitBatchDriftTests` keeps per-object ancestry
-questions out of them (1,246, 846, 510 and 286 processes for the four self-tests above, down from 3,048, 1,471, 646, 363).
+it, `git_batch.py --self-test` holds each reader to the one-process form and keeps per-object ancestry questions out of them
+(`per_object_questions`) (1,246, 846, 510 and 286 processes for the four self-tests above, down from 3,048, 1,471, 646, 363).
 
 ⛔ **A drift test holds a script self-test's arms from its SOURCE and never runs it a second time (kb/Work PB2882).** The
 runner is the one place a script self-test RUNS. What it cannot see is an arm deleted from a self-test (which still exits 0),
@@ -1523,7 +1523,7 @@ one-file-per-entry DEVLOG stand.
    key, not by line: the keyed catalogues (`constructs.json`), the work notes two branches append to, the runtime ABI pin
    (`RuntimeAbi.pin`, measured by `scripts/abi_pin.py` on the merged tree before the merge commit) and the public-API baselines
    (`src/**/PublicAPI.*.txt`, a SET of symbol lines). `DRIVERS` is the registry, `.gitattributes` repeats its patterns,
-   `merge_drivers.py --check` and `MergeDriverDriftTests` hold the two together, and git is given the drivers on its command
+   `merge_drivers.py --check` (which its `--self-test` runs on the real tree) holds the two together, and git is given the drivers on its command
    line (`-c merge.<name>.driver=…`) and the attributes with them (`-c attr.tree=…`), so no checkout carries configuration that
    can go stale. A new driver lands alone (DESIGN-orchestrator-loop.md 16.9). The review's coverage rule reads the same
    `is_drivers_merge`, built on `merged_tree` (kb/Work PB3713). PROSE HAS NO DRIVER, ON PURPOSE (kb/Work PB3643):
@@ -1541,7 +1541,7 @@ one-file-per-entry DEVLOG stand.
    `merge_drivers.foresee_queue` replays that build with git's own line merge (`probe(drivers=False)`) on the queue's own order
    and heads, `prune_worktrees.foresee_queued` asks it on every survey, and a queued head that conflicts reads BOUNCED (a
    FORESEEN CONFLICT) while the entry ahead is still queued. The landing's last line, `=== ENQUEUE: <OUTCOME> (<branch>) ===`,
-   has ONE home, `scripts/verdict_line.py` (kb/Work PB3714), and `LandingLaneDriftTests` keeps every other script from spelling
+   has ONE home, `scripts/verdict_line.py` (kb/Work PB3714), and `landing_rules.py --self-test` keeps every other script from spelling
    the prefix.
    Then `devlog.py stamp` numbers the entry (once: a stamped entry keeps its number, PB3123) and the landing checks run
    (`enqueue.py checks`): `devlog.py check` (exactly one new entry file, stamped and well-formed), `work.py check` (run by the
@@ -1579,7 +1579,7 @@ one-file-per-entry DEVLOG stand.
    DESIGN-architecture-review.md §4.1); (b) the DEVLOG number is STAMP order, not merge order: `devlog.py check` holds a new
    entry above every entry of the tree it was STAMPED on (the first parent of the commit that added its file) and unique on
    the landing's tree, never above the group's base. `devlog.py --self-test` builds the stacked trees in both orders, and
-   `LandingPipelineDriftTests` keeps the oracle's record out of the tree. The witness-loss audit and the `changes` job's
+   `landing_rules.py --self-test` keeps the oracle's record out of the tree. The witness-loss audit and the `changes` job's
    docs-only decision read base..head, and a group's `base_sha` is the head of the group ahead of it, so the range is this
    pull request's own change whatever is queued with it; `landing_check.py` reads the in-flight branches on purpose, and only
    locally.
@@ -1729,7 +1729,7 @@ demand and not committed.
   (the owner's credentials make every push), minimum group size 1, maximum 5, check timeout 60 min.
   `scripts/orchestrator/ruleset-main.json` is the committed ruleset and `ruleset.py check|apply` compares and applies it;
   `enqueue.py queue` refuses (exit 8) before any check, push or pull request unless `ruleset.py check` reports the queue
-  ACTIVE, and no other tracked file opens or queues a pull request (`LandingPipelineDriftTests`, §3.17.8).
+  ACTIVE, and no other tracked file opens or queues a pull request (`landing_rules.py --self-test`, §3.17.8).
 - **The concurrent-job budget and the queue's build width (kb/Work PB3773).** The organization is on GitHub Team: standard
   hosted runners run **60 jobs at once**. `max_entries_to_build` stays **5**, measured against 60 on 2026-10-31 over the day's
   60 merge-group runs: a full group is 23 jobs with a peak of 18-19 running at once, an inert-lane group (§3.18) 13 jobs; five
@@ -1742,7 +1742,7 @@ demand and not committed.
 
 #### 3.17.8 Drift tests that pin the design
 
-`LandingPipelineDriftTests`: the workflow has a `merge_group` trigger, a `pull_request` arm that skips the matrix, and a
+`scripts/orchestrator/landing_rules.py --self-test`: the workflow has a `merge_group` trigger, a `pull_request` arm that skips the matrix, and a
 short-circuit that never counts a pull request's run; no tracked file outside the narrative paths (docs, kb, history, tests)
 opens or queues a pull request except `enqueue.py`, and its queue guard precedes its checks, push and pull-request calls; the
 self-test arms of `enqueue.py` and `ruleset.py` are declared; the direct-push landing script (both forms), the landing lease,
@@ -1779,7 +1779,7 @@ the `tools/claude-skills` pin, which the self-tests initialize. Two sweeps moved
   `kind: defect` note naming the rows it closed, or why none, and every row so named closed in the inventory) are
   `scripts/spec/work_inventory.py`, called by `work.py check`, so the register has ONE reader and the checks are audits: the
   gate's `WORK REGISTER` audit runs them, and CI's `audits` job in every merge group. The tree sweeps of
-  `LandingPipelineDriftTests`, `LandingLaneDriftTests` and `LandingMeasureDriftTests` set `kb/` aside whole, and
+  `landing_rules.py --self-test` (until kb/Work PB4395 three C# landing classes) set `kb/` aside whole, and
   `rendered_views.py --check` (the gate's `RENDERED VIEWS` audit and a step of CI's `audits` job) replaced the Unit test that
   read the vault, so no test reads it.
 

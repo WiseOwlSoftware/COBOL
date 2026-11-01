@@ -554,6 +554,9 @@ class Row:
     chain: str = ''                 # chain_links(): the slug of the dispatch whose one-file chain holds this CLEAN
                                     # link until the chain's last link lands it (kb/Work PB4396); nobody works on THIS
                                     # one (owned() excludes it)
+    overflow: tuple[str, ...] = ()  # chain_links(): the pending overflow notes this held link waits for; its work is
+                                    # FINISHED for the planner, which plans the overflow ONTO it (inflight.survey_states,
+                                    # kb/Work PB4396 review R1-2); () for a link a live dispatch continues
     foreseen: tuple[tuple[str, str], ...] = ()   # lifecycle(): a queued head the queue's simulation finds conflicting
                                     # with what is ahead of it: (the entry's branch, its head commit) per entry it
                                     # conflicts with, or (origin/main, origin/main) for main alone (kb/Work PB3723)
@@ -1307,7 +1310,9 @@ def chain_links(rows: list[Row], chains: Iterable[ChainRecord]) -> None:
     whose lead is one of its notes; a review finisher rewrites that report for its own branch, which then is the
     chain's). Only WAITING TO LAND changes: a
     pull request already queued lands as queued, and every other state has its own owner. `chain` names the dispatch,
-    and owned() excludes the row: nobody works on it. The landing of the last link carries every earlier link's commits
+    and owned() excludes the row: nobody works on it. An overflow link carries its pending notes (`overflow`), so the
+    planner reads it as FINISHED work and plans the overflow ONTO it (inflight.survey_states): read as running, the
+    overflow's group would wait for it, and it for the overflow, forever (review R1-2). The landing of the last link carries every earlier link's commits
     (the continuation merged them), so carrying_landing_branch, which runs after this, no longer holds it behind them."""
     by_name = {r.name: r for r in rows}
     for c in chains:
@@ -1320,7 +1325,7 @@ def chain_links(rows: list[Row], chains: Iterable[ChainRecord]) -> None:
                 r.why = (f'continued by dispatch {c.slug}' + (f' on {mine.name}' if mine else '') +
                          ': one step per file, the chain lands once, with its last link (kb/Work PB4396); ' + evidence(r))
         if c.pending and mine and mine.state == 'WAITING TO LAND':
-            mine.state, mine.chain = 'IN FLIGHT', c.slug
+            mine.state, mine.chain, mine.overflow = 'IN FLIGHT', c.slug, c.pending
             mine.why = (f'dispatch {c.slug} left an overflow ({", ".join(c.pending)}) that a later wave plans onto this '
                         'branch: one step per file, the chain lands once, with its last link (kb/Work PB4396; '
                         '`plan_wave.py --release` drops the record); ' + evidence(mine))
@@ -2201,7 +2206,8 @@ def self_test() -> int:
                                                stale_hours=24, live=live, coord_dir=landed_coord, prs=None, chains=chain)}
             check((crows['wpred'].state, crows['wpred'].chain, crows['wsucc'].state, crows['wsucc'].waits_on,
                    'wpred' in owned(list(crows.values())))
-                  == ('IN FLIGHT', chain[0].slug, 'WAITING TO LAND', '', False),
+                  == ('IN FLIGHT', chain[0].slug, 'WAITING TO LAND', '', False)
+                  and crows['wpred'].overflow == chain[0].pending,
                   f'{label}: the CLEAN chain link wpred is IN FLIGHT (owned by no one), and wsucc lands: '
                   f'{crows["wpred"].state} {crows["wpred"].why} / {crows["wsucc"].state} {crows["wsucc"].why}')
             check('one step per file' in crows['wpred'].why and chain[0].slug in crows['wpred'].why,

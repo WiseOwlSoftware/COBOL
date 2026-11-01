@@ -2,10 +2,11 @@
 
 One branch, one gate, one review (owner 2026-11-01: work on the same files is done in one step; then "I want the entire
 new pipeline up and running as quickly as possible"). PB4395 item 1 ran as four implementers on disjoint script families
-(self-tests, landing, toolchain, CI and corpus) beside PB4396, cut from one base and merged by the integrator, who also
+(self-tests, landing, toolchain, CI and corpus) beside PB4396, cut from one base and merged by the integration, which
 narrowed CODE_READS to the exact paths the build and the remaining compiler tests read (scripts/spec/, scripts/arch/, the
 generators, the build's two Exec scripts, the guard scripts, test_population.py, filter_population.py, .github/) and deleted
-the empty LandingLaneDriftTests shell. The parts, as each implementer wrote them:
+the empty LandingLaneDriftTests shell; the branch review's finisher made `inert_lane.py check` GREEN on that narrowing
+(the last section). The parts, as each implementer wrote them:
 
 Steps 8 and 11 (PB4331, PB4334 with PB4204 and PB4271; branch worktree-wf_01545e8c-f44-36, its review rounds 1 and 2
 answered) land in this same change: they share the files PB4395 edits, so by the owner's rule they are one step.
@@ -123,10 +124,10 @@ is opened as source at least once per run and never served unseen from an old `_
 first). Its static twin is the INERT LANE audit (`inert_lane.py check`, now in the gate's AUDITS and CI's audits job).
 It requires every csproj `Exec` of a script (properties resolved), every `SELF-TEST-NEEDS: build` script, and every
 path a compiler test names, through `TestRepo.<dir>(...)` with literal arguments or as a whole path literal, to lie
-under a CODE_READS entry. Measured on this tree: with the whole-tree entries dropped, 41 readers name 337 tooling
-paths. Twelve classes still walk all of scripts/, and SelfTestFixtureDriftTests and MergeDriverDriftTests read
-.claude/, so CODE_READS keeps scripts/, .claude/, .github/ and tools/claude-skills whole. Today only tools/ outside the
-pin is in the tooling lane. Each entry names the classes that hold it, and it narrows as item 1 moves them.
+under a CODE_READS entry. Measured on this part's tree: with the whole-tree entries dropped, 41 readers named 337
+tooling paths, twelve classes walking all of scripts/. After the rest of item 1 (the four families below) and the
+finisher's two fixes, CODE_READS holds exact files and only the directories compiler tests read below (scripts/spec/,
+scripts/arch/, .github/), so every other tooling path, scripts/orchestrator/ and .claude/ among them, is the tooling lane.
 
 **Item 1, first part.** `InertLaneDriftTests` became `inert_lane.wiring` (its five arms, read from the real workflow and
 scripts through the new `scripts/ci_workflow.py`, the Python port of `tests/_shared/CiWorkflow.cs`).
@@ -139,10 +140,9 @@ latter now probes every entry point under cp1252, and on its first run found tha
 `ensure_utf8()`, fixed here. Deleted: InertLane, GateSlot, TestLegReport, PerfBaselineSelfTest, CitationAuditSelfTest,
 ScriptLayering, ScriptStandardStreams. Trimmed: GateLeg, LandingMeasure, ReviewLane, HeldAnalyzerOutput, GitBatch.
 
-**Not done (the successor's, on this branch).** The rest of item 1: the twelve scripts/ walkers and the .github/
-readers in PB4395's list, after which CODE_READS narrows, followed by a Linux watch run (`bash scripts/linux-gate.sh`)
-to measure what remains. Then the note's acceptance (a planted steer.ps1 change GREEN in the tooling lane with its
-wall time, and the arms counted before and after). PB4396 (one file, one step) is untouched.
+**The rest of item 1** went to the four family implementers below, and CODE_READS narrowed with the integration. Not
+measured on this branch: a Linux watch run (`bash scripts/linux-gate.sh`) over what remains, and the wall time of a
+tooling-lane gate (the acceptance's classification is shown in the last section).
 
 **Docs.** CLAUDE.md "Testing" (the tooling clause, §13's words), DESIGN-test-build-ci.md (section 0 items 1 and 6,
 3.14.2, 3.14.4, 3.17, 3.18), the gate skill, DOC_INDEX, DESIGN-orchestrator-loop.md (16.10's holder).
@@ -394,5 +394,42 @@ note claims no inventory row.
 
 **Self-review.** One mechanism per job: the absorption by primary file in `plan_fill` was a second copy of the meeting
 rule and is gone; the group size is read from one function by every reader; `Group` is a mutable dataclass with no hash,
-so the partition dedupes by identity (`distinct`). Left as is: an overflow note planned in another dispatch releases the
-held branch (`chain_records`' pending rule), so a record cannot hold a branch for ever; `plan_wave.py --release` drops one.
+so the partition dedupes by identity (`distinct`). An overflow note planned in another dispatch releases the held branch
+(`chain_records`' pending rule), and `plan_wave.py --release` drops a record; the next wave planning the overflow onto the
+held link is the finisher's fix of review R1-2 (the last section).
+
+
+### The branch review's finisher: the tooling lane holds at the narrowed CODE_READS, and an overflow chain moves
+
+The branch review (FINDINGS, review-w20261810-i.jsonl) found two blocking defects and a lead.
+
+**R1-1: `inert_lane.py check` was RED with 364 findings once CODE_READS was narrowed**, from two readers that the static
+scan read as all of scripts/. `CatalogCoverageDriftTests` declared a TreeScope over every tracked `.py` under scripts/ for
+the no-copy sweep of the general-format heading (kb/Work PB284): a fact about the scripts in the compiler's test
+assembly. That half moved to `scripts/spec/spec_headings.py --self-test` (`spells_the_heading`, `private_copies`, with
+arms that each Python spelling is flagged and a keyword list or a comment is not, and a floor of 100 scripts read); the
+C# test keeps the C# half over src/ and tests/, renamed `NoCompilerOrTestSource_SpellsTheGeneralFormatHeadingItself`, and
+drops the Python-only shapes. `CorpusManifestTests` lists only the top-level `scripts/guard*.sh`
+(`Directory.EnumerateFiles(TestRepo.Scripts(), "guard*.sh")`), which `inert_lane.code_readers` read as the whole tree: it
+now reads a literal listing as the files its pattern matches in that directory (below it with
+`SearchOption.AllDirectories`; case-insensitive, so the scan never reads less than a test can), with a self-test arm, so
+the guard scripts' exact entries cover it. `inert_lane.py check` is GREEN. The acceptance, from `inert_lane.py classify` on
+planted trees: a change to `scripts/orchestrator/steer.ps1` is `lane=tooling`; one to `scripts/gen-reserved-words.ps1` or
+`scripts/gen-grammar-diagrams.ps1` is `lane=full`; the self-test's real-classification arm now holds all three.
+
+**R1-2: an overflow chain deadlocked.** `prune_worktrees.chain_links` holds a CLEAN link whose dispatch left a pending
+overflow IN FLIGHT, and the planner read that state as running work (`inflight.classify_inflight`: only
+`CONTINUED_STATES` are finished), so the overflow's group met the link and waited (COLLISION_WAIT), and the link waited
+for the overflow, every wave, with nothing red. The held row now carries its pending notes (`Row.overflow`), and the
+planner reads the survey through `inflight.survey_states`, which gives such a link `OVERFLOW_HELD`, one of
+`CONTINUED_STATES`: the next wave plans the overflow ONTO the link's branch (its `continues`), and the landing lanes still
+read IN FLIGHT. `test_plan_wave.py` drives the next wave from a CLEAN link that `chain_links` held for wave N's overflow:
+the overflow's group continues the branch and nothing waits, and, read as the bare IN FLIGHT, every overflow note waits
+on it (the arm can fail). prune_worktrees' self-test checks the held link's `overflow`.
+
+**R1-3: the live instructions named deleted classes as a rule's guard.** MANDATORY-PRACTICES L3 and L5, the finisher
+brief, the landing reference, the workflow's comments, `dispatch_guard.py` and the current-state docs (DOC_INDEX,
+REARCHITECTURE_PLAN, DESIGN-test-build-ci, -orchestrator-loop, -conformance-suite, -spec-conformance-review,
+-architecture-review) now name `landing_rules.py --self-test`, `merge_drivers.py --self-test` or `git_batch.py
+--self-test`; `linux-gate.sh` attributes a failed corpus fetch to `corpus_sweep.py --self-test`; `inventory_store.py` and
+`inflight.py` name the script self-tests. R1-4 (the generated shard weights) is left to `shard_weights.py generate`.

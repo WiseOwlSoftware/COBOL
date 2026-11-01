@@ -410,7 +410,7 @@ explains every listed case; a fix-lane landing, which legitimately changes emitt
 
 **Drift.** `ArchOracleDriftTests` holds every `[PartitionedRowSource]` of the Conformance assembly enrolled, every
 non-sentinel row a case, no two rows one case, and an observation free of machine paths and the clock. It pins the
-enumerator; no capture is committed for it to pin (kb/Work PB3107, `LandingPipelineDriftTests` keeps it so).
+enumerator; no capture is committed for it to pin (kb/Work PB3107, `landing_rules.py --self-test` keeps it so).
 
 **Item 3 is not yet built.** The token-stream and parse-tree differential for grammar changes is the next step, and
 kb/Work PB2113 and PB2114 are its first consumers. It needs a capture of the lexer's token stream and the parse
