@@ -627,7 +627,7 @@ class Host:
             branch = ""
         if not branch or branch == "HEAD":
             return "build-local: ci bounce: none (no branch is checked out)"
-        return "build-local: " + queue_facts.fetch_bounce_results(branch, self.repo / CI_BOUNCE_RESULTS, self.gh)
+        return "build-local: " + queue_facts.fetch_bounce_results(branch, self.repo / CI_BOUNCE_RESULTS, self.gh).line
 
     def run_host(self, asm: str, run: Path, env: dict[str, str], spawn: Spawn) -> int:
         """One assembly's whole population: `dotnet test --no-build` with a trx logger, its whole output to `<asm>.log`.
