@@ -1,4 +1,4 @@
-## PB4353 — shard_weights.py's self-test read its planted runs against the wall clock, and every merge group after 2026-11-01 09:00 UTC went red on it
+## Entry 2936 — 2026-11-01 02:42 PST — PB4353 — shard_weights.py's self-test read its planted runs against the wall clock, and every merge group after 2026-11-01 09:00 UTC went red on it
 
 The merge queue bounced #960 (PB4298) and #961 (PB2555) within fifteen minutes of each other, both on one self-test,
 `scripts/shard_weights.py`, on Linux and Windows alike, at a main whose own CI was green. Neither branch touches that
@@ -19,3 +19,4 @@ a real one the shift could not move (file mtimes, git commit times, a process st
 wrote). A one-clock shift is therefore no standing guard, and kb/Work PB4358 holds the design question of the guard that
 would catch the next one on the day it is written. Process only: no compiler code, no diagnostic, no golden, no
 inventory row.
+
