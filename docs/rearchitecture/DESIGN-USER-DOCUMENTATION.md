@@ -50,21 +50,35 @@ like any documentation site, nothing to download or install. A version picker sw
 ## §4 Content map
 
 **Hand-written** (`docs/manual/`):
-- *Install* — `dotnet tool install -g WiseOwl.COBOL`; prerequisites (.NET 10 runtime); verifying the install.
-- *Getting started* — hello world; compile, run, the produced assembly.
-- *User guide* — the `cobol` command; `--std 85|2002|2014|2023` and `--permissive`; reference format (fixed / free /
-  `>>SOURCE`); COPY libraries and search; run units and STOP RUN under a .NET host (R48); locale and collation (A.4.9);
-  exception handling.
+- *Install* (`install.md`) — prerequisites (.NET 10 runtime) and verifying the install. It builds the compiler from source
+  until kb/Work PB1613 publishes the packages; that change replaces the build steps with
+  `dotnet tool install -g WiseOwl.COBOL` and the page doubles as the package README (§6).
+- *Getting started* (`getting-started.md`) — hello world; compile, run, the produced assembly, reading a diagnostic.
+- *User guide* (`user-guide/`, one page each) — `command-line.md`: the `cobol` command, options, output files, exit
+  statuses; `editions.md`: `--std 85|2002|2014|2023`, `--permissive`, archaic/obsolete warnings, `--flag-extensions`;
+  `source-format.md`: reference format (fixed / free / `>>SOURCE`), COPY libraries and search; `run-units.md`: run
+  units and STOP RUN under a .NET host (R48); `locale-and-collation.md` (A.4.9); `exceptions.md`; `files.md`: the basics
+  of file handling (the *File types* chapter below is the full account). `command-line.md`'s option table is
+  superseded by the generated command-line reference (kb/Work PB1612) when that lands; the page then keeps the
+  concepts and links the reference.
 - *File types* (owner 2026-10-17, kb/Work PB3352) — the implementation and support of each file kind, per
   organization: sequential, line sequential, relative, indexed, sort-merge and report files. For each it gives the
   access modes and statements per edition, the on-disk format, the limits (DOC-A.1-107 and the other DOC-A.1 rows),
   foreign files ('39'), the Latin-1 no-CODE-SET rule of R47 and the status codes. It also covers sharing and record
   locking, APPLY COMMIT / COMMIT / ROLLBACK and the crash guarantee, the performance a user can plan by, and the SORT
   work files' memory limit and location. Its prerequisite, kb/Work PB3330's keyed store engine, has landed.
-- *.NET interoperability* (§4.2.3) — calling COBOL from C# and C# from COBOL; the runtime package.
-- *Migrating* (§4.2.4) — from IBM Enterprise COBOL, Micro Focus and GnuCOBOL: what is standard, what is a dialect
-  extension, what WiseOwl COBOL rejects and why.
-- *Release notes* — per version, derived from the DEVLOG entries between release tags (edited, not dumped).
+- *.NET interoperability* (§4.2.3, `dotnet-interop.md`) — calling COBOL from C#, what crosses the boundary, what a call
+  throws, trimmed/AOT applications; and the statement that COBOL cannot call non-COBOL code (DOC-A.1-13, -15, -141).
+  The "Separately compiled units and the repository" chapter joins it as its own page when kb/Work PB2103 lands.
+- *Migrating* (§4.2.4, `migrating.md`) — from IBM Enterprise COBOL, Micro Focus and GnuCOBOL: what is standard, what is a
+  dialect extension, what WiseOwl COBOL rejects and why; it carries the §4.2.4 statement that no interaction with other
+  COBOL implementations' runtime elements is supported.
+- *Release notes* (`release-notes.md`) — per version, derived from the DEVLOG entries between release tags (edited, not
+  dumped); the page states the convention until a release exists.
+
+Every behavioral statement on a hand-written page was run on the compiler it describes and cites its clause
+(`cite.py --check`) or its CONFORMANCE.md determination. A page links its siblings with relative URLs that end in a slash
+(`../editions/`), so a bundle mounted at any version prefix keeps its links; it never links a file outside `docs/manual/`.
 
 **Generated** (`docs/manual/reference/`), each by one generator with a drift test:
 - *Conformance statement* (§4.2.5, §4.2.6, §4.2.10) — from `docs/CONFORMANCE.md` §2–§5, §7 and the traceability
