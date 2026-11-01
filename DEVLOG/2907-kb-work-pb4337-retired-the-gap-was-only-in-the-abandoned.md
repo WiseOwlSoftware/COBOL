@@ -1,4 +1,4 @@
-## kb/Work: PB4337 retired (the gap was only in the abandoned PB380 design), PB3987's fourth witness
+## Entry 2907 — 2026-10-31 20:16 PDT — kb/Work: PB4337 retired (the gap was only in the abandoned PB380 design), PB3987's fourth witness
 
 **PB4337 retired.** The clerk filed PB4337 from the round-2 review of branch `worktree-wf_15d43d1b-129-9`. The note
 said nothing reads `CollationKeyCache.DefaultConfig` through `CollationRuntime.Initialize`. The PB380 fix that landed
@@ -11,3 +11,4 @@ worktree. The finisher's first commit was a clean merge of main. That merge put 
 the landing lane landed the branch from inside the finisher's worktree 85 seconds later. It reused the old gate, made
 its own merge there, and re-queued #930, which bounced on the same red at 03:06Z. The race cost one merge-group run.
 The lane still has no verb that holds a branch while its finisher works.
+
