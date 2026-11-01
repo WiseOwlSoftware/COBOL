@@ -1,4 +1,4 @@
-## PB4325: the long serial tests are split (step 2 of the pipeline redesign PB4323)
+## Entry 2919 — 2026-11-01 00:22 PDT — PB4325: the long serial tests are split (step 2 of the pipeline redesign PB4323)
 
 xUnit 2.9.2 runs one class as one serial collection, so seven classes each set a floor under their assembly's wall clock
 (PIPELINE-REVIEW section 2, measure-M3 F4). This entry splits each at the place its cost sits, test code only, no
@@ -58,3 +58,4 @@ Fixed at `trait_sets`: classes are keyed by their family (`family_of`, the one p
 planted inside a string literal (TrackedTreeScopeDriftTests.cs) as a governing class; a declaration must now start its line
 (the index differs from before in exactly that one row; a planted literal in the self-test pins it). R1-2 and R1-3 were comment
 errors (773 pairs and 97 a partition, where the code says 768 and 96; where a missing test is read), fixed.
+
