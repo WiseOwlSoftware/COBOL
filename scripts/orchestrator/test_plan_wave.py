@@ -2080,6 +2080,24 @@ check("a row whose name is a prefix of another's is not named by the longer one"
           for m in work.edges_remover_problems([edges_note("PB1", "open", "`P.Low → P.Mid.Sub` 1")] + NOTES[1:], EDGES)),
       True)
 check("the live edges file's removers are open notes that name their rows", work.edges_remover_problems(REAL), [])
+# PB2417 review R2-1, the PB4319 shape: a census-only row (one seen only by the census, or one whose remover's landing
+# took its last walked pair) whose every remover landed can leave the file only through a census recorded in the
+# landing, so the refusal names that path and never "delete it from removedBy", which would leave a row no note removes.
+LANDED_PB2 = [NOTES[0], edges_note("PB2", "landed", "`P.Mid → P.High` 1"), NOTES[2]]
+census_only = [m for m in work.edges_remover_problems(LANDED_PB2, EDGES) if "PB2 is landed" in m]
+check("a census-only row's landed last remover is refused, and the refusal names the census landing",
+      len(census_only) == 1 and work.EDGES_CENSUS_LANDING in census_only[0] and "delete it from" not in census_only[0], True)
+TWO = {"tolerated": [dict(EDGES["tolerated"][1], removedBy=["PB2", "PB4"], plan="PB2")]}
+check("a census-only row's landed remover beside an open one is deleted from removedBy",
+      any("PB2 is landed" in m and "delete it from" in m
+          for m in work.edges_remover_problems(LANDED_PB2 + [edges_note("PB4", "open", "`P.Mid → P.High` 1")], TWO)), True)
+check("a pair's landed remover is deleted from removedBy (the ratchet takes a vanished pair)",
+      any("PB1 is landed" in m and "delete it from" in m and work.EDGES_RATCHET in m
+          for m in work.edges_remover_problems([edges_note("PB1", "landed", "`P.Low → P.Mid` 1")] + NOTES[1:], EDGES)), True)
+_ratchet_cs = (HERE.parents[1] / "tests" / "WiseOwl.Cobol.Tests.Unit" / "ArchitectureEdgesDriftTests.cs").read_text(encoding="utf-8")
+_ratchet_m = re.search(r'RatchetCommand =\s*"([^"]*)"\s*\+\s*"([^"]*)";', _ratchet_cs)
+check("work.py's ratchet command is the drift test's RatchetCommand",
+      bool(_ratchet_m) and _ratchet_m.group(1) + _ratchet_m.group(2) == work.EDGES_RATCHET, True)
 
 # PB2562: a train label is a taken wave number, because a wave's first train is labelled with the wave number.
 with tempfile.TemporaryDirectory() as td:

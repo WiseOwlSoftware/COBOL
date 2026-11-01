@@ -1771,6 +1771,14 @@ def r3_program_problems(items: list[dict], slice_files: set[str] | None = None,
 EDGES_FILE = "docs/rearchitecture/architecture-edges.json"
 _REMOVES_LINE = re.compile(r"^\*\*Removes\b[^\n]*", re.M)
 _NOTE_ID = re.compile(r"\bPB\d+\b")
+# The ratchet run, as ArchitectureEdgesDriftTests.RatchetCommand spells it (test_plan_wave.py holds the two equal).
+EDGES_RATCHET = ("WISEOWL_COBOL_ARCH_EDGES_RATCHET=1 dotnet test tests/WiseOwl.Cobol.Tests.Unit --no-build --filter "
+                 "FullyQualifiedName~ArchitectureEdgesDriftTests.EveryProductDependency")
+# The one way a census-only row's last remover leaves the file (DESIGN-architecture-review §8.1 "The landing of a
+# remover"): the remover's landing records a census and ratchets, so the row's uses fall to what the code still holds.
+EDGES_CENSUS_LANDING = (f"record a census in the remover's landing (`python scripts/arch/census.py` on the committed "
+                        f"head, then `{EDGES_RATCHET}`): the ratchet keys the file to the new record, lowers the row's "
+                        f"uses to the census's count and deletes the row at zero")
 
 
 def edges_remover_problems(items: list[dict], edges: dict | None = None) -> list[str]:
@@ -1788,19 +1796,31 @@ def edges_remover_problems(items: list[dict], edges: dict | None = None) -> list
             return []
         edges = json.loads(path.read_text(encoding="utf-8"))
     by_id = {i.get("id"): i for i in items}
+    terminal = {n for n, it in by_id.items() if it.get("status") in TERMINAL_STATUSES}
     bad = []
     for row in edges.get("tolerated") or []:
         name = f"{EDGES_FILE}: tolerated row {row['from']} -> {row['to']}"
         link = f"`{row['from']} → {row['to']}`"
-        removers = set(row.get("removedBy") or []) | {n for p in row.get("pairs") or [] for n in p.get("removedBy") or []}
+        pairs = row.get("pairs") or []
+        removers = set(row.get("removedBy") or []) | {n for p in pairs for n in p.get("removedBy") or []}
         for n in sorted(removers):
             it = by_id.get(n)
             if it is None:
                 bad.append(f"{name} names {n} as a remover, which kb/Work does not hold")
-            elif it.get("status") in TERMINAL_STATUSES:
-                bad.append(f"{name} names {n} as a remover, but {n} is {it.get('status')}: it removed what it removes, "
-                           f"so delete it from every removedBy that still names it (a pair left with no remover is a "
-                           f"dependency nobody removes; DESIGN-architecture-review §8.1)")
+            elif n in terminal:
+                done = f"{name} names {n} as a remover, but {n} is {it.get('status')}"
+                if not pairs and not set(row.get("removedBy") or []) - terminal:
+                    # a census-only row whose every remover is terminal: deleting them leaves a row no note removes,
+                    # which the drift test refuses, and only the census observer can show the uses gone
+                    bad.append(f"{done}, and the row is seen only by the census, so no change to removedBy can end it: "
+                               f"{EDGES_CENSUS_LANDING}; a row the new census still measures was not removed by {n} "
+                               f"(its uses are consts or nameofs it left), so name the note that removes the rest in "
+                               f"place of {n} (DESIGN-architecture-review §8.1 \"The landing of a remover\")")
+                else:
+                    bad.append(f"{done}: it removed what it removes, so delete it from every removedBy that still "
+                               f"names it (a vanished pair goes with it when the landing ratchets the file, "
+                               f"`{EDGES_RATCHET}`; a pair left with no remover is a dependency nobody removes; "
+                               f"DESIGN-architecture-review §8.1)")
             elif link not in "\n".join(_REMOVES_LINE.findall(it.get("_body", ""))):
                 bad.append(f"{name} names {n} as a remover, but {n}'s **Removes** line does not name the row ({link}): "
                            f"a remover names every row it removes from")
