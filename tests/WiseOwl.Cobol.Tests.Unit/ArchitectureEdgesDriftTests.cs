@@ -240,6 +240,46 @@ public sealed class ArchitectureEdgesDriftTests
         Assert.Empty(afterRemoval.CheckWalk(removed, PlantedNamespaces, noCensus));
     }
 
+    /// <summary>THE LANDING OF A REMOVER (kb/Work PB2417, branch review R2-1; §8.1 "The landing of a remover"), in the
+    /// PB4319 shape: the remover's landing takes a row's last walked pair while the newest census still counts the row
+    /// (a record older than the landing, or consts and <c>nameof</c>s the walk cannot see). Ratcheted at that census the
+    /// row stays, census-only, naming the landed remover: both observers pass and <c>work.py check</c> refuses the
+    /// terminal remover. Deleting the remover is refused too (a census-only row no note removes), with the census landing
+    /// named as the way out. Only a census recorded in the landing ends the row: at zero the ratchet deletes it and both
+    /// observers pass; a census that still counts a use keeps the row and its remover, so the note that left the use is
+    /// still the one named and still refused.</summary>
+    [Fact]
+    public void TheRemoversLanding_RecordsACensus_TheOnlyWayACensusOnlyRowEnds()
+    {
+        MeasuredPair[] landed = [.. PlantedClean.Where(p => p.From != "P.Low.A")];
+        var oldCensus = new Dictionary<(string, string), int> { [("P.Low", "P.Mid")] = 1 };
+
+        var atOld = Planted.Ratchet(landed, oldCensus, Planted.Census);
+        EdgesRow row = Assert.Single(atOld.Tolerated);
+        Assert.Empty(row.Pairs);
+        Assert.Equal(1, row.Uses);
+        Assert.Equal<string>(["PB1"], row.RemovedBy);
+        Assert.Empty(atOld.CheckWalk(landed, PlantedNamespaces, oldCensus));
+        Assert.Empty(atOld.CheckCensus(Planted.Census, oldCensus));
+
+        var stripped = atOld with { Tolerated = [row with { RemovedBy = [] }] };
+        Assert.Contains(stripped.CheckWalk(landed, PlantedNamespaces, oldCensus),
+            f => f.Contains("seen only by the census", StringComparison.Ordinal) && f.Contains(ArchitectureEdges.CensusLanding, StringComparison.Ordinal));
+
+        const string Landing = "c0ffee000002";
+        var none = new Dictionary<(string, string), int>();
+        var atLanding = atOld.Ratchet(landed, none, Landing);
+        Assert.Empty(atLanding.Tolerated);
+        Assert.Equal(Landing, atLanding.Census);
+        Assert.Empty(atLanding.CheckWalk(landed, PlantedNamespaces, none));
+        Assert.Empty(atLanding.CheckCensus(Landing, none));
+        Assert.Contains(atOld.CheckCensus(Landing, none), f => f.Contains(RatchetCommand, StringComparison.Ordinal));
+
+        var left = atOld.Ratchet(landed, oldCensus, Landing);
+        Assert.Equal<string>(["PB1"], Assert.Single(left.Tolerated).RemovedBy);
+        Assert.Empty(left.CheckCensus(Landing, oldCensus));
+    }
+
     private static Measurement Measure()
     {
         var edges = ArchitectureEdges.Load(EdgesFile);

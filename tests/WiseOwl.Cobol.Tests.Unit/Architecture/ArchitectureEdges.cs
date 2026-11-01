@@ -131,7 +131,8 @@ internal sealed record ArchitectureEdges(
                 {
                     failures.Add($"{name} is seen only by the census (no walked pair: inlined consts or nameofs) and names no "
                                  + "remover — name the kb/Work note that removes its uses in the row's removedBy (§8.1: a "
-                                 + "dependency no note removes blocks the file)");
+                                 + "dependency no note removes blocks the file). If its remover just landed, keep it named: "
+                                 + CensusLanding);
                 }
 
                 continue;
@@ -183,6 +184,15 @@ internal sealed record ArchitectureEdges(
 
         return this with { Census = census, Tolerated = rows };
     }
+
+    /// <summary>THE LANDING OF A REMOVER (§8.1): a census-only row — one seen only by the census, or one whose last walked
+    /// pair its remover's landing took — leaves the file only through a census, because the walk cannot see its uses and
+    /// deleting its landed remover leaves a row no note removes. The remover's landing records one and ratchets
+    /// (<c>work.py check</c> names the same path, <c>EDGES_CENSUS_LANDING</c>).</summary>
+    internal const string CensusLanding =
+        "record a census in the remover's landing (`python scripts/arch/census.py` on the committed head, then `"
+        + ArchitectureEdgesDriftTests.RatchetCommand + "`): the ratchet keys the file to the new record, lowers the row's "
+        + "uses to the census's count and deletes the row at zero";
 
     private static List<string> RemoversOf(IEnumerable<EdgesPair> pairs) =>
         pairs.SelectMany(p => p.RemovedBy).Distinct().Order(StringComparer.Ordinal).ToList();
@@ -298,7 +308,8 @@ internal sealed record ArchitectureEdges(
         if (newestRecord != Census)
         {
             failures.Add($"the edges file's uses are keyed to census {Short(Census)} but the newest record is "
-                         + $"{Short(newestRecord)}: ratchet the file in the change that records the census");
+                         + $"{Short(newestRecord)}: ratchet the file in the change that records the census ("
+                         + ArchitectureEdgesDriftTests.RatchetCommand + ")");
         }
 
         var rows = Tolerated.ToDictionary(r => (r.From, r.To));

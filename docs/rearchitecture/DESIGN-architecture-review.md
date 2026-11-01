@@ -863,6 +863,22 @@ product assemblies, not a source scan and not an MSBuild workspace, so it costs 
   is an open kb/Work note whose `**Removes …**` line names the row as `` `From → To` ``, and every note a plan names
   exists. It is the register's, not the drift test's, because no test reads `kb/Work/` (`scripts/inert_lane.py`: a
   register-only change runs the audits and no test).
+- **The landing of a remover (PB2417 review, R2-1).** A remover's landing flips its note terminal, so every row that
+  still names it is refused by `work.py check`, and the landing leaves the file the one way its row allows. A walked
+  pair the landing removed is gone from the walk, and the ratchet (`WISEOWL_COBOL_ARCH_EDGES_RATCHET=1` on the drift
+  test) deletes it with its removers; a landed remover beside an open one is deleted from that `removedBy`. A
+  CENSUS-ONLY row whose every remover landed (a row the census alone sees, or the PB4319 shape: the landing took the
+  row's last walked pair, and the ratchet kept the row because the newest census, older than the landing, still counts
+  it) cannot leave that way: deleting the remover leaves a row no note removes, which the drift test refuses, and the
+  walk cannot see what the census counts. So **the remover's landing records a census**: `python scripts/arch/census.py`
+  on its committed head, then the ratchet, which keys the file to the new record, lowers the row's `uses` to the
+  census's count and deletes the row at zero, all in the landing's change. A row the new census still measures was not
+  removed (its remaining uses are consts or `nameof`s the remover left): the row keeps its landed remover and stays
+  refused until the note is reopened or the note that removes the rest is named in its place. The rule stays strict:
+  no landed remover is ever accepted on a row, so a row is deleted only when an observer measures it gone. Both
+  refusals name this path (`work.py`'s `EDGES_CENSUS_LANDING` and the checker's `ArchitectureEdges.CensusLanding`;
+  `test_plan_wave.py` holds `work.py`'s ratchet command equal to the drift test's `RatchetCommand`), and the drift test
+  `TheRemoversLanding_RecordsACensus_TheOnlyWayACensusOnlyRowEnds` plants the shape.
 - It is seen failing once, on a planted edge, before it lands (`brent-tools:architecture-audit` Phase 3), through
   self-tests that feed the checker a synthetic edge set: a planted edge, a planted pair inside a tolerated row (growth),
   a pair with no remover, a census-only row with no remover, an unplaced namespace, a dead allowance, a vanished pair, a
@@ -870,8 +886,9 @@ product assemblies, not a source scan and not an MSBuild workspace, so it costs 
   (`TheChecker_FailsOnEveryPlantedViolation_AndPassesTheCleanInput`); the ratchet over an added pair, the review's
   swapped pair, a new row and a grown census count, each still red after it, and over every fall
   (`TheRatchet_OnlyFalls_AndNeverAdmitsAPairARowOrAGrownCount`); and, in `scripts/orchestrator/test_plan_wave.py`, a
-  remover kb/Work lacks, a landed one, one whose Removes line omits the row or names only a longer row, and a plan's
-  missing note (`edges_remover_problems`).
+  remover kb/Work lacks, a landed one (a pair's, a census-only row's last, and one beside an open remover), one whose
+  Removes line omits the row or names only a longer row, and a plan's missing note (`edges_remover_problems`); and the
+  landing of a remover in the PB4319 shape (`TheRemoversLanding_RecordsACensus_TheOnlyWayACensusOnlyRowEnds`, above).
 - **The file as measured (kb/Work PB2417, census `7cb79581e`).** The walk and its checks take about half a second of
   the gate; the file places two namespaces R1 did not know — `WiseOwl.Cobol.Binding.Repository` (the external
   repository's reader, codec and records, `Binding/Repository/`, which reads the binder: compiler.binding) by its folder,
