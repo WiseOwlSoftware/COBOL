@@ -330,15 +330,16 @@ def weighted_shards_in_force(repo: Path = REPO_ROOT) -> bool:
 
 
 def report(from_dir: Path | None, hours: int, threshold: float, max_runs: int = MAX_RUNS, gh: Gh = _gh,
-           repo: Path = REPO_ROOT) -> tuple[str, int]:
-    """The verdict line and exit code of the `report` command."""
+           repo: Path = REPO_ROOT, now: datetime.datetime | None = None) -> tuple[str, int]:
+    """The verdict line and exit code of the `report` command. `now` is the window's end (the wall clock when None); a
+    caller with planted runs passes the clock they were dated against, or the window leaves them behind (kb/Work PB4353)."""
     if from_dir is None and not weighted_shards_in_force(repo):
         return (f"=== SHARD SPREAD: NOT MEASURED -- the merge group does not shard by {WEIGHTS_FILE} yet (PB4328, PB4329): "
                 "its spread is the name split's, which no regeneration changes ===", 0)
     try:
         if from_dir is not None:
             return verdict(gather(from_dir), hours, threshold)
-        return verdict(measure_window(hours, max_runs, gh), hours, threshold, max_runs)
+        return verdict(measure_window(hours, max_runs, gh, now), hours, threshold, max_runs)
     except (GhError, ValueError, UnreadableTrx, OSError) as error:
         return f"=== SHARD SPREAD: UNMEASURED -- {error} ===", 2
 
@@ -489,10 +490,16 @@ def self_test() -> int:
         check("a weights file the workflow does not use: not in force", weighted_shards_in_force(repo), False)
         workflow.write_text("env:" + "\n" + f"  {SHARD_ENV}: 1/5" + "\n", encoding="utf-8", newline="\n")
         check("weights file and shard variable: in force", weighted_shards_in_force(repo), True)
-        line, code = report(None, 24, THRESHOLD, 8, broken_gh, repo)
+        line, code = report(None, 24, THRESHOLD, 8, broken_gh, repo, now)
         check("a gh failure is UNMEASURED and exits 2", (code, "UNMEASURED" in line and "HTTP 502" in line), (2, True))
-        line, code = report(None, 24, THRESHOLD, 8, fake_gh, repo)
+        line, code = report(None, 24, THRESHOLD, 8, fake_gh, repo, now)
         check("the live report measures", (code, "OVER" in line), (1, True))
+        # The planted runs are dated against the fixed `now`. The arm above is the guard: the wall clock is past every
+        # planted run, so a report() that dropped `now` and read the wall clock would find its window empty and answer
+        # NOT MEASURED there (it went red that way at 2026-11-01T09:00Z, kb/Work PB4353). This arm only checks that the
+        # window's end follows a clock passed in two days later; on its own it would also pass with that regression.
+        line, code = report(None, 24, THRESHOLD, 8, fake_gh, repo, now + datetime.timedelta(days=2))
+        check("the live report's window ends at the clock it is given", (code, "NOT MEASURED" in line), (0, True))
 
         # generate: the weights file (kb/Work PB4329).
         win = "D:\\a\\COBOL\\COBOL\\tests\\WiseOwl.Cobol.Tests.Unit\\bin\\Release\\net10.0\\WiseOwl.Cobol.Tests.Unit.dll"
