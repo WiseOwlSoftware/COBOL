@@ -29,4 +29,9 @@ internal static class ProcedureNameShape
     /// <summary>The qualifier as written, <c> OF S1</c> (leading space), or "" — for a message quoting the name.</summary>
     public static string QualifierAsWritten(Core.ProcedureNameContext pn) =>
         IsQualified(pn) ? " " + pn.GetChild(1).GetText() + " " + pn.GetChild(2).GetText() : "";
+
+    /// <summary>The whole name as the program wrote it, <c>P1 OF S1</c> — the form every message quotes. The words are
+    /// joined by one space; <c>GetText()</c> of the node would glue them (<c>P1OFS1</c>, the class kb/Work PB4252 and
+    /// PB4277 record).</summary>
+    public static string AsWritten(Core.ProcedureNameContext pn) => Head(pn) + QualifierAsWritten(pn);
 }
