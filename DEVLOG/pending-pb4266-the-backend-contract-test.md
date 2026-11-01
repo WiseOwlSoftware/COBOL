@@ -70,4 +70,10 @@ cached for the fixture. No goldens: the change is behavior-neutral apart from th
 adds no inventory row (closes_rows: []).
 
 **Gates.** The first branch head, `70f7bcada`, gated in run `000003-20261101T081251Z`: `=== BUILD-LOCAL GATE: LEG 1 ONLY
-(batched gating, PB2515): GREEN`. The review round's head gated in run GATE_RUN_PLACEHOLDER: `GATE_LINE_PLACEHOLDER`.
+(batched gating, PB2515): GREEN`. The review round's code head, `a4470fd91`, gated in run `000002-20261101T091904Z`
+on the whole population, because a source-generator change cannot be attributed (kb/Work PB4269): `=== BUILD-LOCAL
+GATE: GREEN — Conformance 20,404/20,404 · Unit 39,135/39,135 · Characterization 36/36 cases ran (skipped 0)`, all 13
+BackendContractDriftTests passing. Its first run, `000001-20261101T090110Z`, was RED on one Unit case:
+`HostWitnessTraitDriftTests` found the fixture had become a tree-wide sweep without the `Sweep` trait, because the
+generated-type check read the source-generator directory. The check now reads the `[GeneratedCode]` tool's namespace
+and names no path.
