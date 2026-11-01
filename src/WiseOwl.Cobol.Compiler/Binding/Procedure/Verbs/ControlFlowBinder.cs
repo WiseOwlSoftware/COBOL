@@ -85,6 +85,23 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
         return new TerminationStatus(sp.ERROR() is not null, StatusOperand(sp));
     }
 
+    /// <summary>⛔ <c>GOBACK RETURNING x</c> in a program whose PROCEDURE DIVISION header names NO RETURNING item
+    /// (kb/Work PB4335): the accepted extension (<c>goback-returning</c>; GnuCOBOL and Micro Focus) then has no
+    /// activation-result item to move into (ISO §14.9.18.4 GR2 is conditioned on the HEADER'S RETURNING phrase), and
+    /// its vendor meaning is the main-program exit status — GnuCOBOL moves <c>x</c> to RETURN-CODE, which the
+    /// process reports. The same value is exactly what GR10 hands the operating system for a status phrase's
+    /// identifier-2, so the source becomes an implicit <c>WITH NORMAL STATUS x</c>: the SAME termination-status node,
+    /// screen (SR6 — an index data item, a non-integer non-display item, a pointer and an object reference are refused as for the phrase) and
+    /// rendering (<c>NumericRenderer.ExitStatus</c>, DOC-A.1-192's mapping) that <see cref="BindTerminationStatus"/>
+    /// yields. A called program has no result to hand over and a status is inert there (GR2), so the emit's
+    /// <c>!__asCalled</c> guard makes it a no-op, as for the written phrase.</summary>
+    internal TerminationStatus ReturningAsStatus(Place source, string text)
+    {
+        // The source is a resolved PLACE, so an index-name (a computed operand, refused by ResolveSending) never reaches
+        // here; an index DATA item, a pointer and an object reference are refused by SR6's screen below.
+        return new TerminationStatus(false, ScreenStatusOperand(new BoundFieldOperand(source), text));
+    }
+
     /// <summary>The STATUS phrase's <c>{identifier-1 | literal-1}</c> operand, bound as the position's own operand
     /// and screened by the position's own syntax rules — the <c>CountOperand</c> pattern (PERFORM … TIMES), which
     /// is the model this copies rather than adding a fifth <c>OperandContext</c> member: the slot does not admit
