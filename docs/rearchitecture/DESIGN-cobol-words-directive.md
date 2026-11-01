@@ -113,7 +113,10 @@ through `CanonicalWordOf`) or `FunctionWord.OfWrittenWord` (source text no lexer
 `BindIntrinsicCore`, `DataBinder.TryIntrinsicOfThisCompilation` and `IsRepositoryIntrinsic` take it, so none can
 resolve a name twice (kb/Work PB1372: `SUBSTITUTE "SUM" BY "TOTAL"` made `FUNCTION TOTAL(1 2 3)` — and the
 REPOSITORY specifier and the keyword-omitted `TOTAL(1 2 3)` — "not an intrinsic function", because the second
-resolution read the canonical literal-4 as removed).
+resolution read the canonical literal-4 as removed). A name the directive REMOVED is refused with COBOL5776, which
+names the UNDEFINE or SUBSTITUTE (`CobolWordsMap.RemovedBy` — the directive itself, not only the fact; `CobolWordsOp.At`
+supplies the line, through the line map) and, for SUBSTITUTE, the literal-5 that now denotes the function (kb/Work PB4309);
+COBOL1501 ("not an intrinsic function of ISO/IEC 1989") stays for a name that is no intrinsic function at all.
 
 **Where the name resolution is called** (each is a §8.9/§8.10 word the lexer does not tokenize):
 `IntrinsicBinder.KeywordWordOf` — the single funnel every §15 phrase word is read through, so TRIM, FIND-STRING,

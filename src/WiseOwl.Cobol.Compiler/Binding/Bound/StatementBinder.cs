@@ -7,7 +7,6 @@ using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
-using Microsoft.CodeAnalysis.CSharp;
 
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Procedure;

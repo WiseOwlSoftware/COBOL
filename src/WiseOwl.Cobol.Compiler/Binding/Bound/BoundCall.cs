@@ -157,7 +157,7 @@ public sealed record BoundExitProgram(BoundRaising? Raising = null) : BoundState
 /// terminates the executing program — return to the caller in a called program (GR2), STOP-equivalent in a main
 /// program (GR3). <paramref name="ReturningSource"/> moves into the procedure-division RETURNING item before
 /// return (the activation result, GR2); <paramref name="Raising"/> stages an exception condition for re-raise in
-/// the activator; <paramref name="Status"/> (COBOL-2023, mutually exclusive with RAISING) passes the termination
+/// the activator; <paramref name="Status"/> (COBOL-2023; §14.9.18.2's choice indicators let it accompany RAISING) passes the termination
 /// status to the OS — but ONLY in a main program (GR3/GR10; a called-program status phrase is inert, GR2), so the
 /// emit guards it with <c>!__asCalled</c>. COBOL-2002+ (the STATUS phrase 2023+).</summary>
 public sealed record BoundGoback(Place? ReturningSource, BoundRaising? Raising = null,
@@ -167,6 +167,7 @@ public sealed record BoundGoback(Place? ReturningSource, BoundRaising? Raising =
     /// BOUND through <c>MoveBinder.BindMoveOf</c> (<see cref="ImplicitMovePhrase.GobackReturning"/>) so the
     /// written GOBACK RETURNING gets the syntax screens and storage facts an explicit MOVE of the same pair does
     /// (kb/Work PB880 — the emitter used to build it). Null when there is no RETURNING phrase, or when the
-    /// program has no RETURNING item (the emitter's loud arm reports that case at run time).</summary>
+    /// program has no RETURNING item: then the binder has folded <see cref="ReturningSource"/> into
+    /// <see cref="Status"/> (the extension's main-program exit status, kb/Work PB4335).</summary>
     public BoundMove? ReturningMove { get; init; }
 }
