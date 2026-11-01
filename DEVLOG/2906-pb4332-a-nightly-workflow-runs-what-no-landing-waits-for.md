@@ -19,11 +19,12 @@ red never hides another's verdict), each with `timeout-minutes`:
 - `shard-spread`: the new `scripts/shard_weights.py report`. It lists the last 24 hours of successful merge-group runs of
   build-and-test.yml (the newest 8 that ran the matrix), downloads one run's `test-results-<OS>-<job>` artifacts at a
   time, deletes them after reading, reads each shard's wall from its trx
-  `<Times>`, and prints `=== SHARD SPREAD: <slowest over mean>x WITHIN|OVER 1.50x ... ===`. Exit 1 above 1.5 (the weights
+  `<Times>`, and prints `=== SHARD SPREAD: <slowest over mean>x WITHIN (<= 1.50x) ... ===` (or `OVER (> 1.50x)`). Exit 1 above 1.5 (the weights
   file wants regenerating, PB4323 R7), 2 when a download or trx cannot be read (UNMEASURED: a report that cannot see is
   never a green), 0 NOT MEASURED on a day nothing ran the matrix. PB4328 adds `generate` to the same file and reuses
   `shard_walls` and `trx_times`. The report is NOT MEASURED (green) until the merge group shards by the weights file.
-- `latest` and `images`: moved verbatim from `toolchain-freshness.yml`, which is deleted. Two daily schedules would be two
+- `latest` and `images`: moved from `toolchain-freshness.yml`, which is deleted, with the bounds PB4324 gave them there
+  (below). Two daily schedules would be two
   mechanisms for one job, so every reference moved with it (toolchain.py's messages and comments, toolchain.env, the
   setup-toolchain action, two test doc comments, DESIGN-test-build-ci.md, DOC_INDEX.md, plan section 0).
 
@@ -56,4 +57,14 @@ timeout): `measure_window` downloads ONE run at a time into its own scratch dire
 walls, and reads at most `MAX_RUNS` (8) shard runs, the newest; the verdict line says when the cap applied. Two leads
 fixed in files already changed: the module docstring's sample verdict line, and PB1957 row 53, which still named the
 deleted toolchain-freshness workflow.
+
+**Merged with PB4324 (CI is bounded), which landed first.** PB4324 bounded `toolchain-freshness.yml` while this branch
+deleted it, so the merge conflicted (modify/delete). The deletion stands and the bounds moved with the jobs: every nightly
+job begins with a checkout retried once (`id: checkout`, `continue-on-error: true`, then the same checkout `if:
+steps.checkout.outcome != 'success'`), every checkout and setup-toolchain step stops after 5 minutes, `latest` and
+`images` take PB4324's 10 minutes, and the guard's and the differential's caches are restored only
+(`actions/cache/restore`), since build-and-test.yml's `package-cache` job saves them under main, the ref a scheduled run
+reads. `CiBoundsDriftTests`, which PB4324 sized for the nightly (60 minutes the most a job may state), holds all of it.
+The merge also corrected the nightly's header, which said the merge group had stopped carrying the guard: it carries it
+until step 6 (PB4329).
 
