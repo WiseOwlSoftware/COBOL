@@ -197,7 +197,7 @@ public sealed class UsageClausePhraseDriftTests : WiseOwlCobolTestBase
             foreach (UsagePhrase phrase in Enum.GetValues<UsagePhrase>())
             {
                 bool printed = PrintedPhrases[keyword].Contains(phrase);
-                if (UsagePhraseRules.Of(phrase).Admits(usage) != printed)
+                if (UsagePhraseRules.Of(phrase).Admits.Contains(usage) != printed)
                     disagreements.Add($"USAGE {Spelling(keyword)} ({usage}) + {phrase}: the figure says "
                         + $"{(printed ? "printed" : "not printed")}, the table says the opposite");
             }

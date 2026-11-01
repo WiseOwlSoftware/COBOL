@@ -124,7 +124,8 @@ public sealed class Frontend
                 Preprocess(normalized, referenceFormats, sourcePath, passDiagnostics, referenceFormatGates, implicitOps, formatOps);
             var passLineMap = new SourceLineMap(processed.Lines);
             LineMap = passLineMap;
-            var (tree, parsed, sourceDebuggingLines) = LexAndParse(processed.Text, sourcePath, directives.CobolWordsMap, passDiagnostics);
+            var passAreas = new FixedFormAreas(passLineMap, formats);
+            var (tree, parsed, sourceDebuggingLines) = LexAndParse(processed.Text, sourcePath, directives.CobolWordsMap, passDiagnostics, passAreas);
             // A debugging line the §6.5 walk passed over as a comment between the parts of a literal, and that the unit's
             // WITH DEBUGGING MODE makes source, is a source line there (kb/Work PB2490).
             referenceFormatGates.OnSourceDebuggingLines(
@@ -167,7 +168,7 @@ public sealed class Frontend
                 foreach (var d in passDiagnostics.Diagnostics) diagnostics.Add(d);
                 diagnostics.AddCompileOutput(passDiagnostics.CompileOutput);
                 Directives = directives.WithStackOps(ops);
-                Areas = new FixedFormAreas(passLineMap, formats);
+                Areas = passAreas;
                 return tree;
             }
             if (pass > SpeculationBound(encounters, formats))
@@ -395,7 +396,7 @@ public sealed class Frontend
     /// can use it (<see cref="Parse"/>'s §14.9.28.4 GR14 op placement) and never an answer to hand on.
     /// </summary>
     private (CobolParserCore.CompilationUnitContext Tree, bool Parsed, IReadOnlyList<IToken> SourceDebuggingLines) LexAndParse(
-        string text, string sourcePath, CobolWordsMap cobolWordsMap, DiagnosticBag diagnostics)
+        string text, string sourcePath, CobolWordsMap cobolWordsMap, DiagnosticBag diagnostics, IMarginRCutLocator cuts)
     {
         // The pass's earlier stages (line entry, COPY, directives) reported into <diagnostics> already; the attempt bags below
         // hold the lex and parse stages' own. An error of either keeps the binder from running.
@@ -417,7 +418,7 @@ public sealed class Frontend
         while (true)
         {
             var attemptDiagnostics = new DiagnosticBag();
-            var (tree, parsed, sourceDebuggingLines) = LexAndParseOnce(text, sourcePath, cobolWordsMap, retypes, edition, priorErrors, attemptDiagnostics);
+            var (tree, parsed, sourceDebuggingLines) = LexAndParseOnce(text, sourcePath, cobolWordsMap, retypes, edition, priorErrors, attemptDiagnostics, cuts);
             if (tree.TokenRetypes.LexesDifferentlyFrom(retypes, edition))
             {
                 retypes = tree.TokenRetypes;
@@ -433,7 +434,7 @@ public sealed class Frontend
     /// <see cref="LexAndParse"/>), reporting into <paramref name="diagnostics"/>.</summary>
     private (CobolParserCore.CompilationUnitContext Tree, bool Parsed, IReadOnlyList<IToken> SourceDebuggingLines) LexAndParseOnce(
         string text, string sourcePath, CobolWordsMap cobolWordsMap, TokenRetypes retypes, EditionInfo edition,
-        bool priorErrors, DiagnosticBag diagnostics)
+        bool priorErrors, DiagnosticBag diagnostics, IMarginRCutLocator cuts)
     {
         // FIRST: a fixed-form debugging line is source or comment per its unit's WITH DEBUGGING MODE clause (kb/Work PB1705);
         // every reader after this one sees only the lines that are source. A line inside an open PICTURE or subscript
@@ -467,7 +468,7 @@ public sealed class Frontend
         // ISO §13.18.40.3 SR7 — decided from the characters PICMODE delimited, once per PICTURE clause of every
         // entry kind (kb/Work PB569). Reported through the syntax-error listener so it is located exactly like a
         // parse error; the parse itself still runs, so every other diagnostic of the unit is reported too.
-        var sr7 = new CobolErrorListener(diagnostics, sourcePath, LineMap);
+        var sr7 = new CobolErrorListener(diagnostics, sourcePath, LineMap, cuts);
         // ISO §6.3.5 1) / §6.4.2 — a literal its line ends inside (kb/Work PB3245), FIRST: it is why whatever else its line
         // and the next draw is drawn, and a parse it breaks never reaches the bind-time literal walk.
         LiteralScreen.ReportUnterminated(tokens.GetTokens(), (t, descriptor, message) =>
@@ -501,7 +502,7 @@ public sealed class Frontend
         // ReservationGateRewriter.ParseToFixpoint re-parses until no newly declared free gated word remains.
         int parseStart = diagnostics.Diagnostics.Count;   // the parse's own reports start here (the cause below is placed among them)
         var tree = ReservationGateRewriter.ParseToFixpoint(parser, tokens, retypes, diagnostics,
-            (bag, witness) => ParsePass(parser, tokens, bag, witness, sourcePath));
+            (bag, witness) => ParsePass(parser, tokens, bag, witness, sourcePath, cuts));
 
         // ISO §8.7.1 — the arithmetic operators' own separator context, decided from the characters beside each operator
         // the PARSE TREE found (only the tree says binary, unary or no operator at all) and reported the same way
@@ -536,7 +537,7 @@ public sealed class Frontend
     /// <see cref="BailErrorStrategy"/> so an ambiguity throws rather than hangs), falling back to full LL on
     /// failure.</summary>
     private CobolParserCore.CompilationUnitContext ParsePass(CobolParserCore parser, CommonTokenStream tokens,
-        DiagnosticBag diagnostics, IAntlrErrorListener<IToken> gateWitness, string sourcePath)
+        DiagnosticBag diagnostics, IAntlrErrorListener<IToken> gateWitness, string sourcePath, IMarginRCutLocator cuts)
     {
         tokens.Seek(0);
         parser.Reset();
@@ -564,7 +565,7 @@ public sealed class Frontend
             parser.Reset();
             parser.Interpreter.PredictionMode = PredictionMode.LL;
             parser.ErrorHandler = new CobolErrorStrategy();
-            parser.AddErrorListener(new CobolErrorListener(diagnostics, sourcePath, LineMap));
+            parser.AddErrorListener(new CobolErrorListener(diagnostics, sourcePath, LineMap, cuts));
             parser.AddErrorListener(gateWitness);
             return parser.compilationUnit();
         }
