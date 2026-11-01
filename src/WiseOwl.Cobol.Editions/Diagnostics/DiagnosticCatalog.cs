@@ -2976,6 +2976,20 @@ public static class DiagnosticCatalog
         + "the COBOL character repertoire to the implementor, and Annex A.1 item 25 requires it documented. Save the "
         + "file as UTF-8 (or with a byte-order mark) if the characters are not the Latin-1 ones.",
         "ISO §8.1.3.2 GR1 / Annex A.1 item 25");
+    /// <summary>COBOL5788 — the NOTE that accompanies a syntax error whose cause may be the text a fixed-form line carries past
+    /// margin R (kb/Work PB2555; ISO §6.3.1, Annex A.1 item 158). Margin R is the implementor's (position 72 here), so the
+    /// compiler is right to drop what lies past it, but a statement that runs past it ends early and the parse fails at the
+    /// NEXT token (<c>cannot parse construct near STOP</c>) or at a word the margin cut in two (<c>unexpected 'END-SEN'</c>),
+    /// with nothing pointing at the truncation. The note is reported only BESIDE a syntax error whose offending token or
+    /// predecessor stands on a cut line, and only for a cut that may have been program text: a numeric area (the sequence
+    /// number convention) and the tail of an inline comment (§6.3.7.3) are the ordinary uses of those positions.</summary>
+    public static readonly DiagnosticDescriptor ProgramTextPastMarginR = new(
+        "COBOL5788", "program-text-past-margin-r", EditionSeverity.Warning,
+        "The program-text area of a fixed-form line ends at margin R, and a syntax error stands where the text of this line "
+        + "was cut: ISO §6.3.1 makes margin R the implementor's position (position 72 here, Annex A.1 item 158) and what "
+        + "lies past it is not program text, so it is ignored. If that text was meant to be part of the statement, "
+        + "continue it on the next line with a continuation indicator, or shorten the line to end at position 72.",
+        "ISO §6.3.1 / Annex A.1 item 158");
     /// <summary>COBOL2449 — a COPY or REPLACE statement that does not follow its general format (kb/Work PB1354).
     /// Both statements are parsed over §7.2.2.5 text-words in general-format order (COPY: text-name-1/literal-1, the
     /// OF/IN phrase, SUPPRESS [PRINTING], REPLACING operands, the separator period); a word out of place, a missing BY,
