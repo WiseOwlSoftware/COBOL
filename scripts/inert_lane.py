@@ -86,13 +86,13 @@ Linux runs are the whole population on every code change (the Linux gate and CI'
 What is NOT inert, and why, measured 2026-10-23 (deleting each candidate and running the three assemblies on Windows;
 then the watch over the whole Linux population): `docs/` (SortRuntimeDocShapeDriftTests reads every doc;
 twenty-odd Unit and Conformance classes read CONFORMANCE.md, the rule catalog, VERSION_CHANGE_REFERENCE.md);
-`.claude/` and the root `*.md` files (ArchReviewFleetDriftTests reads the briefs, SelfTestDiscoveryDriftTests classifies
-the scripts there; GateLegDriftTests' mode sweep, which walked every one, is the ONE SHAPE audit since kb/Work PB4395);
+`.claude/` and the root `*.md` files (ArchReviewFleetDriftTests reads the briefs, and until kb/Work PB4395 SelfTestDiscoveryDriftTests
+classified the scripts there; GateLegDriftTests' mode sweep, which walked every one, is the ONE SHAPE audit since kb/Work PB4395);
 the `tools/claude-skills` pin. The conflict-marker
 sweep, which read every tracked file, became an audit (scripts/conflict_markers.py) so that it no longer made every
 path a test input; and `kb/` became inert once the register drift tests (which read every `kb/Work/`
 note through a C# twin of `work.py`'s reader) became the audit `scripts/spec/work_inventory.py`, the retired-name sweep
-of LandingPipelineDriftTests set the vault aside as its siblings do, and EcRaiseSiteRegistryDriftTests stopped reading
+(then LandingPipelineDriftTests, now landing_rules.py --self-test) set the vault aside as its siblings do, and EcRaiseSiteRegistryDriftTests stopped reading
 a note.
 """
 from __future__ import annotations

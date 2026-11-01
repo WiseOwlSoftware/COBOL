@@ -69,7 +69,7 @@
 - **No landing takes a lease: the merge queue orders main (kb/Work PB2537, PB3023 review R1-1, PB3024).** Main
   refuses a direct push (the ruleset binds administrators), so every waiting branch is enqueued at once and main moving
   under a gate is merged in by the script. The direct-push landing script, the landing lease that serialized it and its
-  `ci/` landing branches are deleted (kb/Work PB3024's closing change; `LandingPipelineDriftTests` keeps them out).
+  `ci/` landing branches are deleted (kb/Work PB3024's closing change; `scripts/orchestrator/landing_rules.py --self-test` keeps them out).
 - ⛔ **No branch is left undecided (MANDATORY-PRACTICES O10, owner 2026-10-08, kb/Work PB2600).** After every landing,
   `python scripts/prune_worktrees.py` (the lifecycle survey) then `--apply`, which deletes the LANDED branches; a branch
   that will not land is ABANDONED by a line in its kb/Work note (the word ABANDONED directly after the branch's name, then the reason) and

@@ -550,7 +550,7 @@ launches nothing under any stop file (step 3); a quota hold is no reason to stop
 the supervisor process: its exits (STOP, the circuit breaker's 4, an owner question's 5, `-MaxUnits`) end it with the
 process, and the landings it already started run on, detached. `orchestrate.ps1 -LandLaneSeconds 0` runs no lane at
 all. `test_orchestrate_lane.ps1` drives a failure backoff over a fake `python` that records each tick (the Nth tick
-creates STOP: the wait ends and no further tick starts), and `LandingLaneDriftTests` holds that `Step-Lane` is called
+creates STOP: the wait ends and no further tick starts), and `landing_rules.py --self-test` holds that `Step-Lane` is called
 from `Invoke-Unit`, `Wait-Until` (after its STOP check) and the loop. A tick:
 
 1. REAPS: an attempt whose detached runner is gone without an exit code is DIED; a run that ended QUEUE NOT ACTIVE
@@ -1407,7 +1407,7 @@ a landing pushed from another clone is owed while the checkout is behind, and th
 against the schema's required and permitted keys), `test_next_unit.py` (rule 3's unreadable-meter gate on planted `units.jsonl` lines: the run counts only meter units, other units between them neither extend nor break it, a read breaks it, another account's attempts never count, the gate reopens a maximum age after the newest attempt, and an explicit name outranks it; kb/Work PB2665; and, kb/Work PB4180, a handoff naming `enqueue` runs the unit only while rule 6 finds agent work, whatever lane-owned rows the survey holds, and `enqueue_chains` finds the runs of consecutive enqueue units), `test_plan_wave.py` (fixture notes, clusters and reports in a temp directory, rendered through the
 real dispatch-spec template and `check_practices.py`'s same-file rule; the fix lane's whole plan against a golden the pre-campaign planner wrote; the campaign lane's selection, `blocked_by` order, `after:` derivation and waits, and `work.py check`'s topology rules, section 9.1), `test_watch_agent.py` (a transcript with a
 partial last line), `landing_measure.py --self-test` (the per-pull-request landing record, its completion from GitHub and the summary
-against the retired train records, kb/Work PB3028; `LandingMeasureDriftTests` also pins its arms), `landing_check.py
+against the retired train records, kb/Work PB3028; `landing_rules.py --self-test` keeps the retired train writer out), `landing_check.py
 --self-test` (section 4.7's file-set guarantee), `land_lane.py --self-test` (section 4.9: planted survey rows start
 in survey order and only once; a planted exit 3 is retried at its head only once the overlap is gone, an exit 12
 (GATE BUSY) only once the worktree's gate lock is free (held until a gate has written its verdict, so a gate still running

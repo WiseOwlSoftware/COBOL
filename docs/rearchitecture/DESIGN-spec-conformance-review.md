@@ -145,7 +145,7 @@ edit admits one pull request at a time, and the one 4,214-row file was the secon
 landings that close different rows now touch different files and merge with git's plain merge; a conflict means two
 branches changed the SAME row. A file is named by its rule id, nothing else lives in the directory, and two names
 differing only in case are refused (`SpecTraceabilityInventoryDriftTests.EveryRow_IsItsOwnFile_AndTheDirectoryHoldsNothingElse`;
-`MergeDriverDriftTests.TheInventory_HasNoMergeDriver`). `write_inventory` writes only the files whose text changed and
+`merge_drivers.py --self-test`, its real-tree arm). `write_inventory` writes only the files whose text changed and
 deletes the file of a rule the spec dropped.
 
 | field | meaning |

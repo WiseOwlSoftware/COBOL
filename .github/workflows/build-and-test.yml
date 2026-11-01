@@ -27,7 +27,7 @@ on:
   # verdict. The merge-queue commit IS the commit main advances to, so its `push` run takes the already-verified
   # short-circuit in `changes`. ⛔ A pull request's green `ci-gate` is therefore NOT a verdict on the matrix: nothing
   # may merge a PR except the queue, which is why `scripts/orchestrator/enqueue.py` refuses to open or queue one unless
-  # `ruleset.py check` reports the queue ACTIVE on main (LandingPipelineDriftTests). ──
+  # `ruleset.py check` reports the queue ACTIVE on main (scripts/orchestrator/landing_rules.py --self-test). ──
   pull_request:
     branches: [ main ]
   merge_group:
@@ -276,7 +276,7 @@ jobs:
   # heads, never its own and never a live entry's, and cancels NOTHING when the queue cannot be read whole
   # (scripts/orchestrator/cancel_superseded.py, whose self-test holds every arm). It is the ONE job with `actions:
   # write`, and EVERY step of it is `continue-on-error` (the script runs only when the checkout succeeded, and a failed
-  # checkout is said as a warning): housekeeping never decides a verdict (LandingPipelineDriftTests, kb/Work PB3820). ──
+  # checkout is said as a warning): housekeeping never decides a verdict (landing_rules.py --self-test, kb/Work PB3820). ──
   supersede:
     name: supersede (cancel the merge-group runs the queue replaced)
     if: github.event_name == 'merge_group'
