@@ -369,7 +369,7 @@ internal static class UsageInheritanceEquivalence
     /// <para><b>Why the table exists.</b> kb/Work PB570: `WITH NO SIGN` was read from the ENTRY'S OWN
     /// <c>usageClause</c> and adjudicated against the entry's own PICTURE, which a group header has not got, so
     /// the group spelling lost BOTH §13.18.40.3 SR31 and §13.18.60.4 GR11's width — silently, at every nesting
-    /// depth — while the enum-driven matrix above stayed green because it only ever wrote the bare word.</para>
+    /// depth — while the enum-driven matrix (UsageInheritanceUsageDriftTests, below) stayed green because it only ever wrote the bare word.</para>
     /// <para>⛔ EXCLUDED BY PREDICATE, not by omission: a phrase that carries an OPERAND (<c>POINTER TO
     /// type-name-1</c>, <c>FUNCTION-POINTER TO function-prototype-name-1</c>, <c>PROGRAM-POINTER TO
     /// program-prototype-name-1</c>, and OBJECT REFERENCE's interface-name / <c>FACTORY OF</c> / <c>ONLY</c>)

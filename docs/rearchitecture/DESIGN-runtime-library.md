@@ -1557,7 +1557,7 @@ their places; what each does changes:
   open keeps it, its handle keeps its file alive): the connector that made the file and every later OPEN or DELETE FILE of the
   path then meet one state. A connector's record statements use the state its last OPEN arbitrated (`FileConnector.Physical`, never a path
   lookup), so a file replaced under an open connector keeps its own locks; the run unit's record-lock ceiling (§12.4.5.9.4 GR7) counts
-  every state. Witnesses: `PhysicalFileTableIdentityTests` (every host) and `CommitRollbackRuntimeTests.Two_connectors_on_a_path_whose_file_was_replaced_meet_none_of_each_others_locks` (Linux).
+  every state. Witnesses: `PhysicalFileTableIdentityTests` (every host) and `CommitRollbackRuntimeReplacedFileTests.Two_connectors_on_a_path_whose_file_was_replaced_meet_none_of_each_others_locks` (Linux).
   *As built (kb/Work PB3333-PB3335):* the entry is a `KeyedStore` (`IO/KeyedStore.cs`), a `RelativeStore` or an
   `IndexedStore` — the run unit's page I/O (`Store.RunUnitPageMedium`: the attached connectors' own handles, each its §9.1.15 file lock, a
   writable one used whenever one is attached, so no second handle is ever taken), one `PagedFile` (the pages, the page cache
@@ -2137,7 +2137,7 @@ have the effect of a CONTINUE statement (§14.9.7.4 GR1 / §14.9.36.4 GR1; `conf
   give, the path decides as before. On a host whose column locks are published by PATH (the sidecar host, macOS), the retired state's
   column file stays published until the COMMIT and the OPEN of the file at the path is arbitrated against it as against any holder
   (§9.1.15 cannot tell the files apart there). The registry's `KeyedConnector.KeptIsOfAnotherPath` (the ASSIGN USING case) stays a
-  comparison of paths. Witnesses: `CommitRollbackRuntimeTests.A_reopen_of_a_file_replaced_outside_the_run_unit_retires_what_the_close_kept`
+  comparison of paths. Witnesses: `CommitRollbackRuntimeFileVerbTests.A_reopen_of_a_file_replaced_outside_the_run_unit_retires_what_the_close_kept`
   (removed and renamed, INPUT and I-O, both organizations: the renamed file's change is COMMITted), `...An_unsuccessful_reopen_of_a_file_replaced_outside_the_run_unit_retires_what_the_close_kept`
   ('39', '61'), `...A_reopen_of_an_optional_file_that_vanished_retires_what_the_close_kept`, `...A_retired_kept_states_unpublished_record_locks_belong_to_its_file_and_end_with_the_commit`
   and `...Two_connectors_on_a_path_whose_file_was_replaced_each_reach_their_own_file` (2.2.1.7's store table); on

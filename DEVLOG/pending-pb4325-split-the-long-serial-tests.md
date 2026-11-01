@@ -40,3 +40,11 @@ not re-measured (this is not that runner). Left alone, because outside the note'
 a helper. Full code: the partition asserts the ids `run.py` ran, so a lost test reads "only in-process", not green. Performance:
 generation shared, `--jobs` bounded by the partition's test count. Duplication: none added; the drift-test doc references moved to
 the new class names.
+
+**Review round 1.** R1-1 (blocking): the drift-rule index kept one row per `*DriftTests.cs` file, named by its first class, so a split
+file's other classes and partition families (`BothRunnersVerdictDriftTests_P0..P7`, `UsageInheritanceUsageDriftTests`,
+`UsageInheritancePhraseDriftTests`) governed nothing and a change to `run.py` or `DataBinder.cs` no longer put the parity and
+equivalence witnesses in leg 1 (tier 0d). Fixed at the index: a row now carries `classes`, every drift class the file declares (a
+partition as its family, an abstract base not at all), and `governed`/`data_files` return all of them; a planted split file in
+`drift_rules.py --self-test` pins it. R1-2 (lead): the design docs, CONFORMANCE.md and a comment named the emptied classes; they name
+the new homes.
