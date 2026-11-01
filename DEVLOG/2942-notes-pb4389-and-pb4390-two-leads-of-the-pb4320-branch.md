@@ -1,3 +1,4 @@
-## Notes PB4389 and PB4390: two leads of the PB4320 branch review
+## Entry 2942 — 2026-11-01 05:43 PST — Notes PB4389 and PB4390: two leads of the PB4320 branch review
 
 The branch review of PB4320 (`worktree-wf_d2f43316-4ca-4`) left two non-blocking leads, filed as open notes. PB4389: the model-access witness `ModelAccessStructureTests` claims to exercise every former leak, but its program group has no GLOBAL file whose FILE STATUS item a contained program's I/O updates, and no assertion reaches `AccessPath.Reroot` or `ProgramEmitter.AnchorPlace`, so the leak that joined `__outer.` or the container's class name onto `RootFieldSegment.CsField` has no structural pin. PB4390: two comments cite the FILE STATUS syntax rules one rule off (`cite.py --check` puts the two-character alphanumeric rule at §12.4.5.8.3 SR2 and the OCCURS ban at §12.4.5.8.3 SR1). No code changed. They were committed beside PB4387 and PB4388 after pull request #973 had entered the merge queue, so they land on their own with this entry; #973's entry 2940 stays as main has it.
+
