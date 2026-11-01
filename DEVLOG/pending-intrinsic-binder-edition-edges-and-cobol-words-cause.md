@@ -33,3 +33,10 @@ Sweep: the other keyword arms of the binder (TRIM, FIND-STRING, SUBSTITUTE, CONV
 introduced at or after the keyword. One sibling is left as a lead: NUMVAL-C's ANYCASE is accepted at `--std 85`. A second:
 a de-reserved verb used as a verb (`UNDEFINE "DISPLAY"` then `DISPLAY "X"`) answers a bare COBOL0001 that never names the
 directive (parser layer).
+
+Review round 1 (finisher): COBOL5776 had been told for ANY word a directive removed, so `UNDEFINE "ACCEPT"` then
+`FUNCTION ACCEPT(S)` claimed the directive withdrew a function that never existed. `BindFunctionResult` now tells the
+directive's story only for a word `IntrinsicCatalog` holds; any other removed word keeps COBOL1501 (unit theory
+`Intrinsic_RemovedReservedWordThatIsNoFunction_KeepsNotAnIntrinsicFunction`, UNDEFINE and SUBSTITUTE arms). Two leads
+fixed in files already touched: the `numval-c-locale-phrase-2002` row text cites the renamed `-2014` row, and the PB4308
+golden no longer names RV-15.50.4-8 / RV-15.14.4-7 (it holds no variable-length group).

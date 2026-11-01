@@ -625,7 +625,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 ? $"; the compilation group defines FUNCTION-ID {upper} — declare FUNCTION {upper} in this unit's "
                   + "REPOSITORY paragraph to reference it as a user-defined function (ISO §12.3.8.4 GR12)"
                 : "";
-            if (cobolWordsRemoved && ctx.CobolWords.RemovedBy(word.Written) is { } removedBy)
+            // ⛔ The directive's SR3 lets it name a RESERVED word that never named a function (UNDEFINE "ACCEPT"); it
+            // withdrew nothing the FUNCTION keyword could reach, so COBOL1501 is the true answer there. The cause is
+            // told only for a word the catalog holds (review r1 R1-1).
+            if (cobolWordsRemoved && IntrinsicCatalog.TryGet(word.Written, out _)
+                && ctx.CobolWords.RemovedBy(word.Written) is { } removedBy)
                 ctx.Edition.Error(DiagnosticCatalog.IntrinsicRemovedByCobolWords,
                     $"FUNCTION {upper} is not available in this compilation group: " + RemovalClause(removedBy, ctx.Edition)
                     + declareHint);

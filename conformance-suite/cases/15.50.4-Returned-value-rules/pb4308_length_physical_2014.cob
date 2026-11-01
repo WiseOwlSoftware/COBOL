@@ -1,7 +1,6 @@
 *>--- conformance-case
 *> id: pb4308_length_physical_2014
-*> rules: [RV-15.50.4-3, RV-15.50.4-8, RV-15.14.4-1, RV-15.14.4-7, FMT-15.50.2,
-*>    FMT-15.14.2]
+*> rules: [RV-15.50.4-3, RV-15.14.4-1, FMT-15.50.2, FMT-15.14.2]
 *> accept: [2014, 2023]
 *> source-format: free
 *> portable: unverified
