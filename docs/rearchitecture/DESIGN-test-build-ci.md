@@ -99,7 +99,7 @@ on a Windows checkout, no build, kb/Work PB3581); `toolchain-cache` (push to mai
 manifest's tools under main, below); and finally `ci-gate`. (The nightly
 `legacy-oracle` job and the guard's legacy Unit and Integration legs were retired with the engine, kb/Work PB2108,
 PB2109.) NuGet cached; `Generated/` regenerated per checkout (java+pwsh prerequisites). A second workflow,
-`toolchain-freshness.yml`, runs once a day (below).
+`nightly.yml`, runs once a day and blocks nothing (§1.4a).
 
 **⛔ CI and every local host run the tool versions ONE manifest names, and each is the tool's latest release (kb/Work
 PB4007; `ToolchainManifestDriftTests`).** The owner, 2026-10-28: "CI tooling should match local tooling versions -
@@ -123,21 +123,21 @@ Linux git of a chosen version (the Ubuntu image lacks the zlib and libcurl heade
 names each image's git, `GIT_LINUX_VERSION` and `GIT_WINDOWS_VERSION` (git's own release, without Git for Windows'
 `.windows.N` suffix), one per image because GitHub rolls the two on different weeks, and each host installs that release.
 A job on an image whose git moved warns and runs: a failure there would stop every landing until a bump, and with the
-two images moving on different weeks no single value could clear it. The freshness run below holds each image strictly.
+two images moving on different weeks no single value could clear it. The nightly's `images` job (§1.4a) holds each image strictly.
 On the hosts, `scripts/wsl/setup-wsl.sh` and `scripts/cloud/setup-env.sh` install from the manifest (WSL's Python and semgrep through
 uv; semgrep runs on its own uv-managed CPython, `SEMGREP_PYTHON_VERSION`, until upstream ships a cp315 wheel). The
 Windows dev box installs with winget. The gate holds every host to the manifest: before its audits, `run_gate_legs.py`
 runs `toolchain.check --scope gate`, stops `NOT RUN [toolchain]` (an ENVIRONMENT cause) on any mismatch, and names the
 toolchain it ran under in its verdict line and its record. `scripts/python-resolve.sh` and `.ps1` accept exactly
 `PYTHON_VERSION`. The SessionStart readiness check (`scripts/hooks/tooling_check.py`) prints the same comparison for
-every tool, ASK-OWNER on a mismatch. Identical holds at every commit; LATEST holds within a day. `toolchain-freshness.yml`
+every tool, ASK-OWNER on a mismatch. Identical holds at every commit; LATEST holds within a day. `nightly.yml`'s `latest` job
 runs `python scripts/toolchain.py latest` every day. It asks each publisher for its newest stable release (the newest
 SDK of the .NET release index's GA channel of the manifest's major; actions/python-versions' stable list, so the target
 is one setup-python can install; Oracle's current releases; GitHub's `releases/latest`; each runner image's readme for
 its git; PyPI for semgrep). The run is red, naming each tool, while the manifest is behind or a publisher cannot be read.
 A newer GA .NET major is a warning on the run, never red: moving to it also moves `global.json` and every
-TargetFramework, an owner's decision, and a standing red would hide the next release `bump` can take. Its `images` jobs
-run `toolchain.py check --scope image` on each runner image, red while the image's git differs from the manifest's.
+TargetFramework, an owner's decision, and a standing red would hide the next release `bump` can take. Its `images` job
+runs `toolchain.py check --scope image` on each runner image, red while the image's git differs from the manifest's.
 `python scripts/toolchain.py bump` moves the manifest and its cloud copy forward within the .NET major. It does so in a
 change of its own that carries the hosts' update and lands like any other, so CI and the hosts move together. The drift test holds the rest. The manifest names each tool once, exactly; the
 cloud setup carries the manifest's block byte for byte; every job sets up the toolchain right after its checkout and runs
@@ -206,6 +206,25 @@ tested (the ruleset binds administrators), so the push trigger is `branches: [ m
 merge-queue commit. `cancel-in-progress` is restricted to `pull_request`, because a cancelled push run leaves its sha
 permanently unlandable. The direct-push landing script that preceded the queue, its `ci/` landing branches and its
 landing lease are deleted (kb/Work PB3024's closing change).
+
+### 1.4a The nightly (`.github/workflows/nightly.yml`) — what no landing waits for (kb/Work PB4332; PB4323 step 9)
+
+One scheduled workflow (09:17 UTC, and `workflow_dispatch`) that no branch protection, ruleset or merge queue names, so a
+red job is a morning's reading and never a refused landing. Its jobs have no `needs` (one red never hides another's
+verdict) and each carries `timeout-minutes`:
+
+| job | measures | red when |
+|---|---|---|
+| `guard` | the NIST corpus through the `cobol` CLI (`scripts/guard-fast.sh`, Linux, about 12 minutes at JOBS=4) | the guard is not ALL GREEN (a REGRESSION, DIFF, FAIL*, audit finding, build warning, or its own instrument self-tests) |
+| `self-tests` (both OSes) | every script self-test (`scripts/self_tests.py`, nothing reused) and `line_endings.py --check`, then the `--built` phase after a solution build | any self-test is red on either OS: the Windows ones whether or not the day's landings touched a tooling path |
+| `differential` (Windows) | the GnuCOBOL differential: `scripts/battery.sh` with `SKIP_TESTS=1 SKIP_GUARD=1`, so the citation audits, the corpus fetch, the solution build and phase 3, the battery's one definition and never a copy | a per-case verdict flip against the committed baseline, or a case with no compiler verdict. Windows, because the baseline was measured there and `gnucobol_differential.py` defaults to the `cobol.exe` apphost |
+| `shard-spread` | `scripts/shard_weights.py report`: for each OS of each successful merge-group run of the last 24 hours, the slowest `test-results-<OS>-<job>` shard's wall (its trx `<Times>`) over the mean shard wall | the worst spread exceeds 1.5 (exit 1; the weights file wants regenerating), or a download or trx cannot be read (exit 2, UNMEASURED). A day with no matrix run is NOT MEASURED and green |
+| `latest` | `toolchain.py latest`: is `toolchain.env` at every publisher's newest release (§1.4) | the manifest is behind a tool, or a publisher cannot be read |
+| `images` (both OSes) | `toolchain.py check --scope image`: each runner image's own git against `toolchain.env` (§1.4) | the image's git differs from the manifest's |
+
+`latest` and `images` were the `toolchain-freshness.yml` workflow; folding them in keeps one daily schedule. The Guard
+job also runs in the merge group until the weighted-shard step (PB4329) moves it out; the nightly job is its one home
+afterwards.
 
 ### 1.5 Drift discipline (a genuine strength — preserve it)
 `ConstructRegistryDriftTests` binds `constructs.json` ↔ in-code `ConstructRegistry` both directions;
@@ -3044,7 +3063,7 @@ landing is held to a record of its own tree. Landed with kb/Work PB3769:
 with no `needs`, runs `cancel_superseded.py` with the run's id and head commit, is the only job with `actions: write`,
 has every step `continue-on-error` (kb/Work PB3820: the checkout too, the script gated on the checkout's outcome, a failed checkout said as a warning; `StepsThatCanFailTheJob` is the step reader, held by its own arms) and is a `needs` of `ci-gate`; the arms of `cancel_superseded.py` and of `queue_facts.live_heads`
 are declared), the supersession rule of §3.17.2 step 4. Landed with kb/Work PB3787: `SparseCheckoutDriftTests` (reader:
-`SparseCheckoutAudit`): every workflow job whose checkout has a `sparse-checkout` list (`supersede`, `toolchain-cache`, `ci-gate`, the freshness job)
+`SparseCheckoutAudit`): every workflow job whose checkout has a `sparse-checkout` list (`supersede`, `toolchain-cache`, `ci-gate`, the nightly's `latest` and `images` jobs)
 lists each repository file its steps name, each file its local action names, and each repository module a Python script
 it runs imports anywhere in its text, transitively (a function body's lazy import is followed, kb/Work PB3810: an
 under-approximated closure fails silently on the runner; `importlib` and path strings are the static read's limits), and
