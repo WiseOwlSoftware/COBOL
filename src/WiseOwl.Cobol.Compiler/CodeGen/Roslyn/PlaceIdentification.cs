@@ -233,5 +233,5 @@ internal static class PlaceIdentification
     /// else is a run-time read, hoisted into a statement local (kb/Work PB2151: the constancy test is structural, never
     /// a scan of text).</summary>
     private static Position Hoist(Position position, Func<string, string> hoist) =>
-        position.IsSelfEvaluating ? position : new PositionLocal(hoist(PositionRenderer.Render(position)));
+        position.IsSelfEvaluating ? position : CSharpLocal.Position(hoist(PositionRenderer.Render(position)));
 }

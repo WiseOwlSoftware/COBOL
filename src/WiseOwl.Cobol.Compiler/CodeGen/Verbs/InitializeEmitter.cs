@@ -67,7 +67,8 @@ internal sealed class InitializeEmitter(EmitContext ctx, MoveEmitter move)
                 // current capacity under §14.9.20.4 GR10 ("all the elements of the table up to current capacity
                 // … are initialized … and the current capacity of the table is left unchanged" — the capacity is
                 // untouched because the stores go through RefReceiving WITHIN the bound, which never grows).
-                using (w.Block($"for (long {l.Var} = 1; {l.Var} <= {PlaceRenderer.OccurrenceCount(l.Count)}; {l.Var}++)"))
+                string v = LocalNames.Of(l.Var);
+                using (w.Block($"for (long {v} = 1; {v} <= {PlaceRenderer.OccurrenceCount(l.Count)}; {v}++)"))
                     foreach (var b in l.Body)
                         EmitAction(b);
                 break;

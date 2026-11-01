@@ -1,6 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using System.Linq;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Procedure;
 using WiseOwl.Cobol.CodeGen.Emit;
@@ -387,6 +386,8 @@ internal static class PlaceRenderer
             {
                 // A formal parameter's root renders through its *-ARG-OMITTED guard (kb/Work PB971).
                 RootFieldSegment r => r.Guard is { } g ? GuardedRoot(g, RootStorage(r)) : RootStorage(r),
+                // A statement local the binder declared, spelled from its identity (kb/Work PB4321).
+                LocalRootSegment l => LocalNames.Of(l.Local),
                 MemberSegment m => path + "." + m.CsMember,
                 // A carrier-resident formal's storage is the carrier's value (ISO §14.2.3 GR8; kb/Work PB4320).
                 CarrierValueSegment => path + "." + nameof(ManagedPointer<int>.Value),
@@ -598,7 +599,7 @@ internal static class PlaceRenderer
             {
                 // A dynamic-capacity table: its CURRENT occurrences (kb/Work PB3139), each in its element's form.
                 string k = $"__lk{depth}";
-                var element = at.DynamicElement(new PositionLocal(k))
+                var element = at.DynamicElement(CSharpLocal.Position(k))
                     ?? throw new InvalidOperationException($"no element cursor reaches '{c.CobolName}' (kb/Work PB3139)");
                 string elem = c.IsGroup ? $"(object?){CellLeaves(element, depth + 1)}"
                     : $"(object?)({c.ElementType})({LeafCarrierRead(element.ToPlace())})";
@@ -607,8 +608,8 @@ internal static class PlaceRenderer
             else if (c.Occurs is int n)
             {
                 string k = $"__lk{depth}";
-                string elem = c.IsGroup ? $"(object?){CellLeaves(at.Indexed(new PositionLocal(k)), depth + 1)}"
-                    : $"({c.ElementType})({LeafCarrierRead(at.Indexed(new PositionLocal(k)).ToPlace())})";
+                string elem = c.IsGroup ? $"(object?){CellLeaves(at.Indexed(CSharpLocal.Position(k)), depth + 1)}"
+                    : $"({c.ElementType})({LeafCarrierRead(at.Indexed(CSharpLocal.Position(k)).ToPlace())})";
                 parts.Add($"global::System.Linq.Enumerable.ToArray(global::System.Linq.Enumerable.Select(global::System.Linq.Enumerable.Range(1, {n}), {k} => {elem}))");
             }
             else parts.Add(c.IsGroup ? CellLeaves(at, depth + 1) : $"(object?)({LeafCarrierRead(at.ToPlace())})");
@@ -619,7 +620,7 @@ internal static class PlaceRenderer
         {
             if (filler.Gaps == 0) { parts.Add($"(object?)({Read(FillerGap(cur, filler, null).ToPlace())})"); continue; }
             string k = $"__lk{depth}";
-            parts.Add($"(object?)string.Concat(global::System.Linq.Enumerable.Select(global::System.Linq.Enumerable.Range(1, {filler.Gaps}), {k} => {Read(FillerGap(cur, filler, new PositionLocal(k)).ToPlace())}))");
+            parts.Add($"(object?)string.Concat(global::System.Linq.Enumerable.Select(global::System.Linq.Enumerable.Range(1, {filler.Gaps}), {k} => {Read(FillerGap(cur, filler, CSharpLocal.Position(k)).ToPlace())}))");
         }
         return $"new object?[] {{ {string.Join(", ", parts)} }}";
     }
@@ -647,8 +648,8 @@ internal static class PlaceRenderer
             }
             else if (c.Occurs is int n)
                 stmts.Add(c.IsGroup
-                    ? $"for (int {k} = 1; {k} <= {n}; {k}++) {{ {CellLeavesStore(at.Indexed(new PositionLocal(k)), $"((object?[]){slot}!)[{k} - 1]", depth + 1)} }}"
-                    : $"for (int {k} = 1; {k} <= {n}; {k}++) {{ {LeafCarrierWrite(at.Indexed(new PositionLocal(k)).ToPlace(), $"(({c.ElementType}[]){slot}!)[{k} - 1]")} }}");
+                    ? $"for (int {k} = 1; {k} <= {n}; {k}++) {{ {CellLeavesStore(at.Indexed(CSharpLocal.Position(k)), $"((object?[]){slot}!)[{k} - 1]", depth + 1)} }}"
+                    : $"for (int {k} = 1; {k} <= {n}; {k}++) {{ {LeafCarrierWrite(at.Indexed(CSharpLocal.Position(k)).ToPlace(), $"(({c.ElementType}[]){slot}!)[{k} - 1]")} }}");
             else
                 stmts.Add(c.IsGroup
                     ? $"{{ {CellLeavesStore(at, slot, depth + 1)} }}"
@@ -661,7 +662,7 @@ internal static class PlaceRenderer
             if (filler.Gaps == 0) { stmts.Add(Write(FillerGap(cur, filler, null).ToPlace(), $"(string){slot}!")); continue; }
             int bits = filler.Item.Pic!.Length;
             stmts.Add($"for (int {k} = 1; {k} <= {filler.Gaps}; {k}++) {{ "
-                + Write(FillerGap(cur, filler, new PositionLocal(k)).ToPlace(), $"((string){slot}!).Substring(({k} - 1) * {bits}, {bits})") + " }");
+                + Write(FillerGap(cur, filler, CSharpLocal.Position(k)).ToPlace(), $"((string){slot}!).Substring(({k} - 1) * {bits}, {bits})") + " }");
         }
         return string.Join(" ", stmts);
     }
