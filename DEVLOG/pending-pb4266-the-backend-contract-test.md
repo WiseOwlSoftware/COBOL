@@ -6,14 +6,14 @@ the backend-neutral model. The re-probe on this tree confirmed it: `tests/` held
 `PlaceNeutralityTests` held only the `Place` hierarchy (no string-returning method), the codegen-backend §6 R5 net.
 
 **The fix.** `tests/WiseOwl.Cobol.Tests.Unit/Architecture/BackendContractDriftTests.cs` measures its population rather
-than naming it. `BackendInput.Measure` walks every type reachable by instance field from `BoundCompilation`, through
-arrays and generic arguments and to every subtype of a reached type, inside the two layers `architecture-edges.json`
-places as `compiler.model` and `compiler.bound`. A new node is checked the day a field reaches it. Every member that
-carries or returns text (214 today) must be one of three things. It can be neutral by construction: a `*ClrName`
-field, 7 of them (§1.1, §2.4). It can be a neutral row of `BackendContract.Table`: 164 rows, each a COBOL word, CLR
+than naming it. `BackendInput.Measure` walks the two layers `architecture-edges.json` places as `compiler.model` and
+`compiler.bound`, starting from every type in them and following each field's type and each member's return type,
+through arrays and generic arguments and to every subtype of a reached type. A new node, function result or static
+table is checked the day it is declared. Every member that carries or returns text must be one of three things. It can be neutral by construction: a `*ClrName`
+field, 7 of them (§1.1, §2.4). It can be a neutral row of `BackendContract.Table`: 221 rows, each a COBOL word, CLR
 name, literal value, run-time datum, diagnostic text or identity key. Or it can be a leak row that names its §1.3 row
-and the notes that remove it: 43 rows. L4 holds 13 (one PB3251), L7 holds 7 (PB4320), L8 holds 6 (PB4321) and L9
-holds 17 (13 PB3252, 4 with no note yet). An unclassified member fails. A row whose member is gone fails, so the leak
+and the notes that remove it: 55 rows. L4 holds 13 (one PB3251), L6 holds 8 (PB2347), L7 holds 7 (PB4320), L8 holds 6
+(PB4321) and L9 holds 21 (14 PB3252, 7 with no note yet). An unclassified member fails. A row whose member is gone fails, so the leak
 rows can only shrink. A name with §6's render or C#-spelling shape (`Cs` as a word, `Path`, `Field`) can never be
 neutral.
 
@@ -32,7 +32,27 @@ only `ICodeGenBackend`, so the seam-proof backend cannot land without the round-
 
 `BoundUnit.Path`, the run-unit registry key, is renamed `BoundUnit.RegistryKey` (BinderDriver, EmitterState,
 ProgramEmitter), so a neutral run-time datum no longer has assertion 2's `Path` shape. `PlaceNeutralityTests` is
-deleted. `TheBackendInput_ReachesEveryPlaceAndAccessPathType` shows that assertion 1 covers its whole population.
+deleted. `TheBackendInput_HoldsEveryTypeOfTheNeutralLayers` shows that assertion 1 covers its whole population.
+
+**Review round 1: the walk missed what a backend gets by calling the model.** The first walk started at
+`BoundCompilation` and followed instance fields only. The branch review (R1-1) found 83 types of the two layers it never
+reached, among them `HostType`: `HostSurface.TypeOf` returns it, and `HostEntryEmitter` writes its `CsType` (`"long"`,
+`"Int128"`, `pic.ClrType`) verbatim into the host entry. A backend reaches a model type by holding a value, by calling
+a member, and by naming a type outright: a static function or table, a constant, or the generated visitor interface it
+implements. So the walk now starts from every type of the layers, follows static fields as well as instance fields, and
+follows every member's return type. The wider input held 68 more text members. Most are neutral (the CLR-name
+allocator's tables, COBOL words, diagnostic text, identity keys). Three are leaks with a remover or a §1.3 row:
+`HostType.CsType` joins PB3252's L9 row beside `PicInfo.ClrType`; the runtime method names `IntrinsicCarrierRules`
+keys on (`"ModScaled"`, `"Numval"`) join L9 with no note yet; and `StatementBinder`, a binder still declared in the
+bound layer, is an L6 row naming PB2347, which also tolerates its two parse-tree returns. Three findings were fixed at
+the root instead. `UsagePhraseRule.Admits` was a delegate field on a model record, so it now stores the admitted usages
+as a set. `BitFiller.Field` held a synthesized CLR field name (`__bf0`) under a C#-shaped name, so it is now
+`BitFiller.ClrName` and `BitLayout.FillerClrNameStem`, neutral by construction. The bound-visitor generator's types had
+no source file a reader could find, so the generator now stamps each with `[GeneratedCode]`. The object-or-delegate
+refusal stays on fields: the generated `BoundStatementTree.OwnValueParts` returns `object`, but it walks parts that are
+already on the input. A planted type reached only through a method's return, with a static text constant, now witnesses
+the walk's new reach, and a planted ANTLR exit fails unless an L6 row names it. Mutating the real table by dropping the
+`HostType.CsType` row turned assertion 2 red with exactly that line.
 
 **Witnesses.** Four planted self-tests fire each arm on planted types. They check that the walk reaches subtypes and
 records the ANTLR exit, that an unclassified member fails while a `ClrName` does not, that a stale row fails, and that
@@ -46,5 +66,8 @@ refuses an `object` or delegate field (none exist today, and a planted pair show
 check also read every source file once per type; it now collects the declared names in a single pass, which took the
 fixture from 4 s to 0.15 s. Architecture: one walk and one table, with the layers read from the edges file and never copied.
 Duplication: the parse-context half asserts the edges rule and does not restate it. Performance: one reflection walk,
-cached for the fixture. No goldens: the change is behavior-neutral apart from the internal rename, so it
+cached for the fixture. No goldens: the change is behavior-neutral apart from the internal renames, so it
 adds no inventory row (closes_rows: []).
+
+**Gates.** The first branch head, `70f7bcada`, gated in run `000003-20261101T081251Z`: `=== BUILD-LOCAL GATE: LEG 1 ONLY
+(batched gating, PB2515): GREEN`. The review round's head gated in run GATE_RUN_PLACEHOLDER: `GATE_LINE_PLACEHOLDER`.

@@ -1,6 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.CodeDom.Compiler;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.CodeGen;
@@ -12,8 +14,9 @@ namespace WiseOwl.Cobol.Tests.Unit.Architecture;
 /// <summary>
 /// ⛔ THE BACKEND CONTRACT (docs/rearchitecture/DESIGN-backend-abstraction.md §6; kb/Work PB4266): the bound tree a
 /// second code-generation backend (direct CIL, §3.2) would consume carries no C#. The backend input is measured, not
-/// listed (<see cref="BackendInput"/>: every type reachable by field from <c>BoundCompilation</c> inside the neutral
-/// layers, so a new node is checked the day it is reached), and every member of it that carries or returns TEXT must be
+/// listed (<see cref="BackendInput"/>: every type of the neutral layers and every type reachable from one by field or by
+/// return inside them, so a new node, a new model function's result and a new static table are checked the day they
+/// appear), and every member of it that carries or returns TEXT must be
 /// classified in <see cref="BackendContract"/>: NEUTRAL (a COBOL word, an allocated CLR name, a literal value, a run-time datum,
 /// diagnostic text or an identity key, §1.1) or a tolerated LEAK naming the §1.3 row and the kb/Work notes that remove
 /// it. A member named <c>ClrName</c> or <c>*ClrName</c> is neutral by construction (§1.1, §2.4) and needs no row.
@@ -32,7 +35,8 @@ namespace WiseOwl.Cobol.Tests.Unit.Architecture;
 /// edge from the neutral layers to the parse tree or the binder, so its walk (ArchitectureEdgesDriftTests) pins every
 /// such field at its tolerated row (BoundCompilation.Tree and BoundUnit.Ctx, kb/Work PB2398; the binder fields, PB2293's
 /// waves). That walk sees product types only, so this fixture refuses the one parse-tree reference it cannot see, a
-/// field of an ANTLR runtime type (<see cref="TheBackendInput_HoldsNoParseTree"/>). Assertion 3, two backends producing
+/// member of an ANTLR runtime type (<see cref="TheBackendInput_HoldsNoParseTree"/>), unless an L6 leak row tolerates it
+/// (the binder <c>StatementBinder</c> still declared in the bound layer, kb/Work PB2347). Assertion 3, two backends producing
 /// byte-identical output, lands with the CIL seam proof (§6, §3.3); until then
 /// <see cref="TheSeam_HasNoBackendTheContractDoesNotProve"/> fails the day a second backend appears without it.
 /// </para>
@@ -63,13 +67,16 @@ public sealed class BackendContractDriftTests
     private static readonly Lazy<ArchitectureEdges> Edges =
         new(() => ArchitectureEdges.Load(ArchitectureEdgesDriftTests.EdgesFile));
 
+    /// <summary>Every type the edges file places in a neutral layer: the roots of the walk, since a backend can name any of
+    /// them (a static function, a visitor interface, a constant) without holding a value that reaches it.</summary>
+    private static readonly Lazy<Type[]> NeutralTypes = new(() =>
+        typeof(BoundCompilation).Assembly.GetTypes().Where(InNeutralLayer).ToArray());
+
     private static readonly Lazy<BackendInput> Measured = new(() =>
-    {
-        Assembly compiler = typeof(BoundCompilation).Assembly;
-        return BackendInput.Measure(typeof(BoundCompilation),
-            t => t.Assembly == compiler && NeutralLayers.Contains(Edges.Value.LayerOf(t.Namespace ?? "")),
-            compiler.GetTypes());
-    });
+        BackendInput.Measure([typeof(BoundCompilation), .. NeutralTypes.Value], InNeutralLayer, typeof(BoundCompilation).Assembly.GetTypes()));
+
+    private static bool InNeutralLayer(Type type) =>
+        type.Assembly == typeof(BoundCompilation).Assembly && NeutralLayers.Contains(Edges.Value.LayerOf(type.Namespace ?? ""));
 
     [Fact]
     public void NoTextReturningMember_OnTheBackendInput_IsUnclassified()
@@ -99,13 +106,11 @@ public sealed class BackendContractDriftTests
     [Fact]
     public void TheBackendInput_HoldsNoParseTree()
     {
-        Assembly antlr = typeof(Antlr4.Runtime.ParserRuleContext).Assembly;
-        var parseTree = Measured.Value.Exits.Where(e => e.Target.Assembly == antlr)
-            .Select(e => $"{e.Member} : {e.Target.FullName}").ToList();
+        var parseTree = ParseTreeExits(Measured.Value, BackendContract.Table);
         Assert.True(parseTree.Count == 0,
-            "a backend-input field holds an ANTLR parse-tree type, which the edges walk cannot see (it reads product types "
-            + "only): carry the fact the backend needs, never the tree (DESIGN-backend-abstraction §1.1, §1.3 L6):\n  "
-            + string.Join("\n  ", parseTree));
+            "a backend-input member holds or returns an ANTLR parse-tree type, which the edges walk cannot see (it reads "
+            + "product types only): carry the fact the backend needs, never the tree (DESIGN-backend-abstraction §1.1, §1.3 "
+            + "L6), or name it in an L6 leak row with the note that removes it:\n  " + string.Join("\n  ", parseTree));
 
         var allowed = NeutralLayers
             .SelectMany(layer => ForbiddenLayers.Where(target => Edges.Value.Allows(layer, target)).Select(target => $"{layer} -> {target}"))
@@ -115,8 +120,19 @@ public sealed class BackendContractDriftTests
             + "no longer pins the backend input's leaks at their tolerated rows: " + string.Join(", ", allowed));
     }
 
-    /// <summary>A field typed <see cref="object"/> or a delegate hides what it holds from the walk (a node behind it is
-    /// never checked) or carries CODE where §1.1 admits only facts, so the backend input has none.</summary>
+    /// <summary>The parse-tree exits no L6 leak row tolerates.</summary>
+    private static List<string> ParseTreeExits(BackendInput input, ContractTable table)
+    {
+        Assembly antlr = typeof(Antlr4.Runtime.ParserRuleContext).Assembly;
+        var tolerated = table.Leaks.Where(r => r.Row == "L6").SelectMany(r => r.Members).ToHashSet(StringComparer.Ordinal);
+        return input.Exits.Where(e => e.Target.Assembly == antlr && !tolerated.Contains(e.Member))
+            .Select(e => $"{e.Member} : {e.Target.FullName}").Distinct().ToList();
+    }
+
+    /// <summary>A FIELD typed <see cref="object"/> or a delegate hides what it holds from the walk (a node behind it is
+    /// never checked) or carries CODE where §1.1 admits only facts, so the backend input has none. A method that returns
+    /// <see cref="object"/> is a traversal over parts that are themselves on the input (the generated
+    /// <c>BoundStatementTree.OwnValueParts</c>), not a value the input stores.</summary>
     [Fact]
     public void TheBackendInput_HasNoUntypedOrDelegateField()
     {
@@ -127,7 +143,7 @@ public sealed class BackendContractDriftTests
     }
 
     private static List<string> OpaqueExits(BackendInput input) =>
-        input.Exits.Where(e => e.Target == typeof(object) || typeof(Delegate).IsAssignableFrom(e.Target))
+        input.Exits.Where(e => e.IsField && (e.Target == typeof(object) || typeof(Delegate).IsAssignableFrom(e.Target)))
             .Select(e => $"{e.Member} : {e.Target.FullName}").ToList();
 
     [Fact]
@@ -152,32 +168,60 @@ public sealed class BackendContractDriftTests
         var missing = Measured.Value.Types
             .Select(t => t.IsNested ? OutermostOf(t) : t)
             .Distinct()
-            .Where(t => !declared.Contains(t.Name.Split('`')[0]))
+            .Where(t => !declared.Contains(t.Name.Split('`')[0]) && GeneratorOf(t) is null)
             .Select(t => t.FullName!)
             .ToList();
         Assert.True(missing.Count == 0,
             "a backend-input type is placed in a neutral layer by its namespace but declared outside "
             + string.Join(" and ", NeutralSourceDirectories.Select(d => Path.GetRelativePath(TestRepo.Root, d)))
-            + ": " + string.Join(", ", missing));
+            + " (or by a generator of " + Path.GetRelativePath(TestRepo.Root, SourceGeneratorDirectory) + "): "
+            + string.Join(", ", missing));
     }
 
-    /// <summary>The walk's reach witness: the structural <c>Place</c> lvalue and its access path (DESIGN-codegen-backend
-    /// §2.3), the codegen-backend §6 R5 net's whole population, are all on the measured backend input, so assertion 1
-    /// holds them as that net did.</summary>
+    /// <summary>Where the compiler's source generators live: a type stamped <see cref="GeneratedCodeAttribute"/> by one of
+    /// them (the bound-tree visitors, <c>BoundVisitorGenerator</c>) is declared by that generator's file.</summary>
+    private static readonly string SourceGeneratorDirectory = TestRepo.Src("WiseOwl.Cobol.Compiler.SourceGen");
+
+    /// <summary>The generator source file that declares <paramref name="type"/>, or null when no generator under
+    /// <see cref="SourceGeneratorDirectory"/> stamped it.</summary>
+    private static string? GeneratorOf(Type type) =>
+        type.GetCustomAttribute<GeneratedCodeAttribute>() is { Tool: { } tool }
+        && Path.Combine(SourceGeneratorDirectory, tool[(tool.LastIndexOf('.') + 1)..] + ".cs") is var file && File.Exists(file)
+            ? file
+            : null;
+
+    /// <summary>The walk's reach witness: every type of the neutral layers is on the measured backend input, whether a
+    /// backend reaches it by field, by what a model function returns (<c>HostSurface.TypeOf</c>'s <see cref="HostType"/>,
+    /// kb/Work PB4266 review R1-1) or by naming it (the generated visitor interfaces a backend implements); among them the
+    /// structural <c>Place</c> lvalue and its access path (DESIGN-codegen-backend §2.3), the codegen-backend §6 R5 net's
+    /// whole population, so assertion 1 holds them as that net did.</summary>
     [Fact]
-    public void TheBackendInput_ReachesEveryPlaceAndAccessPathType()
+    public void TheBackendInput_HoldsEveryTypeOfTheNeutralLayers()
     {
-        var unreached = typeof(Place).Assembly.GetTypes()
-            .Where(t => typeof(Place).IsAssignableFrom(t) || typeof(AccessSegment).IsAssignableFrom(t) || t == typeof(AccessPath))
-            .Where(t => !Measured.Value.Types.Contains(t))
+        var unreached = NeutralTypes.Value
+            .Where(t => !t.IsDefined(typeof(CompilerGeneratedAttribute), inherit: false) && !Measured.Value.Types.Contains(t))
             .Select(t => t.FullName!)
             .ToList();
-        Assert.True(unreached.Count == 0, "the backend-input walk misses Place-hierarchy types: " + string.Join(", ", unreached));
+        Assert.True(unreached.Count == 0, "the backend-input walk misses neutral-layer types: " + string.Join(", ", unreached));
+        Assert.Contains(typeof(HostType), Measured.Value.Types);
+        Assert.Contains(typeof(Place), Measured.Value.Types);
+        Assert.Contains(typeof(AccessPath), Measured.Value.Types);
     }
 
     // ── The planted self-tests: each failure arm fires on a planted backend input, for the right reason. ──
 
-    private sealed record PlantedRoot(PlantedNode Node, Antlr4.Runtime.ParserRuleContext? Tree, object? Payload, Func<int>? Hook);
+    private sealed record PlantedRoot(PlantedNode Node, Antlr4.Runtime.ParserRuleContext? Tree, object? Payload, Func<int>? Hook)
+    {
+        public object Parts() => Node;
+
+        public PlantedResult Result() => new("long");
+    }
+
+    /// <summary>Reached only as what <see cref="PlantedRoot.Result"/> returns (the HostSurface.TypeOf shape).</summary>
+    private sealed record PlantedResult(string CsType)
+    {
+        public const string Stem = "__p";
+    }
 
     private abstract record PlantedNode;
 
@@ -189,17 +233,36 @@ public sealed class BackendContractDriftTests
     private sealed record PlantedOther(int Count) : PlantedNode;
 
     private static BackendInput Planted() =>
-        BackendInput.Measure(typeof(PlantedRoot), t => t.DeclaringType == typeof(BackendContractDriftTests) && t.Name.StartsWith("Planted"),
+        BackendInput.Measure([typeof(PlantedRoot)], t => t.DeclaringType == typeof(BackendContractDriftTests) && t.Name.StartsWith("Planted"),
             typeof(BackendContractDriftTests).GetNestedTypes(BindingFlags.NonPublic));
 
     private static string KeyOf(string member) => BackendInput.KeyOf(typeof(PlantedLeaf), member);
 
+    /// <summary>The planted contract rows every planted check needs besides the one under test: the returned type's text.</summary>
+    private static NeutralRow PlantedResultRow() =>
+        new(NeutralKind.ClrName, [BackendInput.KeyOf(typeof(PlantedResult), "Stem")]);
+
+    private static LeakRow PlantedResultLeak() => new("L9", [], [BackendInput.KeyOf(typeof(PlantedResult), "CsType")]);
+
     [Fact]
-    public void Planted_TheWalkReachesSubtypesAndRecordsTheParseTreeExit()
+    public void Planted_AParseTreeExitFails_UnlessAnL6RowToleratesIt()
+    {
+        string tree = BackendInput.KeyOf(typeof(PlantedRoot), "Tree");
+        Assert.Equal([$"{tree} : Antlr4.Runtime.ParserRuleContext"], ParseTreeExits(Planted(), new ContractTable([], [])));
+        Assert.Empty(ParseTreeExits(Planted(), new ContractTable([], [new("L6", ["PB0"], [tree])])));
+        Assert.Equal([$"{tree} : Antlr4.Runtime.ParserRuleContext"],
+            ParseTreeExits(Planted(), new ContractTable([], [new("L7", ["PB0"], [tree])])));
+    }
+
+    [Fact]
+    public void Planted_TheWalkReachesSubtypesAndReturnsAndRecordsTheParseTreeExit()
     {
         BackendInput input = Planted();
         Assert.Contains(typeof(PlantedLeaf), input.Types);
         Assert.Contains(typeof(PlantedOther), input.Types);
+        Assert.Contains(typeof(PlantedResult), input.Types);
+        Assert.Equal([BackendInput.KeyOf(typeof(PlantedResult), "CsType"), BackendInput.KeyOf(typeof(PlantedResult), "Stem")],
+            input.StringMembers.Where(m => m.Declaring == typeof(PlantedResult)).Select(m => m.Key).ToList());
         Assert.Equal(
             [KeyOf("ClrName"), KeyOf("CobolName"), KeyOf("CsField"), KeyOf("Lines"), KeyOf("RenderAll()")],
             input.StringMembers.Where(m => m.Declaring == typeof(PlantedLeaf)).Select(m => m.Key).ToList());
@@ -211,7 +274,7 @@ public sealed class BackendContractDriftTests
     [Fact]
     public void Planted_AnUnclassifiedMember_FailsAndAClrNameDoesNot()
     {
-        var failures = Check(Planted(), new ContractTable([new(NeutralKind.CobolWord, [KeyOf("CobolName")])], []));
+        var failures = Check(Planted(), new ContractTable([new(NeutralKind.CobolWord, [KeyOf("CobolName")]), PlantedResultRow()], [PlantedResultLeak()]));
         Assert.Equal(
             [$"{KeyOf("CsField")}: unclassified", $"{KeyOf("Lines")}: unclassified", $"{KeyOf("RenderAll()")}: unclassified"],
             failures.Select(f => f.Text[..(f.Text.IndexOf(':') + ": unclassified".Length)]).ToList());
@@ -222,8 +285,8 @@ public sealed class BackendContractDriftTests
     public void Planted_AToleratedLeakPasses_AndAStaleRowFails()
     {
         var table = new ContractTable(
-            [new(NeutralKind.CobolWord, [KeyOf("CobolName")]), new(NeutralKind.LiteralValue, [KeyOf("Lines")])],
-            [new("L7", ["PB0"], [KeyOf("CsField"), KeyOf("RenderAll()"), KeyOf("Gone")])]);
+            [new(NeutralKind.CobolWord, [KeyOf("CobolName")]), new(NeutralKind.LiteralValue, [KeyOf("Lines")]), PlantedResultRow()],
+            [new("L7", ["PB0"], [KeyOf("CsField"), KeyOf("RenderAll()"), KeyOf("Gone")]), PlantedResultLeak()]);
         var failures = Check(Planted(), table);
         Assert.Equal([$"{KeyOf("Gone")}: a row names a member the backend input no longer has: delete the row"],
             failures.Select(f => f.Text).ToList());
@@ -256,7 +319,7 @@ public sealed class BackendContractDriftTests
     internal static List<Failure> Check(BackendInput input, ContractTable table)
     {
         var failures = new List<Failure>();
-        var measured = input.StringMembers.Select(m => m.Key).ToHashSet(StringComparer.Ordinal);
+        var measured = input.StringMembers.Select(m => m.Key).Concat(input.Exits.Select(e => e.Member)).ToHashSet(StringComparer.Ordinal);
         foreach (BackendMember member in input.StringMembers)
         {
             if (!member.IsMethod && member.Name.EndsWith("ClrName", StringComparison.Ordinal))
