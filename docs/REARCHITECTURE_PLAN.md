@@ -4564,7 +4564,7 @@ lowering **privately**, and the bound tree it consumes is the SAME neutral tree 
 | The `ICodeGenBackend` seam (CIL adds a sibling impl) | `CodeGen/ICodeGenBackend.cs`; `CodeGen/RoslynBackend.cs:16` (`RoslynBackend : ICodeGenBackend`; refs cached `:95-98`) |
 | Bind/emit split (P6-extracted) | `Binding/BinderDriver.cs` → `BoundCompilation`; `CodeGen/CSharpEmitter.cs:31,39` = the `Bind`/`EmitBound` bind-host facade (emit lives in `ProgramEmitter`/`DispatchEmitter`/`Verbs/*Emitter`) |
 | `Place.Read()/Write()` C# strings (P7 Step 11 removes) | `Binding/Model/Place.cs:22-25` + every subtype |
-| C#-path node fields (P6 L3/L4 de-C#, `DESIGN-backend-abstraction §1.3`) | `Binding/Bound/BoundTree.cs:34` (`BoundMethod.CsName`), `:112` (`BoundIndexRef.IndexField`), `:494` (`SetIndexTarget.IndexField`), `:516` (`BoundSetCapacity.TablePath`), `:531` (`BoundSearch`), `Binding/Model/Place.cs:59,176` |
+| C#-path node fields (P6 L3/L4 de-C#, `DESIGN-backend-abstraction §1.3`) | `Binding/Bound/BoundTree.cs:238` (`BoundIndexRef.IndexField`), `:1749` (`SetIndexTarget.IndexField`), `:1843` (`BoundSearch.IndexField`); `BoundSetCapacity` now carries an `AccessPath`, and `BoundMethod.ClrName` is a CLR name both backends emit, not a leak (kb/Work PB4265) |
 | Shared `WriteRuntimeConfig` JSON (share with CIL) | `CodeGen/AssemblyPackager.cs:40-54` |
 | The PC dispatcher (Roslyn `while`/`switch(__pc)` → CIL branch table) | `CodeGen/DispatchEmitter.cs:76-104` |
 | Exhaustive visitor interfaces (CIL visitors inherit exhaustiveness) | P7 Step 6 (`Binding/Bound/BoundTree.cs` `[BoundNode]`) |
