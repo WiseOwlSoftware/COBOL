@@ -1,4 +1,4 @@
-## PB4230, PB4231: a section owns its paragraphs, and one rule parses every SET … TO, so the LL pass is linear and legal SET … TO NULL programs no longer take it
+## Entry 2918 — 2026-10-31 23:45 PDT — PB4230, PB4231: a section owns its paragraphs, and one rule parses every SET … TO, so the LL pass is linear and legal SET … TO NULL programs no longer take it
 
 **The mechanism.** `procedureDivision` read `declarativePart* sentence* procedureUnit*`, with `procedureUnit :
 sectionDefinition | paragraphDefinition`. A paragraph after a section header could stay in the section's
