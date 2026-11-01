@@ -65,24 +65,37 @@ internal static class SparseCheckoutAudit
             Match key = SparseKey.Match(job.Body);
             if (!key.Success) continue;
             string[] lines = job.Body.Split('\n');
-            int at = Array.FindIndex(lines, l => SparseKey.IsMatch(l));
-            int indent = key.Groups["ind"].Length;
-            List<string> patterns = [];
-            int end = at + 1;
-            string value = key.Groups["value"].Value.Trim();
-            if (value.Length > 0 && !value.StartsWith('|') && !value.StartsWith('>'))
-                patterns.Add(value.Trim('\'', '"'));
-            else
+            // A job's checkout and the checkout's one retry (kb/Work PB4324) each carry a list, and CiBoundsDriftTests holds
+            // the two equal: the patterns are the first list's, and NO list is part of the steps' text the scripts are read from.
+            List<string> patterns = [], steps = [];
+            bool first = true;
+            for (int i = 0; i < lines.Length; i++)
             {
-                for (; end < lines.Length; end++)
+                Match list = SparseKey.Match(lines[i]);
+                if (!list.Success)
                 {
-                    string line = lines[end];
-                    if (line.Trim().Length > 0 && line.Length - line.TrimStart().Length <= indent) break;
-                    if (line.Trim().Length > 0) patterns.Add(line.Trim());
+                    steps.Add(lines[i]);
+                    continue;
                 }
+                int indent = list.Groups["ind"].Length;
+                string value = list.Groups["value"].Value.Trim();
+                List<string> these = [];
+                if (value.Length > 0 && !value.StartsWith('|') && !value.StartsWith('>'))
+                    these.Add(value.Trim('\'', '"'));
+                else
+                {
+                    for (; i + 1 < lines.Length; i++)
+                    {
+                        string line = lines[i + 1];
+                        if (line.Trim().Length > 0 && line.Length - line.TrimStart().Length <= indent) break;
+                        if (line.Trim().Length > 0) these.Add(line.Trim());
+                    }
+                }
+                if (first)
+                    patterns = these;
+                first = false;
             }
-            string steps = string.Join('\n', lines.Take(at).Concat(lines.Skip(end)));
-            found.Add(new SparseJob(job.File, job.Id, steps, patterns, ConeOff.IsMatch(job.Body)));
+            found.Add(new SparseJob(job.File, job.Id, string.Join('\n', steps), patterns, ConeOff.IsMatch(job.Body)));
         }
         return found;
     }
