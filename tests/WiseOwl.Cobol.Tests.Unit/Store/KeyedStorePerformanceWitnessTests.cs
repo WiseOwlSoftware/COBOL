@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Store;
 /// 2.2.1.11's witnesses (a) to (c); kb/Work PB3336, PB3330). Every case drives the REAL connectors through a
 /// <see cref="FileRegistry"/> and reads the run unit's <see cref="PagedFile.Counters"/> across one statement; the pages
 /// live in a <see cref="PageArrayMedium"/>, so a load of 4N records costs no host I/O and the counts are exact on every
-/// host. Each file shape is one derived class ({RELATIVE, INDEXED with no alternate key, INDEXED with two: one WITH
+/// host. Each file shape is one derived class of <see cref="KeyedStoreStatementWitnessTests"/> and, once per sharing mode, of <see cref="KeyedStoreLoadWitnessTests"/> (kb/Work PB4325; this class holds the harness both share) ({RELATIVE, INDEXED with no alternate key, INDEXED with two: one WITH
 /// DUPLICATES and one unique}), and each of its cells one key order (ascending, or a fixed random permutation) × one sharing
 /// mode (<c>NO OTHER</c>, where no statement reads page 2, and <c>ALL OTHER</c>, where every statement is a coherent entry
 /// under the store mutex, 2.2.1.7). The expected values are 2.2.1.11's table rows, with d each tree's depth read from the
@@ -50,7 +50,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Store;
 ///   statement (§14.7.9.3 GR1), and a RETRY whose wait sees the lock released succeeds (§14.7.9.3 GR4).</item>
 /// </list>
 /// </summary>
-public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWitnessTests.Shape shape, ITestOutputHelper output)
+public abstract class KeyedStorePerformanceWitnessTests
 {
     public enum Shape { Relative, Indexed, IndexedTwoAlternates }
 
@@ -59,13 +59,9 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
     /// <summary>The smaller load. A leaf holds about 90 of these records and an internal page about 185 children, so N
     /// fills a prime tree of depth 2 and 4N one of depth 3: the depth growth the linearity witness allows is exercised (the
     /// case asserts it).</summary>
-    private const int N = 5_000;
+    private protected const int N = 5_000;
 
-    private const int RecordBytes = 24;
-
-    /// <summary>The promotion row's writes (2.2.1.11): the claim with PROMOTING, a committed slot, the retirement (≤ 2
-    /// ledger + 3 free tree + 1 meta).</summary>
-    private const int PromotionWrites = 1 + 1 + 2 + 3 + 1;
+    private protected const int RecordBytes = 24;
 
     /// <summary>The most pages the ledger tree held at R2's checkpoint in the twelve load cells (2.2.1.11's ℓ): a MEASURED
     /// maximum for this workload, not a bound that follows from the entry count. The ledger lists at most 1 024 entries
@@ -76,30 +72,15 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
     /// full). The assertion pins the measured number: a ledger layout that let ℓ grow past it would put ℓ in every
     /// statement's row out of line with the figure the design states. A change to the entry size, the page size or the
     /// split rule moves the fill, and the constant is then re-measured, never re-derived from the entry count.</summary>
-    private const int LedgerPagesAtCheckpoint = 9;
+    private protected const int LedgerPagesAtCheckpoint = 9;
 
     /// <summary>The FREE batch a statement takes (2.2.1.11): at most 2 pages, at most once per statement.</summary>
-    private const int FreeBatchPages = 2;
-
-    /// <summary>The linearity witness compares MEANS over a window of statements; the ledger's and the FREE batch's own
-    /// pages fall in a window at a rate that does not depend on the file's size, so two windows' means differ by a few
-    /// thousandths of a page whatever the depth. A cost that grew with the file would differ by whole pages.</summary>
-    private const double WindowNoise = 0.1;
-
-    /// <summary>The cells of one file shape (each shape is its own class, so the three run in parallel).</summary>
-    public static TheoryData<Order, FileSharing> Cells()
-    {
-        var data = new TheoryData<Order, FileSharing>();
-        foreach (var order in Enum.GetValues<Order>())
-            foreach (var sharing in new[] { FileSharing.NoOther, FileSharing.AllOther })
-                data.Add(order, sharing);
-        return data;
-    }
+    private protected const int FreeBatchPages = 2;
 
     /// <summary>One physical file: its host path (the connectors' handles and locks), its pages, its shape, the order its
     /// records are loaded in, and the alternate key values WITH DUPLICATES it already holds (a WRITE that adds one answers
     /// '02', §9.1.13.2 2)).</summary>
-    private sealed class Cell(Shape shape, Order order, FileSharing sharing) : IDisposable
+    private protected sealed class Cell(Shape shape, Order order, FileSharing sharing) : IDisposable
     {
         public readonly string Host = FileHarness.Tmp($"pb3336-{shape}-{order}-{sharing}");
         public readonly PageArrayMedium Pages = new();
@@ -174,9 +155,9 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
 
     /// <summary>Record n: its prime key (the relative record number's digits for RELATIVE), an alternate key shared by
     /// every 97th record (WITH DUPLICATES), and a unique alternate key.</summary>
-    private static string Rec(int n) => $"{n:D8}{n % 97:D8}{99_999_999 - n:D8}";
+    private protected static string Rec(int n) => $"{n:D8}{n % 97:D8}{99_999_999 - n:D8}";
 
-    private static string Write(FileRegistry reg, string name, Cell cell, int n, string? image = null)
+    private protected static string Write(FileRegistry reg, string name, Cell cell, int n, string? image = null)
     {
         if (cell.Shape == Shape.Relative) reg.SetRelativeKey(name, n);
         return reg.WriteShared(name, image ?? Rec(n), -1, FileRecordLock.None, FileRetryKind.None, 0, page: null);
@@ -184,39 +165,39 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
 
     /// <summary>A READ by key: the prime key (key 0), or alternate key <paramref name="key"/> (1-based, in declaration
     /// order).</summary>
-    private static string Read(FileRegistry reg, string name, Cell cell, int n, out string image, int key = 0,
+    private protected static string Read(FileRegistry reg, string name, Cell cell, int n, out string image, int key = 0,
         FileRecordLock phrase = FileRecordLock.None, FileRetryKind retry = FileRetryKind.None, long retryAmount = 0)
     {
         if (cell.Shape == Shape.Relative) reg.SetRelativeKey(name, n);
         return reg.ReadKeyedShared(name, key - 1, Rec(n), phrase, ignoringLock: false, retry, retryAmount, out image);
     }
 
-    private static string ReadNext(FileRegistry reg, string name, out string image) =>
+    private protected static string ReadNext(FileRegistry reg, string name, out string image) =>
         reg.ReadShared(name, previous: false, FileRecordLock.None, advancingOnLock: false, ignoringLock: false,
             FileRetryKind.None, 0, out image);
 
-    private static string Delete(FileRegistry reg, string name, Cell cell, int n, FileRetryKind retry = FileRetryKind.None,
+    private protected static string Delete(FileRegistry reg, string name, Cell cell, int n, FileRetryKind retry = FileRetryKind.None,
         long retryAmount = 0)
     {
         if (cell.Shape == Shape.Relative) reg.SetRelativeKey(name, n);
         return reg.DeleteShared(name, Rec(n), retry, retryAmount);
     }
 
-    private static string Rewrite(FileRegistry reg, string name, Cell cell, int n, string? image = null)
+    private protected static string Rewrite(FileRegistry reg, string name, Cell cell, int n, string? image = null)
     {
         if (cell.Shape == Shape.Relative) reg.SetRelativeKey(name, n);
         return reg.RewriteShared(name, image ?? Rec(n), -1, FileRecordLock.None, FileRetryKind.None, 0);
     }
 
-    private static PagedFile Store(FileRegistry reg, string name) =>
+    private protected static PagedFile Store(FileRegistry reg, string name) =>
         reg.PagedStoreOf(name) ?? throw new InvalidOperationException($"'{name}' is attached to no paged store");
 
     /// <summary>The roots of the file's record trees: the prime tree, then one per alternate key.</summary>
-    private static IEnumerable<PagePointer> Roots(MetaPage meta) => [meta.PrimeRoot, .. meta.AlternateRoots];
+    private protected static IEnumerable<PagePointer> Roots(MetaPage meta) => [meta.PrimeRoot, .. meta.AlternateRoots];
 
     /// <summary>The depth of the tree at <paramref name="root"/>: the pages on its leftmost path (every leaf of a B+ tree
     /// lies at one depth, 2.2.1.4).</summary>
-    private static int Depth(PagedFile store, PagePointer root)
+    private protected static int Depth(PagedFile store, PagePointer root)
     {
         var page = new byte[PageHeader.PageSize];
         int depth = 0;
@@ -230,11 +211,11 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
         return depth;
     }
 
-    private static int[] Depths(PagedFile store) => [.. Roots(store.Meta).Select(r => Depth(store, r))];
+    private protected static int[] Depths(PagedFile store) => [.. Roots(store.Meta).Select(r => Depth(store, r))];
 
     /// <summary>Every page of the tree at <paramref name="root"/> (2.2.1.4's internal-page layout: the leftmost child, then
     /// each separator key with the child to its right).</summary>
-    private static HashSet<uint> TreePages(PagedFile store, PagePointer root)
+    private protected static HashSet<uint> TreePages(PagedFile store, PagePointer root)
     {
         var page = new byte[PageHeader.PageSize];
         var pages = new HashSet<uint>();
@@ -263,23 +244,53 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
         return pages;
     }
 
-    private static int RecordTreePages(PagedFile store) => Roots(store.Meta).Sum(r => TreePages(store, r).Count);
+    private protected static int RecordTreePages(PagedFile store) => Roots(store.Meta).Sum(r => TreePages(store, r).Count);
 
     /// <summary>2.2.1.11's WRITE row for the cell at depth <paramref name="depth"/>, before its splits: (k + 1) × d (k
     /// alternate keys; none for RELATIVE) + the ledger's path copy — at most every page of the ledger tree, which the
     /// ledger checkpoint bounds (<paramref name="ledgerPages"/>) — + 2 (free batch) + 1 (meta); + 1 (the claim) under the
     /// mutex.</summary>
-    private static int WriteBound(Cell cell, int depth, int ledgerPages) =>
+    private protected static int WriteBound(Cell cell, int depth, int ledgerPages) =>
         (cell.AlternateKeys + 1) * depth + ledgerPages + FreeBatchPages + 1 + (cell.Coherent ? 1 : 0);
 
     /// <summary>The pages of the ledger tree the store holds.</summary>
-    private static int LedgerPages(PagedFile store) => TreePages(store, store.Meta.LedgerRoot).Count;
+    private protected static int LedgerPages(PagedFile store) => TreePages(store, store.Meta.LedgerRoot).Count;
 
-    private static IoCounters Since(PagedFile store, IoCounters before)
+    private protected static IoCounters Since(PagedFile store, IoCounters before)
     {
         var now = store.Counters;
         return new(now.PagesRead - before.PagesRead, now.PagesWritten - before.PagesWritten, now.Syncs - before.Syncs);
     }
+
+    /// <summary>The most pages one WRITE can add to the ledger: every record tree's path copied with a split at every
+    /// level, its released pages and its fresh ones.</summary>
+    private protected static int MostPagesOfOneStatement(Cell cell, int depth) => 2 * 2 * (cell.AlternateKeys + 1) * depth + 8;
+
+}
+
+/// <summary>
+/// THE LOAD, OPEN AND RANDOM-READ WITNESS (2.2.1.11 (a) to (c); kb/Work PB3336, PB4325): the linearity of a load of N
+/// and then 4N records, an OPEN that reads the header whatever N, and 1 000 random READs that each read one path. It is
+/// the family's costliest case (about 12 s a cell, four cells a shape), so each (file shape, sharing mode) is a class of
+/// its own and the classes run in parallel; the other witnesses are <see cref="KeyedStoreStatementWitnessTests"/>.
+/// </summary>
+/// <param name="shape">The file shape.</param>
+/// <param name="sharing">The sharing mode this class witnesses.</param>
+/// <param name="output">The test output.</param>
+public abstract class KeyedStoreLoadWitnessTests(KeyedStorePerformanceWitnessTests.Shape shape, FileSharing sharing,
+    ITestOutputHelper output) : KeyedStorePerformanceWitnessTests
+{
+    /// <summary>The promotion row's writes (2.2.1.11): the claim with PROMOTING, a committed slot, the retirement (≤ 2
+    /// ledger + 3 free tree + 1 meta).</summary>
+    private const int PromotionWrites = 1 + 1 + 2 + 3 + 1;
+
+    /// <summary>The linearity witness compares MEANS over a window of statements; the ledger's and the FREE batch's own
+    /// pages fall in a window at a rate that does not depend on the file's size, so two windows' means differ by a few
+    /// thousandths of a page whatever the depth. A cost that grew with the file would differ by whole pages.</summary>
+    private const double WindowNoise = 0.1;
+
+    /// <summary>The key orders of the load (the sharing mode is the class's).</summary>
+    public static TheoryData<Order> Orders() => [.. Enum.GetValues<Order>()];
 
     /// <summary>What a load phase measured over its last window of statements that did not promote: the mean pages a
     /// WRITE wrote, and the mean pages of the ledger tree after it.</summary>
@@ -327,10 +338,6 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
         return new(written.Average(), ledger.Average());
     }
 
-    /// <summary>The most pages one WRITE can add to the ledger: every record tree's path copied with a split at every
-    /// level, its released pages and its fresh ones.</summary>
-    private static int MostPagesOfOneStatement(Cell cell, int depth) => 2 * 2 * (cell.AlternateKeys + 1) * depth + 8;
-
     /// <summary>The OPEN row (2.2.1.11) after a CLOSE: reads ≤ 3 + 7; INPUT writes and syncs nothing; a writable OPEN (the
     /// fence) writes ≤ 8 and syncs twice. Answers the pages the INPUT OPEN read.</summary>
     private long OpenAfterClose(Cell cell, string tag)
@@ -354,8 +361,8 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
     }
 
     [Theory]
-    [MemberData(nameof(Cells))]
-    public void A_load_is_linear_an_open_reads_the_header_and_a_random_read_reads_one_path(Order order, FileSharing sharing)
+    [MemberData(nameof(Orders))]
+    public void A_load_is_linear_an_open_reads_the_header_and_a_random_read_reads_one_path(Order order)
     {
         using var cell = new Cell(shape, order, sharing);
 
@@ -429,6 +436,27 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
         }
         reader.Close("R");
         Assert.Equal("00", reader.Status("R"));
+    }
+}
+
+/// <summary>
+/// THE STATEMENT WITNESSES (2.2.1.11 (c) to (e), the exception paths, the process death, the replayed permanent error, the
+/// transaction costs and the lock answers; kb/Work PB3336, PB3337, PB4325) on one file shape; the load witness is
+/// <see cref="KeyedStoreLoadWitnessTests"/>. Each file shape is one derived class.
+/// </summary>
+/// <param name="shape">The file shape.</param>
+/// <param name="output">The test output.</param>
+public abstract class KeyedStoreStatementWitnessTests(KeyedStorePerformanceWitnessTests.Shape shape, ITestOutputHelper output)
+    : KeyedStorePerformanceWitnessTests
+{
+    /// <summary>The cells of one file shape (each shape is its own class, so the three run in parallel).</summary>
+    public static TheoryData<Order, FileSharing> Cells()
+    {
+        var data = new TheoryData<Order, FileSharing>();
+        foreach (var order in Enum.GetValues<Order>())
+            foreach (var sharing in new[] { FileSharing.NoOther, FileSharing.AllOther })
+                data.Add(order, sharing);
+        return data;
     }
 
     [Theory]
@@ -803,12 +831,36 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
 
 /// <summary>2.2.1.11's witnesses on a RELATIVE file (one tree keyed by the relative record number).</summary>
 public sealed class RelativeStorePerformanceWitnessTests(ITestOutputHelper output)
-    : KeyedStorePerformanceWitnessTests(Shape.Relative, output);
+    : KeyedStoreStatementWitnessTests(Shape.Relative, output);
 
 /// <summary>2.2.1.11's witnesses on an INDEXED file with no alternate key.</summary>
 public sealed class IndexedStorePerformanceWitnessTests(ITestOutputHelper output)
-    : KeyedStorePerformanceWitnessTests(Shape.Indexed, output);
+    : KeyedStoreStatementWitnessTests(Shape.Indexed, output);
 
 /// <summary>2.2.1.11's witnesses on an INDEXED file with two alternate keys, one WITH DUPLICATES and one unique.</summary>
 public sealed class IndexedTwoAlternatesStorePerformanceWitnessTests(ITestOutputHelper output)
-    : KeyedStorePerformanceWitnessTests(Shape.IndexedTwoAlternates, output);
+    : KeyedStoreStatementWitnessTests(Shape.IndexedTwoAlternates, output);
+
+/// <summary>The load witness on Relative files under <c>NoOther</c>.</summary>
+public sealed class RelativeStoreLoadNoOtherWitnessTests(ITestOutputHelper output)
+    : KeyedStoreLoadWitnessTests(KeyedStorePerformanceWitnessTests.Shape.Relative, FileSharing.NoOther, output);
+
+/// <summary>The load witness on Relative files under <c>AllOther</c>.</summary>
+public sealed class RelativeStoreLoadAllOtherWitnessTests(ITestOutputHelper output)
+    : KeyedStoreLoadWitnessTests(KeyedStorePerformanceWitnessTests.Shape.Relative, FileSharing.AllOther, output);
+
+/// <summary>The load witness on Indexed files under <c>NoOther</c>.</summary>
+public sealed class IndexedStoreLoadNoOtherWitnessTests(ITestOutputHelper output)
+    : KeyedStoreLoadWitnessTests(KeyedStorePerformanceWitnessTests.Shape.Indexed, FileSharing.NoOther, output);
+
+/// <summary>The load witness on Indexed files under <c>AllOther</c>.</summary>
+public sealed class IndexedStoreLoadAllOtherWitnessTests(ITestOutputHelper output)
+    : KeyedStoreLoadWitnessTests(KeyedStorePerformanceWitnessTests.Shape.Indexed, FileSharing.AllOther, output);
+
+/// <summary>The load witness on IndexedTwoAlternates files under <c>NoOther</c>.</summary>
+public sealed class IndexedTwoAlternatesStoreLoadNoOtherWitnessTests(ITestOutputHelper output)
+    : KeyedStoreLoadWitnessTests(KeyedStorePerformanceWitnessTests.Shape.IndexedTwoAlternates, FileSharing.NoOther, output);
+
+/// <summary>The load witness on IndexedTwoAlternates files under <c>AllOther</c>.</summary>
+public sealed class IndexedTwoAlternatesStoreLoadAllOtherWitnessTests(ITestOutputHelper output)
+    : KeyedStoreLoadWitnessTests(KeyedStorePerformanceWitnessTests.Shape.IndexedTwoAlternates, FileSharing.AllOther, output);
