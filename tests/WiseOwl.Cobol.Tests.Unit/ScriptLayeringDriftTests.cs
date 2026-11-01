@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ THE PIPELINE SCRIPTS STAY LAYERED (kb/Work PB3726, PB3728; DESIGN-orchestrator-loop.md section 16.10): every module
 /// the pipeline-scripts restructure declares (the planner's reports.py, inflight.py, clusters.py, groups.py and
-/// dispatch_ledger.py under plan_wave.py, and the modules the later splits of prune_worktrees.py, run_gate_legs.py,
+/// dispatch_ledger.py under plan_wave.py, and the modules the later splits of prune_worktrees.py, gate.py,
 /// enqueue.py and land_lane.py create) imports another declared module only where the import DAG lets it: a module of an
 /// earlier tier of a line both stand on, or, from scripts/orchestrator/, the gate's modules of scripts/. The DAG is
 /// declared ONCE, in <c>scripts/script_layering.py</c> (<c>LINES</c>, <c>NODES</c>, <c>SPLITS</c>), and must itself be

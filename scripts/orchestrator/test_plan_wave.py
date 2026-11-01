@@ -2148,7 +2148,7 @@ with tempfile.TemporaryDirectory() as td:
 
 # PB3536: A GATE HANDED TO THE WAVE. A GATE-PENDING report names the run directory of the gate its agent left running at
 # its turn cap; the report is FINISHED only when that gate's verdict file is GREEN for the report's HEAD and measured
-# that commit's own tree (Report.gate_state, through run_gate_legs' one reader); a gate still running holds the note
+# that commit's own tree (Report.gate_state, through gate' one reader); a gate still running holds the note
 # (no finisher re-runs it), and any other end plans a finisher.
 with tempfile.TemporaryDirectory() as td:
     gdir = pathlib.Path(td)
@@ -2157,13 +2157,13 @@ with tempfile.TemporaryDirectory() as td:
     ended = subprocess.Popen([sys.executable, "-c", "pass"])
     ended.wait()
 
-    import run_gate_legs  # noqa: PLC0415  (scripts/: the gate's own reader and its lock)
+    import gate  # noqa: PLC0415  (scripts/: the gate's own reader and its lock)
 
     def gate_run(name, rec=None, pid=None):
         # a run that names a gate pid sits in a real worktree: the reader asks THAT worktree's gate lock (review R1-1 of
         # wave 20261104: a pid is reused, the lock is not), so the arm can hold it
         wt = ScratchRepo.init(gdir / "wts" / name).path if pid is not None else None
-        run = (wt / run_gate_legs.RUN_ROOT if wt else gdir / "runs") / name
+        run = (wt / gate.RUN_ROOT if wt else gdir / "runs") / name
         run.mkdir(parents=True)
         if rec is not None:
             (run / "verdict.json").write_text(json.dumps({"verdict": "x", "line": "=== BUILD-LOCAL GATE: x ===", **rec}),
@@ -2180,9 +2180,9 @@ with tempfile.TemporaryDirectory() as td:
             "g": gate_run("other-head", {**green, "head": "0" * 40}),
             "j": gate_run("pid-reused", pid=os.getpid())}   # no verdict, gate.pid names a LIVE process, nobody holds the lock
     # run "c" is the one gate that runs: its worktree's gate lock is held, its label naming the run (what `Gate.run` writes)
-    c_lock = run_gate_legs.ExclusiveLock.try_take(
-        run_gate_legs.Host(runs["c"].parents[2]).lock_path(),
-        f"gate {runs['c'].parents[2]} (pid 7, since T{run_gate_legs.RUN_LABEL}{runs['c']})")
+    c_lock = gate.ExclusiveLock.try_take(
+        gate.Host(runs["c"].parents[2]).lock_path(),
+        f"gate {runs['c'].parents[2]} (pid 7, since T{gate.RUN_LABEL}{runs['c']})")
     for letter, run in runs.items():
         (gdir / f"w9g1{letter}-PB1-report.md").write_text(
             f"Status: GATE-PENDING\nBranch: b\nHEAD: {head[:12]}\nGate run: {run}\n\n## Gate\n", encoding="utf-8",
@@ -2224,7 +2224,7 @@ with tempfile.TemporaryDirectory() as td:
     harness.git("commit", "-q", "-m", "work")
     (hw / ".claude" / "settings.local.json").write_text('{"permissions": {}}\n', encoding="utf-8", newline="\n")
     hhead = harness.git("rev-parse", "HEAD")
-    htree = run_gate_legs.Host(hw).measured_tree()
+    htree = gate.Host(hw).measured_tree()
     hrun = hw / "TestResults" / "build-local" / "20261023T000000Z-abcdef"
     hrun.mkdir(parents=True)
     (hrun / "verdict.json").write_text(json.dumps({"verdict": "GREEN", "line": "=== BUILD-LOCAL GATE: GREEN — x ===",

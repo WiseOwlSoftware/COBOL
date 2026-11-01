@@ -13,7 +13,7 @@ matrix's old doc-only list named, and each paid the local gate (median ~14 min: 
 the landing's four Linux legs; but that list was not a classification at all: `docs/` and `kb/Work/` are test INPUTS
 (kb/Work PB3603: a kb/Work-only branch went RED on the Linux gate), so CI skipping the matrix for them broke the CI
 invariant (kb/Work PB1957) silently. THIS MODULE IS THE ONE CLASSIFICATION, used by every runner: CI's `changes` job,
-the local gate (scripts/run_gate_legs.py) and the Linux gate (scripts/linux-gate.sh).
+the local gate (scripts/gate.py) and the Linux gate (scripts/linux-gate.sh).
 
 THE RULE. A path is INERT when it lies under an INERT entry and under no READ entry. A change is in the INERT LANE when
 its changed paths (`git diff --name-only --no-renames`, so a rename shows BOTH names and a code file renamed into an
@@ -42,7 +42,7 @@ one of them turned a self-test red in CI's merge group after a green gate.
 THE ACCEPTED RESIDUE, named (owner 2026-10-31, kb/Work PB4323: a merge-group red may be one of five first-run classes, and
 the CI invariant is weakened knowingly): (a) a DECLARED POPULATION reader: a self-test whose first
 lines say `# SELF-TEST-POPULATION: tree — <why>` reads the tracked tree as a population (test_plan_wave.py and
-test_dispatch_guard.py walk every markdown file, impacted_tests.py every path), so no set of paths bounds it and the proof
+test_dispatch_guard.py walk every markdown file), so no set of paths bounds it and the proof
 does not apply to it. The declaration is checked against the trace (scripts/self_tests.py): one that ran no git command over
 the whole repository (the tracer records a read of directory "") is RED, and a self-test that ran such a command WITHOUT
 the declaration is judged like any other, so its specific reads (work.py's docs/DESIGN.md, merge_drivers.py's ABI pin) are

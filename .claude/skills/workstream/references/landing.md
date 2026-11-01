@@ -57,7 +57,7 @@
   queued, nothing red) is the same: the lane retries it once none does (kb/Work PB3642); exit 13 (another
   `land` of the branch holds the worktree's land lock, kb/Work PB3310) is the same: nothing ran, the lane retries it
   once the lock is free. A gate NOT RUN (it
-  measured nothing) goes by its cause's class in `run_gate_legs.NOT_RUN_CAUSES` (kb/Work PB3526): an ENVIRONMENT cause
+  measured nothing) goes by its cause's class in `gate.NOT_RUN_CAUSES` (kb/Work PB3526): an ENVIRONMENT cause
   (malformed gate settings, a host with no WSL, Python or SDK) is exit 2 with no BLOCKED line, retried once and a second
   time the operator's handoff; a BRANCH cause (code the gated tree carries failed: the driver, the population listing,
   no verdict line) is measured on main at the same step, and blocks like a red (exit 5, a finisher's) unless main fails
@@ -116,7 +116,7 @@
   agents are writing files … Lost all 7 completed agents' work"). Commit WIP on your own worktree branch — that is
   what the checkpoint protocol is for — and to compare against a clean tree add a detached worktree
   (`git worktree add --detach <path> <sha>`), never stash/build/probe/pop.
-- The GPL GnuCOBOL corpus (`tests/external/gnucobol`) is git-ignored and **per worktree**. The gate (`scripts/run_gate_legs.py`) fetches it
+- The GPL GnuCOBOL corpus (`tests/external/gnucobol`) is git-ignored and **per worktree**. The gate (`scripts/gate.py`) fetches it
   when absent (train 23), so a fresh implementer or lander worktree measures the population from its first gate;
   `ExternalCorpusPopulationDriftTests` is RED BY DESIGN without it (`kb/Work/PB209`). ⛔ **The two population reds are NOT
   "the known worktree shape" any more** (`kb/Work/PB897`): the fetch was broken on every host whose PATH `tar` is GNU tar —

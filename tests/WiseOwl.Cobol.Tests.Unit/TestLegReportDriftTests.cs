@@ -81,7 +81,7 @@ public sealed class TestLegReportDriftTests
         // twins call it, kb/Work PB1721) — must route through the reporter. A scan that stopped seeing it would
         // otherwise report a clean tree over nothing. (guard-fast.sh ran the legacy Unit and Integration legs
         // through it until kb/Work PB2109 retired them; it runs no `dotnet test` leg now.)
-        Assert.Contains("scripts/run_gate_legs.py", callers);
+        Assert.Contains("scripts/gate.py", callers);
 
         Assert.True(offenders.Count == 0,
             "A script selects lines out of a test run's output by keyword — the filter that kept a failing test's "
