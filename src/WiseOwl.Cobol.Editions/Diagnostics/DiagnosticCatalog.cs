@@ -3059,6 +3059,17 @@ public static class DiagnosticCatalog
         + "that contains a fixed literal continuation indicator.\" Continue the literal with one form only.",
         "ISO §6.2.3.2 SR5");
 
+    /// <summary>COBOL5770 — the 2002 floating debugging indicator <c>&gt;&gt;D</c> on a line that holds a fixed debugging
+    /// indicator or a fixed continuation indicator (kb/Work PB4298). ISO/IEC 1989:2002 clause 6.1.2.1 SR8; the 2002 text is
+    /// not in the repository.</summary>
+    public static readonly DiagnosticDescriptor FloatingDebuggingOnFixedIndicator = new(
+        "COBOL5770", "floating-debugging-on-fixed-indicator", EditionSeverity.Error,
+        "A line with a fixed debugging indicator (D in column 7) or the fixed continuation indicator (a hyphen in "
+        + "column 7) also begins its program text with the floating debugging indicator >>D. ISO/IEC 1989:2002 "
+        + "clause 6.1.2.1 SR8: \"A floating debugging indicator shall not be specified on a line that contains a fixed "
+        + "debugging indicator or a fixed continuation indicator.\" Use one indicator on the line.",
+        "ISO/IEC 1989:2002 clause 6.1.2.1 SR8");
+
     /// <summary>COBOL2687 — a literal continued with both the fixed and the floating form (kb/Work PB1359).
     /// §6.2.3.2 SR4, second sentence.</summary>
     public static readonly DiagnosticDescriptor LiteralContinuedTwoForms = new(
@@ -3085,7 +3096,7 @@ public static class DiagnosticCatalog
     /// ("continuation character expected"). Without the clause the same line is a comment and the literal is joined.</summary>
     public static readonly DiagnosticDescriptor DebuggingLineBetweenLiteralParts = new(
         "COBOL3473", "debugging-line-between-literal-parts", EditionSeverity.Error,
-        "A debugging line (indicator D) stands between the parts of a continued literal, and under WITH DEBUGGING MODE "
+        "A debugging line (indicator D or >>D) stands between the parts of a continued literal, and under WITH DEBUGGING MODE "
         + "it is source, not a comment. ISO §6.3.5 2): \"Comment lines and blank lines may be interspersed among lines "
         + "containing the parts of a literal\" - a source line may not. Move the debugging line out of the literal, or "
         + "remove WITH DEBUGGING MODE so that the line is a comment.", "ISO §6.3.5 2)");

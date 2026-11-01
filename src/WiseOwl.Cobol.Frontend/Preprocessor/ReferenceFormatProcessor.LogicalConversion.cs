@@ -109,7 +109,8 @@ public static partial class ReferenceFormatProcessor
                     // per source unit after lexing (kb/Work PB1705, owner decision R56). Its tokens stay matchable by COPY
                     // REPLACING / REPLACE as if the D were absent (TextWordScanner skips the carrier).
                     gates?.OnDebuggingLine(file, lineNo);
-                    _builder.EmitDebugging(DebugLineCarrier, area, site);
+                    _builder.CheckNoFloatingDebuggingOnFixedIndicator(area, site);   // 2002 clause 6.1.2.1 SR8
+                    _builder.EmitDebugging(DebugLineCarrier, area, site, FixedFormLine.IndicatorColumn);
                     break;
 
                 // 'S' and 'Y' (the CCVS debug-suite letters, §6.2.2 lists neither) are excluded the same way: they are the
@@ -153,18 +154,27 @@ public static partial class ReferenceFormatProcessor
                     break;
 
                 case LineKind.Continuation:
+                    _builder.CheckNoFloatingDebuggingOnFixedIndicator(area, site);   // 2002 clause 6.1.2.1 SR8
                     _builder.Add(area, site, fixedContinuation: true);
                     break;
 
                 case LineKind.NotAnIndicator:
                     gates?.OnInvalidIndicator(file, lineNo, indicator);   // COBOL2616, then read as a source line
-                    _builder.Add(area, site, fixedContinuation: false);
+                    AddSourceLine(area, site);
                     break;
 
                 default:
-                    _builder.Add(area, site, fixedContinuation: false);
+                    AddSourceLine(area, site);
                     break;
             }
+        }
+
+        /// <summary>A source line: a debugging line when its program text begins with the floating debugging indicator
+        /// <c>&gt;&gt;D</c> (2002 clause 6.1.2; the area is space-filled to margin R), otherwise program text.</summary>
+        private void AddSourceLine(string area, TextSite site)
+        {
+            if (!_builder.TryEmitFloatingDebugging(area, site, spaceFilled: true))
+                _builder.Add(area, site, fixedContinuation: false);
         }
 
         /// <summary>What a line is to an obsolete IDENTIFICATION comment-entry paragraph (AUTHOR / INSTALLATION /
@@ -263,6 +273,8 @@ public static partial class ReferenceFormatProcessor
                     _builder.Emit(CommentEntryHeader(line.Text), site);
                     continue;
                 }
+                // The floating debugging indicator >>D heads a debugging line in free form too (2002 clause 6.1.2).
+                if (_builder.TryEmitFloatingDebugging(line.Text, site, spaceFilled: false)) continue;
                 _builder.Add(line.Text, site, fixedContinuation: false);
             }
             _builder.ReadInto(_division);   // the division the text ENDS in is the next segment's start
