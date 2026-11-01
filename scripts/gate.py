@@ -139,14 +139,13 @@ EXIT_BUSY = 3
 #: a step that can measure nothing too, and its failure names its cause by the same two classes through the `merge-*` rows
 #: (kb/Work PB3673): a merge that could not be completed for a cause outside the tree is never reported as a CONFLICT.
 #: ENVIRONMENT: a cause outside the code the gated tree carries (the coordination directory's shared gate settings, the host's WSL, Python, .NET SDK or
-#: git): no finisher can fix it, so it never blocks the branch; the landing retries it once and a second at the same head
-#: is the operator's. BRANCH: a failure of code the gated tree CARRIES (a landing gates the branch merged with main, and
-#: runs that tree's own build-local, gate.py and linux-gate.sh): the driver itself, the listing of the
-#: population its test projects build, the verdict writer, the gate rows' slot driver, the arguments its script accepts.
-#: That blocks like a RED and goes to a finisher, UNLESS main fails the same way at the same step, which enqueue.py
-#: measures (a defect main carries is not the branch's). Every printer of a NOT RUN verdict names its cause by tag
-#: (the self-test reads build-local.ps1, build-local.sh and linux-gate.sh to hold them to it); a line with no known tag
-#: is UNCLASSIFIED and reads as BRANCH, since the gate that printed it is the tree's own code.
+#: git): no finisher can fix it, so it never blocks the branch; the landing retries a merge it stopped once and a second
+#: at the same head is the operator's. BRANCH: a failure of code the gated tree CARRIES (the tree's own build-local,
+#: gate.py and linux-gate.sh, or its merged tree's ABI pin): the driver itself, the listing of the population its test
+#: projects build, the verdict writer, the arguments its script accepts. That blocks like a RED and goes to a finisher.
+#: The landing runs no gate (kb/Work PB4331), so the only NOT RUN it reads is its own merge's. Every printer of a NOT RUN
+#: verdict names its cause by tag (the self-test reads build-local.ps1, build-local.sh and linux-gate.sh to hold them to
+#: it); a line with no known tag is UNCLASSIFIED and reads as BRANCH, since the gate that printed it is the tree's own code.
 NOT_RUN = "NOT RUN"
 ENVIRONMENT, BRANCH = "environment", "branch"
 
@@ -199,8 +198,6 @@ NOT_RUN_CAUSES: dict[str, NotRunCause] = {c.tag: c for c in (
     NotRunCause("arguments", BRANCH, "the tree's gate script refused the arguments it was given"),
     NotRunCause("verdict", BRANCH, "the gate printed no verdict line, or its process ended with no verdict file "
                                   "(`--await`, the follower: the tree's gate script died first)"),
-    NotRunCause("unslotted", BRANCH, "a gate row would run outside the shared gate slot (the tree's gate driver no "
-                                     "longer takes one, kb/Work PB3104)"),
     NotRunCause("unclassified", BRANCH, "a NOT RUN verdict naming no known cause (the tree's gate printed it)"),
 )}
 UNCLASSIFIED = NOT_RUN_CAUSES["unclassified"]
@@ -1931,7 +1928,7 @@ def self_test() -> int:
             and NOT_RUN_CAUSES["disk"].carried == ENVIRONMENT
             and NOT_RUN_CAUSES["merge-blocked"].carried == ENVIRONMENT
             and [c.tag for c in NOT_RUN_CAUSES.values() if c.carried == BRANCH]
-            == ["driver", "merge-failed", "population", "arguments", "verdict", "unslotted", "unclassified"])
+            == ["driver", "merge-failed", "population", "arguments", "verdict", "unclassified"])
         # Every printer of a NOT RUN verdict names its cause (the classification is read, never guessed from prose):
         # the gate scripts' verdict lines and this driver's own.
         printers = {f: (REPO / "scripts" / f).read_text(encoding="utf-8")

@@ -2292,15 +2292,14 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    (schema 3 was written both before and after PB3612 added `head_tree` without a bump, so for it the field is the
    discriminator; PB4327 removed the `linux` field the same PB3612 added, which no landing reads, with no bump). A later RED does not unrecord an earlier GREEN of the same head. The merge with main is the MERGE QUEUE'S to test
    (step 4): `ci-gate` runs the whole population on the exact merge, both operating systems, and main moving again
-   costs no re-gate. ONE exception, the case a developer would also re-test: when bringing main in changed a file the
-   branch also changes (`enqueue.merge_overlap`: a true textual merge in a shared file; the files a merge driver
-   merges by key and the inert ones no test reads are set aside), the one gate (`build-local`, Normal priority, its
-   slot served first) runs once on the merged head. The lanes I10 does not review write no gated report, so with no
-   record the landing gates their tip once itself. That one gate's verdicts are read as before: exit 5 on a red,
-   the host named; exit 12, never a red, when the gate driver says BUSY (another gate holds the worktree's gate lock,
-   nothing ran, and the landing lane retries it once the lock is free, kb/Work PB3527; the same exit, for the same wait, when the
-   worktree's own gate is still running (or STARTING: spawned moments ago, its child alive, the lock not yet taken, kb/Work PB3707) and has written no verdict, `gate.gate_phase` over `live_gate` (the gate lock held; never a process id, which Windows reuses), kb/Work PB3662, where the record would
-   otherwise read as exit 14, UNTESTED, and stop the branch); exit 15, never a red, in step 4 when the branch merged a predecessor
+   costs no re-gate: the merge group is the FIRST run of the merged tree, a true textual merge in a shared file
+   included (owner 2026-10-31, kb/Work PB4323 step 8, PB4331: the former exception that re-gated such a merged head
+   here, and the lanes' tip gate, are deleted, and the lanes I10 does not review gate their own tip). THE LANDING GATES
+   NOTHING; before it reads the record, and before every later write of the worktree, it asks the gate lock
+   (`enqueue.gate_busy`): exit 12, never a red, when a gate of the worktree runs (`gate.live_gate`, the gate lock held;
+   never a process id, which Windows reuses, kb/Work PB3662) or is STARTING (spawned moments ago, its child alive, the
+   lock not yet taken, kb/Work PB3707), WHATEVER record exists (kb/Work PB4204: an older GREEN record once let a landing
+   merge main into a worktree under a running gate), and the landing lane retries it once the lock is free; exit 15, never a red, in step 4 when the branch merged a predecessor
    whose pull request is still open into main and so adds that pull request's stamped DEVLOG entry beside its own
    (`enqueue.open_predecessors`: nothing queued, and the lane retries it once no open pull request owns an entry the
    branch carries, kb/Work PB3145); exit 16, never a red, in step 4 (4a) when an open pull request changes a file a

@@ -65,7 +65,7 @@ setting, 3 by default, kb/Work PB2514) — and runs the whole population (kb/Wor
 the branch's own gate record, kb/Work PB3612). The LANDER's local population run is gone: the merge group is the first run of the merged tree
 (kb/Work PB3015: on 2026-10-10 the lander's local population runs were 41 % of all lander minutes, 7–53 min each and
 8 of 15 RED under load), measured per landing by `scripts/orchestrator/landing_measure.py` (the retired train records are the BEFORE column of its `summary`). (2) Every implementer gate runs at `-Priority BelowNormal`, which Windows passes down to the build, the test
-hosts and every compiled program, so the rare gate a landing runs (Normal priority) wins the cores. (3) GITHUB'S MERGE QUEUE
+hosts and every compiled program, so an interactive session's own work wins the cores. (3) GITHUB'S MERGE QUEUE
 ORDERS MAIN (kb/Work PB3023, PB3024): every branch waiting to land is enqueued at once, one pull request per branch, and
 main moving while a branch waits is merged in by `enqueue.py land` with no gate, so no landing waits for another
 or loses a race to main (the R1 lander lost it three times on 2026-10-07, under the direct-push landing). CI's merge
