@@ -377,7 +377,7 @@ conformance-suite/
 ## 9. Drift tests
 
 - The generator's refusals (§4) run in every gate as an audit (`generate.py --check`, one entry of
-  `run_gate_legs.py`'s AUDITS and a command of CI's `audits` job), before the gate slot and the build, so a refused
+  `gate.py`'s AUDITS and a command of CI's `audits` job), before the gate slot and the build, so a refused
   test costs a red in seconds, never a build.
 - Every inventory `test-ref` naming a suite test resolves to a file; every test's `rules` exist in the inventory.
 - Every `accept`/`flag` list agrees with `constructs.json`; every flagged test's control exists and is accepted at

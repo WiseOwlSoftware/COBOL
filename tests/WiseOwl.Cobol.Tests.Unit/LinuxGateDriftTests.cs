@@ -138,7 +138,7 @@ public sealed class LinuxGateDriftTests
     [Fact]
     public void NoGateScript_StartsTheLinuxGate_AndTheLinuxGateHasNoModeButItsLegs()
     {
-        foreach (string caller in new[] { "run_gate_legs.py", "orchestrator/enqueue.py", "orchestrator/land_lane.py", "build-local.ps1", "build-local.sh" })
+        foreach (string caller in new[] { "gate.py", "orchestrator/enqueue.py", "orchestrator/land_lane.py", "build-local.ps1", "build-local.sh" })
         {
             string code = string.Join('\n', File.ReadAllLines(TestRepo.Scripts(caller.Split('/')))
                 .Where(l => !l.TrimStart().StartsWith('#')));
@@ -146,7 +146,7 @@ public sealed class LinuxGateDriftTests
             Assert.DoesNotContain("bash scripts/linux-gate.sh", code, StringComparison.Ordinal);
         }
 
-        string driver = File.ReadAllText(TestRepo.Scripts("run_gate_legs.py"));
+        string driver = File.ReadAllText(TestRepo.Scripts("gate.py"));
         Assert.DoesNotContain("--plan-leg", driver, StringComparison.Ordinal);
         Assert.DoesNotContain("class LinuxLeg", driver, StringComparison.Ordinal);
         Assert.DoesNotContain("runs_linux_leg", driver, StringComparison.Ordinal);

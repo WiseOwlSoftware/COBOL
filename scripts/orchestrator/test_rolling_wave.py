@@ -28,7 +28,7 @@ references/rolling-wave.md), never from what the script does:
      capped;
   4. the reviews' leads reach the wave's result;
   5. a GATE HANDED TO THE WAVE (kb/Work PB3536): an agent that returns GATE-PENDING with its gate's run directory is
-     awaited through the gate's own reader (`run_gate_legs.py --await`, run for real here on planted run directories):
+     awaited through the gate's own reader (`gate.py --await`, run for real here on planted run directories):
      GREEN continues as DONE (the finished test, then the review), RED goes to a gate finisher whose branch is then
      reviewed, a run that never writes a verdict ends STALLED after the await windows, and a review finisher's
      GATE-PENDING settles the same way before the next review round.
@@ -57,7 +57,7 @@ import { spawnSync } from 'node:child_process'
 const src = readFileSync(process.argv[2], 'utf8').replace(/^export const meta/m, 'const meta')
 const scenario = JSON.parse(readFileSync(process.argv[3], 'utf8'))
 const [python, reviewFindings, runGateLegs] = [process.argv[4], process.argv[5], process.argv[6]]
-// the one mechanical agent of awaitGate runs the REAL `run_gate_legs.py --await` on the run directory its prompt names
+// the one mechanical agent of awaitGate runs the REAL `gate.py --await` on the run directory its prompt names
 // (kb/Work PB3536): the wave and every other reader of a gate read one verdict file through one function
 function gateAwaitAgent(prompt) {
   const [, run, worktree, wait] = /--await "([^"]+)" --worktree "([^"]*)" --wait-s (\S+)/.exec(prompt)
@@ -162,7 +162,7 @@ def run(tmp: pathlib.Path, name: str, scenario: dict, findings: list | None = No
         (scratch / "review-w9-a.jsonl").mkdir()
     (tmp / f"{name}.json").write_text(json.dumps(scenario), encoding="utf-8", newline="\n")
     p = subprocess.run(["node", str(tmp / "harness.mjs"), str(tmp / "wave.js"), str(tmp / f"{name}.json"),
-                        sys.executable, str(HERE / "review_findings.py"), str(HERE.parent / "run_gate_legs.py")],
+                        sys.executable, str(HERE / "review_findings.py"), str(HERE.parent / "gate.py")],
                        capture_output=True, text=True, encoding="utf-8",
                        env={**os.environ, "HARNESS_ELSEWHERE": str(scratch)})   # the gate's reader runs from here
     if p.returncode != 0:
@@ -369,10 +369,10 @@ def main() -> int:
         #    whose gate process (this test's own, alive throughout) never writes a verdict.
         runs = tmp / "gate-runs"
         sys.path.insert(0, str(HERE.parent))
-        import run_gate_legs  # noqa: PLC0415  (the gate's reader: its PENDING exit is the one the wave waits through)
+        import gate  # noqa: PLC0415  (the gate's reader: its PENDING exit is the one the wave waits through)
         js_pending = re.search(r"^const AWAIT_PENDING_EXIT = (\d+)$", WAVE.read_text(encoding="utf-8"), re.M)
-        check("5: the wave's AWAIT_PENDING_EXIT is run_gate_legs.AWAIT_PENDING_EXIT, never BUSY's exit",
-              bool(js_pending) and int(js_pending.group(1)) == run_gate_legs.AWAIT_PENDING_EXIT != run_gate_legs.EXIT_BUSY,
+        check("5: the wave's AWAIT_PENDING_EXIT is gate.AWAIT_PENDING_EXIT, never BUSY's exit",
+              bool(js_pending) and int(js_pending.group(1)) == gate.AWAIT_PENDING_EXIT != gate.EXIT_BUSY,
               js_pending and js_pending.group(1))
 
         def gate_run(name: str, verdict: str | None, exit_code: int = 0) -> str:
@@ -389,7 +389,7 @@ def main() -> int:
 
         solo = [{"letter": "A", "lead": "PB1", "notes": "PB1", "codes": "C1"}]
         gate_args = {"gate_await_wait_s": 0, "gate_await_windows": 2}
-        green_run = gate_run("green", "LEG 1 ONLY (batched gating, PB2515): GREEN")
+        green_run = gate_run("green", "GREEN")
         # the form an agent returns (review R1-1 of wave 1152): the run RELATIVE to its worktree, read from elsewhere
         r = run(tmp, "gate-green", {"args": args(solo, **gate_args), "agents": {
             "impl-A-PB1": [{**pending("bA", "a1", "green"), "worktree": str(runs)}],
@@ -402,7 +402,7 @@ def main() -> int:
               and [x["branch"] for x in r["out"]["ready"]] == ["bA"] and res["A"].get("status") == "DONE"
               and res["A"].get("claimed") == "GATE-PENDING" and "GREEN — planted" in (res["A"].get("gate_verdict") or ""),
               (ev, res.get("A")))
-        red_run = gate_run("red", "LEG 1 ONLY (batched gating, PB2515): RED", 1)
+        red_run = gate_run("red", "RED", 1)
         r = run(tmp, "gate-red", {"args": args(solo, **gate_args), "agents": {
             "impl-A-PB1": [pending("bA", "a1", red_run)], "gatefix-A-r1": [impl("bA3", "a3")],
             "w9a-review-r1": [review("CLEAN", "a3")]}})
@@ -417,12 +417,12 @@ def main() -> int:
         # run (what Gate.run writes); the reader asks that lock, never the pid file (review R1-1 of wave 20261104)
         from scratch_repo import ScratchRepo  # noqa: PLC0415  (scripts/: the one scratch fixture)
         stuck_wt = ScratchRepo.init(tmp / "stuck-wt").path
-        stuck_dir = stuck_wt / run_gate_legs.RUN_ROOT / "stuck"
+        stuck_dir = stuck_wt / gate.RUN_ROOT / "stuck"
         stuck_dir.mkdir(parents=True)
-        run_gate_legs.write_pid(stuck_dir, os.getpid())
+        gate.write_pid(stuck_dir, os.getpid())
         stuck_run = str(stuck_dir)
-        stuck_lock = run_gate_legs.ExclusiveLock.try_take(
-            run_gate_legs.Host(stuck_wt).lock_path(), f"gate {stuck_wt} (pid 7, since T{run_gate_legs.RUN_LABEL}{stuck_dir})")
+        stuck_lock = gate.ExclusiveLock.try_take(
+            gate.Host(stuck_wt).lock_path(), f"gate {stuck_wt} (pid 7, since T{gate.RUN_LABEL}{stuck_dir})")
         r = run(tmp, "gate-stuck", {"args": args(solo, **gate_args), "agents": {
             "impl-A-PB1": [pending("bA", "a1", stuck_run)]}})
         ev, res = r["events"], {x["letter"]: x for x in r["out"]["results"]}

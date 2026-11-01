@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ ONE CLASSIFICATION DECIDES THE INERT LANE, AND EVERY LINUX TEST RUN PROVES IT (kb/Work PB2878;
-/// DESIGN-test-build-ci.md §3.18): CI's <c>changes</c> job and the local gate (<c>scripts/run_gate_legs.py</c>) decide
+/// DESIGN-test-build-ci.md §3.18): CI's <c>changes</c> job and the local gate (<c>scripts/gate.py</c>) decide
 /// whether a change skips the test legs, and whether it touches tooling (kb/Work PB4326), by calling
 /// <c>scripts/inert_lane.py</c>, and no path list of their own; every Linux step of CI that runs <c>dotnet test</c>, and
 /// the hand-run Linux gate's (<c>scripts/linux-gate.sh</c>) test legs, run under its inotify watch; and every INERT
@@ -73,7 +73,7 @@ public sealed class InertLaneDriftTests
         // The hand-run Linux gate classifies nothing (kb/Work PB4327): it runs the legs it is asked to, and watches them.
         Assert.DoesNotContain("inert_lane.py\" classify", linuxGate, StringComparison.Ordinal);
         Assert.Contains("scripts/inert_lane.py watch", linuxGate, StringComparison.Ordinal);
-        string driver = File.ReadAllText(TestRepo.Scripts("run_gate_legs.py"));
+        string driver = File.ReadAllText(TestRepo.Scripts("gate.py"));
         Assert.Contains("import inert_lane", driver, StringComparison.Ordinal);
         Assert.Contains("inert_lane.CLASSIFICATION.classify(", driver, StringComparison.Ordinal);
     }
@@ -99,7 +99,7 @@ public sealed class InertLaneDriftTests
         Assert.Equal("github.event_name == 'merge_group' || needs.changes.outputs.run_matrix == 'true'", job.Value("if"));
         Assert.DoesNotContain("pull_request", audits, StringComparison.Ordinal);
 
-        string driver = File.ReadAllText(TestRepo.Scripts("run_gate_legs.py")).ReplaceLineEndings("\n");
+        string driver = File.ReadAllText(TestRepo.Scripts("gate.py")).ReplaceLineEndings("\n");
         Assert.Contains("return self._inert(out, run, lane)", driver, StringComparison.Ordinal);
         string body = driver[driver.IndexOf("    def _inert(", StringComparison.Ordinal)..driver.IndexOf("    def _tested(", StringComparison.Ordinal)];
         Assert.DoesNotContain("take_slot", body, StringComparison.Ordinal);
@@ -122,7 +122,7 @@ public sealed class InertLaneDriftTests
         CiJob windows = Assert.Single(Jobs, j => j.Id == "windows-self-tests");
         Assert.Equal("needs.changes.outputs.run_matrix == 'true' && needs.changes.outputs.tooling == 'true'", windows.Value("if"));
 
-        string driver = File.ReadAllText(TestRepo.Scripts("run_gate_legs.py")).ReplaceLineEndings("\n");
+        string driver = File.ReadAllText(TestRepo.Scripts("gate.py")).ReplaceLineEndings("\n");
         Assert.Contains("TOOLING_ONLY = (\"SELF-TESTS\",)", driver, StringComparison.Ordinal);
         Assert.Contains("if tooling or name not in TOOLING_ONLY", driver, StringComparison.Ordinal);
         Assert.Contains("self.host.audits(_no_slot, lines.append, tooling)", driver, StringComparison.Ordinal);
@@ -152,8 +152,7 @@ public sealed class InertLaneDriftTests
         Assert.Contains("if not test.population:", runner, StringComparison.Ordinal);
         Assert.Contains("if test.population and not whole:", runner, StringComparison.Ordinal);
         Assert.DoesNotContain("if not whole:", runner, StringComparison.Ordinal);
-        foreach (string[] population in new[] { new[] { "hooks", "test_dispatch_guard.py" }, new[] { "orchestrator", "test_plan_wave.py" },
-                                                new[] { "spec", "impacted_tests.py" } })
+        foreach (string[] population in new[] { new[] { "hooks", "test_dispatch_guard.py" }, new[] { "orchestrator", "test_plan_wave.py" } })
         {
             Assert.Contains("# SELF-TEST-POPULATION: tree", File.ReadAllText(TestRepo.Scripts(population)), StringComparison.Ordinal);
         }

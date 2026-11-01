@@ -12,7 +12,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// a merge-queue slot for GitHub's six hours); every <c>actions/checkout</c> step and every
 /// <c>./.github/actions/setup-toolchain</c> step states one of at most five minutes; every job's first step is a checkout
 /// that is retried once with the same <c>with:</c> block; no step saves a cache from a branch ref (<c>actions/cache@</c>
-/// restores AND saves, so a merge group, whose ref is new every time, would save a copy nothing reads again), and the
+/// restores AND saves, so a merge group, whose ref is new every time, would save a copy nothing reads again), no cache save
+/// follows a <c>continue-on-error</c> step that produced what it saves without requiring that step's success (a failed
+/// <c>dotnet restore</c> would otherwise store a partial package set under the exact key, kb/Work PB4348), and the
 /// toolchain action caches Python's tool-cache directory with the rest, restored before <c>actions/setup-python</c>.
 /// </summary>
 /// <remarks>
@@ -116,6 +118,34 @@ public sealed class CiBoundsDriftTests
     internal static List<string> WorkflowCacheOffenders(string file, string workflow) =>
         [.. CiWorkflow.Jobs(workflow).SelectMany(j => CacheSaveOffenders($"{file}: job `{j.Id}`", j.Steps, j.Value("if")))];
 
+    private static bool IsCacheStep(CiStep step) => step.Value("uses")?.StartsWith("actions/cache/", StringComparison.Ordinal) == true;
+
+    private static bool IsCacheSave(CiStep step) => step.Value("uses")?.StartsWith("actions/cache/save@", StringComparison.Ordinal) == true;
+
+    /// <summary>Cache saves whose producer continues on error and is not tested. The producer is the nearest earlier step
+    /// that is not itself a cache step (the one that wrote what the save stores); when it is <c>continue-on-error</c>, the
+    /// save's <c>if</c> must require <c>steps.&lt;its id&gt;.outcome == 'success'</c>. A failed producer otherwise leaves a
+    /// partial set that the save stores under the exact key, and a run that hits an exact key never saves it again
+    /// (kb/Work PB4348). <paramref name="steps"/> are one job's (or a composite action's) steps.</summary>
+    internal static IEnumerable<string> UntestedProducerOffenders(string where, IReadOnlyList<CiStep> steps)
+    {
+        for (int i = 0; i < steps.Count; i++)
+        {
+            if (!IsCacheSave(steps[i]))
+                continue;
+            int p = i - 1;
+            while (p >= 0 && IsCacheStep(steps[p]))
+                p--;
+            if (p < 0 || steps[p].Value("continue-on-error") != "true")
+                continue;
+            string? id = steps[p].Value("id");
+            if (id is null)
+                yield return $"  {where}: step `{steps[i].Label}` saves what `{steps[p].Label}` produced, which continues on error and has no `id` to test";
+            else if (steps[i].Value("if")?.Contains($"steps.{id}.outcome == 'success'", StringComparison.Ordinal) != true)
+                yield return $"  {where}: step `{steps[i].Label}` saves what `{steps[p].Label}` produced without requiring `steps.{id}.outcome == 'success'`";
+        }
+    }
+
     /// <summary>What keeps the toolchain action from caching Python's tool-cache directory: it must restore (and save) the
     /// directory the manifest step names, and restore before <c>actions/setup-python</c> looks for it.</summary>
     internal static List<string> PythonCacheOffenders(string action)
@@ -199,6 +229,24 @@ public sealed class CiBoundsDriftTests
         Assert.True(offenders.Count == 0, "a cache saved from a branch ref is never read again (a merge group's ref is new every time) and "
             + "fills the 10 GB budget that main's own copies need (kb/Work PB4324):\n" + string.Join("\n", offenders));
         Assert.True(saves >= 3, $"the audit read {saves} cache save step(s): the reader or the workflows moved");
+    }
+
+    [Fact]
+    public void NoCacheSavesWhatAFailedStepLeftBehind()
+    {
+        var offenders = new List<string>();
+        int saves = 0;
+        foreach (string file in TrackedTree.Files(Workflows))
+            foreach (CiJob job in CiWorkflow.Jobs(Read(file)))
+            {
+                offenders.AddRange(UntestedProducerOffenders($"{file}: job `{job.Id}`", job.Steps));
+                saves += job.Steps.Count(IsCacheSave);
+            }
+        foreach (string file in TrackedTree.Files(Actions))
+            offenders.AddRange(UntestedProducerOffenders(file, CiWorkflow.Steps(Read(file))));
+        Assert.True(offenders.Count == 0, "a cache saved after its producing step failed stores a partial set under the exact key, and no "
+            + "later run saves that key again (kb/Work PB4348):\n" + string.Join("\n", offenders));
+        Assert.True(saves >= 2, $"the audit read {saves} cache save step(s) under .github/workflows: the reader or the workflows moved");
     }
 
     [Fact]
@@ -333,6 +381,26 @@ public sealed class CiBoundsDriftTests
         Assert.Single(WorkflowCacheOffenders("w.yml", With(Build, "actions/cache/restore@v6", "actions/cache@v6")));
         Assert.Single(WorkflowCacheOffenders("w.yml", With(Build, "- if: ${{ github.ref == 'refs/heads/main' }}\n", "- name: save\n")));
         Assert.Single(WorkflowCacheOffenders("w.yml", With(Warm, "github.ref == 'refs/heads/main' && ", "")));
+
+        // A save after a producer that continues on error: tested, untested, a producer with no id, and a second producer.
+        const string Produce = """
+            jobs:
+              warm:
+                steps:
+                  - id: restore
+                    continue-on-error: true
+                    run: dotnet restore
+                  - uses: actions/cache/restore@v6
+                  - if: ${{ steps.restore.outcome == 'success' }}
+                    uses: actions/cache/save@v6
+                  - run: fetch
+                  - uses: actions/cache/save@v6
+            """;
+        IReadOnlyList<CiStep> StepsOf(string text) => CiWorkflow.Jobs(text)[0].Steps;
+        Assert.Empty(UntestedProducerOffenders("w.yml", StepsOf(Produce)));
+        Assert.Single(UntestedProducerOffenders("w.yml", StepsOf(With(Produce, "steps.restore.outcome == 'success'", "always()"))));
+        Assert.Single(UntestedProducerOffenders("w.yml", StepsOf(With(Produce, "- id: restore", "- name: restore"))));
+        Assert.Single(UntestedProducerOffenders("w.yml", StepsOf(With(Produce, "- run: fetch", "- continue-on-error: true\n        run: fetch"))));
 
         // Python's directory in the toolchain cache.
         const string Action = """

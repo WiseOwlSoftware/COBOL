@@ -7,7 +7,8 @@ A live tool is a script the gates, the loop or a session run against this tree. 
   scripts/temp_names.py    holds every script under ROOTS to no fixed name in the machine-wide temp directory;
   scripts/scratch_repo.py  its audit holds every self-test under ROOTS to the one scratch-repository fixture (PB3584);
   scripts/standard_streams.py  holds every Python file under ROOTS to the one UTF-8 switch for its streams (PB3637);
-  scripts/gate_plan.py     its trx-writer and trx-reader audits read every live tool for the one trx reader (PB3661).
+  scripts/gate.py          its trx-writer audit reads every live tool (PB3155);
+  scripts/test_population.py  its trx-reader audit reads every live tool for the one trx reader (PB3661).
 Each kept its own copy until PB3176: when the conformance suite's harness (conformance-suite/harness/, whose generator is
 a gate audit; kb/Work PB3174) joined the self-test runner and the WRITERS arm, the temp-name audit's copy stayed at
 scripts/ and .claude/, so a fixed temp name committed in the harness passed every gate. A tree added here reaches all

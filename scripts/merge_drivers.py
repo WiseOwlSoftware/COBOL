@@ -83,11 +83,11 @@ the merge commit. The settle writes only the files abi_pin.OWNED names; `prune_w
 coverage rule) accepts a merge whose tree differs from the drivers' own merge in those files and nowhere else.
 `merge` answers with a `Merged`, which tells THREE ends apart (kb/Work PB3673): the branch now contains the ref (`clean`),
 files left in conflict (`conflicts`: a finisher resolves them), and a CLEAN merge whose runtime ABI pin could not be
-settled (`unsettled`: abi_pin's Failure, classified by run_gate_legs.NOT_RUN_CAUSES as the host's or the tree's). Both
+settled (`unsettled`: abi_pin's Failure, classified by gate.NOT_RUN_CAUSES as the host's or the tree's). Both
 non-clean ends abort the merge and leave the branch unchanged (`--keep` leaves it in progress for a finisher); the landing
 (enqueue.py) ends them differently, because a conflict is a finisher's work and a settle the host blocked is a retry. The
 `merge` command's exit: 0 merged · 1 conflicts · EXIT_INCOMPLETE (3) a clean merge that could not be completed, its line
-`NOT COMPLETED [<cause>] — …` naming the cause's tag (run_gate_legs.NOT_RUN_CAUSES: `merge-blocked` is the host's,
+`NOT COMPLETED [<cause>] — …` naming the cause's tag (gate.NOT_RUN_CAUSES: `merge-blocked` is the host's,
 `merge-failed` the merged tree's).
 """
 from __future__ import annotations
@@ -513,7 +513,7 @@ class Merged(NamedTuple):
     """What `merge` made of its ref (kb/Work PB3673): THREE ends, which a caller must tell apart because three different
     people fix them. `clean`: the branch now contains the ref. `conflicts`: the files left in conflict, a finisher's work.
     `incomplete`: the merge was clean (or git refused to start it) but could not be completed, abi_pin's Failure with the
-    cause classified by run_gate_legs: the ABI pin could not be settled, or git refused the merge commit or the fast-forward;
+    cause classified by gate: the ABI pin could not be settled, or git refused the merge commit or the fast-forward;
     MERGE_BLOCKED is the host's, a retry's, MERGE_FAILED is the merged tree's. Never both a conflict and an incomplete merge.
     `in_progress`: the merge was left in progress for a finisher (`keep`), not aborted."""
     conflicts: tuple[str, ...] = ()

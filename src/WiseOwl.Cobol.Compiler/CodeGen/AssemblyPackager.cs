@@ -36,9 +36,8 @@ public static class AssemblyPackager
     /// precompiles the runtime for each platform in <c>CobolRuntimeReadyToRunIdentifiers</c> and lays each beside
     /// the compiler at <c>ReadyToRun/&lt;rid&gt;/</c>, because a COBOL program is its own process and would otherwise
     /// JIT-compile the runtime's methods at every start. On a platform the build precompiled nothing for, it is the
-    /// portable assembly beside the compiler, the same source compiled by the JIT at run time. That is also what an
-    /// impact-recording build deploys: it turns the images off so that programs load the probed assembly
-    /// (tools/impact/ImpactRecording.targets).</para></summary>
+    /// portable assembly beside the compiler, the same source compiled by the JIT at run time, which is also what a
+    /// build with <c>CobolRuntimeReadyToRun=false</c> deploys.</para></summary>
     /// <remarks>Public because the Conformance runner's compiled-program cache keys on this file. Declared after
     /// <see cref="ReadyToRunPlatform"/>, which its initializer reads: static initializers run in declaration
     /// order.</remarks>
