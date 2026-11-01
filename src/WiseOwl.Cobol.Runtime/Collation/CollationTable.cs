@@ -445,6 +445,60 @@ public sealed class CollationTable
         });
     }
 
+    /// <summary>⛔ THE INVARIANT OF <see cref="NumericLead"/> (kb/Work PB4264): no character of the table carries its
+    /// primary, the digit zero's primary - 1. The small-integer count and digit elements after a number's lead would
+    /// meet that weight, so a number would compare equal to a character at the first of them, or sort INSIDE the words
+    /// that start with it. It holds of every table this one derives, whoever placed the weights: a hand-written
+    /// <c>.tailor</c> weight can name the value outright, and a tailoring that moves the digit zero moves the lead onto
+    /// whatever stands just below the zero's new primary. The CLDR builder keeps the value free by construction (the
+    /// reserved top of each root gap and <c>Slot.ReservesValueBelow</c>); this check, at the one derivation step, is
+    /// what a weight it did not place cannot get past. It reads the PRODUCED table's reachable mappings, so a mapping
+    /// the plan replaced is not counted, and names the entry of the file like every other problem of it (kb/Work
+    /// PB2773).</summary>
+    private void RefuseNumericLeadCarrier(TailoringPlan plan)
+    {
+        int lead = NumericLead.Primary;
+        bool Carries(int offset, int count)
+        {
+            for (int i = offset; i < offset + count; i++)
+                if (_elements[i].Primary == lead) return true;
+            return false;
+        }
+        bool carried = false;
+        foreach (int packed in _singles.Values)
+            if (carried = Carries(packed >> 8, packed & 0xFF)) break;
+        if (!carried)
+            foreach (var list in _contractions.Values)
+            {
+                foreach (var c in list)
+                    if (carried = Carries(c.Offset, c.Count)) break;
+                if (carried) break;
+            }
+        if (!carried) return;
+
+        // The entry whose weight IS the lead, else the one that moved the digit zero, else the file alone.
+        string reason = "a character carries the numeric-ordering lead, the value just below the digit zero's primary, which no character may carry";
+        int? line = null;
+        for (int i = 0; i < plan.Entries.Count; i++)
+        {
+            var (codePoints, elements) = plan.Entries[i];
+            if (elements.Any(e => e.Primary == lead))
+            {
+                reason = $"the primary weight of {Spell(codePoints)} is the numeric-ordering lead, the value just below the digit zero's primary, which no character may carry";
+                line = plan.Tailoring?.Entries[i].Line;
+                break;
+            }
+            if (line is null && codePoints is [0x30])
+            {
+                reason = $"{Spell(codePoints)} moves the digit zero to a primary whose preceding value another character carries, and the numeric-ordering lead stands there";
+                line = plan.Tailoring?.Entries[i].Line;
+            }
+        }
+        throw new LocaleCollationException(plan.Tailoring?.Source ?? plan.Name, line, reason);
+
+        static string Spell(int[] codePoints) => string.Join(" ", codePoints.Select(c => $"U+{c:X4}"));
+    }
+
     /// <summary>The ONE derivation step every tailoring goes through: a NEW table from this one and a
     /// <see cref="TailoringPlan"/> — the base pool re-weighted through the plan's remapping (renumbering, reordering;
     /// identity when null), the plan's entries added or replacing existing mappings, contractions starting with the
@@ -526,12 +580,18 @@ public sealed class CollationTable
                 if (!provisional.GetElements(cp).Span.SequenceEqual(walked)) composites.Add((cp, walked));
             }
         }
-        if (composites.Count == 0) return provisional;
+        if (composites.Count == 0)
+        {
+            provisional.RefuseNumericLeadCarrier(plan);
+            return provisional;
+        }
         foreach (var (cp, elements) in composites)
         {
             AddMapping(singles, contractions, [cp], Append(elements), elements.Length, ref contractionCount);
         }
-        return Derived(plan, pool, poolCount, singles, contractions, contractionCount, composites.Count);
+        var closed = Derived(plan, pool, poolCount, singles, contractions, contractionCount, composites.Count);
+        closed.RefuseNumericLeadCarrier(plan);
+        return closed;
     }
 
     /// <summary>A table over this one's Unicode data with the given mappings and the plan's names, groups and maps.</summary>

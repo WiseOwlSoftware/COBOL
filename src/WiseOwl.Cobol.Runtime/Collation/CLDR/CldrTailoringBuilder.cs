@@ -67,6 +67,10 @@ public static class CldrTailoringBuilder
         /// <summary>The root-scale weight this slot IS (a root slot) or is anchored after (an inserted slot).</summary>
         public required int Root { get; init; }
         public bool IsInserted { get; init; }
+        /// <summary>True when the value just below this slot must stay free of any other slot: this is the primary slot
+        /// of the digit zero, and <see cref="CollationTable.NumericLead"/> stands one below the zero's primary (set by the
+        /// builder before numbering, kb/Work PB4264).</summary>
+        public bool ReservesValueBelow { get; set; }
         public LinkedListNode<Slot>? Node { get; set; }
         /// <summary>Assigned by <see cref="Line.Number"/> (this table's scale, before any reordering).</summary>
         public int Value { get; set; } = -1;
@@ -154,11 +158,11 @@ public static class CldrTailoringBuilder
                 int value = (int)(root + shift);
                 long gap = (index + 1 < _roots.Length ? _roots[index + 1] - root : long.MaxValue / 4) - _reservedTop;
                 int v = value;
-                foreach (var slot in list) slot.Value = ++v;
-                if (list.Count >= gap)
+                int used = Assign(list, ref v);
+                if (used >= gap)
                 {
                     Overflowed = true;
-                    shift += list.Count - gap + 1;
+                    shift += used - gap + 1;
                     shifts.Add((index + 1, shift));
                 }
             }
@@ -166,10 +170,9 @@ public static class CldrTailoringBuilder
             foreach (var (anchor, list) in _after)
             {
                 if (Array.BinarySearch(_roots, anchor) >= 0) continue;
-                if (list.Count > _fixedRoom)
-                    throw new NotSupportedException($"more than {_fixedRoom} relations after an implicit-weight position (level {Level}) are not supported");
                 int v = anchor;
-                foreach (var slot in list) slot.Value = ++v;
+                if (Assign(list, ref v) > _fixedRoom)
+                    throw new NotSupportedException($"more than {_fixedRoom} relations after an implicit-weight position (level {Level}) are not supported");
             }
             // The root slots the rules created: a root keeps its value plus the shift in force at it; a weight that is not
             // on the line (the implicit BBBB weights, read from a reset) keeps its value.
@@ -188,6 +191,20 @@ public static class CldrTailoringBuilder
                 to[i] = (int)(_roots[i] + current);
             }
             return new WeightMap((int[])_roots.Clone(), to);
+        }
+
+        /// <summary>Gives the slots inserted after one anchor their values from <paramref name="v"/> on, one each, leaving
+        /// the value below a <see cref="Slot.ReservesValueBelow"/> slot unused; returns how many values the list took.</summary>
+        private static int Assign(LinkedList<Slot> list, ref int v)
+        {
+            int used = 0;
+            foreach (var slot in list)
+            {
+                if (slot.ReservesValueBelow) { v++; used++; }
+                slot.Value = ++v;
+                used++;
+            }
+            return used;
         }
 
         private static long ShiftAt(List<(int FromIndex, long Shift)> shifts, int rootIndex)
@@ -433,6 +450,10 @@ public static class CldrTailoringBuilder
                 return new CldrBuildResult(_base, options, _unsupported, _notes, _rulesApplied);
 
             // ---- number the lines --------------------------------------------------------------------------
+            // The digit zero's primary slot, when a rule inserted it, keeps the value below it free: that value is the
+            // numeric-ordering lead (CollationTable.NumericLead), a primary no character may carry (kb/Work PB4264).
+            if (_tailored.TryGetValue("0", out var zeroElements) && zeroElements is [{ P: { IsInserted: true } zeroPrimary }, ..])
+                zeroPrimary.ReservesValueBelow = true;
             // Numbering is the whole collation's, not one rule's: a line that cannot be numbered leaves no table to
             // build, so it is the resolution failure (kb/Work PB2773), never an exception of another type.
             WeightMap? pMap, sMap, tMap, qMap;
