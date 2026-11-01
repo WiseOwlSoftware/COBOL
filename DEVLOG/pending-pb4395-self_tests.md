@@ -47,4 +47,9 @@ line that named a deleted class; the C# comments that named one (`SelfTestArmSou
 `TrackedTree`) too. `scripts/inert_lane.py` is the
 integrator's: its CODE_READS readers lose these classes (see the report).
 
-**Gate.** Recorded in the report.
+**Gate.** Run 000001-20261101T211212Z at c73dab4e4 ended `NOT RUN [verdict]`: its process died at the fleet stop
+(STOP-w20261810, "integrate now; one gate on the merged head"). Before it died, Unit was `Failed: 3` of 39,218 and
+Characterization was `Passed 37/37`. The three Unit reds are fixed in a04a5a5e4. Two were SparseCheckoutDriftTests: the
+ci-gate job's sparse checkout now lists `scripts/ci_workflow.py`, which test_population.py imports. The third was
+LandingLaneDriftTests: it now expects land_lane's classify_red label as f5b9e021e rewrote it. The integrator's gate on the
+merged head is this branch's verdict.
