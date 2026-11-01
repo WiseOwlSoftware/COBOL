@@ -799,7 +799,7 @@ Two consequences shape the families:
 | `NistDifferentialTests_P0 … _P5` | 6 | 349 rows, 237.9 s SERIAL | 6 × (58–59 rows), 329–354 s each |
 | `ConformanceSuiteTests_P0 … _P31` (formerly `CorpusRunnerTests`) | 32 | at 3 partitions (2026-10-07, about 4,635 rows): 3 × about 1,546 cases, 246–282 s each, the Conformance leg's 95–220 s tail at 1–4 threads | 24 × about 193 rows (kb/Work PB2527); now one partition per processor of the 32-way gate host, each its 32nd of the suite (about 12,000 rows in 2026-10: about 375 a partition) |
 | `OptionalWordSubsetDriftTests_P0 … _P7` | 8 | one 23-row class, 131–152 s span (one row 59 s) | 8 partitions (kb/Work PB2527), each an eighth of the SPELLINGS since kb/Work PB4146 (about 380 spellings of 26 formats in 2026-10: about 48 a partition), so no format's power set lands whole in one partition |
-| `StorageFormNistEquivalenceTests_P0 … _P7` | 8 | one `[Fact]` looping the corpus, **171.5 s** — *was* the Unit leg's wall clock | 8 slice-`[Fact]`s, 81–138 s each |
+| `StorageFormNistEquivalenceTests_P0 … _P15` | 16 | one `[Fact]` looping the corpus, **171.5 s** — *was* the Unit leg's wall clock; at 8 partitions the slowest (`_P6`) took 131 s | 16 slice-`[Fact]`s (kb/Work PB4325), the slowest about 65 s |
 
 Whole-corpus assertions stay OFF the partitioned base and run ONCE (`VersionMatrixTests`' two catalogue facts,
 `ConformanceSuiteTests.TheAlternativeSignConventionTest_CarriesItsWiseOwlOption`) — an inherited `[Fact]` would run N times and inflate
