@@ -9,9 +9,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ ONE CLASSIFICATION DECIDES THE INERT LANE, AND EVERY LINUX TEST RUN PROVES IT (kb/Work PB2878;
 /// DESIGN-test-build-ci.md §3.18): CI's <c>changes</c> job, the local gate (<c>scripts/run_gate_legs.py</c>) and the
-/// Linux gate (<c>scripts/linux-gate.sh</c>) each decide whether a change skips the test legs by calling
+/// Windows gate (<c>scripts/run_gate_legs.py</c>) decide whether a change skips the test legs by calling
 /// <c>scripts/inert_lane.py</c>, and no path list of their own; every Linux step of CI that runs <c>dotnet test</c>, and
-/// the Linux gate's test legs, run under its inotify watch; and every INERT and READ entry names a tracked path.
+/// the hand-run Linux gate's (<c>scripts/linux-gate.sh</c>) test legs, run under its inotify watch; and every INERT
+/// and READ entry names a tracked path.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -66,10 +67,11 @@ public sealed class InertLaneDriftTests
     }
 
     [Fact]
-    public void TheGates_DecideTheLaneThroughTheOneClassification_AndTheLinuxGateWatchesItsTestLegs()
+    public void TheGateDecidesTheLaneThroughTheOneClassification_AndTheLinuxGateWatchesItsTestLegs()
     {
         string linuxGate = File.ReadAllText(TestRepo.Scripts("linux-gate.sh"));
-        Assert.Contains("scripts/inert_lane.py\" classify", linuxGate, StringComparison.Ordinal);
+        // The hand-run Linux gate classifies nothing (kb/Work PB4327): it runs the legs it is asked to, and watches them.
+        Assert.DoesNotContain("inert_lane.py\" classify", linuxGate, StringComparison.Ordinal);
         Assert.Contains("scripts/inert_lane.py watch", linuxGate, StringComparison.Ordinal);
         string driver = File.ReadAllText(TestRepo.Scripts("run_gate_legs.py"));
         Assert.Contains("import inert_lane", driver, StringComparison.Ordinal);
@@ -77,33 +79,24 @@ public sealed class InertLaneDriftTests
     }
 
     /// <summary>
-    /// THE INERT LANE RUNS THE LINUX SCRIPT SELF-TESTS, BECAUSE CI'S <c>audits</c> JOB DOES ON EVERY EVENT (kb/Work PB3646).
-    /// The self-tests are audits that read the inert paths by design, so no test-leg watch covers them and a kb/ or
-    /// DEVLOG/ change can turn them red on Linux; before PB3646 the Linux gate's inert lane and the Windows gate's both
-    /// ended GREEN before any Linux self-test ran. Both local runners now run them, and neither names a self-test: the
-    /// one discovering runner does.
+    /// THE INERT LANE'S LINUX SELF-TESTS ARE CI'S, NOT THE LOCAL GATE'S (kb/Work PB3646, PB4327). CI's <c>audits</c> job
+    /// runs the script self-tests on Linux on EVERY event, inert ones included, and they are audits that read the inert
+    /// paths by design (so no test-leg watch covers them and a kb/ or DEVLOG/ change can turn them red on Linux). The
+    /// local gate used to run them too, in a WSL clone; since PB4327 the Windows gate's inert lane ends after its audits
+    /// and takes no slot, and the merge group is the first Linux run of a notes-only change.
     /// </summary>
     [Fact]
-    public void TheInertLane_RunsTheLinuxSelfTests_ThatTheAuditsJobRunsOnEveryEvent()
+    public void TheAuditsJob_RunsTheLinuxSelfTestsOnEveryEvent_AndTheLocalInertLaneRunsNone()
     {
         string audits = Assert.Single(Jobs, j => j.Id == "audits").Code;
         Assert.Contains("python3 scripts/self_tests.py", audits, StringComparison.Ordinal);
         Assert.DoesNotContain("run_matrix", audits, StringComparison.Ordinal);   // no event skips it
 
-        string linuxGate = File.ReadAllText(TestRepo.Scripts("linux-gate.sh")).ReplaceLineEndings("\n");
-        int inert = linuxGate.IndexOf("if [ \"$inert\" = 1 ]; then\n  selftests_leg selftests \"$snap\"", StringComparison.Ordinal);
-        Assert.True(inert > 0, "linux-gate.sh's inert lane no longer runs the selftests leg before it ends (kb/Work PB3646)");
-        int exitGreen = linuxGate.IndexOf("exit 0", inert, StringComparison.Ordinal);
-        Assert.True(linuxGate.IndexOf("selftests_leg()", StringComparison.Ordinal) < inert
-                    && inert < exitGreen && linuxGate.IndexOf("--legs inert", StringComparison.Ordinal) > 0,
-            "the inert lane's selftests leg must run before its verdict, and `--legs inert` must be a mode (the Windows gate's Linux half)");
-
         string driver = File.ReadAllText(TestRepo.Scripts("run_gate_legs.py")).ReplaceLineEndings("\n");
-        int inertArm = driver.IndexOf("return self._inert(out, label, run, lane)", StringComparison.Ordinal);
-        Assert.True(inertArm > 0, "the gate driver's inert lane no longer ends in _inert, which runs the Linux self-tests");
+        Assert.Contains("return self._inert(out, run, lane)", driver, StringComparison.Ordinal);
         string body = driver[driver.IndexOf("    def _inert(", StringComparison.Ordinal)..driver.IndexOf("    def _tested(", StringComparison.Ordinal)];
-        Assert.Contains("self._linux_leg(out, run, None, [], slot.spawn_kwargs, inert=True)", body, StringComparison.Ordinal);
-        Assert.Contains("runs_linux_leg()", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("take_slot", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("linux", body, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

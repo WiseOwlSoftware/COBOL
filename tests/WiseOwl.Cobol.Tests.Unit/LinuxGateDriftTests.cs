@@ -122,38 +122,36 @@ public sealed class LinuxGateDriftTests
     }
 
     /// <summary>
-    /// ⛔ THE LINUX HALF OF THE LOCAL GATE IS ONE COMMAND, AND BOTH ENDS SPELL IT THE SAME WAY (kb/Work PB3612, owner
-    /// 2026-10-23): <c>scripts/run_gate_legs.py</c> (<c>Host.linux_leg</c>) starts <c>bash scripts/linux-gate.sh --legs
-    /// targeted --plan &lt;plan.json&gt; --plan-legs &lt;n&gt; --nice</c> after a green Windows half, under the slot it holds,
-    /// and <c>linux-gate.sh</c> answers with a <c>=== LINUX GATE: </c> line that the driver reads with its one verdict
-    /// reader; <c>linux-gate.sh</c> in turn runs the driver's <c>--plan-leg</c> in its built clone, so the legs of the
-    /// Windows half's plan run on Linux through the same handshake, population check and identity check.
+    /// ⛔ THE PER-CHANGE GATE RUNS NOTHING ON LINUX (kb/Work PB4327, owner 2026-10-31; PIPELINE-REVIEW.md section 7): the
+    /// Linux half of the targeted leg re-ran on WSL the leg Windows had just run, cost 167 s a gate and was red once in 78
+    /// records, a population-check false red. CI's merge group runs the whole Linux population and every Linux
+    /// self-test; <c>scripts/linux-gate.sh</c> is the tool that reproduces a Linux CI red, run by hand.
     /// </summary>
     /// <remarks>
-    /// The driver's self-test plants the Linux half (<c>FakeHost.linux_leg</c>), and the script's self-test checks its
-    /// argument rules; neither runs the other. A flag renamed on one side is therefore red here, never first found by a
-    /// gate that reports <c>NOT RUN [arguments]</c> to an implementer on a Windows host.
+    /// What would bring the half back is a caller: the gate driver, the landing or the landing lane starting
+    /// <c>linux-gate.sh</c>, a <c>--plan-leg</c> entry in the driver for a clone to call, or a mode of the script that
+    /// takes a plan. Each is red here, so "the Linux half left the gate" stays true.
     /// </remarks>
     [Fact]
-    public void TheDriversLinuxHalf_AndTheLinuxGatesTargetedMode_AgreeOnTheirArguments()
+    public void NoGateScript_StartsTheLinuxGate_AndTheLinuxGateHasNoModeButItsLegs()
     {
-        string driver = File.ReadAllText(TestRepo.Scripts("run_gate_legs.py"));
-        string gate = File.ReadAllText(TestRepo.Scripts("linux-gate.sh"));
+        foreach (string caller in new[] { "run_gate_legs.py", "orchestrator/enqueue.py", "orchestrator/land_lane.py", "build-local.ps1", "build-local.sh" })
+        {
+            string code = string.Join('\n', File.ReadAllLines(TestRepo.Scripts(caller.Split('/')))
+                .Where(l => !l.TrimStart().StartsWith('#')));
+            Assert.DoesNotContain("\"scripts/linux-gate.sh\"", code, StringComparison.Ordinal);
+            Assert.DoesNotContain("bash scripts/linux-gate.sh", code, StringComparison.Ordinal);
+        }
 
-        Assert.Contains("\"bash\", \"scripts/linux-gate.sh\", \"--legs\", \"targeted\", \"--plan\"", driver);
-        Assert.Contains("\"--plan-legs\"", driver);
-        Assert.Contains("\"--nice\"", driver);
-        Assert.Matches(new Regex(@"^\s*--plan\)", RegexOptions.Multiline), gate);
-        Assert.Matches(new Regex(@"^\s*--plan-legs\)", RegexOptions.Multiline), gate);
-        // `targeted|inert)`: the two stand-alone modes check_legs accepts (kb/Work PB3612, PB3646).
-        Assert.Matches(new Regex(@"^\s*targeted\|inert\)", RegexOptions.Multiline), gate);
-        Assert.Contains("\"bash\", \"scripts/linux-gate.sh\", \"--legs\", \"inert\", \"--nice\"", driver);
-        Assert.Contains("scripts/run_gate_legs.py --plan-leg", gate);
-        Assert.Contains("add_argument(\"--plan-leg\"", driver);
-        Assert.Contains("add_argument(\"--plan-legs\"", driver);
-        Assert.Contains("add_argument(\"--results\"", driver);
-        Assert.Contains("LINUX_VERDICT = \"=== LINUX GATE: \"", driver);
-        Assert.Contains("PLAN_LEG_VERDICT = \"=== PLAN LEG: \"", driver);
-        Assert.Contains("=== PLAN LEG: ", gate);
+        string driver = File.ReadAllText(TestRepo.Scripts("run_gate_legs.py"));
+        Assert.DoesNotContain("--plan-leg", driver, StringComparison.Ordinal);
+        Assert.DoesNotContain("class LinuxLeg", driver, StringComparison.Ordinal);
+        Assert.DoesNotContain("runs_linux_leg", driver, StringComparison.Ordinal);
+
+        string gate = File.ReadAllText(TestRepo.Scripts("linux-gate.sh"));
+        foreach (string mode in new[] { "--plan)", "--plan-legs)", "--probe)", "targeted|inert)", "--plan-leg " })
+        {
+            Assert.DoesNotContain(mode, gate, StringComparison.Ordinal);
+        }
     }
 }
