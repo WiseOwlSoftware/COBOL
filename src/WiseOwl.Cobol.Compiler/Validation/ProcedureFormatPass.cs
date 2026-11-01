@@ -31,7 +31,9 @@ using Core = CobolParserCore;
 /// screened unless its parent is the IF statement — a NEW phrase rule is screened automatically, which a list of
 /// phrase rules could never be. The classification is <see cref="ConditionalStatements.IsConditional"/>.</item>
 /// <item><b>Format 1 (with sections) and Format 2 (without sections) are distinct</b> (kb/Work PB1146; §14.2.1, §14.4.1).
-/// The grammar parses <c>declarativePart* sentence* procedureUnit*</c>, the union of the two formats. Format 1 prints
+/// The grammar parses <c>declarativePart* sentence* paragraphDefinition* sectionDefinition*</c>, the union of the two
+/// formats (every paragraph after a section header is that section's, §14.4.2, so a paragraph outside every section is
+/// one written before the first section header; kb/Work PB4230). Format 1 prints
 /// nothing between the procedure division header (or END DECLARATIVES) and the first section header, prints ONE
 /// bracketed DECLARATIVES portion, and §14.4.1 adds "If one paragraph is in a section, all paragraphs shall be in
 /// sections" — so once a division has a section (a DECLARATIVES portion is made of sections), a sentence or a paragraph
@@ -149,11 +151,10 @@ internal sealed class ProcedureFormatPass(IDiagnosticSink sink) : CursorFollowin
                 "a second DECLARATIVES portion — §14.2.1 Format 1 prints ONE bracketed DECLARATIVES … END DECLARATIVES "
                 + "portion, immediately after the procedure division header");
 
-        var units = ctx.procedureUnit();
-        bool hasSections = declaratives.Length > 0 || units.Any(u => u.sectionDefinition() is not null);
-        if (hasSections)
+        bool hasSectionDefinitions = ctx.sectionDefinition().Length > 0;
+        if (hasSectionDefinitions || declaratives.Length > 0)
         {
-            string why = units.Any(u => u.sectionDefinition() is not null)
+            string why = hasSectionDefinitions
                 ? "the procedure division has sections, so it is §14.2.1 Format 1 (with-sections)"
                 : "the procedure division has DECLARATIVES, which only §14.2.1 Format 1 (with-sections) admits";
             var sentences = ctx.sentence();
@@ -161,11 +162,11 @@ internal sealed class ProcedureFormatPass(IDiagnosticSink sink) : CursorFollowin
                 ReportFormat(sentences[0],
                     $"a sentence outside every section — {why}, which prints nothing between the procedure division "
                     + "header (or END DECLARATIVES) and the first section header");
-            var paragraphs = units.Select(u => u.paragraphDefinition()).OfType<Core.ParagraphDefinitionContext>().ToList();
-            if (paragraphs.Count > 0)
+            var paragraphs = ctx.paragraphDefinition();
+            if (paragraphs.Length > 0)
                 ReportFormat(paragraphs[0],
                     $"paragraph {ProcedureNameShape.Head(paragraphs[0].paragraphName().procedureName()).ToUpperInvariant()} is not in a section"
-                    + (paragraphs.Count > 1 ? $" (nor are {paragraphs.Count - 1} more paragraphs after it)" : "")
+                    + (paragraphs.Length > 1 ? $" (nor are {paragraphs.Length - 1} more paragraphs after it)" : "")
                     + $" — {why}, and §14.4.1: \"If one paragraph is in a section, all paragraphs shall be in sections\"");
         }
         return base.VisitChildren(ctx);

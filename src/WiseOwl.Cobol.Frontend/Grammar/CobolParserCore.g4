@@ -676,8 +676,22 @@ procedureDivision
                          // following the procedure division header or a section header". Legal COBOL with no
                          // paragraph at all; NIST/CCVS never exercises it (it always writes paragraph names),
                          // which is why the GnuCOBOL external corpus was what surfaced it (DEVLOG 931).
-      procedureUnit*
+      paragraphDefinition*   // §14.2.1 Format 2's paragraphs (without sections)
+      sectionDefinition*     // §14.2.1 Format 1's sections, each holding the paragraphs that follow its header
     ;
+// ⛔ THE SECTION OWNS ITS PARAGRAPHS IN THE SHAPE, NOT BY A PREDICTION CHOICE (kb/Work PB4230). §14.4.2: "A section
+// consists of a section header followed by zero, one, or more successive paragraphs. A section ends immediately before
+// the next section or at the end of the procedure division", so every paragraph after a section header is that
+// section's. ⛔ Never one loop over `(sectionDefinition | paragraphDefinition)`: a paragraph after a section header could
+// then also close the section's paragraphDefinition* loop and be the division's own, both derivations accept every
+// token to the next section header or the end of the division, and full-context LL prediction (the pass every program
+// whose SLL pass bails takes) scans that far at EVERY paragraph header — quadratic in a section's paragraphs (a legal
+// 400-paragraph section with one `SET p TO NULL` compiled in 112 s that way). In this shape the only continuations
+// after a section's last paragraph are another section header, an end marker, a nested source unit or the end of
+// input, which differ from `paragraphName DOT` within the header's own tokens.
+// The union of the two formats is kept: sentences or paragraphs ahead of the first section, beside a section or a
+// DECLARATIVES portion, still parse here so ProcedureFormatPass can refuse them by name (COBOL2797, kb/Work PB1146).
+// ProcedureDivisionShapeDriftTests holds the bound: no procedure-division decision looks further than one header.
 
 usingClause
     : USING usingParameter (COMMA? usingParameter)*
@@ -853,11 +867,6 @@ declarativeParagraph
 // The period is the ONLY place DOT appears in procedure body.
 sentence
     : statement+ DOT
-    ;
-
-procedureUnit
-    : sectionDefinition
-    | paragraphDefinition
     ;
 
 // SECTION integerLiteral? — the '85 segment-number; see the declarativeSection note (VCR Table 7 row 7.18).
