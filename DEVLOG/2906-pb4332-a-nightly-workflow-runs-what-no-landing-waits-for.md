@@ -1,0 +1,70 @@
+## Entry 2906 — 2026-10-31 20:12 PDT — PB4332: a nightly workflow runs what no landing waits for (step 9 of the pipeline redesign)
+
+Step 9 of PB4323. The pipeline had two daily schedules' worth of work and one scheduled workflow: `toolchain-freshness.yml`
+asked each publisher for its newest release, while the NIST corpus through the `cobol` CLI ran in every merge group (734 s
+at JOBS=4, the group's longest serial job once step 6 splits the rest), the Windows script self-tests ran on every group,
+and the GnuCOBOL differential ran only when an operator started a battery. None of the three needs a landing to wait for it.
+
+**What landed.** `.github/workflows/nightly.yml`, 09:17 UTC and `workflow_dispatch`, independent jobs (no `needs`, so one
+red never hides another's verdict), each with `timeout-minutes`:
+
+- `guard`: `scripts/guard-fast.sh` on Linux, the job body of build-and-test.yml's `guard`. That job stays in the merge
+  group until step 6 (PB4329) removes it, as owner decision 2 orders; the nightly job is its one home afterwards.
+- `self-tests`: both OSes, `self_tests.py` (nothing reused), `line_endings.py --check`, then a solution build and
+  `self_tests.py --built`. The merge group will run the Windows self-tests only when a tooling path changed (step 3), and
+  never ran `--built` on Windows at all; this is where both are seen daily.
+- `differential`: Windows, `SKIP_TESTS=1 SKIP_GUARD=1 bash scripts/battery.sh`, so the corpus fetch, the build and phase 3
+  keep the battery's one definition instead of a second copy. Windows because `gnucobol_differential.py` defaults to the
+  `cobol.exe` apphost and the committed baseline was measured there.
+- `shard-spread`: the new `scripts/shard_weights.py report`. It lists the last 24 hours of successful merge-group runs of
+  build-and-test.yml (the newest 8 that ran the matrix), downloads one run's `test-results-<OS>-<job>` artifacts at a
+  time, deletes them after reading, reads each shard's wall from its trx
+  `<Times>`, and prints `=== SHARD SPREAD: <slowest over mean>x WITHIN (<= 1.50x) ... ===` (or `OVER (> 1.50x)`). Exit 1 above 1.5 (the weights
+  file wants regenerating, PB4323 R7), 2 when a download or trx cannot be read (UNMEASURED: a report that cannot see is
+  never a green), 0 NOT MEASURED on a day nothing ran the matrix. PB4328 adds `generate` to the same file and reuses
+  `shard_walls` and `trx_times`. The report is NOT MEASURED (green) until the merge group shards by the weights file.
+- `latest` and `images`: moved from `toolchain-freshness.yml`, which is deleted, with the bounds PB4324 gave them there
+  (below). Two daily schedules would be two
+  mechanisms for one job, so every reference moved with it (toolchain.py's messages and comments, toolchain.env, the
+  setup-toolchain action, two test doc comments, DESIGN-test-build-ci.md, DOC_INDEX.md, plan section 0).
+
+**Re-probe.** The workflow cannot run off GitHub, so the probe is its commands: `shard_weights.py --self-test` (every
+arm: .NET's seven-digit fractional times, summed trx per artifact, an inert run, exactly-the-threshold, a download that
+finds no artifact versus one that fails) and `SKIP_TESTS=1 SKIP_GUARD=1 bash scripts/battery.sh` on this tree: 221 s, 1323
+cases. That probe is RED, truthfully: three per-case flips since battery #91 (run_extensions:2172 and run_misc:5307
+AGREE_ACCEPT to WE_REJECT_THEY_ACCEPT on COBOL0899 `CALL USING OMITTED`; syn_file:431 WE_ACCEPT_THEY_REJECT to AGREE_REJECT
+on COBOL5701), landed since the baseline of 2026-10-27. The nightly shows them each morning until a battery adjudicates and
+re-baselines; that is the job, not a defect of it. They are reported as leads, not adjudicated here.
+
+**Sweep.** Every workflow in `.github/workflows/` is read by the drift tests that enumerate `*.yml` (CiArtifactDriftTests,
+DotnetSdkInstallDriftTests, ToolchainManifestDriftTests, SparseCheckoutDriftTests, ReadyToRunRuntimeDriftTests,
+FilterPopulationGuardDriftTests): the new file meets them (toolchain-manifest images and installs, artifacts through
+`upload-results`, the two sparse jobs listing what their scripts import). No new diagnostic code was needed.
+
+**What the gate found.** The first gate was RED on `GateLegDriftTests.EveryTrxReader_IsTheOneReader_ThatNamesTheFileItCannotRead`:
+`shard_weights.py` parsed trx with its own XML parser. It now reads through `test_population.trx_root` (kb/Work PB3661), the
+one reader, so a torn trx is an `UnreadableTrx` naming the file and the day is UNMEASURED (exit 2) rather than a bare parse
+error. `test_population.py` is deleted by step 5 (PB4328); that note's Sites now say the reader moves first and its
+importers (`profile-test-parallelism.py`, `shard_weights.py`) are re-pointed.
+
+**What the branch review found (round 1).** Two blocking findings. (1) The shard-spread job was red from its first run
+(merge-group run 41265155574: 2.58x on Linux, the name-split matrix's spread) with a remedy, regenerating a weights file,
+that does not exist until PB4328 and PB4329 land: the live report is now NOT MEASURED until
+`tests/_shared/test-weights.json` exists and build-and-test.yml names `WISEOWL_COBOL_SHARD` (`weighted_shards_in_force`),
+and `--from-dir` still always measures. (2) `fetch` downloaded every artifact of every run of the window before reading
+any (about 15.8 GB unpacked for 75 runs, above a runner's 14 GB disk, and 13 minutes of downloads under a 15-minute
+timeout): `measure_window` downloads ONE run at a time into its own scratch directory, deletes it after reading the shard
+walls, and reads at most `MAX_RUNS` (8) shard runs, the newest; the verdict line says when the cap applied. Two leads
+fixed in files already changed: the module docstring's sample verdict line, and PB1957 row 53, which still named the
+deleted toolchain-freshness workflow.
+
+**Merged with PB4324 (CI is bounded), which landed first.** PB4324 bounded `toolchain-freshness.yml` while this branch
+deleted it, so the merge conflicted (modify/delete). The deletion stands and the bounds moved with the jobs: every nightly
+job begins with a checkout retried once (`id: checkout`, `continue-on-error: true`, then the same checkout `if:
+steps.checkout.outcome != 'success'`), every checkout and setup-toolchain step stops after 5 minutes, `latest` and
+`images` take PB4324's 10 minutes, and the guard's and the differential's caches are restored only
+(`actions/cache/restore`), since build-and-test.yml's `package-cache` job saves them under main, the ref a scheduled run
+reads. `CiBoundsDriftTests`, which PB4324 sized for the nightly (60 minutes the most a job may state), holds all of it.
+The merge also corrected the nightly's header, which said the merge group had stopped carrying the guard: it carries it
+until step 6 (PB4329).
+

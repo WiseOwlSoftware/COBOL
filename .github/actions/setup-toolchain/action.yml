@@ -8,7 +8,7 @@
 # when it holds them. Then `python scripts/toolchain.py check --scope ci` fails the job unless every tool it installed
 # reports the manifest's version. The runner image's git, which actions/checkout ran before any repository file existed
 # (toolchain.env says why it is the image's), is compared too, and a moved image is a warning on the job, never a
-# failure; the toolchain-freshness run is where it is red. A runner image's other tools stay behind these on PATH.
+# failure; the nightly workflow's `images` job is where it is red. A runner image's other tools stay behind these on PATH.
 #
 # Why (the owner, 2026-10-28: "CI tooling should match local tooling versions - always", then "CI and local should
 # always be using the latest version"): CI's Windows jobs ran the runner image's Python 3.12 while every local host ran

@@ -8,9 +8,11 @@ something it reads has changed (kb/Work PB2914; docs/rearchitecture/DESIGN-test-
 ⛔ WHY. A self-test whose inputs did not change cannot change its verdict, so a gate that re-runs it learns nothing and
 pays for it: every implementer gate ran all 68 (kb/Work PB2563), the slowest 4-8 minutes on a quiet host, and a fleet's
 gates ran them all at once until they passed the runner's time limit and failed every gate (kb/Work PB2914).
-scripts/self_tests.py therefore records, with each PASS, the CONTENT of everything the self-test read, and an
-gate reuses that PASS while all of it is unchanged (every gate, kb/Work PB3022). CI and the Linux gate run every
-self-test and record.
+scripts/self_tests.py therefore records, with each PASS, the CONTENT of everything the self-test read, and a
+gate reuses that PASS while all of it is unchanged (every gate, kb/Work PB3022). The gate runs the self-tests at all only
+for a change that TOUCHES TOOLING (scripts/inert_lane.py `Lane.tooling`, kb/Work PB4326): it is the tooling lane's, and
+these recorded inputs are what keep that lane to the self-tests the change can affect. CI's merge group and the Linux
+gate run every self-test and record.
 
 THE INPUTS OF A RUN (`Deps`) are OBSERVED, not guessed — a list of what a script mentions is far wider than what its
 self-test reads (a hand-derived closure over mentions reached the whole tree from most orchestrator scripts):

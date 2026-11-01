@@ -2,7 +2,7 @@
 """inert_lane.py — THE INERT LANE: a change confined to paths NO TEST READS runs the audits and nothing else
 (kb/Work PB2878; docs/rearchitecture/DESIGN-test-build-ci.md §3.18).
 
-    python scripts/inert_lane.py classify --base <rev> [--head <rev-or-tree>]   # lane=inert|full, and why
+    python scripts/inert_lane.py classify --base <rev> [--head <rev-or-tree>]   # lane=inert|full, tooling=true|false, why
     python scripts/inert_lane.py watch [--root R] [--events F] -- <command …>   # Linux: run it, report any inert read
     python scripts/inert_lane.py check                                         # every entry below names a tracked path
     python scripts/inert_lane.py --self-test
@@ -17,9 +17,40 @@ the local gate (scripts/run_gate_legs.py) and the Linux gate (scripts/linux-gate
 
 THE RULE. A path is INERT when it lies under an INERT entry and under no READ entry. A change is in the INERT LANE when
 its changed paths (`git diff --name-only --no-renames`, so a rename shows BOTH names and a code file renamed into an
-inert directory is not inert) are non-empty and every one is inert. The inert lane runs the audits (they always run,
-on every event, in every lane; they are where a citation, a register note or a DEVLOG entry is checked) and no build
+inert directory is not inert) are non-empty and every one is inert. The inert lane runs the audits (the local gate runs
+them in every lane, CI's merge group once per landing; they are where a citation, a register note or a DEVLOG entry is checked) and no build
 and no test leg: no test reads the change, so no test can turn red on it. Every other change is the FULL lane.
+
+THE TOOLING FLAG (kb/Work PB4326, step 3 of PB4323). A FULL-lane change also says whether it TOUCHES TOOLING: a path under
+`TOOLING_UNDER` (scripts/, .github/, tools/, .claude/, and the two root files the script self-tests read through the
+checkout, `.gitattributes` and `toolchain.env`), ending in a `TOOLING_SUFFIXES` extension (.py, .ps1, .sh) anywhere, or
+under a `TOOLING_READS` entry: a path outside the scripts that a script self-test reads AS DATA, each entry naming its
+readers (tests/_shared/TestRepo.cs for scripts/spec/drift_rules.py, the .g4 grammar for scripts/spec/grammar_source.py,
+.agent-fleet.json for the orchestrator's self-tests, docs/CONFORMANCE.md for the witness-loss audit, ...). The script
+self-tests (scripts/self_tests.py) read tooling and those entries, so only a change that touches one of them can turn a
+self-test red: the local gate runs them (and the one self-test that reads the built assemblies) only then, and CI's
+`windows-self-tests` job runs only then. An empty or unlistable change touches tooling (nothing proves it does not). Like
+the inert lane, the flag is ONE classification used by every runner.
+
+THE PROOF OF THE TOOLING FLAG (`Classification.unclassified_reads`, run by scripts/self_tests.py on every self-test it
+runs and records; kb/Work PB4326, review round 1 finding R1-1). The PASS store (kb/Work PB2914) records what each
+self-test OBSERVABLY read, so "a script self-test reads only tooling and the TOOLING_READS entries" is checked, not
+asserted: a self-test that passes but read a tracked path that is neither is RED, naming the path and the self-test, until
+the path gets a TOOLING_READS entry naming its reader. A path-prefix list alone was refuted by those stored inputs:
+tests/_shared/TestRepo.cs is read by drift_rules.py's self-test, the .g4 files by grammar_source.py's, and a change to only
+one of them turned a self-test red in CI's merge group after a green gate.
+THE ACCEPTED RESIDUE, named (owner 2026-10-31, kb/Work PB4323: a merge-group red may be one of five first-run classes, and
+the CI invariant is weakened knowingly): (a) a DECLARED POPULATION reader: a self-test whose first
+lines say `# SELF-TEST-POPULATION: tree — <why>` reads the tracked tree as a population (test_plan_wave.py and
+test_dispatch_guard.py walk every markdown file, impacted_tests.py every path), so no set of paths bounds it and the proof
+does not apply to it. The declaration is checked against the trace (scripts/self_tests.py): one that ran no git command over
+the whole repository (the tracer records a read of directory "") is RED, and a self-test that ran such a command WITHOUT
+the declaration is judged like any other, so its specific reads (work.py's docs/DESIGN.md, merge_drivers.py's ABI pin) are
+TOOLING_READS entries, not a blind spot (review round 2, finding R2-1); (b) the INERT corpora, DEVLOG/ and kb/, which devlog.py and the register's self-tests read as
+fixtures: every landing adds to both, the audits that govern an entry (`devlog.py check`, `work.py check`) run in every
+lane, and a change to how they are read is a script edit; (c) a directory LISTING (`entries:`) records names, which
+change when a file is added or removed and not when any listed file is edited, so the proof checks the files a self-test
+read and its `paths:` and `content:` reads of a directory.
 
 THE PROOF (`watch`, the drift test the classification needs). Every whole-assembly `dotnet test` run on Linux — CI's
 Linux test steps and the Linux gate — runs under an inotify watch of every inert path (directories included,
@@ -48,6 +79,7 @@ import select
 import struct
 import subprocess
 import sys
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 from standard_streams import ensure_utf8
@@ -64,6 +96,9 @@ def _under(path: str, entry: str) -> bool:
 class Lane:
     inert: bool
     reason: str
+    #: The change touches tooling (module docstring): the script self-tests are the gate's to run. Never set on the inert
+    #: lane, which runs the audits and nothing else.
+    tooling: bool
 
     @property
     def name(self) -> str:
@@ -75,6 +110,33 @@ class Classification:
     """INERT entries (each: who reads it, never a test) and READ entries under them (each: the tests that read it)."""
     inert: dict[str, str]
     read: dict[str, str] = field(default_factory=dict)
+    #: What counts as TOOLING (module docstring): directory prefixes and exact paths, and file extensions.
+    tooling_under: tuple[str, ...] = ()
+    tooling_suffixes: tuple[str, ...] = ()
+    #: Paths outside the scripts that a script self-test reads as data (module docstring): entry -> its readers.
+    tooling_reads: dict[str, str] = field(default_factory=dict)
+
+    def is_tooling(self, path: str) -> bool:
+        """Whether the repo-relative POSIX `path` is tooling: under a TOOLING_UNDER or TOOLING_READS entry, or of a
+        TOOLING_SUFFIXES extension."""
+        return (any(_under(path, e) for e in self.tooling_under) or path.endswith(self.tooling_suffixes)
+                or any(_under(path, e) for e in self.tooling_reads))
+
+    def unclassified_reads(self, files: Iterable[str], trees: Iterable[str]) -> list[str]:
+        """THE PROOF OF THE TOOLING FLAG (module docstring): of what one self-test read, the tracked paths a change to
+        which the flag would NOT see. `files` are the paths it opened; `trees` are its recorded directory reads, each
+        `<kind>:<directory>` (self_test_inputs.Deps). A path is seen when it is tooling or lies under an INERT entry (the
+        accepted corpora); a directory listing (`entries:`) and the whole tree (`paths:`/`content:` of "") are not
+        judged here (the residue, module docstring)."""
+        def seen(p: str) -> bool:
+            return self.is_tooling(p) or any(_under(p, e) for e in self.inert)
+
+        bad = [p for p in files if not seen(p)]
+        for key in trees:
+            kind, _, d = key.partition(":")
+            if kind in ("paths", "content") and d and not seen(d + "/"):
+                bad.append(d + "/")
+        return sorted(set(bad))
 
     def is_inert(self, path: str) -> bool:
         """Whether the repo-relative POSIX `path` (a directory may end in `/`) is inert: under an INERT entry, under no
@@ -84,12 +146,15 @@ class Classification:
     def classify(self, paths: list[str]) -> Lane:
         """The lane of a change whose changed paths are `paths`."""
         if not paths:
-            return Lane(False, "no changed path: an empty diff is not evidence that no test reads the change")
+            return Lane(False, "no changed path: an empty diff is not evidence that no test reads the change", True)
         read = [p for p in paths if not self.is_inert(p)]
         if read:
-            return Lane(False, f"{len(read)} of {len(paths)} changed path(s) may be read by a test, e.g. {read[0]}")
+            tooling = [p for p in paths if self.is_tooling(p)]
+            return Lane(False, f"{len(read)} of {len(paths)} changed path(s) may be read by a test, e.g. {read[0]}"
+                        + (f"; {len(tooling)} touch(es) tooling, e.g. {tooling[0]}" if tooling else "; none touches tooling"),
+                        bool(tooling))
         under = sorted({e for p in paths for e in self.inert if _under(p, e)})
-        return Lane(True, f"all {len(paths)} changed path(s) are inert (under {', '.join(under)}): no test reads them")
+        return Lane(True, f"all {len(paths)} changed path(s) are inert (under {', '.join(under)}): no test reads them", False)
 
     def watch_dirs(self, root: Path) -> list[str]:
         """The directories to watch: the directory every inert tracked FILE lies in, and an inert tracked path that is
@@ -103,10 +168,12 @@ class Classification:
         return sorted(d for d in dirs if (root / d).is_dir())
 
     def check(self, root: Path) -> list[str]:
-        """Every INERT and READ entry names at least one tracked path, and every READ entry lies under an INERT one."""
+        """Every INERT, READ and TOOLING_READS entry names at least one tracked path, and every READ entry lies under an
+        INERT one."""
         paths = tracked(root)
         bad = [f"the {kind} entry {e!r} names no tracked path: remove it, or correct it" for kind, entries in
-               (("INERT", self.inert), ("READ", self.read)) for e in entries if not any(_under(p, e) for p in paths)]
+               (("INERT", self.inert), ("READ", self.read), ("TOOLING_READS", self.tooling_reads)) for e in entries
+               if not any(_under(p, e) for p in paths)]
         bad += [f"the READ entry {e!r} lies under no INERT entry" for e in self.read
                 if not any(_under(e, i) for i in self.inert)]
         return bad
@@ -122,7 +189,47 @@ CLASSIFICATION = Classification(inert={
            "gate's WORK REGISTER audit, CI's audits job: the register against the inventory), the audits that cite a "
            "note, and by people; no test reads it since kb/Work PB2878 (the register drift tests became "
            "work_inventory.py; the retired-name sweep and the activation-boundary registry stopped reading it)",
-})
+}, tooling_under=("scripts/", ".github/", "tools/", ".claude/", ".gitattributes", "toolchain.env"),
+   tooling_suffixes=(".py", ".ps1", ".sh"),
+   # ⛔ TOOLING_READS: what the script self-tests read outside the scripts (module docstring), measured from the PASS store's
+   # recorded inputs and held complete by `unclassified_reads` on every run. An entry names its readers; a directory
+   # entry is a directory the readers read as data (its files, or its names through git). Narrow by design: a new
+   # entry makes every change to its path a tooling change, which runs the self-tests.
+   tooling_reads={
+       "WiseOwl.Cobol.sln": "scripts/arch/census.py, scripts/linux-gate.sh, scripts/orchestrator/test_orchestrate_account.ps1",
+       "LICENSE": "scripts/arch/census.py (read on Linux)",
+       "Directory.Build.props": "scripts/merge_drivers.py (settling the ABI pin)",
+       "src/WiseOwl.Cobol.Runtime/Control/RuntimeAbi.cs": "scripts/merge_drivers.py (settling the ABI pin)",
+       "src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin": "scripts/merge_drivers.py (settling the ABI pin)",
+       "docs/DESIGN.md": "scripts/spec/work.py (the site rule: a Markdown file named by its section number)",
+       "docs/REARCHITECTURE_PLAN.md": "scripts/orchestrator/test_orchestrate_steer.ps1 and test_orchestrate_stop.ps1",
+       ".gitmodules":"scripts/devlog.py, scripts/orchestrator/landing_devlog.py, scripts/hooks/test_forbidden_commands.py",
+       ".agent-fleet.json": "scripts/spec/ledger_plan.py, scripts/orchestrator/test_orchestrate_adopt.ps1 and _ledger.ps1",
+       "conformance-suite/adapters/": "scripts/differential_fuzz.py (the GnuCOBOL and WiseOwl adapter files)",
+       "conformance-suite/harness/": "scripts/line_endings.py, live_tools.py, temp_names.py and the harness self-tests (the "
+                                     "names of the harness files)",
+       "docs/CONFORMANCE.md": "scripts/spec/audit_witness_loss.py, scripts/differential_fuzz.py",
+       "docs/VERSION_CHANGE_REFERENCE.md": "scripts/orchestrator/test_orchestrate_account.ps1",
+       "docs/rearchitecture/spec-rule-catalog.json": "scripts/spec/audit_annex_a1.py, audit_code_citations.py",
+       "docs/rearchitecture/evidence/fleet-optimization/": "scripts/orchestrator/landing_measure.py, scripts/test_fuzz_triage.py",
+       "specs/ISO_COBOL.md": "scripts/spec/cite.py, audit_code_citations.py, audit_doc_citations.py, "
+                             "scripts/differential_fuzz.py",
+       "src/WiseOwl.Cobol.Cli/WiseOwl.Cobol.Cli.csproj": "scripts/guard-compiler.sh, guard-verify.sh, linux-gate.sh",
+       "src/WiseOwl.Cobol.Frontend/Grammar/": "scripts/spec/grammar_source.py (the grammar files, whole)",
+       "tests/WiseOwl.Cobol.Benchmarks/GeneratedCode/GeneratedProgramBenchmarks.cs": "scripts/arch/perf_baseline.py",
+       "tests/WiseOwl.Cobol.Benchmarks/Programs/": "scripts/arch/perf_baseline.py",
+       "tests/WiseOwl.Cobol.Tests.Characterization/WiseOwl.Cobol.Tests.Characterization.csproj": "scripts/linux-gate.sh",
+       "tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj": "scripts/linux-gate.sh",
+       "tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj": "scripts/linux-gate.sh",
+       "tests/WiseOwl.Cobol.Tests.Unit/CarrierLandingFormTests.cs": "scripts/spec/audit_annex_a1.py",
+       "tests/_shared/TestRepo.cs": "scripts/spec/drift_rules.py",
+       "tests/_shared/SpecClauseText.cs": "scripts/spec/spec_headings.py",
+       "tests/nist/corpus.tsv": "scripts/guard-nist-audit.sh, guard-verify.sh, linux-gate.sh, "
+                                "scripts/orchestrator/test_orchestrate_account.ps1",
+       "tests/version-matrix/": "the inventory and its schema: scripts/spec/audit_*.py, ledger_plan.py, "
+                                "scripts/orchestrator/land_lane.py, test_ledger_state.py, the rename audits and "
+                                "the eleven test_orchestrate_*.ps1 parts",
+   })
 
 
 def changed(root: Path, base: str, head: str = "HEAD") -> list[str]:
@@ -267,6 +374,37 @@ def self_test() -> int:
     expect("an empty change is the full lane", c.classify([]).inert, False)
     expect("an all-inert change is the inert lane", c.classify(["DEVLOG/pending-x.md", "kb/Spec/y.md"]).name, "inert")
     expect("one path a test may read makes the change full", c.classify(["DEVLOG/a.md", "kb/Work/PB1.md"]).name, "full")
+    # The tooling flag (PB4326), on the real classification.
+    expect("tooling: scripts, workflows, tools, the agent definitions, the two root files the self-tests read, any "
+           "Python, PowerShell or shell file anywhere, and the data the self-tests read (TOOLING_READS: the test helper "
+           "TestRepo.cs, the grammar, the agent-fleet settings, the inventory, docs/CONFORMANCE.md, docs/DESIGN.md) are tooling; "
+           "code, tests, the other docs and a name that only starts like a tooling directory or a read file are not",
+           [real.is_tooling(p) for p in ("scripts/gate_slot.py", ".github/workflows/build-and-test.yml", "tools/claude-skills",
+                                         ".claude/agents/x.md", ".gitattributes", "toolchain.env", "conformance-suite/harness/x.py",
+                                         "tests/x/run.sh", "tests/_shared/TestRepo.cs",
+                                         "src/WiseOwl.Cobol.Frontend/Grammar/Core/Data.g4", ".agent-fleet.json",
+                                         "tests/version-matrix/inventory/GR-4.4-1.json", "docs/CONFORMANCE.md",
+                                         "docs/DESIGN.md", "docs/REARCHITECTURE_PLAN.md",
+                                         "src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin",
+                                         "src/a.cs", "tests/b.cs", "docs/DOC_INDEX.md", "scriptsx/a.md", "toolchain.env.bak",
+                                         "tests/_shared/TestRepoX.cs", ".agent-fleet.json.bak", "tests/_shared/Other.cs")],
+           [True] * 16 + [False] * 8)
+    expect("a full-lane change that touches tooling says so, one that does not says so, and an inert one never does; "
+           "a change to only a file a script self-test reads is a tooling change (review R1-1)",
+           [real.classify(["src/a.cs", "scripts/x.py"]).tooling, real.classify(["src/a.cs", "docs/x.md"]).tooling,
+            real.classify(["kb/x.py", "DEVLOG/a.md"]).tooling, real.classify(["kb/x.py", "DEVLOG/a.md"]).inert,
+            real.classify(["tests/_shared/TestRepo.cs"]).tooling, real.classify(["src/a.cs", "tests/b.cs"]).tooling],
+           [True, False, False, True, True, False])
+    tc = Classification(inert={"kb/": ""}, tooling_under=("scripts/",), tooling_suffixes=(".py",),
+                        tooling_reads={"data/a.json": "x", "lib/": "y"})
+    expect("the proof of the flag: of what a self-test read, the paths neither tooling, nor a TOOLING_READS entry, nor "
+           "inert are named, a directory read by git too; a directory listing and the whole tree are not judged",
+           tc.unclassified_reads(["scripts/a.py", "data/a.json", "lib/x/y", "kb/Work/PB1.md", "docs/z.md", "src/q.cs"],
+                                 ["paths:lib", "paths:other", "content:kb/Work", "entries:docs", "content:", "paths:"]),
+           ["docs/z.md", "other/", "src/q.cs"])
+    expect("the proof of the flag finds nothing in what a self-test read when every path is classified",
+           tc.unclassified_reads(["scripts/a.py", "data/a.json"], ["paths:scripts", "content:lib"]), [])
+    expect("an empty change touches tooling: nothing proves it does not", real.classify([]).tooling, True)
     from scratch_repo import ScratchRepo, scratch_dir  # noqa: PLC0415
 
     root = scratch_dir("inert-lane-")
@@ -327,8 +465,9 @@ def main(argv: list[str]) -> int:
         try:
             lane = CLASSIFICATION.classify(changed(args.root, args.base, args.head))
         except (subprocess.CalledProcessError, OSError) as e:
-            lane = Lane(False, f"the change could not be listed ({e}): the full lane")
+            lane = Lane(False, f"the change could not be listed ({e}): the full lane", True)
         print(f"lane={lane.name}")
+        print(f"tooling={'true' if lane.tooling else 'false'}")
         print(f"reason={lane.reason}")
         return 0
     if args.cmd == "watch":

@@ -37,15 +37,20 @@ pwsh scripts/build-local.ps1 -Priority BelowNormal *> <log>
 ```
 
 The driver, `scripts/run_gate_legs.py` (DESIGN-test-build-ci.md §3.14; kb/Work PB1721), holds the worktree's GATE
-LOCK (a second gate in the same worktree is refused), runs the audits (FAIL-FAST, before the slot and the build: a red
-audit ends an implementer gate in seconds with `NO LEG RAN`, kb/Work PB2523 — run `python scripts/rendered_views.py --check`
+LOCK (a second gate in the same worktree is refused), starts the audits BESIDE the build and the legs (outside the slot; FAIL-FAST: a red
+audit known before the slot or a leg ends an implementer gate in seconds with `NO LEG RAN`, and one found while the legs
+run STOPS them, kb/Work PB2523, PB4326 — run `python scripts/rendered_views.py --check`
 and the citation audits yourself before gating to avoid the round trip; one audit, `SELF-TESTS`, is every script
-self-test under `scripts/`, discovered and run in parallel by `scripts/self_tests.py`, kb/Work PB2563 — run
+self-test under `scripts/`, discovered and run in parallel by `scripts/self_tests.py`, kb/Work PB2563, and runs ONLY WHEN YOUR
+CHANGE TOUCHES TOOLING (a path under `scripts/`, `.github/`, `tools/`, `.claude/`, a `.py`/`.ps1`/`.sh` file, or data a
+self-test reads, such as `tests/_shared/TestRepo.cs`, the grammar, `.agent-fleet.json` or `tests/version-matrix/`: the
+`tooling=` line of `python scripts/inert_lane.py classify --base <rev>`, its `TOOLING_READS` list proved complete by
+`self_tests.py` on every run; CI's merge group runs every Linux self-test whatever the change, kb/Work PB4326) — run
 `python scripts/self_tests.py` yourself after editing a script; every gate passes `--reuse`, so a self-test
 whose inputs are unchanged since a recorded PASS is REUSED, not run (one that runs records its PASS), while CI and the
 Linux gate run them all; every self-test that runs takes a place in one machine-wide budget, and one still running an hour
 after taking it is `SELF-TESTS HANG`, never RED — kb/Work PB2914, DESIGN-test-build-ci.md §3.14.10) and fetches the per-worktree GnuCOBOL corpus
-when absent — both BEFORE it queues, because they read only the tree (kb/Work PB2524) — then takes a GATE SLOT
+when absent — the audits never inside the slot and the fetch before it, because they read only the tree (kb/Work PB2524) — then takes a GATE SLOT
 (`scripts/gate_slot.py`: at most N gates build or test at once, repository-wide — `gate-slot: waiting, k
 ahead` is the cap working), builds the solution and lists every discovered case of Conformance, Unit and
 Characterization. The ORDER PLAN (`scripts/gate_plan.py`) puts in leg 1 the tests the change ADDS, the previous gate's

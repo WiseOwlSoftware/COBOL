@@ -6,8 +6,10 @@
 // GateTestFramework in each one's [assembly: Xunit.TestFramework] (except in the impact-recording build, whose
 // ImpactTestFramework derives from GateTestFramework, so an assembly always names exactly one framework).
 #nullable enable
+using System.Globalization;
 using System.Reflection;
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Xunit;
@@ -137,14 +139,53 @@ internal sealed class GateAssemblyRunner(ITestAssembly testAssembly, IEnumerable
 /// segment. It mirrors <c>scripts/gate_plan.py#name_key</c> exactly (GateLegDriftTests runs both over one list):
 /// split at the FIRST <c>(</c>; in the part before it, split on <c>.</c>; when there are at least three segments
 /// and the second-to-last matches <c>(.+)_P\d+</c> in full, replace it with the capture; rejoin, and append the
-/// <c>(</c> and everything after it unchanged. A theory's arguments are never touched.</summary>
+/// <c>(</c> and everything after it unchanged. A theory's arguments are never touched. The name is first put in the
+/// trx logger's spelling (<see cref="TrxSpelling"/>), as <c>gate_plan.py#name_key</c> does (kb/Work PB4274).</summary>
 internal static partial class GateNameKey
 {
     [GeneratedRegex(@"\A(?<family>.+)_P\d+\z")]
     private static partial Regex PartitionClass();
 
+    /// <summary>The name as the trx logger writes it: every UTF-16 code unit outside XML's character range
+    /// <c>[^\x09\x0A\x0D\x20-\uD7FF\uE000-\uFFFD]</c> becomes <c>\u</c> and four lowercase hex digits, so a
+    /// supplementary-plane character becomes its two escaped surrogates. It mirrors
+    /// <c>scripts/test_population.py#trx_spelling</c>: a plan key made from a <c>--list-tests</c> name, an in-process
+    /// display name and a trx name of the same case are then one key (kb/Work PB4274).</summary>
+    public static string TrxSpelling(string name)
+    {
+        if (!NotXmlChar().IsMatch(name))
+        {
+            return name;
+        }
+
+        var spelled = new StringBuilder(name.Length + 16);
+        foreach (char c in name)
+        {
+            if (IsXmlChar(c))
+            {
+                spelled.Append(c);
+            }
+            else
+            {
+                spelled.Append(CultureInfo.InvariantCulture, $"\\u{(int)c:x4}");
+            }
+        }
+
+        return spelled.ToString();
+    }
+
+    private static bool IsXmlChar(char c) =>
+        c is '\t' or '\n' or '\r' or (>= ' ' and <= '\uD7FF') or (>= '\uE000' and <= '\uFFFD');
+
+    /// <summary>Any UTF-16 code unit the trx logger rewrites: the complement of <see cref="IsXmlChar"/>'s range, a
+    /// surrogate included. One generated search finds the few names that need the rewrite, where a per-character
+    /// test cost every lookup (kb/Work PB4274 review R1-3).</summary>
+    [GeneratedRegex(@"[^\t\n\r\u0020-\uD7FF\uE000-\uFFFD]")]
+    private static partial Regex NotXmlChar();
+
     public static string Of(string displayName)
     {
+        displayName = TrxSpelling(displayName);
         int paren = displayName.IndexOf('(');
         string head = paren < 0 ? displayName : displayName[..paren];
         string tail = paren < 0 ? "" : displayName[paren..];
