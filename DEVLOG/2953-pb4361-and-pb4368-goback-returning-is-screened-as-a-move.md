@@ -1,4 +1,4 @@
-## PB4361 and PB4368: GOBACK RETURNING is screened as a MOVE sender, and two message arms quote a procedure-name as written
+## Entry 2953 — 2026-11-01 10:50 PST — PB4361 and PB4368: GOBACK RETURNING is screened as a MOVE sender, and two message arms quote a procedure-name as written
 
 Two defects in `ControlFlowBinder`, found by earlier reviews and fixed at their roots.
 
@@ -33,3 +33,4 @@ the whole `MoveTable16.Validity` chain against an elementary-integer receiver po
 truncation to an integer is item 192's implementor determination, not an ISO rule, and the CONFORMANCE.md row now says a
 COMP-2 operand beyond the 128-bit integer range ends the run unit with EC-SIZE-OVERFLOW. One lead is left: a display
 boolean item under the STATUS phrase aborts at run time (`NumericRenderer.StatusNum`), pre-existing and outside this diff.
+
