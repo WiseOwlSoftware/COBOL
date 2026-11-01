@@ -7853,6 +7853,19 @@ public static class DiagnosticCatalog
         + "wanted, or remove the directive.",
         "ISO §7.3.10.4 GR3; §7.3.10.4 GR4");
 
+    // kb/Work PB4341: EXEC SQL … END-EXEC drew "cannot parse construct near 'SQL'", the message of a typo, where the
+    // cause is an embedded-language block for a precompiler. Emitted at the parse layer by CobolErrorStrategy
+    // (ReportEmbeddedBlock), only where the parse failed inside such a block: EXEC and END-EXEC are not reserved words.
+    public static readonly DiagnosticDescriptor EmbeddedPrecompilerBlock = new(
+        "COBOL5818", "embedded-precompiler-block", EditionSeverity.Error,
+        "The source holds an embedded-language block, EXEC language-name through END-EXEC (EXEC SQL, EXEC CICS, EXEC "
+        + "DLI). ISO/IEC 1989 defines no EXEC construct: the block's text is another language, which a vendor's "
+        + "precompiler translates to COBOL before compilation, and ISO §4.2.14 permits an implementation \"to require "
+        + "components outside the COBOL implementation, such as precompilers\". This implementation has no precompiler, "
+        + "so the block is reported once, at its EXEC, and the parse resumes after its END-EXEC. Run the source through "
+        + "the precompiler first and compile the COBOL it writes.",
+        "ISO §4.2.14");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)
