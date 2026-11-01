@@ -23,12 +23,13 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// </summary>
 public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive, DiagnosticBag diagnostics)
 {
-    private bool _col7Flagged, _wordFlagged, _floatingCommentFlagged, _floatingContinuationFlagged, _debuggingLineFlagged;
+    private bool _col7Flagged, _wordFlagged, _floatingCommentFlagged, _floatingContinuationFlagged, _debuggingLineFlagged,
+        _floatingDebuggingFlagged;
 
     /// <summary>The debugging lines (physical file and line) the §6.5 walk passed over because a literal awaited its
     /// continuation (kb/Work PB2490): comment lines when their source unit says no WITH DEBUGGING MODE, which is not known
     /// until the whole text is read, and then <see cref="OnSourceDebuggingLines"/> reports the ones it turns out are source.</summary>
-    private readonly HashSet<SourceOrigin> _debuggingLinesBetweenLiteralParts = [];
+    private readonly Dictionary<SourceOrigin, int> _debuggingLinesBetweenLiteralParts = [];   // each line's indicator column
 
     private EditionInfo Edition => EditionInfo.Of(dialectLevel, permissive);
 
@@ -52,11 +53,25 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     public void OnDebuggingLine(string file, int line)
         => GateOnce(ref _debuggingLineFlagged, Constructs.DebuggingLineRemoved2014, file, line, FixedFormLine.IndicatorColumn);
 
+    /// <summary>A line with the 2002 FLOATING debugging indicator <c>&gt;&gt;D</c> (§6.1.2), in either reference format —
+    /// the same obsolete-at-2002, removed-at-2014 facility as the fixed indicator, but introduced with the floating
+    /// indicators at 2002 (row <c>floating-debugging-indicator-2002</c>; kb/Work PB4298). Gated once per compilation, at
+    /// its first use, at the indicator's column.</summary>
+    public void OnFloatingDebuggingLine(string file, int line, int column)
+        => GateOnce(ref _floatingDebuggingFlagged, Constructs.FloatingDebuggingIndicator2002, file, line, column);
+
+    /// <summary>2002 §6.1.2.1 SR8 — COBOL5770: the floating debugging indicator on a line that holds a fixed debugging
+    /// indicator or a fixed continuation indicator.</summary>
+    public void OnFloatingDebuggingOnFixedIndicator(string file, int line, int column)
+        => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.FloatingDebuggingOnFixedIndicator.Code,
+            "a floating debugging indicator (>>D) shall not be specified on a line that contains a fixed debugging "
+            + "indicator or a fixed continuation indicator (ISO/IEC 1989:2002 §6.1.2.1 SR8)", At(file, line, column), default);
+
     /// <summary>A debugging line written between the parts of a continued literal, passed over by the logical conversion
     /// as it would a comment line (kb/Work PB2490). Whether it is one is decided later, per source unit, by
     /// <c>DebuggingLineRewriter</c>; <see cref="OnSourceDebuggingLines"/> reports it if the unit's mode makes it source.</summary>
-    public void NoteDebuggingLineBetweenLiteralParts(string file, int line)
-        => _debuggingLinesBetweenLiteralParts.Add(new SourceOrigin(file, line));
+    public void NoteDebuggingLineBetweenLiteralParts(string file, int line, int indicatorColumn)
+        => _debuggingLinesBetweenLiteralParts[new SourceOrigin(file, line)] = indicatorColumn;
 
     /// <summary>§6.3.5 2) - COBOL3473: every debugging line in <paramref name="sourceLines"/> (the origins of the lines
     /// <c>DebuggingLineRewriter</c> kept as source) that stands between the parts of a continued literal. Only a comment
@@ -65,11 +80,11 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     public void OnSourceDebuggingLines(IEnumerable<SourceOrigin> sourceLines)
     {
         foreach (var origin in sourceLines)
-            if (_debuggingLinesBetweenLiteralParts.Contains(origin))
+            if (_debuggingLinesBetweenLiteralParts.TryGetValue(origin, out int indicatorColumn))
                 diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.DebuggingLineBetweenLiteralParts.Code,
-                    "a debugging line (indicator D) is source under WITH DEBUGGING MODE, and a source line shall not stand "
+                    "a debugging line (indicator D or >>D) is source under WITH DEBUGGING MODE, and a source line shall not stand "
                     + "between the parts of a continued literal: only comment lines and blank lines may (ISO §6.3.5 2))",
-                    At(origin.File, origin.Line, FixedFormLine.IndicatorColumn), default);
+                    At(origin.File, origin.Line, indicatorColumn), default);
     }
 
     /// <summary>A fixed-form CONTINUATION line (a hyphen in the indicator area) whose text begins in area A

@@ -217,6 +217,98 @@ public sealed class LogicalLineBuilderTests
         else Assert.Equal("", m.Text.Split('\n')[0]);
     }
 
+    [Theory] // kb/Work PB4298, ISO/IEC 1989:2002 6.1.2 (">>D debugging indicator - a debugging line when followed by at least
+             // one space character"), 6.3.4, 6.1.2.1 SR7: the FLOATING debugging indicator heads a debugging line in BOTH
+             // reference formats, preceded on its line only by spaces, and is carried exactly as the fixed D line is, the
+             // indicator written as three spaces so that every later character keeps its column.
+    [InlineData(true, 4, ">>D", 8)]
+    [InlineData(true, 4, ">>d", 8)]
+    [InlineData(false, 0, ">>D", 4)]
+    [InlineData(false, 3, ">>D", 7)]
+    public void FloatingDebuggingIndicator_IsADebuggingLine_InBothFormats(bool fixedForm, int indent, string indicator, int keptSpaces)
+    {
+        string line = new string(' ', indent) + indicator + " DISPLAY \"A\".";
+        var (m, bag) = Normalize(Lines(fixedForm, "DISPLAY \"B\".", line, "STOP RUN."), Format(fixedForm), std: 2002);
+        Assert.Equal(Carrier + new string(' ', keptSpaces) + "DISPLAY \"A\".", m.Text.Split('\n')[1]);
+        Assert.Equal(2, m.Lines[1].Origin.Line);
+        Assert.DoesNotContain(bag.Diagnostics, d => d.IsError);
+    }
+
+    [Fact] // a fixed-form program-text area is space-filled to margin R (DOC-A.1-157), so a bare >>D is followed by spaces there,
+           // and a debugging line of spaces is a blank line (6.5 2))
+    public void FloatingDebuggingIndicator_AloneOnAFixedFormLine_IsABlankDebuggingLine()
+    {
+        var (m, bag) = Normalize("000100     >>D\n000200     STOP RUN.\n", InitialReferenceFormat.Fixed, 2002);
+        Assert.Equal("", m.Text.Split('\n')[0]);
+        Assert.DoesNotContain(bag.Diagnostics, d => d.IsError);
+    }
+
+    [Theory] // not an indicator: no space after it (>>DISPLAY is the 2023 directive), it ends a free-form line (no space follows),
+             // or it is not the first character-string of the line (SR7)
+    [InlineData(false, ">>D")]
+    [InlineData(false, ">>DISPLAY \"A\"")]
+    [InlineData(false, "DISPLAY >>D \"A\".")]
+    [InlineData(false, ">> D DISPLAY \"A\".")]
+    [InlineData(true, "    >>DISPLAY \"A\"")]
+    [InlineData(true, "    DISPLAY >>D \"A\".")]
+    public void FloatingDebuggingIndicator_OtherSpellings_AreNotDebuggingLines(bool fixedForm, string line)
+    {
+        var (m, _) = Normalize(Lines(fixedForm, line), Format(fixedForm), std: 2002);
+        Assert.DoesNotContain(Carrier, m.Text);
+    }
+
+    [Theory] // the facility's window (kb/Work R61) with the floating indicators' introduction: >>D is rejected below 2002
+             // (COBOL0900, an error on both axes), obsolete at 2002 (COBOL0903), removed at 2014 (COBOL0902), once per compilation
+    [InlineData(85, false, "COBOL0900", true)]
+    [InlineData(85, true, "COBOL0900", true)]
+    [InlineData(2002, false, "COBOL0903", false)]
+    [InlineData(2014, false, "COBOL0902", true)]
+    [InlineData(2014, true, "COBOL0902", false)]
+    [InlineData(2023, false, "COBOL0902", true)]
+    public void FloatingDebuggingIndicator_EditionWindow(int std, bool permissive, string code, bool isError)
+    {
+        var (m, bag) = Normalize("DISPLAY \"A\".\n>>D DISPLAY \"B\".\n  >>D DISPLAY \"C\".\n", InitialReferenceFormat.Free, std, permissive);
+        var found = bag.Diagnostics.Where(d => d.Code is "COBOL0900" or "COBOL0902" or "COBOL0903").ToList();
+        Assert.Single(found);
+        Assert.Equal(code, found[0].Code);
+        Assert.Equal(isError, found[0].IsError);
+        Assert.Equal((1, 0), (found[0].Location.Line, found[0].Location.Column));   // 0-based: the first indicator, line 2, column 1
+        Assert.StartsWith(Carrier, m.Text.Split('\n')[1]);                          // carried at every edition: the gate reports, it never drops
+    }
+
+    [Theory] // 2002 6.1.2.1 SR8: "A floating debugging indicator shall not be specified on a line that contains a fixed debugging
+             // indicator or a fixed continuation indicator" - COBOL5770, at the indicator; the line is then read as its fixed
+             // indicator says
+    [InlineData("D")]
+    [InlineData("-")]
+    public void FloatingDebuggingIndicator_OnAFixedIndicatorLine_IsRefused(string fixedIndicator)
+    {
+        var (_, bag) = Normalize("000100     DISPLAY \"A\".\n000200" + fixedIndicator + "    >>D DISPLAY \"B\".\n", InitialReferenceFormat.Fixed, 2002);
+        var d = Assert.Single(bag.Diagnostics, x => x.Code == "COBOL5770");
+        Assert.Equal((1, 11), (d.Location.Line, d.Location.Column));
+        Assert.True(d.IsError);
+    }
+
+    [Fact] // a fixed-form line with the space indicator is the legal home of >>D: no COBOL5770
+    public void FloatingDebuggingIndicator_OnASpaceIndicatorLine_IsNotRefused()
+    {
+        var (_, bag) = Normalize("000100     >>D DISPLAY \"A\".\n", InitialReferenceFormat.Fixed, 2002);
+        Assert.DoesNotContain(bag.Diagnostics, x => x.Code == "COBOL5770");
+    }
+
+    [Fact] // PB2490 for the floating spelling: passed over between the parts of a continued literal, and diagnosed (COBOL3473)
+           // at the INDICATOR's column when the unit's mode makes it source - column 1 here, not the fixed indicator column 7
+    public void FloatingDebuggingIndicator_BetweenLiteralParts_IsDiagnosedAtItsOwnColumn()
+    {
+        var bag = new DiagnosticBag();
+        var gates = new ReferenceFormatDiagnostics(2002, permissive: false, bag);
+        var m = ReferenceFormatProcessor.NormalizeToFreeFormMapped("MOVE \"AB\"-\n>>D DISPLAY \"X\".\n    \"CD\" TO V.\n", gates, "t.cob", false, out _, false);
+        Assert.Equal("MOVE \"ABCD\" TO V.", m.Text.Split('\n')[0]);                 // the debugging line was passed over: the literal is joined
+        gates.OnSourceDebuggingLines([m.Lines[1].Origin]);
+        var d = Assert.Single(bag.Diagnostics, x => x.Code == "COBOL3473");
+        Assert.Equal((1, 0), (d.Location.Line, d.Location.Column));
+    }
+
     [Theory] // kb/Work PB1494 / PB1758: the comment-entry paragraph HEADER stays program text (with its terminating period
              // written explicitly) and only the comment-entry is discarded — at every edition, so the one removal gate sees
              // a fixed-form paragraph as it sees a free-form one.
