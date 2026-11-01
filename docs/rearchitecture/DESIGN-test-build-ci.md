@@ -906,9 +906,10 @@ of a `--list-tests` output (`parse_listing`); `filter_population.py` imports it.
 **The drift tests that prove it fails** (`GateLegDriftTests`, one per assembly, each arm one method named for its number,
 for the test assemblies' half; the scripts' half is their own self-tests', kb/Work PB4395):
 (2) the orderer runs the named classes first, then longest first, and its output is a permutation of its input (a planted
-non-permutation throws); (3) `gate.py --self-test` and `test_population.py --self-test` each RUN every arm their
-`DECLARED_ARMS` names (a dropped case, a duplicated case, a skipped case, a foreign definition, a red audit that stops the
-hosts, a second gate in the same worktree refused, one shape for every gate), checked at the end of the run; (4) every test project under `tests/` links `GateLegs.cs` and names `GateTestFramework`;
+non-permutation throws); (3) `gate.py --self-test` and `test_population.py --self-test` declare every arm (a dropped case,
+a duplicated case, a skipped case, a foreign definition, a red audit that stops the hosts, a second gate in the same worktree
+refused, one shape for every gate): `scripts/self_test_arms.py`'s `DECLARED`, the one register of the arms each pipeline
+self-test must declare (kb/Work PB4395 moved it out of the compiler's test assembly); (4) every test project under `tests/` links `GateLegs.cs` and names `GateTestFramework`;
 (5) no discovered display name in a gated assembly contains the repository root (the audit reads the attribute and xunit's
 own discovery with theories pre-enumerated, `tests/_shared/GateLegAudit.cs`, and matches the root as TEXT in its written, `/`
 and xunit-escaped forms, never through the host's path rules; Unit's witness plants a Windows, a POSIX and the host's own
@@ -1034,8 +1035,8 @@ the cap bounds the concurrent solution builds as well as the test legs (an inert
   LONG HOLDS, and A WAITING GATE SAYS WHY. Each arm was seen RED on a planted defect (no ticket check, a ticket file counted
   live unlocked, no Job object, the descriptor withheld from Linux children, the per-worktree git dir, the cap read once per
   process, `status` probing only the slots below the cap). It passes on Windows and under WSL, `self_tests.py` runs it in every
-  gate and in CI's Linux and Windows jobs, and `GateSlotDriftTests` holds the arms by name and the ALL GREEN count to them
-  WITHOUT re-running it (kb/Work PB2882). Every helper process it starts exits once its sentinel file is deleted, so a red
+  gate and in CI's Linux and Windows jobs, and `scripts/self_test_arms.py` holds the arms by name, in order, and the ALL
+  GREEN count to them WITHOUT re-running it (kb/Work PB2882, PB4395). Every helper process it starts exits once its sentinel file is deleted, so a red
   arm leaves nothing running on the host.
 
 **Retirement is measured** (owner, 2026-09-28): the cap goes when a whole cold Conformance gate at `BelowNormal` costs under

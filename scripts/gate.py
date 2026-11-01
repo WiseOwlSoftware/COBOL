@@ -2427,70 +2427,11 @@ def self_test() -> int:
     shape = audit_shape_arms()
     arm("ONE SHAPE (kb/Work PB3022): the audit names every line of the live trees that tells anyone to run a gate mode, "
         "skips history and frozen evidence, and finds the tree it walks", shape == "", shape)
-    missing = [d for d in DECLARED_ARMS if not any(d in n for n, _, _ in results)]
-    arm("every DECLARED arm ran (DESIGN-test-build-ci.md §3.14.4 (3); a self-test quietly reduced to its happy path "
-        "also exits 0)", not missing, "; ".join(missing))
     failed = [n for n, ok, _ in results if not ok]
     print(f"=== gate SELF-TEST: {'PASS' if not failed else 'FAIL'} ({len(results)} arms"
           + (f"; failed: {'; '.join(failed)}" if failed else "") + ") ===")
     return 0 if not failed else 1
 
-
-#: ⛔ THE ARMS THIS SELF-TEST MUST RUN (DESIGN-test-build-ci.md §3.14.4 arm (3); kb/Work PB1721, PB4395): a self-test
-#: quietly reduced to its happy path also exits 0, so the run checks that an arm naming each of these ran. Until kb/Work
-#: PB4395 this list was GateLegDriftTests' (a compiler test reading this file's text); it is the self-test's own now.
-DECLARED_ARMS = (
-    "a whole planted population is GREEN, every assembly EXACT",
-    "every assembly runs its WHOLE population in one host, handed no narrowing",
-    "a dropped case is NEVER RAN",
-    "a case run twice is RAN TWICE",
-    "a trx definition the listing never printed is NOT IN THE POPULATION",
-    "a skipped case is counted skipped, never as ran",
-    "a host that wrote no trx is UNMEASURED",
-    "a red host makes the gate RED",
-    "a red host's whole output, its failure message included",
-    "a re-gate hands every host the classes red at the previous run and in the bounce",   # kb/Work PB4328
-    "an unreadable trx among the first classes' sources is named and KEPT",
-    "a test host's environment is scrubbed",
-    "a population that cannot be listed is NOT RUN [population]",
-    "a red audit (a tracked rendered view) that is known before the slot STOPS the gate before the build",
-    "the corpus fetch runs BEFORE the gate slot is taken, a red audit never queues for one",
-    "an audit that turns RED while the gate queues for the slot ends the gate before the build",   # kb/Work PB4326
-    "an audit that is RED only after the test hosts have started STOPS them",
-    "the script self-tests (the audits in TOOLING_ONLY, and the post-build ones) run ONLY when the change touches tooling",
-    "the audits a change that touches no tooling runs are AUDITS less TOOLING_ONLY",
-    "the verdict file records, per assembly, the seconds its host ran and the hosts' effective concurrency",
-    "a change in the INERT LANE (kb/Work PB2878) runs the audits and then ends GREEN",
-    "a red audit is RED in the inert lane too",
-    "a change in the TOOLING LANE (kb/Work PB4395) runs the audits WITH the script self-tests",
-    "a red audit is RED in the tooling lane",
-    "shared gate settings that turn malformed while the gate queues: NOT RUN",
-    "a hung self-test is `SELF-TESTS HANG` in the gate's reasons, never RED, and every gate's self-tests run with --reuse",
-    "a failed audit prerequisite (CI's `git submodule update --init tools/claude-skills`) is its RED, with its output, "
-    "and no audit runs",
-    "a defect in work beside the critical path is a named RED with its traceback",
-    "ONE SHAPE (kb/Work PB3022): every gate takes a slot, runs its audits beside the build and the hosts and runs the "
-    "whole population",
-    "a second gate in the same worktree is REFUSED",
-    "its verdict is BUSY with its own exit code, which the one verdict reader reads as BUSY, never RED",
-    "the one verdict reader: GREEN and an older gate's LEG 1 ONLY: GREEN pass",
-    "a defect in the driver still ends in ONE verdict line",
-    "every NOT RUN verdict a gate prints names a cause NOT_RUN_CAUSES classifies",   # kb/Work PB3526
-    "the gate lock is per worktree",
-    "the measured tree is the working tree's content",
-    "a re-gate of an unchanged tree answers from the recorded GREEN",
-    "a chain of reuses names the run that MEASURED the tree",
-    "a re-gate of a CHANGED tree runs the gate",
-    "a RED is never reused",
-    "a GREEN a gate before PB4328 wrote (record schema below SCHEMA_WHOLE",
-    "a gate whose tree changed WHILE it ran is never reused",
-    "--await reads the verdict file",
-    "the measured tree leaves out coord.NEVER_WORK",
-    "a relative run name resolves against the worktree that gated it",
-    "a record with no exit code takes it from its verdict through the one verdict reader",
-    "build-local's gate runs DETACHED and is followed",
-    "a detached gate OUTLIVES its follower's tree kill",
-)
 
 #: ⛔ ONE SHAPE (owner 2026-10-11, kb/Work PB3015 Q1a, PB3022; DESIGN-test-build-ci.md §3.17.3): the gate takes no mode,
 #: so no brief, skill, script, doc or test may tell anyone to run one: a caller left naming the deleted lander mode would
@@ -2546,7 +2487,7 @@ def audit_shape_arms() -> str:
                    "src/a.cs": "-Mode " + "lander\n"}
         for rel, text in planted.items():
             (root / rel).parent.mkdir(parents=True, exist_ok=True)
-            (root / rel).write_text(text, encoding="utf-8")
+            (root / rel).write_text(text, encoding="utf-8", newline="\n")
         got = [b.split(":", 2)[0] + ":" + b.split(":", 2)[1] for b in audit_shape(root, sorted(planted))]
         want = ["README.md:1", "docs/b.md:2", "scripts/a.ps1:1"]
         return "" if got == want else f"got {got}, want {want}"

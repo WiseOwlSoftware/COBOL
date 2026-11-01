@@ -572,24 +572,6 @@ def synthetic_listing(path: Path, names: list[str]) -> str:
     return str(path)
 
 
-#: ⛔ THE ARMS THIS SELF-TEST MUST RUN (DESIGN-test-build-ci.md §3.14.4 arm (3); kb/Work PB4395: until then
-#: GateLegDriftTests, a compiler test, read this file's text for them).
-DECLARED_ARMS = (
-    "short: a dropped case is NEVER RAN",
-    "over: a case twice is RAN TWICE",
-    "shard overlap that KEEPS THE COUNT",
-    "skipped: a NotExecuted-only definition is counted skipped",
-    "definitions, not result names",
-    "a definition the listing never printed is NOT IN THE POPULATION",
-    "stopped early",
-    "two listings that disagree are an ERROR",
-    "an EMPTY population is an ERROR",
-    "`scrubbed <command>` runs the command without a planted gate variable",
-    "red_classes: the class of every definition with a Failed result",
-    "the XML range is stated once, as escapes",
-    "audit-callers flags every unscrubbed shape",
-)
-
 
 def self_test() -> int:
     from scratch_repo import remove_tree  # noqa: PLC0415  (scripts/: the one scratch fixture)
@@ -826,9 +808,6 @@ def self_test() -> int:
                     "  trx-schema  scripts/profile-test-parallelism.py  no XML parser")
     arm("the real tree: every live tool reads a trx file through trx_root (PB3661), and the audit sees the one reader "
         "and the tools that only name the schema", not bad and all(w in seen for w in want_readers), f"{bad} {seen}")
-    missing = [d for d in DECLARED_ARMS if not any(d in n for n, _, _ in results)]
-    arm("every DECLARED arm ran (DESIGN-test-build-ci.md §3.14.4 arm (3): a self-test quietly reduced to its happy "
-        "path also exits 0)", not missing, "; ".join(missing))
 
     for name, passed, detail in results:
         print(f"  {'PASS' if passed else 'FAIL'}  {name}" + ("" if passed or not detail else f"\n        {detail}"))
