@@ -1960,9 +1960,9 @@ have the effect of a CONTINUE statement (§14.9.7.4 GR1 / §14.9.36.4 GR1; `conf
   read/write handle (R6 and its fence) under the exclusive store mutex taken through that handle, `RollBackDeadOwners` runs, and
   the store's CLOSE promotes. The run unit's own store is untouched: its next coherent entry reads page 2 and adopts what the
   step wrote. Two places, nothing between them: (1) **the OPEN** (`KeyedConnector.SettleDeadOwnersOfTheOpen`, after the attach
-  read page 2 under the mutex): a dead owner found, the OPEN's own handle is given back first when a host with mandatory share
-  modes could refuse the writable one beside it (INPUT's implementor default is `SHARING WITH READ ONLY`, whose share mode
-  refuses every writer; the Table 19 column, the file lock between run units, stays held), the step runs, and the OPEN takes its
+  read page 2 under the mutex): a dead owner found, the OPEN's own handle is given back first, whatever the host (a host with
+  mandatory share modes would refuse the writable one beside it: INPUT's implementor default is `SHARING WITH READ ONLY`, whose
+  share mode refuses every writer; the Table 19 column, the file lock between run units, stays held), the step runs, and the OPEN takes its
   handle and attaches again; a connector that holds the handle a CLOSE under commit control kept keeps it. (2) **the statement's
   coherent entry** (`KeyedConnector.Enter`), for the connectors whose share mode admits another run unit's writer
   (`BeginStatement` is inert for `SHARING WITH NO OTHER`, and a `READ ONLY` reader has no live writer beside it, so no owner can
@@ -3099,8 +3099,12 @@ opens after the death never meets them): the rollback writes through the enterin
 (2.2.2.7), never the reader's read-only one, and a live transaction's holdings refuse nothing at an OPEN INPUT. A lock directory
 the process cannot list is '37' there too. Its READ of a held ordinal not IGNORING LOCK answers '51' as today, and every READ of a
 reader whose share mode admits another run unit's writer (`SHARING WITH ALL OTHER`) settles the dead transactions before it
-reads, IGNORING LOCK and ADVANCING ON LOCK included (`SequentialConnector.SettleDeadTransactions`): the lock-ignoring phrases
-ignore a live owner's holdings (§14.9.30.4 GR12, GR22), not a rollback that is owed.
+reads, IGNORING LOCK and ADVANCING ON LOCK included (`SequentialConnector.ReadHoldingsGate(previous, testsLocks)`, whose
+`testsLocks` false is the entry step alone): the lock-ignoring phrases ignore a live owner's holdings (§14.9.30.4 GR12, GR22), not
+a rollback that is owed. A settle the host refuses is an I-O status, never an escaping exception: '37' at the OPEN when the
+refusal is the authority the process lacks (§14.9.27.4 GR3; the keyed reader's answer too), '30' otherwise and at a READ's entry
+(§9.1.13.6 1); a permanent error, as `KeyedConnector.Enter` gives); a file-system root named by a dynamic target (a directory
+with no lock directory beside it) lists no transactions, so its OPEN is answered by the probe (`SequentialJournal.Enter`).
 
 **2.2.2.9 CLOSE, re-OPEN, DELETE FILE and termination under commit control.** A covered connector's CLOSE releases its records
 (the writer's buffer flushed, an open print line ended, `CloseCore` as today), disposes its reader or writer, and KEEPS the host

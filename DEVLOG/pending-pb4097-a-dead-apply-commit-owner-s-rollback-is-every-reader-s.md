@@ -58,3 +58,17 @@ the documented DOC-A.1-75 posture, so a reader there is not protected.
 **Gate.** Windows `=== BUILD-LOCAL GATE: GREEN — Conformance 20,482/20,482 · Unit 39,239/39,239 · Characterization 37/37 cases ran
 (skipped 0)` (run 000002-20261101T175356Z); `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built inert-watch;
 HEAD 5538beb6f) ===`.
+
+**Review round 1 (four blocking findings, all answered).** (R1-1) A READ's settle the host refused (the file read-only to the
+reader, SHARING WITH ALL OTHER, owner killed beside it) escaped as an `UnauthorizedAccessException` out of the run unit, plain and
+IGNORING LOCK alike; the keyed arm already gave '30'. `SequentialConnector.ReadHoldingsGate(previous, testsLocks)` now owns the
+whole sequential READ entry step (the separate `SettleDeadTransactions` is gone, one method per job) and maps a host failure to the
+permanent error. (R1-2) The OPEN INPUT's new entry step threw `ArgumentException` for a root path (`C:/`, `/`) that answered '05'
+before; `SequentialJournal.Enter` now treats a spelling the host cannot make absolute or a root as listing no transactions
+(`SidecarRegionLocks`' own three exception types), which also repairs the writable OPENs that reached the same throw. (R1-3) The
+sequential OPEN INPUT answered '30' where the keyed one answered '37' for a settle refused for authority; `FileConnector.OpenOnce`
+now maps the entry step's `UnauthorizedAccessException` to '37' for every organization. (R1-4) The keyed entry-time refusal is
+pinned (read-only file after the reader's OPEN, owner killed: '30', then '30' again, IGNORING LOCK included). The lead R1-5, a
+comment saying the OPEN's handle goes back only on some hosts, now says what the code does. New tests: two in
+`SequentialCommitControlTests`, four in `DeadOwnerReaderTests`, five in `FileAuthorityPresenceTests`; the inventory row retires the
+folded `SettleDeadTransactions` site (batch `w20261808b-pb4097-review-r1`).

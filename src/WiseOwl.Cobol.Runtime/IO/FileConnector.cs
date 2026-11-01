@@ -1033,7 +1033,11 @@ public abstract class FileConnector
         // transaction's holdings is §9.1.13.9 1)'s '61', with the file unaffected (§14.9.27.4 GR25).
         string? entered;
         try { entered = EnterPhysicalFile(mode); }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { entered = FileStatusCode.PermanentError; }
+        // The settle's writable handle (or the lock directory) refused for the authority this process lacks: §9.1.13.6 6) b)'s '37',
+        // as the OPEN's own host open answers it below and as a keyed reader's settle does (kb/Work PB4097); any other host failure
+        // is item 1's '30'.
+        catch (UnauthorizedAccessException) { entered = FileStatusCode.PermissionDenied; }
+        catch (IOException) { entered = FileStatusCode.PermanentError; }
         if (entered is not null)
         {
             LeaveEntry();

@@ -2163,17 +2163,13 @@ public sealed class FileRegistry
     /// circumstance, DOC-A.1-152) and settles a dead owner's transaction first (<see cref="SequentialConnector.ReadHoldingsGate"/>).
     /// A READ that tests no lock (<paramref name="testsLocks"/> false: IGNORING LOCK, §14.9.30.4 GR12; ADVANCING ON LOCK, GR22)
     /// still settles the dead owners, since a rollback owed by §9.1.18.5 is not a lock it may ignore
-    /// (<see cref="SequentialConnector.SettleDeadTransactions"/>; kb/Work PB4097). A connector whose permanent error is in effect
+    /// (<see cref="SequentialConnector.ReadHoldingsGate"/>; kb/Work PB4097). A connector whose permanent error is in effect
     /// asks no lock question (§9.1.13.1, PB3416). Returns the conflict status — stored on the connector — or null.</summary>
     private string? JournalConflict(string name, FileConnector c, bool previous, bool testsLocks)
     {
-        if (c is not SequentialConnector sequential || PermanentErrorOutranksLocks(c)) return null;
-        if (!testsLocks)
-        {
-            sequential.SettleDeadTransactions();
+        if (c is not SequentialConnector sequential || PermanentErrorOutranksLocks(c)
+            || sequential.ReadHoldingsGate(previous, testsLocks) is not { } held)
             return null;
-        }
-        if (sequential.ReadHoldingsGate(previous) is not { } held) return null;
         SetStatusOf(name, held);   // as ConflictOnLockedRecord: the status assignment drops the '43' gate (PB140)
         return held;
     }
