@@ -7856,7 +7856,7 @@ public static class DiagnosticCatalog
     // kb/Work PB4341: EXEC SQL … END-EXEC drew "cannot parse construct near 'SQL'", the message of a typo, where the
     // cause is an embedded-language block for a precompiler. Emitted by the front end's EmbeddedBlockReading, which reads
     // each block as one token before the parse; EXEC and END-EXEC are not reserved words, so a source that writes EXEC as
-    // a word is read as COBOL throughout and draws none.
+    // a word is read as COBOL throughout and draws none. A block left without its END-EXEC is COBOL5842 (kb/Work PB4381).
     public static readonly DiagnosticDescriptor EmbeddedPrecompilerBlock = new(
         "COBOL5818", "embedded-precompiler-block", EditionSeverity.Error,
         "The source holds an embedded-language block, EXEC language-name through END-EXEC (EXEC SQL, EXEC CICS, EXEC "
@@ -7866,6 +7866,21 @@ public static class DiagnosticCatalog
         + "so the block is reported once, at its EXEC, and the parse resumes after its END-EXEC. Run the source through "
         + "the precompiler first and compile the COBOL it writes.",
         "ISO §4.2.14");
+
+    // kb/Work PB4381: an EXEC language-name block whose sentence ends before any END-EXEC. EmbeddedBlockReading used to read
+    // EXEC as a COBOL word at the first such EXEC and give up the whole source, so every well-formed block drew
+    // "cannot parse construct near 'SQL'" again. It is its own fault, reported at its EXEC, and the blocks that close stay
+    // one token each; a program that declares EXEC as a word (01 EXEC PIC X.) is still read as COBOL throughout.
+    public static readonly DiagnosticDescriptor UnterminatedEmbeddedBlock = new(
+        "COBOL5842", "unterminated-embedded-block", EditionSeverity.Error,
+        "An embedded-language block, EXEC language-name, has no END-EXEC before the separator period that ends its "
+        + "sentence. ISO §8.3.5 rule 3: \"The COBOL character period, when followed by a space, is a separator\", so "
+        + "the sentence, and with it the block's text, ends there. ISO/IEC 1989 defines no EXEC construct (a vendor's "
+        + "precompiler reads the block, ISO §4.2.14), so the fault is the embedded text's own: the block is taken through "
+        + "the text before the period, and END-EXEC belongs after that text and before the period. A program that "
+        + "declares EXEC as a COBOL word (01 EXEC PIC X.) is read as COBOL throughout and draws neither this nor "
+        + "COBOL5818.",
+        "ISO §8.3.5 3); §4.2.14");
 
     // kb/Work PB4363: the ALL operand of the X3.23-1985 USE FOR DEBUGGING names a procedure, where the facility's
     // `ALL [REFERENCES OF] identifier-1` takes a data item. It was reported as COBOL1571's legal-but-unmodeled data
