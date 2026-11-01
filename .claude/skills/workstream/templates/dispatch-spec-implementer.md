@@ -51,7 +51,7 @@ GOLDENS: ONE spec-derived test at the rule's INTRODUCING edition in conformance-
 edition and its `source-format`; `<id>.out` is its expected output) and ONE program refused below it (no `accept`; its file
 conformance-suite/wiseowl/diagnostics/<test id>.json, one file per refusal, gives `refuse-at` and `expect`, the code); a per-edition `.out` ONLY where the rule's behaviour differs by edition
 (the version matrix covers the gating); expected values COMPUTED FROM THE SPEC; unique PROGRAM-IDs; `python conformance-suite/harness/generate.py --check` GREEN
-(conformance-suite/README.md, 'Adding a test'). Every golden/negative you ADD runs in leg 1 of your gate — quote its `UnitTestResult` from `TestResults/build-local/<run>/leg-1-Conformance.trx` (MANDATORY-PRACTICES I7).
+(conformance-suite/README.md, 'Adding a test'). Every golden/negative you ADD runs at your gate — quote its `UnitTestResult` from `TestResults/build-local/<run>/Conformance.trx` (MANDATORY-PRACTICES I7).
 Parser + emitter + golden + manifest entry in ONE commit.
 
 REGISTER: flip each note's `status` and write its `closes_rows` IN THE COMMIT THAT LANDS IT: a row the fix re-verdicted LEAVES `inventory_rows` and ARRIVES in
@@ -80,16 +80,14 @@ Never start a build or gate once one exists. No other STOP file is yours (anothe
 
 GATE — ORDER, DON'T SKIP (owner 2026-09-28; kb/Work PB1708, PB1721): `pwsh scripts/build-local.ps1
 -Priority BelowNormal` — nothing to derive, pass or trim, ALWAYS `-Priority BelowNormal`, one gate per worktree (a second is refused by its lock). It takes a gate slot (`gate-slot: waiting, k ahead` is the cap
-working: keep blocking), builds, and plans EVERY discovered case of Conformance, Unit and Characterization into two
-legs — your added tests, your previous gate's reds, the host-only witnesses (tier 0h), the cheap tree-wide sweeps
-(tier 0c), the drift tests that govern a file you changed (tier 0d) and the cheapest cases your change reaches (the
-whole tier 1 when the change cannot be attributed precisely, kb/Work PB4269) in leg 1 — FAIL-FAST. The gate has ONE shape (kb/Work PB3022): a re-gate after a fix runs leg 1 again, never the population.
-⭐ BATCHED GATING (owner 2026-10-10, kb/Work PB2515, MANDATORY-PRACTICES I1): the gate runs LEG 1 ONLY, names every
-leg-2 case NOT RUN, and is done on `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — …`; a red
-is `…: RED` — fix it and re-gate. `enqueue.py land` gates nothing again, it reads this gate's record and
-refuses a head with none (exit 14); CI's merge-group run checks the population and the merge with main. (Only while the owner has set the shared implementer scope to `whole`, as `python
-scripts/gate_slot.py status` shows, does it run both legs, stop `RED/INCOMPLETE` on a leg-1 red, and finish on
-`=== BUILD-LOCAL GATE: GREEN — …`.) Its audits run first, and a red audit makes the gate RED. Never `| tail`: read the verdict line from the redirected file.
+working: keep blocking), builds, and runs the WHOLE Unit, Conformance and Characterization populations, three hosts
+at once — the classes red at your previous gate (or in the merge-queue run that bounced your branch) first, then longest
+first by the committed weights — and checks each population by name (owner decision 1 of PB4323, kb/Work PB4328: the
+population is the selection; MANDATORY-PRACTICES I1). The gate has ONE shape (kb/Work PB3022): a re-gate after a fix
+runs it again. It is done on `=== BUILD-LOCAL GATE: GREEN — …`; a red is `…: RED` — fix it and re-gate.
+`enqueue.py land` gates nothing again, it reads this gate's record and refuses a head with none (exit 14); CI's
+merge-group run is the first run of the merged tree, Linux and Release. Its audits run beside the build and the hosts,
+and a red audit stops them and makes the gate RED. Never `| tail`: read the verdict line from the redirected file.
 ⛔ `python scripts/semgrep/verify.py` must not increase any rule's count (train 57 dropped a cluster for +20 BigInteger).
 {linux_gate}
 

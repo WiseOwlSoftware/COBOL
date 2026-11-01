@@ -56,8 +56,8 @@ Linux-only red to the landing's gate.
 A drift test that reads a REGISTER — a data file it names, such as the traceability inventory or docs/CONFORMANCE.md —
 and checks that the register's citations resolve is broken by a change that never touches the register: one that
 deletes a member a code-location names, renames a test a test-ref names, or deletes a file. `citing` answers that
-case for the gate's planner (kb/Work PB3131): given what a diff removes (`removal_of`, fed by
-scripts/spec/impacted_tests.py), the classes that govern each register citing it (`Citations.broken_by` reads the
+case (kb/Work PB3131; its caller, the gate's planner, was deleted with kb/Work PB4328, so today only this tool's
+self-test reaches it): given what a diff removes (`removal_of`), the classes that govern each register citing it (`Citations.broken_by` reads the
 three citation shapes a register uses: a path, a path and member, a dotted name).
 """
 import json
@@ -122,7 +122,7 @@ COMMENT = re.compile(r"//[^\n]*")
 TREE_ROOTS = r"(?:src|tests|docs|scripts|specs|kb|grammars|\.github|adjudication|conformance-suite)"
 LITERAL = re.compile(r'"(' + TREE_ROOTS + r'/[^"\s{}*]+)"')
 SUMMARY = re.compile(r"///\s*<summary>(.*?)</summary>", re.S)
-#: A drift class as a gate display name sees it: a partition `Family_P<k>` is the FAMILY (gate_plan.name_key), and an
+#: A drift class as a gate display name sees it: a partition `Family_P<k>` is the FAMILY, and an
 #: abstract base such as `FamilyDriftTestsBase` is no test, so neither matches.
 # A DECLARATION, which starts its line (attributes and modifiers before it): a `class XDriftTests {` a drift test PLANTS
 # inside a string literal, mid-line, declares no class of the assembly (kb/Work PB4325 review R1-4).
@@ -600,8 +600,7 @@ def render(rows):
 
 def is_sweep(row):
     """A TREE-WIDE SWEEP reads some path above SPECIFIC_DEPTH: a whole tree, or a file at its top. ONE rule: the
-    per-file query lists such a test after the specific ones, and the gate's plan runs every cheap one in leg 1 at
-    every gate (tier 0c, scripts/gate_plan.py), through the `[Trait("Sweep", "tree")]` its class carries
+    per-file query lists such a test after the specific ones, and its class carries `[Trait("Sweep", "tree")]`
     (HostWitnessTraitDriftTests holds the two equal; kb/Work PB3022). A declared scope of the committed tree reads
     above SPECIFIC_DEPTH when one of its prefixes does. Only the class's OWN scan decides (the paths it names, its
     scopes), never a path it reads through a helper class (`Sources.inherited`): that closure is file-grained, so it
@@ -621,8 +620,7 @@ def relative(target):
 
 
 def governed(rows, paths):
-    """The drift-test classes that govern any of the repo-relative `paths`, specifically or as a sweep: what the gate's
-    planner puts in leg 1 for a change to them (tier 0d; scripts/spec/impacted_tests.py, scripts/gate_plan.py)."""
+    """The drift-test classes that govern any of the repo-relative `paths`, specifically or as a sweep."""
     out = set()
     for rel in paths:
         specific, sweeps = governing(rows, rel)
@@ -837,8 +835,7 @@ def tracked_tree(under=None):
 
 def citing(rows, removals, read=None, tree=None):
     """{drift class: (data file, citation)} for every data file (`data_files`) holding a citation one of `removals`
-    breaks: the classes that govern that file specifically, which the gate's planner puts in leg 1 with the governing
-    ones (tier 0d; scripts/spec/impacted_tests.py). A change that deletes a member, renames a test or deletes a file a
+    breaks: the classes that govern that file specifically. A change that deletes a member, renames a test or deletes a file a
     register cites breaks the register's check WITHOUT touching the register (kb/Work PB3131: four landings stopped in
     CI's Linux unit leg on SpecTraceabilityInventoryDriftTests after a Windows leg 1 that never ran it). `read`
     (repo-relative path -> text) defaults to the tree; `tree` (the paths before the change, which a deleted file's
@@ -927,7 +924,7 @@ def self_test():
                                                       '    IEnumerable<string> B => names.Select(Src);'),
             "tests/P/BlindDriftTests.cs": drift("BlindDriftTests", '    string A(string tree) => TestRepo.At(tree);'),
             # A file whose cases were split (kb/Work PB4325 review R1-1): a second class, a partitioned family (its
-            # display name is the family, gate_plan.name_key) and an abstract base, which is no test; and a class
+            # display name is the family) and an abstract base, which is no test; and a class
             # PLANTED in a string literal (review R1-4: TrackedTreeScopeDriftTests.cs), which is no class either.
             "tests/P/SplitDriftTests.cs": drift("SplitDriftTests", '    string A => TestRepo.Docs("OTHER.md");')
                                           + "public sealed class SplitSecondDriftTests { }\n"

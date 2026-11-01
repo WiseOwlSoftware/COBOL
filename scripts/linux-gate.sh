@@ -7,7 +7,7 @@
 #   python scripts/self_tests.py runs `bash scripts/linux-gate.sh --self-test` (the host hand-off, with stand-ins).
 #
 #   THE LINUX HALF LEFT THE PER-CHANGE GATE (owner 2026-10-31, kb/Work PB4327; PIPELINE-REVIEW.md section 7). The local
-#   gate (scripts/build-local.ps1 -> run_gate_legs.py) runs nothing on Linux: its Linux half re-ran on WSL the leg
+#   gate (scripts/build-local.ps1 -> gate.py) runs nothing on Linux: its Linux half re-ran on WSL the leg
 #   Windows had just run, cost 167 s a gate, and no compiler test was red on Linux alone in October's 31 incidents.
 #   Every merge group runs the whole Linux population and all the Linux self-tests, so a Linux-only red is found in the
 #   queue. This script is what is left of it: the tool that REPRODUCES a Linux CI red on this box, run by hand (and by a
@@ -53,7 +53,7 @@
 # line each, and ONE verdict:
 #   === LINUX GATE: GREEN (legs …) ===   |   === LINUX GATE: RED (…) ===   |   === LINUX GATE: NOT RUN [<cause>] (…) ===
 #   === LINUX GATE: BUSY — … ===  (exit 3: another gate of this tree is running; this run touched nothing, kb/Work PB3310)
-# Exit 0 only on GREEN. A NOT RUN names its cause by tag, one row of run_gate_legs.NOT_RUN_CAUSES, which classifies it
+# Exit 0 only on GREEN. A NOT RUN names its cause by tag, one row of gate.NOT_RUN_CAUSES, which classifies it
 # ONCE (ENVIRONMENT or BRANCH: kb/Work PB3526); the driver's self-test holds every NOT RUN line here to a known tag.
 set -u
 
@@ -231,7 +231,7 @@ busy_line() {
 # other's clone: on 2026-10-16 the second `enqueue.py land` of a branch deleted the first's clone mid-test, and its
 # `dotnet test` hung 6 h 40 min in the deleted directory holding a gate slot. Each run now has its own clone (the pid in
 # the directory name), and a second run on a tree whose gate is RUNNING answers `=== LINUX GATE: BUSY ...` (exit 3) before
-# it touches anything: BUSY is neither a pass nor a red (run_gate_legs.BUSY is the same word). The check and the registration (the owner file) are one step under
+# it touches anything: BUSY is neither a pass nor a red (gate.BUSY is the same word). The check and the registration (the owner file) are one step under
 # an flock on a dotfile (reap_gates' glob skips it), so two gates started together cannot both pass.
 begin_gate() {
   local name="${2##*/}" me="$BASHPID" other   # captured here: inside $( ) BASHPID is that subshell's
@@ -517,7 +517,7 @@ if [ ! -f WiseOwl.Cobol.sln ]; then
   echo "=== LINUX GATE: NOT RUN [tree] (not at a repository root: $(pwd)) ==="; exit 2
 fi
 # ⛔ THE TOOLCHAIN (kb/Work PB4007): CI runs exactly toolchain.env's versions, so a Linux run under any other measures
-# what CI will not run; the Windows gate holds its own host to the manifest the same way (run_gate_legs.Host.toolchain).
+# what CI will not run; the Windows gate holds its own host to the manifest the same way (gate.Host.toolchain).
 if ! toolchain_report="$("$PY" scripts/toolchain.py check --scope gate 2>&1)"; then
   printf '%s\n' "$toolchain_report"
   echo "=== LINUX GATE: NOT RUN [toolchain] (this host's tools are not toolchain.env's — run scripts/wsl/setup-wsl.sh) ==="; exit 2
@@ -568,9 +568,9 @@ repo_written() {   # 0 (and the RED line) when something wrote to the REAL repos
        "after: $state_after). Undo it, then find what escaped the clone."
 }
 
-# THE PLANNER READS THIS DIRECTORY (gate_plan.TRX_WRITERS, kb/Work PB3155): a case red in a trx file here is tier 0a of
-# this worktree's next gate, so a re-gate after a hand run's Linux red runs it in leg 1. It holds only the newest run:
-# emptied first.
+# THE GATE READS THIS DIRECTORY (test_population.py TRX_WRITERS, kb/Work PB3155, PB4328): a class red in a trx file here runs
+# first at this worktree's next gate, so a re-gate after a hand run's Linux red shows it first. It holds only the
+# newest run: emptied first.
 out="$tree/TestResults/linux-gate"
 # This gate's footprint (kb/Work PB3194, above): reap what ended gates left, refuse on a full filesystem, then work in
 # this gate's own directory, removed on every exit path. begin_gate answers BUSY before the results directory below is

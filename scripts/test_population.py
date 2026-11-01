@@ -7,8 +7,8 @@ once", and until this tool three runs asserted it three different ways or not at
 `Total:` line against a `grep -c` of the listing (a count cannot see a dropped case offset by one that ran twice),
 while the battery accepted any `Passed!` line with exit 0 and the gate checked nothing. Its callers are the
 battery (`scripts/battery.sh` PHASE 1, all three assemblies) and CI's `ci-gate` job (each platform's weighted
-shards' trx files, per assembly, kb/Work PB4329); the ordered gate's driver (DESIGN §3.14.9 M13) calls `list_population` and `check` per assembly
-over both legs.
+shards' trx files, per assembly, kb/Work PB4329); the gate (scripts/gate.py) calls `list_population` and `check` per
+assembly over its host's trx.
 
 THE QUESTION, answered as multisets of display names:
   population  `dotnet test --list-tests` — vstest DISCOVERY, which never calls the executor and so cannot see an
@@ -25,7 +25,7 @@ THE QUESTION, answered as multisets of display names:
               assembly);
   skipped     a definition with no Passed or Failed result (a `[Fact(Skip)]` is NotExecuted) — counted on the
               line, never as ran.
-A run that stopped early (a leg-1-only gate, a fail-fast stop) still answers RAN TWICE and NOT IN THE POPULATION:
+A run that stopped early (a fail-fast stop) still answers RAN TWICE and NOT IN THE POPULATION:
 only NEVER RAN depends on the run having finished (`Population.defective`, kb/Work PB4274).
 
 ⛔ ONE SPELLING (kb/Work PB4274). The two sides do NOT spell a display name the same way. xunit's argument formatter
@@ -35,16 +35,15 @@ UTF-8. The trx logger then rewrites every UTF-16 code unit outside XML's charact
 \\uE000-\\uFFFD]` as `\\u` and four lowercase hex digits (Microsoft.VisualStudio.TestPlatform.Extensions.Trx.TestLogger,
 `RemoveInvalidXmlChar`), so a supplementary character, a valid surrogate PAIR, reaches the trx as the twelve
 characters `\\ud834\\udd5e`. Every comparison of a listed or in-process name with a trx name therefore goes through
-`trx_spelling`, that rewrite stated once (and mirrored in C# by `GateNameKey`, which the gate planner's `name_key`
-shares): it is what the logger does, so a case always meets itself, and it is the identity on a trx name. It cannot
+`trx_spelling`, that rewrite stated once: it is what the logger does, so a case always meets itself, and it is the identity on a trx name. It cannot
 be inverted (the logger escapes no backslash), so two listed names it maps to one spelling are an ERROR the check
 names, never a silent merge; an xunit string argument holding the literal text `\\ud834` is listed as `\\\\ud834` and
 stays distinct from the character.
 
 ⛔ THE SCRUB (§3.14.3). Three channels can make a whole-assembly `dotnet test` run a PART of its assembly while
 exiting 0, and every one of them is an ENVIRONMENT variable:
-  WISEOWL_COBOL_GATE_*          the gate's leg handshake (`WISEOWL_COBOL_GATE_PLAN`, `_LEG`, `_PLAN_SHA256`): only the gate
-                           driver may hand it to a test host;
+  WISEOWL_COBOL_GATE_*     the gate's own channel to a test host (`WISEOWL_COBOL_GATE_FIRST`, the classes its orderer
+                           runs first; scripts/gate.py `FIRST_CLASSES`): only the gate may hand it to a host;
   VSTest*                  MSBuild imports every environment variable as a property, and the VSTest target reads
                            `VSTestTestCaseFilter`, `VSTestSetting`, `VSTestListTests`, … — MEASURED 2026-09-28:
                            `VSTestTestCaseFilter=FullyQualifiedName~Snapshot` narrowed Characterization from 33
@@ -96,17 +95,15 @@ TRX_NS = "{http://microsoft.com/schemas/VisualStudio/TeamTest/2010}"
 RAN_OUTCOMES = frozenset({"Passed", "Failed"})
 RC_EXACT, RC_RED, RC_ERROR = 0, 1, 2
 
-#: THE GATED ASSEMBLIES — every whole-population run's three test projects, by the key the plan, the impact map and
-#: the identity records name them with (the test assembly's name without `WiseOwl.Cobol.Tests.`). Their one statement:
-#: the gate driver, the impact recorder and `impacted_tests.py` read it from here.
+#: THE GATED ASSEMBLIES — every whole-population run's three test projects, by the key the gate, the weights file and
+#: CI's shards name them with (the test assembly's name without `WiseOwl.Cobol.Tests.`). Their one statement: the gate
+#: and the shard tools read it from here.
 GATED_ASSEMBLIES = {
     "Conformance": "tests/WiseOwl.Cobol.Tests.Conformance",
     "Unit": "tests/WiseOwl.Cobol.Tests.Unit",
     "Characterization": "tests/WiseOwl.Cobol.Tests.Characterization",
 }
 
-#: The gate's leg handshake (§3.14.3): written by the gate driver alone.
-HANDSHAKE = ("WISEOWL_COBOL_GATE_PLAN", "WISEOWL_COBOL_GATE_LEG", "WISEOWL_COBOL_GATE_PLAN_SHA256")
 #: CI's weighted shards (kb/Work PB4329; tests/_shared/GateLegs.cs `GateShard`): the one narrowing a WORKFLOW may set,
 #: because the workflow that sets it checks its shards' union with `check` (`audit_callers` holds it to that).
 SHARD = "WISEOWL_COBOL_SHARD"
@@ -143,28 +140,27 @@ def scrubbed_env(base: dict[str, str] | None = None) -> dict[str, str]:
 # ── the one spelling (kb/Work PB4274) ─────────────────────────────────────────────────────────────────────────
 
 
-def _xml_char(cp: int) -> bool:
-    """Is this UTF-16 code unit inside the trx logger's kept range `[\\x09\\x0A\\x0D\\x20-\\uD7FF\\uE000-\\uFFFD]`?"""
-    return cp in (0x09, 0x0A, 0x0D) or 0x20 <= cp <= 0xD7FF or 0xE000 <= cp <= 0xFFFD
-
-
-#: Any character the trx logger rewrites: the complement of `_xml_char`'s range. A Python str holds code points, so a
-#: supplementary character (above U+FFFF) falls outside the class and matches. One compiled search finds the 4 names in
-#: 59,515 that need the rewrite, where a per-character test of every listed, mapped and timed name cost each gate the
-#: whole population (kb/Work PB4274 review R1-3).
-_NOT_XML = re.compile("[^\t\n\r -퟿-�]")
+#: XML 1.0's character range, the one the trx logger keeps (`RemoveInvalidXmlChar`), stated ONCE and as escapes (kb/Work
+#: PB4274's review: a tool once decoded the escapes it was handed and wrote the literal characters U+D7FF, U+E000 and
+#: U+FFFD into this file). `_IS_XML` and `_NOT_XML` are both derived from it. A Python str holds code points, so a
+#: supplementary character (above U+FFFF) is in neither the range nor `_IS_XML`, and `_NOT_XML` matches it. One
+#: compiled search finds the few names that need the rewrite, where a per-character test of every name cost each gate
+#: the whole population (kb/Work PB4274 review R1-3).
+XML_RANGE = "\\t\\n\\r\\x20-\\ud7ff\\ue000-\\ufffd"
+_IS_XML = re.compile(f"[{XML_RANGE}]")
+_NOT_XML = re.compile(f"[^{XML_RANGE}]")
 
 
 def trx_spelling(name: str) -> str:
     """`name` as the trx logger writes it: every UTF-16 code unit outside XML's character range becomes `\\u` and four
     lowercase hex digits, a supplementary character as its two surrogates (the module docstring, ONE SPELLING). The
-    identity on a name read from a trx; C#'s `GateNameKey.Of` applies the same rewrite."""
+    identity on a name read from a trx."""
     if not _NOT_XML.search(name):
         return name
     out = []
     for c in name:
         cp = ord(c)
-        if _xml_char(cp):
+        if _IS_XML.match(c):
             out.append(c)
         elif cp > 0xFFFF:
             cp -= 0x10000
@@ -260,7 +256,7 @@ class TrxCases:
 
 def trx_root(path: str | Path) -> ET.Element:
     """THE ONE READER of a trx file (kb/Work PB3661): its root element, or an `UnreadableTrx` that names the file. Every
-    consumer of a trx under scripts/ (the population check's `read_trx`, the gate planner's `gate_plan.trx_results`,
+    consumer of a trx under scripts/ (the population check's `read_trx`, the gate's `red_classes`,
     the profiler) reads through it, so none can fail with a parse error that names no file."""
     try:
         root = ET.parse(path).getroot()
@@ -269,6 +265,80 @@ def trx_root(path: str | Path) -> ET.Element:
     if root.tag != TRX_NS + "TestRun":
         raise UnreadableTrx(path, f"not a trx file (root element {root.tag})")
     return root
+
+
+def red_classes(paths: list[str | Path]) -> set[str]:
+    """THE CLASSES WITH A RED CASE in these trx files (kb/Work PB4328): the `className` of the test method of every
+    definition one of whose results Failed — the spelling the weights file, the shards and the gate's orderer use
+    (tests/_shared/GateLegs.cs `GateShard.ClassOf`). A file that cannot be read raises `UnreadableTrx` naming it."""
+    classes: set[str] = set()
+    for path in paths:
+        root = trx_root(path)
+        failed = {r.get("testId", "") for r in root.iter(TRX_NS + "UnitTestResult") if r.get("outcome") == "Failed"}
+        for u in root.iter(TRX_NS + "UnitTest"):
+            method = u.find(TRX_NS + "TestMethod")
+            if u.get("id", "") in failed and method is not None and method.get("className"):
+                classes.add(method.get("className"))
+    return classes
+
+
+# ── RED AT THE PREVIOUS GATE MEANS ANY HOST'S (kb/Work PB3155, PB3184, PB3644): the sources of the first classes ──────
+#: ⛔ EVERY LIVE TOOL THAT WRITES TEST RESULTS (a trx file) INTO A WORKTREE IS ONE ROW HERE: the results directory it
+#: writes, relative to the worktree (None: it writes none there), and what the gate takes from it (scripts/gate.py `Gate._first`).
+#: `GateLegDriftTests` holds this table equal to the live tools that write a trx file (`audit-trx-writers`), so a new
+#: writer is classified here or that test is red.
+TRX_WRITERS: dict[str, tuple[str | None, str]] = {
+    "scripts/gate.py": ("TestResults/build-local", "the previous run (`Gate.previous_run`): its red classes run first"),
+    "scripts/linux-gate.sh": ("TestResults/linux-gate", "the hand-run Linux gate's newest run: its red classes run first"),
+    "scripts/battery.sh": (None, "none: the battery runs in its own detached worktree at a batch head, never a gate "
+                                 "of a branch"),
+}
+LINUX_GATE_RESULTS = Path(TRX_WRITERS["scripts/linux-gate.sh"][0])
+#: What makes a live tool a trx writer: the vstest logger argument naming the trx file (split here, so this file's own
+#: mention is the one its row explains).
+TRX_LOGGER_MARK = "trx;" + "LogFileName="
+
+
+def audit_trx_writers(repo: Path) -> tuple[list[str], list[str]]:
+    """(the live tools that write a trx file, each with its TRX_WRITERS row; the offenders): a writer with no row, a row
+    whose tool is gone or writes no trx file, and a row whose results directory its tool never names."""
+    import live_tools  # noqa: PLC0415  (only the audit reads the live tools)
+    writers = [f for f in live_tools.tracked(repo)
+               if TRX_LOGGER_MARK in (repo / f).read_text(encoding="utf-8", errors="replace")]
+    seen = [f"  writer  {f}  {TRX_WRITERS[f][0] or '-'}  {TRX_WRITERS[f][1]}" for f in writers if f in TRX_WRITERS]
+    bad = [f"  {f}: writes a trx file and has no row in test_population.TRX_WRITERS — say whether its red classes run first at "
+           f"the next gate" for f in writers if f not in TRX_WRITERS]
+    for f, (results, _) in sorted(TRX_WRITERS.items()):
+        if f not in writers:
+            bad.append(f"  {f}: a TRX_WRITERS row, but no tracked live tool of that name writes a trx file")
+        elif results is not None and results not in (repo / f).read_text(encoding="utf-8", errors="replace"):
+            bad.append(f"  {f}: its row says it writes {results}/, which it never names")
+    return seen, bad
+#: ⛔ ONE READER OF A TRX FILE (kb/Work PB3661): `trx_root`, which names the file it cannot read. A live tool that names
+#: the trx schema and imports an XML parser is a second reader, and it fails with a parse error that names no file (the
+#: gate planner did, and so did the profiler). Both marks are built from parts, so this file's own audit is not a hit.
+TRX_READER = "scripts/test_population.py"
+TRX_SCHEMA_MARK = "Team" + "Test/2010"
+XML_PARSER_RE = re.compile("Element" + "Tree|mini" + "dom|l" + "xml|xml[.]sax|from" + "string")
+
+
+def audit_trx_readers(repo: Path = REPO) -> tuple[list[str], list[str]]:
+    """(the live tools that name the trx schema, each marked reader or not; the offenders): every live tool that names the
+    trx schema AND imports an XML parser, other than TRX_READER, reads a trx file itself."""
+    import live_tools  # noqa: PLC0415  (only the audit reads the live tools)
+    seen, bad = [], []
+    for f in live_tools.tracked(repo, (".py", ".sh", ".ps1")):
+        text = (repo / f).read_text(encoding="utf-8", errors="replace")
+        if TRX_SCHEMA_MARK not in text:
+            continue
+        parses = XML_PARSER_RE.search(text) is not None
+        seen.append(f"  trx-schema  {f}  {'parses XML' if parses else 'no XML parser'}")
+        if parses and f != TRX_READER:
+            bad.append(f"  {f}: names the trx schema and imports an XML parser, so it reads a trx file itself — read "
+                       f"it through {TRX_READER}'s trx_root (the one reader, which names a file it cannot read)")
+    if not any(TRX_READER in line and "parses XML" in line for line in seen):
+        bad.append(f"  {TRX_READER}: the one trx reader is not seen — the audit is broken, not the tree clean")
+    return seen, bad
 
 
 def read_trx(path: str | Path) -> TrxCases:
@@ -461,15 +531,17 @@ def audit_callers(root: Path = REPO) -> tuple[list[str], list[str]]:
 
 
 def synthetic_trx(path: Path, cases: list[tuple[str, list[str]]], stray_results: list[tuple[str, str, str]] = ()) -> str:
-    """A minimal trx: each case is (definition name, [result outcomes]); a stray result is (definition name it
-    belongs to, the RESULT's own name, outcome) — the shape of a theory xunit could not serialize."""
+    """A minimal trx: each case is (definition name, [result outcomes]), its test method's `className` the name up to
+    its last `.` before any `(`; a stray result is (definition name it belongs to, the RESULT's own name, outcome) —
+    the shape of a theory xunit could not serialize."""
     from xml.sax.saxutils import quoteattr
     ids = {}
     defs, results = [], []
     for i, (name, outs) in enumerate(cases):
         tid = f"00000000-0000-0000-0000-{i:012d}"
         ids.setdefault(name, tid)
-        defs.append(f"<UnitTest name={quoteattr(name)} id=\"{tid}\" />")
+        cls = name.partition("(")[0].rpartition(".")[0]
+        defs.append(f"<UnitTest name={quoteattr(name)} id=\"{tid}\"><TestMethod className={quoteattr(cls)} /></UnitTest>")
         results += [f"<UnitTestResult testId=\"{tid}\" testName={quoteattr(name)} outcome=\"{o}\" />" for o in outs]
     for owner, result_name, outcome in stray_results:
         results.append(f"<UnitTestResult testId=\"{ids[owner]}\" testName={quoteattr(result_name)} "
@@ -618,20 +690,20 @@ def self_test() -> int:
         arm("the listing parser keeps 4-space-indented names verbatim", body == Counter({"A.B": 1, "C.D  ": 1}),
             str(body))
 
-        scrubbed = ["WISEOWL_COBOL_GATE_PLAN", "wiseowl_cobol_gate_leg", "WISEOWL_COBOL_GATE_PLAN_SHA256", "VSTestTestCaseFilter",
+        scrubbed = ["WISEOWL_COBOL_GATE_FIRST", "wiseowl_cobol_gate_first", "WISEOWL_COBOL_GATE_ANYTHING", "VSTestTestCaseFilter",
                     "VSTestSetting", "vstest_host_debug", "RunSettingsFilePath"]
         kept = ["WISEOWL_COBOL_COMPILE_CACHE", "PATH", "RUNSETTINGS", "WISEOWL_COBOL_GATE"]
         scrubbed.append("wiseowl_cobol_shard")
         kept.append("WISEOWL_COBOL_SHARDS")
-        arm("the scrub rule names the handshake, VSTest*, RunSettingsFilePath and CI's shard variable (any case), "
-            "nothing else", all(map(is_scrubbed, scrubbed)) and not any(map(is_scrubbed, kept))
-            and all(map(is_scrubbed, HANDSHAKE)) and is_scrubbed(SHARD))
+        arm("the scrub rule names the gate's channel (WISEOWL_COBOL_GATE_*), VSTest*, RunSettingsFilePath and CI's shard "
+            "variable (any case), nothing else", all(map(is_scrubbed, scrubbed)) and not any(map(is_scrubbed, kept))
+            and is_scrubbed(SHARD))
         planted = {**os.environ, "WISEOWL_COBOL_GATE_LEG": "1", "VSTestTestCaseFilter": "X~Y", "W71D_KEEP": "kept"}
         probe = subprocess.run([sys.executable, __file__, "scrubbed", sys.executable, "-c",
                                 "import os; print(sorted(k for k in os.environ if k.upper() in "
                                 "('WISEOWL_COBOL_GATE_LEG', 'VSTESTTESTCASEFILTER', 'W71D_KEEP')))"],
                                env=planted, capture_output=True, text=True)
-        arm("`scrubbed <command>` runs the command without a planted handshake or VSTest variable",
+        arm("`scrubbed <command>` runs the command without a planted gate variable or VSTest variable",
             probe.returncode == 0 and probe.stdout.strip() == "['W71D_KEEP']", probe.stdout + probe.stderr)
 
         r = d / "repo"
@@ -681,6 +753,22 @@ def self_test() -> int:
             and sum(1 for o in offenders if o.startswith(".github/workflows/bad.yml")) == 2, f"sites {sites}")
         remove_tree(r)
 
+        # THE RED CLASSES (kb/Work PB4328): the classes of the definitions with a Failed result, read through trx_root.
+        reds = d / "reds"
+        reds.mkdir()
+        red_files = [synthetic_trx(reds / "a.trx", [("N.A.One", ["Passed"]), ("N.A.Two", ["Failed"]),
+                                                    ("N.B.T(x: \"a.b\")", ["Failed"])]),
+                     synthetic_trx(reds / "b.trx", [("N.C.One", ["NotExecuted"]), ("N.D.One", ["Passed", "Failed"])])]
+        arm("red_classes: the class of every definition with a Failed result, across files; none for a pass or a skip",
+            red_classes(red_files) == {"N.A", "N.B", "N.D"} and red_classes([]) == set(), str(red_classes(red_files)))
+        (reds / "torn.trx").write_text("<TestRun", encoding="utf-8", newline="\n")
+        rc, why = rc_of(lambda: red_classes([reds / "torn.trx"]))
+        arm("red_classes: an unreadable trx raises UnreadableTrx naming the file", rc == RC_ERROR and "torn.trx" in why, why)
+        arm("the XML range is stated once, as escapes: the kept and the rewritten characters are its two sides",
+            all(ord(ch) < 0x80 for ch in XML_RANGE) and _IS_XML.match("\ud7ff") and _IS_XML.match("\ue000")
+            and _IS_XML.match("\ufffd") and not _IS_XML.match("\uffff") and _NOT_XML.search("\uffff")
+            and _NOT_XML.search("\U0001d15e") and not _NOT_XML.search("\t\n\r ~"), XML_RANGE)
+
     for name, passed, detail in results:
         print(f"  {'PASS' if passed else 'FAIL'}  {name}" + ("" if passed or not detail else f"\n        {detail}"))
     failed = sum(1 for _, passed, _ in results if not passed)
@@ -719,6 +807,8 @@ def main(argv: list[str]) -> int:
     ls.add_argument("--configuration")
     ls.add_argument("--out", required=True)
     sub.add_parser("audit-callers", help="every `dotnet test` caller scrubs (GateLegDriftTests arm 6)")
+    sub.add_parser("audit-trx-writers", help="every live tool that writes a trx file has its TRX_WRITERS row (PB3155)")
+    sub.add_parser("audit-trx-readers", help="every live tool reads a trx file through trx_root (kb/Work PB3661)")
     args = ap.parse_args(argv)
 
     try:
@@ -727,6 +817,14 @@ def main(argv: list[str]) -> int:
             Path(args.out).write_text(raw, encoding="utf-8", newline="\n")
             print(f"test_population: {sum(names.values()):,} cases listed for {args.project} -> {args.out}")
             return RC_EXACT
+        if args.cmd == "audit-trx-writers":
+            seen, bad = audit_trx_writers(REPO)
+            print("\n".join([*seen, *bad, f"=== TRX WRITER AUDIT: {'CLEAN' if not bad else f'{len(bad)} OFFENDER(S)'} ==="]))
+            return RC_EXACT if not bad else RC_RED
+        if args.cmd == "audit-trx-readers":
+            seen, bad = audit_trx_readers()
+            print("\n".join([*seen, *bad, f"=== TRX READER AUDIT: {'CLEAN' if not bad else f'{len(bad)} OFFENDER(S)'} ==="]))
+            return RC_EXACT if not bad else RC_RED
         if args.cmd == "audit-callers":
             sites, offenders = audit_callers()
             for s in sites:

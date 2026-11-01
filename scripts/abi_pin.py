@@ -26,7 +26,7 @@ surface is an incompatible change against main's 17: major 18"). So:
     tree and writes the hashes. Nothing is bumped by a branch's author that the landing then has to guess.
 
 ⛔ A SETTLE THAT FAILS SAYS WHOSE FAILURE IT IS (kb/Work PB3673). `settle` returns a `Failure(cause, why)`, the cause one of
-the two `merge-*` rows of run_gate_legs.NOT_RUN_CAUSES, the gate's one classification by who can fix a cause: MERGE_BLOCKED
+the two `merge-*` rows of gate.NOT_RUN_CAUSES, the gate's one classification by who can fix a cause: MERGE_BLOCKED
 (the host's: a build output another process holds, a full disk, a command that cannot start, a git write refused; no finisher
 can fix it and a retry may clear it) or MERGE_FAILED (the merged tree's own: a malformed pin or owned file, a build or the
 measuring test that is red, a measurement that wrote no pin). `merge_drivers.merge` hands it to `enqueue.py land` as it is,
@@ -63,7 +63,7 @@ NL = chr(10)
 _VERSION = re.compile(r"(<Version>)(\d+)(\.0\.0</Version>)")
 _CALL_ABI = re.compile(r"(public const int CallAbi = )(\d+)(;)")
 #: THE TWO CLASSES OF A CLEAN MERGE THAT COULD NOT BE COMPLETED (kb/Work PB3673): the tags of the two `merge-*` rows of
-#: run_gate_legs.NOT_RUN_CAUSES, the gate's ONE classification of a cause by who can fix it (enqueue.py reads the class
+#: gate.NOT_RUN_CAUSES, the gate's ONE classification of a cause by who can fix it (enqueue.py reads the class
 #: from there; enqueue.py's self-test holds each tag to a row). BLOCKED is a cause outside the merged tree, which no
 #: finisher fixes and a retry may clear; FAILED is the merged tree's own. The settle's Failure carries them, and
 #: merge_drivers.merge gives git's own refusals of the merge commit the same two.

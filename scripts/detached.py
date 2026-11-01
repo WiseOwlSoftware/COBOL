@@ -7,7 +7,7 @@
 
 Two callers need it: the loop's landing lane starts each `enqueue.py land` so that a supervisor tick that ends does not
 end a landing mid-gate (kb/Work PB3103), and the gate driver starts every gate so that the agent or session that asked
-for it can end without ending the gate (scripts/run_gate_legs.py, kb/Work PB3536). Measured 2026-10-22 (wave 1150
+for it can end without ending the gate (scripts/gate.py, kb/Work PB3536). Measured 2026-10-22 (wave 1150
 group A's review finisher): a workflow agent's return KILLS the process tree of every background command it started,
 so its gate (run `20261022T225440Z-2797b8`) died mid-audit with no verdict, and the wave's only path was a new finisher
 re-running the same gate at the same head. The harness kills by walking the process TREE (the agent's shell is in no

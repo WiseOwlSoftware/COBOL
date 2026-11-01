@@ -94,7 +94,7 @@ GENERATE_RUNS = 3
 GENERATE_HOURS = 336
 
 #: The test assemblies are `WiseOwl.Cobol.Tests.<key>.dll`; the weights file and the shard hook name each by its key
-#: (GateLegs.cs `GatePlan.AssemblyKey` strips the same prefix).
+#: (GateLegs.cs `TestWeights.AssemblyKey` strips the same prefix).
 TEST_ASSEMBLY = re.compile(r"(?:^|[/\\])WiseOwl\.Cobol\.Tests\.(?P<key>[^/\\]+)\.dll$", re.IGNORECASE)
 #: A trx duration, `[d.]hh:mm:ss[.fffffff]`.
 _DURATION = re.compile(r"^(?:(?P<d>\d+)\.)?(?P<h>\d+):(?P<m>\d+):(?P<s>\d+(?:\.\d+)?)$")

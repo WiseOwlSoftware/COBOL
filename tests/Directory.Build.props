@@ -45,16 +45,13 @@
   </ItemGroup>
 
   <!--
-    THE GATE'S FRAMEWORK (kb/Work PB1719; docs/rearchitecture/DESIGN-test-build-ci.md section 3.14.3): every test
-    project runs under WiseOwl.Cobol.Gate.GateTestFramework (_shared/GateLegs.cs), which runs exactly one leg of the
-    gate's plan when the gate driver hands it a complete handshake, and is xunit's own framework otherwise. The
+    THE GATE'S FRAMEWORK (kb/Work PB1719, PB4328; docs/rearchitecture/DESIGN-test-build-ci.md section 3.14.3): every
+    test project runs under WiseOwl.Cobol.Gate.GateTestFramework (_shared/GateLegs.cs), xunit's own framework with the
+    gate's orderer (the classes the gate names first, then longest first by the weights) and CI's shard hook. The
     attribute names the assembly, which a linked source file cannot, so it is written here. xunit resolves it by that
     name and silently runs its default framework on a miss; GateLegDriftTests pins it in every gated assembly.
-    ⛔ The impact-recording build (tools/impact/ImpactRecording.targets) defines IMPACT_RECORDING and names its own
-    ImpactTestFramework (derived from GateTestFramework) instead: an assembly names exactly one framework. Item
-    conditions are evaluated after every property, so this sees the recording targets' DefineConstants.
   -->
-  <ItemGroup Condition="'$(IsTestProject)' == 'true' and '$([System.String]::Copy(`;$(DefineConstants);`).Contains(`;IMPACT_RECORDING;`))' != 'true'">
+  <ItemGroup Condition="'$(IsTestProject)' == 'true'">
     <AssemblyAttribute Include="Xunit.TestFrameworkAttribute">
       <_Parameter1>WiseOwl.Cobol.Gate.GateTestFramework</_Parameter1>
       <_Parameter2>$(AssemblyName)</_Parameter2>
