@@ -2044,7 +2044,7 @@ of an unsupported facility.
   follows program text are no debugging line. (b) "Followed by at least one space" is read literally: in free form a line
   that ENDS in `>>D` is not a debugging line (its next character is the end of the line, not a space) and draws the
   parser's `>>` error as any unknown directive does, while a fixed-form program-text area is space-filled to margin R
-  (DOC-A.1-157), so a bare `>>D` there is followed by spaces and is a debugging line of spaces, a blank line (§6.5 2)).
+  (Annex A.1 item 157), so a bare `>>D` there is followed by spaces and is a debugging line of spaces, a blank line (§6.5 2)).
   (c) SR8: `>>D` as the first character-string of a line whose indicator area holds the fixed `D` or the continuation
   hyphen is refused, COBOL5770, at the indicator; the line is then read as its fixed indicator says. **Edition window
   (registry row `floating-debugging-indicator-2002`):** introduced WITH the floating indicators at 2002 (COBOL0900 below,
