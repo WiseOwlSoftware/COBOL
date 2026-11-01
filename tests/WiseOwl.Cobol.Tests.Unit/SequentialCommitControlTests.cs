@@ -862,7 +862,9 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     {
         // §9.1.13.6 6) b): "insufficient authority exists to access the file" ('37'; §14.9.10.4 GR16 for the DELETE FILE). The
         // entry step cannot tell whether a transaction lives on the file, and no holder is known to conflict, so the answer is
-        // the missing authority, never a '61' or '62' sharing conflict; the file is unaffected (§14.9.27.4 GR25).
+        // the missing authority, never a '61' or '62' sharing conflict; the file is unaffected (§14.9.27.4 GR25). An OPEN INPUT
+        // runs the entry step too (kb/Work PB4097): a dead run unit's rewrite is rolled back before any reader meets it
+        // (§9.1.18.5), and a reader that cannot list the lock directory cannot tell that none stands.
         string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         try
@@ -872,9 +874,7 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
             Assert.Equal("37", u.Open(FileOpenMode.Extend));
             Assert.Equal("37", u.Open(FileOpenMode.Output));
             if (covered) Assert.Equal("37", u.DeleteFile());   // the covered DELETE FILE's entry step (the uncovered one runs none)
-            Ok(u.Open(FileOpenMode.Input));                     // an OPEN INPUT runs no entry step
-            Ok(u.Read(out string record));
-            Assert.Equal("C1", record);
+            Assert.Equal("37", u.Open(FileOpenMode.Input));     // an OPEN INPUT runs the entry step, and refuses nothing else
             u.Reg.CloseAll();
             Assert.Equal("C1", File.ReadAllText(f, Encoding.Latin1));
         }
@@ -906,6 +906,82 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
             var b = new Unit(f, covered: false);
             Ok(b.Open(FileOpenMode.Extend));   // its entry step settles the dead transaction first
             b.Reg.CloseAll();
+            Assert.Equal("C1C2", File.ReadAllText(f, Encoding.Latin1));
+            AssertNoLitter(f);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void A_reader_that_opens_after_a_run_unit_was_killed_reads_the_file_as_the_rollback_leaves_it(bool allOther)
+    {
+        // §9.1.18.5: "When a run unit terminates abnormally, all file changes made since the previous commit or, if none, the
+        // beginning of the run unit are rolled back ...", and only then "all file and record locks are then released": no
+        // reader may meet the dead transaction's REWRITE (kb/Work PB4097; the reader's OPEN settles through its own handle).
+        string dir = ScratchDirectory.Create("scc-");
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            File.WriteAllText(f, "C1C2", Encoding.Latin1);
+            var medium = new FaultHostMedium();
+            using (medium.OwnColumnLocks())
+            {
+                var a = new Unit(f, covered: true, medium);
+                Ok(a.Open(FileOpenMode.IO));
+                Ok(a.Read(out _));
+                Ok(a.Rewrite("Y1"));
+                Ok(a.Close());
+                Ok(a.Open(FileOpenMode.Extend));
+                Ok(a.Write("X1"));
+            }
+            medium.Kill();
+            Assert.StartsWith("Y1C2", File.ReadAllText(f, Encoding.Latin1), StringComparison.Ordinal);   // its REWRITE reached the file
+            var reader = new Unit(f, covered: false, sharing: allOther ? FileSharing.AllOther : null);
+            Ok(reader.Open(FileOpenMode.Input));
+            Ok(reader.Read(out string first));
+            Assert.Equal("C1", first);
+            Ok(reader.Read(out string second));
+            Assert.Equal("C2", second);
+            Assert.Equal("10", reader.Read(out _));
+            reader.Reg.CloseAll();
+            Assert.Equal("C1C2", File.ReadAllText(f, Encoding.Latin1));
+            AssertNoLitter(f);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void A_run_unit_killed_beside_an_open_reader_is_rolled_back_at_the_readers_next_read(bool ignoringLock)
+    {
+        // The owner lives while the reader is open (SHARING WITH ALL OTHER on both): the READ is refused '51' (§9.1.13.8 1)).
+        // Killed, its REWRITE is rolled back before the reader's next READ - the plain one and the IGNORING LOCK one alike
+        // (§14.9.30.4 GR12 ignores a live owner's lock, not a rollback §9.1.18.5 owes; kb/Work PB4097).
+        string dir = ScratchDirectory.Create("scc-");
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            File.WriteAllText(f, "C1C2", Encoding.Latin1);
+            var reader = new Unit(f, covered: false, sharing: FileSharing.AllOther);
+            Ok(reader.Open(FileOpenMode.Input));
+            var medium = new FaultHostMedium();
+            using (medium.OwnColumnLocks())
+            {
+                var a = new Unit(f, covered: true, medium, sharing: FileSharing.AllOther);
+                Ok(a.Open(FileOpenMode.IO));
+                Ok(a.Read(out _));
+                Ok(a.Rewrite("Y1"));
+                Assert.Equal("51", reader.Read(out _));
+            }
+            medium.Kill();
+            Ok(reader.Read(out string first, ignoringLock: ignoringLock));
+            Assert.Equal("C1", first);
+            Ok(reader.Read(out string second, ignoringLock: ignoringLock));
+            Assert.Equal("C2", second);
+            reader.Reg.CloseAll();
             Assert.Equal("C1C2", File.ReadAllText(f, Encoding.Latin1));
             AssertNoLitter(f);
         }

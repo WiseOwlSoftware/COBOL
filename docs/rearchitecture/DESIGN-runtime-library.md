@@ -1882,9 +1882,11 @@ have the effect of a CONTINUE statement (§14.9.7.4 GR1 / §14.9.36.4 GR1; `conf
   instant the death fell: before this statement's entry (the entry's step rolled it back), between the entry and the test
   (the test does), or after the test (the owner was alive at the test, so the holding was its — '51' — or the identity was
   nobody's and stays outside every rollback). The order in which the operating environment releases a dead handle's locks
-  is not assumed, since the holding is a page and the byte is the one lock consulted. A READ IGNORING LOCK tests nothing,
-  as today (§9.1.16; D.2.5's tolerated read). An INPUT connector's READ tests the region and the holdings alike (a '51' for
-  a record a live transaction changed, as today's region lock gives it).
+  is not assumed, since the holding is a page and the byte is the one lock consulted. A READ IGNORING LOCK tests nothing
+  (§14.9.30.4 GR12: it ignores a LIVE owner's lock), but it reads the file after the dead-owner step of its statement's entry,
+  which a reader owes as a writer does ("The dead owner's rollback is every reader's too", below; kb/Work PB4097). An INPUT
+  connector's READ tests the region and the holdings alike (a '51' for a record a live transaction changed, as today's region
+  lock gives it).
 - **The lock ceilings do not apply to the implicit commit posture.** DOC-A.1-154 and DOC-A.1-155 (255 per run unit and 15
   per connector, `PhysicalFileTable.RunUnitLockMax`/`ConnectorLockMax`, the standard's minima) stay for every explicit
   posture; a connector under commit control holds one region lock per record it READ since its last COMMIT and one holding
@@ -1944,11 +1946,36 @@ have the effect of a CONTINUE statement (§14.9.7.4 GR1 / §14.9.36.4 GR1; `conf
   because the holding is what the test reads.* The cost is one page-2 field already read, the TRANSACTIONS tree (≤ 2 hot
   pages) and one liveness probe per foreign transaction at the entry, only when a transaction exists, and the HOLDINGS
   lookup (h hot pages) at a lock test, only when a holding exists — the probe is the primitive the region's lock test
-  already pays at every READ, REWRITE and DELETE. Between the death and that first writable statement, a connector opened
-  INPUT (no writable handle: it can neither take the mutex exclusively on Linux nor write on any host) reads the file as it
-  stands, dead transaction included — D.2.5's "possible for another run unit to read a record written or updated by the
-  current run unit", for a run unit that no longer exists. DOC-A.1-75 (PB3335) and the commit row PB3338 writes state this
-  determination.
+  already pays at every READ, REWRITE and DELETE. *This text had said that between the death and the first writable statement a
+  connector opened INPUT reads the file as it stands, dead transaction included, citing D.2.5 for a run unit that no longer
+  exists. Overturned by kb/Work PB4028's adjudication (2026-10-30): D.2.5 is informative and covers a LIVE run unit's writes
+  and a read WITH the ignoring lock phrase, and §9.1.18.5 rolls the changes back and only THEN releases the locks, so there is
+  no interval in which a reader may see them. See "The dead owner's rollback is every reader's too".*
+- **The dead owner's rollback is every reader's too** (kb/Work PB4097; §9.1.18.5: *"When a run unit terminates abnormally, all
+  file changes made since the previous commit or, if none, the beginning of the run unit are rolled back for all files for which
+  there are active APPLY COMMIT clauses"*, and *"In both cases all file and record locks are then released"* — the rollback
+  first). A connector with no writable handle (an INPUT connector: its handle is read-only, and Linux refuses it an exclusive
+  lock) cannot run the dead-owner step through its own handle, so it runs it through ANOTHER, opened for the purpose and closed
+  with the step (`KeyedConnector.SettleDeadOwnersBeside`): a scratch store of the organization is adopted through a new
+  read/write handle (R6 and its fence) under the exclusive store mutex taken through that handle, `RollBackDeadOwners` runs, and
+  the store's CLOSE promotes. The run unit's own store is untouched: its next coherent entry reads page 2 and adopts what the
+  step wrote. Two places, nothing between them: (1) **the OPEN** (`KeyedConnector.SettleDeadOwnersOfTheOpen`, after the attach
+  read page 2 under the mutex): a dead owner found, the OPEN's own handle is given back first when a host with mandatory share
+  modes could refuse the writable one beside it (INPUT's implementor default is `SHARING WITH READ ONLY`, whose share mode
+  refuses every writer; the Table 19 column, the file lock between run units, stays held), the step runs, and the OPEN takes its
+  handle and attaches again; a connector that holds the handle a CLOSE under commit control kept keeps it. (2) **the statement's
+  coherent entry** (`KeyedConnector.Enter`), for the connectors whose share mode admits another run unit's writer
+  (`BeginStatement` is inert for `SHARING WITH NO OTHER`, and a `READ ONLY` reader has no live writer beside it, so no owner can
+  die after its OPEN): after page 2 is read under the SHARED mutex a dead owner is looked for (`KeyedStore.FindDeadOwner`: the
+  TRANSACTIONS tree, only when page 2's root is not empty, one liveness probe per foreign transaction), the mutex is let go, the
+  step runs, and the statement enters again. Every verb reaches it through its entry, so the IGNORING LOCK read, START and READ
+  ADVANCING ON LOCK are covered with the plain READ. A holder met dead at the lock TEST of a reader, which died after the entry's
+  probe, is refused '51' like any holding (a reader cannot roll back under a shared mutex); the RETRY wait lets go of the mutex and
+  the next attempt's entry settles it. The host's refusal of the new handle (the file is read-only to this process, a handle with
+  an incompatible share mode is open, the medium refuses a page) is what any host open's refusal is: '37' at an OPEN for the
+  authority the process lacks (§14.9.27.4 GR3), '61' for a share mode another run unit's handle refuses, '30' otherwise and at a
+  statement's entry (§9.1.13.6 1)) — the reader is refused, never shown the dead change. The SEQUENTIAL organization needs no
+  new step, only to ask it of every reader (2.2.2.8): its settle already writes through the entering run unit's own handle.
 - **CLOSE under commit control promotes like any CLOSE** (R5) and keeps the handle; the first draft's "a CLOSE of such a file
   writes the work meta and keeps the handle but does NOT promote" is withdrawn with the reason it existed (finding R1-5's
   contradiction was between that rule and PB3337's brief; both now say the same thing).
@@ -1956,8 +1983,9 @@ have the effect of a CONTINUE statement (§14.9.7.4 GR1 / §14.9.36.4 GR1; `conf
   made where WRITE's is, after the statement's invalid key condition ('23') and before the record is touched
   (`KeyedConnector.HoldingsGate`, asked by each organization's verb); the region test keeps its place before the verb
   (DOC-A.1-104's order). A dead owner's rollback at the test, or a RETRY wait, makes the verb evaluate its conditions again
-  from the top against the file as it then stands. (2) An INPUT connector that meets a dead owner's holding reads on: it
-  writes nothing and reads the file as it stands. (3) A CLOSE of a connector an active APPLY COMMIT clause names keeps its
+  from the top against the file as it then stands. (2) An INPUT connector settles a dead owner at its OPEN and at its
+  statements' entry (above); a holder it meets dead at the lock test, which died after the entry's probe, is refused '51'
+  (`KeyedConnector.HoldingsGate`). (3) A CLOSE of a connector an active APPLY COMMIT clause names keeps its
   handle, region endpoint and store attachment — whether or not the run unit changed a record through it (§9.1.15: *"The
   file lock is removed by an explicit or implicit CLOSE statement executed for that file connector, except where the file
   is subject to an active APPLY COMMIT clause."*; branch review finding R1-2) — in a `KeptFile`, the kept state KEYED BY THE PHYSICAL
@@ -2614,7 +2642,7 @@ unit exists. Two connectors of ONE run unit share one `KeyedStore` and are seria
 | A's reversal landed, its promotion's sync refused ∥ B's promotion | the mutex | B's promotion (its own COMMIT, CLOSE or checkpoint) promotes a descendant of the reversed state; when B's sync lands the medium is settled on the rollback, and A's next ROLLBACK's promotion then answers '00' if its own sync lands — never '00' while the medium's highest valid slot is A's COMMIT's |
 | B dies with a transaction ∥ A's next writable statement or OPEN (the death before A's entry) | the mutex + the liveness byte (finding R3-1) | A's entry finds B's byte free, rolls B back before A's own statement; A's records untouched; B's records as at B's last COMMIT; a second writer entering later finds no entry |
 | B dies with a transaction ∥ A's statement already past its entry (the death at any later point of A's statement; finding R4-1) | the mutex + B's holdings in the file + the liveness byte probed at A's lock test | A's test meets B's holding and probes B THEN: free → B rolled back inside A's statement before A's change, the test repeated ('22' where the rollback re-created the identity); held → '51', and the next entry rolls B back. An identity with no holding is nobody's and no rollback touches it, so a death after the test cannot reach A's change. The point-by-point rows are in 2.2.1.17's round-4 table |
-| B dies with a transaction ∥ C's INPUT statement between the death and A's entry | the shared mutex | C reads the file as it stands (B's uncommitted state; D.2.5's tolerated read); after A's entry C adopts page 2 and reads the restored state |
+| B dies with a transaction ∥ C's INPUT statement between the death and A's entry | the shared mutex | C's entry finds B dead (`FindDeadOwner`), lets the shared mutex go, rolls B back through a handle opened for the purpose and enters again (kb/Work PB4097); C reads the restored state, as does A after its entry |
 | B's transaction begins ∥ A's dead-owner step | the mutex; the byte taken before the entry is written, in B's statement | A probes only entries in the tree; an entry B wrote has B's byte held (B alive) → left as it stands |
 | B's COMMIT gives its byte back ∥ A's dead-owner step | B removes the entry (statement) and promotes before releasing the byte | A never sees an entry with a free byte for a live B |
 | A's writable OPEN ∥ B's writable OPEN (recovery ∥ recovery) | the exclusive mutex | the second R6 reads the slots and page 2 fresh under the mutex: C = the first's fence F, W = its retirement (a DESCENDANT); it adopts and fences again at F + 4 097 (harmless) |
@@ -3065,11 +3093,14 @@ statement proceeds). The cost to a file NOT under APPLY COMMIT: ONE directory li
 price §9.1.18.5 exacts from every writer so that a killed run unit's transaction is rolled back by the next writer of the
 file — the keyed engine pays a page-2 read for the same promise; a directory that does not exist is the common answer and
 costs one failed open), and under `ALL OTHER` one listing per changing statement, beside the seek and the count that posture
-already pays per release (PB2692); no mutex, no journal, no holder, no sync. A connector opened INPUT runs no step and rolls
-back nothing (no writable handle: it can neither restore F nor remove it): it reads F as it stands, a dead transaction's
-appends included — D.2.5's "possible for another run unit to read a record written or updated by the current run unit" for a
-run unit that no longer exists, the determination DOC-A.1-75 and the commit row PB3338 writes state for a keyed file — and its READ
-not IGNORING LOCK of a held ordinal answers '51' as today.
+already pays per release (PB2692); no mutex, no journal, no holder, no sync. A connector opened INPUT runs the entry step at its OPEN
+and settles (kb/Work PB4097; §9.1.18.5 rolls the changes back before it releases the dead run unit's locks, so a reader that
+opens after the death never meets them): the rollback writes through the entering run unit's own short-lived writable handle
+(2.2.2.7), never the reader's read-only one, and a live transaction's holdings refuse nothing at an OPEN INPUT. A lock directory
+the process cannot list is '37' there too. Its READ of a held ordinal not IGNORING LOCK answers '51' as today, and every READ of a
+reader whose share mode admits another run unit's writer (`SHARING WITH ALL OTHER`) settles the dead transactions before it
+reads, IGNORING LOCK and ADVANCING ON LOCK included (`SequentialConnector.SettleDeadTransactions`): the lock-ignoring phrases
+ignore a live owner's holdings (§14.9.30.4 GR12, GR22), not a rollback that is owed.
 
 **2.2.2.9 CLOSE, re-OPEN, DELETE FILE and termination under commit control.** A covered connector's CLOSE releases its records
 (the writer's buffer flushed, an open print line ended, `CloseCore` as today), disposes its reader or writer, and KEEPS the host
