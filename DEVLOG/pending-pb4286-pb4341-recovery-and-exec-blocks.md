@@ -31,22 +31,46 @@ verdict. Design: DESIGN-frontend-grammar.md §3.11 carries both rules.
 diagnostic in all: each block failed in a decision of `compilationUnit` or `procedureDivision`, whose recovery lost the
 rest of the program. ISO/IEC 1989 defines no EXEC construct and §8.9 reserves neither EXEC nor END-EXEC; §4.2.14 names
 precompilers as components outside the implementation. No support is claimed, so the block draws a named refusal,
-COBOL5818 (`embedded-precompiler-block`), once, at its EXEC. `CobolErrorStrategy` recognizes a block (EXEC that a word
-follows, through the first END-EXEC of the unit) only where the parse cannot read it as COBOL: at a decision whose walk
-cannot take the block's tokens and the next token (`SkipsEmbeddedBlock`, from `Sync`; the block is consumed there, and
-its period with it where the block stood where the list may end, `WasAWholeUnit`), and at a syntax error inside a block
-the decision read (`ReportEmbeddedBlock` covers the block; `ConsumeUntil` consumes it whole and leaves a period right
-after it for the unit). `DISPLAY EXEC SQL END-EXEC.` naming three data items still compiles. Goldens:
-`wiseowl/cases/4.2.10-Nonstandard-extensions/pb4341-exec-sql-block-refused` (four blocks, four COBOL5818, nothing else,
-at all four editions) and `pb4341-exec-is-a-user-word` (accepted at all four, output derived from §14.9.11.4 GR1);
-`EmbeddedPrecompilerBlockTests` pins the counts. Docs: CONFORMANCE.md §3.2 item 4, the manual's migrating table,
-DESIGN-frontend-grammar §3.9 (the one spelling-keyed recognition, and why it is not a guess). Codes used: COBOL5818;
-COBOL5819 and COBOL5820 returned.
+COBOL5818 (`embedded-precompiler-block`), once, at its EXEC.
 
-**Self-review and gate.** Four lenses: the recovery rules each live in one override (`SingleTokenDeletion`, `Resynchronize`,
-`Sync`, `Report`), the block reader is one helper both arms call, the decision-time arm reads no token text on its hot
-path (a type and a source-extent test first), and no rule is written twice. Not covered, and left as leads: a block the
-grammar reads as COBOL (`DISPLAY W-X EXEC CICS RETURN END-EXEC.`) draws the binder's undefined-name COBOL1639 for EXEC,
-CICS and END-EXEC. The whole Unit, Conformance and Characterization projects ran green before the gate, and the gate
-(run 000001-20261101T111516Z on 45b42a830) read `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2
-left to CI's whole-population run ===`, every added golden and unit test among its passes.
+The first shape found a block only at a parse decision whose walk could not read it as COBOL and consumed it as nothing.
+Branch review round 1 refuted it twice. R1-1: a block that was the only statement of an IF's or an ELSE's branch or a
+WHEN left the construct without its statement (`IF … EXEC SQL OPEN C1 END-EXEC ELSE … END-IF` drew a false COBOL0306
+at END-IF, `WHEN 1 EXEC … WHEN OTHER` a false COBOL2073, blocks in both branches lost every later block and fault). Read
+as a statement in place, it was still wrong: a prediction made BEFORE the parser met the block had looked into its text
+(`WHEN 1 EXEC SQL` predicted the class condition "1 IS EXEC") or failed on it (`WHEN OTHER EXEC SQL` drew COBOL2072 at
+WHEN), so no arm the parser reaches at the block can be right. R1-2: the block's scan stopped at ANY period, so the
+qualified SQL name `T.A` left the block unrecognized, with the PB4341 symptom.
+
+So the block is one token from before the first reader of the stream. `EmbeddedBlockReading.Read`, in
+`Frontend.LexAndParseOnce` after the token rewriters, makes each block (EXEC, a word, and the text through the first
+END-EXEC with no SEPARATOR period between, §8.3.5 rule 3) one `EMBEDDED_BLOCK` token, a parser `tokens {}` type no lexer
+rule emits, and moves the rest to the new `EMBEDDED_BLOCK_TEXT` channel. Where a statement may begin the grammar takes it
+as `embeddedBlockStatement` (one `statement` alternative, keyword-token-led, so no decision's lookahead changes);
+elsewhere `CobolErrorStrategy.Sync` consumes it as nothing (`SkipsEmbeddedBlock`, with the period after it where the
+block was the whole entry, `WasAWholeUnit`). The reading reports COBOL5818 after the parse, placed by position, and a
+source that holds a block never parses. The separator, literal, PICTURE and word-character screens skip the block's
+text, which is another language, through one new test, `ProgramText.Holds` (with PB1705's `ABSENT_DEBUG_LINE`), so SQL's
+`T.A` and `(A,B)` no longer draw COBOL2632 and COBOL2630. EXEC is not reserved, so the source reads EXEC as an opener
+only when every EXEC of it opens a block; a source that writes EXEC as a word anywhere is read as COBOL throughout, as the
+standard reads it. The reading also answers lead 1 of the first report: `DISPLAY W-X` then `EXEC CICS RETURN END-EXEC.`
+drew three COBOL1639 and now draws the one COBOL5818. The walk-based arms (`EmbeddedBlock.Around`,
+`ReportEmbeddedBlock`, the `ConsumeUntil` block arm) are deleted.
+
+Goldens: `wiseowl/cases/4.2.10-Nonstandard-extensions/pb4341-exec-sql-block-refused` (four blocks, four COBOL5818,
+nothing else, at all four editions), `pb4341-exec-sql-block-in-branches` (IF and ELSE, WHEN 1 and WHEN OTHER, an inline
+PERFORM, `T.A`: six COBOL5818 at all four editions) and `pb4341-exec-is-a-user-word` (accepted at all four, output
+derived from §14.9.11.4 GR1); `EmbeddedPrecompilerBlockTests` pins the counts (thirteen one-block shapes, every block
+of a program and the fault after them, both branches and everything after, a §8.9 gate re-parse, a source that writes
+EXEC as a word, qualified names), and its compile of the user-word program, a duplicate of the golden (review lead
+R1-3), is gone. Docs: CONFORMANCE.md §3.2 item 4, the manual's migrating table, DESIGN-frontend-grammar §3.9. Codes
+used: COBOL5818; COBOL5819 and COBOL5820 returned.
+
+**Self-review and gate.** Four lenses: each recovery rule lives in one override (`SingleTokenDeletion`, `Resynchronize`,
+`Sync`, `Report`); a block is found in one place, before the parse, and reported in one place, after it; the reading is
+one linear scan that reads the text only of a four-character IDENTIFIER and of a block's own tokens, and the strategy's
+hot path gains one token-type test; the "not program text" channel rule is written once (`ProgramText`) for its four
+readers. The first shape's gate (run 000001-20261101T111516Z on 45b42a830) read `=== BUILD-LOCAL GATE: LEG 1 ONLY
+(batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run ===`; the review finisher's head carries its
+own leg-1 gate record, which `enqueue.py land` reads, and the targeted Unit tests (692) and the conformance generator
+check ran green on it before that gate.
