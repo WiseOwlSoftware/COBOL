@@ -146,30 +146,32 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     {
         // §14.4.3 — sentences written directly after the PROCEDURE DIVISION header, with no paragraph-name.
         // They form the first nondeclarative paragraph, so they must take the ENTRY pc (execution begins with
-        // the first nondeclarative procedure, §14.2.3 GR1) — hence before the procedureUnit walk.
+        // the first nondeclarative procedure, §14.2.3 GR1) — hence before the paragraph and section walks.
         AddAnonymousParagraph(pd.sentence(), null, used);
 
-        foreach (var unit in pd.procedureUnit())
+        // The grammar writes the division's own paragraphs ahead of its sections, because every paragraph after a
+        // section header is that section's (§14.4.2; kb/Work PB4230), so the two walks below run in source order.
+        foreach (var para in pd.paragraphDefinition())
         {
-            using var _ = ctx.Edition.At(unit);   // the paragraph / section header's position (kb/Work PB82)
-            if (unit.paragraphDefinition() is { } para)
-                AddParagraph(HeaderName(para.paragraphName().procedureName(), "paragraph"), para.sentence(), null, used);
-            else if (unit.sectionDefinition() is { } section)
-            {
-                // A section's paragraphs are contiguous in the pc sequence, so the section IS a pc range:
-                // GO TO section transfers to its first paragraph (ISO §14.9.17), PERFORM section runs first
-                // statement of its first paragraph through last statement of its last (ISO §14.9.28).
-                string sectionName = HeaderName(section.sectionName().procedureName(), "section");
-                ctx.Data.DeclareUserWord(sectionName, UserWordKind.SectionName);   // §8.3.2.2 — the one declaration funnel (kb/Work PB65, PB1083)
-                var info = new SectionInfo(sectionName, _paras.Count);
-                // §14.4.3 — a section header may likewise be followed directly by unnamed sentences; they are
-                // the section's first paragraph, so GO TO / PERFORM <section> enters them (§14.9.17/§14.9.28).
-                AddAnonymousParagraph(section.sentence(), info, used);
-                foreach (var p in section.paragraphDefinition())
-                    AddParagraph(HeaderName(p.paragraphName().procedureName(), "paragraph"), p.sentence(), info, used);
-                info.CloseAt(_paras.Count - 1);   // zero paragraphs ⇒ the range stays EMPTY (§14.4.2)
-                (ctx.CurrentMethodScope?.Sections ?? _sections).Declare(info.Name, info);
-            }
+            using var _ = ctx.Edition.At(para);   // the paragraph header's position (kb/Work PB82)
+            AddParagraph(HeaderName(para.paragraphName().procedureName(), "paragraph"), para.sentence(), null, used);
+        }
+        foreach (var section in pd.sectionDefinition())
+        {
+            using var _ = ctx.Edition.At(section);   // the section header's position (kb/Work PB82)
+            // A section's paragraphs are contiguous in the pc sequence, so the section IS a pc range:
+            // GO TO section transfers to its first paragraph (ISO §14.9.17), PERFORM section runs first
+            // statement of its first paragraph through last statement of its last (ISO §14.9.28).
+            string sectionName = HeaderName(section.sectionName().procedureName(), "section");
+            ctx.Data.DeclareUserWord(sectionName, UserWordKind.SectionName);   // §8.3.2.2 — the one declaration funnel (kb/Work PB65, PB1083)
+            var info = new SectionInfo(sectionName, _paras.Count);
+            // §14.4.3 — a section header may likewise be followed directly by unnamed sentences; they are
+            // the section's first paragraph, so GO TO / PERFORM <section> enters them (§14.9.17/§14.9.28).
+            AddAnonymousParagraph(section.sentence(), info, used);
+            foreach (var p in section.paragraphDefinition())
+                AddParagraph(HeaderName(p.paragraphName().procedureName(), "paragraph"), p.sentence(), info, used);
+            info.CloseAt(_paras.Count - 1);   // zero paragraphs ⇒ the range stays EMPTY (§14.4.2)
+            (ctx.CurrentMethodScope?.Sections ?? _sections).Declare(info.Name, info);
         }
     }
 

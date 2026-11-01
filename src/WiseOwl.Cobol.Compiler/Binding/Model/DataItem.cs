@@ -922,11 +922,28 @@ public sealed class DataItem
     /// <summary>Every item under <paramref name="group"/>, depth first in declaration (storage) order.</summary>
     public static IEnumerable<DataItem> DescendantsOf(DataItem group)
     {
-        foreach (var c in group.Children)
+        // An explicit stack, never a recursive iterator: that hands every item up through one MoveNext per level above it
+        // and allocates an iterator per group (kb/Work PB4302; the parse-tree twin is ParseTreeWalk).
+        var pending = new Stack<DataItem>();
+        PushChildren(pending, group);
+        while (pending.Count > 0)
         {
-            yield return c;
-            foreach (var d in DescendantsOf(c)) yield return d;
+            var next = pending.Pop();
+            yield return next;
+            PushChildren(pending, next);
         }
+    }
+
+    /// <summary><paramref name="item"/> itself, then every item under it (<see cref="DescendantsOf"/>) — the pre-order of its tree.</summary>
+    public static IEnumerable<DataItem> SelfAndDescendantsOf(DataItem item)
+    {
+        yield return item;
+        foreach (var d in DescendantsOf(item)) yield return d;
+    }
+
+    private static void PushChildren(Stack<DataItem> pending, DataItem item)
+    {
+        for (int i = item.Children.Count - 1; i >= 0; i--) pending.Push(item.Children[i]);
     }
 
     /// <summary>The start of this view's window within its class's shared area expressed in BITS — the unit
