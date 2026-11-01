@@ -66,12 +66,12 @@ public sealed class LocaleModuleNonSupportTests
     }
 
     /// <summary>⚙ THE SUPPRESSION LIFTED a second time (kb/Work PB64 T5): the LOCALE phrase of LOWER-CASE / UPPER-CASE
-    /// is LIVE, so it is a 2002 construct gate — COBOL0900 below 2002 naming the phrase — and, at and after 2002,
-    /// the phrase binds (here to an UNDECLARED locale-name, the one undeclared-locale-name diagnostic COBOL1664 —
+    /// is LIVE, so it is a 2014 construct gate (kb/Work PB4311: the printed 2002 formats are `( argument-1 )`) — COBOL0900
+    /// below 2014 naming the phrase — and, at and after 2014, the phrase binds (here to an UNDECLARED locale-name, the one undeclared-locale-name diagnostic COBOL1664 —
     /// this helper declares no SPECIAL-NAMES LOCALE). Never 1518 any more, at any edition.</summary>
     [Theory]
     [InlineData(85, true)]
-    [InlineData(2002, false)]
+    [InlineData(2002, true)]
     [InlineData(2014, false)]
     [InlineData(2023, false)]
     public void TheCaseFunctionLocalePhrase_IsEditionGated_NowThatItIsLive(int edition, bool gated)
