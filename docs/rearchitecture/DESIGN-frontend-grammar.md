@@ -1413,10 +1413,18 @@ target:
   its text chose a reading only that text allowed (`WHEN 1 EXEC SQL …` read the class condition "1 IS EXEC", then a
   false COBOL2073 at WHEN OTHER) or failed before the block was met (`WHEN OTHER EXEC SQL …`), and the scan's stop at
   any period left `T.A` unrecognized. Made before the parse, every prediction sees the token. EXEC and END-EXEC are not
-  reserved (§8.9), so the source reads EXEC as an opener only when EVERY EXEC of it opens a block; one that does not
-  (a declaration `01 EXEC PIC X.`, a reference, a block left without its END-EXEC) means the source writes EXEC as a
-  COBOL word, and it is read as COBOL throughout, as the standard reads it (`DISPLAY EXEC SQL END-EXEC.` names three
-  data items). The misplaced-scope-terminator hint (COBOL0306, ISO
+  reserved (§8.9), so the source reads EXEC as an opener only when no EXEC of it is a COBOL word; one that is (a
+  declaration `01 EXEC PIC X.`, a reference: an EXEC with no word after it, or a reserved word) means the source writes
+  EXEC as a COBOL word, and it is read as COBOL throughout, as the standard reads it (`DISPLAY EXEC SQL END-EXEC.` names
+  three data items). `EmbeddedBlockReading.Scan` tells the three apart: EXEC, a word, and an END-EXEC before a
+  separator period is a closed block (COBOL5818); EXEC, a USER-DEFINED word (SQL, CICS, DLI are reserved in no edition)
+  and a separator period (§8.3.5 rule 3) before any END-EXEC is a block left unterminated (COBOL5842, kb/Work PB4381),
+  taken through the text before that period and one token like any block, so the blocks that do close stay blocks;
+  anything else is a word. The split is sound because every declaration of a word is followed by a reserved word or the
+  period (`01 EXEC PIC X.`, `EXEC SECTION.`, `FD EXEC.`), never a user-defined word, so a program that uses EXEC as a
+  word always holds an EXEC the scan calls a word. Every token of a block that is COBOL text moves to
+  `EMBEDDED_BLOCK_TEXT`, whatever its channel (kb/Work PB4384: the HIDDEN-channel semicolon of `A;B` was still judged
+  by `SeparatorRule.Violations`). The misplaced-scope-terminator hint (COBOL0306, ISO
   §14.5.3.2) reads from the ATN, once, which `…Statement` rules match each END-x token (`ScopeTerminator`):
   END-SEARCH closes both SEARCH rules, and a word no statement rule matches (END-OF-PAGE, a user word spelled
   END-…) is no terminator. It carries no edition logic: edition diagnosis lives in the
