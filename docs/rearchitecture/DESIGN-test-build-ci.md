@@ -90,13 +90,13 @@ neither guard hard-coding a CLI path or naming the retired engine); `guard-nist-
 per program.
 
 ### 1.4 CI (`.github/workflows/build-and-test.yml`) — a gated matrix behind ONE required check
-Fourteen jobs. `changes` decides whether the matrix runs at all; `supersede` (merge group only) cancels the runs the queue replaced; `audits` runs in every merge group and on no pull request or verified push (kb/Work PB4330); then, concurrently, `guard` (WiseOwl COBOL parallel NIST,
-ubuntu) · `greenfield-conformance` (ubuntu, 6 shards) · `greenfield-unit` (ubuntu) ·
-`windows-conformance` (windows, the same 6 shards, Release) · `conformance-population` (the shards' union against
-each platform's discovered population, `scripts/test_population.py`, §3.14.4) ·
-`inv1-strong-2023` · `windows-build-test` (Release warnings-as-errors) · `windows-self-tests` (every script self-test
+Ten jobs. `changes` decides whether the matrix runs at all; `supersede` (merge group only) cancels the runs the queue replaced; `audits` runs in every merge group and on no pull request or verified push (kb/Work PB4330); then, concurrently, `linux-shard` (ubuntu, 5 weighted shards,
+Debug, INV-1-strong a step of each) · `windows-shard` (windows, 7 weighted shards, Release warnings-as-errors) ·
+`linux-built-self-tests` (`self_tests.py --built` after a build) · `windows-self-tests` (every script self-test
 on a Windows checkout, no build, kb/Work PB3581); `toolchain-cache` and `package-cache` (push to main only, both OSes: save the
-manifest's tools, Python's directory, the NuGet packages and the GnuCOBOL tarball under main, below); and finally `ci-gate`. (The nightly
+manifest's tools, Python's directory, the NuGet packages and the GnuCOBOL tarball under main, below); and finally `ci-gate`,
+which also checks that the shards ran the discovered population exactly once (below). The NIST corpus through the `cobol`
+CLI (`guard`) runs in the nightly (owner 2026-10-31, kb/Work PB4323 decision 2), whose job is its one home (§1.4a). (The nightly
 `legacy-oracle` job and the guard's legacy Unit and Integration legs were retired with the engine, kb/Work PB2108,
 PB2109.) NuGet cached (restored by every matrix job, saved by `package-cache` alone); `Generated/` regenerated per checkout (java+pwsh prerequisites). A second workflow,
 `nightly.yml`, runs once a day and blocks nothing (§1.4a).
@@ -170,11 +170,10 @@ builds.dotnet.microsoft.com served the same file. An exact version never goes th
 **⛔ CI is bounded, and every cache is saved from main only (kb/Work PB4227, PB4324; `CiBoundsDriftTests`).** Merge-group run
 41226218068 (pull request #893, 2026-10-31) sat 45 minutes in `actions/checkout` of a job whose code was fine, and the queue
 removed the pull request: the workflow had no `timeout-minutes`. Now every job states one, about twice its measured p90
-(2026-10-31, 18 to 70 runs a job): `changes`, `supersede`, `audits`, `conformance-population`, `inv1-strong-2023` and `ci-gate`
-10 minutes, `greenfield-conformance` 15, `toolchain-cache` and `package-cache` 20, `greenfield-unit`, `windows-conformance` and
-`windows-self-tests` 25, `guard` and `windows-build-test` 30 (the guard's NIST loop alone is 14.1 minutes, so the review's 15 minute
-bound for a Linux shard waits for the re-sharding of pipeline step 6, kb/Work PB4329, which sizes each shard and its bound
-together); in the nightly (§1.4a), `latest` and `images` 10, `shard-spread` 15, and `guard`, `self-tests` and `differential` 60,
+(2026-10-31, 18 to 70 runs a job): `changes`, `supersede`, `audits` and `ci-gate` 10 minutes, `linux-shard` and
+`linux-built-self-tests` 15, `windows-shard`, `toolchain-cache` and `package-cache` 20, `windows-self-tests` 25 (the
+weighted shards of kb/Work PB4329 took the review's bounds, 15 minutes a Linux shard and 20 a Windows one, with their
+size: about 4 minutes of a shard's tests where the name split's longest job, Windows Unit, ran 8); in the nightly (§1.4a), `latest` and `images` 10, `shard-spread` 15, and `guard`, `self-tests` and `differential` 60,
 the most any job may state (the nightly blocks no landing, so its bound only stops a hang). Every `actions/checkout` step and every `setup-toolchain`
 step is killed after 5 minutes; a job's first step is a checkout with `id: checkout` and `continue-on-error: true`, and its
 second is the same checkout (the same `with:` block, which the drift test compares) run `if: steps.checkout.outcome !=
@@ -186,12 +185,37 @@ own copies evicted). The saves are the `setup-toolchain` action's (when `github.
 `package-cache` jobs', which run on a push to main alone: main's push run skips the matrix, so these jobs are what keeps the
 caches a merge group restores. `CiBoundsDriftTests` holds all of it, with a fixture arm for each shape it forbids.
 
+**⛔ The tests run as weighted shards, and `ci-gate` proves they ran the population (kb/Work PB4329, step 6 of PB4323;
+`GateLegDriftTests` `Shard_*`, `FilterPopulationGuardDriftTests`).** Each shard job builds the solution and runs every
+test assembly (Unit, Characterization, Conformance, and on Linux INV-1-strong's `FullyQualifiedName~NistProgram_MatchesGolden`
+under `--std 2023 --permissive`) with `WISEOWL_COBOL_SHARD=k/N` in its environment, N = 5 on Linux and 7 on Windows. The
+test framework of each host (`tests/_shared/GateLegs.cs`: `GateShard`, `TestWeights`) runs the cases of the test classes
+the DEAL gives shard k: every class `tests/_shared/test-weights.json` names, of every assembly, heaviest first to the
+lightest shard so far (ties to the lowest), then the run's classes the file does not name, in ordinal order, at its
+`default_seconds`. The deal is a function of the file (embedded in every test assembly by `tests/Directory.Build.props`,
+so a host deals by the weights it was built with), N and the classes present, and every shard of one run sees the same
+three, so the shards partition the population; discovery never sees the variable, so `--list-tests` stays the whole
+population. A malformed value, or a shard variable beside the local gate's leg handshake, refuses every case (an
+execution error, never a silent whole run). The weights are each class's median seconds in the merge group, per run and
+OS the sum over that run's trx (INV-1's re-run of a NIST class included, since it runs in its class's shard), written by
+`python scripts/shard_weights.py generate` from the newest three successful merge-group runs (1,088 classes on
+2026-11-01, dealing 5 and 7 shards within 1 % of the mean). A stale weight costs the balance, never a case: `ci-gate`
+downloads every `test-results-<OS>-shard-<k>` artifact and runs `test_population.py check` per OS and assembly, the
+shards' trx against the one listing shard 1 made, and INV-1's five trx against the Conformance listing's
+`NistProgram_MatchesGolden` cases (`--method`), so a case dealt to no shard or two is a named NEVER RAN or RAN TWICE.
+`WISEOWL_COBOL_SHARD` is a scrubbed variable (`test_population.is_scrubbed`), so no local caller of `dotnet test` can run
+a part of an assembly through it, and `audit-callers` allows a workflow to set it only where the same workflow runs the
+check. The nightly's `shard-spread` job (§1.4a) is the regeneration trigger. The shards replaced a name split (six
+Conformance filters per OS, kb/Work A14, beside one whole Unit + Characterization job per OS) whose longest job, Windows
+Unit at 8 minutes of tests, was the merge group's critical path with the Guard job's 14 minutes (merge-group run
+41284754898: 14.7 minutes); the review's estimate for the shards is about 7.7 minutes.
+
 **⛔ An artifact never decides a verdict (kb/Work PB3140; `CiArtifactDriftTests`).** Every test job uploads its
 results (TRX, population listing, shard log, harness observation log) `if: ${{ always() }}`, so a red job's results
 can be read without a re-run. Every upload goes through ONE step, the composite action `.github/actions/upload-results`:
 it tries the upload three times (30 s, then 90 s apart; each retry `overwrite: true`), and when all three fail it warns
-and passes, because a job's verdict is its tests'. The one artifact a verdict does depend on, a conformance shard's
-trx and listing, is checked by the job that reads it: `conformance-population` downloads through
+and passes, because a job's verdict is its tests'. The one artifact a verdict does depend on, a test shard's
+trx and shard 1's listings, is checked by the job that reads it: `ci-gate` downloads through
 `.github/actions/download-results` (three attempts; only the third failure fails the step), and a shard whose upload
 was lost is absent from the union it checks, so the guard fails there and names the missing cases. Before this, a bare
 `actions/upload-artifact` step under `always()` made the artifact service part of the verdict: merge-group run
@@ -241,13 +265,13 @@ is the ref a scheduled run reads:
 | `guard` | the NIST corpus through the `cobol` CLI (`scripts/guard-fast.sh`, Linux, about 12 minutes at JOBS=4) | the guard is not ALL GREEN (a REGRESSION, DIFF, FAIL*, audit finding, build warning, or its own instrument self-tests) |
 | `self-tests` (both OSes) | every script self-test (`scripts/self_tests.py`, nothing reused) and `line_endings.py --check`, then the `--built` phase after a solution build | any self-test is red on either OS: the Windows ones whether or not the day's landings touched a tooling path |
 | `differential` (Windows) | the GnuCOBOL differential: `scripts/battery.sh` with `SKIP_TESTS=1 SKIP_GUARD=1`, so the citation audits, the corpus fetch, the solution build and phase 3, the battery's one definition and never a copy | a per-case verdict flip against the committed baseline, or a case with no compiler verdict. Windows, because the baseline was measured there and `gnucobol_differential.py` defaults to the `cobol.exe` apphost |
-| `shard-spread` | `scripts/shard_weights.py report`: for each OS of the newest 8 successful merge-group runs of the last 24 hours that ran the matrix (one run's artifacts, about 200 MB, are downloaded and deleted before the next), the slowest `test-results-<OS>-<job>` shard's wall (its trx `<Times>`) over the mean shard wall | the worst spread exceeds 1.5 (exit 1; the weights file wants regenerating), or a download or trx cannot be read (exit 2, UNMEASURED). NOT MEASURED and green on a day with no matrix run, and while the merge group still shards by name: the report is live once `tests/_shared/test-weights.json` exists and `build-and-test.yml` names `WISEOWL_COBOL_SHARD` (PB4328, PB4329), since regenerating that file is its remedy |
+| `shard-spread` | `scripts/shard_weights.py report`: for each OS of the newest 8 successful merge-group runs of the last 24 hours that ran the matrix (one run's artifacts, about 200 MB, are downloaded and deleted before the next), the slowest `test-results-<OS>-shard-<k>` shard's wall (the sum of its trx `<Times>`) over the mean shard wall | the worst spread exceeds 1.5 (exit 1; the weights file wants regenerating, `shard_weights.py generate`), or a download or trx cannot be read (exit 2, UNMEASURED). NOT MEASURED and green on a day with no matrix run. Live while `tests/_shared/test-weights.json` exists and `build-and-test.yml` names `WISEOWL_COBOL_SHARD` (the weighted shards, PB4329), since regenerating that file is its remedy |
 | `latest` | `toolchain.py latest`: is `toolchain.env` at every publisher's newest release (§1.4) | the manifest is behind a tool, or a publisher cannot be read |
 | `images` (both OSes) | `toolchain.py check --scope image`: each runner image's own git against `toolchain.env` (§1.4) | the image's git differs from the manifest's |
 
 `latest` and `images` were the `toolchain-freshness.yml` workflow; folding them in keeps one daily schedule. The Guard
-job also runs in the merge group until the weighted-shard step (PB4329) moves it out; the nightly job is its one home
-afterwards.
+job's one home is the nightly: the weighted-shard step (PB4329) took it out of the merge group, whose shards run the same
+NIST programs in-process.
 
 ### 1.5 Drift discipline (a genuine strength — preserve it)
 `ConstructRegistryDriftTests` binds `constructs.json` ↔ in-code `ConstructRegistry` both directions;
@@ -1592,7 +1616,7 @@ with a resolved one is red only there otherwise; PR #714's bounce, kb/Work PB195
 reason. Its post-build half (`self_tests.py --built`: the self-tests marked `# SELF-TEST-NEEDS: build`,
 `filter_population.py`) runs beside the legs once the build is done, and only for a change that touches tooling: it was
 a wait of 145 s (median) after the legs of every gate, and a change that touches no tooling cannot turn it red. The same runner is CI's (the `audits` job on Linux,
-`windows-self-tests` on Windows, `greenfield-unit` for `--built`) and the Linux gate's (`selftests` and
+`windows-self-tests` on Windows, `linux-built-self-tests` for `--built`) and the Linux gate's (`selftests` and
 `selftests-built`), and `SelfTestDiscoveryDriftTests` holds every one of those entry points to it and forbids any of
 them to name a self-test by hand (kb/Work PB2563: eleven orchestrator self-tests had run in no gate, and
 `landing_check.py --self-test` only in CI). Measured 2026-10-08 on a loaded Windows host: the runner takes about 80 s,
@@ -1692,10 +1716,10 @@ hands a partial handshake.
 `scripts/test_population.py` (a module and a CLI) answers one question for any run: did the union of its trx files
 execute exactly the discovered population? Its callers are the gate driver (per assembly, over both legs: the module's
 `list_population` and `check`), the battery (`battery.sh` PHASE 1, all three assemblies — `check --project … --trx …`;
-until M14 it accepted any `Passed!` line with exit 0), and CI's `conformance-population` job (`check --listing … --trx
-…` over each platform's shard trx files; the inline `grep -c` count block and the `shard-count-*` artifacts were
-deleted in the same change, because a count cannot see a dropped test offset by one that ran twice). Each CI shard
-lists its OWN build's population (`test_population.py list`, 2 s) and uploads it beside its trx as
+until M14 it accepted any `Passed!` line with exit 0), and CI's `ci-gate` job (`check --listing … --trx …` per OS
+and test assembly over the weighted shards' trx files, and `--method NistProgram_MatchesGolden` over INV-1-strong's,
+kb/Work PB4329; the inline `grep -c` count block and the `shard-count-*` artifacts were deleted in the M14 change,
+because a count cannot see a dropped test offset by one that ran twice). Shard 1 of each OS lists its build's population (`test_population.py list`, 2 s) and uploads it beside its trx as
 `test-results-<OS>-conformance-<shard>`, so the checking job needs no .NET and no build of its own, and the listings
 of one platform must be identical — the shards ran one build — or the check is an error. It also owns the ONE parser
 of a `--list-tests` output (`parse_listing`); `filter_population.py` and `record_impact_map.py` import it.
@@ -2373,15 +2397,15 @@ on Windows and red in CI's Linux unit job. That was a ~30-minute round trip and 
 2.5-minute WSL run reproduces.
 
 **`scripts/linux-gate.sh`** runs, from any tree and any shell (`bash scripts/linux-gate.sh` at the tree's root: on a host that is not Linux it runs itself under WSL with `wsl.exe -d Ubuntu --cd <tree> --exec bash -lc ...`, its arguments verbatim, kb/Work PB2999),
-the test projects CI's Linux jobs run, and the scripts they run: leg `guard` runs `bash scripts/guard-fast.sh`, CI's
-`guard` job (the NIST suite through the `cobol` CLI, the manifest audit, the baseline check and the guard's own
+the test projects CI's Linux jobs run, and the scripts they run: leg `guard` runs `bash scripts/guard-fast.sh`, the
+nightly's `guard` job (the merge group's until kb/Work PB4329; the NIST suite through the `cobol` CLI, the manifest audit, the baseline check and the guard's own
 self-tests), with a `TMPDIR` private to the clone because the guard writes fixed file names there. Leg `selftests`
 runs always, beside the build: `scripts/self_tests.py` in the clone, as CI's `audits` job runs it; `selftests-built`
 runs `self_tests.py --built` against the one build, beside the other legs (kb/Work PB2563, PB2879). Its first Linux run found two
 self-tests that had never run on Linux: an unguarded Windows-only arm in `fleet_active_build.py` and
 `test_autostart.ps1`, which installs a Windows Startup entry and is now marked windows-only.
-`LinuxGateDriftTests` holds both sets equal to the workflow's: every `dotnet test` project and every `run: bash
-scripts/….sh` step of a Linux job is a default leg. The guard leg was added 2026-10-04 (kb/Work PB1955, PB1957 row 40):
+`LinuxGateDriftTests` holds both sets equal to the workflows': every `dotnet test` project of a Linux job of
+`build-and-test.yml` and every `run: bash scripts/….sh` step of a Linux job of it or of `nightly.yml` is a default leg. The guard leg was added 2026-10-04 (kb/Work PB1955, PB1957 row 40):
 the guard job was the one CI Linux job no local gate ran, so train 1013's guard red on PB322's `TERMINATES` rows
 reached CI behind a green Windows gate and a green Linux gate. It is a Linux-gate leg and not a `build-local` leg
 because CI runs that job on Linux only; a Git Bash run on Windows would add minutes and no CI parity.
@@ -3100,7 +3124,8 @@ demand and not committed.
   organization-only (PB3078); from that instant main accepts only queued pull requests.
   **Phase 2 = PB3023 (`enqueue.py` gains the rebase, the one local gate and the DEVLOG stamp) and PB3025 (the
   per-entry DEVLOG and its CI check)**, each through the queue.
-- `guard` (12.8 min) is the long pole of a merge-group run; sharding it is a follow-up measured after the queue lands.
+- `guard` (12.8 min) was the long pole of a merge-group run; kb/Work PB4329 moved it to the nightly (owner decision,
+  kb/Work PB4323) and divided the merge group's tests into weighted shards (§1.4).
 
 #### 3.17.7 What each document says after this lands (the implementer's sweep; rule 6, same change set)
 
