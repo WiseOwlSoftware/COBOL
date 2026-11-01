@@ -2151,7 +2151,18 @@ the scraped Table 12 and proves the proxy sound (only a row with a conditional p
 END-PERFORM, reaches a `statementBlock`).
 
 **Format 1 (with sections) versus Format 2 (without sections) (COBOL2797; §14.2.1, §14.4.1).** The rule
-`declarativePart* sentence* procedureUnit*` is the union of the two formats. Rendered from PDF page 557: Format 1
+`declarativePart* sentence* paragraphDefinition* sectionDefinition*` is the union of the two formats, and each
+section holds the paragraphs that follow its header (`sectionDefinition : … sentence* paragraphDefinition*`), as
+§14.4.2 says: "A section consists of a section header followed by zero, one, or more successive paragraphs. A section
+ends immediately before the next section or at the end of the procedure division". The section owns its paragraphs
+in the SHAPE (kb/Work PB4230), never as alternatives of one loop (`(sectionDefinition | paragraphDefinition)*`): in that
+shape a paragraph after a section header can either stay in the section or close its loop and be the division's own,
+both derivations accept every token to the next section header or the end of the division, and full-context LL
+prediction, the pass every program whose SLL pass bails takes, scans that far at every paragraph header. The cost is
+quadratic in a section's paragraphs (measured: a legal 400-paragraph section with one `SET p TO NULL`, 112 s; CCVS
+DB201A, 58 s; 6.8 s and 1.4 s in this shape). Here the continuations after a section's last paragraph (another section
+header, an end marker, a nested source unit, the end of input) differ from `paragraphName DOT` within the header's own
+tokens, and `ProcedureDivisionShapeDriftTests` holds that bound under LL prediction. Rendered from PDF page 557: Format 1
 prints ONE bracketed DECLARATIVES portion and nothing between the header (or END DECLARATIVES) and the first section
 header; §14.4.1 adds "If one paragraph is in a section, all paragraphs shall be in sections". So once a division has
 a section or a DECLARATIVES portion, a leading sentence, a paragraph outside every section, or a second DECLARATIVES
