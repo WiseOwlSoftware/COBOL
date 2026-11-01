@@ -2058,7 +2058,12 @@ lowercase with Annex C. Three pieces, each in one place:
   (`_A`, `A_`, `_`) whole, as an ill-formed IDENTIFIER (the last two `NAME_BODY` alternatives, kb/Work PB4234), so that
   §8.3.2.1's "The hyphen or underscore shall not appear as the first or last character" is named by the legality
   below instead of the word being split at the `_` into "unexpected '_'". A hyphen at an edge is not taken whole: it is
-  also the arithmetic minus and a sign.
+  also the arithmetic minus and a sign, and only the parse says which (§8.3.1 makes `-B` one character-string, §8.7.1
+  makes `A -B` a subtraction missing its space). So `A-` lexes as IDENTIFIER MINUS, and `WordCharacterScreen` joins
+  each run of ADJACENT word-character tokens that holds a MINUS back into one word (`A-`, `-A`, `END-IF-`) and asks it
+  the legality below, except a run whose MINUS the tree made an arithmetic operator (an `addOp`: §8.7.1's boundary,
+  `SeparatorRule.ArithmeticOperatorViolations`, one report per boundary) and a hyphen followed by digits alone (a
+  numeric literal's sign). A word token inside a joined run is judged only as part of it (kb/Work PB4278).
 - **The legality** — `CobolCharacterRepertoire.SeparatorPositionViolation` (the edition-free hyphen/underscore position
   rule, COBOL2773 at every edition; at COBOL-85 the underscore gate COBOL0900 also applies, and the edge is no 2023
   removal), then `CobolCharacterRepertoire.Violation(word, edition)` over the edition's Annex B.3 position classes
