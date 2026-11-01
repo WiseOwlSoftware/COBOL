@@ -1,4 +1,4 @@
-## Pipeline step 8: the landing gates nothing, waits for the gate lock, and every merge-queue red gets a class (PB4331, PB4204, PB4271)
+## Pipeline step 8: the landing gates nothing, waits for the gate lock, and every merge-queue red gets a class (PB4331, PB4204, PB4271); step 11 begun: CLAUDE.md Testing states the new rule (PB4334)
 
 Step 8 of the pipeline redesign (kb/Work PB4323, PIPELINE-REVIEW.md §10 and §5.1), one implementer for the three files
 that share it (`enqueue.py`, `land_lane.py`, `landing_measure.py`).
@@ -48,6 +48,14 @@ layout notice, and another class's harness cleanup printed `SCRATCH-LEFT` into t
 `process-globals` collection (PB126), which serialized only its own members. It now has its own collection with
 parallelization disabled (`ConsoleErrorCollection`), so it runs alone after the parallel ones (0.1 s); the swap is the
 only in-process stderr swap in the test assemblies (`Console.SetError` swept).
+
+**Step 11, begun (PB4334).** After step 8 was gated GREEN (run 000002-20261101T151522Z), the owner-approved CLAUDE.md
+"Testing" wording of PIPELINE-REVIEW.md §13 is applied, its placeholders filled (2026-10-31, kb/Work PB4323) and one
+clause adjusted to what landed: a tooling change runs the code lane plus its self-tests, not the self-tests alone.
+MANDATORY-PRACTICES I1 states THE RULE and its five first-run classes, I2 that a flake is a defect never re-gated past;
+the gate and workstream skills, DOC_INDEX's landing entry, kb/Work PB1957 (restated to the five classes; its drift test
+still to build) and the memory note follow. DESIGN-test-build-ci.md gains §0, THE PIPELINE AS IT IS, and current
+titles for §3.15 and §3.17; its rewrite proper (the history of the targeted leg out of §1 to §3.18) is PB4334's rest.
 
 **Register.** PB4331, PB4204 and PB4271 landed (no inventory row; process tooling). PB3804's `SLOT_DRIVER` comment item
 left with its code. Lead: `gate_slot.py`'s landing gate class (CLASS_ENV=landing, served first) has no starter now.

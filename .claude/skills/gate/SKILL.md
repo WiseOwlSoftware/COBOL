@@ -12,10 +12,11 @@ description: Use before every commit and before every merge to choose and run th
 # Gate
 
 **Self-check first: is this a change's gate, or the batch's pre-merge?** A change's gate has ONE shape (owner
-2026-10-11, kb/Work PB3015 Q1a, PB3022): an implementer's commit, a re-gate after a fix and a landing all run the same
-command below. No gate FILTERS: every gate runs the whole population, ORDERED so a likely red comes first (owner,
+2026-10-11, kb/Work PB3015 Q1a, PB3022): an implementer's commit and a re-gate after a fix run the same command
+below, and the landing runs none (kb/Work PB4331). No gate FILTERS: every gate runs the whole population, ORDERED so a likely red comes first (owner,
 2026-09-28, kb/Work PB1708: "order, don't skip"; owner decision 1 of PB4323, 2026-10-31, kb/Work PB4328: the population
-is the selection); CI's merge group is the first run of the merged tree, Linux and Release. What the owner corrected
+is the selection); CI's merge group is the first run of the merged tree, Linux, Release and GitHub's runners (THE RULE,
+below). What the owner corrected
 repeatedly was over-gating per fix with the whole-corpus suites (the battery, the NIST guard); the gate is not that —
 its populations take about four minutes on a quiet box, and a gate slot caps how many run at once.
 
@@ -87,6 +88,13 @@ a shared file included (kb/Work PB4331), and the landing lane classifies every r
 (INFRA and RUNNER re-queued once, MERGE and GENUINE to a finisher, kb/Work PB4271). A gate of the worktree that
 runs when the landing would write it is exit 12, GATE BUSY, whatever record exists (kb/Work PB4204).
 
+⛔ **THE RULE (owner 2026-10-31, CLAUDE.md "Testing", replacing the CI invariant of 2026-10-04): every case the merge
+group runs on Windows already ran green at the pushed head, on this host, under the same `toolchain.env`.** The merge
+group is the FIRST run of (a) the merged tree, (b) Linux, (c) Release with a cold compile cache, (d) the Windows tooling
+self-tests on a tooling change and (e) GitHub's runners; a red there is one of those five, a flake or infrastructure,
+never an untested case. A red of class (b), (c) or (e) is also a finding against the pipeline's record of that class,
+filed with its rate (`kb/Work/PB1957`); a flake is a kb/Work defect fixed at its root, never retried inside the run.
+
 **Do NOT run per commit:** the battery or the NIST guard (`scripts/guard-fast.sh`).
 
 ## Per accumulated batch / pre-merge — comprehensive
@@ -97,8 +105,8 @@ runs when the landing would write it is exit 12, GATE BUSY, whatever record exis
 
 - **CI's own Linux leg — comprehensive is not comprehensive without it.** Everything above runs on ONE host
   (this Windows machine, Debug). The workflow's `ubuntu-26.04` jobs — `guard-fast.sh`'s NIST loop, the Linux
-  conformance shards, Linux greenfield unit + characterization — and the Release build are verified by CI and by
-  nothing else, so a test keyed on host ACL or file-lock semantics can be green here and red there. Read the
+  shards — and the Release build are verified by CI and by nothing else (`guard-fast.sh` is the nightly's, kb/Work
+  PB4332), so a test keyed on host ACL or file-lock semantics can be green here and red there. Read the
   verdict for the commit you pushed:
   `gh run list --branch main --commit <sha> --json databaseId,status,conclusion,displayTitle`, then
   `gh run view <id> --log-failed` on a red. `scripts/session-probe.ps1` prints the latest run's conclusion at
@@ -111,10 +119,10 @@ runs when the landing would write it is exit 12, GATE BUSY, whatever record exis
   PB3024): main takes only pull requests GitHub's merge queue has tested, administrators included, so a bare
   `git push origin HEAD:main` is refused by the server (owner decision 2026-09-06, question 23; `kb/Work/PB796`). The
   landing is therefore a SCRIPT, not a habit: **`python scripts/orchestrator/enqueue.py land <branch>`** (kb/Work
-  PB3023) merges main in, gates, stamps the DEVLOG entry and ends in one pull request into the queue: no CI wait; the
+  PB3023) merges main in, stamps the DEVLOG entry and ends in one pull request into the queue, gating nothing: no CI wait; the
   merge group runs the matrix and is the CI verdict, and a pull request's own run is the cheap jobs only. It refuses
-  (exit 8) before merging or gating anything while `ruleset.py check` does not report the queue ACTIVE. Never run its
-  inner `queue` verb by hand: `land` is what merges main in, gates and stamps the DEVLOG entry. There is no other
+  (exit 8) before merging anything while `ruleset.py check` does not report the queue ACTIVE. Never run its
+  inner `queue` verb by hand: `land` is what merges main in and stamps the DEVLOG entry. There is no other
   landing path: main refuses a direct push (kb/Work PB3024).
 - ⚠ **A docs-only push runs `changes` + `ci-gate` and nothing else** — seconds, not a matrix. `paths-ignore` was
   removed because a workflow that declines to START leaves a required per-commit check unsatisfiable; the same

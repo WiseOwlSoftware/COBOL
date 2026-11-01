@@ -1,6 +1,7 @@
 # DESIGN — Test, Build & CI Architecture (+ Migration Safety)
 
-Status: DESIGN (rearchitecture dimension). Author: rearchitecture review. Date: 2026-07-07.
+Status: AS BUILT (rearchitecture dimension; first written 2026-07-07). The pipeline as it is today is §0 (kb/Work PB4323,
+2026-10-31); CLAUDE.md "Testing" states its rule.
 Scope: the harness/build/CI machinery that KEEPS THE BATTERY GREEN through the clean-slate rearchitecture of
 `src/WiseOwl.Cobol.*`, plus the diagnostic-code registry, the characterization strategy, and the roadmap/DEVLOG
 discipline that make each phase resumable and behavior-neutral.
@@ -9,6 +10,58 @@ This dimension underpins every other rearchitecture dimension: none of the god-c
 extractions, or storage-form unifications can proceed safely unless the test net can PROVE, per phase, that
 observable behavior did not change. The net once proved agreement with a legacy engine that was to be deleted — so it
 was rearchitected first, to compare against committed goldens, and the engine is now deleted (P15 Cut 2).
+
+---
+
+## 0. THE PIPELINE AS IT IS (owner decisions 2026-10-31, kb/Work PB4323; steps 1 to 9 of PIPELINE-REVIEW.md §10)
+
+The CLAUDE.md "Testing" section is the rule; this section is the design it rests on, in the order a change meets it.
+Every later section that describes a targeted leg, a plan, an impact map, a Linux half per change or a landing that
+gates is the history of what this replaced (the DEVLOG holds it) and is read through this one.
+
+1. **The one gate, at the branch's head** (`pwsh scripts/build-local.ps1 -Priority BelowNormal`, `scripts/gate.py`;
+   §3.13, §3.14; kb/Work PB4328). THE POPULATION IS THE PLAN (owner decision 1 of PB4323): the gate decides a lane from
+   the diff's paths (`scripts/inert_lane.py classify`, §3.18). An INERT change runs the tree audits alone (about 40 s,
+   no slot). Any other change builds the solution once and runs the WHOLE Unit, Conformance and Characterization
+   populations on Windows, three assemblies at once under a gate slot (cap 3), the classes red last time first and then
+   longest first by `tests/_shared/test-weights.json` (`GateOrderer`), each population checked by name against its
+   listing (`scripts/test_population.py check`); the audits run beside the build and the hosts, and a TOOLING change
+   (`scripts/`, `.github/`, `tools/`, `.claude/`, any `.py`/`.ps1`/`.sh`, the data `TOOLING_READS` names) adds the script
+   self-tests whose recorded inputs it touches (kb/Work PB2914, PB4326). There is no impact map, no tier, no selected leg
+   and no Linux half per change (kb/Work PB4327); `bash scripts/linux-gate.sh` reproduces a Linux CI red by hand (§3.15).
+   A gate runs detached, records its head, its measured tree and its base, and a re-gate of an unchanged tree answers
+   `REUSED` from its GREEN record (§3.14.12).
+2. **The landing reads that record and gates nothing** (`python scripts/orchestrator/enqueue.py land <branch>`, §3.17.2
+   step 3; kb/Work PB3612, PB4331). It refuses a tip no GREEN record covers (exit 14) and, before it reads the record
+   and before every later write of the worktree, a gate of the worktree that runs or is starting (exit 12, whatever
+   record exists, kb/Work PB4204); it merges `origin/main` in through the merge drivers, stamps the DEVLOG entry, runs
+   the landing checks and queues one pull request in GitHub's merge queue. It never gates the merged head, a true
+   textual merge in a shared file included, and a lane MANDATORY-PRACTICES I10 does not review gates its own tip.
+3. **The pull request's own run is the cheap jobs** (`changes` and `ci-gate`, plus `toolchain-cache` on a push to main;
+   kb/Work PB4330), and its caches are saved from main only (kb/Work PB4324).
+4. **The merge group is the whole-population net on both operating systems and the ONLY run of the merged tree, of
+   Linux and of Release** (`.github/workflows/build-and-test.yml`, §1.4; kb/Work PB4329): seven Windows and five Linux
+   weighted shards, each dealt test classes by their measured weight (`scripts/shard_weights.py`), their union checked
+   against one listing per OS and assembly in `ci-gate`; the audits with every Linux self-test; the Windows self-tests
+   when a tooling path changed; `timeout-minutes` on every job and a bounded, retried checkout (kb/Work PB4324).
+5. **THE RULE** (owner 2026-10-31, replacing the CI invariant of 2026-10-04): every case the merge group runs on
+   Windows already ran green at the pushed head, on this host, under the same `toolchain.env`. The merge group is the
+   FIRST run of (a) the merged tree, (b) Linux, (c) Release with a cold compile cache, (d) the Windows tooling
+   self-tests on a tooling change and (e) GitHub's runners; a red there is one of those five, a flake or
+   infrastructure, never an untested case. kb/Work PB1957 is the record of each class's differences and rate.
+6. **Every merge-queue red is classified before anyone is blamed** (`scripts/orchestrator/land_lane.py`, the queue
+   watch; kb/Work PB4271, PB4331): the failed run's red cases (downloaded into the worktree's `TestResults/ci-bounce`,
+   which the finisher's gate runs first) are compared with the branch's GREEN record. INFRA (no test failed, or the run
+   timed out) and RUNNER (every red case ran GREEN in the record, or the record is the inert lane's) are re-queued once
+   with no agent and filed against the pipeline (`landing_measure.py`'s `reds`, the `infrastructure` cause); GENUINE (a
+   case the record listed but did not run), MERGE (a case it lacks), UNCLASSIFIED and a second red of a re-queued
+   landing go to the enqueue unit's finisher with the class on the BOUNCED line. No flake is retried inside a run: a
+   flake is a kb/Work defect fixed at its root.
+7. **The nightly runs what no landing waits for** (`.github/workflows/nightly.yml`, §1.4a; kb/Work PB4332): the CLI
+   NIST guard (`scripts/guard-fast.sh`), every self-test on both operating systems, the GnuCOBOL differential, the
+   toolchain's latest-version check and the shard-weights report. It blocks nothing.
+8. **Per accumulated batch**, before a release: the comprehensive battery plus the GnuCOBOL differential in its own
+   worktree (§5; the `gate` skill).
 
 ---
 
@@ -1880,7 +1933,7 @@ code, `conformance-suite/harness`, the build properties); the other 26 change an
 "run everything" unless a finer rule is proved. A builder starts there: the selection is only as sound as the
 classification of a harness change, which is the failure class that ended the impact map (kb/Work PB2696, PB4228).
 
-### 3.15 THE LOCAL LINUX GATE — CI's Linux legs under WSL before a push (kb/Work PB1732)
+### 3.15 THE LINUX REPRODUCTION TOOL — CI's Linux legs under WSL, run by hand (kb/Work PB1732, PB4327)
 
 > ⛔ **The Linux gate is a HAND-RUN reproduction tool, and no per-change gate runs it (owner 2026-10-31, kb/Work PB4327;
 > PIPELINE-REVIEW.md section 7).** From 2026-10-11 (kb/Work PB3612) the local gate ran a LINUX HALF OF THE TARGETED LEG,
@@ -2078,7 +2131,7 @@ as the gate slot runs it, three rounds): a change to a runtime source costs 8.5�
 4.3–7.1 s without, about **+4 s** (two Release compiles and two crossgens, in parallel); a no-op build is unchanged
 (2.3–4.6 s either way). A clean restore also downloads the crossgen2 pack and the two runtime packs once.
 
-### 3.17 THE LANDING PIPELINE — a targeted local gate, CI as the regression net, one pull request per branch through GitHub's merge queue (kb/Work PB3015; owner decisions 2026-10-11)
+### 3.17 THE LANDING PIPELINE — one whole-population gate at the head, the merge group as the first run of the merged tree, one pull request per branch through GitHub's merge queue (kb/Work PB3015, PB4323; owner decisions 2026-10-11 and 2026-10-31)
 
 #### 3.17.1 The decisions this section is built from
 
@@ -2106,9 +2159,16 @@ The operator's constraint (2026-10-11 11:19): `E:` is ReFS and CI's Windows runn
 PB2917 race reproduced here in 20 of 7,200 probes and may not on NTFS), so the Windows file-system race witnesses run
 locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
 
+**Superseded on 2026-10-31 (kb/Work PB4323, the redesign from measurement; §0).** The targeted leg, its plan and impact
+map, the Linux half of every local gate and the landing's re-gate of a merged head are gone: the owner's decision 1
+made the population the selection (the gate runs every case at the head, kb/Work PB4328), the Linux half left the
+per-change gate (kb/Work PB4327), the landing gates nothing (kb/Work PB4331), and the CI invariant of 2026-10-04 became
+THE RULE of §0 item 5 ("This does weaken the CI must pass if local passes rule. I'm okay with that"). The merge queue,
+one pull request per branch and the one-file-per-entry DEVLOG of 2026-10-11 stand.
+
 #### 3.17.2 The contract — what every change goes through, in order
 
-1. **Implement** (unchanged): an implementer in its worktree; its gate is the ordered leg 1 (§3.14, scope `leg1`), its
+1. **Implement** (unchanged): an implementer in its worktree; its gate is the one whole-population gate (§0 item 1), its
    report `Status: DONE` with the O11 header; it writes its own **DEVLOG entry file** (§3.17.4) with the number its
    dispatch spec allocated, and flips its notes.
 2. **Review on the branch** (landed, PB3027; MANDATORY-PRACTICES I10): a read-only reviewer (`cobol-reviewer`, the
