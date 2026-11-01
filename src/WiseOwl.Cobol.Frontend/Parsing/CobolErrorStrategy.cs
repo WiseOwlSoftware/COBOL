@@ -180,8 +180,43 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             recognizer.Consume();
             ConsumeUntil(recognizer, GetErrorRecoverySet(recognizer).Subtract(ResidueRunTokens(residue.Production)));
         }
-        base.Recover(recognizer, e);
+        Resynchronize(recognizer);
         FinishUnitTailDiscard(recognizer);
+    }
+
+    /// <summary>⛔ A RECOVERY THAT MAKES NO PROGRESS IS ONE AT THE SAME STATE OF THE SAME CALL, NOT OF ANY CALL (kb/Work
+    /// PB4286). ANTLR's recovery consumes one token before it resynchronizes when the last recovery stood at this
+    /// token and at this ATN state, the guard that keeps a loop failing at one token from recovering forever. It keys
+    /// on the state alone, and a rule called twice in one statement fails at the same state in both calls:
+    /// <c>RECEIVE FROM W-X GIVING</c> then <c>DISPLAY W-Y …</c> recovered the missing identifier-1 at DISPLAY (the
+    /// verb of the next statement, where the resynchronization rightly stops), and then the missing data-name-2,
+    /// the same <c>dataReference</c> state, so the guard consumed the DISPLAY: the next statement was lost into the
+    /// RECEIVE's tail and a fault in it went unreported. The guard here keys on the state and the call that reached it
+    /// (the invoking state): a loop failing again re-enters the same state from the same call and still consumes, and
+    /// at one token the pairs are finite, so every recovery still makes progress. Otherwise the base recovery: begin
+    /// at the recovery set of the rule invocation stack.</summary>
+    private void Resynchronize(Parser recognizer)
+    {
+        var input = (ITokenStream)recognizer.InputStream;
+        var at = (recognizer.State, recognizer.Context?.invokingState ?? -1);
+        if (_lastRecoveryIndex == input.Index && _recoveriesAtIndex.Contains(at)) recognizer.Consume();
+        if (_lastRecoveryIndex != input.Index) _recoveriesAtIndex.Clear();
+        _lastRecoveryIndex = input.Index;
+        _recoveriesAtIndex.Add(at);
+        ConsumeUntil(recognizer, GetErrorRecoverySet(recognizer));
+    }
+
+    /// <summary>The token index of the last <see cref="Resynchronize"/>, and the (state, invoking state) pairs that
+    /// recovered there; cleared when the error condition ends.</summary>
+    private int _lastRecoveryIndex = -1;
+
+    private readonly HashSet<(int State, int InvokingState)> _recoveriesAtIndex = [];
+
+    protected override void EndErrorCondition(Parser recognizer)
+    {
+        base.EndErrorCondition(recognizer);
+        _lastRecoveryIndex = -1;
+        _recoveriesAtIndex.Clear();
     }
 
     /// <summary>⛔ A FAULT'S TAIL STAYS WITH THE UNIT THE FAULT IS IN (kb/Work PB3843, PB4173). When the report names a
@@ -502,14 +537,46 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// Where its report names the word's §8.9 violation and the statement it would begin is not a complete reading
     /// (<see cref="IsReservedOperand"/>, the question PB3248's resynchronization asks), the word is the operand the user
     /// wrote, refused as a name: deleting it lets the operand after it stand in the element's place, and the fault is
-    /// the one COBOL0901.</para></summary>
+    /// the one COBOL0901.</para>
+    /// <para>⛔ AND NEVER THE VERB OF A COMPLETE NEXT STATEMENT WHERE THE OPEN STATEMENT COULD HAVE ENDED (kb/Work PB4286),
+    /// the PB4133 finding for a statement missing MORE than one element. The test above asks what may follow the ONE
+    /// element the parser stands before, and where a second required element follows it the next statement's verb is not
+    /// in that follow: <c>RECEIVE FROM W-X GIVING</c> (ISO §14.9.31.2 prints <c>GIVING identifier-1 data-name-2</c>, two
+    /// required operands) then <c>DISPLAY W-Y.</c> deleted the DISPLAY because W-Y fits identifier-1, and the period then
+    /// drew a second, false COBOL0001 where data-name-2 was due; <c>ADD 1 TO</c> then <c>DISPLAY W-Y.</c>, whose receiver
+    /// may be followed by a statement, drew the one diagnostic. Where the token may follow the open statement, completed,
+    /// in its real context, and begins a statement that is a complete reading
+    /// (<see cref="BeginsTheNextStatement"/>), the open statement's tail is what is missing; declining leaves the
+    /// statement written after it to be read as written.</para></summary>
     protected override IToken? SingleTokenDeletion(Parser recognizer)
     {
         var stream = (ITokenStream)recognizer.InputStream;
         if (IsOpenParen(stream.LA(1))) return null;
         if (TheMissingElementLetsItFollow(recognizer) && !IsReservedOperand(recognizer, stream.LT(1))) return null;
         if (new OffendingPosition(recognizer, recognizer.CurrentToken).EmptyBlockOwner() is not null) return null;
+        if (BeginsTheNextStatement(recognizer)) return null;
         return base.SingleTokenDeletion(recognizer);
+    }
+
+    /// <summary>Would the deletion drop the verb of the statement written after an incomplete one (kb/Work PB4286)? Asked
+    /// only where the base deletion would act (the token after the current one is what the parser expects), inside a
+    /// statement: the current token may follow the innermost open <c>statement</c>, completed, in its real context (the
+    /// ATN's follow of that rule from where it was called, so the next statement of a sentence, of an IF's or an inline
+    /// PERFORM's body alike), and it begins a statement that is a complete reading
+    /// (<see cref="CobolParserCoreBase.LookaheadBeginsAStatementThatParses"/>, the grammar test PB3248's recovery asks).
+    /// A reserved word written as the operand (<c>DISPLAY RECEIVE W-X.</c>) begins no statement that parses, so it is
+    /// still deleted as the refused name. The speculative parse runs last, on an error path only.</summary>
+    private bool BeginsTheNextStatement(Parser recognizer)
+    {
+        var stream = (ITokenStream)recognizer.InputStream;
+        if (!GetExpectedTokens(recognizer).Contains(stream.LA(2))) return false;
+        var statement = recognizer.Context;
+        while (statement is not null && statement.RuleIndex != CobolParserCore.RULE_statement)
+            statement = statement.Parent as ParserRuleContext;
+        if (statement is null) return false;
+        var atn = recognizer.Atn;
+        return atn.NextTokens(atn.ruleToStopState[statement.RuleIndex], statement).Contains(stream.LA(1))
+               && recognizer is CobolParserCoreBase parser && parser.LookaheadBeginsAStatementThatParses();
     }
 
     /// <summary>Is the current token one that may follow the element the parser stands before, in the real context? The
