@@ -433,7 +433,7 @@ public sealed class CollationTable
             }
             entries.Add((e.CodePoints, mapped));
         }
-        return Rebuild(new TailoringPlan
+        var tailored = Rebuild(new TailoringPlan
         {
             Name = rules.Name,
             Description = $"{Description} + {rules.Source}",
@@ -443,6 +443,26 @@ public sealed class CollationTable
             SecondaryMap = SecondaryMap,
             TertiaryMap = TertiaryMap,
         });
+        RefuseNumericLeadPrimary(rules, entries, tailored.NumericLead.Primary);
+        return tailored;
+    }
+
+    /// <summary>A hand-written weight is not placed by the CLDR builder, which keeps the value just below each root
+    /// primary free of inserted slots (<c>CldrTailoringBuilder.Line</c>), so it can name any value, including the
+    /// <see cref="NumericLead"/> of the table it produces: the digit zero's primary - 1. No character may carry that
+    /// primary: the small-integer count and digit elements after a number's lead would meet its weight, and a number
+    /// would compare equal to a character at the first of them (kb/Work PB4264). The check reads the PRODUCED table's
+    /// lead, so a <c>.tailor</c> that moves the digit zero moves the reserved value with it; it names the line of the
+    /// entry like every other problem of the file (kb/Work PB2773).</summary>
+    private static void RefuseNumericLeadPrimary(TailoringRules rules, List<(int[] CodePoints, CollationElement[] Elements)> entries, int leadPrimary)
+    {
+        for (int i = 0; i < entries.Count; i++)
+        {
+            foreach (var element in entries[i].Elements)
+                if (element.Primary == leadPrimary)
+                    throw new LocaleCollationException(rules.Source, rules.Entries[i].Line,
+                        $"the primary weight of {string.Join(" ", entries[i].CodePoints.Select(c => $"U+{c:X4}"))} is the numeric-ordering lead, the value just below the digit zero's primary, which no character may carry");
+        }
     }
 
     /// <summary>The ONE derivation step every tailoring goes through: a NEW table from this one and a
