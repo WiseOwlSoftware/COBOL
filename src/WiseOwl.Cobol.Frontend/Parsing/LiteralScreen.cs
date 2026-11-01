@@ -175,13 +175,14 @@ public static class LiteralScreen
     /// lexing is apart from the unit's. <see cref="CobolLiteral.SyntaxViolation"/> never sees one: an open literal is no
     /// well-formed literal, so it has no content for the §8.3.3 rules to judge and no format to gate.</para>
     /// <para>A token on the <c>ABSENT_DEBUG_LINE</c> channel belongs to a debugging line that is a comment (kb/Work
-    /// PB1705), so it is no literal.</para></summary>
+    /// PB1705), and one of an embedded precompiler block's text is another language (kb/Work PB4341), so neither is a
+    /// literal (<see cref="ProgramText"/>).</para></summary>
     public static bool ReportUnterminated(IEnumerable<IToken> tokens, Action<IToken, DiagnosticDescriptor, string> report)
     {
         bool clean = true;
         foreach (var t in tokens)
         {
-            if (t.Channel == CobolLexer.ABSENT_DEBUG_LINE || !LiteralTokens.Types.Contains(t.Type)
+            if (!ProgramText.Holds(t) || !LiteralTokens.Types.Contains(t.Type)
                 || !CobolLiteral.IsUnterminated(t.Text)) continue;
             // The opening delimiter is the first quotation symbol: a prefix letter is never one.
             string closing = t.Text[t.Text.IndexOfAny(Quotes)] == '"' ? "quotation mark (\")" : "apostrophe (')";

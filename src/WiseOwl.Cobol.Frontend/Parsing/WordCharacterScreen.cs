@@ -91,10 +91,11 @@ public static class WordCharacterScreen
     /// a token's text is cut from the input on every call. A word of a fixed-form debugging line that is a COMMENT (its
     /// unit has no WITH DEBUGGING MODE, so <see cref="DebuggingLineRewriter"/> moved it to the
     /// <see cref="CobolLexer.ABSENT_DEBUG_LINE"/> channel) is not a COBOL word of the program, as the sibling readers of
-    /// the stream decide it too (<see cref="SeparatorRule"/>, <see cref="PictureSeparatorPeriodRule"/>; kb/Work PB1705).</summary>
+    /// the stream decide it too (<see cref="SeparatorRule"/>, <see cref="PictureSeparatorPeriodRule"/>; kb/Work PB1705), and
+    /// nor is a word of an embedded precompiler block (<see cref="ProgramText"/>, kb/Work PB4341).</summary>
     private static bool IsCandidate(IToken token)
     {
-        if (token.Type != CobolLexer.IDENTIFIER || token.Channel == CobolLexer.ABSENT_DEBUG_LINE) return false;
+        if (token.Type != CobolLexer.IDENTIFIER || !ProgramText.Holds(token)) return false;
         string text = token.Text;
         return text.Contains('_') || CobolCharacterRepertoire.HasExtendedCharacter(text);
     }

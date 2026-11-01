@@ -1,0 +1,1 @@
+{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "COBOL5818: EXEC SQL: ISO/IEC 1989 defines no EXEC construct."}

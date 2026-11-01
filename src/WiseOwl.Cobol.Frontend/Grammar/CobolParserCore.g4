@@ -11,7 +11,9 @@ options {
 // Virtual token: ZERO rewritten to ZERO_ARITH by token rewriter when
 // adjacent to arithmetic operators. Keeps ZERO and ZERO_ARITH in
 // completely disjoint grammar rules — zero ambiguity.
-tokens { ZERO_ARITH }
+// Virtual token: EMBEDDED_BLOCK, an embedded precompiler block (EXEC ... END-EXEC) EmbeddedBlockReading made one
+// token before the parse (kb/Work PB4341): see embeddedBlockStatement. No lexer rule emits either token.
+tokens { ZERO_ARITH, EMBEDDED_BLOCK }
 
 import CobolExpressions, CobolData, CobolSpecialNames, CobolReportWriter, CobolIO, CobolControlFlow, CobolOO, CobolScreen, CobolDeclined, CobolWords;
 
@@ -1013,6 +1015,20 @@ statement
     | {facilityWord("ROLLBACK")}? rollbackFacilityStatement
     | continueStatement
     | nextSentenceStatement
+    | embeddedBlockStatement
+    ;
+
+// ⛔ AN EMBEDDED PRECOMPILER BLOCK THE RECOVERY REFUSED STANDS FOR THE STATEMENTS ITS PRECOMPILER WRITES (kb/Work PB4341,
+// review R1-1). ISO/IEC 1989 defines no EXEC construct (§4.2.14 lets an implementation require "components outside the
+// COBOL implementation, such as precompilers"), and EXEC is no reserved word, so the lexer emits no block and a program
+// that names data items EXEC, SQL and END-EXEC parses as written. Only EmbeddedBlockReading mints EMBEDDED_BLOCK, before
+// the parse, for a source whose every EXEC opens a block: the block becomes this one token where a statement may begin, so
+// a block that is the only statement of an IF, an ELSE, a WHEN or an inline PERFORM leaves that construct whole and draws
+// no cascade (§14.9.19.3 1): statement-1 and statement-2 are statements); CobolErrorStrategy consumes it as nothing where
+// no statement may begin. A keyword-token-led arm of a token no source can spell, so no decision's lookahead changes. The
+// node never reaches the binder: EmbeddedBlockReading reports COBOL5818 for it, an error, and such a source never parses.
+embeddedBlockStatement
+    : EMBEDDED_BLOCK
     ;
 
 // ── The unsupported-facility statements (Wave H). The operand tails are parsed for REAL, not swallowed:

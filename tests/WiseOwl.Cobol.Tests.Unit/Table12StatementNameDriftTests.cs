@@ -45,6 +45,8 @@ public sealed class Table12StatementNameDriftTests
         ["USE"] = "a declaratives header the grammar routes through `statement`; not a procedural statement",
         ["NEXT SENTENCE"] = "no 2023 Table 12 row (survives only as the IF/SEARCH-era branch form)",
         ["INLINE METHOD INVOCATION"] = "2023 inline method invocation used as a statement; no Table 12 row",
+        ["EMBEDDED BLOCK"] = "an embedded precompiler block (EXEC … END-EXEC) the error recovery refused (COBOL5818) and "
+            + "reads as one statement; ISO defines no EXEC construct, and the node never reaches binding (kb/Work PB4341)",
     };
 
     /// <summary>Table 12's 'Statement name' column, scraped from the transcription at its anchor.</summary>
