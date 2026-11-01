@@ -32,9 +32,10 @@ THE MECHANISM — every piece is an OS file lock, so nothing is ever cleaned up 
            (landing is the measure). The cap is the same for both, so the machine's total gate load does not change.
   pools    TWO POOLS (kb/Work PB3724), each with its own slots, tickets, cap and hold history: the GATE pool (the
            directory itself; the builds and test legs the cap rations, DEFAULT_SLOTS) and the LIGHT pool (`light/`;
-           DEFAULT_LIGHT_SLOTS): a gate whose whole job is about a minute of script self-tests in a WSL clone (the INERT
-           lane's Linux half, kb/Work PB3646) takes a light slot, so a notes-only or DEVLOG-only landing no longer queues
-           behind the implementers' full gates for a slot that exists to ration builds. A light gate adds at most the
+           DEFAULT_LIGHT_SLOTS): built for a gate whose whole job is about a minute of script self-tests in a WSL clone (the
+           INERT lane's Linux half, kb/Work PB3646), so a notes-only or DEVLOG-only landing would not queue behind the
+           implementers' full gates for a slot that exists to ration builds. The Linux half left the gate (kb/Work
+           PB4327), so NO gate takes a light slot now; the pool stays until the gate driver is rewritten (PB4328). A light gate adds at most the
            light cap's worth of Python processes beside the full gates; it never takes a gate-pool slot, and a gate-pool
            gate never takes a light one, so neither pool can wait on the other.
   the tree The slot is held by the holder's whole PROCESS TREE. On Windows the holder puts itself into a Job object
@@ -114,8 +115,8 @@ _SLOT_FILE = re.compile(r"(\d+)\.lock")
 # within 1.25x, but at cap 1 implementer gates waited 62 % of their wall time (the w1033 survey), and under batched
 # gating (DEFAULT_SCOPE) each one runs leg 1 only; the owner chose the throughput.
 DEFAULT_SLOTS = 3
-#: The LIGHT pool's coded default (kb/Work PB3724): the INERT lane's gate holds a slot for the audits' sibling work, the
-#: script self-tests in a WSL clone (about 45 s, one core mostly), not for a build or a test leg. Two at once keep a burst
+#: The LIGHT pool's coded default (kb/Work PB3724), built for the INERT lane's gate, whose slot work was the script
+#: self-tests in a WSL clone (about 45 s, one core mostly), not a build or a test leg; no gate takes it since PB4327. Two at once keep a burst
 #: of notes landings from queueing behind each other while adding at most two such Python runs to the host. An implementor's
 #: choice, not an owner decision: `set-light-cap N` departs from it.
 DEFAULT_LIGHT_SLOTS = 2

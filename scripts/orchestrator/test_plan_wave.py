@@ -989,7 +989,7 @@ check("... a gate, review or spec-lookup overlay still has to name its base skil
 #     rule: a file under src/WiseOwl.Cobol.Runtime/IO/ (either separator) makes a group host-I-O, a compiler or other runtime
 #     file does not; the file set is the group's file_set list, else (absent or empty) what its notes declare; a
 #     host-I-O spec says run the unit and conformance legs from WSL after the Windows gate, any other says the
-#     targeted Linux half runs inside its own gate (the landing runs no Linux gate: kb/Work PB3612); check_practices refuses a spec whose paragraph is not its group's.
+#     per-change gate runs nothing on Linux (the landing runs no Linux gate: kb/Work PB4327); check_practices refuses a spec whose paragraph is not its group's.
 check("host_io: a file under src/WiseOwl.Cobol.Runtime/IO/ sets it, either separator",
       (mds.host_io(["src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs"]), mds.host_io(["src\\WiseOwl.Cobol.Runtime\\IO\\Sharing\\X.cs"])),
       (True, True))
@@ -1010,8 +1010,8 @@ io_spec, cm_spec = (mds.render(CFG77, g, FILES(g)) for g in (IOG, CMG))
 check("a host-I-O group's spec runs the Linux unit and conformance legs at its gate, blocking on the verdict",
       ("HOST-I-O GROUP" in io_spec, "bash scripts/linux-gate.sh --legs unit,conformance --nice" in io_spec,
        "=== LINUX GATE: " in io_spec, "skip it and report" in io_spec), (True, True, True, False))
-check("any other group's spec says the targeted Linux half is inside its own gate (kb/Work PB3612)",
-      ("HOST-I-O GROUP" in cm_spec, "report `LINUX GATE: inside your gate (the targeted Linux half)`" in cm_spec),
+check("any other group's spec says the per-change gate runs nothing on Linux (kb/Work PB4327)",
+      ("HOST-I-O GROUP" in cm_spec, "Report `LINUX GATE: not part of the per-change gate (PB4327)`" in cm_spec),
       (False, True))
 io_file, cm_file = TMP / "msg-w77-io.txt", TMP / "msg-w77-cm.txt"
 io_file.write_text(io_spec, encoding="utf-8", newline="\n")

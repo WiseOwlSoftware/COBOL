@@ -595,7 +595,7 @@ from `Invoke-Unit`, `Wait-Until` (after its STOP check) and the loop. A tick:
 | none, or at another head (a finisher's commit, reviewed CLEAN) | launches |
 | `ENQUEUED` or `NOTHING TO LAND` (exit 0) at this head (`NOTHING TO LAND` is a branch that is origin/main or whose tip is already inside it: a second run after the queue merged the branch, kb/Work PB3157) | nothing to land: the QUEUE WATCH (step 4) follows its pull request into the merge queue |
 | exit 3, the landing check's STOP (the branch shares a file with earlier-dispatched, INDEPENDENT in-flight work, kb/Work PB2701; a branch that descends from it, which merged any head of it, and a worktree with no commit beyond main never stop it, kb/Work PB3381) | retries at this head once `landing_check.py` passes on the branch's own range |
-| exit 12, GATE BUSY (another gate held the worktree's gate lock: the gate driver's verdict `BUSY`, exit 3; or the gate's Linux half found a Linux gate of the tree running (`linux-gate.sh` BUSY, kb/Work PB3649); or the branch's own gate is still running, `run_gate_legs.live_gate`: the worktree's gate lock is held, which a gate does until its verdict file is written and the OS drops when it dies; nothing ran and nothing is red, kb/Work PB3527, PB3662) | retries at this head once the worktree's gate lock is free and no Linux gate of the tree runs (`wait_free`; kb/Work PB3649); never the enqueue unit's |
+| exit 12, GATE BUSY (another gate held the worktree's gate lock: the gate driver's verdict `BUSY`, exit 3; or the branch's own gate is still running, `run_gate_legs.live_gate`: the worktree's gate lock is held, which a gate does until its verdict file is written and the OS drops when it dies; nothing ran and nothing is red, kb/Work PB3527, PB3662) | retries at this head once the worktree's gate lock is free and no Linux gate of the tree runs (`wait_free`; kb/Work PB3649); never the enqueue unit's |
 | exit 15, PREDECESSOR QUEUED (the branch merged a predecessor whose pull request is still open into main, so it adds that pull request's stamped DEVLOG entry beside its own and `devlog.landing_entries` finds no single entry to title its pull request with; `enqueue.open_predecessors` names the pull requests; nothing queued, nothing red, no report line, kb/Work PB3145) | retries at this head once the same reader finds no open pull request owning an entry the branch carries (`wait_free`, `predecessor_free`; GitHub unreadable is not free); a predecessor pull request that closed unmerged is no longer open, and the same head then ends exit 6 NO ENTRY, the finisher's; never the enqueue unit's |
 | exit 16, DRIVER FILE QUEUED (an open pull request into main changes a file a merge driver covers, `merge_drivers.DRIVERS`, that the branch changes too: GitHub's merge queue builds its merge groups with plain git and none of the drivers, so the two would conflict inside the queue although each merged main through them; `enqueue.driver_file_holders` names the pull requests and the shared files, counting only a pull request that ENTERS the queue, `queue_facts.PullRequest.entering`: a bounced, conflicting or red one re-enters only through a fresh `land`, so it holds nothing; nothing stamped, pushed or queued, nothing red, no report line, kb/Work PB3642) | retries at this head once the same reader finds no open pull request sharing a driver-covered file with the branch (`wait_free`, `driver_files_free`; GitHub unreadable is not free); the merge of main that follows brings the merged pull request's change in through the drivers; never the enqueue unit's |
 | exit 13, another `land` of the branch runs (the worktree's land lock, `<git dir>/cobol-land.lock`, is held: a hand-run `land` beside the lane's, or two by hand; nothing ran, nothing is red, no report line, kb/Work PB3310) | retries at this head once the worktree's land lock is free (`wait_free`); never the enqueue unit's |
@@ -1634,7 +1634,7 @@ A split moves code and changes no behavior. What proves it, per landing, in this
   of a WAITING TO LAND branch reaches the same step (enqueue), one `land_lane.py status` prints the same lines
   (land_lane). The implementer pastes both outputs into the report; they are the review's oracle for the one thing a
   self-test cannot see, the live state.
-- **The gate**: `pwsh scripts/build-local.ps1 -Priority BelowNormal` GREEN, its Linux half included (PB3612).
+- **The gate**: `pwsh scripts/build-local.ps1 -Priority BelowNormal` GREEN (no Linux half: kb/Work PB4327).
 
 ### 16.2 The test layout: `scripts/selftests/`
 
@@ -1771,18 +1771,18 @@ and `is_drivers_merge`'s caller), `abi_pin.py`, `git_batch.py`'s docstring, `tes
 
 | Module | The job it owns | What moves there |
 |---|---|---|
-| `gate_verdict.py` | THE verdict vocabulary and its one reader: GREEN, RED, BUSY, NOT RUN and its causes, the Linux verdict, a Reading | `VERDICT`, `LINUX_VERDICT`, `PLAN_LEG_VERDICT`, `LEG1_ONLY`, `LEG2_OWNER`, `BUSY`, `EXIT_BUSY`, `NOT_RUN`, `NotRunCause`, `NOT_RUN_CAUSES`, `UNCLASSIFIED`, `_NOT_RUN_TAG`, `GREEN_VERDICT`, `Reading`, `GREEN_READING`, `RED_READING`, `BUSY_READING`, `not_run`, `read_verdict`, `LinuxLeg` |
-| `gate_runs.py` | THE run store: where a gate's run directory, record, pid and lock live, how a run is named, found, kept and read, and the await | `RUN_ROOT`, `RUN_DIR`, `RUNS_LOCK`, `RUNS_LOCK_WAIT_S`, `KEEP_RUNS`, `LOCK_NAME`, `VERDICT_FILE`, `PID_FILE`, `RUN_LABEL`, `LOG_FILE`, `LINUX_LEG_LOG`, `RECORD_SCHEMA`, `LANDABLE_SCHEMA`, `LANDING_FIELDS`, `leg_stem`, `leg_env`, `write_pid`, `read_pid`, `read_record`, `record_schema`, `predates_landing`, `_record_exit`, `resolve_run`, `lock_of_run`, `gate_running`, `lock_running`, `run_dirs`, `run_order`, `LiveGate`, `live_gate`, `AWAIT_PENDING`, `AWAIT_PENDING_EXIT`, `AWAIT_WAIT_S`, `watch`, `launch_and_follow` |
-| `gate_host.py` | THE real machine the gate runs on: git, the slot, the audits, the build, the listings, the legs, the Linux half, the bounce results | `Host`, `_Live`, `_captured`, `_no_slot`, `AUDITS`, `AUDIT_PREREQUISITES`, `SELF_TESTS_REUSE`, `BUILT_SELF_TESTS`, `BESIDE`, `LINUX_PROBE_TIMEOUT_S`, `_sha256` |
-| `run_gate_legs.py` (stays, the driver) | The one gate: `Gate.run` and its stages, the outcome, `plan_leg`, `main` | `Gate`, `LegRun`, `Outcome`, `NOT_RUN_SHOWN`, `plan_leg`, `print_flush`, `main` |
+| `gate_verdict.py` | THE verdict vocabulary and its one reader: GREEN, RED, BUSY, NOT RUN and its causes, a Reading | `VERDICT`, `LEG1_ONLY`, `LEG2_OWNER`, `BUSY`, `EXIT_BUSY`, `NOT_RUN`, `NotRunCause`, `NOT_RUN_CAUSES`, `UNCLASSIFIED`, `_NOT_RUN_TAG`, `GREEN_VERDICT`, `Reading`, `GREEN_READING`, `RED_READING`, `BUSY_READING`, `not_run`, `read_verdict` |
+| `gate_runs.py` | THE run store: where a gate's run directory, record, pid and lock live, how a run is named, found, kept and read, and the await | `RUN_ROOT`, `RUN_DIR`, `RUNS_LOCK`, `RUNS_LOCK_WAIT_S`, `KEEP_RUNS`, `LOCK_NAME`, `VERDICT_FILE`, `PID_FILE`, `RUN_LABEL`, `LOG_FILE`, `RECORD_SCHEMA`, `LANDABLE_SCHEMA`, `LANDING_FIELDS`, `leg_stem`, `leg_env`, `write_pid`, `read_pid`, `read_record`, `record_schema`, `predates_landing`, `_record_exit`, `resolve_run`, `lock_of_run`, `gate_running`, `lock_running`, `run_dirs`, `run_order`, `LiveGate`, `live_gate`, `AWAIT_PENDING`, `AWAIT_PENDING_EXIT`, `AWAIT_WAIT_S`, `watch`, `launch_and_follow` |
+| `gate_host.py` | THE real machine the gate runs on: git, the slot, the audits, the build, the listings, the legs, the bounce results (the Linux half left the gate, kb/Work PB4327) | `Host`, `_Live`, `_captured`, `_no_slot`, `AUDITS`, `AUDIT_PREREQUISITES`, `SELF_TESTS_REUSE`, `BUILT_SELF_TESTS`, `BESIDE`, `_sha256` |
+| `run_gate_legs.py` (stays, the driver) | The one gate: `Gate.run` and its stages, the outcome, `main` | `Gate`, `LegRun`, `Outcome`, `NOT_RUN_SHOWN`, `print_flush`, `main` |
 | `scripts/selftests/run_gate_legs/fixtures.py` | The planted machine | `FakeHost` (today a class in the driver), `POPULATION`, `LEGS` |
 
 `SelfTestDiscoveryDriftTests` reads `AUDITS = (` from `gate_host.py` after this; `.github/workflows/build-and-test.yml`'s
 comment "the SAME list as the gate driver's AUDITS" names `gate_host.py`. Importers re-pointed: `enqueue.py`
 (`Reading`, `NOT_RUN_CAUSES`, `read_verdict`, `read_record`, `predates_landing`, `RUN_ROOT`, `RECORD_SCHEMA`),
-`land_lane.py` (`Host.linux_gate_holder` → `gate_host`; `live_gate`, `lock_of_run` → `gate_runs`), `gate_plan.py`
+`land_lane.py` (`live_gate`, `lock_of_run` → `gate_runs`), `gate_plan.py`
 (`Gate.previous_run` → `gate_runs.run_dirs`; its `TRX_WRITERS` row names `run_gate_legs.py` still, the writer),
-`linux-gate.sh` (`--plan-leg`, unchanged entry), `build-local.{ps1,sh}` (unchanged entry; their comments name
+`build-local.{ps1,sh}` (unchanged entry; their comments name
 `gate_verdict.NOT_RUN_CAUSES`), `wf_rolling_wave.js` (`run_gate_legs.resolve_run`, `AWAIT_PENDING_EXIT` → `gate_runs`
 in its comments and its `--await` call, which stays `run_gate_legs.py --await`), `inert_lane.py`, `gate_slot.py`'s
 docstring, `GateLegDriftTests`, `LinuxGateDriftTests`, `InertLaneDriftTests`.
@@ -1915,7 +1915,7 @@ pattern that driver (it says another driver, `union`, or none), unless the file 
 changed" is `merge-base(HEAD, origin/main)..HEAD`, so a main that moved since is not the branch's change, and a driver is
 the branch's to add only when the merge base's `.gitattributes` did not give the pattern it either (a branch cut before
 main renamed or re-pointed a driver still declares the old one: main's change, remedied by merging main in, never by
-reverting the branch's file). The Linux half reads the same `origin/main`: `linux-gate.sh` sets each clone's
+reverting the branch's file). A hand-run Linux gate reads the same `origin/main`: `linux-gate.sh` sets each clone's
 `refs/remotes/origin/main` to the tree's (`pin_origin_main`), because a `--shared` clone inherits the source's LOCAL `main`
 there, which nothing advances. A checkout with
 no `origin/main` or no merge base (CI's merge-group checkout) prints `NOTE … NOT CHECKED` and the reason, and passes the
