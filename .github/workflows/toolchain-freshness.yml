@@ -27,8 +27,27 @@ jobs:
   latest:
     name: latest (is toolchain.env at every publisher's newest release?)
     runs-on: ubuntu-26.04
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
+        with:
+          submodules: false
+          sparse-checkout: |
+            .github/actions/setup-toolchain
+            toolchain.env
+            scripts/install-tool.sh
+            scripts/toolchain.py
+            scripts/standard_streams.py
+            scripts/live_tools.py
+            scripts/scratch_repo.py
+            global.json
+          sparse-checkout-cone-mode: false
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
         with:
           submodules: false
           sparse-checkout: |
@@ -43,6 +62,7 @@ jobs:
           sparse-checkout-cone-mode: false
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
         uses: ./.github/actions/setup-toolchain
+        timeout-minutes: 5
       - name: The publishers' newest releases (toolchain.py latest)
         env:
           GH_TOKEN: ${{ github.token }}   # api.github.com allows an unauthenticated runner IP 60 requests an hour
@@ -51,12 +71,31 @@ jobs:
   images:
     name: images (does each runner image carry the git toolchain.env names for it?)
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-26.04, windows-2025-vs2026]
     steps:
-      - uses: actions/checkout@v7
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
+        with:
+          submodules: false
+          sparse-checkout: |
+            .github/actions/setup-toolchain
+            toolchain.env
+            scripts/install-tool.sh
+            scripts/toolchain.py
+            scripts/standard_streams.py
+            scripts/live_tools.py
+            scripts/scratch_repo.py
+            global.json
+          sparse-checkout-cone-mode: false
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
         with:
           submodules: false
           sparse-checkout: |
@@ -71,6 +110,7 @@ jobs:
           sparse-checkout-cone-mode: false
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
         uses: ./.github/actions/setup-toolchain
+        timeout-minutes: 5
       - name: The image's own tools, strictly (toolchain.py check --scope image)
         shell: bash
         run: python scripts/toolchain.py check --scope image
