@@ -31,7 +31,9 @@ tokens { FNARG_LPAREN, FNARG_RPAREN, REF_LPAREN, REF_RPAREN, SIGNED_INTEGERLIT, 
 
 // The channel of a debugging line that is a COMMENT (kb/Work PB1705): DebuggingLineRewriter moves the tokens of a
 // fixed-form debugging line here when its source unit does not declare WITH DEBUGGING MODE. No lexer rule emits to it.
-channels { ABSENT_DEBUG_LINE }
+// EMBEDDED_BLOCK_TEXT: the text of an embedded precompiler block, which EmbeddedBlockReading makes one EMBEDDED_BLOCK
+// token before the parse and moves the rest of here (kb/Work PB4341). No lexer rule emits to it either.
+channels { ABSENT_DEBUG_LINE, EMBEDDED_BLOCK_TEXT }
 
 @members {
     // Track the types of the last TWO non-WS tokens emitted: one for the reference-paren decision, two for the

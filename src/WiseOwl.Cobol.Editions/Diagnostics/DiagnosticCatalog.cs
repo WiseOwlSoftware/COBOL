@@ -7854,8 +7854,9 @@ public static class DiagnosticCatalog
         "ISO §7.3.10.4 GR3; §7.3.10.4 GR4");
 
     // kb/Work PB4341: EXEC SQL … END-EXEC drew "cannot parse construct near 'SQL'", the message of a typo, where the
-    // cause is an embedded-language block for a precompiler. Emitted at the parse layer by CobolErrorStrategy
-    // (ReportEmbeddedBlock), only where the parse failed inside such a block: EXEC and END-EXEC are not reserved words.
+    // cause is an embedded-language block for a precompiler. Emitted by the front end's EmbeddedBlockReading, which reads
+    // each block as one token before the parse; EXEC and END-EXEC are not reserved words, so a source that writes EXEC as
+    // a word is read as COBOL throughout and draws none.
     public static readonly DiagnosticDescriptor EmbeddedPrecompilerBlock = new(
         "COBOL5818", "embedded-precompiler-block", EditionSeverity.Error,
         "The source holds an embedded-language block, EXEC language-name through END-EXEC (EXEC SQL, EXEC CICS, EXEC "

@@ -133,8 +133,8 @@ public static class DiagnosticDescriptors
         WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.WrittenKindNotAdmitted.Code,
         DiagnosticSeverity.Error, "{0}");
 
-    // COBOL5818: a syntax error inside an embedded precompiler block, EXEC … END-EXEC (kb/Work PB4341) — reported as the
-    // block, at its EXEC, by CobolErrorStrategy.ReportEmbeddedBlock. Same single-sourcing as 2269.
+    // COBOL5818: an embedded precompiler block, EXEC … END-EXEC (kb/Work PB4341) — reported once, at its EXEC, by
+    // EmbeddedBlockReading.Report after the parse. Same single-sourcing as 2269.
     public static readonly DiagnosticDescriptor COBOL5818 = new(
         WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.EmbeddedPrecompilerBlock.Code,
         DiagnosticSeverity.Error, "{0}");

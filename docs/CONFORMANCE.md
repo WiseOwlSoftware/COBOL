@@ -2878,10 +2878,13 @@ The reserved words added for these extensions are D-RW1. (4) **Embedded precompi
 1989 defines no EXEC construct; the block's text is another language that a vendor's precompiler translates to COBOL
 before compilation, the arrangement §4.2.14 permits (`cite.py --check 4.2.14 "This permits an implementation to require
 components outside the COBOL implementation, such as precompilers"` → OK), and this implementation has no precompiler.
-Where the parse cannot read a block as COBOL it is refused by **COBOL5818**, once, at its EXEC, and the parse resumes after
-its END-EXEC, so every block and every fault of the program's own is reported. EXEC and END-EXEC stay user-defined words
-(no edition's §8.9 list holds them): `DISPLAY EXEC SQL END-EXEC.` names three data items and compiles
-(`wiseowl/cases/4.2.10-Nonstandard-extensions/pb4341-*`).
+Each block (EXEC, a word naming the language, and the text through the first END-EXEC with no separator period between)
+is refused by **COBOL5818**, once, at its EXEC; the parse reads it as the statements the precompiler writes in its place
+(or as nothing, where no statement may stand), so every block and every fault of the program's own is reported, and the
+block's text, another language, draws no COBOL diagnostic of its own. EXEC and END-EXEC stay user-defined words (no
+edition's §8.9 list holds them): a source that writes EXEC as a word anywhere (a declaration, a reference, a block left
+without its END-EXEC) is read as COBOL throughout, so `01 EXEC PIC X.` … `DISPLAY EXEC SQL END-EXEC.` names three data
+items and compiles (`wiseowl/cases/4.2.10-Nonstandard-extensions/pb4341-*`).
 
 ## 4. Documented non-support facilities (§4.2.6 / §4.2.7 / §4.2.13)
 
