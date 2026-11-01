@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # SELF-TEST-POPULATION: tree — it walks the tracked markdown files with git over the whole repository
+# SELF-TEST-CLOCK: real — --min-age compares branch-touch and dispatch-ledger ages (git commit times) with the clock
 """Self-test for plan_wave.py on fabricated notes, clusters and reports: work awaiting landing is never re-planned,
 finishers come first and name their predecessor, clusters rank by rows claimed, a second group on a file is a
 same-file successor, the model routing rules, the budget fill (with landings and successors), and that the groups
