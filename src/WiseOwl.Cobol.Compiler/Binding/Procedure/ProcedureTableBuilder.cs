@@ -577,16 +577,24 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         {
             foreach (var t in use.useDebugTarget())
             {
+                // FinalizeDebug runs after every walker, so the operand positions its own diagnostics (kb/Work
+                // PB2034: a refusal names the file and line the user edits).
+                using var _ = ctx.Edition.At(t);
                 if (t.PROCEDURES() is not null)          // ALL PROCEDURES → every nondeclarative procedure
                 {
                     for (int pc = _entryPc; pc < _paras.Count; pc++)
                         AddDebugSubject(pc, section);
                 }
-                else if (t.REFERENCES() is not null)     // ALL REFERENCES OF identifier-1 → data-name subject (staged)
+                else if (t.ALL() is not null)            // ALL [REFERENCES] [OF] identifier-1 → data-name subject (staged)
                 {
+                    // ALL, not REFERENCES, marks the arm: REFERENCES and OF are the '85 format's optional words,
+                    // so `ALL W-A` is this operand too and never a procedure-name subject (kb/Work PB4237). The
+                    // message names the operand, so two ALL operands of one USE are two diagnostics (DB201A).
+                    var adr = t.dataReference();
+                    string anm = adr.cobolWord()?.GetText() ?? adr.GetText();
                     ctx.Edition.Error("COBOL1571", $"declarative section '{section.Name}': USE FOR DEBUGGING "
-                        + "ON ALL REFERENCES OF a data item (the after-statement data trigger with DEBUG-CONTENTS/"
-                        + "DEBUG-SUB rendering) is recognized but not modeled — only ON procedure-name / ALL "
+                        + $"ON ALL REFERENCES OF '{anm}' (the data-item subject: the after-statement data trigger with "
+                        + "DEBUG-CONTENTS/DEBUG-SUB rendering) is recognized but not modeled — only ON procedure-name / ALL "
                         + "PROCEDURES is implemented (X3.23-1985 debug module; VCR Table 7 row 7.17)");
                 }
                 else if (t.dataReference() is { } dr)    // bare name: procedure-name, else file/data/cd (staged)
@@ -621,9 +629,10 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         if (_debugSubjects.Count > 0)
         {
             var subjectPcs = _debugSubjects.Select(s => s.SubjectPc).ToHashSet();
-            foreach (var (name, rng) in SortMergeProcedureRanges(pd))
+            foreach (var (name, phrase, rng) in SortMergeProcedureRanges(pd))
                 if (Enumerable.Range(rng.Start, rng.End - rng.Start + 1).Any(subjectPcs.Contains))
                 {
+                    using var _ = ctx.Edition.At(phrase);   // the INPUT/OUTPUT PROCEDURE phrase (kb/Work PB2034)
                     ctx.Edition.Error("COBOL1571", $"the SORT/MERGE {name} PROCEDURE is also a USE FOR "
                         + "DEBUGGING subject: the SORT INPUT/OUTPUT / MERGE OUTPUT DEBUG-CONTENTS cause is not "
                         + "modeled (only the plain-transfer / fall-through / PERFORM-loop / START-PROGRAM causes "
@@ -646,24 +655,24 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// <summary>The pc range of each SORT/MERGE INPUT/OUTPUT PROCEDURE in the procedure division (for the debug
     /// SORT/MERGE-overlap staging check). Resolves the phrase's procedure-name(s) via the ordinary procedure
     /// table (THRU forms span first..last).</summary>
-    private List<(string Kind, PcRange Range)> SortMergeProcedureRanges(
+    private List<(string Kind, Antlr4.Runtime.ParserRuleContext Phrase, PcRange Range)> SortMergeProcedureRanges(
         Core.ProcedureDivisionContext pd)
     {
-        var results = new List<(string, PcRange)>();
-        void Add(string kind, Core.ProcedureNameContext[] pns)
+        var results = new List<(string, Antlr4.Runtime.ParserRuleContext, PcRange)>();
+        void Add(string kind, Antlr4.Runtime.ParserRuleContext phrase, Core.ProcedureNameContext[] pns)
         {
             if (pns.Length == 0) return;
             if (ResolveProcedureQuiet(pns[0]) is not { } first) return;
             var last = pns.Length > 1 ? ResolveProcedureQuiet(pns[^1]) : first;
-            if (last is { } l) results.Add((kind, first.Through(l)));
+            if (last is { } l) results.Add((kind, phrase, first.Through(l)));
         }
         void Walk(Antlr4.Runtime.Tree.IParseTree node)
         {
             switch (node)
             {
-                case Core.SortInputProcedurePhraseContext ip: Add("INPUT", ip.procedureName()); return;
-                case Core.SortOutputProcedurePhraseContext op: Add("OUTPUT", op.procedureName()); return;
-                case Core.MergeOutputProcedurePhraseContext mo: Add("OUTPUT", mo.procedureName()); return;
+                case Core.SortInputProcedurePhraseContext ip: Add("INPUT", ip, ip.procedureName()); return;
+                case Core.SortOutputProcedurePhraseContext op: Add("OUTPUT", op, op.procedureName()); return;
+                case Core.MergeOutputProcedurePhraseContext mo: Add("OUTPUT", mo, mo.procedureName()); return;
             }
             for (int i = 0; i < node.ChildCount; i++) Walk(node.GetChild(i));
         }
