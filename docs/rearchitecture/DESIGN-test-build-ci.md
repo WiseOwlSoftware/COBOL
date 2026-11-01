@@ -213,7 +213,7 @@ run that hits an exact key never saves it again (kb/Work PB4348). `CiBoundsDrift
 for each shape it forbids.
 
 **⛔ The tests run as weighted shards, and `ci-gate` proves they ran the population (kb/Work PB4329, step 6 of PB4323;
-`GateLegDriftTests` `Shard_*`, `FilterPopulationGuardDriftTests`).** Each shard job builds the solution and runs every
+`GateLegDriftTests` `Shard_*`, `test_population.py --self-test`'s filtered-run audit).** Each shard job builds the solution and runs every
 test assembly (Unit, Characterization, Conformance, and on Linux INV-1-strong's `FullyQualifiedName~NistProgram_MatchesGolden`
 under `--std 2023 --permissive`) with `WISEOWL_COBOL_SHARD=k/N` in its environment, N = 5 on Linux and 7 on Windows. The
 test framework of each host (`tests/_shared/GateLegs.cs`: `GateShard`, `TestWeights`) runs the cases of the test classes
@@ -1092,8 +1092,8 @@ repository: a full run records; the gates on the unchanged tree re-run nothing; 
 built at run time, which only the trace sees) re-runs exactly its self-test in every gate, at most the budget's two at a
 time; an edited import re-runs only its importer; a planted 60-s self-test under a 1-s detector is HANG; a malformed store
 record is skipped. `self_test_inputs.py --self-test` proves the static rule, the git classification and the tracer;
-`gate.py --self-test` proves every gate reuses and that a hung self-test is `SELF-TESTS HANG`; `SelfTestDiscoveryDriftTests`
-holds the arms by name and forbids `--reuse` in CI and the Linux tool.
+`gate.py --self-test` proves every gate reuses and that a hung self-test is `SELF-TESTS HANG`; `scripts/self_test_arms.py`
+holds the arms by name, and `self_tests.py --self-test` forbids `--reuse` in CI and the Linux tool (kb/Work PB4395).
 
 **4. One scratch-repository fixture (kb/Work PB3584).** A self-test that needs a git repository builds and drives it through
 `scripts/scratch_repo.py`'s `ScratchRepo`, the one place a self-test's git process starts. `init` and `clone` write the
@@ -1102,8 +1102,8 @@ config, so every git process in it behaves the same whoever runs the self-test. 
 repository-selection variables, a failed one raises with git's own message (`run` is the unchecked form), and `isolate()`
 drops the variables from a process whose code under test runs git itself. `scratch_repo.py --audit` reads every self-test's
 syntax tree (a `subprocess` call whose argv is a git argv, a repository created around the fixture, or a nested helper over
-the subject's own git runner is a finding); `SelfTestFixtureDriftTests` runs it and holds the fixture's rules to that one
-file. **A self-test's scratch directory goes with it (kb/Work PB3194):** `scratch_dir(prefix)` makes it in the machine-wide
+the subject's own git runner is a finding); the fixture's own self-test runs it over the real tree and holds the
+fixture's rules to that one file (`rule_copies`, kb/Work PB4395). **A self-test's scratch directory goes with it (kb/Work PB3194):** `scratch_dir(prefix)` makes it in the machine-wide
 temp directory and registers `remove_tree` for the process's exit; `remove_tree` makes a refused entry writable and removes
 it again, and prints what still cannot go (git's read-only objects defeat `shutil.rmtree(ignore_errors=True)` on Windows,
 silently: one host's temp directory held 7,359 such directories on 2026-10-23). The audit's SCRATCH arm finds a bare
@@ -1865,7 +1865,7 @@ tracked path, every READ entry under an INERT one and every tooling the build or
 CODE_READS. The classification's logic and the watch's firing (a read, a listing, a READ path, a tooling-lane import served
 from a stale bytecode cache, a CODE_READS read, the command's own exit code) are `inert_lane.py --self-test`'s arms, run by
 the self-test runner in every gate that touches tooling and in CI (the inotify arms on Linux).
-`SelfTestDiscoveryDriftTests` holds both self-test legs of the Linux tool to the audit clone.
+`self_tests.py --self-test` holds both self-test legs of the Linux tool to the audit clone.
 
 **What the lane covers.** A notes landing changes `DEVLOG/` and `kb/Work/` (107 of the 137 landings above changed only those),
 so it is the inert lane: the audits and nothing else. A change to `docs/`, a skill or a brief is still the full lane until its

@@ -28,6 +28,8 @@ import sys
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 
+from standard_streams import ensure_utf8  # this directory's: the one UTF-8 switch for the standard streams (PB3637)
+
 JOBS_KEY = re.compile(r"^jobs:[ \t]*(?:#.*)?$")
 JOB_HEADER = re.compile(r"^  (?P<id>[A-Za-z0-9_.-]+):[ \t]*(?:#.*)?$")
 STEPS_KEY = re.compile(r"^\s*steps:[ \t]*(?:#.*)?$")
@@ -313,6 +315,7 @@ def _raises(f) -> str:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     if sys.argv[1:] == ["--self-test"]:
         sys.exit(self_test())
     print(__doc__.splitlines()[0])

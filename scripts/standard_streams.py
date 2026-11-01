@@ -4,7 +4,7 @@
 
     from standard_streams import ensure_utf8         # every entry point: the FIRST statement of its __main__ block
     python scripts/standard_streams.py --check       # the rule below over every live tool, its --help probes included
-    python scripts/standard_streams.py --self-test   # the planted cases, then --check's source scan of this tree
+    python scripts/standard_streams.py --self-test   # the planted cases, then --check over this tree, probes included
 
 ⛔ WHY. When a standard stream is not a console (a pipe, a redirect: every agent's shell, every gate and every capture),
 CPython on Windows encodes it in the ANSI code page, cp1252, and the scripts' help texts, verdict lines and reports
@@ -221,7 +221,9 @@ def live_python(repo) -> list[str]:
     return live_tools.tracked(repo, (".py",))
 
 
-def check(repo, probes: bool = True) -> int:
+def findings(repo, probes: bool = True) -> tuple[list[str], list[str], list[str]]:
+    """THE RULE over `repo`'s live Python files: (every finding, the files scanned, the entry points probed). Without
+    `probes`, rules 1 and 2 only."""
     import concurrent.futures
     import os
     files = live_python(repo)
@@ -231,6 +233,11 @@ def check(repo, probes: bool = True) -> int:
     with concurrent.futures.ThreadPoolExecutor(max_workers=min(32, os.cpu_count() or 4)) as pool:
         for got in pool.map(lambda rel: probe_cli(repo, rel, sources[rel]), clis):
             found += got
+    return found, files, clis
+
+
+def check(repo, probes: bool = True) -> int:
+    found, files, clis = findings(repo, probes)
     for f in found:
         print(f"  {f}")
     verdict = "FAIL" if found else "PASS"
@@ -346,8 +353,14 @@ def self_test(repo) -> int:
             is_cli("import argparse\nargparse.ArgumentParser()\n"), is_cli("if __name__ == '__main__': pass\n")],
            [True, False, False])
 
-    print("this tree (rules 1 and 2; --check adds the probes):")
-    expect("this tree's live Python files hold rules 1 and 2", check(repo, probes=False), 0)
+    # THE REAL TREE, all three rules, the probes RUN (kb/Work PB4395: until then ScriptStandardStreamsDriftTests, a
+    # compiler test, ran --check, so a change to any live script was a compiler change). A net over nothing is no net:
+    # it must have read the live trees and probed their entry points.
+    print("this tree (rules 1, 2 and 3, the --help and usage probes run):")
+    found, files, clis = findings(repo)
+    expect(f"this tree's {len(files)} live Python files hold rules 1 to 3 ({len(clis)} entry points probed under "
+           "cp1252), and the scan read files and probed entry points", (found, len(files) > 0, 0 < len(clis) <= len(files)),
+           ([], True, True))
     print(f"=== STANDARD STREAMS SELF-TEST: {'FAIL — ' + str(len(failures)) if failures else 'PASS'} ===")
     return 1 if failures else 0
 
@@ -358,7 +371,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     group = ap.add_mutually_exclusive_group(required=True)
     group.add_argument("--check", action="store_true", help="rules 1-3 over every live tool; exit 1 on a finding")
-    group.add_argument("--self-test", action="store_true", help="the planted cases, then rules 1-2 over this tree")
+    group.add_argument("--self-test", action="store_true", help="the planted cases, then rules 1-3 over this tree")
     ap.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1], help=argparse.SUPPRESS)
     args = ap.parse_args()
     return self_test(args.root) if args.self_test else check(args.root)
