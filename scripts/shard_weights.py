@@ -34,19 +34,31 @@ the matrix) is not a shard run and is not counted. A window with no shard run is
 landed, so nothing divided. A run whose artifacts cannot be read or downloaded is `UNMEASURED` and exits 2: a report that
 cannot see is never a green. Artifacts live 14 days (.github/actions/upload-results), so `--hours` beyond 336 reads nothing.
 
-The `generate` side of this file (class -> median seconds, tests/_shared/test-weights.json) is step 5's (PB4328): it
-reads the same trx, and shares `shard_walls` and `trx_times` below.
+THE WEIGHTS FILE (`generate`; kb/Work PB4329). `tests/_shared/test-weights.json` gives every test class the seconds it
+costs a merge-group run: per (run, OS), the sum over every trx of that run's artifacts of the durations of the class's
+results (INV-1's re-run of the NIST classes on Linux included: it runs in the same shard as its class), and per class the
+MEDIAN of those observations. A class's assembly is its trx definition's `codeBase`, keyed as the test framework keys it
+(`WiseOwl.Cobol.Tests.<key>.dll` -> `<key>`). `default_seconds`, the median class weight, is the weight of a class the
+file does not name (one added since). GateTestFramework (tests/_shared/GateLegs.cs, `GateShard`) reads the file, embedded
+in every test assembly, and deals the classes to the shards of `WISEOWL_COBOL_SHARD=k/N` longest first; a stale weight
+costs balance, never coverage, because every discovered class gets exactly one shard and `ci-gate` checks the names
+(test_population.py check). The file changes only when someone regenerates it, which the nightly's OVER asks for:
+
+    python scripts/shard_weights.py generate                    # the newest GENERATE_RUNS successful merge-group runs
+    python scripts/shard_weights.py generate --from-dir DIR     # trx already downloaded: DIR/<run id>/<artifact>/*.trx
 """
 from __future__ import annotations
 
 import argparse
 import datetime
 import json
+import re
+import statistics
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import Callable
+from typing import Callable, TypeVar
 
 from standard_streams import ensure_utf8  # (scripts/, this file's own directory)
 from test_population import UnreadableTrx, trx_root  # THE one trx reader, which names a file it cannot read (kb/Work PB3661)
@@ -74,8 +86,23 @@ WEIGHTS_FILE = "tests/_shared/test-weights.json"
 WORKFLOW_FILE = ".github/workflows/" + WORKFLOW
 SHARD_ENV = "WISEOWL_COBOL_SHARD"
 
+#: The weights file's schema (GateLegs.cs `TestWeights.Schema` reads exactly this one).
+WEIGHTS_SCHEMA = 1
+#: How many successful merge-group runs `generate` reads (the newest that ran the matrix), and the window it looks in:
+#: the artifacts' whole life (.github/actions/upload-results keeps them 14 days).
+GENERATE_RUNS = 3
+GENERATE_HOURS = 336
+
+#: The test assemblies are `WiseOwl.Cobol.Tests.<key>.dll`; the weights file and the shard hook name each by its key
+#: (GateLegs.cs `GatePlan.AssemblyKey` strips the same prefix).
+TEST_ASSEMBLY = re.compile(r"(?:^|[/\\])WiseOwl\.Cobol\.Tests\.(?P<key>[^/\\]+)\.dll$", re.IGNORECASE)
+#: A trx duration, `[d.]hh:mm:ss[.fffffff]`.
+_DURATION = re.compile(r"^(?:(?P<d>\d+)\.)?(?P<h>\d+):(?P<m>\d+):(?P<s>\d+(?:\.\d+)?)$")
+
 #: A `gh` call: arguments in, standard output out; a non-zero exit raises `GhError`.
 Gh = Callable[[list[str]], str]
+#: What one downloaded run reduces to (`shard_walls` for the report, `run_class_seconds` for the weights).
+T = TypeVar("T")
 
 
 class GhError(RuntimeError):
@@ -166,15 +193,16 @@ def window_run_ids(listing: str, now: datetime.datetime, hours: int) -> list[str
     return ids
 
 
-def measure_window(hours: int, max_runs: int = MAX_RUNS, gh: Gh = _gh,
-                   now: datetime.datetime | None = None) -> dict[str, dict[str, float]]:
-    """The shard walls of the window's newest `max_runs` successful merge-group runs that ran the matrix: run id ->
-    `shard_walls`. Each run is downloaded into a scratch directory of its own that is deleted before the next, so disk
-    holds one run at a time. A run whose download fails raises `GhError` (the day is then UNMEASURED); a run with no
-    `test-results-*` artifact (an inert change) is not a shard run and does not count toward `max_runs`."""
+def measure_window(hours: int, max_runs: int = MAX_RUNS, gh: Gh = _gh, now: datetime.datetime | None = None,
+                   read: Callable[[Path], T] = shard_walls) -> dict[str, T]:
+    """`read` (the shard walls, by default) of the window's newest `max_runs` successful merge-group runs that ran the
+    matrix: run id -> what `read` made of the run's download. Each run is downloaded into a scratch directory of its own
+    that is deleted before the next, so disk holds one run at a time. A run whose download fails raises `GhError` (the
+    day is then UNMEASURED); a run with no `test-results-*` artifact (an inert change) is not a shard run and does not
+    count toward `max_runs`."""
     listing = gh(["run", "list", "--workflow", WORKFLOW, "--event", EVENT, "--status", "success",
                   "--limit", "100", "--json", "databaseId,createdAt,conclusion"])
-    runs: dict[str, dict[str, float]] = {}
+    runs: dict[str, T] = {}
     for run_id in window_run_ids(listing, now or datetime.datetime.now(datetime.timezone.utc), hours):
         if len(runs) >= max_runs:
             break
@@ -186,9 +214,9 @@ def measure_window(hours: int, max_runs: int = MAX_RUNS, gh: Gh = _gh,
                 # not a failure of the day; any other reason is.
                 if "no valid artifacts" not in str(error) and "no artifact" not in str(error).lower():
                     raise
-            walls = shard_walls(Path(scratch))
-        if walls:
-            runs[run_id] = walls
+            found = read(Path(scratch))
+        if found:
+            runs[run_id] = found
     return runs
 
 
@@ -202,6 +230,98 @@ def gather(root: Path) -> dict[str, dict[str, float]]:
     return runs
 
 
+def duration_seconds(text: str, source: Path) -> float:
+    """A trx `duration` attribute in seconds; ValueError naming the file for one that is not `[d.]hh:mm:ss[.f]`."""
+    m = _DURATION.match(text or "")
+    if m is None:
+        raise ValueError(f"{source}: a result duration {text!r} is not [d.]hh:mm:ss[.fffffff]")
+    return ((int(m["d"] or 0) * 24 + int(m["h"])) * 60 + int(m["m"])) * 60 + float(m["s"])
+
+
+def class_seconds(trx: Path) -> dict[tuple[str, str], float]:
+    """(assembly key, test class) -> the summed durations of the class's results in one trx. A definition whose
+    `codeBase` is not a test assembly, or that names no class, and a result with no definition, are a ValueError naming
+    the file: a weight the shard hook cannot key is a weight nothing would ever use."""
+    root = trx_root(trx)
+    owner: dict[str, tuple[str, str]] = {}
+    for unit in root.iter(f"{_TRX_NS}UnitTest"):
+        method = unit.find(f"{_TRX_NS}TestMethod")
+        code_base = method.get("codeBase", "") if method is not None else ""
+        cls = method.get("className", "") if method is not None else ""
+        m = TEST_ASSEMBLY.search(code_base)
+        if m is None or not cls:
+            raise ValueError(f"{trx}: test {unit.get('name')!r} names no test assembly and class "
+                             f"(codeBase {code_base!r}, className {cls!r})")
+        owner[unit.get("id", "")] = (m["key"], cls)
+    seconds: dict[tuple[str, str], float] = {}
+    for result in root.iter(f"{_TRX_NS}UnitTestResult"):
+        key = owner.get(result.get("testId", ""))
+        if key is None:
+            raise ValueError(f"{trx}: the result {result.get('testName')!r} has no test definition")
+        seconds[key] = seconds.get(key, 0.0) + duration_seconds(result.get("duration", ""), trx)
+    return seconds
+
+
+def run_class_seconds(run_dir: Path) -> dict[str, dict[tuple[str, str], float]]:
+    """One run: OS -> (assembly, class) -> the class's seconds over every trx of that OS's `test-results-*` artifacts.
+    Each OS of a run is one observation of every class it ran; a run with no trx is empty."""
+    by_os: dict[str, dict[tuple[str, str], float]] = {}
+    for artifact in sorted(p for p in run_dir.iterdir() if p.is_dir() and p.name.startswith(ARTIFACT_PREFIX)):
+        for trx in sorted(artifact.rglob("*.trx")):
+            seconds = by_os.setdefault(os_of(artifact.name), {})
+            for key, value in class_seconds(trx).items():
+                seconds[key] = seconds.get(key, 0.0) + value
+    return by_os
+
+
+def weights(observations: list[dict[tuple[str, str], float]]) -> dict[tuple[str, str], float]:
+    """Each class's MEDIAN over the observations that ran it, rounded to a tenth of a second."""
+    seen: dict[tuple[str, str], list[float]] = {}
+    for observation in observations:
+        for key, value in observation.items():
+            seen.setdefault(key, []).append(value)
+    return {key: round(statistics.median(values), 1) for key, values in seen.items()}
+
+
+def render_weights(classes: dict[tuple[str, str], float], source: str) -> str:
+    """The weights file's text: sorted, one class a line, LF, so a regeneration's diff is the classes that moved."""
+    if not classes:
+        raise ValueError("no class weight was read: a weights file over nothing would put every class at the default")
+    default = max(0.1, round(statistics.median(classes.values()), 1))
+    assemblies: dict[str, dict[str, float]] = {}
+    for (assembly, cls), value in sorted(classes.items()):
+        assemblies.setdefault(assembly, {})[cls] = value
+    blocks = []
+    for assembly, members in assemblies.items():
+        rows = ",\n".join(f"      {json.dumps(cls)}: {value}" for cls, value in members.items())
+        blocks.append(f"    {json.dumps(assembly)}: {{\n{rows}\n    }}")
+    return (f'{{\n  "schema": {WEIGHTS_SCHEMA},\n  "source": {json.dumps(source)},\n  "default_seconds": {default},\n'
+            f'  "assemblies": {{\n' + ",\n".join(blocks) + "\n  }\n}\n")
+
+
+def generate(from_dir: Path | None, out: Path, runs: int = GENERATE_RUNS, gh: Gh = _gh) -> str:
+    """Write the weights file from `from_dir`'s runs (DIR/<run id>/<artifact>/*.trx) or the newest `runs` successful
+    merge-group runs; return the line that says what it read. Raises GhError, ValueError, UnreadableTrx or OSError
+    when it cannot read them, and writes nothing then."""
+    if from_dir is not None:
+        read = {p.name: run_class_seconds(p) for p in sorted(q for q in from_dir.iterdir() if q.is_dir())}
+    else:
+        read = measure_window(GENERATE_HOURS, runs, gh, read=run_class_seconds)
+    read = {run_id: by_os for run_id, by_os in read.items() if by_os}
+    if not read:
+        raise ValueError("no merge-group run with test results was read")
+    observations = [seconds for by_os in read.values() for seconds in by_os.values()]
+    classes = weights(observations)
+    source = (f"scripts/shard_weights.py generate: the median over {len(observations)} observation(s) (a run on one OS) "
+              f"of merge-group run(s) {', '.join(sorted(read))}")
+    text = render_weights(classes, source)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(text, encoding="utf-8", newline="\n")
+    shown = out.resolve()
+    shown = shown.relative_to(REPO_ROOT) if shown.is_relative_to(REPO_ROOT) else shown
+    return f"=== WEIGHTS: {len(classes)} class(es) from {len(observations)} observation(s) -> {shown.as_posix()} ==="
+
+
 def weighted_shards_in_force(repo: Path = REPO_ROOT) -> bool:
     """Does the merge group shard by the weights file? True when the weights file exists and build-and-test.yml names the
     shard variable its test framework reads (PB4328 builds the file and the hook, PB4329 the matrix)."""
@@ -210,15 +330,16 @@ def weighted_shards_in_force(repo: Path = REPO_ROOT) -> bool:
 
 
 def report(from_dir: Path | None, hours: int, threshold: float, max_runs: int = MAX_RUNS, gh: Gh = _gh,
-           repo: Path = REPO_ROOT) -> tuple[str, int]:
-    """The verdict line and exit code of the `report` command."""
+           repo: Path = REPO_ROOT, now: datetime.datetime | None = None) -> tuple[str, int]:
+    """The verdict line and exit code of the `report` command. `now` is the window's end (the wall clock when None); a
+    caller with planted runs passes the clock they were dated against, or the window leaves them behind (kb/Work PB4353)."""
     if from_dir is None and not weighted_shards_in_force(repo):
         return (f"=== SHARD SPREAD: NOT MEASURED -- the merge group does not shard by {WEIGHTS_FILE} yet (PB4328, PB4329): "
                 "its spread is the name split's, which no regeneration changes ===", 0)
     try:
         if from_dir is not None:
             return verdict(gather(from_dir), hours, threshold)
-        return verdict(measure_window(hours, max_runs, gh), hours, threshold, max_runs)
+        return verdict(measure_window(hours, max_runs, gh, now), hours, threshold, max_runs)
     except (GhError, ValueError, UnreadableTrx, OSError) as error:
         return f"=== SHARD SPREAD: UNMEASURED -- {error} ===", 2
 
@@ -236,6 +357,19 @@ def _write_trx(path: Path, seconds: int) -> None:
     finish = start + datetime.timedelta(seconds=seconds)
     fmt = lambda t: t.strftime("%Y-%m-%dT%H:%M:%S") + ".1234567+00:00"  # noqa: E731
     path.write_text(_TRX.format(start=fmt(start), finish=fmt(finish)), encoding="utf-8", newline="\n")
+
+
+def _write_class_trx(path: Path, results: list[tuple[str, str, str]]) -> None:
+    """A trx of `results` (code base, class, duration), one test definition and one result each, as the trx logger writes
+    them: `<UnitTest><TestMethod codeBase= className=>` under `<TestDefinitions>`, `<UnitTestResult duration=>`."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    units = "".join(f'<UnitTest name="{cls}.M{i}" id="id{i}"><TestMethod codeBase="{code_base}" className="{cls}" '
+                    f'name="M{i}" /></UnitTest>' for i, (code_base, cls, _) in enumerate(results))
+    rows = "".join(f'<UnitTestResult testId="id{i}" testName="{cls}.M{i}" duration="{duration}" outcome="Passed" />'
+                   for i, (_, cls, duration) in enumerate(results))
+    path.write_text('<?xml version="1.0" encoding="utf-8"?><TestRun xmlns="http://microsoft.com/schemas/VisualStudio/'
+                    f'TeamTest/2010"><Results>{rows}</Results><TestDefinitions>{units}</TestDefinitions></TestRun>',
+                    encoding="utf-8", newline="\n")
 
 
 def self_test() -> int:
@@ -356,10 +490,71 @@ def self_test() -> int:
         check("a weights file the workflow does not use: not in force", weighted_shards_in_force(repo), False)
         workflow.write_text("env:" + "\n" + f"  {SHARD_ENV}: 1/5" + "\n", encoding="utf-8", newline="\n")
         check("weights file and shard variable: in force", weighted_shards_in_force(repo), True)
-        line, code = report(None, 24, THRESHOLD, 8, broken_gh, repo)
+        line, code = report(None, 24, THRESHOLD, 8, broken_gh, repo, now)
         check("a gh failure is UNMEASURED and exits 2", (code, "UNMEASURED" in line and "HTTP 502" in line), (2, True))
-        line, code = report(None, 24, THRESHOLD, 8, fake_gh, repo)
+        line, code = report(None, 24, THRESHOLD, 8, fake_gh, repo, now)
         check("the live report measures", (code, "OVER" in line), (1, True))
+        # The planted runs are dated against the fixed `now`. The arm above is the guard: the wall clock is past every
+        # planted run, so a report() that dropped `now` and read the wall clock would find its window empty and answer
+        # NOT MEASURED there (it went red that way at 2026-11-01T09:00Z, kb/Work PB4353). This arm only checks that the
+        # window's end follows a clock passed in two days later; on its own it would also pass with that regression.
+        line, code = report(None, 24, THRESHOLD, 8, fake_gh, repo, now + datetime.timedelta(days=2))
+        check("the live report's window ends at the clock it is given", (code, "NOT MEASURED" in line), (0, True))
+
+        # generate: the weights file (kb/Work PB4329).
+        win = "D:\\a\\COBOL\\COBOL\\tests\\WiseOwl.Cobol.Tests.Unit\\bin\\Release\\net10.0\\WiseOwl.Cobol.Tests.Unit.dll"
+        lin = "/home/runner/work/COBOL/COBOL/tests/WiseOwl.Cobol.Tests.Conformance/bin/Debug/net10.0/WiseOwl.Cobol.Tests.Conformance.dll"
+        check("duration_seconds reads hours, minutes, fractions and days",
+              [duration_seconds(t, Path("x")) for t in ("00:00:01.5000000", "00:01:00", "1.00:00:00.25")], [1.5, 60.0, 86400.25])
+        gen = Path(scratch) / "gen"
+        # Run 1: Windows sums a class over its results (2 + 3) and over two trx (4 + 6); Linux, its two trx, likewise.
+        _write_class_trx(gen / "1" / "test-results-Windows-shard-1" / "Unit.trx",
+                         [(win, "N.A", "00:00:02"), (win, "N.A", "00:00:03"), (win, "N.B", "00:00:04")])
+        _write_class_trx(gen / "1" / "test-results-Windows-shard-2" / "Unit.trx", [(win, "N.B", "00:00:06")])
+        _write_class_trx(gen / "1" / "test-results-Linux-shard-1" / "Conformance.trx", [(lin, "C.N_P0", "00:00:10")])
+        _write_class_trx(gen / "1" / "test-results-Linux-shard-2" / "inv1-strong.trx", [(lin, "C.N_P0", "00:00:20")])
+        (gen / "1" / "unrelated").mkdir()
+        _write_class_trx(gen / "2" / "test-results-Windows-shard-1" / "Unit.trx", [(win, "N.A", "00:00:07"), (win, "N.B", "00:00:01")])
+        (gen / "3").mkdir()                                          # an inert run: no artifact at all
+        check("class_seconds keys a class by its assembly and sums its results",
+              class_seconds(gen / "1" / "test-results-Windows-shard-1" / "Unit.trx"), {("Unit", "N.A"): 5.0, ("Unit", "N.B"): 4.0})
+        by_os = run_class_seconds(gen / "1")
+        check("run_class_seconds is one observation per OS, every trx of its artifacts summed (INV-1's re-run included)",
+              by_os, {"Windows": {("Unit", "N.A"): 5.0, ("Unit", "N.B"): 10.0}, "Linux": {("Conformance", "C.N_P0"): 30.0}})
+        check("weights is the median over the observations that ran the class",
+              weights([{("U", "A"): 5.0, ("U", "B"): 10.0}, {("U", "A"): 7.0, ("U", "B"): 1.0}, {("U", "A"): 6.04}]),
+              {("U", "A"): 6.0, ("U", "B"): 5.5})
+        out = Path(scratch) / "weights.json"
+        line = generate(gen, out)
+        written = json.loads(out.read_text(encoding="utf-8"))
+        check("generate writes schema 1, every assembly's classes and the median class as the default",
+              (written["schema"], written["assemblies"], written["default_seconds"]),
+              (WEIGHTS_SCHEMA, {"Conformance": {"C.N_P0": 30.0}, "Unit": {"N.A": 6.0, "N.B": 5.5}}, 6.0))
+        check("generate says what it read, and the inert run is no observation",
+              ("3 class(es) from 3 observation(s)" in line, "runs 1, 2" in written["source"] or "run(s) 1, 2" in written["source"]),
+              (True, True))
+        check("the weights file is sorted, one class a line, LF-ended (a regeneration diffs by class)",
+              out.read_bytes().count(b"\n"), 14)
+        before = out.read_bytes()
+        generate(gen, out)
+        check("generate is deterministic", out.read_bytes(), before)
+        foreign = Path(scratch) / "foreign"
+        _write_class_trx(foreign / "1" / "test-results-Linux-shard-1" / "x.trx", [("/tmp/Other.dll", "N.A", "00:00:01")])
+        (Path(scratch) / "inert-only" / "9").mkdir(parents=True)
+        accepted = []
+        for label, root in (("a codeBase that is no test assembly", foreign), ("a window of inert runs only", Path(scratch) / "inert-only")):
+            try:
+                generate(root, out)
+                accepted.append(label)
+            except ValueError:
+                pass
+        check("generate refuses a codeBase it cannot key and a window with no test results, and keeps the file it had",
+              (accepted, out.read_bytes() == before), ([], True))
+        try:
+            duration_seconds("1 s", Path("t.trx"))
+            check("a malformed duration is refused", "accepted", "ValueError")
+        except ValueError as error:
+            check("a malformed duration names the file", "t.trx" in str(error), True)
 
     if failures:
         print("shard_weights self-test FAILED:\n  " + "\n  ".join(failures))
@@ -377,11 +572,22 @@ def main(argv: list[str] | None = None) -> int:
     rep.add_argument("--threshold", type=float, default=THRESHOLD, help="the spread above which it is OVER (default %(default)s)")
     rep.add_argument("--max-runs", type=int, default=MAX_RUNS, help="the most shard runs to read, newest first (default %(default)s)")
     rep.add_argument("--from-dir", type=Path, help="read trx from DIR/<run id>/<artifact>/ instead of downloading")
+    gen = sub.add_parser("generate", help=f"write {WEIGHTS_FILE} from merge-group trx; exit 2 when they cannot be read")
+    gen.add_argument("--runs", type=int, default=GENERATE_RUNS, help="the newest successful runs to read (default %(default)s)")
+    gen.add_argument("--from-dir", type=Path, help="read trx from DIR/<run id>/<artifact>/ instead of downloading")
+    gen.add_argument("--out", type=Path, default=REPO_ROOT / WEIGHTS_FILE, help="the file to write (default the weights file)")
     args = parser.parse_args(argv)
     if args.self_test:
         return self_test()
+    if args.command == "generate":
+        try:
+            print(generate(args.from_dir, args.out, args.runs))
+        except (GhError, ValueError, UnreadableTrx, OSError) as error:
+            print(f"=== WEIGHTS: NOT WRITTEN -- {error} ===")
+            return 2
+        return 0
     if args.command != "report":
-        parser.error("a command (report) or --self-test is required")
+        parser.error("a command (report, generate) or --self-test is required")
     line, code = report(args.from_dir, args.hours, args.threshold, args.max_runs)
     print(line)
     return code

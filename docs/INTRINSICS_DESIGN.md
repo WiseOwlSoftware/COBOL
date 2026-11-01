@@ -90,7 +90,7 @@ The row now carries `IntrinsicResultRule` — seven spec-derived shapes covering
 
 **Rejected alternatives.** Treating LENGTH OF == FUNCTION LENGTH — wrong for COMP/COMP-3/national where byte size != char positions. Storing a runtime byte length — reintroduces byte bookkeeping.
 
-### D8. Per-edition gating (G1): availability is a catalog/registry COLUMN (IntroducedIn/RemovedIn from `docs/VERSION_CHANGE_REFERENCE.md`), enforced by the binder against `--std` with a specific diagnostic — the co-equal obligation to implementing the behavior.
+### D8. Per-edition gating (G1): availability is a catalog/registry COLUMN (IntroducedIn/RemovedIn from `docs/VERSION_CHANGE_REFERENCE.md`), enforced by the binder against `--std` with a specific diagnostic — the co-equal obligation to implementing the behavior. An intrinsic function's `IntroducedIn` is held to `tests/version-matrix/intrinsic-introductions.json` — each edition's own new-function list, committed with its source passage because the 2002 and 2009 drafts are not tracked — by `IntrinsicIntroductionDriftTests` (kb/Work PB4296: ABS is a 2002 function, not 2014); a new function adds its name to the list of the edition whose standard introduces it, and the test fails until the catalog row agrees.
 
 **Rationale.** The intrinsic library is one of the most edition-varying surfaces in the standard: the FUNCTION facility postdates base COBOL-85, and 2002/2014/2023 each add (and occasionally remove or alter) functions, special registers, and figuratives (e.g. NULL). The mission is four compilers in one executable (ISO COBOL 1985 / 2002 / 2014 / 2023). Every edition-varying construct carries TWO co-equal obligations: (1) the complete per-edition ISO-spec behavior in every edition that HAS it; (2) the correct DIAGNOSTIC in every edition that LACKS it (not-yet-introduced or removed) — "FUNCTION X requires COBOL-yyyy; current --std is yyyy". Tests (NIST etc.) only VERIFY; they never SCOPE. Window data comes from `docs/VERSION_CHANGE_REFERENCE.md`, the 130-row edition-change checklist (2002→2023 deltas ONLY — it has NO 85→2002 rows; derive 85↔2002 gating from the 2002 standard / the ISO2023_CONFORMANCE_PLAN M2 catalog). The version test matrix (`docs/VERSION_TEST_MATRIX_DESIGN.md`, the (construct × edition) matrix; Phase 0 done) gains a (function × edition) row per catalog entry: compiles+behaves inside the window, rejected-with-diagnostic outside it.
 
@@ -486,7 +486,8 @@ or "from 1 to the current capacity of the table" for a dynamic-capacity table. T
 values, so the former bind-time expansion (N `BoundFieldOperand`s by the OCCURS count; an ODO table staged loud, a
 dynamic table not even a level) was the wrong model. **`IntrinsicBinder.TryBindAllArgument` binds the argument as
 one `BoundFieldOperand` whose place is a `TableAllPlace(Element, Indices, Counts)`** — a `PlaceDecorator` over
-the ELEMENT place (its ALL subscripts the elements `__allN[k]` of the index vector `Indices`, a `LocalVector`; its fixed
+the ELEMENT place (its ALL subscripts the elements `__allN[k]` of the index vector `Indices`, a `LocalVector` over a
+`TableAllIndices` `StatementLocal` that the Roslyn backend spells `__allN`, kb/Work PB4321; its fixed
 subscripts their own typed positions) carrying one
 `AllCount` per ALL level (`Fixed(occurs)` / `Odo(depending, min, max)` / `Capacity(register)` — a nested dynamic
 table's register path carries the outer index variables, so each outer occurrence's own capacity is read). Being a

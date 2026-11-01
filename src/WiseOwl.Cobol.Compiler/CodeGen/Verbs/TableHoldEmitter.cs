@@ -25,8 +25,8 @@ internal sealed class TableHoldEmitter(EmitContext ctx, ArithmeticEmitter arith)
     public void Emit(BoundHoldTableAll hold)
     {
         var w = ctx.Writer;
-        string source = hold.Source.Indices.CsName;
-        string held = hold.Held.Indices.CsName;
+        string source = LocalNames.Of(hold.Source.Indices.Local);
+        string held = LocalNames.Of(hold.Held.Indices.Local);
         string stored = $"{held}_n";
         using (w.Block("// hold the table(ALL) argument at its place in the argument list (ISO §8.4.3.2.4 GR2, §15.3)"))
         {

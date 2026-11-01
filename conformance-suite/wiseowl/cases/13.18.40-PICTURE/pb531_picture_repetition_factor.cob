@@ -5,15 +5,18 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB531 / PB532 - THE PICTURE CHARACTER-STRING'S OWN SHAPE, at the earliest edition WiseOwl COBOL
-      *> compiles.  Both rules are ALL FORMATS and read identically at 85, 2002, 2014 and 2023, so this is the
-      *> single positive witness; the negatives below it pin each refusal.
+      *> kb/Work PB531 / PB532 / PB4304 - THE PICTURE CHARACTER-STRING'S OWN SHAPE, at the earliest edition
+      *> WiseOwl COBOL compiles.  SR6 reads identically at 85, 2002, 2014 and 2023; SR4's NUMBER is the edition's
+      *> (30 at COBOL-85, 50 at 2002, 63 from 2014: constructs rows picture-string-50-2002 and
+      *> picture-string-63-2014, VCR row 7.46), so this witness stays inside the 85 bound and the 2002 and 2014
+      *> boundaries have their own (pb4304_picture_string_50_2002, pb4304_picture_string_63_2014).
       *>
       *> 13.18.40.3 SR6 - "An unsigned nonzero integer that is enclosed in parentheses indicates the number of
       *>   consecutive occurrences of the symbol that immediately precedes the left parenthesis. The integer may
       *>   be specified by a constant-name, in which case the length of the integer, not the length of the
       *>   constant-name, is counted toward the maximum number of characters in character-string-1."
-      *> 13.18.40.3 SR4 - "The maximum number of characters allowed in character-string-1 is 63."
+      *> 13.18.40.3 SR4 - "The maximum number of characters allowed in character-string-1 is 63." (the 2023
+      *>   text; COBOL-85 allowed 30)
       *>
       *> SR6's second sentence is what fixes SR4's reading: the count is over character-string-1 AS WRITTEN,
       *> because the sentence distinguishes the length of the substituted INTEGER from the length of the
@@ -23,7 +26,7 @@
       *>     character-string-1 that represent ... character positions") gives 20.
       *> R2  9(5)V9(2) - five integer digit positions and two fractional; GR14 excludes 'V' from the size, so
       *>     the size is 7 and MOVE 12345.67 stores every digit.
-      *> R3  the SR4 BOUNDARY: 63 written characters exactly (21 groups of 'XXX'), which is legal.
+      *> R3  the COBOL-85 SR4 BOUNDARY: 30 written characters exactly (10 groups of 'XXX'), which is legal.
       *> R4  X(30000) - four written characters, 30000 character positions: the two rules in one item.
       *> R5  9(1) - the smallest factor SR6 admits.
        IDENTIFICATION DIVISION.
@@ -32,7 +35,7 @@
        WORKING-STORAGE SECTION.
        01 R1 PIC X(20).
        01 R2 PIC 9(5)V9(2).
-       01 R3 PIC XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
+       01 R3 PIC XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
        01 R4 PIC X(30000).
        01 R5 PIC 9(1).
        PROCEDURE DIVISION.

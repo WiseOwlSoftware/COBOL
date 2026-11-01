@@ -2,7 +2,8 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 //
 // THE IN-ASSEMBLY LEG FILTER of the ordered gate (kb/Work PB1719; docs/rearchitecture/DESIGN-test-build-ci.md
-// section 3.14.3). tests/Directory.Build.props links this file into every test project under tests/ and names
+// section 3.14.3), and CI's SHARD HOOK (GateShard, TestWeights; kb/Work PB4329, the same document's section 1.4).
+// tests/Directory.Build.props links this file into every test project under tests/ and names
 // GateTestFramework in each one's [assembly: Xunit.TestFramework] (except in the impact-recording build, whose
 // ImpactTestFramework derives from GateTestFramework, so an assembly always names exactly one framework).
 #nullable enable
@@ -23,8 +24,9 @@ namespace WiseOwl.Cobol.Gate;
 /// hands it a complete and self-consistent handshake (<see cref="GateHandshake"/>).
 /// </summary>
 /// <remarks>
-/// <para>With no handshake it is xunit's framework exactly: every case, in xunit's order. That is the battery, CI,
-/// the lander's single leg and an IDE.</para>
+/// <para>With no handshake it is xunit's framework exactly: every case, in xunit's order. That is the battery, the
+/// lander's single leg and an IDE. CI's merge group sets <see cref="GateShard.Variable"/> instead and runs one weighted
+/// shard of every assembly (<see cref="GateShard"/>, kb/Work PB4329).</para>
 /// <para>⛔ WHY THE REFUSAL IS AN EXECUTION ERROR AND NOT A THROW (evidence <c>b3-order-probe</c>): xunit catches a
 /// framework constructor that throws and silently falls back to its default framework, so every case runs and the
 /// run is green. An executor that throws is a "Catastrophic failure" with no verdict line and no trx result. An
@@ -64,11 +66,18 @@ internal sealed class GateExecutor(AssemblyName assemblyName, ISourceInformation
     /// so the one outcome that cannot happen is a silent whole or partial run.</summary>
     private GateSelection Select(List<IXunitTestCase> cases)
     {
+        string assemblyKey;
         GateHandshake handshake;
+        GateShard? shard;
         try
         {
-            handshake = GateHandshake.Read(Environment.GetEnvironmentVariable,
-                GatePlan.AssemblyKey(TestAssembly.Assembly.Name));
+            assemblyKey = GatePlan.AssemblyKey(TestAssembly.Assembly.Name);
+            handshake = GateHandshake.Read(Environment.GetEnvironmentVariable, assemblyKey);
+            shard = GateShard.Read(Environment.GetEnvironmentVariable);
+        }
+        catch (GateShardException ex)
+        {
+            return Refuse(cases, ex.Message);
         }
         catch (Exception ex)
         {
@@ -77,10 +86,22 @@ internal sealed class GateExecutor(AssemblyName assemblyName, ISourceInformation
 
         switch (handshake)
         {
+            case GateHandshake.None when shard is { } mine:
+                try
+                {
+                    return new GateSelection(mine.CasesOf(cases, assemblyKey, TestWeights.Embedded()), null);
+                }
+                catch (Exception ex)
+                {
+                    return Refuse(cases, $"shard {mine} could not be dealt: {ex}");
+                }
             case GateHandshake.None:
                 return new GateSelection(cases, null);
             case GateHandshake.Refused refused:
                 return Refuse(cases, refused.Cause);
+            case GateHandshake.Leg when shard is not null:
+                return Refuse(cases, $"{GateShard.Variable} and the gate's leg handshake are both set: a shard is CI's "
+                                     + "division of one run, a leg the local gate's, and one host never runs both");
             case GateHandshake.Leg leg:
                 try
                 {
@@ -421,6 +442,207 @@ internal abstract record GateHandshake
 
     private static string? Value(Func<string, string?> environment, string name) =>
         environment(name) is { Length: > 0 } v ? v : null;
+}
+
+/// <summary>THE SHARD HOOK (kb/Work PB4329; docs/rearchitecture/DESIGN-test-build-ci.md section 1.4): CI's merge group
+/// runs every assembly as <see cref="Count"/> shards, the job of shard <see cref="Index"/> setting
+/// <c>WISEOWL_COBOL_SHARD=k/N</c>, and each host runs the cases of the test classes <see cref="TestWeights.Deal"/> gives
+/// shard k. Discovery never sees it (the executor deals), so <c>--list-tests</c> stays the whole population that
+/// <c>ci-gate</c> checks the shards' trx against (test_population.py check): a case dealt to no shard or two is a named
+/// NEVER RAN or RAN TWICE, never silence.</summary>
+internal sealed partial record GateShard(int Index, int Count)
+{
+    public const string Variable = "WISEOWL_COBOL_SHARD";
+
+    [GeneratedRegex(@"\A(?<k>[1-9][0-9]{0,2})/(?<n>[1-9][0-9]{0,2})\z")]
+    private static partial Regex Spelling();
+
+    /// <summary>The shard <paramref name="environment"/> names, or null when <see cref="Variable"/> is unset or empty
+    /// (Windows cannot hold an empty variable). Throws <see cref="GateShardException"/> for any other spelling than
+    /// <c>k/N</c> with 1 &lt;= k &lt;= N: a shard nobody can run must refuse the run, never run the whole of it.</summary>
+    public static GateShard? Read(Func<string, string?> environment)
+    {
+        string? text = environment(Variable);
+        if (string.IsNullOrEmpty(text))
+        {
+            return null;
+        }
+
+        Match m = Spelling().Match(text);
+        int k = m.Success ? int.Parse(m.Groups["k"].Value, CultureInfo.InvariantCulture) : 0;
+        int n = m.Success ? int.Parse(m.Groups["n"].Value, CultureInfo.InvariantCulture) : 0;
+        return m.Success && k <= n
+            ? new GateShard(k, n)
+            : throw new GateShardException($"{Variable} is '{text}', not k/N with 1 <= k <= N");
+    }
+
+    /// <summary>This shard's cases, in their discovery order: those whose test class the weights deal to it.</summary>
+    public List<T> CasesOf<T>(IEnumerable<T> cases, string assemblyKey, TestWeights weights) where T : ITestCase
+    {
+        var all = cases.ToList();
+        Dictionary<string, int> dealt = weights.Deal(Count, assemblyKey, all.Select(c => ClassOf(c)));
+        return all.Where(c => dealt[ClassOf(c)] == Index).ToList();
+    }
+
+    /// <summary>A case's test class, as the trx's <c>className</c> and the weights file spell it.</summary>
+    public static string ClassOf(ITestCase testCase) => testCase.TestMethod.TestClass.Class.Name;
+
+    public override string ToString() => $"{Index}/{Count}";
+}
+
+/// <summary>A shard variable no host can run.</summary>
+internal sealed class GateShardException(string message) : Exception(message);
+
+/// <summary>THE WEIGHTS FILE (<c>tests/_shared/test-weights.json</c>, written by <c>scripts/shard_weights.py
+/// generate</c>; kb/Work PB4329): each test class's median seconds in the merge group, by assembly, and the default
+/// for a class it does not name. tests/Directory.Build.props embeds it in every test assembly as
+/// <see cref="ResourceName"/>, so a host deals by the weights it was built with.</summary>
+internal sealed class TestWeights
+{
+    /// <summary>The schema this reader understands (<c>shard_weights.py</c> <c>WEIGHTS_SCHEMA</c>).</summary>
+    public const int Schema = 1;
+
+    public const string ResourceName = "WiseOwl.Cobol.Gate.test-weights.json";
+
+    private static readonly Lazy<TestWeights> EmbeddedFile = new(() =>
+    {
+        using Stream stream = typeof(TestWeights).Assembly.GetManifestResourceStream(ResourceName)
+                              ?? throw new InvalidDataException(
+                                  $"the weights file is not embedded in this assembly as {ResourceName}");
+        using var bytes = new MemoryStream();
+        stream.CopyTo(bytes);
+        return Parse(bytes.ToArray());
+    });
+
+    /// <summary>Every (assembly, class) the file names, with its weight in tenths of a second (whole numbers, so every
+    /// host of one build deals identically).</summary>
+    private readonly Dictionary<(string Assembly, string Class), long> _tenths;
+
+    private TestWeights(Dictionary<(string Assembly, string Class), long> tenths, long defaultTenths)
+    {
+        _tenths = tenths;
+        DefaultTenths = defaultTenths;
+    }
+
+    /// <summary>The weight of a class the file does not name.</summary>
+    public long DefaultTenths { get; }
+
+    public IReadOnlyDictionary<(string Assembly, string Class), long> Tenths => _tenths;
+
+    /// <summary>The weights embedded in this test assembly.</summary>
+    public static TestWeights Embedded() => EmbeddedFile.Value;
+
+    /// <summary>Read a weights file's bytes; <see cref="InvalidDataException"/> names the defect.</summary>
+    public static TestWeights Parse(ReadOnlySpan<byte> bytes)
+    {
+        JsonDocument doc;
+        try
+        {
+            doc = JsonDocument.Parse(bytes.ToArray());
+        }
+        catch (JsonException ex)
+        {
+            throw new InvalidDataException($"the weights file is not JSON ({ex.Message})");
+        }
+
+        using (doc)
+        {
+            JsonElement root = doc.RootElement;
+            if (root.ValueKind != JsonValueKind.Object
+                || !root.TryGetProperty("schema", out JsonElement schema) || !schema.TryGetInt32(out int s) || s != Schema)
+            {
+                throw new InvalidDataException($"the weights file is not schema {Schema}");
+            }
+
+            long fallback = root.TryGetProperty("default_seconds", out JsonElement d) ? TenthsOf(d, "default_seconds") : -1;
+            if (fallback <= 0)
+            {
+                throw new InvalidDataException("the weights file's default_seconds is not a positive number");
+            }
+
+            if (!root.TryGetProperty("assemblies", out JsonElement assemblies) || assemblies.ValueKind != JsonValueKind.Object)
+            {
+                throw new InvalidDataException("the weights file carries no assemblies object");
+            }
+
+            var tenths = new Dictionary<(string, string), long>();
+            foreach (JsonProperty assembly in assemblies.EnumerateObject())
+            {
+                if (assembly.Value.ValueKind != JsonValueKind.Object)
+                {
+                    throw new InvalidDataException($"the weights file's assembly '{assembly.Name}' is not an object");
+                }
+
+                foreach (JsonProperty cls in assembly.Value.EnumerateObject())
+                {
+                    long w = TenthsOf(cls.Value, $"{assembly.Name}/{cls.Name}");
+                    if (w < 0)
+                    {
+                        throw new InvalidDataException($"the weight of {assembly.Name}/{cls.Name} is negative");
+                    }
+
+                    tenths[(assembly.Name, cls.Name)] = w;
+                }
+            }
+
+            return new TestWeights(tenths, fallback);
+        }
+    }
+
+    private static long TenthsOf(JsonElement value, string what) =>
+        value.ValueKind == JsonValueKind.Number && value.TryGetDouble(out double seconds) && double.IsFinite(seconds)
+            ? (long)Math.Round(seconds * 10, MidpointRounding.AwayFromZero)
+            : throw new InvalidDataException($"the weights file's {what} is not a number");
+
+    /// <summary>DEAL the classes to <paramref name="count"/> shards, longest first (LPT): every class the file names,
+    /// of every assembly, heaviest first (ties by assembly then class, ordinal), each to the lightest shard so far (ties
+    /// to the lowest); then the <paramref name="present"/> classes of <paramref name="assemblyKey"/> the file does not
+    /// name, at the default weight, in ordinal order, the same way. Returns the 1-based shard of every present class.
+    /// It is a function of the file, the count and the present classes alone, and every shard of one CI run sees the
+    /// same three, so the shards partition the population. Dealing every assembly's named classes in one pass balances
+    /// the shards over the three assemblies a shard job runs.</summary>
+    public Dictionary<string, int> Deal(int count, string assemblyKey, IEnumerable<string> present)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(count, 1);
+        var load = new long[count];
+        int Lightest()
+        {
+            int best = 0;
+            for (int i = 1; i < count; i++)
+            {
+                if (load[i] < load[best])
+                {
+                    best = i;
+                }
+            }
+
+            return best;
+        }
+
+        var shardOf = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (var ((assembly, cls), w) in _tenths
+                     .OrderByDescending(e => e.Value)
+                     .ThenBy(e => e.Key.Assembly, StringComparer.Ordinal)
+                     .ThenBy(e => e.Key.Class, StringComparer.Ordinal))
+        {
+            int i = Lightest();
+            load[i] += w;
+            if (assembly == assemblyKey)
+            {
+                shardOf[cls] = i + 1;
+            }
+        }
+
+        foreach (string cls in present.Distinct(StringComparer.Ordinal).Where(c => !shardOf.ContainsKey(c))
+                     .Order(StringComparer.Ordinal))
+        {
+            int i = Lightest();
+            load[i] += DefaultTenths;
+            shardOf[cls] = i + 1;
+        }
+
+        return shardOf;
+    }
 }
 
 /// <summary>THE IDENTITY RECORD each leg host writes into the gate's run directory (the plan's directory) before it

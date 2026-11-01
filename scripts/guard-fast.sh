@@ -1,7 +1,7 @@
 #!/bin/bash
 # THE NIST GUARD — the CLI-level NIST leg. It builds the `cobol` CLI, compiles every program of the population through
 # it, runs each program in its OWN clean directory after exactly its declared predecessors (guard-run-group.sh,
-# NistRunner's rule) with every core busy, and audits every verdict against tests/nist/corpus.tsv. CI's `guard` job
+# NistRunner's rule) with every core busy, and audits every verdict against tests/nist/corpus.tsv. The nightly's `guard` job
 # and the battery run it; `JOBS=1` runs it serially.
 #
 # ⛔ ONE GUARD (kb/Work PB3383). A serial twin, scripts/guard.sh, ran the same population in ONE shared directory, in a

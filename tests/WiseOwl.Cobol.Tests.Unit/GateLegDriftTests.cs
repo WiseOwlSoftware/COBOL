@@ -608,6 +608,124 @@ public sealed class GateLegDriftTests
         Assert.Equal(new[] { c, a, b, a }, GateOrder.Permutation(input, xs => [xs[2], xs[0], xs[1], xs[3]]));
     }
 
+    // ── CI's weighted shards (kb/Work PB4329): the shard variable, the weights file and the deal ───────────────────
+
+    [Fact]
+    public void Shard_ReadsKOfN_AndRefusesEveryOtherSpelling()
+    {
+        GateShard? Read(string? value) => GateShard.Read(name => name == GateShard.Variable ? value : null);
+
+        Assert.Null(Read(null));
+        Assert.Null(Read(""));                      // an empty value is unset, as Windows cannot hold one
+        Assert.Equal(new GateShard(3, 7), Read("3/7"));
+        Assert.Equal(new GateShard(1, 1), Read("1/1"));
+        Assert.Equal("5/5", Read("5/5")!.ToString());
+        foreach (string bad in new[] { "0/7", "8/7", "3/0", "3", "3-7", " 3/7", "3/7 ", "03/7", "-1/7", "3/7/9", "k/N", "1000/1000" })
+        {
+            var ex = Assert.Throws<GateShardException>(() => Read(bad));
+            Assert.Contains($"'{bad}'", ex.Message, StringComparison.Ordinal);
+        }
+    }
+
+    /// <summary>The deal of the design (kb/Work PB4329): every class the file names, of every assembly, heaviest first to
+    /// the lightest shard so far (ties to the lowest), then this assembly's unnamed classes at the default weight in
+    /// ordinal order. Worked by hand: A 50 to shard 1, X 40 (another assembly) to 2, B 30 to 3, C 20 to 3 (load 30), D 10
+    /// to 2 (load 40), then New1 to 1 (50, 50, 50: the lowest) and New2 to 2 (55, 50, 50).</summary>
+    [Fact]
+    public void Shard_Deal_IsLongestFirstOverEveryAssembly_ThenTheUnnamedAtTheDefault()
+    {
+        TestWeights weights = TestWeights.Parse(Encoding.UTF8.GetBytes(
+            """{"schema": 1, "default_seconds": 5, "assemblies": {"Unit": {"A": 50, "B": 30, "C": 20, "D": 10}, "Conformance": {"X": 40}}}"""));
+        Dictionary<string, int> dealt = weights.Deal(3, "Unit", ["D", "New2", "A", "C", "New1", "B", "A"]);
+
+        Assert.Equal(new Dictionary<string, int> { ["A"] = 1, ["B"] = 3, ["C"] = 3, ["D"] = 2, ["New1"] = 1, ["New2"] = 2 },
+            dealt.Where(e => e.Key != "X").ToDictionary());
+        Assert.False(dealt.ContainsKey("X"), "another assembly's class is dealt, but never named in this one's map");
+        Assert.Equal(dealt, weights.Deal(3, "Unit", ["New1", "B", "New2", "C", "D", "A"]));   // the order of discovery is irrelevant
+        Assert.Equal(1, weights.Deal(1, "Unit", ["A", "New1"]).Values.Distinct().Single());
+        Assert.Throws<ArgumentOutOfRangeException>(() => weights.Deal(0, "Unit", ["A"]));
+    }
+
+    /// <summary>Every case runs in exactly one shard: the union of every shard's cases is the input, each once, in its
+    /// discovery order, whatever the weights know (a class the file never heard of included).</summary>
+    [Fact]
+    public void Shard_CasesOf_PartitionsTheCasesByClass_EveryCaseInExactlyOneShard()
+    {
+        var assembly = new TestAssembly(Reflector.Wrap(typeof(GateLegDriftTests).Assembly));
+        var collection = new TestCollection(assembly, null, "planted");
+        ITestCase Case(Type type, string name) => new PlantedCase(name,
+            new TestMethod(new TestClass(collection, Reflector.Wrap(type)),
+                Reflector.Wrap(typeof(GateLegDriftTests).GetMethod(nameof(PlantedMethod), BindingFlags.Instance | BindingFlags.NonPublic)!)));
+        var cases = new List<ITestCase>
+        {
+            Case(typeof(string), "S.One"), Case(typeof(int), "I.One"), Case(typeof(string), "S.Two"),
+            Case(typeof(Uri), "U.One"), Case(typeof(Guid), "G.One"), Case(typeof(int), "I.Two"),
+        };
+        TestWeights weights = TestWeights.Parse(Encoding.UTF8.GetBytes(
+            """{"schema": 1, "default_seconds": 1, "assemblies": {"Unit": {"System.String": 9, "System.Int32": 8, "System.Uri": 2}}}"""));
+
+        foreach (int count in new[] { 1, 2, 3, 7 })
+        {
+            var shards = Enumerable.Range(1, count).Select(k => new GateShard(k, count).CasesOf(cases, "Unit", weights)).ToList();
+            var all = shards.SelectMany(s => s).ToList();
+            Assert.True(all.Count == cases.Count && cases.All(c => all.Count(o => ReferenceEquals(o, c)) == 1),
+                $"{count} shards: not every case exactly once");
+            Assert.All(shards, s => Assert.Equal(cases.Where(s.Contains), s));                          // discovery order kept
+            Assert.All(shards, s => Assert.True(s.Select(GateShard.ClassOf).Distinct().All(cls =>
+                s.Count(c => GateShard.ClassOf(c) == cls) == cases.Count(c => GateShard.ClassOf(c) == cls)),
+                "a class is split across shards"));
+        }
+    }
+
+    [Fact]
+    public void Shard_TheWeightsReader_RefusesEveryMalformedFile()
+    {
+        foreach (var (arm, text, says) in new[]
+                 {
+                     ("not JSON", "not json", "not JSON"),
+                     ("schema 2", """{"schema": 2, "default_seconds": 1, "assemblies": {}}""", "not schema 1"),
+                     ("no default", """{"schema": 1, "assemblies": {}}""", "default_seconds"),
+                     ("a zero default", """{"schema": 1, "default_seconds": 0, "assemblies": {}}""", "default_seconds"),
+                     ("no assemblies", """{"schema": 1, "default_seconds": 1}""", "no assemblies"),
+                     ("an assembly not an object", """{"schema": 1, "default_seconds": 1, "assemblies": {"Unit": []}}""", "'Unit'"),
+                     ("a weight not a number", """{"schema": 1, "default_seconds": 1, "assemblies": {"Unit": {"A": "9"}}}""", "Unit/A"),
+                     ("a negative weight", """{"schema": 1, "default_seconds": 1, "assemblies": {"Unit": {"A": -1}}}""", "negative"),
+                 })
+        {
+            var ex = Record.Exception(() => TestWeights.Parse(Encoding.UTF8.GetBytes(text)));
+            Assert.True(ex is InvalidDataException && ex.Message.Contains(says, StringComparison.Ordinal),
+                $"{arm}: {ex?.GetType().Name}: {ex?.Message}");
+        }
+    }
+
+    /// <summary>The committed weights (tests/_shared/test-weights.json, embedded) deal the merge group's matrix evenly:
+    /// the heaviest of 7 Windows and of 5 Linux shards carries at most 1.10 times the mean (PIPELINE-REVIEW section 4.2's
+    /// "1.05 to 1.10x" over the weights). A regenerated file that deals worse is a design question, not a stale weight.</summary>
+    [Fact]
+    public void Shard_TheCommittedWeights_DealTheMatrixEvenly()
+    {
+        TestWeights weights = TestWeights.Embedded();
+        Assert.True(weights.Tenths.Count > 500, $"the weights name {weights.Tenths.Count} classes: the file did not load");
+        string[] assemblies = [.. weights.Tenths.Keys.Select(k => k.Assembly).Distinct().Order(StringComparer.Ordinal)];
+        Assert.Equal(["Characterization", "Conformance", "Unit"], assemblies);
+        foreach (int count in new[] { 5, 7 })
+        {
+            var load = new long[count];
+            foreach (string assembly in assemblies)
+            {
+                var named = weights.Tenths.Where(e => e.Key.Assembly == assembly).ToList();
+                Dictionary<string, int> dealt = weights.Deal(count, assembly, named.Select(e => e.Key.Class));
+                foreach (var e in named)
+                {
+                    load[dealt[e.Key.Class] - 1] += e.Value;
+                }
+            }
+
+            double spread = load.Max() / load.Average();
+            Assert.True(spread <= 1.10, $"{count} shards: the heaviest carries {spread:F3}x the mean ({string.Join(", ", load)} tenths)");
+        }
+    }
+
     // ── Arm (4): every test project links GateLegs.cs and names the gate's framework ──────────────────────────────
 
     [Fact]
@@ -656,6 +774,11 @@ public sealed class GateLegDriftTests
     [Fact]
     public void ThisTestHost_IsConfiguredForServerGc() =>
         GateLegAudit.AssertTestHostConfiguredForServerGc(typeof(GateLegDriftTests).Assembly);
+
+    /// <summary>This assembly embeds the weights CI's shards are dealt by (kb/Work PB4329).</summary>
+    [Fact]
+    public void ThisAssembly_EmbedsTheShardWeights() =>
+        GateLegAudit.AssertEmbedsTheWeights(typeof(GateLegDriftTests).Assembly);
 
     /// <summary>The audit's witness, on EVERY host for EVERY root shape (kb/Work PB1719): a Windows root and a POSIX
     /// root, both matched as text on either OS, and <c>host</c>, this run's own <see cref="TestRepo.Root"/> — the
