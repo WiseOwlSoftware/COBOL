@@ -776,7 +776,7 @@ def compare(base: dict, cur: dict) -> int:
     return 3 if differ else 0
 
 
-# ── the self-test (PerfBaselineSelfTestDriftTests runs it every gate) ─────────────────────────────────────────────
+# ── the self-test (the self-test runner runs it; scripts/self_test_arms.py holds its arms) ─────────────────────────────────────────────
 
 def self_test() -> int:
     """Prove the comparison can FAIL — on a planted regression, a vanished row, an allocation change and a machine
