@@ -1,4 +1,4 @@
-## Pipeline step 5: the population replaces the plan (PB4328), and a CI cache saves only what its producer finished (PB4348)
+## Entry 2943 — 2026-11-01 05:55 PST — Pipeline step 5: the population replaces the plan (PB4328), and a CI cache saves only what its producer finished (PB4348)
 
 **PB4328 (step 5 of PB4323): FIRST the acceptance measurement.** Before anything was deleted, on a quiet box (gate slots 0
 held at every start and end), one worktree's build, the compile cache off so every run is cold as after a compiler
@@ -46,3 +46,4 @@ sweep `git grep -n 'actions/cache/save@' -- .github`: three saves; the third, `s
 step that does not continue on error. DESIGN-test-build-ci.md §1.4 states the rule.
 
 **Branch review, round 1.** Two blocking findings, both a caller of the renamed gate left behind. R1-1: `scripts/arch/perf_baseline.py`'s `gate_rows` still read the deleted `scope` and `timings.legs_s`, so `--gate-run` on this branch's own GREEN run raised `KeyError: 'scope'`; it now reads the schema-5 record (rows `gate/ran_s`, `gate/build_s`, `gate/tests_s`, runs pooled; slot wait from `timings.slot_wait_s`), refuses another schema, RED, REUSED and inert-lane records, and its self-test reads a planted `gate.Gate` run's own verdict.json (a mutation to `legs_s` turns it red). R1-2: the golden-lane brief told its agent to read `leg-1-Conformance.trx`; it reads `Conformance.trx`, and `check_practices.py` refuses any brief naming a `.trx` the gate does not write (red on the old brief). The sweep fixed four sibling sentences: the landing "gates on both hosts" (golden-lane and registrar briefs, `rolling-wave.md`), "leg 1" (registrar brief, architecture-review skill) and "leg logs and not-run files" (`wf_rolling_wave.js`).
+
