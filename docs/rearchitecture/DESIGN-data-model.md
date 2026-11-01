@@ -657,7 +657,7 @@ therefore states an equivalence, and the pass is built to make it true by constr
 ```
 
 — the same item, so the same verdict, the same diagnostic CODE and the same width, for **every** member of the
-`Usage` enum and every picture. `UsageInheritanceDriftTests` (Conformance) enumerates the enum and asserts it.
+`Usage` enum and every picture. `UsageInheritanceUsageDriftTests` (Conformance) enumerates the enum and asserts it.
 
 **ONE derivation, three consumers.** The pass is one pre-order walk (`UsageInheritanceWalk` →
 `UsageInheritanceGroup` / `UsageInheritanceElementary`) over one derivation of an elementary item's EFFECTIVE
@@ -695,7 +695,7 @@ usage — its own clause, else the nearest enclosing one (a `GROUP-USAGE` clause
 touching this pass. The one hand-written table left is `UsageFamilies.IsPictureless`, and because it drives BOTH
 arms a wrong entry in it is invisible to any behavioural test — so it is checked against §13.16.3 SR8's own
 sentence, re-read out of `specs/ISO_COBOL.md`, by `PicturelessUsageSetDriftTests` (Unit).
-`UsageInheritanceDriftTests` asserts the equivalence over the usage WORD × picture matrix **and over the
+`UsageInheritanceUsageDriftTests` asserts the equivalence over the usage WORD × picture matrix **and `UsageInheritancePhraseDriftTests` over the
 clause's keyword-only PHRASES** (`UsageClausePhrases`, read off the §13.18.60.2 figure; phrases carrying an
 operand are excluded by predicate, since the two arms would not be the same program). The phrase axis is what
 PB570's defect would have had to pass: the word-only matrix was green throughout, because it never wrote one.
@@ -712,7 +712,7 @@ template; before this a `TYPEDEF GROUP-USAGE NATIONAL` over a `GROUP-USAGE BIT` 
 its member contradicts (§13.18.60.3 SR2) or cannot describe (SR3), a `WITH NO SIGN` over a signed picture, a VALUE on an
 INDEX member compiled clean unreferenced, and a *valid* template with a picture-less group usage (`01 TG TYPEDEF USAGE
 BINARY-LONG. 05 A.`) was refused outright. The third spelling joins the equivalence above, and
-`UsageInheritanceDriftTests` asserts it over the same matrix: `01 TG TYPEDEF USAGE u. 05 A ⟨pic⟩. 01 V TYPE TG.` gives the
+`UsageInheritanceUsageDriftTests` and `UsageInheritancePhraseDriftTests` assert it over the same matrix (both over `UsageInheritanceEquivalence`): `01 TG TYPEDEF USAGE u. 05 A ⟨pic⟩. 01 V TYPE TG.` gives the
 verdict and the width of the written spellings, and the unreferenced declaration the same refusal.
 A walked template and its subject are one description to the §8.5.3.1 comparison (`StrongTypeModel`), which asks the
 template form and the subject form of one declaration the same questions — a pointer restricted to a STRONG type holds the
