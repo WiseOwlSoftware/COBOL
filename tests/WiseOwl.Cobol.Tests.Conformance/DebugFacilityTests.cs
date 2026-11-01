@@ -283,15 +283,14 @@ public sealed class DebugFacilityTests
     /// <summary>In <c>[ALL REFERENCES OF] identifier-1</c> only ALL is a keyword — REFERENCES and OF are optional
     /// words (GnuCOBOL <c>-std=cobol85</c> accepts all four spellings; CCVS DB201A writes <c>ALL ID-2</c>; kb/Work
     /// PB4237). Every spelling is the ONE data-item operand and reaches the same staged COBOL1571, naming its
-    /// operand, under WITH DEBUGGING MODE. <c>ALL P1</c> with P1 a PARAGRAPH is the same operand, never a
-    /// procedure-name subject: the binder reads ALL, not REFERENCES, so it cannot fall to the bare-name arm and
-    /// silently debug P1. The pre-fix grammar refused the first two spellings with COBOL5506.</summary>
+    /// operand, under WITH DEBUGGING MODE. The binder reads ALL, not REFERENCES, so <c>ALL P1</c> cannot fall to the
+    /// bare-name arm and silently debug a paragraph P1 (which is <see cref="AllOperandNamingAProcedure_At85_IsNoDataItem"/>'s
+    /// case). The pre-fix grammar refused the first two spellings with COBOL5506.</summary>
     [Theory]
     [InlineData("ALL T", "T")]
     [InlineData("ALL OF T", "T")]
     [InlineData("ALL REFERENCES T", "T")]
     [InlineData("ALL REFERENCES OF T", "T")]
-    [InlineData("ALL P1", "P1")]
     public void AllIdentifier_EverySpelling_At85_IsTheStagedDataItemOperand(string operand, string name)
     {
         string src = $"""
@@ -322,6 +321,130 @@ public sealed class DebugFacilityTests
         // At the operand (line 12), never bare: FinalizeDebug runs after every walker (kb/Work PB2034).
         EditionHarness.AssertHasDiagnostic(diags, "(12,");
         EditionHarness.AssertEveryDiagnosticPositioned(diags, operand);
+    }
+
+    /// <summary>One USE FOR DEBUGGING declarative (line 18) whose operand the test chooses, over a program with a data
+    /// item T, a file SF, a section MAIN and a paragraph P1 — the operand-kind matrix of kb/Work PB4363.</summary>
+    private static string OperandProgram(string operand) => $"""
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. DBGOPERAND.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        SOURCE-COMPUTER. IBM-PC WITH DEBUGGING MODE.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT SF ASSIGN TO "sf.tmp".
+        DATA DIVISION.
+        FILE SECTION.
+        FD SF.
+        01 SR PIC X(5).
+        WORKING-STORAGE SECTION.
+        01 T PIC X(5).
+        PROCEDURE DIVISION.
+        DECLARATIVES.
+        DBG SECTION.
+            USE FOR DEBUGGING ON {operand}.
+        DBG-BODY.
+            DISPLAY DEBUG-NAME.
+        END DECLARATIVES.
+        MAIN SECTION.
+        P1.
+            MOVE "Z" TO T.
+            STOP RUN.
+        """;
+
+    /// <summary>In <c>ALL [REFERENCES OF] identifier-1</c> identifier-1 is a data item, and a word that names a
+    /// paragraph or a section is a procedure-name (ISO §14.4.1: "A procedure-name is a word used to refer to a
+    /// paragraph or section"), so it identifies none (§8.4.2.1). It is COBOL5848 naming the procedure, never the
+    /// COBOL1571 that calls it the legal-but-unmodeled data-item subject (kb/Work PB4363, which pinned the
+    /// wrong message for <c>ALL P1</c> before).</summary>
+    [Theory]
+    [InlineData("ALL P1", "P1")]
+    [InlineData("ALL REFERENCES OF P1", "P1")]
+    [InlineData("ALL MAIN", "MAIN")]
+    [InlineData("ALL P1 OF MAIN", "P1 OF MAIN")]
+    public void AllOperandNamingAProcedure_At85_IsNoDataItem(string operand, string name)
+    {
+        var (ok, diags) = EditionHarness.Compile(OperandProgram(operand), 85);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(diags, $"COBOL5848: declarative section 'DBG': USE FOR DEBUGGING ON ALL REFERENCES OF '{name}' names a paragraph or section");
+        EditionHarness.AssertNoDiagnostic(diags, "COBOL1571");
+        EditionHarness.AssertHasDiagnostic(diags, "(18,");
+        EditionHarness.AssertEveryDiagnosticPositioned(diags, operand);
+    }
+
+    /// <summary>A word nothing declares, in either operand arm, is the ONE undefined-reference diagnostic
+    /// (COBOL1639, ISO §8.4.2.1: "a statement shall contain a reference that uniquely identifies that resource"),
+    /// which says the program is wrong and tells the user to check the spelling. COBOL1571 says the program is
+    /// right and the compiler incomplete, and it was given for both (kb/Work PB4363). A qualifier under which the
+    /// item is not declared is the same refusal with its own text (§8.4.2.2.3 SR1).</summary>
+    [Theory]
+    [InlineData("ALL NOSUCH", "'NOSUCH' is not defined")]
+    [InlineData("ALL REFERENCES OF NOSUCH", "'NOSUCH' is not defined")]
+    [InlineData("NOSUCH", "'NOSUCH' is not defined")]
+    [InlineData("ALL T OF NOSUCH", "'T OF NOSUCH' does not uniquely identify a data item")]
+    [InlineData("T OF NOSUCH", "'T OF NOSUCH' does not uniquely identify a data item")]
+    public void OperandNamingNothing_At85_IsTheUndefinedReference(string operand, string text)
+    {
+        var (ok, diags) = EditionHarness.Compile(OperandProgram(operand), 85);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL1639: " + text);
+        EditionHarness.AssertNoDiagnostic(diags, "COBOL1571");
+        EditionHarness.AssertHasDiagnostic(diags, "(18,");
+        EditionHarness.AssertEveryDiagnosticPositioned(diags, operand);
+    }
+
+    /// <summary>The bare operand that IS a data item or a file stays the staged COBOL1571, and a file-name is not
+    /// mistaken for an undeclared word by the new resolution (kb/Work PB4363's sibling sweep of the bare-name arm).</summary>
+    [Theory]
+    [InlineData("T")]
+    [InlineData("SF")]
+    public void BareOperandNamingADataItemOrFile_At85_StaysStaged(string operand)
+    {
+        var (ok, diags) = EditionHarness.Compile(OperandProgram(operand), 85);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(diags, $"COBOL1571: declarative section 'DBG': USE FOR DEBUGGING ON '{operand}' names a file-name");
+        EditionHarness.AssertNoDiagnostic(diags, "COBOL1639");
+    }
+
+    /// <summary>A qualified procedure-name is a procedure-name subject: <c>ON PARA-W OF SEC-A</c> debugs SEC-A's
+    /// paragraph and not SEC-B's of the same spelling (ISO §8.4.2.2.2, the paragraph-name qualified by a section-name;
+    /// §8.4.2.2.1 rule 6). It was refused as a staged data item, with its qualifier dropped from the message.
+    /// Performed once each, the debugging declarative runs once: HITS=1.</summary>
+    [Fact]
+    public void QualifiedProcedureNameSubject_At85_DebugsOnlyTheQualifiedParagraph()
+    {
+        const string src = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. DBGQUAL.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            SOURCE-COMPUTER. IBM-PC WITH DEBUGGING MODE.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 HITS PIC 9 VALUE 0.
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            DBG SECTION.
+                USE FOR DEBUGGING ON PARA-W OF SEC-A.
+            DBG-BODY.
+                ADD 1 TO HITS.
+            END DECLARATIVES.
+            SEC-A SECTION.
+            A-START.
+                PERFORM PARA-W OF SEC-A.
+                PERFORM PARA-W OF SEC-B.
+                DISPLAY "HITS=" HITS.
+                STOP RUN.
+            PARA-W.
+                CONTINUE.
+            SEC-B SECTION.
+            PARA-W.
+                CONTINUE.
+            """;
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, 85);
+        Assert.True(ok, detail);
+        Assert.Equal("HITS=1", stdout.Replace("\r", "").TrimEnd('\n'));
     }
 
     /// <summary>A SORT/MERGE INPUT/OUTPUT procedure that is also a debug subject is STAGED — rejected loud
