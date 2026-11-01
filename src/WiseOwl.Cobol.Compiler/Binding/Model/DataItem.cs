@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Runtime;
-using Microsoft.CodeAnalysis.CSharp;
 
 namespace WiseOwl.Cobol.Binding.Model;
 
@@ -922,11 +921,28 @@ public sealed class DataItem
     /// <summary>Every item under <paramref name="group"/>, depth first in declaration (storage) order.</summary>
     public static IEnumerable<DataItem> DescendantsOf(DataItem group)
     {
-        foreach (var c in group.Children)
+        // An explicit stack, never a recursive iterator: that hands every item up through one MoveNext per level above it
+        // and allocates an iterator per group (kb/Work PB4302; the parse-tree twin is ParseTreeWalk).
+        var pending = new Stack<DataItem>();
+        PushChildren(pending, group);
+        while (pending.Count > 0)
         {
-            yield return c;
-            foreach (var d in DescendantsOf(c)) yield return d;
+            var next = pending.Pop();
+            yield return next;
+            PushChildren(pending, next);
         }
+    }
+
+    /// <summary><paramref name="item"/> itself, then every item under it (<see cref="DescendantsOf"/>) — the pre-order of its tree.</summary>
+    public static IEnumerable<DataItem> SelfAndDescendantsOf(DataItem item)
+    {
+        yield return item;
+        foreach (var d in DescendantsOf(item)) yield return d;
+    }
+
+    private static void PushChildren(Stack<DataItem> pending, DataItem item)
+    {
+        for (int i = item.Children.Count - 1; i >= 0; i--) pending.Push(item.Children[i]);
     }
 
     /// <summary>The start of this view's window within its class's shared area expressed in BITS — the unit
@@ -1500,7 +1516,7 @@ public sealed class DataItem
     public static string Sanitize(string cobolName)
     {
         string s = IdentifierCharacters(cobolName);
-        return s.Length == 0 || !SyntaxFacts.IsIdentifierStartCharacter(s[0]) ? "_" + s : s;
+        return s.Length == 0 || !CsNames.IsIdentifierStartCharacter(s[0]) ? "_" + s : s;
     }
 
     /// <summary>The C# identifier of a COBOL word whose IDENTITY is the word — a class, interface, method, property,
@@ -1536,7 +1552,7 @@ public sealed class DataItem
         {
             char c = cobolName[i];
             bool plainHyphen = c == '-' && i > 0 && (i + 1 == cobolName.Length || cobolName[i + 1] != 'u');
-            if (plainHyphen || c == '_' || c == '-' || !SyntaxFacts.IsIdentifierPartCharacter(c))
+            if (plainHyphen || c == '_' || c == '-' || !CsNames.IsIdentifierPartCharacter(c))
             {
                 sb ??= new System.Text.StringBuilder(cobolName.Length + 8).Append(cobolName, 0, i);
                 if (plainHyphen) { sb.Append('_'); continue; }

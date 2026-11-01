@@ -156,10 +156,14 @@ def name_key(display: str) -> str:
     head, paren, args = trx_spelling(display).partition("(")
     parts = head.split(".")
     if len(parts) >= 3:
-        m = PARTITION_CLASS_RE.fullmatch(parts[-2])
-        if m:
-            parts[-2] = m.group("family")
+        parts[-2] = family_of(parts[-2])
     return ".".join(parts) + paren + args
+
+
+def family_of(cls: str) -> str:
+    """A class name without its partition suffix `_P<k>` (the family a trait or a drift test is declared on)."""
+    m = PARTITION_CLASS_RE.fullmatch(cls)
+    return m.group("family") if m else cls
 
 
 def method_of(display: str) -> str:
@@ -192,9 +196,12 @@ def class_traits(project: Path) -> dict[str, dict[str, set[str]]]:
 
 
 def trait_sets(traits: dict[str, dict[str, set[str]]]) -> tuple[set[str], set[str]]:
-    """(the host-only classes: tier 0h, the sweep classes: tier 0c when cheap) of one assembly's class traits."""
-    host = {c for c, t in traits.items() if t.get(HOST_TRAIT, set()) & HOST_ONLY.keys()}
-    sweep = {c for c, t in traits.items() if SWEEP_TRAIT in t}
+    """(the host-only classes: tier 0h, the sweep classes: tier 0c when cheap) of one assembly's class traits, each
+    class by its FAMILY: `tier_of` looks a case up by `class_of(name_key(...))`, the class without its partition
+    suffix, so a trait declared on `RaceWitness_P0..P7` (a partition class carries its own; the generic base may not,
+    HostWitnessTraitDriftTests) must be found under `RaceWitness` or the split silently leaves tier 0h."""
+    host = {family_of(c) for c, t in traits.items() if t.get(HOST_TRAIT, set()) & HOST_ONLY.keys()}
+    sweep = {family_of(c) for c, t in traits.items() if SWEEP_TRAIT in t}
     return host, sweep
 
 
@@ -943,8 +950,18 @@ def self_test() -> int:
             '[Trait("Sweep", "tree")]   // a trailing comment', "internal static partial class SweepB {}",
             '[Trait("Host", "Elsewhere")]', "public class OtherHost {}"]), encoding="utf-8", newline="\n")
         (src / "obj" / "G.cs").write_text('[Trait("Host", "ReFS")]\npublic class Generated {}', encoding="utf-8", newline="\n")
+        (src / "P.cs").write_text(chr(10).join([
+            '[Trait("Host", "ReFS")]', "public sealed class PairWitness_P0 : Base<Slot0>;",
+            '[Trait("Host", "ReFS")]', "public sealed class PairWitness_P1 : Base<Slot1>;"]),
+            encoding="utf-8", newline=chr(10))
         tr = class_traits(src)
         host, sweep = trait_sets(tr)
+        pair = f"{ns}PairWitness_P1.M(a: 1)"
+        check("a trait declared on partition classes is found under the FAMILY, where tier_of looks it up (the 0h "
+              "sibling of the 0d partition fix: a split witness class stays tier 0h)",
+              host == {"RaceA", "PairWitness"} and "PairWitness_P0" in tr
+              and tier_of(pair, name_key(pair), ctx(host_classes=host), None, False) == "0h", (host, sorted(tr)))
+        host.discard("PairWitness")
         check("the trait scan reads class-level traits through attributes (each may end in a // comment) and doc "
               "comments, never a method's, never "
               "obj/; only a HOST_ONLY value is tier 0h",
