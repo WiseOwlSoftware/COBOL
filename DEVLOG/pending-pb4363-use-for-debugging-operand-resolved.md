@@ -33,3 +33,12 @@ D-DEBUG-USE carries the determination.
 
 **Observed, not this mechanism.** `ON ALL RETURN-CODE` now draws COBOL1639 "not defined", the answer any other reference to
 `RETURN-CODE` gets from the one reference resolver (the binder does not declare it as an item).
+
+**Review round 1.** The reviewer found that `NamesDataItem` asked `Refs.Probe`, which applies the reference-shape screens, so
+an unsubscripted table element (the form CCVS DB201A writes, `ON B-LEVEL-1 ... ` and `ALL REFERENCES OF AB1 OF A1` over OCCURS
+items) was judged no data item and drew COBOL2270 "shall be subscripted" instead of the staged COBOL1571: the inverse of the
+misdiagnosis this entry fixes. `NamesDataItem` now asks `Refs.ProbeDeclaration`, the silent declaration lookup with no shape
+screen (DB201A: ten COBOL1571, no COBOL2270). A lead in the same file is also fixed: a paragraph under a qualifier that is not
+its section (`P1 OF NOSEC`) is reported through `RejectProcedureName` ("names no procedure") instead of the data resolver's
+"no declaration gives the name P1". Tests `OperandNamingAnUnsubscriptedTableElement_At85_StaysStaged` (4) and
+`ProcedureNameUnderTheWrongQualifier_At85_NamesNoProcedure` (3).

@@ -2066,16 +2066,20 @@ of an unsupported facility.
   ID-2` and `ALL AB2 OF A2`). The grammar is `useDebugTarget`'s `ALL REFERENCES? OF? dataReference` arm, and the binder
   tells the arm by ALL, never by REFERENCES, so `ALL P1` is never a procedure-name subject. Without WITH DEBUGGING MODE
   the section is inert; with it every operand is RESOLVED before it is named (kb/Work PB4363): a data item reaches the
-  staged COBOL1571, positioned at its operand and naming it; in the ALL arm a word that names a paragraph or section is
+  staged COBOL1571, positioned at its operand and naming it (a data item is judged by its DECLARATION, so an
+  unsubscripted table element, the form DB201A writes, is one and never draws COBOL2270); in the ALL arm a word that names a paragraph or section is
   COBOL5848 (a procedure-name identifies no data item, ISO 14.4.1 with 8.4.2.1); a word nothing declares is the one
-  undefined-reference COBOL1639 in either arm (8.4.2.1), the program being wrong and not the compiler incomplete. The
+  undefined-reference COBOL1639 in either arm (8.4.2.1), the program being wrong and not the compiler incomplete (a paragraph under a qualifier that is not its own section
+  is COBOL1639 in the procedure-name text, `names no procedure`). The
   bare operand reads `word` and `word OF section` as a procedure-name first (8.4.2.2.2), so `ON PARA-W OF SEC-A`
   debugs the qualified paragraph. Witnesses: `conformance:cases/_unassigned/pb4237_debug_all_identifier` (85),
   `conformance:cases/_unassigned/pb4237-debug-all-identifier-removed-2002` (COBOL0902 from 2002),
   `conformance:cases/_unassigned/pb4363_debug_qualified_procedure` (85),
   `conformance:cases/_unassigned/pb4363-debug-all-procedure-name` (COBOL5848 at 85),
   `conformance:cases/_unassigned/pb4363-debug-all-undeclared` (COBOL1639 at 85),
-  `conformance-test:DebugFacilityTests.AllIdentifier_EverySpelling_At85_IsTheStagedDataItemOperand`.
+  `conformance-test:DebugFacilityTests.AllIdentifier_EverySpelling_At85_IsTheStagedDataItemOperand`,
+  `conformance-test:DebugFacilityTests.OperandNamingAnUnsubscriptedTableElement_At85_StaysStaged`,
+  `conformance-test:DebugFacilityTests.ProcedureNameUnderTheWrongQualifier_At85_NamesNoProcedure`.
 
 - **D-CE1 — where a FREE-form comment-entry ends** (kb/Work PB3245, review finding R1-1; PB1494, PB1758). The
   comment-entry paragraphs (AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED, SECURITY, REMARKS) are COBOL-85's,
