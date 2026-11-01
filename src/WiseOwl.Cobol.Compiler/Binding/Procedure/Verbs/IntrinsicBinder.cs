@@ -3078,14 +3078,18 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             : SoleDataReference(a) is { } d && d.dataReferenceSuffix().Length == 0
                 && d.cobolWord() is { } cw ? cw.Start : null;
         var word = WiseOwl.Cobol.Frontend.Parsing.CobolWordsRewriter.CanonicalWordOf(tok, ctx.CobolWords);
-        // ⛔ A WORD §8.9 LEAVES FREE AT THIS EDITION IS A USER-DEFINED WORD EXACTLY WHEN THE PROGRAM DECLARES IT
+        // ⛔ A WORD INTRODUCED AFTER THIS EDITION IS A USER-DEFINED WORD EXACTLY WHEN THE PROGRAM DECLARES IT
         // (the parser's IsKeywordReadingHere determination, one layer down; kb/Work PB4359). ANYCASE and LOCALE are
         // §8.9 reserved only from 2002 (reserved-words.json), so at COBOL-85 `01 ANYCASE PIC X(3)` is legal and
         // NUMVAL-C('USD1,234.56' ANYCASE) names it as argument-2 — reading it as the keyword would refuse
-        // conforming source (or, before the keyword's edition gate, swallow the operand). A free word that NO
-        // declaration names keeps its keyword reading, so the edition gate ("requires COBOL-2002") still answers.
-        if (bareName && word is not null && WiseOwl.Cobol.Editions.ReservedWords.Find(word) is { } row
-            && !row.IsReservedAt(ctx.Edition.Edition.Year) && ctx.Symbols.TryResolve(word, ctx.ActiveScope, out _))
+        // conforming source (or, before the keyword's edition gate, swallow the operand). A not-yet-introduced word
+        // that NO declaration names keeps its keyword reading, so the edition gate ("requires COBOL-2002") still
+        // answers. ReservedWords.AdmitsAsKeyword is the ONE "introduced after this edition" predicate: a word an
+        // older edition reserved and this one dropped (PHYSICAL at 2023) stays the keyword in its own position even
+        // when a data item shares the spelling (pb124_keyword_positions).
+        if (bareName && word is not null
+            && !WiseOwl.Cobol.Editions.ReservedWords.AdmitsAsKeyword(word, ctx.Edition.Edition.Year)
+            && ctx.Symbols.TryResolve(word, ctx.ActiveScope, out _))
             return null;
         return word;
     }
