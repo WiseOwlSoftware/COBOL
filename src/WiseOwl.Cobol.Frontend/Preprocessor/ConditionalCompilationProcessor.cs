@@ -398,7 +398,7 @@ public static partial class ConditionalCompilationProcessor
                         {
                             string obj = rest.TrimSpaces();
                             // §7.3.13.3 SR5/SR6: `>>WHEN OTHER` is specified entirely on its line — OTHER and nothing else.
-                            bool isOther = StartsWithWord(obj, "OTHER");
+                            bool isOther = CompilerDirectiveLine.StartsWithWord(obj, "OTHER");
                             if (isOther)
                             {
                                 if (obj.Length > "OTHER".Length)
@@ -659,20 +659,22 @@ public static partial class ConditionalCompilationProcessor
         if (name.Length == 0) { complaint = "no compilation-variable-name-1 is written"; return false; }
         if (!IsCompilationVariableNameShape(name))
         {
-            complaint = $"'{name}' is not a COBOL word, so it cannot be compilation-variable-name-1";
+            // A word that breaks the position rule is named by it (kb/Work PB4234), not by "no word at all".
+            complaint = (CobolCharacterRepertoire.SeparatorPositionViolation(name) ?? $"'{name}' is not a COBOL word")
+                + ", so it cannot be compilation-variable-name-1";
             return false;
         }
         define = (name, DefineKind.Value, "", false);   // the name is valid: any refusal below still names it
-        if (StartsWithWord(body, "AS")) body = body["AS".Length..].TrimSpacesStart();   // AS is not underlined: an optional word (§5.2.3)
+        if (CompilerDirectiveLine.StartsWithWord(body, "AS")) body = body["AS".Length..].TrimSpacesStart();   // AS is not underlined: an optional word (§5.2.3)
 
         // { value-group [OVERRIDE] | OFF }: OFF is an alternative of the OUTER brace, so neither OVERRIDE nor any other
         // word may follow it (kb/Work PB1367 — the old trailing-OVERRIDE strip ran before the OFF test and took
         // `OFF OVERRIDE` for OFF).
-        if (StartsWithWord(body, "OFF"))
+        if (CompilerDirectiveLine.StartsWithWord(body, "OFF"))
         {
             string after = body["OFF".Length..].TrimSpaces();
             if (after.Length == 0) { define = (name, DefineKind.Off, "", false); complaint = ""; return true; }
-            complaint = StartsWithWord(after, "OVERRIDE") && after.Length == "OVERRIDE".Length
+            complaint = CompilerDirectiveLine.StartsWithWord(after, "OVERRIDE") && after.Length == "OVERRIDE".Length
                 ? "the OVERRIDE phrase belongs to the value alternative — OFF is an alternative of its own and is not followed by OVERRIDE"
                 : $"'{after}' follows OFF, which is an operand by itself";
             return false;
@@ -938,10 +940,6 @@ public static partial class ConditionalCompilationProcessor
     /// directive (a bare <c>&gt;&gt;</c>) yields an empty keyword and falls through to the unrecognized arm.</summary>
     private static (string keyword, string rest) SplitDirective(string trimmed) =>
         CompilerDirectiveLine.TryParse(trimmed, out var d) ? (d.Word, d.Operand) : ("", "");
-
-    private static bool StartsWithWord(string s, string word) =>
-        CobolNames.StartsWith(s, word)
-        && (s.Length == word.Length || CobolSpace.IsSeparator(s[word.Length]));
 
     private static bool EndsWithWord(string s, string word) =>
         CobolNames.EndsWith(s, word)
