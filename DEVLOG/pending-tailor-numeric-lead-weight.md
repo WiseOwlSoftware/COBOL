@@ -1,0 +1,5 @@
+## A hand-written .tailor weight at the numeric lead is refused (PB4264)
+
+A numeric `.tailor` primary equal to the digit zero primary - 1 gave the character the primary of CollationTable.NumericLead, the lead of a number under numericOrdering. Only the CLDR builder kept that value free (CldrTailoringBuilder.Line reservedTop); a hand-written weight can name any value, and nothing checked it.
+
+Re-probe on the build: U+E000 at the lead applied without error and carried the lead primary (unit test red before the fix). Fix at the root: CollationTable.WithTailoring reads the PRODUCED table NumericLead after Rebuild and refuses an entry whose primary equals it with a LocaleCollationException naming the file and the entry line (PB2773 contract); a tailoring that moves the digit zero moves the reserved value with it. Two unit tests (root scale; the tailored-zero case), README and the TailoringRules format summary state the reserved value. No conformance golden: no ISO rule governs a .tailor file. Rows: none claimed, none closed.

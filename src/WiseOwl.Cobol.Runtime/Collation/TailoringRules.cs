@@ -12,7 +12,9 @@ namespace WiseOwl.Cobol.Runtime.Collation;
 /// <para><b>File format</b> — one mapping per line, <c>#</c> starts a comment, blank lines are ignored, every number is
 /// HEXADECIMAL and every weight is in the DERIVED scale the table reports (<see cref="CollationTable.Lookup"/> —
 /// a root primary is the source value shifted left by <see cref="CollationTable.PrimaryShift"/>, so the values strictly
-/// between two adjacent root primaries are free for a tailoring):</para>
+/// between two adjacent root primaries are free for a tailoring, except the one just below the digit zero's primary:
+/// that value is the lead of a number under numeric ordering and <see cref="CollationTable.WithTailoring"/> refuses a
+/// primary weight at it, naming the line):</para>
 /// <code>
 /// @version 17.0.0                 # optional — refused when it differs from the base table's UCA version
 /// @locale es-ES                   # optional — names the tailoring
