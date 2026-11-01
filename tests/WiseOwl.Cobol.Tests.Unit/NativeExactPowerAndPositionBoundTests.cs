@@ -80,6 +80,6 @@ public sealed class NativeExactPowerAndPositionBoundTests
         Assert.True(new PositionNegate(new PositionGroup(new PositionBinary(small, PositionOperator.Add, wide))).ExceedsLongArithmetic);
         Assert.False(new PositionGroup(small).ExceedsLongArithmetic);
         Assert.False(new PositionConstant(long.MinValue).ExceedsLongArithmetic);
-        Assert.False(new PositionLocal("k").ExceedsLongArithmetic);
+        Assert.False(new PositionLocal(new StatementLocal(StatementLocalRole.InitializeOccurrence, 0)).ExceedsLongArithmetic);
     }
 }

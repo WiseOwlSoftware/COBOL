@@ -520,11 +520,13 @@ public sealed class ReportVaryingModel
     public BoundExpr? From { get; set; }
     public BoundExpr? By { get; set; }
 
-    /// <summary>The compilation-unique identity that names the compose-local variable holding the counter.</summary>
+    /// <summary>The compilation-unique identity of the counter, the ordinal of its compose-local <see cref="Local"/>.</summary>
     public required int Uid { get; init; }
 
-    /// <summary>The compose-local variable (<see cref="BoundReportVaryingRef.CsName"/>) a reference to this counter reads.</summary>
-    public string CsName => $"__kv{Uid}";
+    /// <summary>The compose-local holding the counter, by its identity (<see cref="MethodLocal"/>, kb/Work PB4321): the
+    /// local a reference to this counter reads (<see cref="BoundReportVaryingRef.Counter"/>), named by the backend that
+    /// declares it.</summary>
+    public MethodLocal Local => new StatementLocal(StatementLocalRole.ReportVaryingCounter, Uid);
 
     /// <summary>The report group description entry whose VARYING clause declares the counter.</summary>
     public required CobolParserCore.ReportGroupEntryContext Entry { get; init; }

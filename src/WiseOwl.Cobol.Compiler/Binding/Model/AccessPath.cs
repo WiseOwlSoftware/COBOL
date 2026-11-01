@@ -1,7 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using System.Linq;
-
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>The access direction of a subscripted OCCURS DYNAMIC element (data-model D9): a SENDING read (benign
@@ -46,9 +44,10 @@ public sealed record AccessPath(IReadOnlyList<AccessSegment> Segments)
 /// <summary>One step of an <see cref="AccessPath"/>.</summary>
 public abstract record AccessSegment;
 
-/// <summary>The root of the path — a static or instance member of the program class, or a statement local (a
-/// CORRESPONDING anchor, a hoisted cell). <paramref name="CsField"/> is always a bare name, never an access expression
-/// (kb/Work PB4320). <paramref name="Guard"/> is non-null when the root is a FORMAL PARAMETER whose reference can raise
+/// <summary>The root of the path — a static or instance member of the program class, or a cell local the backend
+/// hoisted (<c>PlaceIdentification.FreezeView</c>, <c>PlaceCursor.AtElementCell</c>); a local the binder declared is a
+/// <see cref="LocalRootSegment"/> (kb/Work PB4321). <paramref name="CsField"/> is always a bare name, never an access
+/// expression (kb/Work PB4320). <paramref name="Guard"/> is non-null when the root is a FORMAL PARAMETER whose reference can raise
 /// its *-ARG-OMITTED condition (kb/Work PB971): the backend then renders the root through the runtime guard.
 /// <paramref name="Anchor"/> is non-null when the member belongs to a CONTAINING program (<see cref="AccessPath.Reroot"/>)
 /// and says how the referencing program reaches it; null for the referencing program's own member or local.</summary>
@@ -86,6 +85,12 @@ public abstract record ContainerAnchor
     /// <paramref name="ClassClrName"/>.</summary>
     public sealed record Static(string ClassClrName) : ContainerAnchor;
 }
+
+/// <summary>A root that is a method local the statement declared — a CORRESPONDING statement's hoisted group anchor
+/// (ISO §14.7.6 6): the identification is done at the start of the statement), held by reference — named by its
+/// identity, never its name (<see cref="MethodLocal"/>, kb/Work PB4321). A local is never a containing program's
+/// member, so <see cref="AccessPath.Reroot"/>, which anchors only a <see cref="RootFieldSegment"/>, leaves it as it is.</summary>
+public sealed record LocalRootSegment(MethodLocal Local) : AccessSegment;
 
 /// <summary>A <c>.Member</c> access on the accumulated path (a nested <c>record struct</c> member).</summary>
 public sealed record MemberSegment(string CsMember) : AccessSegment;

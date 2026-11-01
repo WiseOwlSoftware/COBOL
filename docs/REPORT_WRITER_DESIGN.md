@@ -263,7 +263,8 @@ off-by-one through every later counter check.
     `ReferenceResolver.VaryingScope`, set for the span of one entry's clause binding — a counter is no data item,
     so no name table holds it.
     **Emission.** Each placement runs in its own `{ }` block (`EmitVaryingCounters`) that declares every counter in
-    scope as the one compose-local `__kv{Uid}` at its occurrence's value, declaring entries outermost first because
+    scope as the one compose-local `__kv{Uid}` (the counter's `ReportVaryingCounter` `StatementLocal`, spelled by
+    `LocalNames.Of`, kb/Work PB4321) at its occurrence's value, declaring entries outermost first because
     a FROM or BY may name the counters above it. Occurrence `n` of the declaring entry holds the closed form
     `FROM + n × BY` — never an accumulator spanning replays, since a replayed entry is one field per repetition. The
     forms are equal, not approximate: GR3 adds arithmetic-expression-2 itself and both operands truncate to scale 0
