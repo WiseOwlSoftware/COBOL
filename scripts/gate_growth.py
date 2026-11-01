@@ -78,6 +78,8 @@ BUILD_IF_FRACTION_UNDER = 0.10
 
 #: The UTC stamp a run directory's name carries: `<n>-<yyyymmddThhmmssZ>`.
 _RUN_STAMP = re.compile(r"(\d{8}T\d{6}Z)")
+#: The same stamp leading a sample file's name (`Sample.filename`).
+_NAME_STAMP = re.compile(r"^(\d{8}T\d{6}Z)-")
 VERDICT_PREFIX = "=== GATE GROWTH: "
 
 
@@ -125,10 +127,14 @@ def record(directory: Path, run: Path, worktree: str, tests_s: float, conformanc
     body = {"schema": SCHEMA, "stamp": f"{sample.stamp:%Y-%m-%dT%H:%M:%SZ}", "run": sample.run, "worktree": worktree,
             "tests_s": sample.tests_s, "conformance": sample.conformance}
     sharedfile.replace_text(directory / sample.filename(), json.dumps(body, indent=1, sort_keys=True) + "\n")
+    # Prune by the stamp each file's NAME carries, never by reading the files: the store is shared by every worktree
+    # of the host, so a file this writer cannot parse (a later SCHEMA, a corrupt one) is the reader's to say
+    # (`samples`) and must never stop a gate from recording its own sample.
     cutoff = sample.stamp - dt.timedelta(days=RETAIN_DAYS)
-    for old in samples(directory):
-        if old.stamp < cutoff:
-            sharedfile.remove(directory / old.filename(), missing_ok=True)
+    for path in directory.glob("*.json"):
+        named = _NAME_STAMP.match(path.name)
+        if named is not None and run_stamp(named.group(1)) < cutoff:
+            sharedfile.remove(path, missing_ok=True)
     return sample
 
 
@@ -145,6 +151,8 @@ def samples(directory: Path) -> list[Sample]:
                 raise ValueError(f"schema {doc['schema']}, expected {SCHEMA}")
             found.append(Sample(run_stamp(doc["run"]), doc["run"], doc["worktree"], float(doc["tests_s"]),
                                 int(doc["conformance"])))
+        except FileNotFoundError:
+            continue  # another gate's prune removed it between the listing and the read: no sample, not a corrupt one
         except (OSError, ValueError, KeyError, TypeError) as e:
             raise UnreadableSample(f"{path}: not a gate-growth sample ({type(e).__name__}: {e}); delete it") from None
     return sorted(found, key=lambda s: (s.stamp, s.worktree, s.run))
@@ -245,6 +253,20 @@ def self_test() -> int:
         record(d, Path("000009-20261125T000000Z"), "wt1", 300, 20482)
         expect("a sample older than RETAIN_DAYS goes when a newer one is written",
                [s.run for s in samples(d)], ["000009-20261125T000000Z"])
+        # A file the writer cannot parse (another SCHEMA, a corrupt one) never stops a gate recording its sample, and an
+        # old one is still pruned by its name (R1-1 of the PB4333 review: the prune used to read every file in the store).
+        other_schema = d / "20261120T000000Z-wt-000001-20261120T000000Z.json"
+        other_schema.write_text('{"schema": 2}\n', encoding="utf-8", newline="\n")
+        (d / "20260101T000000Z-wt-old-20260101T000000Z.json").write_text("{not json", encoding="utf-8", newline="\n")
+        (d / "notes.json").write_text("{}", encoding="utf-8", newline="\n")
+        record(d, Path("000010-20261125T010000Z"), "wt1", 310, 20482)
+        expect("an unparseable file does not stop record, and an old one is pruned by its name",
+               sorted(p.name for p in d.glob("*.json")),
+               [other_schema.name, "20261125T000000Z-wt1-000009-20261125T000000Z.json",
+                "20261125T010000Z-wt1-000010-20261125T010000Z.json", "notes.json"])
+        other_schema.unlink()
+        (d / "notes.json").unlink()
+        (d / "20261125T010000Z-wt1-000010-20261125T010000Z.json").unlink()
         said: list[str] = []
         expect("show lists the sample then the verdict, exit 0", (report("show", d, now, said.append), len(said),
                "000009-20261125T000000Z" in said[0]), (0, 2, True))

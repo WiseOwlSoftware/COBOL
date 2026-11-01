@@ -38,3 +38,5 @@ rule for the rest is the classification that failed the impact map (PB2696, PB42
 **Registers.** kb/Work PB4333 is `half`: the instrument and the measurement landed, the build waits on the trigger. It closes
 no inventory row. No diagnostic code was used (COBOL5830 to COBOL5832 returned). No LSP diagnostics apply (Python and one
 PowerShell line). Linux gate: not part of the per-change gate (PB4327).
+
+**Review round 1.** The reviewer found that `gate_growth.record` pruned the shared store by reading every file in it, so one sample it could not parse (another schema, a corrupt file) escaped `_record_growth` and turned a GREEN gate into NOT RUN. The prune now reads the stamp from each file name and parses nothing, and `samples` skips a file that vanished between the listing and the read; the self-test plants a schema-2 file, a corrupt old one and a stray `.json`. `emit_fraction.non_runtime` now matches the runtime as a directory (`RUNTIME_DIR`), so a sibling project whose name starts with the runtime's counts as the compiler's, as its self-test label always said.
