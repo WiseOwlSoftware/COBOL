@@ -1,4 +1,4 @@
-## PB4230: a section owns its paragraphs in the grammar's shape, so the LL pass is linear in a section's paragraphs
+## PB4230, PB4231: a section owns its paragraphs, and one rule parses every SET … TO, so the LL pass is linear and legal SET … TO NULL programs no longer take it
 
 **The mechanism.** `procedureDivision` read `declarativePart* sentence* procedureUnit*`, with `procedureUnit :
 sectionDefinition | paragraphDefinition`. A paragraph after a section header could stay in the section's
@@ -52,3 +52,39 @@ drift test as witnesses (record_verdicts batch `w20261795a-pb4230-section-owns-p
 Characterization 36/36), and the verdict is `=== BUILD-LOCAL GATE: RED — Unit POPULATION NOT EXACT` on the four
 astral-character theory names alone, which is kb/Work PB4338 (open, outside this group): the grammar change makes the
 plan hold the whole of tier 1, which is the plan PB4338 bites.
+
+**PB4231, the second reshape, in the same branch (owner direction 2026-10-31: one gate, one review, one landing).**
+The grammar split the one shape `SET receivers TO sender` of §14.9.39.2 across three `setStatement` alternatives by the
+SENDER's form (`setToValueStatement`, `setObjectReferenceStatement`, `setAddressStatement`), and all three could consume
+NULL. After `SET X TO NULL` SLL held them at shared ATN states with no state owned by one alternative, ANTLR's conflict
+heuristic took the lowest, the arithmetic rule, which needs `AS` or `::` after NULL, and the SLL pass bailed at the next
+token; the whole file was then parsed again under LL. The format is the RECEIVERS' question (SetFormatSelection), so the
+grammar now writes the shape once: `setToStatement : SET setToReceiver+ TO setToSender`, the receiver Format 7's printed
+brace `{ ADDRESS OF data-name-1 | identifier-5 } …` (14.9.39.2 figure note, cite-checked), the sender `predefinedNull |
+dataAddressIdentifier | arithmeticExpression`, NULL first. No objectReference arm follows the arithmetic one, which
+derives every object-reference shape but the bare NULL, so PB450's arithmetic-before-object order holds by construction.
+Format 7's ADDRESS phrase is the one fact the parse still decides, asked through one helper,
+`SetToStatementCst.SpellsAddressPhrase`, by its three readers: SetBinder routes it to `PtrBinder.BindSetAddress`,
+VersionConformancePass gates it on recognition (`set-address-2002`), FlagConformancePass keeps it (and a NULL sender) out
+of FLAG-02 e's Format-1 index flag. A NULL sender binds through `SetBinder.BindSetToNull`, the former object-reference
+branch less its SELF / SUPER / computed arms, which no parse could reach.
+
+**Measured** (the front-end review's profile harness, rebuilt against this branch's build before and after; 6,250 corpus
+files, harness-to-compiler oracle mismatches 0 both times): legal corpus files that bail SLL 95 → 20, the 75 that bailed
+on `SET x TO NULL` → 0; decision `setStatement` on the LL pass 125 context sensitivities and 213 ambiguities → none.
+`compare_oracle.py --base 121f9d46f`: IDENTICAL over 15,708 suite compiles (emitted C# and every diagnostic).
+
+**A legal-source rejection it fixed.** The deleted Format-7 rule spelled identifier-6 as a bare data reference, so `SET
+ADDRESS OF b TO FUNCTION f(p)` was `COBOL0001: unexpected 'FUNCTION'` at every edition, while the identifier-5 route took
+a function-identifier sender (PB1929). §8.4.3.1.3 SR1, §8.4.3.2.1 and §14.9.39.3 SR17 (cite-checked) make it legal when
+the function's item is a data-pointer. `PtrBinder.BindSetAddress` now takes the sender the one classifier read (a data
+reference as before, a computed identifier through its temporary item, anything else refused by SR17, COBOL0869). Golden
+`14.9.39-SET/pb4231_set_address_of_function_sender` (accept 2002): 1=ABCD, 2=WXYZ, 3=WXYZ by §14.9.39.4 GR12 / GR13.
+
+**Guards.** `SetToStatementSllDriftTests` parses every SET … TO sender shape, each followed by a different next token,
+exactly as the SLL pass parses (it must not bail), and under the LL profiler (no SET decision may report an ambiguity or
+a context sensitivity). `PrintedFormatAlternativeDriftTests.SetToSender_OffersNullFirst_AndSetStatementOffersOneToRule`
+holds the arm order and refuses a second SET … TO rule in `setStatement`. The inventory's grammar witnesses moved to the
+new rules (record_verdicts batches `w20261795a-pb4231-set-to-one-rule` and `-function-sender-witness`; 4 retired, GAP 19
+to 19); DESIGN-frontend-grammar §3.14 and DESIGN-binder-bound-tree §3.8 describe the one rule.
+

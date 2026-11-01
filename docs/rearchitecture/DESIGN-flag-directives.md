@@ -242,7 +242,7 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
     Both MOVE forms; a literal/function sender is skipped. Introduced **per-unit name resolution** to the pass — a
     `VisitProgramUnit` save/restore that selects the current unit's `DataBinder`/`ReferenceResolver` from a
     `ProgramUnitContext→BoundUnit` map (§2 D2's "resolve by name in the models" made scope-exact, not a global merge).
-  * **e RANGE-EXCEPTION-FOR-INDEX** — reuses d's `_currentData`: `VisitSetToValueStatement` (Format 1) +
+  * **e RANGE-EXCEPTION-FOR-INDEX** — reuses d's `_currentData`: `VisitSetToStatement` (a Format-1-shaped SET: an arithmetic sender and no ADDRESS phrase) +
     `VisitSetIndexStatement` (Format 2) flag once when a receiver's base name is in the current unit's
     `DataBinder.IndexFields` (an INDEXED BY **index-name**) AND `_turn.Enabled("EC-RANGE-INDEX", null, line)`.
     **⛔ Only an index-NAME receiver range-checks:** §14.9.39.4 Format-1 **GR2b** copies a class-index DATA item

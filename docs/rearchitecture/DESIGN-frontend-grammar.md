@@ -2168,6 +2168,24 @@ header; §14.4.1 adds "If one paragraph is in a section, all paragraphs shall be
 a section or a DECLARATIVES portion, a leading sentence, a paragraph outside every section, or a second DECLARATIVES
 portion is refused — one diagnostic per violation kind, at its first occurrence.
 
+**One rule for `SET receivers TO sender` (kb/Work PB4231; §14.9.39.2).** Formats 1, 5, 7, 8, 9, 14, 16 (bare) and 17
+share the shape `SET { operand } … TO operand`, and only the receivers' categories tell them apart, which is the
+binder's question (DESIGN-binder-bound-tree §3.8). The grammar writes the shape ONCE, `setToStatement : SET
+setToReceiver+ TO setToSender`, with Format 7's receiving brace as the receiver and `setToSender : predefinedNull |
+dataAddressIdentifier | arithmeticExpression`. It must never be split across `setStatement`'s alternatives by the
+sender's form: it was (`setToValueStatement`, `setObjectReferenceStatement`, `setAddressStatement`), all three could
+consume `NULL`, and after `SET X TO NULL` SLL held the three at shared ATN states with no state owned by one of them, so
+ANTLR's conflict heuristic stopped and took the lowest, the arithmetic rule, which needs `AS` or `::` after NULL. The
+SLL pass bailed at the next token and the whole file was parsed again under LL, the pass whose quadratic paragraph scan
+the section reshape above removed: 75 of the corpus's 95 legal programs that bailed SLL did so on this shape alone, and
+`setStatement` reported 125 context sensitivities on the LL pass. With the one rule the sender's arm is decided at its
+left edge, NULL first, by the token after NULL; the corpus's SLL-bailing legal programs fell to 20 (none at a SET) and
+the SET decisions report no context sensitivity. The arithmetic expression derives every object-reference shape but the
+bare NULL (an object-view, an inline invocation, SELF / SUPER, a function-identifier are `primaryExpression` arms), so
+no `objectReference` arm follows it. `SetToStatementSllDriftTests` parses every sender shape the way the SLL pass does
+and under the LL profiler; `PrintedFormatAlternativeDriftTests.SetToSender_OffersNullFirst_AndSetStatementOffersOneToRule`
+holds the arm order and the single rule.
+
 ### 3.15 One rule per printed operand shape (kb/Work PB2114)
 
 A general format names its operands by metalanguage (`identifier-n`, `literal-n`, `integer-n`), and the grammar
