@@ -320,7 +320,7 @@ internal sealed class ProgramEmitter
             foreach (var f in anc.Data.Files)
                 if (f.IsGlobal && f.FileStatusItem is { } si && !_callState.InheritedStatusPlace.ContainsKey(f)
                     && anc.Refs.ResolveItem(si) is { } sp
-                    && PrefixPlace(sp, member => anc.AnchorOf(member, statusDepth)) is { } pp)
+                    && AnchorPlace(sp, member => anc.AnchorOf(member, statusDepth)) is { } pp)
                     _callState.InheritedStatusPlace[f] = pp;
         }
 
@@ -366,13 +366,15 @@ internal sealed class ProgramEmitter
 
             foreach (var b in unit.Bridges)
             {
+                // The container's member of the same name, reached through the bridge's anchor (kb/Work PB4320).
+                string target = PlaceRenderer.Anchored(b.Anchor, b.MemberClrName);
                 switch (b.Kind)
                 {
                     case CallBridgeKind.Presence:
-                        w.Line($"private bool {b.Field} => {b.Path};   // a GLOBAL formal's omitted-argument presence (ISO §8.8.4.8.4 GR1; kb/Work PB971)");
+                        w.Line($"private bool {b.MemberClrName} => {target};   // a GLOBAL formal's omitted-argument presence (ISO §8.8.4.8.4 GR1; kb/Work PB971)");
                         continue;
                     case CallBridgeKind.Cell:
-                        w.Line($"private StorageCell {b.Field} => {b.Path};   // the cell behind a GLOBAL cell-backed item of a containing program (ISO §13.18.27.4 GR2; kb/Work PB1009)");
+                        w.Line($"private StorageCell {b.MemberClrName} => {target};   // the cell behind a GLOBAL cell-backed item of a containing program (ISO §13.18.27.4 GR2; kb/Work PB1009)");
                         continue;
                 }
                 string type = b.Kind switch
@@ -386,7 +388,7 @@ internal sealed class ProgramEmitter
                     CallBridgeKind.Carrier => $"ManagedPointer<{FormalCarrierType(b.Formal!, FormalCrossing(b.Formal!, null))}>",
                     _ => b.Item!.Occurs is not null ? b.Item.ElementType + "[]" : b.Item.ElementType,
                 };
-                w.Line($"private ref {type} {b.Field} => ref {b.Path};   // GLOBAL item of a containing program (ISO §13.18.27.4 GR2 — container storage, contained visibility)");
+                w.Line($"private ref {type} {b.MemberClrName} => ref {target};   // GLOBAL item of a containing program (ISO §13.18.27.4 GR2 — container storage, contained visibility)");
             }
             _oo.EmitExternalBackings(data, w);
 
@@ -537,13 +539,18 @@ internal sealed class ProgramEmitter
         }
     }
 
-    /// <summary>Re-anchor a CONTAINER-resolved place behind the contained class's <c>__outer</c> instance chain
-    /// (the §12.4.5.8.4 GR1 NOTE 1 status routing). A FILE STATUS item is never subscripted (§12.4.5.8 SR1 — no
-    /// OCCURS), so its member path / Tier-B backing prefix textually. An unexpected place shape returns null —
-    /// the caller then falls back to the loud-guard path, never a silent wrong-storage store (§1.4).</summary>
-    private static Place? PrefixPlace(Place p, Func<string, string> prefix) => p switch
+    /// <summary>The C# reference to <paramref name="u"/>'s program class from the module's top-level scope — a
+    /// contained program's class is nested in its container's (factory construction). The C# spelling of the nesting,
+    /// so the Roslyn backend forms it from the units' class names (kb/Work PB4320; it was a model property).</summary>
+    private static string ClassRef(BoundUnit u) => u.Parent is { } p ? $"{ClassRef(p)}.{u.ClassName}" : u.ClassName;
+
+    /// <summary>Re-anchor a CONTAINER-resolved place in the containing program (the §12.4.5.8.4 GR1 NOTE 1 status
+    /// routing): each path the place carries gains its root's <see cref="ContainerAnchor"/> (<see cref="AccessPath.Reroot"/>;
+    /// kb/Work PB4320). An unexpected place shape returns null — the caller then falls back to the loud-guard path,
+    /// never a silent wrong-storage store (§1.4).</summary>
+    private static Place? AnchorPlace(Place p, Func<string, ContainerAnchor> anchorOf) => p switch
     {
-        MemberPlace m => new MemberPlace(m.Path.Reroot(prefix), m.MemberItem),
+        MemberPlace m => new MemberPlace(m.Path.Reroot(anchorOf), m.MemberItem),
         // `with` rather than a fresh construction: the window's CODING (kb/Work PB203, PB231) is part of the
         // place's identity and re-anchoring changes only WHERE the storage lives, never which positions the
         // member holds.
@@ -553,11 +560,11 @@ internal sealed class ProgramEmitter
         // different classes. It is the same re-anchoring, so it is applied by the same expression; a coding that
         // carries no path is unaffected. (Unreachable today: this method exists for a container-resolved FILE
         // STATUS item, which §12.4.5.8.3 SR1 makes a two-character alphanumeric item — never a pointer. Written
-        // as the rule anyway, because the next caller of PrefixPlace will not know that.)
+        // as the rule anyway, because the next caller of AnchorPlace will not know that.)
         RedefViewPlace r => r with
         {
-            Backing = r.Backing.Reroot(prefix),
-            Coding = r.Coding is CellWindowCoding c ? c with { Cell = c.Cell.Reroot(prefix) } : r.Coding,
+            Backing = r.Backing.Reroot(anchorOf),
+            Coding = r.Coding is CellWindowCoding c ? c with { Cell = c.Cell.Reroot(anchorOf) } : r.Coding,
         },
         _ => null,
     };
@@ -664,8 +671,8 @@ internal sealed class ProgramEmitter
                 if (f.CarrierResident)
                 {
                     // Per-access aliasing of the caller's storage (§14.2.3 GR8): every reference to the formal
-                    // reads/writes through this carrier (its ClrName IS `__lnk{Uid}.Value`). An ANY LENGTH formal
-                    // (ISO §13.18.2 GR1 — its length IS the caller's argument length) takes the FULL-STRING
+                    // reads/writes through this carrier (every access path to it starts at the carrier,
+                    // DataItem.ResidentCarrier). An ANY LENGTH formal (ISO §13.18.2 GR1 — its length IS the caller's argument length) takes the FULL-STRING
                     // view (the width -1 sentinel), never a Pic.Length=1 window that would truncate the caller.
                     // A BY VALUE formal adopts the DETACHED value-copy cell instead (§14.2.3 GR10 — the
                     // activated element's stores reach only the copy, never the caller; §14.2.2 SR2 restricts
@@ -850,14 +857,14 @@ internal sealed class ProgramEmitter
                 if (u.IsPrototype) continue;   // a prototype registers no runtime module — the separately-compiled definition does (§10.6.3 GR1)
                 string parentPath = u.Parent is { } p ? CsLiteral(p.RegistryKey) : "null";
                 string factory = u.Parent is { } pp
-                    ? $"static __o => new {u.ClassRef}(({pp.ClassRef})__o!)"
-                    : $"static __o => new {u.ClassRef}()";
+                    ? $"static __o => new {ClassRef(u)}(({ClassRef(pp)})__o!)"
+                    : $"static __o => new {ClassRef(u)}()";
                 // A RECURSIVE unit with static WS storage OR unit-scoped file connectors registers its
                 // __ResetStatics — the runtime's §14.6.2.3.2 initial-state hook (run-unit start / CANCEL /
                 // INITIAL-container cascade). ⛔ THE ONE condition is DataBinder.EmitsStaticReset, shared
                 // with RecordStructEmitter's emission so the pair cannot diverge (kb/Work PB168). The
                 // optional argument is OMITTED for every other unit, keeping their lines byte-identical.
-                string reset = u.Data.EmitsStaticReset ? $", {u.ClassRef}.__ResetStatics" : "";
+                string reset = u.Data.EmitsStaticReset ? $", {ClassRef(u)}.__ResetStatics" : "";
                 // §14.8.2.1 / §14.9.4.4 GR3d (kb/Work PB133 wave C2b): EVERY unit registers its count facts and
                 // its ACTIVATED-half checking bit; the required count excludes the trailing OPTIONAL run
                 // (§14.8.2.1's omissible tail). A unit with NO formals is the case of zero formals, not of no
