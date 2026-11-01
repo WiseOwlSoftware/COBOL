@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb3951_length_of_numeric_function_result
 *> rules: [RV-15.50.4-3, RV-15.14.4-1, DOC-A.1-92]
-*> accept: [2014, 2023]
+*> accept: [2002, 2014, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

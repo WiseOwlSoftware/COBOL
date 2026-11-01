@@ -36,6 +36,12 @@
       private RepoRoot() walkers this replaced from growing back one project at a time.
     -->
     <Compile Include="$(MSBuildThisFileDirectory)_shared\*.cs" Link="_shared\%(Filename)%(Extension)" />
+    <!--
+      THE WEIGHTS FILE (kb/Work PB4329): each test class's median merge-group seconds, which GateTestFramework's shard
+      hook (_shared/GateLegs.cs, GateShard and TestWeights) deals CI's weighted shards by. Embedded, so a host deals by
+      the weights it was built with and no run reads a path; scripts/shard_weights.py generate writes it.
+    -->
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)_shared\test-weights.json" LogicalName="WiseOwl.Cobol.Gate.test-weights.json" Link="_shared\test-weights.json" />
   </ItemGroup>
 
   <!--

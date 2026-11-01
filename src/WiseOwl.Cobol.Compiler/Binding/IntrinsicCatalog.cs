@@ -217,6 +217,10 @@ public static class IntrinsicCatalog
         Add(new("INTEGER-OF-DAY", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "i", "IntegerOfDay", IntrinsicBind.Runtime, false, 85));   // §15.47
 
         // ── COBOL-2002 additions (implemented where the runtime body is trivial; Deferred otherwise) ─────────
+        // ABS is a 2002 function (ISO/IEC 1989:2002 Annex F.2 item 78 heads the new-function list with it), NOT a
+        // 2014 one: every IntroducedIn below is held to the committed per-edition introduction lists by
+        // IntrinsicIntroductionDriftTests (kb/Work PB4296).
+        Add(new("ABS", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "AbsScaled", IntrinsicBind.Runtime, false, 2002, Result: IntrinsicResultRule.IntegerFollowsArgument1, DeviceForm: FunctionDeviceForm.Argument));     // §15.7.1
         Add(new("E", IntrinsicType.Numeric, IntrinsicArity.Fixed, 0, 0, "", "E", IntrinsicBind.Runtime, true, 2002));                 // §15.27
         Add(new("PI", IntrinsicType.Numeric, IntrinsicArity.Fixed, 0, 0, "", "Pi", IntrinsicBind.Runtime, true, 2002));               // §15.73
         Add(new("EXP", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Exp", IntrinsicBind.Runtime, true, 2002));            // §15.34
@@ -335,7 +339,6 @@ public static class IntrinsicCatalog
         // former "provisional pending the matrix wave" caveat is retired; NUMVAL-F/TEST-NUMVAL-F moved OUT
         // of this block to 2002 (the COBOL Consortium's COBOL 2002 introduction names them as 2002 additions),
         // and LOCALE-TIME-FROM-SECONDS/SECONDS-PAST-MIDNIGHT moved IN from 2002. ──────────────────────────
-        Add(new("ABS", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "AbsScaled", IntrinsicBind.Runtime, false, 2014, Result: IntrinsicResultRule.IntegerFollowsArgument1, DeviceForm: FunctionDeviceForm.Argument));     // §15.7.1
         Add(new("COMBINED-DATETIME", IntrinsicType.Numeric, IntrinsicArity.Fixed, 2, 2, "in", "CombinedDatetime", IntrinsicBind.Runtime, false, 2014)); // §15.17
         // ⚠ The FORMATTED-* family's result type follows argument-1 — the FORMAT literal (§15.38.1/§15.39.1/
         // §15.40.1/§15.41.1) — so FUNCTION FORMATTED-DATE(N"YYYYMMDD" D) is a NATIONAL function even though the

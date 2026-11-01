@@ -249,7 +249,7 @@ internal sealed class PhysicalModel(EmitContext ctx)
     {
         foreach (var filler in fillers)
             if (ReferenceEquals(filler.Subject, subject))
-                yield return new Physical(filler.Field, "string", 0, false,
+                yield return new Physical(filler.ClrName, "string", 0, false,
                     // The boolean initial state, as text proportional to the DESCRIPTION: a pad run of a
                     // hundred-million-occurrence table is a repeat, never a literal (kb/Work PB1722).
                     filler.Bits <= 64 ? EmitText.CsLiteral(new string('0', filler.Bits))

@@ -32,6 +32,7 @@ public enum AreaPlacement
 /// (<see cref="Frontend.Areas"/>); the COBOL-85 area-placement rules are its consumer.
 /// </summary>
 public sealed class FixedFormAreas(SourceLineMap lineMap, IReadOnlyDictionary<string, ReferenceFormatMap> formats)
+    : IMarginRCutLocator
 {
     /// <summary>No text has an area — the map of a compilation that read no fixed-form text.</summary>
     public static FixedFormAreas None { get; } = new(SourceLineMap.Identity("<source>", 0), new Dictionary<string, ReferenceFormatMap>());
@@ -42,5 +43,15 @@ public sealed class FixedFormAreas(SourceLineMap lineMap, IReadOnlyDictionary<st
     {
         var at = lineMap.Locate(line, column, fallbackFile: "");
         return formats.TryGetValue(at.FileName, out var map) ? map.PlacementAt(at.Line + 1, at.Column) : AreaPlacement.None;
+    }
+
+    /// <inheritdoc cref="IMarginRCutLocator.MarginRCutAt"/>
+    /// <remarks>The line's cut is its <see cref="ReferenceFormatMap.CutAt"/> (kb/Work PB2555).</remarks>
+    public LocatedMarginRCut? MarginRCutAt(int line, int column)
+    {
+        var at = lineMap.Locate(line, column, fallbackFile: "");
+        return formats.TryGetValue(at.FileName, out var map) && map.CutAt(at.Line + 1) is { } cut
+            ? new LocatedMarginRCut(at, cut)
+            : null;
     }
 }
