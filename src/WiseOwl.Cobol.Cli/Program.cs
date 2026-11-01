@@ -322,10 +322,14 @@ internal static class Program
             // A group with no main program is a library (DESIGN-external-repository §7.2): there is nothing to launch.
             Console.Error.WriteLine($"error: --run: {result.OutputDll} is a library (the source has no program to run as "
                 + "the main program); a .NET host calls its host entries.");
-            return 64;   // POSIX sysexits: usage error
+            return LibraryRunExitCode;
         }
         return options.Run ? Run(result.OutputDll) : 0;
     }
+
+    /// <summary>The exit status of <c>--run</c> given for a library: POSIX sysexits EX_USAGE, a usage error. The manual's
+    /// command-line page lists it and <c>UserManualDriftTests</c> reads it from here.</summary>
+    internal const int LibraryRunExitCode = 64;
 
     /// <summary>The process exit code of a compile outcome, POSIX sysexits: 0 success, 66 no input, 65 a data/format
     /// error IN THE SOURCE (a parse error or a binding/conformance diagnostic — the program is wrong), 70 an internal

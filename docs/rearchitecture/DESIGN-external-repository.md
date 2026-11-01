@@ -411,7 +411,7 @@ Format-1 CALL already uses), so it is no call-ABI change.
 The DEFAULT is the lenient adoption: the activated program registers its formals' descriptions only when its own
 source enables EC-PROGRAM-ARG-MISMATCH checking (`>>TURN`, §7.3.25; `ProgramEmitter.EmitEntryWrapper`), so without
 that directive nothing is compared at run time and each argument is read through the callee's description. REPO-9
-at the callee's compile is then the only signal; the manual says so (§9.4).
+at the callee's compile is then the only signal; the manual says so (`docs/manual/dotnet-interop.md`).
 
 ### 4.3 The host entry
 §14.2.3 GR13 governs: "When either the activating or the activated runtime element is other than a COBOL runtime
@@ -1519,13 +1519,14 @@ directories). The output being produced is never consulted for RESOLUTION (its p
 precedent: A.1 item 66's own words; Micro Focus `REPOSITORY` directive family (spelling only).
 
 ### 9.4 The user documentation and the `docs/CONFORMANCE.md` rows (verbatim)
-**Where the manual text goes (determination, Mythos lane 2026-10-27).** The user manual does not exist: `docs/manual/`
-was never created, and kb/Work PB1610 owns its scaffold and chapters (DESIGN-USER-DOCUMENTATION.md §4). Slice 3 placed
-its host chapter's text here and recorded the hand-off in PB1610; slices 5 and 7 do the same. Each writes its text into
-this subsection (the trimmed/AOT paragraph below is slice 5's, the "Separately compiled units" chapter slice 7's) and
-adds a line to PB1610 naming the subsection; no slice creates `docs/manual/` or a second place for user text.
-`OneHostSurfaceDriftTests` already scans `docs/manual/` and needs no change when PB1610 creates it. The
-`docs/CONFORMANCE.md` rows below ARE written by the slices named in §21, since that document exists.
+**Where the manual text goes (determination, Mythos lane 2026-10-27; made current by kb/Work PB1610).** The user manual
+is `docs/manual/` (DESIGN-USER-DOCUMENTATION.md section 3 and 4). The chapter "Calling a WiseOwl COBOL program from .NET",
+with slice 5's trimmed/AOT paragraph, is `docs/manual/dotnet-interop.md`; it was written here first and moved there when
+PB1610 created the manual, so this document no longer carries it. The chapter "Separately compiled units and the
+repository" below is slice 7's draft (kb/Work PB2103): it describes `--repository`, `--reference` and `--repository-check`,
+which the command line does not have yet, so it stays here until slice 7 lands and then moves into `docs/manual/` as its
+own page, because the manual describes only what the compiler does. `OneHostSurfaceDriftTests` scans `docs/manual/`. The
+`docs/CONFORMANCE.md` rows below ARE written by the slices named in section 21, since that document exists.
 **Manual, "Separately compiled units and the repository":**
 > A WiseOwl COBOL assembly is the external repository entry for every program, function, class, interface, program
 > prototype, function prototype, parameterized class or interface and expansion it compiled (ISO §8.13). When your
@@ -1542,39 +1543,9 @@ adds a line to PB1610 naming the subsection; no slice creates `docs/manual/` or 
 > a prototype or definition of the same name in the repository; `off` suppresses it. A caller compiled against an
 > earlier signature is checked at run time when EC-PROGRAM-ARG-MISMATCH checking is enabled in both programs.
 
-**Manual, "Calling a WiseOwl COBOL program from .NET":** reference the COBOL assembly and `WiseOwl.Cobol.Runtime`; deploy
-both beside your host. Every program and user-defined function has a class `Cobol.<assembly>.<NAME>` with a method
-`Call` whose parameters are its PROCEDURE DIVISION USING formals — a `ref` parameter for BY REFERENCE (the variable
-receives what the program stored), a plain parameter for BY VALUE, nullable when OPTIONAL (`null` passes OMITTED) —
-and whose return value is its RETURNING item; a program's class also has `Cancel()`. Numbers are `long` or `Int128`
-when the PICTURE has no decimal places and `decimal` when it has; text is `string`; a group is a nested record struct
-named `<group>_Record`, with `AsImage()` and `FromImage()` for its character image; in a group holding a DYNAMIC LENGTH item or an
-OCCURS DYNAMIC table that item is a `string` and that table an array as long as its current capacity, and the record has
-no image methods. Run your calls inside
-`RunUnit.Run(ru => { … })`, which begins a run unit and ends it (closing its files) when the body returns; a call
-outside it joins the ambient run unit of your execution context. Every call crosses the same boundary a COBOL CALL
-crosses: the program keeps one WORKING-STORAGE per run unit until you `Cancel()` it, recursion is refused unless the
-program is RECURSIVE, and an INITIAL program is re-initialized per call. **What a call can throw:**
-`ArgumentException` — before the program runs — when a value would lose anything on the way in (a digit at either
-end, a sign, characters beyond the item's length: `ArgumentOutOfRangeException`), when a non-OPTIONAL parameter is
-`null`, or when you pass one variable to two `ref` parameters whose COBOL descriptions differ (to two parameters of
-one description, the program gets one storage for both); `CobolCallException` with its EC-* name (`EcName`) when the
-program cannot be activated or a condition propagates out of it; the run-unit-ended exception when the program
-executes STOP RUN or a fatal condition terminates the run unit — the run unit's files are closed and your process
-continues; `FormatException` when the program leaves a numeric item holding characters that are not a number of its
-description (the variable is left as it was). **Trimmed and AOT applications** have no dynamic loading: your host
-references every COBOL assembly the run unit uses and calls each one's `__CobolModule.EnsureRegistered()` before the
-first call; a program called by name from COBOL is then found among them. A COBOL program that calls another program
-by name finds it, when no host registered it, by loading the assembly that carries it from the application directory
-(the file named after the program first, then any assembly there that lists it); that loading is the runtime's one use of
-reflection, behind the switch `WiseOwl.Cobol.Runtime.DynamicProbe`. The switch is on unless the application sets it; a native-AOT or trimmed application turns it off with `<RuntimeHostConfigurationOption Include="WiseOwl.Cobol.Runtime.DynamicProbe" Value="false"
-Trim="true" />`; a CALL that nothing registered is then an EC-PROGRAM-NOT-FOUND condition saying the dynamic probe is
-disabled. A trimmed application that keeps the switch on must keep the whole runtime (`<TrimmerRootAssembly
-Include="WiseOwl.Cobol.Runtime" />`) and deploy the called assemblies untrimmed beside it. A program that cannot be
-located, whether its assembly is missing, does not load, is of another runtime version, or fails while it registers,
-is an EC-PROGRAM-NOT-FOUND condition naming the reason. A program compiled against a different
-signature than the one it is called with is detected at run time only when it enables EC-PROGRAM-ARG-MISMATCH checking
-(`>>TURN EC-PROGRAM-ARG-MISMATCH CHECKING ON`); otherwise the arguments are read through its own description.
+**Manual, "Calling a WiseOwl COBOL program from .NET":** `docs/manual/dotnet-interop.md` (moved there by kb/Work PB1610).
+A change to the host entry's surface, its marshaling, its exceptions or the trimmed/AOT switch updates that page in the
+same change set.
 
 **`docs/CONFORMANCE.md`, DOC-A.1-141 (the §14.2.3 GR13 determination, verbatim):** "**Supported non-COBOL language
 products: any .NET language, and only as the ACTIVATING element.** No non-COBOL element can be activated: a CALL, a
@@ -2425,8 +2396,10 @@ description (§4.3); the forward-reference reading of SR14 — the output being 
 (§8.2); the one-segment namespace (§4.5); the call-ABI version (§15.4).
 
 **Determinations of the 2026-10-27 currency pass (Mythos lane; kb/Work PB1086; none an owner question):**
-- **(a) User-manual text stays with kb/Work PB1610**, as slice 3's did: slices 5 and 7 write their text into §9.4 and
-  record it in PB1610; no slice creates `docs/manual/` (§9.4).
+- **(a) User-manual text.** Until kb/Work PB1610 created `docs/manual/`, slices 3 and 5 wrote their text into §9.4 and
+  recorded it in PB1610. PB1610 has created the manual and moved the host chapter into
+  `docs/manual/dotnet-interop.md`; slice 7 writes its chapter as its own page of `docs/manual/` in the change that
+  adds the options it describes (§9.4).
 - **(b) A fault on the way to an activation is one of the CALL's own conditions** (§14.9.4.4 GR3 b) / c), §8.4.3.2.4
   GR6 b) / c)), as `docs/CONFORMANCE.md` DOC-A.1-14 and DOC-A.1-89 already determine them under CLAUDE.md rule 1
   (GR3 c)'s checked resources are the implementor's; GnuCOBOL's resolver sets EC-PROGRAM-NOT-FOUND for a module found
@@ -2622,7 +2595,7 @@ currency pass; a slice that finds it is not makes the restructuring and corrects
    cases of §17.1 marked slice 7 (the cross-repository REPO-13 and word cases, the pb1115 split, the restricted-pointer
    and stale GR10 b) cases), in the shape slice 5 landed. Docs: INTERPROGRAM's prototype paragraph, SR20/SR22 note and
    the operand description; OO_DESIGN's restricted-pointer sentence; CONFORMANCE DOC-A.1-66/-67 and §3's D-R3 bullet
-   (the repository arms); the manual's "Separately compiled units", into §9.4 and recorded in kb/Work PB1610; DESIGN
+   (the repository arms); the manual's "Separately compiled units", moved from §9.4 to its own page of `docs/manual/`; DESIGN
    §0.5/§9/§10 and DOC_INDEX rows. Depends on 4, 5 and 6.
 8. **OO across assemblies, in two steps** (kb/Work PB2104): `Origin` (replacing `OoClassSymbol.IsStandard`),
    `IdentityScope`, class import, `ObjectRefDescriptor.Target` and the run-time description's class facts as
