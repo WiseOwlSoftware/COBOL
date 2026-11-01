@@ -1,4 +1,4 @@
-## PB4266: the backend contract test holds every text member of the backend input
+## Entry 2934 — 2026-11-01 01:49 PST — PB4266: the backend contract test holds every text member of the backend input
 
 **The mechanism.** DESIGN-backend-abstraction §6 specified a test that fails the build when a bound node carries C#.
 It did not exist, and `ICodeGenBackend` has one implementation, so nothing checked the claim that the bound tree is
@@ -77,3 +77,4 @@ BackendContractDriftTests passing. Its first run, `000001-20261101T090110Z`, was
 `HostWitnessTraitDriftTests` found the fixture had become a tree-wide sweep without the `Sweep` trait, because the
 generated-type check read the source-generator directory. The check now reads the `[GeneratedCode]` tool's namespace
 and names no path.
+
