@@ -2029,6 +2029,18 @@ of an unsupported facility.
   comment), `conformance:cases/_unassigned/pb1705_debugging_mode_obsolete_2002`, `conformance:cases/_unassigned/debugging-mode`,
   `conformance:cases/_unassigned/pb1494-debugging-line-at-2014`, `unit:DebuggingLineRewriterTests`.
 
+- **D-DEBUG-USE — how USE FOR DEBUGGING spells its data-item operand** (kb/Work PB4237). ISO/IEC 1989:2023 prints no
+  debug format (the facility left in 2002, VCR Table 7 row 7.17), and the 1985 text is not in the repository, so the
+  spelling follows rule 1's precedence to GnuCOBOL. **Determination:** in `[ALL REFERENCES OF] identifier-1` only ALL is
+  a keyword; REFERENCES and OF are optional words, so `ALL W-A`, `ALL OF W-A`, `ALL REFERENCES W-A` and `ALL REFERENCES
+  OF W-A` are one operand (GnuCOBOL 3.2 `cobc -std=cobol85 -fsyntax-only` accepts all four; CCVS DB201A writes `ALL
+  ID-2` and `ALL AB2 OF A2`). The grammar is `useDebugTarget`'s `ALL REFERENCES? OF? dataReference` arm, and the binder
+  tells the arm by ALL, never by REFERENCES, so `ALL P1` is never a procedure-name subject. Without WITH DEBUGGING MODE
+  the section is inert; with it every spelling reaches the same staged COBOL1571, positioned at its operand and naming
+  it. Witnesses: `conformance:cases/_unassigned/pb4237_debug_all_identifier` (85),
+  `conformance:cases/_unassigned/pb4237-debug-all-identifier-removed-2002` (COBOL0902 from 2002),
+  `conformance-test:DebugFacilityTests.AllIdentifier_EverySpelling_At85_IsTheStagedDataItemOperand`.
+
 - **D-CE1 — where a FREE-form comment-entry ends** (kb/Work PB3245, review finding R1-1; PB1494, PB1758). The
   comment-entry paragraphs (AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED, SECURITY, REMARKS) are COBOL-85's,
   removed by COBOL-2002, the edition that introduced free form, so no edition of the standard says where a free-form
