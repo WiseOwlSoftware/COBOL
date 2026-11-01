@@ -717,7 +717,8 @@ namespace. `ImportedTypeNameDriftTests` keeps the derivation total: the using di
 `global::System.Console…`). OO class, interface, method and property names are `DataItem.WordIdentifier`'s UPPER-CASE
 fold and so spell no imported type (the one all-capitals type, `BASE`, is the OO base class itself).
 **Every scope is also seeded with the C# reserved keywords (kb/Work PB4265):** `CsNames.CSharpReservedKeywords`,
-derived from Roslyn's `SyntaxFacts`, so a lowercase data-name `int` is allocated `int_2`. An allocated name is then the
+written in the model and pinned to Roslyn's `SyntaxFacts` by `CsNameReservationDriftTests` (the model references no
+Roslyn, kb/Work PB4272), so a lowercase data-name `int` is allocated `int_2`. An allocated name is then the
 same text in metadata and in C# — the names are the module's ABI, the same for a Roslyn-built and a CIL-built module
 (DESIGN-backend-abstraction §2.4) — and a prefix or suffix joined to it stays an identifier (`_redef_int_2`; the `@int`
 spelling it replaced made `_redef_@int`, refused by the C# compiler). OO names are upper-case and spell no keyword.

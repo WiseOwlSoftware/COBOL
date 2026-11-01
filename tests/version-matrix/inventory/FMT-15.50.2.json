@@ -7,9 +7,9 @@
  "rule-digest": "df2f3953ee38",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#fnArgPhraseWord; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgList; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
- "test-ref": "conformance:cases/15.50.4-Returned-value-rules/pb24_length_physical_keyword; conformance:cases/15.3-Arguments/pb124_keyword_positions; conformance:cases/15.50-LENGTH/pb24-length-two-operands",
+ "test-ref": "conformance:cases/15.50.4-Returned-value-rules/pb24_length_physical_keyword; conformance:cases/15.3-Arguments/pb124_keyword_positions; conformance:cases/15.50-LENGTH/pb24-length-two-operands; conformance:cases/15.50.4-Returned-value-rules/pb4308_length_physical_2014; conformance:cases/15.50-LENGTH/pb4308-length-physical-below-2014",
  "derivation": "",
  "editions": "85,2002,2014,2023",
- "notes": "Both legs of the format's optional [PHYSICAL] bracket pinned by pb24 (FIXPHYS/FIXPLAIN=0010, VARPHYS/VARPLAIN=0007, RMPHYS=0005); over-acceptance pinned by negative/pb24-length-two-operands; diagram re-read from PDF page 903 and identical to the transcription.",
+ "notes": "Both legs of the format's optional [PHYSICAL] bracket pinned by pb24 (FIXPHYS/FIXPLAIN=0010, VARPHYS/VARPLAIN=0007, RMPHYS=0005); kb/Work PB4308 (2026-11-01): the bracket is a 2014 introduction (the printed 2002 format is ( argument-1 ); PHYSICAL is reserved from 2014) - the construct row length-physical-argument-2014, COBOL0900 at 85 and 2002 (pb4308-length-physical-below-2014), accepted from 2014 (pb4308_length_physical_2014); over-acceptance pinned by negative/pb24-length-two-operands; diagram re-read from PDF page 903 and identical to the transcription.",
  "state": "OK"
 }
