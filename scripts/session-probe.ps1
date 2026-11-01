@@ -109,6 +109,12 @@ if ($LASTEXITCODE -ne 0) {
     @($slotStatus) | Where-Object { "$_" -match 'LONG HOLD|NO LONG-HOLD FLAGS' } | ForEach-Object { Write-Host "slots  : ⛔ $("$_".Trim())" }
 }
 
+# THE GATE'S GROWTH TRIGGER (PB4323 section 3.4, kb/Work PB4333): the whole-population gate grows with the suite, and the
+# design builds the emitted-program differential when the weekly median of the code lane's test phase passes 6 min or
+# Conformance passes 1.5 times its 20,406 cases. The rule lives in gate_growth.py; the probe prints its one verdict line
+# (FIRED is the only one that asks for action: build step 10, measuring the changed-program fraction first).
+& python scripts/gate_growth.py status 2>&1 | ForEach-Object { Write-Host "growth : $_" }
+
 # ⛔ A DISABLED GATE MUST NOT BE INVISIBLE. Reported here because the probe is the one thing every session reads,
 # and "CI is off" is exactly the kind of live state that rots into a false sense of coverage
 # (feedback_green_gates_arent_evidence) — the battery is NOT a superset of CI: it is Windows/DEBUG only, so the
