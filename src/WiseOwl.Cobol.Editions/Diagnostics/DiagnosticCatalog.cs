@@ -7869,6 +7869,18 @@ public static class DiagnosticCatalog
         + "the precompiler first and compile the COBOL it writes.",
         "ISO §4.2.14");
 
+    // kb/Work PB4363: the ALL operand of the X3.23-1985 USE FOR DEBUGGING names a procedure, where the facility's
+    // `ALL [REFERENCES OF] identifier-1` takes a data item. It was reported as COBOL1571's legal-but-unmodeled data
+    // subject, which told the user the program was right and the compiler incomplete.
+    public static readonly DiagnosticDescriptor DebugAllOperandIsProcedure = new(
+        "COBOL5848", "debug-all-operand-is-procedure", EditionSeverity.Error,
+        "The identifier-1 of the X3.23-1985 USE FOR DEBUGGING operand ALL [REFERENCES OF] identifier-1 is a data item. "
+        + "The word written names a paragraph or section, a procedure-name (ISO §14.4.1: \"A procedure-name is a word "
+        + "used to refer to a paragraph or section in the source element in which it occurs\"), so it identifies no "
+        + "data item (ISO §8.4.2.1). A procedure is a debug subject by the plain operand, USE FOR DEBUGGING ON "
+        + "procedure-name, or with every procedure by ALL PROCEDURES.",
+        "ISO §14.4.1; ISO §8.4.2.1 / VCR Table 7 row 7.17 (X3.23-1985 debug module)");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)
