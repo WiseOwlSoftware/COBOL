@@ -1,4 +1,4 @@
-## PB4381, PB4384: an EXEC block left without END-EXEC is its own fault, and a semicolon inside a block is SQL text
+## Entry 2958 — 2026-11-01 14:43 PST — PB4381, PB4384: an EXEC block left without END-EXEC is its own fault, and a semicolon inside a block is SQL text
 
 Two defects of `EmbeddedBlockReading` (PB4341's reading that makes each `EXEC … END-EXEC` block one token before the parse), one
 file.
@@ -36,3 +36,4 @@ editions) and `pb4384-exec-sql-semicolon-in-block` (COBOL5818 only); unit rows i
 (unterminated block among closed ones and the fault after them, four shapes of one unterminated block, a declared EXEC keeping
 the source COBOL, four semicolon placements). Both notes close no inventory row: ISO/IEC 1989 defines no EXEC construct, so the
 work is diagnostic attribution. Docs: CONFORMANCE §3.2 item 4, DESIGN-frontend-grammar §3.9, migrating.md.
+
