@@ -245,7 +245,7 @@ def self_test() -> int:
         record(d, Path("000009-20261125T000000Z"), "wt1", 300, 20482)
         expect("a sample older than RETAIN_DAYS goes when a newer one is written",
                [s.run for s in samples(d)], ["000009-20261125T000000Z"])
-        (d / "bad.json").write_text("{not json", encoding="utf-8")
+        (d / "bad.json").write_text("{not json", encoding="utf-8", newline="\n")
         try:
             samples(d)
             failures.append("a corrupt sample file was read as none")
