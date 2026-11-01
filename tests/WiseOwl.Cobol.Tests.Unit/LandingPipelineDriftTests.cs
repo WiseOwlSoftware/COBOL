@@ -13,8 +13,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// PB4330) on <c>pull_request</c>; its already-verified short-circuit counts only
 /// a run that could have run the matrix, never a pull request's; no tracked file but
 /// <c>scripts/orchestrator/enqueue.py</c> opens or queues a pull request, and enqueue.py asks <c>ruleset.py check</c> for
-/// an ACTIVE queue before it checks, pushes or opens anything; every gate row enqueue.py runs takes the shared gate slot
-/// (kb/Work PB3104: <c>unslotted</c> refuses a row that would not, and its self-test arms are held here by name); and the
+/// an ACTIVE queue before it checks, pushes or opens anything; enqueue.py gates nothing (kb/Work PB4331: the merge group
+/// is the first run of the merged tree), and asks the worktree's gate lock before every write of it (kb/Work PB4204); and the
 /// direct-push landing is gone: its scripts do not
 /// exist, the workflow has no landing-branch trigger, and no tracked file outside the history names them; and no landing
 /// is held to a COMMITTED RECORD OF ITS OWN TREE (kb/Work PB3107): a merge group is built on every group queued ahead of
@@ -115,8 +115,8 @@ public sealed class LandingPipelineDriftTests
         }
     }
 
-    /// <summary>enqueue.py's <c>land</c> asks for an ACTIVE queue before it merges main in, gates or stamps, and has no
-    /// other path onto main: the ruleset binds administrators, so a gate spent while the queue is off could land nothing,
+    /// <summary>enqueue.py's <c>land</c> asks for an ACTIVE queue before it reads the record, merges main in or stamps, and
+    /// has no other path onto main: the ruleset binds administrators, so a landing while the queue is off could land nothing,
     /// and the former direct-push arm gated for half an hour with nothing holding main (kb/Work PB3023 review R1-1).</summary>
     [Fact]
     public void TheLandGuard_PrecedesTheMergeTheGateAndTheStamp_AndThereIsNoOtherPath()
@@ -127,7 +127,7 @@ public sealed class LandingPipelineDriftTests
         string body = source[landDef..source.IndexOf("\ndef ", landDef + 1, StringComparison.Ordinal)];
         int guard = body.IndexOf("if st != ruleset.ACTIVE:", StringComparison.Ordinal);
         Assert.True(guard > 0, "enqueue.py's land() no longer tests the merge queue for ACTIVE");
-        foreach (string step in new[] { "tested(wt", "merge(wt, branch, base)", "(rc := gate_once(", "(stamp or _stamp)", "queue(wt" })
+        foreach (string step in new[] { "(rc := gate_running())", "tested(wt", "merge(wt, branch, base)", "(stamp or _stamp)", "queue(wt" })
         {
             int at = body.IndexOf(step, StringComparison.Ordinal);
             Assert.True(at > guard, $"in enqueue.py's land(), `{step}` is {(at < 0 ? "missing" : "BEFORE the queue guard")}");
@@ -358,7 +358,7 @@ public sealed class LandingPipelineDriftTests
         string body = source[landDef..source.IndexOf("\ndef ", landDef + 1, StringComparison.Ordinal)];
         int lockAt = body.IndexOf("gate_slot.ExclusiveLock.try_take(", StringComparison.Ordinal);
         Assert.True(lockAt > 0, "enqueue.py's land() no longer takes the worktree's land lock (kb/Work PB3310)");
-        foreach (string step in new[] { "worktree_state(wt)", "fetch_main(wt)", "merge(wt, branch, base)", "gates(wt)", "(stamp or _stamp)", "queue(wt" })
+        foreach (string step in new[] { "worktree_state(wt)", "fetch_main(wt)", "busy(wt)", "merge(wt, branch, base)", "(stamp or _stamp)", "queue(wt" })
         {
             int at = body.IndexOf(step, StringComparison.Ordinal);
             Assert.True(at > lockAt, $"in enqueue.py's land(), `{step}` is {(at < 0 ? "missing" : "BEFORE the land lock")}");
@@ -408,19 +408,19 @@ public sealed class LandingPipelineDriftTests
             "land: a dirty worktree is refused (exit 2) before anything is fetched, merged or gated",
             "land: a conflict bringing main in is exit 4: the merge is aborted, the branch unchanged, the report told "
                 + "which files, and nothing gated",
-            // kb/Work PB3612: the landing reads the record of the implementer's gate, and gates only where nothing else has
+            // kb/Work PB3612, PB4331: the landing reads the record of the implementer's gate, and gates nothing
             "land: a tip no recorded GREEN local gate covers is exit 14, UNTESTED, before anything is merged",
             "tested_locally: a GREEN gate run of the committed head's own tree covers the tip",
             "tested_locally: the gated head still covers the tip after main's commits, a clean merge of main, a DEVLOG-only commit and a register-note-only commit",
-            "land: the one gate a landing runs (a lane no one gates) runs on the MERGED head",
+            "land: a lane no one reviews, with no recorded gate, is exit 14 UNTESTED like any branch (the landing gates "
+                + "nothing, kb/Work PB4331)",
             // review R1-1: main takes only queued pull requests, so nothing is merged or gated while the queue is off
             "land: the queue not ACTIVE (ABSENT, DRIFT or SKIPPED) is exit 8 before anything is merged, gated, "
                 + "stamped or pushed: main takes only queued pull requests (kb/Work PB3023 review R1-1)",
             "land: a tested tip opens one pull request titled from the DEVLOG entry, whose body carries the entry "
                 + "and the commits, and queues it, with no gate run by the landing",
-            "land: the queued pull request is measured once, in the branch's worktree, with the gates the landing ran itself",
-            "land: a lane no one gates, with no recorded gate, gates its tip ONCE",
-            "land: a landing check's refusal keeps its own code, with no gate run",
+            "land: the queued pull request is measured once, in the branch's worktree (kb/Work PB3028)",
+            "land: a landing check's refusal keeps its own code",
             // review R1-2: the queue merges other pull requests while the landing queues
             "land: main moving while the landing queues is merged in again WITHOUT any gate and the branch is queued "
                 + "on the new main",
@@ -430,11 +430,9 @@ public sealed class LandingPipelineDriftTests
             "land: a clean merge of main that could not be completed because of the merged tree itself",
             "land: the class of a merge that could not be completed is the gate's ONE classification",
             "land: the same arm at the catch-up merge while the landing queues",
-            // kb/Work PB3612: the one exception, a true textual merge in a file both sides changed
-            "land: bringing main in changed a file the branch also changes (a clean textual merge in shared.txt): the "
-                + "one gate runs ONCE on the merged head",
-            "land: bringing main in over files the branch does not change runs no gate",
-            "merge_overlap: a file a merge driver merges by key (constructs.json, a work note) and one no test reads",
+            // kb/Work PB4331: a true textual merge in a file both sides changed is the merge group's first run too
+            "land: bringing main in over a file the branch also changes (a clean textual merge in shared.txt) runs no "
+                + "gate",
             // MANDATORY-PRACTICES I10, L9 (kb/Work PB3027): only a tip its CLEAN review stamp covers lands
             // kb/Work PB3849: a commit that changes only a kb/Work note is covered like the DEVLOG entry
             "review: a tip that moved after its CLEAN review only by main's commits, a clean merge of main, a "
@@ -443,41 +441,20 @@ public sealed class LandingPipelineDriftTests
                 + "merge) is exit 11 before anything is merged or gated, the report told why",
             "review: a FINDINGS stamp or no report is unreviewed; only a lane I10 does not review, named with "
                 + "--lane, lands without a stamp",
-            // kb/Work PB3103, PB3104: every gate row at enqueue is a landing gate under the shared gate slot
-            "the gate at enqueue is a LANDING gate: its slot is served before waiting implementer gates "
-                + "(kb/Work PB3103, gate_slot.py CLASS_ENV)",
-            "gate rows: every row of GATES_WINDOWS and GATES_LINUX hands the gate to gate.py, which takes the "
-                + "shared gate slot (kb/Work PB3104); the landing has no Linux row of its own",
-            "gate rows: a planted unslotted row (a bare row, a script that does not hand the gate to the driver, no "
-                + "script, a driver that no longer acquires) is refused, and run_gates runs no row (kb/Work PB3104)",
-            // kb/Work PB3527: a held gate lock is BUSY, never a red; the queue watch's remedies live in the only file that queues
-            "land: a gate BUSY (another gate holds the worktree's gate lock) is exit 12, never a red: no report line, "
-                + "no stamp, nothing queued (kb/Work PB3527)",
             "land: a second land of a branch whose first still runs is REFUSED at the land lock, exit 13, naming the "
                 + "holder: nothing gated, stamped or reported (kb/Work PB3310); a dry run takes no lock; an early "
                 + "outcome releases it",
-            "gate rows: each verdict line is read by the gate driver's one reader: BUSY is BUSY (neither a pass nor "
-                + "a red), and a GREEN line with a non-zero "
-                + "exit is RED (kb/Work PB3527); a gate that printed no verdict line measured nothing: NOT RUN "
-                + "(kb/Work PB3526)",
-            // kb/Work PB3526, review R2-1 of wave 1150: a NOT RUN blocks by its cause's class, and main is measured
-            "land: a gate NOT RUN for a cause in the ENVIRONMENT (a host with no SDK; or no gate row at all) is exit "
-                + "2, never a red",
-            "land: a BRANCH-carried NOT RUN (the tree's own gate driver failed) on a main that passes the same gate "
-                + "is exit 5 with a BLOCKED line naming the cause and main's reading",
-            "land: a BRANCH-carried NOT RUN that main fails the SAME way at the same step (its cause) is exit 2 with "
-                + "no report line",
-            "land: an UNCLASSIFIED NOT RUN (no known cause) is BRANCH-carried",
-            "gate_main: main is measured in a clean checkout of its head",
             "the queue watch's remedies: a re-run of the stuck check's run, then (no run on the head still in "
                 + "progress) close, reopen and auto-merge again (in that order, each naming the repository); refused "
                 + "touching nothing while the queue is not ACTIVE; a failed close stops before anything else (kb/Work PB3527)",
             // kb/Work PB4052: a close and reopen cancels the head's run in flight, whose ci-gate then reads as a bounce
             "the requeue refuses, touching nothing, while a workflow run on the head has not completed",
             "the queued line `queue` prints is the one its reader parses (the lane records the pull request's number)",
-            // kb/Work PB3662: a gate still running owes a verdict; it is exit 12, never the terminal exit 14
-            "land: a gate of the worktree still RUNNING (its gate lock is held, no verdict file) is exit 12, GATE "
-                + "BUSY, never exit 14",
+            // kb/Work PB3662, PB4204: a gate that runs holds the landing whatever record exists: exit 12, nothing written
+            "land: a gate of the worktree RUNNING (its gate lock is held) is exit 12, GATE BUSY, even with an older "
+                + "GREEN record covering the tip: nothing merged, stamped, queued or reported",
+            "land: a gate run that is STARTING (spawned moments ago, its child alive, the gate lock not yet taken) is "
+                + "exit 12, GATE BUSY, never exit 14",
             // kb/Work PB3145: a merged predecessor's stamped entry, its pull request still open, is a wait (exit 15)
             "land: a branch carrying the stamped entry of a merged predecessor whose pull request is still OPEN into "
                 + "main",

@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// OPEN still succeeds, '04' still arrives at the short read, and nothing about the conforming behaviour moves.
 /// </para>
 /// </summary>
-[Collection("process-globals")]   // kb/Work PB126: `Console.Error` is process-wide and `RecordLayoutNotice` writes to it on OPEN — a class that swaps the error stream and a class that opens a mismatched fixed file must not run in parallel (LineSequential_IsNeverReported captured another class's notice)
+[Collection(ConsoleErrorCollection.Name)]
 public sealed class RecordLayoutNoticeTests : IDisposable
 {
     private readonly List<string> _paths = [];
@@ -188,4 +188,19 @@ public sealed class RecordLayoutNoticeTests : IDisposable
         Assert.Contains("not a whole multiple", first);
         Assert.Equal("", second);
     }
+}
+
+/// <summary>
+/// ⛔ A TEST THAT SWAPS <c>Console.Error</c> RUNS ALONE. The error stream is process-wide, and any class may write to it
+/// while the swap is in force: <c>RecordLayoutNotice</c> on a mismatched OPEN (kb/Work PB126, which first serialized the
+/// swap against the classes that open files), and the harness's own <c>SCRATCH-LEFT</c> report of a scratch directory it
+/// could not remove (<c>HarnessLog.ReportLeft</c>), which any class's cleanup can print. A shared collection serializes
+/// only its own members, so on 2026-11-01 <c>OutputMode_IsNeverReported</c> captured another class's
+/// <c>SCRATCH-LEFT</c> line (gate run 000001-20261101T145055Z of kb/Work PB4331's branch). With parallelization disabled
+/// the collection runs after every parallel one, alone; its one class takes a tenth of a second.
+/// </summary>
+[CollectionDefinition(Name, DisableParallelization = true)]
+public sealed class ConsoleErrorCollection
+{
+    public const string Name = "console-error";
 }

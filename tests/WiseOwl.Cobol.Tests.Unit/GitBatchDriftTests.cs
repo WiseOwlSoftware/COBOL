@@ -84,29 +84,4 @@ public sealed class GitBatchDriftTests
     }
 
     private static readonly Regex TopLevelDef = new(@"^def (\w+)\(", RegexOptions.Compiled | RegexOptions.Multiline);
-
-    /// <summary><c>git_batch.py --self-test</c> still holds each reader to the one-process-per-object form it replaces
-    /// (held from its source, never run a second time: the self-test runner runs it in every gate and in CI,
-    /// DESIGN-test-build-ci.md section 3.14.10, kb/Work PB2882).</summary>
-    [Fact]
-    public void TheBatchSelfTest_DeclaresEveryArm() =>
-        SelfTestArmSource.AssertDeclares(TestRepo.Scripts("git_batch.py"), [
-            "resolve: each name as `rev-parse --verify -q <name>^{commit}` answers it (None for a non-commit)",
-            "Ancestry: parents and tree as `rev-list --parents` / `<c>^{tree}` read them",
-            "Ancestry.is_ancestor is `merge-base --is-ancestor` (from memory beyond the base, from git on it)",
-            "Ancestry: a tip that names no commit raises (never 'on the base')",
-            "Ancestry: a missing base excludes nothing (every commit the tip reaches)",
-            "Ancestry.of: a known parent map, no git",
-            "Ancestry.on_base_line: `rev-list --first-parent <base>` holds it; a merged branch's own commit is off it",
-            "Ancestry.on_base_line: a missing base, or a graph with no repository, holds nothing",
-            "diff_names: one block per pair, empty diffs included, as `git diff --name-only` per pair",
-            "diff_patches: each pair's -U0 patch of the pathspec, as `git diff -U0` per pair",
-            "object_ids: each `<rev>:<path>` as `rev-parse -q --verify` answers it ('' when absent)",
-            "tree_entries: each `<rev>:<dir>` as `ls-tree` lists its files (subdirectories left out; None for no such " +
-            "directory)",
-            "blobs: each distinct object id as `cat-file blob` reads it, once however often it is asked",
-            "blobs: an id that names no blob raises",
-            "patch_ids: each commit as `git show | git patch-id --stable` gives it, a root commit included, merges absent",
-            "patch_ids: a cherry-pick of a commit shares its id (the key `git cherry` matches on)",
-        ]);
 }
