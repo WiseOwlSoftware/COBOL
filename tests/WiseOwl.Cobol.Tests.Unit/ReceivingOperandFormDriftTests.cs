@@ -97,15 +97,16 @@ public sealed class ReceivingOperandFormDriftTests
     };
 
     /// <summary>The operand rules that follow a receiving keyword yet are SENDING operands — TO also introduces a value in
-    /// INSPECT CONVERTING and in SET Formats 7 and 11 — each with the rule that makes it one. An exemption here is per
+    /// INSPECT CONVERTING and in SET's TO formats and Format 11 — each with the rule that makes it one. An exemption here is per
     /// operand rule, not per statement, so the statement's own receiving slots stay guarded.</summary>
     private static readonly Dictionary<string, string> SendingOperands = new()
     {
         ["sendingOperand"] = "the grammar's identifier-or-literal value: INSPECT CONVERTING's TO operand identifier-7 / "
             + "literal-5 (§14.9.22.4 GR5 — what is said of literal-5 applies equally to identifier-7) and the AFTER/BEFORE "
             + "INITIAL delimiter",
-        ["setAddressSender"] = "SET Format 7's TO operand identifier-6 (§14.9.39.2 Format 7 (data-pointer-assignment); its "
-            + "constraints are §14.9.39.3 SR19's), the address assigned",
+        ["setToSender"] = "the TO operand of every SET format setToStatement carries: Format 7's identifier-6 (§14.9.39.2 "
+            + "Format 7 (data-pointer-assignment); its constraints are §14.9.39.3 SR19's), the address assigned, and the "
+            + "value, object reference or pointer the other formats assign",
         ["setLocaleSource"] = "SET Format 11's TO operand identifier-10 (§14.9.39.2 Format 11 (set-locale); §14.9.39.3 "
             + "SR25), the locale named",
     };
@@ -207,7 +208,7 @@ public sealed class ReceivingOperandFormDriftTests
 
     /// <summary>A named operand rule is a receiving slot over a bare data reference when an alternative of it can begin
     /// with one and none can begin with <c>nonReceivableIdentifier</c> — the second arm is what makes
-    /// <c>receivingIdentifier</c>, <c>setReceivingIdentifier</c> and SET's <c>setAddressReceiver</c> the converted shape,
+    /// <c>receivingIdentifier</c>, <c>setReceivingIdentifier</c> and SET's <c>setToReceiver</c> the converted shape,
     /// structurally rather than by a list of names.</summary>
     private static bool IsBareReceivingList(IReadOnlyDictionary<string, string> rules, string op)
     {

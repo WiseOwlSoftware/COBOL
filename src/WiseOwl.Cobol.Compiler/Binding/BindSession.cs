@@ -75,6 +75,11 @@ internal sealed class BindSession
     /// (<c>BinderDriver.ResolvePointerRestrictions</c>, kb/Work PB2495).</summary>
     public PrototypeSignatureClasses SignatureClasses { get; } = new();
 
+    /// <summary>The group's walk of the parse tree for storage-claim operands (<c>ADDRESS OF</c> heads, BY REFERENCE operands),
+    /// done once and sliced per source element, because every unit's binder asks it about its own procedure division AND about each
+    /// program it contains (kb/Work PB4302). Every unit's <see cref="DataBinder.ClaimScans"/> is this one.</summary>
+    public StorageClaimScan ClaimScans { get; } = new();
+
     private int _uidBand;
 
     /// <summary>Take the next disjoint 100k uid band (one per DataBinder, so nested-class struct/profile names

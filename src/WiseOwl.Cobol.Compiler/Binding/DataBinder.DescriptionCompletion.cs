@@ -88,7 +88,7 @@ public sealed partial class DataBinder
         ComposeAhead(item);
         // The walks below replace each entry's PICTURE profile with the effective one; a later TYPE or SAME AS clause
         // that names an entry of this subtree copies the profile as written (CopyEntryDescription).
-        foreach (var d in PreOrder(item)) _picAsWrittenAhead.TryAdd(d, new PictureAsWritten(d.Pic, d.PicIsUsageSynthesized, d.Pending));
+        foreach (var d in DataItem.SelfAndDescendantsOf(item)) _picAsWrittenAhead.TryAdd(d, new PictureAsWritten(d.Pic, d.PicIsUsageSynthesized, d.Pending));
         UsageInheritanceWalk(item, InheritedUsageAt(item));
         InheritSignWalk(item, InheritedSignAt(item));
         _completedAhead.Add(item);
@@ -106,8 +106,8 @@ public sealed partial class DataBinder
             SynthesizeImpliedPicturesUnder(declaration);
         SynthesizeImpliedPicturesUnder(item);
         // ExpandTypes' order: every TYPE clause, then every SAME AS clause (a SAME AS source copies its expanded TYPE).
-        foreach (var typed in PreOrder(item).Where(i => i.TypeRefName is not null).ToList()) ExpandType(typed);
-        foreach (var sameAs in PreOrder(item).Where(i => i.SameAsName is not null).ToList()) ExpandSameAs(sameAs, []);
+        foreach (var typed in DataItem.SelfAndDescendantsOf(item).Where(i => i.TypeRefName is not null).ToList()) ExpandType(typed);
+        foreach (var sameAs in DataItem.SelfAndDescendantsOf(item).Where(i => i.SameAsName is not null).ToList()) ExpandSameAs(sameAs, []);
     }
 
     /// <summary>⛔ A LENGTH OPERAND MAY BE A SUBORDINATE THAT A TYPE OR SAME AS CLAUSE SUPPLIES (kb/Work PB2844).

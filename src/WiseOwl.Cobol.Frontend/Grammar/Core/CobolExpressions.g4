@@ -899,7 +899,7 @@ nonNumericLiteral
 // never one of the §8.3.3.6.2 figurative formats. It used to be a `figurativeConstant` arm, which
 // is how every generic figurative consumer read it as LOW-VALUE: `STRING NULL …` stored a NUL, `INSPECT … FOR ALL
 // NULL` tallied, `FUNCTION LENGTH(NULL)` answered 1 (kb/Work PB1427). ONE rule, read by every slot that names it
-// (`nonNumericLiteral`, the SET senders `setAddressSender` / `objectReference`), so the binder has one node to ask.
+// (`nonNumericLiteral`, the SET sender `setToSender`, `objectReferenceTerm`), so the binder has one node to ask.
 predefinedNull
     : NULL_
     ;

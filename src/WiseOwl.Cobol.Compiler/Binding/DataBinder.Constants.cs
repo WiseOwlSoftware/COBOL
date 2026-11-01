@@ -336,7 +336,7 @@ public sealed partial class DataBinder
         if (scope is null) return;
         var method = _bindingMethodScope?.Constants;
         bool inTypeDeclaration = false;   // the walk is inside a level-1 TYPEDEF entry's subordinate entries
-        foreach (var node in Descendants(scope))
+        foreach (var node in ParseTreeWalk.Descendants(scope))
         {
             if (node is Core.ReportDescriptionEntryContext rd) DeclareReportEntries(rd);
             if (node is Core.DataDescriptionEntryContext record && EntryLevel(record) is 1 or 77)
@@ -382,17 +382,6 @@ public sealed partial class DataBinder
             if (scope == _constants && _inheritedConstants.Remove(name)) _constants.Bound.Remove(name);
         }
         return d;
-    }
-
-    /// <summary>Every parse-tree descendant of <paramref name="node"/>, depth first in source order.</summary>
-    private static IEnumerable<IParseTree> Descendants(IParseTree node)
-    {
-        for (int i = 0; i < node.ChildCount; i++)
-        {
-            var child = node.GetChild(i);
-            yield return child;
-            foreach (var d in Descendants(child)) yield return d;
-        }
     }
 
     /// <summary>Bind every constant entry nothing has bound yet — the last step of the data division's bind, so the

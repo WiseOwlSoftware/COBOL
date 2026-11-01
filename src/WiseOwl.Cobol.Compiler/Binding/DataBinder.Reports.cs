@@ -5064,17 +5064,10 @@ public sealed partial class DataBinder
         }
     }
 
-    private static IEnumerable<string> SubscriptIdentifiers(Antlr4.Runtime.Tree.IParseTree node)
-    {
-        if (node is Antlr4.Runtime.Tree.ITerminalNode t)
-        {
-            if (ReferenceResolver.IsNameToken(t.Symbol) || t.Symbol.Type is Core.LINE_COUNTER or Core.PAGE_COUNTER)
-                yield return t.GetText();
-            yield break;
-        }
-        for (int i = 0; i < node.ChildCount; i++)
-            foreach (var w in SubscriptIdentifiers(node.GetChild(i))) yield return w;
-    }
+    private static IEnumerable<string> SubscriptIdentifiers(Antlr4.Runtime.Tree.IParseTree node) =>
+        ParseTreeWalk.SelfAndDescendants(node).OfType<Antlr4.Runtime.Tree.ITerminalNode>()
+            .Where(t => ReferenceResolver.IsNameToken(t.Symbol) || t.Symbol.Type is Core.LINE_COUNTER or Core.PAGE_COUNTER)
+            .Select(t => t.GetText());
 
     /// <summary>Is <paramref name="word"/> one of the identifiers ISO §8.4.2.3.3 SR8 bars as a report section subscript:
     /// the LINE-COUNTER or PAGE-COUNTER register, or a sum counter — the name of a report section entry (and of no
@@ -5112,13 +5105,8 @@ public sealed partial class DataBinder
             }
     }
 
-    private IEnumerable<string> SubscriptWordsOf(Antlr4.Runtime.Tree.IParseTree node)
-    {
-        if (node is Core.DataReferenceContext dref)
-            foreach (var w in SubscriptWordsOfReference(dref)) yield return w;
-        for (int i = 0; i < node.ChildCount; i++)
-            foreach (var w in SubscriptWordsOf(node.GetChild(i))) yield return w;
-    }
+    private IEnumerable<string> SubscriptWordsOf(Antlr4.Runtime.Tree.IParseTree node) =>
+        ParseTreeWalk.SelfAndDescendants(node).OfType<Core.DataReferenceContext>().SelectMany(SubscriptWordsOfReference);
 
     /// <summary>The report-section-exclusive names of one report: the data-name of EVERY report group description
     /// entry it writes — the group's own, an intermediate group entry's, a printable entry's, a sum counter's, an

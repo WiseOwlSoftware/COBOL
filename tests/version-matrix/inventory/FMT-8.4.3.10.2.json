@@ -10,6 +10,6 @@
  "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1427_null_operand_model; unit:PredefinedNullContextDriftTests.NullToken_IsSpelledOnlyByThePredefinedNullRule",
  "derivation": "",
  "editions": "2002,2014,2023",
- "notes": "kb/Work PB1427 LANDED (wave 68 Y). The general format is the single word NULL; the grammar spells it by ONE rule, predefinedNull : NULL_ (carried by nonNumericLiteral, the SET senders setAddressSender / objectReference, callByReference and invokeArgument's BY REFERENCE arm), no longer an arm of figurativeConstant — the drift test fails if NULL_ is spelled in any other parser rule (the reservedGatedWord COBOL-85 user-word gate excepted).",
+ "notes": "kb/Work PB1427 LANDED (wave 68 Y). The general format is the single word NULL; the grammar spells it by ONE rule, predefinedNull : NULL_ (carried by nonNumericLiteral, the SET sender setToSender, objectReferenceTerm, callByReference and invokeArgument's BY REFERENCE arm), no longer an arm of figurativeConstant — the drift test fails if NULL_ is spelled in any other parser rule (the reservedGatedWord COBOL-85 user-word gate excepted).",
  "state": "OK"
 }
