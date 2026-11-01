@@ -29,7 +29,7 @@ underscore edge the lexer takes whole, and the hyphen edge the screen joins. `DE
 spaced minus, signs; 007/002/012/WORD from the arithmetic), and `cases/8.1.3-COBOL-character-repertoire/pb4278-trailing-
 hyphen-in-a-word` and `-leading-hyphen-in-a-word` (COBOL2773 at every edition). `WordCharacterScreenTests` adds both
 positions, every edition, a reserved word, an integer, a word that also holds an underscore, the location and order
-of the cause, operators and signs that are not word edges (on both word sources), the parsed source, and a literal,
+of the cause, operators and signs that are not word edges on each word source, the parsed source, and a literal,
 a comment-entry and a comment debugging line.
 
 **Rows.** None claimed, none closed. The rule catalog has no row for the §8.3.2.1 general paragraph (the report's
@@ -39,3 +39,11 @@ lead).
 that the separator rule mirrors. Performance: one reused chain list, and token text is read only for candidates and
 for chains that hold a MINUS. Duplication: no second statement of the position rule. A hyphen next to a literal's
 opening delimiter (`-X"41"`) is not joined, because it is §8.3.5 5)'s case (COBOL2633).
+
+**Branch review, round 1.** One blocking finding (R1-1): `AnOperatorOrASign_IsNoWordEdge` claimed both word sources,
+but both of its variants read the lexer stream. COBOL2993 is a frontend error, so the binder never ran and
+`RunOnTree`'s operator arm had no witness: passing `false` there made `01 B PIC S9(3) VALUE -A.` draw a spurious
+COBOL2773 beside its COBOL1902, and no test failed. The theory is now `_OnTheLexerStream`. It proves its source by the
+binder diagnostic it does NOT draw (`MOVE QQQ`, no COBOL1639) and adds a VALUE-slot sign for `TreeFacts`. The new
+`_OnTheParsedSource` proves the binder ran (COBOL1639) and pins `VALUE -A` to COBOL1902 alone. That VALUE-slot sign is
+the one hyphen the tree makes an `addOp` while the binder still runs. With the mutation applied, the new test fails.

@@ -492,11 +492,13 @@ public sealed class WordCharacterScreenTests
     /// <summary>A hyphen the TREE made an arithmetic operator is §8.7.1's boundary ("shall be preceded by a space and followed by
     /// a space"), reported by the separator rule as COBOL2993 and never also as a word; a sign touching its digits is a
     /// numeric literal's leftmost character (§8.3.3.3.2 2)), and a list region's <c>A -1</c> is two arguments: none of them
-    /// is a word's edge. The same holds when another error stops the compile (the screen then reads the lexer's stream).</summary>
+    /// is a word's edge. COBOL2993 is a FRONTEND error, so the binder never runs and this is the LEXER-STREAM word source
+    /// (<see cref="WordCharacterScreen.RunOnTokens"/>, its operators named by the partial tree's facts): the undefined
+    /// <c>QQQ</c> draws no binder diagnostic, which proves it. A parse that also fails elsewhere reads the same stream.</summary>
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public void AnOperatorOrASign_IsNoWordEdge(bool failsElsewhere)
+    public void AnOperatorOrASign_IsNoWordEdge_OnTheLexerStream(bool parseFails)
     {
         string source = $"""
             IDENTIFICATION DIVISION.
@@ -505,19 +507,56 @@ public sealed class WordCharacterScreenTests
             WORKING-STORAGE SECTION.
             01 A PIC S9(3) VALUE -1.
             01 B PIC S9(3) VALUE 2.
+            01 C PIC S9(3) VALUE -B.
             PROCEDURE DIVISION.
                 COMPUTE A = A- B.
                 COMPUTE A = A -B.
                 COMPUTE A = -B.
                 MOVE -1 TO A.
                 COMPUTE A = FUNCTION MAX(A -1).
-                {(failsElsewhere ? "DISPLAY \"X\" MOVE MOVE." : "")}
+                MOVE QQQ TO A.
+                {(parseFails ? "DISPLAY \"X\" MOVE MOVE." : "")}
                 STOP RUN.
             """;
         var (ok, errors, warnings) = EditionHarness.CompileFull(source, 2023);
         string all = string.Join('\n', errors.Concat(warnings));
         Assert.False(ok);
         Assert.Equal(3, errors.Count(e => e.Contains("COBOL2993") && e.Contains("§8.7.1")));
+        Assert.DoesNotContain("COBOL1639", all);   // the binder did not run: the screen read the lexer's stream
+        Assert.DoesNotContain("COBOL2773", all);
+    }
+
+    /// <summary>The PARSED word source (<see cref="WordCharacterScreen.RunOnTree"/>) asks the same operator question of the
+    /// tree's own terminals. Every operator that touches a word draws COBOL2993, a frontend error that stops the compile before
+    /// the binder, so the one hyphen the tree makes an <c>addOp</c> while the binder still runs is a VALUE literal slot's sign:
+    /// <c>VALUE -A</c> parses as a unary expression, which §8.7.1 does not judge in a literal slot, and the VALUE rule refuses
+    /// it as no literal (COBOL1902, §13.18.63.2). That is its one report, never a COBOL2773 word <c>-A</c> beside it; the
+    /// undefined <c>QQQ</c> (COBOL1639) proves the binder ran. A literal's sign (<c>-1</c>, <c>VALUE -1</c>), a list region's
+    /// <c>A -1</c> and a spaced minus are no word's edge on this source either.</summary>
+    [Fact]
+    public void AnOperatorOrASign_IsNoWordEdge_OnTheParsedSource()
+    {
+        string source = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB4278P.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 A PIC S9(3) VALUE -1.
+            01 B PIC S9(3) VALUE -A.
+            PROCEDURE DIVISION.
+                COMPUTE A = -1.
+                COMPUTE A = A - B.
+                MOVE -1 TO A.
+                COMPUTE A = FUNCTION MAX(A -1).
+                MOVE QQQ TO A.
+                STOP RUN.
+            """;
+        var (ok, errors, warnings) = EditionHarness.CompileFull(source, 2023);
+        string all = string.Join('\n', errors.Concat(warnings));
+        Assert.False(ok);
+        Assert.Contains(errors, e => e.Contains("COBOL1639") && e.Contains("'QQQ'"));   // the binder ran: the tree's source
+        Assert.Contains(errors, e => e.Contains("COBOL1902") && e.Contains("'-A'"));
+        Assert.DoesNotContain("COBOL2993", all);
         Assert.DoesNotContain("COBOL2773", all);
     }
 
