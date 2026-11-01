@@ -176,7 +176,8 @@ U+00E6         [23EC0 0020 0004] [0000 011F 0004] [24530 0020 0004]
 ```
 
 To place X immediately after Y at the primary level, give X a primary between `Lookup(Y).Primary` and the next
-root primary (any of the 15 free values); the shipped `es.tailor` shows the derivation from CLDR's `&N<ñ<<<Ñ`.
+root primary (any of the 15 free values, except the one just below the digit zero's primary: it is the lead of a
+number under numeric ordering, and a primary there is refused with its line, kb/Work PB4264); the shipped `es.tailor` shows the derivation from CLDR's `&N<ñ<<<Ñ`.
 An entry REPLACES the whole element sequence of its code point / contraction. **Canonical closure is automatic** —
 the same step a CLDR collation goes through (`CollationTable.Rebuild`): a tailored key whose NFD is a different
 sequence (a precomposed `ñ`; a contraction keyed `á + U+0323`) also maps that NFD spelling, and every precomposed
@@ -188,7 +189,7 @@ line (`LocaleCollationException`); a duplicate mapping is an error, not "last wi
 **The failure contract** (kb/Work PB2773). Every data problem on the resolution path is ONE type,
 `LocaleCollationException` (file, line where it has one, reason): a site CLDR file that cannot be read or parsed (raised
 by `CldrLocaleLoader` at the file boundary, cached so it is read once), a `.tailor` that cannot be read or parsed, a
-`.tailor` written for another UCA version (`CollationTable.WithTailoring`), and a CLDR collation the builder cannot
+`.tailor` written for another UCA version or giving a character the numeric lead's primary (`CollationTable.WithTailoring`), and a CLDR collation the builder cannot
 number. A problem with ONE CLDR rule (a circular `[import]`, a `[before n]` with nothing before it, a relation with no
 reset) is not a failure of the locale: the builder skips the rule and lists it in `Unsupported`. The ONE catch is
 `CollationEngine.ResolveLocale`, which records the failure as `ResolvedLocaleCollation.Failure` over the root order
