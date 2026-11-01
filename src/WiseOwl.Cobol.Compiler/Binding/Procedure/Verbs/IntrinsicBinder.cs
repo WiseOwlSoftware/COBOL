@@ -574,6 +574,21 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             : result;
     }
 
+    /// <summary>The cause of a function name's removal, for COBOL5776 (kb/Work PB4309): the directive as written (its
+    /// words are held upper-case, without quotes), where it stands in the user's source (<see cref="CobolWordsOp.At"/>
+    /// through the line map), and the rule that withdrew the name — ISO §7.3.10.4 GR3 (UNDEFINE) or GR4 (SUBSTITUTE,
+    /// whose literal-5 takes over the role, so it is named as the spelling to write).</summary>
+    private static string RemovalClause(CobolWordsOp op, EditionContext edition)
+    {
+        var origin = edition.OriginOf(op.At.Line);
+        string where = $"{origin.File} line {origin.Line}";
+        return op.Action == CobolWordsAction.Undefine
+            ? $">>COBOL-WORDS UNDEFINE \"{op.Existing}\" ({where}) withdrew the word as an intrinsic function name "
+              + "(ISO §7.3.10.4 GR3)"
+            : $">>COBOL-WORDS SUBSTITUTE \"{op.Existing}\" BY \"{op.New}\" ({where}) withdrew the word as an intrinsic "
+              + $"function name; FUNCTION {op.New} now denotes it (ISO §7.3.10.4 GR4)";
+    }
+
     private BoundExpr BindFunctionResult(FunctionWord word, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
         // >>COBOL-WORDS (ISO §7.3.10.4 GR2/GR3/GR4) was applied ONCE, when the FunctionWord was made (kb/Work PB1372 —
@@ -602,14 +617,21 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 
         if (cobolWordsRemoved || !IntrinsicCatalog.TryGet(name, out var sig))
         {
-            bool definedInGroup = host.UserFunctions?.ContainsKey(name) == true;
-            ctx.Edition.Error("COBOL1501", $"FUNCTION {name.ToUpperInvariant()} is not an intrinsic function "
-                + "of ISO/IEC 1989 (§15.6 summary of functions)"
-                + (definedInGroup
-                    ? $"; the compilation group defines FUNCTION-ID {name.ToUpperInvariant()} — declare "
-                      + $"FUNCTION {name.ToUpperInvariant()} in this unit's REPOSITORY paragraph to reference "
-                      + "it as a user-defined function (ISO §12.3.8.4 GR12)"
-                    : ""));
+            // The two causes are told apart (kb/Work PB4309): a name the user's own >>COBOL-WORDS directive withdrew
+            // IS an intrinsic function of ISO/IEC 1989 (§15) — only this compilation group no longer has it — so the
+            // refusal names the directive and where it is written; any other name is no intrinsic function at all.
+            string upper = name.ToUpperInvariant();
+            string declareHint = host.UserFunctions?.ContainsKey(name) == true
+                ? $"; the compilation group defines FUNCTION-ID {upper} — declare FUNCTION {upper} in this unit's "
+                  + "REPOSITORY paragraph to reference it as a user-defined function (ISO §12.3.8.4 GR12)"
+                : "";
+            if (cobolWordsRemoved && ctx.CobolWords.RemovedBy(word.Written) is { } removedBy)
+                ctx.Edition.Error(DiagnosticCatalog.IntrinsicRemovedByCobolWords,
+                    $"FUNCTION {upper} is not available in this compilation group: " + RemovalClause(removedBy, ctx.Edition)
+                    + declareHint);
+            else
+                ctx.Edition.Error("COBOL1501", $"FUNCTION {upper} is not an intrinsic function of ISO/IEC 1989 "
+                    + "(§15.6 summary of functions)" + declareHint);
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
         }
 
@@ -1115,8 +1137,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 + $"({rule}); {argCtxs.Count} argument(s) given");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
         }
-        // The phrase is a 2002 introduction (the function is 1985): the construct gate, like EXCEPTION-FILE's argument.
-        ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.CaseFunctionLocalePhrase2002,
+        // The phrase is a 2014 introduction (kb/Work PB4311; the function is 1985; the printed 2002 formats are
+        // `( argument-1 )`): the construct gate, like EXCEPTION-FILE's argument.
+        ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.CaseFunctionLocalePhrase2014,
             $"the LOCALE phrase of FUNCTION {sig.Name}");
         var operand = BindArgOperand(argCtxs[0]);
         LocaleRef locale;
@@ -2319,6 +2342,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (KeywordWordOf(a) == "PHYSICAL" && operands.Count == 1 && !physical && i == argCtxs.Count - 1)
             {
                 physical = true;
+                // PHYSICAL is a 2014 introduction (kb/Work PB4308): the printed 2002 format is `( argument-1 )`, and below
+                // 2014 the word is an ordinary user word (reserved-words.json r85/r2002 false), so the construct gate
+                // answers here, once for LENGTH and BYTE-LENGTH, exactly as TRIM's argument-2 and EXCEPTION-FILE's argument do.
+                ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.LengthPhysicalArgument2014,
+                    $"the PHYSICAL phrase of FUNCTION {sig.Name}");
                 continue;
             }
             // A type-name argument (§15.50.3 r1 / §15.14.3 r1 — kb/Work PB61): the length of the type
