@@ -104,7 +104,7 @@ Every outcome ends on ONE line `=== ENQUEUE: <OUTCOME> … ===` for a caller to 
   1. ⛔ THE QUEUE GUARD, FIRST: `ruleset.py check` must report the merge queue ACTIVE on main, or nothing is pushed or
      opened (exit 8). The operator's review (2026-10-11 13:39): a pull request runs only the cheap CI jobs, so its
      `ci-gate` passes on them; opened before the ruleset exists, `gh pr merge --auto` would merge it with NO
-     whole-population run. LandingPipelineDriftTests holds that no other file in the tree opens or queues a pull
+     whole-population run. scripts/orchestrator/landing_rules.py holds that no other file in the tree opens or queues a pull
      request, so this guard is the only door.
   2. HEAD must be on a branch (not main, not detached) and a descendant of a freshly fetched origin/main (`land` merges
      it in; exit 2 otherwise).
@@ -398,7 +398,7 @@ def queue(cwd: pathlib.Path, title: str, body_file: str, *, gh: Gh, state: Calla
 # ── the queue watch's remedies (kb/Work PB3527) ──────────────────────────────────────────────────────────────────
 # The landing lane's queue watch (land_lane.py) follows each pull request this script queued into GitHub's merge queue
 # and, when one is not in it past the grace, applies these, one per stalled read: they live HERE because this is the
-# only file that queues a pull request (LandingPipelineDriftTests), behind the same ACTIVE guard as `queue`.
+# only file that queues a pull request (scripts/orchestrator/landing_rules.py), behind the same ACTIVE guard as `queue`.
 # THEIR CONTRACT IS AN ANSWER, NEVER AN EXCEPTION (kb/Work PB3527 review R1-4): GitHub that gives no answer
 # (ruleset.Unobserved: gh missing, or silent past its timeout) is (False, why), so the watch records a FAILED read and
 # escalates on the next one, and the tick that runs the watch goes on to launch its landings. A raised Unobserved aborted
@@ -2195,6 +2195,54 @@ def self_test() -> int:
                f"rc={rc} files={sorted(p.name for p in (bounced / 'DEVLOG').iterdir())}")
     finally:
         remove_tree(root)
+
+    # THE SHAPE OF THIS FILE'S OWN CODE (kb/Work PB3024, PB3023, PB3310, PB3028, PB3610, PB3642): the guards come before
+    # the steps they guard, and the landing goes through the one merge, the one verdict writer and the one record. Read
+    # from this file's code outside this self-test, which spells the strings it looks for.
+    source = pathlib.Path(__file__).read_text(encoding="utf-8").replace("\r\n", "\n")
+    at = source.index("\ndef self_test(")
+    code = source[:at] + source[source.index("\ndef ", at + 1):]
+
+    def function(name: str) -> str:
+        start = code.index(f"\ndef {name}(")
+        return code[start:code.index("\ndef ", start + 1)]
+
+    def after(body: str, guard: str, steps: tuple[str, ...]) -> list[str]:
+        """Each of `steps` that is missing from `body` or comes before `guard` there."""
+        g = body.find(guard)
+        return [s for s in steps if g < 0 or body.find(s) <= g]
+
+    early = after(function("queue"), "if st != ruleset.ACTIVE:",
+                  ("checks(sha, base)", '"push"', '"pr", "create"', '"pr", "merge"'))
+    expect("shape: queue() tests the merge queue for ACTIVE before the landing checks, the push and both pull-request "
+           "calls (kb/Work PB3024)", not early, f"missing or before the guard: {early}")
+    land_body = function("land")
+    early = after(land_body, "if st != ruleset.ACTIVE:",
+                  ("(rc := gate_running())", "tested(wt", "merge(wt, branch, base)", "(stamp or _stamp)", "queue(wt"))
+    expect("shape: land() asks for an ACTIVE queue before it reads the record, merges main in or stamps, and has no "
+           "direct-push path onto main (kb/Work PB3023 review R1-1)",
+           not early and "push-main" not in land_body, f"missing or before the guard: {early}")
+    early = after(land_body, "gate_slot.ExclusiveLock.try_take(",
+                  ("worktree_state(wt)", "fetch_main(wt)", "busy(wt)", "merge(wt, branch, base)", "(stamp or _stamp)",
+                   "queue(wt"))
+    expect("shape: land() takes the worktree's land lock before it reads the worktree and before anything is merged, "
+           "gated, stamped or pushed, and a second land is EXIT_LAND_BUSY (kb/Work PB3310)",
+           not early and "EXIT_LAND_BUSY" in land_body, f"missing or before the lock: {early}")
+    expect("shape: the queue step writes the landing record itself, on both entry points, so no brief has to remember "
+           "to (kb/Work PB3028)",
+           "measure=lambda branch, pr: measure_landing(cwd, branch, pr, a.changes, None)" in code
+           and "measure=lambda wt, branch, pr: measure_landing(wt, branch, pr, None, 0)" in code
+           and "landing_measure.record_enqueued(" in code)
+    expect("shape: main is merged in through merge_drivers.merge, never a bare merge, and the CONFLICT outcome has its "
+           "one writer (verdict_line.conflict_outcome; kb/Work PB3610, PB3714)",
+           "merge_drivers.merge(wt, base," in code and '"merge", "--no-edit"' not in code
+           and "verdict_line.conflict_outcome(files)" in code)
+    wiring = [w for w in ("driver_file_holders(wt, base, branch, gh=gh)", "merge_drivers.covered_by_driver(p)",
+                          "queue_facts.read(gh)", "known[n].entering", "take_queue_entry_lock(wt,",
+                          "EXIT_DRIVER_FILE_QUEUED,") if w not in code]
+    expect("shape: land waits (exit 16) while an open pull request that ENTERS the queue shares a driver-merged file, "
+           "holding the queue-entry lock from that look to the queueing (kb/Work PB3642)", not wiring,
+           f"missing: {wiring}")
     print(f"=== enqueue.py self-test: {'FAIL' if failures else 'PASS'} ({len(failures)} failure(s)) ===")
     return 1 if failures else 0
 
