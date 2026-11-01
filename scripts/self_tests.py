@@ -499,9 +499,11 @@ class PassStore:
             if newest_changed is None:
                 newest_changed = changed
         if lapsed is not None and newest_changed is None:
+            real = lapsed["clock"].get("real")
             return None, (f"re-run: the clock proof of the PASS of {lapsed.get('when', '?')} ended "
                           f"{lapsed['clock']['until']} (a PASS is reused only while the clock it was proven against "
-                          f"covers today)")
+                          f"covers today"
+                          + (f"; {real} cannot be moved, so it covers the day it was recorded" if real else "") + ")")
         if newest_changed is None:
             if unusable:
                 return None, (f"re-run: {unusable} recorded PASS(es) for {platform} are of another schema, Python or "
@@ -512,14 +514,16 @@ class PassStore:
 
     def record(self, test: str, platform: str, deps: "inputs.Deps", seconds: float, by: str,
                clock: "clocks.Clock | None" = None) -> Path:
-        """Record a PASS. `clock` is the clock proof the run made (a shifted run that passed too): the record carries the
-        last day it covers (`Clock.until`), which `lookup` holds a reuse to."""
+        """Record a PASS. `clock` is the clock proof the run made (a shifted run that passed too, or a clock that cannot be
+        shifted): the record carries the last day it covers (`Clock.until`), which `lookup` holds a reuse to. Only a
+        self-test that cannot read a clock records none, and is reused whatever the day."""
         d = self._dir(test, platform)
         d.mkdir(parents=True, exist_ok=True)
         body = json.dumps(deps.to_json(), sort_keys=True)
         path = d / f"{hashlib.sha256(body.encode('utf-8')).hexdigest()[:20]}.json"
         when = dt.datetime.now(dt.timezone.utc)
-        proof = {"shift_days": clock.shift_days, "until": clock.until(when)} if clock is not None and clock.shift_days else None
+        proof = ({"shift_days": clock.shift_days, "real": clock.real, "until": clock.until(when)}
+                 if clock is not None and clock.bounded else None)
         sharedfile.replace_text(path, json.dumps(
             {"schema": PASS_SCHEMA, "test": test, "platform": platform, "python": _python(), "seconds": round(seconds, 1),
              "when": when.isoformat(timespec="seconds"), "by": by, "clock": proof,
@@ -674,7 +678,7 @@ class Runner:
         seen = inputs.read_trace(trace_dir, self.tree)
         texts = {}
         for p in {test.path, *seen.files}:
-            if p.endswith(".py"):
+            if p.endswith(".py") or p == test.path:  # a PowerShell or bash self-test's own text is read for its clock
                 with contextlib.suppress(OSError, UnicodeDecodeError):  # looked for and absent, or not text: no source
                     texts[p] = (self.repo / p).read_text(encoding="utf-8")
         return clocks.Clock.of(test.path, texts, HEADER_LINES, inputs.RUNNER)
@@ -1060,14 +1064,20 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
                 ("test_relative.py", "import datetime, sys\nnow = datetime.datetime.now(datetime.timezone.utc)\n"
                                      "authored = now - datetime.timedelta(hours=1)\n"
                                      "sys.exit(0 if datetime.datetime.now(datetime.timezone.utc) - authored < datetime.timedelta(days=30) else 1)\n"),
+                # the child's clock must lie inside the interval the parent's own clock brackets its run in: moved with its
+                # parent's it does, at the other clock it is 400 days outside it; a slow start-up only widens the interval
+                # (a second of allowance is for the two clocks' rounding, never a limit on how long the child takes)
                 ("test_child.py", "import subprocess, sys, time\n"
+                                  "before = time.time()\n"
                                   "child = float(subprocess.run([sys.executable, '-c', 'import time; print(time.time())'],"
                                   " capture_output=True, text=True, check=True).stdout)\n"
-                                  "sys.exit(0 if abs(child - time.time()) < 300 else 1)\n"),
+                                  "after = time.time()\n"
+                                  "sys.exit(0 if before - 1 <= child <= after + 1 else 1)\n"),
                 ("test_mtime.py", mtime),
                 ("test_real.py", "# SELF-TEST-CLOCK: real — it compares the Python clock with its file's modification time\n" + mtime),
                 ("test_plain.py", "import sys\nsys.exit(0)\n")):
             (root / "scripts" / name).write_text(body, encoding="utf-8", newline="\n")
+        (root / "scripts" / "test_date.sh").write_text("stamp=$(date +%s)\n", encoding="utf-8", newline="\n")  # R1-2's bash arm
         ScratchRepo.init(root).git("add", "-A")
         found = {t.path.rsplit("/", 1)[-1]: t for t in discover(root)}
         tests = [found[n] for n in sorted(bodies)]
@@ -1239,9 +1249,27 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
             away = (dt.date.fromisoformat(proof["until"]) - dt.datetime.now(dt.timezone.utc).date()).days
             return proof["shift_days"], abs(away - proof["shift_days"]) <= 1
 
-        check("arm: a clock-proved PASS records the horizon it proved; one that was not shifted records none",
+        check("arm: a clock-proved PASS records the horizon it proved, a declared real clock the day it was recorded (no "
+              "shift can prove it past today); only a self-test that cannot read the clock records none",
               (horizon(recorded("test_relative.py")), horizon(recorded("test_plain.py")), horizon(recorded("test_real.py"))),
-              ((clocks.CLOCK_SHIFT_DAYS, True), None, None))
+              ((clocks.CLOCK_SHIFT_DAYS, True), None, (0, True)))
+        script = SelfTest("scripts/test_date.sh", handles_flag=False, platform=None, platform_reason="")
+        check("arm: a bash self-test whose own text reads the clock gets the day-bound clock, one that does not none (R1-2)",
+              (Runner(root, plat, lambda _: None, budget=Budget(budget_dir, 1), store=PassStore(store_dir),
+                      classification=planted)._clock(script, empty).real != "",
+               Runner(root, plat, lambda _: None, budget=Budget(budget_dir, 1), store=PassStore(store_dir),
+                      classification=planted)._clock(SelfTest("scripts/test_none.sh", False, None, ""), empty).real),
+              (True, ""))
+        realized = PassStore(store_dir)._records("scripts/test_real.py", plat)[0]
+        past = json.loads(realized.read_text(encoding="utf-8"))
+        past["clock"]["until"] = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=1)).date().isoformat()
+        realized.write_text(json.dumps(past), encoding="utf-8", newline="\n")
+        reran = gate(True, [], which=[found["test_real.py"]])
+        check("arm: a declared-real PASS recorded on an earlier day is NOT reused (CI runs the self-test fresh against "
+              "today's clock; a local gate must not answer REUSED for a fixture the clock may have overtaken), says why, and "
+              "the fresh PASS is reused on its own day",
+              (reran[0].state, "cannot be moved" in reran[0].note, gate(True, [], which=[found["test_real.py"]])[0].state),
+              (GREEN, True, REUSED))
         reused = gate(True, [], which=[found["test_relative.py"]])
         check("arm: inside its horizon a clock-proved PASS is reused", reused[0].state, REUSED)
         stored = PassStore(store_dir)._records("scripts/test_relative.py", plat)[0]

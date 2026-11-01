@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SELF-TEST-CLOCK: real — its arms start child processes and compare their clocks with this process's own, which the runner would move
 """self_test_clock.py — THE CLOCK A SCRIPT SELF-TEST IS PROVEN AGAINST, so a fixture dated near its authoring day fails
 the day it is written, not the day the wall clock overtakes it (kb/Work PB4358; docs/rearchitecture/DESIGN-test-build-ci.md
 §3.14.10, "The clock proof").
@@ -27,16 +28,22 @@ inside that horizon, so a reused PASS can never outlive the clock proof it rests
              first HEADER_LINES lines, with the reason:
                  # SELF-TEST-CLOCK: real — <the real clock it compares the Python clock with>
              and is not run shifted: the shift would put its two clocks 400 days apart, a red that says nothing about
-             the self-test. The declaration is visible on the console line; nothing else exempts a self-test.
+             the self-test. The declaration is visible on the console line; nothing else exempts a self-test. A clock
+             that cannot be proved past today leaves no horizon to reuse a PASS inside, so a PASS of such a self-test is
+             reused only on the day it was recorded (`Clock.until` is that day), and CI, which never reuses, runs it
+             fresh against any clock the dated fixture has since been overtaken by.
   RESIDUE    named, not hidden: a PowerShell or bash self-test is not shifted (`Get-Date` and `date` read a clock no
-             Python process moves), and neither is a clock read that is not Python's (a file's mtime, a process's start
-             time): the self-test reading it declares REAL. CI's nightly and every merge group still run it at today's
-             clock.
+             Python process moves); one whose own text reads such a clock (`SCRIPT_CLOCK_RE`) is held to the same day
+             as REAL, and a helper script it sources is not traced. A clock read that is not Python's (a file's mtime, a
+             process's start time) in a Python self-test is declared REAL. CI's nightly and every merge group still run
+             every self-test at today's clock.
 
 HOW THE CLOCK MOVES. The runner's tracer directory (`self_test_inputs.install_tracer`) holds a `sitecustomize` that
 begins with SHIM, so every Python process a shifted self-test starts (itself and every child that inherits its
 environment) sees `datetime.datetime.now/utcnow/today`, `datetime.date.today`, `time.time`, `time.time_ns` and the
-argument-less `time.localtime/gmtime/ctime/asctime/strftime` moved forward by SHIFT_ENV days. `time.monotonic` and
+argument-less `time.localtime/gmtime/ctime/asctime/strftime` moved forward by SHIFT_ENV days. Each reading is the ONE
+shifted instant (`time.time() + shift`) converted by the host zone at that instant, so a naive local reading and
+`time.time()` agree on a day whose zone offset differs from today's (daylight saving). `time.monotonic` and
 `time.perf_counter` are NOT moved (a duration measured on them is the same on both clocks), nor is `time.sleep`.
 """
 from __future__ import annotations
@@ -49,6 +56,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -63,6 +71,13 @@ SHIFT_ENV = "COBOL_SELF_TEST_CLOCK_SHIFT_DAYS"
 CLOCK_SHIFT_DAYS = 400
 #: A `#` header marker, as the platform and population markers are (scripts/self_tests.py HEADER_LINES).
 REAL_RE = re.compile(r"^#\s*SELF-TEST-CLOCK:\s*(real)\s*[—-]+\s*(\S.*?)\s*$", re.MULTILINE)
+
+#: A PowerShell or bash self-test reads the clock through `Get-Date`, `[DateTime]`, `date`, `$SECONDS` or a file's
+#: modification time. No Python shim moves those, so such a self-test is not run shifted; its PASS is reused only on the
+#: day it was recorded (`Clock.until`). Its own text only: a helper script it sources is not traced (RESIDUE). An
+#: over-approximation (the word `date` in a comment) costs one re-run a day.
+SCRIPT_CLOCK_RE = re.compile(r"Get-Date|\[(?:System\.)?DateTime\]|Get-Uptime|LastWriteTime|\.StartTime|\bdate\b|\$SECONDS\b|\bstat\b|-mtime\b")
+SCRIPT_CLOCK = "a PowerShell or bash clock read, which no Python shim moves"
 
 #: The functions a script reads the wall clock through. `now/utcnow/today` on any receiver (`datetime.now`,
 #: `dt.datetime.now`, `date.today`); the `time` module's by name (`.time()` on another receiver is a datetime's
@@ -84,9 +99,9 @@ def _cobol_clock_shift():
     import datetime as dt
     import time
     shift = float(days) * 86400.0
-    delta = dt.timedelta(seconds=shift)
     real, real_ns = time.time, time.time_ns
     base_dt, base_date = dt.datetime, dt.date
+    utc = dt.timezone.utc
 
     def meta(base):
         class Is(type):
@@ -99,23 +114,26 @@ def _cobol_clock_shift():
             return cls(r.year, r.month, r.day, r.hour, r.minute, r.second, r.microsecond, r.tzinfo, fold=r.fold)
         return cls(r.year, r.month, r.day)
 
+    # Every reading is derived from the ONE shifted instant (`real() + shift`) and converted by the host zone AT that
+    # instant, so a naive local reading and `time.time()` agree on a day whose zone offset differs from today's (a
+    # daylight-saving change inside the shift): adding a timedelta to today's wall time is an hour off there.
     class datetime(base_dt, metaclass=meta(base_dt)):
         @classmethod
         def now(cls, tz=None):
-            return as_cls(cls, base_dt.now(tz) + delta)
+            return as_cls(cls, base_dt.fromtimestamp(real() + shift, tz))
 
         @classmethod
         def utcnow(cls):
-            return as_cls(cls, base_dt.utcnow() + delta)
+            return as_cls(cls, base_dt.fromtimestamp(real() + shift, utc).replace(tzinfo=None))
 
         @classmethod
         def today(cls):
-            return as_cls(cls, base_dt.now() + delta)
+            return as_cls(cls, base_dt.fromtimestamp(real() + shift))
 
     class date(base_date, metaclass=meta(base_date)):
         @classmethod
         def today(cls):
-            return as_cls(cls, base_dt.now() + delta)
+            return as_cls(cls, base_dt.fromtimestamp(real() + shift))
 
     datetime.__module__ = date.__module__ = "datetime"
     datetime.__qualname__, date.__qualname__ = "datetime", "date"
@@ -179,29 +197,40 @@ def declared_real(text: str, header_lines: int) -> str:
 @dataclass(frozen=True)
 class Clock:
     """What a self-test's PASS must prove about the clock (module docstring): `shift_days` > 0 when it needs the second,
-    shifted run, `real` the reason it declares the clock real, and nothing (both empty) when it cannot read the clock."""
+    shifted run; `real` the reason its clock cannot be shifted (declared, or a PowerShell or bash clock read), which
+    bounds its PASS to the day it was recorded; and nothing (both empty) when it cannot read the clock."""
     shift_days: int = 0
     real: str = ""
 
     @classmethod
     def of(cls, test: str, texts: dict[str, str], header_lines: int, runner: tuple[str, ...]) -> "Clock":
-        """The clock proof `test` needs. `texts` maps each tracked `.py` file its run opened to its source. Only a Python
-        self-test is shifted (RESIDUE); the runner's own files are left out of the closure."""
-        if not test.endswith(".py"):
-            return cls()
-        real = declared_real(texts.get(test, ""), header_lines)
+        """The clock proof `test` needs. `texts` maps the self-test and each tracked `.py` file its run opened to its
+        source. A Python self-test is shifted; a declared real clock, and a PowerShell or bash self-test whose own text
+        reads one (RESIDUE), cannot be, so its PASS holds for the day it was recorded; the runner's own files are left
+        out of the closure."""
+        text = texts.get(test, "")
+        real = declared_real(text, header_lines)
         if real:
             return cls(real=real)
+        if not test.endswith(".py"):
+            return cls(real=SCRIPT_CLOCK) if SCRIPT_CLOCK_RE.search(text) else cls()
         sensitive = any(_reads(src) for path, src in texts.items() if path not in runner)
         return cls(shift_days=CLOCK_SHIFT_DAYS) if sensitive else cls()
 
     def until(self, when: dt.datetime) -> str:
-        """The last day a PASS recorded at `when` proves anything about the clock: the shift past that moment."""
+        """The last day a PASS recorded at `when` proves anything about the clock: the shift past that moment, and for a
+        clock that cannot be shifted the day it was recorded."""
         return (when + dt.timedelta(days=self.shift_days)).date().isoformat()
+
+    @property
+    def bounded(self) -> bool:
+        """True when a PASS recorded under this clock carries a horizon (`until`): every self-test that can read it."""
+        return bool(self.shift_days or self.real)
 
     @staticmethod
     def holds(record_clock: dict | None, today: dt.date) -> bool:
-        """True when a recorded PASS's clock proof still covers `today` (a record with no clock proof always does)."""
+        """True when a recorded PASS's clock proof still covers `today` (a record with no clock proof always does: the
+        self-test cannot read a clock)."""
         return record_clock is None or today.isoformat() <= record_clock["until"]
 
 
@@ -257,7 +286,14 @@ def self_test() -> int:
          Clock()),
         ("a declared real clock is not shifted, and says why",
          Clock.of("scripts/t.py", {"scripts/t.py": marker + reading}, 5, runner), Clock(real="compares file mtimes with the clock")),
-        ("a PowerShell self-test is not shifted (the residue)", Clock.of("scripts/t.ps1", {"scripts/h.py": reading}, 5, runner), Clock()),
+        ("a PowerShell self-test is never shifted, and one that reads no clock has none",
+         (Clock.of("scripts/t.ps1", {"scripts/t.ps1": "Write-Output 1", "scripts/h.py": reading}, 5, runner),
+          Clock.of("scripts/t.sh", {"scripts/t.sh": "echo 1"}, 5, runner)), (Clock(), Clock())),
+        ("a PowerShell or bash self-test whose own text reads a clock is bounded to its day (the residue)",
+         (Clock.of("scripts/t.ps1", {"scripts/t.ps1": "$a = (Get-Date).AddDays(-1)"}, 5, runner),
+          Clock.of("scripts/t.sh", {"scripts/t.sh": "stamp=$(date +%s)"}, 5, runner),
+          Clock.of("scripts/t.ps1", {"scripts/t.ps1": "# SELF-TEST-CLOCK: real — a meter reading\nGet-Date"}, 5, runner)),
+         (Clock(real=SCRIPT_CLOCK), Clock(real=SCRIPT_CLOCK), Clock(real="a meter reading"))),
     )
     for name, got, want in cases:
         check(f"arm: {name}", got, want)
@@ -267,53 +303,103 @@ def self_test() -> int:
           (until, Clock.holds({"until": until}, dt.date.fromisoformat(until)),
            Clock.holds({"until": until}, dt.date.fromisoformat(until) + dt.timedelta(days=1)), Clock.holds(None, dt.date.max)),
           ("2027-12-06", True, False, True))
+    sameday = Clock(real="a meter reading").until(when)
+    check("arm: a PASS under a clock that cannot be shifted holds for the day it was recorded and no longer (R1-2: it was "
+          "reused forever, while CI runs the self-test fresh); only a self-test that cannot read a clock has no horizon",
+          (sameday, Clock.holds({"until": sameday}, when.date()), Clock.holds({"until": sameday}, when.date() + dt.timedelta(days=1)),
+           Clock(real="x").bounded, Clock(shift_days=1).bounded, Clock().bounded),
+          ("2026-11-01", True, False, True, True, False))
 
     # The shim, in a child process exactly as a shifted self-test's children run it: every clock moves ONCE, an
-    # instance of the original type is still a datetime, a duration is unchanged, and an unshifted child is untouched.
+    # instance of the original type is still a datetime, the monotonic clocks are untouched, and an unshifted child is
+    # untouched. No arm limits how long a child takes: a reading is checked against the interval the PARENT's own clock
+    # brackets the child's run in (a slow start-up only widens the interval), and RESOLUTION allows for the whole-second
+    # readers (`ctime`, `asctime`, `strftime`) and the two clocks' rounding, never for slowness.
+    RESOLUTION = 2.0
     PROBED = ("now", "utcnow", "today", "aware", "time", "ns", "local", "gm", "ctime", "asctime", "strftime")
+    # every reading as an epoch second: a naive local one back through the host zone, a UTC one through `timegm`
     probe = (
-        "import datetime as dt, time, json, warnings\n"
+        "import calendar, datetime as dt, time, json, warnings\n"
         "warnings.simplefilter('ignore')\n"
         "n = dt.datetime.now(); u = dt.datetime.utcnow(); t = dt.datetime.today(); d = dt.date.today()\n"
         "z = dt.datetime.now(dt.timezone.utc)\n"
         "base = dt.datetime.fromisoformat('2026-01-01T00:00:00')\n"
-        "print(json.dumps({'now': n.timestamp(), 'utcnow': u.replace(tzinfo=dt.timezone.utc).timestamp(),\n"
+        "def parsed(s, f=None):\n"
+        "    return time.mktime(time.strptime(s) if f is None else time.strptime(s, f))\n"
+        "print(json.dumps({'now': n.timestamp(), 'utcnow': calendar.timegm(u.timetuple()) + u.microsecond / 1e6,\n"
         "  'today': t.timestamp(), 'date': d.toordinal(), 'aware': z.timestamp(), 'time': time.time(),\n"
-        "  'ns': time.time_ns() / 1e9, 'local': time.mktime(time.localtime()), 'gm': time.mktime(time.gmtime()),\n"
-        "  'ctime': time.mktime(time.strptime(time.ctime())), 'asctime': time.mktime(time.strptime(time.asctime())),\n"
-        "  'strftime': time.mktime(time.strptime(time.strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')),\n"
+        "  'ns': time.time_ns() / 1e9, 'local': time.mktime(time.localtime()), 'gm': calendar.timegm(time.gmtime()),\n"
+        "  'ctime': parsed(time.ctime()), 'asctime': parsed(time.asctime()),\n"
+        "  'strftime': parsed(time.strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S'),\n"
         "  'isinstance': [isinstance(base, dt.datetime), isinstance(n, dt.datetime), isinstance(d, dt.date),\n"
-        "     isinstance(n, dt.date), type(n).__name__], 'span': (lambda a: time.monotonic() - a)(time.monotonic())}))\n")
+        "     isinstance(n, dt.date), type(n).__name__],\n"
+        "  'untouched': [type(f).__name__ for f in (time.monotonic, time.perf_counter, time.sleep)]}))\n")
+    # daylight saving: a fixed instant in daylight time under a POSIX zone with a daylight rule, shifted into standard time
+    # (2026-10-20 + 400 days is 2027-11-24), must still read the same instant from every clock, however today's date
+    # falls against the host zone's own transitions
+    dst_probe = (
+        "import calendar, datetime as dt, json, sys, time, warnings\n"
+        "warnings.simplefilter('ignore')\n"
+        "FAKE = 1792522800.0\n"
+        "time.time = lambda: FAKE\n"
+        "exec(compile(open(sys.argv[1], encoding='utf-8').read(), 'shim', 'exec'))\n"
+        "now = time.time()\n"
+        "u = dt.datetime.utcnow()\n"
+        "print(json.dumps({'now': dt.datetime.now().timestamp() - now, 'today': dt.datetime.today().timestamp() - now,\n"
+        "  'aware': dt.datetime.now(dt.timezone.utc).timestamp() - now, 'local': time.mktime(time.localtime()) - now,\n"
+        "  'utcnow': calendar.timegm(u.timetuple()) + u.microsecond / 1e6 - now,\n"
+        "  'date': dt.date.today() == dt.date.fromtimestamp(now),\n"
+        "  'crossed': time.localtime(FAKE).tm_isdst != time.localtime().tm_isdst}))\n")
     with tempfile.TemporaryDirectory() as d:
         shim_dir = Path(d)
         (shim_dir / "sitecustomize.py").write_text(SHIM, encoding="utf-8", newline="\n")
 
-        def run(days: int | None) -> dict:
-            env = dict(os.environ, PYTHONPATH=str(shim_dir))
+        def child(argv: list[str], days: int | None, **extra: str) -> tuple[dict, float, float]:
+            """One child's JSON, with this process's own readings from before it started and after it ended."""
+            env = {k: v for k, v in os.environ.items() if k != SHIFT_ENV}   # this self-test declares its clock real
+            env.update(extra)
             if days is not None:
                 env = shifted_env(env, days)
-            out = subprocess.run([sys.executable, "-c", probe], env=env, capture_output=True, text=True, encoding="utf-8")
+            before = time.time()
+            out = subprocess.run([sys.executable, *argv], env=env, capture_output=True, text=True, encoding="utf-8")
+            after = time.time()
             if out.returncode != 0 or out.stderr.strip():
                 raise OSError(f"the shim probe failed (exit {out.returncode}): {out.stderr.strip()}")
-            return json.loads(out.stdout)
-        plain, moved = run(None), run(CLOCK_SHIFT_DAYS)
+            return json.loads(out.stdout), before, after
+
+        def inside(read: dict, before: float, after: float, shift: float) -> dict[str, bool]:
+            """Each reading against the parent's interval moved by `shift`: the child's clock moved by exactly that."""
+            lo, hi = before + shift - RESOLUTION, after + shift + RESOLUTION
+            held = {k: lo <= read[k] <= hi for k in PROBED}
+            held["date"] = (dt.date.fromtimestamp(lo).toordinal() <= read["date"] <= dt.date.fromtimestamp(hi).toordinal())
+            return held
+
+        (plain, p0, p1) = child(["-c", probe], None, PYTHONPATH=str(shim_dir))
+        (moved, m0, m1) = child(["-c", probe], CLOCK_SHIFT_DAYS, PYTHONPATH=str(shim_dir))
         span = CLOCK_SHIFT_DAYS * 86400
-        # `utcnow` is naive UTC read back as UTC; `today`/`now()` are naive local read back as local: compare like with like
-        deltas = {k: round(moved[k] - plain[k]) for k in PROBED}
         # the drift guard: every function `reads_wall_clock` names is one the probe reads and the shim moves, so a clock
         # function added to the detection without the shim (or the reverse) fails here, never in a gate
         check("arm: the probe reads, and the shim moves, exactly the functions the detection names",
               {"now", "utcnow", "today", "time", "time_ns", "localtime", "gmtime", "ctime", "asctime", "strftime"}
               == set(CLOCK_ATTRS | TIME_FUNCS) and {"now", "utcnow", "today", "time", "ns", "local", "gm", "ctime",
                                                     "asctime", "strftime", "aware"} == set(PROBED), True)
+        want = {k: True for k in (*PROBED, "date")}
         check("arm: the shim moves every wall-clock function forward by exactly the shift, once (a double move, or none, "
-              "would show here)", {k: abs(v - span) <= 5 for k, v in deltas.items()}, {k: True for k in deltas})
-        check("arm: the shim moves the date by the same days", moved["date"] - plain["date"], CLOCK_SHIFT_DAYS)
-        check("arm: an instance of the original type is still a datetime/date, the subclass is named datetime, and a "
-              "monotonic span stays a span", (moved["isinstance"], moved["span"] < 1.0),
-              ([True, True, True, True, "datetime"], True))
-        check("arm: without the variable the shim changes nothing", (plain["isinstance"], abs(plain["time"] - plain["ns"]) < 5),
-              ([True, True, True, True, "datetime"], True))
+              "would put a reading outside the interval the parent's clock brackets the child's run in)",
+              inside(moved, m0, m1, span), want)
+        check("arm: and without the variable the shim changes nothing (every reading is inside the unmoved interval)",
+              inside(plain, p0, p1, 0.0), want)
+        check("arm: an instance of the original type is still a datetime/date, and the subclass is named datetime",
+              (moved["isinstance"], plain["isinstance"]), ([True, True, True, True, "datetime"],) * 2)
+        check("arm: the monotonic clocks and sleep are the interpreter's own functions, never replaced",
+              (moved["untouched"], plain["untouched"]), (["builtin_function_or_method"] * 3,) * 2)
+        shim_path = shim_dir / "sitecustomize.py"
+        zone = {"TZ": "PST8PDT"}   # a POSIX zone with a daylight rule: Windows and Linux both honour it
+        gaps, _, _ = child(["-c", dst_probe, str(shim_path)], CLOCK_SHIFT_DAYS, **zone)
+        check("arm: a shift that crosses a daylight-saving change leaves every reading on the one shifted instant (a naive "
+              "local reading made by adding days to today's wall time is an hour off there)",
+              (gaps.pop("crossed"), gaps.pop("date"), {k: abs(v) <= 1.0 for k, v in gaps.items()}),
+              (True, True, {k: True for k in gaps}))
     print(f"self_test_clock.py --self-test: {'ALL GREEN' if not fails else f'{len(fails)} FAILED'}")
     return 1 if fails else 0
 

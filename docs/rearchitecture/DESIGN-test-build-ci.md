@@ -1754,29 +1754,47 @@ The shim is the first part of the runner's `sitecustomize` (the tracer's directo
 `time.localtime/gmtime/ctime/asctime/strftime`, once each (the self-test checks every one against the unshifted clock),
 and leaves `time.monotonic` alone. The detection over-approximates on purpose (an extra run is harmless; the second run is
 the semantic check, so nothing is judged from intent); a file that does not parse reads no clock.
-*Reuse.* A PASS records `clock: {shift_days, until}` (the day the proof reaches: recorded at + 400 days, `Clock.until`), and
-`PassStore.lookup` refuses a record past it (`re-run: the clock proof of the PASS of … ended …`), so a reused PASS cannot
-outlive the proof it rests on. The schema is 3: a PASS recorded before the proof is not reused.
+*Reuse.* A PASS records `clock: {shift_days, real, until}` (the day the proof reaches, `Clock.until`: recorded at + 400 days for
+a shifted self-test, the day it was recorded for a clock that cannot be shifted), and `PassStore.lookup` refuses a record
+past it (`re-run: the clock proof of the PASS of ... ended ...`), so a reused PASS cannot outlive the proof it rests on.
+Only a self-test that cannot read a clock records none and is reused whatever the day. The schema is 3: a PASS recorded
+before the proof is not reused.
 *The opt-out, declared.* A self-test that compares the Python clock with a REAL one the shift cannot move declares it, with
-the reason, among its first five lines: `# SELF-TEST-CLOCK: real — <why>`, and is not shifted. Measured 2026-11-01 over
-every self-test (PB4353's shifted-clock sweep, repeated through this runner): the five Python ones that compare file
-modification times, a process's start time or git commit times with the clock declare it (`impact_store.py`,
-`gate_slot.py`, `prune_worktrees.py`, `orchestrator/test_plan_wave.py`, `orchestrator/test_alloc.py`), and so does the runner's own self-test (`self_tests.py`: its arms nest runners that move the
-clock themselves and compare it with modification times); every other shifted self-test passed. The runner removes
-`SHIFT_ENV` from the environment of every first run, so a run is at the real clock whatever process the runner is in. 49 of 138 self-tests are shifted (55 reach the clock; 6 declare it real), which adds
-about 30 % to the summed self-test seconds of a full run (CI; measured in a gate that re-ran all 138: the shifted ones took
-46 % of the summed seconds, each run twice) and nothing to a gate whose reused PASSes are inside their horizon.
-*Residue, named.* A PowerShell or bash self-test is not shifted (`Get-Date` and `date` read a clock no Python process moves; the
-two PowerShell ones that compare a meter reading with the clock are the 2026-11-01 sweep's other false reds), and a clock
-that is not Python's (an mtime, a process start time, a commit time) cannot be shifted by this shim: the self-test that
-reads one declares it real. CI's merge group and the nightly still run both at today's clock. A clock-reading
-PowerShell or bash self-test is the next case for a clock every process agrees on (libfaketime on Linux, the note's
-first candidate); the declaration keeps the Python ones guarded meanwhile.
-*Proof.* `self_test_clock.py --self-test` (the detection's arms; the shim in a child process against the unshifted clock,
-every function once; the horizon) and `self_tests.py --self-test` (`fleet_arms`: a fixture written at arm time and compared
+the reason, among its first five lines: `# SELF-TEST-CLOCK: real — <why>`, and is not shifted. It is
+not reused past the day it was recorded either (review R1-2: a declared PASS with no horizon would be answered REUSED
+forever while CI runs the self-test fresh). Measured 2026-11-01 over every self-test (PB4353's shifted-clock sweep, repeated
+through this runner): the Python ones that compare file modification times, a process's start time or git commit times with
+the clock declare it (`gate_slot.py`, `prune_worktrees.py`, `orchestrator/test_plan_wave.py`, `orchestrator/test_alloc.py`;
+`spec/impact_store.py` did until PB4328 deleted it), and so do the runner's own self-test (`self_tests.py`: its arms nest
+runners that move the clock themselves and compare it with modification times) and this module's (`self_test_clock.py`: its
+arms compare child processes' clocks with its own); every other shifted self-test passed. The runner removes
+`SHIFT_ENV` from the environment of every first run, so a run is at the real clock whatever process the runner is in.
+Measured at the first gate that ran it: 49 of 138 self-tests shifted, which adds about 30 % to the summed self-test seconds
+of a full run (CI; the shifted ones took 46 % of the summed seconds, each run twice) and nothing to a gate whose reused
+PASSes are inside their horizon.
+*Each reading is the one shifted instant.* The shim derives `datetime.now/utcnow/today` and `date.today` from
+`time.time() + shift` through the host zone AT that instant (`fromtimestamp`), never from today's wall time plus a
+`timedelta`: the sum is an hour off `time.time()` whenever the host zone's offset 400 days on differs from today's (a
+daylight-saving change between now and then), which would make the module's own self-test red on those dates on a
+local zone while CI (UTC) stayed green (review R1-1).
+*Residue, named.* A PowerShell or bash self-test is not shifted (`Get-Date` and `date` read a clock no Python process
+moves; the two PowerShell ones that compare a meter reading with the clock are the 2026-11-01 sweep's other false reds).
+One whose OWN text reads a clock (`SCRIPT_CLOCK_RE`: `Get-Date`, `[DateTime]`, `date`, `$SECONDS`, `stat`, `-mtime`...)
+is held to the day it was recorded, like a declared real clock; a helper script it sources is not traced, so a clock read
+there is the remaining residue. A clock that is not Python's (an mtime, a process start time, a commit time) cannot be
+shifted by this shim: the self-test that reads one declares it real. CI's merge group and the nightly still run every
+self-test at today's clock. A clock every process agrees on (libfaketime on Linux, the note's first candidate) is the
+root fix for the PowerShell and bash ones.
+*No arm limits how long a process takes.* The module's arms compare each child reading with the interval the PARENT's own
+clock brackets the child's run in (a slow start-up only widens it), and a second of allowance covers the clocks' rounding
+and the whole-second readers, never slowness (review R1-3; the owner's no-wall-clock rule).
+*Proof.* `self_test_clock.py --self-test` (the detection's arms; the shim in a child process against the parent's
+bracketing clock, every function once; a shift across a daylight-saving change under a POSIX `TZ` with a daylight rule;
+the horizon, the day-bound clock) and `self_tests.py --self-test` (`fleet_arms`: a fixture written at arm time and compared
 with the wall clock is RED in the proof run and records no PASS; the same test deriving its fixture from the clock, a child
 process that must agree with its parent, a self-test that cannot read the clock and one declared real; an mtime comparison
-undeclared is RED; the recorded horizon; reuse inside it and a fresh run past it).
+undeclared is RED; the recorded horizon; reuse inside it and a fresh run past it; a declared-real PASS of an earlier day is
+not reused; a bash self-test reading `date` is day-bound).
 
 #### 3.14.11 The one Python interpreter the gate scripts run (kb/Work PB1637, PB3197)
 
