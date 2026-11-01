@@ -356,7 +356,9 @@ def self_test() -> int:
 
         def child(argv: list[str], days: int | None, **extra: str) -> tuple[dict, float, float]:
             """One child's JSON, with this process's own readings from before it started and after it ended."""
-            env = {k: v for k, v in os.environ.items() if k != SHIFT_ENV}   # this self-test declares its clock real
+            # this self-test declares its clock real; and the runner's own shim (PYTHONPATH holds the tracer directory under a
+            # gate) must not also load in a child that applies SHIM itself, or the clock would move twice
+            env = {k: v for k, v in os.environ.items() if k not in (SHIFT_ENV, "PYTHONPATH")}
             env.update(extra)
             if days is not None:
                 env = shifted_env(env, days)
