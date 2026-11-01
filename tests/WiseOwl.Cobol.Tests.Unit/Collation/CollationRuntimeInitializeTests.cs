@@ -20,7 +20,7 @@ public sealed class CollationRuntimeInitializeTests
 {
     private const int ConfiguredSize = 777;      // distinguishable from CacheConfig.Default.MaxEntries (8192)
     private const int Threads = 16;
-    private const int Trials = 300;
+    private const int Trials = 100;              // the old body read stale in 808 of 4,800 reads over 300 trials; 300 took 27 s under a loaded gate
 
     private static readonly Type s_runtime = typeof(CollationRuntime);
 
