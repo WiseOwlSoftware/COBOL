@@ -51,6 +51,14 @@ namespace WiseOwl.Cobol.Tests.Shared;
 /// before the first attempt and restores it before the retry (<see cref="RunDirectoryState"/>), or raises the
 /// non-observation when it cannot.
 /// </para>
+/// <para>
+/// ⛔ A KILLED PROCESS HAS NOT NECESSARILY EXITED (kb/Work PB4388). A process killed inside a blocking system call (a
+/// <c>MoveFileEx</c> on a loaded ReFS volume, kb/Work PB4387) can outlive the wait after its kill, and until it exits it
+/// holds the program's files. The wait's result is therefore read: <see cref="ProcessOutcome.SurvivedKill"/> says the
+/// process was still alive, and the retry waits for it (<see cref="ProcessObserver.SurvivorWaitMs"/>) before it restores
+/// the run directory, or raises the non-observation naming its id, so a transient hold ends in a retried observation
+/// and a lasting one in a report that names its cause.
+/// </para>
 /// </remarks>
 internal enum ProcessOutcome
 {
@@ -58,15 +66,50 @@ internal enum ProcessOutcome
     Completed,
     /// <summary>The process exceeded its wall-clock budget and was killed. Its output is TRUNCATED, not wrong.</summary>
     TimedOut,
+    /// <summary>The process exceeded its budget, was killed, and was STILL ALIVE when the wait after the kill ended
+    /// (<see cref="ProcessObserver.KillWaitMs"/>). Everything <see cref="TimedOut"/> says holds, and so does this: a
+    /// process that has not exited still holds its files and its processor. <see cref="ProcessObservation.Survivor"/>
+    /// names it (kb/Work PB4388).</summary>
+    SurvivedKill,
     /// <summary>The process could not be started at all. Nothing about the program under test was observed.</summary>
     LaunchFailed,
 }
 
 /// <summary>One completed observation of a child process — or an explicit statement that none was made.</summary>
+/// <param name="Survivor">The killed process that had not exited when the wait after its kill ended; set only for
+/// <see cref="ProcessOutcome.SurvivedKill"/> (kb/Work PB4388).</param>
 internal readonly record struct ProcessObservation(
-    ProcessOutcome Outcome, int ExitCode, string Stdout, string Stderr, string Detail)
+    ProcessOutcome Outcome, int ExitCode, string Stdout, string Stderr, string Detail, SurvivingProcess? Survivor = null)
 {
     public bool Completed => Outcome == ProcessOutcome.Completed;
+}
+
+/// <summary>
+/// A process the observer killed that was still running when it stopped waiting for it (kb/Work PB4388). A process
+/// killed inside a blocking system call (a <c>MoveFileEx</c> on a loaded ReFS volume, kb/Work PB4387) can outlive the wait
+/// that follows its kill, and until it exits it still holds the program's files, so a retry started over them is refused
+/// for a reason that is not the program's. It is held by process id, not by <see cref="Process"/>: the observation
+/// outlives the <c>Process</c> object that <see cref="ProcessObserver.Observe"/> disposes.
+/// </summary>
+internal sealed class SurvivingProcess(int id, Func<int, int, bool> waitForExit)
+{
+    /// <summary>The operating-system process id.</summary>
+    public int Id { get; } = id;
+
+    /// <summary>Wait up to <paramref name="milliseconds"/> for the process to exit; true when it has.</summary>
+    public bool WaitForExit(int milliseconds) => waitForExit(Id, milliseconds);
+
+    /// <summary>Wait for the process <paramref name="id"/> by id. A process that cannot be found has exited, and the id
+    /// of a process that is still running is never reused.</summary>
+    internal static bool WaitForExitById(int id, int milliseconds)
+    {
+        try
+        {
+            using var process = Process.GetProcessById(id);
+            return process.WaitForExit(milliseconds);
+        }
+        catch (ArgumentException) { return true; }          // no process has this id: it has exited
+    }
 }
 
 /// <summary>
@@ -140,15 +183,42 @@ internal static class ProcessObserver
                 string used = OwnProcessorTime(proc);
                 string host = HostLoad.Describe(hostAtStart, HostLoad.Sample());
                 try { proc.Kill(entireProcessTree: true); } catch { /* already gone */ }
-                proc.WaitForExit(5_000);
                 // ⛔ The partial stdout is DELIBERATELY NOT RETURNED as output. Handing a caller a truncated
                 // report is what turned a contention timeout into a golden mismatch in the first place.
-                return new ProcessObservation(ProcessOutcome.TimedOut, -1, "", "",
-                    $"process did not exit within {budget.Ms} ms and was killed; {used}; {host}");
+                return ReportKilled(proc.Id, budget.Ms, $"{used}; {host}", proc.WaitForExit, SurvivingProcess.WaitForExitById);
             }
             return new ProcessObservation(ProcessOutcome.Completed, proc.ExitCode,
                 outTask.Result, errTask.Result, "");
         }
+    }
+
+    /// <summary>How long <see cref="Observe"/> waits for a process to exit after it kills it; it stops waiting then, and
+    /// <see cref="ReportKilled"/> says whether the process had exited.</summary>
+    internal const int KillWaitMs = 5_000;
+
+    /// <summary>How long <see cref="ObserveWithRetry"/> waits for a process that survived its kill to exit before it
+    /// refuses the retry, naming the process (kb/Work PB4388).</summary>
+    internal const int SurvivorWaitMs = 60_000;
+
+    /// <summary>The observation of a process that exceeded its budget and has just been killed. A kill is a request, and
+    /// the process is dead only when it has exited: <paramref name="waitForExit"/> waits <see cref="KillWaitMs"/> for that,
+    /// and its result decides what the observation may say (kb/Work PB4388). A process that exited is
+    /// <see cref="ProcessOutcome.TimedOut"/>; one that did not is <see cref="ProcessOutcome.SurvivedKill"/>, which says so
+    /// and carries the process, so the retry can wait for it before it touches the files it holds.</summary>
+    /// <param name="id">The killed process's id.</param>
+    /// <param name="budgetMs">The budget it exceeded.</param>
+    /// <param name="measured">What was measured before the kill: its processor time and the host's load.</param>
+    /// <param name="waitForExit">Waits up to the given milliseconds for the process to exit; true when it has.</param>
+    /// <param name="waitForExitById">Waits for a process by id once its <c>Process</c> object is gone: the survivor's wait.</param>
+    internal static ProcessObservation ReportKilled(int id, int budgetMs, string measured,
+        Func<int, bool> waitForExit, Func<int, int, bool> waitForExitById)
+    {
+        if (waitForExit(KillWaitMs))
+            return new ProcessObservation(ProcessOutcome.TimedOut, -1, "", "",
+                $"process did not exit within {budgetMs} ms and was killed; {measured}");
+        return new ProcessObservation(ProcessOutcome.SurvivedKill, -1, "", "",
+            $"process {id} did not exit within {budgetMs} ms and was STILL ALIVE {KillWaitMs} ms after it was killed; {measured}",
+            new SurvivingProcess(id, waitForExitById));
     }
 
     /// <summary>
@@ -218,6 +288,8 @@ internal static class ProcessObserver
 
         Interlocked.Increment(ref _retries);
         HarnessLog.Record($"RETRY  {command} :: {first.Outcome} :: {first.Detail}");
+        // Before the gate: this waits for a process that has not exited, not for contention, and holds nobody else's retry.
+        if (first.Survivor is not null) AwaitSurvivor(command, first);
         RetryGate.Wait();
         ProcessObservation second;
         try
@@ -245,6 +317,30 @@ internal static class ProcessObserver
             "  The process never finished, so NOTHING was learned about the program under test. Do not read\n" +
             "  this as a failing assertion: no output was compared. See plan §11 A12 and the observation log\n" +
             $"  at {HarnessLog.Path}.");
+    }
+
+    /// <summary>Wait for the process the first attempt could not kill to exit, so the retry starts once it has released
+    /// its files, or raise the non-observation naming it (kb/Work PB4388). A process still alive after
+    /// <see cref="SurvivorWaitMs"/> is not the program's to wait for any longer, and a retry over its held files would be
+    /// refused for that reason alone, reported as an unrestorable run directory.</summary>
+    private static void AwaitSurvivor(string command, ProcessObservation first)
+    {
+        SurvivingProcess survivor = first.Survivor!;
+        if (survivor.WaitForExit(SurvivorWaitMs))
+        {
+            HarnessLog.Record($"SURVIVOR-EXITED  {command} :: process {survivor.Id} exited while the retry waited for it");
+            return;
+        }
+        Interlocked.Increment(ref _nonObservations);
+        HarnessLog.Record($"NON-OBSERVATION  {command} :: process {survivor.Id} still alive {SurvivorWaitMs} ms into the wait for it");
+        throw new HarnessNonObservationException(
+            "⛔ HARNESS NON-OBSERVATION — this is NOT a value mismatch and NOT a compiler verdict.\n" +
+            $"  command : {command}\n" +
+            $"  attempt1: {first.Outcome} — {first.Detail}\n" +
+            $"  attempt2: not run — process {survivor.Id}, killed after attempt 1, is still alive {SurvivorWaitMs} ms into the\n" +
+            "            retry's wait for it, and holds the files and the processor attempt 1 gave it; a retry started\n" +
+            "            beside it would measure a different input (kb/Work PB4388).\n" +
+            $"  See the observation log at {HarnessLog.Path}.");
     }
 
     /// <summary>Put the run directory back as it was before the first attempt, or raise the non-observation: a retry
