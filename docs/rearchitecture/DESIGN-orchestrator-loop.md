@@ -565,7 +565,7 @@ from `Invoke-Unit`, `Wait-Until` (after its STOP check) and the loop. A tick:
    coverage; and this lane's newest attempt AT THE TIP (`land_lane.view`, its head or end head) is read back: STOPPED
    at the tip reads **STOPPED** (the enqueue unit's; never WAITING TO LAND, so the table's "never relaunched at this
    head" and the survey agree), exit 0 at the tip reads ENQUEUED, and only a tip with no attempt, a running one or a
-   retryable one (exit 3, 2, 9, 8, or a re-arm) reads WAITING TO LAND. A STOPPED branch carries the predecessors it
+   retryable one (exit 2, 9, 8, 12, 13, 15, 16, or a re-arm) reads WAITING TO LAND; exit 3 is a STOP (kb/Work PB4452). A STOPPED branch carries the predecessors it
    contains that have no clean stamp at their tips (they read IN FLIGHT); a predecessor reviewed CLEAN keeps its own
    state and lands on its own (kb/Work PB3381). The commit a report describes is its header's HEAD, else the head its
    review stamp names (`reports.parse_report`, the one reader: the reviewer stamps the head it reviewed, so a header whose
@@ -595,7 +595,7 @@ from `Invoke-Unit`, `Wait-Until` (after its STOP check) and the loop. A tick:
 | re-armed by the enqueue unit at this head (`land_lane.py rearm`) | launches, once: the launch consumes the re-arm; a re-arm whose branch moved is dropped |
 | none, or at another head (a finisher's commit, reviewed CLEAN) | launches |
 | `ENQUEUED` or `NOTHING TO LAND` (exit 0) at this head (`NOTHING TO LAND` is a branch that is origin/main or whose tip is already inside it: a second run after the queue merged the branch, kb/Work PB3157) | nothing to land: the QUEUE WATCH (step 4) follows its pull request into the merge queue |
-| exit 3, the landing check's STOP (the branch edits a member another branch edits, an earlier-dispatched, INDEPENDENT in-flight work, kb/Work PB2701; a branch that descends from it, which merged any head of it, and a worktree with no commit beyond main never stop it, kb/Work PB3381) | retries at this head once `landing_check.py` passes on the branch's own range |
+| exit 3, the landing check's STOP (a never-carried path, such as `.claude/settings.local.json`, or a public-API baseline that lists a symbol twice; an edit meeting another branch's only warns, first ready lands, kb/Work PB4452) | a STOP: only a new commit clears it, so it is the enqueue unit's (a finisher), never retried at this head |
 | exit 12, GATE BUSY (another gate held the worktree's gate lock: the gate driver's verdict `BUSY`, exit 3; or the branch's own gate is still running, `gate.live_gate`: the worktree's gate lock is held, which a gate does until its verdict file is written and the OS drops when it dies; nothing ran and nothing is red, kb/Work PB3527, PB3662) | retries at this head once the worktree's gate lock is free and no Linux gate of the tree runs (`wait_free`; kb/Work PB3649); never the enqueue unit's |
 | exit 15, PREDECESSOR QUEUED (the branch merged a predecessor whose pull request is still open into main, so it adds that pull request's stamped DEVLOG entry beside its own and `devlog.landing_entries` finds no single entry to title its pull request with; `enqueue.open_predecessors` names the pull requests; nothing queued, nothing red, no report line, kb/Work PB3145) | retries at this head once the same reader finds no open pull request owning an entry the branch carries (`wait_free`, `predecessor_free`; GitHub unreadable is not free); a predecessor pull request that closed unmerged is no longer open, and the same head then ends exit 6 NO ENTRY, the finisher's; never the enqueue unit's |
 | exit 16, DRIVER FILE QUEUED (an open pull request into main changes a file a merge driver covers, `merge_drivers.DRIVERS`, that the branch changes too: GitHub's merge queue builds its merge groups with plain git and none of the drivers, so the two would conflict inside the queue although each merged main through them; `enqueue.driver_file_holders` names the pull requests and the shared files, counting only a pull request that ENTERS the queue, `queue_facts.PullRequest.entering`: a bounced, conflicting or red one re-enters only through a fresh `land`, so it holds nothing; nothing stamped, pushed or queued, nothing red, no report line, kb/Work PB3642) | retries at this head once the same reader finds no open pull request sharing a driver-covered file with the branch (`wait_free`, `driver_files_free`; GitHub unreadable is not free); the merge of main that follows brings the merged pull request's change in through the drivers; never the enqueue unit's |
@@ -665,9 +665,8 @@ instead of at the next enqueue unit, is the headless lane's second job (kb/Work 
    pull request (kb/Work PB3628: read NOT QUEUED, a re-armed branch waited hours, no reader acting on it). `status`
    says of a pending re-arm whether the next tick lands it. A sleep loop inside `enqueue.py` was rejected: the landing ends at
    `ENQUEUED` and holds nothing: the tick already runs every few minutes, while a waiting landing would keep its
-   runner alive for the whole CI time, and a runner that died would leave its pull request with no watcher at all. Mid-wave landing meets exit 3 more often than the enqueue unit
-did, because a wave's other groups are still in flight; the lane waits them out instead of handing the stop to the
-attended session.
+   runner alive for the whole CI time, and a runner that died would leave its pull request with no watcher at all. Mid-wave landing once met exit 3 often, because a wave's other groups were still in flight; since kb/Work PB4452 an
+edit meeting another branch's only warns (first ready lands), so in-flight work never stops a landing.
 
 **What the enqueue unit keeps.** The judgment (units/enqueue.md): step 2 reads the review lane's results and holds
 (section 4.9.1), step 3 reads `land_lane.py status`
@@ -1420,7 +1419,7 @@ real dispatch-spec template and `check_practices.py`'s same-file rule; the fix l
 partial last line), `landing_measure.py --self-test` (the per-pull-request landing record, its completion from GitHub and the summary
 against the retired train records, kb/Work PB3028; `landing_rules.py --self-test` keeps the retired train writer out), `landing_check.py
 --self-test` (section 4.7's file-set guarantee), `land_lane.py --self-test` (section 4.9: planted survey rows start
-in survey order and only once; a planted exit 3 is retried at its head only once the overlap is gone, an exit 12
+in survey order and only once; a planted exit 3 is a STOP, never retried at its head (the enqueue unit's finisher), an exit 12
 (GATE BUSY) only once the worktree's gate lock is free (held until a gate has written its verdict, so a gate still running
 owes none, kb/Work PB3662; the Linux half left the gate, so the lock is exit 12's only source, kb/Work PB4327), and an exit 15 (PREDECESSOR QUEUED) only once no open pull request owns a DEVLOG
 entry the branch carries (kb/Work PB3145), an exit 16 (DRIVER FILE QUEUED) only once no open pull request
@@ -1803,7 +1802,7 @@ and `detached.py`'s docstrings, `scripts/hooks/forbidden_commands.py` (`enqueue.
 |---|---|---|
 | `lane_state.py` | THE lane's state files under `<coord>/land-lane/`: attempt records (one writer per field), the re-arms, HALT, the tick lock, the survey copy | `LANE_DIR`, `ATTEMPTS`, `SURVEY`, `HALT`, `REARM`, `TICK_LOCK`, `lane_dir`, `now_utc`, `slug`, `ATTEMPT_NUMBER`, `attempt_order`, `attempts`, `by_branch`, `update`, `finished`, `classify`, `trailing`, `effective`, `last_verdict`, `queued_pr`, `rearm_path`, `rearms`, `drop_stale_rearms`, `rearm`, `rearm_hold`, `rearm_effect`, `stop_reason`, `loop_stop` |
 | `conflict_brief.py` | The conflict brief a finisher starts from (PB3640) | `CONFLICTS`, `NOTE_ID`, `MAIN`, `BRIEF_NOTES`, `_note_line`, `conflict_brief`, `brief_path`, `main_of`, `write_conflict_brief`, `show_conflict_brief` |
-| `lane_decide.py` | What the lane does with one branch: the decision from its attempts, the waits (which exit waits on what), the candidates | `WAITS`, `RETRYABLE`, `QUEUE_OWNED`, `SURVEY_MAX_AGE_MIN`, `Decision`, `decide`, `tip_of`, `runner_alive`, `survey_rows`, `row_dicts`, `landing_check_free`, `gate_lock_free`, `land_lock_free`, `lock_free`, `predecessor_free`, `wait_free`, `candidates` |
+| `lane_decide.py` | What the lane does with one branch: the decision from its attempts, the waits (which exit waits on what), the candidates | `WAITS`, `RETRYABLE`, `QUEUE_OWNED`, `SURVEY_MAX_AGE_MIN`, `Decision`, `decide`, `tip_of`, `runner_alive`, `survey_rows`, `row_dicts`, `gate_lock_free`, `land_lock_free`, `lock_free`, `predecessor_free`, `wait_free`, `candidates` |
 | `lane_watch.py` | The queue watch of a queued pull request and its remedies | `QUEUE_GRACE_MIN`, `WATCH_DONE`, `WatchStep`, `_iso`, `watch_step`, `WatchEffects`, `real_effects`, `watch_text`, `watch_queue`, `notify_operator` |
 | `lane_status.py` | The read side: the view `next_unit.py` and the probe print, the agent work, status lines | `ACTION`, `Lane`, `view`, `AgentWork`, `agent_work`, `outcome`, `brief_text`, `status_lines`, `collect` |
 | `land_lane.py` (stays, the lane) | The tick: survey, decide, launch, reap; the runner; `main` | `tick`, `launch`, `reap`, `run_attempt`, `LaneError`, `main` |
