@@ -1,4 +1,4 @@
-## The margin-R note names a line that holds text only past margin R, and a tag that recurs is a tag (PB4372)
+## Entry 2963 — 2026-11-01 16:47 PST — The margin-R note names a line that holds text only past margin R, and a tag that recurs is a tag (PB4372)
 
 PB2555 gave a syntax error beside a margin-R cut a warning (COBOL5788). Its landing left two shapes out, and the second carried no owner
 decision, which CLAUDE.md rule 3 forbids. PB4372 closes both at the root, in the same files.
@@ -31,3 +31,4 @@ minority, a lone tag, a tab). Conformance refusal `pb4372-statement-only-past-ma
 **Rows.** None changes verdict (a diagnostic's quality; every program was already refused); `closes_rows: []` with its reason.
 
 **Review round 1 (R1-1, blocking).** The between-lines arm also asked about lines that HOLD program text and stand tokenless, which are lines the compiler omitted (a false `>>IF` branch, ISO 7.3.16.4 3); a debugging line without debugging mode), so their cut was blamed for the error. The arm now asks only of lines whose program-text area is blank (`HoldsProgramText` false), and the "text of that line may have been needed" message is gone with it. Tests: `ALineOfAnOmittedConditionalBranch_IsNotAskedAbout`, `ADebuggingLineWithoutDebuggingMode_IsNotAskedAbout`. R1-3 (the member summary said two shapes) corrected to three. A line with text ONLY past margin R inside an omitted branch is still asked about: no stage tells the listener which blank lines were omitted.
+
