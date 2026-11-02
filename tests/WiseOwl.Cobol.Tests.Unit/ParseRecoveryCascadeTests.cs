@@ -125,6 +125,24 @@ public sealed class ParseRecoveryCascadeTests
     public void ATerminatorDirectlyAfterOneTheRecoveryTook_IsStray_AndTheNextFaultIsReported(string statements, params string[] diagnostics)
         => AssertDiagnostics(statements, diagnostics);
 
+    /// <summary>PB4448: a statement that begins the next statement of a block and whose own parse dies later (an IF whose
+    /// statement-1 is missing) is refused where it dies, COBOL2072 (ISO §5.2.6.3: "the syntax element contained within
+    /// the braces or one of the alternatives contained within the braces shall be explicitly specified"), never at its
+    /// first token as a word "not expected here": the IF begins a statement where the block stands, so the block of an
+    /// inline PERFORM, the one that ENDS the construct before it, is not the place that refuses it.</summary>
+    [Theory]
+    [InlineData("PERFORM UNTIL W-N = 2 DISPLAY \"A\" IF W-K = 2 END-IF END-IF END-PERFORM. MOVE 1 W-N.",
+                "COBOL2072@END-IF", "COBOL0306@END-IF", "COBOL5506@W-N")]
+    [InlineData("PERFORM UNTIL W-N = 2 DISPLAY \"A\" IF W-K = 2 END-IF END-PERFORM. MOVE 1 W-N.", "COBOL2072@END-IF", "COBOL5506@W-N")]
+    [InlineData("PERFORM 3 TIMES DISPLAY \"A\" IF W-K = 2 END-IF END-PERFORM. MOVE 1 W-N.", "COBOL2072@END-IF", "COBOL5506@W-N")]
+    [InlineData("PERFORM DISPLAY \"A\" WHEN EC-ALL DISPLAY \"B\" IF W-K = 2 END-IF END-PERFORM. MOVE 1 W-N.", "COBOL2072@END-IF", "COBOL5506@W-N")]
+    [InlineData("PERFORM UNTIL W-N = 2 DISPLAY \"A\" EVALUATE W-N WHEN 1 END-EVALUATE END-PERFORM. MOVE 1 W-N.",
+                "COBOL2072@END-EVALUATE", "COBOL5506@W-N")]
+    [InlineData("PERFORM UNTIL W-N = 2 DISPLAY \"A\" IF W-K = 2 ELSE DISPLAY \"B\" END-IF END-PERFORM. MOVE 1 W-N.",
+                "COBOL2072@ELSE", "COBOL5506@W-N")]
+    public void AStatementThatDiesAfterAnotherInABlock_IsRefusedWhereItDies(string statements, params string[] diagnostics)
+        => AssertDiagnostics(statements, diagnostics);
+
     /// <summary>PB4437: an IF that is the first statement of a WHEN group (EVALUATE, SEARCH) and faults at its ELSE is left
     /// by the recovery, and the EVALUATE or SEARCH ends before the statement after it. The IF's own END-IF, and the
     /// EVALUATE's or SEARCH's END-x after the statements the group's block could not take, are theirs (ISO §14.5.3.2 1)):

@@ -1658,6 +1658,13 @@ target:
   from the closed construct (`ClosedJustBefore`'s walk): over `WHEN 1` that walk re-opens the superset grammar (a
   class-name without IS, the sign words), which routes the literal-category arm to "only ZERO", and no sentence prints
   the longer set. An arm that prints a list at such a position must derive it first, and answers that routing.
+- ⛔ **A token the construct just before it could have taken is a fault further on, never a kind refused** (kb/Work
+  PB4448; ISO §5.2.6.3). `AdmittedKinds.Refusal` answers null first where `whatTheConstructBeforeCouldTake` holds the
+  token, for every arm (the operand arm of PB4426 asked it alone). `PERFORM UNTIL c DISPLAY "A" IF W-K = 2 END-IF
+  END-PERFORM`: the parser leaves the block before the IF (its prediction died inside the malformed IF), admits END-PERFORM,
+  FINALLY and WHEN there, and hint 0i said "unexpected 'IF' … expected END-PERFORM, FINALLY or WHEN", a false claim about
+  a statement the block may begin there. Hint 0i is then silent, `Report` carries the report into the closed block to where
+  its parse dies, and hint 0a names the IF's missing statement-1, COBOL2072 at the END-IF, as it does inside an IF.
 - Recovery beyond that and the sync-point behavior is out of scope for this rearchitecture (the battery does
   not exercise multi-error recovery quality; changing it risks the green net for no measured gain) — but a
   change in the diagnostics a negative fixture produces is visible to the oracle
