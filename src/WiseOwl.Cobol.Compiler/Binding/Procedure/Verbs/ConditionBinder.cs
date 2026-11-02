@@ -1237,9 +1237,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // pairing error about the wrong thing) and reported ONCE, through the one wording.
         // A data item of a NEARER source element that hides the level-88 is NOT this arm's reference (ISO §8.4.6.2.1 3) a)):
         // a bare operand admits a data item, so the reference is the data item's and the value arm reports whatever is
-        // wrong with it, such as a subscript on a scalar (§8.4.2.3.3 SR2, COBOL2096; kb/Work PB4433).
+        // wrong with it, such as a subscript on a scalar (§8.4.2.3.3 SR2, COBOL2096; kb/Work PB4433). A constant-name,
+        // index-name, CAPACITY register or file-name of a NEARER source element is the referenced item the same way
+        // (kb/Work PB4432 review R1-1), and the value arm refuses it as the operand it is.
         if (inner is { } mqx && SoleDataRef(mqx) is { } mqr && ctx.Refs.Probe(mqr) is null
-            && !NamesHidingDataItem(mqr) && ReportMisqualifiedCondition(mqr))
+            && !NamesHidingDataItem(mqr) && HidingNonDataDeclaration(mqr) is null && ReportMisqualifiedCondition(mqr))
             return BareOperandAnalysis.OfCondition(BareOperandForm.ConditionName,
                 Refused($"condition-name '{DataBinder.WrittenText(mqr)}'"));
         // A class-name-1 / alphabet-name-1 (§8.8.4.4.2) written bare — a word, never qualified, subscripted or
@@ -1717,7 +1719,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // kb/Work PB4219 review R1-1: the condition lookup leaves the container's GLOBAL condition-name no survivor), so
         // the reference names that data item where this position admits only a condition-name.
         if (NamesHidingDataItem(dref))
-            ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, ReferenceResolver.HiddenConditionText(text, name));
+            ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, ReferenceResolver.HiddenConditionText(text, name, "a data item"));
+        // ... and so is a constant-name, index-name, CAPACITY register or file-name of a nearer one (kb/Work PB4432 review
+        // R1-1): this position names THAT, not the container's level-88.
+        else if (HidingNonDataDeclaration(dref) is { } hider)
+            ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, ReferenceResolver.HiddenConditionText(text, name, hider.ClassPhrase));
         // A report entry of a NEARER source element is the referenced item the same way (kb/Work PB4196), and the
         // report-item refusal names it.
         else if (!ctx.Data.ReportEntryReferenceRefused(default, $"'{text}'", name, qualifiers))
@@ -1732,6 +1738,12 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// (<see cref="ReportMisqualifiedCondition"/>), a bare operand position takes it as the data item it is.</summary>
     private bool NamesHidingDataItem(Core.DataReferenceContext dref) =>
         ctx.Data.ConditionNameHiddenByNearerDataItem(WrittenWord(dref), QualifiersOf(dref), ctx.ActiveScope);
+
+    /// <summary>The declaration of another name class than a data item that hides the level-88 <paramref name="dref"/>
+    /// names — a constant-name, index-name, CAPACITY register or file-name of a NEARER source element (ISO §8.4.6.2.1 3) a);
+    /// kb/Work PB4432 review R1-1) — or null. The class twin of <see cref="NamesHidingDataItem"/>.</summary>
+    private NonDataDeclaration? HidingNonDataDeclaration(Core.DataReferenceContext dref) =>
+        ctx.Data.ConditionNameHiddenByNearerNonDataName(WrittenWord(dref), QualifiersOf(dref), ctx.ActiveScope);
 
     private static string WrittenWord(Core.DataReferenceContext dref) => dref.cobolWord()?.GetText() ?? dref.GetText();
 

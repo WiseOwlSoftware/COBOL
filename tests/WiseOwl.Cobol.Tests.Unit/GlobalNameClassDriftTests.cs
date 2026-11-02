@@ -247,7 +247,17 @@ public sealed class GlobalNameClassDriftTests
         string nonData = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.NonDataNames.cs"));
         var ranked = Regex.Match(nonData, @"internal NonDataDeclaration\? NonDataDeclarationOf\(.*?\n    \}", RegexOptions.Singleline).Value;
         Assert.Contains("Offer(", ranked);
-        Assert.DoesNotMatch(@"return new\(NonDataDeclarationKind\.(ConstantName|IndexName|FileName|ConditionName)", ranked);
+        Assert.DoesNotMatch(@"return new\(NonDataDeclarationKind\.(ConstantName|IndexName|CapacityRegister|FileName|ConditionName)", ranked);
+        // ... and the REVERSE arm (kb/Work PB4432 review R1-1): the condition-name narrowing asks the same list of the other
+        // name classes, so a contained program's own index-name, constant-name, CAPACITY register or file-name hides a
+        // container's GLOBAL level-88 as its own data item does. One list (NonConditionDeclarationsOf) serves both
+        // directions, so a class added to it ranks in both.
+        AssertBodyAsks(table, @"public List<Condition88> NearestDeclaringConditions\(", "NonConditionDeclarationNearerThan(");
+        AssertBodyAsks(nonData, @"internal NonDataDeclaration\? NonConditionDeclarationNearerThan\(", "NonConditionDeclarationsOf(");
+        Assert.Contains("NonConditionDeclarationsOf(", ranked);
+        string binder = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.cs"));
+        Assert.Contains("NearerNonDataDeclarationHidesConditions(",
+            Regex.Match(binder, @"internal NonDataDeclaration\? ConditionNameHiddenByNearerNonDataName\(.*?;", RegexOptions.Singleline).Value);
 
         static void AssertBodyAsks(string text, string signature, string ask)
         {

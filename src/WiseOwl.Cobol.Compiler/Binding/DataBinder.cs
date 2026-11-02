@@ -8904,9 +8904,18 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     internal List<Condition88> QualifiedConditionCandidates(string name, IReadOnlyList<string> qualifiers, Model.Scope scope)
     {
         var matches = Symbols.NearestDeclaringConditions(ConditionsUnderQualifiers(name, qualifiers, scope), name,
-            qualifiers);   // kb/Work PB4196, PB4219
+            qualifiers, scope);   // kb/Work PB4196, PB4219, PB4432
         return matches.TrueForAll(IsTypeDeclarationCondition) ? [] : matches;
     }
+
+    /// <summary>⛔ ISO §8.4.6.2.1 3) a) SEEN FROM A CONDITION-ONLY POSITION, FOR THE NAME CLASSES THAT ARE NOT DATA ITEMS
+    /// (kb/Work PB4432 review R1-1, the class twin of <see cref="ConditionNameHiddenByNearerDataItem"/>): the written
+    /// qualifiers reach a level-88 of the spelling, but a constant-name, index-name, CAPACITY register or file-name of it
+    /// declared in a NEARER source element is the referenced item. The declaration that hides it, or null. Pure: it
+    /// reports nothing.</summary>
+    internal NonDataDeclaration? ConditionNameHiddenByNearerNonDataName(
+        string name, IReadOnlyList<string> qualifiers, Model.Scope scope) =>
+        Symbols.NearerNonDataDeclarationHidesConditions(ConditionsUnderQualifiers(name, qualifiers, scope), name, qualifiers, scope);
 
     /// <summary>Every level-88 of <paramref name="name"/> visible in <paramref name="scope"/> whose conditional-variable
     /// chain carries each written qualifier, BEFORE the §8.4.6.2.1 3) narrowing: the qualifier walk of

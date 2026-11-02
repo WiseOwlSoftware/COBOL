@@ -26,3 +26,16 @@ an accepted control (SET ... TO TRUE / IF with the container's index intact, 85.
 holds `IndexCandidates` and `CapacityRegisterFor` to the one predicate and `NonDataDeclarationOf` to the ranking.
 
 **Rows.** PB4432 claimed none; it closes none.
+
+**Review round 1 (R1-1): the reverse arm.** The reviewer refuted "No other arm": `SymbolTable.NearestDeclaringConditions`
+asked only `NearerDataNameHides`, so a contained program's OWN `INDEXED BY RELF`, `01 RELF CONSTANT`, `CAPACITY IN RELF` or
+`SELECT RELF` did not hide the container's GLOBAL `88 RELF`: `IF RELF` and `SET RELF TO TRUE` compiled clean and used the
+container's condition-name (ISO 8.4.6.2.1 3) a)). Re-probed on the branch head, all six shapes reproduced. The fix gives the
+four non-condition, non-data classes ONE list, `DataBinder.NonConditionDeclarationsOf` (the CAPACITY register joins as
+`NonDataDeclarationKind.CapacityRegister`), which `NonDataDeclarationOf` ranks beside the condition-name and
+`NonConditionDeclarationNearerThan` asks for the condition lookup. A condition-only position (SET ... TO TRUE) names the
+hiding class through `NonDataDeclaration.ClassPhrase`; a bare IF operand leaves it to the value arm (COBOL1637 for the
+index-name, COBOL2318 for a constant or register); SEARCH ALL's WHEN screen skips its condition-name verdict. Goldens:
+`pb4432_if_names_own_{index_name,constant_name,file_name}_*`, `pb4432_set_to_true_names_own_{index_name,capacity_register}_*`
+and the control `pb4432_container_global_condition_name_beside_other_index_name`. Drift test extended: both directions
+ask the one list.

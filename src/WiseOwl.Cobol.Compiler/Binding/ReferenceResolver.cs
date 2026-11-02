@@ -329,12 +329,14 @@ public sealed partial class ReferenceResolver(DataBinder data)
               + "§8.4.2.2.3 SR4, SR5).";
 
     /// <summary>The wording of a reference in a CONDITION-ONLY position whose word names a level-88 of a containing program
-    /// that a nearer data item of the spelling hides (<see cref="DataBinder.ConditionNameHiddenByNearerDataItem"/>, kb/Work
-    /// PB4219 review R1-1): the reference names that data item, so it is neither a misqualified condition-name nor an
-    /// undeclared word, and saying either states the opposite of the facts.</summary>
-    internal static string HiddenConditionText(string text, string name) =>
-        $"'{text}' names a data item, not a condition-name, and this position requires a condition-name: the data-name "
-        + $"'{name}' is declared in a source element nearer than the containing program whose GLOBAL condition-name "
+    /// that a nearer declaration of the spelling hides (<see cref="DataBinder.ConditionNameHiddenByNearerDataItem"/>, kb/Work
+    /// PB4219 review R1-1; <see cref="DataBinder.ConditionNameHiddenByNearerNonDataName"/>, kb/Work PB4432 review R1-1):
+    /// the reference names that item, so it is neither a misqualified condition-name nor an undeclared word, and saying
+    /// either states the opposite of the facts. <paramref name="nearer"/> is what the nearer declaration is ("a data
+    /// item", <see cref="NonDataDeclaration.ClassPhrase"/>).</summary>
+    internal static string HiddenConditionText(string text, string name, string nearer) =>
+        $"'{text}' names {nearer}, not a condition-name, and this position requires a condition-name: '{name}' is "
+        + "declared in a source element nearer than the containing program whose GLOBAL condition-name "
         + $"'{name}' it hides (ISO §8.4.6.2.1 3) a): \"If the name is declared in source element B, the item in source "
         + "element B is the referenced item\").";
 

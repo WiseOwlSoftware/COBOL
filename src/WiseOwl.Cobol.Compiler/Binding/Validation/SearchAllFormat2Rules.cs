@@ -231,7 +231,8 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         if (item is null
             && data.Symbols.TryResolveCondition(word, data.ActiveScope, out var cn)
             && cn.Count > 0
-            && !data.ConditionNameHiddenByNearerDataItem(word, ConditionBinder.QualifiersOf(dref), data.ActiveScope))
+            && !data.ConditionNameHiddenByNearerDataItem(word, ConditionBinder.QualifiersOf(dref), data.ActiveScope)
+            && data.ConditionNameHiddenByNearerNonDataName(word, ConditionBinder.QualifiersOf(dref), data.ActiveScope) is null)
             return validation.RejectStatementOperand(
                 $"SEARCH ALL '{table.CobolName}' WHEN {DataBinder.WrittenText(dref)} … — '{word}' is a "
                 + "condition-name, and Format 2 prints condition-name-1 as an ALTERNATIVE to the whole "
