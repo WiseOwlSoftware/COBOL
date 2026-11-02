@@ -1,9 +1,6 @@
-// Copyright (c) 2026 Brent Rector. All rights reserved.
-// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using System.Collections.Generic;
-using System.Linq;
 
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Binding.Passes;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -13,8 +10,8 @@ namespace WiseOwl.Cobol.Binding;
 /// function", which measure the item AS DESCRIBED — after every clause that decides its size has applied. Four of those
 /// clauses apply through the description-completion passes of <see cref="Passes.BindPipeline"/>, which run once over
 /// the whole forest after the DATA DIVISION is bound: the §13.16.3 SR9 VALUE-implied PICTURE
-/// (<see cref="SynthesizeImpliedPictures"/>), TYPE and SAME AS composition (<see cref="ExpandTypes"/>), group USAGE
-/// (§13.18.60.4 GR1, <see cref="UsageInheritancePass"/>) and group SIGN (§13.18.52 GR1, <see cref="InheritSignClauses"/>).
+/// (<see cref="SynthesizeImpliedPicturesPass.Run"/>), TYPE and SAME AS composition (<see cref="ExpandTypesPass.Run"/>), group USAGE
+/// (§13.18.60.4 GR1, <see cref="UsageInheritancePass.Run"/>) and group SIGN (§13.18.52 GR1, <see cref="InheritSignClausesPass.Run"/>).
 /// A constant entry is bound when the section walk reaches it or when a reference demands its value — both BEFORE the
 /// pipeline — so the operand used to be measured half-described: a COMP-5 group's PIC 9(4) leaf 4 bytes where it
 /// occupies 2, a record holding a TYPE'd member 1 position where it is 6, a VALUE-implied picture 1 where it is 4, a
@@ -103,8 +100,8 @@ public sealed partial class DataBinder
         // the declarations this subtree may copy own theirs first — the pipeline's order (SynthesizeImpliedPictures
         // before ExpandTypes). A declaration whose description is still open is not complete and copies nothing yet.
         foreach (var declaration in AllTypeDecls().Where(t => !IsDescriptionOpen(t)).ToList())
-            SynthesizeImpliedPicturesUnder(declaration);
-        SynthesizeImpliedPicturesUnder(item);
+            SynthesizeImpliedPicturesPass.SynthesizeImpliedPicturesUnder(this, declaration);
+        SynthesizeImpliedPicturesPass.SynthesizeImpliedPicturesUnder(this, item);
         // ExpandTypes' order: every TYPE clause, then every SAME AS clause (a SAME AS source copies its expanded TYPE).
         foreach (var typed in DataItem.SelfAndDescendantsOf(item).Where(i => i.TypeRefName is not null).ToList()) ExpandType(typed);
         foreach (var sameAs in DataItem.SelfAndDescendantsOf(item).Where(i => i.SameAsName is not null).ToList()) ExpandSameAs(sameAs, []);
@@ -143,7 +140,7 @@ public sealed partial class DataBinder
     private bool BindLaterTypeDeclaration(string typeName, Model.Scope scope)
     {
         if (!IsDescribedLater(typeName) || !BindLaterRecords(typeName)) return false;
-        if (TryFindTypeDecl(typeName, scope, out var declaration)) SynthesizeImpliedPicturesUnder(declaration);
+        if (TryFindTypeDecl(typeName, scope, out var declaration)) SynthesizeImpliedPicturesPass.SynthesizeImpliedPicturesUnder(this, declaration);
         return true;
     }
 }

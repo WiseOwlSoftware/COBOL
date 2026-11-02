@@ -1,8 +1,3 @@
-// Copyright (c) 2026 Brent Rector. All rights reserved.
-// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using System;
-
-using WiseOwl.Cobol.Binding.Model;
 
 namespace WiseOwl.Cobol.Binding.Passes;
 
@@ -72,21 +67,20 @@ public interface IPassInfo
 
     /// <summary>The phase reached after this pass completes (&gt;= the running high-water mark).</summary>
     PassPhase Produces { get; }
+
+    /// <summary>The views of <see cref="DataBindState"/> the pass declares: the fact sets it appends to, reads early and
+    /// reads whole (kb/Work PB2352). <c>BindPipeline.ValidateDag</c> checks them against <see cref="FactSetContract"/> and
+    /// the phase order.</summary>
+    PassViews Views { get; }
 }
 
 /// <summary>
 /// One declared PER-UNIT resolve pass in the bind pipeline: the <see cref="IPassInfo"/> contract plus the work it
-/// runs over a single <see cref="DataBinder"/>'s forest (PHASE-05 Step 3; the manifest is <c>BindPipeline.Build</c>).
+/// runs over a single <see cref="DataBinder"/>'s forest (PHASE-05 Step 3; the manifest is <c>BindPipeline.Build</c>,
+/// which lists one class per pass, kb/Work PB2352-PB2354).
 /// </summary>
 public interface IBindPass : IPassInfo
 {
     /// <summary>Run the pass over the binder's forest.</summary>
-    void Run(DataBinder data);
-}
-
-/// <summary>The canonical <see cref="IBindPass"/> implementation: a name + phase contract + a delegate body.</summary>
-internal sealed record BindPass(string Name, PassPhase Requires, PassPhase Produces, Action<DataBinder> Body)
-    : IBindPass
-{
-    public void Run(DataBinder data) => Body(data);
+    void Run(DataBinder binder);
 }

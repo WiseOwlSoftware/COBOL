@@ -295,108 +295,7 @@ public sealed partial class DataBinder
         }
     }
 
-    /// <summary>The <see cref="ClausePlacementKind.ElementaryOnly"/> rows over the finished forest — the
-    /// "has this clause ⇒ is elementary" direction for PICTURE (§13.18.40.3 SR1), JUSTIFIED and BLANK WHEN ZERO
-    /// (§13.16.3 SR11). §8.5.1.3.1: "The most basic subdivisions of a record, that is, those not further
-    /// subdivided, are called elementary items", so the test is <see cref="HasNoSubordinates"/>, never
-    /// <see cref="DataItem.IsElementary"/> (which is DEFINED as <c>Pic is not null</c> and would make the PICTURE
-    /// row circular).
-    /// <para>Reported over <see cref="ConformanceForest"/> (a defective TYPEDEF template is named once, at the
-    /// entry the programmer must change) and RECOVERED over <see cref="CompositionForest"/> (every clone
-    /// <c>ExpandTypes</c> made is repaired too). The recovery clears the clause, never the subordinates: for
-    /// PICTURE that makes the entry the group its hierarchy declares (kb/Work PB527 — the model cannot hold an
-    /// entry that is both), and for JUSTIFIED / BLANK WHEN ZERO it drops a flag no group consumer may read.</para></summary>
-    private void CheckElementaryOnlyClauses()
-    {
-        foreach (var item in ConformanceForest())
-        {
-            if (HasNoSubordinates(item)) continue;
-            foreach (var rule in ClausePlacementRules.Rules)
-            {
-                if (rule.Kind is not ClausePlacementKind.ElementaryOnly) continue;
-                var present = ElementaryOnlyClausesOn(item) & rule.Clauses;
-                if (present == DataClauseKind.None) continue;
-                int n = item.Children.Count;
-                using var _ = Edition.At(item);
-                Edition.Error(rule.Code, $"data item '{item.CobolName ?? "FILLER"}': the {DataClauseKinds.Name(present)} "
-                    + $"clause may be specified only at the elementary level (ISO {rule.Rule}) — this entry has {n} "
-                    + $"subordinate {(n == 1 ? "entry" : "entries")}, so it is not an elementary item (§8.5.1.3.1: the "
-                    + "elementary items are the subdivisions \"not further subdivided\"). Remove "
-                    + (present == DataClauseKind.Picture && item.PictureText is { } pt
-                        ? $"PICTURE {pt}" : $"the {DataClauseKinds.Name(present)} clause")
-                    + " from this entry, or remove the subordinate entries");
-            }
-        }
-
-        foreach (var item in CompositionForest())
-        {
-            if (HasNoSubordinates(item)) continue;
-            item.Pic = null;              // the entry becomes the group its hierarchy declares
-            item.Justified = false;
-            item.BlankWhenZero = false;
-            item.Property = null;         // a refused PROPERTY defines no accessor (§13.18.42.3 SR3)
-        }
-    }
-
-    /// <summary>The <see cref="ClausePlacementKind.ElementaryOnly"/> subject clauses <paramref name="item"/>
-    /// carries, read from the bound facts each clause leaves. ⛔ A clause joining an ElementaryOnly row adds its
-    /// arm HERE and its recovery in <see cref="CheckElementaryOnlyClauses"/>; <c>DataClausePlacementDriftTests</c>
-    /// is red for an ElementaryOnly subject this method does not report.</summary>
-    internal static DataClauseKind ElementaryOnlyClausesOn(DataItem item) =>
-        (item.Pic is not null ? DataClauseKind.Picture : DataClauseKind.None)
-        | (item.Justified ? DataClauseKind.Justified : DataClauseKind.None)
-        | (item.BlankWhenZero ? DataClauseKind.BlankWhenZero : DataClauseKind.None)
-        | (item.Property is not null ? DataClauseKind.Property : DataClauseKind.None);
-
-    /// <summary>The SUBJECT rules of BLANK WHEN ZERO and JUSTIFIED — what the elementary item they are written on
-    /// may BE (kb/Work PB507). Runs after <c>UsageInheritancePass</c> and <see cref="CheckPictureRequired"/>, because
-    /// §13.18.8.3 SR2 reads the usage the subject is "implicitly or explicitly described as", and §13.18.60.4 GR1
-    /// inheritance supplies the implicit half: <c>01 G COMP. 05 A PIC 999 BLANK WHEN ZERO.</c> violates SR2 as
-    /// surely as the direct spelling.
-    /// <list type="bullet">
-    /// <item>§13.18.8.3 SR1 — category numeric-edited, or numeric without 'S'. The category is the one the
-    /// PICTURE character-string gives, which §13.18.8.4 GR2 then re-defines as numeric-edited for a display /
-    /// national numeric subject; so both categories are admitted here. The 'S' half is §13.18.40.3's own
-    /// SR22 (COBOL1934, PictureComposition) — the same fact, reported once, at the picture.</item>
-    /// <item>§13.18.8.3 SR2 — usage display or national, written or inherited.</item>
-    /// <item>§13.18.32.3 SR3 — category alphabetic, alphanumeric, boolean or national (never an EDITED
-    /// category: <see cref="PicInfo.EditMask"/> is what makes one, see its doc).</item>
-    /// <item>§13.18.32.3 SR4 — "shall not be specified for a dynamic-length elementary item" — has NO arm here,
-    /// deliberately: §13.16.3 SR18 already refuses JUSTIFIED beside DYNAMIC LENGTH (the only other clauses it
-    /// permits are level-number, entry-name, PICTURE, USAGE and VALUE — COBOL1563, BindEntry), which is the
-    /// same fact reported once. No TYPE / SAME AS path can compose the pair either: both copy from an entry that
-    /// SR18 has already screened.</item>
-    /// </list>
-    /// Recovery clears the clause, so no consumer applies a blank-when-zero or a right justification to an item the
-    /// clause may not describe. Reported over <see cref="ConformanceForest"/>, recovered over
-    /// <see cref="CompositionForest"/>, the two-forest discipline.</summary>
-    internal void CheckClauseSubjects()
-    {
-        foreach (var item in ConformanceForest())
-        {
-            if (!HasNoSubordinates(item) || item.Pic is not { } pic) continue;
-            string name = item.CobolName ?? "FILLER";
-            if (item.BlankWhenZero && BlankWhenZeroViolation(pic) is { } bwz)
-            {
-                using var _ = Edition.At(item);
-                Edition.Error(DiagnosticCatalog.ClauseSubjectCategory, $"data item '{name}': {bwz}");
-            }
-            if (item.Justified && JustifiedViolation(pic) is { } jus)
-            {
-                using var _ = Edition.At(item);
-                Edition.Error(DiagnosticCatalog.ClauseSubjectCategory, $"data item '{name}': {jus}");
-            }
-        }
-
-        foreach (var item in CompositionForest())
-        {
-            if (item.Pic is not { } pic) continue;
-            if (item.BlankWhenZero && BlankWhenZeroViolation(pic) is not null) item.BlankWhenZero = false;
-            if (item.Justified && JustifiedViolation(pic) is not null) item.Justified = false;
-        }
-    }
-
-    private static string? BlankWhenZeroViolation(PicInfo pic)
+    internal static string? BlankWhenZeroViolation(PicInfo pic)
     {
         if (pic.Category is not (PicCategory.Numeric or PicCategory.NumericEdited))
             return "the BLANK WHEN ZERO clause may be specified only for an elementary item described by its picture "
@@ -408,7 +307,7 @@ public sealed partial class DataBinder
         return null;
     }
 
-    private static string? JustifiedViolation(PicInfo pic)
+    internal static string? JustifiedViolation(PicInfo pic)
     {
         if (pic.Category is not (PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean)
             || pic.EditMask is not null)

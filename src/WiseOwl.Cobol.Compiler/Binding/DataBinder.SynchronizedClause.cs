@@ -35,7 +35,7 @@ namespace WiseOwl.Cobol.Binding;
 /// "excluding the level-number, name, alignment …", so a declaration's group-level clause never reaches the TYPE
 /// subject's own entry, but under GR1 above that clause was "instead" specified on the subordinate elementary items,
 /// whose descriptions the subject does copy. The storage forest takes it once every TYPE and SAME AS reference is
-/// expanded (<see cref="ExpandTypes"/>), so a TYPE subject that writes the clause itself reaches the leaves it copied.
+/// expanded (<see cref="ExpandTypesPass.Run"/>), so a TYPE subject that writes the clause itself reaches the leaves it copied.
 /// The walk is idempotent, so a subtree completed ahead (<see cref="CompleteDescriptionAhead"/>) is safe to re-walk.</para>
 /// </summary>
 public sealed partial class DataBinder
@@ -45,7 +45,7 @@ public sealed partial class DataBinder
     /// <param name="item">The entry to visit.</param>
     /// <param name="inherited">The clause the nearest enclosing group wrote, or null.</param>
     /// <param name="permitted">False below a group-level VALUE or a CONSTANT RECORD, where the clause is not permitted.</param>
-    private void InheritSynchronized(DataItem item, SynchronizedPhrase? inherited = null, bool permitted = true)
+    internal void InheritSynchronized(DataItem item, SynchronizedPhrase? inherited = null, bool permitted = true)
     {
         if (item.IsElementary)
         {

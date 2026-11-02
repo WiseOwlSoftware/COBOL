@@ -8,8 +8,6 @@ using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
 
 using WiseOwl.Cobol.Binding.Model;
-using CobolEdit = WiseOwl.Cobol.Runtime.CobolEdit;
-using CobolDynString = WiseOwl.Cobol.Runtime.CobolDynString;
 
 using WiseOwl.Cobol.Compiler.Oo;
 
@@ -219,7 +217,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// template is built by <see cref="BindEntries"/> but kept OFF <see cref="Roots"/>
     /// and <see cref="ByName"/> (it allocates no storage; its subordinate names are not globally referenceable,
     /// GR1/GR2). A <c>TYPE IS type-name</c> reference clones this subtree into the referencing entry in the post-build
-    /// <see cref="ExpandTypes"/> pass — which runs before <see cref="BindResolve"/>, so every resolution pass sees the
+    /// <see cref="ExpandTypesPass.Run"/> pass — which runs before <see cref="BindResolve"/>, so every resolution pass sees the
     /// clone (the invariant the OO compiler-temp clone already relies on).</summary>
     public Dictionary<string, DataItem> TypeDecls { get; } = new(CobolNames.Comparer);
 
@@ -244,7 +242,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// of its methods' (<see cref="OoMethodDataScope.TypeDecls"/>, kb/Work PB3192), in that order — what a pass over
     /// the WHOLE forest walks (the completion of every declaration, the clause-resolution and declared forests). A
     /// lookup BY NAME never reads it: it reads the declaring element's own table (<see cref="TryFindTypeDecl"/>).</summary>
-    private IEnumerable<DataItem> AllTypeDecls() =>
+    internal IEnumerable<DataItem> AllTypeDecls() =>
         TypeDecls.Values.Concat(_ooBoundMethods.SelectMany(static m => m.DataScope.TypeDecls.Values));
 
     /// <summary>The own type-declaration table of the source element <paramref name="scope"/> names: the method's, else
@@ -662,7 +660,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         foreach (var pass in BindPipeline.Build(program))
         {
             Require(pass.Requires, pass.Name);   // watermark gate: the declared prerequisite actually RAN (P6 Step 6)
-            pass.Run(this);
+            using (State.Gate.Running(pass)) pass.Run(this);   // the pass appends only to the fact sets its Views declare (PB2352)
             MarkProduced(pass.Produces);
         }
     }
@@ -3670,77 +3668,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             && IntrinsicCatalog.TryGet(canonical, out sig) && sig.IsDefinedAt(Edition.DialectLevel);
     }
 
-    // ── TYPEDEF / the TYPE clause (ISO §13.18.58 / §13.18.57; data-model D17) ──────────────────────────────────
-
-    /// <summary>Post-build TYPE-expansion pass: every <c>TYPE IS type-name</c> reference (a real item in the forest)
-    /// gets the referenced type declaration's subtree cloned in. Runs at the top of <see cref="BindResolve"/> — AFTER
-    /// all <see cref="BindEntries"/> (so forward references resolve; every TYPEDEF is in <see cref="TypeDecls"/>),
-    /// AFTER <see cref="SynthesizeImpliedPictures"/> (so a template's §13.16.3 SR9 VALUE-implied PICTURE is part of
-    /// the description it hands over — §13.18.57.4 GR3; kb/Work PB1300) and BEFORE the resolution passes (so the
-    /// clone is a normal part of the forest they walk).</summary>
-    internal void ExpandTypes()
-    {
-        // ⛔ THE TYPE DECLARATIONS FIRST, EACH COMPLETED AS A DECLARATION (kb/Work PB1302). Every TYPE and SAME AS
-        // reference among a template's members is expanded IN the template, once, before any storage item copies
-        // it, so the rules whose subject is the declaration are asked of the declaration — §13.18.58.3 SR2's
-        // recursion ("The description of the subject of the entry, including its subordinate items, shall not
-        // contain a TYPE clause that directly or indirectly references this type definition") and §13.18.57.3
-        // SR6's placement of a member typed by a STRONG declaration — whether or not anything references it.
-        // They used to be side effects of per-REFERENCE expansion, so a recursive type declaration that no
-        // storage item expanded compiled clean, and the answer for one that was depended on declaration order.
-        // §8.4.2.2.1 rule 4's antecedent, recorded BEFORE anything is expanded or resolved (kb/Work PB1476): "a type
-        // declaration entry for which the type-name is not referenced in any TYPE clause in the source unit". EVERY
-        // written TYPE clause counts — a storage item's, a linkage item's, and a member's of another type
-        // declaration, which nothing may ever copy — so the exemption's lapse is a property of the source, never
-        // of which clones happen to reach the name index. The WRITTEN clause is read (DataItem.WrittenTypeName), never
-        // the pending mark: a constant's length phrase may have expanded an entry already (kb/Work PB2465).
-        foreach (var written in DeclaredForest())
-            if (written.WrittenTypeName is { } referenced && TryFindTypeDecl(referenced, ScopeOf(written.Root), out var decl))
-                decl.ReferencedByTypeClause = true;
-        foreach (var template in AllTypeDecls().ToList())
-            ExpandTemplate(template);
-        foreach (var item in AllItems().Where(i => i.TypeRefName is not null).ToList())
-            ExpandType(item);
-        // SAME AS (ISO §13.18.49; P10 Step 16) — expanded AFTER every TYPE reference, so a data-name-1 that
-        // was itself declared with a TYPE clause copies its fully-EXPANDED description (GR1 — "as though the
-        // data description identified by data-name-1 had been coded in place"). Chains (a target with its own
-        // pending SAME AS) recurse inside ExpandSameAs; cycles are the §13.18.49.3 SR3 rejection.
-        foreach (var item in AllItems().Where(i => i.SameAsName is not null).ToList())
-            ExpandSameAs(item, []);
-        // §13.18.55.4 GR1 over the composed storage forest — a TYPE subject or SAME AS subject that writes the clause
-        // reaches the leaves it copied (DataBinder.SynchronizedClause.cs; the templates took it in ExpandTemplate).
-        foreach (var root in Roots) InheritSynchronized(root);
-        ResolveRestrictedTypes();
-        IndexLapsedTypeMembers();
-    }
-
-    /// <summary>Attach the TYPE DECLARATION a restricted data-pointer's <c>USAGE POINTER TO type-name-1</c> names
-    /// (ISO §13.18.60.4 GR23) to its <see cref="PicInfo.RestrictedTypeDecl"/>. Runs at the TAIL of
-    /// <see cref="ExpandTypes"/>, so every template's own nested TYPE / SAME AS references are already expanded
-    /// and the declaration it attaches is the complete one.
-    /// <para>The restriction's carried identity used to be the NAME alone, which decides correctly WITHIN a
-    /// source element (§8.3.2.2 lets a user-defined word be only one type of user-defined word there) and wrongly ACROSS them: two elements may each
-    /// declare a non-equivalent type under one name, and §8.5.3.1 makes equivalence — not the spelling — the
-    /// test §14.9.39.3 SR19, §14.9.3.3 SR4/SR5 and §14.8.2.3.2 spend (kb/Work PB427). No diagnostic is
-    /// raised for an unresolved name: §13.18.60.3 SR18 already requires such an entry to be a TYPEDEF, and a
-    /// restriction whose declaration is not in hand falls back to the name comparison rather than rejecting.</para>
-    /// <para>⛔ It walks <see cref="ClauseResolutionForest"/>, the TYPEDEF templates too (kb/Work PB3120): a template is
-    /// itself a form of the type declaration the model compares and keys (<c>StrongTypeModel.EquivalentTypeDeclarations</c>,
-    /// <c>TypeIdentityKey</c>), so a pointer member restricted to a type must resolve in the template exactly as in the
-    /// TYPE subject cloned from it, or the two forms of one declaration key apart.</para></summary>
-    private void ResolveRestrictedTypes()
-    {
-        foreach (var item in ClauseResolutionForest())
-            if (item.Pic is { Category: PicCategory.Pointer, RestrictedTypeName: { } tn, RestrictedTypeDecl: null }
-                && TryFindTypeDecl(tn, ScopeOf(item.Root), out var decl))
-                item.Pic = item.Pic with { RestrictedTypeDecl = decl };
-    }
-
     /// <summary>⛔ Attach to every restricted PROGRAM- or FUNCTION-pointer this forest declares the prototype its
     /// <c>TO prototype-name-1</c> names (<see cref="DataItem.RestrictedPrototype"/>; kb/Work PB2495): ISO §13.18.60.4
     /// GR25 / GR26 type the pointer by that prototype's SIGNATURE, not its name. The prototype tables exist only once the
     /// group's REPOSITORY has resolved (<c>BinderDriver.ProgramPrototypesOf</c> / <c>UserFunctionsOf</c>, after every
-    /// unit's DATA has bound), so this is the prototype twin of <see cref="ResolveRestrictedTypes"/> run at the point
+    /// unit's DATA has bound), so this is the prototype twin of <see cref="ExpandTypesPass.ResolveRestrictedTypes"/> run at the point
     /// those tables are built — <c>BinderDriver.ResolvePointerRestrictions</c>, over every forest that declares pointers
     /// (a method's LINKAGE roots are on its class's). A name the table does not hold resolves to nothing, and the pointer
     /// keeps its own name as its identity (<see cref="PrototypeSignatures.SignatureRestriction"/>). The first of two
@@ -3789,7 +3721,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// specified" — is asked HERE, after the chained TYPE clause has composed the subject (kb/Work PB1301): by
     /// §13.18.57.4 GR1 <c>01 T TYPEDEF STRONG TYPE E.</c> over an elementary E is an elementary subject exactly as
     /// <c>01 T TYPEDEF STRONG PIC X(3).</c> is, and the check that ran at registration saw no PICTURE yet.</para></summary>
-    private bool ExpandTemplate(DataItem template)
+    internal bool ExpandTemplate(DataItem template)
     {
         if (!TypeDeclsOf(ScopeOf(template)).TryGetValue(template.CobolName!, out var own) || !ReferenceEquals(own, template))
             return true;
@@ -3838,7 +3770,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// (a group). The subject's OWN OCCURS (an array-of-type, §13.16 SR14) and VALUE (GR3) are already on the item and
     /// preserved. The template is COMPLETED first (<see cref="ExpandTemplate"/>), and one still in progress is the
     /// recursive type declaration §13.18.58.3 SR2 forbids (COBOL1530).</summary>
-    private void ExpandType(DataItem item)
+    internal void ExpandType(DataItem item)
     {
         using var _ = Edition.At(item);
         string typeName = item.TypeRefName!;
@@ -4307,7 +4239,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// REDEFINES, and SELECT WHEN (not modeled). Subordinate levels renumber relative to the subject (GR2b/c —
     /// the <see cref="CloneItem"/> levelDelta). <paramref name="expanding"/> is the SAME-AS expansion chain: the
     /// subjects whose expansion is in progress on the way to this one (see <see cref="ExpandSameAsEntry"/>).</summary>
-    private void ExpandSameAs(DataItem item, HashSet<DataItem> expanding)
+    internal void ExpandSameAs(DataItem item, HashSet<DataItem> expanding)
     {
         if (item.SameAsName is null) return;   // already expanded through a chain hop (idempotent — the TypeRefName pattern)
         expanding.Add(item);
@@ -4472,7 +4404,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // The source as the pipeline has it by now — its §13.16.3 SR9 implied PICTUREs given, its TYPE clauses expanded.
         // Both hold already inside the pipeline (no-ops there); a subject expanded AHEAD of it for a constant's length
         // phrase (CompleteDescriptionAhead, kb/Work PB2465) may copy a source the pipeline has not reached.
-        SynthesizeImpliedPicturesUnder(target);
+        SynthesizeImpliedPicturesPass.SynthesizeImpliedPicturesUnder(this, target);
         foreach (var pending in DataItem.SelfAndDescendantsOf(target).Where(t => t.TypeRefName is not null).ToList()) ExpandType(pending);
         bool wroteBased = item.IsBased;   // §13.16.3 SR12 admits no BASED beside SAME AS; an error-recovery guard
         CopyClauseDescription(target, item, DescriptionCopyScope.Entry);
@@ -4568,7 +4500,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
     /// <summary>Whether an item belongs to a FILE SECTION record (its root is some FD/SD's record) — the
     /// placement test of §13.18.49.3 SR6, §13.18.57.3 SR8 and §13.18.60.3 SR15.</summary>
-    private bool IsFileSectionItem(DataItem item)
+    internal bool IsFileSectionItem(DataItem item)
     {
         var root = item;
         while (root.Parent is { } p) root = p;
@@ -6931,60 +6863,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// INSIDE the PACKED-DECIMAL alternative, so it is not a clause of its own): it hands down with the clause
     /// it belongs to, and is adjudicated at each leaf by <see cref="ApplyEffectiveNoSign"/> — kb/Work PB570,
     /// where it was read from the entry's own <c>usageClause</c> and therefore never reached a leaf at all.</para></summary>
-    private readonly record struct InheritedUsage(
+    internal readonly record struct InheritedUsage(
         Usage? Effective, PicInfo? Pictureless, PicPending Pending, DataItem? From, bool NoSign)
     {
         /// <summary>The name of <see cref="From"/>, or null for FILLER (and when nothing is inherited).</summary>
         public string? FromName => From?.CobolName;
-    }
-
-    /// <summary>
-    /// ⛔ THE USAGE-INHERITANCE PASS (P5.11e, DESIGN-data-model §2.7) — ISO §13.18.60.4 GR1, run ONCE over the
-    /// completed forest: <i>"If the USAGE clause is specified or implied at a group level, it applies only to
-    /// each elementary item in the group. Unless the GROUP-USAGE clause is also specified or implied, the USAGE
-    /// clause applies only to each elementary item in the group and not to the group itself."</i>
-    ///
-    /// <para><b>THE INVARIANT THIS PASS EXISTS TO HOLD.</b> GR1 does not say a group's usage <i>influences</i>
-    /// its leaves; it says the clause <i>applies to</i> each of them. So an elementary item that acquired its
-    /// usage from a group shall be THE SAME ITEM the written-clause spelling produces — same representation,
-    /// same width, same syntax-rule verdicts, same diagnostics. <c>01 G USAGE u. 05 A ⟨pic⟩.</c> ≡
-    /// <c>01 G. 05 A ⟨pic⟩ USAGE u.</c> That equivalence is a drift test (<c>UsageInheritanceTests</c>), it
-    /// enumerates the <see cref="Usage"/> enum, and it is what makes the NEXT usage automatic.</para>
-    ///
-    /// <para><b>Why it is ONE walk over ONE derivation (kb/Work PB495).</b> The pass used to be two — a
-    /// <c>ResolveIndexItems</c> that shed a hand-listed set of synthesized profiles from group headers, and an
-    /// <c>InheritUsageClauses</c> that applied a DIFFERENT hand-listed set (<c>Binary or Packed or Comp5</c>) to
-    /// leaves. Neither list was derived from anything, the two disagreed, and every usage in neither fell
-    /// through in SILENCE: a picture-less leaf under a group-level BINARY-SHORT or FLOAT-LONG became a
-    /// ZERO-LENGTH item (a MOVE into it then NRE'd the emitter), a group-level FLOAT-SHORT left its synthesized
-    /// float profile ON the group so the record struct emitted a scalar <c>float</c> and every member reference
-    /// became a raw Roslyn CS1061, and a PICTURE-bearing leaf under a group-level BINARY-LONG or INDEX kept its
-    /// usage-display width with no diagnostic at all. There is now ONE derivation of an elementary item's
-    /// effective usage — its own clause, else the nearest enclosing one — and three consumers of it: the group
-    /// header's shed, the leaf's representation, and the screens (§13.18.60.3 SR2/SR3/SR5/SR12/SR20 and
-    /// §13.16.3 SR8), each of which is the SAME code the written-clause path runs.</para>
-    ///
-    /// <para>Runs BEFORE <see cref="InheritSignClauses"/> — a non-DISPLAY item takes the BinaryMinus sign form
-    /// regardless of any inherited SIGN clause (§13.18.52 applies only to usage-display items).</para>
-    ///
-    /// <para><b>⛔ EVERY WRITTEN TREE, THE TYPE DECLARATIONS TOO (kb/Work PB3682).</b> A TYPEDEF template is off
-    /// <see cref="Roots"/> but its clauses are source (§4.3), and §13.18.57.4 GR1 makes a TYPE subject's description
-    /// "as though the data description identified by type-name-1 had been coded in place", so the rules this walk asks
-    /// of a group's USAGE and GROUP-USAGE hold of the declaration whether or not anything references it. Walked over
-    /// the roots alone, an unused template's <c>GROUP-USAGE NATIONAL</c> over a <c>GROUP-USAGE BIT</c> subgroup
-    /// (§13.18.29.3 SR3), a group USAGE its subordinate contradicts (§13.18.60.3 SR2) or a leaf the group's usage
-    /// cannot describe (§13.18.60.3 SR3) compiled clean while the byte-identical storage group was refused, and a
-    /// used one was refused only through the copies its subjects held, once per reference and naming the subject.
-    /// The templates are walked after the roots, and a COPY of a description (an entry a TYPE or SAME AS clause
-    /// produced) takes the walk's application but not its screens where the fact is the declaration's own
-    /// (<see cref="AnsweredByTypeDeclaration"/>): one defect, reported once, where it is written. A template's
-    /// leaves also take the usage their group hands down, as a TYPE subject's do, so a template and a subject of one
-    /// declaration are one description to the §8.5.3.1 comparison (<c>StrongTypeModel</c>).</para>
-    /// </summary>
-    internal void UsageInheritancePass()
-    {
-        foreach (var root in Roots) UsageInheritanceWalk(root, default);
-        foreach (var declaration in AllTypeDecls().ToList()) UsageInheritanceWalk(declaration, default);
     }
 
     /// <summary>⛔ THE ONE "usage this entry carries in its OWN right" derivation: its written USAGE clause, or
@@ -6993,7 +6876,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// so the two spellings are one fact and this is where it is computed.
     /// <para>Read PUSH-style by <see cref="UsageInheritanceWalk"/>, which hands it down the forest, and PULL-style
     /// by <c>DataBinder.ImpliedPicture</c>'s §8.3.3.6.4 GR1 context question, which runs before that walk.</para></summary>
-    private static Usage? DeclaredUsageOf(DataItem item) => item.OwnUsage ?? item.GroupUsage switch
+    internal static Usage? DeclaredUsageOf(DataItem item) => item.OwnUsage ?? item.GroupUsage switch
     {
         GroupUsage.Bit => Usage.Bit,
         GroupUsage.National => Usage.National,
@@ -7002,7 +6885,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
     /// <summary>One entry of the §13.18.60.4 GR1 walk: screen its own clause against the one it inherited
     /// (§13.18.60.3 SR2), decide what it hands DOWN, and dispatch to the group or the elementary arm.</summary>
-    private void UsageInheritanceWalk(DataItem item, InheritedUsage inherited)
+    internal void UsageInheritanceWalk(DataItem item, InheritedUsage inherited)
     {
         // A subtree a constant's length phrase completed ahead of the pipeline was walked then, with the usage its
         // ancestors hand down (CompleteDescriptionAhead, kb/Work PB2465): walking it again would screen it twice.
@@ -7057,7 +6940,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <paramref name="item"/> against <paramref name="source"/>, the entry that handed it a clause (kb/Work PB3682)?
     /// §13.18.57.4 GR1 and §13.18.49.4 GR1 make a copy's description "as though … coded in place", so a defect INSIDE
     /// a copy is a fact of the description it reproduces, which is screened where it is written: a TYPEDEF template by
-    /// this very walk (<see cref="UsageInheritancePass"/>), a SAME AS source as a storage entry. Repeating it at the
+    /// this very walk (<see cref="UsageInheritancePass.Run"/>), a SAME AS source as a storage entry. Repeating it at the
     /// copy would report one defect once per reference and name the subject for the declaration. True when the entry's
     /// description IS a copy (it is one — <see cref="DataItem.ClonedFrom"/> — or it is the subject whose TYPE clause
     /// composed it, which can write no USAGE or GROUP-USAGE of its own, §13.16.3 SR14) and the clause reached it from
@@ -7327,7 +7210,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// USAGE × PICTURE screen (SR3/SR5/SR12/SR20, shared verbatim with the written-clause path) followed by the
     /// representation rewrite the screened usage calls for.
     /// <para>⛔ ONE site for every route by which an elementary item acquires a usage its own entry did not
-    /// write: §13.18.60.4 GR1 group inheritance (<see cref="UsageInheritancePass"/>) and the §13.18.49.3 GR3
+    /// write: §13.18.60.4 GR1 group inheritance (<see cref="UsageInheritancePass.Run"/>) and the §13.18.49.3 GR3
     /// SAME-AS ancestor transform. Both used to carry their own copy of a three-member
     /// <c>Binary or Packed or Comp5</c> hand-list over a <c>{ Numeric, !IsFloat, Display }</c> leaf shape, and
     /// each silently dropped every usage outside it (kb/Work PB495).</para>
@@ -7350,7 +7233,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <summary>Apply an elementary item's EFFECTIVE SIGN clause to its analyzed PICTURE — the SIGN twin of
     /// <see cref="ApplyEffectiveUsage"/>, and the one <see cref="PicInfo.SignKindFor"/> recomputation.
     /// <para>⛔ ONE site for every route by which a signed numeric item acquires a SIGN clause its own entry did
-    /// not write: §13.18.52.4 GR1 group inheritance (<see cref="InheritSignClauses"/>) and the §13.18.49.4 GR5
+    /// not write: §13.18.52.4 GR1 group inheritance (<see cref="InheritSignClausesPass.Run"/>) and the §13.18.49.4 GR5
     /// SAME-AS ancestor transform (<c>ExpandSameAs</c>). Each carried its own copy of the guard, and the copies
     /// DID drift: when kb/Work PB646 widened the guard to the usage PAIR §13.18.52.3 SR2 names ("The usage of an
     /// elementary item for which the SIGN clause is specified shall be display or national") the SAME-AS copy
@@ -7374,28 +7257,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             ? pic with { SignKind = PicInfo.SignKindFor(pic.Usage, signed: true, sign) }
             : pic;
 
-    /// <summary>Apply group-level SIGN clauses to subordinate signed numeric DISPLAY/NATIONAL items (ISO
-    /// §13.18.52 GR1–3): a SIGN on a group applies to every signed numeric item subordinate to it, the NEAREST
-    /// enclosing clause takes precedence, and an item's OWN clause (already consumed by
-    /// <see cref="PictureAnalyzer.Analyze"/> at entry bind) wins outright. Runs BEFORE the REDEFINES
-    /// classification pass because a SEPARATE sign occupies its own character position (§13.18.52 GR6a) — it
-    /// widens the item's image, which feeds the class-max width.
-    /// <para>⛔ THE TYPE DECLARATIONS TOO (kb/Work PB3682), as <see cref="UsageInheritancePass"/>: a template and a subject
-    /// of one declaration are one description to the §8.5.3.1 comparison, so the template's leaves take the group's SIGN as
-    /// its subject's do. A pointer restricted to a STRONG type compares the declaration's TEMPLATE form with the subject's:
-    /// `01 TG TYPEDEF STRONG SIGN IS LEADING SEPARATE. 05 A PIC S9(3).` left the template's leaf at the default sign, so
-    /// `SET P TO ADDRESS OF W` (W typed by TG) was refused as another type. The walk only applies, and a copy of a template
-    /// already walked re-applies the same clause to the same profile.</para></summary>
-    internal void InheritSignClauses()
-    {
-        foreach (var root in Roots) InheritSignWalk(root, null);
-        foreach (var declaration in AllTypeDecls().ToList()) InheritSignWalk(declaration, null);
-    }
-
     /// <summary>One entry of the §13.18.52 GR1 walk: the nearest enclosing clause, unless the entry wrote its own.
     /// A subtree completed ahead of the pipeline (<see cref="CompleteDescriptionAhead"/>, kb/Work PB2465) took its
     /// clause then and is passed over.</summary>
-    private void InheritSignWalk(DataItem item, SignSpec? inherited)
+    internal void InheritSignWalk(DataItem item, SignSpec? inherited)
     {
         if (_completedAhead.Contains(item)) return;
         SignSpec? effective = item.OwnSign ?? inherited;
@@ -8430,10 +8295,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// that names an item asks THIS forest (a drift test pins the list), and the rules that hold only of a PLACED
     /// description — the DEPENDING ON name that a use site may supply (§13.18.57.4 GR1, "coded in place"), the
     /// CAPACITY register a table defines — ask <see cref="InTypeDeclaration"/> and leave a template alone.</summary>
-    private IEnumerable<DataItem> ClauseResolutionForest() => AllItems().Concat(AllTypeDecls()).Concat(TemplateItems());
+    internal IEnumerable<DataItem> ClauseResolutionForest() => AllItems().Concat(AllTypeDecls()).Concat(TemplateItems());
 
     /// <summary>Every item in the WORKING-STORAGE forest, in declaration (pre-order DFS) order.</summary>
-    private IEnumerable<DataItem> AllItems() => Roots.SelectMany(DataItem.SelfAndDescendantsOf);
+    internal IEnumerable<DataItem> AllItems() => Roots.SelectMany(DataItem.SelfAndDescendantsOf);
 
     /// <summary>The SUBORDINATE items of this forest's own TYPEDEF templates (<see cref="AllTypeDecls"/>, kept
     /// off <see cref="Roots"/>), pre-order in declaration order: the members the programmer wrote and the clones
@@ -8467,8 +8332,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
     /// <summary>Is <paramref name="item"/> an entry the programmer WROTE — no TYPE clone (its <c>TypeAnchor</c> is
     /// null)? The one filter <see cref="ConformanceForest"/> applies, asked of a single subtree by
-    /// <see cref="SynthesizeImpliedPicturesUnder"/>.</summary>
-    private static bool IsWrittenEntry(DataItem item) => StrongTypeModel.TypeAnchor(item) is null;
+    /// <see cref="SynthesizeImpliedPicturesPass.SynthesizeImpliedPicturesUnder"/>.</summary>
+    internal static bool IsWrittenEntry(DataItem item) => StrongTypeModel.TypeAnchor(item) is null;
 
     /// <summary>
     /// Every data item this unit binds AS COMPOSED — the same forest as <see cref="ConformanceForest"/> plus the
@@ -8494,7 +8359,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <see cref="Roots"/> as well (DataBinder.Linkage.cs: "LINKAGE 01/77 items bind into the ordinary storage
     /// forest"), so walking both yielded every linkage item TWICE to every per-item pass (measured on a two-root
     /// LINKAGE SECTION: four items; found by kb/Work PB516's drift test).</summary>
-    private IEnumerable<DataItem> DeclaredForest()
+    internal IEnumerable<DataItem> DeclaredForest()
     {
         var temps = CompilerTempClones.Count == 0 ? null
             : new HashSet<DataItem>(CompilerTempClones.Select(t => t.Temp));
@@ -8613,7 +8478,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     }
 
     /// <summary>The members of every type declaration a TYPE clause references, by name — §8.4.2.2.1 rule 4's
-    /// "other definitions" (<see cref="WithLapsedTypeMembers"/>). Built ONCE, when <see cref="ExpandTypes"/> has
+    /// "other definitions" (<see cref="WithLapsedTypeMembers"/>). Built ONCE, when <see cref="ExpandTypesPass.Run"/> has
     /// completed every declaration; until then (a SAME AS operand resolved while the declarations are being
     /// completed) it is walked live, since the copies inside a declaration are still arriving. A METHOD's declarations
     /// (<paramref name="method"/>, kb/Work PB3192) are few and always walked live.</summary>
@@ -8627,22 +8492,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             .SelectMany(DataItem.DescendantsOf).Where(m => CobolNames.Same(m.CobolName, name));
     }
 
-    /// <summary>The once-built index behind <see cref="LapsedTypeMembers"/>; null until <see cref="ExpandTypes"/> ends.</summary>
-    private Dictionary<string, List<DataItem>>? _lapsedTypeMembers;
-
-    /// <summary>Build <see cref="_lapsedTypeMembers"/> — the tail of <see cref="ExpandTypes"/>.</summary>
-    private void IndexLapsedTypeMembers()
-    {
-        var index = new Dictionary<string, List<DataItem>>(CobolNames.Comparer);
-        foreach (var decl in TypeDecls.Values.Where(d => d.ReferencedByTypeClause))
-            foreach (var member in DataItem.DescendantsOf(decl))
-                if (member.CobolName is { } n)
-                {
-                    if (!index.TryGetValue(n, out var list)) index[n] = list = [];
-                    list.Add(member);
-                }
-        _lapsedTypeMembers = index;
-    }
+    /// <summary>The once-built index behind <see cref="LapsedTypeMembers"/>; null until <see cref="ExpandTypesPass.Run"/> ends.</summary>
+    internal Dictionary<string, List<DataItem>>? _lapsedTypeMembers;
 
     /// <summary>The CONDITION-NAME arm of <see cref="WithLapsedTypeMembers"/> — §8.4.2.2.1 rule 4 is about "the
     /// name" of any user-defined word, and a type declaration's level-88 entries are "part of the type declaration

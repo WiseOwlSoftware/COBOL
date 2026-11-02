@@ -21,7 +21,7 @@ namespace WiseOwl.Cobol.Binding;
 /// <item>the SIGN, because <b>§13.18.52.4 GR1</b> — <i>"The SIGN clause specifies the position and the mode of
 /// representation of the operational sign for the numeric item to which it applies, or for each numeric item
 /// subordinate to the group to which it applies"</i> — makes a GROUP-level clause describe every subordinate
-/// signed numeric item, and that propagation is <see cref="InheritSignClauses"/>;</item>
+/// signed numeric item, and that propagation is <see cref="InheritSignClausesPass.Run"/>;</item>
 /// <item>the USAGE, because <b>§13.18.60.4 GR1</b> gives a group's usage to its elementary items, and that
 /// propagation is <c>UsageInheritancePass</c>;</item>
 /// <item>and the record's LEAVES themselves, because a record described with TYPE or SAME AS has none until
