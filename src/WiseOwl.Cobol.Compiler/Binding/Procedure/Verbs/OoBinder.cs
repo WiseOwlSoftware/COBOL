@@ -383,7 +383,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // `object-class-name-1 OF SUPER` is a word chain (`name OF SUPER`) that the resolver reads as the qualified SUPER
         // exactly when the name is a class-name (kb/Work PB1425 — otherwise it is the property of SUPER, an ordinary
         // receiver resolved below); a bare SELF or SUPER is the `selfAndSuper` term.
-        Core.CobolWordContext? superQualifier = target.dataReference() is { } qref ? ctx.Refs.QualifiedSuperClass(qref) : null;
+        Core.CobolWordContext? superQualifier = target.dataReference() is { } qref ? ctx.Refs.ObjectProperties.QualifiedSuperClass(qref) : null;
         if (target.selfAndSuper() is not null || superQualifier is not null)
         {
             // Slice 3b — §8.4.3.8: SELF/SUPER are the predefined object references of the CURRENT method's

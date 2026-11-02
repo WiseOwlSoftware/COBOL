@@ -300,7 +300,7 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
     {
         if (dref.PAGE_COUNTER() is not null || dref.LINE_COUNTER() is not null || dref.LINAGE_COUNTER() is not null)
             return false;
-        if (ctx.Refs.IsExceptionObjectRegister(dref) || ctx.Refs.IsObjectPropertyReference(dref)) return false;
+        if (ctx.Refs.IsExceptionObjectRegister(dref) || ctx.Refs.ObjectProperties.IsObjectPropertyReference(dref)) return false;
         if (ctx.Refs.Probe(dref) is not { } probe) return true;
         return probe.NonSectionKind is null && !ctx.Data.OoIsObjectData(probe.Item);
     }
@@ -321,7 +321,7 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
     internal bool ScreenSection(Place p, WiseOwl.Cobol.Frontend.Generated.CobolParserCore.DataReferenceContext written,
         DiagnosticDescriptor code, string subject, string clause, bool addressAdmitted)
     {
-        if (SectionDataItem.NonSectionKind(p) is not { } kind || ctx.Refs.IsObjectPropertyReference(written))
+        if (SectionDataItem.NonSectionKind(p) is not { } kind || ctx.Refs.ObjectProperties.IsObjectPropertyReference(written))
             return true;
         ctx.Edition.Error(code,
             $"{subject} '{DataBinder.WrittenText(written)}' references {kind}; ISO {clause} requires "

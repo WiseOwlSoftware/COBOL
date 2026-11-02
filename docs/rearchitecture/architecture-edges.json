@@ -557,7 +557,7 @@
       "from": "WiseOwl.Cobol.Binding.Bound",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 39,
-      "walkUses": 38,
+      "walkUses": 40,
       "removedBy": [
         "PB2347",
         "PB2419",
@@ -786,6 +786,13 @@
         },
         {
           "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.ObjectPropertyResolver",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
           "to": "WiseOwl.Cobol.Binding.OptionsModel",
           "removedBy": [
             "PB2347"
@@ -797,6 +804,13 @@
           "removedBy": [
             "PB2347",
             "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.PropertyReceiver",
+          "removedBy": [
+            "PB2347"
           ]
         },
         {

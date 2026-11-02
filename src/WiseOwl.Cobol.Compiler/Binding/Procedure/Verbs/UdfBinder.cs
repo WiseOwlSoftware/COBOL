@@ -367,7 +367,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     private bool IsReferenceIdentifier(Core.FunctionArgumentContext a, Place place) =>
         WiseOwl.Cobol.Frontend.Expressions.SoleOperand.DataRef(a.arithmeticExpression()) is { } dref
         && ctx.Refs.Probe(dref) is not null
-        && !ctx.Refs.IsObjectPropertyReference(dref)
+        && !ctx.Refs.ObjectProperties.IsObjectPropertyReference(dref)
         && !ctx.Data.OoIsObjectData(place.Item)
         && host.Expr.PermitsReceiving(dref, place);
 

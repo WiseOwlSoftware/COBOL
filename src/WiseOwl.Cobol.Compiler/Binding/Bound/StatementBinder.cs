@@ -223,8 +223,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // The object of an object property that a word cannot spell — SELF, SUPER, a view, a function (§8.4.3.1.2
         // Format 7; kb/Work PB1425) — and the view of a qualified data item written as one chain: both are bound by the
         // OO binder, which owns the method context and the view's temporaries, through the same one-way edge.
-        refs.BindPropertyObject ??= Oo.OoBindPropertyObject;
-        refs.ApplyObjectView ??= Oo.OoApplyObjectView;
+        refs.ObjectProperties.BindPropertyObject ??= Oo.OoBindPropertyObject;
+        refs.ObjectProperties.ApplyObjectView ??= Oo.OoApplyObjectView;
     }
 
     /// <summary>The ONE guard in front of <see cref="ReportWriterBinder.BindReportGroupClauses"/>: bind the report-section

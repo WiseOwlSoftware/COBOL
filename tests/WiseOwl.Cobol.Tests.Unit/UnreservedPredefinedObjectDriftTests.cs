@@ -35,7 +35,7 @@ public sealed class UnreservedPredefinedObjectDriftTests
             + "consumers (SetSenders.Classify, OoBinder's INVOKE argument, OoBindOoIdentifier) guard",
         ["OoBinder.InlineInvocation.cs"] = "InvocationArg.IsSoleSelf only recognizes the argument; OoBinder's two arg.Self readers guard",
         ["OoBinder.PropertyObject.cs"] = "selects the accessor through OoBinder.OoPredefinedSearchRoot, which guards",
-        ["ReferenceResolver.ObjectProperty.cs"] = "`name OF SUPER` is the qualified SUPER only when `name` is a declared class-name, "
+        ["ObjectPropertyResolver.cs"] = "`name OF SUPER` is the qualified SUPER only when `name` is a declared class-name, "
             + "which the edition refuses first (OO is a 2002 introduction); the object of a property is OoPredefinedSearchRoot's",
     };
 

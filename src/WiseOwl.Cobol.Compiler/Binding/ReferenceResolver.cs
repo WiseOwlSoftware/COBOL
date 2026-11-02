@@ -64,7 +64,7 @@ internal enum SegmentPosition
 internal readonly record struct RefModSuffixes(
     int RefMods, int Subscripts, int? Start, int? Length, bool NonLiteral, bool BeyondHostLimit = false);
 
-public sealed partial class ReferenceResolver(DataBinder data)
+public sealed class ReferenceResolver(DataBinder data)
 {
     /// <summary>The D18 hook that MATERIALIZES a subscript / ref-mod position the direct walk cannot read
     /// (fix-queue PB17): given the position's PARSED arithmetic expression (null when the written position is not
@@ -386,7 +386,12 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// <summary>The REPORT SECTION sum-counter references (<see cref="CounterResolver"/>).</summary>
     internal CounterResolver Counters => _counters ??= new(this, data);
 
-    private RefResolution ResolveImpl(Core.DataReferenceContext dref, bool report)
+    private ObjectPropertyResolver? _objectProperties;
+
+    /// <summary>The OBJECT PROPERTY references and object views (<see cref="ObjectPropertyResolver"/>).</summary>
+    internal ObjectPropertyResolver ObjectProperties => _objectProperties ??= new(this, data);
+
+    internal RefResolution ResolveImpl(Core.DataReferenceContext dref, bool report)
     {
         // ⛔ EVERY DIAGNOSTIC THE RESOLUTION OF A REFERENCE REPORTS IS ABOUT THAT REFERENCE, SO IT IS POSITIONED AT THE
         // REFERENCE'S FIRST TOKEN HERE, AT THE ONE CHOKEPOINT (kb/Work PB4383). Positioning was each statement binder's
@@ -622,14 +627,14 @@ public sealed partial class ReferenceResolver(DataBinder data)
             // and trying it would register a pending §8.4.3.9.4 operation for an operand the caller refuses. The
             // caller's own operand-shape refusal names the rule, so a chain stays silent here; any other name that
             // resolves to nothing is reported like every other identifier's.
-            if (report && !IsObjectViewOfQualifiedItem(dref) && !IsObjectPropertyReference(dref))
+            if (report && !ObjectProperties.IsObjectViewOfQualifiedItem(dref) && !ObjectProperties.IsObjectPropertyReference(dref))
                 ReportUnidentified(dref, name, qualifiers);
             return Ends(Refused());
         }
         if (item is null)
         {
-            if (ViewOfQualifiedItem(dref, report) is { } viewOfItem) return Ends(viewOfItem);
-            var (temp, final) = ResolveObjectProperty(dref, name, written);
+            if (ObjectProperties.ViewOfQualifiedItem(dref, report) is { } viewOfItem) return Ends(viewOfItem);
+            var (temp, final) = ObjectProperties.ResolveObjectProperty(dref, name, written);
             if (final is not null) return Ends(final);
             objectProperty = (item = temp) is not null;
         }
@@ -1525,43 +1530,6 @@ public sealed partial class ReferenceResolver(DataBinder data)
     internal static Core.SubscriptPartContext? SubscriptGroupOf(Core.DataReferenceContext dref) =>
         ReadWritten(dref).SubscriptGroup;
 
-    /// <summary>A <c>dataReference</c> AS WRITTEN: the qualifier chain, the subscript group and the
-    /// reference-modification carriers, exactly as the source spells them and before any name is looked up.
-    /// <para>⛔ The <b>written</b> reference is a thing in its own right, and it is what a statement's own syntax
-    /// rules are about. ISO §14.9.37.3 SR1 ("Identifier-1 shall not be reference-modified"), SR2 ("… shall not be
-    /// subscripted at the level for which the SEARCH is applicable") and SR3 ("… contained within one or more
-    /// other tables, for which the subscripting is still required") are three predicates over THIS, not over the
-    /// resolved item and not over a rendered access path — which is why SEARCH, which read only
-    /// <c>cobolWord()</c>, could enforce none of them and searched whichever table was declared first
-    /// (kb/Work PB443).</para></summary>
-    /// <param name="Written">The OF/IN qualifiers in written order, inner → outer, or null when the reference
-    /// carries none — the common case, which therefore allocates nothing.</param>
-    /// <param name="SubscriptGroup">The first <c>subscriptPart</c>: the reference's subscript list. Taken from the
-    /// base word's own suffix or from a qualification's suffix tail (<c>K OF E (IX)</c> hangs it off the
-    /// qualification).</param>
-    /// <param name="RefModPart">The first <c>refModPart</c> (<c>leftmost : length</c> as expressions).</param>
-    /// <param name="RefModCount">How many reference modifications the whole reference carries — §8.4.3.3.3 SR3
-    /// admits at most one, and the count is the only way to see a second one.</param>
-    /// <param name="PropertyObject">The non-word object the qualifier chain ends in (<c>OF SELF</c>, <c>OF SUPER</c>,
-    /// <c>OF U AS C</c>, <c>OF FUNCTION F</c>, <c>OF NULL</c>) — §8.4.3.1.2 Format 7's identifier-3 where a word cannot
-    /// spell it (kb/Work PB1425).</param>
-    internal readonly record struct WrittenReference(
-        List<string>? Written,
-        Core.SubscriptPartContext? SubscriptGroup,
-        Core.RefModPartContext? RefModPart,
-        int RefModCount,
-        Core.PropertyObjectContext? PropertyObject)
-    {
-        /// <summary>The shared empty qualifier list for an unqualified reference. Read-only by contract: every
-        /// consumer (<see cref="ResolveQualified"/>, <see cref="ReportUnidentified"/>) only enumerates it.</summary>
-        private static readonly List<string> NoQualifiers = [];
-
-        /// <summary>The OF/IN qualifiers, inner → outer; empty for an unqualified reference.</summary>
-        public List<string> Qualifiers => Written ?? NoQualifiers;
-
-        /// <summary>True when the reference carries a reference modification in any of its spellings.</summary>
-        public bool IsReferenceModified => RefModCount > 0;
-    }
 
     /// <summary>⛔ THE ONE DECOMPOSITION OF A <c>dataReference</c> AS WRITTEN (kb/Work PB443). Three resolutions
     /// each wrote this walk out for themselves — <see cref="ResolveImplCore"/>, <see cref="ResolveForAddressOf"/>
@@ -1596,7 +1564,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
                 propertyObject ??= po;
                 // §8.4.3.1.4 GR1 g): a reference modifier written after a function object's arguments applies to the
                 // whole identifier, last — never to the object reference the function returns (kb/Work PB1425).
-                foreach (var resultRef in ResultRefModsOf(po)) { refModCount++; cleanRef ??= resultRef; }
+                foreach (var resultRef in ObjectPropertyResolver.ResultRefModsOf(po)) { refModCount++; cleanRef ??= resultRef; }
             }
         }
         return new WrittenReference(qualifiers, subCtx, cleanRef, refModCount, propertyObject);
@@ -3192,4 +3160,42 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// position operand, which only <c>--permissive</c> admits (COBOL0844): an index data item's <c>long</c>
     /// and a character item's <c>string</c>. Held to the runtime overloads by the same drift test.</summary>
     internal static readonly string[] NonNumericPositionCarriers = ["long", "string"];
+}
+
+/// <summary>A <c>dataReference</c> AS WRITTEN: the qualifier chain, the subscript group and the
+/// reference-modification carriers, exactly as the source spells them and before any name is looked up.
+/// <para>⛔ The <b>written</b> reference is a thing in its own right, and it is what a statement's own syntax
+/// rules are about. ISO §14.9.37.3 SR1 ("Identifier-1 shall not be reference-modified"), SR2 ("… shall not be
+/// subscripted at the level for which the SEARCH is applicable") and SR3 ("… contained within one or more
+/// other tables, for which the subscripting is still required") are three predicates over THIS, not over the
+/// resolved item and not over a rendered access path — which is why SEARCH, which read only
+/// <c>cobolWord()</c>, could enforce none of them and searched whichever table was declared first
+/// (kb/Work PB443).</para></summary>
+/// <param name="Written">The OF/IN qualifiers in written order, inner → outer, or null when the reference
+/// carries none — the common case, which therefore allocates nothing.</param>
+/// <param name="SubscriptGroup">The first <c>subscriptPart</c>: the reference's subscript list. Taken from the
+/// base word's own suffix or from a qualification's suffix tail (<c>K OF E (IX)</c> hangs it off the
+/// qualification).</param>
+/// <param name="RefModPart">The first <c>refModPart</c> (<c>leftmost : length</c> as expressions).</param>
+/// <param name="RefModCount">How many reference modifications the whole reference carries — §8.4.3.3.3 SR3
+/// admits at most one, and the count is the only way to see a second one.</param>
+/// <param name="PropertyObject">The non-word object the qualifier chain ends in (<c>OF SELF</c>, <c>OF SUPER</c>,
+/// <c>OF U AS C</c>, <c>OF FUNCTION F</c>, <c>OF NULL</c>) — §8.4.3.1.2 Format 7's identifier-3 where a word cannot
+/// spell it (kb/Work PB1425).</param>
+internal readonly record struct WrittenReference(
+    List<string>? Written,
+    Core.SubscriptPartContext? SubscriptGroup,
+    Core.RefModPartContext? RefModPart,
+    int RefModCount,
+    Core.PropertyObjectContext? PropertyObject)
+{
+    /// <summary>The shared empty qualifier list for an unqualified reference. Read-only by contract: every
+    /// consumer (<see cref="ResolveQualified"/>, <see cref="ReportUnidentified"/>) only enumerates it.</summary>
+    private static readonly List<string> NoQualifiers = [];
+
+    /// <summary>The OF/IN qualifiers, inner → outer; empty for an unqualified reference.</summary>
+    public List<string> Qualifiers => Written ?? NoQualifiers;
+
+    /// <summary>True when the reference carries a reference modification in any of its spellings.</summary>
+    public bool IsReferenceModified => RefModCount > 0;
 }
