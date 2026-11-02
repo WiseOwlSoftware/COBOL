@@ -154,8 +154,21 @@ public sealed class CobolWordsMap
     public string? Resolve(string written)
     {
         if (Ops.Count == 0) return CobolKeywords.Spelling(written);
+        string? denoted = Denoted(written, out bool left);
+        return left ? CobolKeywords.Spelling(written) : denoted;
+    }
+
+    /// <summary>The directives' reading of <paramref name="written"/>, the ONE place GR2-GR4 are applied, before any
+    /// spelling: null when removed, the canonical word of a synonym, and <paramref name="written"/> itself with
+    /// <paramref name="left"/> set when they leave it alone. <see cref="Is"/> compares the result on the basic letters
+    /// and so needs no spelled copy (it is allocation-free).</summary>
+    private string? Denoted(string written, out bool left)
+    {
+        left = false;
         if (_deReserved.Contains(written)) return null;
-        return _synonyms.TryGetValue(written, out string? canonical) ? canonical : CobolKeywords.Spelling(written);
+        if (_synonyms.TryGetValue(written, out string? canonical)) return canonical;
+        left = true;
+        return written;
     }
 
     /// <summary>
@@ -167,7 +180,7 @@ public sealed class CobolWordsMap
     /// <para>The comparison with the keyword is on the BASIC LETTERS ALONE (<see cref="CobolKeywords.Same"/>; ISO
     /// §8.1.3.2 3) a), 4): the Annex C fold governs user-defined words only), so a word written with an extended letter is
     /// not the keyword the fold would make of it (<c>CLASSİFİCATİON</c>, U+0130, is no CLASSIFICATION; kb/Work PB4240).
-    /// Allocation-free: these run inside ANTLR's speculative prediction.</para>
+    /// Allocation-free (it never takes <see cref="Resolve"/>'s spelled copy): these run inside ANTLR's speculative prediction.</para>
     /// </summary>
     /// <remarks>⛔ Give this a word AS WRITTEN, and only for a word the LEXER does not tokenize (the
     /// §8.9/§8.10 words that arrive as bare IDENTIFIERs). For a word that may arrive as a keyword TOKEN use
@@ -177,5 +190,5 @@ public sealed class CobolWordsMap
         => written is not null
            && (Ops.Count == 0
                ? CobolKeywords.Same(written, keyword)
-               : Resolve(written) is { } w && CobolKeywords.Same(w, keyword));
+               : Denoted(written, out _) is { } w && CobolKeywords.Same(w, keyword));
 }

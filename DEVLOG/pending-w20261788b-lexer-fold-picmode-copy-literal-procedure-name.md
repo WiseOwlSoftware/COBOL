@@ -75,3 +75,11 @@ catalog (`FUNCTION <U+0130>NTEGER(1.5)` compiled; the catalog is keyed by `Cobol
 `keyword` or `word` and a literal with an underscore or a space, and `HostUpperKey` refuses `Resolve(CobolNames.UpperFold(`. Left open
 and named in PB4240: the Compiler project's direct comparisons of a reserved word, system-name or implementor-name with a literal
 (about thirty sites).
+
+Review round 3 (the second finisher): the branch review found that re-keying the intrinsic catalog by the basic letters made the
+user-word declaration screen (`DataBinder.DeclareUserWord`) stop folding, so under `FUNCTION ALL INTRINSIC` (or `FUNCTION INTEGER INTRINSIC`) a
+data-name spelled `<U+0130>NTEGER` compiled and ran, though a user-defined word is compared in the Annex C fold and the basic spelling is refused
+(COBOL1649; ISO §8.3.2.1 5), §12.3.8.3 SR12, SR13). `FunctionWord.OfUserWord` folds the user word before the directive is applied and is the declaration
+funnel's one call; function names written as keywords keep the basic-letter match. Two goldens pin the ALL and the named specifier at 2002, 2014 and 2023.
+The review's lead is fixed too: `CobolWordsMap.Is` no longer goes through `Resolve`'s spelled copy (`Denoted` is the one reading of GR2-GR4), so
+its allocation-free comment is true again.
