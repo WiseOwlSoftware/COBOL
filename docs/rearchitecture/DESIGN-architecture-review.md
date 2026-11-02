@@ -1177,24 +1177,28 @@ none (§12.3.3 SR1) and takes the container's frozen `DataBindResult` (§12.3.4 
 FACTORY half takes its class definition's configuration (§12.3.4 GR1: the class contains the half) overlaid clause by
 clause by the half's own SPECIAL-NAMES, the one configuration paragraph §12.3.3 SR3 leaves it. The class definition
 binds no data, so it has no `DataBindResult`: its arm's source is a `ClassConfiguration` value, bound once per class by
-the same step from the class's own section and OPTIONS paragraph and handed to both halves, which replaces the class
-binder `OoDriver.BindClassData` builds for the purpose today (kb/Work PB3154) (the seed becomes the arm's overlay, written
-once). A method is not a configuration unit (§12.3.3 SR2): it reads its half's slice. The OPTIONS slice is produced by
-the same step and the same three arms from the baseline the arm names (none for Own; the container's for Contained;
-the class definition's for ClassHalf) overlaid by the unit's own OPTIONS paragraph clause by clause (§11.9.4 GR1), so
-`InheritConfiguration`'s baseline copy and `BindDeclarations`' overlay of the unit's own paragraph (one bind point for
-every unit since kb/Work PB780) become the slice's single write; a method's own OPTIONS stay the procedure-bind scoped override below. `MnemonicRegistry.Of`'s
-parent walk becomes a reader of the slice (the device map is a configuration entry like the switch map), and so does
-`OoRepositoryScope.Build` (`Oo/OoNameResolution.cs:167-190`), a fourth reader with its own ancestor walk over the
-REPOSITORY paragraphs (the seventh refuter, J2): the REPOSITORY specifiers are a slice entry the same three arms produce
-(an outermost program, function, class or interface declares its own; a contained unit's come from its container,
-§12.3.4 GR1; a half's are its class definition's, since §12.3.3 SR3 forbids the paragraph in a factory or instance
-definition), so no reader re-derives the scope. The given external-repository design widens `OoRepositoryScope` into
-the per-source-element `IdentityScope` (its §8.7, slice 8): that is not a second owner. The slice owns the specifiers
-(the DATA: each word, its kind and its AS phrase); `IdentityScope` owns the word ↔ identity resolution (the
-BEHAVIOR), built from the unit's slice plus the definition's own name (§12.3.8.3 SR5: a specifier naming the
-containing class definition "is ignored"), and it replaces `OoRepositoryScope` in slice 8, which PB2296 waits for.
-The given says what `IdentityScope` maps and when, not where its entries come from, so it is not reopened. The **checking fold** is two value slices with ONE producer, `CheckingFold`: `UnitChecking`
+the same step from the class's own section and OPTIONS paragraph and handed to both halves (`ConfigurationStep.ForClass`
+returns it, `ClassHalf` takes it; the halves hold the VALUE, never the class's binder). The class definition's own binder
+still binds the class's section until `SpecialNamesBinder` (PB2355) moves the section's binding behind the step, so for
+now the class's `Own` arm is that binder's slice. A method is not a configuration unit (§12.3.3 SR2): it reads its
+half's slice. The OPTIONS slice is produced by the same step and the same three arms from the baseline the arm names
+(none for Own; the container's for Contained; the class definition's for ClassHalf: `ConfigurationSlice.InheritedOptions`)
+overlaid by the unit's own OPTIONS paragraph clause by clause (§11.9.4 GR1; the OO skeleton's paragraph is
+`ConfigurationSlice.OptionsParagraph`, carried by the `Own` and `ClassHalf` arms), so `BindDeclarations`' overlay of the
+unit's own paragraph (one bind point for every unit since kb/Work PB780) is the slice's single write of `Options`; a
+method's own OPTIONS stay the procedure-bind scoped override below, and the emitter's scoped override covers the method's
+whole body, not only its LOCAL-STORAGE initializers. `MnemonicRegistry` is a reader of the slice
+(`ConfigurationSlice.TryGetMnemonic`: the unit's own mnemonic-names, then its container's; the device map is a
+configuration entry like the switch map), and its parse-tree ancestor walk is gone. `OoRepositoryScope.Build`
+(`Oo/OoNameResolution.cs`), the fourth reader with its own ancestor walk over the REPOSITORY paragraphs (the seventh
+refuter, J2), is NOT a reader of the binder-side slice, and the estimate above was wrong about it: the class table
+resolves names in pass 1 (`OoClassTable.RepositoryScopeFor`: base classes, INHERITS and IMPLEMENTS), before any binder
+exists, so its REPOSITORY class- and interface-specifiers (each word and its AS phrase) are a pre-bind product of the
+source elements' parse trees, memoized per source element. They stay with `OoRepositoryScope` until the external-repository
+design widens it into the per-source-element `IdentityScope` (its §8.7, slice 8): the slice owns the specifiers the binders
+read (user functions, program and function specifiers, intrinsics, properties), `IdentityScope` owns the word ↔ identity
+resolution (§12.3.8.3 SR5: a specifier naming the containing class definition "is ignored"), and it replaces
+`OoRepositoryScope` in slice 8, which PB2296 waits for. The **checking fold** is two value slices with ONE producer, `CheckingFold`: `UnitChecking`
 (the five unit flags) for every program unit and every class half, after the unit's data phases (where `BindUnitData`
 writes them today) and before ProcedureBound; and `MethodChecking` (`OoUniversalChecking`, `ExternalCheckMask`,
 `AutomaticPropagation`) for every method, folded from the group's `TurnState` at the method's own lines as
@@ -1216,8 +1220,13 @@ bridges and the drop of an inherited constant a nearer data-name hides. A contai
 subtrees are made visible INSIDE the unit's declaration half (`DataBinder.InheritContainerReports`,
 `InheritContainerGlobalData`; kb/Work PB3766, PB4199), because the unit's own FILE STATUS, KEY, DEPENDING ON and ASSIGN
 USING clauses name them, so the step offers them in its seed half rather than merging them after the data phases. The
-inherited constant-names still join the unit's own constant table (`InheritGlobalConstants`, called by the seed half,
-and `DropShadowedConstants`, by the merge half), and the inherited subtrees its own name indexes with their depth.
+inherited constant-names are `InheritedGlobals.Constants`, each with its container's depth (offered by the seed half from
+the container's `ConstantEntryBinder.GlobalConstantsToInherit` and read by `ConstantEntryBinder.FindConstant` after the
+unit's own entries, a declared local entry hiding them structurally), and `InheritStep.DropShadowed` (the merge half, and
+`OoDriver` for a class half) drops those a nearer name hides and hides the inherited symbolic-characters; the inherited
+subtrees join its own name indexes with their depth. `ConstantEntryBinder` (`DataBinder.Constants`, PB2358) owns the unit's
+constant tables and every reader of a constant-name; the CONSTANT RECORD predicates stay with the data binder
+(`DataBinder.ConstantRecord.cs`) and `DeclaredNearerThan` lives with the name classes (`DataBinder.NonDataNames.cs`).
 A pass declares its views on its `IBindPass` class, and `ValidateDag` checks
 the declarations against the phase order at startup: a value slice is written only in its phase and read only after
 it; a fact set is appended only in a phase that declares it, read early only by a pass that says so, and read whole
