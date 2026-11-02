@@ -409,8 +409,6 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
     private static RootSegment StorageRoot(MethodLocal? local, string memberClrName, OmittedFormalGuard? guard) =>
         local is not null ? new LocalRootSegment(local, guard) : new RootFieldSegment(memberClrName, guard);
 
-    // ── Name resolution ──────────────────────────────────────────────────────────────────────────────────
-
     /// <summary>The STRUCTURAL access path for an item — the <see cref="MemberPlace"/>/<see cref="DynTablePlace"/>
     /// twin of the string <see cref="AccessPath"/>: each chain node is a field segment, each OCCURS level a fixed or
     /// dynamic table segment carrying its typed index position. Null on a subscript-count mismatch.</summary>

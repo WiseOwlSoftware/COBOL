@@ -29,6 +29,13 @@ using WiseOwl.Cobol.Runtime;
 /// Returns <see langword="null"/> when the reference cannot be resolved in this slice — an unknown name, a special
 /// register, a reference-modified reference (<c>(s:l)</c> — G2-1c), or a subscript form not yet handled — so the
 /// caller emits a loud not-implemented guard rather than silently mis-binding.
+/// <para><b>This type is the funnel, and the rules live in the parts it composes</b> (DESIGN-architecture-review §8.3 (4),
+/// kb/Work PB2299, PB2371–PB2375): <see cref="Names"/> (§8.4.2.2 qualification), <see cref="Subscripts"/> (§8.4.2.3, with the
+/// position binder reference modification shares), <see cref="RefMods"/> (§8.4.3.3), <see cref="ObjectProperties"/> (§8.4.3.9),
+/// <see cref="Counters"/> (the REPORT SECTION sum counters, §13.18.54.4 GR5) and <see cref="Places"/> (the model-layer item-to-Place
+/// builder). What stays here is the order they are asked in — the one identification step <c>Identify</c> — the three entries that
+/// answer a closed <see cref="RefResolution"/>, the register views that are no data item (CAPACITY, EXCEPTION-OBJECT, DEBUG-ITEM)
+/// and the per-resolution state the parts share (<see cref="Probing"/>, <see cref="Diagnosed"/>, <see cref="SegmentDeferred"/>).</para>
 /// </summary>
 public sealed class ReferenceResolver(DataBinder data)
 {

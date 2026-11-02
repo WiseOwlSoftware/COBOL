@@ -323,8 +323,6 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         return data.QualifiedCandidates(name, qualifiers, data.ActiveScope).Single;
     }
 
-    // ── Access-path construction (subscripts attach to OCCURS levels, outer→inner) ───────────────────────
-
     /// <summary>Written index-name references already reported, keyed by the written node (a
     /// <see cref="Core.DataReferenceContext"/> or the subscript's name <see cref="IToken"/>): several binders ask
     /// about the same reference (SET classifies its operand, then binds it).</summary>

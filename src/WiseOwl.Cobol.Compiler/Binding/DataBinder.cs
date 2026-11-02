@@ -6682,7 +6682,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>The VALUE operands this binder has already diagnosed — one report per source operand even when
     /// two callers read the same node (<see cref="ExtractValue"/> screens a THRU range or a glued literal list
-    /// that <see cref="RawValueOperandText"/> may also visit). The <c>ReferenceResolver._diagnosed</c>
+    /// that <see cref="RawValueOperandText"/> may also visit). The <c>ReferenceResolver.Diagnosed</c>
     /// shape.</summary>
     private readonly HashSet<Core.ValueClauseOperandContext> _valueOperandDiagnosed = [];
 

@@ -1670,7 +1670,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 + "modifier (ISO §8.4.4.2; §8.8.4.5.2), and §8.4.3.3.3 SR5 allows reference modification only on an "
                 + "identifier referencing a data item");
         }
-        // ONE report per SOURCE reference (the ReferenceResolver._diagnosed discipline, kb/Work PB70/PB443): a
+        // ONE report per SOURCE reference (the ReferenceResolver.Diagnosed discipline, kb/Work PB70/PB443): a
         // reference is now resolved here more than once — the SEARCH ALL Format-2 screen asks which level-88 a
         // WHEN operand names BEFORE the condition binds it (§14.9.37.3 SR9/SR11 are about that very 88) — and the
         // ambiguity is one fact about one reference, not one per asker.
