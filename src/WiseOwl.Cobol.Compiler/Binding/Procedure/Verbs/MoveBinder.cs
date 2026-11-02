@@ -114,9 +114,12 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // An INDEX-NAME sending operand (kb/Work R16): MOVE is not among §13.18.38.3 r7's five index-name
         // contexts — the same judgment the SR1 arm below applies to class-index DATA ITEMS (COBOL0809).
         // Before this, a string-category receiver aborted at RUN time and a numeric one silently computed.
-        if (send.dataReference() is { } sdref
-            && host.Expr.ScreenIndexNameOperand(source, sdref.GetText(), "a MOVE sending operand"))
-            source = BoundOperandError.Refused(ctx.Edition, $"MOVE of the index-name '{DataBinder.WrittenText(sdref)}' (ISO §13.18.38.3 r7)");
+        if (send.dataReference() is { } sdref)
+        {
+            using var sendingAt = ctx.Edition.At(sdref);   // the operand's own position, not the statement's (kb/Work PB4383)
+            if (host.Expr.ScreenIndexNameOperand(source, sdref.GetText(), "a MOVE sending operand"))
+                source = BoundOperandError.Refused(ctx.Edition, $"MOVE of the index-name '{DataBinder.WrittenText(sdref)}' (ISO §13.18.38.3 r7)");
+        }
         // Identifier-1 is bound; what the receivers register from here on (a function-bearing subscript's temporary,
         // a user-defined function's activation) is THEIR evaluation, which §14.6.4 puts after the sender's.
         int senderPreOpsEnd = ctx.Data.PendingPreOps.Count;
