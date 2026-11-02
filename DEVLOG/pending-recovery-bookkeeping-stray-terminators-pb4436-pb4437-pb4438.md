@@ -45,5 +45,8 @@ terminator without a failure, so no recovery sees it; identical on main).
 **Self-review** (architecture, full code, performance, duplication): the new code runs on the error path only; the
 terminator-match test is one helper (`EndedWithItsTerminator`) used by both the record loop and `StillOpen`;
 `OwningStatement` repeats `EnclosingStatement`'s ancestor walk without its kind filter (kept apart: different question).
-Gate: `=== BUILD-LOCAL GATE: GREEN — Conformance 20,895/20,895 · Unit 39,331/39,331 · Characterization 37/37` (run
-000001-20261102T151937Z); the three new refusals passed at 85, 2002, 2014 and 2023; `semgrep/verify.py` PASS.
+The first gate of the review fix went RED on `ReservedWordPositionConformanceTests` (`IF W-N = 1 MOVE W-X TO` / `ADD 1 TO`
+/ `ELSE`: the ADD's own fault at the ELSE was taken for the left IF's phrase), so the suppression holds only where the
+statement before the word is complete (`AStatementMayEndBefore`), pinned by a unit row.
+Gate: `=== BUILD-LOCAL GATE: GREEN — Conformance 20,899/20,899 · Unit 39,343/39,343 · Characterization 37/37` (run
+000002-20261102T160657Z); the four new refusals passed at 85, 2002, 2014 and 2023; `semgrep/verify.py` PASS.
