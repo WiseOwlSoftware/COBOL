@@ -375,7 +375,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             {
                 if (file.IsReportFile)
                 {
-                    int width = Math.Max(1, ctx.Data.Reports
+                    int width = Math.Max(1, ctx.Data.Reports.Declared
                         .Where(r => ReferenceEquals(r.File, file))
                         .Select(r => r.LineWidth).DefaultIfEmpty(1).Max());
                     // The width is the widest RD's LINE WIDTH, not a record length: the connector is registered as a
@@ -709,10 +709,10 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // The checking state is the statement's enabled set (EcBinder.NodeKindRaises declares the name on BoundClose).
             string? active = null;
             if (ec.Enabled("EC-REPORT-NOT-TERMINATED")
-                && ctx.Data.VisibleReports.Where(r => ReferenceEquals(r.File, file)).ToList() is { Count: > 0 } reports)
+                && ctx.Data.Reports.Visible.Where(r => ReferenceEquals(r.File, file)).ToList() is { Count: > 0 } reports)
             {
                 active = $"__rptAct{ctx.Names.NextEc()}";
-                w.Line($"bool {active} = {string.Join(" || ", reports.Select(r => $"{RuntimeApi.ReportEngine(r.CsIndex, ctx.Data.ReportDepth(r))}.IsActive"))};   // read BEFORE the close (§14.9.6.4 GR5)");
+                w.Line($"bool {active} = {string.Join(" || ", reports.Select(r => $"{RuntimeApi.ReportEngine(r.CsIndex, ctx.Data.Reports.Depth(r))}.IsActive"))};   // read BEFORE the close (§14.9.6.4 GR5)");
             }
             w.Line($"{RuntimeApi.FileClose(FileKeyExpr(file), kind)};");
             EmitStoreFileStatus(file);

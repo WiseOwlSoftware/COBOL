@@ -78,7 +78,7 @@ public sealed class StrongGroupClassScreenDriftTests
     [InlineData("Procedure/Verbs/CallBinder.cs", "ItemCategory.IsAlphanumericOrNational(target)")]
     [InlineData("Procedure/Verbs/CallBinder.cs", "NameTargetRefusal(place)")]
     [InlineData("Procedure/Verbs/CallBinder.cs", "NameTargetRefusal(p)")]
-    [InlineData("DataBinder.Reports.cs", "!ItemCategory.IsAlphanumeric(item)")]
+    [InlineData("ReportSectionBinder.cs", "!ItemCategory.IsAlphanumeric(item)")]
     [InlineData("Procedure/Verbs/EvaluateBinder.cs", "IntrinsicArgumentRules.SameClass(lo, lc, hi, hc)")]
     public void TheScreen_AsksItsOneReader(string path, string reader)
     {

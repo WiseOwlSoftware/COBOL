@@ -35,7 +35,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 public sealed class ReportRepeatingEntryDriftTests
 {
     private static string BinderText() => File.ReadAllText(
-        Path.Combine(TestRepo.Src("WiseOwl.Cobol.Compiler"), "Binding", "DataBinder.Reports.cs"));
+        Path.Combine(TestRepo.Src("WiseOwl.Cobol.Compiler"), "Binding", "ReportSectionBinder.cs"));
 
     private static string EmitterText() => File.ReadAllText(
         Path.Combine(TestRepo.Src("WiseOwl.Cobol.Compiler"), "CodeGen", "Verbs", "ReportWriterEmitter.cs"));

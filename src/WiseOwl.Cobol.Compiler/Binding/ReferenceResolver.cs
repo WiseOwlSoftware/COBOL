@@ -266,10 +266,10 @@ public sealed partial class ReferenceResolver(DataBinder data)
         // DataBinder.NearerReportEntryHides), so the refusal still stands when the data items are ambiguous GLOBAL ones of
         // a farther element (review R1-1) and when there is only one.
         var dataItems = data.QualifiedCandidates(name, qualifiers, data.ActiveScope);
-        if (data.ReportEntryReferenceRefused(dataItems, $"'{text}'", name, qualifiers)) return;
+        if (data.ReportSection.EntryReferenceRefused(dataItems, $"'{text}'", name, qualifiers)) return;
         // A report entry of the data items' own source element is a data-name §8.4.2.2.3 SR1 counts with them, so the
         // ambiguity's text counts it too (review R1-2).
-        int reportEntries = dataItems.Count > 1 ? data.ReportEntriesInTierOf(dataItems, name, qualifiers) : 0;
+        int reportEntries = dataItems.Count > 1 ? data.ReportSection.EntriesInTierOf(dataItems, name, qualifiers) : 0;
         static string ReportEntriesWording(int count) => count == 0
             ? ""
             : $" (counting {(count == 1 ? "a REPORT SECTION entry" : $"{count} REPORT SECTION entries")} of that spelling)";
@@ -2334,7 +2334,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// The ONE construction of a procedure-division sum counter place — the ordinary reference and the table(ALL)
     /// intrinsic argument (§15.3) both build through it.</summary>
     internal ReportSumCounterPlace SumCounterPlace(ReportModel report, ReportSumFamily family, IReadOnlyList<Position> indexExprs) =>
-        new(report.CsIndex, family.BaseId, family.Register, data.ReportDepth(report), indexExprs);
+        new(report.CsIndex, family.BaseId, family.Register, data.Reports.Depth(report), indexExprs);
 
     /// <summary>The CURRENT range of level <paramref name="level"/> (outermost first) of a repeating sum counter, for
     /// a table(ALL) argument (ISO §15.3): an enclosing repetition with the DEPENDING phrase ranges over
@@ -2364,7 +2364,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
         if (homonyms.Count == 0) return null;
         // §8.4.6.2.1 rule 3 — a counter of a report this source element declares hides a same-named counter of a
         // container's GLOBAL report; only candidates of the NEAREST declaring element can be ambiguous.
-        var matches = data.NearestInScope(
+        var matches = data.Reports.NearestInScope(
             homonyms.Where(h => DataBinder.QualifierWalk(h.Family.Qualification, qualifiers,
                 q => CobolNames.Same(q, h.Report.Name))),
             h => h.Report);
@@ -2387,7 +2387,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
         // declares — a nearer container's GLOBAL data item, condition-name or index-name — is the referenced item, and
         // ordinary resolution takes it. (This element's own declarations never reach here: InheritGlobalReport keeps
         // a counter its own data hides out of SumCounters.) Every candidate left shares one report depth.
-        int counterDepth = data.ReportDepth(matches[0].Report);
+        int counterDepth = data.Reports.Depth(matches[0].Report);
         if (counterDepth > 0
             && (qualifiers.Count == 0
                 ? data.DeclaredNearerThan(name, counterDepth)

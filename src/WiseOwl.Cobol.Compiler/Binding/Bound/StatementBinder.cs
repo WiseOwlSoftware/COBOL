@@ -232,7 +232,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// roster both ask it, so no unit kind can forget the procedure phase of its own reports.</summary>
     private void BindDeclaredReportClauses()
     {
-        if (Ctx.Data.Reports.Count > 0) Rw.BindReportGroupClauses();
+        if (Ctx.Data.Reports.Declared.Count > 0) Rw.BindReportGroupClauses();
     }
 
     /// <summary>Bind a program unit's PROCEDURE DIVISION into a <see cref="BoundProgram"/>.</summary>

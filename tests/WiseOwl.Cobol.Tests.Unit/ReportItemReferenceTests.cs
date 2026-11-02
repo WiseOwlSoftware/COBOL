@@ -17,8 +17,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// be inspected or altered in the procedure division. 2) Report groups of type DETAIL are accessed by the GENERATE
 /// statement", and §13.15.3 SR7: "The data-name shall not be referenced in any other way." The reference is refused
 /// (COBOL5092), under THAT rule — it used to be told COBOL1639 "no declaration gives the name", false about a
-/// name the report section declares. One lookup (<c>DataBinder.ReportEntriesNamed</c>) and one refusal
-/// (<c>DataBinder.ReportEntryReferenceRefused</c>) serve every arm that used to say "not defined"; the complement
+/// name the report section declares. One lookup (<c>ReportScope.EntriesNamed</c>) and one refusal
+/// (<c>ReportSectionBinder.EntryReferenceRefused</c>) serve every arm that used to say "not defined"; the complement
 /// test names the arms so a fourth cannot be added without asking.
 /// </summary>
 public sealed class ReportItemReferenceTests
@@ -231,7 +231,7 @@ public sealed class ReportItemReferenceTests
                      Path.Combine("Binding", "ReferenceResolver.cs"),   // procedure division: ReportUnidentified
                      Path.Combine("Binding", "DataBinder.Odo.cs"),      // OCCURS … DEPENDING ON
                  })
-            Assert.Contains("ReportEntryReferenceRefused(", File.ReadAllText(Path.Combine(root, rel)));
+            Assert.Contains("EntryReferenceRefused(", File.ReadAllText(Path.Combine(root, rel)));
 
         string dataBinder = Path.Combine(root, "Binding", "DataBinder.cs");
         foreach (string arm in new[]
@@ -240,14 +240,14 @@ public sealed class ReportItemReferenceTests
                      "private void ResolveAssignUsing(",          // ASSIGN … USING (kb/Work PB3768)
                      "DataItem? InRecords(",                      // RECORD KEY / ALTERNATE RECORD KEY (kb/Work PB3768's sibling)
                  })
-            Assert.Contains("ReportEntryReferenceRefused(", MethodText(dataBinder, arm));
+            Assert.Contains("EntryReferenceRefused(", MethodText(dataBinder, arm));
 
         var reporters = Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
             .Where(f => !f.Contains("Generated", StringComparison.Ordinal) && !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
             .Where(f => File.ReadAllText(f).Contains("DiagnosticCatalog.ReportItemReference", StringComparison.Ordinal))
             .Select(Path.GetFileName)
             .ToList();
-        Assert.Equal(["DataBinder.Reports.cs"], reporters);
+        Assert.Equal(["ReportSectionBinder.cs"], reporters);
     }
 
     /// <summary>kb/Work PB4226: a SEARCH ALL Format 2 condition-name operand the written reference does not reach is the

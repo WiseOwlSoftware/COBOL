@@ -50,7 +50,7 @@ public sealed class ControlClauseCitationDriftTests
         Assert.Contains("occurs-depending table subordinate to it", rules[5]);
         Assert.Contains("variable-length group", rules[7]);
 
-        string binder = File.ReadAllText(TestRepo.At("src", "WiseOwl.Cobol.Compiler", "Binding", "DataBinder.Reports.cs"));
+        string binder = File.ReadAllText(TestRepo.At("src", "WiseOwl.Cobol.Compiler", "Binding", "ReportSectionBinder.cs"));
         string emitter = File.ReadAllText(TestRepo.At("src", "WiseOwl.Cobol.Compiler", "CodeGen", "Verbs", "ReportWriterEmitter.cs"));
 
         // Each enforced rule's message paraphrases its own sentence AND names its own number.

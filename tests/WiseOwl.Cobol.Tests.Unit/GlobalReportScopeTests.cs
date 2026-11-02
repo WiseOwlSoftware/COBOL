@@ -234,8 +234,8 @@ public sealed class GlobalReportScopeTests
             p => p.ParameterType == typeof(Func<int, bool>));
     }
 
-    /// <summary>⛔ DRIFT: every procedure-division NAME resolution of a report reads <c>DataBinder.VisibleReports</c>
-    /// (own + inherited GLOBAL). <c>DataBinder.Reports</c> — the reports a unit DECLARES — is read only where the
+    /// <summary>⛔ DRIFT: every procedure-division NAME resolution of a report reads <c>ReportScope.Visible</c>
+    /// (own + inherited GLOBAL). <c>ReportScope.Declared</c> — the reports a unit DECLARES — is read only where the
     /// unit acts as the report's OWNER: constructing, validating, or binding its description. A new reader of
     /// <c>Reports</c> in the procedure binder or the reference resolver would silently make a contained program
     /// blind to its container's GLOBAL reports again.</summary>
@@ -258,7 +258,7 @@ public sealed class GlobalReportScopeTests
             {
                 int n = File.ReadLines(file)
                     .Count(l => !l.TrimStart().StartsWith("//", StringComparison.Ordinal)
-                                && Regex.IsMatch(l, @"\bData\.Reports\b"));
+                                && Regex.IsMatch(l, @"\bData\.Reports\.Declared\b"));
                 if (n > 0) found[Path.GetFileName(file)] = n;
             }
         Assert.Equal(owners.OrderBy(k => k.Key), found.OrderBy(k => k.Key));

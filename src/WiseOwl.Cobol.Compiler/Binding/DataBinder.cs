@@ -29,6 +29,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     private int _fillerCounter;
     private int _uidCounter;
 
+    /// <summary>The next unique id for a data item this binder creates (a report's page counter, a sum counter's register).</summary>
+    internal int NextUid() => _uidCounter++;
+
     /// <summary>The targeted-edition context (digit caps, bind-time rejection diagnostics). Defaults to the
     /// latest edition for direct test construction; <c>CompilerDriver</c> always supplies the CLI's
     /// <c>--std</c>.</summary>
@@ -192,26 +195,22 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         CapacityRegisters.Values.SelectMany(static t => t).Where(t => DeclaringDepth(t) == 0)
             .Concat(_ooBoundMethods.SelectMany(static m => m.DataScope.CapacityRegisters.Values).SelectMany(static t => t));
 
-    /// <summary>REPORT SECTION <b>sum counter</b> names (case-insensitive) → every SUM ENTRY that carries the name —
-    /// its <see cref="ReportSumFamily"/>, whose occurrences a subscript selects (kb/Work PB1271) — with its owning
-    /// report (ISO §13.18.54.4 GR5 — "If a data-name immediately follows the level number in the
-    /// entry containing the SUM clause, the data-name is the name of the sum counter, not the name of the
-    /// associated printable item"). The counter is IMPLICITLY defined by its entry and is NOT in
-    /// <see cref="ByName"/>; <see cref="ReferenceResolver"/> consults this map to build a
-    /// <see cref="Model.ReportSumCounterPlace"/> so §13.18.54.4 GR12 — "It is permissible for procedure division
-    /// statements to alter the content of sum counters" — has somewhere to land (kb/Work PB840).
-    /// <para>⛔ A LIST PER NAME, NOT ONE ENTRY (kb/Work PB882). GR1 gives every ENTRY its own counter and nothing
-    /// makes two entries' data-names distinct: §8.4.2.2.1's uniqueness requirement bites on a REFERENCE, not on a
-    /// declaration nobody names. A scalar column here would be the same last-write-wins defect the runtime just
-    /// shed; instead a duplicated name is legal to DECLARE and, unless a report-name qualifier resolves it,
-    /// diagnosed where it is REFERENCED.</para>
-    /// (READ-ONLY view — P6 Step 5; the getter carries the P6 Step-6 watermark gate.)</summary>
+    /// <summary>The report description entries this unit declares and the GLOBAL ones it inherits, with the sum counters
+    /// and the name lookups over them (<see cref="ReportScope"/>; kb/Work PB2357): written by <see cref="ReportSection"/>
+    /// alone, read by every later phase.</summary>
+    public ReportScope Reports { get; } = new();
+
+    /// <summary>The REPORT SECTION's binder (<see cref="ReportSectionBinder"/>; kb/Work PB2357, step 7 of the DataBinder
+    /// extract): binds the RD entries into <see cref="Reports"/>, resolves them after the data division is built, and
+    /// answers the report-item refusal (ISO §13.8.6.2.3) every other section's name lookup asks.</summary>
+    internal ReportSectionBinder ReportSection => field ??= new(this, Reports);
+
+    /// <summary>REPORT SECTION sum counter names → their SUM entries (<see cref="ReportScope.SumCounters"/>), behind the
+    /// P6 Step-6 watermark gate: the counters exist once <see cref="PassPhase.FilesResolved"/> has run.</summary>
     public IReadOnlyDictionary<string, List<(ReportModel Report, ReportSumFamily Family)>> SumCounters
     {
-        get { Require(PassPhase.FilesResolved, "SumCounters"); return _sumCounters; }
+        get { Require(PassPhase.FilesResolved, "SumCounters"); return Reports.SumCounters; }
     }
-    private readonly Dictionary<string, List<(ReportModel Report, ReportSumFamily Family)>> _sumCounters
-        = new(CobolNames.Comparer);
 
     /// <summary>TYPEDEF type declarations (case-insensitive) → the template root <see cref="DataItem"/> (ISO
     /// §13.18.58; data-model D17) — THIS source element's own: a METHOD's declarations are its own source element's,
@@ -585,7 +584,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         BindFileControl(program);                  // SELECT clauses → FileModels (before the FD records bind)
         BindFileSection(program, _rootNames);      // FD records → Roots + FileModel.Records + the shared-area REDEFINES
         ScreenSelectsHaveDescriptions();           // §12.4.5.2 SR3 — after every FD and SD has attached
-        BindReportSection(program);                // RD entries → ReportModels (ISO §13.14; DataBinder.Reports.cs)
+        ReportSection.Bind(program);               // RD entries → ReportModels (ISO §13.14; ReportSectionBinder.cs)
         BindIoControl(program);                    // I-O-CONTROL: SAME RECORD AREA → cross-file shared record area (§12.4.6.4 GR2)
 
         // SCREEN SECTION (ISO §13.9) is an OPTIONAL element of Annex A.4.2, the module docs/CONFORMANCE.md §5
@@ -631,7 +630,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
         // The containers' GLOBAL data and reports (§13.18.27.4 GR1/GR2), now that this unit's own names are all
         // declared and before any clause of this data division resolves the names it uses (BindResolve).
-        InheritContainerReports();
+        ReportSection.InheritContainerReports();
         InheritContainerGlobalData();
     }
 
@@ -1134,7 +1133,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <paramref name="memberLevel"/> is the level-number of the group's FIRST immediate member, or null when
     /// <paramref name="level"/> belongs to the first; <paramref name="subject"/> and <paramref name="group"/> name the
     /// entry and its group for the message.</summary>
-    private void ScreenImmediateMemberLevel(int? memberLevel, int level, string subject, string group)
+    internal void ScreenImmediateMemberLevel(int? memberLevel, int level, string subject, string group)
     {
         if (memberLevel is not { } first || first == level) return;
         Edition.Error(DiagnosticCatalog.LevelNumberHierarchy, $"{subject}: level-number {level} is not the level-number "
@@ -1738,7 +1737,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// permit a reference-modifier, so the data-name-n screen would reject source their own rules allow. Those
     /// three capture with <see cref="KeyReference"/> and apply their own operand rules (kb/Work PB205).</para>
     /// </summary>
-    private (string Base, IReadOnlyList<string> Quals) ClauseDataName(Core.DataReferenceContext dref, string clauseFace)
+    internal (string Base, IReadOnlyList<string> Quals) ClauseDataName(Core.DataReferenceContext dref, string clauseFace)
     {
         if (ScreenClauseOperandShape(dref, clauseFace)) return KeyReference(dref);
         // REFUSED. The operand is recorded AS WRITTEN — never reduced to a word the programmer did not use as a
@@ -2376,7 +2375,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // PB3767's order, kept by the lookup itself since PB4196, ISO §8.4.6.2.1 3) a)); a key item of the file's own
                 // record is never hidden.
                 if (inFile.Count == 0 && cands.Count != 1
-                    && ReportEntryReferenceRefused(cands, $"{face} '{written}'", keyName, quals))
+                    && ReportSection.EntryReferenceRefused(cands, $"{face} '{written}'", keyName, quals))
                 {
                     refusedKeys.Add(keyName);
                     return null;
@@ -2452,7 +2451,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <para>It reports under the SAME descriptor as the procedure division's own unidentified reference
     /// (COBOL1639): the rule broken is §8.4.2.1/§8.4.2.2, not a rule of the clause, and a user who mis-qualifies
     /// a name in a WRITE and in a LINAGE clause has broken one rule and should read one verdict.</para></summary>
-    private DataItem? ResolveClauseOperand(string name, IReadOnlyList<string> quals, string clauseFace,
+    internal DataItem? ResolveClauseOperand(string name, IReadOnlyList<string> quals, string clauseFace,
                                            Editions.DiagnosticCursor at, bool inReportSection = false)
     {
         var survivors = QualifiedCandidates(name, quals, Model.Scope.Program);
@@ -2466,7 +2465,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // OCCURS … DEPENDING ON is not one of them). A report entry of a NEARER source element is the referenced item
         // (ISO §8.4.6.2.1 3) a)): the lookup leaves it no survivor to hide (kb/Work PB4196), so the survivors here are the
         // ambiguity (kb/Work PB3767) or nothing.
-        if (ReportEntryReferenceRefused(survivors, $"{clauseFace} '{written}'", name, quals, inReportSection)) return null;
+        if (ReportSection.EntryReferenceRefused(survivors, $"{clauseFace} '{written}'", name, quals, inReportSection)) return null;
         if (survivors.Count > 1) return UniqueOrReportAmbiguous(survivors, clauseFace, written, out _);
         // A name declared as something other than a data item is not undefined (kb/Work PB1906): the one query of what
         // it is, the same the procedure division's unidentified reference asks. A refused declaration was reported.
@@ -2717,7 +2716,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // names the phrase as written, never `ASSIGN … USING` (kb/Work PB4160: a head that elides the statement renders
         // `ASSIGN . USING` on the console).
         if (candidates.Count != 1
-            && ReportEntryReferenceRefused(candidates, $"ASSIGN USING '{written}'", dynName, file.AssignUsingQualifiers)) return;
+            && ReportSection.EntryReferenceRefused(candidates, $"ASSIGN USING '{written}'", dynName, file.AssignUsingQualifiers)) return;
         DataItem? item = UniqueOrReportAmbiguous(candidates, "ASSIGN USING", written, out bool ambiguous);
         if (ambiguous && item is null) return;
         if (item is null || !ItemCategory.IsAlphanumeric(item))
@@ -2836,7 +2835,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// for SR14 to speak of) is out of the domain by construction. The screen used to be skipped on
     /// <c>DigitPositions &gt; 0</c>, so the very count SR14's lower bound forbids was the one that skipped the
     /// check.</para></summary>
-    private void ScreenPictureDigitCapacity(PicInfo pic, string what)
+    internal void ScreenPictureDigitCapacity(PicInfo pic, string what)
     {
         if (pic is { IsFloat: false, IsFloatEdited: false }
             && pic.AnalyzedCategory is PicCategory.Numeric or PicCategory.NumericEdited)
@@ -2866,7 +2865,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// for it, because <see cref="ValueSubject.ForConditionName"/> carries no size (kb/Work PB598). The report
     /// section's format 4 printable-item literals were the fourth arm, reached by NO part of this funnel but SR6's
     /// edition gate: `03 COLUMN 1 PIC 9(2) VALUE 12345.` printed `45`. They take it too (DataBinder.Reports).</para></summary>
-    private string ScreenValueLiteral(PicInfo pic, string raw, string where, ValueSubject subject)
+    internal string ScreenValueLiteral(PicInfo pic, string raw, string where, ValueSubject subject)
     {
         // VALUE-clause literal/category conformance for the string-stored 2002 categories (ISO §13.18.63
         // SR5 national / SR10 boolean — the 0898 band, both directions) and SR2's CLASS half.
@@ -5191,7 +5190,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// what the other four say with a brace.</para></summary>
     /// <param name="pairedConnective">True for Formats 2, 3 and 4 (the <c>VALUE IS</c> / <c>VALUES ARE</c>
     /// choice); false for Format 1, which prints only <c>VALUE</c> and only <c>IS</c>.</param>
-    private void CheckValueConnective(Core.ValueClauseContext value, bool pairedConnective, string where)
+    internal void CheckValueConnective(Core.ValueClauseContext value, bool pairedConnective, string where)
     {
         bool values = value.VALUES() is not null, are = value.ARE() is not null;
         string? written = !pairedConnective && values

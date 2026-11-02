@@ -73,7 +73,7 @@ internal static class ReportGroupResolution
                 if (g.Name is not null && CobolNames.Same(head, g.Name))
                     found.Add((r, g));
         }
-        if (scope is not null) found = scope.NearestInScope(found, f => f.Report);
+        if (scope is not null) found = scope.Reports.NearestInScope(found, f => f.Report);
         if (found.Count == 0) return Match.None;
         (report, group) = found[0];
         if (found.Count == 1) return Match.Found;

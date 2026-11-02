@@ -249,7 +249,7 @@ public sealed partial class DataBinder
     /// <see cref="ByName"/> in <see cref="_capacityRegisters"/>, placed by its table (a METHOD's own register is never
     /// in that index: it lives in <see cref="OoMethodDataScope.CapacityRegisters"/>, the method tier
     /// <see cref="ActiveMethodDeclares"/> asks, kb/Work PB3165); a REPORT SECTION sum
-    /// counter is a data-name too (§13.18.54.4 GR5) kept off it in <see cref="_sumCounters"/>, placed by its report
+    /// counter is a data-name too (§13.18.54.4 GR5) kept off it in <see cref="Reports.SumCounters"/>, placed by its report
     /// (<see cref="ReportDepth"/>: 0 for this element's own, n for a container's GLOBAL report, §13.18.27.4 GR1), so
     /// a FARTHER container's sum counter never hides a NEARER container's constant (kb/Work PB3154 review R3-1).
     /// <c>GlobalNameClassDriftTests</c> holds this predicate to the inherited name-index list, so a name index
@@ -259,8 +259,8 @@ public sealed partial class DataBinder
         if (ByName.TryGetValue(name, out var items) && items.Any(i => DeclaringDepth(i) < depth)) return true;
         if (Conditions.TryGetValue(name, out var conds) && conds.Any(c => DeclaringDepth(c.Parent) < depth)) return true;
         if (_capacityRegisters.TryGetValue(name, out var tables) && tables.Any(t => DeclaringDepth(t) < depth)) return true;
-        if (_sumCounters.TryGetValue(name, out var counters) && counters.Any(c => ReportDepth(c.Report) < depth)) return true;
-        if (NearerReportEntryHides(name, [], depth)) return true;   // every other named report entry (kb/Work PB4196)
+        if (Reports.SumCounters.TryGetValue(name, out var counters) && counters.Any(c => Reports.Depth(c.Report) < depth)) return true;
+        if (Reports.NearerEntryHides(name, [], depth)) return true;   // every other named report entry (kb/Work PB4196)
         if (!IndexNames.Declares(name)) return false;
         IndexNames.Candidates(name, static _ => true, out int indexDepth);   // int.MaxValue when none survives
         return indexDepth < depth;
@@ -288,7 +288,7 @@ public sealed partial class DataBinder
 
     /// <summary>Whether a constant, bound or still to bind, is visible here — this unit's own, or the method's being
     /// bound — the guard the PICTURE expansion takes so a constant-free program's PICTURE pipeline is untouched.</summary>
-    private bool UnitHasConstants => _constants.Any || MethodConstants?.Any == true;
+    internal bool UnitHasConstants => _constants.Any || MethodConstants?.Any == true;
 
     // ── Declaration before binding (kb/Work PB1231) ──────────────────────────────────────────────────────────────
 
@@ -566,7 +566,7 @@ public sealed partial class DataBinder
     /// operand described later (<see cref="BindDeclaredConstant"/>, kb/Work PB1231). Produces NO <see cref="DataItem"/> (§13.10.4 GR1/GR3 — a constant is a substitution, not storage). The
     /// COBOL-2002 introduction gate is the VersionConformancePass parse arm (<c>VisitConstantEntryBody</c> →
     /// constant-entry-2002 → COBOL0900 below 2002), NOT here (the binder stays edition-agnostic — Step E).</summary>
-    private void BindConstantEntry(
+    internal void BindConstantEntry(
         Antlr4.Runtime.ParserRuleContext entry, Core.LevelNumberContext level, Core.DataNameContext? nameCtx,
         Core.ConstantEntryBodyContext body)
     {
@@ -1068,7 +1068,7 @@ public sealed partial class DataBinder
     /// where-nonzero, an over-limit or an unknown constant-name.</summary>
     /// <param name="operand">The operand node of the clause that prints the <c>integer-n</c>.</param>
     /// <param name="where">The construct as the calling site names it, for a diagnostic.</param>
-    private int? IntegerOperandValue(Core.IntegerOperandContext operand, string where) =>
+    internal int? IntegerOperandValue(Core.IntegerOperandContext operand, string where) =>
         IntegerOperandText(operand, where) is { } text ? WiseOwl.Cobol.Validation.IntegerOperandRules.HostValue(text) : null;
 
     /// <summary>The same reader for a clause whose <c>integer-n</c> is read at FULL width, not as an
@@ -1167,7 +1167,7 @@ public sealed partial class DataBinder
     /// <param name="where">The entry named in a diagnostic.</param>
     /// <param name="diagnose">False for a MEASURING caller that reads the expanded string only for its width and
     /// leaves the diagnosis to the binder of the same entry, so one bad repetition word is reported once.</param>
-    private string ExpandPicConstants(string pictureText, string where, bool diagnose = true)
+    internal string ExpandPicConstants(string pictureText, string where, bool diagnose = true)
     {
         return System.Text.RegularExpressions.Regex.Replace(pictureText,
             @"\(\s*([A-Za-z][A-Za-z0-9-]*)\s*\)",

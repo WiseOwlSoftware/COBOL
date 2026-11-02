@@ -358,7 +358,7 @@ internal sealed class ProgramEmitter
             // The report ENGINES are per-INSTANCE objects and get their own per-INSTANCE guard — the PB168
             // review fleet caught them riding the (now sometimes static) registration guard: a RECURSIVE
             // unit's second activation skipped the block and NRE'd on a null __RPT_n. One guard per scope.
-            if (data.Reports.Count > 0)
+            if (data.Reports.Declared.Count > 0)
                 w.Line("private bool __reportsConstructed;   // report engines construct once per INSTANCE (kb/Work PB168 — never behind the run-unit registration guard)");
             // The OBJECT-COMPUTER members — __COLLATE / __COLLATE_NAT / the __CLASSIFY field — from the ONE helper the OO
             // emitter shares (kb/Work PB111: a CLASS-ID with either clause used to be a CS0103 on its emitted methods).

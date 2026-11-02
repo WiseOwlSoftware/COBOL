@@ -87,7 +87,7 @@ public sealed class DisplayUsageUnionDriftTests
     {
         var expected = new Dictionary<string, (int DisplayOnly, int Pair)>
         {
-            // ⛔ DataBinder.Reports.cs LEFT THIS INVENTORY (kb/Work PB3280). Its printable item's image mark
+            // ⛔ ReportSectionBinder.cs LEFT THIS INVENTORY (kb/Work PB3280). Its printable item's image mark
             // asked the IMAGE-FORM question in the DISPLAY-only spelling, so a numeric printable item of usage
             // NATIONAL (§13.18.60.3 SR7 admits the usage, SR12 the picture) reached the line as a long and the
             // backend refused the generated C# (CS1503). It now reads PicInfo.IsCharacterFormNumeric, and a

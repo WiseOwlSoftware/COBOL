@@ -555,7 +555,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     public override object? VisitTerminateStatement(CobolParserCore.TerminateStatementContext ctx)
     {
         foreach (var report in ctx.reportName())
-            if (_currentData?.VisibleReports.FirstOrDefault(r => CobolNames.Same(r.Name, report.GetText())) is { HasVarying: true })
+            if (_currentData?.Reports.Visible.FirstOrDefault(r => CobolNames.Same(r.Name, report.GetText())) is { HasVarying: true })
             {
                 Flag(FlagOption.Flag02TerminateWithVarying, ctx.Start.Line,
                     "the TERMINATE of a report whose description contains a VARYING clause");

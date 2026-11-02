@@ -396,7 +396,7 @@ public sealed partial class DataBinder
         }
     }
 
-    private static string? BlankWhenZeroViolation(PicInfo pic)
+    internal static string? BlankWhenZeroViolation(PicInfo pic)
     {
         if (pic.Category is not (PicCategory.Numeric or PicCategory.NumericEdited))
             return "the BLANK WHEN ZERO clause may be specified only for an elementary item described by its picture "
@@ -408,7 +408,7 @@ public sealed partial class DataBinder
         return null;
     }
 
-    private static string? JustifiedViolation(PicInfo pic)
+    internal static string? JustifiedViolation(PicInfo pic)
     {
         if (pic.Category is not (PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean)
             || pic.EditMask is not null)

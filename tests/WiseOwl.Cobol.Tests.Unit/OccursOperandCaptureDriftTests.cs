@@ -40,7 +40,7 @@ public sealed class OccursOperandCaptureDriftTests
         var files = BinderFiles();
         // Population: the data binder's partial files are where this scan thinks they are.
         Assert.Contains(files, f => f.EndsWith("DataBinder.Odo.cs", StringComparison.Ordinal));
-        Assert.Contains(files, f => f.EndsWith("DataBinder.Reports.cs", StringComparison.Ordinal));
+        Assert.Contains(files, f => f.EndsWith("ReportSectionBinder.cs", StringComparison.Ordinal));
         var glued = files
             .SelectMany(f => File.ReadLines(f).Select((l, i) => (File: Path.GetFileName(f), Line: i + 1, Text: l)))
             .Where(x => Regex.IsMatch(x.Text, @"dataReference\(\)\??\.GetText\(\)"))
@@ -99,7 +99,7 @@ public sealed class OccursOperandCaptureDriftTests
     public void TheReportBinder_NeverFabricatesAnOperand()
     {
         string src = File.ReadAllText(
-            Path.Combine(TestRepo.Src("WiseOwl.Cobol.Compiler"), "Binding", "DataBinder.Reports.cs"));
+            Path.Combine(TestRepo.Src("WiseOwl.Cobol.Compiler"), "Binding", "ReportSectionBinder.cs"));
         // Population: the VALUE-operand construction this guard polices is still in this file.
         Assert.Contains("new FieldValueSource(r)", src, StringComparison.Ordinal);
         Assert.DoesNotMatch(new Regex(@"new\s+FieldValueSource\(\s*""", RegexOptions.None), src);

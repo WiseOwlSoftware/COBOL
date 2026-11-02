@@ -810,7 +810,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // (§8.4.2.2.1 / §8.4.2.2.3 SR1) where this arm used to `return` inside the loop on the first match
             // and therefore could never observe a second (kb/Work PB365).
             var (head, qualifier) = ReportGroupResolution.Parts(use.reportGroupReference());
-            var match = ReportGroupResolution.Resolve(ctx.Edition, ctx.Data.VisibleReports, head, qualifier,
+            var match = ReportGroupResolution.Resolve(ctx.Edition, ctx.Data.Reports.Visible, head, qualifier,
                 $"declarative section '{sectionName}': USE BEFORE REPORTING", out _, out var group, ctx.Data);
             if (match == ReportGroupResolution.Match.None || group is null)
             {

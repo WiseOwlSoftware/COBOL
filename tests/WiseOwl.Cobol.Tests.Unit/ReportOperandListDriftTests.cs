@@ -118,7 +118,7 @@ public sealed class ReportOperandListDriftTests
         var indexer = new Regex(@"\bSources\s*\[", RegexOptions.Compiled);
         var hits = sources
             .SelectMany(s => indexer.Matches(s.Text).Select(_ => s.Rel))
-            .Where(rel => !rel.EndsWith(Path.Combine("Binding", "DataBinder.Reports.cs"), StringComparison.Ordinal))
+            .Where(rel => !rel.EndsWith(Path.Combine("Binding", "ReportSectionBinder.cs"), StringComparison.Ordinal))
             .ToList();
         Assert.True(hits.Count == 0,
             "ReportFieldModel.Sources is indexed outside its own model file; ISO §13.18.63.4 GR23 / §13.18.53.4 "

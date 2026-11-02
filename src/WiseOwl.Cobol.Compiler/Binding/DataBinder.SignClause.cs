@@ -107,7 +107,7 @@ public sealed partial class DataBinder
     /// construct row. Asked ONCE per WRITTEN entry over the flat entry array (the <see cref="ScreenReportEntryClausePresence"/>
     /// shape), never per §13.18.38 replay; the 2023 subject rules (SR1/SR2 for an elementary entry) are
     /// <see cref="SignClauseElementaryDefect"/>'s, asked by the walk where the printable item's picture is known.</summary>
-    private void ScreenReportSignClauses(Core.ReportGroupEntryContext[] entries, ReportModel model)
+    internal void ScreenReportSignClauses(Core.ReportGroupEntryContext[] entries, ReportModel model)
     {
         if (Edition.DialectLevel >= 2002) return;
         for (int i = 0; i < entries.Length; i++)
@@ -119,7 +119,7 @@ public sealed partial class DataBinder
             using var _ = Edition.At(ge);
             if (sign.SEPARATE() is null)
                 ConstructRegistry.Check(Edition.Edition, Edition.Sink, Constructs.ReportSignWithoutSeparate2002, where);
-            if (IsReportGroupEntry(entries, i))
+            if (ReportSectionBinder.IsReportGroupEntry(entries, i))
                 ConstructRegistry.Check(Edition.Edition, Edition.Sink, Constructs.ReportGroupSign2002, where);
         }
     }

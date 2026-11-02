@@ -409,7 +409,7 @@ public sealed partial class DataBinder
             // standing unless a report entry of a NEARER source element hides the data items (kb/Work PB3767's order, kept by the lookup itself since PB4196,
             // ISO §8.4.6.2.1 3) a)).
             if (!declaration && tier.Count != 1
-                && ReportEntryReferenceRefused(tier, $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}'", depName, spec.DependingQualifiers))
+                && ReportSection.EntryReferenceRefused(tier, $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}'", depName, spec.DependingQualifiers))
                 continue;
             if (tier.Count == 0)
             {
@@ -608,7 +608,7 @@ public sealed partial class DataBinder
     /// §8.4.6.2.2: "A constant-name, file-name, record-name, report-name, screen-name, or type-name described with a
     /// GLOBAL clause is a global name. All data-names and screen-names subordinate to a global name are global
     /// names" — the record's own GLOBAL clause, or its file description's (§13.18.27.3 SR1 b) and d)).</summary>
-    private bool IsGlobalRecord(DataItem record) =>
+    internal bool IsGlobalRecord(DataItem record) =>
         record.HasGlobalClause || Files.Any(f => f.IsGlobal && f.Records.Contains(record));
 
     /// <summary>Does <paramref name="record"/> possess the external attribute? ISO §8.6.3: a working-storage record

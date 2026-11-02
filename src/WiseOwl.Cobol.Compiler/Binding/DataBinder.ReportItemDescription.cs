@@ -43,7 +43,7 @@ public sealed partial class DataBinder
     /// <param name="Justified">The JUSTIFIED clause is written.</param>
     /// <param name="BlankWhenZero">The BLANK WHEN ZERO clause is written.</param>
     /// <param name="ValueRaws">The VALUE clause's literal operands (§13.18.63.2 format 4), in the order written.</param>
-    private sealed record ReportItemDescription(
+    internal sealed record ReportItemDescription(
         string? PicText, string? UsageText, string? InheritedUsage, List<EditingPhraseSpec>? Editing,
         LocaleEditSpec? Locale, SignSpec? OwnSign, SignSpec? InheritedSign, bool Justified, bool BlankWhenZero,
         IReadOnlyList<string> ValueRaws);
@@ -51,7 +51,7 @@ public sealed partial class DataBinder
     private readonly Dictionary<Core.ReportGroupEntryContext, ReportItemDescription> _reportItemDescriptions = [];
 
     /// <summary>The description of the entry at <paramref name="at"/>, decoded on first ask (see the type summary).</summary>
-    private ReportItemDescription DescribeReportItem(ReportEntryLocation at)
+    internal ReportItemDescription DescribeReportItem(ReportEntryLocation at)
     {
         var ge = at.Entry;
         if (_reportItemDescriptions.TryGetValue(ge, out var known)) return known;
@@ -102,7 +102,7 @@ public sealed partial class DataBinder
                 // then silently discarded, and the only usage screen in the compiler was a staged-loud on the leaf's
                 // analyzed picture.
                 var resolved = PictureAnalyzer.ParseUsage(usageText, Edition, where);
-                ScreenReportUsage(resolved, at.ReportName, entryName, usageText);
+                ReportSection.ScreenReportUsage(resolved, at.ReportName, entryName, usageText);
                 // §13.15.4 GR2 makes the report entry's USAGE clause "the same clause" as a data description entry's,
                 // so its optional phrases are screened by the ONE reader against the same §13.18.60.2 table (kb/Work
                 // PB3517, branch review R1-1: `USAGE DISPLAY UNSIGNED` / `WITH NO SIGN` here compiled clean, the
@@ -160,7 +160,7 @@ public sealed partial class DataBinder
     /// written PICTURE analyzed under its effective usage, sign, editing and locale, or the PICTURE §13.15.3 SR14 implies
     /// from its one VALUE literal; null when it has neither. The report walk builds the printable item from it, and a
     /// constant's length phrase measures the item by it — one analysis, so the two cannot disagree.</summary>
-    private PicInfo? ReportPrintablePicture(ReportItemDescription d, string reportName, string? entryName)
+    internal PicInfo? ReportPrintablePicture(ReportItemDescription d, string reportName, string? entryName)
     {
         string itemWhere = $"RD '{reportName}' printable item '{entryName ?? "FILLER"}'";
         Usage itemUsage = PictureAnalyzer.ParseUsage(d.UsageText ?? d.InheritedUsage, Edition, itemWhere);

@@ -95,6 +95,6 @@ public sealed class ReportValueOperandDriftTests
             .Select(Path.GetFileName)
             .OrderBy(n => n, StringComparer.Ordinal)
             .ToList();
-        Assert.Equal(new[] { "DataBinder.Reports.cs" }, callers);
+        Assert.Equal(new[] { "ReportSectionBinder.cs" }, callers);
     }
 }

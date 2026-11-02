@@ -29,9 +29,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 public sealed class ReportSumOperandCaptureDriftTests
 {
     private static string BinderPath =>
-        TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.Reports.cs");
+        TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "ReportSectionBinder.cs");
 
-    /// <summary>The methods of <c>DataBinder.Reports.cs</c> that may call <c>KeyReference</c> directly, and why.
+    /// <summary>The methods of <c>ReportSectionBinder.cs</c> that may call <c>KeyReference</c> directly, and why.
     /// ⛔ Adding a row is an ADJUDICATION: it says this operand genuinely cannot carry a subscript or a
     /// reference modifier, or that the clause's own note says where its residue is tracked.</summary>
     private static readonly Dictionary<string, string> KeyReferenceCallers = new(StringComparer.Ordinal)
@@ -74,7 +74,7 @@ public sealed class ReportSumOperandCaptureDriftTests
         int calls = lines.Count(l => l.Contains("KeyReference(", StringComparison.Ordinal)
                                      && !l.Contains("private static", StringComparison.Ordinal));
         Assert.True(calls >= 4,
-            $"only {calls} KeyReference call sites found in DataBinder.Reports.cs — the capture moved, "
+            $"only {calls} KeyReference call sites found in ReportSectionBinder.cs — the capture moved, "
             + "so this guard is judging nothing. Follow it, do not lower the floor.");
 
         string current = "<file scope>";

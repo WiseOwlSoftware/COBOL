@@ -123,7 +123,7 @@ internal static class InheritStep
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
         {
             depth++;
-            foreach (var r in anc.Data.Reports)
+            foreach (var r in anc.Data.Reports.Declared)
                 if (r.IsGlobal)
                     reports.Add((r, depth));
         }
