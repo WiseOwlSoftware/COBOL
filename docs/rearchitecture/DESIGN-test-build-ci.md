@@ -1795,16 +1795,12 @@ The audits run in every lane of the local gate (they are where a register note, 
 `audits` job runs in every merge group, whatever `changes` decided, and on no pull request and no verified push (kb/Work
 PB4330).
 
-**The tooling flag (kb/Work PB4326).** A full-lane change also says whether it TOUCHES TOOLING: a path under `scripts/`,
-`.github/`, `tools/`, `.claude/`, or `.gitattributes` / `toolchain.env`, ending `.py`, `.ps1` or `.sh` anywhere, or under a
-`TOOLING_READS` entry (a path outside the scripts that a script self-test reads as data, each entry naming its readers:
-`tests/_shared/TestRepo.cs`, the grammar, `.agent-fleet.json`, `docs/CONFORMANCE.md`, `tests/version-matrix/`, …). `classify`
-prints `tooling=true|false`; an empty or unlistable change touches tooling, and an inert change never does. The script
-self-tests read tooling and those entries, so only a change that touches one can turn one red: the gate's `SELF-TESTS` audit
-(`TOOLING_ONLY`) and its post-build self-tests run only then, and CI's `windows-self-tests` job runs only then
-(`needs.changes.outputs.tooling == 'true'`; the Linux self-tests of the `audits` job run in every merge group). A change that
-touches no tooling saves the median gate 147 s of self-tests and 145 s of waiting for the post-build ones (PIPELINE-REVIEW,
-step 3).
+**The tooling flag (kb/Work PB4326; narrowed by the owner 2026-11-01).** A full-lane change also says whether it TOUCHES A SCRIPT: a path under `scripts/`,
+`.github/`, `tools/`, `.claude/`, or `.gitattributes` / `toolchain.env`, or ending `.py`, `.ps1` or `.sh` anywhere (`Classification.is_script_tree`). A `TOOLING_READS` entry (a path outside the scripts that a
+script self-test reads as data: `tests/_shared/TestRepo.cs`, the grammar, `docs/CONFORMANCE.md`, `tests/version-matrix/`, ...) does NOT set the flag in the full lane: owner 2026-11-01, "I see no reason why a
+compiler change should need to run script self-tests" (compiler fixes change those files routinely, and their self-tests cost a compiler gate 10 to 38 minutes, measured on PB4097's gate). `classify` prints `tooling=true|false`; an empty or unlistable change touches tooling, and an
+inert change never does. The gate's `SELF-TESTS` audit (`TOOLING_ONLY`) and its post-build self-tests run only when the flag is set, and CI's
+`windows-self-tests` job runs only then (`needs.changes.outputs.tooling == 'true'`); the Linux self-tests of the `audits` job run in every merge group, so a self-test a compiler data file breaks first goes red there (class (b) of THE RULE).
 
 **The proof of the tooling flag (kb/Work PB4326, review round 1 finding R1-1).** A path prefix alone was refuted by the PASS
 store's recorded inputs (§3.14.10): `tests/_shared/TestRepo.cs` is an input of `drift_rules.py`'s self-test and the `.g4` files
