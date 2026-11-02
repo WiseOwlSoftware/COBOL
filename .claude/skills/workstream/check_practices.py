@@ -13,6 +13,7 @@ import json, pathlib, re, subprocess, sys
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parents[2] / 'scripts' / 'orchestrator'))
 import coord  # noqa: E402  (the one definition of the reports directory)
+import once_rule  # noqa: E402  (THE once rule: a sentence, its test and its repair, kb/Work PB4419)
 sys.path.insert(0, str(HERE.parents[2] / 'scripts' / 'arch'))
 import inflight  # noqa: E402  (collision: THE meeting rule of the partition, kb/Work PB3670, PB3696)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[3] / "scripts"))  # scripts/, for standard_streams
@@ -155,13 +156,12 @@ HANGING_WAIT = re.compile(r"tail -n \+1 -f[^\n]*grep -m1|tail -f[^\n]*grep -m1")
 # kb/Work PB3777: the implementer's instruction file says each rule ONCE. Its two predecessors, a spec and a brief, carried the
 # checkpoint protocol, the gate paragraph, the DEVLOG entry, I9, the citation rule and the STOP rule twice, and an implementer
 # re-read all of it on every later turn. The template and every RENDERED spec (`msg-w<wave>-<letter>.txt`) are held to it:
-# a sentence of SENTENCE_MIN characters or more, whitespace collapsed, may not appear twice in one file. A sentence is two
+# a sentence of once_rule.SENTENCE_MIN characters or more, whitespace collapsed, may not appear twice in one file. A sentence is two
 # words or more: a lone token is a path the spec names in two roles, never a rule (kb/Work PB4005: a one-file group's root
 # file ends both "THE GROUP IS ONE ROOT:" and "CODE SITES the notes name:", and waves 20261740, 20261751 and 20261755
 # rendered RED on it).
 ONCE_FILES = ('dispatch-spec-implementer.md',)
 RENDERED_SPEC_NAME = re.compile(r'msg-w[^-]+-[a-z0-9]+\.txt')
-SENTENCE_MIN = 60
 # A test-result file a brief or spec tells its agent to read (kb/Work PB4328 review R1-2): the gate writes exactly one
 # `<assembly>.trx` per gated assembly in its run directory, so a name outside that set sends the agent to a file no gate
 # writes (a golden lane looked for `leg-1-Conformance.trx` after the legs were deleted).
@@ -169,23 +169,11 @@ TRX_NAME = re.compile(r'[A-Za-z0-9_.-]+\.trx\b')
 GATE_TRX = frozenset(f'{a}.trx' for a in GATED_ASSEMBLIES)
 
 
-def repeated_sentences(text):
-    """The sentences of `text` (split after . ! ? : ;, whitespace collapsed) of SENTENCE_MIN characters or more and two
-    words or more that it states more than once, in first-seen order."""
-    seen, again = set(), []
-    for s in re.split(r'(?<=[.!?:;])\s+', ' '.join(text.split())):
-        if len(s) >= SENTENCE_MIN and ' ' in s:
-            if s in seen and s not in again:
-                again.append(s)
-            seen.add(s)
-    return again
-
-
 def check(path, pats):
     text = path.read_text(encoding='utf-8')
     missing = [p for p in pats if not re.search(p if p != POINTER else re.escape(POINTER), text)]
     if path.name in ONCE_FILES or RENDERED_SPEC_NAME.fullmatch(path.name):
-        missing += [f'PB3777: states twice: {s[:90]}…' for s in repeated_sentences(text)]
+        missing += [f'PB3777: states twice: {s[:90]}…' for s in once_rule.repeated_sentences(text)]
     missing += [f'{n}: a test-result file no gate writes (the run directory holds {", ".join(sorted(GATE_TRX))})'
                 for n in sorted(set(TRX_NAME.findall(text)) - GATE_TRX)]
     if HANGING_WAIT.search(text):
