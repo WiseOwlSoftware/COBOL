@@ -27,8 +27,8 @@
 *>   F:1  Format-1 CALL "PB3587FG" USING BY CONTENT E8 (no program-specifier)   -> F:G T
 *>   F:2  Format-1 CALL "PB3587FN" USING BY CONTENT NI                          -> F:N AB
 *>   F:3  Format-1 CALL "PB3587FN" USING BY CONTENT NA(2:2), the slice N"BC"    -> F:N BC
-*>   S:1  CALL PB3587SG (a program-specifier; the signature is the repository's,
-*>        so the record is filled at the activation boundary) BY CONTENT E8     -> S:G T
+*>   S:1  CALL PB3587SG (a program-specifier; the details are the prototype below,
+*>        12.3.8.4 GR10 b); the record is the formal's description) BY CONTENT E8      -> S:G T
 *>   S:2  ... BY CONTENT FUNCTION BOOLEAN-OF-INTEGER(165 8) (165 = X"A5")       -> S:G T
 *>   S:3  CALL PB3587SN BY CONTENT NI                                           -> S:N AB
 *>   S:4  ... BY CONTENT FUNCTION NATIONAL-OF("GH")                             -> S:N GH
@@ -37,6 +37,25 @@
 *>   I:2  INVOKE O "MN" USING BY CONTENT N"GH"                                  -> I:N GH
 *> (Before the fix F:1 and S:1, S:2 showed the group as the text '1' of the bit item, F:2, F:3,
 *> S:3, S:4, S:5 and I:1, I:2 showed mojibake: the argument's characters read as UTF-16BE pairs.)
+*> kb/Work PB2103 - 12.3.8.3 SR14: PB3587SG, PB3587SN are defined AFTER the REPOSITORY
+*> paragraph that names them, so no definition was "specified previously"; the program prototype
+*> definitions ahead of every unit (10.6.2 SR1) supply 12.3.8.4 GR10 b)'s details.
+IDENTIFICATION DIVISION.
+PROGRAM-ID. PB3587SG IS PROTOTYPE.
+DATA DIVISION.
+LINKAGE SECTION.
+01 LG USAGE BIT.
+   05 LB OCCURS 8 TIMES PIC 1.
+PROCEDURE DIVISION USING LG.
+END PROGRAM PB3587SG.
+IDENTIFICATION DIVISION.
+PROGRAM-ID. PB3587SN IS PROTOTYPE.
+DATA DIVISION.
+LINKAGE SECTION.
+01 LN.
+   05 LM PIC N(2).
+PROCEDURE DIVISION USING LN.
+END PROGRAM PB3587SN.
 IDENTIFICATION DIVISION.
 CLASS-ID. PB3587K INHERITS FROM BASE.
 ENVIRONMENT DIVISION.

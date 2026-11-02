@@ -2,6 +2,8 @@
 *> id: pb3677_format1_sdidi_function_value
 *> rules: [GR-14.2.3-9, GR-14.9.25.4-4]
 *> accept: [2002, 2014, 2023]
+*> files: [pb3677_n_callee.cbl]
+*> build: ["pb3677_n_callee.cbl > PB3677N", "{self}"]
 *> source-format: free
 *> portable: unverified
 *>---
@@ -30,6 +32,9 @@
 *> N: a Format-1 CALL of a program the REPOSITORY names (a program-specifier, GR9's second regime), the formal PIC 9V9(12):
 *>   NUMVAL("0.3333333333333333") -> COMPUTE without ROUNDED -> 0.333333333333, shown as the 13 digits of R = LN * 10 ** 12
 *>   (0.333333000000 before the fix). Before the fix only M and C agreed; D showed 0000123 / 2000000 / 1500000.
+*> PB3677N is compiled apart, into PB3677N.dll beside this program (the build step), so the program-specifier's details
+*> come from the external repository (12.3.8.4 GR10 c); kb/Work PB2103: it used to be a program contained in PB3677M, which
+*> no specifier can name - 12.3.8.3 SR14 - and which the specifier resolved to nothing).
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB3677M.
 ENVIRONMENT DIVISION.
@@ -78,17 +83,4 @@ PROCEDURE DIVISION USING LX.
     DISPLAY "D [" LXA "]"
     GOBACK.
 END PROGRAM PB3677W.
-
-IDENTIFICATION DIVISION.
-PROGRAM-ID. PB3677N.
-DATA DIVISION.
-WORKING-STORAGE SECTION.
-01 R PIC 9(13).
-LINKAGE SECTION.
-01 LN PIC 9V9(12).
-PROCEDURE DIVISION USING LN.
-    COMPUTE R = LN * 1000000000000
-    DISPLAY "N [" R "]"
-    GOBACK.
-END PROGRAM PB3677N.
 END PROGRAM PB3677M.

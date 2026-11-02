@@ -1,5 +1,4 @@
 set ok
-ref exc EC-PROGRAM-ARG-MISMATCH
 in sub
 content ok
 unrestricted exc EC-PROGRAM-ARG-MISMATCH
