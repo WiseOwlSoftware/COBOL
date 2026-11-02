@@ -76,11 +76,22 @@ public sealed class WrittenKindRefusalTests
         + "          05 W-C PIC 9(3) OCCURS 0 TO TIMES DEPENDING ON W-E.\n" + Proc,
         "COBOL5506: cannot parse construct near 'TIMES'. The word TIMES is not expected here: expected a user-defined word or an "
         + "integer literal (ISO §5.2.1).")]
+    // At COBOL-85 the word the position takes is a constant-name (§13.10.3 SR2: "constant-name-1 may be used anywhere that a
+    // format specifies a literal"), and the constant entry is COBOL-2002's, so only the literal is named (kb/Work PB4435).
     [InlineData("occurs-to-without-integer-2-85", 85,
+        "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-E PIC 9(3).\n       01 W-G.\n"
+        + "          05 W-C PIC 9(3) OCCURS 0 TO TIMES DEPENDING ON W-E.\n" + Proc,
+        "COBOL5506: cannot parse construct near 'TIMES'. The word TIMES is not expected here: expected an integer literal "
+        + "(ISO §5.2.1).")]
+    [InlineData("occurs-to-without-integer-2-2002", 2002,
         "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-E PIC 9(3).\n       01 W-G.\n"
         + "          05 W-C PIC 9(3) OCCURS 0 TO TIMES DEPENDING ON W-E.\n" + Proc,
         "COBOL5506: cannot parse construct near 'TIMES'. The word TIMES is not expected here: expected a user-defined word or an "
         + "integer literal (ISO §5.2.1).")]
+    // The control: at COBOL-85 a position whose word is a DATA-NAME (ADD's first operand) still names the word.
+    [InlineData("add-operand-before-to-85", 85,
+        Table + "       PROCEDURE DIVISION.\n       MAIN-P.\n           ADD TO W-N.\n           STOP RUN.\n",
+        "COBOL5506: cannot parse construct near 'TO'. The word TO is not expected here: expected a user-defined word")]
     [InlineData("display-operand-before-when", 2023,
         Table + "       PROCEDURE DIVISION.\n           EVALUATE W-N WHEN 1 DISPLAY WHEN OTHER DISPLAY \"O\" END-EVALUATE.\n           STOP RUN.\n",
         "COBOL5506: unexpected 'WHEN'. The word WHEN is not expected here: expected a user-defined word, FUNCTION, LENGTH")]

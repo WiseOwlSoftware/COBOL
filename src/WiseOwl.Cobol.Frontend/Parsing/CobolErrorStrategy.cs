@@ -1536,9 +1536,12 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // terminator is hint 13's.
         // The words the compile edition has (kb/Work PB4174): the parse is the superset of the editions.
         Func<string, bool> theEditionPrints = recognizer is CobolParserCoreBase editionParser ? editionParser.PrintsKeyword : _ => true;
+        // A user-defined word where a format specifies a literal is a constant-name, which COBOL-85 has none of (kb/Work PB4435).
+        bool constantNamesPrinted = recognizer is not CobolParserCoreBase constantParser || constantParser.PrintsConstantName;
         if (!HasStructuralHint(hints) && ScopeTerminator(recognizer, token.Type) is null && at.Admitted() is { } admitted
             && AdmittedKinds.Refusal(token, admitted.Tokens, admitted.Words, admitted.WordChangesNothing, StatementBlockStart(recognizer),
-                   at.APeriodLetsTheSentenceFollow, theEditionPrints, at.ClosedConstructCouldTake, out bool anOperandIsDue) is { } kindMsg)
+                   at.APeriodLetsTheSentenceFollow, theEditionPrints, constantNamesPrinted || !admitted.WordsStandForLiterals,
+                   at.ClosedConstructCouldTake, out bool anOperandIsDue) is { } kindMsg)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL5506, kindMsg, 0, LeavesNoTail: anOperandIsDue));
         // ⛔ A LITERAL WHERE THE NEXT SENTENCE WOULD BEGIN (kb/Work PB4425): the parser's own position has left the
         // procedure division (OffendingPosition.SentenceMayBeginAt), so the position the refusal names is the sentence
@@ -1546,7 +1549,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // word there may be a paragraph-name whose period is missing, which hint 14 says; it is not asked.
         else if (!HasStructuralHint(hints) && token.Type != CobolLexer.IDENTIFIER && at.SentenceMayBeginAt()
                  && AdmittedKinds.Refusal(token, StatementBlockStart(recognizer), [], _ => false, StatementBlockStart(recognizer),
-                        () => false, theEditionPrints, () => null, out _) is { } sentenceMsg)
+                        () => false, theEditionPrints, aUserWordIsPrinted: true, () => null, out _) is { } sentenceMsg)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL5506, sentenceMsg, 0));
 
         // ⛔ NO "MISSING SPACE BEFORE / AFTER STRING LITERAL" GUESS HERE (kb/Work PB1394). A literal delimiter that is not
@@ -1903,7 +1906,47 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             }
             var configs = walk._configs;
             var tokens = TokensOf(configs);
-            return new Admitted(tokens, walk._closureWords ?? [], type => walk.WordChangesNothing(configs, tokens, type));
+            return new Admitted(tokens, walk._closureWords ?? [], type => walk.WordChangesNothing(configs, tokens, type),
+                EveryWordStandsForALiteral(recognizer.Atn, configs));
+        }
+
+        /// <summary>⛔ THE RULES WHOSE USER-DEFINED WORD STANDS WHERE A FORMAT SPECIFIES A LITERAL (kb/Work PB4435). ISO
+        /// §13.10.3 SR2: "constant-name-1 may be used anywhere that a format specifies a literal of the class and category
+        /// of constant-name-1". The parse cannot tell a constant-name from another word, so these positions are a literal
+        /// OR <c>cobolWord</c>, and the binder substitutes the constant: <c>integerOperand</c>, every <c>integer-n</c> a
+        /// format prints (IntegerOperandSlotDriftTests holds its sites), and <c>valueTableSubscript</c>, the table VALUE
+        /// clause's subscripts (§13.18.63.3 SR19: "Subscript-1 and subscript-2 shall be integer numeric literals"). The
+        /// other literal positions that take a word take a symbolic-character too (a figurative constant, §8.3.3.6.2), a
+        /// word COBOL-85 has, so they are not here.</summary>
+        private static readonly int[] LiteralWordRules = [CobolParserCore.RULE_integerOperand, CobolParserCore.RULE_valueTableSubscript];
+
+        /// <summary>Does every configuration of <paramref name="configs"/> that takes a user-defined word (IDENTIFIER) take
+        /// it in one of the <see cref="LiteralWordRules"/>, so the word can only be a constant-name? The IDENTIFIER edge is
+        /// <c>cobolWord</c>'s, so the rule asked is the one each return state of the configuration's context returns to.
+        /// False when no configuration takes the word.</summary>
+        private static bool EveryWordStandsForALiteral(ATN atn, ATNConfigSet configs)
+        {
+            bool any = false;
+            foreach (var c in configs.Elements)
+                for (int i = 0; i < c.state.NumberOfTransitions; i++)
+                    if (c.state.Transition(i) is { IsEpsilon: false } t && t is not NotSetTransition
+                        && t.Label is { } label && label.Contains(CobolLexer.IDENTIFIER))
+                    {
+                        any = true;
+                        if (!TakenWhereALiteralIs(atn, c)) return false;
+                    }
+            return any;
+        }
+
+        private static bool TakenWhereALiteralIs(ATN atn, ATNConfig c)
+        {
+            if (c.state.ruleIndex != CobolParserCore.RULE_cobolWord) return Array.IndexOf(LiteralWordRules, c.state.ruleIndex) >= 0;
+            if (c.context is not { IsEmpty: false } stack) return false;
+            for (int k = 0; k < stack.Size; k++)
+                if (stack.GetReturnState(k) is var returnState && (returnState == PredictionContext.EMPTY_RETURN_STATE
+                    || Array.IndexOf(LiteralWordRules, atn.states[returnState].ruleIndex) < 0))
+                    return false;
+            return true;
         }
 
         /// <summary>⛔ DOES THE WORD <paramref name="type"/> CHANGE NOTHING ABOUT WHAT THE PARSE ADMITS NEXT (kb/Work
@@ -2280,9 +2323,11 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// <summary>What a position admits at a token (<see cref="ResimulationWalk.AdmittedAt"/>): the tokens its
     /// configurations take with their predicates evaluated there, and the context words the refusing text predicates
     /// tested (kb/Work PB3428); <c>WordChangesNothing</c> says whether a word of the set is an optional word, one after
-    /// which the walk admits exactly the set without it (kb/Work PB4225).</summary>
+    /// which the walk admits exactly the set without it (kb/Work PB4225). <c>WordsStandForLiterals</c> says that every
+    /// configuration taking a user-defined word takes it where a format specifies a literal, so the word is a
+    /// constant-name (kb/Work PB4435).</summary>
     private readonly record struct Admitted(IntervalSet Tokens, IReadOnlyCollection<string> Words,
-        Func<int, bool> WordChangesNothing);
+        Func<int, bool> WordChangesNothing, bool WordsStandForLiterals);
 
     /// <summary>What the final closure of <see cref="ClosedFormatResidue"/> found: the innermost closed format whose
     /// error production it reached, the form of the production that list calls, and the tokens that may follow a

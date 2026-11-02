@@ -23,7 +23,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// a name keeps its reading; and the Annex C spelling a word has there) or it is a <b>construct gate</b> (a construct
 /// whose words have no other reading below its introducing edition, refused at parse time instead of being named by
 /// the conformance pass). Word-status reads are sanctioned, and so is the one §14.5.3.3 phrase-association read
-/// (which statement a [NOT] phrase belongs to depends on the formats the edition prints, kb/Work PB3830); a construct
+/// (which statement a [NOT] phrase belongs to depends on the formats the edition prints, kb/Work PB3830), and so are the
+/// diagnosis-only reads that decide what a syntax diagnostic names as expected (kb/Work PB4174, PB4435); a construct
 /// gate is a D7 defect.</para>
 ///
 /// <para><b>What this test computes, rather than lists</b> (§8.4's rule, applied):
@@ -90,6 +91,11 @@ public sealed class EditionReadDriftTests
         /// statement. It refuses nothing itself — a phrase only an earlier edition's format prints still associates,
         /// last of all, so the conformance pass names it.</summary>
         PhraseAssociation,
+
+        /// <summary>Decides only what a syntax diagnostic NAMES as expected at a refused token (kb/Work PB4174, PB4435): the
+        /// parse is the superset of the editions, so its expected set holds words and operands the compile edition's formats
+        /// do not print. It refuses nothing and gates no construct; the parse and its verdict are the same without it.</summary>
+        DiagnosisOnly,
     }
 
     // ── The verdict (kb/Work PB2291), recorded ────────────────────────────────────────────────────────────────────
@@ -100,7 +106,7 @@ public sealed class EditionReadDriftTests
     {
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs"] =
         [
-            "IsKeywordReadingHere", "KeywordContinuesFrom", "NoteGatedOffender", "PrintsKeyword", "ReservedGatedWord",
+            "IsKeywordReadingHere", "KeywordContinuesFrom", "NoteGatedOffender", "PrintsConstantName", "PrintsKeyword", "ReservedGatedWord",
             "ReservedProcedureName", "ReservedUserWordViolation", "ReservedWord", "ReservedWordHere", "conditionalPhraseAssociates",
             "entryNameHere", "facilityWord",
             "gatedDeclaration", "is2002", "is2014",
@@ -184,7 +190,11 @@ public sealed class EditionReadDriftTests
         // edition dropped (WORDS at 2023; COBOL and PHYSICAL, which 2023 formats underline though its §8.9 omits them), one in
         // neither table, and the words a format spells where §8.9 leaves them free (IsKeywordWhereFree). It refuses nothing
         // itself and gates no construct.
-        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.GuessCobolIntent | PrintsKeyword"] = (1, Verdict.WordStatus),
+        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.GuessCobolIntent | PrintsKeyword"] = (1, Verdict.DiagnosisOnly),
+        // The same sentence names a user-defined word where an operand is due only where the compile edition has one to write
+        // (kb/Work PB4435, PrintsConstantName): where every word the position takes stands for a literal (§13.10.3 SR2), the
+        // word is a constant-name, and the constant entry is COBOL-2002's, so a COBOL-85 sentence names the literal alone.
+        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.GuessCobolIntent | PrintsConstantName"] = (1, Verdict.DiagnosisOnly),
         // The listener: the gate's second witness notes a syntax error's offending reservation-gated word.
         ["src/WiseOwl.Cobol.Frontend/Parsing/ReservationGateRewriter.cs | OffenderWitness.SyntaxError | NoteGatedOffender"] = (1, Verdict.WordStatus),
         // The front end's driver decides whether a re-parse lexes differently because a word the program declared is

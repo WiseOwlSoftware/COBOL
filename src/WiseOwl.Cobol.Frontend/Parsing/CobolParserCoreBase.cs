@@ -355,6 +355,15 @@ public abstract class CobolParserCoreBase : Parser
         => Canonical(keyword) is { } w
            && (ReservedWords.AdmitsAsKeyword(w, Edition.Year) || CobolLexer.IsKeywordWhereFree(w));
 
+    /// <summary>⛔ WHETHER THIS EDITION HAS A USER-DEFINED WORD TO PRINT WHERE A FORMAT SPECIFIES A LITERAL (kb/Work PB4435).
+    /// The word there is a constant-name: ISO §13.10.3 SR2, "Except in a compiler directive, constant-name-1 may be used
+    /// anywhere that a format specifies a literal of the class and category of constant-name-1". The parse writes such a
+    /// position as a literal-or-word rule (<c>integerOperand</c>, <c>valueTableSubscript</c>) at every edition, but the
+    /// constant entry that declares a constant-name is COBOL-2002's (constant-entry-2002), so a COBOL-85 format has no
+    /// user-defined word there and a syntax diagnostic may not name one as expected. Diagnosis only
+    /// (<c>CobolErrorStrategy</c>); never called while parsing.</summary>
+    internal bool PrintsConstantName => ConstructRegistry.IsAvailable(Edition, Constructs.ConstantEntry2002);
+
     /// <summary>⛔ THE RESERVATION GATE ON THE USER-DEFINED-WORD SLOT (kb/Work PB693) — true when this compile
     /// ADMITS <paramref name="keyword"/> to <c>cobolWord</c>. The generated <c>cobolWord</c> alternatives carry
     /// <c>{userWordHere("W")}?</c> and their <c>reservedGatedWord</c> twins the exact inverse, for every name-slot

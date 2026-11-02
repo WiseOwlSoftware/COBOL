@@ -1892,7 +1892,13 @@ joined the table the same way, which is the table doing its job: a tenth format 
   `theEditionPrints` test, `CobolParserCoreBase.PrintsKeyword`, and names a keyword unless a table shows a LATER
   edition introduced it (`ReservedWords.AdmitsAsKeyword`: the §8.9 flags, or a §8.10 row's `Introduced` edition; §8.3.2.1
   1: a word not yet reserved or listed is a user-defined word) — `(1 + 2.` expects B-AND, B-OR and B-XOR from 2002 and
-  the shift operators from 2023, none at 85, and `ROUNDED MODE IS FOO` names the eight mode names from 2014 only. An
+  the shift operators from 2023, none at 85, and `ROUNDED MODE IS FOO` names the eight mode names from 2014 only. **So
+  is the user-defined word (kb/Work PB4435):** where every configuration that takes one takes it in a position a format
+  specifies a literal (`integerOperand`, `valueTableSubscript`; `ResimulationWalk.EveryWordStandsForALiteral`, read into
+  `Admitted.WordsStandForLiterals`), the word is a constant-name (§13.10.3 SR2), and `CobolParserCoreBase.PrintsConstantName`
+  says whether the edition has one (constant-entry-2002): `OCCURS 0 TO TIMES` expects "an integer literal" at 85 and "a
+  user-defined word or an integer literal" from 2002. The binder's refusal of a word there (COBOL1547,
+  `DataBinder.ConstantIntegerOperand`, the PICTURE repetition count) says the same by edition. An
   older edition's dropped word and a `keywordWhereFree` word (generated into `CobolLexer.IsKeywordWhereFree` by
   `gen-cobol-words.ps1`) are named whatever the table says. A §8.10 word's `Introduced` edition is generated
   (`gen-reserved-words.ps1` step 7c) from the 2002 list (`tests/version-matrix/context-sensitive-words-2002.json`) and
