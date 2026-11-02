@@ -145,7 +145,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// documented contract has always been "a probe is a TYPE-DISCRIMINATING sniff whose Place is DISCARDED
     /// after reading its Item" — but it returned a <c>Place</c>, and FOUR callers (CallBinder's BY CONTENT arm,
     /// OoBinder's INVOKE receiver and SET object-reference sender, PtrBinder's SET UP/DOWN first target) simply
-    /// committed it into the bound tree. Everything <c>_probing</c> suppresses to keep a probe pure then went
+    /// committed it into the bound tree. Everything <c>Probing</c> suppresses to keep a probe pure then went
     /// missing from the committed bind: the §8.8.1.1 position screen and the §13.18.38.3 r7 index-name screen
     /// never ran (<c>CALL "S" USING BY CONTENT E(XE)</c> with <c>XE PIC X(4)</c> compiled clean while the
     /// adjacent <c>BY REFERENCE</c> operand drew COBOL0844 — one statement, two verdicts), and the D18
@@ -171,10 +171,10 @@ public sealed partial class ReferenceResolver(DataBinder data)
     {
         DataReferenceCst written = dref;
         if (written.Register != SpecialRegister.None || written.BaseName is not { } name) return null;
-        bool savedProbing = _probing;
-        _probing = true;
+        bool savedProbing = Probing;
+        Probing = true;
         try { return FindItem(name, ReadWritten(dref).Qualifiers); }
-        finally { _probing = savedProbing; }
+        finally { Probing = savedProbing; }
     }
 
     /// <summary>⛔ THE ONE OWN-ITEM TEST (kb/Work PB3153): does the REFERRING element itself describe an item that
@@ -207,11 +207,11 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// source node even when a statement binder resolves the same node more than once, and the fact the receiving
     /// chokepoint asks (<see cref="WasDiagnosed"/>) so that a null it gets back is EITHER already reported OR
     /// reported there — never a silently dropped receiver (kb/Work PB70).</summary>
-    private readonly HashSet<ParserRuleContext> _diagnosed = [];
+    internal HashSet<ParserRuleContext> Diagnosed { get; } = [];
 
     /// <summary>True when a diagnostic has been emitted for <paramref name="dref"/> by this resolver — the
     /// receiving chokepoint reports an undiagnosed null itself (recognized-not-implemented shape).</summary>
-    public bool WasDiagnosed(Core.DataReferenceContext dref) => _diagnosed.Contains(dref);
+    public bool WasDiagnosed(Core.DataReferenceContext dref) => Diagnosed.Contains(dref);
 
     /// <summary>The COBOL1639 report for a reference no declaration identifies (kb/Work R30): "not defined"
     /// when the bare name exists nowhere; "does not uniquely identify" when it exists but the qualifiers or an
@@ -237,7 +237,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
             ReportRefusedDeclaration(dref, name, "a constant entry that yielded no value", "a constant-name");
             return;
         }
-        if (!_diagnosed.Add(dref)) return;
+        if (!Diagnosed.Add(dref)) return;
         string text = DataBinder.WrittenText(dref);
         // ⛔ A DECLARED INDEX-NAME (kb/Work PB1266 — the resolver-level twin of SetBinder's PB388 screen): `ADD 1 TO IX`
         // and `CALL "P" USING IX` put an index-name in an identifier position. §13.18.38.3 SR7 closes the list of
@@ -351,7 +351,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// registration (the orphan op made OoWrapPropertyOps prepend a GET §8.4.3.9.4 GR2 forbids — or reject a
     /// WITH NO GET property), and no D18 subscript materialization (a function-bearing subscript would bind —
     /// and later ACTIVATE — twice). Save/restored, not cleared: a COMMIT resolution can nest inside hooks.</summary>
-    private bool _probing;
+    internal bool Probing { get; set; }
 
     /// <summary>The report whose REPORT SECTION clause operands are being bound (ISO §13.18.53.3 SR4 — the sum counters a
     /// SOURCE operand may name are those "defined in the current report"), or null in the procedure division and
@@ -371,13 +371,20 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// <summary>Set when a subscript or reference-modifier SEGMENT of the current resolution failed because one of
     /// its own operands is a deferred shape (the materializer's expression came back
     /// <see cref="BoundExprError.IsUnbuilt"/>), so the segment's null is a DEFERRAL, not a refusal (kb/Work PB1030).
-    /// Save/restored per resolution exactly as <see cref="_probing"/> is: the materializer can re-enter this
+    /// Save/restored per resolution exactly as <see cref="Probing"/> is: the materializer can re-enter this
     /// resolver for a nested reference.</summary>
-    private bool _segmentDeferred;
+    internal bool SegmentDeferred { get; set; }
 
     /// <summary>Called by the segment materializer when a segment's expression came back UNBUILT (not refused) —
-    /// see <see cref="_segmentDeferred"/>.</summary>
-    internal void NoteSegmentDeferred() => _segmentDeferred = true;
+    /// see <see cref="SegmentDeferred"/>.</summary>
+    internal void NoteSegmentDeferred() => SegmentDeferred = true;
+
+    // ── The parts this funnel composes (DESIGN-architecture-review §8.3 (4), kb/Work PB2299, PB2371–PB2375) ──────
+
+    private CounterResolver? _counters;
+
+    /// <summary>The REPORT SECTION sum-counter references (<see cref="CounterResolver"/>).</summary>
+    internal CounterResolver Counters => _counters ??= new(this, data);
 
     private RefResolution ResolveImpl(Core.DataReferenceContext dref, bool report)
     {
@@ -387,9 +394,9 @@ public sealed partial class ReferenceResolver(DataBinder data)
         // at the statement's first line, and the next verb's binder would have had to remember again. A synthetic
         // reference with no token leaves the position standing (DiagnosticCursorAt.At).
         using var _ = data.Edition.At(dref);
-        bool savedProbing = _probing, savedSegment = _segmentDeferred;
-        _probing = !report;
-        _segmentDeferred = false;
+        bool savedProbing = Probing, savedSegment = SegmentDeferred;
+        Probing = !report;
+        SegmentDeferred = false;
         try
         {
             var answer = ResolveImplCore(dref, report);
@@ -399,7 +406,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
             if (report && answer.Outcome == RefOutcome.Deferred) data.Edition.NoteUnbuilt(answer.Feature);
             return answer;
         }
-        finally { _probing = savedProbing; _segmentDeferred = savedSegment; }
+        finally { Probing = savedProbing; SegmentDeferred = savedSegment; }
     }
 
     /// <summary>⛔ ISO §13.7.3 SR4 FOR A DATA-NAME REFERENCE (kb/Work PB1249): the procedure division may reference a
@@ -409,7 +416,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// index-name legs (e) ask <see cref="ReportUnreferenceableLinkage"/> from their own resolutions.</summary>
     private void ScreenLinkageReference(Core.DataReferenceContext dref, DataItem item)
     {
-        if (data.UnreferenceableLinkageRecord(item) is not { } record || !_diagnosed.Add(dref)) return;
+        if (data.UnreferenceableLinkageRecord(item) is not { } record || !Diagnosed.Add(dref)) return;
         ReportUnreferenceableLinkage(DataBinder.WrittenText(dref), record);
     }
 
@@ -428,7 +435,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// PB1030: a segment that is not an arithmetic expression is not a subscript, ISO §8.4.2.3.2).</summary>
     private RefResolution SegmentFailure(string written) =>
         MaterializeSegment is null ? RefResolution.Deferred(DeferredShape.SegmentWithoutStatement, written)
-        : _segmentDeferred ? RefResolution.Deferred(DeferredShape.DeferredSegmentOperand, written)
+        : SegmentDeferred ? RefResolution.Deferred(DeferredShape.DeferredSegmentOperand, written)
         : RefResolution.Refused(written);
 
     /// <summary>The non-place answer when <see cref="PlaceForItem"/> built no place: its deferred shape, or —
@@ -459,7 +466,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     private void ReportRefusedDeclaration(Core.DataReferenceContext dref, string name, string? why,
                                           string declared = "a data item")
     {
-        if (_probing || !_diagnosed.Add(dref)) return;   // R30 purity; one report per written reference
+        if (Probing || !Diagnosed.Add(dref)) return;   // R30 purity; one report per written reference
         string text = DataBinder.WrittenText(dref);
         data.Edition.Error(DiagnosticCatalog.ReferenceToRefusedDeclaration,
             (text == name ? $"'{text}' names {declared}" : $"'{text}' names '{name}'") + ", whose declaration was refused"
@@ -585,7 +592,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
         // (kb/Work PB840). Its qualifiers are the report group entries above it and, outermost, its REPORT-NAME
         // (§8.4.2.2.3 SR4; §8.4.2.2.2 Format 1's file-report-qualifier — kb/Work PB1454). A REPEATING entry's
         // counter is a table and takes the ordinary subscripts (kb/Work PB1271).
-        if (SumCounterFor(dref, name, report) is { } sumCounter) return Ends(sumCounter);
+        if (Counters.SumCounterFor(dref, name, report) is { } sumCounter) return Ends(sumCounter);
 
         // The reference AS WRITTEN, read by the ONE decomposition (kb/Work PB443 — see WrittenReference).
         var written = ReadWritten(dref);
@@ -649,10 +656,10 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// grammar cannot express it, so the written reference is COUNTED (<see cref="WrittenReference.RefModCount"/>);
     /// ONE screen for every entry that reads a reference-modified identifier — <see cref="Resolve"/> and
     /// <see cref="ResolveForAddressOf"/> (kb/Work PB1407). False having reported.</summary>
-    private bool ScreenRefModCount(Core.DataReferenceContext dref, WrittenReference written, string name)
+    internal bool ScreenRefModCount(Core.DataReferenceContext dref, WrittenReference written, string name)
     {
         if (written.RefModCount <= 1) return true;
-        if (!_probing && _diagnosed.Add(dref))   // R30 purity: a probe never diagnoses (kb/Work PB157)
+        if (!Probing && Diagnosed.Add(dref))   // R30 purity: a probe never diagnoses (kb/Work PB157)
             data.Edition.Error(DiagnosticCatalog.RefModOfRefMod,
                 $"'{name}' carries {written.RefModCount} reference modifications; a reference-modified item cannot itself "
                 + "be reference-modified (ISO §8.4.3.3.3 SR3). Compose the positions into one modifier instead.");
@@ -669,13 +676,13 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// place stands for, not the name as written — for a no-THROUGH RENAMES alias that is data-name-2, whose
     /// attributes §13.18.45.4 GR1 makes data-name-1's own. Null having reported, with the answer in
     /// <paramref name="refusal"/>.</summary>
-    private RefModSpec? ReadScreenedRefMod(Core.DataReferenceContext dref, WrittenReference written, DataItem described,
+    internal RefModSpec? ReadScreenedRefMod(Core.DataReferenceContext dref, WrittenReference written, DataItem described,
         out RefResolution? refusal)
     {
         refusal = null;
         if (RefModExclusion(described) is { } why)
         {
-            if (!_probing && _diagnosed.Add(dref))   // R30 purity: a probe never diagnoses (kb/Work PB157)
+            if (!Probing && Diagnosed.Add(dref))   // R30 purity: a probe never diagnoses (kb/Work PB157)
                 data.Edition.Error(DiagnosticCatalog.RefModIdentifierNotPermitted,
                     $"'{DataBinder.WrittenText(dref)}': reference modification of {why} is not permitted (ISO §8.4.3.3.3 SR1)");
             refusal = RefResolution.Refused(DataBinder.WrittenText(dref));
@@ -687,7 +694,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
             // A REFUSED segment was reported by whoever refused it (the materializer, or ReadRefMod's omitted
             // leftmost-position), so the reference counts as diagnosed: a caller that asks (ADDRESS OF's binder) then
             // adds no second, misleading "mis-subscripted" error of its own.
-            if (refusal.Outcome == RefOutcome.Reported && !_probing) _diagnosed.Add(dref);
+            if (refusal.Outcome == RefOutcome.Reported && !Probing) Diagnosed.Add(dref);
             return null;
         }
         if (!ScreenRefModLiterals(dref, described, spec, dref.Start.Line))
@@ -723,7 +730,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// to be reference-modified — could not reach it and silently bound the WHOLE item instead.
     /// <para>Callers screen §8.4.3.3.3 SR1 (<see cref="RefModExclusion"/>) first; a null here is an item whose
     /// substrate this backend cannot slice (a numeric item that is not usage DISPLAY), never a rule violation.</para></summary>
-    private Place? RefModView(DataItem item, Place inner, RefModSpec spec)
+    internal Place? RefModView(DataItem item, Place inner, RefModSpec spec)
     {
         // Reference modification is over a character string. A GROUP (SR1 — "an alphanumeric group item" / "a group
         // item that is neither a strongly-typed group nor a variable-length group") is viewed through its character
@@ -901,11 +908,11 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// false) where EC-BOUND-REF-MOD checking is not enabled, the warning twin where it is (the reference binds).</summary>
     private bool ScreenRefModLiterals(Core.DataReferenceContext dref, DataItem described, RefModSpec spec, int line)
     {
-        if (_probing) return true;   // R30 purity: a probe never diagnoses (kb/Work PB157)
+        if (Probing) return true;   // R30 purity: a probe never diagnoses (kb/Work PB157)
         if (LiteralRefModRangeViolation(described, LiteralPosition(spec.Start), LiteralPosition(spec.Length),
                 spec.Length is null, spec.AllowZeroLength) is not { } why) return true;
         bool checking = RefModCheckingAt?.Invoke(line) ?? false;
-        if (_diagnosed.Add(dref))
+        if (Diagnosed.Add(dref))
         {
             string at = $"'{DataBinder.WrittenText(dref)}': {why}";
             if (checking) data.Edition.Warning(DiagnosticCatalog.RefModLiteralOutOfRangeChecked, at);
@@ -943,8 +950,8 @@ public sealed partial class ReferenceResolver(DataBinder data)
         var spec = rmp.refModSpec();
         if (spec.leftmost is null)
         {
-            // R30 purity: a probe never diagnoses (kb/Work PB157); one report per written modifier (_diagnosed).
-            if (!_probing && _diagnosed.Add(rmp))
+            // R30 purity: a probe never diagnoses (kb/Work PB157); one report per written modifier (Diagnosed).
+            if (!Probing && Diagnosed.Add(rmp))
                 data.Edition.Error(DiagnosticCatalog.RefModLeftmostPositionOmitted,
                     $"'{DataBinder.WrittenText(rmp).Trim()}': a reference modifier is written ( leftmost-position : "
                     + "[ length ] ) and only the length may be omitted, so the colon cannot lead (ISO §8.4.3.3.2). Write "
@@ -1261,8 +1268,8 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// <see cref="Resolve"/> (kb/Work PB1030), with a deferral put on the unbuilt ledger the same way.</summary>
     public RefResolution ResolveForItem(Core.DataReferenceContext dref, DataItem item)
     {
-        bool savedSegment = _segmentDeferred;
-        _segmentDeferred = false;
+        bool savedSegment = SegmentDeferred;
+        SegmentDeferred = false;
         try
         {
             // SR2 names the CONDITIONAL VARIABLE for a condition-name reference (§8.4.2.3 Format 2), which is
@@ -1273,7 +1280,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
             if (answer.Outcome == RefOutcome.Deferred) data.Edition.NoteUnbuilt(answer.Feature);
             return answer;
         }
-        finally { _segmentDeferred = savedSegment; }
+        finally { SegmentDeferred = savedSegment; }
     }
 
     /// <summary>⛔ THE WRITTEN SUBSCRIPT LIST OF <paramref name="dref"/> AGAINST <paramref name="item"/>, read ONCE for
@@ -1289,7 +1296,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// identifier-1 is the same shape (§14.9.37.3 SR2: not subscripted at the searched level) but its statement
     /// owns the arity screen (<c>StatementValidation.ResolveSearchTable</c>, where SR3's reading lets the
     /// superordinate subscripts be left to the WHEN phrases) and SR6's ALL is SORT's alone.</param>
-    private RefResolution? ReadSubscripts(Core.DataReferenceContext dref, DataItem item,
+    internal RefResolution? ReadSubscripts(Core.DataReferenceContext dref, DataItem item,
         Core.SubscriptPartContext? subCtx, out List<Position> indexExprs, TableSubject subject = TableSubject.None)
     {
         indexExprs = [];
@@ -1313,7 +1320,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
             })
             return RefResolution.Refused(DataBinder.WrittenText(dref));
         indexExprs = e;
-        if (!_probing) _enclosingCapture?.Offer(item, e, data.PendingPreOps.Skip(preOpMark), data.OoPendingPropertyOps.Skip(propertyMark));
+        if (!Probing) _enclosingCapture?.Offer(item, e, data.PendingPreOps.Skip(preOpMark), data.OoPendingPropertyOps.Skip(propertyMark));
         return null;
     }
 
@@ -1323,11 +1330,11 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// subscripts of the enclosing tables that its FIRST committed reference to <paramref name="table"/> (or to an item
     /// within it) wrote, outermost first, or null when it references none. The positions are taken from the one
     /// committing subscript reading (<see cref="ReadSubscripts"/>), never read a second time: a subscript that
-    /// activates a function would activate twice, and a probe (<c>_probing</c>) offers nothing for the same reason.
+    /// activates a function would activate twice, and a probe (<c>Probing</c>) offers nothing for the same reason.
     /// <para>Only a dynamic-capacity table needs this: its scan bound is one occurrence's current capacity
     /// (§8.5.1.9.1), where a fixed or occurs-depending table has one bound for every occurrence of the enclosing
     /// tables. When a condition references the table at two occurrences, the first reference in source order names it.
-    /// Save/restored like <c>_probing</c>: a nested resolution can re-enter.</para>
+    /// Save/restored like <c>Probing</c>: a nested resolution can re-enter.</para>
     /// <para>⛔ A SUBSCRIPT THAT BEARS A FUNCTION CARRIES ITS PRE-OPS WITH IT. Such a subscript is lowered to a D18
     /// temp whose store (and the activation feeding it) the WHEN condition's per-evaluation wrapper runs INSIDE the
     /// condition, but the scan bound is read BEFORE the first condition evaluation — so the positions alone name a
@@ -1390,8 +1397,8 @@ public sealed partial class ReferenceResolver(DataBinder data)
     {
         int enclosing = table.SubscriptArity - 1;
         if (written == enclosing) return false;
-        if (_probing) return true;   // R30 purity: a probe never diagnoses (kb/Work PB157)
-        if (!_diagnosed.Add(dref)) return true;
+        if (Probing) return true;   // R30 purity: a probe never diagnoses (kb/Work PB157)
+        if (!Diagnosed.Add(dref)) return true;
         string subject = table.CobolName ?? table.ClrName;
         data.Edition.Error(DiagnosticCatalog.SubscriptCountMismatch,
             $"'{DataBinder.WrittenText(dref)}': the table '{subject}' sits inside {enclosing} enclosing OCCURS "
@@ -1442,9 +1449,9 @@ public sealed partial class ReferenceResolver(DataBinder data)
     private bool ScreenEmptyParentheses(Core.DataReferenceContext dref, Core.SubscriptPartContext group)
     {
         if (!IsEmptyGroup(group)) return false;
-        // R30 purity: a probe never diagnoses (kb/Work PB157); one report per written reference (_diagnosed).
-        if (_probing) return true;
-        if (!_diagnosed.Add(dref)) return true;
+        // R30 purity: a probe never diagnoses (kb/Work PB157); one report per written reference (Diagnosed).
+        if (Probing) return true;
+        if (!Diagnosed.Add(dref)) return true;
         data.Edition.Error(DiagnosticCatalog.EmptyParenthesesOnDataReference,
             $"'{DataBinder.WrittenText(dref)}': " + EmptyParenthesesMessage);
         return true;
@@ -1483,9 +1490,9 @@ public sealed partial class ReferenceResolver(DataBinder data)
         // so every reference that reaches THIS screen is outside them and SR5 applies with no exception.
         int arity = item.SubscriptArity;
         if (written == arity) return false;
-        // R30 purity: a probe never diagnoses (kb/Work PB157); one report per written reference (_diagnosed).
-        if (_probing) return true;
-        if (!_diagnosed.Add(dref)) return true;
+        // R30 purity: a probe never diagnoses (kb/Work PB157); one report per written reference (Diagnosed).
+        if (Probing) return true;
+        if (!Diagnosed.Add(dref)) return true;
         string text = DataBinder.WrittenText(dref);
         string subject = item.CobolName ?? item.ClrName;
         if (written == 0)
@@ -2010,7 +2017,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
             // N-declarations arm (dead until now — R30 built it, this makes it reachable).
             // --permissive: the traditional first-declared match, warned (the DA6/R29 disposition shape).
             if (!data.Edition.Permissive) return null;
-            if (_probing) return list[0];   // R30 purity: the committing resolution warns (kb/Work PB157)
+            if (Probing) return list[0];   // R30 purity: the committing resolution warns (kb/Work PB157)
             data.Edition.Warning(DiagnosticCatalog.UndefinedReference,
                 $"'{name}' is declared {list.Count} times and referenced without qualification — "
                 + "ISO §8.4.2.2.1 requires qualification when spellings collide; --permissive resolves to "
@@ -2042,7 +2049,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     internal DataItem? DeclarationOf(Core.DataReferenceContext dref, string name)
     {
         if (ResolveUnqualified(name) is { } item) return item;
-        if (!_probing) ReportUnidentified(dref, name, []);
+        if (!Probing) ReportUnidentified(dref, name, []);
         return null;
     }
 
@@ -2065,7 +2072,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// for the procedure division AND the file-description / file-control clauses, which used to carry a weaker
     /// private copy of it (kb/Work PB489). What stays here is only this format's decision about the survivors:
     /// exactly one resolves.</para>
-    private DataItem? ResolveQualified(string name, List<string> qualifiers)
+    internal DataItem? ResolveQualified(string name, List<string> qualifiers)
     {
         return data.QualifiedCandidates(name, qualifiers, data.ActiveScope).Single;
     }
@@ -2223,7 +2230,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
         // R30 purity: a probe never diagnoses, and a written reference is reported once (kb/Work PB157). Every fault
         // but Ambiguous yields null at every ask; Ambiguous's --permissive pick must be the SAME place at every ask,
         // reported or not (the index-name sibling of wave 1073 review R1-1).
-        bool report = !_probing && _diagnosed.Add(dref);
+        bool report = !Probing && Diagnosed.Add(dref);
         if (!report && cap.Fault is not CapacityRefFault.Ambiguous) return null;
         string text = DataBinder.WrittenText(dref);
         string subject = cap.Register.CobolName ?? cap.Register.ClrName;
@@ -2279,148 +2286,6 @@ public sealed partial class ReferenceResolver(DataBinder data)
                 throw new InvalidOperationException(
                     $"CapacityRefFault.{cap.Fault} carries no diagnostic (kb/Work PB457).");
         }
-    }
-
-    /// <summary>The <see cref="ReportSumCounterPlace"/> for a reference to a REPORT SECTION sum counter (ISO
-    /// §13.18.54.4 GR5 — the data-name written after the level number of an entry containing a SUM clause "is the
-    /// name of the sum counter, not the name of the associated printable item"; GR12 — "It is permissible for
-    /// procedure division statements to alter the content of sum counters"), or null when the name is not a sum
-    /// counter. kb/Work PB840.
-    /// <para>⛔ A SUM COUNTER HAS ITS REAL HIERARCHY (kb/Work PB1454). §8.4.2.2.3 SR4 — "Each data-name-2 shall be the
-    /// name associated with a level number to which the item being qualified is subordinate" — and a SUM entry is
-    /// always subordinate to its 01 report group (and to any group entry between), so the covered spelling is
-    /// <c>counter [ OF group-entry ]… [ OF report-name ]</c>: every named level above the entry, inner → outer
-    /// with gaps allowed, the report-name last as §8.4.2.2.2 Format 1's file-report-qualifier. The walk is the ONE
-    /// <see cref="DataBinder.QualifierWalk"/> a data item's own ancestors go through, over
-    /// <see cref="ReportSumModel.Qualification"/>. (The model it replaced — "a level-01-free item whose only
-    /// available qualifier is its report" — was false, so `TOT OF CF1` was refused and two same-named counters
-    /// of one report could not be told apart.) A reference-modified counter is a counter reference like any other
-    /// and takes the ordinary reference-modification tail after its subscripts (kb/Work PB1943).</para>
-    /// <para>⛔ A REPEATING ENTRY'S COUNTER IS A TABLE (kb/Work PB1271). Its occurrences are a
-    /// <see cref="ReportSumFamily"/> whose register carries one OCCURS level per repetition vehicle, so the written
-    /// subscripts go through the ONE <see cref="ReadSubscripts"/> — §8.4.2.3.3 SR3's count, SR5's "Each table
-    /// element reference shall be subscripted" (an unsubscripted reference to a multiple COLUMN counter used to
-    /// alter all of its occurrences at once) and SR4's index-name association — and the place carries the rendered
-    /// subscripts the engine turns into the occurrence's counter id at run time.</para>
-    /// <para>⛔ TWO ENTRIES MAY LEGALLY CARRY ONE NAME (GR1, kb/Work PB882): §8.4.2.2.1's uniqueness requirement
-    /// is about a REFERENCE, so the collision is diagnosed HERE, where a reference exists, and never by dropping
-    /// a declaration.</para></summary>
-    private RefResolution? SumCounterFor(Core.DataReferenceContext dref, string name, bool report)
-    {
-        if (!data.SumCounters.ContainsKey(name)) return null;
-        var written = ReadWritten(dref);
-        if (SumCounterFamilyFor(dref, name, written.Qualifiers, report) is not ({ } rep, { } family)) return null;
-        // §8.4.3.3.3 SR3 — the count screen every identifier entry runs (ScreenRefModCount), asked of the counter too.
-        if (!ScreenRefModCount(dref, written, name)) return RefResolution.Refused(DataBinder.WrittenText(dref));
-        if (ReadSubscripts(dref, family.Register, written.SubscriptGroup, out var indexExprs) is { } refusal)
-            return refusal;
-        var counter = SumCounterPlace(rep, family, indexExprs);
-        if (written.RefModCount == 0) return RefResolution.Resolved(counter, "");
-        // ⛔ A REFERENCE-MODIFIED COUNTER TAKES THE ONE REFERENCE-MODIFICATION TAIL (kb/Work PB1943), after its
-        // subscripts like every item: §8.4.3.3.3 SR1 admits "a numeric data item of usage display or national", and the
-        // counter's register IS one (PicInfo.SumCounterItem — GR1 states no usage, so DISPLAY is the implementor's
-        // determination, docs/CONFORMANCE.md A.4.11). The same admission (ReadScreenedRefMod) and the same view
-        // (RefModView: the counter's DISPLAY character image, GR1's digits) as every other numeric item. This used
-        // to return null here, which sent the reference to ordinary resolution, where a sum counter is not in
-        // ByName: COBOL1639 "'CF-T(1:2)' is not defined", naming a rule the program had not broken.
-        if (ReadScreenedRefMod(dref, written, counter.Item, out var refModRefusal) is not { } spec) return refModRefusal;
-        return RefModView(counter.Item, counter, spec) is { } view
-            ? RefResolution.Resolved(view, "")
-            : RefResolution.Deferred(DeferredShape.NumericRefModSubstrate, DataBinder.WrittenText(dref));
-    }
-
-    /// <summary>The place of one counter occurrence of <paramref name="family"/>: its rendered one-based subscripts
-    /// (outermost first; empty for a non-repeating entry, whose one counter is <see cref="ReportSumFamily.BaseId"/>).
-    /// The ONE construction of a procedure-division sum counter place — the ordinary reference and the table(ALL)
-    /// intrinsic argument (§15.3) both build through it.</summary>
-    internal ReportSumCounterPlace SumCounterPlace(ReportModel report, ReportSumFamily family, IReadOnlyList<Position> indexExprs) =>
-        new(report.CsIndex, family.BaseId, family.Register, data.ReportDepth(report), indexExprs);
-
-    /// <summary>The CURRENT range of level <paramref name="level"/> (outermost first) of a repeating sum counter, for
-    /// a table(ALL) argument (ISO §15.3): an enclosing repetition with the DEPENDING phrase ranges over
-    /// §13.18.38.4 GR13's count ("the range of values is determined by the object of the OCCURS DEPENDING ON
-    /// clause"); every other level over its extent. The twin of <see cref="CurrentOccurrenceCount"/>, whose data
-    /// division OCCURS DEPENDING has GR7's clamp and EC-BOUND-ODO instead (kb/Work PB1271). Null when data-name-1
-    /// cannot be addressed.</summary>
-    internal AllCount? SumCounterOccurrenceCount(ReportSumFamily family, int level) =>
-        level < family.Repetitions.Count && family.Repetitions[level] is { DependingItem: { } dn } spec
-            ? (ResolveItem(dn) is { } depending ? new AllCount.ReportDepending(depending, spec.Min, spec.Max) : null)
-            : new AllCount.Fixed(family.Extents[level]);
-
-    /// <summary>The SUM ENTRY a reference names — <see cref="SumCounterFor"/>'s name-and-qualifier half, shared with
-    /// the table(ALL) intrinsic argument so both ask it in the same order relative to ordinary lookup (a counter
-    /// first, unless the qualifiers reach no counter and an ordinary item answers them). Null when the name is no
-    /// counter's, when an ordinary item answers the qualifiers, or when the reference was diagnosed (no counter
-    /// is subordinate to the qualifiers; two counters are; a counter and an ordinary data item of the same source
-    /// element are — kb/Work PB3232, the counters and the ordinary items being ONE §8.4.2.2.3 SR1 candidate set).</summary>
-    internal (ReportModel Report, ReportSumFamily Family)? SumCounterFamilyFor(
-        Core.DataReferenceContext dref, string name, List<string> qualifiers, bool report)
-    {
-        if (!data.SumCounters.TryGetValue(name, out var homonyms)) return null;
-        // §13.18.53.3 SR4 — inside a report's own clauses the only sum counters a SOURCE operand may name are those "defined in
-        // the current report", so a homonym of another report is no candidate: the reference is unambiguous by the rule
-        // and never needs a qualifier to say so (kb/Work PB1292).
-        if (ReportScope is { } scope) homonyms = [.. homonyms.Where(h => ReferenceEquals(h.Report, scope))];
-        if (homonyms.Count == 0) return null;
-        // §8.4.6.2.1 rule 3 — a counter of a report this source element declares hides a same-named counter of a
-        // container's GLOBAL report; only candidates of the NEAREST declaring element can be ambiguous.
-        var matches = data.NearestInScope(
-            homonyms.Where(h => DataBinder.QualifierWalk(h.Family.Qualification, qualifiers,
-                q => CobolNames.Same(q, h.Report.Name))),
-            h => h.Report);
-        if (matches.Count == 0)
-        {
-            // The qualifiers reach no counter of this name. When an ORDINARY item of the name does answer them
-            // (`TOT OF WS-GROUP`, the counter's name reused as a data item), the reference is that item's and
-            // resolution carries on; otherwise the name IS a sum counter and the ordinary resolver would only say
-            // "not defined", so name the real rule (§8.4.2.2.2 / §8.4.2.2.3 SR4).
-            if (ResolveQualified(name, qualifiers) is not null) return null;
-            if (report && _diagnosed.Add(dref))
-                data.Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"'{DataBinder.WrittenText(dref)}': '{name}' is a sum counter "
-                    + $"(ISO §13.18.54.4 GR5), but none is subordinate to the qualifiers written — a sum counter is "
-                    + "qualified by the data-names of the report group description entries above it, innermost "
-                    + "first, and by the report-name last (ISO §8.4.2.2.3 SR4, §8.4.2.2.2 Format 1).");
-            return null;
-        }
-        // §8.4.6.2.1 3) b) ACROSS NAME CLASSES (kb/Work PB3154 review R3-1): a counter of a container's GLOBAL report
-        // is a global name of THAT container (§13.18.27.4 GR1), so a same-spelled name a NEARER source element
-        // declares — a nearer container's GLOBAL data item, condition-name or index-name — is the referenced item, and
-        // ordinary resolution takes it. (This element's own declarations never reach here: InheritGlobalReport keeps
-        // a counter its own data hides out of SumCounters.) Every candidate left shares one report depth.
-        int counterDepth = data.ReportDepth(matches[0].Report);
-        if (counterDepth > 0
-            && (qualifiers.Count == 0
-                ? data.DeclaredNearerThan(name, counterDepth)
-                : ResolveQualified(name, qualifiers) is { } nearer && data.DeclaringDepth(nearer) < counterDepth))
-            return null;
-        // ⛔ THE COUNTER IS ONE CANDIDATE AMONG ALL THE DATA-NAMES OF ITS SPELLING (kb/Work PB3232). §13.18.54.4 GR5 makes a
-        // SUM entry's data-name the name of its sum counter, so the counter is a data-name like the ordinary data items
-        // of the same source element, and §8.4.2.2.3 SR1 — "For each non unique user-defined name that is explicitly
-        // referenced, uniqueness shall be established through a sequence of qualifiers that precludes any ambiguity of
-        // reference" — counts them TOGETHER. The ordinary items asked about are the ones the SAME written qualifiers
-        // reach in the SAME source element as the counters (§8.4.6.2.1 3): the one candidate set
-        // DataBinder.QualifiedCandidates, which the ordinary lookup (ResolveUnqualified / ResolveQualified) reads too.
-        // Asking only the counters, as this method did, let the counter win every collision with a WORKING-STORAGE item
-        // that had no qualifier to tell them apart: a MOVE to the name altered the report total, silently.
-        int sameSpelling = matches.Count + data.QualifiedCandidates(name, qualifiers, data.ActiveScope)
-            .Where(item => data.DeclaringDepth(item) == counterDepth).Count;
-        if (sameSpelling > 1)
-        {
-            if (report && _diagnosed.Add(dref))
-            {
-                int ordinary = sameSpelling - matches.Count;
-                data.Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"'{DataBinder.WrittenText(dref)}': the reference is ambiguous — "
-                    + (ordinary == 0
-                        ? $"{matches.Count} entries establish a sum counter named '{name}' (ISO §13.18.54.4 GR1 gives each entry its own counter)."
-                        : $"'{name}' is the name of {(matches.Count == 1 ? "a sum counter" : $"{matches.Count} sum counters")} "
-                          + $"(ISO §13.18.54.4 GR5) and of {(ordinary == 1 ? "a data item" : $"{ordinary} data items")} "
-                          + "the written qualifiers also reach.")
-                    + " A reference shall uniquely identify one resource (ISO §8.4.2.2.1, §8.4.2.2.3 SR1); qualify it by "
-                    + "report group entry, group or report-name, or give the entries distinct data-names.");
-            }
-            return null;
-        }
-        return matches[0];
     }
 
     /// <summary>The STRUCTURAL access path for an item — the <see cref="MemberPlace"/>/<see cref="DynTablePlace"/>
@@ -2729,7 +2594,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
         // keeps the fast path, the rest is bound through the ONE expression binder, like every other shape the walk
         // cannot render.
         if (bound.ExceedsLongArithmetic) return MaterializePosition(seg, position);
-        if (pending is not null && !_probing)   // R30 purity: a probe never diagnoses (kb/Work PB157)
+        if (pending is not null && !Probing)   // R30 purity: a probe never diagnoses (kb/Work PB157)
             foreach (var ps in pending)
                 if (ps.AllZero)
                     FigurativeAssociation.GateAllZeroAsArithmeticOperand(data.Edition.Edition, data.Edition.Sink, ps.Name, where: "");
@@ -2868,7 +2733,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// entry is found through that entry's own hierarchy — no special case.</para></summary>
     internal void ScreenIndexNameAssociation(DataItem item, List<IndexUse> indexNames)
     {
-        if (indexNames.Count == 0 || _probing) return;   // R30 purity: a probe never diagnoses (kb/Work PB157)
+        if (indexNames.Count == 0 || Probing) return;   // R30 purity: a probe never diagnoses (kb/Work PB157)
         foreach (var (t, decl) in indexNames)
         {
             if (DeclaredInHierarchy(item, decl)) continue;
@@ -2945,7 +2810,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
         // (SET classifies its operand, then binds it) only the first committing one reports. The OUTCOME is the
         // same at every ask — only the report is once (wave 1073 review R1-1: a second ask that answered Failed
         // handed the backend the inert "1" as a SET receiver, CS0131).
-        bool report = !_probing && _indexRefsReported.Add(writtenAt);
+        bool report = !Probing && _indexRefsReported.Add(writtenAt);
         string written = DataBinder.WrittenQualified(name, qualifiers);
         if (cands.Count == 0)
         {
@@ -2973,7 +2838,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// never reports, R30).</summary>
     private void ScreenLinkageIndex(IndexDeclaration decl, string name, IReadOnlyList<string> qualifiers, object writtenAt)
     {
-        if (_probing || data.UnreferenceableLinkageRecord(decl.Table) is not { } record
+        if (Probing || data.UnreferenceableLinkageRecord(decl.Table) is not { } record
             || !_linkageIndexReported.Add(writtenAt)) return;
         ReportUnreferenceableLinkage(DataBinder.WrittenQualified(name, qualifiers), record);
     }
@@ -3034,7 +2899,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
         // R30 PURITY (kb/Work PB157): a probe must not BIND the position — the hook registers a §15.4 pre-op and a
         // function-bearing position would activate TWICE (once per probe+commit). The probe's Place is discarded
         // after its Item is read, so the dummy occurrence is never emitted.
-        if (_probing) return new PositionConstant(1);
+        if (Probing) return new PositionConstant(1);
         var tokens = seg.Tokens;
         if (MaterializeSegment is null || tokens.Count == 0) return null;
         // A reference the declarations cut (kb/Work PB136) is read without its list only by the direct walk; inside an
@@ -3183,7 +3048,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// sentence true again — the fast path now reaches the same verdict, not a different one.</para>
     /// <para>⚠ PRECONDITION: the class question is asked in <see cref="ResolveSubscriptName"/>
     /// (<c>IntrinsicArgumentRules.IsArithmeticOperandClass</c>) and only a REJECTED item is queued, so this
-    /// method composes the message and nothing else. The <c>_probing</c> purity guard lives at the queue's flush
+    /// method composes the message and nothing else. The <c>Probing</c> purity guard lives at the queue's flush
     /// in <see cref="BindPosition"/> — ONE place, since that is also where the ordering fix lives
     /// (kb/Work PB220).</para></summary>
     private void ScreenPositionOperandClass(DataItem item, string name, SegmentPosition position)

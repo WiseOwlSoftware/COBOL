@@ -62,7 +62,7 @@ public sealed partial class ReferenceResolver
     /// <para>Its callers are §14.9.4.3 SR20's carve-out (kb/Work PB238): "BY CONTENT shall not be omitted when
     /// identifier-4 is an identifier that is permitted as a receiving operand, EXCEPT that BY CONTENT may be omitted when
     /// identifier-4 is an object property" — and §8.4.3.2.4 GR5 a)'s "other than an object property".</para>
-    /// <para>⛔ PURE — it runs the resolution under <c>_probing</c>, so no temp is synthesized, no pending §8.4.3.9.4 op
+    /// <para>⛔ PURE — it runs the resolution under <c>Probing</c>, so no temp is synthesized, no pending §8.4.3.9.4 op
     /// is registered and no diagnostic is reported (the R30 probe contract). The ordinary-qualification test comes FIRST
     /// for the same reason the committing path orders it that way.</para></summary>
     public bool IsObjectPropertyReference(Core.DataReferenceContext dref)
@@ -72,10 +72,10 @@ public sealed partial class ReferenceResolver
         if (written.PropertyObject is null
             && (written.Qualifiers.Count == 0 || ResolveQualified(head.Name(), written.Qualifiers) is not null))
             return false;
-        bool saved = _probing;
-        _probing = true;
+        bool saved = Probing;
+        Probing = true;
         try { return ViewOfQualifiedItem(dref, report: false) is null && ResolveObjectProperty(dref, head.Name(), written).Temp is not null; }
-        finally { _probing = saved; }
+        finally { Probing = saved; }
     }
 
     /// <summary>The <c>object-class-name-1</c> of a written <c>object-class-name-1 OF SUPER</c> (§8.4.3.8.2), or null.
@@ -98,10 +98,10 @@ public sealed partial class ReferenceResolver
     /// <c>A OF G AS C</c> — a view, which §8.4.3.5.3 SR2 forbids as a receiving operand. Pure.</summary>
     internal bool IsObjectViewOfQualifiedItem(Core.DataReferenceContext dref)
     {
-        bool saved = _probing;
-        _probing = true;
+        bool saved = Probing;
+        Probing = true;
         try { return ViewSubjectChain(dref) is not null; }
-        finally { _probing = saved; }
+        finally { Probing = saved; }
     }
 
     /// <summary>§8.4.3.1.4 GR1 a) before c): when the chain <c>head OF … OF subject</c> in front of a trailing object-view
@@ -174,7 +174,7 @@ public sealed partial class ReferenceResolver
             // identifier-3 (PropertyObjectReference), where the ordinary screen reads them.
             if (written.SubscriptGroup is { } sub && sub.Start.TokenIndex > terminal!.Stop.TokenIndex)
             {
-                if (!_probing && _diagnosed.Add(dref))
+                if (!Probing && Diagnosed.Add(dref))
                     data.Edition.Error(DiagnosticCatalog.SubscriptOnNonTableItem,
                         $"'{DataBinder.WrittenText(dref)}': a subscript is written on the object property '{name}' OF "
                         + $"'{objWritten}', which is no table element, so no subscript may be written on it "
@@ -185,14 +185,14 @@ public sealed partial class ReferenceResolver
             // admits it only as the object an invocation selects a method through (OoBinder.OoBindByReceiver).
             if (terminal!.SUPER() is not null && IsClassName(dref, name))
             {
-                if (!_probing && _diagnosed.Add(dref))
+                if (!Probing && Diagnosed.Add(dref))
                     data.Edition.Error(DiagnosticCatalog.SuperPosition,
                         $"'{DataBinder.WrittenText(dref)}' is written as an operand: SUPER may be specified only as the object "
                         + "in an object-property identifier or as the object used to invoke a method (ISO §8.4.3.8.3 SR3)");
                 return (null, Refusal());
             }
-            if (BindPropertyObject?.Invoke(terminal, null, _probing) is not { } bound)
-                return _probing || BindPropertyObject is null ? default : (null, Refusal());
+            if (BindPropertyObject?.Invoke(terminal, null, Probing) is not { } bound)
+                return Probing || BindPropertyObject is null ? default : (null, Refusal());
             receiver = bound;
         }
         else if (objRef.dataReferenceSuffix().Length == 0
@@ -204,8 +204,8 @@ public sealed partial class ReferenceResolver
         }
         else if (QualifiedSuperClass(objRef) is { } superClass)
         {
-            if (BindPropertyObject?.Invoke(objRef.dataReferenceSuffix()[0].propertyObject(), superClass, _probing) is not { } bound)
-                return _probing || BindPropertyObject is null ? default : (null, Refusal());
+            if (BindPropertyObject?.Invoke(objRef.dataReferenceSuffix()[0].propertyObject(), superClass, Probing) is not { } bound)
+                return Probing || BindPropertyObject is null ? default : (null, Refusal());
             receiver = bound;
         }
         else
@@ -217,7 +217,7 @@ public sealed partial class ReferenceResolver
             // and a probe reads it from the view's last phrase, as for a view written alone.
             bool answered = false;
             PropertyReceiver? typed;
-            if (!_probing)
+            if (!Probing)
             {
                 var committed = Resolve(objRef);
                 if (committed.Place is not { } place) return (null, committed);
@@ -229,7 +229,7 @@ public sealed partial class ReferenceResolver
                     ? BindPropertyObject?.Invoke(viewed, null, true)
                     : RosterOf(sniff.Item, new PropertyReceiver(InvokeForm.Instance, null, null, null, false), name,
                         objWritten, out answered);
-            if (typed is not { } found) return answered && !_probing ? (null, Refusal()) : default;
+            if (typed is not { } found) return answered && !Probing ? (null, Refusal()) : default;
             receiver = found;
         }
         if (receiver is { Class: null, Interface: null })
@@ -239,7 +239,7 @@ public sealed partial class ReferenceResolver
             // no temporary, only the description the activation would give it (PropertyReceiver.Described).
             if ((receiver.Receiver?.Item ?? receiver.Described) is not { } computed
                 || RosterOf(computed, receiver, name, objWritten, out _) is not { } typed)
-                return !_probing ? (null, Refusal()) : default;
+                return !Probing ? (null, Refusal()) : default;
             receiver = typed;
         }
 
@@ -254,7 +254,7 @@ public sealed partial class ReferenceResolver
         {
             // Not in a definition bound as itself whose superclass is a parameter-name: the accessor may be the actual's
             // (§9.3.9, §9.3.8.2.4; kb/Work PB2937) — each expansion's question, not "not a property".
-            if (receiver.Class?.FormalBaseName is not null && !_probing)
+            if (receiver.Class?.FormalBaseName is not null && !Probing)
             {
                 data.Edition.NoteExpansionDeferred($"the object property '{name}' OF '{objWritten}'");
                 return (null, Refusal());
@@ -266,7 +266,7 @@ public sealed partial class ReferenceResolver
         // R30 PURITY (kb/Work PB157): a PROBE gets the property's MODEL item — the accessor's own description, carrying
         // the category the sniff asks about — with NO temp, NO pending op and NO diagnostics. The committing resolution
         // that follows does all three exactly once.
-        if (_probing) return (model, null);
+        if (Probing) return (model, null);
 
         // A property reference invokes the get / set accessor METHOD (§8.4.3.9.4 GR1/GR2): the source element
         // "invokes any method" for ISO §7.3.14.4 GR4 b, though the text is a qualified data reference.
@@ -308,7 +308,7 @@ public sealed partial class ReferenceResolver
         var described = pic.ObjectRef ?? ObjectRefDescriptor.Universal;
         if (described.Formal)
         {
-            if (!_probing) data.Edition.NoteExpansionDeferred($"the object property '{name}' OF '{objWritten}'");
+            if (!Probing) data.Edition.NoteExpansionDeferred($"the object property '{name}' OF '{objWritten}'");
             answered = true;
             return null;
         }
@@ -316,7 +316,7 @@ public sealed partial class ReferenceResolver
         {
             // §8.4.3.9.3 SR2: "Identifier-1 shall be an object reference; neither a universal object reference nor the
             // predefined object reference NULL shall be specified."
-            if (!_probing)
+            if (!Probing)
                 data.Edition.Error(DiagnosticCatalog.PropertyObject,
                     $"the object-property reference '{name}' OF '{objWritten}': its object shall not be a universal "
                     + "object reference (ISO §8.4.3.9.3 SR2)");

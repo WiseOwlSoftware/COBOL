@@ -3163,7 +3163,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // A REPEATING SUM entry's counter is a table too (ISO §13.18.54.4 GR8 a)'s "corresponding occurrence of the
         // sum counter"; kb/Work PB1271): it is asked of the ONE counter resolver FIRST, in the order
         // ReferenceResolver.Resolve asks it, and its register carries the OCCURS levels the walk below reads.
-        var counter = ctx.Refs.SumCounterFamilyFor(dref, name, quals, report: true);
+        var counter = ctx.Refs.Counters.SumCounterFamilyFor(dref, name, quals, report: true);
         if ((counter?.Family.Register ?? ctx.Refs.FindReportedItem(dref, name, quals)) is not { } item)
         {
             // The resolver's ONE reported lookup (kb/Work PB1029 — this arm refused silently; kb/Work PB3287 — and it
@@ -3198,7 +3198,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 // The level's range is the ONE current-occurrence-count model (fixed / ODO / dynamic capacity) — or,
                 // for a repeating sum counter, its report-writer twin (a DEPENDING level counts by §13.18.38.4 GR13).
                 if ((counter is (_, { } countedFamily)
-                        ? ctx.Refs.SumCounterOccurrenceCount(countedFamily, i)
+                        ? ctx.Refs.Counters.SumCounterOccurrenceCount(countedFamily, i)
                         : ctx.Refs.CurrentOccurrenceCount(level, outerExprs)) is not { } count)
                 {
                     args.Add(BoundOperandError.Unbuilt(ctx.Edition, level.OccursSpec is { Depending: { } dep }
@@ -3223,7 +3223,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // non-ALL segments carried (kb/Work PB1472). The ALL segments name none.
         ctx.Refs.ScreenIndexNameAssociation(item, indexNames);
         if ((counter is ({ } counterReport, { } counterFamily)
-                ? ctx.Refs.SumCounterPlace(counterReport, counterFamily, exprs)
+                ? ctx.Refs.Counters.SumCounterPlace(counterReport, counterFamily, exprs)
                 : ctx.Refs.ResolveByName(name, quals, exprs)) is not { } element)
         {
             args.Add(BoundOperandError.Unbuilt(ctx.Edition, $"table(ALL) occurrence of '{name}'"));
