@@ -159,11 +159,10 @@ SURVEY = "survey.json"
 HALT = "HALT"
 REARM = "rearm"
 TICK_LOCK = "tick.lock"
-EXIT_CHECK_STOP = 3      # enqueue.py: landing_check.py's STOP (the branch edits a member that in-flight work edits)
 EXIT_STATE = 2           # enqueue.py: usage or state, among them "main moved under every catch-up merge"
 #: The exits the lane retries at the same head once what they wait on is free (wait_free asks): nothing is wrong with
 #: the branch, so neither is ever the enqueue unit's (kb/Work PB2701; PB3527: a held gate lock was read as a red).
-WAITS = {EXIT_CHECK_STOP: "the in-flight work whose edits it meets", EXIT_GATE_BUSY: "the worktree's gate lock (a running gate holds it until its verdict is written)",
+WAITS = {EXIT_GATE_BUSY: "the worktree's gate lock (a running gate holds it until its verdict is written)",
          EXIT_LAND_BUSY: "the worktree's land lock",
          EXIT_PREDECESSOR_QUEUED: "the open pull request of the predecessor whose DEVLOG entry it carries",
          EXIT_DRIVER_FILE_QUEUED: "the open pull request(s) that change a merge-driver file the branch changes too (kb/Work PB3642)"}
@@ -587,17 +586,6 @@ def row_dicts(rows: list, prs: dict | None) -> list[dict[str, Any]]:
              "foreseen": [{"branch": b, "head": h} for b, h in r.foreseen]} for r in rows]
 
 
-def landing_check_free(worktree: str) -> tuple[bool, str]:
-    """`landing_check.py` on the branch's own range (from its merge base with origin/main, which `enqueue.py land` would
-    merge in), as the landing runs it: exit 0 means the overlap that stopped it is gone."""
-    base = subprocess.run(["git", "-C", worktree, "merge-base", "refs/remotes/origin/main", "HEAD"],
-                          capture_output=True, text=True, encoding="utf-8", errors="replace")
-    if base.returncode != 0:
-        return False, f"no merge base with origin/main in {worktree}"
-    p = subprocess.run([sys.executable, str(HERE / "landing_check.py"), "--rev", "HEAD", "--base", base.stdout.strip()],
-                       cwd=worktree, capture_output=True, text=True, encoding="utf-8", errors="replace")
-    stops = [ln for ln in p.stdout.splitlines() if ln.startswith("⛔")]
-    return p.returncode == 0, (stops[0] if stops else (p.stdout.strip().splitlines() or ["no output"])[-1])[:240]
 
 
 def gate_lock_free(worktree: str) -> tuple[bool, str]:
@@ -667,8 +655,7 @@ def driver_files_free(worktree: str, gh: Callable[[list[str]], tuple[int, str, s
 
 def wait_free(rc: int | None, worktree: str, *,
               gh: Callable[[list[str]], tuple[int, str, str]] | None = None) -> tuple[bool, str]:
-    """Whether what a retry-when-free exit (WAITS) waits on is free now: exit 3, landing_check.py passes on the
-    branch; exit 12, the worktree's gate lock is free; exit 13, the worktree's land lock
+    """Whether what a retry-when-free exit (WAITS) waits on is free now: exit 12, the worktree's gate lock is free; exit 13, the worktree's land lock
     is free; exit 15, no open pull request owns a DEVLOG entry the branch carries; exit 16, no open pull request changes
     a merge-driver file the branch changes too (`gh`: GitHub's reader, the real one unless a self-test plants it)."""
     if rc in (EXIT_PREDECESSOR_QUEUED, EXIT_DRIVER_FILE_QUEUED):
@@ -678,7 +665,7 @@ def wait_free(rc: int | None, worktree: str, *,
         return gate_lock_free(worktree)
     if rc == EXIT_LAND_BUSY:
         return land_lock_free(worktree)
-    return landing_check_free(worktree)
+    raise ValueError(f"exit {rc} is no retry-when-free exit (WAITS)")
 
 
 def notify_operator(cdir: pathlib.Path, subject: str, body: str, ref: str, say: Say, kind: str = "info") -> None:
@@ -1669,19 +1656,19 @@ def self_test() -> int:
         f.rows[0] = row("w1a", "WAITING TO LAND", "a3")           # the finisher's fix, reviewed CLEAN
         expect("a new head is eligible again", f.tick(c) == ["w1a"], str(f.started))
 
-        # 3. exit 3 (the landing check's overlap): retried at the same head only once landing_check passes.
-        c3 = fresh("overlap")
+        # 3. exit 3 (the landing check's STOP: a never-carried path or a duplicate public-API symbol; an edit meeting
+        #    another branch's no longer stops, kb/Work PB4452 first ready lands): only a new commit clears it, so it is a
+        #    STOP, the enqueue unit's (a finisher), never retried at the same head.
+        c3 = fresh("check-stop")
         f3 = Fake([row("w2a", "WAITING TO LAND", "h1")])
         f3.tick(c3)
         finish(c3, "w2a", 3, "NOT QUEUED (exit 3, above)", end_head="h2")
         f3.live.clear()
-        f3.rows[0] = row("w2a", "IN FLIGHT", "h2")                # it committed (main merged, the stamp): IN FLIGHT
-        expect("exit 3 while the overlap remains: not relaunched, and the check is asked",
-               f3.tick(c3) == [] and f3.asked == [str(root / "wt-w2a")], f"{f3.started} {f3.asked}")
-        expect("exit 3 is the lane's to retry, not the enqueue unit's", agent_work(c3).reasons == [],
-               str(agent_work(c3).reasons))
+        f3.rows[0] = row("w2a", "IN FLIGHT", "h2")
         f3.free = True
-        expect("exit 3 once the overlap is gone: retried at the same head", f3.tick(c3) == ["w2a"], str(f3.started))
+        expect("exit 3 is a STOP: never retried at the same head, and it is the enqueue unit's",
+               f3.tick(c3) == [] and f3.asked == [] and any("w2a" in r for r in agent_work(c3).reasons),
+               f"{f3.started} {f3.asked} {agent_work(c3).reasons}")
 
         # 3b. exit 12 (GATE BUSY: another gate held the worktree's gate lock, kb/Work PB3527): never the enqueue unit's
         #     and never a red; retried at the same head once the lock is free.

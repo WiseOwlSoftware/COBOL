@@ -69,9 +69,7 @@ leads, the records and the ledger.
      never to a finisher and never landed another way. A repeated exit 2 or
      9 (main kept moving, GitHub refused twice at one head, or a gate NOT RUN twice for a cause in the environment or
      one main fails the same way: no finisher fixes it, kb/Work PB3526): name it in the handoff with its log.
-   - `RETRY-WHEN-FREE` (exit 3, the landing check's STOP: the branch edits a member that earlier-dispatched,
-     INDEPENDENT in-flight work also edits; a branch that descends from it — its successor, its finisher, a carrier that merged
-     any head of it — and a worktree with no commit beyond main never stop it, kb/Work PB3381; or exit 12, `GATE BUSY`:
+   - `RETRY-WHEN-FREE` (exit 12, `GATE BUSY`:
      another gate held the worktree's gate lock, the branch's own gate has not written its verdict yet, nothing ran and
      nothing is red, kb/Work PB3527, PB3662; or exit 13: another
      `land` of the branch holds the worktree's land lock, nothing ran and nothing is red, kb/Work PB3310; or exit 15,
