@@ -41,6 +41,16 @@ public sealed class CompilationInputs
     /// into the program, so its output is a function of WHEN it was compiled, not only of its inputs.</summary>
     public bool ReadsCompilationTime { get; private set; }
 
+    /// <summary>True once the compilation consulted the external repository (ISO §8.13; DESIGN-external-repository §8.0):
+    /// it listed a repository directory or read an assembly's repository record, so its answers depend on which compiled
+    /// assemblies exist there — a directory's whole listing, which no probe of this record states. A dependency record
+    /// cannot replay that, so such a compilation is never served from a store of earlier outputs. A group that answers
+    /// every specifier itself consults nothing (§16).</summary>
+    public bool ReadsRepository { get; private set; }
+
+    /// <summary>Record that the compilation consulted the external repository (<see cref="ReadsRepository"/>).</summary>
+    public void RecordRepositoryRead() => ReadsRepository = true;
+
     /// <summary>Read the text of a source or library text file, recording its full path. The bytes become characters in
     /// <see cref="SourceTextDecoder"/> and nowhere else (docs/CONFORMANCE.md §7, Annex A.1 items 25 and 26; kb/Work
     /// PB1397): a file read as ISO/IEC 8859-1 draws the warning COBOL5435 and a marked file that is not well-formed in its

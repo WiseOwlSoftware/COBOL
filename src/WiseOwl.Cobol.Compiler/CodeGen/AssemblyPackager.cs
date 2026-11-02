@@ -106,7 +106,12 @@ public static class AssemblyPackager
         if (string.Equals(RuntimePath, dest, StringComparison.OrdinalIgnoreCase)   // not a COBOL word: two file-system paths
             || !File.Exists(RuntimePath))   // not a compilation input: the runtime is part of the compiler's own deployment
             return null;
-        File.Copy(RuntimePath, dest, overwrite: true);
+        // §7.5: replaced by rename, never written in place — a program of the directory may be running on the old copy.
+        OutputFileProtocol.Replace(dest, temporary =>
+        {
+            File.Copy(RuntimePath, temporary, overwrite: true);
+            return true;
+        });
         return dest;
     }
 
@@ -129,7 +134,11 @@ public static class AssemblyPackager
         }
         """;
         string path = Path.GetFullPath(Path.ChangeExtension(outputDllPath, ".runtimeconfig.json"));
-        File.WriteAllText(path, json);
+        OutputFileProtocol.Replace(path, temporary =>   // §7.5, as the assembly it configures is written
+        {
+            File.WriteAllText(temporary, json);
+            return true;
+        });
         return path;
     }
 }

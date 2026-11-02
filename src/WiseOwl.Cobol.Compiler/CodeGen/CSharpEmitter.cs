@@ -29,8 +29,8 @@ public sealed partial class CSharpEmitter
     /// OO bind bodies live on <see cref="Compiler.Oo.OoDriver"/> since P9 Step 4). <see cref="EmitBound"/> renders C# from the result — codegen never runs on an errored
     /// tree.</summary>
     internal BoundCompilation Bind(Core.CompilationUnitContext tree, EditionContext? edition = null,
-        WiseOwl.Cobol.Frontend.Preprocessor.DirectiveResults? directives = null)
-        => new BinderDriver().Bind(tree, edition ?? new EditionContext(2023), directives);
+        WiseOwl.Cobol.Frontend.Preprocessor.DirectiveResults? directives = null, RepositorySearchSpace? repository = null)
+        => new BinderDriver().Bind(tree, edition ?? new EditionContext(2023), directives, repository);
 
     /// <summary>Render typed-native C# from an already-bound immutable <see cref="BoundCompilation"/> (the emit
     /// half of the bind/emit split) — a fresh <see cref="ProgramEmitter"/> per call; the compilation carries

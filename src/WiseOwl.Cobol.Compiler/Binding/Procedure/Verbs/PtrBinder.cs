@@ -327,7 +327,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             string? formalProto = formal.Pic?.RestrictedPrototypeName;
             if (formalProto is null && pa.Prototype is null) return null;
             return formalProto is null || pa.Prototype is null
-                   || !PrototypeSignatures.Same(host.ProgramSignatureOf(formalProto), host.ProgramSignatureOf(pa.Prototype))
+                   || StatementBinder.SignaturesDiffer(host.ProgramSignatureOf(formalProto), host.ProgramSignatureOf(pa.Prototype))
                 ? $"one is a RESTRICTED program-pointer and the other is not restricted to a program-prototype of "
                   + $"the same signature (argument: {pa.Prototype ?? "unrestricted"}; formal: "
                   + $"{formalProto ?? "unrestricted"}) — ISO §14.8.2.3.2; §8.4.3.13.4 GR3"

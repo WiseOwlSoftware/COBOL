@@ -600,7 +600,7 @@ public sealed class RepositoryCodecTests
                 $"{at}: NamedRestriction {PrototypeSignatures.NamedRestriction(x)} vs {PrototypeSignatures.NamedRestriction(y)}");
             Assert.True(x.PointerRestrictionIdentity == y.PointerRestrictionIdentity,
                 $"{at}: restriction identity {x.PointerRestrictionIdentity} vs {y.PointerRestrictionIdentity}");
-            Assert.True(PrototypeSignatures.Same(x.RestrictedPrototype?.Signature, y.RestrictedPrototype?.Signature), $"{at}: referenced prototype signature");
+            Assert.True(PrototypeSignatures.Same(x.RestrictedPrototype!.Signature, y.RestrictedPrototype!.Signature), $"{at}: referenced prototype signature");
         }
     }
 
