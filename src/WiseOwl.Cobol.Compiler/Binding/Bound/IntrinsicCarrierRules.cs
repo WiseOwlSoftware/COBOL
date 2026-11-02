@@ -122,9 +122,9 @@ internal static class IntrinsicCarrierRules
     /// <summary>Can aligning a cross-aligning call's arguments to their common scale — and accumulating the aligned values —
     /// leave the <see cref="Int128"/> carrier? True only when EVERY argument is an exact scaled operand with a KNOWN
     /// digit bound (<paramref name="operands"/>: <c>null</c> for an SDIDI or binary64 operand or one of unknown bound,
-    /// for which nothing is provable and the escape-checked native arm (PB252) keeps its documented behaviour) and the
-    /// sum of the magnitudes the function adds, each bounded by its aligned digits, exceeds
-    /// <see cref="Int128.MaxValue"/>. THE ONE READER of the question: <c>IntrinsicRenderer.RenderNum</c> asks it of the
+    /// for which nothing is provable and the escape-checked native arm (PB252) keeps its documented behaviour) and either
+    /// one argument's aligned bound alone, or the sum of the magnitudes the function adds, each bounded by its aligned
+    /// digits, exceeds <see cref="Int128.MaxValue"/>. THE ONE READER of the question: <c>IntrinsicRenderer.RenderNum</c> asks it of the
     /// RAW operands it is about to render, and <c>FunctionValueLane</c>'s prediction asks it of the same facts read from the bound tree, so
     /// the carrier a nested SUM / RANGE / MEDIAN / MIDRANGE answers on is predicted by the rule that picks it.</summary>
     /// <remarks>
@@ -151,8 +151,15 @@ internal static class IntrinsicCarrierRules
         // for MEDIAN and MIDRANGE (added, then halved through ×10). `9(29)` beside `V9(9)` is 38 + 9 digits of two
         // values whose sum is 1.0000000010e38 — the Int128 carrier holds it, and the old "widest + digits of n"
         // allowance sent it to the SDIDI, which keeps 34 digits (kb/Work PB621's review follow-up).
-        var terms = xs.Select(x => Pow10Bound(x.Digits + (s - x.Scale) + (x.TableAll ? 9 : 0)))
-            .OrderByDescending(t => t).ToList();
+        var bounds = xs.Select(x => Pow10Bound(x.Digits + (s - x.Scale) + (x.TableAll ? 9 : 0))).ToList();
+        // ⛔ AN ARGUMENT WHOSE ALIGNED BOUND IS PAST UInt128 MAY LEAVE THE CARRIER BY ITSELF, whatever the function adds: the
+        // native arm aligns EVERY argument (AlignedArgs), so that one alignment already escapes. It is answered here, before
+        // the largest terms are chosen, because an unbounded term is NOT the largest to an ordering: OrderByDescending puts
+        // null LAST, so RANGE(BIG FR TH) with BIG a 31-digit item and FR scale 18 took the two BOUNDED terms, proved a fit
+        // and kept the native arm, which raised EC-SIZE-OVERFLOW for a value its receiver holds (kb/Work PB4370, found on the
+        // way; PB621's witness passed only because each of its legs had two such arguments).
+        if (bounds.Any(t => t is null)) return true;
+        var terms = bounds.Select(t => t!.Value).OrderByDescending(t => t).ToList();
         UInt128? bound = functionName switch
         {
             "SUM" => SumOf(terms),
@@ -171,12 +178,13 @@ internal static class IntrinsicCarrierRules
             for (int i = 0; i < digits; i++) p *= 10;
             return p - 1;
         }
-        static UInt128? SumOf(IEnumerable<UInt128?> terms)
+        // The sum of the terms; null once it is past UInt128 (never fits).
+        static UInt128? SumOf(IEnumerable<UInt128> terms)
         {
             UInt128 total = 0;
-            foreach (var t in terms)
+            foreach (var v in terms)
             {
-                if (t is not { } v || total > UInt128.MaxValue - v) return null;
+                if (total > UInt128.MaxValue - v) return null;
                 total += v;
             }
             return total;
