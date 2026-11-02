@@ -1760,9 +1760,13 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Does <paramref name="dref"/> name a CAPACITY register declared in a source element NEARER than the level-88s
     /// <paramref name="tier"/> (ISO §8.4.6.2.1 3) a); kb/Work PB4432 review R1-1)? A tie is not "nearer": the condition-name
-    /// keeps the reference at one depth, as it always has.</summary>
+    /// keeps the reference at one depth, as it always has. ⛔ Only a register the WRITTEN QUALIFIERS REACH hides
+    /// (<c>CapacityRef.Reached</c> non-empty): <c>CapacityRegisterFor</c> also answers the nearest register with
+    /// <c>CapacityRefFault.Qualifiers</c> so the qualifier fault can be stated about it, but a reference those qualifiers
+    /// do not take to that register names only the level-88 (§8.4.6.2.1 2): rule 1 applies qualification over the whole
+    /// set before rule 3 ranks it; kb/Work PB4432 review R2-2).</summary>
     private bool CapacityRegisterHides(Core.DataReferenceContext dref, List<Condition88> tier) =>
-        tier.Count != 0 && ctx.Refs.CapacityRegisterFor(dref) is { } cap
+        tier.Count != 0 && ctx.Refs.CapacityRegisterFor(dref) is { Reached.Count: > 0 } cap
         && ctx.Data.DeclaringDepth(cap.Table) < ctx.Data.DeclaringDepth(tier[0].Parent);
 
     private static string WrittenWord(Core.DataReferenceContext dref) => dref.cobolWord()?.GetText() ?? dref.GetText();

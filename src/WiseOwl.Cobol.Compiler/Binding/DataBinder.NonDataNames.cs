@@ -109,7 +109,7 @@ public sealed partial class DataBinder
             : Symbols.TryResolve(name, scope, out _);
         // ⛔ THE NON-DATA DECLARATIONS OF THE SPELLING ARE RANKED TOGETHER, by the depth of the element that declares each
         // (§8.4.6.2.1 3), kb/Work PB4219, PB4432): the classes NonConditionDeclarationsOf offers (constant-name, index-name,
-        // CAPACITY register, file-name) and a condition-name. The nearest wins; at EQUAL depth one element declares both, a
+        // file-name; the CAPACITY register has its own one lookup) and a condition-name. The nearest wins; at EQUAL depth one element declares both, a
         // §8.3.2.2 conflict reported at the declaration, and the first offered keeps the answer as it always has.
         NonDataDeclaration? nearest = null;
         void Offer(NonDataDeclaration candidate)
@@ -157,8 +157,13 @@ public sealed partial class DataBinder
         if (qualifiers.Count == 0 && !dataName && IsConstantName(name))
             yield return new(NonDataDeclarationKind.ConstantName, DeclarationRefused: IsRefusedConstantName(name),
                 Depth: _inheritedConstants.GetValueOrDefault(name));
+        // An index-name that the written qualifiers reach NONE of is still the declaration a refusal words ("declared, but not
+        // under the given qualifiers"), but the reference does not name it: it ranks behind every other class (int.MaxValue),
+        // so a qualified `RELF OF X` that only a container's GLOBAL level-88 satisfies is not hidden by an own `INDEXED BY RELF`
+        // (§8.4.6.2.1 2): qualification is applied over the whole set before rule 3 ranks it; kb/Work PB4432 review R2-1).
         if (Symbols.IndexCandidates(name, qualifiers, scope) is { } indexes)
-            yield return new(NonDataDeclarationKind.IndexName, Depth: indexes.NearestDepth(i => DeclaringDepth(i.Table)));
+            yield return new(NonDataDeclarationKind.IndexName,
+                Depth: indexes.Count > 0 ? indexes.NearestDepth(i => DeclaringDepth(i.Table)) : int.MaxValue);
         if (!dataName && qualifiers.Count == 0 && TryGetVisibleFile(name, out var file))
             yield return new(NonDataDeclarationKind.FileName, Depth: FileDepth(file));
     }

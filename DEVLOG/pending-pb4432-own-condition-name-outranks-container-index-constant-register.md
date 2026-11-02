@@ -42,3 +42,11 @@ index-name, COBOL2318 for a constant or register); SEARCH ALL's WHEN screen skip
 `pb4432_if_names_own_{index_name,constant_name,file_name,capacity_register}_*`,
 `pb4432_set_to_true_names_own_{index_name,capacity_register}_*` and the control
 `pb4432_container_global_condition_name_beside_other_index_name`. Drift test extended: both directions ask the one list.
+
+Review round 2 (R2-1, R2-2, R2-3). The reverse arm counted a nearer declaration the written qualifiers do not reach:
+an own `INDEXED BY RELF` (an empty `IndexCandidates` set, ranked depth 0) hid `RELF OF X` from the container's GLOBAL
+`88 RELF`, and an own `CAPACITY IN CAP` (`CapacityRegisterFor`'s `CapacityRefFault.Qualifiers` answer) hid `CAP OF X`,
+though ISO 8.4.6.2.1 2) identifies the level-88 as the only item. Both reproduced on the reviewed head, both accepted now:
+an unreached index-name ranks `int.MaxValue` in `NonConditionDeclarationsOf` and `ConditionBinder.CapacityRegisterHides`
+requires `Reached.Count > 0`. Goldens `pb4432_qualified_condition_name_beside_own_{index_name,capacity_register}`; the
+`NonDataDeclarationOf` comment no longer lists the register among the offered classes.
