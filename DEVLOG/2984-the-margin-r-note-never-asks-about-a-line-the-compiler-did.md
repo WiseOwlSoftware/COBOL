@@ -1,4 +1,4 @@
-## The margin-R note never asks about a line the compiler did not read, and a blank line keeps its own origin (PB4412)
+## Entry 2984 — 2026-11-01 22:44 PST — The margin-R note never asks about a line the compiler did not read, and a blank line keeps its own origin (PB4412)
 
 PB4372 taught the between-lines arm of `CobolErrorListener.NoteMarginRCut` to skip a tokenless line that holds program text, on the
 reasoning that a later stage omitted it. The residual was a line whose ONLY text is past margin R: its program-text area is blank, so the
@@ -42,3 +42,4 @@ debugging line; the blank-debugging-line literal), `SourceLineMapTests` +2. Conf
 **Gate.** `=== BUILD-LOCAL GATE: GREEN` at db31e465d, run 000002-20261102T060344Z (Conformance 20,579/20,579, Unit 39,170/39,170, Characterization 37/37, no Linux half in the line); the first gate (000001-20261102T055830Z) was RED on the three tests that pinned the old blank-D slot, re-pinned above.
 
 **Review round 1.** R1-1 (blocking): the blank debugging line now kept the bare carrier in its slot, and the conditional-compilation driver's text-before-the-first->>WHEN check read it as program text, so a legal program with a blank `D` line between `>>EVALUATE` and its first `>>WHEN` was refused with COBOL2649 (§6.5 2): a blank line is discarded; §7.3.13.2). Fixed at the root: `ReferenceFormatProcessor.HoldsNoProgramText` is the one answer to "does this logical line hold text" (the carrier alone, or spaces, is none) and the check asks it. Tests: `MarginRCutNoteTests` +2 (blank `D` lines pass; a `D` line with text is still text), conformance `pb4412-blank-debugging-line-before-first-when` (2002). R1-2: the omitted-WHEN citation is now §7.3.13.4 GR 4 and 5 everywhere (GR 5 is the no-true-WHEN rule the test builds; Format 2 repeats it as GR 9). R1-3: the two statements in `FixedFormAreas.MarginRCutAt` are on two lines.
+
