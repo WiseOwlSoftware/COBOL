@@ -143,6 +143,7 @@ public sealed class InheritedConfigurationNameUseTests
             SPECIAL-NAMES.
                 C01 IS PBT.
             PROCEDURE DIVISION.
+            MAIN-P.
                 CALL "PB3153WI".
                 STOP RUN.
             IDENTIFICATION DIVISION.
@@ -158,6 +159,7 @@ public sealed class InheritedConfigurationNameUseTests
             WORKING-STORAGE SECTION.
             01 PBT {description}.
             PROCEDURE DIVISION.
+            MAIN-P.
                 OPEN OUTPUT F.
                 WRITE R AFTER ADVANCING PBT.
                 CLOSE F.

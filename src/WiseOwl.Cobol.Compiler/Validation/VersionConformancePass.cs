@@ -12,7 +12,7 @@ using WiseOwl.Cobol.Frontend.Common;        // CobolWordRule — the ONE §8.3.2
 using WiseOwl.Cobol.Frontend.Cst;            // SetToStatementCst — the one reading of SET Format 7's spelling (kb/Work PB4231)
 using WiseOwl.Cobol.Frontend.Expressions;    // BooleanOperatorGate — the ONE boolean-operator introduction gate (both lanes)
 using WiseOwl.Cobol.Frontend.Generated;     // CobolParserCore / CobolLexer / CobolParserCoreBaseVisitor — the parse-tree arm
-using WiseOwl.Cobol.Frontend.Parsing;       // CobolKeywordTokens — the reverse vocab map (>>COBOL-WORDS SR3/SR4 category)
+using WiseOwl.Cobol.Frontend.Parsing;       // CobolKeywordTokens — the reverse vocab map (>>COBOL-WORDS SR3/SR4 category); WrittenSource
 using WiseOwl.Cobol.Runtime;                // CobolNames — the ONE Annex C word fold (kb/Work PB1402)
 
 using WiseOwl.Cobol.Compiler.Oo;
@@ -925,7 +925,7 @@ internal sealed class VersionConformancePass
             if (ctx.sendingOperand() is [_, var to, ..] && to.Start.Type == CobolLexer.ALL)
             {
                 using var _ = Sink.At(to);
-                _p.Check(Constructs.InspectConvertingToAll2002, $"the INSPECT CONVERTING operand TO {to.GetText()}");
+                _p.Check(Constructs.InspectConvertingToAll2002, $"the INSPECT CONVERTING operand TO {WrittenSource.Of(to)}");
             }
             return base.VisitChildren(ctx);
         }
@@ -958,7 +958,7 @@ internal sealed class VersionConformancePass
                     if (!IsCobol85Subscript(item))
                     {
                         using var _ = Sink.At(item);
-                        _p.Check(Constructs.SubscriptArithmeticExpression2002, $"the arithmetic-expression subscript {item.GetText()}");
+                        _p.Check(Constructs.SubscriptArithmeticExpression2002, $"the arithmetic-expression subscript {WrittenSource.Of(item)}");
                     }
             return base.VisitChildren(ctx);
         }
@@ -2037,7 +2037,7 @@ internal sealed class VersionConformancePass
                     && (n.PLUS() ?? n.MINUS() ?? n.numericLiteralCore().SIGNED_INTEGERLIT() ?? n.numericLiteralCore().SIGNED_DECIMALLIT()) is not null)
                 {
                     using var _ = Sink.At(literal);
-                    _p.Check(Constructs.DisplaySignedNumericLiteral2002, $"the signed numeric literal {literal.GetText()} as a DISPLAY operand");
+                    _p.Check(Constructs.DisplaySignedNumericLiteral2002, $"the signed numeric literal {WrittenSource.Of(literal)} as a DISPLAY operand");
                 }
             return base.VisitChildren(ctx);
         }

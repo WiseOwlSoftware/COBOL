@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb436_varying_after_from_outer
       *> rules: [GR-14.9.28.4-13]
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -54,7 +54,8 @@
       *> program below.  Per CLAUDE.md rule 1 the ISO text is the oracle and the CCVS corpus is a regression
       *> net; the divergence is recorded in tests/nist/corpus.tsv, pinned in SpecPinnedNistTests and determined
       *> in docs/CONFORMANCE.md section 3.  GR13 e) is worded identically in COBOL-85/2002/2014/2023 (no row in
-      *> docs/VERSION_CHANGE_REFERENCE.md), so this 85 witness covers every edition.
+      *> docs/VERSION_CHANGE_REFERENCE.md); the inline arms need COBOL-2002 (an inline PERFORM's AFTER phrase is
+      *> 2002 Annex F.2 item 91, kb/Work PB4305), so the witness runs from 2002.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB436VARYAFTER.
        DATA DIVISION.

@@ -2,10 +2,12 @@
       *> id: pb919_index_name_qualified
       *> rules: [SR-8.4.2.2.1-1, SR-8.4.2.2.3-1, SR-8.4.2.2.3-3,
       *>    SR-8.4.2.2.3-6, FMT-8.4.2.2.2]
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> A qualified index-name is a COBOL-2002 relaxation (2002 Annex F.2 item 108, kb/Work PB4305), so the
+      *> test runs from 2002.
       *> ISO/IEC 1989:2023 §8.4.2.2.3 SR1 and SR6 for INDEX-NAMES (kb/Work PB919).
       *>   SR1: "For each non unique user-defined name that is explicitly referenced, uniqueness shall be
       *>   established through a sequence of qualifiers that precludes any ambiguity of reference."

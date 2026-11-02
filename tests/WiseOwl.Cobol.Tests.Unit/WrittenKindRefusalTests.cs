@@ -23,7 +23,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 public sealed class WrittenKindRefusalTests
 {
     private const string Head = "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB3428U.\n";
-    private const string Proc = "       PROCEDURE DIVISION.\n           STOP RUN.\n";
+    private const string Proc = "       PROCEDURE DIVISION.\n       MAIN-P.\n           STOP RUN.\n";
     private const string Config = "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n";
     private const string Table = "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-N PIC 9.\n"
         + "       01 W-X PIC X(4).\n       01 TB.\n          05 TE PIC X OCCURS 4 INDEXED BY IX.\n";
