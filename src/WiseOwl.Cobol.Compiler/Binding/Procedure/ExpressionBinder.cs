@@ -464,7 +464,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// whenever 'literal' appears in a format" (§8.3.3.6.3 SR1). Exactly one of <paramref name="Constant"/> and
     /// <paramref name="Symbolic"/> is set.</summary>
     /// <param name="Word">The word as written, for diagnostics.</param>
-    internal sealed record LiteralAlias(string Word, DataBinder.ConstantDef? Constant, (string Value, bool National)? Symbolic)
+    internal sealed record LiteralAlias(string Word, ConstantDef? Constant, (string Value, bool National)? Symbolic)
     {
         /// <summary>A numeric constant-name: the one alias a numeric-literal position admits (a symbolic-character is
         /// never numeric — §8.3.3.6.3 SR1 a) admits only ZERO where a literal is restricted to numeric).</summary>
@@ -484,7 +484,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// VALUE argument and INVOKE had neither half, or only the constant half, and refused conforming source.
     /// <c>LiteralAliasResolutionDriftTests</c> fails when a procedure binder reads either table itself.</summary>
     internal LiteralAlias? LiteralAliasOf(Core.DataReferenceContext dref) =>
-        ctx.Data.ConstantOf(dref) is { } k ? new(DataBinder.WrittenText(dref), k, null)
+        ctx.Data.Constants.ConstantOf(dref) is { } k ? new(DataBinder.WrittenText(dref), k, null)
         // A symbolic-character a CONTAINING element declares yields to the referring element's own item of the same
         // spelling: "a source element's reference to such a name, even when it is a different type of user-defined
         // word, is to the item which that source element describes" (§8.4.6.1, kb/Work PB3153). Asked BEFORE the
@@ -499,7 +499,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// data item for the word to yield to and the §8.4.6.1 own-item test of the data-reference overload does not arise.
     /// The same two tables in the same order: a constant-name, then a symbolic-character.</summary>
     internal LiteralAlias? LiteralAliasOf(Core.CobolWordContext word) =>
-        word.GetText() is var w && ctx.Data.FindConstant(w) is { } k ? new(w, k, null)
+        word.GetText() is var w && ctx.Data.Constants.FindConstant(w) is { } k ? new(w, k, null)
         : ctx.Data.NamesSymbolic(w) && ctx.Data.SymbolicOf(word, w) is { } s ? new(w, null, s)
         : null;
 

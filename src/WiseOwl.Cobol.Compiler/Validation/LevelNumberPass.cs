@@ -118,7 +118,7 @@ internal static class LevelNumberRules
         CobolParserCore.ReportGroupEntryContext => LevelNumberArm.ReportGroup,
         // A constant entry standing in the REPORT SECTION (§13.8.2, kb/Work PB1226) is a §13.10 entry, not a
         // report group description entry, so §13.18.33.3 SR4 does not speak about it; its level rule is §13.10.2's
-        // `{1 | 01}` and is reported where the constant is bound (DataBinder.BindConstantEntry), exactly as for a
+        // `{1 | 01}` and is reported where the constant is bound (ConstantEntryBinder.BindConstantEntry), exactly as for a
         // constant in any other section (CheckEntryFormat's Constant arm).
         CobolParserCore.ConstantEntryContext => null,
         CobolParserCore.ScreenDescriptionEntryContext => LevelNumberArm.ScreenItem,
@@ -308,7 +308,7 @@ internal sealed class LevelNumberPass(IDiagnosticSink sink) : CursorFollowingVis
         {
             // A §13.10 CONSTANT entry is NOT a §13.16 data description entry — it allocates no storage and is a
             // compile-time substitution — so none of the format rules below speak about it. Its own level rule is
-            // §13.10.2, enforced where the constant is bound (DataBinder.Constants.cs). Without this arm a
+            // §13.10.2, enforced where the constant is bound (ConstantEntryBinder.cs). Without this arm a
             // mis-leveled constant entry would draw a RENAMES-format message about a construct that has no
             // formats, which is a worse diagnostic than none.
             case (EntryBodyForm.Constant, _):

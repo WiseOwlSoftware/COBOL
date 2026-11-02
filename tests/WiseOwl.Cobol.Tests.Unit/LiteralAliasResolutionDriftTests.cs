@@ -42,12 +42,12 @@ public sealed class LiteralAliasResolutionDriftTests
         int wordResolution = src.IndexOf("internal LiteralAlias? LiteralAliasOf(Core.CobolWordContext word) =>", StringComparison.Ordinal);
         Assert.True(wordResolution >= 0, "ExpressionBinder.LiteralAliasOf(CobolWordContext) is gone");
         string wordBody = src[wordResolution..src.IndexOf(';', wordResolution)];
-        Assert.Contains("ctx.Data.FindConstant(w)", wordBody);
+        Assert.Contains("ctx.Data.Constants.FindConstant(w)", wordBody);
         Assert.Contains("ctx.Data.SymbolicOf(word, w)", wordBody);
         int resolution = src.IndexOf("internal LiteralAlias? LiteralAliasOf(Core.DataReferenceContext dref) =>", StringComparison.Ordinal);
         Assert.True(resolution >= 0, "ExpressionBinder.LiteralAliasOf is gone");
         string body = src[resolution..src.IndexOf(';', resolution)];
-        Assert.Contains("ctx.Data.ConstantOf(dref)", body);
+        Assert.Contains("ctx.Data.Constants.ConstantOf(dref)", body);
         Assert.Contains("ctx.Data.SymbolicOf(dref)", body);
     }
 }

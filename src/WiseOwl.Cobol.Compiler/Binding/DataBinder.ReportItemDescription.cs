@@ -43,7 +43,7 @@ public sealed partial class DataBinder
     /// <param name="Justified">The JUSTIFIED clause is written.</param>
     /// <param name="BlankWhenZero">The BLANK WHEN ZERO clause is written.</param>
     /// <param name="ValueRaws">The VALUE clause's literal operands (§13.18.63.2 format 4), in the order written.</param>
-    private sealed record ReportItemDescription(
+    internal sealed record ReportItemDescription(
         string? PicText, string? UsageText, string? InheritedUsage, List<EditingPhraseSpec>? Editing,
         LocaleEditSpec? Locale, SignSpec? OwnSign, SignSpec? InheritedSign, bool Justified, bool BlankWhenZero,
         IReadOnlyList<string> ValueRaws);
@@ -51,7 +51,7 @@ public sealed partial class DataBinder
     private readonly Dictionary<Core.ReportGroupEntryContext, ReportItemDescription> _reportItemDescriptions = [];
 
     /// <summary>The description of the entry at <paramref name="at"/>, decoded on first ask (see the type summary).</summary>
-    private ReportItemDescription DescribeReportItem(ReportEntryLocation at)
+    internal ReportItemDescription DescribeReportItem(ReportEntryLocation at)
     {
         var ge = at.Entry;
         if (_reportItemDescriptions.TryGetValue(ge, out var known)) return known;
@@ -72,7 +72,7 @@ public sealed partial class DataBinder
                 // §13.15.4 GR2 imports the PICTURE clause, and §13.10.3 SR2 lets an integer constant-name specify
                 // repetition in a picture character-string: expanded before the analyzer reads it, exactly as BindEntry
                 // does for a data description entry (kb/Work PB1226's sibling sweep).
-                if (UnitHasConstants) picText = ExpandPicConstants(picText, where);
+                if (Constants.UnitHasConstants) picText = Constants.ExpandPicConstants(picText, where);
                 editing = BuildEditingSpecs(pc, $"report group entry '{entryName ?? "FILLER"}'");
                 // PICTURE format 2 in a REPORT GROUP entry (§13.15.4 GR2 imports the PICTURE clause's own rules, so
                 // format 2 is LEGAL here; kb/Work PB113 — this arm used to ignore the phrase and analyze the picture as
@@ -87,8 +87,8 @@ public sealed partial class DataBinder
                             "ISO §13.18.40.3 SR37 — locale-name-1 shall be specified in the LOCALE clause in the SPECIAL-NAMES paragraph")
                             is { } sym)
                         localeRef = new LocaleRef(sym);
-                    int size = Math.Max(1, IntegerOperandValue(rlp.integerOperand(), $"{where} PICTURE LOCALE SIZE")
-                        ?? RecoveredIntegerOperand);
+                    int size = Math.Max(1, Constants.IntegerOperandValue(rlp.integerOperand(), $"{where} PICTURE LOCALE SIZE")
+                        ?? ConstantEntryBinder.RecoveredIntegerOperand);
                     locale = new LocaleEditSpec(localeRef, size, "");
                 }
             }
@@ -160,7 +160,7 @@ public sealed partial class DataBinder
     /// written PICTURE analyzed under its effective usage, sign, editing and locale, or the PICTURE §13.15.3 SR14 implies
     /// from its one VALUE literal; null when it has neither. The report walk builds the printable item from it, and a
     /// constant's length phrase measures the item by it — one analysis, so the two cannot disagree.</summary>
-    private PicInfo? ReportPrintablePicture(ReportItemDescription d, string reportName, string? entryName)
+    internal PicInfo? ReportPrintablePicture(ReportItemDescription d, string reportName, string? entryName)
     {
         string itemWhere = $"RD '{reportName}' printable item '{entryName ?? "FILLER"}'";
         Usage itemUsage = PictureAnalyzer.ParseUsage(d.UsageText ?? d.InheritedUsage, Edition, itemWhere);

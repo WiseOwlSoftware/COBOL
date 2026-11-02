@@ -983,7 +983,7 @@ integerLiteral
 // category of constant-name-1" — and §5.5 1) makes every `integer-n` of a general format "a fixed-point integer
 // literal", so each such position is a literal position a constant-name stands in (§13.10.4 GR1: "as if literal-1 …
 // were written where constant-name-1 is written"). The grammar cannot tell a constant-name from any other user
-// word, so the alternative is `cobolWord` and the BINDER substitutes (DataBinder.IntegerOperandValue — the ONE
+// word, so the alternative is `cobolWord` and the BINDER substitutes (ConstantEntryBinder.IntegerOperandValue — the ONE
 // reader, which also asks the §5.5 1) unsigned and nonzero questions of the value the constant substitutes). A clause
 // whose integer position takes this rule is classified by the CLAUSE that owns it (IntegerOperandRules.Slots), never
 // by this rule, so the zero permissions stay per clause. The OCCURS bounds, the report-writer LINE / COLUMN / NEXT

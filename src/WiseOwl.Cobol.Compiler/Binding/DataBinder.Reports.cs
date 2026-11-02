@@ -1256,12 +1256,12 @@ public sealed partial class DataBinder
                 if (page.integerOperand() is { } limit)
                 {
                     model.Paged = true;
-                    writtenLimit = IntegerOperandValue(limit, rdWhere);
-                    model.PageLimit = writtenLimit ?? RecoveredIntegerOperand;
+                    writtenLimit = Constants.IntegerOperandValue(limit, rdWhere);
+                    model.PageLimit = writtenLimit ?? ConstantEntryBinder.RecoveredIntegerOperand;
                 }
                 if (page.reportPageWidth() is { } width)
                 {
-                    model.PageWidth = IntegerOperandValue(width.integerOperand(), rdWhere) ?? RecoveredIntegerOperand;
+                    model.PageWidth = Constants.IntegerOperandValue(width.integerOperand(), rdWhere) ?? ConstantEntryBinder.RecoveredIntegerOperand;
                     model.PageWidthWritten = true;
                 }
                 // §13.18.39.2 prints each phrase in its own bracket with no ellipsis; SR4 licenses any ORDER,
@@ -1281,8 +1281,8 @@ public sealed partial class DataBinder
                 var writtenPhrases = new List<(PagePhrase Phrase, int Value, Core.ReportPageSubclauseContext Ctx)>();
                 foreach (var sub in subs)
                 {
-                    int? written = IntegerOperandValue(sub.integerOperand(), rdWhere);
-                    int v = written ?? RecoveredIntegerOperand;
+                    int? written = Constants.IntegerOperandValue(sub.integerOperand(), rdWhere);
+                    int v = written ?? ConstantEntryBinder.RecoveredIntegerOperand;
                     if (written is { } w) writtenPhrases.Add((PagePhraseOf(sub), w, sub));
                     switch (PagePhraseOf(sub))
                     {
@@ -1375,7 +1375,7 @@ public sealed partial class DataBinder
             return new ReportCodeModel { Literal = LiteralCharsOf(lit, sr11: false), Written = lit.GetText() };
         }
         var dref = cc.dataReference();
-        if (ConstantOf(dref) is { } k)
+        if (Constants.ConstantOf(dref) is { } k)
         {
             if (k.Category != PicCategory.Alphanumeric)
             {
@@ -1669,7 +1669,7 @@ public sealed partial class DataBinder
             BindReportEntries(entries, start, end, model, st);
             if (constant is null) continue;
             using var _ = Edition.At(constant);
-            BindConstantEntry(constant, constant.levelNumber(), constant.dataName(), constant.constantEntryBody());
+            Constants.BindConstantEntry(constant, constant.levelNumber(), constant.dataName(), constant.constantEntryBody());
             st.Group = null;
         }
         SealSumCounters(model);
@@ -1737,7 +1737,7 @@ public sealed partial class DataBinder
                 ? new ReportNextGroup(ReportNextGroupKind.NextPage, 0, ngc.RESET() is not null)
                 : new ReportNextGroup(ngc.reportRelativeSign() is not null
                     ? ReportNextGroupKind.Relative : ReportNextGroupKind.Absolute,
-                    IntegerOperandValue(ngc.integerOperand(), $"RD '{model.Name}' group '{g.Name ?? "FILLER"}'") ?? RecoveredIntegerOperand);
+                    Constants.IntegerOperandValue(ngc.integerOperand(), $"RD '{model.Name}' group '{g.Name ?? "FILLER"}'") ?? ConstantEntryBinder.RecoveredIntegerOperand);
             g.NextGroup = ng;
             string where = $"RD '{model.Name}' group '{g.Name ?? "FILLER"}' ({ReportGroupTypeWords(g.Kind)})";
             void Violation(string rule) =>
@@ -2177,7 +2177,7 @@ public sealed partial class DataBinder
                     bool absolute = op.integerOperand() is not null && op.reportRelativeSign() is null;
                     if (op.integerOperand() is { } lit)
                     {
-                        if ((IntegerOperandValue(lit, $"RD '{model.Name}' entry") ?? RecoveredIntegerOperand) > model.VerticalLimit)
+                        if ((Constants.IntegerOperandValue(lit, $"RD '{model.Name}' entry") ?? ConstantEntryBinder.RecoveredIntegerOperand) > model.VerticalLimit)
                             Violation($"{(absolute ? "integer-1" : "integer-2")} {lit.GetText()} exceeds {model.VerticalLimitWords}"
                                 + "; neither integer-1 nor integer-2 shall exceed the page limit, or 9999 if the report "
                                 + "is not divided into pages (ISO §13.18.35.3 SR3)");
@@ -2230,7 +2230,7 @@ public sealed partial class DataBinder
                 foreach (var op in cc.reportColumnOperand())
                 {
                     if (op.reportRelativeSign() is not null || op.integerOperand() is not { } lit) continue;
-                    if (IntegerOperandValue(lit, where) is not { } v) continue;
+                    if (Constants.IntegerOperandValue(lit, where) is not { } v) continue;
                     if (last is { } previous && v <= previous)
                         Edition.Error(DiagnosticCatalog.ReportColumnClauseRule, $"{where}: in a multiple COLUMN clause all the "
                             + $"occurrences of integer-1 shall be in increasing order of magnitude — {v} follows {previous} "
@@ -2653,7 +2653,7 @@ public sealed partial class DataBinder
                 continue;
             }
             // c) "The occurrences of integer-1, if present, shall be in ascending numerical order."
-            int v = IntegerOperandValue(lit, $"RD '{model.Name}' entry") ?? RecoveredIntegerOperand;
+            int v = Constants.IntegerOperandValue(lit, $"RD '{model.Name}' entry") ?? ConstantEntryBinder.RecoveredIntegerOperand;
             if (lastAbsolute > int.MinValue && v <= lastAbsolute)
                 Edition.Error(DiagnosticCatalog.ReportLineClauseRule, $"RD '{model.Name}': in a multiple LINE clause the "
                     + $"occurrences of integer-1 shall be in ascending numerical order — {v} follows "
@@ -2704,9 +2704,9 @@ public sealed partial class DataBinder
         var bounds = oc.integerOperand();
         bool hasTo = oc.TO() is not null;
         var depending = oc.dataReference();
-        int? step = oc.occursStepPhrase() is { } sp ? IntegerOperandValue(sp.integerOperand(), where) ?? RecoveredIntegerOperand : null;
-        int max = IntegerOperandValue(bounds[^1], where) ?? 0;
-        int min = hasTo ? IntegerOperandValue(bounds[0], where) ?? 0 : 0;
+        int? step = oc.occursStepPhrase() is { } sp ? Constants.IntegerOperandValue(sp.integerOperand(), where) ?? ConstantEntryBinder.RecoveredIntegerOperand : null;
+        int max = Constants.IntegerOperandValue(bounds[^1], where) ?? 0;
+        int min = hasTo ? Constants.IntegerOperandValue(bounds[0], where) ?? 0 : 0;
 
         // SR24 — "The TO and DEPENDING phrases shall either be both absent or both present."
         if (hasTo != (depending is not null))
@@ -2863,7 +2863,7 @@ public sealed partial class DataBinder
             if (clause.pictureClause()?.PIC_STRING() is { } pic)
                 // The SAME character-position count the print columns use (§13.18.14.4 GR9), through the ONE rule.
                 return PictureAnalyzer.Analyze(
-                    UnitHasConstants ? ExpandPicConstants(pic.GetText(), "", diagnose: false) : pic.GetText(),
+                    Constants.UnitHasConstants ? Constants.ExpandPicConstants(pic.GetText(), "", diagnose: false) : pic.GetText(),
                     Usage.Display, Edition,
                     $"RD '{model.Name}' repeating entry", null, currencies: State.Configuration.CurrencySigns,
                     decimalPointIsComma: State.Configuration.DecimalPointIsComma) is { } p ? DataItem.DisplayTextWidthOf(p) : null;
@@ -2996,8 +2996,8 @@ public sealed partial class DataBinder
                     foreach (var op in cc.reportColumnOperand())
                     {
                         bool relative = op.reportRelativeSign() is not null;
-                        int column = IntegerOperandValue(op.integerOperand(), $"RD '{model.Name}' entry '{entryName ?? "FILLER"}'")
-                            ?? RecoveredIntegerOperand;
+                        int column = Constants.IntegerOperandValue(op.integerOperand(), $"RD '{model.Name}' entry '{entryName ?? "FILLER"}'")
+                            ?? ConstantEntryBinder.RecoveredIntegerOperand;
                         // §13.18.14.3 SR6 — "Neither integer-1 nor integer-2 shall exceed the page width": the
                         // absolute column and the relative offset are both written integers, so the rule is
                         // decidable here against ReportModel.PageWidth (the PAGE clause's integer-2, else GR5's 999).
@@ -3429,7 +3429,7 @@ public sealed partial class DataBinder
     {
         bool nextPage = groupFirstLine && op.NEXT() is not null;
         bool relative = op.reportRelativeSign() is not null || op.integerOperand() is null;
-        int value = op.integerOperand() is { } lit ? IntegerOperandValue(lit, "a report group description entry") ?? RecoveredIntegerOperand : BareNextPageInterval;
+        int value = op.integerOperand() is { } lit ? Constants.IntegerOperandValue(lit, "a report group description entry") ?? ConstantEntryBinder.RecoveredIntegerOperand : BareNextPageInterval;
         int shift = st.Shift(ReportRepetitionAxis.Vertical);
         bool anchored = st.Repetitions.Exists(
             r => r.Spec.Axis == ReportRepetitionAxis.Vertical && r.Spec.Step is not null);
@@ -3529,7 +3529,7 @@ public sealed partial class DataBinder
                 foreach (var op in lc.reportLineOperand())
                 {
                     if (op.integerOperand() is not { } lit) continue;
-                    int v = IntegerOperandValue(lit, "a report group description entry") ?? RecoveredIntegerOperand;
+                    int v = Constants.IntegerOperandValue(lit, "a report group description entry") ?? ConstantEntryBinder.RecoveredIntegerOperand;
                     if (op.reportRelativeSign() is not null)
                     {
                         anyRelative = true;
@@ -3754,7 +3754,7 @@ public sealed partial class DataBinder
     /// (SR3 then asks the entry for a numeric item, a non-numeric constant is §8.8.1.1's refusal), never an
     /// identifier that fails to resolve in storage. SOURCE and SUM both ask it here, so neither can drift.</summary>
     private Core.DataReferenceContext? IdentifierOperandOf(Core.ReportValueOperandContext op) =>
-        BareReferenceOf(op) is { } dref && ConstantOf(dref) is null ? dref : null;
+        BareReferenceOf(op) is { } dref && Constants.ConstantOf(dref) is null ? dref : null;
 
     /// <summary>Bind ONE SOURCE clause operand (ISO §13.18.53.2 — the clause writes
     /// `{ identifier-1 | arithmetic-expression-1 } …`). identifier-1 is §13.18.53.4 GR1's implicit MOVE sender; an

@@ -30,13 +30,13 @@ public sealed class InheritedGlobals
     /// <summary>One inherited GLOBAL constant: its folded definition and the containment distance of the container that
     /// declared it (1 = the direct container) — the tier <see cref="InheritStep.DropShadowed"/> weighs against a
     /// same-spelled name's (kb/Work PB1047).</summary>
-    public readonly record struct InheritedConstant(DataBinder.ConstantDef Definition, int Depth);
+    public readonly record struct InheritedConstant(ConstantDef Definition, int Depth);
 
     /// <summary>The GLOBAL constant-names of every containing program, nearest container first (ISO §13.18.27.4 GR1–GR2:
     /// "A constant-name, data-name, file-name, report-name, or screen-name described using a GLOBAL clause is a global
     /// name", and a contained program "may reference that name without describing it again"; kb/Work PB1009). A constant
     /// occupies no storage, so it needs no bridge: the container's folded definition is read here, after the unit's own
-    /// constants (<c>DataBinder.FindConstant</c>: a local constant entry of the spelling hides the inherited one, §8.4.6), and
+    /// constants (<c>ConstantEntryBinder.FindConstant</c>: a local constant entry of the spelling hides the inherited one, §8.4.6), and
     /// it leaves this table when a data-name declared NEARER hides it (<see cref="InheritStep.DropShadowed"/>; ISO
     /// §8.4.6.2.1 3) a)). Written before the unit's first data phase (definition precedes reference, the §13.10.4 GR1
     /// substitution model).</summary>
@@ -129,7 +129,7 @@ public sealed class InheritedGlobals
     /// <summary>Record one containing program's GLOBAL constants, <paramref name="depth"/> containment levels out, the
     /// nearer container's kept. <paramref name="visible"/> is what the container's binder offers
     /// (<c>DataBinder.GlobalConstantsToInherit</c>). <see cref="InheritStep"/> only.</summary>
-    internal void AddContainerConstants(IEnumerable<KeyValuePair<string, DataBinder.ConstantDef>> visible, int depth)
+    internal void AddContainerConstants(IEnumerable<KeyValuePair<string, ConstantDef>> visible, int depth)
     {
         foreach (var (name, def) in visible)
             if (def.IsGlobal)

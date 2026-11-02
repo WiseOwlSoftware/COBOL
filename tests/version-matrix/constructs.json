@@ -1272,7 +1272,7 @@
   {
    "id": "constant-entry-2002",
    "status": "active",
-   "description": "Constant entry (01 name CONSTANT [IS GLOBAL] AS {literal | arith-expr | LENGTH OF} | FROM cv, §13.10) — mandatory 2002-era core (roadmap D5); PROVISIONAL pre-2023 edge (zero Annex E hits ⇒ predates 2023). ACTIVE as of P10 Step 15: a COMPILE-TIME substitution (§13.10.4 GR1/GR3 — references substitute the literal; no storage) bound into DataBinder.Constants.cs; the §13.10 SRs are COBOL1547; the introduction gate is the VersionConformancePass parse arm (VisitConstantEntryBody).",
+   "description": "Constant entry (01 name CONSTANT [IS GLOBAL] AS {literal | arith-expr | LENGTH OF} | FROM cv, §13.10) — mandatory 2002-era core (roadmap D5); PROVISIONAL pre-2023 edge (zero Annex E hits ⇒ predates 2023). ACTIVE as of P10 Step 15: a COMPILE-TIME substitution (§13.10.4 GR1/GR3 — references substitute the literal; no storage) bound into ConstantEntryBinder.cs; the §13.10 SRs are COBOL1547; the introduction gate is the VersionConformancePass parse arm (VisitConstantEntryBody).",
    "display": "constant entry (01 … CONSTANT AS)",
    "diagnosticCode": "COBOL0900",
    "citation": "ISO §13.10; D5",

@@ -261,6 +261,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <see cref="State"/>.</summary>
     internal ProcedureBindState Procedure { get; } = new();
 
+    /// <summary>The unit's CONSTANT-entry binder (<see cref="ConstantEntryBinder"/>; ISO §13.10, kb/Work PB2358): its
+    /// constant tables and the readers of a constant-name — the substitution lookup, the integer positions, the PICTURE
+    /// repetition and the VALUE operand.</summary>
+    internal ConstantEntryBinder Constants => field ??= new ConstantEntryBinder(this);
+
     /// <summary>All SELECTed files (the SELECT clause joined with its FD records), in source order.
     /// (READ-ONLY view — P6 Step 5. The bind-phase file-connector qualification mutates the FileModel ELEMENTS,
     /// which a read-only list does not prevent — element immutability is a later data-model-track item.)</summary>
@@ -389,7 +394,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // reference may name a constant entry that follows it — in SPECIAL-NAMES, in an earlier section, or earlier in
         // the same one (kb/Work PB1231; §13.10.3 SR4/SR5 forbid only a circular dependence). FindConstant binds an
         // entry on demand; BindRemainingConstants, after the last section, binds the rest.
-        DeclareDataEntries(program.dataDivision());
+        Constants.DeclareDataEntries(program.dataDivision());
 
         // §11.9.4 GR1: a contained program's OPTIONS start from its container's model and override clause by
         // clause (ConfigurationStep set the baseline); an outermost unit starts from the all-defaults model.
@@ -397,7 +402,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // (§13.10.3 SR2), and FindConstant binds one on demand (kb/Work PB780).
         var configuration = State.Configuration;
         configuration.Options = OptionsBinder.BindParagraph(configuration.OptionsParagraph ?? OptionsBinder.ParagraphOf(program), Edition,
-            configuration.InheritedOptions, FindConstant);   // captured even when there is no WORKING-STORAGE
+            configuration.InheritedOptions, Constants.FindConstant);   // captured even when there is no WORKING-STORAGE
 
         // §12.3.3 SR1: "The configuration section shall not be specified in a program that is contained within
         // another program" — the container's applies (§12.3.4 GR1, ConfigurationStep). Diagnosed, then the
@@ -544,7 +549,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             foreach (var constant in scr.constantEntry())
             {
                 using var _ = Edition.At(constant);
-                BindConstantEntry(constant, constant.levelNumber(), constant.dataName(), constant.constantEntryBody());
+                Constants.BindConstantEntry(constant, constant.levelNumber(), constant.dataName(), constant.constantEntryBody());
             }
         }
 
@@ -565,7 +570,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
         // The constant entries nothing has needed yet — a length phrase waiting for an operand described after it
         // binds here, with its operand bound (kb/Work PB1231).
-        BindRemainingConstants();
+        Constants.BindRemainingConstants();
 
         // The containers' GLOBAL data and reports (§13.18.27.4 GR1/GR2), now that this unit's own names are all
         // declared and before any clause of this data division resolves the names it uses (BindResolve).
@@ -858,7 +863,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // condition-name misbind. (P10 Step 15; DataBinder.Constants.cs.)
             if (entry.dataDescriptionBody().constantEntryBody() is { } constBody)
             {
-                BindConstantEntry(entry, entry.levelNumber(), entry.dataName(), constBody);
+                Constants.BindConstantEntry(entry, entry.levelNumber(), entry.dataName(), constBody);
                 // A constant entry describes NO data item, so a level-88 entry written after one has no
                 // conditional variable to associate with (ISO §13.16.3 SR24 — "the entry describing the item"); and
                 // it ends the record description before it, so nothing stays open for a 02-49 or 66 entry to join.
@@ -1244,14 +1249,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 {
                     using var rsv = Edition.At(res);
                     reserveAt = res;
-                    file.ReserveAreas = IntegerOperandValue(res.integerOperand(), $"file '{name}' RESERVE clause")
-                        ?? RecoveredIntegerOperand;
+                    file.ReserveAreas = Constants.IntegerOperandValue(res.integerOperand(), $"file '{name}' RESERVE clause")
+                        ?? ConstantEntryBinder.RecoveredIntegerOperand;
                     if (file.ReserveAreas > WiseOwl.Cobol.Runtime.IO.HostFile.MaxInputOutputAreas)
                     {
                         Edition.Error(DiagnosticCatalog.ReserveAreasBeyondLimit,
                             $"file '{name}': RESERVE {file.ReserveAreas} AREAS exceeds this implementation's limit of "
                             + $"{WiseOwl.Cobol.Runtime.IO.HostFile.MaxInputOutputAreas} input-output areas (ISO §4.2.15)");
-                        file.ReserveAreas = RecoveredIntegerOperand;
+                        file.ReserveAreas = ConstantEntryBinder.RecoveredIntegerOperand;
                     }
                 }
                 // RECORD DELIMITER clause (ISO §12.4.5.11) — DECLINED, ACCEPT-INERT, and diagnosed by name at
@@ -2175,12 +2180,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // A constant-name stands for integer-1 (§13.10.3 SR2) and is read by the ONE integer-n reader; a refused
             // one is reported there and leaves the width unset, so it cascades into no size diagnostic.
             if (rc.integerOperand() is { Length: > 0 } fixedOps)
-                file.RecordContains = IntegerOperandValue(fixedOps[0], recWhere);
+                file.RecordContains = Constants.IntegerOperandValue(fixedOps[0], recWhere);
             return;
         }
         var lits = rc.integerOperand();
-        int? lo = lits.Length > 0 ? IntegerOperandValue(lits[0], recWhere) : null;
-        int? hi = lits.Length > 1 ? IntegerOperandValue(lits[1], recWhere) : null;
+        int? lo = lits.Length > 0 ? Constants.IntegerOperandValue(lits[0], recWhere) : null;
+        int? hi = lits.Length > 1 ? Constants.IntegerOperandValue(lits[1], recWhere) : null;
         if (rc.TO() is not null && lits.Length == 1) { hi = lo; lo = null; }
         string? dep = null;
         IReadOnlyList<string> depQuals = [];
@@ -2211,7 +2216,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         using var _ = Edition.At(bc);
         var values = new List<long?>();
         foreach (var operand in bc.integerOperand())
-            values.Add(IntegerOperandValue(operand, $"file '{fileName}' BLOCK CONTAINS clause"));
+            values.Add(Constants.IntegerOperandValue(operand, $"file '{fileName}' BLOCK CONTAINS clause"));
         // ⛔ §13.18.10.3 SR1 — "If integer-1 is specified, integer-2 shall be greater than integer-1." The ORDERED-PAIR
         // rule RECORD CONTAINS / RECORD IS VARYING already states for their pairs (RecordClauseRules, SR5 / SR9), under
         // the same code: equal bounds break it as surely as inverted ones (kb/Work PB1217). An operand whose reading was
@@ -2249,11 +2254,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // "data-name-1 or integer-1": a bare word that names a CONSTANT is the integer-1 arm — the parse cannot tell
             // it from a data-name (§13.10.3 SR2; kb/Work PB1948) — and the constant's integer is a literal operand
             // from here on (§13.18.34.3 SR3 and GR6a read it as the written literal).
-            if (ConstantOf(d!) is not null)
+            if (Constants.ConstantOf(d!) is not null)
             {
                 using var cst = Edition.At(d!);
                 return new LinageOperand(
-                    ConstantOperandValue(d!, "LINAGE clause operand") ?? RecoveredIntegerOperand, null) { At = Edition.Cursor };
+                    Constants.ConstantOperandValue(d!, "LINAGE clause operand") ?? ConstantEntryBinder.RecoveredIntegerOperand, null) { At = Edition.Cursor };
             }
             var (name, quals) = ClauseDataName(d!, "LINAGE clause operand");
             using var _ = Edition.At(d!);
@@ -4885,7 +4890,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // container's alphabet-names, and "a source element's reference to such a name, even when it is a
         // different type of user-defined word, is to the item which that source element describes" (§8.4.6.1;
         // kb/Work PB3153), so the element's own constant-name of the spelling keeps its literal-2 reading.
-        return dref.GetText() is var word && IsAlphabetName(word) && ConstantOf(dref) is null
+        return dref.GetText() is var word && IsAlphabetName(word) && Constants.ConstantOf(dref) is null
             ? (word, last) : (null, null);
     }
 
@@ -5298,8 +5303,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         // asks the value the §5.5 1) questions: a ZERO or over-limit literal was reported pre-bind by
                         // the one integer-n screen (Validation/IntegerOperandPass, COBOL2386 — kb/Work PB859), a
                         // constant is judged here (kb/Work PB1948).
-                        int size = IntegerOperandValue(lp.integerOperand(),
-                            $"data item '{cobolName ?? "FILLER"}' PICTURE … LOCALE SIZE") ?? RecoveredIntegerOperand;
+                        int size = Constants.IntegerOperandValue(lp.integerOperand(),
+                            $"data item '{cobolName ?? "FILLER"}' PICTURE … LOCALE SIZE") ?? ConstantEntryBinder.RecoveredIntegerOperand;
                         pictureLocale = new LocaleEditSpec(locale, Math.Max(1, size), "");
                     }
                 }
@@ -5335,7 +5340,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // is not also judged against an invented bound.
                     if (dl.integerOperand() is { } lim)
                     {
-                        string? limText = IntegerOperandText(lim, $"data item '{cobolName ?? "FILLER"}' DYNAMIC LENGTH LIMIT");
+                        string? limText = Constants.IntegerOperandText(lim, $"data item '{cobolName ?? "FILLER"}' DYNAMIC LENGTH LIMIT");
                         if (limText is not null)
                         {
                             dynLengthLimitText = limText;
@@ -5552,8 +5557,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // An integer constant-name may specify repetition in a PICTURE character-string (ISO §13.10.3 SR2 second
         // sentence → §13.18.40): expand `PIC X(K)` to `PIC X(5)` BEFORE Analyze reads the string. Guarded on the
         // unit actually defining constants, so a constant-free program's PICTURE pipeline is untouched.
-        if (pictureText is not null && UnitHasConstants)
-            pictureText = ExpandPicConstants(pictureText, entryWhere);
+        if (pictureText is not null && Constants.UnitHasConstants)
+            pictureText = Constants.ExpandPicConstants(pictureText, entryWhere);
         // The WRITTEN character-string, kept for the screens that cannot run until the forest is complete
         // (§13.18.60.4 GR1's inherited usage — DataItem.PictureText). Captured HERE, before the §13.16.3 SR8
         // recovery below clears `pictureText`.
@@ -6430,7 +6435,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // ExpressionBinder.LiteralAliasOf): a symbolic-character a CONTAINING element declares yields to the
             // element's own constant-name of the spelling (§8.4.6.1; kb/Work PB3153), and its resolution records
             // a §8.3.2.2 use. In one element the two cannot coexist (COBOL2692), so the order decides nothing there.
-            : ConstantValueRawText(op) is { } constantRaw ? NormalizeIfNumericLiteral(constantRaw)
+            : Constants.ConstantValueRawText(op) is { } constantRaw ? NormalizeIfNumericLiteral(constantRaw)
             : SymbolicValueRawText(op) is { } rawBare ? rawBare
             : NormalizeIfNumericLiteral(op.GetText());
     }
@@ -6462,7 +6467,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // counted a literal here, `PIC X VALUE NULL` stored LOW-VALUE).
             return nn.predefinedNull() is null
                 && (nn.figurativeConstant()?.cobolWord()?.GetText() is not { } symWord
-                || NamesSymbolic(symWord) || FindConstant(symWord) is not null);
+                || NamesSymbolic(symWord) || Constants.FindConstant(symWord) is not null);
         // §8.3.3.3.2 rule 2 makes a written sign part of the numeric literal — ONE sign, as its leftmost
         // character — so `VALUE -9999` is literal-1, while `--5`, `+-5` and `- 5` are no literal at all (kb/Work
         // PB1445: this arm used to strip ANY number of signs, and `VALUE --5` reached the C# backend as a
@@ -6479,7 +6484,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // sign-stripping lookup here would have called it a literal while ConstantValueRawText, which does not
         // strip, still fell through — re-opening the very sink PB732 closed, on `-K` instead of `K`.
         return BareValueOperandWord(op) is { } dref
-            && (ConstantOf(dref) is not null || NamesSymbolic(dref));
+            && (Constants.ConstantOf(dref) is not null || NamesSymbolic(dref));
     }
 
     /// <summary>The BARE (unqualified, unsubscripted, UNSIGNED) word reference a VALUE operand reduces to, or
@@ -6491,7 +6496,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <para>An operand whose trailing <c>IN alphabet-name-1</c> the parser took as a qualifier answers with the
     /// reference WITHOUT that suffix (<see cref="_alphabetPeeledOperands"/>, kb/Work PB983), so every reader sees
     /// the word the symbol decided.</para></summary>
-    private Core.DataReferenceContext? BareValueOperandWord(Core.ValueClauseOperandContext op) =>
+    internal Core.DataReferenceContext? BareValueOperandWord(Core.ValueClauseOperandContext op) =>
         _alphabetPeeledOperands.TryGetValue(op, out var peeled) ? peeled : WrittenValueOperandWord(op);
 
     /// <summary>The sole-child walk <see cref="BareValueOperandWord"/> answers with when no phrase was peeled.</summary>
@@ -6759,8 +6764,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             return (literal, literal);
         }
         string word = sub.cobolWord().GetText();
-        if (FindConstant(word) is { Category: PicCategory.Numeric, IntegerText: { } integer }) return (integer, word);
-        if (IsFailedConstant(word)) return null;   // its own entry was reported
+        if (Constants.FindConstant(word) is { Category: PicCategory.Numeric, IntegerText: { } integer }) return (integer, word);
+        if (Constants.IsFailedConstant(word)) return null;   // its own entry was reported
         using var at = Edition.At(sub);
         Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: the subscript '{word}' is not an integer "
             + "constant-name — subscript-1 and subscript-2 shall be integer numeric literals (ISO §13.18.63.3 SR19), and "

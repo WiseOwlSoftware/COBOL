@@ -53,7 +53,7 @@ public sealed class OoMethodDataScope
     /// condition-name, an index-name, a named CAPACITY register (§13.18.38.3 SR30 makes the register a data-name of
     /// the method that declares its table), a type-name (<see cref="TypeDecls"/>, kb/Work PB3192) or a constant-name
     /// (kb/Work PB3164: the method's constant entries live in <see cref="Constants"/>) — or names it in a data
-    /// description entry whose bind has not begun yet (<see cref="DataBinder.ConstantScope.OtherWords"/>, declared
+    /// description entry whose bind has not begun yet (<see cref="ConstantEntryBinder.ConstantScope.OtherWords"/>, declared
     /// before any entry binds): while the method's data division binds, a later entry's word already hides the
     /// object's declaration of it, so a reference to it waits for the method's own entry (kb/Work PB3192: a method
     /// constant's <c>LENGTH OF W</c> measured the object's <c>W</c> when the method's <c>W</c> followed it). ⛔ EVERY NAME INDEX OF THIS SCOPE, asked here beside the indexes themselves: when the
@@ -73,9 +73,9 @@ public sealed class OoMethodDataScope
 
     /// <summary>The method's own CONSTANT entries, and the other words its data division defines, which hide a constant
     /// of the containing object or factory definition (§11.7.4 GR5; kb/Work PB3164): read first by
-    /// <see cref="DataBinder.FindConstant"/> while the method's data or statements bind, and invisible to every other
+    /// <see cref="ConstantEntryBinder.FindConstant"/> while the method's data or statements bind, and invisible to every other
     /// element.</summary>
-    internal DataBinder.ConstantScope Constants { get; } = new();
+    internal ConstantEntryBinder.ConstantScope Constants { get; } = new();
 }
 
 /// <summary>
@@ -96,7 +96,7 @@ public sealed partial class DataBinder
     /// (a constant's <c>LENGTH OF</c> operand, a TYPE clause's type-name) is answered from the method first (§11.7.4 GR5)
     /// exactly as one its statements make — <see cref="ActiveScope"/> used to read only the statement half, so the
     /// method's own data-names were invisible to its own data division.</summary>
-    private OoMethodDataScope? CurrentMethodScope => Procedure.ActiveMethodScope.Current ?? _bindingMethodScope;
+    internal OoMethodDataScope? CurrentMethodScope => Procedure.ActiveMethodScope.Current ?? _bindingMethodScope;
 
     /// <summary>Whether the method a reference is made in (<see cref="CurrentMethodScope"/>) declares <paramref name="word"/>
     /// as a data-name, a condition-name, an index-name, a CAPACITY register, a type-name or a constant-name of its own
@@ -344,7 +344,7 @@ public sealed partial class DataBinder
     /// <summary>Set while a METHOD's declarations are bound or collected (<see cref="EnterMethodDeclarations"/>):
     /// INDEXED BY index-names register into the method's own scope, never the unit's (M2-OO-1h step 4), and every
     /// user-defined word lands in the method's own §8.3.2.2 census (kb/Work PB2921). Null at program/object scope.</summary>
-    private OoMethodDataScope? _bindingMethodScope;
+    internal OoMethodDataScope? _bindingMethodScope;
 
     /// <summary>The METHOD whose data entries are being bound (<see cref="OoBindMethodData"/>; cleared with the declaration
     /// scope, <see cref="MethodDeclarationScope"/>), null otherwise: every record and type declaration its entries open is
@@ -420,13 +420,13 @@ public sealed partial class DataBinder
             // The method's constant entries are declared before its OPTIONS paragraph and its sections bind, so one may be
             // referenced before the entry that defines it (kb/Work PB1231); BindRemainingConstants below binds what
             // nothing needed.
-            if (dd is not null) DeclareDataEntries(dd);
+            if (dd is not null) Constants.DeclareDataEntries(dd);
             // §10.6.1's method skeleton prints [options-paragraph] (kb/Work PB135): fold it over the class
             // channel's model per §11.9.4 GR1; the roster swaps it in around this method's body bind. Bound inside the
             // method's scope, after its constant entries are declared: the INITIALIZE clause's literal-1 may be one of
             // its constant-names, or one of its object's (§13.10.3 SR2, §8.4.6.2.2; kb/Work PB780).
             if (m.Ctx.optionsParagraph() is { } mo)
-                m.MethodOptions = OptionsBinder.BindParagraph(mo, Edition, State.Configuration.Options, FindConstant);
+                m.MethodOptions = OptionsBinder.BindParagraph(mo, Edition, State.Configuration.Options, Constants.FindConstant);
             if (dd is not null)
             {
                 // The sections a method definition may not carry — FILE, WORKING-STORAGE, REPORT, SCREEN (§13.4.3,
@@ -449,7 +449,7 @@ public sealed partial class DataBinder
                     m.Binding!.LocalRoots.AddRange(BindEntries(ls.dataDescriptionEntry(), _rootNames, EntrySection.LocalStorage));
                 if (dd.linkageSection() is { } lk)
                     m.Binding!.LinkageRoots.AddRange(BindEntries(lk.dataDescriptionEntry(), _rootNames, EntrySection.Linkage));
-                BindRemainingConstants();
+                Constants.BindRemainingConstants();
             }
         }
 

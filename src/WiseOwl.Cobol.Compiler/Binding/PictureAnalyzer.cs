@@ -895,7 +895,7 @@ public static class PictureAnalyzer
     /// whose value is 1 — SR6 of §13.18.40.3: the parenthesized integer "indicates the number of consecutive
     /// occurrences of the symbol", so <c>X</c>, <c>X(1)</c>, <c>X(01)</c> and <c>N(001)</c> all denote one. The
     /// factor is read by <see cref="TryRepetitionFactor"/>, the ONE reader of a factor, so a constant-name factor
-    /// (rewritten to its integer by <c>DataBinder.ExpandPicConstants</c> before any caller asks) is covered too.
+    /// (rewritten to its integer by <c>ConstantEntryBinder.ExpandPicConstants</c> before any caller asks) is covered too.
     /// The two clauses used to carry two different spellings of this test — a closed list of six strings for ANY
     /// LENGTH, a count-1 regex for DYNAMIC LENGTH — so <c>PIC X(01) ANY LENGTH</c> was refused while its DYNAMIC
     /// LENGTH twin compiled.</summary>

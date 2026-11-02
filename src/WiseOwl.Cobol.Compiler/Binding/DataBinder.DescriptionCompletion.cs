@@ -81,7 +81,7 @@ public sealed partial class DataBinder
     /// <summary>Complete <paramref name="item"/>'s description now — the subtree's SR9 implied PICTUREs, TYPE and SAME
     /// AS expansions, and §13.18.60.4 GR1 / §13.18.52 GR1 inheritance from its ancestors — unless it, or a subtree
     /// holding it, is complete already. See the class remarks.</summary>
-    private void CompleteDescriptionAhead(DataItem item)
+    internal void CompleteDescriptionAhead(DataItem item)
     {
         for (var d = item; d is not null; d = d.Parent)
             if (_completedAhead.Contains(d)) return;
@@ -125,7 +125,7 @@ public sealed partial class DataBinder
     /// (§13.10.3 SR4). V's item exists with every clause but its bounds applied, so its composition is complete; only a
     /// group whose subordinate ENTRIES are still being described is not (<see cref="HasSubordinatesBeingDescribed"/>),
     /// and measuring V itself stays the SR4 cycle (<see cref="LengthOperandItem"/>).</para></summary>
-    private bool ComposePendingSubjectsAhead()
+    internal bool ComposePendingSubjectsAhead()
     {
         var pending = _entryItems.Values
             .Where(i => (i.TypeRefName is not null || i.SameAsName is not null)

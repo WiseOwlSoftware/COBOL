@@ -179,7 +179,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
 
     /// <summary>⛔ THE ONE OWN-ITEM TEST (kb/Work PB3153): does the REFERRING element itself describe an item that
     /// <paramref name="dref"/> names, either a data item (<see cref="Probe"/>) or a constant-name (a bare word only,
-    /// <see cref="DataBinder.ConstantOf"/>)? A contained program or a method sees the SPECIAL-NAMES and REPOSITORY
+    /// <see cref="ConstantEntryBinder.ConstantOf"/>)? A contained program or a method sees the SPECIAL-NAMES and REPOSITORY
     /// names its container declares, and "a source element's reference to such a name, even when it is a different
     /// type of user-defined word, is to the item which that source element describes" (§8.4.6.1). So every position
     /// whose format admits both an inherited configuration-section name and an operand asks THIS first, and takes
@@ -189,7 +189,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// review finding: an own <c>01 LVL CONSTANT AS 1</c> in STANDARD-COMPARE's argument-4 position was claimed as
     /// the inherited ordering-name). Diagnostic-free, like <see cref="Probe"/>.</summary>
     public bool DescribesOwnItem(Core.DataReferenceContext dref) =>
-        data.ConstantOf(dref) is not null || Probe(dref) is not null;
+        data.Constants.ConstantOf(dref) is not null || Probe(dref) is not null;
 
     /// <summary>What a <see cref="Probe"/> may tell its caller: the resolved <see cref="DataItem"/>, the
     /// operand CATEGORY of the reference (§8.4.3.3.4 GR6 for a reference-modified one — <see cref="RefModPlace"/>'s
@@ -3109,7 +3109,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
         // §13.10.4 GR1/GR3 — a subscript is a literal position, §8.4.2.3.2) — its VALUE is the position, read by THE ONE
         // integer-literal reader (kb/Work PB1579).
         if (qualifiers.Count == 0
-            && data.FindConstant(name) is { Category: PicCategory.Numeric, IntegerText: { } integer })
+            && data.Constants.FindConstant(name) is { Category: PicCategory.Numeric, IntegerText: { } integer })
             return HostPosition(integer);
         // A report VARYING counter in scope (§13.18.64.4 GR4's NOTE: "data-name-1 [may] be used … as a subscript to a source
         // data item") is the compose-local integer the placement declares; it is no data item and has no scale.

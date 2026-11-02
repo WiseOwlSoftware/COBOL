@@ -41,7 +41,7 @@ internal static class InheritStep
             // this unit binds, and a local data-name shadows them after (Merge). EVERY container, nearest first (the
             // nearest global declaration wins): an intermediate program's own NON-global declaration of the name hides
             // nothing from the programs it contains.
-            inherited.AddContainerConstants(anc.Data.GlobalConstantsToInherit(), ++depth);
+            inherited.AddContainerConstants(anc.Data.Constants.GlobalConstantsToInherit(), ++depth);
             // …its GLOBAL type declarations (§13.18.58.4 GR3; §8.4.6.2.2; kb/Work PB1303): ExpandTypes runs inside the
             // unit's first data phase, so a TYPE clause there already sees the container's type-name.
             inherited.AddContainerTypeDecls(anc.Data.TypeDecls);

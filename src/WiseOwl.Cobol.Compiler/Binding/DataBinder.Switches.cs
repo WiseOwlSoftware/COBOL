@@ -1810,7 +1810,7 @@ public sealed partial class DataBinder
     /// <summary>Does <paramref name="word"/> name a constant here — one of this unit's constant entries (bound, bindable
     /// or refused) or an inherited GLOBAL one? The question a position whose word alternative has a meaning of its own
     /// (an ALPHABET code-name, an external-locale-name) asks before taking that meaning.</summary>
-    private bool NamesConstant(string word) => IsDeclaredConstant(word) || FindConstant(word) is not null;
+    private bool NamesConstant(string word) => Constants.IsDeclaredConstant(word) || Constants.FindConstant(word) is not null;
 
     /// <summary>⛔ THE ONE CONSTANT-NAME READING OF A WORD AT A SPECIAL-NAMES LITERAL POSITION (kb/Work PB1942): literal-1
     /// … literal-9 of §12.3.7.2. ISO §13.10.3 SR2 — "Except in a compiler directive, constant-name-1 may be used anywhere
@@ -1827,8 +1827,8 @@ public sealed partial class DataBinder
     private ConstantDef? SpecialNamesConstant(Core.CobolWordContext word, Action<string> report, string what, string operand)
     {
         string name = word.GetText();
-        if (FindConstant(name) is { } constant) return constant;
-        if (!IsFailedConstant(name))
+        if (Constants.FindConstant(name) is { } constant) return constant;
+        if (!Constants.IsFailedConstant(name))
             report($"{what}: {ConstantReading.NotAConstantMessage(operand, name)}");
         return null;
     }
@@ -1839,8 +1839,8 @@ public sealed partial class DataBinder
     /// a container's GLOBAL constant), answered as a <see cref="ConstantReading"/>, the shape the pre-bind reader
     /// (<see cref="PreBindConstants"/>) gives the AS phrases read before this bind.</summary>
     internal ConstantReading ReadConstant(string name) =>
-        FindConstant(name) is { } k ? ConstantReading.Of(new ConcatFolder.Folded(k.Category, k.Text))
-        : IsFailedConstant(name) ? ConstantReading.Refused
+        Constants.FindConstant(name) is { } k ? ConstantReading.Of(new ConcatFolder.Folded(k.Category, k.Text))
+        : Constants.IsFailedConstant(name) ? ConstantReading.Refused
         : ConstantReading.NotAConstant;
 
     /// <summary>The characters of an alphabet-entry string literal: a §8.8.3.3 GR3 concatenation folded first — in
@@ -2145,7 +2145,7 @@ public sealed partial class DataBinder
                     Core.IntegerOperandContext io when io.integerLiteral() is null => io.cobolWord(),
                     _ => null,
                 };
-                if (word is not null && !afterIs && FindConstant(word.GetText()) is null && !IsFailedConstant(word.GetText()))
+                if (word is not null && !afterIs && Constants.FindConstant(word.GetText()) is null && !Constants.IsFailedConstant(word.GetText()))
                 {
                     names.Add(word);
                     firstIsName ??= true;
@@ -2159,8 +2159,8 @@ public sealed partial class DataBinder
                 {
                     Core.IntegerLiteralContext il => (il.GetText(),
                         (int?)WiseOwl.Cobol.Validation.IntegerOperandRules.HostValue(il)),
-                    Core.IntegerOperandContext io => (io.GetText(), IntegerOperandValue(io, where)),
-                    _ => (word!.GetText(), ConstantIntegerText(word, word.GetText(), where) is { } digits
+                    Core.IntegerOperandContext io => (io.GetText(), Constants.IntegerOperandValue(io, where)),
+                    _ => (word!.GetText(), Constants.ConstantIntegerText(word, word.GetText(), where) is { } digits
                         ? WiseOwl.Cobol.Validation.IntegerOperandRules.HostValue(digits) : null),
                 });
             }
