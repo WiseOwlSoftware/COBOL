@@ -3,7 +3,7 @@
 
     python .claude/skills/workstream/check_practices.py              # every brief in templates/
     python .claude/skills/workstream/check_practices.py <spec.txt…>  # rendered implementer specs
-    python .claude/skills/workstream/check_practices.py <groups.json> <spec.txt…>  # + the one-step-per-file rule (O2)
+    python .claude/skills/workstream/check_practices.py <groups.json> <spec.txt…>  # + the same-member rule (O2)
 
 A practice that lives only in a scratchpad or a transcript is forgotten by the next session (owner 2026-09-23);
 this check is what keeps "automatic" true.
@@ -15,7 +15,7 @@ sys.path.insert(0, str(HERE.parents[2] / 'scripts' / 'orchestrator'))
 import coord  # noqa: E402  (the one definition of the reports directory)
 import once_rule  # noqa: E402  (THE once rule: a sentence, its test and its repair, kb/Work PB4419)
 sys.path.insert(0, str(HERE.parents[2] / 'scripts' / 'arch'))
-import inflight  # noqa: E402  (collision: THE meeting rule of the partition, kb/Work PB3670, PB3696)
+import inflight  # noqa: E402  (hold: the same-member rule of O2, kb/Work PB4452)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[3] / "scripts"))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 from test_population import GATED_ASSEMBLIES  # noqa: E402  (the gate writes one `<assembly>.trx` per entry)
@@ -423,8 +423,8 @@ def main():
         clash = claims_meet(gp)
         if clash:
             bad += 1
-            print(f'FAIL     {gp.name}: groups whose claims meet (a shared file or member): one step per file makes them '
-                  f'ONE group, with an overflow for what one implementer cannot hold, never two (O2, kb/Work PB4396): {clash}')
+            print(f'FAIL     {gp.name}: groups that edit the same member: same-member work is ONE group (its overflow for what '
+                  f'one implementer cannot hold); a shared file alone never refuses a pair (O2, kb/Work PB4452): {clash}')
         else:
             print(f'ok       {gp.name}')
     specs = [a for a in sys.argv[1:] if not a.endswith('.json')]
