@@ -8,8 +8,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// The one program shape and the one compile the parse-recovery tests of <c>CobolErrorStrategy</c> share (kb/Work
-/// PB3843, PB4133, PB4134, PB4173: <see cref="ParseRecoveryTailTests"/>, <see cref="ParseRecoveryDeletionTests"/>,
-/// <see cref="ParseRecoveryUnitTailTests"/>): a free-form program with the files, the sort file and the table every statement under test
+/// PB3843, PB4133, PB4134, PB4173, PB4299: <see cref="ParseRecoveryTailTests"/>, <see cref="ParseRecoveryDeletionTests"/>,
+/// <see cref="ParseRecoveryUnitTailTests"/>, <see cref="ParseRecoveryCascadeTests"/>): a free-form program with the files, the sort file and the table every statement under test
 /// names, and the errors of its check-only compile. Each test asserts the COUNT of diagnostics, never that a code is
 /// present among others.
 /// </summary>

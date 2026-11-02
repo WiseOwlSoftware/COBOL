@@ -69,11 +69,17 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // An embedded precompiler block the parse cannot take here is the block's own fault, which its reading reports
         // (EmbeddedBlockReading.Report, kb/Work PB4341), never a second one naming its text.
         if (token.Type == CobolParserCore.EMBEDDED_BLOCK) return;
+        if (EndsAStatementTheRecoveryLeft(recognizer, at)) return;
         var hints = GuessCobolIntent(recognizer, at);
         if (!HasStructuralHint(hints) && at.Carried is { } carried)
         {
             if (Reported(carried)) return;
             (at, kind, hints) = (carried, ErrorKind.NoViableAlternative, GuessCobolIntent(recognizer, carried));
+            // The prediction closed the construct before the fault: each statement it holds that a terminator closes,
+            // down its last branch, is left before its end (kb/Work PB4382).
+            for (var closed = carried.ClosedEarly; closed is not null; closed = LastRuleChild(closed))
+                if (ClosedByATerminator(recognizer, closed.RuleIndex))
+                    _leftByRecovery.Add((closed.RuleIndex, closed.Start.TokenIndex));
         }
         _lastReported = (Math.Min(at.ParserTokenIndex, at.Token.TokenIndex), at.Token.TokenIndex);
         _orphansItsTail = OrphansItsTail(hints, kind);
@@ -103,8 +109,85 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             ((CobolParserCoreBase)recognizer).ReadAsUserWord(at.Token);
             _reportedReservedWordUse = false;   // the word stays in the source as the name; the recovery has nothing to consume
             _orphansItsTail = false;            // and the construct it is in is not closed early: it is parsed afresh
+            _reparsedFromItsStart = true;       // from the decision's first token (Recover)
         }
     }
+
+    /// <summary>⛔ THE TERMINATOR OF A STATEMENT THE RECOVERY LEFT IS THAT STATEMENT'S OWN (kb/Work PB4382, PB4299 R10).
+    /// A fault caught by the rule of a statement that an explicit scope terminator closes (ISO §14.5.3.2: "The scope of
+    /// a statement may be explicitly terminated by using its associated scope terminator as specified in Table 12")
+    /// ends that rule: ANTLR's generated rule reports, recovers and returns. <c>IF W-N = 1 ELSE DISPLAY W-A END-IF.</c>
+    /// fails at the ELSE where the IF's statement-1 is due (COBOL2072), and <c>IF X NOT &lt;&gt; 1 DISPLAY "C"
+    /// END-IF</c> at the &lt;&gt; of its condition: either way the IF's rule returned, the rest of the IF was parsed as
+    /// the sentence's own statements, and its END-IF met no open IF, a false COBOL0306 "END-IF appears without a
+    /// matching IF statement" for an IF the source holds. So <see cref="Recover"/> records each such statement it
+    /// leaves, as does a report carried into a construct the prediction closed early (<see cref="_leftByRecovery"/>),
+    /// and a terminator of that statement's kind met later in the same unit is that statement's own: it terminates "the
+    /// most-recently preceding unterminated statement having the statement-name for which that scope terminator is
+    /// defined" (§14.5.3.2 1), so the newest record of the kind is searched first), and no separator period stands
+    /// between (a separator period terminates every statement's scope, §14.5.3.3 1) c)). The one fault was reported,
+    /// the recovery consumes the terminator with the rest of the statement, and nothing more is said. Read from the same
+    /// terminator map hint 13 reads, so a statement that gains a terminator is covered.</summary>
+    private bool EndsAStatementTheRecoveryLeft(Parser recognizer, OffendingPosition at)
+    {
+        if (_leftByRecovery.Count == 0 || ScopeTerminator(recognizer, at.Token.Type) is not { } terminator) return false;
+        var stream = (ITokenStream)recognizer.InputStream;
+        for (int i = _leftByRecovery.Count - 1; i >= 0; i--)
+        {
+            var (rule, start) = _leftByRecovery[i];
+            if (HoldsAPeriod(stream, start, at.Token.TokenIndex)) { _leftByRecovery.RemoveRange(0, i + 1); return false; }
+            if (!terminator.Statements.Contains(recognizer.RuleNames[rule])) continue;
+            _leftByRecovery.RemoveAt(i);
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>Does a separator period stand among the tokens from <paramref name="from"/> up to, not including,
+    /// <paramref name="to"/>?</summary>
+    private static bool HoldsAPeriod(ITokenStream stream, int from, int to)
+    {
+        for (int i = from; i < to; i++)
+            if (stream.Get(i).Type == CobolLexer.DOT) return true;
+        return false;
+    }
+
+    /// <summary>The statements whose rule the recovery left before their end, oldest first: each statement's rule and
+    /// the index of its first token (<see cref="EndsAStatementTheRecoveryLeft"/>).</summary>
+    private readonly List<(int Rule, int Start)> _leftByRecovery = [];
+
+    /// <summary>Is <paramref name="rule"/> the rule of a statement an explicit scope terminator closes?</summary>
+    private static bool ClosedByATerminator(Parser recognizer, int rule)
+    {
+        _scopeTerminators ??= BuildScopeTerminators(recognizer);
+        string name = recognizer.RuleNames[rule];
+        return _scopeTerminators.Values.Any(t => t.Statements.Contains(name));
+    }
+
+    /// <summary>The rule of a statement an explicit scope terminator closes that a token of type
+    /// <paramref name="tokenType"/> begins (EVALUATE: <c>evaluateStatement</c>), or null; read once from the ATN.</summary>
+    private static int? TerminatedStatementOpenedBy(Parser recognizer, int tokenType)
+    {
+        if (_terminatedStatementOpeners is null)
+        {
+            _scopeTerminators ??= BuildScopeTerminators(recognizer);
+            var openers = new Dictionary<int, int>();
+            foreach (string name in _scopeTerminators.Values.SelectMany(t => t.Statements))
+            {
+                int rule = Array.IndexOf(recognizer.RuleNames, name);
+                foreach (int type in recognizer.Atn.NextTokens(recognizer.Atn.ruleToStartState[rule]).ToIntegerList())
+                    openers.TryAdd(type, rule);
+            }
+            _terminatedStatementOpeners = openers;
+        }
+        return _terminatedStatementOpeners.TryGetValue(tokenType, out int found) ? found : null;
+    }
+
+    private static Dictionary<int, int>? _terminatedStatementOpeners;
+
+    /// <summary>Did the last report retype a word ahead of the parser so that the construct is parsed afresh from the
+    /// decision's first token (<see cref="ReadsAsTheNameAhead"/>)? Its recovery then resumes there (<see cref="Recover"/>).</summary>
+    private bool _reparsedFromItsStart;
 
     /// <summary>⛔ AN EMBEDDED PRECOMPILER BLOCK STANDS FOR WHAT ITS PRECOMPILER WRITES IN ITS PLACE (kb/Work PB4341,
     /// review R1-1). Before the parse, <see cref="EmbeddedBlockReading"/> made each <c>EXEC … END-EXEC</c> block one
@@ -275,17 +358,43 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// keyword, a header word, and in the data division's form the unsigned integer that may be the next entry's
     /// level-number, kb/Work PB3390), as the production itself would have consumed the run and the 0g Sync the
     /// reserved word after it; the base recovery then finds itself at that token. One refusal per residue, as
-    /// <see cref="Sync"/> gives one.</summary>
+    /// <see cref="Sync"/> gives one.
+    /// <para>⛔ A CONSTRUCT WHOSE OWN PREDICTION FAILED AHEAD OF IT IS NOT PARSED AGAIN FROM ITS FIRST TOKEN (kb/Work
+    /// PB4299, R10). Where the rule that failed began at the decision's first token and every alternative died at a
+    /// later token (<c>ADD TO "X"</c>: the ADD's formats die at the TO), the base recovery resumes AT that first token,
+    /// a statement start, and every enclosing list predicts the same malformed construct from it again and gives up in
+    /// turn: inside <c>IF A = 1 THEN ADD TO "X" ELSE MOVE 1 A END-IF.</c> the IF's block, then the IF itself, ended at
+    /// the ADD, the sentence took it, the ELSE branch's statements became the sentence's, and the END-IF drew a false
+    /// COBOL0306. So the first token, the construct's own, is consumed, and the resynchronization goes on from the
+    /// token after it to what the constructs around it take (the ELSE, the END-IF, the next statement). Not where the
+    /// report retyped the word ahead so that the construct is parsed afresh (<see cref="ReadsAsTheNameAhead"/>), and
+    /// never a separator period, the unit's end.</para></summary>
     public override void Recover(Parser recognizer, RecognitionException e)
     {
         _discardedUnitTail = false;   // a loop recovery (Sync) discards without a Recover to finish it: never carry its mark over
+        var input = (ITokenStream)recognizer.InputStream;
         if (e is NoViableAltException { OffendingToken: { } word } && IsPredictionFailedAt(e, word)
-            && ((ITokenStream)recognizer.InputStream).LT(1).TokenIndex == word.TokenIndex
+            && input.LT(1).TokenIndex == word.TokenIndex
             && ClosedFormatResidue(recognizer, new OffendingPosition(recognizer, word), predictionFailedAt: true) is { } residue)
         {
             recognizer.Consume();
             ConsumeUntil(recognizer, GetErrorRecoverySet(recognizer).Subtract(ResidueRunTokens(residue.Production)));
         }
+        else if (e is NoViableAltException { StartToken: { } start, OffendingToken: { } dead }
+                 && dead.TokenIndex > start.TokenIndex && start.Type != CobolLexer.DOT && !_reparsedFromItsStart
+                 && recognizer.Context.Start?.TokenIndex == start.TokenIndex && input.LT(1).TokenIndex == start.TokenIndex)
+        {
+            recognizer.Consume();
+            // The verb consumed opens a statement of its own where the rule that failed is the dispatcher above it.
+            if (!ClosedByATerminator(recognizer, recognizer.Context.RuleIndex)
+                && TerminatedStatementOpenedBy(recognizer, start.Type) is { } opened)
+                _leftByRecovery.Add((opened, start.TokenIndex));
+        }
+        // The rule returns after this recovery: a statement an explicit scope terminator closes is left before its end.
+        if (!_reparsedFromItsStart && recognizer.Context.Start is { } begun
+            && ClosedByATerminator(recognizer, recognizer.Context.RuleIndex))
+            _leftByRecovery.Add((recognizer.Context.RuleIndex, begun.TokenIndex));
+        _reparsedFromItsStart = false;
         Resynchronize(recognizer);
         FinishUnitTailDiscard(recognizer);
     }
@@ -493,6 +602,24 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             return null;
         }
 
+        /// <summary>The tokens a resynchronization inside the unit stops at on the unit's own account (kb/Work PB4299):
+        /// what may follow each rule invocation from the parser's up to the unit itself (the frames of ANTLR's own
+        /// recovery set, <see cref="DefaultErrorStrategy.GetErrorRecoverySet"/>, the unit's own list's next element
+        /// among them), with <paramref name="added"/>, what the caller put in the set beside the recovery set (a loop's
+        /// continuation). Every other token of the set is held only by the rules around the unit.</summary>
+        public IntervalSet HeldWithin(IntervalSet added)
+        {
+            var atn = _recognizer.Atn;
+            var held = new IntervalSet();
+            held.AddAll(added);
+            for (RuleContext? c = _recognizer.Context; c is not null && c.invokingState >= 0; c = c.Parent)
+            {
+                held.AddAll(atn.NextTokens(((RuleTransition)atn.states[c.invokingState].Transition(0)).followState));
+                if (c == _unit) break;
+            }
+            return held;
+        }
+
         /// <summary>Does the structure around the unit resume at the next token: do the next two tokens (the next only,
         /// at the end of the file) continue some enclosing rule completed, is the word before a period not the unit's
         /// own, and does the next unit of the unit's own list begin here (<see cref="BeginsTheNextUnit"/>)?</summary>
@@ -584,18 +711,36 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// "unexpected ')'" for the one error the source holds. So a group met while consuming is consumed WHOLE, through
     /// its balancing ')' of any flavour (the three paren twins), and stops early at the separator period or end of
     /// file, so an unbalanced '(' cannot swallow the rest of the program. A paren that IS in the recovery set is still
-    /// the resync point: the set is asked first.</summary>
+    /// the resync point: the set is asked first.
+    /// <para>⛔ AND INSIDE A UNIT THAT ENDS AT A PERIOD, A TOKEN ONLY THE STRUCTURE AROUND THE UNIT TAKES IS A
+    /// RESYNCHRONIZATION POINT ONLY WHERE THAT STRUCTURE RESUMES (kb/Work PB4299). The recovery set is the union of
+    /// what may follow every rule on the stack, read one token deep and predicate-blind, so the rules AROUND a sentence
+    /// put the first token of a paragraph header in it, a user-defined word (ISO §14.4.3: "A paragraph consists of a
+    /// paragraph-name followed by a separator period"). A fault whose sentence tail held such a word not followed by its
+    /// period (<c>IF A = 1 THEN ADD TO A END-IF.</c>) stopped there, the sentence could not go on, the paragraph
+    /// list could not take the word either, and the procedure division's own recovery swallowed every sentence after
+    /// it: every later fault went unreported. So a token the set holds only through the rules around the innermost
+    /// unit (<see cref="UnitTailDiscard.HeldWithin"/> is what the rules up to the unit hold, with what the caller added:
+    /// a loop's own continuation) stops the resynchronization where the structure around the unit resumes there
+    /// (<see cref="UnitTailDiscard.Resumes"/>, the two-token test of the tail discard, so a word and the period after
+    /// it is the unit's own last operand, not a header), and is otherwise consumed with the fault's tail up to the
+    /// unit's period, which the unit itself holds.</para></summary>
     protected override void ConsumeUntil(Parser recognizer, IntervalSet set)
     {
         var discard = BeginUnitTailDiscard(recognizer);
         if (discard is not null) set = UnitEnd;
+        var around = discard is null ? UnitTailDiscard.Of(recognizer) : null;
+        var within = around?.HeldWithin(set.Subtract(GetErrorRecoverySet(recognizer)));
         var input = (ITokenStream)recognizer.InputStream;
         // A reserved word the report named as an operand is consumed before the resynchronization asks the set (PB3248).
         // A unit-tail discard's set is the period alone, which is never such a word: the discard consumes the word
         // with the rest of the tail (or stops at it where the structure around the unit resumes there), so the two
         // never decide the same token.
         if (set.Contains(input.LA(1)) && IsReportedReservedOperand(input.LT(1))) recognizer.Consume();
-        for (int ttype = input.LA(1); ttype != TokenConstants.EOF && !set.Contains(ttype) && discard?.Resumes(input) != true;
+        for (int ttype = input.LA(1);
+             ttype != TokenConstants.EOF
+             && !(set.Contains(ttype) && (within is null || within.Contains(ttype) || around!.Resumes(input)))
+             && discard?.Resumes(input) != true;
              ttype = input.LA(1))
         {
             if (!IsOpenParen(ttype))
@@ -960,11 +1105,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // cardinality lives in the grammar rather than in nine bind-time checks. ⛔ The emptiness is asked of the parse
         // AT the offending token, never of the parser's position (kb/Work PB3832; OffendingPosition).
         if (at.EmptyBlockOwner() is { } stmtName)
-            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2072,
-                $"The {stmtName} statement's general format shows an imperative-statement here that is not "
-                + "bracketed, so at least one statement shall be specified: brackets are what license an "
-                + "omission (ISO §5.2.6.2), and one alternative of a brace group shall be explicitly specified "
-                + "(ISO §5.2.6.3).", 0));
+            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2072, EmptyBlockMessage(stmtName), 0));
 
         // ⛔ 0b. THE WHEN OTHER PHRASE — BOTH OF ITS RULES, SEPARATED BY LOOKAHEAD (kb/Work PB396).
         // `[ WHEN OTHER imperative-statement-2 ]` follows the `{ … } …` repetition in EVALUATE's format, and
@@ -990,7 +1131,18 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             // A body that is present says the phrase is misplaced only where no parse can take the phrase here: when the
             // construct the prediction closed takes it, and its parse dies later (`WHEN OTHER IF LENGTH OF X`), the
             // phrase is in place and the fault is where that parse dies (kb/Work PB3832; OffendingPosition.Carried).
-            if (!(bodyPresent && at.Carried is not null))
+            // ⛔ And only where the construct the phrase stands in makes it a repeat or puts it before every WHEN group
+            // (kb/Work PB4300): after a WHEN group and before any WHEN OTHER the phrase is in its place, and the fault is
+            // before it: a statement missing its operand (`WHEN A = 2 DISPLAY WHEN OTHER …`), or the WHEN group's own
+            // statement. A parse that took the WHEN as the group's next selection phrase and died at the OTHER (`WHEN 1
+            // WHEN OTHER …`) did so because the group has no statement yet, its required imperative-statement-1.
+            ParserRuleContext? owner = null;
+            var placement = bodyPresent && at.Carried is null
+                ? WhenOtherPlacement(recognizer, PreviousDefault(stream, otherIndex), out owner)
+                : PhrasePlacement.None;
+            if (placement == PhrasePlacement.InPlace && token.TokenIndex == otherIndex && owner is not null)
+                hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2072, EmptyBlockMessage(StatementOwning(owner)), 0));
+            else if (!(bodyPresent && (at.Carried is not null || placement is PhrasePlacement.InPlace or PhrasePlacement.Unread)))
                 hints.Add(bodyPresent
                     ? new(Diagnostics.DiagnosticDescriptors.COBOL2073,
                         "A WHEN OTHER phrase may be specified at most once, and only after every WHEN phrase: the "
@@ -1210,6 +1362,24 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 10));
 
         return hints;
+    }
+
+    /// <summary>COBOL2072's sentence for the statement <paramref name="stmtName"/> whose required imperative-statement is
+    /// empty (hint 0a, and 0b's WHEN group with no statement).</summary>
+    private static string EmptyBlockMessage(string stmtName)
+        => $"The {stmtName} statement's general format shows an imperative-statement here that is not "
+           + "bracketed, so at least one statement shall be specified: brackets are what license an "
+           + "omission (ISO §5.2.6.2), and one alternative of a brace group shall be explicitly specified "
+           + "(ISO §5.2.6.3).";
+
+    /// <summary>The name of the statement <paramref name="context"/> is, or the innermost one around it, for a message
+    /// (<c>EVALUATE</c>, <c>SEARCH ALL</c>): its rule name without the <c>Statement</c> suffix, split and uppercased.</summary>
+    private static string StatementOwning(ParserRuleContext context)
+    {
+        for (var c = context; c is not null; c = c.Parent as ParserRuleContext)
+            if (CobolParserCore.ruleNames[c.RuleIndex] is var rule && rule.EndsWith(StatementSuffix, StringComparison.Ordinal))
+                return SplitCamelCase(rule[..^StatementSuffix.Length]).ToUpperInvariant();
+        return SplitCamelCase(CobolParserCore.ruleNames[context.RuleIndex]).ToUpperInvariant();
     }
 
     // ── A reserved word or a literal at a closed general format's error production (kb/Work PB2533, PB3373) ──
@@ -2133,6 +2303,115 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         => _statementBlockStart ??= recognizer.Atn.NextTokens(
                recognizer.Atn.ruleToStartState[CobolParserCore.RULE_statementBlock]);
 
+    // ── Where a WHEN OTHER phrase stands (kb/Work PB4300) ──
+
+    /// <summary>Where a WHEN OTHER phrase stands in the construct around the parser.</summary>
+    private enum PhrasePlacement
+    {
+        /// <summary>No open construct takes a WHEN OTHER phrase.</summary>
+        None,
+
+        /// <summary>After a WHEN group and before any WHEN OTHER: the place the general format gives it.</summary>
+        InPlace,
+
+        /// <summary>A second one, or one before every WHEN group (ISO §14.9.13.2, §14.9.28.2 Format 3, with §5.2.7).</summary>
+        Misplaced,
+
+        /// <summary>In a construct a failed prediction looked through, which the parse tree does not hold.</summary>
+        Unread,
+    }
+
+    /// <summary>⛔ WHERE THE WHEN OTHER PHRASE WHOSE WHEN IS <paramref name="when"/> STANDS, READ FROM THE CONSTRUCT
+    /// AROUND THE PARSER (kb/Work PB4300). The general formats print <c>[ WHEN OTHER imperative-statement ]</c> once,
+    /// after the repeated WHEN group (EVALUATE, §14.9.13.2; PERFORM Format 3, §14.9.28.2), so the phrase is out of place
+    /// exactly where its construct already holds one (the parse stands inside it, or it is a child of the construct)
+    /// or holds no WHEN group before it. The construct is the innermost rule around the parser that calls a WHEN OTHER
+    /// rule, or is one; the rules are read from the ATN (<see cref="WhenOtherRules"/>), so a format that gains the
+    /// phrase is covered. A hint that called the program's only WHEN OTHER a repeat (<c>WHEN A = 2 DISPLAY WHEN
+    /// OTHER …</c>: the DISPLAY's operand is missing) asked only what follows the OTHER.</summary>
+    private static PhrasePlacement WhenOtherPlacement(Parser recognizer, IToken? when)
+        => WhenOtherPlacement(recognizer, when, out _);
+
+    /// <inheritdoc cref="WhenOtherPlacement(Parser, IToken?)"/>
+    /// <param name="owner">The construct the phrase stands in: the statement rule that calls the WHEN OTHER rule.</param>
+    private static PhrasePlacement WhenOtherPlacement(Parser recognizer, IToken? when, out ParserRuleContext? owner)
+    {
+        owner = null;
+        if (when is null) return PhrasePlacement.None;
+        var (phrases, callers) = WhenOtherRules(recognizer.Atn);
+        // A prediction that failed ahead of the parser looked through tokens no rule context holds yet: where they begin
+        // a construct that takes the phrase, the phrase stands in THAT construct, which the parse tree cannot show.
+        var stream = (ITokenStream)recognizer.InputStream;
+        for (int i = stream.LT(1).TokenIndex; i < when.TokenIndex; i++)
+            if (WhenOtherOwnerOpeners(recognizer.Atn).Contains(stream.Get(i).Type)) return PhrasePlacement.Unread;
+        for (var c = recognizer.Context; c is not null; c = c.Parent as ParserRuleContext)
+        {
+            if (phrases.Contains(c.RuleIndex) && c.Start.TokenIndex < when.TokenIndex) return PhrasePlacement.Misplaced;
+            if (!callers.Contains(c.RuleIndex)) continue;
+            owner = c;
+            bool holdsAGroup = false;
+            foreach (var child in c.children?.OfType<ParserRuleContext>() ?? [])
+            {
+                if (child.Start is not { } start || start.TokenIndex >= when.TokenIndex) continue;
+                if (phrases.Contains(child.RuleIndex)) return PhrasePlacement.Misplaced;
+                holdsAGroup |= start.Type == CobolLexer.WHEN;
+            }
+            return holdsAGroup ? PhrasePlacement.InPlace : PhrasePlacement.Misplaced;
+        }
+        return PhrasePlacement.None;
+    }
+
+    /// <summary>The rules that spell a WHEN OTHER phrase (whose first two tokens are WHEN and OTHER), and the rules
+    /// that call one: read ONCE from the ATN.</summary>
+    private static (HashSet<int> Phrases, HashSet<int> Callers) WhenOtherRules(ATN atn)
+    {
+        if (_whenOtherRules is { } cached) return cached;
+        var phrases = new HashSet<int>();
+        for (int r = 0; r < atn.ruleToStartState.Length; r++)
+            if (FirstTokenEdges(atn, atn.ruleToStartState[r]).Any(t => t.Label.Contains(CobolLexer.WHEN)
+                    && FirstTokenEdges(atn, t.target).Any(o => o.Label.Contains(CobolLexer.OTHER))))
+                phrases.Add(r);
+        var callers = new HashSet<int>();
+        foreach (var state in atn.states)
+            for (int i = 0; state is not null && i < state.NumberOfTransitions; i++)
+                if (state.Transition(i) is RuleTransition call && phrases.Contains(call.target.ruleIndex))
+                    callers.Add(state.ruleIndex);
+        _whenOtherRules = (phrases, callers);
+        return (phrases, callers);
+    }
+
+    private static (HashSet<int> Phrases, HashSet<int> Callers)? _whenOtherRules;
+
+    /// <summary>The tokens that begin a rule that calls a WHEN OTHER rule (EVALUATE, PERFORM), read once from the ATN.</summary>
+    private static IntervalSet WhenOtherOwnerOpeners(ATN atn)
+    {
+        if (_whenOtherOwnerOpeners is { } cached) return cached;
+        var openers = new IntervalSet();
+        foreach (int caller in WhenOtherRules(atn).Callers) openers.AddAll(atn.NextTokens(atn.ruleToStartState[caller]));
+        openers.Remove(TokenConstants.EPSILON);
+        return _whenOtherOwnerOpeners = openers;
+    }
+
+    private static IntervalSet? _whenOtherOwnerOpeners;
+
+    /// <summary>The token edges reachable from <paramref name="from"/> over epsilon edges alone, calling no rule.</summary>
+    private static IEnumerable<Transition> FirstTokenEdges(ATN atn, ATNState from)
+    {
+        var seen = new HashSet<int>();
+        var work = new Stack<ATNState>([from]);
+        while (work.TryPop(out var state))
+        {
+            if (!seen.Add(state.stateNumber)) continue;
+            for (int i = 0; i < state.NumberOfTransitions; i++)
+            {
+                var t = state.Transition(i);
+                if (t is RuleTransition) continue;
+                if (t.IsEpsilon) work.Push(t.target);
+                else if (t is not NotSetTransition && t.Label is not null) yield return t;
+            }
+        }
+    }
+
     private static IntervalSet[]? _figurativeFamilies;
 
     /// <summary>The §8.3.3.6.2 figurative-word families — ZERO/ZEROS/ZEROES, SPACE/SPACES, HIGH-VALUE/HIGH-VALUES,
@@ -2252,6 +2531,9 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         /// <summary>The construct the parser closed early whose re-simulation found the token, for a position carried
         /// forward (<see cref="CarryForward"/>); null otherwise.</summary>
         private readonly ParserRuleContext? _closed;
+
+        /// <summary>The construct the parser closed early, for a position carried forward into it; null otherwise.</summary>
+        public ParserRuleContext? ClosedEarly => _closed;
 
         /// <summary>The token the report names.</summary>
         public IToken Token { get; }

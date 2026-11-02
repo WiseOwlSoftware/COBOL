@@ -1556,6 +1556,38 @@ target:
   `CobolErrorStrategy.Resynchronize` keys the guard on (state, invoking state): a loop failing again re-enters the same
   state from the same call and still consumes, and at one token the pairs are finite, so every recovery still makes
   progress. `EndErrorCondition` clears it as the base clears its own.
+- ⛔ **Inside a unit that ends at a period, a token only the structure AROUND the unit takes is a resynchronization
+  point only where that structure resumes** (kb/Work PB4299; ISO §14.4.3). ANTLR's recovery set is the union of what
+  may follow every rule on the stack, one token deep and predicate-blind, so the rules around a sentence put a
+  paragraph header's first token, a user-defined word, in it. A fault whose sentence tail held such a word with no
+  period after it (`IF A = 1 THEN ADD TO A END-IF.`) stopped there, the paragraph list could not take the word, and the
+  procedure division's own recovery swallowed every later sentence and its faults. `ConsumeUntil` now splits the set:
+  what the rules from the parser up to the innermost period-terminated unit hold (`UnitTailDiscard.HeldWithin`, plus
+  what the caller added, a loop's continuation) still stops it; a token held only by the rules around the unit stops
+  it only where `UnitTailDiscard.Resumes` holds (the tail discard's two-token test, so `word.` is the unit's own last
+  operand, never a header). The unit's period then ends the sentence and the next one is parsed afresh.
+- ⛔ **A construct whose own prediction failed ahead of it is not re-parsed from its first token** (kb/Work PB4299
+  R10). Where the rule that failed began at the decision's first token and every alternative died later (`ADD TO
+  "X"`), `Recover` consumes that first token before resynchronizing: resuming at it, every enclosing list predicted the
+  same malformed statement again and gave up in turn, so the IF around it ended and its ELSE branch and END-IF were
+  parsed as the sentence's. Not where the report retyped the word ahead for a fresh parse (PB4218), never a period.
+- ⛔ **The terminator of a statement the recovery left is that statement's own** (kb/Work PB4382; ISO §14.5.3.2 1),
+  §14.5.3.3 1) c)). A fault caught by the rule of a statement an explicit scope terminator closes ends that rule (the
+  generated rule reports, recovers and returns): `IF W-N = 1 ELSE …` fails at the THEN?/block decision of the IF itself,
+  so the IF returned and its END-IF met no open IF, a false COBOL0306. `Recover` records each such statement it leaves
+  (and the statement a consumed first token opens; `Report` does the same for the constructs a prediction closed early
+  when it carries a report into them), and a terminator of that statement's kind later in the same unit, no separator
+  period between, is consumed with the statement's tail and reported nothing: the most recent record of its kind first,
+  as §14.5.3.2 pairs a terminator with the most recently preceding unterminated statement. The grammar keeps
+  `statementBlock` non-empty (PB396); the empty block is still named by hint 0a.
+- ⛔ **COBOL2073 names a WHEN OTHER phrase only where it IS misplaced** (kb/Work PB4300; ISO §14.9.13.2, §14.9.28.2
+  Format 3, §5.2.7). Hint 0b decides from the construct around the parser (`WhenOtherPlacement`: the innermost rule that
+  calls a WHEN OTHER rule, both read from the ATN): a phrase is misplaced where the construct already holds one (the
+  parse stands inside it, or it is a child) or holds no WHEN group before it. After a WHEN group and before any WHEN
+  OTHER it is in its place, and the fault is before it: a statement missing its operand (no 0b hint), or, where the
+  parse took the WHEN as the group's next selection phrase and died at the OTHER, the group's own missing statement
+  (COBOL2072 with the owner's name). A prediction that failed ahead of the parser through a construct no rule context
+  holds yet (an EVALUATE written inside the tokens it looked at) leaves the placement unread, and 0b says nothing.
 - Recovery beyond that and the sync-point behavior is out of scope for this rearchitecture (the battery does
   not exercise multi-error recovery quality; changing it risks the green net for no measured gain) — but a
   change in the diagnostics a negative fixture produces is visible to the oracle
