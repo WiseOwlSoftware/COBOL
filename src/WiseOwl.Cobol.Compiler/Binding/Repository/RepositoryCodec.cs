@@ -65,8 +65,8 @@ internal static class RepositoryCodec
     {
         var data = unit.Data;
         var encoder = new Encoder(data.OoClasses);
-        var formals = List(data.LinkageFormals.Select(f => encoder.Formal(f.Item, f.Position, f.ByValue, f.Optional)));
-        var returning = data.LinkageReturning is { } r ? encoder.Describe(r, r) : null;
+        var formals = List(data.Linkage.Formals.Select(f => encoder.Formal(f.Item, f.Position, f.ByValue, f.Optional)));
+        var returning = data.Linkage.Returning is { } r ? encoder.Describe(r, r) : null;
         return new RepositoryRecord(KindOf(unit), unit.Name, unit.ExternalizedName, CobolEntryConvention,
             data.DecimalPointIsComma, Currencies(data), encoder.Raising(unit.Bound?.Raising ?? []), formals, returning,
             encoder.TypeDeclarations, encoder.Structures, encoder.Prototypes);

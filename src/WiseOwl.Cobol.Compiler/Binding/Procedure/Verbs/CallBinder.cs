@@ -1158,7 +1158,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // ⛔ The RETURNING move is BOUND here (kb/Work PB880) — into the program's procedure-division RETURNING
         // item, the same item ProgramEmitter hands the activation result from. It used to be built by
         // CallEmitter.EmitGoback, after every bind-time MOVE screen and storage fact had already run.
-        BoundMove? returningMove = source is not null && ctx.Data.LinkageReturning is { } retItem
+        BoundMove? returningMove = source is not null && ctx.Data.Linkage.Returning is { } retItem
                                    && ctx.Refs.ResolveItem(retItem) is { } retPlace
             ? host.Move.BindMoveOf(new BoundFieldOperand(source), [retPlace], ImplicitMovePhrase.GobackReturning)
             : null;

@@ -404,12 +404,12 @@ public sealed partial class ReferenceResolver(DataBinder data)
 
     /// <summary>⛔ ISO §13.7.3 SR4 FOR A DATA-NAME REFERENCE (kb/Work PB1249): the procedure division may reference a
     /// linkage item "if, and only if" it is a header operand, under one, a redefinition or renaming of one, or BASED
-    /// (<see cref="DataBinder.UnreferenceableLinkageRecord"/> is the decision). The reference still resolves, so the
+    /// (<see cref="LinkageBinder.UnreferenceableLinkageRecord"/> is the decision). The reference still resolves, so the
     /// statement binds without a cascade; the compile fails here, once per written reference. The condition-name and
     /// index-name legs (e) ask <see cref="ReportUnreferenceableLinkage"/> from their own resolutions.</summary>
     private void ScreenLinkageReference(Core.DataReferenceContext dref, DataItem item)
     {
-        if (data.UnreferenceableLinkageRecord(item) is not { } record || !_diagnosed.Add(dref)) return;
+        if (data.Linkage.UnreferenceableLinkageRecord(item) is not { } record || !_diagnosed.Add(dref)) return;
         ReportUnreferenceableLinkage(DataBinder.WrittenText(dref), record);
     }
 
@@ -2973,7 +2973,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// never reports, R30).</summary>
     private void ScreenLinkageIndex(IndexDeclaration decl, string name, IReadOnlyList<string> qualifiers, object writtenAt)
     {
-        if (_probing || data.UnreferenceableLinkageRecord(decl.Table) is not { } record
+        if (_probing || data.Linkage.UnreferenceableLinkageRecord(decl.Table) is not { } record
             || !_linkageIndexReported.Add(writtenAt)) return;
         ReportUnreferenceableLinkage(DataBinder.WrittenQualified(name, qualifiers), record);
     }

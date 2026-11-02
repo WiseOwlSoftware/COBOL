@@ -129,11 +129,11 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
             return name;
         }
 
-        var formals = unit.Data.LinkageFormals
+        var formals = unit.Data.Linkage.Formals
             .Select(f => Describe(f.Item, CsNames.Allocate(DataItem.Sanitize(f.Item.CobolName ?? "FILLER"), members),
                 f.ByValue, f.Optional))
             .ToList();
-        Item? returning = unit.Data.LinkageReturning is { } r ? Describe(r, "__hr", false, false) : null;
+        Item? returning = unit.Data.Linkage.Returning is { } r ? Describe(r, "__hr", false, false) : null;
         // The records render first, so every member profile they name is declared with the formals' own.
         var recordText = new CodeWriter();
         var published = new PublishedRecordEmitter(MemberProfile);

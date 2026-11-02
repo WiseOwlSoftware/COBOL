@@ -408,7 +408,7 @@ public sealed class DataItem
     /// <summary>True when THIS entry carries a GLOBAL clause (ISO §13.18.27) that the clause-placement screen
     /// ADMITTED (§13.16.3 SR6/SR7, §13.18.27.3 SR1 b) — level 1, data-name format, in the file, working-storage,
     /// local-storage or linkage section). The ONE input of the global-name registration
-    /// (<c>CallBindExternalAndGlobal</c> → <c>CallGlobalRoots</c>) — kb/Work PB518: the parse-tree scan it
+    /// (<c>CallBindExternalAndGlobal</c> → <c>LinkageBinder.GlobalRoots</c>) — kb/Work PB518: the parse-tree scan it
     /// replaces skipped a misplaced clause with a <c>continue</c> and never read the FILE SECTION at all.</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
         "ISO §13.18.49.4 GR1 and §13.18.57.4 GR1 both exclude GLOBAL by name — a SAME AS / TYPE subject never inherits it")]
@@ -788,7 +788,7 @@ public sealed class DataItem
     /// its own. Every access path rooted here starts at the carrier's root and steps through
     /// <see cref="CarrierValueSegment"/> (<c>ReferenceResolver.AddRoot</c>), so the access is structure,
     /// <see cref="ClrName"/> stays a name (kb/Work PB4320) and no C# local's name sits on the model (kb/Work PB4380;
-    /// DESIGN-backend-abstraction §1.3 L7, L8). Set by <c>DataBinder.CallBindLinkage</c> and
+    /// DESIGN-backend-abstraction §1.3 L7, L8). Set by <c>LinkageBinder.CallBindLinkage</c> and
     /// <c>DataBinder.OoBindMethodData</c>.</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
         "a fact of the formal-parameter ROLE (the PROCEDURE DIVISION USING operand), not of the data description")]

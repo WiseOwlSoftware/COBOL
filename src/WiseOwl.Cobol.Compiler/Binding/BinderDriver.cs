@@ -799,8 +799,8 @@ internal sealed class BinderDriver
         unit.Bound = binder.Bind(unit.Ctx);
         // The boundary-copied GROUP formals + RETURNING item are registered whole-group-referenced (so StorageFormPass
         // flips their numeric-DISPLAY leaves to image storage, and the formal's FromImage/AsImage round trip
-        // type-checks — ISO §14.2.3 GR8 / §14.9.25.4 MOVE GR4) by the post-bind UsageCollectionPass, from data.LinkageFormals
-        // + data.LinkageReturning. The pre-flip early-resolve of every formal existed ONLY for that side effect (which
+        // type-checks — ISO §14.2.3 GR8 / §14.9.25.4 MOVE GR4) by the post-bind UsageCollectionPass, from data.Linkage.Formals
+        // + data.Linkage.Returning. The pre-flip early-resolve of every formal existed ONLY for that side effect (which
         // ReferenceResolver no longer performs) — deleted, PHASE-05 Step 5.
     }
 
@@ -835,11 +835,11 @@ internal sealed class BinderDriver
     {
         var map = new Dictionary<string, CalleeSignature>(WiseOwl.Cobol.Runtime.ExternalizedNames.Comparer);
         foreach (var c in unit.Children)
-            map.TryAdd(c.Name, new CalleeSignature(c.Data.LinkageFormals, c.Data.LinkageReturning));
+            map.TryAdd(c.Name, new CalleeSignature(c.Data.Linkage.Formals, c.Data.Linkage.Returning));
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
             foreach (var c in anc.Children)
                 if (c.Common && WiseOwl.Cobol.Runtime.ProgramNameScope.CommonProgramReferable(c, c.Recursive, unit, u => u.Parent))
-                    map.TryAdd(c.Name, new CalleeSignature(c.Data.LinkageFormals, c.Data.LinkageReturning));
+                    map.TryAdd(c.Name, new CalleeSignature(c.Data.Linkage.Formals, c.Data.Linkage.Returning));
         return map;
     }
 
@@ -971,10 +971,10 @@ internal sealed class BinderDriver
             // §8.3.2.2 list item 2 — the EXTERNAL data items, records and files of EVERY source element: a
             // contained program's and a class's (object and factory halves) included, since the clause names the
             // item, not the unit that holds it (kb/Work PB1404). ONE producer per source element
-            // (DataBinder.ExternalizedSubjects), the same one its own §13.18.22.3 SR2 screen reads.
+            // (LinkageBinder.ExternalizedSubjects), the same one its own §13.18.22.3 SR2 screen reads.
             foreach (var data in units.Where(u => !u.IsPrototype).Select(u => u.Data)
                          .Concat(classes.SelectMany(cu => new[] { cu.Data, cu.FactoryData })))
-                foreach (var s in data.ExternalizedSubjects())
+                foreach (var s in data.Linkage.ExternalizedSubjects())
                     yield return (s.Kind == ExternalizedSubjectKind.File ? "EXTERNAL file" : "EXTERNAL data item",
                                   $"EXTERNAL {s.Spelling}", s.Word, s.Name, s.At, true);
         }
@@ -1029,7 +1029,7 @@ internal sealed class BinderDriver
                 + $"§10.6.2 {(proto.IsFunction ? "SR3" : "SR2")}; §13.7.3 SR2)");
         }
 
-        static CalleeSignature Signature(BoundUnit u) => new(u.Data.LinkageFormals, u.Data.LinkageReturning);
+        static CalleeSignature Signature(BoundUnit u) => new(u.Data.Linkage.Formals, u.Data.Linkage.Returning);
     }
 
     /// <summary>The program prototypes ONE source element may name (ISO §8.4.6.8, Scope of program-prototype-names:
@@ -1080,7 +1080,7 @@ internal sealed class BinderDriver
         // must still activate "PX", the only name the run-unit registry holds it under (kb/Work PB303).
         static ProgramPrototype SelfPrototype(BoundUnit u) =>
             new(u.Name, u.ExternalizedName,
-                new ProgramAnswer(new CalleeSignature(u.Data.LinkageFormals, u.Data.LinkageReturning), new GroupUnitOrigin(u)));
+                new ProgramAnswer(new CalleeSignature(u.Data.Linkage.Formals, u.Data.Linkage.Returning), new GroupUnitOrigin(u)));
     }
 
     /// <summary>⛔ THE ONE "CONTAINING DEFINITION" SET of the two prototype-name scope rules (kb/Work PB3121): ISO
@@ -1157,7 +1157,7 @@ internal sealed class BinderDriver
         foreach (var u in selves)
         {
             own ??= new Dictionary<string, UserFunctionSignature>(group, CobolNames.Comparer);
-            own[u.Name] = new UserFunctionSignature(u.Name, u.ExternalizedName, u.Data.LinkageReturning, u.Data.LinkageFormals,
+            own[u.Name] = new UserFunctionSignature(u.Name, u.ExternalizedName, u.Data.Linkage.Returning, u.Data.Linkage.Formals,
                 DefinitionCompiledHere: true);   // §8.4.6.6: the element's own definition
         }
         return own ?? group;
@@ -1191,7 +1191,7 @@ internal sealed class BinderDriver
         {
             if (!u.IsFunction) continue;
             using var functionAt = edition.At(NameCtx(u));   // the FUNCTION-ID word: a group-level pass has no walker cursor (kb/Work PB2034)
-            if (u.Data.LinkageReturning is null)
+            if (u.Data.Linkage.Returning is null)
                 edition.Error("COBOL1507",
                     $"FUNCTION-ID '{u.Name}': the RETURNING phrase shall be specified in a function {(u.IsPrototype ? "prototype" : "definition")} "
                     + "(ISO §14.2, procedure division header) — the function cannot deliver a result without it");

@@ -110,10 +110,10 @@ public sealed class GlobalNameClassDriftTests
     [Fact]
     public void InheritGlobalSubtree_ReachesEveryInheritedNameIndex()
     {
-        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.Linkage.cs"));
+        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.cs"));
         var m = Regex.Match(text, @"internal void InheritGlobalSubtree\(DataItem item, int depth\)\s*\{(?<body>.*?)\n    \}",
             RegexOptions.Singleline);
-        Assert.True(m.Success, "InheritGlobalSubtree not found in DataBinder.Linkage.cs");
+        Assert.True(m.Success, "InheritGlobalSubtree not found in DataBinder.cs");
         foreach (var (index, reach) in Inherited)
             Assert.True(m.Groups["body"].Value.Contains(reach, StringComparison.Ordinal),
                 $"InheritGlobalSubtree no longer reaches the name index '{index}' (expected '{reach}').");

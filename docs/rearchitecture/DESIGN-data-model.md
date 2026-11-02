@@ -41,7 +41,7 @@ individual elementary items", so the leaf can receive spaces a `long` cannot hol
 PROCEDURE DIVISION binding**. Today it is realized by mutating `DataItem.StoreAsImage` (`DataItem.cs:169`, a public
 `get; set;`) from **7+ sites across three layers**:
 
-- binder data pass — `DataBinder.cs:255,1562,1577`, `DataBinder.Linkage.cs:275`, `DataBinder.Reports.cs:352`
+- binder data pass — `DataBinder.cs:255,1562,1577`, `LinkageBinder.cs`, `DataBinder.Reports.cs:352`
 - binder procedure pass — `StatementBinder.MoveFigurative.cs:123,262`
 - **the emitter writes the binder's data model** — `CSharpEmitter.MarkStoreAsImage` (`CSharpEmitter.cs:50-68`),
   driven from `WholeGroupReferenced`, which `ReferenceResolver` itself mutates *during* procedure resolution

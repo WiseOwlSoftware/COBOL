@@ -6,10 +6,10 @@
  "subject": "Procedure division structure",
  "rule-digest": "fe1c44a3b639",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#CallBindLinkage; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoBindMethodData",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoBindMethodData; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallBindLinkage",
  "test-ref": "conformance:cases/14.2-Procedure-division-structure/l1c22_call_positional_formals; conformance:cases/14.2-Procedure-division-structure/l1c22_positional_formals_oo_func",
  "derivation": "",
  "editions": "85,2002,2014,2023",
- "notes": "§14.2.3 GR5 'Data-name-1 is a formal parameter for the function, method, or program.' Definitional: every USING data-name-1 becomes a LinkageFormal (program/function) or OoFormal (method) at its position; probes gr2_pos / gr2_oo / gr6_func show each is bound to its argument. The defective EDGES of which data-name-1 are admissible belong to SR-14.2.2-1.",
+ "notes": "§14.2.3 GR5 'Data-name-1 is a formal parameter for the function, method, or program.' Definitional: every USING data-name-1 becomes a LinkageFormal (program/function) or OoFormal (method) at its position; probes gr2_pos / gr2_oo / gr6_func show each is bound to its argument. The defective EDGES of which data-name-1 are admissible belong to SR-14.2.2-1. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#CallBindLinkage (kb/Work PB2359 moved the member, unchanged, out of the DataBinder.Linkage.cs partial: the LINKAGE / EXTERNAL / GLOBAL binder is LinkageBinder, and the cell-backing forcer and the inherited-name tier went to the data binder files that own the name tables)",
  "state": "OK"
 }

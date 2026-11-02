@@ -1665,7 +1665,7 @@
       "from": "WiseOwl.Cobol.CodeGen",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 105,
-      "walkUses": 114,
+      "walkUses": 118,
       "removedBy": [
         "PB2290",
         "PB2320",
@@ -1891,6 +1891,13 @@
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.HostEntryEmitter",
+          "to": "WiseOwl.Cobol.Binding.LinkageBinder",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.HostEntryEmitter",
           "to": "WiseOwl.Cobol.Binding.LinkageFormal",
           "removedBy": [
             "PB2399",
@@ -2099,6 +2106,13 @@
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Binding.LinkageBinder",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
           "to": "WiseOwl.Cobol.Binding.LinkageFormal",
           "removedBy": [
             "PB2418",
@@ -2159,6 +2173,13 @@
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.ProgramEmitter",
+          "to": "WiseOwl.Cobol.Binding.LinkageBinder",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ProgramEmitter",
           "to": "WiseOwl.Cobol.Binding.LinkageFormal",
           "removedBy": [
             "PB2399",
@@ -2204,6 +2225,13 @@
             "PB2402",
             "PB2399",
             "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RecordStructEmitter",
+          "to": "WiseOwl.Cobol.Binding.LinkageBinder",
+          "removedBy": [
+            "PB2361"
           ]
         },
         {

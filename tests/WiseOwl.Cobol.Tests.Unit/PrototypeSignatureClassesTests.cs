@@ -97,7 +97,7 @@ public sealed class PrototypeSignatureClassesTests
             CalleeSignature Of(string name)
             {
                 var data = comp.Units.Single(u => u.Name == name).Data;
-                return new CalleeSignature(data.LinkageFormals, data.LinkageReturning);
+                return new CalleeSignature(data.Linkage.Formals, data.Linkage.Returning);
             }
             return new Fixture(Of("SIGA"), Of("SIGB"), Of("SIGC"), Of("SIGD"), Of("SIGE"),
                 comp.Units.Single(u => u.Name == "HOLD").Data.WorkingStorageRoots);

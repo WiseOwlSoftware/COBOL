@@ -1015,7 +1015,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                     if (CobolNames.Same(f.Item.CobolName, fname)) { formal = f.Probe; break; }
             }
             else
-                foreach (var f in ctx.Data.LinkageFormals)
+                foreach (var f in ctx.Data.Linkage.Formals)
                     if (CobolNames.Same(f.Item.CobolName, fname)) { formal = f.Probe; break; }
             if (formal is null)
             {
@@ -1700,7 +1700,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         }
         // §13.7.3 SR4 e): a condition-name of a linkage item is referenceable exactly when its conditional variable
         // is — the same decision the data-name arm asks (ReferenceResolver.ScreenLinkageReference), once per reference.
-        if (ctx.Data.UnreferenceableLinkageRecord(matches[0].Parent) is { } record && _linkageCondDiagnosed.Add(dref))
+        if (ctx.Data.Linkage.UnreferenceableLinkageRecord(matches[0].Parent) is { } record && _linkageCondDiagnosed.Add(dref))
             ctx.Refs.ReportUnreferenceableLinkage(DataBinder.WrittenText(dref), record);
         return matches[0];
     }

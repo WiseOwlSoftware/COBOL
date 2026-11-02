@@ -36,7 +36,7 @@ public sealed class MethodNameRegistrationDriftTests
             string[] lines = File.ReadAllLines(file);
             for (int i = 0; i < lines.Length; i++)
                 if (DirectMapWrite.IsMatch(lines[i]) && !lines[i].TrimStart().StartsWith("//", StringComparison.Ordinal)
-                    && !(Path.GetFileName(file) == "DataBinder.Linkage.cs" && EnclosingMember(lines, i) == "InheritGlobalSubtree"))
+                    && !(Path.GetFileName(file) == "DataBinder.cs" && EnclosingMember(lines, i) == "InheritGlobalSubtree"))
                     offenders.Add($"{Path.GetFileName(file)}:{i + 1}: {lines[i].Trim()}");
         }
         Assert.True(offenders.Count == 0, "a data-name or condition-name is written into the binder's own map instead of "

@@ -125,11 +125,11 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// <c>FD … IS EXTERNAL</c> record 01 re-bases onto a run-unit <c>ExternalStore</c> cell keyed by the FD name, so
     /// every describer (a program AND an object/factory) sees ONE shared record area. Shared by the program emit path
     /// (<c>ProgramEmitter.EmitProgramClass</c>) and the OO type-half (M2-OO-1i inc 5) — a class EXTERNAL FD needs the same
-    /// backing property, and <c>CallBindExternalAndGlobal</c> already populates <c>CallExternalBackings</c> on the
+    /// backing property, and <c>LinkageBinder.CallBindExternalAndGlobal</c> already populates <c>Linkage.ExternalBackings</c> on the
     /// class binder (it runs in <c>BindResolve</c>).</summary>
     public void EmitExternalBackings(DataBinder data, CodeWriter w)
     {
-        foreach (var ext in data.CallExternalBackings)
+        foreach (var ext in data.Linkage.ExternalBackings)
         {
             // §13.18.63 GR4a: a PLAIN external item's VALUE takes effect only during INITIALIZE, so its cell seeds
             // with the category-DEFAULT initial image. §11.9.10.4 GR7: a CONSTANT RECORD is the ONE external item
@@ -232,7 +232,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// unit describes any external record or external file connector. False keeps the generated source
     /// byte-identical to a pre-VCR-15 build (zero-scaffolding).</summary>
     public static bool WantsExternalDescribes(DataBinder data) =>
-        data.State.UnitChecking.ExternalDescribe && (data.CallExternalBackings.Count > 0 || data.Files.Any(f => f.IsExternal));
+        data.State.UnitChecking.ExternalDescribe && (data.Linkage.ExternalBackings.Count > 0 || data.Files.Any(f => f.IsExternal));
 
     // ⛔ THE VALUE-IDENTITY KEY OF A RECORD NAME'S VALUE CLAUSE (kb/Work PB1236). §13.18.22.4 GR6 compares the
     // specification, and a literal's CHARACTERS are its content: "ABCD" and "abcd" are two different VALUE clauses.
@@ -271,7 +271,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     {
         using (w.Block(signature))
         {
-            foreach (var ext in data.CallExternalBackings)
+            foreach (var ext in data.Linkage.ExternalBackings)
             {
                 // §13.18.22 GR6: the VALUE identity is the RECORD NAME's own VALUE clause specification ("the
                 // VALUE clause specification, if any, for each record name ... shall be identical") — the

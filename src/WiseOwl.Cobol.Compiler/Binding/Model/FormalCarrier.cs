@@ -21,7 +21,7 @@ public abstract record FormalCarrier
     public abstract RootSegment Root(OmittedFormalGuard? guard);
 
     /// <summary>The PROGRAM arm: the program class's carrier member, <paramref name="MemberClrName"/>
-    /// (<c>LinkageFormal.CarrierField</c>, set by <c>DataBinder.CallBindLinkage</c>).</summary>
+    /// (<c>LinkageFormal.CarrierField</c>, set by <c>LinkageBinder.CallBindLinkage</c>).</summary>
     public sealed record Member(string MemberClrName) : FormalCarrier
     {
         /// <inheritdoc/>

@@ -73,7 +73,7 @@ internal sealed class GroupRepositoryProvider : IRepositoryProvider
     /// <inheritdoc/>
     public ProgramAnswer? Program(string externalizedName, int position) =>
         Find(_programs, Externalized(externalizedName), position) is { } u
-            ? new ProgramAnswer(new CalleeSignature(u.Data.LinkageFormals, u.Data.LinkageReturning), new GroupUnitOrigin(u))
+            ? new ProgramAnswer(new CalleeSignature(u.Data.Linkage.Formals, u.Data.Linkage.Returning), new GroupUnitOrigin(u))
             : null;
 
     /// <inheritdoc/>
@@ -105,7 +105,7 @@ internal sealed class GroupRepositoryProvider : IRepositoryProvider
     private static FunctionAnswer AnswerOf(BoundUnit u)
     {
         var origin = new GroupUnitOrigin(u);
-        return new(new UserFunctionSignature(u.Name, u.ExternalizedName, u.Data.LinkageReturning, u.Data.LinkageFormals,
+        return new(new UserFunctionSignature(u.Name, u.ExternalizedName, u.Data.Linkage.Returning, u.Data.Linkage.Formals,
             origin.IsDefinitionCompiledHere), origin);
     }
 }

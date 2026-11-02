@@ -48,7 +48,7 @@ internal static class UsageCollectionPass
             Collect(cls.Data, [cls.Bound], OoFormalGroups(cls.Symbol.Methods));
             Collect(cls.FactoryData, [cls.FactoryBound], OoFormalGroups(cls.Symbol.FactoryMethods));
             // ⛔ An ELEMENTARY method formal is a character channel's far end — the method twin of Collect's
-            // LinkageFormals arm (kb/Work PB1064; PB992 built the program arm). Every method formal is BY REFERENCE
+            // Linkage.Formals arm (kb/Work PB1064; PB992 built the program arm). Every method formal is BY REFERENCE
             // (the METHOD-side BY VALUE phrase is refused, DataBinder.Oo), so §14.2.3 GR8's "as if the formal parameter
             // occupies the same storage area as the argument" holds for each: the characters an argument carries into
             // it, or a group MOVE leaves in it for the argument, may be ones no numeric VALUE represents.
@@ -82,18 +82,18 @@ internal static class UsageCollectionPass
         IAppends<DataItem> channels = data.State.CharacterChannelItems;
 
         // Boundary-copied program formals — a group formal crosses as its character image (§14.2.3 GR8).
-        foreach (var lf in data.LinkageFormals)
+        foreach (var lf in data.Linkage.Formals)
             if (!lf.CarrierResident && lf.Item.IsGroup) set.Add(lf.Item);
 
         // ⛔ An ELEMENTARY BY REFERENCE formal is a character channel's far end (kb/Work PB992): ISO §14.2.3 GR8 —
         // "the activated runtime element operates as if the formal parameter occupies the same storage area as
         // the argument" — and a Format-1 activator's argument need only be "of the same length" (§14.8.2.3.2
         // rule 1), so the characters the formal holds may be ones no numeric VALUE represents.
-        foreach (var lf in data.LinkageFormals)
+        foreach (var lf in data.Linkage.Formals)
             if (!lf.ByValue && !lf.Item.IsGroup) channels.Add(lf.Item);
 
         // The program/function PROCEDURE DIVISION RETURNING group item crosses the activation boundary as its image.
-        if (data.LinkageReturning is { IsGroup: true } ret) set.Add(ret);
+        if (data.Linkage.Returning is { IsGroup: true } ret) set.Add(ret);
 
         // ⛔ AN APPLY COMMIT ITEM IS SAVED AND RESTORED AS ITS STORAGE IMAGE (§14.9.7.4 GR5, §14.9.36.4 GR3; kb/Work PB3338):
         // the restore puts back the characters the COMMIT saved, which a numeric VALUE need not represent, so a group
@@ -103,7 +103,7 @@ internal static class UsageCollectionPass
                 if (item.IsGroup) set.Add(item);
                 else channels.Add(item);
 
-        // OO method USING/RETURNING group items (supplied by the caller — not on data as LinkageFormals).
+        // OO method USING/RETURNING group items (supplied by the caller — not on data.Linkage.Formals).
         if (extraFormalGroups is not null)
             foreach (var g in extraFormalGroups)
                 if (g.IsGroup) set.Add(g);

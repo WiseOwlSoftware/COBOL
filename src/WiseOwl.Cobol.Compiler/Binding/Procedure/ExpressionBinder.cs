@@ -1022,7 +1022,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // BY-CONTENT choice for an argument — inherits it. The parameter in any reference form (whole or
         // reference-modified) is barred; an item subordinate to a group parameter is not "a formal parameter" (SR4 b)
         // of the same clause says "subordinate to" when it means it), and the RETURNING item is no formal parameter.
-        if (ctx.Data.IsFunctionFormal(place.Item))
+        if (ctx.Data.Linkage.IsFunctionFormal(place.Item))
             return new(DiagnosticCatalog.FunctionFormalReceiving.Code,
                 $"'{DataBinder.WrittenText(dref)}' is a formal parameter of this function and shall not be used as a "
                 + "receiving operand (ISO §13.7.3 SR5); store into the RETURNING item or a WORKING-STORAGE copy");

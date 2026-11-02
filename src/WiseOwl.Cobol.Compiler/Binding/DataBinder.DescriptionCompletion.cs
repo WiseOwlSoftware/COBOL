@@ -81,7 +81,7 @@ public sealed partial class DataBinder
     /// <summary>Complete <paramref name="item"/>'s description now — the subtree's SR9 implied PICTUREs, TYPE and SAME
     /// AS expansions, and §13.18.60.4 GR1 / §13.18.52 GR1 inheritance from its ancestors — unless it, or a subtree
     /// holding it, is complete already. See the class remarks.</summary>
-    private void CompleteDescriptionAhead(DataItem item)
+    internal void CompleteDescriptionAhead(DataItem item)
     {
         for (var d = item; d is not null; d = d.Parent)
             if (_completedAhead.Contains(d)) return;
