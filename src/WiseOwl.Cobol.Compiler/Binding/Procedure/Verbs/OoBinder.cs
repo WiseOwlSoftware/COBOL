@@ -2012,8 +2012,11 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 }
                 if (scls is null)
                 {
-                    ctx.Edition.NoteExpansionDeferred($"SET … TO {sname}");
-                    return new BoundDeferredToExpansion($"SET … TO {sname}");
+                    // The receivers as written (kb/Work PB388): the construct text reaches a message, and `SET … TO` named a
+                    // statement nobody wrote (kb/Work PB4268).
+                    string construct = $"SET {SetFormatSelection.Written(targetRefs)} TO {sname}";
+                    ctx.Edition.NoteExpansionDeferred(construct);
+                    return new BoundDeferredToExpansion(construct);
                 }
                 srcFactoryClassCs = scls.FactoryClrName;
             }
