@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding;
@@ -155,13 +156,17 @@ public readonly record struct IntrinsicSig(
 /// </summary>
 public static class IntrinsicCatalog
 {
+    /// <summary>The function a written name denotes. An intrinsic-function-name is a word the standard defines (§8.11), not
+    /// a user-defined word, so it matches on the BASIC LETTERS ALONE (ISO §8.1.3.2 3) a), 4); kb/Work PB4240): <c>İNTEGER</c>
+    /// (U+0130) is no INTEGER. A caller that asks whether a USER-DEFINED word collides with a function name folds the word
+    /// first (<see cref="CobolNames.UpperFold"/>), as the user-word rules do.</summary>
     public static bool TryGet(string name, out IntrinsicSig sig) => Table.TryGetValue(name, out sig);
 
     private static readonly Dictionary<string, IntrinsicSig> Table = Build();
 
     private static Dictionary<string, IntrinsicSig> Build()
     {
-        var t = new Dictionary<string, IntrinsicSig>(CobolNames.Comparer);
+        var t = new Dictionary<string, IntrinsicSig>(CobolKeywords.Comparer);
         void Add(IntrinsicSig s) => t.Add(s.Name, s);
         const int inf = int.MaxValue;
 

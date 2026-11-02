@@ -2247,17 +2247,33 @@ lowercase with Annex C. Three pieces, each in one place:
   affecting existing programs, which is true only if such a mapping folds user words), so `01 DİSPLAY PIC X.` is the user
   word `display`, which §8.3.2.1 1) forbids (COBOL0901). The lexer's keyword rules already read this way (the grammar's
   `caseInsensitive` folds A-Z and a-z only); every keyword read outside them goes through ONE class,
-  `WiseOwl.Cobol.Editions.CobolKeywords` (`Same`, `StartsWith`, `Spelling` — the basic letters raised, everything else as
-  written — and `Comparer`): the directive expression's `DEFINED` (`CobolLexer.RetypeDirectiveKeyword`, on the source's
+  `WiseOwl.Cobol.Editions.CobolKeywords` (`Same`, `StartsWith`, `EndsWith`, `Spelling` — the basic letters raised,
+  everything else as written — and `Comparer`): the directive expression's `DEFINED` (`CobolLexer.RetypeDirectiveKeyword`, on the source's
   text, never its edition spelling), the directive word of every directive line (`CompilerDirectiveLine.Word`, so the
   catalog, `Frontend.LeftDirectives`, `DirectiveSiteProcessor`'s sets and the conditional-compilation switch never see
   `>>İF` as IF), the directive catalog and its operand words, the operand keywords of `>>EVALUATE`, `>>DEFINE`, `>>FLAG`,
   `>>TURN`, `>>COBOL-WORDS`, `>>LISTING`, PUSH/POP and the THRU of a compile-time range, the division cursor and the
   comment-entry paragraph names, the COPY and REPLACE phrase words (`TextWord.IsWord`), and the lexer probe's map
-  (`CobolKeywordTokens`). `CobolNameFoldDriftTests` holds it: no `OrdinalIgnoreCase` (which raises U+0131 and U+017F
-  to I and S) in any `.cs` or `.g4` under `src`, and no `CobolNames` comparison with an upper-case keyword literal in
-  the Frontend or Editions (a deliberate fold says `// Annex C: <why>`: the `>>TURN` exception-name prefixes, compared as
-  `ExceptionCatalog` compares the names). The diagnostics still print the folded spelling of such a user word
+  (`CobolKeywordTokens`). **The by-name classifier is one of them (review finding R2-1).** A word the lexer leaves an
+  `IDENTIFIER` (the §8.10 words CLASSIFICATION, SEGMENT-LIMIT and their kind, the §15 phrase words, the SET locale
+  categories, the ALPHABET coded-set names, and every parser text predicate, `CobolParserCoreBase.Word`) is recognised
+  through `CobolWordsMap.Is` / `.Resolve` and `CobolWordsRewriter.TokenIs` / `.CanonicalWordOf`, and these compare on the
+  basic letters alone: `Resolve` returns the canonical word of a synonym, null for a de-reserved word, and otherwise the
+  word in its `CobolKeywords.Spelling`, so no caller `UpperFold`s the word first (that is a user-defined word's fold, and it
+  would make `CLASSİFİCATİON` the keyword before the map could tell). The map's keyword tables (the words a directive
+  UNDEFINEs or SUBSTITUTEs) are keyed by `CobolKeywords.Comparer`; its synonym table is keyed by the fresh user-defined word
+  and so by the fold. `ReservedWordSet.Compose` re-keys the de-reserved words by the fold, because it answers the
+  user-defined-word question. The `>>COBOL-WORDS` existing word (literal-1/3/4) is written in its keyword spelling, so
+  SR3 refuses `UNDEFINE "DİSPLAY"` (`VersionConformancePass.ValidateCobolWords`); an intrinsic function name is a word the
+  standard defines (§8.11), so `IntrinsicCatalog` is keyed by `CobolKeywords.Comparer` too and `FUNCTION İNTEGER` names no
+  function (COBOL1501). `CobolNameFoldDriftTests` holds it: no `OrdinalIgnoreCase` (which raises U+0131 and U+017F
+  to I and S) in any `.cs` or `.g4` under `src`, no `Resolve(CobolNames.UpperFold(…))` anywhere, and no `CobolNames`
+  comparison in the Frontend or Editions with an upper-case keyword literal (`"DISPLAY"`, `"LC_"`, `"IDENTIFICATION
+  DIVISION"`) or a parameter named `keyword` or `word` (a deliberate fold says `// Annex C: <why>`: the `>>TURN`
+  exception-name prefixes, compared as `ExceptionCatalog` compares the names). Not yet on this rule (kb/Work PB4240's
+  leads): the Compiler project's direct comparisons of a reserved word, system-name or implementor-name with a literal
+  through `CobolNames` (about thirty sites, e.g. FILLER, ZERO, ALL, LINE-COUNTER), and the §8.10/§8.9 tables other than
+  `IntrinsicCatalog`, which are keyed by the fold because they answer the user-defined-word question. The diagnostics still print the folded spelling of such a user word
   (`'DISPLAY' is a reserved word`): kb/Work PB4312.
 - **The encoding of the grammar itself** (kb/Work PB1944) — ANTLR reads a `.g4` in the JVM's default charset (UTF-8 on
   Java 18+ and on Linux, Cp1252 on Windows CI's JVM), so `Invoke-Antlr4CSharp.ps1` passes `-encoding UTF-8` and every

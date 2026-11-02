@@ -47,8 +47,7 @@ public abstract class CobolParserCoreBase : Parser
     /// lexer's retype already resolved it.</remarks>
     private string? Canonical(string? written)
         => written is null ? null
-         : CobolWords.IsEmpty ? written
-         : CobolWords.Resolve(CobolNames.UpperFold(written));
+         : CobolWords.Resolve(written);   // the keyword spelling, directive or none: Resolve spells it (kb/Work PB4240)
 
     protected bool is85()   => Edition.Has(85);
     protected bool is2002() => Edition.Has(2002);
@@ -207,7 +206,7 @@ public abstract class CobolParserCoreBase : Parser
         // receivers named LOCALE and USER-DEFAULT), so that shape keeps its '85 reading below 2002.
         // Keys on the WRITTEN spelling deliberately: the escape is about LEXICAL shape (an underscore is not an
         // '85 word character), so a >>COBOL-WORDS synonym spelled without one correctly falls to the edition test.
-        return CobolNames.StartsWith(cat.Text, "LC_") || Edition.Has(2002);
+        return CobolKeywords.StartsWith(cat.Text, "LC_") || Edition.Has(2002);
     }
 
     /// <summary>SET identifier-11 TO LOCALE {LC_ALL | USER-DEFAULT} (ISO §14.9.39 Format 12; kb/Work PB92) — a
@@ -353,7 +352,7 @@ public abstract class CobolParserCoreBase : Parser
     /// Through the &gt;&gt;COBOL-WORDS resolution as <see cref="reservedHere"/> is: a de-reserved word is no keyword.
     /// Diagnosis only (<c>CobolErrorStrategy</c>); never called while parsing.</summary>
     internal bool PrintsKeyword(string keyword)
-        => Canonical(keyword) is { } written && CobolNames.UpperFold(written) is var w
+        => Canonical(keyword) is { } w
            && (ReservedWords.AdmitsAsKeyword(w, Edition.Year) || CobolLexer.IsKeywordWhereFree(w));
 
     /// <summary>⛔ THE RESERVATION GATE ON THE USER-DEFINED-WORD SLOT (kb/Work PB693) — true when this compile
@@ -615,7 +614,7 @@ public abstract class CobolParserCoreBase : Parser
     private string? ReservedWordHere(IToken token)
         => token.Type is not (CobolLexer.IDENTIFIER or CobolLexer.DOT or TokenConstants.EOF)
            && token.Text is [var letter, ..] && char.IsLetter(letter)
-           && Canonical(token.Text) is { } c && CobolNames.UpperFold(c) is var w && ReservedWordSet.Default.RejectsAt(w, Edition.Year)
+           && Canonical(token.Text) is { } w && ReservedWordSet.Default.RejectsAt(w, Edition.Year)
             ? w
             : null;
 
@@ -710,7 +709,7 @@ public abstract class CobolParserCoreBase : Parser
     {
         string? literal = Vocabulary.GetLiteralName(tokenType);
         if (literal is null || literal.Length < 3) return false;
-        if (Canonical(CobolNames.UpperFold(literal[1..^1])) is not { } w) return false;
+        if (Canonical(literal[1..^1]) is not { } w) return false;
         var row = ReservedWords.Find(w);
         return row is null || row.IsReservedAt(Edition.Year) || !(_declaredNames?.Contains(w) ?? false);
     }
@@ -844,8 +843,8 @@ public abstract class CobolParserCoreBase : Parser
         // ReservedWordSet.Default is the generated §8.9 table with no >>COBOL-WORDS overlay — the right set here:
         // Canonical() has ALREADY applied this group's directive (an UNDEFINE'd word returns null, an EQUATEd
         // synonym its canonical spelling), so composing the overlay twice would double-count it. The table is keyed
-        // upper-case and the token keeps the source's spelling, so the word is written in its UpperFold here.
-        return Canonical(token.Text) is { } c && CobolNames.UpperFold(c) is var w && ReservedWordSet.Default.RejectsAt(w, Edition.Year)
+        // upper-case and the token keeps the source's spelling, so the word is written in its keyword spelling here.
+        return Canonical(token.Text) is { } w && ReservedWordSet.Default.RejectsAt(w, Edition.Year)
             ? w
             : null;
     }

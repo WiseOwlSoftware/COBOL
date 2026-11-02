@@ -56,3 +56,22 @@ starts only at `WaitForExit`, and on a host 85 % busy the starved test host saw 
 a wall-clock race, not a regression in the observer. The witness now runs a child that never ends by itself (`ping -t`,
 `exec sleep infinity`), which also hardens `RunsForever`'s two other users. The case is renamed
 `AProcessPastOneUnit_…`, and the whole-population gate on 94b05879c is GREEN on both hosts.
+
+**PB4240, branch review round 2 (R2-1).** The first fix's sweep looked for a keyword LITERAL beside a `CobolNames` comparison and
+missed the by-name classifier, which is handed the keyword as a parameter: `CobolParserCoreBase.Word` -> `CobolWordsRewriter.TokenIs` ->
+`CobolWordsMap.Is`. So `OBJECT-COMPUTER. X CLASS<U+0130>F<U+0130>CAT<U+0130>ON IS USER-DEFAULT.` still compiled as CLASSIFICATION and
+`SEGMENT-L<U+0130>M<U+0130>T IS 50` as SEGMENT-LIMIT (both re-probed on the merged build). `Is`, `TokenIs` and `CanonicalWordOf` now compare
+through `CobolKeywords`, and `CobolWordsMap.Resolve` returns the word in its `CobolKeywords.Spelling`, so none of its callers folds the
+word before asking (they did, which made the extended letter a basic one before the map could tell). The map's UNDEFINE and
+SUBSTITUTE tables are keyed by `CobolKeywords.Comparer`; the synonym table, keyed by a fresh user-defined word, stays on the fold, and
+`ReservedWordSet.Compose` re-keys the de-reserved words by the fold because it answers the user-word question. The same mechanism
+read by other callers is fixed with it: `CompilationUnitStart.IsAt` (its "IDENTIFICATION DIVISION" literal holds a space, which the
+drift rule's pattern could not see), the `LC_` test of the locale category, `EmbeddedBlockReading`, the glued-keyword test of
+`CopyProcessor`, `ConditionalCompilationProcessor.EndsWithWord`, the existing word of a `>>COBOL-WORDS` directive (round 1's lead (b):
+`UNDEFINE "D<U+0130>SPLAY"` undefined DISPLAY; it is now written in its keyword spelling and SR3 refuses it), and the intrinsic function
+catalog (`FUNCTION <U+0130>NTEGER(1.5)` compiled; the catalog is keyed by `CobolKeywords.Comparer`). Goldens, refused: `pb4240-context-word-spelled-with-dotted-capital-i`
+(COBOL1970), `pb4240-function-name-spelled-with-dotted-capital-i` (COBOL1501), `pb4240-cobol-words-existing-word-spelled-with-dotted-capital-i`
+(COBOL1623). The drift rule `NoKeywordComparedByTheFold_InTheTextStages` now also sees a keyword passed as a parameter named
+`keyword` or `word` and a literal with an underscore or a space, and `HostUpperKey` refuses `Resolve(CobolNames.UpperFold(`. Left open
+and named in PB4240: the Compiler project's direct comparisons of a reserved word, system-name or implementor-name with a literal
+(about thirty sites).

@@ -140,7 +140,7 @@ public sealed class EmbeddedBlockReading
            && token.StopIndex - token.StartIndex == 3 && CobolKeywords.Same(token.Text, "EXEC");
 
     /// <summary>A COBOL word token (a user-defined word or a keyword) whose spelling is <paramref name="word"/>.</summary>
-    private static bool IsWordSpelled(IToken token, string word) => IsWord(token) && CobolNames.Same(token.Text, word);
+    private static bool IsWordSpelled(IToken token, string word) => IsWord(token) && CobolKeywords.Same(token.Text, word);
 
     /// <summary>A COBOL word: an IDENTIFIER, or a keyword token of its own spelling (a literal, a separator or a picture
     /// string is none).</summary>

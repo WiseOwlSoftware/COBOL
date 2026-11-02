@@ -39,6 +39,11 @@ public static class CobolKeywords
     public static bool StartsWith(ReadOnlySpan<char> text, ReadOnlySpan<char> keyword) =>
         text.Length >= keyword.Length && Same(text[..keyword.Length], keyword);
 
+    /// <summary>Whether <paramref name="text"/> ends with the keyword <paramref name="keyword"/>, compared as
+    /// <see cref="Same"/>.</summary>
+    public static bool EndsWith(ReadOnlySpan<char> text, ReadOnlySpan<char> keyword) =>
+        text.Length >= keyword.Length && Same(text[^keyword.Length..], keyword);
+
     /// <summary>The word with its basic letters a-z raised to A-Z and every other character as written: the spelling a
     /// keyword is matched in by ordinal (a <c>switch</c> over directive words) and the spelling a diagnostic prints, so
     /// <c>&gt;&gt;İf</c> reads <c>İF</c>, which is no directive word. A word with no lowercase basic letter is returned

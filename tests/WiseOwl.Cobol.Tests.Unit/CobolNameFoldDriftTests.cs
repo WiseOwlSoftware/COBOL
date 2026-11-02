@@ -1,7 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using Antlr4.Runtime;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Common;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Exceptions;
 using WiseOwl.Cobol.Tests.Shared;
@@ -47,9 +49,11 @@ public sealed class CobolNameFoldDriftTests
     /// environment lookup (<c>GetEnvironmentVariable(name.ToUpperInvariant())</c>, kb/Work PB2990), as an
     /// indexer, and as the left side of a keyword comparison (<c>x.ToUpperInvariant() == "ON"</c>, <c>is</c>,
     /// <c>switch</c>). A <c>char.ToUpperInvariant(c)</c> is a character, not a word, and carries empty parentheses on
-    /// no call.</summary>
+    /// no call. Since kb/Work PB4240's R2-1 also a word handed to <c>CobolWordsMap.Resolve</c> already folded
+    /// (<c>Resolve(CobolNames.UpperFold(x))</c>): the map spells the word itself, and the fold of a user-defined word
+    /// would make an extended letter the keyword's basic one before the map could tell.</summary>
     private static readonly System.Text.RegularExpressions.Regex HostUpperKey = new(
-        @"Sanitize\([^;]*\)\.ToUpperInvariant\(|\bResolve\([^;]*\.ToUpperInvariant\(|\bCobolName!?\.ToUpperInvariant\("
+        @"Sanitize\([^;]*\)\.ToUpperInvariant\(|\bResolve\([^;]*\.ToUpperInvariant\(|\bResolve\(CobolNames\.UpperFold\(|\bCobolName!?\.ToUpperInvariant\("
         + @"|\b(TryGetValue|ContainsKey|Contains|TryAdd|Add|Remove|Find|Lookup|GetValueOrDefault|GetEnvironmentVariable)\([^;]*\.To(Upper|Lower)Invariant\(\)"
         + @"|\[[^\]]*\.To(Upper|Lower)Invariant\(\)\]"
         + @"|\.To(Upper|Lower)Invariant\(\)\s*(==|!=|\bis\b|\bswitch\b)",
@@ -288,6 +292,53 @@ public sealed class CobolNameFoldDriftTests
         Assert.True(CompilerDirectiveCatalog.IsDirective(e.Word));
     }
 
+    /// <summary>⛔ THE BY-NAME CLASSIFIER'S ONE COMPARISON (kb/Work PB4240, review finding R2-1): the words the lexer leaves
+    /// an IDENTIFIER (§8.10's CLASSIFICATION, SEGMENT-LIMIT, STEP, …, the §15 phrase words, the SET locale categories) are
+    /// recognised by their text through <see cref="CobolWordsMap.Is"/> and <see cref="CobolWordsMap.Resolve"/>, with and
+    /// without a <c>&gt;&gt;COBOL-WORDS</c> directive, and they match on the basic letters alone: a word written with
+    /// U+0130 or the Kelvin sign is not the keyword the Annex C fold would make of it, while a SYNONYM (a fresh user-defined
+    /// word, §7.3.10.3 SR4) is found by the fold.</summary>
+    [Fact]
+    public void TheWordsMap_MatchesAKeywordOnTheBasicLettersAlone()
+    {
+        string dotted = char.ConvertFromUtf32(0x0130);
+        string kelvin = char.ConvertFromUtf32(0x212A);
+        var none = CobolWordsMap.Empty;
+        var directed = new CobolWordsMap([
+            new CobolWordsOp(CobolWordsAction.Equate, "CLASSIFICATION", "KLASSE", default),
+            new CobolWordsOp(CobolWordsAction.Undefine, "SEGMENT-LIMIT", null, default)]);
+        foreach (var map in new[] { none, directed })
+        {
+            Assert.True(map.Is("classification", "CLASSIFICATION"));
+            Assert.False(map.Is("CLASS" + dotted + "F" + dotted + "CAT" + dotted + "ON", "CLASSIFICATION"));
+            Assert.False(map.Is("CLASS" + dotted + "FICATION", "CLASSIFICATION"));
+            Assert.False(map.Is(kelvin + "EY", "KEY"));
+            Assert.Equal("DISPLAY", map.Resolve("display"));
+            Assert.Equal("D" + dotted + "SPLAY", map.Resolve("d" + dotted + "splay"));
+        }
+        Assert.True(directed.Is("klasse", "CLASSIFICATION"));
+        Assert.True(directed.Is("KLASSE", "CLASSIFICATION"));
+        Assert.False(directed.Is("SEGMENT-LIMIT", "SEGMENT-LIMIT"));
+        Assert.False(directed.Is("segment-l" + dotted + "m" + dotted + "t", "SEGMENT-LIMIT"));
+        Assert.Null(directed.Resolve("segment-limit"));
+        Assert.Equal("SEGMENT-L" + dotted + "M" + dotted + "T", directed.Resolve("segment-l" + dotted + "m" + dotted + "t"));
+    }
+
+    /// <summary>The token twin of <see cref="TheWordsMap_MatchesAKeywordOnTheBasicLettersAlone"/>
+    /// (<c>CobolParserCoreBase.Word</c> asks it for every text predicate of the parser).</summary>
+    [Fact]
+    public void TheTokenTwin_MatchesAKeywordOnTheBasicLettersAlone()
+    {
+        string dotted = char.ConvertFromUtf32(0x0130);
+        IToken Word(string text) => new CommonToken(CobolKeywordTokens.IdentifierType, text);
+        foreach (var map in new[] { CobolWordsMap.Empty, new CobolWordsMap([new CobolWordsOp(CobolWordsAction.Undefine, "SEGMENT-LIMIT", null, default)]) })
+        {
+            Assert.True(CobolWordsRewriter.TokenIs(Word("classification"), "CLASSIFICATION", map));
+            Assert.False(CobolWordsRewriter.TokenIs(Word("CLASS" + dotted + "FICATION"), "CLASSIFICATION", map));
+            Assert.Equal("L" + dotted + "M" + dotted + "T", CobolWordsRewriter.CanonicalWordOf(Word("l" + dotted + "m" + dotted + "t"), map));
+        }
+    }
+
     /// <summary>A text stage, the directive catalog and the directive-line parse compare a word with a KEYWORD written as a
     /// literal through <see cref="CobolKeywords"/>, never through the fold of a user-defined word (kb/Work PB4240): a
     /// <c>CobolNames</c> comparison whose argument is an upper-case keyword literal, or a <c>CobolNames.UpperFold</c>
@@ -297,7 +348,9 @@ public sealed class CobolNameFoldDriftTests
     public void NoKeywordComparedByTheFold_InTheTextStages()
     {
         var keywordByFold = new System.Text.RegularExpressions.Regex(
-            @"CobolNames\.(Same|StartsWith|EndsWith|Contains)\([^;]*""[A-Z][A-Z0-9-]*""|CobolNames\.UpperFold\([^;]*\)\s*(is\s+(var\s+\w+\s*&&\s*\w+\s+is\s+)?""|==\s*""|switch)");
+            // A keyword reaches the comparison as a literal ("DISPLAY", "LC_", "IDENTIFICATION DIVISION") or as the
+            // parameter a helper is handed (keyword, word): the second is how the first review round's R2-1 got through.
+            @"CobolNames\.(Same|StartsWith|EndsWith|Contains)\([^;]*(""[A-Z][A-Z0-9_ -]*""|,\s*(keyword|word)\s*\))|CobolNames\.UpperFold\([^;]*\)\s*(is\s+(var\s+\w+\s*&&\s*\w+\s+is\s+)?""|==\s*""|switch)");
         var hits = ScannedLines()
             .Where(l => l.Rel.Replace('\\', '/') is var r
                         && (r.StartsWith("src/WiseOwl.Cobol.Frontend/", StringComparison.Ordinal)

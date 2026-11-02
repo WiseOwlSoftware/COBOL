@@ -795,7 +795,7 @@ public sealed class CopyProcessor(
         {
             if (word.IsWord(keyword)) return word.Start;
             if (onGlued is not null && word.Kind == TextWordKind.CharacterString && word.Span.Length > keyword.Length
-                && CobolNames.EndsWith(word.Span, keyword)
+                && CobolKeywords.EndsWith(word.Span, keyword)
                 && word.Span[^(keyword.Length + 1)] is '.' or ',' or ';')
                 onGlued(word.End - keyword.Length);
         }

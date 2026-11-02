@@ -942,7 +942,7 @@ public static partial class ConditionalCompilationProcessor
         CompilerDirectiveLine.TryParse(trimmed, out var d) ? (d.Word, d.Operand) : ("", "");
 
     private static bool EndsWithWord(string s, string word) =>
-        CobolNames.EndsWith(s, word)
+        CobolKeywords.EndsWith(s, word)
         && (s.Length == word.Length || CobolSpace.IsSeparator(s[s.Length - word.Length - 1]));
 
     /// <summary>The frontend diagnostic gateway: the shared evaluator's code-preserving reports (any
