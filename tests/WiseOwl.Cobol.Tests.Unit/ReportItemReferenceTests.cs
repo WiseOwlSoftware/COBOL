@@ -229,7 +229,7 @@ public sealed class ReportItemReferenceTests
         foreach (string rel in new[]
                  {
                      Path.Combine("Binding", "ReferenceResolver.cs"),   // procedure division: ReportUnidentified
-                     Path.Combine("Binding", "DataBinder.Odo.cs"),      // OCCURS … DEPENDING ON
+                     Path.Combine("Binding", "Passes", "OdoResolvePass.cs"),   // OCCURS … DEPENDING ON
                  })
             Assert.Contains("ReportEntryReferenceRefused(", File.ReadAllText(Path.Combine(root, rel)));
 
