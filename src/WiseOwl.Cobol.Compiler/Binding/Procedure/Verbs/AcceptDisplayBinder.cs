@@ -93,7 +93,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
 
         // SR6: "Neither identifier-1 nor identifier-2 shall reference a variable-length group" (§8.5.1.12 —
         // a group with a DYNAMIC LENGTH elementary item or dynamic-capacity table subordinate at any depth).
-        if (rItem.IsGroup && ReferenceResolver.HasVariableLengthSubordinate(rItem))
+        if (rItem.IsGroup && DataItem.HasVariableLengthSubordinate(rItem))
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.AcceptVariableLengthGroup, $"ACCEPT receiver '{rItem.CobolName}' references a "
                 + "variable-length group (a DYNAMIC LENGTH item or dynamic-capacity table is subordinate to "
@@ -160,7 +160,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
             Pic = new PicInfo(PicCategory.Numeric, Usage.Display, Length: digits, Digits: digits, Scale: 0, Signed: false),
         };
         var temp = ctx.Data.CreateCompilerTemp(model, "__ACCEPT-", "__accept", $"{kind}L{line}");
-        return ctx.Refs.ResolveItem(temp);
+        return ctx.Refs.Places.ResolveItem(temp);
     }
 
     /// <summary><c>ACCEPT … FROM mnemonic-name-1</c> (ISO §14.9.1 Format 1, SR2): the mnemonic shall be declared in

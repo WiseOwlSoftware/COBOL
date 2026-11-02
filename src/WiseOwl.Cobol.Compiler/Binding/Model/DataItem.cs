@@ -566,7 +566,7 @@ public sealed class DataItem
     /// table-RECOGNITION site (is this the table SEARCH iterates) and the wrong one at every
     /// REFERENCE-SHAPE site, where the subject is a reference to a table ELEMENT and every level of the
     /// element's hierarchy counts.
-    /// <para>The half that was missing had a measurable cost: the subscript splitter's (now <c>ReferenceResolver.SegmentsOf</c>)
+    /// <para>The half that was missing had a measurable cost: the subscript splitter's (now <c>SubscriptBinder.SegmentsOf</c>)
     /// declaration-informed <c>'('</c> rule asked <c>IsTable</c>, so <c>X</c> — <c>PIC 9</c> under
     /// <c>02 G2 OCCURS 3</c> — answered "cannot be subscripted", its own <c>'('</c> opened a NEW subscript, and
     /// <c>Y (X(1))</c> was read as TWO subscripts on a one-dimensional reference. §8.4.2.3.2's <c>subscript</c>
@@ -1258,11 +1258,11 @@ public sealed class DataItem
     /// when it does not state its own (kb/Work PB2497; <c>PlaceRenderer.WriteVarGroupContiguous</c>).</summary>
     internal static bool HasOdoTableOfVariableLengthElements(DataItem g) =>
         g.IsGroup && g.Children.Any(c => c.RedefinesTargetName is null && c.IsGroup
-            && ((c.OccursSpec?.DependingName is not null && WiseOwl.Cobol.Binding.ReferenceResolver.HasVariableLengthSubordinate(c))
+            && ((c.OccursSpec?.DependingName is not null && DataItem.HasVariableLengthSubordinate(c))
                 || HasOdoTableOfVariableLengthElements(c)));
 
     private bool ComposesCurrentExtent(bool transfer) =>
-        IsGroup && WiseOwl.Cobol.Binding.ReferenceResolver.HasVariableLengthSubordinate(this)
+        IsGroup && DataItem.HasVariableLengthSubordinate(this)
         && Children.Where(c => c.RedefinesTargetName is null && (c.IsGroup || c.IsElementary))
             .All(c => CurrentExtentComposes(c, transfer));
 
@@ -1329,6 +1329,16 @@ public sealed class DataItem
     /// that asks only <see cref="IsImageCapable"/> rejects legal source; every CALL / INVOKE / RETURNING screen
     /// and emit guard asks THIS.</summary>
     public bool BoundaryImageCapable => IsImageCapable || CurrentExtentImageCapable;
+
+    /// <summary>§8.5.1.12 — a variable-length group has a dynamic-length elementary item or a dynamic-capacity table
+    /// as a subordinate (at any depth). THE one walk (kb/Work PB2375 moved it here from the reference resolver, whose
+    /// model-layer readers — this class, <see cref="FileModel"/>, <see cref="RecordLayout"/> — asked a binder type).</summary>
+    internal static bool HasVariableLengthSubordinate(DataItem group)
+    {
+        foreach (var c in group.Children)
+            if (c.IsDynamicLength || c.IsDynamicTable || (c.IsGroup && HasVariableLengthSubordinate(c))) return true;
+        return false;
+    }
 
     /// <summary>An OCCURS DEPENDING clause on <paramref name="c"/> itself or any subordinate — the shape the
     /// current-extent composer must classify (see <see cref="CurrentExtentImageCapable"/>). The composer screens

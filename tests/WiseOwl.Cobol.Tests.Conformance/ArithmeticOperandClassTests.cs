@@ -105,7 +105,7 @@ public sealed class ArithmeticOperandClassTests
 
     /// <summary>⛔ THE LENIENCY STAYS DIALECT-GATED AT THE POSITION OPERANDS TOO (kb/Work PB170;
     /// dialect_two_axes — every leniency is dialect-gated). The new screen sits in
-    /// <c>ReferenceResolver.ResolveSubscriptName</c>, on the fast path EVERY subscript and reference-modification
+    /// <c>SubscriptBinder.ResolveSubscriptName</c>, on the fast path EVERY subscript and reference-modification
     /// in the corpus takes, and it must have the SAME two lanes the expression-binder screen has: strict rejects,
     /// <c>--permissive</c> warns and decodes the digit characters. The decode is not new behaviour to write —
     /// <c>CobolTable.Occ(string)</c> and <c>CobolString.RefModPosition(string, …)</c> already implement it — so

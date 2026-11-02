@@ -263,7 +263,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // A file with no usable record area leaves the move null and the phrase inert — the same reach the emitter's own
         // `area is not null` guard had, now decided once, at bind time.
         BoundMove? intoMove = r.readInto()?.receivingIdentifier() is { } d && host.Expr.ResolveReceiving(d) is { } recv
-            && ctx.Refs.RecordArea(file) is { } readArea
+            && ctx.Refs.Places.RecordArea(file) is { } readArea
             ? host.Move.BindIntoPhrase(file, readArea, recv, IntoPhraseRules.Read)
             : null;
         var (atEnd, notAtEnd) = PhraseBlocks.Bind(r.conditionalPhrases(), ConditionalPhraseFamily.AtEnd, b => host.BindBlocks([b]));

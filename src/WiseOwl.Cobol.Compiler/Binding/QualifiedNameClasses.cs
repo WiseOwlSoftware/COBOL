@@ -35,10 +35,10 @@ internal static class QualifiedNameClasses
     [
         new("qualified-data-name", Disposition.Resolved, typeof(DataBinder), "QualifiedCandidates",
             "§8.4.2.2.3 SR1 + SR4 — counted by DataBinder.UniqueOrReportAmbiguous (data division) and "
-            + "ReferenceResolver.ReportUnidentified (procedure division)"),
+            + "NameResolution.ReportUnidentified (procedure division)"),
         new("qualified-condition-name", Disposition.Resolved, typeof(ConditionBinder), "ConditionOf",
             "§8.4.2.2.3 SR1 + SR5"),
-        new("qualified-index-name", Disposition.Resolved, typeof(ReferenceResolver), "ResolveIndexName",
+        new("qualified-index-name", Disposition.Resolved, typeof(NameResolution), "ResolveIndexName",
             "§8.4.2.2.3 SR1 + SR6 — counted by DataBinder.UniqueOrReportAmbiguous (kb/Work PB919)"),
         new("qualified-procedure-name", Disposition.Resolved, typeof(ProcedureTableBuilder), "ResolveProcedureWord",
             "§8.4.2.2.3 SR1 + SR7"),

@@ -51,6 +51,10 @@ public enum PassPhase
     /// settled first (<c>StorageFormPass.Run</c>: compiler-temp re-sync → whole-group image marking → OO override
     /// harmonize → classify; PHASE-06 Step 3). A group pass.</summary>
     StorageComputed,
+    /// <summary>Every <see cref="Place"/> the code generator asks of an item rather than of a written reference is built
+    /// (<c>PlaceTablePass</c>: the per-source-element <c>PlaceTable</c> and the report CONTROL operands' places;
+    /// kb/Work PB2375). A group pass.</summary>
+    PlacesBuilt,
     /// <summary>Every version-gated construct checked against the targeted edition (the
     /// <c>VersionConformancePass</c> — the manifest's NAMED TERMINAL pass and the SOLE
     /// <c>ConstructRegistry.Check</c> caller; PHASE-06 Step 4 / the P3 pipeline design). The driver's

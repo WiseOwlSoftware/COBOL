@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// conditional variable associated with qualified-condition-name-1 shall contain an OCCURS clause <b>or shall be
 /// subordinate to a data description entry that contains an OCCURS clause</b>." <c>DataItem.IsTable</c> answers
 /// the first half only. The segmenter that decides whether a <c>'('</c> after a name belongs to that name or
-/// begins a new subscript (<c>ReferenceResolver.SegmentsOf</c>, a token splitter before kb/Work PB2113) asked
+/// begins a new subscript (<c>SubscriptBinder.SegmentsOf</c>, a token splitter before kb/Work PB2113) asked
 /// <c>IsTable</c>, so <c>X</c> — <c>PIC 9</c> under <c>02 G2 OCCURS 3</c> — was
 /// judged unsubscriptable, its own <c>'('</c> opened a second subscript, and <c>Y (X(1))</c> became a
 /// two-subscript reference to a one-dimensional table: rejected loud on the receiving side (COBOL0899) and
@@ -23,7 +23,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// is written. Three call sites segment a subscript list and each one used to spell its own lambda; two of
 /// them spelled the same wrong one, and <c>SubscriptSegments</c>'s doc-comment CLAIMED they "use the same
 /// declaration-informed '(' rule" while nothing made that true. It is true structurally now — one named
-/// predicate, <c>ReferenceResolver.CannotBeSubscripted</c> — and these tests fail the moment a fourth caller
+/// predicate, <c>SubscriptBinder.CannotBeSubscripted</c> — and these tests fail the moment a fourth caller
 /// re-spells it or an edit puts <c>IsTable</c> back in the admission position.</para>
 ///
 /// <para>The behavioural half lives in the conformance corpus, where it belongs:
@@ -36,8 +36,6 @@ public sealed class SubscriptAdmissionDriftTests
 {
     private static string Src(params string[] parts) => Path.Combine([TestRepo.Root, "src", .. parts]);
 
-    private static readonly string ReferenceResolver =
-        Src("WiseOwl.Cobol.Compiler", "Binding", "ReferenceResolver.cs");
     private static readonly string DataItem =
         Src("WiseOwl.Cobol.Compiler", "Binding", "Model", "DataItem.cs");
 
@@ -65,7 +63,7 @@ public sealed class SubscriptAdmissionDriftTests
         foreach (var (file, args) in sites)
             Assert.True(args.Contains("CannotBeSubscripted", StringComparison.Ordinal),
                 $"{file}: SegmentsOf is called with '{args.Trim()}' instead of the shared "
-                + "ReferenceResolver.CannotBeSubscripted predicate. ISO §8.4.2.3.3 SR2 decides whether a '(' after "
+                + "SubscriptBinder.CannotBeSubscripted predicate. ISO §8.4.2.3.3 SR2 decides whether a '(' after "
                 + "a name belongs to that name; writing the test a second time is how PB877 happened.");
     }
 
@@ -73,10 +71,10 @@ public sealed class SubscriptAdmissionDriftTests
     [Fact]
     public void TheSr2Predicate_AsksIsTableElement_NotIsTable()
     {
-        string text = File.ReadAllText(ReferenceResolver);
+        string text = ResolverSources.Text;
         // The predicate takes the WHOLE qualified name (kb/Work PB1455): a '(' after `E OF T` subscripts `E OF T`.
         var m = Regex.Match(text, @"bool CannotBeSubscripted\(string name, List<string> qualifiers\)\s*=>(?<body>[^;]*);");
-        Assert.True(m.Success, "ReferenceResolver.CannotBeSubscripted is gone — §8.4.2.3.3 SR2's admission test "
+        Assert.True(m.Success, "SubscriptBinder.CannotBeSubscripted is gone — §8.4.2.3.3 SR2's admission test "
                                + "has no home, and the subscript splitter has no shared rule (kb/Work PB877)");
         string body = m.Groups["body"].Value;
         Assert.Contains("IsTableElement", body, StringComparison.Ordinal);
@@ -120,7 +118,7 @@ public sealed class SubscriptAdmissionDriftTests
     [Fact]
     public void BothSubscriptScreens_AreWiredAtTheOneResolutionSite()
     {
-        string text = File.ReadAllText(ReferenceResolver);
+        string text = ResolverSources.Text;
         // kb/Work PB1030: the written list is read by ONE method, ReadSubscripts, which every entry calls.
         Assert.Single(Regex.Matches(text, @"ScreenSubscriptArity\(dref, item, e\.Count\)"));
         Assert.Contains("DiagnosticCatalog.SubscriptOnNonTableItem", text, StringComparison.Ordinal);
@@ -137,7 +135,7 @@ public sealed class SubscriptAdmissionDriftTests
     [Fact]
     public void TheOmittedSubscriptList_IsScreenedAtEveryIdentifierEntry()
     {
-        string text = File.ReadAllText(ReferenceResolver);
+        string text = ResolverSources.Text;
         // kb/Work PB1030: the three entries share ONE reading of the written list (ReadSubscripts), so the omitted
         // arm is written once and each entry is pinned to calling it — an entry that stops calling it is red here.
         // kb/Work PB3287: Resolve and ResolveForAddressOf reach it together, through the ONE identification step

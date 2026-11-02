@@ -290,7 +290,7 @@ off-by-one through every later counter check.
   `ControlLevelOf`, one comparison over the whole written reference. It has to be the written reference and not
   the resolved item, because §13.18.16.3 SR6's second sentence lets two operands "refer to the same physical data
   item or to overlapping data items"; `CONTROLS ARE CX(1:3) CX(4:3)` is the legal shape that proves it.
-  A ref-modded operand is emitted through `ReferenceResolver.ResolveItemRefMod` — the SAME ref-mod view builder
+  A ref-modded operand is emitted through `RefModBinder.ResolveItemRefMod` — the SAME ref-mod view builder
   the procedure division uses (`RefModView`), reached by item instead of by parse context — so §13.18.16.4 GR3's
   prior control is the §8.4.3.3.4 GR5 unique data item, the SLICE. §13.18.16.3's operand rules are all screened
   in one place: SR2 (asked only after resolution fails — a name also in ordinary storage resolves there), SR3,
@@ -423,7 +423,7 @@ off-by-one through every later counter check.
   where the standard owes `0011  0022`.) GR5 also puts that name in the source element's name space, because
   GR12 permits procedure division statements to "alter the content of sum counters" and altering presupposes
   referencing: `DataBinder.SumCounters` (name → EVERY counter carrying it, a list because the collision is legal
-  to DECLARE) feeds `ReferenceResolver.SumCounterFor`, which builds a `ReportSumCounterPlace` — the CAPACITY /
+  to DECLARE) feeds `CounterResolver.SumCounterFor`, which builds a `ReportSumCounterPlace` — the CAPACITY /
   DEBUG register pattern, a VIEW over engine state whose read and write `PlaceRenderer` maps to
   `CobolReport.SumImage` / `SetSumImage` (the counter's character image under its GR1 profile: the register is
   IMAGE-CARRIED, `StorageFormPass` gives it `StorageForm.CharImage`, kb/Work PB2553). Because it is a Place, every verb reaches it through the machinery it
@@ -439,7 +439,7 @@ off-by-one through every later counter check.
   `PicInfo.SumCounterItem`, emitted beside the printable items' `NumProfile`s. **Its usage is DISPLAY** (kb/Work
   PB1943, PB2520; the implementor's choice, GR1 states none — CONFORMANCE.md A.4.11): a signed `S9(n)V9(m)` DISPLAY
   item, trailing overpunch, so §8.4.3.3.3 SR1 admits a reference modifier (`CF-T (1:2)`, after the subscripts of a
-  repeating counter — `ReferenceResolver.SumCounterFor` runs the same `ReadScreenedRefMod` / `RefModView` tail every
+  repeating counter — `CounterResolver.SumCounterFor` runs the same `ReadScreenedRefMod` / `RefModView` tail every
   identifier does, and the view is the counter's `NumericImagePlace` character image) and every size consumer
   (FUNCTION LENGTH) reads the digit count. A view over engine state answers `Place.OwnsStorageCell` false, so no
   image-backing fact (`MarkImageForced`) is ever recorded for its register item.
@@ -452,7 +452,7 @@ off-by-one through every later counter check.
   `DataBinder.ReportEntriesNamed` — the visible reports (own and GLOBAL containers', nearest source element, §8.4.6.2.1
   rule 3) under the ONE §8.4.2.2.3 SR4 `QualifierWalk`, report-name last — and `DataBinder.ReportEntryReferenceRefused`
   reports **COBOL5092**. Five arms ask it before they say "not defined" (or "nothing described"):
-  `ReferenceResolver.ReportUnidentified` (every procedure division identifier), `DataBinder.ResolveClauseOperand`
+  `NameResolution.ReportUnidentified` (every procedure division identifier), `DataBinder.ResolveClauseOperand`
   (FILE STATUS, RELATIVE KEY, LINAGE, APPLY COMMIT), the data-division OCCURS … DEPENDING ON lookup,
   `DataBinder.ResolveAssignUsing` (ASSIGN … USING, kb/Work PB3768) and the record-key resolver `InRecords` inside
   `ResolveFiles` (RECORD KEY / ALTERNATE RECORD KEY, which would otherwise draw SR2's COBOL0863 "references nothing
@@ -502,11 +502,11 @@ off-by-one through every later counter check.
   SOURCE does — the single-register model this replaced shared ONE counter among the entry's printable items.
   **The reference side is the ordinary table machinery**: the family register carries a synthetic ancestor per
   enclosing repetition with `Occurs` = its extent (and its own `Occurs` = the COLUMN count), so
-  `ReferenceResolver.SumCounterFor` reads the written subscripts through the ONE `ReadSubscripts` (§8.4.2.3.3 SR3
+  `CounterResolver.SumCounterFor` reads the written subscripts through the ONE `ReadSubscripts` (§8.4.2.3.3 SR3
   count, SR5 "Each table element reference shall be subscripted" — an unsubscripted `CF-U` of a multiple COLUMN
   entry is now COBOL2270, SR4 index-name association) and the table(ALL) intrinsic argument reads the levels and
   their counts off the family (`IntrinsicBinder.TryBindAllArgument` asks `SumCounterFamilyFor` first, in
-  `Resolve`'s order; `ReferenceResolver.SumCounterOccurrenceCount` ranges a DEPENDING level over §13.18.38.4 GR13's
+  `Resolve`'s order; `CounterResolver.SumCounterOccurrenceCount` ranges a DEPENDING level over §13.18.38.4 GR13's
   count — §15.3: "the range of values is determined by the object of the OCCURS DEPENDING ON clause" — as
   `AllCount.ReportDepending`, the ONE GR13 count the per-repetition presence test also renders, evaluated by
   `CobolReport.DependingCount`; it is not the data division's clamp with EC-BOUND-ODO). The place (`ReportSumCounterPlace.Subscripts`) carries the rendered subscripts; the renderer

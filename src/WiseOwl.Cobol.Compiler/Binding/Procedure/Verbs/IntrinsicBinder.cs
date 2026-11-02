@@ -166,7 +166,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         }
         // §8.4.3.2.3 SR6 was already decided by the caller, from the definition, before the call bound — the
         // only ref-mod that reaches here is one that FOLLOWS the argument list (or a zero-argument function).
-        return ResultRefMod(call, ctx.Refs.ReadRefMod(refMods[0]), display);
+        return ResultRefMod(call, ctx.Refs.RefMods.ReadRefMod(refMods[0]), display);
     }
 
     /// <summary>
@@ -253,7 +253,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// source element's (§8.4.6.2.1 3); <c>SymbolTable.TryResolveUnqualified</c>), so a contained program's own
     /// FUNCTION-POINTER hides a container's GLOBAL one of the same name instead of counting it as a rival.</summary>
     private Place? FunctionPointerNamed(string name) =>
-        FunctionPointerItemNamed(name) is { } only ? ctx.Refs.ResolveItem(only) : null;
+        FunctionPointerItemNamed(name) is { } only ? ctx.Refs.Places.ResolveItem(only) : null;
 
     /// <summary><see cref="FunctionPointerNamed"/>'s test, answering the declared item itself — for the readers that
     /// need its description and no <see cref="Place"/> (<see cref="ReturningItemOf(string)"/>).</summary>
@@ -332,7 +332,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         //   (start:len)              refModPart — a ref-mod on a ZERO-ARGUMENT result
         //   (args) (start:len)       the argument list, then a ref-mod
         // The parser tells the middle two apart by the colon (kb/Work PB2113: both open with the REF_LPAREN the lexer
-        // gives every '(' after a name). Both ref-mods are read by the ONE ReferenceResolver.ReadRefMod.
+        // gives every '(' after a name). Both ref-mods are read by the ONE RefModBinder.ReadRefMod.
         Core.SubscriptPartContext? sp = null;
         Core.RefModPartContext? capturedRefMod = null;   // `name (start:len)` — a zero-argument result
         Core.RefModPartContext? tailRefMod = null;       // `name (args) (start:len)`
@@ -370,7 +370,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             var viaPointer = ArgumentsOf(sp) is { } fpArgs
                 ? host.Udf.UdfBindPointerCall(fp, fpArgs)
                 : BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} arguments");
-            return Activated(tailRefMod is null ? viaPointer : ResultRefMod(viaPointer, ctx.Refs.ReadRefMod(tailRefMod), name));
+            return Activated(tailRefMod is null ? viaPointer : ResultRefMod(viaPointer, ctx.Refs.RefMods.ReadRefMod(tailRefMod), name));
         }
         // The word as an intrinsic-function-name OF THIS COMPILATION (>>COBOL-WORDS and the edition window —
         // DataBinder.TryIntrinsicOfThisCompilation), and the REPOSITORY half through DataBinder.IsRepositoryIntrinsic,
@@ -438,7 +438,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 var udfBare = host.Udf.UdfBindCall(name, []);
                 return Activated(capturedRefMod is null
                     ? udfBare
-                    : ResultRefMod(udfBare, ctx.Refs.ReadRefMod(capturedRefMod), name));
+                    : ResultRefMod(udfBare, ctx.Refs.RefMods.ReadRefMod(capturedRefMod), name));
             }
             // A bare CATALOGUED name only becomes a function reference when the function genuinely admits
             // ZERO arguments (MinArgs 0 — CURRENT-DATE, PI, E, WHEN-COMPILED, and RANDOM's no-argument form,
@@ -453,14 +453,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // form applies it, and the two reference forms cannot drift apart.
             return Activated(capturedRefMod is null
                 ? bare
-                : ResultRefMod(bare, ctx.Refs.ReadRefMod(capturedRefMod), name));
+                : ResultRefMod(bare, ctx.Refs.RefMods.ReadRefMod(capturedRefMod), name));
         }
         var call = ArgumentsOf(sp) is { } args
             ? BindIntrinsicCore(functionWord, args)
             : BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} arguments");
         return Activated(tailRefMod is null
             ? call
-            : ResultRefMod(call, ctx.Refs.ReadRefMod(tailRefMod), name));
+            : ResultRefMod(call, ctx.Refs.RefMods.ReadRefMod(tailRefMod), name));
 
         // Every non-null return of this method IS a function activation (§8.4.3.2.3 SR2); record the decision where it
         // is made so the migration-flag pass (§7.3.14.4 GR4 b) need not re-derive it from syntax.
@@ -2422,7 +2422,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// <see cref="HasDynamicLengthLeaf"/>/<see cref="HasDynamicCapacityTable"/> stay: they serve
     /// <see cref="HasRuntimeLength"/>, which answers a LAYOUT question, not the §8.5.1.12.1 classification.</summary>
     private static bool IsVariableLengthGroup(DataItem g) =>
-        WiseOwl.Cobol.Binding.ReferenceResolver.HasVariableLengthSubordinate(g);
+        DataItem.HasVariableLengthSubordinate(g);
 
     private static bool HasRuntimeLength(DataItem g) =>
         DataItem.HasOdoBeneath(g) || HasDynamicLengthLeaf(g) || HasDynamicCapacityTable(g);
@@ -3147,8 +3147,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // this was the one caller that passed none, so the "unknown → no split" fallback stood here and a
         // §8.4.2.3.2 NOTE-2 parenthesized-expression subscript (`T (CTR (- OFF) ALL)`) joined itself to the
         // preceding name. Three callers, one §8.4.2.3.3 SR2 answer.
-        var innerSegs = ReferenceResolver.SegmentsOf(sp, ctx.Refs.CannotBeSubscripted);
-        if (!innerSegs.Any(ReferenceResolver.IsAllSegment)) return false;
+        var innerSegs = SubscriptBinder.SegmentsOf(sp, ctx.Refs.Subscripts.CannotBeSubscripted);
+        if (!innerSegs.Any(SubscriptBinder.IsAllSegment)) return false;
 
         if (!sig.RepeatsAnArgument)
         {
@@ -3163,8 +3163,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // A REPEATING SUM entry's counter is a table too (ISO §13.18.54.4 GR8 a)'s "corresponding occurrence of the
         // sum counter"; kb/Work PB1271): it is asked of the ONE counter resolver FIRST, in the order
         // ReferenceResolver.Resolve asks it, and its register carries the OCCURS levels the walk below reads.
-        var counter = ctx.Refs.SumCounterFamilyFor(dref, name, quals, report: true);
-        if ((counter?.Family.Register ?? ctx.Refs.FindReportedItem(dref, name, quals)) is not { } item)
+        var counter = ctx.Refs.Counters.SumCounterFamilyFor(dref, name, quals, report: true);
+        if ((counter?.Family.Register ?? ctx.Refs.Names.FindReportedItem(dref, name, quals)) is not { } item)
         {
             // The resolver's ONE reported lookup (kb/Work PB1029 — this arm refused silently; kb/Work PB3287 — and it
             // asked no §13.7.3 SR4 screen of a LINKAGE table the procedure division may not reference): the §8.4.2.1 /
@@ -3179,7 +3179,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (levels.Count != innerSegs.Count)
         {
             // The resolver's ONE §8.4.2.3.3 SR2/SR3 report (kb/Work PB1029 — this arm refused silently).
-            ctx.Refs.ScreenSubscriptArity(dref, item, innerSegs.Count);
+            ctx.Refs.Subscripts.ScreenSubscriptArity(dref, item, innerSegs.Count);
             args.Add(BoundOperandError.Refused(ctx.Edition, $"table(ALL) subscript count for '{name}'"));
             return true;
         }
@@ -3188,18 +3188,18 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         var exprs = new Position[innerSegs.Count];
         var counts = new List<AllCount>();
         var outerExprs = new List<Position>();   // the index of every level ABOVE the current one
-        List<ReferenceResolver.IndexUse> indexNames = [];   // §8.4.2.3.3 SR4's collector — see below the loop
+        List<IndexUse> indexNames = [];   // §8.4.2.3.3 SR4's collector — see below the loop
         for (int i = 0; i < innerSegs.Count; i++)
         {
             DataItem level = levels[i];
-            if (ReferenceResolver.IsAllSegment(innerSegs[i]))
+            if (SubscriptBinder.IsAllSegment(innerSegs[i]))
             {
                 exprs[i] = new PositionLocalElement(indices, counts.Count);
                 // The level's range is the ONE current-occurrence-count model (fixed / ODO / dynamic capacity) — or,
                 // for a repeating sum counter, its report-writer twin (a DEPENDING level counts by §13.18.38.4 GR13).
                 if ((counter is (_, { } countedFamily)
-                        ? ctx.Refs.SumCounterOccurrenceCount(countedFamily, i)
-                        : ctx.Refs.CurrentOccurrenceCount(level, outerExprs)) is not { } count)
+                        ? ctx.Refs.Counters.SumCounterOccurrenceCount(countedFamily, i)
+                        : ctx.Refs.Places.CurrentOccurrenceCount(level, outerExprs)) is not { } count)
                 {
                     args.Add(BoundOperandError.Unbuilt(ctx.Edition, level.OccursSpec is { Depending: { } dep }
                         ? $"table(ALL) over OCCURS DEPENDING table '{name}': data-name-1 '{dep.CobolName}' could not be addressed"
@@ -3208,7 +3208,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 }
                 counts.Add(count);
             }
-            else if (ctx.Refs.BindIndexSegment(innerSegs[i], indexNames) is { } bound)
+            else if (ctx.Refs.Subscripts.BindIndexSegment(innerSegs[i], indexNames) is { } bound)
                 exprs[i] = bound;
             else
             {
@@ -3219,11 +3219,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         }
         // §8.4.2.3.3 SR4 — "Index-name-1 shall correspond to a data description entry in the hierarchy of the table
         // being referenced that contains an INDEXED BY phrase specifying that index-name" — through THE ONE screen the
-        // ordinary subscript reading asks (ReferenceResolver.ReadSubscripts), over the index-names the written
+        // ordinary subscript reading asks (SubscriptBinder.ReadSubscripts), over the index-names the written
         // non-ALL segments carried (kb/Work PB1472). The ALL segments name none.
-        ctx.Refs.ScreenIndexNameAssociation(item, indexNames);
+        ctx.Refs.Subscripts.ScreenIndexNameAssociation(item, indexNames);
         if ((counter is ({ } counterReport, { } counterFamily)
-                ? ctx.Refs.SumCounterPlace(counterReport, counterFamily, exprs)
+                ? ctx.Refs.Counters.SumCounterPlace(counterReport, counterFamily, exprs)
                 : ctx.Refs.ResolveByName(name, quals, exprs)) is not { } element)
         {
             args.Add(BoundOperandError.Unbuilt(ctx.Edition, $"table(ALL) occurrence of '{name}'"));

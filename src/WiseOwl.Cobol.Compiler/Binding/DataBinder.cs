@@ -24,7 +24,7 @@ using WiseOwl.Cobol.Runtime;
 /// layout; the .NET type IS the storage. (Slice scope: WORKING-STORAGE groups + elementary items with fixed
 /// OCCURS recorded; FILE/LINKAGE/LOCAL-STORAGE, level-66/88, and REDEFINES follow in later slices.)
 /// </summary>
-public sealed partial class DataBinder(EditionContext? edition = null)
+public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceFacts
 {
     private int _fillerCounter;
     private int _uidCounter;
@@ -310,7 +310,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// to a later statement's; one recorded later is not — the pre-P5.7 order dependency, preserved verbatim
     /// and noted for the P7 lazy-place redesign). Post-bind consumers read <see cref="DataItem.StoreAsImage"/>
     /// (the Storage projection) instead.</summary>
-    internal bool IsImageBackedEarly(DataItem item) => _imageForcedItems.Contains(item);
+    public bool IsImageBackedEarly(DataItem item) => _imageForcedItems.Contains(item);
 
     /// <summary>The fully-parsed OPTIONS paragraph (ISO §11.9), program-level context for every later pass — the
     /// binder applies DEFAULT ROUNDED today (a bare ROUNDED phrase uses <see cref="OptionsModel.DefaultRounding"/>);
@@ -533,8 +533,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// ordinary-looking <c>dataReference</c>) and a property reference (§8.4.3.9 — <c>prop OF obj</c>, textually a
     /// qualified data reference, whose get/set accessor is a METHOD invocation). Only the binder can tell these from a
     /// subscripted or qualified data item, so it records the decision here once, where it makes it
-    /// (<c>IntrinsicBinder.KeywordOmittedFunction</c>, <c>ReferenceResolver.IsFunctionBearing</c>,
-    /// <c>ReferenceResolver.ResolveObjectProperty</c>), and the migration-flag pass reads it back for ISO §7.3.14.4
+    /// (<c>IntrinsicBinder.KeywordOmittedFunction</c>, <c>SubscriptBinder.IsFunctionBearing</c>,
+    /// <c>ObjectPropertyResolver.ResolveObjectProperty</c>), and the migration-flag pass reads it back for ISO §7.3.14.4
     /// GR4 b ("the source element calls any function, or invokes any method") instead of re-deriving the rule from
     /// syntax. Identity-keyed: a node is a call site or it is not.</summary>
     internal HashSet<object> ActivationSites { get; } = new(ReferenceEqualityComparer.Instance);
@@ -1947,13 +1947,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // A subscript or a reference-modifier may be written on the base word OR on a qualifier (`qualification`
         // carries both suffix kinds too), and it is the same violation in either place: every name in
         // §8.4.2.2.2 Format 1 — data-name-1 and each data-name-2 — is a bare data-name.
-        // ⛔ THE SUFFIXES ARE READ BY THE ONE LEXICAL READER, ReferenceResolver.ReadOperandSuffixes (kb/Work
+        // ⛔ THE SUFFIXES ARE READ BY THE ONE LEXICAL READER, RefModBinder.ReadOperandSuffixes (kb/Work
         // PB481). A reference-modifier reaches the binder through TWO carriers frozen at lex time — the parsed
         // `refModPart` and the SUBSCRIPT-mode captured group with a depth-0 colon — and this screen used to walk
         // the parse tree itself and count EVERY `subscriptPart` as a subscript, so `RECORD KEY IS IX-KEY(1:3)`
         // (the captured carrier, the usual one) was refused as "written with a subscript". The refusal was right
         // and the sentence was false; the reader that knows both carriers is the only one that can say which.
-        var sfx = ReferenceResolver.ReadOperandSuffixes(dref);
+        var sfx = RefModBinder.ReadOperandSuffixes(dref);
         bool subscripted = sfx.Subscripts > 0, refModified = sfx.RefMods > 0;
         if (subscripted)
             edition.Error(DiagnosticCatalog.ClauseOperandNotADataName,
@@ -1973,10 +1973,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// file clause or a SORT key ("where data-name-n is used in a general format or syntax rule, then
     /// reference-modification is not permitted"), so it is refused by the SAME sentence and the SAME code, and
     /// the NOTE is worded in one place (kb/Work PB1457). Reads the suffixes through the one lexical reader,
-    /// <see cref="ReferenceResolver.ReadOperandSuffixes"/>; true when the reference carries no reference modifier.</summary>
+    /// <see cref="RefModBinder.ReadOperandSuffixes"/>; true when the reference carries no reference modifier.</summary>
     internal static bool ScreenReferenceModifier(Core.DataReferenceContext dref, string clauseFace, EditionContext edition)
     {
-        if (ReferenceResolver.ReadOperandSuffixes(dref).RefMods == 0) return true;
+        if (RefModBinder.ReadOperandSuffixes(dref).RefMods == 0) return true;
         using var _ = edition.At(dref);
         ReportReferenceModified(dref, clauseFace, edition);
         return false;
@@ -3738,7 +3738,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <summary>⛔ THE ONE ANSWER to "does the REPOSITORY paragraph in scope identify this word as an
     /// intrinsic-function-name?" (kb/Work PB1083) — asked by the declaration screen (<see cref="DeclareUserWord"/>),
     /// the keyword-omitted function reference (<c>IntrinsicBinder.KeywordOmittedFunction</c>) and the subscript
-    /// renderer's function detection (<c>ReferenceResolver.IsFunctionBearing</c>), which used to ask
+    /// renderer's function detection (<c>SubscriptBinder.IsFunctionBearing</c>), which used to ask
     /// <c>IntrinsicCatalog.TryGet(written word)</c> three times over and so ignored both halves below.
     /// <list type="bullet">
     /// <item>&gt;&gt;COBOL-WORDS, through the ONE resolution (<c>CobolWordsMap.Resolve</c>, kb/Work PB250): §12.3.8.4
@@ -6682,7 +6682,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
     /// <summary>The VALUE operands this binder has already diagnosed — one report per source operand even when
     /// two callers read the same node (<see cref="ExtractValue"/> screens a THRU range or a glued literal list
-    /// that <see cref="RawValueOperandText"/> may also visit). The <c>ReferenceResolver._diagnosed</c>
+    /// that <see cref="RawValueOperandText"/> may also visit). The <c>ReferenceResolver.Diagnosed</c>
     /// shape.</summary>
     private readonly HashSet<Core.ValueClauseOperandContext> _valueOperandDiagnosed = [];
 
@@ -7247,7 +7247,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     + "GROUP-USAGE clause may be specified only if the subject of the entry is not strongly typed "
                     + "(ISO §13.18.29.3 SR1)");
             using (Edition.Muted(answered))
-                if (ReferenceResolver.HasVariableLengthSubordinate(item))
+                if (DataItem.HasVariableLengthSubordinate(item))
                     Edition.Error(DiagnosticCatalog.GroupUsageRule, $"data item '{item.CobolName ?? "FILLER"}': the "
                         + "GROUP-USAGE clause may be specified only if the subject of the entry is not a "
                         + "variable-length group (ISO §13.18.29.3 SR1; §8.5.1.12)");
@@ -8212,7 +8212,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// mixed-USAGE pun is an ordinary byte-window class. D rejects the nested pointer/object backstop and the
     /// NATIONAL residue.</summary>
     // (ContainsDynamicTable was deleted with kb/Work PB177 arm C: its SUBORDINATE half is §13.18.44.3 SR17's,
-    // now screened per written entry through ReferenceResolver.HasVariableLengthSubordinate — §8.5.1.12.1's own
+    // now screened per written entry through DataItem.HasVariableLengthSubordinate — §8.5.1.12.1's own
     // definition of "variable-length group" — and its SELF half is the narrowed `m.IsDynamicTable` test at the
     // COBOL1525 arm. Two spellings of one walk collapsed into the predicate the standard actually defines.)
 
@@ -8544,6 +8544,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <summary>Every item in the WORKING-STORAGE forest, in declaration (pre-order DFS) order.</summary>
     private IEnumerable<DataItem> AllItems() => Roots.SelectMany(DataItem.SelfAndDescendantsOf);
 
+    /// <summary>Every data item a consumer may ask a <see cref="Place"/> of by item (<c>PlaceTablePass</c>, kb/Work PB2375): the
+    /// forest, and the LINKAGE formals and the RETURNING item with their subordinates - a formal a method declares can sit
+    /// outside <see cref="Roots"/>. Each item once.</summary>
+    internal IEnumerable<DataItem> PlaceableItems() => AllItems()
+        .Concat(LinkageFormals.Select(f => f.Item).Concat(LinkageReturning is { } ret ? [ret] : []).SelectMany(DataItem.SelfAndDescendantsOf))
+        .Distinct(ReferenceEqualityComparer.Instance).Cast<DataItem>();
+
     /// <summary>The SUBORDINATE items of this forest's own TYPEDEF templates (<see cref="AllTypeDecls"/>, kept
     /// off <see cref="Roots"/>), pre-order in declaration order: the members the programmer wrote and the clones
     /// <c>ExpandTypes</c> composed inside a template for a member's TYPE clause (kb/Work PB1302). A type declaration
@@ -8643,7 +8650,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// </para>
     /// <para>⛔ AND IT IS THE ONLY COPY. The binder used to carry a weaker private twin
     /// (<c>FindQualified</c>/<c>QualifiersMatch</c>) that matched the IN/OF chain but knew nothing about the
-    /// file-name qualifier and never counted survivors, beside <c>ReferenceResolver.ResolveQualified</c>, which
+    /// file-name qualifier and never counted survivors, beside <c>NameResolution.ResolveQualified</c>, which
     /// did both — one rule written down twice, with the procedure division reading the complete one and the data
     /// division the partial one (feedback_one_rule_one_place). <see cref="ReferenceResolver"/> now calls this.
     /// </para></summary>
@@ -8830,7 +8837,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// referenced, uniqueness shall be established through a sequence of qualifiers that precludes any ambiguity
     /// of reference" — reported HERE, at the caller's cursor, under the procedure division's own descriptor
     /// (COBOL1639) and with its disposition: an error, or under <c>--permissive</c> a warning and the
-    /// first-declared survivor (ReferenceResolver.ResolveUnqualified, kb/Work R33). None returns null WITHOUT a
+    /// first-declared survivor (NameResolution.ResolveUnqualified, kb/Work R33). None returns null WITHOUT a
     /// report: an operand that names nothing breaks the CLAUSE's own rule, which the caller states
     /// (<paramref name="ambiguityReported"/> says which of the two a null is).
     /// <para>⛔ THE VERDICT DOES NOT DEPEND ON WHETHER IT IS REPORTED. <paramref name="report"/> false asks the same

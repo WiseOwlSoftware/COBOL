@@ -156,6 +156,9 @@ internal static class BindPipeline
         new("UsageCollectionPass", PassPhase.ProcedureBound, PassPhase.UsageCollected, UsageCollectionPass.Run),
         // Settle every StoreAsImage flag (temp re-sync → image marking → OO harmonize), then classify StorageForm.
         new("StorageFormPass", PassPhase.UsageCollected, PassPhase.StorageComputed, StorageFormPass.Run),
+        // Every Place the backend asks of an ITEM (not of a written reference) is built here, once, in the model layer
+        // (kb/Work PB2375): the storage-form pass settled the early-image facts the builder reads.
+        new("PlaceTablePass", PassPhase.StorageComputed, PassPhase.PlacesBuilt, PlaceTablePass.Run),
         // THE edition gate (P3's two-arm pass, now the NAMED terminal pass — P6 Step 4): the parse-tree arm fires
         // every syntactic introduction/removal/phrase gate on RECOGNITION; the bound-tree arm fires the
         // genuinely-semantic gates. Reports through the session's edition sink, so the Bind result carries every

@@ -109,7 +109,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         : PlaceRenderer.Write(MethodCellPlace(root), value);
 
     private Place MethodCellPlace(DataItem root) =>
-        Refs.ResolveItem(root) ?? throw new InvalidOperationException(
+        Places.Of(root) ?? throw new InvalidOperationException(
             $"OO method: the ADDRESS-OF-taken LINKAGE root '{root.CobolName}' resolved to no place");
 
     private UnitEmitters U => program.Current;
@@ -119,7 +119,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     private string Atoms(GroupAtom[] shape) => Ctx.Atoms.Ref(shape);
     private NumericRenderer Num => U.Num;
     private ConditionRenderer Cond => U.Cond;
-    private ReferenceResolver Refs => U.Refs;
+    private PlaceTable Places => U.Places;
 
     /// <summary>Emit the EXTERNAL record-area backings for a data forest (ISO §13.18.22.4 GR4b / §8.6.7): each
     /// <c>FD … IS EXTERNAL</c> record 01 re-bases onto a run-unit <c>ExternalStore</c> cell keyed by the FD name, so
@@ -443,7 +443,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             instAttributes.AddRange(RepositoryAttributeRenderer.TableRecords(record)
                 .Concat(RepositoryAttributeRenderer.PropertyRecords(record.Class!, factory: false)));
         EmitTypeHalf(cls.Name, cls.Symbol.ClrName, cls.Symbol.HalfPath(factory: false), instBase,
-            cls.Data, cls.Refs, cls.Bound, cls.Symbol.Methods, w,
+            cls.Data, cls.Places, cls.Bound, cls.Symbol.Methods, w,
             headerExtras: instExtras.Count > 0 ? instExtras : null,
             sealedType: cls.Symbol.IsFinal,
             typeAttributes: instAttributes,
@@ -487,7 +487,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             extras.Add("protected override void __AdoptRunUnitStorage(RunUnit runUnit) { base.__AdoptRunUnitStorage(runUnit); "
                 + string.Join(" ", adopt) + " }   // method WORKING-STORAGE → this run unit (ISO §14.6.2.3.2 / §14.6.11)");
         EmitTypeHalf(cls.Name, cls.Symbol.FactoryClrName, cls.Symbol.HalfPath(factory: true), facBase,
-            cls.FactoryData, cls.FactoryRefs, cls.FactoryBound, cls.Symbol.FactoryMethods, w, extras,
+            cls.FactoryData, cls.FactoryPlaces, cls.FactoryBound, cls.Symbol.FactoryMethods, w, extras,
             sealedType: cls.Symbol.IsFinal,
             typeAttributes: record is null ? [] : [.. RepositoryAttributeRenderer.PropertyRecords(record.Class!, factory: true)],
             methodRecords: methodRecords?.Skip(cls.Symbol.Methods.Count).ToList());
@@ -499,13 +499,13 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// extras differ). <paramref name="typeAttributes"/> are the type's repository attributes and
     /// <paramref name="methodRecords"/>, when the module carries signatures, the roster's method records in roster order.</summary>
     private void EmitTypeHalf(string cobolName, string csName, string describerPath, string baseCsName,
-        DataBinder data, ReferenceResolver refs, BoundProgram bound, IReadOnlyList<OoMethodSymbol> roster,
+        DataBinder data, PlaceTable places, BoundProgram bound, IReadOnlyList<OoMethodSymbol> roster,
         CodeWriter w, IReadOnlyList<string>? headerExtras, bool sealedType,
         IReadOnlyList<string> typeAttributes, IReadOnlyList<MethodRecord>? methodRecords)
     {
         if (methodRecords is not null && methodRecords.Count != roster.Count)
             throw new InvalidOperationException($"OoEmitter: {csName} has {roster.Count} methods and {methodRecords.Count} method records");
-        program.BeginUnit(w, data, refs);
+        program.BeginUnit(w, data, places);
         callState.SelfPath = CallUnitState.NoProgramPath;   // a method is contained in no program (§8.4.6.3; kb/Work PB2843)
         callState.ReturningPlace = null;      // methods deliver results via slice-2 RETURNING, never the program ABI
         callState.Formals = [];               // a class has no program-ABI formals — clear the last program's (GR1c recognition)
@@ -1080,7 +1080,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // cell-backed (an ADDRESS OF target) or a Tier-B REDEFINES window has NO field of its own — its storage
             // is a window over the class backing — so `=> {ClrName}` was a CS0103 on legal source. A plain field's
             // place renders as its name, so the ordinary accessor is unchanged.
-            var subjPlace = Refs.ResolveItem(subject);
+            var subjPlace = Places.Of(subject);
             string getExpr = subjPlace is null ? subject.ClrName : PlaceRenderer.Read(subjPlace);
             // An accessor is a method activation too (§14.9.23.4 GR7 d) — its external-item check precedes its body.
             string check = MethodExternalCheck(m) is { } mx ? mx + " " : "";

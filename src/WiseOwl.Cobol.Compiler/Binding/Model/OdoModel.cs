@@ -276,7 +276,7 @@ public static class OdoModel
     /// renders <c>CobolTable.Occ(place)</c>, storage-form agnostic). <see langword="null"/> for a fixed table (the
     /// caller uses the compile-time maximum) or a DYNAMIC table (a runtime <c>Capacity</c>, rendered from the table
     /// path — mutually exclusive with the Format-2 DEPENDING form). data-name-1 is resolved post-build (SR20).</summary>
-    public static Place? SearchDepending(DataItem table, ReferenceResolver refs) =>
-        table.OccursSpec is { Depending: { } dep } ? refs.ResolveItem(dep) : null;
+    internal static Place? SearchDepending(DataItem table, PlaceBuilder places) =>
+        table.OccursSpec is { Depending: { } dep } ? places.ResolveItem(dep) : null;
 }
 

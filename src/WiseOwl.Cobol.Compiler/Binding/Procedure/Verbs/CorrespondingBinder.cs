@@ -463,7 +463,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         {
             DataItem leaf = chain[^1];
             // An alias member is ELEMENTARY (GR2 includes no groups), so its chain is the member alone.
-            if (_isAlias) return chain.Count == 1 ? _refs.ResolveItem(leaf) : null;
+            if (_isAlias) return chain.Count == 1 ? _refs.Places.ResolveItem(leaf) : null;
             if (_isMember)
             {
                 if (chain.All(CorrPlainMember))
@@ -476,7 +476,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
                 }
                 // A chain member inside a non-alias REDEFINES class stores in the class BACKING, not as a struct
                 // member — reachable absolutely (from the root) only when the group reference has no subscript.
-                return _subscripted ? null : _refs.ResolveItem(leaf);
+                return _subscripted ? null : _refs.Places.ResolveItem(leaf);
             }
             // A Tier-B view group: the child window sits at the class-offset delta from the group's hoisted
             // offset; the group's subscript displacement (already inside the hoisted value) applies to both

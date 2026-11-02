@@ -283,7 +283,7 @@ public sealed partial class DataBinder
         {
             var saved = ActiveMethodScope;
             ActiveMethodScope = method?.DataScope;
-            try { hit = new ReferenceResolver(this).FindItem(name, quals); }
+            try { hit = new ReferenceResolver(this).Names.FindItem(name, quals); }
             finally { ActiveMethodScope = saved; }
         }
         return hit is not null && DeclaringDepth(hit) == 0 ? hit : null;

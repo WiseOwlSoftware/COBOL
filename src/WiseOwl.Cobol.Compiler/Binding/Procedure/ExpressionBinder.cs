@@ -174,7 +174,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>The C# <c>long</c> index cell when <paramref name="dref"/> is an INDEXED BY index-name reference
     /// — bare or QUALIFIED (§8.4.2.2.2 Format 3; §8.4.2.2.3 SR6 — <c>SET IX OF T TO 1</c>) — else
     /// <see langword="null"/>. Index-names are a separate name class (<see cref="DataBinder.IndexNames"/>), not the
-    /// data-item tree; the ONE resolution <see cref="ReferenceResolver.ResolveIndexName"/> counts the candidates, so
+    /// data-item tree; the ONE resolution <see cref="NameResolution.ResolveIndexName"/> counts the candidates, so
     /// a duplicated spelling written without the qualifiers that settle it is §8.4.2.2.3 SR1's error — reported
     /// there, and still answered with an (inert) cell so the caller keeps the index-name shape instead of
     /// re-resolving the word as a data-name (kb/Work PB919).</summary>
@@ -189,8 +189,8 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             if (suffix.qualification() is not { } q || q.ChildCount != 2) return null;
             (quals ??= []).Add(q.cobolWord().GetText());
         }
-        var ix = ctx.Refs.ResolveIndexName(w, (IReadOnlyList<string>?)quals ?? [], dref);
-        return ix.Outcome is ReferenceResolver.IndexRefOutcome.NotAnIndexName ? null : ix.Cell;
+        var ix = ctx.Refs.Names.ResolveIndexName(w, (IReadOnlyList<string>?)quals ?? [], dref);
+        return ix.Outcome is IndexRefOutcome.NotAnIndexName ? null : ix.Cell;
     }
 
     // ── Operands & expressions ─────────────────────────────────────────────────────────────────────────────
@@ -994,7 +994,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // §8.4.3.5.3 SR2 — "An object-view shall not be specified as a receiving operand" — for the view of a qualified data
         // item the grammar spells as one chain (`A OF G AS C`, kb/Work PB1425); the property of a view (`P OF U AS C`) is
         // a property and receivable (§8.4.3.9.3 SR6), and a view of a plain name parses as a `nonReceivableIdentifier`.
-        if (ctx.Refs.IsObjectViewOfQualifiedItem(dref)) return Bar(NonReceivableForm.ObjectView, dref);
+        if (ctx.Refs.ObjectProperties.IsObjectViewOfQualifiedItem(dref)) return Bar(NonReceivableForm.ObjectView, dref);
         // A constant-name substitutes a LITERAL (ISO §13.10.3 SR2 / §13.10.4 GR1) and a symbolic-character IS one, a
         // figurative constant (§12.3.7.4 GR11 a)) — a literal can never be a receiving operand; without this the name
         // would fall to Refs.Resolve and fail as merely "unresolved" (a symbolic-character did, kb/Work PB1544).

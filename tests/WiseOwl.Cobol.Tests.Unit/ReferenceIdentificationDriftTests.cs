@@ -26,15 +26,15 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class ReferenceIdentificationDriftTests
 {
-    private static readonly string ReferenceResolver = File.ReadAllText(
-        Path.Combine(TestRepo.Src("WiseOwl.Cobol.Compiler"), "Binding", "ReferenceResolver.cs"));
+    /// <summary>The reference-resolution subsystem as one text: the rules live in the funnel and the parts it composes.</summary>
+    private static readonly string ReferenceResolver = ResolverSources.Text;
 
     /// <summary>The text of the member whose declaration line contains <paramref name="signature"/>, through its closing
     /// brace (brace matching over the source; a member is found by its signature, so a rename is red here).</summary>
     private static string BodyOf(string signature)
     {
         int at = ReferenceResolver.IndexOf(signature, StringComparison.Ordinal);
-        Assert.True(at >= 0, $"{signature} is no longer in ReferenceResolver.cs — the scan measured nothing");
+        Assert.True(at >= 0, $"{signature} is no longer in the reference-resolution source — the scan measured nothing");
         int open = ReferenceResolver.IndexOf('{', at);
         int depth = 0;
         for (int i = open; i < ReferenceResolver.Length; i++)
@@ -101,10 +101,10 @@ public sealed class ReferenceIdentificationDriftTests
         // it inherits the counted-together verdict and keeps no candidate set of its own.
         string text = File.ReadAllText(Path.Combine(TestRepo.Src("WiseOwl.Cobol.Compiler"),
             "Binding", "Procedure", "Verbs", "IntrinsicBinder.cs"));
-        Assert.Contains("ctx.Refs.SumCounterFamilyFor(dref, name, quals, report: true)", text, StringComparison.Ordinal);
+        Assert.Contains("ctx.Refs.Counters.SumCounterFamilyFor(dref, name, quals, report: true)", text, StringComparison.Ordinal);
         // ... and its table lookup is the REPORTED one (the §8.4.2.2 report and the §13.7.3 SR4 screen), not a bare FindItem.
-        Assert.Contains("ctx.Refs.FindReportedItem(dref, name, quals)", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("Refs.FindItem(", text, StringComparison.Ordinal);
+        Assert.Contains("ctx.Refs.Names.FindReportedItem(dref, name, quals)", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Names.FindItem(", text, StringComparison.Ordinal);
     }
 
     /// <summary>The two references that name a TABLE rather than a place — the SEARCH / SORT table operand and the

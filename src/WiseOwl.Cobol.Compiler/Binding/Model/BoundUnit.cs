@@ -53,6 +53,9 @@ internal sealed class BoundUnit
     public bool IsPrototype;
     public DataBinder Data = null!;
     public ReferenceResolver Refs = null!;
+    /// <summary>The Places of this unit's data items, built once binding is done (<c>PlaceTablePass</c>) - what the code
+    /// generator reads in place of asking the resolver (kb/Work PB2375).</summary>
+    public PlaceTable Places = null!;
     public BoundProgram Bound = null!;
     public List<CallBridge> Bridges = [];
 

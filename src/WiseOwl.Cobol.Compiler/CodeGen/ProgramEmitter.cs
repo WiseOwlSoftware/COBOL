@@ -62,8 +62,8 @@ internal sealed class ProgramEmitter
     /// <summary>Begin one emitted unit: re-create the per-unit context/renderer quadruple and every
     /// collaborator emitter over the fresh writer/data/resolver (the <see cref="UnitEmitters"/> ctor wires
     /// the cycles).</summary>
-    internal void BeginUnit(CodeWriter w, DataBinder data, ReferenceResolver refs)
-        => Current = new UnitEmitters(w, data, refs, _names, _atoms, _dispatchState, _ecState, _callState, _oo,
+    internal void BeginUnit(CodeWriter w, DataBinder data, PlaceTable places)
+        => Current = new UnitEmitters(w, data, places, _names, _atoms, _dispatchState, _ecState, _callState, _oo,
             _whenCompiledStamp);
 
     /// <summary>The C# spelling of a module namespace (kb/Work PB4265): its CLR name with every segment that is a C#
@@ -291,10 +291,10 @@ internal sealed class ProgramEmitter
     private void EmitProgramClass(BoundUnit unit, CodeWriter w)
     {
         var data = unit.Data;
-        BeginUnit(w, data, unit.Refs);
-        var refs = Current.Refs;
+        BeginUnit(w, data, unit.Places);
+        var places = Current.Places;
         _callState.SelfPath = unit.RegistryKey;
-        _callState.ReturningPlace = data.LinkageReturning is { } ret ? refs.ResolveItem(ret) : null;
+        _callState.ReturningPlace = data.LinkageReturning is { } ret ? places.Of(ret) : null;
         // §8.8.4.8.4 GR1c forwarding (kb/Work PB165) — of this unit's own formals AND of every container formal it sees
         // as a GLOBAL name, whose forward passes on the same carrier, presence and argument area (kb/Work PB2096).
         _callState.Formals = [.. data.LinkageFormals, .. unit.InheritedFormals];
@@ -319,7 +319,7 @@ internal sealed class ProgramEmitter
             statusDepth++;
             foreach (var f in anc.Data.Files)
                 if (f.IsGlobal && f.FileStatusItem is { } si && !_callState.InheritedStatusPlace.ContainsKey(f)
-                    && anc.Refs.ResolveItem(si) is { } sp
+                    && anc.Places.Of(si) is { } sp
                     && AnchorPlace(sp, member => anc.AnchorOf(member, statusDepth)) is { } pp)
                     _callState.InheritedStatusPlace[f] = pp;
         }
@@ -331,7 +331,7 @@ internal sealed class ProgramEmitter
         var formals = data.LinkageFormals
             .Select(f =>
             {
-                Place? place = f.CarrierResident ? null : refs.ResolveItem(f.Item);
+                Place? place = f.CarrierResident ? null : places.Of(f.Item);
                 var crossing = FormalCrossing(f, place);
                 return (Formal: f, Place: place, Crossing: crossing, Carrier: FormalCarrierType(f, crossing));
             })
@@ -875,7 +875,7 @@ internal sealed class ProgramEmitter
                 int fc = u.Data.LinkageFormals.Count;
                 int rq = fc;
                 while (rq > 0 && u.Data.LinkageFormals[rq - 1].Optional) rq--;
-                string? retItem = u.Data.LinkageReturning is { } ri && u.Refs.ResolveItem(ri) is { } retPlace
+                string? retItem = u.Data.LinkageReturning is { } ri && u.Places.Of(ri) is { } retPlace
                     ? Current.Call.RegisteredReturning(retPlace, describe: u.Data.ArgMismatchChecking) : null;
                 // Each FORMAL's registered description (kb/Work PB165), for §14.8.2's argument comparison at a dynamic
                 // CALL — the whole description only by a unit that checks EC-PROGRAM-ARG-MISMATCH itself (GR3d's activated
@@ -885,7 +885,7 @@ internal sealed class ProgramEmitter
                 // pointers or ANY LENGTH items and that does not check keeps its Register line as it was. The record builder
                 // reads only the formal's own description (its PicInfo carries its currency sign and decimal point), so the
                 // current unit's emitters render it for every unit.
-                var formalItems = u.Data.LinkageFormals.Select(f => u.Refs.ResolveItem(f.Item) is { } fp
+                var formalItems = u.Data.LinkageFormals.Select(f => u.Places.Of(f.Item) is { } fp
                     ? Current.Call.RegisteredFormal(fp, describe: u.Data.ArgMismatchChecking)
                     : RuntimeApi.UnstatedBoundaryItem).ToList();
                 string formalsText = formalItems.Any(s => s != RuntimeApi.UnstatedBoundaryItem)
