@@ -64,8 +64,12 @@ public sealed class NotLocatedReasonTests
         END PROGRAM P2847CALLEE.
         """;
 
-    /// <summary>One caller program: the working-storage every case needs, then <paramref name="procedure"/>.</summary>
+    /// <summary>One caller program: the working-storage every case needs, then <paramref name="procedure"/>. The function
+    /// definition comes FIRST, because the caller's REPOSITORY names it, and a definition answers a function specifier
+    /// only when it is "specified previously in the same compilation group" (ISO §12.3.8.4 GR11 a)); the caller stays the main program, which is
+    /// the first program definition.</summary>
     private static string Caller(string programId, string name, string procedure) => $"""
+        {Function}
         IDENTIFICATION DIVISION.
         PROGRAM-ID. {programId}.
         ENVIRONMENT DIVISION.
@@ -82,7 +86,6 @@ public sealed class NotLocatedReasonTests
         {procedure}
             STOP RUN.
         END PROGRAM {programId}.
-        {Function}
         {Callee}
         """;
 

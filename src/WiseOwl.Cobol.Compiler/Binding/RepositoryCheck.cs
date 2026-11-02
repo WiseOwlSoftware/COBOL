@@ -33,10 +33,14 @@ internal static class RepositoryCheck
         if (!space.Check) return;
         var outermost = units.Where(u => u.Parent is null).ToList();
         if (outermost.Count == 0) return;
-        var records = new List<(string Source, RepositoryRecord Record)>();
-        if (space.OutputPath is { } output && (space.Inputs?.FileExists(output) ?? File.Exists(output)))
-            records.AddRange(PreviousBuild(Path.GetFullPath(output), session).Select(r => ($"the previous build '{Path.GetFullPath(output)}'", r)));
-        records.AddRange(session.Repository.External.OpenedRecords().Select(e => ($"the repository entry '{e.Path}'", e.Record)));
+        var records = new List<(string Source, RepositoryRecord Record, bool Previous)>();
+        // The previous build is the compilation's OWN output path, which the compilation then replaces. A finding against it
+        // marks the input record as a repository read, so a result that reports one is never replayed; a result that reports
+        // none is replayed only over no previous build or over its own output byte for byte (CompiledProgramCache.TryHit),
+        // where a cold compile reports none either.
+        if (space.OutputPath is { } output && File.Exists(output))   // not a compilation input: the compilation's own output, see above
+            records.AddRange(PreviousBuild(Path.GetFullPath(output), session).Select(r => ($"the previous build '{Path.GetFullPath(output)}'", r, true)));
+        records.AddRange(session.Repository.External.OpenedRecords().Select(e => ($"the repository entry '{e.Path}'", e.Record, false)));
         if (records.Count == 0) return;
 
         // The records are decoded into a partition of their own: what they describe is compared, never admitted into the
@@ -44,7 +48,7 @@ internal static class RepositoryCheck
         // equal across the two instances, §6.4).
         var classes = new PrototypeSignatureClasses();
         foreach (var unit in outermost)
-            foreach (var (source, record) in records)
+            foreach (var (source, record, previous) in records)
             {
                 if (IsFunction(record.Kind) != unit.IsFunction || !ExternalizedNames.Same(record.ExternalizedName, unit.ExternalizedName))
                     continue;
@@ -55,6 +59,7 @@ internal static class RepositoryCheck
                         decoded.Signature) is not { } difference)
                     continue;
                 string kind = unit.IsFunction ? "function" : "program";
+                if (previous) space.Inputs.RecordRepositoryRead();
                 using var _ = session.Edition.At(BinderDriver.NameCtx(unit));
                 session.Edition.Warning(DiagnosticCatalog.RepositorySignatureDiffers,
                     $"the {kind}{(unit.IsPrototype ? " prototype" : "")} {unit.Name} AS \"{unit.ExternalizedName}\" differs from "
@@ -71,7 +76,6 @@ internal static class RepositoryCheck
     /// no signatures has nothing to compare; one of another schema, runtime major or call ABI is REPO-12.</summary>
     private static IReadOnlyList<RepositoryRecord> PreviousBuild(string output, BindSession session)
     {
-        session.SearchSpace.Inputs?.RecordRepositoryRead();
         RepositoryIndexOutcome opened;
         try { opened = RepositoryIndex.Open(output); }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return []; }
@@ -83,6 +87,7 @@ internal static class RepositoryCheck
                 : RuntimeAbi.Skew(index.RuntimeVersion, index.CallAbi);
             if (skew is not null)
             {
+                session.SearchSpace.Inputs.RecordRepositoryRead();
                 session.Edition.Warning(DiagnosticCatalog.RepositoryPreviousBuildSkew,
                     $"the previous build '{output}' is not compared with this compilation: {skew} (ISO §8.13; DESIGN-external-repository §9.2)");
                 return [];

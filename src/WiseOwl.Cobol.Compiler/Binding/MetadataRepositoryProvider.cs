@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Repository;
 using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Editions.Diagnostics;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Repository;
 
@@ -15,14 +16,29 @@ namespace WiseOwl.Cobol.Binding;
 /// never consulted for resolution (its previous build only by <paramref name="Check"/>'s comparison, §9.2).
 /// <paramref name="DirectoriesNamed"/> is true when the directories were written on the command line, so one that does not
 /// exist is an error (REPO-10) rather than an empty repository. <paramref name="Inputs"/> is the compilation's ambient-input
-/// record, which the provider marks when it consults the repository.</summary>
+/// record: every existence probe of a named place goes through it, and the provider marks it when it consults the
+/// repository.</summary>
 internal sealed record RepositorySearchSpace(
     IReadOnlyList<string> Directories, bool DirectoriesNamed, IReadOnlyList<string> References, string? OutputPath, bool Check,
-    Frontend.CompilationInputs? Inputs = null)
+    IRepositoryInputs Inputs)
 {
     /// <summary>No repository: an in-process bind with no output (a unit test's), which a specifier the group cannot answer
     /// leaves with nothing to search.</summary>
-    public static RepositorySearchSpace None { get; } = new([], DirectoriesNamed: false, [], OutputPath: null, Check: false);
+    public static RepositorySearchSpace None { get; } =
+        new([], DirectoriesNamed: false, [], OutputPath: null, Check: false, NoCompilation.Instance);
+
+    /// <summary><see cref="None"/>'s record: a bind with no compilation has no input record to mark, and names no place, so
+    /// nothing probes one.</summary>
+    private sealed class NoCompilation : IRepositoryInputs
+    {
+        public static NoCompilation Instance { get; } = new();
+
+        public bool FileExists(string path) => throw new InvalidOperationException("the empty search space names no file");
+
+        public bool DirectoryExists(string path) => throw new InvalidOperationException("the empty search space names no directory");
+
+        public void RecordRepositoryRead() { }
+    }
 }
 
 /// <summary>An entry of the external repository: the assembly at <paramref name="Path"/> (module version id
@@ -90,19 +106,22 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider
         _edition = edition;
         _output = space.OutputPath is { } output ? Path.GetFullPath(output) : null;
         // REPO-10 is a fault of the command line, stated before any source position: an existence probe per named place (no
-        // listing, so the zero-cost rule holds), recorded as an input of the compilation.
+        // listing, so the zero-cost rule holds), recorded as an input of the compilation. The output directory, which stands
+        // in when no --repository is written, is not probed: a missing one is an empty repository (the locator lists nothing
+        // there), nothing is read from it before a question, and a question marks the record (§16) — so whether it exists
+        // decides nothing a compilation that asks no question produces, and the compilation itself creates it.
         foreach (var directory in space.Directories)
         {
             string full = Path.GetFullPath(directory);
-            if (space.Inputs?.DirectoryExists(full) ?? Directory.Exists(full)) _locations.Add(new Location(full, IsDirectory: true));
-            else if (space.DirectoriesNamed)
+            if (!space.DirectoriesNamed || space.Inputs.DirectoryExists(full)) _locations.Add(new Location(full, IsDirectory: true));
+            else
                 edition.Error(DiagnosticCatalog.RepositoryLocationUnavailable,
                     $"--repository '{directory}': no such directory, so the external repository cannot be read there (DESIGN-external-repository §9.3)");
         }
         foreach (var reference in space.References)
         {
             string full = Path.GetFullPath(reference);
-            if (space.Inputs?.FileExists(full) ?? File.Exists(full)) _locations.Add(new Location(full, IsDirectory: false));
+            if (space.Inputs.FileExists(full)) _locations.Add(new Location(full, IsDirectory: false));
             else
                 edition.Error(DiagnosticCatalog.RepositoryLocationUnavailable,
                     $"--reference '{reference}': no such file, so the external repository cannot be read there (DESIGN-external-repository §9.3)");
@@ -176,7 +195,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider
     {
         if (_consulted) return;
         _consulted = true;
-        _space.Inputs?.RecordRepositoryRead();
+        _space.Inputs.RecordRepositoryRead();
     }
 
     /// <summary>GR10 c) / GR11 c): the first entry of the search space publishing the name (§8.6), decoded; REPO-2 for a later

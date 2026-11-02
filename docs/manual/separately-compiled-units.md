@@ -23,9 +23,22 @@ In a directory, the assembly named after the unit (`PAY.dll` for `PROGRAM PAY`) 
 publish the unit, every assembly of the directory is. The first entry found is used. The assembly being produced is
 never searched: its previous build is the information this compilation updates.
 
+`pay.cob` is a program compiled on its own:
+
 ```cobol
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. CALLER.
+       PROGRAM-ID. PAY.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 AMOUNT PIC 9(7)V99.
+       PROCEDURE DIVISION USING AMOUNT.
+           DISPLAY AMOUNT
+           GOBACK.
+```
+
+`caller.cob` names it in its REPOSITORY paragraph and calls it:
+
+```cobol
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        REPOSITORY.

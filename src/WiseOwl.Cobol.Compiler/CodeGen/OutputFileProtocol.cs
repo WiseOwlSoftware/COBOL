@@ -36,7 +36,7 @@ internal static class OutputFileProtocol
         }
         finally
         {
-            if (!written || File.Exists(temporary)) TryDelete(temporary);
+            if (!written || File.Exists(temporary)) TryDelete(temporary);   // not a compilation input: this write's own temporary file
         }
     }
 

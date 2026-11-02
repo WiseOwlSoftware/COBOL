@@ -360,6 +360,15 @@ internal static class CompiledProgramCache
                 if (System.Environment.GetEnvironmentVariable(env.Name) != env.Value) return null;
 
             string outDir = OutputDirectory(options);
+            // --repository-check compares the group with the PREVIOUS BUILD at the output path (DESIGN-external-repository
+            // §9.2 (a)), and a compilation that read one is never stored (CompilationInputs.ReadsRepository). A stored entry
+            // therefore replays only where a cold compile would find nothing to report: no previous build, or one that IS this
+            // entry's output byte for byte.
+            string previous = OutputDll(options);
+            if (options.RepositoryCheck && File.Exists(previous)
+                && entry.Files.Find(f => string.Equals(f.Name, Path.GetFileName(previous), StringComparison.OrdinalIgnoreCase)) is var dll
+                && (dll is null || Sha256Hex(File.ReadAllBytes(previous)) != dll.Blob))
+                return null;
             var written = new List<string>();
             if (entry.Files.Count > 0) Directory.CreateDirectory(outDir);
             foreach (var file in entry.Files)

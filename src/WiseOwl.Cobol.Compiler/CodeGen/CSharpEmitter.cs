@@ -27,10 +27,10 @@ public sealed partial class CSharpEmitter
     /// driver fails the compile when any exist, BEFORE emit). A thin shim over
     /// <see cref="BinderDriver.Bind"/> (rearch PHASE-06 Step 2 — the Binder phase owns the orchestration; the
     /// OO bind bodies live on <see cref="Compiler.Oo.OoDriver"/> since P9 Step 4). <see cref="EmitBound"/> renders C# from the result — codegen never runs on an errored
-    /// tree.</summary>
+    /// tree. It binds with no external repository; the compiler driver, which has one, calls the binder itself.</summary>
     internal BoundCompilation Bind(Core.CompilationUnitContext tree, EditionContext? edition = null,
-        WiseOwl.Cobol.Frontend.Preprocessor.DirectiveResults? directives = null, RepositorySearchSpace? repository = null)
-        => new BinderDriver().Bind(tree, edition ?? new EditionContext(2023), directives, repository);
+        WiseOwl.Cobol.Frontend.Preprocessor.DirectiveResults? directives = null)
+        => new BinderDriver().Bind(tree, edition ?? new EditionContext(2023), directives);
 
     /// <summary>Render typed-native C# from an already-bound immutable <see cref="BoundCompilation"/> (the emit
     /// half of the bind/emit split) — a fresh <see cref="ProgramEmitter"/> per call; the compilation carries

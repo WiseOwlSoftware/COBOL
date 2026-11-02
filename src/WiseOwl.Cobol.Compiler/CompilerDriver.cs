@@ -206,7 +206,7 @@ public static class CompilerDriver
             options.RepositoryPaths ?? [Path.GetDirectoryName(Path.GetFullPath(outputDll))!],
             DirectoriesNamed: options.RepositoryPaths is not null,
             options.ReferencePaths ?? [], outputDll, options.RepositoryCheck, inputs);
-        var bound = emitter.Bind(tree, edition, frontend.Directives, repository);   // Phase 2a — BIND (terminal = conformance pass)
+        var bound = new Binding.BinderDriver().Bind(tree, edition, frontend.Directives, repository);   // Phase 2a — BIND (terminal = conformance pass)
         if (edition.Diagnostics.Count > 0)
             return new Result(Outcome.BindError, "", null, edition.Diagnostics, [.. feWarnings, .. edition.Warnings])
                 { Inputs = inputs, CompileOutput = diagnostics.CompileOutput };

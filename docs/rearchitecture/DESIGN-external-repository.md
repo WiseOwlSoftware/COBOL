@@ -1569,7 +1569,13 @@ run time by §14.9.4.4 GR3 d) when checking is enabled in both, and adopt the ar
 recompile them"). An old-schema previous build is REPO-12 (informational) and skipped. Why a warning: a signature
 change is a normal event, this compile is the update, and §10.6.2 SR2/SR3's "shall" is scoped to one compilation
 group. Cost: one header read per entry the resolver already opened, plus the previous output when it exists.
-`CompilerDriver.Options.RepositoryCheck`.
+`CompilerDriver.Options.RepositoryCheck`. **Recorded inputs (kb/Work PB985, PB2103).** The previous build is the
+compilation's own output path, which the compilation then replaces, so its existence is no recorded probe; a finding
+against it (REPO-9 or REPO-12) marks `CompilationInputs.ReadsRepository`, and the compiled-program cache replays a
+stored result over an existing output only when that output is the stored one byte for byte, where a cold compile
+finds nothing to report. The default directory of §9.3 (the output directory) is not probed either: a missing one is
+an empty repository and nothing is read there before a question, which marks the record; a named `--repository`
+directory and a `--reference` file are probed through the record (`IRepositoryInputs`, the binder's view of it).
 
 ### 9.3 Naming the repository
 `--repository DIR` (repeatable, in order; default: the output directory); `--reference FILE.dll` (repeatable, after the
