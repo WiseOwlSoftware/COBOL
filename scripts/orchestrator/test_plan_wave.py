@@ -1376,6 +1376,30 @@ if fc:
     check("PB4452: a file family past one implementer's size fills a second group before a third opens",
           ([g.notes for g in fp["groups"]], fp["waiting"]),
           ([["PB971", "PB972", "PB973"], ["PB974", "PB975"]], {}))
+    # the home a dependent group joins (review w20261832a R2-2, R3-1): never a group on its file in ANOTHER dependency
+    # chain (it runs beside, after its own blocker), and always its own blocker's group when that one is on its file,
+    # successor or not (one step per file)
+    DW = TMP / "deps-home" / "kb" / "Work"
+    DW.mkdir(parents=True)
+    dsite = {"PB971": "src/Lib/Alpha.cs", "PB972": "src/Lib/Beta.cs", "PB973": "src/Lib/Alpha.cs"}
+    for nid, f in dsite.items():
+        (DW / f"{nid}.md").write_text(chr(10).join(["---", f'title: "{nid} t"', f"id: {nid}", "kind: defect", "status: open",
+                                                    "area: runtime/io", "wrong_answer: false", "process_only: true", "---",
+                                                    "", f"# {nid}", "", "**Sites:**", f"- `{f}`", ""]),
+                                      encoding="utf-8", newline="\n")
+    dnotes = load_notes(DW, {"wrong_answer": 8})
+    dclusters = [{"notes": [{"id": i}], "file": dsite[i], "files": [dsite[i]], "members": {}} for i in dsite]
+    drules = json.loads(json.dumps(RULES))
+    drules["wave"]["links_per_chain"] = 99
+    other = pw.plan(dnotes, dclusters, [], [], lambda b: "ABSENT", {}, drules, budget_points=100, deps={"PB973": ["PB972"]})
+    own = pw.plan(dnotes, dclusters, [], [], lambda b: "ABSENT", {}, drules, budget_points=100,
+                  deps={"PB972": ["PB971"], "PB973": ["PB971"]})
+    check("PB4452: a dependent group runs after its own blocker, beside a group on its file in another chain; and joins its "
+          "own blocker's group on its file even when that group has a successor",
+          ([(g.letter, g.after, g.notes) for g in other["groups"]], other["waiting"],
+           [(g.letter, g.after, g.notes) for g in own["groups"]], own["waiting"]),
+          ([("A", "", ["PB971"]), ("B", "", ["PB972"]), ("B2", "B", ["PB973"])], {},
+           [("A", "", ["PB971", "PB973"]), ("A2", "A", ["PB972"])], {}))
 
 # 9c. THE PLACEMENT ORDER IS THE TIER, AND A WAVE RUNS ONE LINK PER CHAIN (kb/Work PB3638, the owner's fix-cycle bar).
 #     Wave 20261029 chained two untiered FINISHERS (PB3112, PB2878) ahead of the tier-1 cluster PB3612 on one file,

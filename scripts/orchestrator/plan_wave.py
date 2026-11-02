@@ -146,9 +146,9 @@ continuation lands it (prune_worktrees.chain_links). AN EMPTY SET HOLDS NOTHING 
 PB3670, superseding PB3263's subsystem rule): a group none of whose notes declares a site block and with no primary
 file located, or a dispatch the ledger recorded with no files, meets nothing, in flight and within the wave; the plan
 table and its spec name it UNPARTITIONED, and its implementer adds the notes' `**Sites:**` paragraphs in its first
-checkpoint (from its first edit its worktree's actual diff is in flight like any other). Within a wave two groups are ONE
-group when their claims MEET on ANY file they both claim (collision, the rule the in-flight check applies, kb/Work
-PB3696, PB4396), not only on a shared primary file. A finisher's set includes the
+checkpoint (from its first edit its worktree's actual diff is in flight like any other). Within a wave a group joins one whose claim
+it MEETS on ANY file they both claim (collision, kb/Work PB3696, PB4396) while that one has room; past that it runs
+beside as a group of its own unless the two edit one member (hold: overflow), kb/Work PB4452. A finisher's set includes the
 files and units of the branch it continues. A branch ANOTHER group of the same wave continues is planned work, never a
 hold (kb/Work PB3528): the group that meets it is that group's work (PB4396), so two SPLIT branches sharing a file are
 finished by one finisher instead of each waiting on the other forever. Both rules read an in-flight branch as
@@ -733,10 +733,9 @@ def plan_partition(s: PlanState) -> None:
             holders = [t for t in family if hold(g.claim, t.claim)]
             # a group with room in ANOTHER dependency chain is no home (review w20261832a R2-2): joining it would make
             # the group wait a wave on the chain check below, where running beside costs nothing
-            linked = {id(p) for p in pred_of.values()} | set(pred_of)
             needs = {id(resolve(group_of[b])) for i in g.notes for b in (deps or {}).get(i, []) if b in group_of}
             roomy = [t for t in family if not t.overflow and len(t.notes) + len(g.notes) <= s.cap
-                     and id(t) not in linked and (not needs or needs == {id(t)})]
+                     and (not needs or needs == {id(t)})]
             family = holders if holders else roomy[:1]
         if family:
             # ONE STEP PER FILE (kb/Work PB4396): the work of one file family is one group, sized by turns.

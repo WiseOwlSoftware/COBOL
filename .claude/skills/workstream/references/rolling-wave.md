@@ -36,7 +36,7 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   wave plans onto the branch
   the group leaves. The chain lands ONCE, with its last link: the dispatch ledger keeps both records and the branch
   survey reads a link reviewed CLEAN that a later link carries, or will carry, IN FLIGHT (`prune_worktrees.py`
-  `chain_links`). Two groups of one wave never meet (`check_practices.py`, no `after:` exception). This replaced the
+  `chain_links`). Two groups of one wave never edit one member (`check_practices.py`, `inflight.hold`, no `after:` exception); sharing a file they may (kb/Work PB4452). This replaced the
   4-note cap (kb/Work PB3704), the same-file successor (kb/Work PB3670) and, for same-file chains, kb/Work PB3381's
   "land the clean links as they come": together they built, gated, reviewed and landed one file's work once per link.
 - **Dependency successors.** A campaign group blocked by another group (on the same files or not) declares
